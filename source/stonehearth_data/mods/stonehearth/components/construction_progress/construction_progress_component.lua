@@ -32,6 +32,10 @@ function ConstructionProgress:initialize(entity, json)
       end)
 end
 
+function ConstructionProgress:destroy()
+   self:unlink()   
+end
+
 function ConstructionProgress:clone_from(other)
    if other then
       local other_cp = other:get_component('stonehearth:construction_progress')
@@ -72,6 +76,10 @@ function ConstructionProgress:unlink()
    for id, blueprint in pairs(self._sv.inverse_dependencies) do
       blueprint:add_component('stonehearth:construction_progress')
                      :remove_dependency(self._entity)
+   end
+   for id, blueprint in pairs(self._sv.dependencies) do
+      blueprint:add_component('stonehearth:construction_progress')
+                     :_remove_inverse_dependency(self._entity)
    end
 end
 

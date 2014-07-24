@@ -107,6 +107,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translate",    &T::Translate)
          .def("translated",   &T::Translated)
          .def("inflated",     &T::Inflated)
+         .def("intersects",   &T::Intersects)
          .def("get_border",   &T::GetBorder)
          .def("scaled",       &T::Scaled)
       ;
