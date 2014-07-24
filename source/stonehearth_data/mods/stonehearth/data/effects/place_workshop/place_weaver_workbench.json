@@ -4,7 +4,7 @@
         "sound": {
          "type": "sound_effect",
          "duration": 5000,
-         "start_delay": 0,
+         "start_time": 0,
          "min_distance": 30,
          "max_distance": 90,
          "volume": 50,

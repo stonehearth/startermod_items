@@ -6,7 +6,6 @@
    "description" : "Pattern(TM) Rayya's Children Weavers Guild.",
    "flavor"      : "Beauty is in the mind of the banner-holder.",
    "portrait"    : "/stonehearth/entities/generic/default_object/default_object.png",
-   "category"    : "decoration",
 
    "ingredients": [
       {

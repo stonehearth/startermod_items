@@ -13,9 +13,6 @@
          "full_sized_entity" : "stonehearth:wooden_door",
          "hide_place_item_command" : true
       },
-      "item" : {
-         "category" : "construction"
-      },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
       }

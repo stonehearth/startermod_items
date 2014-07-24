@@ -928,7 +928,10 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
    if (IsEntitySolid(entity)) {
       return IsStandable(entity, region);
    }
-   return IsStandable(region);
+   if (!region.IsEmpty()) {
+      return IsStandable(region);
+   }
+   return IsStandable(location);
 }
 
 

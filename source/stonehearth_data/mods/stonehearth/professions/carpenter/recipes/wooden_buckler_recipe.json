@@ -6,7 +6,6 @@
    "description" : "Toughen up your foot soldiers... when you can actually equip them in a future alpha!",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/armor/wooden_buckler/wooden_buckler.png",
-   "category"    : "armor",
 
    "ingredients": [
       {

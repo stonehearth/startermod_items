@@ -6,7 +6,6 @@
    "description" : "Promotes a citizen into a Footman.",
    "flavor"      : "Just pointy enough to get the job done.",
    "portrait"    : "/stonehearth/entities/weapons/wooden_sword/wooden_sword.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

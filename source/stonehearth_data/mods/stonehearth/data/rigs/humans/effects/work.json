@@ -4,7 +4,7 @@
       "animation": {
             "type": "animation_effect",
             "start_time": 0,
-            "speed" : 3.0,
+            "speed" : 2.0,
             "animation": "work.json",
             "loop": false
       },
@@ -23,8 +23,7 @@
       },
       "sound": {
          "type": "sound_effect",
-         "duration": 700,
-         "start_delay": 150,
+         "start_time": 150,
          "min_distance": 50,
          "max_distance": 100,
          "volume": 40,

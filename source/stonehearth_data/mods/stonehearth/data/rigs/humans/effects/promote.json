@@ -17,7 +17,7 @@
       "sound": {
          "type": "sound_effect",
          "duration": 8000,
-         "start_delay": 0,
+         "start_time": 0,
          "min_distance": 40,
          "max_distance": 60,
          "volume" : 80,
@@ -41,12 +41,12 @@
          }
       },
       "cleanup_trigger" : {
-            "type": "trigger_effect",
-            "start_frame": 200,
-            "info": {
-               "event": "remove_talisman",
-               "talisman": "{{talisman}}"
-            }
+         "type": "trigger_effect",
+         "start_frame": 200,
+         "info": {
+            "event": "remove_talisman",
+            "talisman": "{{talisman}}"
+         }
       }
    }
 }

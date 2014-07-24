@@ -15,9 +15,6 @@
          "icon" : "file(spool_of_thread.png)"
 
       },
-      "item" : {
-         "category" : "cloth tools_and_goods"
-      },
       "stonehearth:material" : {
          "tags" :  "thread resource"
       }

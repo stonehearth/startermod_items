@@ -1,9 +1,7 @@
 local GenericEffect = require 'modules.effects.generic_effect'
 local AnimationEffect = require 'modules.effects.animation_effect'
-local FrameDataEffect = require 'modules.effects.frame_data_effect'
 local TriggerEffect = require 'modules.effects.trigger_effect'
-local MusicEffect = require 'modules.effects.music_effect'
-local CubemitterEffect = require 'modules.effects.cubemitter_effect'
+local SoundEffect = require 'modules.effects.sound_effect'
 local LightEffect = require 'modules.effects.light_effect'
 local ActivityOverlayEffect = require 'modules.effects.activity_overlay_effect'
 local UnitStatusEffect = require 'modules.effects.unit_status_effect'
@@ -39,26 +37,24 @@ function EffectTracks:__init(mgr, entity, effect_path, effect_name, start_time, 
    radiant.check.verify(effect)
 
    self._effects = {}
-   for name, e in pairs(effect.tracks) do
-      self._log:spam('adding effect track "%s" of type "%s"', name, e.type)
-      if e.type == "animation_effect" then
-         local animation = self._mgr._animation_root .. '/' .. e.animation
-         self._effects[name] = AnimationEffect(animation, start_time, e)
-      elseif e.type == "trigger_effect" then
-         self._effects[name] = TriggerEffect(start_time, trigger_handler, e, self, entity, args)
-      elseif e.type == "attack_frame_data" then
-         self._effects[name] = FrameDataEffect(start_time, trigger_handler, e, self._effect)
-      elseif e.type == "sound_effect" then
-         self._effects[name] = MusicEffect(start_time, e)
-      elseif e.type == "light" then
-         self._effects[name] = LightEffect(e)
-      elseif e.type == "activity_overlay_effect" then
-         self._effects[name] = ActivityOverlayEffect(e)
-      elseif e.type == "unit_status_effect" then
-         self._effects[name] = UnitStatusEffect(e, start_time)
+   for name, info in pairs(effect.tracks) do
+      self._log:spam('adding effect track "%s" of type "%s"', name, info.type)
+      if info.type == "animation_effect" then
+         local animation = self._mgr._animation_root .. '/' .. info.animation
+         self._effects[name] = AnimationEffect(animation, start_time, info)
+      elseif info.type == "sound_effect" then
+         self._effects[name] = SoundEffect(start_time, info)
+      elseif info.type == "trigger_effect" then
+         self._effects[name] = TriggerEffect(start_time, trigger_handler, info, self, entity, args)
+      elseif info.type == "light" then
+         self._effects[name] = LightEffect(info)
+      elseif info.type == "activity_overlay_effect" then
+         self._effects[name] = ActivityOverlayEffect(info)
+      elseif info.type == "unit_status_effect" then
+         self._effects[name] = UnitStatusEffect(info, start_time)
       else
-         self._log:debug('unknown effect type "%s".  using generic', e.type)
-         self._effects[name] = GenericEffect(start_time, trigger_handler, e, self._effect)
+         self._log:debug('using generic effect for "%s"', info.type)
+         self._effects[name] = GenericEffect(start_time, trigger_handler, info, self._effect)
       end
    end
 end
@@ -87,7 +83,7 @@ function EffectTracks:set_finished_cb(cb)
 end
 
 function EffectTracks:stop()
-   self._log:debug('manually stopping effect')
+   self._log:debug('stopping effect before it was finished: %s', self._name)
    self:_cleanup()
    return self
 end

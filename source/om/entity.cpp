@@ -150,7 +150,7 @@ void Entity::RemoveComponent(std::string const& name)
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
       i->second->DestroyController();
-      lua_components_.Remove(i->first);
+      lua_components_.Remove(name);
    }
 }
 

@@ -6,7 +6,6 @@
    "description" : "Minor obstacle for intruders.",
    "flavor"      : "Privacy at last!",
    "portrait"    : "/stonehearth/entities/construction/wooden_door/wooden_door.png",
-   "category"    : "weapons",
 
    "ingredients": [
       {

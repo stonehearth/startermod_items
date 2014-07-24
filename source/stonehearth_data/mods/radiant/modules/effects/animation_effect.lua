@@ -1,8 +1,8 @@
-local Effect = require 'modules.effects.effect'
-local AnimationEffect = class(Effect)
+local EffectTrack = require 'modules.effects.effect_track'
+local AnimationEffect = class(EffectTrack)
 
 function AnimationEffect:__init(animation_path, start_time, info)  
-   self[Effect]:__init(info)
+   self[EffectTrack]:__init(info)
 
    self._start_time = start_time + self:_get_start_time()
 
@@ -19,8 +19,7 @@ function AnimationEffect:__init(animation_path, start_time, info)
 end
 
 function AnimationEffect:update(e)
-   local now = e.now
-   return self._end_time == 0 or self._end_time >= now
+   return self._end_time == 0 or e.now <= self._end_time
 end
 
 return AnimationEffect

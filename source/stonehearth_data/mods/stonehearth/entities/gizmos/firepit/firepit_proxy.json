@@ -12,9 +12,6 @@
       "stonehearth:placeable_item_proxy" : {
          "full_sized_entity" : "stonehearth:firepit"
       },
-      "item" : {
-         "category" : "supplies"
-      },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0 }
       }

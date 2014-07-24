@@ -14,6 +14,14 @@
          "name": "Wooden Garden Lantern",
          "description": "A compact source of light",
          "icon" : "file(wooden_garden_lantern.png)"
+      },
+      "region_collision_shape": {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 2, "z" : 1 }
+            }
+         ]
       }
    }
 }

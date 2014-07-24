@@ -14,7 +14,7 @@
        "death_poof": {
          "type": "sound_effect",
          "duration": 2300,
-         "start_delay": 0,
+         "start_time": 0,
          "min_distance": 50,
          "max_distance": 100,
          "volume": 80,

@@ -104,7 +104,6 @@ function EffectManager:_add_effect(name, when, trigger_handler, args)
                                args)
    self._effects[effect] = true
    return effect
-   --md:send_msg(self._entity, 'radiant:animation:on_start', name)
 end
 
 function EffectManager:_remove_effect(e)

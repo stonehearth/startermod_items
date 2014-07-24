@@ -52,7 +52,7 @@
       "sound": {
          "type": "sound_effect",
          "duration": 300,
-         "start_delay":  500,
+         "start_time":  500,
          "min_distance": 20,
          "max_distance": 60,
          "volume": 20,
@@ -61,7 +61,7 @@
       "sound": {
          "type": "sound_effect",
          "duration": 300,
-         "start_delay": 2000,
+         "start_time": 2000,
          "min_distance": 20,
          "max_distance": 60,
          "volume": 20,
@@ -70,7 +70,7 @@
       "sound": {
          "type": "sound_effect",
          "duration": 300,
-         "start_delay": 2666,
+         "start_time": 2666,
          "min_distance": 20,
          "max_distance": 60,
          "volume": 20,

@@ -12,17 +12,37 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    --Save whether the entity is just a type or an actual entity to determine if we're 
    --going to place an actual object or just an object type
    assert(target_entity, "Must pass entity data about the object to place")
-   local next_call, target_entity_data
+
+   local placement_test_entity, destroy_placement_test_entity
+   local next_call, target_entity_data, test_entity, entity_being_placed
+   
    if type(target_entity) == 'string' then
       next_call = 'stonehearth:place_item_type_in_world'
-      target_entity_data = target_entity
+      target_entity_data = target_entity     
    else
       next_call = 'stonehearth:place_item_in_world'
-      target_entity_data = target_entity:get_id()
+      target_entity_data = target_entity:get_id()      
+      if target_entity:get_component('stonehearth:placed_item') then
+         placement_test_entity = target_entity
+      end
    end
+   
+   if not placement_test_entity then
+      -- we were requested to place an item by uri or by proxy.  create a placement test entity to test
+      -- each point in the location selector callback.  remember to delete it when we're done.
+      placement_test_entity = radiant.entities.create_entity(entity_uri)
+      destroy_placement_test_entity = true
+   end
+
    
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor(entity_uri)
+      :set_filter_fn(function (result)
+            if result.entity == target_entity then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+            return radiant.terrain.is_standable(placement_test_entity, result.brick)
+         end)
       :done(function(selector, location, rotation)
             _radiant.call(next_call, target_entity_data, entity_uri, location, rotation)
                :done(function (result)
@@ -38,6 +58,11 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
       :fail(function(selector)
             selector:destroy()
             response:reject('no location')
+         end)
+      :always(function()
+            if destroy_placement_test_entity then
+               radiant.entities.destroy_entity(placement_test_entity)
+            end
          end)
       :go()
 end

@@ -780,7 +780,7 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    float attenuation;
 
    //Optional members
-   auto i = node.find("start_delay");
+   auto i = node.find("start_time");
    if (i != node.end()) {
       delay = (int)i->as_int();
    } 
@@ -848,7 +848,12 @@ float PlaySoundEffect::CalculateAttenuation(int maxDistance, int minDistance) {
 
 PlaySoundEffect::~PlaySoundEffect()
 {
-   sound_->stop();
+   if (sound_->getLoop()) {
+      sound_->stop();
+   } else {
+      // allow the sound to play out instead of clipping it
+      // the AudioManageris holding the Sound (and SoundBuffer reference) to keep it alive until finished
+   }
 }
 
 /* PlaySoundEffect::Update

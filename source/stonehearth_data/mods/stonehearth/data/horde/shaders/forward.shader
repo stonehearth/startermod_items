@@ -142,7 +142,7 @@ void main( void )
 
   projFowPos = fowViewMat * pos;
 
-  gridLineCoords = vertPos + vec3(0.5, 0, 0.5);
+  gridLineCoords = pos.xyz + vec3(0.5, 0, 0.5);
 
   gl_Position = viewProjMat * pos;
 
