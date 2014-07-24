@@ -468,6 +468,7 @@ bool TextureResource::loadFrom( Resource* res, int xOffset, int yOffset, int wid
       ASSERT(texSize >= pbr->getSize());
       
       gRDI->copyTextureDataFromPbo( this->getTexObject(), pbr->getBufferObject(), xOffset, yOffset, width, height);
+      pbr->markSync();
       return true;
    }
 

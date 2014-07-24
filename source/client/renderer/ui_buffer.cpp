@@ -63,15 +63,25 @@ void UiBuffer::update(const csg::Region2& rgn, const radiant::uint32* buff)
    if (!uiPbo_[curBuff_]) {
       return;
    }
+   auto bounds = rgn.GetBounds();
 
-   memmove(getNextUiBuffer(), buff, rgn.GetArea() * 4);
+   perfmon::SwitchToCounter("system ui buffer copy to pbo");
+
+   radiant::uint32 buffStart = (rgn.GetBounds().min.x + (width_ * rgn.GetBounds().min.y));
+   radiant::uint32 *destBuff = (uint32 *)getNextUiBuffer();
+   buff += buffStart;
+   for (int i = 0; i < bounds.GetHeight(); i++) {
+      memmove(destBuff, buff, bounds.GetWidth() * 4);
+      destBuff += bounds.GetWidth();
+      buff += width_;
+   }
 
    perfmon::SwitchToCounter("unmap ui pbo");
    h3dUnmapResStream(uiPbo_[curBuff_], rgn.GetBounds().GetArea() * 4);
 
    perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
 
-   h3dCopyBufferToBuffer(uiPbo_[curBuff_], uiTexture_[curBuff_], 0, 0, width_, height_);
+   h3dCopyBufferToBuffer(uiPbo_[curBuff_], uiTexture_[curBuff_], bounds.min.x, bounds.min.y, bounds.GetWidth(), bounds.GetHeight());
 
    curBuff_ = (curBuff_ + 1) % MAX_BUFFERS;
 }
