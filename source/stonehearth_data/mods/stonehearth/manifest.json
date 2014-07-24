@@ -36,6 +36,7 @@
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
       "mixins:tree" : "file(mixins/tree)",
       "mixins:boulder" : "file(mixins/boulder)",
+      "mixins:plant" : "file(mixins/plant)",
       "mixins:item_properties" : "file(mixins/item_properties)",
       "mixins:placed_properties" : "file(mixins/placed_properties)",
       "mixins:resources:jerky" : "file(mixins/resources/jerky)",
@@ -117,12 +118,14 @@
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
       "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
 
+
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder" : "file(entities/boulders/medium_boulder)",
       "large_boulder" : "file(entities/boulders/large_boulder)",
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
+      "silkweed" : "file(entities/plants/silkweed/silkweed)",
 
       "oak_log" : "file(entities/trees/oak_tree/oak_log)",
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",

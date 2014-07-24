@@ -6,6 +6,9 @@
          },
          "wooden_sword" : {
             "uri" : "file(wooden_sword_recipe.json)"
+         },
+         "weaver_spindle" : {
+            "uri" : "file(weaver_spindle_recipe.json)"
          }
       },
       "construction_building" : {

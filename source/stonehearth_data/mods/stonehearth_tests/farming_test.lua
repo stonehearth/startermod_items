@@ -27,7 +27,6 @@ function FarmingTest:__init()
    }
 
    stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
-   stonehearth.farming:add_crop_type(session, 'stonehearth:cotton_crop')
 end
 
 return FarmingTest

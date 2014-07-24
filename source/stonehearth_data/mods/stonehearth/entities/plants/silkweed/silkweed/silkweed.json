@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:plant", 
+   "type" : "entity",
+   "components" : {
+      "unit_info" : {
+         "name": "Wild silkweed", 
+         "description": "This plant's fiber can be spun into thread",
+         "portrait": "file(portrait.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(silkweed.qb)"
+            ]
+         },
+         "depleted": {
+            "models": [
+               "file(silkweed_harvested.qb)"
+            ]
+         }
+      },
+      "stonehearth:renewable_resource_node": {
+         "resource": "stonehearth:silkweed_bundle",
+         "renewal_time" : "22h"
+      }
+	}
+}

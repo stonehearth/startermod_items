@@ -7,7 +7,8 @@
          "file(static/racoon_nest)",
          "file(static/terrain/small_boulder_cluster)",
          "file(static/terrain/medium_boulder_cluster)",
-         "file(static/terrain/large_boulder_cluster)"
+         "file(static/terrain/large_boulder_cluster)",
+         "file(static/terrain/silkweed_field)"
       ],
       "categories" : {
          "terrain" : {

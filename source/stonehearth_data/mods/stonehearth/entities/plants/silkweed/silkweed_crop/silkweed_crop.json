@@ -29,7 +29,7 @@
          }, 
          "silkweed_5": {
             "models": [
-               "file(silkweed_5.qb)"
+               "file(../silkweed/silkweed.qb)"
             ]
          }, 
          "silkweed_9": {
@@ -59,7 +59,7 @@
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
-         "growth_period" : "11h",
+         "growth_period" : "1h",
          "growth_stages" : [
             {
                "model_name" : "silkweed_1",
@@ -82,7 +82,7 @@
                "name": "Mature silkweed"
             },
             {
-               "model_name" : "silkweed_8",
+               "model_name" : "silkweed_9",
                "name": "Rotten silkweed"
             }
          ]
