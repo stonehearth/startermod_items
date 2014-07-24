@@ -120,10 +120,17 @@ end
 
 function StockpileComponent:destroy()
    log:info('%s destroying stockpile component', self._entity)
+
    all_stockpiles[self._entity:get_id()] = nil
+
    for id, item in pairs(self._sv.stocked_items) do
       self:_remove_item_from_stock(id)
    end
+
+   local player_id = self._entity:add_component('unit_info'):get_player_id()
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   inventory:remove_storage(self._entity)
+
    if self._ec_trace then
       self._ec_trace:destroy()
       self._ec_trace = nil

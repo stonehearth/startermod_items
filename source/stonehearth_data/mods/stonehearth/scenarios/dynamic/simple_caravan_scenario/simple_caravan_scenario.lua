@@ -10,15 +10,14 @@ function SimpleCaravan:can_spawn()
    --Only spawn the caravan if there is at least 1 stockpile
    local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
    local storage = inventory:get_all_storage()
-   local num_stockpiles = 0
+
    for id, storage in pairs(storage) do
-      if storage and not storage:get_component('stonehearth:stockpile'):is_outbox() then
-         num_stockpiles = num_stockpiles + 1
-         break
+      local stockpile_component = storage:get_component('stonehearth:stockpile')
+      if stockpile_component and not stockpile_component:is_outbox() then
+         return true
       end
    end  
-   local should_run = num_stockpiles > 0
-   return should_run
+   return false
 end
 
 --[[

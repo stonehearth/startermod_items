@@ -64,7 +64,7 @@
          }
       },
       "rewards" : {
-         "stonehearth:cotton_crop" : {
+         "stonehearth:silkweed_crop" : {
             "type" : "crop"
          },
          "stonehearth:simple_wall_lantern_proxy" : {

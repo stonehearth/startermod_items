@@ -1,11 +1,11 @@
 { 
    "craftable_recipes" : {
       "tools_weapons_armor" : {
-         "spool_of_thread" : {
-            "uri" : "file(spool_of_thread_recipe.json)"
+         "thread" : {
+            "uri" : "file(thread.json)"
          },
-         "bolt_of_cloth" : {
-            "uri" : "file(bolt_of_cloth_recipe.json)"
+         "cloth_bolt" : {
+            "uri" : "file(cloth_bolt.json)"
          }
       },
       "construction_building" : {
