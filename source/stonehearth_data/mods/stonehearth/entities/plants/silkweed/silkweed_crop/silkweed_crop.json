@@ -1,0 +1,94 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(silkweed_4.qb)"
+            ]
+         },
+         "silkweed_1": {
+            "models": [
+               "file(silkweed_1.qb)"
+            ]
+         },
+         "silkweed_2": {
+            "models": [
+               "file(silkweed_2.qb)"
+            ]
+         },
+         "silkweed_3": {
+            "models": [
+               "file(silkweed_3.qb)"
+            ]
+         },
+         "silkweed_4": {
+            "models": [
+               "file(silkweed_4.qb)"
+            ]
+         }, 
+         "silkweed_5": {
+            "models": [
+               "file(silkweed_5.qb)"
+            ]
+         }, 
+         "silkweed_9": {
+            "models": [
+               "file(silkweed_9.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": -0.3, "z": 0.05 }
+      },
+      "unit_info": {
+         "name": "Silkweed", 
+         "description": "This plant's fiber can be spun into thread", 
+         "icon" : "file(icon.png)",
+         "portrait" : "file(portrait.png)"
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "silkweed_5": "stonehearth:silkweed_bundle",
+            "silkweed_9": ""
+         }, 
+         "harvest_threshhold" : "silkweed_5", 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "11h",
+         "growth_stages" : [
+            {
+               "model_name" : "silkweed_1",
+               "name": "Silkweed seedling"
+            },
+            {
+               "model_name" : "silkweed_2",
+               "name": "Silkweed sprout"
+            },
+            {
+               "model_name" : "silkweed_3",
+               "name": "Stubby silkweed"
+            },
+            {
+               "model_name" : "silkweed_4",
+               "name": "Immature silkweed"
+            },
+            {
+               "model_name" : "silkweed_5",
+               "name": "Mature silkweed"
+            },
+            {
+               "model_name" : "silkweed_8",
+               "name": "Rotten silkweed"
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop silkweed"
+      }
+   }
+}

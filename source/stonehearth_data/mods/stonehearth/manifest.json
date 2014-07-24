@@ -115,7 +115,7 @@
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
-      "cotton_ball" : "file(entities/plants/cotton/cotton_ball)",
+      "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
 
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
@@ -146,7 +146,7 @@
       "tester_crop" : "file(entities/plants/tester/tester_crop)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
-      "cotton_crop" : "file(entities/plants/cotton/cotton_crop)", 
+      "silkweed_crop" : "file(entities/plants/silkweed/silkweed_crop)", 
 
       "pink_flower" : "file(entities/ground_clutter/pink_flower)",
 
@@ -156,7 +156,7 @@
       "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
       "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
 
-      "cloth_bolt" : "file(entities/crafting_materials/cloth_bolt)",
+      "cloth_bolt" : "file(entities/cloth/cloth_bolt)",
 
       "comfy_bed" :       "file(entities/furniture/comfy_bed)",
       "comfy_bed_proxy" : "file(entities/furniture/comfy_bed/comfy_bed_proxy.json)",
@@ -205,7 +205,7 @@
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
 
-      "spool_of_thread" : "file(entities/crafting_materials/spool_of_thread)",
+      "thread" : "file(entities/cloth/thread)",
 
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",

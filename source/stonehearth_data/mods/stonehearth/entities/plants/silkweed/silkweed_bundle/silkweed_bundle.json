@@ -4,22 +4,23 @@
    "components": {
       "item": {
          "material": "cloth",
-         "stacks": 1
+         "stacks": 3, 
+         "max_stacks" : 3
       },
       "stonehearth:material" : {
-         "tags" : "fiber"
+         "tags" : "fiber resource"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(wool_bundle.qb)"
+               "file(silkweed_bundle.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Bundle of Wool",
+         "name": "Silkweed bundle",
          "description": "Spinnable into thread",
-         "icon" : "file(wool_bundle.png)"
+         "icon" : "file(silkweed_bundle.png)"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }

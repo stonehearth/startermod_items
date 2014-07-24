@@ -12,7 +12,7 @@ function WeaverTest:__init()
 
    -- put some items in the world
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
-   self:place_item_cluster('stonehearth:cotton_ball', 10, 3, 5, 5)
+   self:place_item_cluster('stonehearth:silkweed_bundle', 10, 3, 5, 5)
 
 end
 

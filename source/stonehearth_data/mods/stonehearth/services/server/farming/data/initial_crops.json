@@ -10,7 +10,11 @@
       {
          "crop_type" : "stonehearth:corn_crop",
          "quantity" : 5
-      }
+      },
+      {
+         "crop_type" : "stonehearth:silkweed_crop",
+         "quantity" : 5
+      }      
    ], 
    "stonehearth:kingdoms:rayyas_children" : [
       {

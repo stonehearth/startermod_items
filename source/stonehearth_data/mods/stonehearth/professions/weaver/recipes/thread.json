@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 1,
+   "recipe_name" : "Spool of Thread",
+   "description" : "Needed for cloth. Warm and fluffy",
+   "flavor"      : "Each gram of fiber yearns to become a sweater.",
+   "portrait"    : "/stonehearth/entities/cloth/thread/thread.png",
+
+   "ingredients": [
+      {
+         "material" : "fiber resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:thread"
+      }
+  ]
+}
