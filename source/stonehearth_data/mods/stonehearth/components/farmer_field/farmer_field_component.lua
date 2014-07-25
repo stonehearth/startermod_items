@@ -101,10 +101,11 @@ function FarmerFieldComponent:destroy()
       for y=1, self._sv.size.y do
          local field_spacer = self._sv.contents[x][y]
          if field_spacer then
-            local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
-            if dirt_plot_component then
-               dirt_plot_component:set_field(nil, nil)
-            end
+            -- destroys the dirt and crop entities
+            -- if you don't want them to disappear immediately, then we need to figure out how they get removed from the world
+            -- i.e. render the plant as decayed and implement a work task to clear rubble
+            -- remember to undo ghost mode if you keep the entities around (see stockpile_renderer:destroy)
+            radiant.entities.destroy_entity(field_spacer)
          end
       end
    end
@@ -166,7 +167,7 @@ function FarmerFieldComponent:_init_dirt_plot(location, x, y)
    local field_spacer = radiant.entities.create_entity('stonehearth:tilled_dirt') 
    local render_info = field_spacer:add_component('render_info')
    render_info:set_model_variant('untilled_ground')
-   local dirt_plot_component = field_spacer:get_component('stonehearth:dirt_plot')
+   local dirt_plot_component = field_spacer:add_component('stonehearth:dirt_plot')
    dirt_plot_component:set_field(self._entity, Point2(x, y))
 
    -- every even column in the farm is a furrow

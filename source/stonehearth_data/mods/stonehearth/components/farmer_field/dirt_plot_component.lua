@@ -19,26 +19,22 @@ function DirtPlotComponent:initialize(entity, json)
       self._sv.auto_harvest = nil
       self._sv.is_furrow = nil
    else
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-            self:_set_up_listeners()
+      radiant.events.listen(radiant, 'radiant:game_loaded',
+         function(e)
+            self:_listen_to_crop_events()
             return radiant.events.UNLISTEN
-         end)
+         end
+      )
    end
 
 end
 
 function DirtPlotComponent:destroy()
-   if self._sv.contents then
-      radiant.events.unlisten(self._sv.contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
-      radiant.events.unlisten(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
-   end
-end
+   self:_unlisten_from_crop_events()
 
---Set up the different listeners based on the state of the plot
-function DirtPlotComponent:_set_up_listeners()
-   --is there a crop in us? If so, set up the dirt accordingly
    if self._sv.contents then
-      self:_set_crop_state()
+      radiant.entities.destroy_entity(self._sv.contents)
+      self._sv.contents = nil
    end
 end
 
@@ -166,16 +162,31 @@ function DirtPlotComponent:plant_crop(crop_type)
    local crop_component = planted_entity:get_component('stonehearth:crop')
    crop_component:set_dirt_plot(self._entity)
 
-   self:_set_crop_state()
+   self:_listen_to_crop_events()
 
    self.__saved_variables:mark_changed()
 end
 
 --When a crop is on us, do these things:
-function DirtPlotComponent:_set_crop_state()
+function DirtPlotComponent:_listen_to_crop_events()
+   local contents = self._sv.contents
+
    --listen for if the planted crop gets destroyed for any reason
-   radiant.events.listen(self._sv.contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
-   radiant.events.listen(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+   if not self._listening_to_crop_events and contents and contents:is_valid() then
+      radiant.events.listen(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
+      radiant.events.listen(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+      self._listening_to_crop_events = true
+   end
+end
+
+function DirtPlotComponent:_unlisten_from_crop_events()
+   local contents = self._sv.contents
+
+   if self._listening_to_crop_events and contents and contents:is_valid() then
+      -- contents might already be destroyed, in which case the event is orphaned until radiant.events cleans up
+      radiant.events.unlisten(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
+      radiant.events.unlisten(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+   end
 end
 
 --- If the crop is now harvestable, let the field know, so it can handle it according to policy
@@ -197,18 +208,14 @@ function DirtPlotComponent:_on_crop_removed()
       return
    end
 
-   --unlisten on the other handlers
-   radiant.events.unlisten(self._sv.contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
-
+   self:_unlisten_from_crop_events()
    self._sv.contents = nil
 
    --Tell the listening field that we're empty, so it can decide what to do next
    radiant.events.trigger_async(self._entity, 'stonehearth:crop_removed', {
-         plot_entity = self._entity,
-         location = self._sv.field_location,
-      })
-
-   return radiant.events.UNLISTEN
+      plot_entity = self._entity,
+      location = self._sv.field_location,
+   })
 end
 
 
