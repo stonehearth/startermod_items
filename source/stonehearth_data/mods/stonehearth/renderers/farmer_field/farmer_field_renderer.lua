@@ -1,5 +1,5 @@
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
+local RendererHelpers = require 'renderers.renderer_helpers'
+
 local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
@@ -46,7 +46,7 @@ end
 function FarmerFieldRenderer:_update_field_renderer()
    self._region:modify(function(cursor)
       cursor:clear()
-      cursor:add_cube(Rect2(Point2(0, 0), self._size))
+      cursor:add_cube(Rect2(Point2.zero, self._size))
    end)
    
    if self:_show_hud() then
@@ -58,34 +58,15 @@ function FarmerFieldRenderer:_update_field_renderer()
    end
 end
 
-function FarmerFieldRenderer:_update_query_flag(render_entity, mode)
-   if self:_show_hud() then
-      render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
-   else
-      render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
-   end
-end
-
 function FarmerFieldRenderer:_update_item_states(mode, item_map)
    if item_map == nil then
       return
    end
    for id, item in pairs(item_map) do
       if item:is_valid() then
-         local re = _radiant.client.create_render_entity(item)
-         local kind = self:_mode_to_material_kind(mode)
-         local material = re:get_material_path(kind)           
-         re:set_material_override(material)
-         self:_update_query_flag(re, mode)
+         local render_entity = _radiant.client.create_render_entity(item)
+         RendererHelpers.set_ghost_mode(render_entity, mode == 'hud')
       end
-   end
-end
-
-function FarmerFieldRenderer:_mode_to_material_kind(mode)
-   if self:_show_hud() then
-      return 'hud'
-   else 
-      return 'default'
    end
 end
 
@@ -142,7 +123,7 @@ end
 function FarmerFieldRenderer:_regenerate_node()
    self._region:modify(function(cursor)
       cursor:clear()
-      cursor:add_cube(Rect2(Point2(0, 0), self._size))
+      cursor:add_cube(Rect2(Point2.zero, self._size))
    end)
    
    self:_clear()
@@ -155,7 +136,6 @@ end
 function FarmerFieldRenderer:_show_hud()
    return self._ui_view_mode == 'hud'
 end
-
 
 function FarmerFieldRenderer:_clear()
    if self._render_node then

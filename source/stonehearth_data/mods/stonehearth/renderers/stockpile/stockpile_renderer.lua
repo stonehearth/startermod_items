@@ -1,5 +1,5 @@
-local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
+local RendererHelpers = require 'renderers.renderer_helpers'
+
 local Color4 = _radiant.csg.Color4
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
@@ -59,27 +59,11 @@ function StockpileRenderer:_update_item_states(mode, item_map)
    end
    for id, item in pairs(item_map) do
       if item:is_valid() then
-         local re = _radiant.client.get_render_entity(item)
-         if re ~= nil then
-            local kind = self:_mode_to_material_kind(mode)
-            local material = re:get_material_path(kind)
-            re:set_material_override(material)
-
-            if mode == 'hud' then
-               re:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
-            else
-               re:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
-            end
+         local render_entity = _radiant.client.get_render_entity(item)
+         if render_entity then
+            RendererHelpers.set_ghost_mode(render_entity, mode == 'hud')
          end
       end
-   end
-end
-
-function StockpileRenderer:_mode_to_material_kind(mode)
-   if mode == 'hud' then
-      return 'hud'
-   else 
-      return 'default'
    end
 end
 
@@ -112,7 +96,7 @@ function StockpileRenderer:_update()
       self._stockpile_items = self._sv.stocked_items
 
       if not self._region or self._region:get_bounds().max ~= self._sv.size then
-         self._region = Region2(Rect2(Point2(0, 0), self._sv.size))
+         self._region = Region2(Rect2(Point2.zero, self._sv.size))
 
          self:_regenerate_hud_node()
          self:_regenerate_dirt_node()
