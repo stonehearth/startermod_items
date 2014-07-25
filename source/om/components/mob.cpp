@@ -153,6 +153,7 @@ csg::Point3 Mob::GetGridLocation() const
 }
 
 static std::unordered_map<std::string, Mob::MobCollisionTypes> __str_to_type; // xxx -- would LOVE initializer here..
+static std::unordered_map<Mob::MobCollisionTypes, std::string> __type_to_str; // xxx -- would LOVE initializer here..
 
 void Mob::LoadFromJson(json::Node const& obj)
 {
@@ -188,6 +189,7 @@ void Mob::LoadFromJson(json::Node const& obj)
    if (__str_to_type.empty()) {
       __str_to_type["humanoid"] = HUMANOID;
       __str_to_type["tiny"]  = TINY;
+      __str_to_type["clutter"]  = CLUTTER;
    }
 
    if (obj.has("parent")) {
@@ -207,6 +209,11 @@ void Mob::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
 
+   if (__type_to_str.empty()) {
+      __type_to_str[HUMANOID] = "humanoid";
+      __type_to_str[TINY] = "tiny";
+      __type_to_str[CLUTTER] = "clutter";
+   }
    node.set("transform", GetTransform());
    node.set("model_origin", GetModelOrigin());
    node.set("region_origin", GetRegionOrigin());
@@ -214,6 +221,7 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("entity", GetEntityPtr()->GetStoreAddress());
    node.set("interpolate_movement", GetInterpolateMovement());
    node.set("in_free_motion", GetInFreeMotion());
+   node.set("mob_collision_type", __type_to_str[GetMobCollisionType()]);
    om::EntityPtr parent = GetParent().lock();
    if (parent) {
       node.set("parent", parent->GetStoreAddress());
@@ -238,6 +246,7 @@ csg::Cube3 Mob::GetMobCollisionBox() const
    case Mob::NONE:
       return csg::Cube3::zero;
    case Mob::TINY:
+   case Mob::CLUTTER:
       return csg::Cube3::one;
       break;
    case Mob::HUMANOID:
