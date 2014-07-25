@@ -325,8 +325,10 @@ void RenderDevice::updateBufferData( uint32 bufObj, uint32 offset, uint32 size, 
          glBufferData( buf.type, buf.size, NULL, buf.usage );
          glBufferSubData( buf.type, offset, size, data );
       } else {
-         // AMD and Intel cards are happier with just the buffer call.
-         glBufferData( buf.type, size, data, buf.usage );
+         // AMD perf with sub-buffer seems inconsistent across cards.
+         // Intel results (HD 4000) coming soon....
+         glBufferData( buf.type, buf.size, NULL, buf.usage );
+   		glBufferData( buf.type, size, data, buf.usage );
       }
    }
 	glBindBuffer( buf.type, 0 );
