@@ -34,7 +34,7 @@ struct ShaderContext;
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
 const uint32 QuadIndexBufCount = MaxNumOverlayVerts * 6;
-const uint32 MaxVoxelInstanceCount = 10000;
+const uint32 MaxVoxelInstanceCount = 1024;
 
 extern const char *vsDefColor;
 extern const char *fsDefColor;
@@ -261,6 +261,7 @@ protected:
 	
 	void drawRenderables( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
+   static uint32 acquireInstanceAttributeBuffer();
    static void drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
    static void drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel);
 	void renderDebugView();
@@ -313,8 +314,8 @@ protected:
 	uint32                             _vbCone, _ibCone, _vbFSPoly;
    uint32                             _vbFrust, _vbPoly, _ibPoly;
 
-   static uint32                      _vbInstanceVoxelData;
    static float*                      _vbInstanceVoxelBuf;
+   static std::unordered_map<RenderableQueue const*, uint32> _instanceDataCache;
 
    // Feature-level compatibility of the card, determined by GPU specifics.
    GpuCompatibility                    gpuCompatibility_;

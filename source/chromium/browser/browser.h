@@ -149,6 +149,7 @@ private:
    int                           _drawCount;
    int                           _neededToDraw;
    bool                          _dirty;
+   csg::Region2                  _dirtyRegion;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE

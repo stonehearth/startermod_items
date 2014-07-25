@@ -1244,7 +1244,6 @@ void SceneManager::_findNodes( SceneNode &startNode, std::string const& name, in
 	}
 }
 
-
 void SceneManager::fastCastRayInternal(int userFlags)
 {
    const Vec3f rayEnd = _rayOrigin + _rayDirection;
@@ -1254,33 +1253,39 @@ void SceneManager::fastCastRayInternal(int userFlags)
 	      {
             continue;
          }
+         if ((sn->_userFlags & userFlags) != userFlags) {
+            continue;
+         }
+
 		   Vec3f intsPos, intsNorm;
-         if ((sn->_userFlags & userFlags) == userFlags && sn->checkIntersection(_rayOrigin, rayEnd, _rayDirection, intsPos, intsNorm))
+         if (!sn->checkIntersection(_rayOrigin, rayEnd, _rayDirection, intsPos, intsNorm))
 		   {
-			   float dist = (intsPos - _rayOrigin).length();
+            continue;
+         }
 
-			   CastRayResult crr;
-			   crr.node = sn;
-			   crr.distance = dist;
-			   crr.intersection = intsPos;
-            crr.normal = intsNorm;
+			float dist = (intsPos - _rayOrigin).length();
 
-			   bool inserted = false;
-			   for( vector< CastRayResult >::iterator it = _castRayResults.begin(); it != _castRayResults.end(); ++it )
-			   {
-				   if( dist < it->distance )
-				   {
-					   _castRayResults.insert( it, crr );
-					   inserted = true;
-					   break;
-				   }
-			   }
+			CastRayResult crr;
+			crr.node = sn;
+			crr.distance = dist;
+			crr.intersection = intsPos;
+         crr.normal = intsNorm;
 
-            if( !inserted && _castRayResults.size() < _rayNum)
-			   {
-				   _castRayResults.push_back( crr );
-			   }
-		   }
+			bool inserted = false;
+			for( vector< CastRayResult >::iterator it = _castRayResults.begin(); it != _castRayResults.end(); ++it )
+			{
+				if( dist < it->distance )
+				{
+					_castRayResults.insert( it, crr );
+					inserted = true;
+					break;
+				}
+			}
+
+         if( !inserted && _castRayResults.size() < _rayNum)
+			{
+				_castRayResults.push_back( crr );
+			}
       }
    });
 }

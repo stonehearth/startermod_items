@@ -1326,7 +1326,7 @@ DLL void *h3dMapResStream( H3DRes res, int elem, int elemIdx, int stream, bool r
 	Returns:
 		nothing
 */
-DLL void h3dUnmapResStream( H3DRes res );
+DLL void h3dUnmapResStream( H3DRes res, int bytesMapped );
 
 DLL void h3dUpdateBoundingBox( H3DNode n, float minx, float miny, float minz, float maxx, float maxy, float maxz);
 

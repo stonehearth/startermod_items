@@ -64,7 +64,7 @@ public:
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
 	void *mapStream( int elem, int elemIdx, int stream, bool read, bool write );
-	void unmapStream();
+	void unmapStream(int bytesMapped);
 
 	TextureTypes::List getTexType() { return _texType; }
 	TextureFormats::List getTexFormat() { return _texFormat; }

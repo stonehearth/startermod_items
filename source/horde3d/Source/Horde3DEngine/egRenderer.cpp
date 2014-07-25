@@ -55,8 +55,8 @@ const char *fsDefColor =
 	"	gl_FragColor = color;\n"
 	"}\n";
 
-uint32 Renderer::_vbInstanceVoxelData;
 float* Renderer::_vbInstanceVoxelBuf;
+std::unordered_map<RenderableQueue const*, uint32> Renderer::_instanceDataCache;
 
 Renderer::Renderer()
 {
@@ -98,7 +98,6 @@ Renderer::~Renderer()
 	releaseShadowRB();
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
-   gRDI->destroyBuffer(_vbInstanceVoxelData);
    delete[] _vbInstanceVoxelBuf;
 	releaseShaderComb( _defColorShader );
 #if defined(OPTIMIZE_GSLS)
@@ -217,7 +216,6 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
    };
 	_vlInstanceVoxelModel = gRDI->registerVertexLayout( 4, attribsInstanceVoxelModel, divisorsInstanceVoxelModel );
 
-   _vbInstanceVoxelData = gRDI->createVertexBuffer(MaxVoxelInstanceCount * (4 * 4) * sizeof(float), DYNAMIC, nullptr);
    _vbInstanceVoxelBuf = new float[MaxVoxelInstanceCount * (4 * 4)];
 
    VertexLayoutAttrib attribsParticle[2] = {
@@ -2958,26 +2956,34 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
    glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
+
 void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel)
 {
    // Collect transform data for every node of this mesh/material kind.
    radiant::perfmon::SwitchToCounter("copy mesh instances");
    // Set vertex layout
 	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
-   float* transformBuffer = _vbInstanceVoxelBuf;
-   ASSERT(renderableQueue.size() <= MaxVoxelInstanceCount);
-   for (const auto& node : renderableQueue) {
-		const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
-		const VoxelModelNode *modelNode = meshNode->getParentModel();
-		
-      memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
-      transformBuffer += 16;
-   }
-   gRDI->updateBufferData(_vbInstanceVoxelData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
 
+   uint32 vbInstanceData = 0;
+   auto idcIt = _instanceDataCache.find(&renderableQueue);
+   if (idcIt != _instanceDataCache.end()) {
+      vbInstanceData = idcIt->second;
+   } else {
+      vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
+      float* transformBuffer = _vbInstanceVoxelBuf;
+      for (const auto& node : renderableQueue) {
+		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
+		   const VoxelModelNode *modelNode = meshNode->getParentModel();
+		
+         memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
+         transformBuffer += 16;
+      }
+      gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+      _instanceDataCache[&renderableQueue] = vbInstanceData;
+   }
    radiant::perfmon::SwitchToCounter("draw mesh instances");
    // Draw instanced meshes.
-   gRDI->setVertexBuffer(1, _vbInstanceVoxelData, 0, sizeof(float) * 16);
+   gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
    gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), renderableQueue.size());
    radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
 
@@ -2985,6 +2991,7 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
 	Modules::stats().incStat( EngineStats::BatchCount, 1 );
    Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount(lodLevel) / 3.0f) * renderableQueue.size() );
 }
+
 
 void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& renderableQueue, const VoxelMeshNode* vmn, int lodLevel)
 {
@@ -3419,11 +3426,12 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 void Renderer::finalizeFrame()
 {
 	++_frameID;
-	
 	// Reset frame timer
 	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
 
+   _instanceDataCache.clear();
+   gRDI->clearBufferCache();
    Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
 	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
    logPerformanceData();
@@ -3431,7 +3439,6 @@ void Renderer::finalizeFrame()
    Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
 }
-
 
 void Renderer::logPerformanceData()
 {

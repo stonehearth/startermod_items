@@ -309,7 +309,7 @@ void *VoxelGeometryResource::mapStream( int elem, int elemIdx, int stream, bool 
 }
 
 
-void VoxelGeometryResource::unmapStream()
+void VoxelGeometryResource::unmapStream(int bytesMapped)
 {
 	if( _mappedWriteStream )
 	{

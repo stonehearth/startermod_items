@@ -241,7 +241,7 @@ void Simulation::InitializeGameObjects()
 {
    octtree_ = std::unique_ptr<phys::OctTree>(new phys::OctTree(dm::OBJECT_MODEL_TRACES));
    octtree_->EnableSensorTraces(true);
-   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(octtree_->GetNavGrid()));
+   freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(*this, octtree_->GetNavGrid()));
 
    scriptHost_.reset(new lua::ScriptHost("server"));
 

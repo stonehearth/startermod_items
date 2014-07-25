@@ -361,6 +361,33 @@ void RenderDevice::unmapBuffer(uint32 bufObj)
    validateGLCall("Error unmapping buffer: %d");
 }
 
+uint32 RenderDevice::acquireBuffer(uint32 size)
+{
+   uint32 nearestSizePow2 = (int)pow(2, ceil(log(size) / log(2.0)));
+   auto& vbufs = _bufferCache.find(nearestSizePow2);
+
+   if (vbufs == _bufferCache.end()) {
+      vbufs = _bufferCache.emplace_hint(vbufs, nearestSizePow2, std::pair<uint32, std::vector<uint32>>());
+   }
+
+   uint32 nextFreeBuf = vbufs->second.first;
+
+   if (nextFreeBuf == vbufs->second.second.size()) {
+      vbufs->second.second.push_back(createVertexBuffer(nearestSizePow2, STREAM, nullptr));
+   }
+   uint32 result = vbufs->second.second[nextFreeBuf];
+   vbufs->second.first++;
+
+   return result;
+}
+
+void RenderDevice::clearBufferCache()
+{
+   for(auto& bufs : _bufferCache)
+   {
+      bufs.second.first = 0;
+   }
+}
 
 // =================================================================================================
 // Textures

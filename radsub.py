@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 import ctypes
+from time import sleep
 
 SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
 
@@ -30,7 +31,8 @@ def new_test(test_name):
 
 
 def get_log_time(log_time_string):
-   return datetime.datetime.strptime(log_time_string.strip(), '%Y-%b-%d %H:%M:%S.%f')
+   s = log_time_string.strip()
+   return datetime.datetime.strptime(s, '%Y-%b-%d %H:%M:%S.%f')
 
 
 def produce_log_results(log_path):
@@ -109,15 +111,26 @@ def write_log_results(data, result_file_path, file_name):
 def run_tests():
    sh_command = sh_exe_path + ' ' + sh_args
 
-   return_code = 1
+   print 'Running Stonehearth autotests with command ' + sh_command
 
-   print 'Running Stonehearth autotests with exe at ' + sh_exe_path + ' and args: ' + sh_args
-
-   # Disable that annoying crash diagnosis window.
+   # Disable that annoying crash diagnosis window on Windows.
    ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
-   return_code = subprocess.Popen(sh_command, cwd=sh_cwd).wait()
 
-   print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
+   sp = subprocess.Popen(sh_command, cwd=sh_cwd)
+
+   wait_time = 0
+   return_code = sp.poll()
+   while wait_time < timeout and return_code == None:
+      return_code = sp.poll()
+      sleep(1)
+      wait_time = wait_time + 1
+
+   if return_code == None:
+      print 'Timeout.  Terminating test.'
+      return_code = 1
+      sp.kill()
+   else:
+      print 'Completed in ' + str((datetime.datetime.now() - t_start).total_seconds()) + ' seconds.'
 
    return return_code
 
@@ -128,6 +141,7 @@ parser.add_argument('-f', '--function', help='runs the specified test function (
 parser.add_argument('-s', '--script', help='runs the specified test script')
 parser.add_argument('-g', '--group', help='runs the specified test group')
 parser.add_argument('-i', '--interactive', action='store_true', help='run in interactive mode (maximizes the window)')
+parser.add_argument('-t', '--timeout', help='Sets a timeout for the test-running process')
 parser.add_argument('settings', nargs=argparse.REMAINDER, help='settings to pass to Stonehearth (e.g. --mods.foo.bar=7 --mods.foo.baz=bing)')
 
 args = parser.parse_args(sys.argv[1:])
@@ -167,6 +181,11 @@ elif args.group:
    sh_args += ' --mods.stonehearth_autotest.options.group=' + args.group
 else:
    sh_args += ' --mods.stonehearth_autotest.options.group=all'
+
+if args.timeout != None:
+   timeout = int(args.timeout)
+else:
+   timeout = 10 * 60
 
 if not args.interactive:
   sh_args += ' --renderer.minimized=true'
