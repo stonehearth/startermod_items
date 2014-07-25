@@ -83,7 +83,7 @@ public:
 	virtual const char *getElemParamStr( int elem, int elemIdx, int param );
 	virtual void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 	virtual void *mapStream( int elem, int elemIdx, int stream, bool read, bool write );
-	virtual void unmapStream();
+	virtual void unmapStream(int bytesMapped);
 
 	int &getType() { return _type; }
 	int getFlags() { return _flags; }

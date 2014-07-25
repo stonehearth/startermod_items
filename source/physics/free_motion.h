@@ -6,12 +6,13 @@
 #include "om/om.h"
 #include "core/guard.h"
 #include "platform/utils.h"
+#include "simulation/namespace.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class FreeMotion {
 public:
-   FreeMotion(NavGrid &ng);
+   FreeMotion(simulation::Simulation& sim, NavGrid &ng);
 
    void ProcessDirtyTiles(platform::timer& t);
 
@@ -23,6 +24,7 @@ private:
    NavGrid&                   _ng;
    std::vector<csg::Point3>   _dirtyTiles;
    core::Guard                _guard;
+   simulation::Simulation&    _sim;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

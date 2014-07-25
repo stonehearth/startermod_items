@@ -41,20 +41,27 @@ PixelBufferResource::PixelBufferResource( std::string const& name, uint32 size) 
 {	
 	_loaded = true;
    _usePinnedMemory = usePinnedMemory();
-   _pinnedMemory = nullptr;
+   for (int i = 0; i < MAX_SYNCS; i++) {
+      _pinnedMemory[i] = 0;
+   }
    _streambuff = new unsigned char[size];
+
 
    if (!_usePinnedMemory)
    {
 	   _buffer = gRDI->createPixelBuffer(GL_PIXEL_UNPACK_BUFFER, size, nullptr);
+      if( _buffer == 0 ) {
+         initDefault();
+      }
    } else {
-      // We need 4K page alignment, otherwise Bad Things happen....
-      _pinnedMemory = new char[size + 0x1000];
-      _pinnedMemoryAligned = (void*)((unsigned(_pinnedMemory) + 0xfff) & (~0xfff));
-	   _buffer = gRDI->createPixelBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, size, _pinnedMemoryAligned);
-   }
-   if( _buffer == 0 ) {
-      initDefault();
+      _curSync = 0;
+      memset(_pinnedMemFences, 0, sizeof(GLsync) * MAX_SYNCS);
+      for (int i = 0; i < MAX_SYNCS; i++) {
+         // We need 4K page alignment, otherwise Bad Things happen....
+         _pinnedMemory[i] = new char[size + 0x1000];
+         _pinnedMemoryAligned[i] = (void*)((unsigned(_pinnedMemory[i]) + 0xfff) & (~0xfff));
+         _pinnedBuffers[i] = gRDI->createPixelBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, size, _pinnedMemoryAligned[i]);
+      }
    }
 }
 
@@ -69,18 +76,19 @@ void PixelBufferResource::initDefault()
 {
    _size = 0;
    _buffer = 0;
+   _curSync = 0;
+   for (int i = 0; i < MAX_SYNCS; i++) {
+      _pinnedBuffers[i] = 0;
+      _pinnedMemory[i] = nullptr;
+      _pinnedMemoryAligned[i] = nullptr;
+      _pinnedMemFences[i] = nullptr;
+   }
    _streambuff = 0x0;
 }
 
 
 void PixelBufferResource::release()
 {
-   if (_pinnedMemory)
-   {
-      delete[] _pinnedMemory;
-      _pinnedMemory = nullptr;
-   }
-
    if (_buffer)
    {
 	   gRDI->destroyBuffer(_buffer);
@@ -90,6 +98,22 @@ void PixelBufferResource::release()
    if (_streambuff) {
       delete[] _streambuff;
       _streambuff = 0x0;
+   }
+
+   for (int i = 0; i < MAX_SYNCS; i++) {
+      if(_pinnedBuffers[i]) {
+	      gRDI->destroyBuffer(_pinnedBuffers[i]);
+         _pinnedBuffers[i] = 0;
+      }
+      if (_pinnedMemFences[i] != nullptr) {
+         glDeleteSync(_pinnedMemFences[i]);
+         _pinnedMemFences[i] = nullptr;
+      }
+      if (_pinnedMemory[i])
+      {
+         delete[] _pinnedMemory[i];
+         _pinnedMemory[i] = nullptr;
+      }
    }
 }
 
@@ -117,19 +141,39 @@ void *PixelBufferResource::mapStream( int elem, int elemIdx, int stream, bool re
 {
    if (_usePinnedMemory)
    {
-      return _pinnedMemoryAligned;
+      if (_pinnedMemFences[_curSync] != nullptr) {
+         glClientWaitSync(_pinnedMemFences[_curSync], GL_SYNC_FLUSH_COMMANDS_BIT, ~0ull);
+      }
+      return _pinnedMemoryAligned[_curSync];
    }
 
    return _streambuff;
 }
 
 
-void PixelBufferResource::unmapStream()
+void PixelBufferResource::unmapStream(int bytesMapped)
 {
    if (!_usePinnedMemory)
    {
-      gRDI->updateBufferData(_buffer, 0, _size, _streambuff);
+      bytesMapped = bytesMapped > 0 ? bytesMapped : _size;
+      gRDI->updateBufferData(_buffer, 0, bytesMapped, _streambuff);
    }
+}
+
+void PixelBufferResource::markSync()
+{
+   if (!_usePinnedMemory) {
+      return;
+   }
+   _pinnedMemFences[_curSync] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+   _curSync = (_curSync + 1) % MAX_SYNCS;
+}
+
+int PixelBufferResource::getBufferObject() {
+   if (!_usePinnedMemory) {
+      return _buffer;
+   }
+   return _pinnedBuffers[_curSync];
 }
 
 }  // namespace

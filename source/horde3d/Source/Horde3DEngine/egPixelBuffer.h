@@ -22,6 +22,7 @@ namespace Horde3D {
 
 struct RenderBuffer;
 
+#define MAX_SYNCS 3
 // =================================================================================================
 
 class PixelBufferResource : public Resource
@@ -41,9 +42,10 @@ public:
    bool loadFrom( const Resource* res );
 
    void *mapStream( int elem, int elemIdx, int stream, bool read, bool write );
-   void unmapStream();
+   void unmapStream(int bytesMapped);
+   void markSync();
 
-   int getBufferObject() { return _buffer; }
+   int getBufferObject();
    uint32 getSize() { return _size; }
 
 protected:
@@ -51,10 +53,13 @@ protected:
 	
    uint32                _size;
    uint32                _buffer;
-   void*                 _pinnedMemory;
-   void*                 _pinnedMemoryAligned;
+   void*                 _pinnedMemory[MAX_SYNCS];
+   void*                 _pinnedMemoryAligned[MAX_SYNCS];
    bool                  _usePinnedMemory;
    void*                 _streambuff;
+   GLsync                _pinnedMemFences[MAX_SYNCS];
+   uint32                _pinnedBuffers[MAX_SYNCS];
+   uint32                _curSync;
 
    friend class ResourceManager;
 };

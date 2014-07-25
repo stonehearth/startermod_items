@@ -156,7 +156,7 @@ void *Resource::mapStream( int elem, int elemIdx, int stream, bool read, bool wr
 	return 0x0;
 }
 
-void Resource::unmapStream()
+void Resource::unmapStream(int bytesMapped)
 {
 	Modules::setError( "Invalid operation by h3dUnmapResStream" );
 }

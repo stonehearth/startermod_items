@@ -19,6 +19,7 @@ class Mob(Component):
       NONE        = 0,
       TINY        = 1,
       HUMANOID    = 2,
+      CLUTTER     = 3,
    )
 
    bone = dm.Boxed(std.string())

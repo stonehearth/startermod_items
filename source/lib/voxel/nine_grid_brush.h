@@ -77,6 +77,7 @@ private:
    csg::Region2 ClassifyNineGrid(csg::EdgeMap<int, 2> const& edgeMap);
    csg::Region3 PaintThroughStencilOpt(csg::Region3 const* stencil);
    void ComputeHeightMap(csg::Region2 const& ninegrid, GridMap<short>& heighmap, GridMap<csg::Point2>& gradiant);
+   void AddPointToModel(csg::Region3 &model, csg::Point3 const& pt, GridMap<csg::Point2> const& gradiant, csg::Region3 const* modelStencil, int type);
 
 private:
    PaintMode             paint_mode_;

@@ -82,6 +82,13 @@ csg::Region3 NineGridBrush::PaintThroughStencil(csg::Region3 const& stencil)
 
 csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelStencil)
 {
+   static const csg::Point2 adjacentPoints[] = {
+      csg::Point2( 0,  1),
+      csg::Point2( 0, -1),
+      csg::Point2( 1,  0),
+      csg::Point2(-1,  0)
+   };
+
    for (int i = 1; i <= 9; i++) {
       nine_grid_[i] = QubicleBrush(qubicle_file_.GetMatrix(BUILD_STRING(i)))
                           .SetPaintMode((QubicleBrush::PaintMode)paint_mode_)
@@ -103,86 +110,119 @@ csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelSten
    // Compute the height and gradiant of the roof.
    ComputeHeightMap(ninegrid, heightmap, gradiant);
 
+   auto getColumnHeight = [this](GridMap<short> const& heigtmaps, csg::Point2 const& pt) {
+      int height = static_cast<int>(heigtmaps.get(pt, 0) * slope_);
+      return std::min(height, maxHeight_);
+   };
+
    // finally, build the model for the grid
    csg::Region3 model;
+
    for (csg::Rect2 const& rect : ninegrid) {
       for (csg::Point2 const& src : rect) {
-         int type = rect.GetTag();
-         
-         csg::Region3 brush = nine_grid_[type];
-         csg::Point2 brushSize = brush_sizes_[type];
-
-         csg::Point2 samplePos = src;
-
-         // Revese the points depending on the gradiant...
-         csg::Point2 g = gradiant.get(src, csg::Point2::zero);
-         if (g.y) {
-            samplePos.x = src.x - shapeBounds_.min.x;
-            samplePos.y = src.y - shapeBounds_.min.y;
-         } else {
-            samplePos.x = shapeBounds_.max.y - src.y - 1;
-            samplePos.y = shapeBounds_.max.x - src.x - 1;
-         }
-
-         // The sample offset is how far into the nine-grid section we need to
-         // pull a column from.  It's based on the origin on the rect and wraps.
-         csg::Point2 sampleOffset(samplePos.x % brushSize.x,
-                                  samplePos.y % brushSize.y);
-
-
-         // Make a stencil to pull just the column at sampleOffset out of the
-         // brush and add it to the model
-         csg::Cube3 stencil(csg::Point3(sampleOffset.x, -INT_MAX, sampleOffset.y),
-                            csg::Point3(sampleOffset.x + 1, INT_MAX, sampleOffset.y + 1));
-
-         csg::Region3 column = brush & stencil;
-
-         // uncomment to color the region based on gradiant.
-         /*
-         {
-            column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
-                                             csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
-                                             csg::Color3(255 * abs(g.x), 255 * abs(g.y), 0).ToInteger()));
-         }
-         */
-
-         // uncomment to color the region based on type.
-         /*
-         {
-            static csg::Color3 colors[] = {
-               csg::Color3::black,     // n/a
-               csg::Color3::white,     // 1
-               csg::Color3::orange,    // 2
-               csg::Color3::red,       // 3
-               csg::Color3::green,     // 4
-               csg::Color3::grey,      // 5
-               csg::Color3::brown,     // 6
-               csg::Color3::blue,      // 7
-               csg::Color3::pink,      // 8
-               csg::Color3::purple,    // 9
-            };
-            column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
-                                             csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
-                                             colors[type].ToInteger()));
-         }
-         */
-
          // dst offset is where to drop the column.  it's in the coordinate system
          // of the original Region2, offset by the computed height
-         int height = static_cast<int>(heightmap.get(src, 0) * slope_);
-         height = std::min(height, maxHeight_);
+         int height = getColumnHeight(heightmap, src);
+         csg::Point3 pt(src.x, height, src.y);
 
-         csg::Point3 dstOffset = csg::Point3(src.x, height, src.y) - 
-                                 csg::Point3(sampleOffset.x, 0, sampleOffset.y);
+         int type = rect.GetTag();
+         AddPointToModel(model, pt, gradiant, modelStencil, type);
 
-         if (modelStencil) {
-            model.AddUnique(column.Translated(dstOffset) & *modelStencil);
-         } else {
-            model.AddUnique(column.Translated(dstOffset));
+         // Underhang...
+         int underhangHeight = INT_MAX;
+         for (auto const& adjacent : adjacentPoints) {
+            csg::Point2 underPos = src + adjacent;
+            if (ninegrid.Contains(underPos)) {
+               int h = getColumnHeight(heightmap, underPos);
+               underhangHeight = std::min(underhangHeight, h);
+            }
+         }
+         if (underhangHeight < height - 1) {
+            pt.y = underhangHeight;
+
+            // The dude next to us is so high that it creates a gap.  Fill it!
+            AddPointToModel(model, pt, gradiant, modelStencil, type);
          }
       }
    }
    return model;
+}
+
+void NineGridBrush::AddPointToModel(csg::Region3 &model, csg::Point3 const& pt, GridMap<csg::Point2> const& gradiant, csg::Region3 const* modelStencil, int type)
+{
+   csg::Region3 brush = nine_grid_[type];
+   csg::Point2 brushSize = brush_sizes_[type];
+
+   csg::Point2 samplePos = csg::Point2(pt.x, pt.z);
+
+   // Revese the points depending on the gradiant...
+   csg::Point2 g = gradiant.get(samplePos, csg::Point2::zero);
+   if (g.y) {
+      samplePos.x -= shapeBounds_.min.x;
+      samplePos.y -= shapeBounds_.min.y;
+   } else {
+      samplePos.x = shapeBounds_.max.y - samplePos.y - 1;
+      samplePos.y = shapeBounds_.max.x - samplePos.x - 1;
+   }
+
+   // The sample offset is how far into the nine-grid section we need to
+   // pull a column from.  It's based on the origin on the rect and wraps.
+   csg::Point2 sampleOffset(samplePos.x % brushSize.x,
+                            samplePos.y % brushSize.y);
+
+
+   // Make a stencil to pull just the column at sampleOffset out of the
+   // brush and add it to the model
+   csg::Cube3 stencil(csg::Point3(sampleOffset.x, -INT_MAX, sampleOffset.y),
+                      csg::Point3(sampleOffset.x + 1, INT_MAX, sampleOffset.y + 1));
+
+   csg::Region3 column = brush & stencil;
+
+   // uncomment to color the region based on gradiant.
+   /*
+   {
+      column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
+                                       csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
+                                       csg::Color3(255 * abs(g.x), 255 * abs(g.y), 0).ToInteger()));
+   }
+   */
+
+   // uncomment to color the region based on type.
+   /*
+   {
+      static csg::Color3 colors[] = {
+         csg::Color3::black,     // n/a
+         csg::Color3::white,     // 1
+         csg::Color3::orange,    // 2
+         csg::Color3::red,       // 3
+         csg::Color3::green,     // 4
+         csg::Color3::grey,      // 5
+         csg::Color3::brown,     // 6
+         csg::Color3::blue,      // 7
+         csg::Color3::pink,      // 8
+         csg::Color3::purple,    // 9
+      };
+      column = csg::Region3(csg::Cube3(csg::Point3(sampleOffset.x, 0, sampleOffset.y),
+                                       csg::Point3(sampleOffset.x + 1, 1, sampleOffset.y + 1),
+                                       colors[type].ToInteger()));
+   }
+   */
+
+   // Move the column to 0,0, then over to the point position
+   csg::Point3 dstOffset = pt - csg::Point3(sampleOffset.x, 0, sampleOffset.y);
+   column.Translate(dstOffset);
+
+   csg::Cube3 bounds = column.GetBounds();
+   ASSERT(bounds.min.x == pt.x);
+   ASSERT(bounds.min.y == pt.y);
+   ASSERT(bounds.max.x == pt.x + 1);
+   ASSERT(bounds.max.y == pt.y + 1);
+
+   if (modelStencil) {
+      model.AddUnique(column & *modelStencil);
+   } else {
+      model.AddUnique(column);
+   }
 }
 
 csg::Region2 NineGridBrush::ClassifyNineGrid(csg::EdgeMap<int, 2> const& edgeMap)

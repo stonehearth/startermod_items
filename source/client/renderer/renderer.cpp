@@ -132,7 +132,7 @@ void Renderer::MakeRendererResources()
       data2[(i * 4) + 1] = v.y;
       data2[(i * 4) + 2] = v.z;
    }
-   h3dUnmapResStream(veclookup);
+   h3dUnmapResStream(veclookup, 0);
 
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
 

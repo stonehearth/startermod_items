@@ -811,6 +811,21 @@ function BuildService:apply_options_command(session, response, blueprint, option
    return false
 end
 
+-- called by the roof to add a patch wall to the specified building. 
+--
+--    @param building - the building which needs a new patch wall.
+--    @param wall_uri - the type of wall to create
+--    @param normal - the normal for the wall
+--    @param position - the local coordinate of the wall to add
+--    @param region - the exact shape of the patch wall
+--
+function BuildService:add_patch_wall_to_building(building, wall_uri, normal, position, region)
+   self:_create_blueprint(building, wall_uri, position, function(wall)
+         wall:add_component('stonehearth:wall')
+                  :create_patch_wall(normal, region)
+                  :layout()
+      end)
+end
 
 return BuildService
 

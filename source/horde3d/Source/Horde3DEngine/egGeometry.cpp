@@ -503,7 +503,7 @@ void *GeometryResource::mapStream( int elem, int elemIdx, int stream, bool read,
 }
 
 
-void GeometryResource::unmapStream()
+void GeometryResource::unmapStream(int bytesMapped)
 {
 	if( mappedWriteStream )
 	{

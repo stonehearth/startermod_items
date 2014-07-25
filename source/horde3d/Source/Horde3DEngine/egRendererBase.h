@@ -328,6 +328,8 @@ enum RDIBufferUsage
    STREAM = GL_STREAM_DRAW
 };
 
+   void clearBufferCache();
+
 
 // =================================================================================================
 
@@ -351,6 +353,7 @@ public:
 	uint32 registerVertexLayout( uint32 numAttribs, VertexLayoutAttrib *attribs, VertexDivisorAttrib *divisors );
 	
 	// Buffers
+   uint32 acquireBuffer(uint32 size);
 	uint32 createVertexBuffer( uint32 size, uint32 usage, const void *data );
 	uint32 createIndexBuffer( uint32 size, const void *data );
    uint32 createPixelBuffer( uint32 type, uint32 size, const void *data );
@@ -458,6 +461,7 @@ protected:
 
 protected:
 
+   void clearBufferCache();
 	uint32 createShaderProgram( const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc );
 	bool linkShaderProgram(uint32 programObj, const char* filename, const char *vertexShaderSrc, const char *fragmentShaderSrc);
 	void resolveRenderBuffer( uint32 rbObj );
@@ -495,6 +499,7 @@ protected:
 	RDIObjects< RDITexture >       _textures;
 	RDIObjects< RDIShader >        _shaders;
 	RDIObjects< RDIRenderBuffer >  _rendBufs;
+   std::unordered_map<uint32, std::pair<uint32, std::vector<uint32>>> _bufferCache;
 
 	RDIVertBufSlot    _vertBufSlots[16];
 	RDITexSlot        _texSlots[16];
