@@ -85,12 +85,18 @@ function StockpileComponent:initialize(entity, json)
       self._sv.is_outbox = false
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
-      self._sv.size  = Point2(0, 0)
       self._sv._filter_key = 'stockpile nofilter'
       self._destination = entity:add_component('destination')
       self._destination:set_region(_radiant.sim.alloc_region())
                        :set_reserved(_radiant.sim.alloc_region())
                        :set_auto_update_adjacent(true)
+
+      if json.size then
+         self:set_size(json.size.x, json.size.y)
+      else
+         self:set_size(0, 0)
+      end
+
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
          self:_finish_initialization()
          return radiant.events.UNLISTEN
@@ -106,12 +112,8 @@ function StockpileComponent:initialize(entity, json)
          self:_finish_initialization()
       end)   
    end
-   
-      
+        
    all_stockpiles[self._entity:get_id()] = self
-   if json.size then
-      self:set_size(json.size.x, json.size.y)
-   end
 end
 
 function StockpileComponent:get_entity()
