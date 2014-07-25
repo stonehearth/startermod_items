@@ -60,6 +60,34 @@ function Wall:initialize(entity, json)
    end
 end
 
+-- returns whether or not this wall is a patch wall.  patch walls are inserted
+-- by the roofing process to plug holes near roof junctions.
+--
+function Wall:is_patch_wall()
+   return self._sv.patch_wall_region ~= nil
+end
+
+-- initializes the current wall as a patch wall.  patch walls are inserted
+-- by the roofing process to plug holes near roof junctions.  they're not
+-- connected to columns like other walls, but otherwise behave similarly.
+--
+--    @param normal - the wall normal
+--    @param region - a Region3 containing the exact shape of the patch wall
+--
+function Wall:create_patch_wall(normal, region)
+   local bounds = region:get_bounds()
+   self._sv.patch_wall_region = region
+   self._sv.start_pt = bounds.min
+   self._sv.end_pt = bounds.max
+   self._sv.normal = normal
+   self.__saved_variables:mark_changed()
+
+   -- forward the normal over to our construction_data component.  
+   self._entity:add_component('stonehearth:construction_data')
+                  :set_normal(normal)
+   return self
+end
+
 function Wall:clone_from(entity)
    if entity then
       local other_wall = entity:get_component('stonehearth:wall')
@@ -70,6 +98,7 @@ function Wall:clone_from(entity)
       self._sv.tangent_coord = other_wall._sv.tangent_coord
       self._sv.normal_coord = other_wall._sv.normal_coord
       self._sv.normal = other_wall._sv.normal
+      self._sv.patch_wall_region = other_wall._sv.patch_wall_region
       self.__saved_variables:mark_changed()
 
       self._entity:get_component('stonehearth:construction_data')
@@ -212,45 +241,18 @@ function Wall:layout()
    assert(start_pt.y < end_pt.y)
    assert(start_pt.z < end_pt.z)
    
-   -- if there are no structure at all overlapping the region we can create the
-   -- wall and add it to the building.  otherwise, don't.
-   
-   --[[
-   local origin = radiant.entities.get_world_grid_location(self._entity)
-   local world_bounds = Cube3(start_pt, end_pt):translated(origin)
-   local overlapping = radiant.terrain.get_entities_in_cube(world_bounds, function(entity)
-         -- xxx: would like to use stonehearth.build.is_blueprint, but needs to run on the
-         -- client!  should we have a generic "util" thing which is agnostic?  or a client-side
-         -- build service (replacing `builder`...) and shared code?
-         return is_blueprint(entity)
-      end)
-      
-   overlapping[self._entity:get_id()]  = nil
-   if next(overlapping) ~= nil then
-      --radiant.entities.destroy_entity(wall)
-      return
-   end
-   ]]
-
-   -- paint again through a stencil covering the entire span of the
-   -- wall to compute the wall shape
-    --[[
-   local stencil = self:_compute_wall_shape()
-   local collision_shape = self._entity:get_component('stonehearth:construction_data')
-                                        :create_voxel_brush()
-                                        :paint_through_stencil(stencil)
-
-   if self._editing_region then
-      self._editing_region:modify(function(cursor)
-            cursor:copy_region(collision_shape)
-         end)
-   end
-   ]]
    local function compute_collision_shape()
       local stencil = self:_compute_wall_shape()
-      return self._entity:get_component('stonehearth:construction_data')
+      local foo = self._entity:get_component('stonehearth:construction_data')
                                :create_voxel_brush()
                                :paint_through_stencil(stencil)
+      if foo:get_bounds():get_area() ~= stencil:get_bounds():get_area() then
+         -- oops!
+         foo = self._entity:get_component('stonehearth:construction_data')
+                               :create_voxel_brush()
+                               :paint_through_stencil(stencil)
+      end
+      return foo
    end
 
    local collision_shape
@@ -373,6 +375,13 @@ end
 -- the bottom of the roof.
 --
 function Wall:_compute_wall_shape()
+   -- if we're a patch wall, the region was passed in directly at creation
+   -- time.  no computatio need by done
+   if self._sv.patch_wall_region then
+      return self._sv.patch_wall_region
+   end
+
+   -- otherwise, grow our box up to the roof level
    local box = Cube3(self._sv.start_pt, self._sv.end_pt, 0)
    local building = stonehearth.build:get_building_for(self._entity)
 
