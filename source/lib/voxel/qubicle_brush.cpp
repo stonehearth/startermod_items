@@ -286,7 +286,7 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
    // Now iterate and draw the brush
    for (csg::Point3 i : csg::Cube3(min, max)) {
       csg::Point3 offset = i * brush_size;
-      csg::Region3 stamped = brush.Translated(offset) & (*stencil);
+      csg::Region3 stamped = brush.Translated(offset - brush_min) & (*stencil);
       model.AddUnique(stamped.Translated(-origin_));
    }
    return model;

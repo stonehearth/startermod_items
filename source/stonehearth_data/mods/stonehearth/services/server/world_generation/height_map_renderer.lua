@@ -82,7 +82,7 @@ end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
    assert(height_map.width == height_map.height)
-   local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!
+   local height_map_cpp = HeightMapCPP(height_map.width) -- Assumes square map!
 
    self:_copy_heightmap_to_CPP(height_map_cpp, height_map)
    _radiant.csg.convert_heightmap_to_region2(height_map_cpp, region2)
