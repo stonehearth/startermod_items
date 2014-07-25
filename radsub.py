@@ -182,8 +182,9 @@ elif args.group:
 else:
    sh_args += ' --mods.stonehearth_autotest.options.group=all'
 
-timeout = int(args.timeout)
-if not timeout:
+if args.timeout != None:
+   timeout = int(args.timeout)
+else:
    timeout = 10 * 60
 
 if not args.interactive:
