@@ -393,12 +393,12 @@ DLLEXP void *h3dMapResStream( ResHandle res, int elem, int elemIdx, int stream, 
 }
 
 
-DLLEXP void h3dUnmapResStream( ResHandle res )
+DLLEXP void h3dUnmapResStream( ResHandle res, int bytesMapped )
 {
 	Resource *resObj = Modules::resMan().resolveResHandle( res );
 	APIFUNC_VALIDATE_RES( resObj, "h3dUnmapResStream", APIFUNC_RET_VOID );
 
-	resObj->unmapStream();
+	resObj->unmapStream(bytesMapped);
 }
 
 

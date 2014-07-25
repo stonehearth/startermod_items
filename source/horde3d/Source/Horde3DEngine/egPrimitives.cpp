@@ -287,7 +287,7 @@ float BoundingBox::intersectionOf(const Vec3f& rayStart, const Vec3f& rayDir) co
          if (t1 > tmin) {
             tmin = t1;
          }
-         if (t2 > tmax) {
+         if (t2 < tmax) {
             tmax = t2;
          }
          if (tmin > tmax) {

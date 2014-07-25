@@ -468,6 +468,7 @@ bool TextureResource::loadFrom( Resource* res, int xOffset, int yOffset, int wid
       ASSERT(texSize >= pbr->getSize());
       
       gRDI->copyTextureDataFromPbo( this->getTexObject(), pbr->getBufferObject(), xOffset, yOffset, width, height);
+      pbr->markSync();
       return true;
    }
 
@@ -566,7 +567,7 @@ void *TextureResource::mapStream( int elem, int elemIdx, int stream, bool read, 
 }
 
 
-void TextureResource::unmapStream()
+void TextureResource::unmapStream(int bytesMapped)
 {
 	if( mappedData != 0x0 )
 	{
@@ -582,7 +583,7 @@ void TextureResource::unmapStream()
 		return;
 	}
 
-	Resource::unmapStream();
+	Resource::unmapStream(bytesMapped);
 }
 
 }  // namespace

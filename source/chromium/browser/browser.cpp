@@ -197,6 +197,8 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
          bfLine += uiWidth;
          srcLine += uiWidth;
       }
+
+      _dirtyRegion.Add(csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height)));
    }
    _dirty = true;
 }
@@ -214,7 +216,8 @@ void Browser::UpdateDisplay(PaintCb cb)
    // to outdated bounding rect information being sent to any clients.
    csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(_uiWidth, _uiHeight)));
 
-   cb(r, _browserFB.data());
+   cb(_dirtyRegion, _browserFB.data());
+   _dirtyRegion.Clear();
 }
 
 int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
