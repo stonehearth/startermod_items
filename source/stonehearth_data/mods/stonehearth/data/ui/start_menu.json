@@ -80,7 +80,7 @@
    },
    "crafter_manager" : {
       "name" : "Manage Crafters",
-      "description" : "NOT YET IMPLEMENTED. Manager all of your crafters and workshops.",
+      "description" : "Manager all of your crafters and workshops.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
       "hotkey" : "5",
