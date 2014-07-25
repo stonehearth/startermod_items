@@ -60,7 +60,7 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
       if #recipe_array > 0 then
          --Make an entry in the recipe table for the UI
          local category_ui_info = {}
-         category_ui_info.categrory = category
+         category_ui_info.category = category
          category_ui_info.recipes = recipe_array
          --Make sure we have a pointer to the recipe data for fast access/edit'
          category_data.ui_info = category_ui_info

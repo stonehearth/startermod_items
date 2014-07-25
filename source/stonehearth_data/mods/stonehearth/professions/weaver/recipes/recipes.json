@@ -1,6 +1,6 @@
 { 
    "craftable_recipes" : {
-      "tools_weapons_armor" : {
+      "Crafting Materials" : {
          "thread" : {
             "uri" : "file(thread.json)"
          },
@@ -8,7 +8,7 @@
             "uri" : "file(cloth_bolt.json)"
          }
       },
-      "construction_building" : {
+      "Pretty Things" : {
          "berry_hanging" : {
             "uri" : "file(berry_hanging_recipe.json)"
          }, 
