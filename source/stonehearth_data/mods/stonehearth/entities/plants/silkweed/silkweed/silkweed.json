@@ -2,6 +2,9 @@
    "mixins": "stonehearth:mixins:plant", 
    "type" : "entity",
    "components" : {
+      "mob" : {
+         "mob_collision_type" : "clutter"
+      },
       "unit_info" : {
          "name": "Wild silkweed", 
          "description": "This plant's fiber can be spun into thread",
