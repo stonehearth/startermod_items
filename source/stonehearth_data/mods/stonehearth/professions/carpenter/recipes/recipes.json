@@ -1,6 +1,6 @@
 {
    "craftable_recipes" : {
-      "tools_weapons_armor" : {
+      "Tools & Weapons" : {
          "hoe" : {
             "uri" : "file(hoe_recipe.json)"
          },
@@ -11,7 +11,7 @@
             "uri" : "file(weaver_spindle_recipe.json)"
          }
       },
-      "construction_building" : {
+      "Building Parts" : {
          "wooden_door" : {
             "uri" : "file(wooden_door_recipe.json)"
          }, 
@@ -31,7 +31,7 @@
             "uri" : "file(picket_fence_gate_recipe.json)"
          }
       },
-      "furnishings" : {
+      "Furniture & Decoration" : {
          "simple_wooden_chair" : {
             "uri" : "file(simple_wooden_chair_recipe.json)"
          }, 
