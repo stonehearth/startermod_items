@@ -138,9 +138,6 @@ function FarmerFieldComponent:create_dirt_plots(town, location, size)
 
    for x=1, self._sv.size.x do
       table.insert(self._sv.contents, {})
-      for y=1, self._sv.size.y do
-         table.insert(self._sv.contents[x], nil)
-      end
    end
 
    self:get_soil_layer_region():modify(function(cursor)

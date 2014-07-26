@@ -62,7 +62,7 @@ end
 --- Set whether this cell of the farm is a furrow or now. Plants do not grow in furrows
 -- @param value: set true to make this dirt plot a furrow
 function DirtPlotComponent:set_furrow(value)
-   self._sv.is_furrow = value;
+   self._sv.is_furrow = value
    self.__saved_variables:mark_changed()
 end
 
