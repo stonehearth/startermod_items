@@ -169,7 +169,7 @@ void Mob::LoadFromJson(json::Node const& obj)
    // For 1:1 scale models, this is almost always the same as the model_origin and need not be specified.
    // For scaled models, we use this to align the region to the model, because entity regions must be specified
    // in integer coordinates, and the scaled model usually requires much finer grained positioning.
-   region_origin_ = obj.get<csg::Point3f>("region_origin", model_origin_);
+   region_origin_ = obj.get<csg::Point3f>("region_origin", csg::Point3f::zero);
 
    int align_to_grid_flags = 0;
    for (json::Node entry : obj.get_node("align_to_grid")) {

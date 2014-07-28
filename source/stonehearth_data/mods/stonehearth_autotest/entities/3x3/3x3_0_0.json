@@ -5,7 +5,8 @@
          "portrait": "file(3x3.png)"
       }, 
       "mob" : {
-         "model_origin" : { "x": -1.5, "y": 0, "z": 1.5 }
+         "model_origin" : { "x": -1.5, "y": 0, "z": 1.5 },
+         "region_origin" : { "x": -1.5, "y": 0, "z": 1.5 }
       },
       "render_info" : {
          "scale" : 1
