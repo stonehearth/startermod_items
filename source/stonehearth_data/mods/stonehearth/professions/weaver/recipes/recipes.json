@@ -8,7 +8,15 @@
             "uri" : "file(cloth_bolt.json)"
          }
       },
-      "Pretty Things" : {
+      "Clothing & Armor" : {
+         "worker_outfit_2" : {
+            "uri" : "file(worker_outfit_2_recipe.json)"
+         },
+         "cloth_padded_vest" : {
+            "uri" : "file(cloth_padded_vest_recipe.json)"
+         }
+      },
+      "Decorations" : {
          "berry_hanging" : {
             "uri" : "file(berry_hanging_recipe.json)"
          }, 

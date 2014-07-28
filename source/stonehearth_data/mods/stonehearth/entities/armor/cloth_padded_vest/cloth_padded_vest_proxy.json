@@ -3,13 +3,13 @@
    "type": "entity",
    "components": {
       "unit_info" : {
-         "name" :  "Upgraded Worker Outfit",
-         "description" : "Sturdy construction increases workers' productivity"
+         "name" :  "Padded Vest",
+         "description": "Provides light protection in a fight. Every little bit helps!"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(worker_outfit_2_proxy.qb)"
+               "file(cloth_padded_vest_proxy.qb)"
             ]
          }
       },
@@ -20,7 +20,7 @@
          "tags" : "cloth armor"
       },
       "stonehearth:placeable_item_proxy" : {
-         "full_sized_entity" : "stonehearth:worker:outfit:2",
+         "full_sized_entity" : "stonehearth:armor:cloth_padded_vest",
          "hide_place_item_command" : true
       }
    }

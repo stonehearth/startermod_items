@@ -124,7 +124,6 @@
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
       "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
 
-
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder" : "file(entities/boulders/medium_boulder)",
@@ -220,6 +219,9 @@
       "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
+
+      "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
+      "armor:cloth_padded_vest_proxy" : "file(entities/armor/cloth_padded_vest/cloth_padded_vest_proxy.json)",
 
       "wooden_door" : "file(entities/construction/wooden_door)",
       "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
