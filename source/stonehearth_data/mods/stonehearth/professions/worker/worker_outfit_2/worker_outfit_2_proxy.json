@@ -1,0 +1,23 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info" : {
+         "name" :  "Upgraded Worker Outfit",
+         "description" : "Sturdy construction increases workers' productivity"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(worker_outfit_2_proxy.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "equipment_piece" : "stonehearth:worker:outfit:2"
+   }
+}
