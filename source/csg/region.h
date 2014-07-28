@@ -34,8 +34,7 @@ public:
    bool Intersects(Cube const& cube) const;
    bool Contains(Point const& pt) const;
    
-   Point GetClosestPoint2(Point const& src, S *dSquared) const;
-   Point GetClosestPoint(Point const& src) const { return GetClosestPoint2(src, nullptr); }
+   Point GetClosestPoint(Point const& src) const;
    Cube GetBounds() const;
    Point GetCentroid() const;
    int GetRectCount() const { return cubes_.size(); }

@@ -263,19 +263,34 @@ Cube<S, C> Cube<S, C>::operator+(Point const& offset) const
 }
 
 template <typename S, int C>
-Point<S, C> Cube<S, C>::GetClosestPoint2(Point const& other, S* d) const
+Point<S, C> Cube<S, C>::GetClosestPoint(Point const& other) const
 {
    Point result;
    for (int i = 0; i < C; i++) {
       result[i] = std::max(std::min(other[i], max[i] - 1), min[i]);
    }
-   if (d) {
-      *d = 0;
-      for (int i = 0; i < C; i++) {
-         *d += ((other[i] - result[i]) * (other[i] - result[i]));
+   return result;
+}
+
+template <typename S, int C>
+float Cube<S, C>::DistanceTo(Point const& other) const
+{
+   Point closest = GetClosestPoint(other);
+   return closest.DistanceTo(other);
+}
+
+template <typename S, int C>
+float Cube<S, C>::DistanceTo(Cube const& other) const
+{
+   float d = 0;
+   for (int i = 0; i < C; i++) {
+      if (other.min[i] > max[i]) {
+         d += (other.min[i] - max[i]) * (other.min[i] - max[i]);
+      } else if (other.max[i] < min[i]) {
+         d += (other.max[i] - min[i]) * (other.max[i] - min[i]);
       }
    }
-   return result;
+   return csg::Sqrt(d);
 }
 
 template <typename S, int C>
@@ -362,7 +377,9 @@ Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
    template Cls::Region Cls::operator-(const Cls& other) const; \
    template Cls::Region Cls::operator-(const Cls::Region& other) const; \
    template bool Cls::Contains(const Cls::Point& other) const; \
-   template Cls::Point Cls::GetClosestPoint2(const Cls::Point& other, Cls::ScalarType*) const; \
+   template Cls::Point Cls::GetClosestPoint(const Cls::Point& other) const; \
+   template float Cls::DistanceTo(const Cls& other) const; \
+   template float Cls::DistanceTo(const Cls::Point& other) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
    template Cls Cls::Intersection(Cls const& other) const; \
