@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Farmer's Hoe",
-         "description" : "Promotes a citizen into a Farmer.",
+         "description" : "Used to till fields.",
          "portrait": "file(portrait.png)",
          "character_sheet_info" : "file(farmer_hoe_character_sheet_info.json)"
       },
@@ -17,39 +17,17 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(farmer_hoe.qb)"
-            ]
-         },
-         "equipped" : {
-            "models": [
                "file(farmer_hoe_equipped.qb)"
             ]
          }
       },
       "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
          "render_type" : "attach_to_bone",
-         "render_info" : {
-            "model_variant" : "equipped",
-            "default_bone" : "mainHand",
-            "postures" : [ "stonehearth:combat" ]
-         }
-      },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]
-      },
-      "effect_list" : {
-         "effects" : [
-            "stonehearth:effects:talisman_glow"
-         ]  
-      },
-      "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:farmer"
+         "postures" : [ "stonehearth:combat" ]
       }
    },
    "entity_data" : {
-      "stonehearth:activity_name" : "promote_farmer",
       "stonehearth:combat:weapon_data" : {
          "base_damage" : 4,
          "reach" : 1.50

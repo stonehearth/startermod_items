@@ -27,11 +27,11 @@
             "min" : 1, 
             "max" : 5
          },
-         "stonehearth:farmer:hoe" : {
+         "stonehearth:farmer:hoe_proxy" : {
             "min" : 1, 
             "max" : 2
          }, 
-         "stonehearth:wooden_sword" : {
+         "stonehearth:wooden_sword_proxy" : {
             "min" : 1, 
             "max" : 4
          },

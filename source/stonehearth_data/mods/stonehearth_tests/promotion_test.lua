@@ -11,7 +11,7 @@ function PromoteTest:__init()
    self:create_world()
 
    --Create the saw 
-   local saw = self:place_item('stonehearth:carpenter:saw', 10, 10)
+   local saw = self:place_item('stonehearth:carpenter:saw_proxy', 10, 10)
 
    self:place_citizen(-1,2)
    local worker = self:place_citizen(12, 12)

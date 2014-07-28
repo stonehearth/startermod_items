@@ -4,7 +4,7 @@
   "name": "Farmer",
   "buttonIcon" : "file(images/jobButton.png)",
   "bannerIcon" : "file(images/banner.png)",   
-  "talisman_uri" : "stonehearth:farmer:hoe",
+  "talisman_uri" : "stonehearth:farmer:hoe_proxy",
   "script": "file(farmer.lua)",
   "outfit": "file(farmer_outfit)",
   "description": "Farmer", 

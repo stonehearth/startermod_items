@@ -175,15 +175,15 @@ end
 --  @returns item_id, num_desired. If either is nil, we didn't find anything we wanted
 function SimpleCaravan:_select_desired_item()
    --Get our inventory all ready to query
-   --local inventory_tracker = stonehearth.object_tracker:get_inventory_tracker(self._sv.player_id)
    
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
    local random_want_index = rng:get_int(1, #self._trade_item_table)
    for i=1, #self._trade_item_table do
       local item_id = self._trade_item_table[random_want_index]
       local num_desired = rng:get_int(self._all_trades[item_id].min, self._all_trades[item_id].max)
 
       --TODO: add this function to the inventory tracker
-      local inventory_data_for_item = stonehearth.inventory:get_items_of_type(item_id, self._sv.player_id)-- inventory_tracker:get_data_for_type(item_id)
+      local inventory_data_for_item = inventory:get_items_of_type(item_id)
       if inventory_data_for_item and inventory_data_for_item.count > 0 then
          if inventory_data_for_item.count < num_desired then
             num_desired = inventory_data_for_item.count

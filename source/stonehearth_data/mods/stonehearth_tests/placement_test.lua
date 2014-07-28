@@ -12,6 +12,11 @@ function PlacementTest:__init()
    self:create_world()
 
    local citizen = self:place_citizen(12, 12)
+   self:place_item('stonehearth:comfy_bed_proxy', 1, 5)
+   self:place_item('stonehearth:comfy_bed_proxy', 2, 5)
+   self:place_item('stonehearth:wooden_garden_lantern_proxy', 4, 5)
+   if true then return false end
+
    local citizen2 = self:place_citizen(-12, -12)
    local player_id = radiant.entities.get_player_id(citizen)
 ---[[
@@ -43,6 +48,8 @@ function PlacementTest:__init()
    local table = radiant.entities.create_entity('stonehearth:dining_table')
    radiant.terrain.place_entity(table, Point3(10, 1, 10))
 
+   if true then return false end
+   
    self:at(5000, function()
       self:place_item('stonehearth:comfy_bed_proxy', 1, 5)
    end)

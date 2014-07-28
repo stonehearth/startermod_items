@@ -215,7 +215,7 @@ function Immigration:_on_accepted()
       local equipment_uri = self._immigration_data.professions[self._sv.notice.target_profession].equipment
       local equipment_entity = radiant.entities.create_entity(equipment_uri)
       local equipment_component = citizen:add_component('stonehearth:equipment')
-      equipment_component:equip_item(equipment_entity, 'immigrant_equipment')
+      equipment_component:equip_item(equipment_entity)
 
       --Hack: remove glow?
        equipment_entity:remove_component('effect_list')

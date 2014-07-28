@@ -29,18 +29,19 @@ end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
+      --self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
+      --self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
+      --self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
    }
 
    self._enemies = {
-      self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
-      self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
+      self:place_enemy( -9, 15, 'stonehearth:wooden_sword_proxy'),
+      --self:place_enemy( -1, 15, 'stonehearth:wooden_sword_proxy'),
+      --self:place_enemy(  7, 15, 'stonehearth:wooden_sword_proxy'),
+      --self:place_enemy( 15, 15, 'stonehearth:wooden_sword_proxy'),
    }
+   stonehearth.combat:set_stance(self._citizens[1], 'passive')
 end
 
 function CombatTest:create_enemy_kingdom()
@@ -64,9 +65,7 @@ end
 
 function CombatTest:equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
-   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
-   -- HACK: remove the talisman glow effect from the weapon
-   radiant.entities.remove_effects(weapon)
+   radiant.entities.equip_item(entity, weapon)
 end
 
 function CombatTest:kill(entity)

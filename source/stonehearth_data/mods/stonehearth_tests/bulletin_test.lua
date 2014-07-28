@@ -10,7 +10,7 @@ function BulletinTest:__init()
 
    self.__saved_variables = radiant.create_datastore()
 
-   local footman = self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword')
+   local footman = self:place_citizen(-15, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy')
    local player_id = radiant.entities.get_player_id(footman)
 
    self._caravan_bulletin = stonehearth.bulletin_board:post_bulletin(player_id)

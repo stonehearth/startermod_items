@@ -124,7 +124,8 @@ function ReturningTrader:_get_desired_items()
    local wanted_item_uri = self._want_table[random_want_index]
    local proposed_number = rng:get_int(self._trade_data.wants[wanted_item_uri].min, self._trade_data.wants[wanted_item_uri].max)
 
-   local inventory_data_for_item = stonehearth.inventory:get_items_of_type(wanted_item_uri, self._sv._player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   local inventory_data_for_item = inventory:get_items_of_type(wanted_item_uri)
    if inventory_data_for_item and inventory_data_for_item.count > 0 then
       if proposed_number < inventory_data_for_item.count then
          proposed_number = inventory_data_for_item.count + 2
@@ -281,7 +282,8 @@ end
 -- The trader's deal was accepted, and now he's back. 
 function ReturningTrader:_make_return_trip()
    local town_has_goods = false
-   local inventory_data_for_item = stonehearth.inventory:get_items_of_type(self._sv._trade_data.want_uri, self._sv._player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)   
+   local inventory_data_for_item = inventory:get_items_of_type(self._sv._trade_data.want_uri)
    if inventory_data_for_item and inventory_data_for_item.count >= self._sv._trade_data.want_count then
       --We have the items desired. Reserve them all/as many as possible
       town_has_goods = self:_reserve_items(inventory_data_for_item, self._sv._trade_data.want_count)

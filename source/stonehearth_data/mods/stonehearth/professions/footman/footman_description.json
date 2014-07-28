@@ -5,7 +5,7 @@
    "description": "A melee fighter",
    "buttonIcon" : "file(images/jobButton.png)",
    "bannerIcon" : "file(images/banner.png)",   
-   "talisman_uri" : "stonehearth:wooden_sword",
+   "talisman_uri" : "stonehearth:wooden_sword_proxy",
    "script": "file(footman.lua)",
    "outfit": "file(footman_outfit)"
 }

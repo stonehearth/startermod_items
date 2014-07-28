@@ -381,7 +381,8 @@ function StockpileComponent:_add_item_to_stock(entity)
    -- add the item to the inventory 
    -- sometimes this happens before the player_id is assigned (why?)
    if self._sv.player_id then
-      stonehearth.inventory:add_item(self._sv.player_id, self._entity, entity)
+      local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+      inventory:add_item(self._entity, entity)
    end
    
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
@@ -413,7 +414,8 @@ function StockpileComponent:_remove_item_from_stock(id)
    self.__saved_variables:mark_changed()
 
    --Tell the inventory to remove this item
-   stonehearth.inventory:remove_item(self._sv.player_id, self._entity, entity, id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   inventory:remove_item(self._entity, id)
       
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then

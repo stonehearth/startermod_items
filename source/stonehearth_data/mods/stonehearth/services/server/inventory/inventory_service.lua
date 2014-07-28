@@ -1,3 +1,5 @@
+local Entity = _radiant.om.Entity
+
 local Inventory = require 'services.server.inventory.inventory'
 
 --[[
@@ -16,15 +18,8 @@ end
 
 function InventoryService:initialize()   
    self._sv = self.__saved_variables:get_data()
-   if self._sv.inventories then
-      for faction, ss in pairs(self._sv.inventories) do
-         local inventory = Inventory(faction)
-         inventory:restore(ss)
-         self._sv.inventories[faction] = inventory
-      end
-   else
+   if not self._sv.inventories then
       self._sv.inventories = {}
-      self._sv.inventory_trackers_by_player = {}
    end
 
    --Register our functions with the score service
@@ -38,91 +33,36 @@ function InventoryService:add_inventory(session)
 
    assert(not self._sv.inventories[session.player_id])
 
-   local inventory = Inventory()
-   inventory:initialize(session)
+   local inventory = radiant.create_controller('stonehearth:inventory', session)
+   assert(inventory)
+   
    self._sv.inventories[session.player_id] = inventory
-   self:_create_basic_inventory_tracker(session.player_id)
-
    self.__saved_variables:mark_changed()
    return inventory
 end
 
-function InventoryService:get_inventory(player_id)
+function InventoryService:get_inventory(arg1)
+   local player_id
+   if radiant.util.is_a(arg1, 'string') then
+      player_id = arg1
+   elseif radiant.util.is_a(arg1, Entity) then
+      player_id = radiant.entities.get_player_id(arg1)
+   else
+      error(string.format('unexpected value %s in get_inventory', radiant.util.to_string(player_id)))
+   end
    radiant.check.is_string(player_id)
-   assert(self._sv.inventories[player_id])
-   return self._sv.inventories[player_id]
-end
-
---- When an item is added to a player's inventory, tell this function, which will
---  propagate the change to the correct inventory
-function InventoryService:add_item(player_id, storage, item)
-   local inventory_for_player = self:get_inventory(player_id)
-   inventory_for_player:add_item(storage, item)
-
-   --Tell all the traces for this player about this item
-   for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
-      trace:add_item(item)
-   end
-end
-
---- When an item is removed from a player's inventory, tell this function, which will
---  propgate the change to the correct inventory
-function InventoryService:remove_item(player_id, storage, item, item_id)
-   local inventory_for_player = self:get_inventory(player_id)
-   inventory_for_player:remove_item(storage, item, item_id)
-
-   --Tell all the traces for this player about this item
-   for name, trace in pairs(self._sv.inventory_trackers_by_player[player_id]) do
-      trace:remove_item(item_id)
-   end
-end
-
---- Given the uri of an item and the player_id, get a structure containing items of that type
---  Uses the basic_inventory_tracker
---  @param item_type : uri of the item (like stonehearth:oak_log)
---  @param player_id : id of the player
---  @returns an object with a count and a map of identity (items).
---           Iterate through the map to get the data.
---           If entity is nil, that item in the map is now invalid. If the data is nil, there was
---           nothing of that type
-function InventoryService:get_items_of_type(item_type, player_id)
-   local trackers_for_player = self._sv.inventory_trackers_by_player[player_id]
-   if trackers_for_player then
-      local basic_inventory_tracker = trackers_for_player['basic_inventory_tracker']
-      return basic_inventory_tracker:get_key(item_type)
-   end
-end
-
---- Call this function to track a subset of things in this inventory
---  See the documentation for FilteredTracker for the function specifics
-function InventoryService:add_inventory_tracker(name, player_id, fn_controller)
-   local new_tracker = radiant.create_controller(
-      'stonehearth:filtered_tracker',
-      name,
-      player_id, 
-      fn_controller)
-
-   if not self._sv.inventory_trackers_by_player[player_id] then
-      self._sv.inventory_trackers_by_player[player_id] = {}
-   end
-   self._sv.inventory_trackers_by_player[player_id][name] = new_tracker
-
-   self.__saved_variables:mark_changed()
-
-   return new_tracker
-end
-
---- The inventory tracker tracks all objects that go into the inventory (ie, stockpiles)
-function InventoryService:_create_basic_inventory_tracker(player_id)
    
-   local fn_controller = radiant.create_controller('stonehearth:basic_inventory_tracker')
-   self:add_inventory_tracker('basic_inventory_tracker', 
-      player_id,
-      fn_controller)
+   if self._sv.inventories[player_id] then
+      return self._sv.inventories[player_id]
+   end
 end
-
 
 --Score functions related to inventory (goods you've built, stocked and crafted)
+--
+-- TODO: move these registration functions to the site where the item is implemented
+-- rather than sticking them all in inventory.  for example, accumuating buildings into
+-- net worth should be registered from stonehearth.build -- tony
+--
 function InventoryService:_register_score_functions()
    --eval function for buildings
    stonehearth.score:add_aggregate_eval_function('net_worth', 'buildings', function(entity, agg_score_bag)
@@ -184,4 +124,3 @@ function InventoryService:_get_score_for_stockpile(entity)
 end
 
 return InventoryService
-

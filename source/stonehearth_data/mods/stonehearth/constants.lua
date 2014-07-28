@@ -43,9 +43,10 @@ local constants = {
       },
 
       work = {    --Categories of work. Represented as dispatchers.
-         SIMPLE_LABOR   = 1,    --basic tasks traditionally the domain of workers
-         FARMING        = 2,
-         CRAFTING       = 3,
+         SIMPLE_LABOR      = 1,    --basic tasks traditionally the domain of workers
+         FARMING           = 2,
+         CRAFTING          = 3,
+         UPGRADE_EQUIPMENT = 4,
       },
 
       simple_labor = {

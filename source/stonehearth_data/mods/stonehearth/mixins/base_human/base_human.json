@@ -69,7 +69,10 @@
             "stonehearth:actions:die_citizen",
             "stonehearth:actions:free_time:dispatcher",
             "stonehearth:actions:get_town_banner", 
-            "stonehearth:actions:goto_town_banner"
+            "stonehearth:actions:goto_town_banner",
+            "stonehearth:actions:equip_carrying",
+            "stonehearth:actions:upgrade_equipment",
+            "stonehearth:actions:find_equipment_upgrade"
          ],
          "observers": [
             "stonehearth:observers:aggro",

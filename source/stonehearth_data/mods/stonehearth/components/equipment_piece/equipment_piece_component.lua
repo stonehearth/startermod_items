@@ -32,6 +32,14 @@ function EquipmentPieceComponent:destroy()
 	self:unequip()
 end
 
+function EquipmentPieceComponent:get_slot()
+   return self._json.slot
+end
+
+function EquipmentPieceComponent:get_ilevel()
+   return self._json.ilevel or 0
+end
+
 function EquipmentPieceComponent:equip(entity)
 	self:unequip()
 
@@ -62,13 +70,7 @@ function EquipmentPieceComponent:_setup_item_rendering()
       render_info:attach_entity(self._entity)
 
    elseif render_type == 'attach_to_bone' then
-      local model_variant = self._json.render_info.model_variant
-      if model_variant then
-         local render_info = self._entity:add_component('render_info')
-         render_info:set_model_variant(model_variant)
-      end
-
-      local postures = self._json.render_info.postures
+      local postures = self._json.postures
       if postures then
          radiant.events.listen(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
          self:_on_posture_changed()
@@ -85,7 +87,7 @@ function EquipmentPieceComponent:_remove_item_rendering()
    if render_type == 'merge_with_model' then
       self._sv.owner:add_component('render_info'):remove_entity(self._entity:get_uri())
    elseif render_type == 'attach_to_bone' then
-      local postures = self._json.render_info.postures
+      local postures = self._json.postures
       if postures then
          radiant.events.unlisten(self._sv.owner, 'stonehearth:posture_changed', self, self._on_posture_changed)
       end
@@ -97,7 +99,7 @@ function EquipmentPieceComponent:_on_posture_changed()
    local posture = radiant.entities.get_posture(self._sv.owner)
 
    -- use a set/map for this if the list gets long
-   if self:_value_is_in_array(posture, self._json.render_info.postures) then
+   if self:_value_is_in_array(posture, self._json.postures) then
       self:_attach_to_bone()
    else
       self:_remove_from_bone()
@@ -115,14 +117,14 @@ end
 
 function EquipmentPieceComponent:_attach_to_bone()
    local entity_container = self._sv.owner:add_component('entity_container')
-   local bone_name = self._json.render_info.default_bone
+   local bone_name = self:get_slot()
    log:debug('%s attaching %s to bone %s', self._sv.owner, self._entity, bone_name)
    entity_container:add_child_to_bone(self._entity, bone_name)
 end
 
 function EquipmentPieceComponent:_remove_from_bone()
    local entity_container = self._sv.owner:add_component('entity_container')
-   local bone_name = self._json.render_info.default_bone
+   local bone_name = self:get_slot()
    log:debug('%s detaching item on bone %s', self._sv.owner, self._entity, bone_name)
    entity_container:remove_child(self._entity:get_id())
 end

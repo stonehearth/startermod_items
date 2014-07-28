@@ -285,9 +285,9 @@ function entities.get_world_grid_location(entity)
    end
 end
 
-function entities.equip_item(entity, item, slot)
-   local equipment_component = entity:add_component('stonehearth:equipment')
-   equipment_component:equip_item(item, slot)
+function entities.equip_item(entity, item)
+   entity:add_component('stonehearth:equipment')
+               :equip_item(item)
 end
 
 function entities.get_equipped_item(entity, slot)
@@ -796,12 +796,27 @@ function entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
 end
 
--- HACK: used to remove the talisman glow effect from the weapon after promotion
--- Might want to remove other talisman related commands as well
--- TODO: make the effects and commands specific to the model variant
-function entities.remove_effects(item)
-   item:remove_component('effect_list')
+-- extract the full sized entity from a placable item proxy.  `component_name`
+-- is optional.  if specified, the component for the full sized item matching that
+-- name will be returned as the 2nd parameter.  if the entity is not a placable
+-- item, the function returns nil
+--
+--    @param entity : the proxy entity
+--    @param component_name : (optional) the name of the component on the full
+--           sized entity you also want returned
+--
+function entities.unwrap_placable_item_proxy(entity, component_name)
+   local full_sized_entity, full_sized_component
+   local proxy = entity:get_component('stonehearth:placeable_item_proxy')
+   if proxy then
+      full_sized_entity = proxy:get_full_sized_entity()
+      if component_name then
+         full_sized_component = full_sized_entity:get_component(component_name)
+      end
+   end
+   return full_sized_entity, full_sized_component
 end
+
 
 entities.__init()
 return entities

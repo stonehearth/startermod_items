@@ -120,10 +120,8 @@ end
 
 function GoblinThief:_create_goblin_thief()
    local thief = self._population:create_new_citizen()
-   local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
-   radiant.entities.equip_item(thief, weapon, 'melee_weapon')
-   -- HACK: remove the talisman glow effect from the weapon
-   radiant.entities.remove_effects(weapon)
+   local weapon = radiant.entities.create_entity('stonehearth:wooden_sword_proxy')
+   radiant.entities.equip_item(thief, weapon)
    stonehearth.combat:set_stance(thief, 'defensive')
    return thief
 end

@@ -102,6 +102,7 @@ RenderEffectList::~RenderEffectList()
 void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
 {
    std::string name = effect->GetName();
+   EL_LOG(5) << "adding effect " << name;
    effects_[effect_id] = RenderInnerEffectList(entity_, effect);
 }
 
@@ -134,6 +135,7 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
 {
    log_prefix_ = BUILD_STRING("[" << *renderEntity.GetEntity() << " inner_effect_list" << "]");
    try {
+      EL_LOG(5) << "adding effects to list...";
       std::string name = effect->GetName();
       res::ResourceManager2::GetInstance().LookupJson(name, [&](const JSONNode& data) {
          for (const JSONNode& node : data["tracks"]) {
@@ -159,6 +161,7 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
                e = std::make_shared<LightEffect>(renderEntity, effect, node);
             }
             if (e) {
+               EL_LOG(5) << "adding effect of type " << type << " to effect list";
                effects_.push_back(e);
             }
          }
@@ -175,6 +178,7 @@ RenderInnerEffectList::~RenderInnerEffectList()
 
 void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
 {
+   EL_LOG(9) << "update...";
    int i = 0, c = effects_.size();
    while (i < c) {
       auto effect = effects_[i];
@@ -195,6 +199,7 @@ void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
    }
    finished = effects_.empty();
    if (finished) {
+      EL_LOG(9) << "all effects finished!";
       finished_.clear();
    }
 }
@@ -347,6 +352,7 @@ void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    if (info.now > startTime_) {
       if (!cubemitterNode_.get()) {
+         EL_LOG(5) << "starting cubemitter effect" << filename_ << "(start_time: " << startTime_ << ")";
          H3DRes cubeRes = h3dAddResource(RT_CubemitterResource, filename_.c_str(), 0);
          H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
@@ -358,6 +364,7 @@ void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
    }
    finished = (endTime_ > 0) && (info.now > endTime_);
    if (finished) {
+      EL_LOG(5) << "stopping cubemitter effect" << filename_ << "(end_time: " << endTime_ << ")";
       cubemitterNode_.reset(0);
    }
 }

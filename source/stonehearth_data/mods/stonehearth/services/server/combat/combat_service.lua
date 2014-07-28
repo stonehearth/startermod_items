@@ -157,8 +157,7 @@ function CombatService:get_cooldown_end_time(entity, action_name)
 end
 
 function CombatService:get_melee_weapon(entity)
-   -- currently stored in a named slot on the equipment component. this might change.
-   return radiant.entities.get_equipped_item(entity, 'melee_weapon')
+   return radiant.entities.get_equipped_item(entity, 'mainHand')
 end
 
 function CombatService:get_melee_range(attacker, weapon_data, target)

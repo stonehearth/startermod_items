@@ -7,7 +7,7 @@
    "bannerIcon" : "file(images/banner.png)",
    "script": "file(carpenter.lua)",
    "outfit": "file(carpenter_outfit)",
-   "talisman_uri" : "stonehearth:carpenter:saw",
+   "talisman_uri" : "stonehearth:carpenter:saw_proxy",
    "score_value": 10, 
    "task_groups" : [
       "stonehearth:task_group:restock", 

@@ -11,8 +11,8 @@ function FarmingTest:__init()
    self:create_world()
 
    --place the hoes and board
-   self:place_item('stonehearth:farmer:hoe', 4, 1)
-   self:place_item('stonehearth:farmer:hoe', 4, 2)
+   self:place_item('stonehearth:farmer:hoe_proxy', 4, 1)
+   self:place_item('stonehearth:farmer:hoe_proxy', 4, 2)
 
    local farmer = self:place_citizen(-1,2, 'farmer')
    self:place_citizen(-1,5)
