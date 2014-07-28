@@ -23,6 +23,9 @@ App.StonehearthStartMenuView = App.View.extend({
       create_farm : function () {
          App.stonehearthClient.createFarm();
       },
+      create_trapping_zone : function() {
+         //xxx
+      },
       design_building: function () {
          $(top).trigger('stonehearth_design_building');
       },
@@ -41,7 +44,7 @@ App.StonehearthStartMenuView = App.View.extend({
       crafter_manager: function() {
          App.stonehearthClient.showCrafterManager();
       },
-      rally_workers: function () {
+      red_alert: function () {
          App.stonehearthClient.rallyWorkers();
       }
    },

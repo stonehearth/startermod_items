@@ -36,7 +36,19 @@
             "sticky" : true,
             "hotkey" : "f",
             "required_profession" : "stonehearth:professions:farmer"
+         },
+         "create_trapping_zone" : {
+            "name" : "Trapping Ground",
+            "locked_name" : "Trapping Ground (Locked)",
+            "description" : "Place traps to capture small critters.",
+            "locked_description" : "Create a trapper to unlock this zone.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
+            "sticky" : true,
+            "hotkey" : "t",
+            "required_profession" : "stonehearth:professions:trapper"
          }
+
       }
    },
    "build_menu" : {
@@ -105,11 +117,11 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
       "items" : {
-         "rally_workers" : {
-            "name" : "Rally Workers",
+         "red_alert" : {
+            "name" : "Red Alert!",
             "description" : "Rally workers to defend the town!",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
             "sticky" : true,
             "hotkey" : "r"
          }
