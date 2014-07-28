@@ -56,6 +56,14 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
             "sticky" : true,
             "hotkey" : "c"
+         },
+         "place_item" : {
+            "name" : "Place an Item",
+            "description" : "Place items like furniture and decoration",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
+            "sticky" : true,
+            "hotkey" : "p"
          }
       }
    },

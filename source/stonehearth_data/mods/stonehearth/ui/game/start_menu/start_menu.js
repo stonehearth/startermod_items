@@ -26,6 +26,9 @@ App.StonehearthStartMenuView = App.View.extend({
       design_building: function () {
          $(top).trigger('stonehearth_design_building');
       },
+      place_item: function () {
+         $(top).trigger('stonehearth_place_item');
+      },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
@@ -37,9 +40,6 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       crafter_manager: function() {
          App.stonehearthClient.showCrafterManager();
-      },
-      placeItem: function () {
-         $(top).trigger('radiant_show_placement_menu');
       },
       rally_workers: function () {
          App.stonehearthClient.rallyWorkers();

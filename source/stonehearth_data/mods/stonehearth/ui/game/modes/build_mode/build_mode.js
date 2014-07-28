@@ -25,6 +25,12 @@ App.StonehearthBuildModeView = App.View.extend({
          self._showBuildingDesigner();
       });
 
+      // show the palce item UI "place item" button on the start menu
+      // is clicked.
+      $(top).on('stonehearth_place_item', function() {
+         self._showPlaceItemUi();
+      });
+
    },
    
    didInsertElement: function() {
@@ -34,10 +40,15 @@ App.StonehearthBuildModeView = App.View.extend({
    // Nuke the trace on the selected entity
    destroy: function() {
       this._destroyBuildingDesigner();
+      this._destroyPlaceItemUi();
       this._super();
    },
 
    _showBuildingDesigner: function(uri) {
+      // hide all other views
+      this._hideDesignerViews();
+
+      // show the building designer
       if (this._buildDesignerTools) {
          this._buildDesignerTools.$().show();
       } else {      
@@ -52,6 +63,28 @@ App.StonehearthBuildModeView = App.View.extend({
          this._buildDesignerTools.destroy();
          this._buildDesignerTools = null;
       }
+   },
+
+   _showPlaceItemUi: function(uri) {
+      // hide all other views
+      this._hideDesignerViews();
+
+      if (this._placeItemUi) {
+         this._placeItemUi.$().show();
+      } else {      
+         this._placeItemUi = App.gameView.addView(App.StonehearthPlaceItemView);
+      }
+   },
+
+   _destroyPlaceItemUi: function() {
+      if (this._placeItemUi) {
+         this._placeItemUi.destroy();
+         this._placeItemUi = null;
+      }
+   },
+
+   _hideDesignerViews: function() {
+      $('.buildAndDesignTool').parent().hide();
    },
 
    _onStateChanged: function() {
