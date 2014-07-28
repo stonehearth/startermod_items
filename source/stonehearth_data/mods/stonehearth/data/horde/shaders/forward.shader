@@ -227,7 +227,7 @@ void main( void )
   // them if both are > 0.0.
   #ifdef DRAW_GRIDLINES
     float gridline = texture3D(gridMap, gridLineCoords).a;
-    lightColor = lightColor * gridline + ((1.0 - gridline) * gridlineColor.rgb);
+    lightColor = mix(lightColor, gridlineColor.rgb, gridLine);
   #endif
 
   gl_FragColor = vec4(lightColor, 1.0);
@@ -348,7 +348,7 @@ void main( void )
   // them if both are > 0.0.
   #ifdef DRAW_GRIDLINES
     float gridline = texture3D(gridMap, gridLineCoords).a;
-    lightColor = lightColor * gridline + ((1.0 - gridline) * gridlineColor.rgb);
+    lightColor = mix(lightColor, gridlineColor.rgb, gridline);
   #endif
 
   gl_FragColor = vec4(lightColor, 1.0);
