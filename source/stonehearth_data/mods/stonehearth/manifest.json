@@ -936,6 +936,7 @@
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
 
+      "inventory" : "file(services/server/inventory/inventory.lua)",
       "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
 

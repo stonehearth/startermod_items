@@ -1,69 +1,73 @@
-local BasicInventoryTrackerController = class()
-
+local BasicInventoryTracker = class()
 --[[
    Holds the functions used by the basic inventory tracker
    Packaged as a controller so the inventory tracker has easy access to them on creation
 ]]
 
-function BasicInventoryTrackerController:initialize()
+function BasicInventoryTracker:initialize()
+   -- nothing to do
 end
 
-function BasicInventoryTrackerController:restore()
+function BasicInventoryTracker:restore()
+   -- nothing to do
 end
 
--- Functions to get the functions --
-function BasicInventoryTrackerController:get_functions()
-   local filtered_tracker_fn_bundle = {
-      filter_fn = self.filter_fn,
-      make_key_fn = self.make_key_fn,
-      make_value_fn = self.make_value_fn,
-      remove_value_fn = self.remove_value_fn
-   }
-   return filtered_tracker_fn_bundle
-end
-
--- Here are the actual functions required for the tracker ---
-
-function BasicInventoryTrackerController:filter_fn(entity)
-   assert(entity:is_valid(), 'entity is not valid. Make sure to call before destroy')
-   return true
-end
-
-function BasicInventoryTrackerController:make_key_fn(entity)
+-- Part of the inventory tracker interface.  Given an `entity`, return the key
+-- used to store tracker data for entities of that type.  Since we're just counting
+-- the entities with the same uri, this is just the entity uri.
+--
+--    @param entity - the entity currently being tracked
+-- 
+function BasicInventoryTracker:create_key_for_entity(entity)
+   assert(entity:is_valid(), 'entity is not valid.')
    return entity:get_uri()
 end
 
---The value is an object with
--- a. a map of the entities of this type, by their ID. 
--- b. a count of the number of entities of this type
-function BasicInventoryTrackerController:make_value_fn(entity, existing_value)
-   if not existing_value then
-      --We're the first object of this type
-      existing_value = {
+-- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
+-- Tracking data is the existing data stored for entities sharing the same key as
+-- `entity` (see :create_key_for_entity()).  We store both an array of all entities
+-- sharing this uri and a total count.
+--
+--     @param entity - the entity being added to tracking data
+--     @param tracking_data - the tracking data for all entities of the same type
+--1
+function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data)
+   if not tracking_data then
+      -- We're the first object of this type.  Create a new tracking data structure.
+      tracking_data = {
          count = 0, 
          items = {}
       }
    end
-   local prev_entry = existing_value.items[entity:get_id()]
-   if not prev_entry then
-      existing_value.count = existing_value.count + 1
-   end   
-   existing_value.items[entity:get_id()] = entity 
-   return existing_value
+
+   -- Add the current entity to the tracking data, and return
+   local id = entity:get_id()
+   if not tracking_data.items[id] then
+      tracking_data.count = tracking_data.count + 1
+      tracking_data.items[id] = entity 
+   end
+   return tracking_data
 end
 
-function BasicInventoryTrackerController:remove_value_fn(entity_id, existing_value)
-   --If for some reason, there's no existing value for this key, just return
-   if not existing_value then
+-- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
+-- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
+-- the same key as (see :create_key_for_entity()).
+--
+--    @param entity_id - the entity id of the thing being removed.
+--    @param tracking_data - the tracking data for all entities of the same type
+--
+function BasicInventoryTracker:remove_entity_from_tracking_data(entity_id, tracking_data)
+   -- If for some reason, there's no existing value for this key, just return
+   if not tracking_data then
       return nil
    end
 
-   if existing_value.items[entity_id] then
-      existing_value.count = existing_value.count - 1
-      assert(existing_value.count >= 0)
+   if tracking_data.items[entity_id] then
+      tracking_data.items[entity_id] = nil
+      tracking_data.count = tracking_data.count - 1
+      assert(tracking_data.count >= 0)
    end
-   existing_value.items[entity_id] = nil
-   return existing_value
+   return tracking_data
 end
 
-return BasicInventoryTrackerController
+return BasicInventoryTracker

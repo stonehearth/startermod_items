@@ -122,7 +122,8 @@ function CraftOrder:should_execute_order()
       return condition.remaining > 0 
    elseif condition.type == "maintain" then
       local we_have = 0
-      local inventory_data_for_item = stonehearth.inventory:get_items_of_type(self._sv.recipe.produces[1].item, self._sv.player_id)
+      local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+      local inventory_data_for_item = inventory:get_items_of_type(self._sv.recipe.produces[1].item)
       if inventory_data_for_item and inventory_data_for_item.count then
          we_have = inventory_data_for_item.count
       end
