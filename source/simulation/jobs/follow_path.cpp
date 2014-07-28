@@ -152,7 +152,10 @@ bool FollowPath::Arrived(om::MobPtr mob)
    // This becomes important if we prune points out of the path so they they are not adjacent.
    // We'll want to prune so that entities stop zig-zagging to their destination
    // which looks increasingly odd as the entities get bigger (bosses).
-   if (pursuing_ == stopIndex_) {
+   // If stopDistance_ == 0 then make sure we finish pursuing all points on the path.
+   // This is important when the entity and poi are at the same location and we're trying
+   // to move to a point in the adjacent region (e.g. to pick up the item).
+   if (pursuing_ == stopIndex_ && stopDistance_ > 0) {
       csg::Point3f const poi = csg::ToFloat(path_->GetDestinationPointOfInterest());
       csg::Point3f const location = mob->GetLocation();
       float const distance = location.DistanceTo(poi);

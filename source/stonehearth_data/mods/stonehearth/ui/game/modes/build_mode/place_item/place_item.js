@@ -39,7 +39,22 @@ $(document).ready(function(){
 });
 
 App.StonehearthPlaceItemView = App.View.extend({
-   templateName: 'stonehearthItemPicker',
+   templateName: 'stonehearthPlaceItem',
+   classNames: ['fullScreen', 'flex', "gui"],
+   modal: false,
+   components: {
+      'entity_types' : {
+         entities : {
+            'stonehearth:placeable_item_proxy' : {},
+            'item' : {}
+         }
+      }
+   },
+});
+
+App.StonehearthPlaceItemViewOld = App.View.extend({
+   templateName: 'stonehearthPlaceItem',
+   classNames: ['fullScreen', 'flex', "gui"],
    modal: false,
    components: {
       'entity_types' : {
