@@ -13,7 +13,7 @@ function worker_class.promote(entity)
 
    -- TODO: make workers fight with the last tool they were using
    local weapon = radiant.entities.create_entity(worker_weapons[rng:get_int(1, 2)])
-   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
+   radiant.entities.equip_item(entity, weapon)
 
    stonehearth.combat:set_stance(entity, 'passive')
 end

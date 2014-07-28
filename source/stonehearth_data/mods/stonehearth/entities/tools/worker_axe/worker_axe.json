@@ -9,12 +9,9 @@
          }
       }, 
       "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
          "render_type" : "attach_to_bone",
-         "render_info" : {
-            "model_variant" : "default",
-            "default_bone" : "mainHand",
-            "postures" : [ "stonehearth:combat" ]
-         }
+         "postures" : [ "stonehearth:combat" ]
       },
       "unit_info": {
          "name": "Axe", 

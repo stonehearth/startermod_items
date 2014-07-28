@@ -35,10 +35,7 @@
          "type": "attach_item_effect",
          "start_frame": 145,
          "item": "{{talisman}}",
-         "bone": "mainHand",
-         "render_info": {
-            "model_variant": "equipped"
-         }
+         "bone": "mainHand"
       },
       "cleanup_trigger" : {
          "type": "trigger_effect",

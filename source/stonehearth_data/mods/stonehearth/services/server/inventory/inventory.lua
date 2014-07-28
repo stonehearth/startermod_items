@@ -122,6 +122,9 @@ function Inventory:add_item_tracker(controller_name)
    if not filter_tracker then
       local controller = radiant.create_controller(controller_name)
       filter_tracker = radiant.create_controller('stonehearth:filtered_tracker', controller)
+      for id, item in pairs(self._sv.items) do
+         filter_tracker:add_item(item)
+      end
       self._sv.trackers[controller_name] = filter_tracker
       self.__saved_variables:mark_changed()
    end
@@ -144,7 +147,8 @@ end
 --
 function Inventory:get_items_of_type(uri)
    local tracker = self:get_item_tracker('stonehearth:basic_inventory_tracker')
-   return tracker:get_tracking_data_for(uri)
+   local tracking_data = tracker:get_tracking_data()
+   return tracking_data[uri]
 end
 
 return Inventory

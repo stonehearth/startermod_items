@@ -3,49 +3,27 @@
    "type": "entity",
    "components": {
        "model_variants": {
-         "default": {
-            "models": [
-               "file(wooden_sword.qb)"
-            ]
-         },
-         "equipped" : {
+         "default" : {
             "models": [
                "file(wooden_sword_equipped.qb)"
             ]
          }
       },
       "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
          "render_type" : "attach_to_bone",
-         "render_info" : {
-            "model_variant" : "equipped",
-            "default_bone" : "mainHand",
-            "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
-         }
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
       },
       "unit_info": {
          "name": "Wooden Sword",
-         "description": "Promotes a citizen into a Footman.",
+         "description": "Thacks thine enemies with oaken might",
          "icon" : "file(wooden_sword.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood melee_weapon crafted"
-      },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]
-      },
-      "effect_list" : {
-         "effects" : [
-            "stonehearth:effects:talisman_glow"
-         ]  
-      },
-      "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:footman"
-      }      
+         "tags" : "wood melee_weapon"
+      }
    },
    "entity_data" : {
-      "stonehearth:activity_name" : "promote_footman",
       "stonehearth:combat:weapon_data" : {
          "base_damage" : 10,
          "reach" : 1.5

@@ -22,7 +22,11 @@
             ]
          }
       },
+      "stonehearth:material" : {
+         "tags" : "cloth"
+      },
       "stonehearth:equipment_piece" : {
+         "slot" : "outfit",
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [

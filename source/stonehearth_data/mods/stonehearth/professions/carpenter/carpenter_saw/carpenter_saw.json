@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter's Saw",
-         "description" : "Promotes a citizen into a Carpenter.",
+         "description" : "Tools of the trade for a Carpenter.",
          "portrait": "file(carpenter_saw.png)",
          "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
       },
@@ -17,39 +17,17 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(carpenter_saw.qb)"
-            ]
-         },
-         "equipped" : {
-            "models": [
                "file(carpenter_saw_equipped.qb)"
             ]
          }
       },
       "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
          "render_type" : "attach_to_bone",
-         "render_info" : {
-            "model_variant" : "equipped",
-            "default_bone" : "mainHand",
-            "postures" : [ "stonehearth:combat" ]
-         }
-      },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]
-      },
-      "effect_list" : {
-         "effects" : [
-            "stonehearth:effects:talisman_glow"
-         ]  
-      },
-      "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:carpenter"
+         "postures" : [ "stonehearth:combat" ]
       }
    },
    "entity_data" : {
-      "stonehearth:activity_name" : "promote_carpenter",
       "stonehearth:combat:weapon_data" : {
          "base_damage" : 3,
          "reach" : 0.75

@@ -1,3 +1,5 @@
+local Entity = _radiant.om.Entity
+
 local Inventory = require 'services.server.inventory.inventory'
 
 --[[
@@ -39,10 +41,20 @@ function InventoryService:add_inventory(session)
    return inventory
 end
 
-function InventoryService:get_inventory(player_id)
+function InventoryService:get_inventory(arg1)
+   local player_id
+   if radiant.util.is_a(arg1, 'string') then
+      player_id = arg1
+   elseif radiant.util.is_a(arg1, Entity) then
+      player_id = radiant.entities.get_player_id(arg1)
+   else
+      error(string.format('unexpected value %s in get_inventory', radiant.util.to_string(player_id)))
+   end
    radiant.check.is_string(player_id)
-   assert(self._sv.inventories[player_id])
-   return self._sv.inventories[player_id]
+   
+   if self._sv.inventories[player_id] then
+      return self._sv.inventories[player_id]
+   end
 end
 
 --Score functions related to inventory (goods you've built, stocked and crafted)

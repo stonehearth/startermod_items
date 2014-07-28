@@ -10,10 +10,10 @@ function PatrolTest:__init()
    self:create_enemy_kingdom()
 
    local footmen = {
-      self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword'),
-      self:place_citizen(14, 14, 'footman', 'stonehearth:wooden_sword'),
-      --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword'),
-      --self:place_citizen(12, 12, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword_proxy'),
+      self:place_citizen(14, 14, 'footman', 'stonehearth:wooden_sword_proxy'),
+      --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword_proxy'),
+      --self:place_citizen(12, 12, 'footman', 'stonehearth:wooden_sword_proxy'),
    }
 
    -- local enemies = {
@@ -31,15 +31,13 @@ end
 
 function PatrolTest:equip_all(entities)
    for _, entity in pairs(entities) do
-      self:equip_weapon(entity, 'stonehearth:wooden_sword')
+      self:equip_weapon(entity, 'stonehearth:wooden_sword_proxy')
    end
 end
 
 function PatrolTest:equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
-   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
-   -- HACK: remove the talisman glow effect from the weapon
-   radiant.entities.remove_effects(weapon)
+   radiant.entities.equip_item(entity, weapon)
 end
 
 function PatrolTest:create_enemy_kingdom()

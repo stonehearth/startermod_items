@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-        "item":"stonehearth:farmer:hoe"
+        "item":"stonehearth:farmer:hoe_proxy"
       }
   ]
 }

@@ -2,16 +2,16 @@ local combat_tests = {}
 
 function combat_tests.battle_royale(autotest)
    local footmen = {
-      autotest.env:create_person(-15, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -7, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  1, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  9, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person(-15, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword_proxy' }),
+      autotest.env:create_person( -7, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword_proxy' }),
+      autotest.env:create_person(  1, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword_proxy' }),
+      autotest.env:create_person(  9, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword_proxy' }),
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword_proxy' }),
+      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword_proxy' }),
+      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword_proxy' }),
    }
 
    local any_valid_entities = function(entities)

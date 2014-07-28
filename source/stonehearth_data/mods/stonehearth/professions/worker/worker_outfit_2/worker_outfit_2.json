@@ -21,8 +21,9 @@
          }
       },
       "stonehearth:equipment_piece" : {
+         "slot" : "outfit",
+         "ilevel" : 2,
          "injected_buffs" : [
-            "stonehearth:buffs:devoted_worker"
          ]
       }      
    }

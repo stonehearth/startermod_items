@@ -2,8 +2,6 @@ local Vec3 = _radiant.csg.Point3f
 
 local AnalyticsService = class()
 local population_service = stonehearth.population
--- the object tracker is dead
--- local object_tracker = stonehearth.object_tracker 
 
 function AnalyticsService:__init(datastore)
    local one_minute = 1000 * 60

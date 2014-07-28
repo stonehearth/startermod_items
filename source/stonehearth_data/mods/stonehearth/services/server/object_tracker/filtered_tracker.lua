@@ -13,24 +13,12 @@ local FilteredTracker = class()
 --
 function FilteredTracker:initialize(controller)
    self._sv.controller = controller
-   self:_setup_functions()
    self._sv._ids_to_keys = {}
    self._sv.tracking_data = {}
 end
 
 function FilteredTracker:restore()
-   self:_setup_functions()
-end
-
---- Sets up the functions based on these definitions
---  filter_fn - takes an entity, returns true/false if this is valid for this tracker
---  make_key_fn - takes an entity, emits the key it should have in the table
---  make_value_fn - takes an entity and existing value at that key, emits the new value (may be updated version of existing)
---  remove_value_fn - takes an entity and existing value and returns the new value sans-entity
---
-function FilteredTracker:_setup_functions()
-   local function_tracking_data = self._sv.controller:get_functions()
-   self._remove_value_fn = function_tracking_data.remove_value_fn
+   -- nothing to do
 end
 
 --- Call when it's time to add an item
@@ -66,10 +54,10 @@ function FilteredTracker:remove_item(entity_id)
    end
 end
 
--- Returns the tracking data for the specified key.
+-- Returns the tracking data
 --
-function FilteredTracker:get_tracking_data_for(key)
-   return self._sv.tracking_data[key]
+function FilteredTracker:get_tracking_data(key)
+   return self._sv.tracking_data
 end
 
 return FilteredTracker

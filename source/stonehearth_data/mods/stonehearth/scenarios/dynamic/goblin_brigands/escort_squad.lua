@@ -165,9 +165,7 @@ end
 
 function EscortSquad:_equip_with_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
-   radiant.entities.equip_item(entity, weapon, 'melee_weapon')
-   -- HACK: remove the talisman glow effect from the weapon
-   radiant.entities.remove_effects(weapon)
+   radiant.entities.equip_item(entity, weapon)
 end
 
 

@@ -22,11 +22,11 @@
       "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_name__ in your fields!", 
       "max_days_before_return" : 5, 
       "wants" : {
-         "stonehearth:farmer:hoe" : {
+         "stonehearth:farmer:hoe_proxy" : {
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:wooden_sword" : {
+         "stonehearth:wooden_sword_proxy" : {
             "min" : 3, 
             "max" : 8
          }, 

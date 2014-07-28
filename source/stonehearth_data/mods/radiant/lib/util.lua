@@ -61,6 +61,9 @@ end
 function util.is_a(var, cls)
    local t = type(var)
    if t == 'userdata' then
+      if type(cls) ~= 'userdata' then
+         return false
+      end
       return var:get_type_id() == cls.get_type_id()
    elseif util.is_instance(var) and util.is_class(cls) then
       return var:is_a(cls)

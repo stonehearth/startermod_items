@@ -12,10 +12,7 @@
          "start_time": 0,
          "end_time": 0,
          "item": "stonehearth:carpenter:saw",
-         "bone": "mainHand",
-         "render_info": {
-            "model_variant": "equipped"
-         }
+         "bone": "mainHand"
       },
        "sound": {
          "type": "sound_effect",

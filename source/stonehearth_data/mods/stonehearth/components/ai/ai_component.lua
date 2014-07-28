@@ -24,11 +24,22 @@ function AIComponent:initialize(entity, json)
       self._sv._initialized = true
       self._sv._observer_datastores = {}
       self._sv.status_text = ''
-      radiant.events.listen(entity, 'radiant:entity:post_create', function()
-         self:_initialize(json)
-         self:_start()
-         return radiant.events.UNLISTEN
-      end)
+
+      -- wait until the entity is completely initialized before piling all our
+      -- observers and actions
+      radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+            self:_initialize(json)
+         end)
+
+      -- wait until the very next gameloop to start our thread.  this gives the
+      -- person creating the entity time to do some more post-creating initialization
+      -- (e.g. setting the player id!).  xxx: it's probably better to do this by
+      -- passing an init function to create_entity(). -tony
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            if not self._dead then
+               self:_start()
+            end
+         end)
    else
       --we're loading so instead listen on game loaded
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)

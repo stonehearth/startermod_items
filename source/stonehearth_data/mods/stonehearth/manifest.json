@@ -67,13 +67,16 @@
       "carpenter:workbench" : "file(professions/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
+      "carpenter:saw_proxy" : "file(professions/carpenter/carpenter_saw/carpenter_saw_proxy.json)",
 
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
+      "farmer:hoe_proxy" : "file(professions/farmer/farmer_hoe/farmer_hoe_proxy.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:knife" : "file(professions/trapper/trapper_knife)",
+      "trapper:knife_proxy" : "file(professions/trapper/trapper_knife/trapper_knife_proxy.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
@@ -222,6 +225,7 @@
       "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
 
       "wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "wooden_sword_proxy" : "file(entities/weapons/wooden_sword/wooden_sword_proxy.json)",
 
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
@@ -418,6 +422,9 @@
       "actions:combat:wait_for_assault" : "file(ai/actions/combat/wait_for_assault_action.lua)",
       "actions:chase_entity" : "file(ai/actions/chase_entity_action.lua)",
       "actions:run_away_from_entity" : "file(ai/actions/run_away_from_entity_action.lua)",
+      "actions:equip_carrying" : "file(ai/actions/upgrade_equipment/equip_carrying_action.lua)",
+      "actions:upgrade_equipment" : "file(ai/actions/upgrade_equipment/upgrade_equipment_action.lua)",
+      "actions:find_equipment_upgrade" : "file(ai/actions/upgrade_equipment/find_equipment_upgrade_action.lua)",
 
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
       "actions:patrol:idle" : "file(ai/actions/patrol_idle_action.lua)",
@@ -943,6 +950,8 @@
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
+      "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
+
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
