@@ -67,6 +67,8 @@ struct BoundingBox
       {
          _max.z = p.z;
       }
+
+      updateExtentAndCenter();
       ASSERT_VALID_BOX
    }
 	
@@ -130,6 +132,8 @@ struct BoundingBox
 
 		_min = Vec3f( minB[0], minB[1], minB[2] );
 		_max = Vec3f( maxB[0], maxB[1], maxB[2] );
+
+      updateExtentAndCenter();
 	}
 
 
@@ -155,6 +159,7 @@ struct BoundingBox
 			if( b._max.z > _max.z ) { changed = true; _max.z = b._max.z; }
 		}
 
+      updateExtentAndCenter();
       ASSERT_VALID_BOX
 		return changed;
 	}
@@ -174,6 +179,7 @@ struct BoundingBox
       {
          _max.z += Math::Epsilon;
       }
+      updateExtentAndCenter();
    }
 
    inline const Vec3f& min() const {
@@ -196,6 +202,7 @@ struct BoundingBox
       ASSERT_VALID_BOX
 
       _max += v;
+      updateExtentAndCenter();
 
       ASSERT_VALID_BOX
    }
@@ -205,6 +212,7 @@ struct BoundingBox
       ASSERT_VALID_BOX
 
       _max += v;
+      updateExtentAndCenter();
 
       ASSERT_VALID_BOX
    }
@@ -217,8 +225,22 @@ struct BoundingBox
 
    float intersectionOf(const Vec3f& rayStart, const Vec3f& rayDir) const;
 
+   inline void updateExtentAndCenter() {
+      _center = (_min + _max) * 0.5f;
+      _extent = (_min - _max) * 0.5f;
+   }
+
+   inline const Vec3f& extent() const {
+      return _extent;
+   }
+
+   inline const Vec3f& center() const {
+      return _center;
+   }
+
 private:
    Vec3f  _min, _max;
+   Vec3f _center, _extent;
 };
 
 
