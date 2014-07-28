@@ -109,6 +109,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("inflated",     &T::Inflated)
          .def("intersects",   &T::Intersects)
          .def("get_border",   &T::GetBorder)
+         .def("distance_to",  (float (T::*)(T const&) const)&T::DistanceTo)
+         .def("distance_to",  (float (T::*)(typename T::Point const&) const)&T::DistanceTo)
          .def("scaled",       &T::Scaled)
       ;
 }

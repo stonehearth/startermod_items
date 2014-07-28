@@ -338,7 +338,8 @@ function Building:_add_patch_walls_to_building(roof)
       if current_patch_wall_shape then
          self:_remove_building_from_region(roof_origin, current_patch_wall_shape)
          if not current_patch_wall_shape:empty() then
-            stonehearth.build:add_patch_wall_to_building(self._entity, 'stonehearth:plastered_wooden_wall', normal, roof_origin, current_patch_wall_shape)
+            local uri = self:_recommend_patch_wall_material(roof_origin, current_patch_wall_shape)
+            stonehearth.build:add_patch_wall_to_building(self._entity, uri, normal, roof_origin, current_patch_wall_shape)
          end
          current_patch_wall_shape = nil
       end
@@ -436,6 +437,33 @@ function Building:_remove_building_from_region(origin, region)
          end
       end
    end
+end
+
+function Building:_recommend_patch_wall_material(origin, shape)
+   local closest_d
+   local recommended = 'stonehearth:wooden_wall'
+   local bounds = shape:get_bounds()
+
+   for _, entry in pairs(self._walls) do
+      local dst = entry.entity:get_component('destination')
+      if dst then
+         local entity_origin = radiant.entities.get_location_aligned(entry.entity)
+         local offset = entity_origin - origin
+
+         local rgn = dst:get_region():get()
+         local rgn_bounds = rgn:get_bounds()
+                                    :translated(offset)
+         local d = bounds:distance_to(rgn_bounds:translated(offset))
+         if not closest_d or d < closest_d then
+            recommended = entry.entity:get_uri()
+            closest_d = d
+            if closest_d == 0 then
+               break
+            end
+         end
+      end
+   end
+   return recommended
 end
 
 return Building
