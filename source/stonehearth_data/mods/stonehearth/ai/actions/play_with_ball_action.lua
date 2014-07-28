@@ -2,15 +2,16 @@ local PlayWithBallAction = class()
 
 PlayWithBallAction.name = 'play with a ball'
 PlayWithBallAction.does = 'stonehearth:top'
-PlayWithBallAction.version = 1
-PlayWithBallAction.priority = 99
+PlayWithBallAction.args = {}
+PlayWithBallAction.version = 2
+PlayWithBallAction.priority = 1
 
-function PlayWithBallAction:__init(ai, entity, item)
-   self._item = item
+function PlayWithBallAction:start_thinking(ai, entity, args)
+   --TBD
 end
 
-function PlayWithBallAction:run(ai, entity)
-   ai:execute('stonehearth:pickup_item', self._item)
+function PlayWithBallAction:run(ai, entity, args)
+   --ai:execute('stonehearth:pickup_item', self._item)
 end
 
 return PlayWithBallAction

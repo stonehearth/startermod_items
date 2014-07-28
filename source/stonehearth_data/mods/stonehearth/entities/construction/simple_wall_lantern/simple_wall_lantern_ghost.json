@@ -15,6 +15,9 @@
          "description": "Or something",
          "icon" : "file(simple_wall_lantern.png)"
       },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      },
       "stonehearth:fixture" : {
          "cursor" : "stonehearth:cursors:create_window",
          "bounds" : {

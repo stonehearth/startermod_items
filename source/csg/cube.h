@@ -185,9 +185,10 @@ public:
 
    bool Intersects(Cube const& other) const;
    bool Contains(Point const& pt) const;
-   Point GetClosestPoint2(Point const& other, S* dSquared) const;
-   Point GetClosestPoint(Point const& other) const { return GetClosestPoint2(other, nullptr); }
+   Point GetClosestPoint(Point const& other) const;
    Point GetSize() const { return GetMax() - GetMin(); }
+   float DistanceTo(Point const& other) const;
+   float DistanceTo(Cube const& other) const;
 
    // optimizing...
    bool operator==(Cube const& other) const;

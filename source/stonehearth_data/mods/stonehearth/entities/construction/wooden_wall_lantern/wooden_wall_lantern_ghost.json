@@ -15,6 +15,9 @@
          "description": "Easily attached to walls",
          "icon" : "file(wooden_wall_lantern.png)"
       },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      },
       "stonehearth:fixture" : {
          "cursor" : "stonehearth:cursors:create_window",
          "bounds" : {

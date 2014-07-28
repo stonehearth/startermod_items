@@ -36,7 +36,7 @@ local function _can_stock_entity(entity, filter)
 
    -- must match at least one material in the filter, or this cannot be stocked
    for i, mat in ipairs(filter) do
-      if not material:is(mat) then
+      if material:is(mat) then
          return true
       end
    end

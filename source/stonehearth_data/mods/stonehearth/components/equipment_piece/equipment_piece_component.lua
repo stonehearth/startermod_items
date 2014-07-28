@@ -9,6 +9,10 @@ function EquipmentPieceComponent:initialize(entity, json)
    	self._sv._injected_commands = {}
 	end
 
+   if not self._sv._injected_buffs then
+      self._sv._injected_buffs = {}
+   end
+
    local owner = self._sv.owner
    if owner and owner:is_valid() then
    	-- we can't be sure what gets loaded first: us or our owner.  if we get
@@ -17,6 +21,7 @@ function EquipmentPieceComponent:initialize(entity, json)
    	-- so just load up once the whole game is loaded.
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_inject_ai()
+            self:_inject_buffs()
          end)
    end
 
@@ -32,6 +37,7 @@ function EquipmentPieceComponent:equip(entity)
 
 	self._sv.owner = entity
 	self:_inject_ai()
+   self:_inject_buffs()
 	self:_inject_commands()	
 	self:_setup_item_rendering()
 	self.__saved_variables:mark_changed()
@@ -40,6 +46,7 @@ end
 function EquipmentPieceComponent:unequip()
 	if self._sv.owner and self._sv.owner:is_valid() then
 		self:_remove_ai()
+      self:_remove_buffs()
 		self:_remove_commands()
 		self:_remove_item_rendering()
 		self._sv.owner = nil
@@ -121,23 +128,41 @@ function EquipmentPieceComponent:_remove_from_bone()
 end
 
 function EquipmentPieceComponent:_inject_ai()
-	assert(self._sv.owner)
+   assert(self._sv.owner)
 
-	if self._json.injected_ai then
+   if self._json.injected_ai then
       self._injected_ai = stonehearth.ai:inject_ai(self._sv.owner, self._json.injected_ai, self._entity)
    end
 end
 
 function EquipmentPieceComponent:_remove_ai()
-	if self._injected_ai then
-		self._injected_ai:destroy()
-		self._injected_ai = nil
-	end
+   if self._injected_ai then
+      self._injected_ai:destroy()
+      self._injected_ai = nil
+   end
+end
+
+function EquipmentPieceComponent:_inject_buffs()
+   assert(self._sv.owner)
+
+   if self._json.injected_buffs then
+      for _, buff in ipairs(self._json.injected_buffs) do
+         radiant.entities.add_buff(self._entity, buff);
+      end
+   end
+end
+
+function EquipmentPieceComponent:_remove_buffs()
+   if self._json.injected_buffs then
+      for _, buff in ipairs(self._json.injected_buffs) do
+         radiant.entities.remove_buff(self._entity, buff);
+      end
+   end
 end
 
 function EquipmentPieceComponent:_inject_commands()
-	assert(self._sv.owner)
-	assert(#self._sv._injected_commands == 0)
+   assert(self._sv.owner)
+   assert(#self._sv._injected_commands == 0)
 
    if self._json.injected_commands then
 	   local command_component = self._sv.owner:add_component('stonehearth:commands')

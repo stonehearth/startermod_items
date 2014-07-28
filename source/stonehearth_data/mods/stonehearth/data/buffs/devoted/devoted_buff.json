@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Devoted",
+   "description" : "Devoted",
+   "icon" : "file(devote_buff.png)",
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 1.2
+      }
+   }
+} 

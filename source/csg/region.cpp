@@ -323,7 +323,7 @@ bool Region<S, C>::Contains(Point const& pt) const
 }
 
 template <class S, int C>
-Point<S, C> Region<S, C>::GetClosestPoint2(Point const& from, S *dSquared) const
+Point<S, C> Region<S, C>::GetClosestPoint(Point const& from) const
 {
    ASSERT(!IsEmpty());
 
@@ -336,15 +336,12 @@ Point<S, C> Region<S, C>::GetClosestPoint2(Point const& from, S *dSquared) const
    }
 
    for (const auto &c : cubes_) {
-      S d2;
-      Point candidate = c.GetClosestPoint2(from, &d2);
+      Point candidate = c.GetClosestPoint(from);
+      S d2 = c.DistanceTo(candidate);
       if (d2 < best) {
          best = d2;
          closest = candidate;
       }
-   }
-   if (dSquared) {
-      *dSquared = best;
    }
    return closest;
 }
@@ -829,7 +826,7 @@ Point<float, C> csg::GetCentroid(Region<S, C> const& region)
    template const Cls& Cls::operator-=(const Cls&); \
    template bool Cls::Intersects(const Cls::Cube&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
-   template Cls::Point Cls::GetClosestPoint2(const Cls::Point&, Cls::ScalarType*) const; \
+   template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(); \
    template void Cls::OptimizeByOctTree(Cls::ScalarType); \
    template Cls::Cube Cls::GetBounds() const; \
