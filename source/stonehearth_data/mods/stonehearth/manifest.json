@@ -84,7 +84,10 @@
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
-      "worker_outfit" : "file(professions/worker/worker_outfit)",
+      "worker:outfit" : "file(professions/worker/worker_outfit)",
+      "worker:outfit:2" : "file(professions/worker/worker_outfit_2)",
+      "worker:outfit:2_proxy" : "file(professions/worker/worker_outfit_2/worker_outfit_2_proxy.json)",
+
       "worker_axe" : "file(entities/tools/worker_axe)",
       "worker_hammer" : "file(entities/tools/worker_hammer)",
       "mining_pick" : "file(entities/tools/mining_pick)",
@@ -230,6 +233,7 @@
       "buffs:sleeping" : "file(data/buffs/sleeping/sleeping_buff.json)",
       "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
       "buffs:snared" : "file(data/buffs/snared/snared_buff.json)",
+      "buffs:devoted" : "file(data/buffs/devoted/devoted_buff.json)",
 
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",

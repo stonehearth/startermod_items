@@ -1,0 +1,29 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:worker:outfit",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Upgraded Worker Outfit",
+         "description" : "Uniform for all workers"
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(worker_outfit_2.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(worker_outfit_2_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "injected_buffs" : [
+            "stonehearth:buffs:devoted_worker"
+         ]
+      }      
+   }
+}
