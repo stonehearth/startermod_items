@@ -1,0 +1,44 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "The Spindle",
+         "description" : "For spinning fiber into thread",
+         "icon" : "file(weaver_spindle.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(weaver_spindle_proxy.qb)"
+            ]
+         }
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },      
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "render_info" : {
+         "scale": 0.14
+      },
+      "stonehearth:placeable_item_proxy" : {
+         "full_sized_entity" : "stonehearth:weaver:spindle",
+         "hide_place_item_command" : true
+      },      
+      "stonehearth:promotion_talisman": {
+         "profession": "stonehearth:professions:weaver"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_weaver"
+   }
+}

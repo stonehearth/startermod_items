@@ -12,12 +12,11 @@ FindEquipmentUpgrade.priority = 1
 
 function FindEquipmentUpgrade:start_thinking(ai, entity, args)
    self._ai = ai
+   self._entity = entity
    self._ready = false
    self._inventory = stonehearth.inventory:get_inventory(entity)
 
    if self._inventory then
-      self._equipment = entity:add_component('stonehearth:equipment')
-
       local tracker = self._inventory:add_item_tracker('stonehearth:equipment_tracker')
       for id, piece in pairs(tracker:get_tracking_data()) do
          self:_check_equipment_piece(piece)
@@ -35,23 +34,31 @@ end
 
 function FindEquipmentUpgrade:_check_equipment_piece(item)
    if not self._ready then
+      --- if we can't acquire a lease to the item, just bail right away.
+      if not stonehearth.ai:can_acquire_ai_lease(item, self._entity) then
+         return
+      end
+
+      -- if the item is not an equipment piece, bail.  equipment pieces are always
+      -- placed on the ground via a proxy and have an equipment_piece component
       local pip = item:get_component('stonehearth:placeable_item_proxy')
-      if pip then
-         local equipment = pip:get_full_sized_entity()
-                                 :get_component('stonehearth:equipment_piece')
-         if equipment then
-            local slot = equipment:get_slot()
-            if slot then
-               local equipped = self._equipment:get_item_in_slot(slot)
-               if not equipped or equipped:get_component('stonehearth:equipment_piece'):get_ilevel() < equipment:get_ilevel() then
-                  self._ready = true
-                  self._ai:set_think_output({
-                        item = item,
-                     })
-                  return
-               end
-            end
-         end
+      if not pip then
+         return
+      end
+
+      local equipment = pip:get_full_sized_entity()
+                              :get_component('stonehearth:equipment_piece')
+      if not equipment then
+         return
+      end
+
+      -- if this equipment piece is an upgrade for the current unit, go ahead and
+      -- unblock the ai
+      if equipment:is_upgrade_for(self._entity) then
+         self._ready = true
+         self._ai:set_think_output({
+               item = item,
+            })
       end
    end
 end

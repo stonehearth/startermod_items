@@ -1,10 +1,18 @@
 {
   "alias": "stonehearth:professions:worker",
   "name": "Worker",
+  "script" : "file(worker.lua)",
+  "equipment" : {
+    "abilities" : "file(worker_abilities)",
+    "outfit" : "file(worker_outfit)",
+    "mainhand_weapon" : [
+      "stonehearth:mining_pick", 
+      "stonehearth:worker_hammer"
+    ]
+  },
+  "roles" : "worker_profession",
   "buttonIcon" : "file(images/jobButton.png)",
   "bannerIcon" : "file(images/banner.png)",
-  "script": "file(worker.lua)",
-  "outfit": "file(worker_outfit)",
   "task_groups" : [
       "stonehearth:task_group:restock", 
       "stonehearth:task_group:build", 

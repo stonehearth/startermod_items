@@ -84,6 +84,7 @@
       "weaver:workbench" : "file(professions/weaver/weaver_workbench)",
       "weaver:outfit" : "file(professions/weaver/weaver_outfit)",
       "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
+      "weaver:spindle_proxy" : "file(professions/weaver/weaver_spindle/weaver_spindle_proxy.json)",
 
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",

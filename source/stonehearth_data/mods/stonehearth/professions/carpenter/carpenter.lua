@@ -11,9 +11,6 @@ function carpenter_class.promote(entity, json)
          end)
    end
 
-   local weapon = radiant.entities.create_entity('stonehearth:carpenter:saw')
-   radiant.entities.equip_item(entity, weapon)
-
    stonehearth.combat:set_stance(entity, 'passive')
 end
 

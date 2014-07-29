@@ -27,36 +27,7 @@
       },
       "stonehearth:equipment_piece" : {
          "slot" : "outfit",
-         "render_type" : "merge_with_model",
-         "injected_ai" : {
-            "actions" : [
-               "stonehearth:actions:combat:flee",
-               "stonehearth:actions:town_defense:town_defense_watcher",
-               "stonehearth:actions:town_defense:town_defense_dispatcher",
-               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
-               "stonehearth:actions:town_defense:town_defense_idle_ready",
-               "stonehearth:actions:place_item",
-               "stonehearth:actions:place_item_type",
-               "stonehearth:actions:light_firepit",               
-               "stonehearth:actions:shear_sheep_action",
-               "stonehearth:actions:replace_proxy_with_item",
-               "stonehearth:actions:fabricate_structure",
-               "stonehearth:actions:fabricate_structure_adjacent",
-               "stonehearth:actions:fabricate_fixture",
-               "stonehearth:actions:fabricate_fixture_adjacent",
-               "stonehearth:actions:teardown_structure",
-               "stonehearth:actions:teardown_structure_adjacent"
-            ],
-            "observers" : [
-               "stonehearth:observers:combat_panic"
-            ]
-         },
-         "injected_commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]         
+         "render_type" : "merge_with_model"
       }
-   },
-   "entity_data" : {
-      "stonehearth:panic_threshold" : 1.00
    }
 }
