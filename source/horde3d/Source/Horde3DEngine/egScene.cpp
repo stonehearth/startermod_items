@@ -100,7 +100,7 @@ void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
       DEBUG_ONLY( DebugBreak();)
    }
 
-	markDirty();
+   markDirty(SceneNodeDirtyKind::All);
 }
 
 
@@ -125,7 +125,7 @@ void SceneNode::setTransform( const Matrix4f &mat )
       DEBUG_ONLY( DebugBreak();)
    }
 	
-	markDirty();
+   markDirty(SceneNodeDirtyKind::All);
 }
 
 
@@ -264,7 +264,7 @@ void SceneNode::unmapParamV(int param, int mappedLength)
 void SceneNode::updateBBox(const BoundingBox& b)
 {
    _bBox = b;
-   markDirty();
+   markDirty(SceneNodeDirtyKind::Bounds);
 }
 
 
@@ -285,6 +285,7 @@ void SceneNode::markChildrenDirty()
    {
 		if( !child->_dirty )
 		{	
+         //Modules::log().writeError("%s", child->getName().c_str());
 			child->_dirty = true;
 			child->_transformed = true;
 			child->markChildrenDirty();
@@ -292,27 +293,30 @@ void SceneNode::markChildrenDirty()
 	}
 }
 
-
-void SceneNode::markDirty()
+void SceneNode::markDirty(uint32 dirtyKind)
 {
-	_dirty = true;
+ 	_dirty = true;
 	_transformed = true;
-	
-	SceneNode *node = _parent;
-	while( node != 0x0 )
-	{
-		node->_dirty = true;
-		node = node->_parent;
-	}
 
-	markChildrenDirty();
+   if (dirtyKind & SceneNodeDirtyKind::Bounds) {
+	   SceneNode *node = _parent;
+	   while( node != 0x0 )
+	   {
+ 		   node->_dirty = true;
+		   node = node->_parent;
+	   }
+   }
+
+   if (dirtyKind & SceneNodeDirtyKind::Flags) {
+   	markChildrenDirty();
+   }
 }
 
 
 void SceneNode::update()
 {
 	if( !_dirty ) return;
-	
+
 	onPreUpdate();
 	
 	// Calculate absolute matrix
@@ -410,14 +414,19 @@ GridSpatialGraph::GridSpatialGraph()
 
 void GridSpatialGraph::addNode(SceneNode const& sceneNode)
 {	
+   radiant::perfmon::TimelineCounterGuard un("gsg:addNode");
+   const NodeHandle nh = sceneNode.getHandle();
    if(!sceneNode._renderable && sceneNode._type != SceneNodeTypes::Light) {
       return;
    }
 
    if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
-      _directionalLights[sceneNode.getHandle()] = &sceneNode;
+      _directionalLights[nh] = &sceneNode;
    } else {
-      _nodeGridLookup[sceneNode.getHandle()] = boost::container::flat_set<uint32>();
+      auto &iter = _nodeGridLookup.find(nh);
+      if (iter == _nodeGridLookup.end()) {
+         _nodeGridLookup.emplace_hint(iter, nh, boost::container::flat_set<uint32>());
+      }
       updateNode(sceneNode);
    }
 }
@@ -425,6 +434,7 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
 
 void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
 {
+   radiant::perfmon::TimelineCounterGuard un("gsg:removeNode");
    NodeHandle h = sceneNode.getHandle();
    if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights.erase(h);
@@ -434,9 +444,10 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
          int numRemoved = _gridElements[gridNum]._nodes.erase(&sceneNode);
          ASSERT(numRemoved == 1);
       }
-      ASSERT(_nodeGridLookup.erase(h) == 1);
-      if (_nocullNodes.find(h) != _nocullNodes.end()) {
-         _nocullNodes.erase(h);
+      _nodeGridLookup[h].clear();
+      auto &iter = _nocullNodes.find(h);
+      if (iter != _nocullNodes.end()) {
+         _nocullNodes.erase(iter);
       }
    }
 }
@@ -482,6 +493,7 @@ inline void GridSpatialGraph::unhashGridHash(uint32 hash, int* x, int* y) const
 
 void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
 {
+   radiant::perfmon::TimelineCounterGuard un("gsg:updateNode");
    NodeHandle nh = sceneNode.getHandle();
    BoundingBox const& sceneBox = sceneNode.getBBox();
    if (!sceneBox.isValid()) {
@@ -921,7 +933,6 @@ NodeRegEntry *SceneManager::findType( std::string const& typeString )
 	return 0x0;
 }
 
-
 void SceneManager::updateNodes()
 {
    radiant::perfmon::TimelineCounterGuard un("updateNodes");
@@ -1101,7 +1112,7 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
 	node->onAttach( parent );
 
 	// Mark tree as dirty
-	node->markDirty();
+   node->markDirty(SceneNodeDirtyKind::All);
 
 	// Register node in spatial graph
 	_spatialGraph->addNode( *node );
@@ -1164,12 +1175,12 @@ void SceneManager::removeNode( SceneNode &node )
 				break;
 			}
 		}
-		parent->markDirty();
+      parent->markDirty(SceneNodeDirtyKind::Bounds);
 	}
 	else  // Rootnode
 	{
 		node._children.clear();
-		node.markDirty();
+      node.markDirty(SceneNodeDirtyKind::All);
 	}
 }
 
@@ -1200,8 +1211,8 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 	node._parent = &parent;
 	node.onAttach( parent );
 	
-	parent.markDirty();
-	node._parent->markDirty();
+	parent.markDirty(SceneNodeDirtyKind::Bounds);
+	node._parent->markDirty(SceneNodeDirtyKind::Bounds);
 	
 	return true;
 }
