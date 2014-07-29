@@ -15,11 +15,16 @@ function PlaceableItemProxyComponent:initialize(entity, json)
    self._hide_place_item_command = json.hide_place_item_command
 
    self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized and self._placed_entity_uri then
+   if not self._sv._initialized then
       self._sv._initialized = true
+      self._sv.category = json.category or 'uncategorized'
       self:_create_derived_components()
       self.__saved_variables:mark_changed()
    end
+end
+
+function PlaceableItemProxyComponent:get_category()
+   return self._sv.category
 end
 
 -- Implemented in such a way that one can query a proxy without having to
@@ -72,8 +77,10 @@ end
 
 --Copy the unit info from the big entity's json file into the proxy
 function PlaceableItemProxyComponent:_create_derived_components()
-   assert(self._placed_entity_uri)
-   
+   if not self._placed_entity_uri then
+      return
+   end
+
    local clone_components = {
       'unit_info',
       'stonehearth:material'

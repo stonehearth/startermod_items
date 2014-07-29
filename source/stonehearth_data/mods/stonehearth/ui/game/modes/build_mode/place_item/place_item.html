@@ -1,39 +1,19 @@
 <script type="text/x-handlebars" data-template-name="stonehearthPlaceItem">
    <div id="itemPalette" class="window flat buildAndDesignTool">
       <div class="title">Place an Item</div>
-
-      Item palette goes here...
-   </div>
-
-</script>
-
-<script type="text/x-handlebars" data-template-name="stonehearthPlaceItem_OLD">
-   <div id="itemPalette" class="window flat">
-      <div class="title">Items</div>
-
-      Item palette goes here...
-   </div>
-   
-   <div id="itemPicker">
-      <a id="closeButton" {{action close target="view"}}><img></a>
       <div class="pickerGrid">
-         {{partial 'picker_template'}}
+         {{#each this.categories }}
+            <h2>{{ this.name }}</h2>
+            {{#each this.items}}
+               <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
+                  <div class="pickable_item" {{bind-attr title=this.display_name}}>
+                     <div class="num_pickable">{{this.count}}</div>
+                     <img class="pickable_image" {{bind-attr src=this.icon}}>
+                  </div>
+               </a>
+            {{/each}}
+         {{/each}}
       </div>
    </div>
 </script>
 
-<script type="text/x-handlebars" data-template-name="_picker_template">
-   {{#each entity_types}}
-      {{#if this.entities.length}}
-      <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
-         <div class="pickable_item" {{bind-attr title=this.entity_name}}>
-            <div class="num_pickable">{{this.entities.length}}</div>
-            <img class="pickable_image" {{bind-attr src= this.entity_icon}}>
-         </div>
-      </a>
-      {{/if}}
-   {{/each}}
-   {{#unless num_entities}}
-      <div class="placementDiv">{{i18n stonehearth:item_placement_no_entities}}</div>
-   {{/unless}}
-</script>
