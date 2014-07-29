@@ -203,7 +203,7 @@ function EquipmentPieceComponent:_inject_buffs()
 
    if self._json.injected_buffs then
       for _, buff in ipairs(self._json.injected_buffs) do
-         radiant.entities.add_buff(self._entity, buff);
+         radiant.entities.add_buff(self._sv.owner, buff);
       end
    end
 end
@@ -211,7 +211,7 @@ end
 function EquipmentPieceComponent:_remove_buffs()
    if self._json.injected_buffs then
       for _, buff in ipairs(self._json.injected_buffs) do
-         radiant.entities.remove_buff(self._entity, buff);
+         radiant.entities.remove_buff(self._sv.owner, buff);
       end
    end
 end

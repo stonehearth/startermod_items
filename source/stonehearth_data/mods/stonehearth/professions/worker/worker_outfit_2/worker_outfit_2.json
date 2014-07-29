@@ -25,8 +25,7 @@
          "render_type" : "merge_with_model",
          "roles" : "worker_profession",
          "ilevel" : 2,
-         "injected_buffs" : [
-         ]
+         "injected_buffs" : [ "stonehearth:buffs:devoted" ]
       }
    }
 }
