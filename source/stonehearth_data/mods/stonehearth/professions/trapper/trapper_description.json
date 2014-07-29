@@ -1,11 +1,20 @@
 {
-  "profession_id": "trapper",
-  "name": "Trapper",      
-  "alias": "stonehearth:professions:trapper",
-  "buttonIcon" : "file(images/jobButton.png)",
-  "description": "Traps stuff, yay.",
-  "talisman_uri" : "stonehearth:trapper:knife",
-  "script": "file(/professions/trapper/trapper.lua)",
-  "outfit": "file(trapper_outfit)", 
-  "score_value" : 10
+   "profession_id": "trapper",
+   "name": "Trapper",   
+   "description": "Traps stuff, yay.",
+   "alias": "stonehearth:professions:trapper",
+   "script": "file(/professions/trapper/trapper.lua)",
+   "talisman_uri" : "stonehearth:trapper:knife",
+
+   "equipment" : {
+      "abilities" : "file(trapper_abilities)",
+      "outfit" : "file(trapper_outfit)",
+      "mainhand_weapon" : "stonehearth:trapper:knife"
+   },
+
+   "roles" : "trapper_profession hunter", 
+
+   "buttonIcon" : "file(images/jobButton.png)",
+
+   "score_value" : 10
 }

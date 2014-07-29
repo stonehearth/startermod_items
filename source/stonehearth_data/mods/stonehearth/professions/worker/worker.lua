@@ -5,15 +5,8 @@ local singleton = {
 }
 local worker_class = {}
 
-local worker_weapons = { 'stonehearth:mining_pick', 'stonehearth:worker_hammer' }
-local rng = _radiant.csg.get_default_rng()
-
 function worker_class.promote(entity)
    worker_class.restore(entity)
-
-   -- TODO: make workers fight with the last tool they were using
-   local weapon = radiant.entities.create_entity(worker_weapons[rng:get_int(1, 2)])
-   radiant.entities.equip_item(entity, weapon)
 
    stonehearth.combat:set_stance(entity, 'passive')
 end

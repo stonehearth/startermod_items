@@ -1,10 +1,10 @@
 {
    "type": "entity",
-   "mixins" : "stonehearth:worker:outfit",
+   "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
          "name" :  "Upgraded Worker Outfit",
-         "description" : "Uniform for all workers"
+         "description" : "Reinforced construction improves worker efficiency!"
       },
       "model_variants": {
          "default": {
@@ -22,9 +22,11 @@
       },
       "stonehearth:equipment_piece" : {
          "slot" : "outfit",
+         "render_type" : "merge_with_model",
+         "roles" : "worker_profession",
          "ilevel" : 2,
          "injected_buffs" : [
          ]
-      }      
+      }
    }
 }

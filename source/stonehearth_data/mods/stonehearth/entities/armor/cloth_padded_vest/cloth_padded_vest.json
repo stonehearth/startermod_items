@@ -4,61 +4,28 @@
    "components" : {
       "unit_info" : {
          "name": "Padded Vest",
-         "description": "Provides light protection. Better than nothing, but not by much!",
+         "description": "Provides light protection in a fight.",
          "icon" : "file(padded_vest.png)"         
-      },
-      "render_info" : {
       },
       "model_variants": {
          "default": {
             "layer": "clothing",
             "models": [
-               "file(padded_cloth_vest.qb)"
+               "file(cloth_padded_vest.qb)"
             ]
          },
          "female" : {
             "layer": "clothing",
             "models": [
-               "file(padded_cloth_vest_female.qb)"
+               "file(cloth_padded_vest_female.qb)"
             ]
          }
       },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
-         "injected_ai" : {
-            "actions" : [
-               "stonehearth:actions:patrol",
-               "stonehearth:actions:patrol:idle",
-               "stonehearth:actions:get_patrol_route",
-               "stonehearth:actions:mark_patrol_completed"
-            ]            
-         },
-         "injected_commands" : [
-         ]
+         "slot" : "outfit",
+         "ilevel" : 2,
+         "roles" : "combat"
       }
-   },
-   "entity_data" : {
-      "stonehearth:combat:melee_attacks" : [
-         {
-            "name" : "combat_1h_forehand_spin",
-            "active_frame" : 21,
-            "cooldown" : 8000,
-            "priority" : 1
-         },
-         {
-            "name" : "combat_power_spike",
-            "active_frame" : 94,
-            "cooldown" : 20000,
-            "priority" : 1
-         }      
-      ],
-      "stonehearth:combat:melee_defenses" : [
-         {
-            "name" : "combat_1h_dodge",
-            "active_frame" : 8,
-            "cooldown" : 12000,
-            "priority" : 1
-         }
-      ]
    }
 }
