@@ -164,7 +164,7 @@ void CameraNode::setParamI( int param, int value )
 		return;
 	case CameraNodeParams::OrthoI:
 		_orthographic = (value == 1);
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::OccCullingI:
 		if( _occSet < 0 && value != 0 )
@@ -213,27 +213,27 @@ void CameraNode::setParamF( int param, int compIdx, float value )
 	{
 	case CameraNodeParams::LeftPlaneF:
 		_frustLeft = value;
-		markDirty();
+      markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::RightPlaneF:
 		_frustRight = value;
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::BottomPlaneF:
 		_frustBottom = value;
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::TopPlaneF:
 		_frustTop = value;
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::NearPlaneF:
 		_frustNear = value;
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	case CameraNodeParams::FarPlaneF:
 		_frustFar = value;
-		markDirty();
+		markDirty(SceneNodeDirtyKind::Bounds);
 		return;
 	}
 
@@ -253,7 +253,7 @@ void CameraNode::setupViewParams( float fov, float aspect, float nearPlane, floa
 	_frustNear = nearPlane;
 	_frustFar = farPlane;
 	
-	markDirty();
+	markDirty(SceneNodeDirtyKind::Bounds);
 }
 
 

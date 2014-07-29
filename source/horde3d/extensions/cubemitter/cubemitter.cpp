@@ -335,7 +335,7 @@ void CubemitterNode::advanceTime( float timeDelta )
    if (_wasVisible)
    {
 	   _timeDelta += timeDelta;
-   	markDirty();
+   	markDirty(SceneNodeDirtyKind::Bounds);
    }
 }
 

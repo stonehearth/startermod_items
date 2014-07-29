@@ -158,7 +158,7 @@ bool VoxelModelNode::setMorphParam( std::string const& targetName, float weight 
 		if( _morphers[i].weight != 0 ) _morpherUsed = true;
 	}
 
-	markDirty();
+	markDirty(SceneNodeDirtyKind::Bounds);
 
 	return result;
 }
