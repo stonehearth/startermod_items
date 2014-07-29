@@ -209,9 +209,6 @@
       "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
       "wooden_garden_lantern_proxy" : "file(entities/construction/wooden_garden_lantern/wooden_garden_lantern_proxy.json)",
 
-      "simple_wall_lantern" : "file(entities/construction/simple_wall_lantern)",
-      "simple_wall_lantern_proxy" : "file(entities/construction/simple_wall_lantern/simple_wall_lantern_proxy.json)",
-
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
 
@@ -530,6 +527,9 @@
       "sounds:hammer_sound_01" : "file(data/sounds/effects/sh_hammer_01.wav)",
       "sounds:hammer_sound_02" : "file(data/sounds/effects/sh_hammer_02.wav)",
       "sounds:hammer_sound_03" : "file(data/sounds/effects/sh_hammer_03.wav)",
+      "sounds:shovel_01" : "file(data/sounds/effects/sh_shovel_01.wav)",
+      "sounds:shovel_02" : "file(data/sounds/effects/sh_shovel_02.wav)",
+      "sounds:shovel_03" : "file(data/sounds/effects/sh_shovel_03.wav)",
       "sounds:flint_01_sound" : "file(data/sounds/effects/sh_flint_02.wav)",
       "sounds:flint_02_sound" : "file(data/sounds/effects/sh_flint_03.wav)",
       "sounds:flint_03_sound" : "file(data/sounds/effects/sh_flint_04.wav)",

@@ -15,7 +15,7 @@ return ai:create_compound_action(TillEntireField)
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.field:get_soil_layer() })
          :execute('stonehearth:reserve_entity_destination', { entity = ai.ARGS.field:get_soil_layer(),
                                                               location = ai.PREV.point_of_interest })
-         :execute('stonehearth:run_effect', { effect = 'work', facing_point = ai.PREV.location })
+         :execute('stonehearth:run_effect', { effect = 'hoe', facing_point = ai.PREV.location })
          :execute('stonehearth:call_method', {
             obj = ai.ARGS.field,
             method = 'notify_till_location_finished',
