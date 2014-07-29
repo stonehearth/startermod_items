@@ -69,6 +69,7 @@
       },
 
       "machines" : [
+         "intelHD4600-corei3@3.5GHz"      
       ]
    },
    "low_quality" : {
@@ -93,7 +94,8 @@
       },
 
       "machines" : [
-         "radeon3450-PentiumDual@2.2GHz"
+         "radeon3450-PentiumDual@2.2GHz",
+         "intelHD4600-corei3@3.5GHz"
       ]
    },
    "bottom_quality" : {
@@ -119,7 +121,8 @@
 
       "machines" : [
          "radeon3450-PentiumDual@2.2GHz",
-         "intelGMA_HD-VAIOLaptop"
+         "intelGMA_HD-VAIOLaptop",
+         "intelHD4600-corei3@3.5GHz"
       ]
    },
    "cpu_limited" : {

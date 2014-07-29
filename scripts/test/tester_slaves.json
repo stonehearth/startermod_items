@@ -8,6 +8,9 @@
       },
       "intelGMA_HD-VAIOLaptop" : {
          "ip_address" : "10.1.10.62"
+      },
+      "intelHD4600-corei3@3.5GHz" : {
+         "ip_address" : "10.1.10.70"
       }
    },
    "default_autotest" : "radeon7850-corei5@3.4GHz"
