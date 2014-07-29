@@ -15,7 +15,6 @@ function PlacementTest:__init()
    self:place_item('stonehearth:comfy_bed_proxy', 1, 5)
    self:place_item('stonehearth:comfy_bed_proxy', 2, 5)
    self:place_item('stonehearth:wooden_garden_lantern_proxy', 4, 5)
-   if true then return false end
 
    local citizen2 = self:place_citizen(-12, -12)
    local player_id = radiant.entities.get_player_id(citizen)

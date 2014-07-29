@@ -116,19 +116,21 @@ function Inventory:remove_item(storage, item_id)
 end
 
 --- Call this function to track a subset of things in this inventory
---  See the documentation for FilteredTracker for the function specifics
+--  See the documentation for InventoryTracker for the function specifics
 function Inventory:add_item_tracker(controller_name)
-   local filter_tracker = self._sv.trackers[controller_name]
-   if not filter_tracker then
+   local tracker = self._sv.trackers[controller_name]
+   if not tracker then
       local controller = radiant.create_controller(controller_name)
-      filter_tracker = radiant.create_controller('stonehearth:filtered_tracker', controller)
+      assert(controller)
+      
+      tracker = radiant.create_controller('stonehearth:inventory_tracker', controller)
       for id, item in pairs(self._sv.items) do
-         filter_tracker:add_item(item)
+         tracker:add_item(item)
       end
-      self._sv.trackers[controller_name] = filter_tracker
+      self._sv.trackers[controller_name] = tracker
       self.__saved_variables:mark_changed()
    end
-   return filter_tracker
+   return tracker
 end
 
 function Inventory:get_item_tracker(controller_name)

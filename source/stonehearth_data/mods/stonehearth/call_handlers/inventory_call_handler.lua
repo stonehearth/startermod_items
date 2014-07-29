@@ -27,6 +27,16 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
 end
 
 -- runs on the server!
+function InventoryCallHandler:get_placable_items(session, response)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
+   if not inventory then
+      response:reject('could not find inventory for player ' .. session.player_id)
+      return
+   end
+   local tracker = inventory:add_item_tracker('stonehearth:placable_items_view_tracker')
+   return { tracker = tracker }
+end
+
 function InventoryCallHandler:create_stockpile(session, response, location, size)
    local inventory = stonehearth.inventory:get_inventory(session.player_id)
    local stockpile = inventory:create_stockpile(location, size)

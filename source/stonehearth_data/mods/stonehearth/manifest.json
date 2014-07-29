@@ -788,17 +788,9 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_worker_tracker" : {
+      "get_placable_items" : {
          "endpoint" : "server",
-         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
-      },
-      "get_placable_items_tracker" : {
-         "endpoint" : "server",
-         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
-      },
-      "get_resource_tracker" : {
-         "endpoint" : "server",
-         "controller" : "file(call_handlers/object_tracker_call_handler.lua)"
+         "controller" : "file(call_handlers/inventory_call_handler.lua)"
       },
       "get_event_tracker": {
          "controller" : "file(call_handlers/event_call_handler.lua)",
@@ -959,9 +951,10 @@
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
-      "filtered_tracker" : "file(services/server/object_tracker/filtered_tracker.lua)",
+      "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
+      "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
 
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
@@ -1105,7 +1098,6 @@
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/modes/build_mode/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
-         "file(ui/game/resource_scoreboard/resource_scoreboard.html)",
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/score/score.html)",
          "file(ui/game/town/town.html)",
@@ -1160,7 +1152,6 @@
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/modes/build_mode/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
-         "file(ui/game/resource_scoreboard/resource_scoreboard.js)",
          "file(ui/game/start_menu/start_menu.js)",
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/score/score.js)",
@@ -1214,7 +1205,6 @@
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/modes/build_mode/place_item/place_item.less)",
-         "file(ui/game/resource_scoreboard/resource_scoreboard.less)",
          "file(ui/game/start_menu/start_menu.less)",
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/score/score.less)",

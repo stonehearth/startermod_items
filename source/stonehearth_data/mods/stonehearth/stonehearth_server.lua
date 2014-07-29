@@ -18,7 +18,6 @@ local service_creation_order = {
    'dm',
    'static_scenario',
    'dynamic_scenario',
-   'object_tracker',
    'world_generation',
    'build',
    'game_master',
