@@ -1,13 +1,23 @@
 {
   "profession_id": "farmer",
   "alias": "stonehearth:professions:farmer",
+
   "name": "Farmer",
+  "description": "Farmer", 
+
+  "script": "file(farmer.lua)",
+  "talisman_uri" : "stonehearth:farmer:hoe_proxy",
+
+  "equipment" : {
+    "abilities" : "file(farmer_abilities)",
+    "outfit" : "file(farmer_outfit)",
+    "mainhand_weapon" : "stonehearth:farmer:hoe"
+  },
+  "roles" : "farmer_profession",
+
   "buttonIcon" : "file(images/jobButton.png)",
   "bannerIcon" : "file(images/banner.png)",   
-  "talisman_uri" : "stonehearth:farmer:hoe_proxy",
-  "script": "file(farmer.lua)",
-  "outfit": "file(farmer_outfit)",
-  "description": "Farmer", 
+  
   "score_value" : 10,
   "task_groups" : [
       "stonehearth:task_group:restock",

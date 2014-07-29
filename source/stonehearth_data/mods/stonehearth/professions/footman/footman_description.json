@@ -1,11 +1,19 @@
 {
    "profession_id": "footman",
-   "name": "Footman",      
    "alias": "stonehearth:professions:footman",
+   "name": "Footman",      
    "description": "A melee fighter",
-   "buttonIcon" : "file(images/jobButton.png)",
-   "bannerIcon" : "file(images/banner.png)",   
-   "talisman_uri" : "stonehearth:wooden_sword_proxy",
    "script": "file(footman.lua)",
-   "outfit": "file(footman_outfit)"
+   "talisman_uri" : "stonehearth:wooden_sword_proxy",
+
+   "equipment" : {
+      "abilities" : "file(footman_abilities)",
+      "outfit" : "file(footman_outfit)",
+      "mainhand_weapon" : "stonehearth:wooden_sword"
+   },
+
+   "roles" : "footman_profession combat",
+   
+   "buttonIcon" : "file(images/jobButton.png)",
+   "bannerIcon" : "file(images/banner.png)"
 }

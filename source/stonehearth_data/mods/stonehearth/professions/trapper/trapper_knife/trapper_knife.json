@@ -21,7 +21,26 @@
                "file(trapper_knife_equipped.qb)"
             ]
          }
-      }
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat" ]
+      }     
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 3,
+         "reach" : 0.75
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
    }
 }
 

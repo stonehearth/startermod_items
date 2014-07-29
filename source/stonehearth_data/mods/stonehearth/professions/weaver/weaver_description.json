@@ -3,12 +3,22 @@
    "alias" : "stonehearth:professions:weaver",
    "name": "Weaver",      
    "description" : "The weaver makes thread, fabrics and hangings from fiber and dye.", 
+   "script": "file(/professions/weaver/weaver.lua)",
+   "talisman_uri" : "stonehearth:weaver:spindle", 
+
+   "equipment" : {
+      "abilities" : "file(weaver_abilities)",
+      "outfit" : "file(weaver_outfit)",
+      "mainhand_weapon" : "stonehearth:weaver:spindle"
+   },
+
+   "roles" : "weaver_profession crafter", 
+
+   "score_value" : 10, 
+
    "buttonIcon" : "file(images/jobButton.png)",
    "bannerIcon" : "file(images/banner.png)",
-   "script": "file(/professions/weaver/weaver.lua)",
-   "outfit": "file(weaver_outfit)",
-   "talisman_uri" : "stonehearth:weaver:spindle", 
-   "score_value" : 10, 
+
    "task_groups" : [
       "stonehearth:task_group:restock"
    ],

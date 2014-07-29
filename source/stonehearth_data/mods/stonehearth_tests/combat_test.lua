@@ -41,7 +41,6 @@ function CombatTest:place_units()
       --self:place_enemy(  7, 15, 'stonehearth:wooden_sword_proxy'),
       --self:place_enemy( 15, 15, 'stonehearth:wooden_sword_proxy'),
    }
-   stonehearth.combat:set_stance(self._citizens[1], 'passive')
 end
 
 function CombatTest:create_enemy_kingdom()

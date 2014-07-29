@@ -22,27 +22,7 @@
       },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
-         "injected_ai" : {
-            "actions" : [
-                "stonehearth:actions:unit_control:move_unit_to_location",
-                "stonehearth:actions:unit_control:abilities:snare_trap",
-                "stonehearth:actions:unit_control:harvest_trapped_beast",
-                "stonehearth:actions:unit_control:tame_trapped_beast",
-                "stonehearth:actions:unit_control:unload_inventory",
-                "stonehearth:actions:unit_control:harvest_trapped_beast_adjacent",
-                "stonehearth:actions:unit_control:tame_trapped_beast_adjacent",
-                "stonehearth:actions:loot_item",
-                "stonehearth:actions:put_carrying_in_inventory",
-                "stonehearth:actions:drop_inventory_items",
-                "stonehearth:actions:get_town_banner", 
-                "stonehearth:actions:goto_town_banner" 
-            ]
-         },
-         "injected_commands" : [
-            "file(/data/commands/unit_control/move_unit)",
-            "file(/data/commands/unit_control/abilities/snare_trap)",
-            "file(/data/commands/unit_control/unload_inventory)"
-         ]
+         "slot" : "outfit"
       }
    }
 }

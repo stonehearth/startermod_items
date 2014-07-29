@@ -1,0 +1,34 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:town_defense:town_defense_watcher",
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+
+               "stonehearth:actions:crafting_task_dispatcher",
+               "stonehearth:actions:work_at_workshop",
+               "stonehearth:actions:move_item_to_outbox",
+
+               "stonehearth:actions:fabricate_structure",
+               "stonehearth:actions:fabricate_structure_adjacent",
+               "stonehearth:actions:fabricate_fixture",
+               "stonehearth:actions:fabricate_fixture_adjacent",
+               "stonehearth:actions:teardown_structure",
+               "stonehearth:actions:teardown_structure_adjacent",
+
+               "stonehearth:filters:fabricate_wooden_fixture",
+               "stonehearth:filters:fabricate_wooden_structure",
+               "stonehearth:filters:teardown_wooden_structure",
+            ]
+         },
+         "injected_commands" : [
+            "file(/data/commands/build_workshop)"
+         ]
+      }
+   }
+}
