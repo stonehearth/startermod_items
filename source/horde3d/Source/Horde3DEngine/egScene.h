@@ -67,6 +67,16 @@ struct hash_InstanceKey {
 // Scene Node
 // =================================================================================================
 
+struct SceneNodeDirtyKind
+{
+   enum List
+   {
+      Bounds = 0x1,
+      Flags = 0x2,
+      All = 0x3
+   };
+};
+
 struct SceneNodeTypes
 {
 	enum List
@@ -160,7 +170,7 @@ public:
 	virtual void setLodLevel( int lodLevel );
 
 	virtual bool canAttach( SceneNode &parent );
-	void markDirty();
+   void markDirty(uint32 dirtyKind);
 	void update();
 
    bool checkIntersection(const Vec3f &rayOrig, const Vec3f& rayEnd, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm) const;

@@ -534,7 +534,7 @@ void EmitterNode::advanceTime( float timeDelta )
 {
 	_timeDelta += timeDelta;
 
-	markDirty();
+	markDirty(SceneNodeDirtyKind::Bounds);
 }
 
 
