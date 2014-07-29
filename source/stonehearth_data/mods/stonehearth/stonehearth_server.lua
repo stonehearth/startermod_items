@@ -31,7 +31,8 @@ local service_creation_order = {
    'worker_defense',
    'bulletin_board',
    'linear_combat',
-   'farming' 
+   'farming',
+   'trapping'
 }
 
 local function create_service(name)

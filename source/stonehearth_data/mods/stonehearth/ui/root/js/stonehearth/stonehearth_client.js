@@ -177,12 +177,35 @@ var StonehearthClient;
             .done(function(response) {
                radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                radiant.call('stonehearth:select_entity', response.field);
-               self.createFarm({ hideTip : true});
+               self.createFarm({ hideTip : true });
             })
             .fail(function(response) {
                $(top).trigger('radiant_hide_tip');
                console.log('new field created!');
             });
+         });
+      },
+
+      createTrappingGrounds: function(o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click and drag to create trapping grounds.',
+               description : 'Trappers catch critters for food and resources in this zone.'
+            });
+         }
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:choose_trapping_grounds_location')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  self.createTrappingGrounds({ hideTip : true });
+               })
+               .fail(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
          });
       },
 

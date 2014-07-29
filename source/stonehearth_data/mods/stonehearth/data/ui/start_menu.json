@@ -37,7 +37,7 @@
             "hotkey" : "f",
             "required_profession" : "stonehearth:professions:farmer"
          },
-         "create_trapping_zone" : {
+         "create_trapping_grounds" : {
             "name" : "Trapping Ground",
             "locked_name" : "Trapping Ground (Locked)",
             "description" : "Place traps to capture small critters.",
@@ -84,7 +84,7 @@
       "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
-      "hotkey" : "t",
+      "hotkey" : "i",
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:banner_grab"
    },   

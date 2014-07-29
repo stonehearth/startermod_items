@@ -1,8 +1,4 @@
-local Point3 = _radiant.csg.Point3
-local Cube3 = _radiant.csg.Cube3
 local Color4 = _radiant.csg.Color4
-local Rect2 = _radiant.csg.Rect2
-local Point2 = _radiant.csg.Point2
 
 local farming_service = stonehearth.farming
 
@@ -11,8 +7,8 @@ local FarmingCallHandler = class()
 -- runs on the client!!
 function FarmingCallHandler:choose_new_field_location(session, response)
    stonehearth.selection:select_xz_region()
-      :use_designation_marquee(Color4(122, 40, 0, 255))
-      :set_cursor('stonehearth:cursors:create_stockpile')
+      :use_designation_marquee(Color4(55, 187, 56, 255))
+      :set_cursor('stonehearth:cursors:designate_zone')
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,

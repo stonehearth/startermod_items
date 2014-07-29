@@ -1,0 +1,11 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Trapping Ground",
+         "description" : "Trappers catch critters for food and resources in this zone."
+      }
+   },
+   "stonehearth:trapping_grounds" : {
+   }
+}

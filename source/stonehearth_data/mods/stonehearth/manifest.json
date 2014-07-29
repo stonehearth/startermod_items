@@ -21,7 +21,7 @@
       "cursors:create_window" : "file(data/cursors/create_window.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
-      "cursors:create_stockpile" : "file(data/cursors/create_stockpile.cur)",
+      "cursors:designate_zone" : "file(data/cursors/designate_zone.cur)",
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
       "cursors:grow_walls" : "file(data/cursors/grow_walls.cur)",
       "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
@@ -75,6 +75,7 @@
       "farmer:hoe_proxy" : "file(professions/farmer/farmer_hoe/farmer_hoe_proxy.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
+      "trapper:trapping_grounds" : "file(professions/trapper/trapping_grounds)",
       "trapper:knife" : "file(professions/trapper/trapper_knife)",
       "trapper:knife_proxy" : "file(professions/trapper/trapper_knife/trapper_knife_proxy.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
@@ -864,6 +865,14 @@
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "server"
       },
+      "choose_trapping_grounds_location": {
+         "controller" : "file(call_handlers/trapping_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "designate_trapping_grounds": {
+         "controller" : "file(call_handlers/trapping_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_build_editor": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "client"
@@ -991,6 +1000,7 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
+      "trapping_grounds" : "file(components/trapping_grounds/trapping_grounds_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
@@ -1052,6 +1062,7 @@
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
+      "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
    },

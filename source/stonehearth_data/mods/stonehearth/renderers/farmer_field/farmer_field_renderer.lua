@@ -9,7 +9,7 @@ function FarmerFieldRenderer:initialize(render_entity, datastore)
 
    self._zone_renderer = ZoneRenderer(render_entity)
       -- TODO: read these colors from json
-      :set_designation_colors(Color4(122, 40, 0, 76), Color4(122, 40, 0, 76))
+      :set_designation_colors(Color4(55, 187, 56, 76), Color4(55, 187, 56, 76))
       :set_ground_colors(Color4(77, 62, 38, 10), Color4(77, 62, 38, 10))
 
    self._datastore_trace = self._datastore:trace_data('rendering farmer field designation')
