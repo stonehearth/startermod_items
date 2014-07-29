@@ -67,7 +67,7 @@
          "stonehearth:silkweed_crop" : {
             "type" : "crop"
          },
-         "stonehearth:simple_wall_lantern_proxy" : {
+         "stonehearth:wooden_garden_lantern" : {
             "type" : "object", 
             "min" : 2, 
             "max" : 6

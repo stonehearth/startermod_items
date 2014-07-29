@@ -14,13 +14,15 @@ class Renderer;
 
 class RenderVerticalPathingRegion : public RenderComponent {
    public:
-      RenderVerticalPathingRegion(const RenderEntity& entity, om::VerticalPathingRegionPtr stockpile);
+      RenderVerticalPathingRegion(const RenderEntity& entity, om::VerticalPathingRegionPtr vertical_pathing_region);
       ~RenderVerticalPathingRegion();
 
    private:
-      H3DNodeUnique             regionDebugShape_;
-      om::DeepRegionGuardPtr    region_guard_;
-
+      core::Guard                   renderer_guard_;
+      om::VerticalPathingRegionPtr  vertical_pathing_region_;
+      RenderEntity const&           entity_;
+      H3DNodeUnique                 regionDebugShape_;
+      om::DeepRegionGuardPtr        region_trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

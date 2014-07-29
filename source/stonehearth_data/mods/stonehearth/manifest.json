@@ -209,9 +209,6 @@
       "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
       "wooden_garden_lantern_proxy" : "file(entities/construction/wooden_garden_lantern/wooden_garden_lantern_proxy.json)",
 
-      "simple_wall_lantern" : "file(entities/construction/simple_wall_lantern)",
-      "simple_wall_lantern_proxy" : "file(entities/construction/simple_wall_lantern/simple_wall_lantern_proxy.json)",
-
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
 
