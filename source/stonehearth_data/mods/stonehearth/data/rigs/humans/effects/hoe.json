@@ -24,15 +24,15 @@
       "sound": {
          "type": "sound_effect",
          "start_time": 150,
-         "min_distance": 50,
-         "max_distance": 100,
-         "volume": 40,
+         "min_distance": 40,
+         "max_distance": 80,
+         "volume": 25,
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:hammer_sound_01",
-               "stonehearth:sounds:hammer_sound_02",
-               "stonehearth:sounds:hammer_sound_03"
+               "stonehearth:sounds:shovel_01",
+               "stonehearth:sounds:shovel_02",
+               "stonehearth:sounds:shovel_03"
             ]
          }
       },
