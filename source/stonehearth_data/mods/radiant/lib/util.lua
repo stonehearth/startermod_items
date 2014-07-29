@@ -81,4 +81,13 @@ function util.get_config(str, default)
    return value == nil and default or value
 end
 
+--- Split a string into a table (e.g. "foo bar baz" -> { "foo", "bar", "baz" }
+-- Borrowed from http://lua-users.org/wiki/SplitJoin
+function util.split_string(str)
+   local fields = {}
+   local pattern = string.format("([^%s]+)", ' ')
+   str:gsub(pattern, function(c) fields[#fields+1] = c end)
+   return fields
+end
+
 return util

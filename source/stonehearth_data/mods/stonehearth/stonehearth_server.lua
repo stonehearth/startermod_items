@@ -18,7 +18,6 @@ local service_creation_order = {
    'dm',
    'static_scenario',
    'dynamic_scenario',
-   'object_tracker',
    'world_generation',
    'build',
    'game_master',
@@ -31,7 +30,8 @@ local service_creation_order = {
    'worker_defense',
    'bulletin_board',
    'linear_combat',
-   'farming' 
+   'farming',
+   'trapping'
 }
 
 local function create_service(name)

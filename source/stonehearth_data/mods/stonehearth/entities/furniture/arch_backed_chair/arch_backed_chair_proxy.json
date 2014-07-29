@@ -10,6 +10,7 @@
          }
       },
       "stonehearth:placeable_item_proxy" : {
+         "category" : "furniture",
          "full_sized_entity" : "stonehearth:arch_backed_chair"
       },
       "mob" : {

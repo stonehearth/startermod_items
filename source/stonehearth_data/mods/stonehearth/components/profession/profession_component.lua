@@ -1,6 +1,7 @@
 --[[
    This component stores data about the job that a settler has.
 ]]
+local rng = _radiant.csg.get_default_rng()
 
 local ProfessionComponent = class()
 
@@ -25,12 +26,17 @@ function ProfessionComponent:initialize(entity, json)
 
 end
 
+-- xxx, I think this might be dead code, -Tom
 function ProfessionComponent:get_profession_id()
    return self._sv.profession_id
 end
 
 function ProfessionComponent:get_profession_uri()
    return self._sv.profession_uri
+end
+
+function ProfessionComponent:get_roles()
+   return self._profession_json.roles or ''
 end
 
 function ProfessionComponent:promote_to(profession_uri, talisman_uri)
@@ -89,18 +95,36 @@ function ProfessionComponent:_set_unit_info(json)
 end
 
 function ProfessionComponent:_equip_outfit(json)
-   if json and json.outfit then
-      self._sv.outfit = radiant.entities.create_entity(json.outfit)
-      local equipment = self._entity:add_component('stonehearth:equipment')
-      equipment:equip_item(self._sv.outfit)
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
+   if json and json.equipment then
+      assert(not self._sv.equipment)
+      self._sv.equipment = {}
+      
+      -- iterate through the equipment in the table, placing one item from each value
+      -- on the entity.  they of the entry are irrelevant: they're just for documenation
+      for _, items in pairs(json.equipment) do
+         local equipment
+         if type(items) == 'string' then
+            -- create this piece
+            equipment = radiant.entities.create_entity(items)
+         elseif type(items) == 'table' then
+            -- pick an random item from the array
+            equipment = radiant.entities.create_entity(items[rng:get_int(1, #items)])
+         end
+         equipment_component:equip_item(equipment)
+         table.insert(self._sv.equipment, equipment)
+      end
    end
 end
 
 function ProfessionComponent:_remove_outfit()
-   if self._sv.outfit then
-      self._entity:add_component('stonehearth:equipment'):unequip_item(self._sv.outfit)
-      radiant.entities.destroy_entity(self._sv.outfit)
-      self._sv.outfit = nil
+   if self._sv.equipment then
+      local equipment_component = self._entity:add_component('stonehearth:equipment')
+      for _, equipment in ipairs(self._sv.equipment) do
+         equipment_component:unequip_item(equipment)
+         radiant.entities.destroy_entity(equipment)
+      end
+      self._sv.equipment = nil
    end
 end
 

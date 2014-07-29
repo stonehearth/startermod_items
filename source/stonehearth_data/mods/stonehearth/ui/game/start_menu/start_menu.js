@@ -23,8 +23,8 @@ App.StonehearthStartMenuView = App.View.extend({
       create_farm : function () {
          App.stonehearthClient.createFarm();
       },
-      create_trapping_zone : function() {
-         //xxx
+      create_trapping_grounds : function () {
+         App.stonehearthClient.createTrappingGrounds();
       },
       design_building: function () {
          $(top).trigger('stonehearth_design_building');

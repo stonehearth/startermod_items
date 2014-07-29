@@ -14,7 +14,7 @@
         },
         "over_lifetime": {
             "kind": "CONSTANT",
-            "values": [0.3]
+            "values": [0.45]
         }
 
     },

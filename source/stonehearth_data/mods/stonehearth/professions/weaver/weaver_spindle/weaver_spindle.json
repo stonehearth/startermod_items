@@ -12,32 +12,15 @@
             "models": [
                "file(weaver_spindle.qb)"
             ]
-         },
-         "female" : {
-            "models": [
-               "file(weaver_spindle_proxy.qb)"
-            ]
          }
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]
-      },
-      "effect_list" : {
-         "effects" : [
-            "stonehearth:effects:talisman_glow"
-         ]  
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainHand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat" ]
       },
       "render_info" : {
          "scale": 0.14
-      },      
-      "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:weaver"
       }
-   },
-   "entity_data" : {
-      "stonehearth:activity_name" : "promote_weaver"
    }
 }
-

@@ -8,10 +8,6 @@
          "character_sheet_info" : "file(stockpile_character_sheet_info.json)"
       },
       "stonehearth:stockpile" : {
-      },
-      "stonehearth:commands" : {
-         "commands" : [
-         ]
       }
    },
    "entity_data" : {

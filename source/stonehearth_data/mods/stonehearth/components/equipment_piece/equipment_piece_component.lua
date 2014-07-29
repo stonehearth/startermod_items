@@ -5,6 +5,8 @@ function EquipmentPieceComponent:initialize(entity, json)
    self._entity = entity
    self._json = json
    self._sv = self.__saved_variables:get_data()
+   self._roles = self:_get_roles()
+   
    if not self._sv._injected_commands then
    	self._sv._injected_commands = {}
 	end
@@ -24,8 +26,6 @@ function EquipmentPieceComponent:initialize(entity, json)
             self:_inject_buffs()
          end)
    end
-
-   assert(json.render_type)
 end
 
 function EquipmentPieceComponent:destroy()
@@ -38,6 +38,25 @@ end
 
 function EquipmentPieceComponent:get_ilevel()
    return self._json.ilevel or 0
+end
+
+function EquipmentPieceComponent:_get_roles()
+   if self._json.roles then
+      return radiant.util.split_string(self._json.roles)
+   else 
+      return {}
+   end
+end
+
+function EquipmentPieceComponent:suitable_for_roles(profession_roles)
+   for _, profession_role in ipairs(radiant.util.split_string(profession_roles)) do
+      for _, equipment_piece_role in ipairs(self._roles) do
+         if equipment_piece_role == profession_role then
+            return true
+         end
+      end
+   end
+   return false
 end
 
 function EquipmentPieceComponent:equip(entity)
@@ -60,6 +79,41 @@ function EquipmentPieceComponent:unequip()
 		self._sv.owner = nil
 		self.__saved_variables:mark_changed()
 	end
+end
+
+function EquipmentPieceComponent:is_upgrade_for(unit)
+   -- upgradable items have a slot.  if there's not slot (e.g. the profession outfits that
+   -- just contain abilities), there's no possibility for upgrade
+   local slot = self:get_slot()
+   if not slot then
+      return false
+   end
+
+   -- if the unit can't wear equipment, obviously not an upgrade!  similarly, if the
+   -- unit has no job, we can't figure out if it can wear this
+   local equipment_component = unit:get_component('stonehearth:equipment')
+   local profession_component = unit:get_component('stonehearth:profession')
+   if not equipment_component or not profession_component then
+      return false
+   end
+
+   -- if we're not suitable for the unit, bail.
+   local profession_roles = profession_component:get_roles()
+   if not self:suitable_for_roles(profession_roles) then
+      return false
+   end
+
+   -- if we're not better than what's currently equipped, bail
+   local equipped = equipment_component:get_item_in_slot(slot)
+   if equipped then
+      local current_ilevel = equipped:get_component('stonehearth:equipment_piece'):get_ilevel()
+      if current_ilevel >= self:get_ilevel() then
+         return false
+      end
+   end
+
+   -- finally!!!  this is good.  use it!
+   return true
 end
 
 function EquipmentPieceComponent:_setup_item_rendering()
@@ -149,7 +203,7 @@ function EquipmentPieceComponent:_inject_buffs()
 
    if self._json.injected_buffs then
       for _, buff in ipairs(self._json.injected_buffs) do
-         radiant.entities.add_buff(self._entity, buff);
+         radiant.entities.add_buff(self._sv.owner, buff);
       end
    end
 end
@@ -157,7 +211,7 @@ end
 function EquipmentPieceComponent:_remove_buffs()
    if self._json.injected_buffs then
       for _, buff in ipairs(self._json.injected_buffs) do
-         radiant.entities.remove_buff(self._entity, buff);
+         radiant.entities.remove_buff(self._sv.owner, buff);
       end
    end
 end

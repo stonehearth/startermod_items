@@ -50,20 +50,62 @@ App.StonehearthPlaceItemView = App.View.extend({
          }
       }
    },
+
+   init: function() {
+      this._super();
+
+      var self = this;
+      radiant.call('stonehearth:get_placable_items')
+         .done(function(e) {
+            self.set('uri', e.tracker);
+         })
+         .fail(function(e) {
+            console.log('error getting inventory for player')
+            console.dir(e)
+         })
+   },
+
+   _mapToArray : function(map, convert_fn) {
+      var arr = [];
+      var self = this;
+
+      $.each(map, function(k, v) {
+         var value;
+         if (k.indexOf('__') != 0 && map.hasOwnProperty(k)) {
+            var value = convert_fn(k, v);
+            arr.push(value);
+         }
+      });
+      return arr;
+   },
+
+   _reformatData: function() {
+      var arr = []
+      var self = this;
+
+      var map = this.get('context.tracking_data');
+      if (map) {
+         arr = this._mapToArray(map, function(k, v) {
+            var category = {
+               'name' : k,
+               'items' : self._mapToArray(v, function(k, v) {
+                  v['uri'] = k;
+                  return v;
+               })
+            }
+            return category
+         });
+      }      
+
+      this.set('context.categories', arr);
+    }.observes('context.tracking_data.[]').on('init'),
 });
 
 App.StonehearthPlaceItemViewOld = App.View.extend({
    templateName: 'stonehearthPlaceItem',
    classNames: ['fullScreen', 'flex', "gui"],
    modal: false,
-   components: {
-      'entity_types' : {
-         entities : {
-            'stonehearth:placeable_item_proxy' : {},
-            'item' : {}
-         }
-      }
-   },
+   components: {},
 
    //Whether or not the shift key is currently down
    shifted: false,

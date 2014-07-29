@@ -1,15 +1,11 @@
-local Point3 = _radiant.csg.Point3
-local Cube3 = _radiant.csg.Cube3
 local Color4 = _radiant.csg.Color4
-local Rect2 = _radiant.csg.Rect2
-local Point2 = _radiant.csg.Point2
 local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
    stonehearth.selection:select_xz_region()
       :use_designation_marquee(Color4(0, 153, 255, 255))
-      :set_cursor('stonehearth:cursors:create_stockpile')
+      :set_cursor('stonehearth:cursors:designate_zone')
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,
@@ -31,6 +27,16 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
 end
 
 -- runs on the server!
+function InventoryCallHandler:get_placable_items(session, response)
+   local inventory = stonehearth.inventory:get_inventory(session.player_id)
+   if not inventory then
+      response:reject('could not find inventory for player ' .. session.player_id)
+      return
+   end
+   local tracker = inventory:add_item_tracker('stonehearth:placable_items_view_tracker')
+   return { tracker = tracker }
+end
+
 function InventoryCallHandler:create_stockpile(session, response, location, size)
    local inventory = stonehearth.inventory:get_inventory(session.player_id)
    local stockpile = inventory:create_stockpile(location, size)

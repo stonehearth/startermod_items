@@ -1,4 +1,4 @@
-local FilteredTracker = class()
+local InventoryTracker = class()
 
 --[[
    A service can create a filtered tracker to mantain a set of key/value pair tracking_data.
@@ -8,22 +8,23 @@ local FilteredTracker = class()
    The service takes a controller containing a bunch of relevant functions.
 ]]
 
---- Init the FilteredTracker
+--- Init the InventoryTracker
 --  @param controller - a controller with various functions needed for the filter. 
 --
-function FilteredTracker:initialize(controller)
+function InventoryTracker:initialize(controller)
+   assert(controller)
    self._sv.controller = controller
    self._sv._ids_to_keys = {}
    self._sv.tracking_data = {}
 end
 
-function FilteredTracker:restore()
+function InventoryTracker:restore()
    -- nothing to do
 end
 
 --- Call when it's time to add an item
 --
-function FilteredTracker:add_item(entity)
+function InventoryTracker:add_item(entity)
    local controller = self._sv.controller
    local key = controller:create_key_for_entity(entity)
 
@@ -38,12 +39,13 @@ function FilteredTracker:add_item(entity)
       -- next value
       local tracking_data = self._sv.tracking_data[key]
       self._sv.tracking_data[key] = controller:add_entity_to_tracking_data(entity, tracking_data)
+      self.__saved_variables:mark_changed()
    end
 end
 
 --- Call when it's time to remove an item
 --
-function FilteredTracker:remove_item(entity_id)
+function InventoryTracker:remove_item(entity_id)
    local key = self._sv._ids_to_keys[entity_id]
    if key then
       self._sv._ids_to_keys[entity_id] = nil
@@ -51,13 +53,14 @@ function FilteredTracker:remove_item(entity_id)
       local controller = self._sv.controller
       local tracking_data = self._sv.tracking_data[key]
       self._sv.tracking_data[key] = controller:remove_entity_from_tracking_data(entity_id, tracking_data)
+      self.__saved_variables:mark_changed()
    end
 end
 
 -- Returns the tracking data
 --
-function FilteredTracker:get_tracking_data(key)
+function InventoryTracker:get_tracking_data(key)
    return self._sv.tracking_data
 end
 
-return FilteredTracker
+return InventoryTracker
