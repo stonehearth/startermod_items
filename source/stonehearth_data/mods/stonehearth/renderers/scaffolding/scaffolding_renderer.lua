@@ -32,11 +32,14 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    -- is used to speed up iteration (see _update_shape())
    self._segments = {}
    self._tops = {}
+   self._ladder = {}
    self._segment_region = Region3()
 
    -- Call _update_shape whenever the collision shape changes
    self._entity = render_entity:get_entity()
    self._collsion_shape = self._entity:add_component('region_collision_shape')
+   self._vertical_pathing_region = self._entity:get_component('vertical_pathing_region')
+   
    self._construction_data = self._entity:get_component('stonehearth:construction_data')
    
    if self._collsion_shape and self._construction_data then
@@ -85,6 +88,8 @@ function ScaffoldingRenderer:_update_shape(mode)
    local extra = Region3()
    local show_region, hide_region
 
+   local ladder_region = self._vertical_pathing_region:get_region():get()
+
    -- Compute 2 regions: 'missing' contains the points which are missing from the
    -- current render view of the scaffolding (i.e. those that are in our collision
    -- shape, but not yet rendered).  'extra' contains the opposite: stuff we need
@@ -114,6 +119,18 @@ function ScaffoldingRenderer:_update_shape(mode)
       extra:copy_region(self._segment_region)
       self._segment_region:clear()
    end
+
+   -- update the ladder
+   local ladder_points = {}
+   local show_region_bounds = show_region and show_region:get_bounds() or self._segment_region:get_bounds()
+   for cube in ladder_region:each_cube() do
+      for pt in cube:each_point() do
+         if pt.y >= show_region_bounds.min.y and pt.y < show_region_bounds.max.y then
+            table.insert(ladder_points, pt)
+         end
+      end
+   end
+   self:_rebuild_ladder(ladder_points)
 
 
    -- Compute the y-rotation for all the nodes.  This is based on the direction of
@@ -189,11 +206,15 @@ function ScaffoldingRenderer:_create_segment_node(pt)
    return self:_create_node(pt, matrix)
 end
 
-function ScaffoldingRenderer:_create_node(pt, matrix) 
+function ScaffoldingRenderer:_move_node(node, pt) 
    local offset = self._origin:scaled(.1) + pt:to_float()
-   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
    h3dSetNodeTransform(node:get_node(), offset.x, offset.y, offset.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    --h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
+end
+
+function ScaffoldingRenderer:_create_node(pt, matrix) 
+   local node = _radiant.client.create_qubicle_matrix_node(self._node, self._lattice, matrix, self._origin)
+   self:_move_node(node, pt)
    return node
 end
 
@@ -255,8 +276,7 @@ function ScaffoldingRenderer:_move_top(pt)
          self._tops[pt.x][pt.z] = nil
       else
          --Otherwise, just move the top
-         local offset = self._origin:scaled(.1) + pt:to_float()
-         h3dSetNodeTransform(top_data.node:get_node(), offset.x, new_top_y, offset.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
+         self:_move_node(top_data.node, pt)
       end
    end
 end
@@ -304,6 +324,25 @@ function ScaffoldingRenderer:_get_highest_y(pt)
    return top_node_data.top_y
 end
 
+
+function ScaffoldingRenderer:_rebuild_ladder(points)
+   -- make sure we have enough nodes!
+   local num_points = #points
+   local needed = num_points - #self._ladder
+   for _ = 1,needed do
+      table.insert(self._ladder, self:_create_node(Point3(0, 0, 0), 'ladder'))
+   end
+
+   local ladder_size = #self._ladder  
+   for i, pt in ipairs(points) do
+      local node = self._ladder[i]
+      self:_move_node(node, pt)    
+      node:set_visible(true)
+   end
+   for i=num_points+1,ladder_size do
+      self._ladder[i]:set_visible(false)
+   end
+end
 
 return ScaffoldingRenderer
 

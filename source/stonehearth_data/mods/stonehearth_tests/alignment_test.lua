@@ -45,7 +45,6 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:dining_table', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:table_for_one', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:simple_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0); x=x_start; z=z+dz;
 
@@ -70,7 +69,6 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:dining_table_proxy', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:table_for_one_proxy', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:simple_wall_lantern_proxy', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:wooden_wall_lantern_proxy', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:wooden_garden_lantern_proxy', x, z, dx, 0); x=x_start; z=z+dz;
 
