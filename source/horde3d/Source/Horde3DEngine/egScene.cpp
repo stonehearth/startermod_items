@@ -467,6 +467,9 @@ void GridSpatialGraph::boundingBoxToGrids(BoundingBox const& aabb, boost::contai
    const int maxX = maxx < 0 ? (int) maxx == maxx ? (int) maxx : (int) maxx - 1 : (int) maxx;
    const int maxZ = maxz < 0 ? (int) maxz == maxz ? (int) maxz : (int) maxz - 1 : (int) maxz;
 
+   ASSERT(maxX >= minX);
+   ASSERT(maxZ >= minZ);
+
    for (int x = minX; x <= maxX; x++) {
       for (int z = minZ; z <= maxZ; z++) {
          const uint32 v = hashGridPoint(x, z);
