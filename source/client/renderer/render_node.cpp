@@ -225,7 +225,8 @@ void RenderNode::Initialize()
 {
    ASSERT(!_unparentedRenderNode);
    _unparentedRenderNode = h3dAddGroupNode(1, "unparented render nodes");
-   h3dSetNodeTransform(_unparentedRenderNode, -100000, -100000, -100000, 0, 0, 0, 1, 1, 1);
+   h3dSetNodeTransform(_unparentedRenderNode, 0, 0, 0, 0, 0, 0, 1, 1, 1);
+   h3dSetNodeFlags(_unparentedRenderNode, H3DNodeFlags::Inactive | H3DNodeFlags::NoCull, true);
 }
 
 void RenderNode::Shutdown()
