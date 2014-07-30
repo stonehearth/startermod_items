@@ -28,8 +28,7 @@
          "old_blonde" : {
             "models" : [ 
                 "file(head_old_1_blonde.qb)",
-                "file(head_old_2_blonde.qb)",
-                "file(head_bald.qb)"
+                "file(head_old_2_blonde.qb)"
             ],
             "variants" : [
                ["nothing","eyebrows_blonde"],

@@ -17,7 +17,7 @@
       "stonehearth:customization_variants" : {
          "root" : {
             "variants" : [
-               ["young", "young", "young", "old"]
+               ["young", "young", "young", "young"]
             ]
          },
          "old" : {
