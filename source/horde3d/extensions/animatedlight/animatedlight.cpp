@@ -204,7 +204,7 @@ void AnimatedLightNode::advanceTime( float timeDelta )
 	_timeDelta += timeDelta;
    _lightTime += timeDelta;
 
-   markDirty(SceneNodeDirtyKind::Bounds);
+   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 

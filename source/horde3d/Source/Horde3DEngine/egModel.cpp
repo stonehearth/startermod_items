@@ -134,7 +134,7 @@ void ModelNode::setupAnimStage( int stage, AnimationResource *anim, int layer,
 	if( _nodeListDirty ) recreateNodeList();
 	
 	if( _animCtrl.setupAnimStage( stage, anim, layer, startNode, additive ) ) {
-      markDirty(SceneNodeDirtyKind::Bounds);
+      markDirty(SceneNodeDirtyKind::Ancestors);
    }
 }
 
@@ -142,7 +142,7 @@ void ModelNode::setupAnimStage( int stage, AnimationResource *anim, int layer,
 void ModelNode::setAnimParams( int stage, float time, float weight )
 {
 	if( _animCtrl.setAnimParams( stage, time, weight ) ) {
-      markDirty(SceneNodeDirtyKind::Bounds);
+      markDirty(SceneNodeDirtyKind::Ancestors);
    }
 }
 
@@ -167,7 +167,7 @@ bool ModelNode::setMorphParam( std::string const& targetName, float weight )
 		if( _morphers[i].weight != 0 ) _morpherUsed = true;
 	}
 
-	markDirty(SceneNodeDirtyKind::Bounds);
+	markDirty(SceneNodeDirtyKind::Ancestors);
 
 	return result;
 }
@@ -455,7 +455,7 @@ void ModelNode::onPostUpdate()
 	if( _animCtrl.animate() )
 	{	
 		_skinningDirty = true;
-		markDirty(SceneNodeDirtyKind::Bounds);
+		markDirty(SceneNodeDirtyKind::Ancestors);
 	}
 }
 

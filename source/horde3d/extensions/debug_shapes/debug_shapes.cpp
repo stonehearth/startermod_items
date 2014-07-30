@@ -165,7 +165,7 @@ void DebugShapesNode::createBuffers()
          _bLocalBox.addPoint(Vec3f(v.position[0], v.position[1], v.position[2]));
       }
    }
-   markDirty(SceneNodeDirtyKind::Bounds);
+   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 void DebugShapesNode::decode(const protocol::shapelist &shapes)
