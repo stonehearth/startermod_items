@@ -50,7 +50,7 @@ struct MatSampler
 	std::string       name;
 	PTextureResource  texRes;
    
-   std::vector<ResHandle> animatedTextures;
+   std::vector<PTextureResource> animatedTextures;
    float             currentAnimationTime;
    float             animationRate;  // fps
 };
