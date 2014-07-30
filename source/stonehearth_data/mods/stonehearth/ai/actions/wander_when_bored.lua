@@ -6,6 +6,7 @@ WanderWhenBored.args = { }
 WanderWhenBored.fixed_cost = 0 -- only for compound actions.  ignore the cost of actually wandering!
 WanderWhenBored.version = 2
 WanderWhenBored.priority = 1
+WanderWhenBored.weight = 2
 
 local ai = stonehearth.ai
 return ai:create_compound_action(WanderWhenBored)
