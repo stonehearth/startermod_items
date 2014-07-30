@@ -1071,6 +1071,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    glfwSwapBuffers(glfwGetCurrentContext());
 
+   h3dReleaseUnusedResources();
    last_render_time_ = now;
    last_render_time_wallclock_ = curWallTime;
 }
