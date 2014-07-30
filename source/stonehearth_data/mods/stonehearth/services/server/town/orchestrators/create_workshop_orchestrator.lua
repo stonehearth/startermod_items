@@ -7,7 +7,7 @@ function CreateWorkshop:run(town, args)
    local ghost_workshop = args.ghost_workshop
    local outbox_entity = args.outbox_entity
 
-   local json = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_json()
+   local json = ghost_workshop:get_component('stonehearth:ghost_form'):get_full_sized_json()
    local workshop_data = json.components['stonehearth:workshop']
 
    self._task_group = town:create_task_group('stonehearth:crafting', {})
@@ -47,7 +47,7 @@ function CreateWorkshop:stop()
 end
 
 function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity, workshop_task_group)
-   local real_item_uri = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_mod_uri();
+   local real_item_uri = ghost_workshop:get_component('stonehearth:ghost_form'):get_full_sized_mod_uri();
 
    local workshop_entity = radiant.entities.create_entity(real_item_uri)
    local workshop_component = workshop_entity:get_component('stonehearth:workshop')

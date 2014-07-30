@@ -17,7 +17,7 @@
       "stonehearth:material" : {
          "tags" : "wood furniture crafted"
       },
-      "stonehearth:placed_item" : {
+      "stonehearth:entity_forms" : {
          "proxy_entity" : "stonehearth:comfy_bed_proxy"
       },
       "render_info" : {

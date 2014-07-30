@@ -1,5 +1,4 @@
 --[[
-   Placeable_item_proxy.lua
    Some items are created in the world and immediately exist.
    Other items are created as "icons" and don't have the properties of
    their final state until they are placed in the world by the player.
@@ -7,9 +6,9 @@
    It contains a link to the real-world entity it is linked to.
 ]]
 
-local PlaceableItemProxyComponent = class()
+local IconicFormComponent = class()
 
-function PlaceableItemProxyComponent:initialize(entity, json)
+function IconicFormComponent:initialize(entity, json)
    self._entity = entity               --The 1x1 placeable cube
    self._placed_entity_uri = json.full_sized_entity
    self._hide_place_item_command = json.hide_place_item_command
@@ -23,18 +22,18 @@ function PlaceableItemProxyComponent:initialize(entity, json)
    end
 end
 
-function PlaceableItemProxyComponent:get_category()
+function IconicFormComponent:get_category()
    return self._sv.category
 end
 
 -- Implemented in such a way that one can query a proxy without having to
 -- actually create the full sized entity (if it hasn't been created yet).
-function PlaceableItemProxyComponent:get_full_sized_entity_uri()
+function IconicFormComponent:get_full_sized_entity_uri()
    assert(self._placed_entity_uri)
    return self._placed_entity_uri
 end
 
-function PlaceableItemProxyComponent:get_full_sized_entity()
+function IconicFormComponent:get_full_sized_entity()
    if not self._sv.placed_entity and self._placed_entity_uri then
       local placed_entity = radiant.entities.create_entity(self._placed_entity_uri)
       self:set_full_sized_entity(placed_entity)
@@ -44,7 +43,7 @@ end
 
 --- If something started as a big entity and then we have to carry it
 -- save it's full-sized entity here, to preserve its values
-function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
+function IconicFormComponent:set_full_sized_entity(placed_entity)
    local self_placed_entity = self._sv.placed_entity
    assert(not self_placed_entity or self_placed_entity:get_id() == placed_entity:get_id())
 
@@ -70,13 +69,13 @@ function PlaceableItemProxyComponent:set_full_sized_entity(placed_entity)
 
    self.__saved_variables:mark_changed()
 
-   placed_entity:add_component('stonehearth:placed_item')   
+   placed_entity:add_component('stonehearth:entity_forms')   
                          :set_proxy_entity(self._entity)
 
 end
 
 --Copy the unit info from the big entity's json file into the proxy
-function PlaceableItemProxyComponent:_create_derived_components()
+function IconicFormComponent:_create_derived_components()
    if not self._placed_entity_uri then
       return
    end
@@ -109,4 +108,4 @@ function PlaceableItemProxyComponent:_create_derived_components()
    end    
 end
 
-return PlaceableItemProxyComponent
+return IconicFormComponent

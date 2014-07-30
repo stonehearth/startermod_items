@@ -13,7 +13,7 @@ ReplaceProxyWithItem.priority = 2
 
 function ReplaceProxyWithItem:start_thinking(ai, entity, args)   
    self._proxy = args.proxy
-   self._proxy_component = self._proxy:get_component('stonehearth:placeable_item_proxy')
+   self._proxy_component = self._proxy:get_component('stonehearth:iconic_form')
    if self._proxy_component then
       self._full_sized_entity = self._proxy_component:get_full_sized_entity()
       assert(self._full_sized_entity and self._full_sized_entity:is_valid())

@@ -45,7 +45,7 @@ App.StonehearthPlaceItemView = App.View.extend({
    components: {
       'entity_types' : {
          entities : {
-            'stonehearth:placeable_item_proxy' : {},
+            'stonehearth:iconic_form' : {},
             'item' : {}
          }
       }

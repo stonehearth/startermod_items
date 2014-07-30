@@ -1,8 +1,8 @@
 local Point3 = _radiant.csg.Point3
 
-local GhostItemRenderer = class()
+local GhostFormRenderer = class()
 
-function GhostItemRenderer:initialize(render_entity, datastore)
+function GhostFormRenderer:initialize(render_entity, datastore)
    self._datastore = datastore
    self._parent_node = render_entity:get_node()
    self._ghost_item_rendered = nil
@@ -14,7 +14,7 @@ function GhostItemRenderer:initialize(render_entity, datastore)
                                  :push_object_state()
 end
 
-function GhostItemRenderer:_update()
+function GhostFormRenderer:_update()
    local data = self._datastore:get_data()
    if data and data.full_sized_mod_url ~= '' then
       self._ghost_entity = radiant.entities.create_entity(data.full_sized_mod_url)
@@ -25,7 +25,7 @@ function GhostItemRenderer:_update()
    end
 end
 
-function GhostItemRenderer:destroy()
+function GhostFormRenderer:destroy()
    --Note: when we finally get an effect in here, destroying the main entity will nuke the effect too
    if self._ghost_entity then
       _radiant.client.destroy_authoring_entity(self._ghost_entity:get_id())
@@ -36,4 +36,4 @@ function GhostItemRenderer:destroy()
    end
 end
 
-return GhostItemRenderer
+return GhostFormRenderer

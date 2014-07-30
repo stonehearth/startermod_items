@@ -11,7 +11,7 @@
 
       },
 
-      "stonehearth:placed_item" : {
+      "stonehearth:entity_forms" : {
          "proxy_entity" : "stonehearth:camp_standard_proxy"
       },
 

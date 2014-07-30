@@ -63,7 +63,7 @@ end
 function WorkshopCallHandler:create_ghost_workbench(session, response, workbench_entity_uri, pt, rotation)
    local location = Point3(pt.x, pt.y, pt.z)
    local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_form')
    radiant.entities.set_faction(ghost_entity, session.faction)
    ghost_entity_component:set_full_sized_mod_uri(workbench_entity_uri)
    radiant.terrain.place_entity(ghost_entity, location)

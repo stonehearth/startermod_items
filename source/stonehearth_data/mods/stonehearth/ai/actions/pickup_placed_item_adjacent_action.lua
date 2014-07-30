@@ -17,13 +17,13 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying ~= nil then
       return
    end
-   self._placed_item_component = item:get_component('stonehearth:placed_item')
+   self._placed_item_component = item:get_component('stonehearth:entity_forms')
    if self._placed_item_component == nil then
       return
    end
    self._proxy_item = self._placed_item_component:get_proxy_entity()
    
-   self._proxy_component = self._proxy_item:add_component('stonehearth:placeable_item_proxy')
+   self._proxy_component = self._proxy_item:add_component('stonehearth:iconic_form')
    
    if not self._proxy_component then
       --TODO: if you just return here, without the assert, the bed will disappear from the world. 

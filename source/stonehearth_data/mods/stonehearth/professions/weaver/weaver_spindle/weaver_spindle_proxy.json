@@ -30,7 +30,7 @@
       "render_info" : {
          "scale": 0.14
       },
-      "stonehearth:placeable_item_proxy" : {
+      "stonehearth:iconic_form" : {
          "full_sized_entity" : "stonehearth:weaver:spindle",
          "hide_place_item_command" : true
       },      

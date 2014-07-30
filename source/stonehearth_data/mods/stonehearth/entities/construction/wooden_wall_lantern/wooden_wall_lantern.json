@@ -26,7 +26,7 @@
    },
 
    "entity_data" : {
-      "stonehearth:ghost_item" : {
+      "stonehearth:ghost_form" : {
          "uri" : "file(wooden_wall_lantern_ghost.json)"
       }
    }

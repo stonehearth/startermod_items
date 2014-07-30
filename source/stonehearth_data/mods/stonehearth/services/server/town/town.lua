@@ -265,7 +265,7 @@ function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation
    end
 
    local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_form')
    ghost_entity_component:set_full_sized_mod_uri(full_sized_uri)
    radiant.terrain.place_entity_at_exact_location(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
@@ -303,7 +303,7 @@ function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rota
    end
 
    local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
+   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_form')
    ghost_entity_component:set_full_sized_mod_uri(full_item_uri)
    radiant.terrain.place_entity(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)

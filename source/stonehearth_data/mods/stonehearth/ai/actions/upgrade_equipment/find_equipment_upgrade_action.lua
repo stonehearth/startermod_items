@@ -41,7 +41,7 @@ function FindEquipmentUpgrade:_check_equipment_piece(item)
 
       -- if the item is not an equipment piece, bail.  equipment pieces are always
       -- placed on the ground via a proxy and have an equipment_piece component
-      local pip = item:get_component('stonehearth:placeable_item_proxy')
+      local pip = item:get_component('stonehearth:iconic_form')
       if not pip then
          return
       end

@@ -22,7 +22,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    else
       next_call = 'stonehearth:place_item_in_world'
       target_entity_data = target_entity:get_id()      
-      if target_entity:get_component('stonehearth:placed_item') then
+      if target_entity:get_component('stonehearth:entity_forms') then
          placement_test_entity = target_entity
       end
    end

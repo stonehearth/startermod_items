@@ -31,7 +31,7 @@
             "stonehearth:effects:talisman_glow"
          ]  
       },
-      "stonehearth:placeable_item_proxy" : {
+      "stonehearth:iconic_form" : {
          "full_sized_entity" : "stonehearth:wooden_sword",
          "hide_place_item_command" : true
       },

@@ -15,7 +15,7 @@
    },
 
    "entity_data" : {
-      "stonehearth:ghost_item" : {
+      "stonehearth:ghost_form" : {
          "uri" : "file(wooden_door_ghost.json)"
       }
    }

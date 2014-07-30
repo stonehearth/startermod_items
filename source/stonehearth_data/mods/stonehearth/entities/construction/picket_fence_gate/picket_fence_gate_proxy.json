@@ -9,7 +9,7 @@
             ]
          }
       },
-      "stonehearth:placeable_item_proxy" : {
+      "stonehearth:iconic_form" : {
          "full_sized_entity" : "stonehearth:picket_fence_gate"
       },
       "mob" : {

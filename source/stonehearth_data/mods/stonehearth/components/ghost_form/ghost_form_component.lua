@@ -5,9 +5,9 @@
    TODO: Only show these items in a special mode (build mode)
 ]]
 
-local GhostItemComponent = class()
+local GhostFormComponent = class()
 
-function GhostItemComponent:initialize(entity, json)
+function GhostFormComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
    if not self._sv.full_sized_mod_url then
@@ -18,7 +18,7 @@ function GhostItemComponent:initialize(entity, json)
    end
 end
 
-function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
+function GhostFormComponent:set_full_sized_mod_uri(real_item_uri)
    self._sv.full_sized_mod_url = real_item_uri
 
    local json = radiant.resources.load_json(real_item_uri)
@@ -35,12 +35,12 @@ function GhostItemComponent:set_full_sized_mod_uri(real_item_uri)
    self.__saved_variables:mark_changed()
 end
 
-function GhostItemComponent:get_full_sized_mod_uri()
+function GhostFormComponent:get_full_sized_mod_uri()
    return self._sv.full_sized_mod_url
 end
 
-function GhostItemComponent:get_full_sized_json()
+function GhostFormComponent:get_full_sized_json()
    return radiant.resources.load_json(self._sv.full_sized_mod_url)
 end
 
-return GhostItemComponent
+return GhostFormComponent

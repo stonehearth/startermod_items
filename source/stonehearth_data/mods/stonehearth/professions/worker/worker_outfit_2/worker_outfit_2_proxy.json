@@ -19,7 +19,7 @@
       "stonehearth:material" : {
          "tags" : "cloth armor"
       },
-      "stonehearth:placeable_item_proxy" : {
+      "stonehearth:iconic_form" : {
          "full_sized_entity" : "stonehearth:worker:outfit:2",
          "hide_place_item_command" : true
       }

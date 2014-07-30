@@ -56,7 +56,7 @@
             }
          }
       },
-      "stonehearth:placed_item" : {
+      "stonehearth:entity_forms" : {
          "proxy_entity" : "stonehearth:firepit_proxy"
       }
    },

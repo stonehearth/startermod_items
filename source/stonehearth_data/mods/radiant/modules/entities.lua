@@ -807,7 +807,7 @@ end
 --
 function entities.unwrap_placable_item_proxy(entity, component_name)
    local full_sized_entity, full_sized_component
-   local proxy = entity:get_component('stonehearth:placeable_item_proxy')
+   local proxy = entity:get_component('stonehearth:iconic_form')
    if proxy then
       full_sized_entity = proxy:get_full_sized_entity()
       if component_name then

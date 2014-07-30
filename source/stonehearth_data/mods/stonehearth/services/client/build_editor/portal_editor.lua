@@ -27,7 +27,7 @@ function PortalEditor:begin_editing(fabricator, blueprint, project, structure_ty
 end
 
 function PortalEditor:set_fixture_uri(fixture_uri)
-   local data = radiant.entities.get_entity_data(fixture_uri, 'stonehearth:ghost_item')
+   local data = radiant.entities.get_entity_data(fixture_uri, 'stonehearth:ghost_form')
 
    self._fixture_uri = fixture_uri
    self._fixture_blueprint_uri = data and data.uri or fixture_uri
