@@ -35,39 +35,20 @@ function RunAwayFromEntity:start_thinking(ai, entity, args)
    end
 end
 
--- Run towards your town center (TODO, actually pathfind towards it?)
--- If you don't have one or can't find one, run in a random direction
 function RunAwayFromEntity:_choose_destination(entity, threat, distance)
    local entity_location = entity:add_component('mob'):get_world_location()
    local threat_location = threat:add_component('mob'):get_world_location()
-   local destination
-   local direction
 
-   --Run in the general direction of home
-   local player_id = radiant.entities.get_player_id(entity)
-   local town = stonehearth.town:get_town(player_id)
-   local banner = town:get_banner()
-   local banner_location
-   if banner then
-      banner_location = banner:add_component('mob'):get_world_location()
-   end
+   local opposite_direction = entity_location - threat_location
+   opposite_direction.y = 0
 
-   if banner and banner_location then
-      direction = banner_location - entity_location
-   else 
-      direction = entity_location - threat_location
-   end
-
-   direction.y = 0
-
-   if direction:distance_squared() ~= 0 then
-      direction:normalize()
+   if opposite_direction:distance_squared() ~= 0 then
+      opposite_direction:normalize()
    else
-      direction = radiant.math.random_xz_unit_vector()
+      opposite_direction = radiant.math.random_xz_unit_vector()
    end
-
-   destination = self:_calculate_location(entity_location, direction, 0, distance)
-   
+  
+   local destination = self:_calculate_location(entity_location, opposite_direction, 0, distance)
    return destination
 end
 
