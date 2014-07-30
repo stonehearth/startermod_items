@@ -122,7 +122,7 @@ void LightNode::setParamI( int param, int value )
 	{
 	case LightNodeParams::DirectionalI:
 		_directional = (value != 0);
-		markDirty(SceneNodeDirtyKind::Bounds);
+		markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case LightNodeParams::ShadowMapCountI:
 		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 )
@@ -168,11 +168,11 @@ void LightNode::setParamF( int param, int compIdx, float value )
 	{
 	case LightNodeParams::RadiusF:
 		_radius = value;
-		markDirty(SceneNodeDirtyKind::Bounds);
+		markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case LightNodeParams::FovF:
 		_fov = value;
-		markDirty(SceneNodeDirtyKind::Bounds);
+		markDirty(SceneNodeDirtyKind::Ancestors);
 		return;
 	case LightNodeParams::ColorF3:
 		if( (unsigned)compIdx < 3 )

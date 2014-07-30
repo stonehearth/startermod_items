@@ -71,8 +71,8 @@ struct SceneNodeDirtyKind
 {
    enum List
    {
-      Bounds = 0x1,
-      Flags = 0x2,
+      Ancestors = 0x1,
+      Children = 0x2,
       All = 0x3
    };
 };

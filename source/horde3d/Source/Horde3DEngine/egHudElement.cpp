@@ -423,7 +423,7 @@ void HudElementNode::onFinishedUpdate()
 {
    // Hud elements are view-dependent, so we need them to constantly be updated
    // whenever the view changes.  For now, just always mark them as dirty.
-   markDirty(SceneNodeDirtyKind::Bounds);
+   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 
