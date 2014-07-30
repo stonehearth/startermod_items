@@ -18,6 +18,10 @@ function ConstructionProgress:initialize(entity, json)
       self._sv.finished = false
       self._sv.active = false
       self._sv.teardown = false
+      self._sv.status = {
+         current_size = 0,
+         total_size = 0         
+      }
       self._sv.dependencies_finished = false
    end
    
@@ -58,6 +62,12 @@ function ConstructionProgress:clone_from(other)
       end
    end
    return self
+end
+
+function ConstructionProgress:set_progress(current, total)
+   self._sv.status.current_size = current
+   self._sv.status.total_size = total
+   self.__saved_variables:mark_changed()
 end
 
 function ConstructionProgress:_listen_for_changes(blueprint)

@@ -35,8 +35,12 @@ $(document).ready(function() {
             self._onMenuActivated(e)
          });
 
-         $(top).on("radiant_selection_changed.unit_frame", function (_, e) {
+         $(top).on("radiant_selection_changed.game_mode_manager", function (_, e) {
             self._onEntitySelected(e);
+         });
+
+         $(top).on("ui_mode_changed.game_mode_manager", function (_, e) {
+            self._onUIModeChanged(e);
          });
 
          App.gameView.addView(this.views[this.modes.ZONES]);
@@ -133,6 +137,10 @@ $(document).ready(function() {
             .fail(function(e) {
                console.log(e);
             });
+      },
+
+      _onUIModeChanged: function(e) {
+         this.setGameMode(e.ui_mode);
       },
 
       _getModeForEntity: function(entity) {

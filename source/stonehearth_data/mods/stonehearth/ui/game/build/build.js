@@ -7,7 +7,7 @@ $(document).ready(function(){
       .fail(function(e) {
          console.log('error getting build editor')
          console.dir(e)
-      })
+      });
 
    $(top).on("radiant_create_wall", function (_, e) {
       $(top).trigger('radiant_show_tip', { 

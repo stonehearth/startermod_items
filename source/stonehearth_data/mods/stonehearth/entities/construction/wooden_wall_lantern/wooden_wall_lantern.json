@@ -28,6 +28,10 @@
    "entity_data" : {
       "stonehearth:ghost_item" : {
          "uri" : "file(wooden_wall_lantern_ghost.json)"
+      },
+      "stonehearth:placeable_item" : {
+         "placeable_on_walls" : true,
+         "placeable_on_ground" : false
       }
    }
 }

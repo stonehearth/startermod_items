@@ -18,6 +18,8 @@ function PlaceableItemProxyComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv.category = json.category or 'uncategorized'
+      self._sv.placeable_on_ground = json.placeable_on_ground  or false
+      self._sv.placeable_on_walls = json.placeable_on_walls or false
       self:_create_derived_components()
       self.__saved_variables:mark_changed()
    end

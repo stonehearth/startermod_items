@@ -1186,8 +1186,7 @@ void Client::SelectEntity(om::EntityPtr entity)
       } else {
          CLIENT_LOG(3) << "cleared selected entity.";
       }
-
-      http_reactor_->QueueEvent("radiant_selection_changed", selectionChanged);
+      SendUIEvent("radiant_selection_changed", selectionChanged);
    } else {
       CLIENT_LOG(3) << "same entity.  bailing";
    }
@@ -1649,3 +1648,11 @@ csg::Point2 Client::GetMousePosition() const
 {
    return mouse_position_;
 }
+
+void Client::SendUIEvent(const char* name, JSONNode data)
+{
+   if (http_reactor_) {
+      http_reactor_->QueueEvent(name, data);
+   }
+}
+

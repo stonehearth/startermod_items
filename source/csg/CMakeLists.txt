@@ -13,6 +13,7 @@ add_library(csg STATIC
             matrix3.cpp
             matrix4.cpp
             meshtools.cpp
+            meshtools_meshgen.cpp
             region_tools.cpp
             quaternion.cpp
             ray.cpp

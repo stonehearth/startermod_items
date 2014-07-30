@@ -12,6 +12,8 @@ extern int lua_main(int argc, const char **argv);
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
 #ifdef _MSC_VER
+   _set_abort_behavior(0, _WRITE_ABORT_MSG);
+
 	// fix for https://svn.boost.org/trac/boost/ticket/6320
    std::locale default("");
    boost::filesystem::path::imbue(default);

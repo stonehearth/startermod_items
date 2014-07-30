@@ -103,9 +103,12 @@ end
 --
 function LocationSelector:_get_selected_brick(x, y)
    -- query the scene to figure out what's under the mouse cursor
+   --radiant.log.write('', 0, 'pre query ray ------------------')
    local s = _radiant.client.query_scene(x, y)
-
+   --radiant.log.write('', 0, 'post query ray ------------------')
    for result in s:each_result() do
+      --radiant.log.write('', 0, 'bricK:%s normal:%s entity:%s', result.brick, result.normal, result.entity)
+   
       -- adjust the brick location to the the one adjacent to the brick
       -- selected.  this is almost always what you want.
       local normal = result.normal

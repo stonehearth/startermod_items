@@ -572,7 +572,11 @@ function Fabricator:_update_fabricator_region()
       end)
    else
       self._log:debug('updating build region')
-      self._fabricator_rcs:get_region():modify(function(cursor)
+      
+      self._blueprint:add_component('stonehearth:construction_progress')
+                           :set_progress(pr:get_area(), br:get_area())
+
+      self._fabricator_rcs:get_region():modify(function(cursor)                             
          cursor:copy_region(br - pr)
          finished = cursor:empty()
       end)

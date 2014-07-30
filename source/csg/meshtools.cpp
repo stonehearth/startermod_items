@@ -327,20 +327,6 @@ mesh_tools::mesh& mesh_tools::mesh::FlipFaces()
    return *this;
 }
 
-void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset, bool optimizePlanes)
-{
-   mesh.SetOffset(offset);
-   csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
-      if (optimizePlanes) {
-         csg::Region2 optPlane = plane;
-         optPlane.OptimizeByMerge();
-         mesh.AddRegion(optPlane, pi);
-      } else {
-         mesh.AddRegion(plane, pi);
-      }
-   });
-}
-
 template void mesh_tools::mesh::AddRegion(Region<float, 2> const& region, PlaneInfo<float, 3> const& p);
 template void mesh_tools::mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p);
 template void mesh_tools::mesh::AddRect(Cube<float, 2> const& region, PlaneInfo<float, 3> const& p);

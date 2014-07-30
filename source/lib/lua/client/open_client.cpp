@@ -447,6 +447,13 @@ static csg::Point2 Client_GetMousePosition()
    return Client::GetInstance().GetMousePosition();
 }
 
+static void Client_SendUIEvent(lua_State* L, const char* name, luabind::object data)
+{
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   Client &client = Client::GetInstance();
+   client.SendUIEvent(name, host->LuaToJson(data));
+}
+
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
 DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
 DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
@@ -486,6 +493,7 @@ void lua::client::open(lua_State* L)
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
+            def("send_ui_event",                   &Client_SendUIEvent),
             
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)

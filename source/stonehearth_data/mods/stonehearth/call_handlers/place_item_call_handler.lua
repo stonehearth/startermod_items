@@ -18,7 +18,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
    
    if type(target_entity) == 'string' then
       next_call = 'stonehearth:place_item_type_in_world'
-      target_entity_data = target_entity     
+      target_entity_data = target_entity
    else
       next_call = 'stonehearth:place_item_in_world'
       target_entity_data = target_entity:get_id()      
@@ -33,15 +33,42 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
       placement_test_entity = radiant.entities.create_entity(entity_uri)
       destroy_placement_test_entity = true
    end
-
+   local placement_data = radiant.entities.get_entity_data(placement_test_entity, 'stonehearth:placeable_item')
    
+   local current_ui_mode = stonehearth.renderer:get_ui_mode()
+   stonehearth.renderer:set_ui_mode('hud')
+
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor(entity_uri)
       :set_filter_fn(function (result)
             if result.entity == target_entity then
                return stonehearth.selection.FILTER_IGNORE
             end
-            return radiant.terrain.is_standable(placement_test_entity, result.brick)
+            if not placement_data then
+               return true -- XXXXXXXXXXXXXXXXXXXN NOOOOOOOOOOOOOOOOOOOOOOOOOOO
+            end
+
+            if placement_data.placeable_on_ground and result.normal.y == 1 then
+               if radiant.terrain.is_standable(placement_test_entity, result.brick) then
+                  return true
+               end
+            end
+            if placement_data.placeable_on_walls and result.normal.y == 0 then
+               if not radiant.terrain.is_blocked(placement_test_entity, result.brick) then
+                  local normal = result.normal:to_int()
+                  local entities = radiant.terrain.get_entities_at_point(result.brick - normal)
+                  --radiant.log.write('', 0, 'testing entities @ %s', result.brick - normal)
+                  for _, entity in pairs(entities) do
+                     local wall = entity:get_component('stonehearth:wall')
+                     if wall then
+                        --radiant.log.write('', 0, 'success!!')
+                        return true
+                     end
+                     --radiant.log.write('', 0, 'no good!!')
+                  end
+                  --radiant.log.write('', 0, 'failed. =(')
+               end
+            end
          end)
       :done(function(selector, location, rotation)
             _radiant.call(next_call, target_entity_data, entity_uri, location, rotation)
@@ -63,6 +90,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, targ
             if destroy_placement_test_entity then
                radiant.entities.destroy_entity(placement_test_entity)
             end
+            stonehearth.renderer:get_ui_mode(current_ui_mode)
          end)
       :go()
 end

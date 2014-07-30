@@ -1143,8 +1143,8 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
 
       // Figure out the world voxel coordination of the intersection
       csg::Point3 brick;
-      brick.x = csg::ToClosestInt(intersection.x);
-      brick.z = csg::ToClosestInt(intersection.z);
+      brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01f));
+      brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01f));
       brick.y = csg::ToInt(intersection.y - (normal.y * 0.99f));
       result.AddResult(intersection, normal, brick, entity);
    });

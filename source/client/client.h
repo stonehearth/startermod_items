@@ -79,6 +79,8 @@ class Client : public core::Singleton<Client> {
       XZRegionSelectorPtr Client::CreateXZRegionSelector(int userFlags);
       csg::Point2 GetMousePosition() const;
 
+      void SendUIEvent(const char* name, JSONNode data);
+
    private:
       NO_COPY_CONSTRUCTOR(Client);
 
