@@ -14,7 +14,6 @@
 
 #include "utDebug.h"
 
-#include <xmmintrin.h>
 
 namespace Horde3D {
 
@@ -152,40 +151,24 @@ bool Frustum::cullSphere( Vec3f pos, float rad ) const
 	return false;
 }
 
-// From http://fgiesen.wordpress.com/2010/10/17/view-frustum-culling/ .  This only processes one
-// box at a time; when we have better data locality, we'll be able to process 4 at a time.
-// Also, might consider using Vec4s for the box extents/centers, since then we can load them in
-// one shot.
+
 bool Frustum::cullBox( const BoundingBox &b ) const
 {
-   Vec3f const& center = b.center();
-   Vec3f const& extent = b.extent();
-   __m128 extentm = _mm_set_ps(extent.x, extent.y, extent.z, 0.0f);
-   __m128 centerm = _mm_set_ps(center.x, center.y, center.z, 0.0f);
-   __m128 zeros = _mm_set_ps1(0.0f);
-   int mask = 0x80000000;
-   __m128 signflipMask = _mm_load_ps1((float*)&mask);
-   float dot;
-   for (uint32 i = 0; i < 6; i++)
-   {
-      const Plane& p = _planes[i];
-      const Vec3f& pNorm = p.normal;
-      const float& pw = p.dist;
-      __m128 planes = _mm_set_ps(pNorm.x, pNorm.y, pNorm.z, 0.0f);
-      planes = _mm_add_ps(planes, zeros);
-      
-      __m128 selected = _mm_and_ps(planes, signflipMask);
-      selected = _mm_xor_ps(selected, extentm);
-      selected = _mm_add_ps(selected, centerm);
-      selected = _mm_mul_ps(planes, selected);
-      selected = _mm_hadd_ps(selected, selected);
-      selected = _mm_hadd_ps(selected, selected);
-      _mm_store_ss(&dot, selected);
-      if (dot > -pw) {
-         return true;
-      }
-   }
-   return false;
+   const Vec3f &max = b.max();
+	// Idea for optimized AABB testing from www.lighthouse3d.com
+	for( uint32 i = 0; i < 6; ++i )
+	{
+		const Vec3f &n = _planes[i].normal;
+		
+		Vec3f positive = b.min();
+		if( n.x <= 0 ) positive.x = max.x;
+		if( n.y <= 0 ) positive.y = max.y;
+		if( n.z <= 0 ) positive.z = max.z;
+
+		if( _planes[i].distToPoint( positive ) > 0 ) return true;
+	}
+	
+	return false;
 }
 
 
