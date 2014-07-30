@@ -238,8 +238,8 @@ var StonehearthClient;
 
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
-               title : 'Build Floor Tooltip',
-               description : 'Build Floor Tooltip'
+               title : 'Build Floor',
+               description : 'Drag out rectangles to place bits of floor.<br><br>Right click to exit.'
             });
          }
 

@@ -264,7 +264,7 @@ void SceneNode::unmapParamV(int param, int mappedLength)
 void SceneNode::updateBBox(const BoundingBox& b)
 {
    _bBox = b;
-   markDirty(SceneNodeDirtyKind::Bounds);
+   markDirty(SceneNodeDirtyKind::Ancestors);
 }
 
 
@@ -285,7 +285,6 @@ void SceneNode::markChildrenDirty()
    {
 		if( !child->_dirty )
 		{	
-         //Modules::log().writeError("%s", child->getName().c_str());
 			child->_dirty = true;
 			child->_transformed = true;
 			child->markChildrenDirty();
@@ -298,7 +297,7 @@ void SceneNode::markDirty(uint32 dirtyKind)
  	_dirty = true;
 	_transformed = true;
 
-   if (dirtyKind & SceneNodeDirtyKind::Bounds) {
+   if (dirtyKind & SceneNodeDirtyKind::Ancestors) {
 	   SceneNode *node = _parent;
 	   while( node != 0x0 )
 	   {
@@ -307,7 +306,7 @@ void SceneNode::markDirty(uint32 dirtyKind)
 	   }
    }
 
-   if (dirtyKind & SceneNodeDirtyKind::Flags) {
+   if (dirtyKind & SceneNodeDirtyKind::Children) {
    	markChildrenDirty();
    }
 }
@@ -1118,8 +1117,8 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
    node->markDirty(SceneNodeDirtyKind::All);
 
 	// Register node in spatial graph
-	_spatialGraph->addNode( *node );
-        return node->_handle;
+   _spatialGraph->addNode( *node );
+   return node->_handle;
 }
 
 
@@ -1178,7 +1177,7 @@ void SceneManager::removeNode( SceneNode &node )
 				break;
 			}
 		}
-      parent->markDirty(SceneNodeDirtyKind::Bounds);
+      parent->markDirty(SceneNodeDirtyKind::Ancestors);
 	}
 	else  // Rootnode
 	{
@@ -1198,6 +1197,7 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 		return false;
 	}
 	
+   SceneNode* oldParent = node._parent;
 	// Detach from old parent
 	node.onDetach( *node._parent );
 	for( uint32 i = 0; i < node._parent->_children.size(); ++i )
@@ -1214,8 +1214,8 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 	node._parent = &parent;
 	node.onAttach( parent );
 	
-	parent.markDirty(SceneNodeDirtyKind::Bounds);
-	node._parent->markDirty(SceneNodeDirtyKind::Bounds);
+	parent.markDirty(SceneNodeDirtyKind::All);
+   oldParent->markDirty(SceneNodeDirtyKind::Ancestors);
 	
 	return true;
 }
