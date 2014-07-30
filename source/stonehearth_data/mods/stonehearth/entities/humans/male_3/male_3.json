@@ -8,17 +8,98 @@
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(head_1.qb)", 
-                     "file(head_2.qb)"
-                  ], 
-                  "type": "one_of"
-               }, 
                "file(body.qb)"
             ]
          }
       }
+   },
+   "entity_data" : {
+      "stonehearth:customization_variants" : {
+         "root" : {
+            "variants" : [
+               ["young", "young", "young", "old"]
+            ]
+         },
+         "old" : {
+            "variants" : [
+               ["old_brown", "old_brown"]
+            ]
+          },
+         "old_blonde" : {
+            "models" : [ 
+                "file(head_old_1_blonde.qb)",
+                "file(head_old_2_blonde.qb)",
+                "file(head_bald.qb)"
+            ],
+            "variants" : [
+               ["nothing","eyebrows_blonde"],
+               ["nothing", "facial_hair_blonde"]
+            ]
+         },
+         "old_brown" : {
+            "models" : [ 
+                "file(head_old_1_brown.qb)",
+                "file(head_old_2_brown.qb)",
+                "file(head_bald.qb)"
+            ],
+            "variants" : [
+               ["nothing", "eyebrows_brown"],
+               ["nothing", "facial_hair_brown"]
+            ]
+         },
+
+         "young" : {
+            "variants" : [
+               ["young_brown", "young_brown"]
+            ]
+         },
+         "young_blonde" : {
+            "models" : [ 
+                "file(head_young_1_blonde.qb)",
+                "file(head_young_2_blonde.qb)",
+                "file(head_young_3_blonde.qb)"
+            ],
+            "variants" : [
+               ["nothing","eyebrows_blonde"],
+               ["nothing", "facial_hair_blonde"]
+            ]
+         },
+         "young_brown" : {
+            "models" : [ 
+                "file(head_young_1_brown.qb)",
+                "file(head_young_2_brown.qb)",
+                "file(head_young_3_brown.qb)"
+            ],
+            "variants" : [
+               ["nothing", "eyebrows_brown"],
+               ["nothing", "facial_hair_brown"]
+            ]
+         },
+
+         "eyebrows_blonde" : {
+            "models" : [ "file(brows_blonde.qb)" ]
+         },
+         "eyebrows_brown" : {
+            "models" : [ "file(brows_brown.qb)" ]
+         },
+
+         "facial_hair_blonde" : {
+            "models" : [ 
+              "file(beard_blonde.qb)",
+              "file(chops_blonde.qb)"
+            ]
+         },
+         "facial_hair_brown" : {
+            "models" : [ 
+              "file(beard_brown.qb)",
+              "file(chops_brown.qb)"
+            ]
+         },
+
+         "nothing" : {
+
+         }
+      }
    }
+
 }

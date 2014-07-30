@@ -17,9 +17,48 @@
       "stonehearth:customization_variants" : {
          "root" : {
             "variants" : [
-               ["young"]
+               ["young", "young", "young", "old"]
             ]
          },
+         "old" : {
+            "variants" : [
+               ["old_blonde", "old_brown", "old_sandy"]
+            ]
+          },
+         "old_blonde" : {
+            "models" : [ 
+                "file(head_old_1_blonde.qb)",
+                "file(head_old_2_blonde.qb)",
+                "file(head_bald.qb)"
+            ],
+            "variants" : [
+               ["nothing","eyebrows_blonde"],
+               ["nothing", "facial_hair_blonde"]
+            ]
+         },
+         "old_brown" : {
+            "models" : [ 
+                "file(head_old_1_brown.qb)",
+                "file(head_old_2_brown.qb)",
+                "file(head_bald.qb)"
+            ],
+            "variants" : [
+               ["nothing", "eyebrows_brown"],
+               ["nothing", "facial_hair_brown"]
+            ]
+         },
+         "old_sandy" : {
+            "models" : [ 
+                "file(head_old_1_sandy.qb)",
+                "file(head_old_2_sandy.qb)",
+                "file(head_bald.qb)"
+            ],
+            "variants" : [
+               ["nothing", "eyebrows_sandy"],
+               ["nothing", "facial_hair_sandy"]
+            ]
+         },
+
          "young" : {
             "variants" : [
                ["young_blonde", "young_brown", "young_sandy"]
@@ -28,36 +67,63 @@
          "young_blonde" : {
             "models" : [ 
                 "file(head_young_1_blonde.qb)",
-                "file(head_young_2_blonde.qb)",
-                "file(head_young_3_blonde.qb)" 
+                "file(head_young_2_blonde.qb)"
             ],
             "variants" : [
-               ["nothing","eyebrows"]
+               ["nothing","eyebrows_blonde"],
+               ["nothing", "facial_hair_blonde"]
             ]
          },
          "young_brown" : {
             "models" : [ 
                 "file(head_young_1_brown.qb)",
-                "file(head_young_2_brown.qb)",
-                "file(head_young_3_brown.qb)",
+                "file(head_young_2_brown.qb)"
             ],
             "variants" : [
-               ["nothing", "eyebrows"]
+               ["nothing", "eyebrows_brown"],
+               ["nothing", "facial_hair_brown"]
             ]
          },
          "young_sandy" : {
             "models" : [ 
                 "file(head_young_1_sandy.qb)",
-                "file(head_young_2_sandy.qb)",
-                "file(head_young_3_sandy.qb)" 
+                "file(head_young_2_sandy.qb)" 
             ],
             "variants" : [
-               ["nothing", "eyebrows"]
+               ["nothing", "eyebrows_sandy"],
+               ["nothing", "facial_hair_sandy"]
             ]
          },
-         "eyebrows" : {
+
+         "eyebrows_blonde" : {
+            "models" : [ "file(brows_blonde.qb)" ]
+         },
+         "eyebrows_brown" : {
             "models" : [ "file(brows_brown.qb)" ]
          },
+         "eyebrows_sandy" : {
+            "models" : [ "file(brows_sandy.qb)" ]
+         },
+
+         "facial_hair_blonde" : {
+            "models" : [ 
+              "file(chin_beard_blonde.qb)",
+              "file(chops_blonde.qb)"
+            ]
+         },
+         "facial_hair_brown" : {
+            "models" : [ 
+              "file(chin_beard_brown.qb)",
+              "file(chops_brown.qb)"
+            ]
+         },
+         "facial_hair_sandy" : {
+            "models" : [ 
+              "file(chin_beard_sandy.qb)",
+              "file(chops_sandy.qb)"
+            ]
+         },
+
          "nothing" : {
 
          }
