@@ -278,12 +278,12 @@ var StonehearthClient;
          });
       },
 
-      growRoof: function() {
+      growRoof: function(roof) {
          var self = this;
 
          return this._callTool(function() {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof');
+            return radiant.call_obj(self._build_editor, 'grow_roof', roof);
          });
       },
 
