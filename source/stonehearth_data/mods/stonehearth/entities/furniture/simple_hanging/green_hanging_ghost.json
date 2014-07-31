@@ -1,0 +1,23 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "Green Hanging",
+         "description": "Aspirational",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood cloth decoration"
+      },      
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(green_hanging.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

@@ -1,23 +1,6 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins" : "file(wooden_window_frame_ghost.json)",
    "components": {
-      "mob" : {
-         "align_to_grid" : [ "x" ]
-      },
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(wooden_window_frame.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Wooden Window Frame",
-         "description": "So much for privacy...",
-         "icon" : "file(wooden_window_frame.png)"
-
-      },
       "stonehearth:fixture" : {
          "cursor" : "stonehearth:cursors:create_window",
          "margin" : {
@@ -39,8 +22,9 @@
             }
          ]
       },
-      "stonehearth:material" : {
-         "tags" : "wood portal crafted"
-      }            
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_window_frame_iconic.json)",
+         "ghost_form" : "file(wooden_window_frame_ghost.json)"
+      }      
    }
 }

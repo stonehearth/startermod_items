@@ -39,7 +39,7 @@
             "models" : [ 
                 "file(head_young_1_brown.qb)",
                 "file(head_young_2_brown.qb)",
-                "file(head_young_3_brown.qb)",
+                "file(head_young_3_brown.qb)"
             ],
             "variants" : [
                ["nothing", "eyebrows"]

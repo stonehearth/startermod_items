@@ -1,25 +1,10 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins" : "file(dining_table_ghost.json)",
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(dining_table.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Dining Table",
-         "description": "Sitting down to eat is a sign of civilization.",
-         "icon" : "file(dining_table.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(dining_table_iconic.json)",
+         "ghost_form" : "file(dining_table_ghost.json)",
+         "placeable_on_ground" : true
       },
       "region_collision_shape": {
          "region": [

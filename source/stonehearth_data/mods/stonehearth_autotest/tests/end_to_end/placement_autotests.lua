@@ -4,7 +4,7 @@ local placement_autotests = {}
 --Pickup a proxy item and move it to a new location
 function placement_autotests.place_one_proxy_item(autotest)
    autotest.env:create_person(10, 10, { profession = 'worker' })
-   local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed_proxy')
+   local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed')
 
    --If the big bed moves to the target location, we win!
    local trace
@@ -63,7 +63,7 @@ function placement_autotests.two_place_multiple_times(autotest)
    autotest.env:create_person(10, 10, { profession = 'worker' })
    autotest.env:create_person(-10, -10, { profession = 'worker' })
 
-   local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed_proxy')
+   local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed')
 
    --If the big bed moves to the target location, we win!
    local big_bed

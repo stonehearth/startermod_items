@@ -1,25 +1,11 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins" : "file(arch_backed_chair_ghost.json)",
+
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(arch_backed_chair.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Cathedral-Arch Chair",
-         "description": "Classy like piety.",
-         "icon" : "file(arch_backed_chair.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture chair crafted"
-      },
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(arch_backed_chair_iconic.json)",
+         "ghost_form" : "file(arch_backed_chair_ghost.json)",
+         "placeable_on_ground" : true
       },
       "region_collision_shape" : {
          "region": [

@@ -1,30 +1,10 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "name": "Flower Hanging",
-         "description": "A very Rayyan pattern.",
-         "icon" : "file(/entities/generic/default_object/default_object.png)"
-      },
-
       "stonehearth:entity_forms" : {
-         "proxy_entity" : "stonehearth:geranium_hanging_proxy"
-      },
-
-      "stonehearth:material" : {
-         "tags" : "wood cloth decoration"
-      },      
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(geranium_hanging.qb)"
-            ]
-         }
-      },
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+         "iconic_form" : "file(geranium_hanging_iconic.json)",
+         "ghost_form" : "file(geranium_hanging_ghost.json)",
+         "placeable_on_ground" : true
       },
       "destination": {
          "region": [

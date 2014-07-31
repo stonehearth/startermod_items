@@ -17,23 +17,17 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying ~= nil then
       return
    end
-   self._placed_item_component = item:get_component('stonehearth:entity_forms')
-   if self._placed_item_component == nil then
+   local entity_forms = item:get_component('stonehearth:entity_forms')
+   if entity_forms == nil then
       return
    end
-   self._proxy_item = self._placed_item_component:get_proxy_entity()
-   
-   self._proxy_component = self._proxy_item:add_component('stonehearth:iconic_form')
-   
-   if not self._proxy_component then
-      --TODO: if you just return here, without the assert, the bed will disappear from the world. 
-      assert(false, 'the proxy item is invalid. WHY???')
-      return
-   end
-   
-   self._proxy_component:set_full_sized_entity(item)
 
-   ai.CURRENT.carrying = self._proxy_item
+   self._iconic_entity = entity_forms:get_iconic_entity()
+   if not self._iconic_entity then
+      return
+   end
+
+   ai.CURRENT.carrying = self._iconic_entity
    ai:set_think_output()
 end
 
@@ -44,18 +38,13 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    
    local location = item:get_component('mob'):get_world_grid_location()   
-   radiant.terrain.remove_entity(item)  
-   radiant.terrain.place_entity(self._proxy_item, location)
-   self._proxy_component:set_full_sized_entity(item)
+   radiant.terrain.remove_entity(item)
+   radiant.terrain.place_entity(self._iconic_entity, location)
    
-   local pickup_item = self._proxy_item
-   self._proxy_item = nil
-
    --sometimes the location of the parent object is not adjacent to the
    --entity. In that case, walk over to the placed item.
-   ai:execute('stonehearth:goto_entity', { entity = pickup_item })
-   ai:execute('stonehearth:pickup_item_adjacent', { item = pickup_item })
-   self._proxy_item = nil
+   ai:execute('stonehearth:goto_entity', { entity = self._iconic_entity })
+   ai:execute('stonehearth:pickup_item_adjacent', { item = self._iconic_entity })
 end
 
 return PickupPlacedItemAdjacent

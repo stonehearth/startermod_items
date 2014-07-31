@@ -257,44 +257,6 @@ function Town:promote_citizen(person, talisman)
    })
 end
 
-function Town:place_item_in_world(item_proxy, full_sized_uri, location, rotation)
-   local proxy_id = item_proxy:get_id()
-   if self._placement_xs[proxy_id] ~= nil then
-      self._placement_xs[proxy_id].task:destroy()
-      radiant.entities.destroy_entity(self._placement_xs[proxy_id].ghost_entity)
-   end
-
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_form')
-   ghost_entity_component:set_full_sized_mod_uri(full_sized_uri)
-   radiant.terrain.place_entity_at_exact_location(ghost_entity, location)
-   radiant.entities.turn_to(ghost_entity, rotation)
-
-   local remove_ghost_entity = function(placed_item)
-      radiant.entities.destroy_entity(ghost_entity)
-      self._placement_xs[proxy_id] = nil
-   end
-
-   local task = self:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item', {
-         item = item_proxy,
-         location = location,
-         rotation = rotation,
-         finish_fn = remove_ghost_entity
-      })
-      :set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
-      :once()
-      :start()
-
-   self._placement_xs[proxy_id] = {
-      ghost_entity = ghost_entity,
-      task = task
-   }
-
-   self:_remember_user_initiated_task(task, 'place_item_in_world', item_proxy, full_sized_uri, location, rotation)
-
-   return task
-end
-
 function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
    local proxy_id = item:get_id()
    if self._placement_xs[proxy_id] ~= nil then

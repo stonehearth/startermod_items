@@ -7,7 +7,7 @@ local firepit_autotests = {}
 --do we extinguish it at sunrise?
 function firepit_autotests.light_fire(autotest)
    local worker = autotest.env:create_person(10, 10, { profession = 'worker' })
-   local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit')
+   local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit', { force_iconic = false })
    local wood = autotest.env:create_entity(-5, -5, 'stonehearth:oak_log')
    radiant.entities.set_player_id(firepit, radiant.entities.get_player_id(worker))
 
@@ -59,7 +59,7 @@ end
 function firepit_autotests.move_lit_fire(autotest)
    local worker = autotest.env:create_person(10, 10, { profession = 'worker' })
    local worker2 = autotest.env:create_person(8, 8, { profession = 'worker' })
-   local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit')
+   local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit', { force_iconic = false })
    local wood = autotest.env:create_entity(-5, -5, 'stonehearth:oak_log')
    local wood2 = autotest.env:create_entity(-6, -5, 'stonehearth:oak_log')
    radiant.entities.set_player_id(firepit, radiant.entities.get_player_id(worker))

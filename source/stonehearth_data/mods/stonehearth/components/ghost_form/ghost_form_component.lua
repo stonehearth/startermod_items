@@ -9,38 +9,52 @@ local GhostFormComponent = class()
 
 function GhostFormComponent:initialize(entity, json)
    self._entity = entity
-   self._sv = self.__saved_variables:get_data()
-   if not self._sv.full_sized_mod_url then
-      self._sv.full_sized_mod_url = ''
-      self._sv.unit_info_name = 'Ghooooost Item'
-      self._sv.unit_info_description = 'Whoooo aaaammmm Iiiiiiii?'
-      self._sv.unit_info_icon = ''
+
+   assert(not next(json), 'iconic_form components should not be specified in json files')
+   if not self._sv.root_entity then
+      self._entity:set_debug_text(self._entity:get_debug_text() .. ' (ghost)')
    end
 end
 
-function GhostFormComponent:set_full_sized_mod_uri(real_item_uri)
-   self._sv.full_sized_mod_url = real_item_uri
+function GhostFormComponent:get_root_entity()
+   return self._sv.root_entity
+end
 
-   local json = radiant.resources.load_json(real_item_uri)
-   if json and json.components then
-      if json.components.unit_info then
-         local data = json.components.unit_info
-
-         --TODO: double check with Tony as to why this works
-         self._sv.unit_info_name = data.name and data.name or ''
-         self._sv.unit_info_description = data.description and data.description or ''
-         self._sv.unit_info_icon = data.icon and data.icon or ''
-      end
-   end
+function GhostFormComponent:set_root_entity(root_entity)
+   assert(not self._sv.root_entity, 'root entity should be initialized exactly once')
+   self._sv.root_entity = root_entity
    self.__saved_variables:mark_changed()
+
+   -- some trivial error checking
+   local uri = self._entity:get_uri()
+   local function verify_no_component(name)
+      assert(not self._entity:get_component(name), string.format('ghost entity %s should not have a %s component.', uri, name))
+   end
+   verify_no_component('sensor')
+   verify_no_component('destination')
+   verify_no_component('region_collision_shape')
+
+   return self
 end
 
-function GhostFormComponent:get_full_sized_mod_uri()
-   return self._sv.full_sized_mod_url
+function GhostFormComponent:get_iconic_entity()
+   return self._sv.iconic_entity
 end
 
-function GhostFormComponent:get_full_sized_json()
-   return radiant.resources.load_json(self._sv.full_sized_mod_url)
+function GhostFormComponent:set_iconic_entity(iconic_entity)
+   assert(not self._sv.iconic_entity, 'iconic entity should be initialized exactly once')
+   self._sv.iconic_entity = iconic_entity
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+function GhostFormComponent:set_placeable(placeable)
+   if placeable then
+      -- add the command to place the item from the proxy
+      self._entity:add_component('stonehearth:commands')
+                     :add_command('/stonehearth/data/commands/move_item')
+   end
+   return self
 end
 
 return GhostFormComponent

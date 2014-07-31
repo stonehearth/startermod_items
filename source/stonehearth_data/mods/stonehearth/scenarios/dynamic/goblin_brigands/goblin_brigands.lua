@@ -114,7 +114,7 @@ function GoblinBrigands:_on_spawn()
       end
 
       for i = 1, num_escorts do 
-         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword_proxy')
+         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
       end
    end
 

@@ -16,18 +16,11 @@
       },
       "stonehearth:lamp" : {
          "light_effect" : "/stonehearth/data/effects/lamp_effect_wall"
-      }
-   },
-
-   "region_collision_shape" : {
-      "region_from_model": {
-         "model" : "file(wooden_wall_lantern.qb)"
-      }
-   },
-
-   "entity_data" : {
-      "stonehearth:ghost_form" : {
-         "uri" : "file(wooden_wall_lantern_ghost.json)"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_wall_lantern_iconic.json)",
+         "ghost_form" : "file(wooden_wall_lantern_ghost.json)",
+         "placeable_on_walls" : true
       }
    }
 }

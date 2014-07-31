@@ -66,6 +66,27 @@ static std::ostream& operator<<(std::ostream& os, ${class_formal_parameter})
    return os;
 }
 
+
+/*
+ * Generic "trace the whole object" wrappers
+ */
+static lua::TraceWrapperPtr
+${class_upper}_Trace(${class_formal_parameter}, const char* reason, dm::TraceCategories category)
+{
+   ${class_to_pointer} 
+   if (instance)  {
+      return std::make_shared<lua::TraceWrapper>(instance->TraceObjectChanges(reason, category));
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::trace");
+}
+
+static lua::TraceWrapperPtr
+${class_upper}_AsyncTrace(${class_formal_parameter}, const char* reason)
+{
+   ${class_to_pointer}
+   return ${class_upper}_Trace(instance, reason, dm::LUA_ASYNC_TRACES);
+}
+
 % if is_component:
 static ${class_return_type} ${class_upper}_LoadFromJson(lua_State* L, ${class_formal_parameter}, object obj)
 {
@@ -76,6 +97,7 @@ static ${class_return_type} ${class_upper}_LoadFromJson(lua_State* L, ${class_fo
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
 }
+
 % endif
 
 ## - Boxed -----------------------------------------------------------------------------------
@@ -390,6 +412,9 @@ scope Register${class_upper}(lua_State* L)
    % endif
 % endfor
 ## - All Traces ------------------------------------------------------------------------------
+         .def("trace", ${class_upper}_Trace)
+         .def("trace", ${class_upper}_AsyncTrace)
+
 % for name, set in env.properties(C, [dm.Set, dm.Map, dm.Boxed, dm.Array]):
    % if set.trace:
          .def("trace_${name | env.lower}", ${class_upper}_Trace${name | env.upper})

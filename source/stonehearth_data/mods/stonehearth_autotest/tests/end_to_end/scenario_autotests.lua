@@ -16,7 +16,7 @@ function score_tests.immigration_failure(autotest)
          uri == 'stonehearth:turnip_basket' or 
          uri == 'stonehearth:corn_basket' or 
          uri == 'stonehearth:rabbit_jerky' or 
-         uri == 'stonehearth:farmer:hoe_proxy'
+         uri == 'stonehearth:farmer:hoe_talisman'
          then
          autotest:success()
          return radiant.events.UNLISTEN
