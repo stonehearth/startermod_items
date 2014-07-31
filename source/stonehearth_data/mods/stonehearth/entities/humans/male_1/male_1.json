@@ -38,8 +38,7 @@
          "old_brown" : {
             "models" : [ 
                 "file(head_old_1_brown.qb)",
-                "file(head_old_2_brown.qb)",
-                "file(head_bald.qb)"
+                "file(head_old_2_brown.qb)"
             ],
             "variants" : [
                ["nothing", "eyebrows_brown"],
@@ -49,8 +48,7 @@
          "old_sandy" : {
             "models" : [ 
                 "file(head_old_1_sandy.qb)",
-                "file(head_old_2_sandy.qb)",
-                "file(head_bald.qb)"
+                "file(head_old_2_sandy.qb)"
             ],
             "variants" : [
                ["nothing", "eyebrows_sandy"],
