@@ -46,20 +46,8 @@
             <div id="growRoofTool" class="toolButton"></div>
          </div>
 
-         <h2>{{i18n stonehearth:building_designer_material}}</h2>
-         <div class="brushPalette section">
-            {{#each view.roofPatterns}}
-               <div>
-                  todo...roof options go here...
-                  {{#each items}}
-                     <a {{bind-attr name = "this.name"}}href="#" {{action selectRoofMaterial this target="view"}} class="brushLink">
-                        <img {{bind-attr src="this.portrait" title="this.name"}} />
-                     </a>
-                  {{/each}}
-               </div>
-               <div style="clear: both"></div>
-            {{/each}}
-         </div>
+         <!-- Material palette built dynamically and inserted here -->
+         <div class="roofMaterialsContainer"></div>
 
          {{render 'roofShape' this}}
       </div>
