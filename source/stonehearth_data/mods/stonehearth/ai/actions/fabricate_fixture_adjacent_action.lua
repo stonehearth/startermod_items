@@ -15,6 +15,7 @@ function FabricateFixtureAdjacent:run(ai, entity, args)
    local fixture_fabricator = args.fabricator:get_component('stonehearth:fixture_fabricator')
    if fixture_fabricator then
       ai:execute('stonehearth:run_effect', { effect = 'work' })
+      radiant.effects.run_effect(entity, '/stonehearth/data/effects/place_item')
 
       fixture_fabricator:construct(entity, args.item)
    end
