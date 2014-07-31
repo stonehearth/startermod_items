@@ -87,6 +87,11 @@ App.StonehearthBuildModeView = App.View.extend({
       $('.buildAndDesignTool').parent().hide();
    },
 
+   _destroyAllViews: function() {
+      this._destroyBuildingDesigner();
+      this._destroyPlaceItemUi();
+   },
+
    _onStateChanged: function() {
       //var showSubView = this._selectedEntity && this._mode == 'build';
       var showSubView = this._mode == 'build';
@@ -102,7 +107,7 @@ App.StonehearthBuildModeView = App.View.extend({
          //var uri = typeof(entity) == 'string' ? this._selectedEntity : this._selectedEntity.__self;
          this._showBuildingDesigner(this._selectedEntity);
       } else {
-         this._destroyBuildingDesigner();
+         this._destroyAllViews();
       }
    },
 

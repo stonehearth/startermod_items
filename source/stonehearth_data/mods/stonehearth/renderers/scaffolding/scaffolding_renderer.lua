@@ -34,6 +34,7 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    self._tops = {}
    self._ladder = {}
    self._segment_region = Region3()
+   self._rotation = 0
 
    -- Call _update_shape whenever the collision shape changes
    self._entity = render_entity:get_entity()
@@ -136,7 +137,6 @@ function ScaffoldingRenderer:_update_shape(mode)
    -- Compute the y-rotation for all the nodes.  This is based on the direction of
    -- the scaffolding normal contained in the stonehearth:construction_data component.
    self._tangent = 'x'
-   self._rotation = 0
    if self._construction_data then
       local normal = self._construction_data:get_normal()
       if normal then
