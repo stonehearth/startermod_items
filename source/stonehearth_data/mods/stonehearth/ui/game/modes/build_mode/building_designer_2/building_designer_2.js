@@ -110,6 +110,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
+      this._super();
       self._state = {};
 
       $.get('/stonehearth/data/build/building_parts.json')
@@ -119,9 +120,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.$('#wallToolTab').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
             self.$('.roofMaterialsContainer').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
             self.$('#doodadToolTab').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
+
+            self._addEventHandlers();
+            self._restoreUiState();
          });
+   },
 
-
+   _addEventHandlers: function() {
+      var self = this;
+      
       // tab buttons and pages
       this.$('.tabButton').click(function() {
          var tabId = $(this).attr('tab');
@@ -384,6 +391,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
          }
       });
+
+   },
+
+   _restoreUiState: function() {
+      var self = this;
 
       // restore the state of the dialog from the last time it was invoked and 
       radiant.call('stonehearth:load_browser_object', 'stonehearth:building_designer')

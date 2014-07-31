@@ -17,6 +17,27 @@
          "icon" : "file(wooden_window_frame.png)"
 
       },
+      "stonehearth:fixture" : {
+         "cursor" : "stonehearth:cursors:create_window",
+         "margin" : {
+            "left" : 1,
+            "right" : 1,
+            "top" : 1,
+            "bottom": 1
+         },
+         "bounds" : {
+            "min" : { "x" : -1, "y" : 0 },
+            "max" : { "x" :  1, "y" : 2 }
+         }
+      },
+      "stonehearth:portal" : {
+         "cutter" : [
+            {
+               "min" : { "x" : -1, "y" : 0 },
+               "max" : { "x" :  1, "y" : 2 }
+            }
+         ]
+      },
       "stonehearth:material" : {
          "tags" : "wood portal crafted"
       }
