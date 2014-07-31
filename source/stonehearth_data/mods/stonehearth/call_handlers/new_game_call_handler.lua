@@ -130,7 +130,7 @@ end
 
 function NewGameCallHandler:choose_camp_location(session, response)
    stonehearth.selection:select_location()
-      :use_ghost_entity_cursor('stonehearth:camp_standard')
+      :use_ghost_entity_cursor('stonehearth:camp_standard_ghost')
       :done(function(selector, location, rotation)
          _radiant.call('stonehearth:create_camp', location)
             :done( function(o)
@@ -182,7 +182,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
    local worker6 = place_citizen_embark(camp_x+3, camp_z+0)   
    
-   self:place_item(pop, 'stonehearth:firepit', camp_x, camp_z+3)
+   self:place_item(pop, 'stonehearth:firepit', camp_x, camp_z+3, { force_iconic = false })
 
    radiant.entities.pickup_item(worker1, pop:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
@@ -207,9 +207,9 @@ function NewGameCallHandler:place_citizen(pop, x, z, profession, talisman)
    return citizen
 end
 
-function NewGameCallHandler:place_item(pop, uri, x, z)
+function NewGameCallHandler:place_item(pop, uri, x, z, options)
    local entity = radiant.entities.create_entity(uri)
-   radiant.terrain.place_entity(entity, Point3(x, 1, z))
+   radiant.terrain.place_entity(entity, Point3(x, 1, z), options)
 
    local unit_info = entity:add_component('unit_info')
    unit_info:set_faction(pop:get_faction())

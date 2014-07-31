@@ -171,6 +171,7 @@
 
       "green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
       "camp_standard" : "file(entities/gizmos/camp_standard)",
+      "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
       "tombstone" : "file(entities/furniture/tombstone)",
       "firepit" : "file(entities/gizmos/firepit)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
