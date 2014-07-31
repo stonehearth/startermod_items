@@ -1,27 +1,6 @@
 {
    "mixins" : "file(wooden_window_frame_ghost.json)",
    "components": {
-      "stonehearth:fixture" : {
-         "cursor" : "stonehearth:cursors:create_window",
-         "margin" : {
-            "left" : 1,
-            "right" : 1,
-            "top" : 1,
-            "bottom": 1
-         },
-         "bounds" : {
-            "min" : { "x" : -1, "y" : 0 },
-            "max" : { "x" :  1, "y" : 2 }
-         }
-      },
-      "stonehearth:portal" : {
-         "cutter" : [
-            {
-               "min" : { "x" : -1, "y" : 0 },
-               "max" : { "x" :  1, "y" : 2 }
-            }
-         ]
-      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_window_frame_iconic.json)",
          "ghost_form" : "file(wooden_window_frame_ghost.json)"
