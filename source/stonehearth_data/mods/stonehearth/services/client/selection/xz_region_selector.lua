@@ -25,6 +25,11 @@ function XZRegionSelector:progress(cb)
    return self
 end
 
+function XZRegionSelector:restrict_to_standable_terrain()
+   self._selection_flags = 0
+   return self
+end
+
 function XZRegionSelector:fail(cb)
    self._fail_cb = cb
    return self
@@ -107,6 +112,7 @@ function XZRegionSelector:go()
                self._render_node = self._create_node_fn(1, region, self._box_color, self._line_color)
                                              :set_position(box.min:to_float())
             end
+            self._render_node:set_can_query(false)
             if self._progress_cb then
                self._progress_cb(self, box)
             end
@@ -122,6 +128,9 @@ function XZRegionSelector:go()
             end
          end)   
       :always(function()
+            if self._render_node then
+               self._render_node:set_can_query(true)
+            end
             if self._always_cb then
                self._always_cb(self)
             end

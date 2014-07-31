@@ -879,10 +879,19 @@ void Renderer::Shutdown()
    exploredTrace_ = nullptr;
    visibilityTrace_ = nullptr;
    rootRenderObject_ = nullptr;
-   for (auto& e : entities_) {
-      e.clear();
-   }
 
+   // Two pass destruction of our entity stores: destroy the data-structure containing them,
+   // and then destroy the entities themselves.  This is necessary because destroying an entity
+   // can, through recursive destruction of its children, cause lookups against the entities_
+   // data structure, which must be in a valid state for the lookup.  So, in this case, we'll just
+   // empty the data structure so that all lookups fail when the entities themselves are destroyed.
+   {
+      RenderEntityMap keepAlive[NUM_STORES];
+      for (int i = 0; i < NUM_STORES; i++) {
+         keepAlive[i] = entities_[i];
+         entities_[i].clear();
+      }
+   }
    debugShapes_ = 0;
    fowExploredNode_ = 0;
    delete camera_;      camera_ = nullptr;

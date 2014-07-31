@@ -35,61 +35,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
-
    },   
-
-   floorPatterns: [
-      {
-         category: 'Wooden Materials',
-         items: [
-            { id: 'light',    name: 'Solid Light', portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.qb' },
-            { id: 'dark',     name: 'Solid Dark',  portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb' },
-            { id: 'diagonal', name: 'Diagonal',    portrait: '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png', brush:'/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb' },
-         ]         
-      }
-   ],
-
-   wallPatterns: [
-      {
-         category: 'Wooden Materials',
-         items: [
-            { name: 'Plastered Wooden Wall',    portrait: '/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png', brush: 'stonehearth:plastered_wooden_wall' },
-            { name: 'Wooden Wall', portrait: '/stonehearth/entities/build/wooden_wall/wooden_wall.png', brush: 'stonehearth:wooden_wall' },
-         ]         
-      }
-   ],
-
-   roofPatterns: [
-      {
-         category: 'Wooden Materials',
-         items: [
-            { name: 'Wooden Roof',    portrait: '/stonehearth/entities/build/roof/wooden_peaked_roof/wooden_peaked_roof.png', brush: 'stonehearth:wooden_peaked_roof' },
-            { name: 'Thatch Roof',    portrait: '/stonehearth/entities/build/roof/thatch_peaked_roof/thatch_peaked_roof.png', brush: 'stonehearth:thatch_peaked_roof' },
-      ]
-      }
-   ],
-
-   doodads: [
-      {
-         category: 'Doors',
-         items: [
-            { name: 'Wooden Door', portrait: '/stonehearth/entities/construction/wooden_door/wooden_door.png', brush: 'stonehearth:wooden_door' },
-         ]
-      },
-      {
-         category: 'Windows',
-         items: [
-            { name: 'Wooden Window', portrait: '/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png', brush:'stonehearth:wooden_window_frame' },
-         ]
-      },
-      {
-         category: 'Decorations',
-         items: [
-            { name: 'Lamp', portrait: '/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png', brush: 'stonehearth:wooden_wall_lantern' },
-         ]
-      }
-   ],
-
 
    // Save the state of the dialog int the 'stonehearth:building_designer' key.
    _saveState: function() {
@@ -166,11 +112,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var self = this;
       self._state = {};
 
-      // build material palettes
-      this.$('#floorToolTab').append(this._buildMaterialPalette(this.floorPatterns, 'floorMaterial'));
-      this.$('#wallToolTab').append(this._buildMaterialPalette(this.wallPatterns, 'wallMaterial'));
-      this.$('.roofMaterialsContainer').append(this._buildMaterialPalette(this.roofPatterns, 'roofMaterial'));
-      this.$('#doodadToolTab').append(this._buildMaterialPalette(this.doodads, 'doodadMaterial'));
+      $.get('/stonehearth/data/build/building_parts.json')
+         .done(function(json) {
+            self.buildingParts = json;
+            self.$('#floorToolTab').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'floorMaterial'));
+            self.$('#wallToolTab').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
+            self.$('.roofMaterialsContainer').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
+            self.$('#doodadToolTab').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
+         });
+
 
       // tab buttons and pages
       this.$('.tabButton').click(function() {

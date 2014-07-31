@@ -35,6 +35,7 @@ end
 --- Client side object to add the workbench's outbox to the world. 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity, crafter)
    stonehearth.selection:select_xz_region()
+      :restrict_to_standable_terrain()
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:designate_zone')
       :done(function(selector, box)

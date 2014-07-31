@@ -7,6 +7,7 @@ local FarmingCallHandler = class()
 -- runs on the client!!
 function FarmingCallHandler:choose_new_field_location(session, response)
    stonehearth.selection:select_xz_region()
+      :restrict_to_standable_terrain()
       :use_designation_marquee(Color4(55, 187, 56, 255))
       :set_cursor('stonehearth:cursors:designate_zone')
       :done(function(selector, box)
