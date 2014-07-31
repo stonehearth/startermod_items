@@ -1296,8 +1296,9 @@ void SceneManager::fastCastRayInternal(int userFlags)
 				}
 			}
 
-         if( !inserted && _castRayResults.size() < _rayNum)
-			{
+         if (_castRayResults.size() > _rayNum) {
+            _castRayResults.pop_back();
+         } else if( !inserted && _castRayResults.size() < _rayNum) {
 				_castRayResults.push_back( crr );
 			}
       }
