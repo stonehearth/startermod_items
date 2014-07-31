@@ -23,7 +23,7 @@ return ai:create_compound_action(PlantCrop)
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.target_crop:get_plantable_entity()})
          :execute('stonehearth:reserve_entity_destination', { entity = ai.ARGS.target_crop:get_plantable_entity(),
                                                               location = ai.PREV.point_of_interest })
-         :execute('stonehearth:run_effect', { effect = 'work', facing_entity = ai.ARGS.target_crop:get_field_spacer(ai.PREV.location) })
+         :execute('stonehearth:run_effect', { effect = 'hoe', facing_entity = ai.ARGS.target_crop:get_field_spacer(ai.PREV.location) })
          :execute('stonehearth:call_method', {
                   obj = ai.ARGS.target_crop,
                   method = 'notify_planting_done',
