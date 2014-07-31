@@ -15,7 +15,7 @@ end
 
 function promote_tests.promote_to_carpenter(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
-   local saw = autotest.env:create_entity(-2, -2, 'stonehearth:carpenter:saw_proxy')
+   local saw = autotest.env:create_entity(-2, -2, 'stonehearth:carpenter:saw_talisman')
 
    autotest:sleep(500)
 

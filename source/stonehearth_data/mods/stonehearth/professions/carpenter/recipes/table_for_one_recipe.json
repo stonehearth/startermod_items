@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:table_for_one_proxy"
+         "item":"stonehearth:table_for_one"
       }
   ]
 }

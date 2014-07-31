@@ -796,7 +796,7 @@ function entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
 end
 
--- extract the full sized entity from a placable item proxy.  `component_name`
+-- extract the full sized entity from an iconic entity proxy.  `component_name`
 -- is optional.  if specified, the component for the full sized item matching that
 -- name will be returned as the 2nd parameter.  if the entity is not a placable
 -- item, the function returns nil
@@ -805,16 +805,16 @@ end
 --    @param component_name : (optional) the name of the component on the full
 --           sized entity you also want returned
 --
-function entities.unwrap_placable_item_proxy(entity, component_name)
-   local full_sized_entity, full_sized_component
-   local proxy = entity:get_component('stonehearth:placeable_item_proxy')
+function entities.unwrap_iconic_item(entity, component_name)
+   local root_entity, root_component
+   local proxy = entity:get_component('stonehearth:iconic_form')
    if proxy then
-      full_sized_entity = proxy:get_full_sized_entity()
+      root_entity = proxy:get_root_entity()
       if component_name then
-         full_sized_component = full_sized_entity:get_component(component_name)
+         root_component = root_entity:get_component(component_name)
       end
    end
-   return full_sized_entity, full_sized_component
+   return root_entity, root_component
 end
 
 

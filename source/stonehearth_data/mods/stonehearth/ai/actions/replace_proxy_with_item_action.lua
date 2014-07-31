@@ -13,10 +13,10 @@ ReplaceProxyWithItem.priority = 2
 
 function ReplaceProxyWithItem:start_thinking(ai, entity, args)   
    self._proxy = args.proxy
-   self._proxy_component = self._proxy:get_component('stonehearth:placeable_item_proxy')
-   if self._proxy_component then
-      self._full_sized_entity = self._proxy_component:get_full_sized_entity()
-      assert(self._full_sized_entity and self._full_sized_entity:is_valid())
+   local iconic_component = self._proxy:get_component('stonehearth:iconic_form')
+   if iconic_component then
+      self._root_entity = iconic_component:get_root_entity()
+      assert(self._root_entity and self._root_entity:is_valid())
    end
    ai:set_think_output()
 end
@@ -36,14 +36,16 @@ function ReplaceProxyWithItem:start(ai, entity, args)
 end
 
 function ReplaceProxyWithItem:run(ai, entity, args)
-   if self._full_sized_entity then
-      assert(self._full_sized_entity:is_valid())
+   if self._root_entity then
+      assert(self._root_entity:is_valid())
       ai:execute('stonehearth:run_effect', { effect = 'work' })
       radiant.effects.run_effect(entity, '/stonehearth/data/effects/place_item')
 
-      radiant.terrain.place_entity(self._full_sized_entity, radiant.entities.get_world_grid_location(self._proxy))
-      radiant.entities.turn_to(self._full_sized_entity, args.rotation)      
+      local location = radiant.entities.get_world_grid_location(self._proxy)
       radiant.terrain.remove_entity(self._proxy)
+      
+      radiant.entities.turn_to(self._root_entity, args.rotation)
+      radiant.terrain.place_entity(self._root_entity, location, { force_iconic = false })
    end
 end
 

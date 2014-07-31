@@ -12,7 +12,13 @@ PickupPlacedItemAdjacentTrivial.priority = 2
 
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupPlacedItemAdjacentTrivial)
-         :when( function (ai, entity, args)
-               return ai.CURRENT.carrying and ai.CURRENT.carrying:get_component('stonehearth:placeable_item_proxy') and 
-                     ai.CURRENT.carrying:get_component('stonehearth:placeable_item_proxy'):get_full_sized_entity() == args.item
+         :when(function (ai, entity, args)
+               if not ai.CURRENT.carrying then
+                  return false
+               end
+               local iconic_form = ai.CURRENT.carrying:get_component('stonehearth:iconic_form')
+               if not iconic_form then
+                  return false
+               end
+               return iconic_form:get_root_entity() == args.item
             end )

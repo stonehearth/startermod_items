@@ -12,7 +12,7 @@ function FoodTest:__init()
 
    self:place_item_cluster('stonehearth:wool_bundle', 8, 8, 4, 4)
 
-   self:place_item('stonehearth:arch_backed_chair_proxy', 6, 6)
+   self:place_item('stonehearth:arch_backed_chair', 6, 6)
 
    local tree = self:place_tree(-12, -12)
 

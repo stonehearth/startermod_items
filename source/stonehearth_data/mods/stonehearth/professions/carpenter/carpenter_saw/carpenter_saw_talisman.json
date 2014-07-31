@@ -1,0 +1,41 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Carpenter's Saw",
+         "description" : "Promotes a citizen into a Carpenter.",
+         "portrait": "file(carpenter_saw.png)",
+         "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(carpenter_saw.qb)"
+            ]
+         }
+      },
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/promote_to_profession)"
+         ]
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "profession": "stonehearth:professions:carpenter"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_carpenter"
+   }
+}

@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:comfy_bed_proxy"
+         "item":"stonehearth:comfy_bed"
       }
   ]
 }

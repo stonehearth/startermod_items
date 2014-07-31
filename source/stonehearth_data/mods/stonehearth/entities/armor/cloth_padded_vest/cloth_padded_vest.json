@@ -21,6 +21,9 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(cloth_padded_vest_iconic.json)"
+      },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "slot" : "outfit",

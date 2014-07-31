@@ -35,6 +35,7 @@ end
 --- Client side object to add the workbench's outbox to the world. 
 function WorkshopCallHandler:choose_outbox_location(session, response, workbench_entity, crafter)
    stonehearth.selection:select_xz_region()
+      :restrict_to_standable_terrain()
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:designate_zone')
       :done(function(selector, box)
@@ -62,10 +63,11 @@ end
 --  Workers are not actually asked to create the workbench until the outbox is placed too. 
 function WorkshopCallHandler:create_ghost_workbench(session, response, workbench_entity_uri, pt, rotation)
    local location = Point3(pt.x, pt.y, pt.z)
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_item')
-   radiant.entities.set_faction(ghost_entity, session.faction)
-   ghost_entity_component:set_full_sized_mod_uri(workbench_entity_uri)
+   local workbench = radiant.entities.create_entity(workbench_entity_uri)
+
+   local entity_forms = workbench:get_component('stonehearth:entity_forms')
+   local ghost_entity = entity_forms:get_ghost_entity()
+
    radiant.terrain.place_entity(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
    return {

@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:simple_wooden_chair_proxy"
+         "item":"stonehearth:simple_wooden_chair"
       }
   ]
 }

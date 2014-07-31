@@ -16,12 +16,12 @@
       },
       "stonehearth:lamp" : {
          "light_effect" : "/stonehearth/data/effects/lamp_effect_ground"
-      }
-   },
+      },
 
-   "entity_data" : {
-      "stonehearth:ghost_item" : {
-         "uri" : "file(wooden_garden_lantern_ghost.json)"
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_garden_lantern_iconic.json)",
+         "ghost_form" : "file(wooden_garden_lantern_ghost.json)",
+         "placeable_on_ground" : true
       }
    }
 }

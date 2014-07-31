@@ -1,0 +1,23 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "unit_info" : {
+         "name" :  "Padded Vest",
+         "description": "Provides light protection in a fight. Every little bit helps!"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(cloth_padded_vest_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:material" : {
+         "tags" : "cloth armor"
+      }
+   }
+}

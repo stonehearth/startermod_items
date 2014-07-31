@@ -18,7 +18,7 @@ end
 --    @param entity - the entity currently being tracked
 -- 
 function PlaceableItemsView:create_key_for_entity(entity)
-   local placable_component = entity:get_component('stonehearth:placeable_item_proxy')
+   local placable_component = entity:get_component('stonehearth:iconic_form')
    if not placable_component then
       return nil
    end
@@ -34,7 +34,7 @@ end
 --     @param tracking_data - the tracking data for all entities of the same type
 --
 function PlaceableItemsView:add_entity_to_tracking_data(entity, tracking_data)   
-   local placable_component = entity:get_component('stonehearth:placeable_item_proxy')
+   local placable_component = entity:get_component('stonehearth:iconic_form')
    if not tracking_data then
       tracking_data = {}
    end

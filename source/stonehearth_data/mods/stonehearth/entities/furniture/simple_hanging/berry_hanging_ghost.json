@@ -1,0 +1,24 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Berry-Colored Hanging",
+         "description": "Doubles as stain-resistant napkin.",
+         "icon" : "file(/entities/generic/default_object/default_object.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood cloth decoration"
+      },      
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(berry_hanging.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }      
+   }
+}

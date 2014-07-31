@@ -23,7 +23,7 @@
 
                "stonehearth:filters:fabricate_wooden_fixture",
                "stonehearth:filters:fabricate_wooden_structure",
-               "stonehearth:filters:teardown_wooden_structure",
+               "stonehearth:filters:teardown_wooden_structure"
             ]
          },
          "injected_commands" : [

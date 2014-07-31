@@ -13,12 +13,12 @@ local singleton = {}
 --   @param location - where to place it.  the entity will be placed at the
 --                     most appropriate y coordinate based on location.
 --
-function Terrain.place_entity(entity, location)   
+function Terrain.place_entity(entity, location, options)
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
    local pt = _physics:get_standable_point(entity, location)
-   return Terrain.place_entity_at_exact_location(entity, pt)
+   return Terrain.place_entity_at_exact_location(entity, pt, options)
 end
 
 -- place `entity` at the exact spot specified by `location`.  this could
@@ -27,11 +27,18 @@ end
 --   @param entity - the entity to place
 --   @param location - the exact position in the world to put it
 --
-function Terrain.place_entity_at_exact_location(entity, location)
-   local render_info = entity:add_component('render_info')
-   local variant = render_info:get_model_variant()
-   if variant == '' then
-      render_info:set_model_variant('iconic')
+function Terrain.place_entity_at_exact_location(entity, location, options)
+   local force_iconic = not options or options.force_iconic ~= false
+
+   if force_iconic then
+      -- switch to the iconic form of an entity when placing on the ground.
+      local entity_forms = entity:get_component('stonehearth:entity_forms')
+      if entity_forms then
+         local iconic_entity = entity_forms:get_iconic_entity()
+         if iconic_entity then
+            entity = iconic_entity
+         end
+      end
    end
    radiant.entities.add_child(radiant._root_entity, entity, location)
 end

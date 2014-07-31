@@ -68,7 +68,8 @@ local function apply_options_to_entity(entity, options)
    end
    if options.attributes then
       for name, value in pairs(options.attributes) do
-         entity:get_component('stonehearth:attributes'):set_attribute(name, value)
+         entity:get_component('stonehearth:attributes')
+                  :set_attribute(name, value)
       end
    end
    if options.profession then
@@ -78,7 +79,8 @@ local function apply_options_to_entity(entity, options)
          -- there if they didn't put it there to begin with
          profession = 'stonehearth:professions:' .. profession
       end
-      entity:add_component('stonehearth:profession'):promote_to(profession, options.talisman)
+      entity:add_component('stonehearth:profession')
+               :promote_to(profession, options.talisman)
    end
    if options.weapon then
       env.equip_weapon(entity, options.weapon)
@@ -89,8 +91,14 @@ function env.create_entity(x, z, uri, options)
    local entity = radiant.entities.create_entity(uri)
    apply_options_to_entity(entity, options or {})
    
+
+   local place_options = {}
+   if options and options.force_iconic ~= nil then
+      place_options.force_iconic = options.force_iconic
+   end
+
    local location = Point3(x, 1, z)
-   radiant.terrain.place_entity(entity, location)
+   radiant.terrain.place_entity(entity, location, place_options)
    return entity
 end
 

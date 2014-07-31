@@ -29,9 +29,9 @@ function EquipmentComponent:equip_item(item)
 
    -- if someone tries to equip a proxy, equip the full-sized item instead
    assert(radiant.check.is_entity(item))
-   local proxy = item:get_component('stonehearth:placeable_item_proxy')
+   local proxy = item:get_component('stonehearth:iconic_form')
    if proxy then
-      item = proxy:get_full_sized_entity()
+      item = proxy:get_root_entity()
    end
    local ep = item:get_component('stonehearth:equipment_piece')
    assert(ep, 'item is not an equipment piece')

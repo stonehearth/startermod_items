@@ -13,7 +13,7 @@ function sleep_tests.sleep_on_ground(autotest)
 end
 
 function sleep_tests.sleep_in_new_bed(autotest)
-   autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed')
+   autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed', { force_iconic = false })
    local worker = autotest.env:create_person(2, 2, {
       profession = 'worker',
       attributes = { sleepiness = 5 },
@@ -34,7 +34,7 @@ function sleep_tests.sleep_in_own_bed(autotest)
       attributes = { sleepiness = 5 },
    })
    -- lease it...
-   local bed = autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed')
+   local bed = autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed', { force_iconic = false })
    bed:add_component('stonehearth:lease'):acquire('stonehearth:bed', worker)
 
    autotest.util:succeed_if_buff_added(worker, 'stonehearth:buffs:sleeping')
@@ -52,7 +52,7 @@ function sleep_tests.not_sleep_in_others_beds(autotest)
    local trapper = autotest.env:create_person(4, 4, { profession = 'trapper'})
 
    -- lease it to someone else who's not sleepy!
-   local bed = autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed')
+   local bed = autotest.env:create_entity(10, 10, 'stonehearth:comfy_bed', { force_iconic = false })
    bed:add_component('stonehearth:lease'):acquire('stonehearth:bed', trapper)
 
    autotest.util:fail_if_buff_added(worker, 'stonehearth:buffs:sleeping')

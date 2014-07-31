@@ -54,33 +54,33 @@ function AlignmentTest:__init()
 
    x_start, z_start = col[3], row[1]
    x,z = x_start,z_start; dx,dz = 4,8
-   self:_check_item('stonehearth:berry_hanging_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:geranium_hanging_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:green_hanging_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:camp_standard_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:tombstone_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:berry_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:geranium_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:green_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:camp_standard', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:tombstone', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:not_much_of_a_bed_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:comfy_bed_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:not_much_of_a_bed', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:comfy_bed', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:arch_backed_chair_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:simple_wooden_chair_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:arch_backed_chair', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:simple_wooden_chair', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:dining_table_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:table_for_one_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:dining_table', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:table_for_one', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:wooden_wall_lantern_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_garden_lantern_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:picket_fence_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:picket_fence', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:firepit_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:firepit', x, z, dx, 0); x=x_start; z=z+dz;
 
 --
 
-   self:_check_item('stonehearth:picket_fence_gate_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_door_proxy', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_window_frame_proxy', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:picket_fence_gate', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_door', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_window_frame', x, z, dx, 0); x=x_start; z=z+dz;
 
 
    x_start, z_start = col[4], row[1]

@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(arch_backed_chair.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Cathedral-Arch Chair",
+         "description": "Classy like piety.",
+         "icon" : "file(arch_backed_chair.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture chair crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

@@ -4,7 +4,7 @@
    "name": "Footman",      
    "description": "A melee fighter",
    "script": "file(footman.lua)",
-   "talisman_uri" : "stonehearth:wooden_sword_proxy",
+   "talisman_uri" : "stonehearth:wooden_sword_talisman",
 
    "equipment" : {
       "abilities" : "file(footman_abilities)",

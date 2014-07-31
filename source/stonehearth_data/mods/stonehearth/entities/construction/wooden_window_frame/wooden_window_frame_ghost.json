@@ -1,0 +1,24 @@
+{
+   "type": "entity",
+   "components": {
+      "mob" : {
+         "align_to_grid" : [ "x" ]
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_window_frame.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Wooden Window Frame",
+         "description": "So much for privacy...",
+         "icon" : "file(wooden_window_frame.png)"
+
+      },
+      "stonehearth:material" : {
+         "tags" : "wood portal crafted"
+      }
+   }
+}

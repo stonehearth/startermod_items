@@ -1,11 +1,11 @@
 //REVIEW COMMENTS: Is there a better place to put this function?
 //I just wanted to factor it out of the calls.
-function call_server_to_place_item(e) {
+function call_server_to_place_item(item) {
    // kick off a request to the client to show the cursor for placing
    // the workshop. The UI is out of the 'create workshop' process after
    // this. All the work is done in the client and server
 
-   radiant.call('stonehearth:choose_place_item_location', e.event_data.self, e.event_data.full_sized_entity_uri)
+   radiant.call('stonehearth:choose_place_item_location', item)
       .done(function(o){
          radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
       })
@@ -19,20 +19,20 @@ $(document).ready(function(){
    $(top).on("radiant_place_item", function (_, e) {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
       $(top).trigger('radiant_show_tip', {
-         title : i18n.t('stonehearth:item_placement_title') + " " + e.event_data.item_name,
+         title : i18n.t('stonehearth:item_placement_title'),
          description : i18n.t('stonehearth:item_placement_description')
       });
-      call_server_to_place_item(e);
+      call_server_to_place_item(e.event_data.self);
    });
 
    //Fires when someone clicks the move button on a full-sized item in the world
    $(top).on("radiant_move_item", function (_, e) {
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
       $(top).trigger('radiant_show_tip', {
-         title : i18n.t('stonehearth:item_movement_title') + " " + e.event_data.item_name,
+         title : i18n.t('stonehearth:item_movement_title'),
          description : i18n.t('stonehearth:item_movement_description')
       });
-      call_server_to_place_item(e);
+      call_server_to_place_item(e.event_data.self);
 
    });
 
@@ -45,7 +45,7 @@ App.StonehearthPlaceItemView = App.View.extend({
    components: {
       'entity_types' : {
          entities : {
-            'stonehearth:placeable_item_proxy' : {},
+            'stonehearth:iconic_form' : {},
             'item' : {}
          }
       }

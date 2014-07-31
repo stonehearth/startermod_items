@@ -12,7 +12,7 @@
       "type" : "unlock_on_make",
       "prerequisites" : [
          {
-            "item" : "stonehearth:simple_wooden_chair_proxy",
+            "item" : "stonehearth:simple_wooden_chair",
             "portrait" : "/stonehearth/entities/furniture/simple_wooden_chair/simple_wooden_chair.png",
             "required" : 3
          }
@@ -27,7 +27,7 @@
    ],
   "produces": [
       {
-         "item" : "stonehearth:arch_backed_chair_proxy"
+         "item" : "stonehearth:arch_backed_chair"
       }
   ]
 }

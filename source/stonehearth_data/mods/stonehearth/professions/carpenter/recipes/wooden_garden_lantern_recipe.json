@@ -15,7 +15,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:wooden_garden_lantern_proxy"
+         "item":"stonehearth:wooden_garden_lantern"
       }
   ]
 }

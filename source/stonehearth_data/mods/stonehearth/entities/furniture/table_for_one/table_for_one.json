@@ -1,25 +1,10 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins" : "file(table_for_one_ghost.json)",
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(table_for_one.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Table for One",
-         "description": "Dining furniture for introverts.",
-         "icon" : "file(table_for_one.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
-      },
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(table_for_one_iconic.json)",
+         "ghost_form" : "file(table_for_one_ghost.json)",
+         "placeable_on_ground" : true
       },
       "region_collision_shape" : {
          "region": [

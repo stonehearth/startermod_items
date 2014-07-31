@@ -28,6 +28,8 @@
 #include "raycast_result.h"
 #include "horde3d\Source\Horde3DEngine\egHudElement.h"
 
+#define NUM_STORES 5
+
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
 class RenderEntity;
@@ -252,7 +254,7 @@ class Renderer
       H3DNode           debugShapes_;
       bool              show_debug_shapes_;
 
-      RenderEntityMap   entities_[5]; // by store id
+      RenderEntityMap   entities_[NUM_STORES]; // by store id
       SelectionLookup   selectionLookup_;
       InputEventCb      input_cb_;
 

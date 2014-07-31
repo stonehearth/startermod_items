@@ -76,6 +76,7 @@ static ${class_return_type} ${class_upper}_LoadFromJson(lua_State* L, ${class_fo
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
 }
+
 % endif
 
 ## - Boxed -----------------------------------------------------------------------------------
