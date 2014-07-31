@@ -42,6 +42,14 @@ function WorkshopComponent:destroy()
    end
 end
 
+function WorkshopComponent:get_ingredients()
+   return self._construction_ingredients
+end
+
+function WorkshopComponent:get_build_sound_effect()
+   return self._build_sound_effect
+end
+
 --[[UI Interaction Functions
    Functions called by the UI through posts
 ]]
