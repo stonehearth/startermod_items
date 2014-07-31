@@ -128,7 +128,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    _addEventHandlers: function() {
       var self = this;
-      
+
       // tab buttons and pages
       this.$('.tabButton').click(function() {
          var tabId = $(this).attr('tab');
@@ -355,6 +355,18 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
 
+      // draw doodad tool
+      var doAddDoodad = function() {
+         if(self.$('#drawDoodadTool').hasClass('active')) {
+            var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
+            App.stonehearthClient.addDoodad(uri);
+         }
+      }
+
+      this.$('#drawDoodadTool').click(function() {
+         doAddDoodad();
+      });
+
       // doodad material
       this.$('.doodadMaterial').click(function() {
          self.$('.doodadMaterial').removeClass('selected');
@@ -362,15 +374,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          self._state.doodadMaterial = $(this).attr('index');
          self._saveState();
-      })
 
-      // draw doodad tool
-      this.$('#drawDoodadTool').click(function() {
-         if($(this).hasClass('active')) {
-            var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
-            App.stonehearthClient.addDoodad(uri);
-         }
-      });
+         // reactivate the doodad tool with the current material
+         doAddDoodad();
+      })
 
       // building buttons
       this.$('#startBuilding').click(function() {
