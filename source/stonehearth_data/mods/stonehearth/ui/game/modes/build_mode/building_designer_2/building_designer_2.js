@@ -63,7 +63,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       {
          category: 'Wooden Materials',
          items: [
-         ]         
+            { name: 'Wooden Roof',    portrait: '/stonehearth/entities/build/roof/wooden_peaked_roof/wooden_peaked_roof.png', brush: 'stonehearth:wooden_peaked_roof' },
+            { name: 'Thatch Roof',    portrait: '/stonehearth/entities/build/roof/thatch_peaked_roof/thatch_peaked_roof.png', brush: 'stonehearth:thatch_peaked_roof' },
+      ]
       }
    ],
 
@@ -167,6 +169,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // build material palettes
       this.$('#floorToolTab').append(this._buildMaterialPalette(this.floorPatterns, 'floorMaterial'));
       this.$('#wallToolTab').append(this._buildMaterialPalette(this.wallPatterns, 'wallMaterial'));
+      this.$('.roofMaterialsContainer').append(this._buildMaterialPalette(this.roofPatterns, 'roofMaterial'));
       this.$('#doodadToolTab').append(this._buildMaterialPalette(this.doodads, 'doodadMaterial'));
 
       // tab buttons and pages
@@ -324,10 +327,37 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       })
 
       // roof tab
-      this.$('#growRoofTool').click(function() {
-         if($(this).hasClass('active')) {
-            App.stonehearthClient.growRoof();
+      var doGrowRoof = function() {
+         if(self.$('#growRoofTool').hasClass('active')) {
+            var roofUri = self.$('#roofToolTab .roofMaterial.selected').attr('brush');
+            App.stonehearthClient.growRoof(roofUri);
          }
+      }
+
+      this.$('#growRoofTool').click(function() {
+         doGrowRoof();
+      })
+
+      this.$('#roofToolTab .roofMaterial').click(function() {
+         // select the clicked material
+         self.$('#roofToolTab .roofMaterial').removeClass('selected');
+         $(this).addClass('selected');
+
+         self._state.roofMaterial = $(this).attr('index');
+         self._saveState();
+
+         // update the selected building part, if there is one
+         // XXX - ack, gotta fix this
+         /*
+         var roofUri = $(this).attr('brush');
+         var blueprint = self.get('blueprint');
+         if (blueprint) {
+            App.stonehearthClient.replaceStructure(blueprint, roofUri);
+         }
+         */
+
+         // reactivate the active tool with the new material. 
+         doGrowRoof();
       })
 
       this.$('#roofToolTab .roofNumericInput').change(function() {
@@ -418,6 +448,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.wallMaterial) {
                self._state.wallMaterial = 0;
             }
+            if (!self._state.roofMaterial) {
+               self._state.roofMaterial = 0;
+            }
             if (!self._state.doodadMaterial) {
                self._state.doodadMaterial = 0;
             }
@@ -452,6 +485,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // select default materials
          $(self.$('#floorToolTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
          $(self.$('#wallToolTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
+         $(self.$('#roofToolTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
          $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
          // most recently selected tab
