@@ -70,6 +70,7 @@ function PopulationFaction:create_new_citizen()
       end
    end
 
+   
    local entities = self._data[gender .. '_entities']
    local kind = entities[rng:get_int(1, #entities)]
    local citizen = radiant.entities.create_entity(kind)
@@ -142,7 +143,7 @@ function PopulationFaction:customize_citizen(entity, all_variants, this_variant)
    -- load any models at this node in the customization tree
    if variant.models then
       local variant_name = 'default'
-      local random_model = variant.models[1]
+      local random_model = variant.models[rng:get_int(1, #variant.models)]
       local model_variants_component = entity:add_component('model_variants')
       model_variants_component:add_variant(variant_name):add_model(random_model)
    end
@@ -150,7 +151,7 @@ function PopulationFaction:customize_citizen(entity, all_variants, this_variant)
    -- for each set of child variants, pick a random option
    if variant.variants then
       for _, variant_set in ipairs(variant.variants) do
-         local random_option = variant_set[math.random(#variant_set)]
+         local random_option = variant_set[rng:get_int(1, #variant_set)]
          self:customize_citizen(entity, all_variants, random_option)
       end
    end
