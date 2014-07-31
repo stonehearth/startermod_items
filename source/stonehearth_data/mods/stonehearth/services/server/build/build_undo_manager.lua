@@ -9,6 +9,7 @@ function BuildUndoManager:__init()
    self._entity_traces = {}
    self._undo_stack = {}
    self._save_states = {}
+   self._unlinked_entities = {}
    self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
 
