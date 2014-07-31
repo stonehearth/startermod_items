@@ -109,6 +109,13 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
    -- create all the recipe products
    for i, product in ipairs(recipe.produces) do
       local item = radiant.entities.create_entity(product.item)
+      local entity_forms = item:get_component('stonehearth:entity_forms')
+      if entity_forms then
+         local iconic_entity = entity_forms:get_iconic_entity()
+         if iconic_entity then
+            item = iconic_entity
+         end
+      end
       item:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
       radiant.entities.set_faction(item, self._crafter)
       radiant.entities.set_player_id(item, self._crafter)

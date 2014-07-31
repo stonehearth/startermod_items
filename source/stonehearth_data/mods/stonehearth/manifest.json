@@ -190,6 +190,7 @@
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
       "wooden_door" : "file(entities/construction/wooden_door)",
       "wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "ball" : "file(entities/toys/ball)",
 

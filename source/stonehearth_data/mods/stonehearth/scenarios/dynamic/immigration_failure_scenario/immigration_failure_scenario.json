@@ -34,7 +34,7 @@
             "min": 1, 
             "max": 5
          }, 
-         "stonehearth:farmer:hoe_proxy" : {
+         "stonehearth:farmer:hoe_talisman" : {
             "min": 1, 
             "max": 1
          } 

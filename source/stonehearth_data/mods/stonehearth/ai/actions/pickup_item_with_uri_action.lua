@@ -28,7 +28,7 @@ function PickupItemWithUri:start_thinking(ai, entity, args)
          end   
          local proxy = entity:get_component('stonehearth:iconic_form')
          if proxy then
-            return proxy:get_full_sized_entity_uri() == uri
+            return proxy:get_root_entity():get_uri() == uri
          end      
          return false
       end

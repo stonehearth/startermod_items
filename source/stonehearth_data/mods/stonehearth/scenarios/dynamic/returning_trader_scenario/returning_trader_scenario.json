@@ -22,11 +22,11 @@
       "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_name__ in your fields!", 
       "max_days_before_return" : 5, 
       "wants" : {
-         "stonehearth:farmer:hoe_proxy" : {
+         "stonehearth:farmer:hoe_talisman" : {
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:wooden_sword_proxy" : {
+         "stonehearth:wooden_sword_talisman" : {
             "min" : 3, 
             "max" : 8
          }, 
@@ -34,31 +34,31 @@
             "min" : 2, 
             "max" : 4
          }, 
-         "stonehearth:simple_wooden_chair_proxy" : {
+         "stonehearth:simple_wooden_chair" : {
             "min" : 5, 
             "max" : 12
          }, 
-          "stonehearth:picket_fence_proxy" : {
+          "stonehearth:picket_fence" : {
             "min" : 5, 
             "max" : 20
          }, 
-         "stonehearth:picket_fence_gate_proxy" : {
+         "stonehearth:picket_fence_gate" : {
             "min" : 1, 
             "max" : 4
          }, 
-         "stonehearth:table_for_one_proxy" : {
+         "stonehearth:table_for_one" : {
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:not_much_of_a_bed_proxy" : {
+         "stonehearth:not_much_of_a_bed" : {
             "min" : 3, 
             "max" : 10
          }, 
-         "stonehearth:wooden_door_proxy" : {
+         "stonehearth:wooden_door" : {
             "min" : 2, 
             "max" : 10
          },
-         "stonehearth:wooden_window_frame_proxy" : {
+         "stonehearth:wooden_window_frame" : {
             "min" : 4, 
             "max" : 10
          }
@@ -77,7 +77,7 @@
             "min" : 2, 
             "max" : 10
          }, 
-         "stonehearth:comfy_bed_proxy" : {
+         "stonehearth:comfy_bed" : {
             "type" : "object", 
             "min" : 1, 
             "max" : 3

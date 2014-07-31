@@ -10,7 +10,7 @@ EquipCarrying.priority = 1
 function EquipCarrying:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying then
       local item = ai.CURRENT.carrying
-      local _, equipment_piece = radiant.entities.unwrap_placable_item_proxy(item, 'stonehearth:equipment_piece')
+      local _, equipment_piece = radiant.entities.unwrap_iconic_item(item, 'stonehearth:equipment_piece')
       if equipment_piece then
          ai.CURRENT.carrying = nil
          ai:set_think_output({})
@@ -20,7 +20,7 @@ end
 
 function EquipCarrying:run(ai, entity, args)
    local item = radiant.entities.get_carrying(entity)
-   local _, equipment_piece = radiant.entities.unwrap_placable_item_proxy(item, 'stonehearth:equipment_piece')
+   local _, equipment_piece = radiant.entities.unwrap_iconic_item(item, 'stonehearth:equipment_piece')
 
    if not equipment_piece then
       ai:abort('not carrying an equipable item!')

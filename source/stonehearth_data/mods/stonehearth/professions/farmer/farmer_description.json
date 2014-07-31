@@ -6,7 +6,7 @@
   "description": "Farmer", 
 
   "script": "file(farmer.lua)",
-  "talisman_uri" : "stonehearth:farmer:hoe_proxy",
+  "talisman_uri" : "stonehearth:farmer:hoe_talisman",
 
   "equipment" : {
     "abilities" : "file(farmer_abilities)",

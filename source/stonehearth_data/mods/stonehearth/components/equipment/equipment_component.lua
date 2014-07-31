@@ -31,7 +31,7 @@ function EquipmentComponent:equip_item(item)
    assert(radiant.check.is_entity(item))
    local proxy = item:get_component('stonehearth:iconic_form')
    if proxy then
-      item = proxy:get_full_sized_entity()
+      item = proxy:get_root_entity()
    end
    local ep = item:get_component('stonehearth:equipment_piece')
    assert(ep, 'item is not an equipment piece')

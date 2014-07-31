@@ -19,7 +19,7 @@ end
 --    @param entity - the entity currently being tracked
 -- 
 function EquipmentTracker:create_key_for_entity(entity)
-   local full_sized, equipment_piece = radiant.entities.unwrap_placable_item_proxy(entity, 'stonehearth:equipment_piece')
+   local full_sized, equipment_piece = radiant.entities.unwrap_iconic_item(entity, 'stonehearth:equipment_piece')
    if equipment_piece then
       return entity:get_id()
    end

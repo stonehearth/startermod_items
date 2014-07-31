@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:armor:cloth_padded_vest_proxy"
+         "item":"stonehearth:armor:cloth_padded_vest"
       }
   ]
 }

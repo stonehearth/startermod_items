@@ -62,7 +62,7 @@ function FixtureFabricator:construct(worker, item)
    -- replacing the ghost_entity with the full_sized_entity for the proxy.
    local proxy_component = item:get_component('stonehearth:iconic_form')
    if proxy_component then
-      project = proxy_component:get_full_sized_entity()
+      project = proxy_component:get_root_entity()
    else
       project = item
    end

@@ -46,7 +46,7 @@ function FindEquipmentUpgrade:_check_equipment_piece(item)
          return
       end
 
-      local equipment = pip:get_full_sized_entity()
+      local equipment = pip:get_root_entity()
                               :get_component('stonehearth:equipment_piece')
       if not equipment then
          return

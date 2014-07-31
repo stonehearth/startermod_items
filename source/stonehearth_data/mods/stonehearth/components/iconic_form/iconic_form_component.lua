@@ -43,6 +43,11 @@ function IconicFormComponent:set_root_entity(root_entity)
          unit_info['set_'..name](unit_info, value)
       end
    end
+   local root_material = root_entity:get_component('stonehearth:material')
+   if root_material then
+      self._entity:add_component('stonehearth:material')
+                     :set_tags(root_material:get_tags())
+   end
    return self
 end
 

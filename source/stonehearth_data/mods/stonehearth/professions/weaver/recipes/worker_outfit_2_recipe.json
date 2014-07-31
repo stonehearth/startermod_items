@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:worker:outfit:2_proxy"
+         "item":"stonehearth:worker:outfit:2"
       }
   ]
 }
