@@ -44,7 +44,7 @@ function Building:initialize(entity, json)
       end
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            for _, structures in pairs(self._structures) do
+            for _, structures in pairs(self._sv.structures) do
                for _, entry in pairs(structures) do
                   self:_trace_entity(entry.entity)
                end
@@ -52,16 +52,15 @@ function Building:initialize(entity, json)
          end)      
    end
    self._traces = {}
-   self._structures = self._sv.structures
-   self._walls = self._structures[WALL]
-   self._roofs = self._structures[ROOF]
-   self._floors = self._structures[FLOOR]
-   self._columns = self._structures[COLUMN]
+end
+
+function Building:_get_structures(type)
+   return self._sv.structures[type]
 end
 
 function Building:calculate_floor_region()
    local floor_region = Region2()
-   for _, entry in pairs(self._floors) do
+   for _, entry in pairs(self._sv.structures[FLOOR]) do
       local floor_entity = entry.entity
       local rgn = floor_entity:get_component('destination'):get_region():get()
       for cube in rgn:each_cube() do
@@ -152,7 +151,7 @@ function Building:remove_structure(entity)
 end
 
 function Building:_add_wall(wall)
-   for _, entry in pairs(self._floors) do
+   for _, entry in pairs(self._sv.structures[FLOOR]) do
       local floor = entry.entity
       wall:get_component('stonehearth:construction_progress')
                :add_dependency(floor)
@@ -160,7 +159,7 @@ function Building:_add_wall(wall)
 end
 
 function Building:_add_floor(floor)
-   for _, entry in pairs(self._walls) do
+   for _, entry in pairs(self._sv.structures[WALL]) do
       local wall = entry.entity
       wall:get_component('stonehearth:construction_progress')
                :add_dependency(floor)
@@ -168,7 +167,7 @@ function Building:_add_floor(floor)
 end
 
 function Building:_add_roof(roof)
-   for _, entry in pairs(self._walls) do
+   for _, entry in pairs(self._sv.structures[WALL]) do
       local structure = entry.entity
 
       -- don't build the roof until we've built all the supporting structures
@@ -208,7 +207,7 @@ function Building:grow_local_box_to_roof(entity, local_box)
    local p0, p1 = local_box.min, local_box.max
 
    local shape = Region3(local_box)
-   for _, entry in pairs(self._roofs) do
+   for _, entry in pairs(self._sv.structures[ROOF]) do
       local roof = entry.entity
       local roof_region = roof:get_component('destination'):get_region():get()
 
@@ -266,14 +265,14 @@ function Building:layout_roof(roof)
    end
 
    -- now layout all the walls and columns
-   for _, entry in pairs(self._columns) do
+   for _, entry in pairs(self._sv.structures[COLUMN]) do
       entry.structure:layout()
    end
 
    -- layout all the normal walls and create a list of the patch walls.
 
    local patch_walls = {}
-   for _, entry in pairs(self._walls) do
+   for _, entry in pairs(self._sv.structures[WALL]) do
       if entry.structure:is_patch_wall() then
          table.insert(patch_walls, entry.entity)
       else         
@@ -422,7 +421,7 @@ end
 function Building:_remove_building_from_region(origin, region)
    local bounds = region:get_bounds()
 
-   for _, structures in pairs(self._structures) do
+   for _, structures in pairs(self._sv.structures) do
       for _, entry in pairs(structures) do
          local dst = entry.entity:get_component('destination')
          if dst then
@@ -444,7 +443,7 @@ function Building:_recommend_patch_wall_material(origin, shape)
    local recommended = 'stonehearth:wooden_wall'
    local bounds = shape:get_bounds()
 
-   for _, entry in pairs(self._walls) do
+   for _, entry in pairs(self._sv.structures[WALL]) do
       local dst = entry.entity:get_component('destination')
       if dst then
          local entity_origin = radiant.entities.get_location_aligned(entry.entity)

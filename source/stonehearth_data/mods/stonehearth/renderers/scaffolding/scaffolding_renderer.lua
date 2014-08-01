@@ -276,7 +276,7 @@ function ScaffoldingRenderer:_move_top(pt)
          self._tops[pt.x][pt.z] = nil
       else
          --Otherwise, just move the top
-         self:_move_node(top_data.node, pt)
+         self:_move_node(top_data.node, Point3(pt.x, new_top_y, pt.z))
       end
    end
 end
