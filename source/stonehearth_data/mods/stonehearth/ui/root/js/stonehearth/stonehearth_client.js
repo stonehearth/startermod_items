@@ -188,6 +188,9 @@ var StonehearthClient;
 
       createStockpile: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -213,6 +216,9 @@ var StonehearthClient;
       //TODO: make this available ONLY after a farmer has been created
       createFarm: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -238,6 +244,9 @@ var StonehearthClient;
       createTrappingGrounds: function(o) {
          var self = this;
 
+         App.setGameMode('zones');
+
+         //xxx localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
                title : 'Click and drag to create trapping grounds.',

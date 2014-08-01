@@ -69,7 +69,7 @@ App.StonehearthBuildModeView = App.View.extend({
 
    _showPlaceItemUi: function(uri) {
       App.setGameMode('build');
-      
+
       // hide all other views
       this._hideDesignerViews();
 
@@ -97,22 +97,22 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _onStateChanged: function() {
-      //var showSubView = this._selectedEntity && this._mode == 'build';
-      var showSubView = this._mode == 'build';
+      if (this._mode == "build") {
+         /*
+         var showBuildDesigner = this._selectedEntity && (this._selectedEntity['stonehearth:fabricator'] ||
+                                                          this._selectedEntity['stonehearth:construction_data'])
+         */
 
-      /*
-      if (showSubView) {
-         showSubView = (this._selectedEntity['stonehearth:fabricator'] ||
-                        this._selectedEntity['stonehearth:construction_data']);
-      }
-      */
-
-      if (showSubView) {
-         //var uri = typeof(entity) == 'string' ? this._selectedEntity : this._selectedEntity.__self;
-         //this._showBuildingDesigner(this._selectedEntity);
+         var showBuildDesigner = this._selectedEntity;
+         
+         if (showBuildDesigner) {
+            this._showBuildingDesigner(this._selectedEntity);
+         }
+         
       } else {
          this._destroyAllViews();
       }
+
    },
 
 });
