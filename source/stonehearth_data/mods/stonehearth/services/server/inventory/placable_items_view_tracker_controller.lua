@@ -18,11 +18,19 @@ end
 --    @param entity - the entity currently being tracked
 -- 
 function PlaceableItemsView:create_key_for_entity(entity)
-   local placable_component = entity:get_component('stonehearth:iconic_form')
-   if not placable_component then
+   local iconic_form = entity:get_component('stonehearth:iconic_form')
+   if not iconic_form then
       return nil
    end
-   return placable_component:get_category()
+   local root_entity = iconic_form:get_root_entity()
+   local entity_forms = root_entity:get_component('stonehearth:entity_forms')
+   if not entity_forms then
+      return nil
+   end
+   if not entity_forms:is_placeable() then
+      return nil
+   end
+   return entity_forms:get_placeable_category()
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
@@ -34,7 +42,6 @@ end
 --     @param tracking_data - the tracking data for all entities of the same type
 --
 function PlaceableItemsView:add_entity_to_tracking_data(entity, tracking_data)   
-   local placable_component = entity:get_component('stonehearth:iconic_form')
    if not tracking_data then
       tracking_data = {}
    end

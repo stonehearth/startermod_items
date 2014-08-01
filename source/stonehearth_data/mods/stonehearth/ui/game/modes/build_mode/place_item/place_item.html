@@ -5,13 +5,14 @@
          {{#each this.categories }}
             <h2>{{ this.name }}</h2>
             {{#each this.items}}
-               <a href="#" {{action onSelectItemButton this target="view" allowedKeys="ctrl"}}>
+               <a href="#" class="itemButton" {{bind-attr uri=this.uri}}>
                   <div class="pickable_item" {{bind-attr title=this.display_name}}>
                      <div class="num_pickable">{{this.count}}</div>
                      <img class="pickable_image" {{bind-attr src=this.icon}}>
                   </div>
                </a>
             {{/each}}
+            <div style="clear: both;" />
          {{/each}}
       </div>
    </div>

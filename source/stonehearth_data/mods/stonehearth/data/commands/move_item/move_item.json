@@ -9,7 +9,7 @@
    "icon": "file(move_item.png)",
 
    "action": "fire_event",
-   "event_name" : "radiant_move_item",
+   "event_name" : "radiant_place_item",
    "event_data" : {
       "self": "{{self}}"
    }

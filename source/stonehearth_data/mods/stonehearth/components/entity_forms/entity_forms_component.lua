@@ -54,6 +54,9 @@ function EntityFormsComponent:_post_create(json)
                      :add_command('/stonehearth/data/commands/move_item')
    end
    
+   if placeable then
+      self._sv.placeable_category = json.placeable_category or 'uncategorized'
+   end
    self._sv.iconic_entity = iconic_entity
    self._sv.ghost_entity = ghost_entity
    self.__saved_variables:mark_changed()
@@ -131,6 +134,14 @@ function EntityFormsComponent:place_item_in_world(location, rotation)
       }
       self.__saved_variables:mark_changed()
    end
+end
+
+function EntityFormsComponent:is_placeable()
+   return self._sv.placeable_on_ground
+end
+
+function EntityFormsComponent:get_placeable_category()
+   return self._sv.placeable_category
 end
 
 function EntityFormsComponent:get_iconic_entity()
