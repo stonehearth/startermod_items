@@ -37,16 +37,19 @@ function BuildUndoManager:end_transaction(desc)
    self._stack_offset = self._stack_offset + 1
    
    for id, obj in pairs(self._changed_objects) do
-      local id = obj:get_id()
-      local entries = self._save_states[obj:get_id()]
+      local entries = self._save_states[id]
       if not entries then
          entries = {}
          self._save_states[id] = entries
       end
-      table.insert(entries, {
-            stack_offset = self._stack_offset,
-            save_state = _radiant.sim.save_object(id),
-         })
+      log:detail("saving object %d (%s)", id, tostring(obj))
+      local entry = {
+         id = id,
+         obj = obj,
+         stack_offset = self._stack_offset,            
+         save_state = _radiant.sim.save_object(id),
+      }
+      table.insert(entries, entry)
    end
 
    table.insert(self._undo_stack, {
@@ -62,7 +65,8 @@ end
 
 function BuildUndoManager:undo()
    log:detail('undo (stack size: %d)', self._stack_offset)
-
+   local datastores = {}
+   
    self._ignore_traces = true
 
    if self._stack_offset > 0 then
@@ -86,8 +90,22 @@ function BuildUndoManager:undo()
             if o then
                assert(o.stack_offset <= last_offset)
                _radiant.sim.load_object(o.save_state)
+               log:detail("loading saved object %d", o.id)
+
+               -- if the object we just loaded is a DataStore, hold onto it so
+               -- we can restore the pointers to any controllers it references
+               -- later
+               if radiant.util.is_a(o.obj, _radiant.om.DataStore) then
+                  table.insert(datastores, o.obj)
+               end
             end
          end
+      end
+
+      -- loop through all the datastores we loaded and ask them to restore
+      -- their internal references to other controllers.
+      for _, datastore in ipairs(datastores) do
+         datastore:restore()
       end
       
       -- put all the entities we unlink back where the belong
@@ -134,8 +152,14 @@ function BuildUndoManager:unlink_entity(entity)
    table.insert(self._unlinked_entities, entry)
 end
 
-function BuildUndoManager:mark_changed(obj)
-   self._changed_objects[obj:get_id()] = obj
+function BuildUndoManager:_mark_changed(obj)
+   local id = obj:get_id()
+   -- if the object is a datastore, the id we want to save is actually
+   -- the contains (theoretically opaque), DataObject contained inside it!
+   if radiant.util.is_a(obj, _radiant.om.DataStore) then    
+      id = obj:get_data_object_id()
+   end
+   self._changed_objects[id] = obj
 end
 
 function BuildUndoManager:trace_building(entity)
@@ -156,12 +180,24 @@ function BuildUndoManager:_trace_entity(entity)
    local traces = {}
    self._entity_traces[eid] = traces
 
+
    local function trace_component(component, name)
       return component:trace('building undo', self._tracer_category)
                      :on_changed(function()
                            if entity:is_valid() then
                               log:detail('component %s for entity %s changed', name, entity)
-                              self:mark_changed(component)
+                              self:_mark_changed(component)
+                           end
+                        end)
+                     :push_object_state()   
+   end
+   
+   local function trace_lua_component(component, name)
+      return component.__saved_variables:trace('building undo', self._tracer_category)
+                     :on_changed(function()
+                           if entity:is_valid() then
+                              log:detail('component %s for entity %s changed', name, entity)
+                              self:_mark_changed(component.__saved_variables)
                            end
                         end)
                      :push_object_state()   
@@ -173,7 +209,7 @@ function BuildUndoManager:_trace_entity(entity)
                            if entity:is_valid() then
                               local region = component:get_region()
                               log:detail('%s region for entity %s changed (component:%d bounds:%s)', name, entity, region:get_id(), r:get_bounds())
-                              self:mark_changed(region)
+                              self:_mark_changed(region)
                            end
                         end)
                      :push_object_state()
@@ -192,7 +228,7 @@ function BuildUndoManager:_trace_entity(entity)
                      :push_object_state()
    end
    
-   traces.entity = entity:trace_components('building undo', self._tracer_category)
+   traces.components = entity:trace_components('building undo', self._tracer_category)
                               :on_added(function (name)
                                     if entity:is_valid() then
                                        local component = entity:get_component(name)
@@ -207,6 +243,26 @@ function BuildUndoManager:_trace_entity(entity)
                                           elseif name == 'region_collision_shape' then
                                              traces.region_collision_shape_region = trace_region(component, 'region collision shape')
                                           end
+                                       end
+                                    end
+                                 end)
+                              :on_removed(function (name)
+                                    log:detail('component %s for entity %s removed', name, entity)
+                                    if traces[name] then
+                                       traces[name]:destroy()
+                                       traces[name] = nil
+                                    end
+                                 end)
+                              :push_object_state()
+
+   traces.lua_components = entity:trace_lua_components('building undo', self._tracer_category)
+                              :on_added(function (name)
+                                    if entity:is_valid() then
+                                       local component = entity:get_component(name)
+                                       log:detail('tracing lua component %s for entity %s', name, entity)
+
+                                       if not traces[name] then
+                                          traces[name] = trace_lua_component(component, name)
                                        end
                                     end
                                  end)

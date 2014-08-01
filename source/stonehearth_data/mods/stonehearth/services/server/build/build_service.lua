@@ -792,6 +792,14 @@ end
 --    @param options - the options to change.  
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
+   self._undo:begin_transaction('add_floor')
+   local success = self:_apply_options(blueprint, options)
+   self._undo:end_transaction('add_floor')
+
+   return success
+end
+
+function BuildService:_apply_options(blueprint, options)
    local cd = blueprint:get_component('stonehearth:construction_data')
    if cd then
       -- apply the new options to the blueprint      

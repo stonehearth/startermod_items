@@ -5,6 +5,9 @@
          "icon": "...",
          "name": "Building", 
          "description": "A building.  woot!!"
+      },
+      "stonehearth:building" : {
+
       }
    }
 }

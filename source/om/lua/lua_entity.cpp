@@ -33,7 +33,6 @@ lua::TraceWrapperPtr Entity_TraceObject(std::weak_ptr<Entity> e, const char *rea
 }
 
 
-
 static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::ComponentMap>>>
 Entity_TraceComponents(std::weak_ptr<Entity> o, const char* reason, dm::TraceCategories c)
 {
@@ -51,6 +50,23 @@ Entity_TraceComponentsAsync(std::weak_ptr<Entity> o, const char* reason)
    return Entity_TraceComponents(o, reason, dm::LUA_ASYNC_TRACES);
 }
 
+static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::LuaComponentMap>>>
+Entity_TraceLuaComponents(std::weak_ptr<Entity> o, const char* reason, dm::TraceCategories c)
+{
+   auto instance = o.lock(); 
+   if (instance)  {
+      auto trace = instance->TraceLuaComponents(reason, c);
+      return std::make_shared<lua::MapTraceWrapper<dm::MapTrace<om::Entity::LuaComponentMap>>>(trace);
+   }
+   throw std::invalid_argument("invalid reference in native entity::trace_components");
+}
+
+static std::shared_ptr<lua::MapTraceWrapper<dm::MapTrace<om::Entity::LuaComponentMap>>>
+Entity_TraceLuaComponentsAsync(std::weak_ptr<Entity> o, const char* reason)
+{
+   return Entity_TraceLuaComponents(o, reason, dm::LUA_ASYNC_TRACES);
+}
+
 
 scope LuaEntity::RegisterLuaTypes(lua_State* L)
 {
@@ -66,6 +82,8 @@ scope LuaEntity::RegisterLuaTypes(lua_State* L)
          .def("add_component" ,     &om::Stonehearth::SetComponentData)
          .def("trace_components",   &Entity_TraceComponentsAsync)
          .def("trace_components",   &Entity_TraceComponents)
+         .def("trace_lua_components",   &Entity_TraceLuaComponentsAsync)
+         .def("trace_lua_components",   &Entity_TraceLuaComponents)
          .def("remove_component" ,  &om::Stonehearth::RemoveComponent)
       ;
 }
