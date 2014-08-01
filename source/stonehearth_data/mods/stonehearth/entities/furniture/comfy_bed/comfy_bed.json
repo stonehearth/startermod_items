@@ -4,7 +4,8 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(comfy_bed_iconic.json)",
          "ghost_form" : "file(comfy_bed_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "beds and stuff"
       },
       "region_collision_shape": {
          "region": [

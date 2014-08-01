@@ -343,6 +343,7 @@ bool Store::LoadObject(std::string const& input, std::string& error)
 
    ASSERT(msg.object_type() == obj->GetObjectType());
 
+   STORE_LOG(5) << "loading individual object " << obj->GetObjectId() << " of type " << obj->GetObjectClassNameLower();
    obj->LoadObject(PERSISTANCE, msg);
    return true;
 }

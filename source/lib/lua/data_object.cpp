@@ -19,7 +19,8 @@ static inline int GetLuaObjectIndex(luabind::object const* o)
 }
 
 DataObject::DataObject() :
-   dirty_(false)
+   dirty_(false),
+   needsRestoration_(true)
 {
    DO_LOG(8) << "data object default constructor";
 }
@@ -89,6 +90,17 @@ void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, con
       if (r == dm::REMOTING) { flags |= marshall::Convert::REMOTE; }
       marshall::Convert(store, flags).ToLua(msg.lua_object(), data_object_);
       dirty_ = true;
+      needsRestoration_ = true;
    }
+}
+
+bool DataObject::GetNeedsRestoration() const
+{
+   return needsRestoration_;
+}
+
+void DataObject::SetNeedsRestoration(bool value) const
+{
+   needsRestoration_ = value;
 }
 
