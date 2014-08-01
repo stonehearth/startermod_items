@@ -97,18 +97,28 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _onStateChanged: function() {
-      if (this._mode == "build") {
-         /*
-         var showBuildDesigner = this._selectedEntity && (this._selectedEntity['stonehearth:fabricator'] ||
-                                                          this._selectedEntity['stonehearth:construction_data'])
-         */
+      var self = this;
 
-         var showBuildDesigner = this._selectedEntity;
-         
-         if (showBuildDesigner) {
-            this._showBuildingDesigner(this._selectedEntity);
+      if (this._mode == "build") {
+      
+         //trace the selected entity to determine its components   
+         if (self.selectedEntityTrace) {
+            self.selectedEntityTrace.destroy();
          }
-         
+
+
+         self.selectedEntityTrace = radiant.trace(this._selectedEntity)
+            .progress(function(entity) {
+               // if the selected entity is a building part, show the building designer
+               if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
+                  self._showBuildingDesigner(entity.__self);
+               } else {
+                  self._destroyBuildingDesigner();
+               }
+            })
+            .fail(function(e) {
+               console.log(e);
+            });         
       } else {
          this._destroyAllViews();
       }
