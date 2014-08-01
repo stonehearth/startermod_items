@@ -38,8 +38,11 @@ VoxelMeshNode::VoxelMeshNode( const VoxelMeshNodeTpl &meshTpl ) :
 {
 	_renderable = true;
    _noInstancing = false;
-	if( _materialRes != 0x0 )
+	if( _materialRes != 0x0 ) {
+      _instanceKey.matResource = _materialRes;
+      _instanceKey.updateHash();
 		_sortKey = (float)_materialRes->getHandle();
+   }
 }
 
 
