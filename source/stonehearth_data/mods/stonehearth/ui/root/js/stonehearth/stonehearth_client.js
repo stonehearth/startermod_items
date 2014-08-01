@@ -126,12 +126,14 @@ var StonehearthClient;
             });
          }
 
+         App.setGameMode('build');
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', item)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
                })
                .always(function(response) {
+                  App.setGameMode('normal');
                   $(top).trigger('radiant_hide_tip');
                });
          });
@@ -148,6 +150,7 @@ var StonehearthClient;
             });
          }
 
+         App.setGameMode('build');
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', itemType)
                .done(function(response) {
@@ -155,6 +158,7 @@ var StonehearthClient;
                   self.placeItemType(itemType, { hideTip : true });
                })
                .fail(function(response) {
+                  App.setGameMode('normal');
                   $(top).trigger('radiant_hide_tip');
                });
          });
@@ -184,6 +188,9 @@ var StonehearthClient;
 
       createStockpile: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -209,6 +216,9 @@ var StonehearthClient;
       //TODO: make this available ONLY after a farmer has been created
       createFarm: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -234,6 +244,9 @@ var StonehearthClient;
       createTrappingGrounds: function(o) {
          var self = this;
 
+         App.setGameMode('zones');
+
+         //xxx localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
                title : 'Click and drag to create trapping grounds.',
@@ -449,6 +462,7 @@ var StonehearthClient;
          // TODO: add sound and visual indicator that this state is on
          if (self.rallyWorkersEnabled) {
             radiant.call('stonehearth:disable_worker_combat');
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off' );
             self.rallyWorkersEnabled = false;
             if (self._redAlertWidget) {
                self._redAlertWidget.destroy();   
