@@ -462,6 +462,7 @@ var StonehearthClient;
          // TODO: add sound and visual indicator that this state is on
          if (self.rallyWorkersEnabled) {
             radiant.call('stonehearth:disable_worker_combat');
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off' );
             self.rallyWorkersEnabled = false;
             if (self._redAlertWidget) {
                self._redAlertWidget.destroy();   
