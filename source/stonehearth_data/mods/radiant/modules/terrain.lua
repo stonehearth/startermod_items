@@ -64,6 +64,11 @@ function Terrain.is_standable(entity, location)
    return _physics:is_standable(entity, location)
 end
 
+-- returns whether an entity can stand occupy location
+function Terrain.is_blocked(entity, location)
+   return _physics:is_blocked(entity, location)
+end
+
 -- returns all entities whose locations of collision shapes intersect the cube
 function Terrain.get_entities_in_cube(cube, filter_fn)
    local entities = _physics:get_entities_in_cube(cube)
