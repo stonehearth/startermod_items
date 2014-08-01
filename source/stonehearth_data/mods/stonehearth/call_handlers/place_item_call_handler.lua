@@ -132,19 +132,21 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
 
    -- returns the best item to place.  the best item is the one that isn't currently
    -- being placed and is closest to the placement location
-   local best_item, best_distance, more_items
-   for _, item in pairs(candidates.items) do
-      local position = radiant.entities.get_world_grid_location(item)
-      local distance = position:distance_to(location)
+   local acceptable_item_count = 0
+   local best_item, best_distance
 
-      -- make sure the item is better than the previous one.
-      if not best_item or distance < best_distance then
-         -- make sure the item isn't being placed
-         local entity_forms = item:get_component('stonehearth:iconic_form')
-                                    :get_root_entity()
-                                    :get_component('stonehearth:entity_forms')
-         if not entity_forms:is_being_placed() then
-            more_items = more_items or best_item ~= nil
+   for _, item in pairs(candidates.items) do
+      -- make sure the item isn't being placed
+      local entity_forms = item:get_component('stonehearth:iconic_form')
+                                 :get_root_entity()
+                                 :get_component('stonehearth:entity_forms')
+      if not entity_forms:is_being_placed() then
+         acceptable_item_count = acceptable_item_count + 1
+         local position = radiant.entities.get_world_grid_location(item)
+         local distance = position:distance_to(location)
+
+         -- make sure the item is better than the previous one.
+         if not best_item or distance < best_distance then
             best_item, best_distance = item, distance
          end
       end
@@ -157,7 +159,7 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    self:place_item_in_world(session, response, best_item, location, rotation)
 
    -- return whether or not there are most items we could potentially place
-   response:resolve({ more_items = more_items })
+   response:resolve({ more_items = acceptable_item_count > 1 })
 end
 
 
