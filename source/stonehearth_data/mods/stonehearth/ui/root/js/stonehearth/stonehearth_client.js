@@ -115,6 +115,51 @@ var StonehearthClient;
          return deferred;
       },
 
+      // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
+      placeItem: function(item, o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', {
+               title : i18n.t('stonehearth:item_placement_title'),
+               description : i18n.t('stonehearth:item_placement_description')
+            });
+         }
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:choose_place_item_location', item)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+               })
+               .always(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      // item type is a uri, not an item entity
+      placeItemType: function(itemType, o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', {
+               title : i18n.t('stonehearth:item_placement_title'),
+               description : i18n.t('stonehearth:item_placement_description')
+            });
+         }
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:choose_place_item_location', itemType)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+                  self.placeItemType(itemType, { hideTip : true });
+               })
+               .fail(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       boxHarvestResources: function(o) {
          var self = this;
 
