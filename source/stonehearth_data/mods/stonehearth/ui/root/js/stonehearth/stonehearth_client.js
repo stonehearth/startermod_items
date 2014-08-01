@@ -126,12 +126,14 @@ var StonehearthClient;
             });
          }
 
+         App.setGameMode('build');
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', item)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
                })
                .always(function(response) {
+                  App.setGameMode('normal');
                   $(top).trigger('radiant_hide_tip');
                });
          });
@@ -148,6 +150,7 @@ var StonehearthClient;
             });
          }
 
+         App.setGameMode('build');
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', itemType)
                .done(function(response) {
@@ -155,6 +158,7 @@ var StonehearthClient;
                   self.placeItemType(itemType, { hideTip : true });
                })
                .fail(function(response) {
+                  App.setGameMode('normal');
                   $(top).trigger('radiant_hide_tip');
                });
          });
