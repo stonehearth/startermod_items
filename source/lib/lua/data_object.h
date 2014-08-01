@@ -19,6 +19,9 @@ public:
    json::Node const& GetJsonNode() const;
    void MarkDirty();
 
+   bool GetNeedsRestoration() const;
+   void SetNeedsRestoration(bool value) const;
+
    void SaveValue(dm::Store const& store, dm::SerializationType r, Protocol::LuaDataObject *msg) const;
    void LoadValue(dm::Store const& store, dm::SerializationType r, const Protocol::LuaDataObject &msg);
 
@@ -26,6 +29,7 @@ public:
    luabind::object            data_object_;
    mutable json::Node         cached_json_;
    mutable dm::GenerationId   dirty_;
+   mutable bool               needsRestoration_;
 };
 
 DECLARE_SHARED_POINTER_TYPES(DataObject)

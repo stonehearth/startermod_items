@@ -1,0 +1,18 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Thatched Roof", 
+         "description": "Keeps the rain out"
+      },
+      "stonehearth:construction_data" : {
+         "type": "roof",
+         "brush": "file(thatch_peaked_roof_9g.qb)",
+         "use_nine_grid" : true,
+         "allow_crouching_construction" : true,
+         "needs_ladder" : true,
+         "material": "wood resource"
+      }
+   }
+}

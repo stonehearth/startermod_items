@@ -35,7 +35,7 @@
          "profession": "stonehearth:professions:carpenter"
       }
    },
-   "stonehearth:placeable_item_proxy" : {
+   "stonehearth:iconic_form" : {
       "full_sized_entity" : "stonehearth:carpenter:saw",
       "hide_place_item_command" : true
    },

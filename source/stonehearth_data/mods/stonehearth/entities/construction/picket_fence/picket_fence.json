@@ -1,25 +1,9 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins": "file(picket_fence_ghost.json)",
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(picket_fence.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Picket Fence",
-         "description": "If it's not white, is our life unfulfilled?",
-         "icon" : "file(picket_fence.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood defenses crafted"
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(picket_fence_iconic.json)",
+         "ghost_form" : "file(picket_fence_iconic.json)"
       },
       "region_collision_shape" : {
          "region": [

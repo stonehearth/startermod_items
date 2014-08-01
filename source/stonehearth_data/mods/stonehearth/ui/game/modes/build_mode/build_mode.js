@@ -45,6 +45,8 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _showBuildingDesigner: function(uri) {
+      App.setGameMode('build');
+
       // hide all other views
       this._hideDesignerViews();
 
@@ -66,6 +68,8 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _showPlaceItemUi: function(uri) {
+      App.setGameMode('build');
+
       // hide all other views
       this._hideDesignerViews();
 
@@ -87,23 +91,38 @@ App.StonehearthBuildModeView = App.View.extend({
       $('.buildAndDesignTool').parent().hide();
    },
 
+   _destroyAllViews: function() {
+      this._destroyBuildingDesigner();
+      this._destroyPlaceItemUi();
+   },
+
    _onStateChanged: function() {
-      //var showSubView = this._selectedEntity && this._mode == 'build';
-      var showSubView = this._mode == 'build';
+      var self = this;
 
-      /*
-      if (showSubView) {
-         showSubView = (this._selectedEntity['stonehearth:fabricator'] ||
-                        this._selectedEntity['stonehearth:construction_data']);
-      }
-      */
+      if (this._mode == "build") {
+      
+         //trace the selected entity to determine its components   
+         if (self.selectedEntityTrace) {
+            self.selectedEntityTrace.destroy();
+         }
 
-      if (showSubView) {
-         //var uri = typeof(entity) == 'string' ? this._selectedEntity : this._selectedEntity.__self;
-         this._showBuildingDesigner(this._selectedEntity);
+
+         self.selectedEntityTrace = radiant.trace(this._selectedEntity)
+            .progress(function(entity) {
+               // if the selected entity is a building part, show the building designer
+               if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
+                  self._showBuildingDesigner(entity.__self);
+               } else {
+                  self._destroyBuildingDesigner();
+               }
+            })
+            .fail(function(e) {
+               console.log(e);
+            });         
       } else {
-         this._destroyBuildingDesigner();
+         this._destroyAllViews();
       }
+
    },
 
 });

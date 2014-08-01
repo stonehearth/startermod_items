@@ -1,9 +1,8 @@
 {
-   "type": "entity",
+   "mixins" : "file(weaver_workbench_ghost.json)",
    "components": {
-      "unit_info": {
-         "name": "Weaver Workbench",
-         "description": "Unclaimed."
+      "stonehearth:entity_forms" : {
+         "ghost_form" : "file(weaver_workbench_ghost.json)"
       },
       "stonehearth:commands" : {
          "commands" : [
@@ -17,13 +16,6 @@
                "max" : { "x" :  3, "y" : 1, "z" :  1 }
             }
          ]
-      },
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(weaver_bench.qb)"
-            ]
-         }
       },
       "stonehearth:workshop": {
          "profession_name" : "Weaver",

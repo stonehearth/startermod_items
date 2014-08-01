@@ -115,6 +115,57 @@ var StonehearthClient;
          return deferred;
       },
 
+      // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
+      placeItem: function(item, o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', {
+               title : i18n.t('stonehearth:item_placement_title'),
+               description : i18n.t('stonehearth:item_placement_description')
+            });
+         }
+
+         App.setGameMode('build');
+         return this._callTool(function() {
+            return radiant.call('stonehearth:choose_place_item_location', item)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+               })
+               .always(function(response) {
+                  App.setGameMode('normal');
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
+      // item type is a uri, not an item entity
+      placeItemType: function(itemType, o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', {
+               title : i18n.t('stonehearth:item_placement_title'),
+               description : i18n.t('stonehearth:item_placement_description')
+            });
+         }
+
+         App.setGameMode('build');
+         return this._callTool(function() {
+            return radiant.call('stonehearth:choose_place_item_location', itemType)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+                  if (response.more_items) {
+                     self.placeItemType(itemType, { hideTip : true });
+                  }
+               })
+               .fail(function(response) {
+                  App.setGameMode('normal');
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       boxHarvestResources: function(o) {
          var self = this;
 
@@ -139,6 +190,9 @@ var StonehearthClient;
 
       createStockpile: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -164,6 +218,9 @@ var StonehearthClient;
       //TODO: make this available ONLY after a farmer has been created
       createFarm: function(o) {
          var self = this;
+
+         App.setGameMode('zones');
+
          // xxx, localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
@@ -189,6 +246,9 @@ var StonehearthClient;
       createTrappingGrounds: function(o) {
          var self = this;
 
+         App.setGameMode('zones');
+
+         //xxx localize
          if (!o || !o.hideTip) {
             $(top).trigger('radiant_show_tip', { 
                title : 'Click and drag to create trapping grounds.',
@@ -278,12 +338,12 @@ var StonehearthClient;
          });
       },
 
-      growRoof: function() {
+      growRoof: function(roof) {
          var self = this;
 
          return this._callTool(function() {
             radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            return radiant.call_obj(self._build_editor, 'grow_roof', 'stonehearth:wooden_peaked_roof');
+            return radiant.call_obj(self._build_editor, 'grow_roof', roof);
          });
       },
 
@@ -404,6 +464,7 @@ var StonehearthClient;
          // TODO: add sound and visual indicator that this state is on
          if (self.rallyWorkersEnabled) {
             radiant.call('stonehearth:disable_worker_combat');
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off' );
             self.rallyWorkersEnabled = false;
             if (self._redAlertWidget) {
                self._redAlertWidget.destroy();   

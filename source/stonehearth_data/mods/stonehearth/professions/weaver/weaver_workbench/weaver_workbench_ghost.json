@@ -1,0 +1,15 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "Weaver Workbench",
+         "description": "Unclaimed."
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(weaver_bench.qb)"
+            ]
+         }
+      }
+   }
+}

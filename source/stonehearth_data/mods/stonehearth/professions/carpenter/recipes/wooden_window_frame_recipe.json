@@ -15,7 +15,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:wooden_window_frame_proxy"
+         "item":"stonehearth:wooden_window_frame"
       }
   ]
 }

@@ -20,6 +20,9 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(worker_outfit_2_iconic.json)"
+      },
       "stonehearth:equipment_piece" : {
          "slot" : "outfit",
          "render_type" : "merge_with_model",

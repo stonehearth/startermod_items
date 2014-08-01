@@ -23,8 +23,6 @@ function WorkshopComponent:initialize(entity, json)
       self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list')
       self._sv.is_paused = false
    end
-   radiant.log.write('ug', 0, 'order list is %s', tostring(self._sv.order_list))
-
    self._construction_ingredients = json.ingredients
    self._build_sound_effect = json.build_sound_effect
 
@@ -40,6 +38,14 @@ function WorkshopComponent:destroy()
       self._orchestrator:destroy()
       self._orchestrator = nil
    end
+end
+
+function WorkshopComponent:get_ingredients()
+   return self._construction_ingredients
+end
+
+function WorkshopComponent:get_build_sound_effect()
+   return self._build_sound_effect
 end
 
 --[[UI Interaction Functions

@@ -51,12 +51,12 @@
 
       "default_object" : "file(entities/generic/default_object)",
 
-      "under_construction_proxy" : "file(entities/build/under_construction_proxy)",
       "entities:wooden_floor" : "file(entities/build/wooden_floor)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "wooden_column" : "file(entities/build/wooden_column)",
-      "wooden_peaked_roof" : "file(entities/build/wooden_peaked_roof)",
+      "wooden_peaked_roof" : "file(entities/build/roof/wooden_peaked_roof)",
+      "thatch_peaked_roof" : "file(entities/build/roof/thatch_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
       "models:arrow" : "file(data/models/arrow.obj)",
       "entities:building" : "file(entities/build/building)",
@@ -67,31 +67,30 @@
       "carpenter:workbench" : "file(professions/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(professions/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
-      "carpenter:saw_proxy" : "file(professions/carpenter/carpenter_saw/carpenter_saw_proxy.json)",
+      "carpenter:saw_talisman" : "file(professions/carpenter/carpenter_saw/carpenter_saw_talisman.json)",
 
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
-      "farmer:hoe_proxy" : "file(professions/farmer/farmer_hoe/farmer_hoe_proxy.json)", 
+      "farmer:hoe_talisman" : "file(professions/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "trapper:trapping_grounds" : "file(professions/trapper/trapping_grounds)",
       "trapper:knife" : "file(professions/trapper/trapper_knife)",
-      "trapper:knife_proxy" : "file(professions/trapper/trapper_knife/trapper_knife_proxy.json)",
+      "trapper:knife_talisman" : "file(professions/trapper/trapper_knife/trapper_knife_talisman.json)",
       "trapper:outfit" : "file(professions/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(professions/trapper/snare_trap)",
 
       "weaver:workbench" : "file(professions/weaver/weaver_workbench)",
       "weaver:outfit" : "file(professions/weaver/weaver_outfit)",
       "weaver:spindle" : "file(professions/weaver/weaver_spindle)",
-      "weaver:spindle_proxy" : "file(professions/weaver/weaver_spindle/weaver_spindle_proxy.json)",
+      "weaver:spindle_talisman" : "file(professions/weaver/weaver_spindle/weaver_spindle_talisman.json)",
 
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
       "worker:outfit" : "file(professions/worker/worker_outfit)",
       "worker:outfit:2" : "file(professions/worker/worker_outfit_2)",
-      "worker:outfit:2_proxy" : "file(professions/worker/worker_outfit_2/worker_outfit_2_proxy.json)",
 
       "worker_axe" : "file(entities/tools/worker_axe)",
       "worker_hammer" : "file(entities/tools/worker_hammer)",
@@ -164,73 +163,36 @@
       "berry_plate" : "file(entities/plants/berry_plate)",
 
       "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
-      "arch_backed_chair_proxy" : "file(entities/furniture/arch_backed_chair/arch_backed_chair_proxy.json)",
-
       "cloth_bolt" : "file(entities/cloth/cloth_bolt)",
-
       "comfy_bed" :       "file(entities/furniture/comfy_bed)",
-      "comfy_bed_proxy" : "file(entities/furniture/comfy_bed/comfy_bed_proxy.json)",
-
       "dining_table" : "file(entities/furniture/dining_table)",
-      "dining_table_proxy" : "file(entities/furniture/dining_table/dining_table_proxy.json)",
-
       "berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
-      "berry_hanging_proxy" : "file(entities/furniture/simple_hanging/berry_hanging_proxy.json)",
-
       "geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
-      "geranium_hanging_proxy" : "file(entities/furniture/simple_hanging/geranium_hanging_proxy.json)",
 
       "green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
-      "green_hanging_proxy" : "file(entities/furniture/simple_hanging/green_hanging_proxy.json)",
-
       "camp_standard" : "file(entities/gizmos/camp_standard)",
-      "camp_standard_proxy" : "file(entities/gizmos/camp_standard/camp_standard_proxy.json)",
-
+      "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
       "tombstone" : "file(entities/furniture/tombstone)",
-      "tombstone_proxy" : "file(entities/furniture/tombstone/tombstone_proxy.json)",
-
       "firepit" : "file(entities/gizmos/firepit)",
-      "firepit_proxy" : "file(entities/gizmos/firepit/firepit_proxy.json)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
 
       "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
-      "not_much_of_a_bed_proxy" : "file(entities/furniture/not_much_of_a_bed/not_much_of_a_bed_proxy.json)",
-
       "picket_fence" : "file(entities/construction/picket_fence)",
-      "picket_fence_proxy" : "file(entities/construction/picket_fence/picket_fence_proxy.json)",
-
       "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
-      "picket_fence_gate_proxy" : "file(entities/construction/picket_fence_gate/picket_fence_gate_proxy.json)",
-
       "wooden_wall_lantern" : "file(entities/construction/wooden_wall_lantern)",
-      "wooden_wall_lantern_proxy" : "file(entities/construction/wooden_wall_lantern/wooden_wall_lantern_proxy.json)",
-
       "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
-      "wooden_garden_lantern_proxy" : "file(entities/construction/wooden_garden_lantern/wooden_garden_lantern_proxy.json)",
-
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
-      "simple_wooden_chair_proxy" : "file(entities/furniture/simple_wooden_chair/simple_wooden_chair_proxy.json)",
-
       "thread" : "file(entities/cloth/thread)",
 
       "table_for_one" : "file(entities/furniture/table_for_one)",
-      "table_for_one_proxy" : "file(entities/furniture/table_for_one/table_for_one_proxy.json)",
-
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
-      "armor:cloth_padded_vest_proxy" : "file(entities/armor/cloth_padded_vest/cloth_padded_vest_proxy.json)",
-
       "wooden_door" : "file(entities/construction/wooden_door)",
-      "wooden_door_proxy" : "file(entities/construction/wooden_door/wooden_door_proxy.json)",
-
       "wooden_sword" : "file(entities/weapons/wooden_sword)",
-      "wooden_sword_proxy" : "file(entities/weapons/wooden_sword/wooden_sword_proxy.json)",
-
+      "wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
-      "wooden_window_frame_proxy" : "file(entities/construction/wooden_window_frame/wooden_window_frame_proxy.json)",
-
       "ball" : "file(entities/toys/ball)",
 
       "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
@@ -510,6 +472,7 @@
       "sounds:ui:scenarios:caravan" : "file(data/sounds/ui/scenarios/sh_ui_caravan.wav)",
       "sounds:ui:scenarios:alert" : "file(data/sounds/ui/scenarios/sh_ui_alert.wav)",
       "sounds:ui:scenarios:redalert" : "file(data/sounds/ui/scenarios/sh_ui_redalert.wav)",
+      "sounds:ui:scenarios:redalert_off" : "file(data/sounds/ui/scenarios/sh_ui_redalert_off.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -1001,9 +964,9 @@
       "crafter"  : "file(components/crafter/crafter_component.lua)",
       "promotion_talisman" : "file(components/promotion_talisman/promotion_talisman_component.lua)",
       "profession": "file(components/profession/profession_component.lua)",
-      "placeable_item_proxy" : "file(components/place_item/placeable_item_proxy_component.lua)",
-      "ghost_item" : "file(components/place_item/ghost_item_component.lua)",
-      "placed_item" : "file(components/place_item/placed_item_component.lua)",
+      "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
+      "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
+      "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",
       "firepit" : "file(components/firepit/firepit_component.lua)",
       "lease" : "file(components/lease/lease_component.lua)",
       "lease_holder" : "file(components/lease_holder/lease_holder_component.lua)",
@@ -1048,11 +1011,14 @@
       "fixture" : "file(components/fixture/fixture_component.lua)",
       "fabricator" : "file(components/fabricator/fabricator_client_component.lua)",
       "construction_data" : "file(components/construction_data/construction_data_component.lua)",
-      "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)"
+      "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)",
+      "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
+      "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
+      "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
-      "ghost_item" : "file(renderers/ghost_item/ghost_item_renderer.lua)",
+      "ghost_form" : "file(renderers/ghost_form/ghost_form_renderer.lua)",
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",

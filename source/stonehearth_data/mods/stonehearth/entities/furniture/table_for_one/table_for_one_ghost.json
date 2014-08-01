@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(table_for_one.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Table for One",
+         "description": "Dining furniture for introverts.",
+         "icon" : "file(table_for_one.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

@@ -8,7 +8,7 @@ import ridl.lua_types as lua
 class DataStore(dm.Record):
    controller_type = dm.Boxed(std.string())
    controller_name = dm.Boxed(std.string())
-   data = dm.Boxed(lua.DataObject(), get=None, set=None)
+   data_object = dm.Boxed(lua.DataObject(), get=None, set=None)
 
    _no_lua = True
    _declare_constructor = True
@@ -24,6 +24,7 @@ class DataStore(dm.Record):
    void SetController(luabind::object controller);
    void DestroyController();
    void OnLoadObject(dm::SerializationType r) override;
+   dm::Boxed<lua::DataObject> const& GetDataObjectBox() const;
    """
 
    _private = \

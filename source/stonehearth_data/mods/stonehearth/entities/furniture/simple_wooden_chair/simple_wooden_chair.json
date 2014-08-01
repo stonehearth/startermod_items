@@ -1,25 +1,10 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins" : "file(simple_wooden_chair_ghost.json)",
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(simple_wooden_chair.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Simple Wooden Chair",
-         "description": "Culmination of 50k years of research.",
-         "icon" : "file(simple_wooden_chair.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture crafted chair"
-      },
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(simple_wooden_chair_iconic.json)",
+         "ghost_form" : "file(simple_wooden_chair_ghost.json)",
+         "placeable_on_ground" : true
       },
       "region_collision_shape" : {
          "region": [

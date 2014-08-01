@@ -10,10 +10,10 @@ function PatrolTest:__init()
    self:create_enemy_kingdom()
 
    local footmen = {
-      self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword_proxy'),
-      self:place_citizen(14, 14, 'footman', 'stonehearth:wooden_sword_proxy'),
-      --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword_proxy'),
-      --self:place_citizen(12, 12, 'footman', 'stonehearth:wooden_sword_proxy'),
+      self:place_citizen(15, 15, 'footman', 'stonehearth:wooden_sword'),
+      self:place_citizen(14, 14, 'footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen(13, 13, 'footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen(12, 12, 'footman', 'stonehearth:wooden_sword'),
    }
 
    -- local enemies = {
@@ -31,7 +31,7 @@ end
 
 function PatrolTest:equip_all(entities)
    for _, entity in pairs(entities) do
-      self:equip_weapon(entity, 'stonehearth:wooden_sword_proxy')
+      self:equip_weapon(entity, 'stonehearth:wooden_sword')
    end
 end
 

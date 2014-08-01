@@ -14,7 +14,7 @@ function FirePitTest:__init()
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
 
    local player_id = radiant.entities.get_player_id(worker)
-   self:place_item('stonehearth:firepit_proxy', 1, 1, player_id)
+   self:place_item('stonehearth:firepit', 1, 1, player_id, { force_iconic = false })
    local firepit = self:place_item('stonehearth:firepit', 8, 8, player_id)
    --[[
    radiant.events.trigger_async(stonehearth.calendar, 'stonehearth:hourly')

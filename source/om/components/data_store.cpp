@@ -5,15 +5,14 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#define DS_LOG(level)      LOG_(level)
+#define DS_LOG(level)      LOG(om.data_store, level)
 
 std::ostream& operator<<(std::ostream& os, DataStore const& o)
 {
    return (os << "[DataStore]");
 }
 
-DataStore::DataStore() :
-   _needsRestoration(true)
+DataStore::DataStore()
 {
 }
 
@@ -23,19 +22,19 @@ DataStore::~DataStore()
 
 luabind::object DataStore::GetData() const
 {
-   return (*data_).GetDataObject();
+   return (*data_object_).GetDataObject();
 }
 
 void DataStore::SetData(luabind::object o)
 {
-   data_.Modify([o](lua::DataObject& obj) {
+   data_object_.Modify([o](lua::DataObject& obj) {
       obj.SetDataObject(o);
    });
 }
 
 void DataStore::MarkDataChanged()
 {
-   data_.Modify([](lua::DataObject& obj) {
+   data_object_.Modify([](lua::DataObject& obj) {
       obj.MarkDirty();
    });
 }
@@ -47,7 +46,7 @@ void DataStore::LoadFromJson(json::Node const& obj)
 
 void DataStore::SerializeToJson(json::Node& node) const
 {
-   node = (*data_).GetJsonNode();
+   node = (*data_object_).GetJsonNode();
    Record::SerializeToJson(node);
 }
 
@@ -59,7 +58,7 @@ luabind::object DataStore::RestoreController(DataStorePtr self)
    // it so client-side code doesn't have to repeatedly call :get_data()
    // on the datastore to make sure they have the most up-to-date copy
 
-   _dataObjTrace = data_.TraceChanges("update _sv", dm::OBJECT_MODEL_TRACES)
+   _dataObjTrace = data_object_.TraceChanges("update _sv", dm::OBJECT_MODEL_TRACES)
                               ->OnModified([this]() {
                                  luabind::object controller = GetController();
                                  if (controller.is_valid()) {
@@ -83,9 +82,9 @@ luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::ve
    visited[GetObjectId()] = luabind::object();
 
    // Make sure we dont...
-   if (_needsRestoration) {
+   if ((*data_object_).GetNeedsRestoration()) {
 
-      _needsRestoration = false;
+      (*data_object_).SetNeedsRestoration(false);
 
       if (!_controllerObject.is_valid()) {
          lua_State* L = GetData().interpreter();
@@ -107,14 +106,15 @@ luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::ve
                lua::ScriptHost::ReportCStackException(L, e);
             }
          }
-         // Now that we have set and constructed the controller
-         // object, we can restore all the contained datastores.  This
-         // way, if an object in our datastore loops back and points to
-         // us, we can return our controller instead of entering an
-         // infinite loop!
-         visited[GetObjectId()] = _controllerObject;
-         RestoreContainedDatastores(GetData(), visitedTables, visited);
       }
+
+      // Now that we have set and constructed the controller
+      // object, we can restore all the contained datastores.  This
+      // way, if an object in our datastore loops back and points to
+      // us, we can return our controller instead of entering an
+      // infinite loop!
+      visited[GetObjectId()] = _controllerObject;
+      RestoreContainedDatastores(GetData(), visitedTables, visited);
    }
    return _controllerObject;
 }
@@ -124,13 +124,25 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabin
    if (luabind::type(o) == LUA_TTABLE) {
       for (luabind::object v : visitedTables) {
          if (v == o) {
+            DS_LOG(8) << "already visited lua object while restoring datastore.  bailing";
             return;
          }
       }
       visitedTables.emplace_back(o);
 
       for (luabind::iterator i(o), end; i != end; i++) {
-         if (luabind::type(*i) == LUA_TTABLE) {            
+         int t = luabind::type(i.key());
+         std::string key;
+         if (LOG_IS_ENABLED(om.data_store, 8)) {
+            if (t == LUA_TSTRING) { 
+               key = luabind::object_cast<std::string>(i.key());
+            } else {
+               key = BUILD_STRING("type(" << t << ")");
+            }
+         }
+
+         if (luabind::type(*i) == LUA_TTABLE) {
+            DS_LOG(8) << "restoring table for key " << key;
             RestoreContainedDatastores(*i, visitedTables, visited);
          } else {
             boost::optional<om::DataStorePtr> ds = luabind::object_cast_nothrow<om::DataStorePtr>(*i);
@@ -141,13 +153,15 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabin
 
                auto j = visited.find(id);
                if (j != visited.end()) {
+                  DS_LOG(8) << "already visisted datastore at " << key << ".  using cached controller";
                   controller = j->second;
                } else {
+                  DS_LOG(8) << "restoring datastore at " << key << ".";
                   controller = datastore->RestoreControllerRecursive(datastore, visitedTables, visited);
                }
                if (controller.is_valid()) {
                   if (luabind::type(i.key()) == LUA_TSTRING) {
-                     DS_LOG(9) << "restoring '" << luabind::object_cast<std::string>(i.key()) << "' datastore";
+                     DS_LOG(9) << "restoring '" << key << "' datastore";
                   }
                   *i = controller;
                }
@@ -223,5 +237,9 @@ luabind::object DataStore::CreateController(DataStorePtr self, std::string type,
 
 void DataStore::OnLoadObject(dm::SerializationType r)
 {
-   _needsRestoration = true;
+}
+
+dm::Boxed<lua::DataObject> const& DataStore::GetDataObjectBox() const
+{
+   return data_object_;
 }

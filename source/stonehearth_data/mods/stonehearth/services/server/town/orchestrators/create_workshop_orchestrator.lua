@@ -7,8 +7,11 @@ function CreateWorkshop:run(town, args)
    local ghost_workshop = args.ghost_workshop
    local outbox_entity = args.outbox_entity
 
-   local json = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_json()
-   local workshop_data = json.components['stonehearth:workshop']
+   local workshop_component = ghost_workshop:get_component('stonehearth:ghost_form')
+                                                :get_root_entity()
+                                                :get_component('stonehearth:workshop')
+   local ingredients = workshop_component:get_ingredients()
+   local build_sound_effect = workshop_component:get_build_sound_effect()
 
    self._task_group = town:create_task_group('stonehearth:crafting', {})
                                                   :add_worker(crafter)
@@ -16,12 +19,12 @@ function CreateWorkshop:run(town, args)
    town:run_orchestrator(CollectIngredients, {
       task_group = self._task_group,
       workshop = ghost_workshop,
-      ingredients = workshop_data.ingredients
+      ingredients = ingredients
    })
 
    local args = {
       ghost_workshop = ghost_workshop,
-      sound_effect = workshop_data.build_sound_effect,
+      sound_effect = build_sound_effect,
    }
    local result = town:command_unit(crafter, 'stonehearth:complete_workshop_construction', args)   
                         :once()
@@ -47,25 +50,26 @@ function CreateWorkshop:stop()
 end
 
 function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity, workshop_task_group)
-   local real_item_uri = ghost_workshop:get_component('stonehearth:ghost_item'):get_full_sized_mod_uri();
-
-   local workshop_entity = radiant.entities.create_entity(real_item_uri)
+   local workshop_entity = ghost_workshop:get_component('stonehearth:ghost_form')
+                                             :get_root_entity()
    local workshop_component = workshop_entity:get_component('stonehearth:workshop')
    
    -- Place the bench in the world
    local location = radiant.entities.get_world_grid_location(ghost_workshop)
    local q = ghost_workshop:get_component('mob'):get_rotation()
+
    radiant.terrain.place_entity(workshop_entity, location)
    workshop_entity:get_component('mob'):set_rotation(q)
    workshop_component:finish_construction(workshop_entity, outbox_entity)
+   radiant.terrain.remove_entity(ghost_workshop)
+
    radiant.entities.set_faction(workshop_entity, crafter)
    radiant.entities.set_player_id(workshop_entity, crafter)
 
-   -- destroy the ghost entity and everything we put in it to make the workbench
+   -- destroy the everything we put in the ghost entity to make the workbench
    for id, item in ghost_workshop:add_component('entity_container'):each_child() do
       radiant.entities.destroy_entity(item)
    end
-   radiant.entities.destroy_entity(ghost_workshop)
 
    -- assign the crafter to the workshop and vice versa
    local crafter_component = crafter:get_component('stonehearth:crafter')

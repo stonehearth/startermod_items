@@ -1,0 +1,13 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_garden_lantern.qb)"
+            ]
+         }
+      }
+   }
+}

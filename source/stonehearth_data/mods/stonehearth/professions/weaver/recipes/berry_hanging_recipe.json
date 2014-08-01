@@ -23,7 +23,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:berry_hanging_proxy"
+         "item":"stonehearth:berry_hanging"
       }
   ]
 }

@@ -1,22 +1,23 @@
 {
    "mixins" : "file(wooden_door_ghost.json)",
-   
-   "sensor_list": {
-      "sensors": {
-         "door_sensor": {
-            "type": "sensor",
-            "radius": 2
+
+   "components" : {
+      "sensor_list": {
+         "sensors": {
+            "door_sensor": {
+               "type": "sensor",
+               "radius": 2
+            }
          }
-      }
-   },
+      },
 
-   "stonehearth:door" : {
-      "sensor" : "door_sensor"
-   },
+      "stonehearth:door" : {
+         "sensor" : "door_sensor"
+      },
 
-   "entity_data" : {
-      "stonehearth:ghost_item" : {
-         "uri" : "file(wooden_door_ghost.json)"
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_door_iconic.json)",
+         "ghost_form" : "file(wooden_door_ghost.json)"
       }
    }
 }

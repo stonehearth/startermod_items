@@ -670,9 +670,9 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
       local portal_blueprint_uri = portal_uri
-      local data = radiant.entities.get_entity_data(portal_uri, 'stonehearth:ghost_item')
+      local data = radiant.entities.get_component_data(portal_uri, 'stonehearth:entity_forms')
       if data then
-         portal_blueprint_uri = data.uri
+         portal_blueprint_uri = data.ghost_form
       end
 
       local building = self:get_building_for(wall_entity)
@@ -792,6 +792,14 @@ end
 --    @param options - the options to change.  
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
+   self._undo:begin_transaction('add_floor')
+   local success = self:_apply_options(blueprint, options)
+   self._undo:end_transaction('add_floor')
+
+   return success
+end
+
+function BuildService:_apply_options(blueprint, options)
    local cd = blueprint:get_component('stonehearth:construction_data')
    if cd then
       -- apply the new options to the blueprint      

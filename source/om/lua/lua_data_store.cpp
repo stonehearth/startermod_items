@@ -19,10 +19,18 @@ static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::Data
 DataStore_Trace(DataStorePtr data_store, const char* reason)
 {
    if (data_store) {
-      auto trace = data_store->TraceData(reason, dm::LUA_ASYNC_TRACES);
+      auto trace = data_store->TraceDataObject(reason, dm::LUA_ASYNC_TRACES);
       return std::make_shared<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>(trace);
    }
    return nullptr;
+}
+
+static void
+DataStore_Restore(DataStorePtr data_store)
+{
+   if (data_store) {
+      data_store->RestoreController(data_store);
+   }
 }
 
 DataStorePtr
@@ -41,6 +49,15 @@ DataStore_GetData(DataStorePtr data_store)
       return data_store->GetData();
    }
    return object();
+}
+
+int
+DataStore_GetDataObjectId(DataStorePtr data_store)
+{
+   if (data_store) {
+      return data_store->GetDataObjectBox().GetObjectId();
+   }
+   return 0;
 }
 
 
@@ -103,6 +120,16 @@ DataStore_CreateController(DataStorePtr data_store, std::string const& type, std
    return controller;
 }
 
+luabind::object
+DataStore_GetController(DataStorePtr data_store)
+{
+   luabind::object controller;
+   if (data_store) {
+      controller = data_store->GetController();
+   }
+   return controller;
+}
+
 scope LuaDataStore::RegisterLuaTypes(lua_State* L)
 {
    return
@@ -110,10 +137,13 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
       lua::RegisterStrongGameObject<DataStore>(L, "DataStore")
          .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
+         .def("get_data_object_id", &DataStore_GetDataObjectId) // xxx: don't we need dependency(_1, _2) here?
          .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
+         .def("restore",        &DataStore_Restore)
          .def("set_controller", &DataStore_SetController)
+         .def("get_controller", &DataStore_GetController)
          .def("create_controller", &DataStore_CreateController)
          .def("mark_changed",   &DataStore_MarkChanged)
       ,

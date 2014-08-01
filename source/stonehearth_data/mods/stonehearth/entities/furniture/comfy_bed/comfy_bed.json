@@ -1,39 +1,11 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
-   "type": "entity",
+   "mixins": "file(comfy_bed_ghost.json)",
    "components": {
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(comfy_bed.qb)"
-            ]
-         }
-      },
-      "unit_info": {
-         "name": "Comfy Bed",
-         "description": "I dreamed... of flying sheep.",
-         "icon" : "file(comfy_bed.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "wood furniture crafted"
-      },
-      "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:comfy_bed_proxy"
-      },
-      "render_info" : {
-         "scale" : 0.22
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
-      },
-      "destination": {
-         "region": [
-            {
-               "min" : { "x" : -1, "y" : 0, "z" : -1 },
-               "max" : { "x" :  2, "y" : 1, "z" :  2 }
-            }
-         ]
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(comfy_bed_iconic.json)",
+         "ghost_form" : "file(comfy_bed_ghost.json)",
+         "placeable_on_ground" : true,
+         "placeable_category" : "beds and stuff"
       },
       "region_collision_shape": {
          "region": [
@@ -48,6 +20,14 @@
             {
                "min" : { "x" : -1, "y" : 0, "z" : 2 },
                "max" : { "x" :  2, "y" : 2, "z" : 3 }
+            }
+         ]
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
             }
          ]
       }

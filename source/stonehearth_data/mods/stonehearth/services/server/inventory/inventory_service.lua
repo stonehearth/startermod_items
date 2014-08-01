@@ -73,7 +73,7 @@ function InventoryService:_register_score_functions()
 
    --eval function for placed items
    stonehearth.score:add_aggregate_eval_function('net_worth', 'placed_item', function(entity, agg_score_bag)
-      if entity:get_component('stonehearth:placed_item') then
+      if entity:get_component('stonehearth:entity_forms') then
          local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
          agg_score_bag.placed_item = agg_score_bag.placed_item + item_value
       end

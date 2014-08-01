@@ -149,8 +149,8 @@ function SimpleCaravan:_get_user_visible_name(uri)
    local item_data = radiant.resources.load_json(uri)
    if item_data.components.unit_info then
       return item_data.components.unit_info.name
-   elseif item_data.components['stonehearth:placeable_item_proxy'] then
-      local full_sized_data =  radiant.resources.load_json(item_data.components['stonehearth:placeable_item_proxy'].full_sized_entity)
+   elseif item_data.components['stonehearth:iconic_form'] then
+      local full_sized_data =  radiant.resources.load_json(item_data.components['stonehearth:iconic_form'].full_sized_entity)
       return full_sized_data.components.unit_info.name
    end
 end

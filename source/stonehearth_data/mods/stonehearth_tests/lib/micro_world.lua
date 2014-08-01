@@ -52,12 +52,12 @@ function MicroWorld:place_tree(x, z)
    return self:place_item('stonehearth:small_oak_tree', x, z)
 end
 
-function MicroWorld:place_item(uri, x, z, player_id)
+function MicroWorld:place_item(uri, x, z, player_id, options)
    local entity = radiant.entities.create_entity(uri)
    if player_id then
       entity:add_component('unit_info'):set_player_id(player_id)
    end
-   radiant.terrain.place_entity(entity, Point3(x, 1, z))
+   radiant.terrain.place_entity(entity, Point3(x, 1, z), options)
    return entity
 end
 

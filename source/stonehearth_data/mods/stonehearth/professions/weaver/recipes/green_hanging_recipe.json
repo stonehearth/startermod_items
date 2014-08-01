@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:green_hanging_proxy"
+         "item":"stonehearth:green_hanging"
       }
   ]
 }

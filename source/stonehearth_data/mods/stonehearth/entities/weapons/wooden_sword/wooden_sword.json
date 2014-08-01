@@ -9,6 +9,9 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_sword_iconic.json)"
+      },
       "stonehearth:equipment_piece" : {
          "slot" : "mainHand",
          "render_type" : "attach_to_bone",

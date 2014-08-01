@@ -13,9 +13,6 @@ function CraftOrderList:initialize()
    }
    self._sv.next_order_id = 0
    self._sv.is_paused = false
-   for _, order in ipairs(self._sv.orders) do
-      radiant.log.write('ug', 0, 'order is %s', tostring(order))
-   end
    self.__saved_variables:mark_changed()
 end
 

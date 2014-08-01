@@ -1,29 +1,13 @@
 {
-   "mixins": "stonehearth:mixins:placed_properties",
+   "mixins" : "file(firepit_ghost.json)",
    "type": "entity",
    "components": {
-      "unit_info": {
-         "name": "Fire Pit",
-         "description": "Provides warmth and light",
-         "icon" : "file(firepit.png)",
-         "portrait": "file(firepit.png)",
-         "character_sheet_info" : "file(firepit_character_sheet_info.json)"
+      "stonehearth:entity_forms" : {
+         "ghost_form" : "file(firepit_ghost.json)",
+         "iconic_form" : "file(firepit_iconic.json)",
+         "placeable_on_ground" : true
       },
-
-      "stonehearth:material" : {
-         "tags" : "light"
-      },
-
-      "model_variants": {
-         "default": {
-            "models": [
-               "file(firepit.qb)"
-            ]
-         }
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      "stonehearth:firepit" : {
       },
       "region_collision_shape" : {
          "region": [
@@ -44,28 +28,6 @@
                "max" : { "x" :  2, "y" : 2, "z" : 2 }
             }
          ]
-      },
-      "stonehearth:firepit" : {
-         "effective_radius" : 6
-      },
-      "sensor_list" : {
-         "sensors" : {
-            "fire_radius" : {
-               "type": "sensor",
-               "radius": 6
-            }
-         }
-      },
-      "stonehearth:placed_item" : {
-         "proxy_entity" : "stonehearth:firepit_proxy"
-      }
-   },
-      "stonehearth:sensor_ai_injector" : {
-         "sensor" : "fire_radius",
-         "ai" : {
-            "actions" : [
-               "stonehearth:actions:idle:warm_hands"
-            ]
-         }
-      }
+     }
+   }
 }

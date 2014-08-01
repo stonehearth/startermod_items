@@ -29,17 +29,17 @@ end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
-      --self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
-      --self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
-      --self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword_proxy'),
+      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
+      --self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:wooden_sword'),
    }
 
    self._enemies = {
-      self:place_enemy( -9, 15, 'stonehearth:wooden_sword_proxy'),
-      --self:place_enemy( -1, 15, 'stonehearth:wooden_sword_proxy'),
-      --self:place_enemy(  7, 15, 'stonehearth:wooden_sword_proxy'),
-      --self:place_enemy( 15, 15, 'stonehearth:wooden_sword_proxy'),
+      self:place_enemy( -9, 15, 'stonehearth:wooden_sword'),
+      --self:place_enemy( -1, 15, 'stonehearth:wooden_sword'),
+      --self:place_enemy(  7, 15, 'stonehearth:wooden_sword'),
+      --self:place_enemy( 15, 15, 'stonehearth:wooden_sword'),
    }
 end
 

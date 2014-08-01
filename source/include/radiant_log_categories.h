@@ -73,6 +73,7 @@
       ADD_CATEGORY(region) \
       ADD_CATEGORY(destination) \
       ADD_CATEGORY(mob) \
+      ADD_CATEGORY(data_store) \
    END_GROUP(om) \
    \
    BEGIN_GROUP(dm) \

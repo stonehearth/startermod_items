@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tombstone.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "X's Tombstone",
+         "description": "X is in a better place.",
+         "icon" : "file(tombstone.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone furniture"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}
