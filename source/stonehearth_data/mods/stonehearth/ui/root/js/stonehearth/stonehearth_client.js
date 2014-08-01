@@ -155,7 +155,9 @@ var StonehearthClient;
             return radiant.call('stonehearth:choose_place_item_location', itemType)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
-                  self.placeItemType(itemType, { hideTip : true });
+                  if (response.more_items) {
+                     self.placeItemType(itemType, { hideTip : true });
+                  }
                })
                .fail(function(response) {
                   App.setGameMode('normal');
