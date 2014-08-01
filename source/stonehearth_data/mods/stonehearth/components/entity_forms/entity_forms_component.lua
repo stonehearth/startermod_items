@@ -50,8 +50,10 @@ function EntityFormsComponent:_post_create(json)
       assert(iconic_entity, string.format('placeable entity %s missing an iconic entity form', uri))
       assert(ghost_entity,  string.format('placeable entity %s missing a ghost entity form', uri))
       
-      self._entity:add_component('stonehearth:commands')
-                     :add_command('/stonehearth/data/commands/move_item')
+      if radiant.is_server then
+         self._entity:add_component('stonehearth:commands')
+                        :add_command('/stonehearth/data/commands/move_item')
+      end
    end
    
    if placeable then
@@ -76,17 +78,14 @@ function EntityFormsComponent:_post_create(json)
 end
 
 function EntityFormsComponent:_load_placement_task()
-   if self._sv._placement_task_info then
-      self:place_item_in_world(self._sv._placement_task_info.location,
-                               self._sv._placement_task_info.rotation)
+   if self._sv.placing_at then
+      self:place_item_in_world(self._sv.placing_at.location,
+                               self._sv.placing_at.rotation)
    end
 end
 
 function EntityFormsComponent:destroy()
-   if self._placement_task then
-      self._placement_task:destroy()
-      self._placement_task = nil
-   end
+   self:_destroy_placement_task()
 end
 
 function EntityFormsComponent:_destroy_placement_task()
@@ -94,8 +93,8 @@ function EntityFormsComponent:_destroy_placement_task()
       self._placement_task:destroy()
       self._placement_task = nil
    end
-   if self._sv._placement_task_info then
-      self._sv._placement_task_info = nil
+   if self._sv.placing_at then
+      self._sv.placing_at = nil
       self.__saved_variables:mark_changed()
    end
 end
@@ -128,7 +127,7 @@ function EntityFormsComponent:place_item_in_world(location, rotation)
                               end)
                           :start()
 
-      self._sv._placement_task_info = {
+      self._sv.placing_at = {
          location = location,
          rotation = rotation,
       }
@@ -138,6 +137,10 @@ end
 
 function EntityFormsComponent:is_placeable()
    return self._sv.placeable_on_ground
+end
+
+function EntityFormsComponent:is_being_placed()
+   return self._placement_task ~= nil
 end
 
 function EntityFormsComponent:get_placeable_category()

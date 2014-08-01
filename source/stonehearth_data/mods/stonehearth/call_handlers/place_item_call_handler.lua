@@ -19,6 +19,9 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    if type(item_to_place) == 'string' then   
       next_call = 'stonehearth:place_item_type_in_world'
       placement_test_entity = radiant.entities.create_entity(item_to_place)
+      item_to_place = placement_test_entity:get_component('stonehearth:entity_forms')
+                                             :get_iconic_entity()
+                                                :get_uri()
       destroy_placement_test_entity = true
    else
       next_call = 'stonehearth:place_item_in_world'
@@ -120,13 +123,41 @@ end
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, full_item_uri, location, rotation)
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
    local location = Point3(location.x, location.y, location.z)
 
-   local town = stonehearth.town:get_town(session.player_id)
-   town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
-   
-   return true
+   -- look for entities which are not currently being placed
+   local candidates = stonehearth.inventory:get_inventory(session.player_id)
+                                           :get_items_of_type(entity_uri)
+
+   -- returns the best item to place.  the best item is the one that isn't currently
+   -- being placed and is closest to the placement location
+   local best_item, best_distance, more_items
+   for _, item in pairs(candidates.items) do
+      local position = radiant.entities.get_world_grid_location(item)
+      local distance = position:distance_to(location)
+
+      -- make sure the item is better than the previous one.
+      if not best_item or distance < best_distance then
+         -- make sure the item isn't being placed
+         local entity_forms = item:get_component('stonehearth:iconic_form')
+                                    :get_root_entity()
+                                    :get_component('stonehearth:entity_forms')
+         if not entity_forms:is_being_placed() then
+            more_items = more_items or best_item ~= nil
+            best_item, best_distance = item, distance
+         end
+      end
+   end
+
+   -- place the best item, if it exists
+   if not best_item then
+      response:fail({error = 'no more placeable items'})
+   end
+   self:place_item_in_world(session, response, best_item, location, rotation)
+
+   -- return whether or not there are most items we could potentially place
+   response:resolve({ more_items = more_items })
 end
 
 

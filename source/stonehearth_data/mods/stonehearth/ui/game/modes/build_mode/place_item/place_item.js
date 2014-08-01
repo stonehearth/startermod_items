@@ -13,10 +13,15 @@ App.StonehearthPlaceItemView = App.View.extend({
    classNames: ['fullScreen', 'flex', "gui"],
    modal: false,
    components: {
-      'entity_types' : {
-         entities : {
-            'stonehearth:iconic_form' : {},
-            'item' : {}
+      'tracking_data' : {
+         '*' : {              // category...    (e.g. Furniture)
+            '*' : {           // uri of items.. (e.g. stonehearth:comfy_bed)
+               'items' : {    // all the items, keyed by id
+                  '*' : {
+                     'stonehearth:entity_forms' : {}
+                  }
+               }
+            }
          }
       }
    },
@@ -28,7 +33,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       radiant.call('stonehearth:get_placable_items')
          .done(function(e) {
             self.set('uri', e.tracker);
-            console.log(e.tracker);
+            console.log('place item tracker is', e.tracker);
          })
          .fail(function(e) {
             console.log('error getting inventory for player')
@@ -55,7 +60,9 @@ App.StonehearthPlaceItemView = App.View.extend({
          var value;
          if (k.indexOf('__') != 0 && map.hasOwnProperty(k)) {
             var value = convert_fn(k, v);
-            arr.push(value);
+            if (value != undefined) {
+               arr.push(value);
+            }
          }
       });
       return arr;
@@ -67,12 +74,28 @@ App.StonehearthPlaceItemView = App.View.extend({
 
       var map = this.get('context.tracking_data');
       if (map) {
-         arr = this._mapToArray(map, function(k, v) {
+         arr = this._mapToArray(map, function(category, entityMap) {
             var category = {
-               'name' : k,
-               'items' : self._mapToArray(v, function(k, v) {
-                  v['uri'] = k;
-                  return v;
+               'name' : category,
+               'items' : self._mapToArray(entityMap, function(uri, info) {
+                  var count = 0;
+                  $.each(info.items, function(id, item){
+                     if (info.items.hasOwnProperty(id)) {
+                        var ef = item['stonehearth:entity_forms']
+                        if (!ef) {
+                           console.log('wtf');
+                        }
+                        if (ef && !ef.placing_at) {
+                           count += 1;
+                        }
+                     }
+                  });
+                  if (count == 0) {
+                     return undefined;
+                  }
+                  info.uri = uri;
+                  info.count = count;
+                  return info;
                })
             }
             return category

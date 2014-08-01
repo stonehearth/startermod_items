@@ -63,7 +63,7 @@ function IconicFormComponent:set_ghost_entity(ghost_entity)
 end
 
 function IconicFormComponent:set_placeable(placeable)
-   if placeable then
+   if placeable and radiant.is_server then
       -- add the command to place the item from the proxy
       self._entity:add_component('stonehearth:commands')
                      :add_command('/stonehearth/data/commands/place_item')
