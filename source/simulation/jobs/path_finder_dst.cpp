@@ -89,7 +89,7 @@ float PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
       return FLT_MAX;
    }
    csg::Point3 end = world_space_adjacent_region_.GetClosestPoint(start);
-   return sim_.GetOctTree().GetMovementCost(start, end);
+   return sim_.GetOctTree().GetSquaredMovementCost(start, end);
 }
 
 csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const

@@ -433,6 +433,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
       }
    }
    if (hMin != FLT_MAX) {
+      hMin = csg::Sqrt(hMin);
       hMin *= 1.25f;       // prefer faster over optimal...
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
