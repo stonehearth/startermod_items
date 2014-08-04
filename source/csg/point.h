@@ -112,6 +112,10 @@ public:
       return csg::Sqrt(l2);
    }
 
+   inline float SquaredDistanceTo(Derived const& other) const {
+      return ((*this) - other).LengthSquared();
+   }
+
    void Normalize()
    {
       float lengthsq = LengthSquared();

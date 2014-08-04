@@ -319,7 +319,9 @@ end
 -- of this one.  to fix this, don't wait until the terrain trace fires to modify
 -- our region.  do it immediately after the drop happens!
 function StockpileComponent:notify_restock_finished(location)
-   self:_add_to_region(location)
+   if self._entity:is_valid() then
+      self:_add_to_region(location)
+   end
 end
 
 function StockpileComponent:_add_to_region(location)
