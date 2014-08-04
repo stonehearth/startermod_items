@@ -486,10 +486,11 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
 {
    bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
-      stopped = GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
+      stopped = GridTileNonResident(index).ForEachTracker([&cb](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
-         ASSERT(tracker->GetEntity());
-         bool stop = cb(tracker->GetEntity());
+         auto e = tracker->GetEntity();
+         ASSERT(e);
+         bool stop = cb(e);
          return stop;
       });
    }
