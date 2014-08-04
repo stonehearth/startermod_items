@@ -77,21 +77,28 @@ function CalendarService:set_interval(duration, fn)
    return self:_create_timer(duration, fn, true)
 end
 
+function CalendarService:duration_string_to_seconds(str)
+   local get_value = function(str, suffix, multiplier)
+      local quantity = string.match(str, '(%d+)' .. suffix) or 0
+      return quantity * multiplier
+   end
+
+   local seconds = get_value(str, 'Y', TIME_DURATIONS.year) +
+                   get_value(str, 'M', TIME_DURATIONS.month) +
+                   get_value(str, 'd', TIME_DURATIONS.day) +
+                   get_value(str, 'h', TIME_DURATIONS.hour) +
+                   get_value(str, 'm', TIME_DURATIONS.minute) +
+                   get_value(str, 's', TIME_DURATIONS.second)
+   return seconds
+end
+
 function CalendarService:_create_timer(duration, fn, repeating)
    assert(type(fn) == 'function')
    
-   local timeout_s = 0
+   local timeout_s
 
    if type(duration) == 'string' then
-      local function match(f, d)
-         return d * (string.match(duration, '(%d+)' .. f) or 0)
-      end
-      timeout_s = match('Y', TIME_DURATIONS.year) +
-                  match('M', TIME_DURATIONS.month) +
-                  match('d', TIME_DURATIONS.day) +
-                  match('h', TIME_DURATIONS.hour)  +
-                  match('m', TIME_DURATIONS.minute) +
-                  match('s', TIME_DURATIONS.second)
+      timeout_s = self:duration_string_to_seconds(duration)
    else
       timeout_s = duration
    end
