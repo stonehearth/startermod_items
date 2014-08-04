@@ -1,7 +1,7 @@
 local Entity = _radiant.om.Entity
 local PickupItemTypeTrivial = class()
 
-PickupItemTypeTrivial.name = 'pickup item passing filter'
+PickupItemTypeTrivial.name = 'pickup item trivial'
 PickupItemTypeTrivial.does = 'stonehearth:pickup_item_type'
 PickupItemTypeTrivial.args = {
    filter_fn = 'function',
