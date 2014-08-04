@@ -226,7 +226,7 @@
    "item_movement_title": "Move Item",
    "item_movement_description": "Click to move this item elsewhere.<p>Rotate the item with the , and . keys.",
    "build_ladder_title": "Build Ladder",
-   "build_ladder_description": "Click to manually place a ladder to access hard to reach areas",
+   "build_ladder_description": "Click to manually place a ladder to access hard to reach areas.<br><br>Right click to exit.",
 
    "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",
