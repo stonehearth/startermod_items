@@ -346,18 +346,26 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
 {
-   bool stopped = false;   
-   std::vector<CollisionTrackerRef> trackers;
+   int numTrackers = 0;
+   bool stopped = false;
 
    // It's important here not to modify the trackers array at all during iterator.
    // Otherwise, we'll invalidate the `end` iterator and certainly blow up somewhere!
+   // Also: we never call 'clear' on tempTrackers_, because it's only purpose is to hold
+   // a list of weak refs to the actual trackers that we can safely iterate over; no
+   // need to call destroy on that list (since they're weak refs).
+   while (begin != end && numTrackers < tempTrackers_.size()) {
+      tempTrackers_[numTrackers++] = begin->second;
+      begin++;
+   }
    while (begin != end) {
-      trackers.push_back(begin->second);
+      tempTrackers_.emplace_back(begin->second);
+      numTrackers++;
       begin++;
    }
 
-   for (CollisionTrackerRef t : trackers) {
-      CollisionTrackerPtr tracker = t.lock();
+   for (int i = 0; i < numTrackers; i++) {
+      CollisionTrackerPtr tracker = tempTrackers_[i].lock();
       if (tracker) {
          om::EntityPtr entity = tracker->GetEntity();
          if (entity) {
