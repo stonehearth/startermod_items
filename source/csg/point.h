@@ -72,10 +72,23 @@ public:
    }
 
    struct Hash { 
-      size_t operator()(const Derived& o) const {
+   private:
+      template <typename S> inline std::size_t hash(S val, int i) const {
+         return std::hash<S>(val) << i;
+      }
+
+      // std::hash<int> on Windows is expensive.  we're cheap!
+      template <> inline std::size_t hash(int val, int i) const {
+         static const int factors[] = { 73856093, 19349663, 83492791 };
+         //ASSERT(i < ARRAY_SIZE(factors));
+         return factors[i] * val;
+      }
+
+   public:
+      inline size_t operator()(const Derived& o) const {
          size_t result = 0;
          for (int i = 0; i < C; i++) {
-            result ^= std::hash<int>()(o[i]);
+            result ^= hash(o[i], i);
          }
          return result;
       }
@@ -110,6 +123,10 @@ public:
    float DistanceTo(Derived const& other) const {
       float l2 = ((*this) - other).LengthSquared();
       return csg::Sqrt(l2);
+   }
+
+   inline float SquaredDistanceTo(Derived const& other) const {
+      return ((*this) - other).LengthSquared();
    }
 
    void Normalize()

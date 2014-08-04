@@ -166,6 +166,30 @@ var StonehearthClient;
          });
       },
 
+      // item type is a uri, not an item entity
+      buildLadder: function(o) {
+         var self = this;
+
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', {
+               title : i18n.t('stonehearth:build_ladder_title'),
+               description : i18n.t('stonehearth:build_ladder_description')
+            });
+         }
+
+         App.setGameMode('build');
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'build_ladder')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  self.buildLadder({ hideTip : true });
+               })
+               .fail(function(response) {
+                  $(top).trigger('radiant_hide_tip');
+               });
+         });
+      },
+
       boxHarvestResources: function(o) {
          var self = this;
 

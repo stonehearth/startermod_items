@@ -39,6 +39,11 @@ function LocationSelector:set_min_locations_count(count)
    return self
 end
 
+function LocationSelector:set_cursor(cursor)
+   self._cursor = cursor
+   return self
+end
+
 -- sets the uri of the entity to use for the ghost cursor.  this entity's lifetime
 -- will be controlled by the selection service.  it will also automatically be
 -- rendered in ghostly form.  if you want more control over how the cursor entity
@@ -89,6 +94,10 @@ function LocationSelector:destroy()
    if self._input_capture then
       self._input_capture:destroy()
       self._input_capture = nil
+   end
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
    end
    if self._cursor_entity then
       radiant.entities.destroy_entity(self._cursor_entity)
@@ -222,6 +231,12 @@ end
 -- :destroy() when you no longer need the selection active.
 --
 function LocationSelector:go()
+   -- install a new mouse cursor if requested by the client.  this cursor
+   -- will stick around until :destroy() is called on the selector!
+   if self._cursor then
+      self._cursor_obj = _radiant.client.set_cursor(self._cursor)
+   end
+   
    self._rotation = 0
    self._cursor_icon = nil
    stonehearth.selection:register_tool(self, true)

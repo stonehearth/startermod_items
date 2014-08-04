@@ -16,7 +16,7 @@ function FabricateStructureAdjacent:start_thinking(ai, entity, args)
    if not radiant.entities.is_material(ai.CURRENT.carrying, material) then
       return
    end
-   ai.set_think_output()
+   ai:set_think_output()
 end
 
 function FabricateStructureAdjacent:run(ai, entity, args)

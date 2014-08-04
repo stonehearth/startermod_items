@@ -18,7 +18,7 @@ end
 function TeardownStructureAdjacent:start_thinking(ai, entity, args)
    local carrying = ai.CURRENT.carrying
    if not carrying then
-      ai.set_think_output()
+      ai:set_think_output()
       return
    end
 
@@ -34,7 +34,7 @@ function TeardownStructureAdjacent:start_thinking(ai, entity, args)
    if item_component:get_stacks() >= item_component:get_max_stacks() then
       return
    end
-   ai.set_think_output()
+   ai:set_think_output()
 end
 
 function TeardownStructureAdjacent:run(ai, entity, args)

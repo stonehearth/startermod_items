@@ -187,6 +187,8 @@ public:
    bool Contains(Point const& pt) const;
    Point GetClosestPoint(Point const& other) const;
    Point GetSize() const { return GetMax() - GetMin(); }
+   inline float SquaredDistanceTo(Point const& other) const;
+   inline float SquaredDistanceTo(Cube const& other) const;
    float DistanceTo(Point const& other) const;
    float DistanceTo(Cube const& other) const;
 

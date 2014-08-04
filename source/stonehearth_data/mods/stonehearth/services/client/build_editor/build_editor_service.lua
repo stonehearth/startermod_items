@@ -6,6 +6,7 @@ local FloorEraser = require 'services.client.build_editor.floor_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
 local DoodadPlacer = require 'services.client.build_editor.doodad_placer'
+local LadderEditor = require 'services.client.build_editor.ladder_editor'
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
@@ -23,6 +24,11 @@ function BuildEditorService:initialize()
             -- it to us =(
             self._build_service = r.result:__tojson()
          end)
+end
+
+function BuildEditorService:build_ladder(session, response)
+   LadderEditor(self._build_service)
+         :go(session, response)
 end
 
 function BuildEditorService:add_doodad(session, response, uri)

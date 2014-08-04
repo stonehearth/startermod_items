@@ -20,7 +20,7 @@ function MaterialToFilterFn:start_thinking(ai, entity, args)
    -- equivalent implementation is not sufficient!  it must be
    -- the same function (see the 'stonehearth:pathfinder' component)
    
-   local filter_fn = ALL_FILTER_FNS[args.key]
+   local filter_fn = ALL_FILTER_FNS[args.material]
    if not filter_fn then
       local material = args.material
       filter_fn = function(item)

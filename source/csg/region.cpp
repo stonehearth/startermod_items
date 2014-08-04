@@ -337,7 +337,7 @@ Point<S, C> Region<S, C>::GetClosestPoint(Point const& from) const
 
    for (const auto &cube : cubes_) {
       Point candidate = cube.GetClosestPoint(from);
-      float candidateDistance = from.DistanceTo(candidate);
+      float candidateDistance = from.SquaredDistanceTo(candidate);
       if (candidateDistance < bestDistance) {
          bestDistance = candidateDistance;
          closest = candidate;

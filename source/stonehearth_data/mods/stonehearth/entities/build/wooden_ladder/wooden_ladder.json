@@ -1,0 +1,20 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",
+   "components": {
+      "unit_info": {
+         "name": "Ladder", 
+         "description": "Used to reach high places"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:ladder_render_info" : {
+         "lattice" : "file(wooden_ladder.qb)",
+         "scale" : 0.1,
+         "origin" : {
+            "x" : 5,
+            "y" : 0,
+            "z" : 5
+         }
+      }
+   }   
+}

@@ -280,6 +280,13 @@ float Cube<S, C>::DistanceTo(Point const& other) const
 }
 
 template <typename S, int C>
+inline float Cube<S, C>::SquaredDistanceTo(Point const& other) const
+{
+   Point closest = GetClosestPoint(other);
+   return closest.SquaredDistanceTo(other);
+}
+
+template <typename S, int C>
 float Cube<S, C>::DistanceTo(Cube const& other) const
 {
    float d = 0;
@@ -291,6 +298,20 @@ float Cube<S, C>::DistanceTo(Cube const& other) const
       }
    }
    return csg::Sqrt(d);
+}
+
+template <typename S, int C>
+inline float Cube<S, C>::SquaredDistanceTo(Cube const& other) const
+{
+   float d = 0;
+   for (int i = 0; i < C; i++) {
+      if (other.min[i] > max[i]) {
+         d += (other.min[i] - max[i]) * (other.min[i] - max[i]);
+      } else if (other.max[i] < min[i]) {
+         d += (other.max[i] - min[i]) * (other.max[i] - min[i]);
+      }
+   }
+   return d;
 }
 
 template <typename S, int C>

@@ -486,10 +486,11 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
 {
    bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
-      stopped = GridTileNonResident(index).ForEachTracker([cb](CollisionTrackerPtr tracker) {
+      stopped = GridTileNonResident(index).ForEachTracker([&cb](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
-         ASSERT(tracker->GetEntity());
-         bool stop = cb(tracker->GetEntity());
+         auto e = tracker->GetEntity();
+         ASSERT(e);
+         bool stop = cb(e);
          return stop;
       });
    }
@@ -806,6 +807,10 @@ bool NavGrid::IsBlocked(csg::Cube3 const& cube)
  */
 bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
 {
+   if (!bounds_.Contains(worldPoint)) {
+      return false;
+   }
+
    // Choose to do this with the resident tile data with the expectation that
    // anyone using the point API is actually iterating (so this is cheaper and faster
    // than the collision tracker method)
@@ -825,6 +830,9 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
  */
 bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
 {
+   if (!bounds_.Contains(worldPoint)) {
+      return true;
+   }
    return !IsBlocked(worldPoint) && IsSupport(worldPoint - csg::Point3::unitY);
 }
 

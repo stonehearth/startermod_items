@@ -332,6 +332,11 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
 
 float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
 {
+   return std::sqrt(GetSquaredMovementCost(start, end));
+}
+
+float OctTree::GetSquaredMovementCost(const csg::Point3& start, const csg::Point3& end) const
+{
    float cost = 0;
 
    // it's fairly expensive to climb (xxx: except climbing a ladder should be free!)
@@ -339,10 +344,11 @@ float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end)
 
    // falling is super cheap (free, in fact, but leave this here just in case).
    cost += std::max(start.y - end.y, 0);
+   cost *= cost;
 
-   int dx = abs(end.x - start.x);
-   int dz = abs(end.z - start.z);
-   cost += static_cast<float>(std::sqrt(dx*dx + dz*dz));
+   int dx = end.x - start.x;
+   int dz = end.z - start.z;
+   cost += static_cast<float>(dx*dx + dz*dz);
 
    return cost;
 }

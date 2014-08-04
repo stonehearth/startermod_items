@@ -283,58 +283,59 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 void AStarPathFinder::Work(const platform::timer &timer)
 {
-   PF_LOG(7) << "entering work function";
+   for (int i = 0; i < 8 && !timer.expired(); i++) {
+      PF_LOG(7) << "entering work function";
 
-   if (restart_search_) {
-      Restart();
-   }
+      if (restart_search_) {
+         Restart();
+      }
 
-   if (open_.empty()) {
-      PF_LOG(7) << "open set is empty!  returning";
-      SetSearchExhausted();
-      return;
-   }
+      if (open_.empty()) {
+         PF_LOG(7) << "open set is empty!  returning";
+         SetSearchExhausted();
+         return;
+      }
 
-   if (rebuildHeap_) {
-      RebuildHeap();
-   }
+      if (rebuildHeap_) {
+         RebuildHeap();
+      }
 
-   VERIFY_HEAPINESS();
-   PathFinderNode current = PopClosestOpenNode();
-   closed_.insert(current.pt);
+      VERIFY_HEAPINESS();
+      PathFinderNode current = PopClosestOpenNode();
+      closed_.insert(current.pt);
+      PathFinderDst* closest;
+      float h = EstimateCostToDestination(current.pt, &closest);
+      if (h == 0) {
+         // xxx: be careful!  this may end up being re-entrant (for example, removing
+         // destinations).
+         SolveSearch(current.pt, closest);
+         return;
+      } else if (current.g + h > max_cost_to_destination_) {
+         PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded.  marking search as exhausted.";
+         SetSearchExhausted();
+         return;
+      }
 
-   PathFinderDst* closest;
-   float h = EstimateCostToDestination(current.pt, &closest);
-   if (h == 0) {
-      // xxx: be careful!  this may end up being re-entrant (for example, removing
-      // destinations).
-      SolveSearch(current.pt, closest);
-      return;
-   } else if (h > max_cost_to_destination_) {
-      PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded.  marking search as exhausted.";
-      SetSearchExhausted();
-   }
+      VERIFY_HEAPINESS();
 
-   VERIFY_HEAPINESS();
-
-   // Check each neighbor...
-   const auto& o = GetSim().GetOctTree();
+      // Check each neighbor...
+      const auto& o = GetSim().GetOctTree();
    
-   phys::OctTree::MovementCostVector neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
-   PF_LOG(7) << "compute neighbor movement cost from " << current.pt << " returned " << neighbors.size() << " results";
-   if (neighbors.size() == 0) {
-      //DebugBreak();
-   }
+      phys::OctTree::MovementCostVector neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
+      PF_LOG(7) << "compute neighbor movement cost from " << current.pt << " returned " << neighbors.size() << " results";
+      if (neighbors.size() == 0) {
+         //DebugBreak();
+      }
 
-   VERIFY_HEAPINESS();
-   for (const auto& neighbor : neighbors) {
-      const csg::Point3& pt = neighbor.first;
-      float cost = neighbor.second;
       VERIFY_HEAPINESS();
-      AddEdge(current, pt, cost);
-      VERIFY_HEAPINESS();
+      for (const auto& neighbor : neighbors) {
+         const csg::Point3& pt = neighbor.first;
+         float cost = neighbor.second;
+         VERIFY_HEAPINESS();
+         AddEdge(current, pt, cost);
+         VERIFY_HEAPINESS();
+      }
    }
-
    VERIFY_HEAPINESS();
 }
 
@@ -357,10 +358,10 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
       }
       VERIFY_HEAPINESS();
 
-      float h = EstimateCostToDestination(next);
-      float f = g + h;
-
       if (i == c) {
+         float h = EstimateCostToDestination(next);
+         float f = g + h;
+
          // not found in the open list.  add a brand new node.
          PF_LOG(10) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
          cameFrom_[next] = current.pt;
@@ -372,6 +373,9 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
       } else {
          // found.  should we update?
          if (g < open_[i].g) {
+            float h = EstimateCostToDestination(next);
+            float f = g + h;
+
             cameFrom_[next] = current.pt;
             open_[i].g = g;
             open_[i].f = f;
@@ -433,6 +437,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
       }
    }
    if (hMin != FLT_MAX) {
+      hMin = csg::Sqrt(hMin);
       hMin *= 1.25f;       // prefer faster over optimal...
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
