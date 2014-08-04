@@ -20,6 +20,7 @@ using namespace ::radiant::simulation;
 
 #define BFS_LOG(level)   LOG(simulation.pathfinder.bfs, level) << "[" << GetName() << "] "
 
+#define BFS_LOOPS_PER_WORK 5
 
 std::vector<std::weak_ptr<BfsPathFinder>> BfsPathFinder::all_pathfinders_;
 
@@ -406,10 +407,12 @@ void BfsPathFinder::Work(platform::timer const &timer)
 
    if (running_) {
       ExpandSearch(timer);
-      if (!timer.expired() && !pathfinder_->IsIdle()) {
-         pathfinder_->Work(timer);
-         travel_distance_ = pathfinder_->GetTravelDistance();
-         BFS_LOG(9) << "setting travel distance to " << travel_distance_;
+      if (!timer.expired()) {
+         for (int i = 0; i < BFS_LOOPS_PER_WORK && !pathfinder_->IsIdle(); i++) {
+            pathfinder_->Work(timer);
+            travel_distance_ = pathfinder_->GetTravelDistance();
+            BFS_LOG(9) << "setting travel distance to " << travel_distance_;
+         }
       }
    }
    BFS_LOG(3) << "exiting work function";
@@ -452,54 +455,56 @@ void BfsPathFinder::ExpandSearch(platform::timer const &timer)
 
    // Work once to kick the pathfinder
    while (!timer.expired()) {
-      if (pathfinder_->IsSolved()) {
-         BFS_LOG(9) << "pathfinder found solution while expanding search";
-         return;
-      }
+      for (int i = 0; i < BFS_LOOPS_PER_WORK; i++) {
+         if (pathfinder_->IsSolved()) {
+            BFS_LOG(9) << "pathfinder found solution while expanding search";
+            return;
+         }
 
-      // If we've walked farther than we're allowed to explore, add a new nodes to the
-      // bfs search.  For example, if we're currently pursing an indirect path to an
-      // entity, we need to make sure all the tiles that are *closer* than the length
-      // of that path have been revealed so we can choose the (potentially closer) other
-      // entities. 
-      if (travel_distance_ > explored_distance_) {
-         BFS_LOG(9) << "current travel distance " << travel_distance_ 
-                    << " exceeds explored distance " << explored_distance_
-                    << ".  exploring more nodes";
+         // If we've walked farther than we're allowed to explore, add a new nodes to the
+         // bfs search.  For example, if we're currently pursing an indirect path to an
+         // entity, we need to make sure all the tiles that are *closer* than the length
+         // of that path have been revealed so we can choose the (potentially closer) other
+         // entities. 
+         if (travel_distance_ > explored_distance_) {
+            BFS_LOG(9) << "current travel distance " << travel_distance_ 
+                       << " exceeds explored distance " << explored_distance_
+                       << ".  exploring more nodes";
+            ExploreNextNode(src_index);
+            continue;
+         }
+
+         // If we've just explored too far and still don't have a solution, bail.
+         // We only explore new nodes when the AStarPathfinder is idle or when the
+         // path for the active AStarPathfinder exceeds the current explore distance,
+         // so if `explored_distance_` is too large, we know there must not be a
+         // solution.
+         if (explored_distance_ > max_explored_distanced) {
+            BFS_LOG(3) << "current explored distance " << explored_distance_ 
+               << " exceeds max explored distance " << max_explored_distanced
+               << ".  stopping search.";
+            return;
+         }
+
+         // We may have added a new node since the last time we checked.  If that
+         // caused the pathfinder to become active, stop expanding the search!
+         if (!pathfinder_->IsIdle()) {
+            BFS_LOG(5) << "slave pathfinder is not idle.  stopping search expansion.";
+            return;
+         }
+
+         // If we just plain ol' run out of nodes, there's no way to expand.
+         if (search_order_index_ >= SEARCH_ORDER_SIZE) {
+            BFS_LOG(3) << "ran out of search order nodes while expanding search";
+            return;
+         }
+
+         // If the pathfinder is still idle even after adding all the tiles, we
+         // need to expand the search
+         BFS_LOG(7) << "pathfinder is still idle with no tiles left unexplored.  increasing range.";
          ExploreNextNode(src_index);
-         continue;
+         BFS_LOG(7) << "explored distance is now " << explored_distance_ << "(max: " << max_explored_distanced << ")";
       }
-
-      // If we've just explored too far and still don't have a solution, bail.
-      // We only explore new nodes when the AStarPathfinder is idle or when the
-      // path for the active AStarPathfinder exceeds the current explore distance,
-      // so if `explored_distance_` is too large, we know there must not be a
-      // solution.
-      if (explored_distance_ > max_explored_distanced) {
-         BFS_LOG(3) << "current explored distance " << explored_distance_ 
-            << " exceeds max explored distance " << max_explored_distanced
-            << ".  stopping search.";
-         return;
-      }
-
-      // We may have added a new node since the last time we checked.  If that
-      // caused the pathfinder to become active, stop expanding the search!
-      if (!pathfinder_->IsIdle()) {
-         BFS_LOG(5) << "slave pathfinder is not idle.  stopping search expansion.";
-         return;
-      }
-
-      // If we just plain ol' run out of nodes, there's no way to expand.
-      if (search_order_index_ >= SEARCH_ORDER_SIZE) {
-         BFS_LOG(3) << "ran out of search order nodes while expanding search";
-         return;
-      }
-
-      // If the pathfinder is still idle even after adding all the tiles, we
-      // need to expand the search
-      BFS_LOG(7) << "pathfinder is still idle with no tiles left unexplored.  increasing range.";
-      ExploreNextNode(src_index);
-      BFS_LOG(7) << "explored distance is now " << explored_distance_ << "(max: " << max_explored_distanced << ")";
    }
 }
 
