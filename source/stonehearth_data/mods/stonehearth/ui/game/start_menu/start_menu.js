@@ -32,6 +32,9 @@ App.StonehearthStartMenuView = App.View.extend({
       place_item: function () {
          $(top).trigger('stonehearth_place_item');
       },
+      build_ladder: function () {
+         $(top).trigger('stonehearth_build_ladder');
+      },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },

@@ -225,6 +225,8 @@
    "item_placement_no_entities": "There is nothing to place!",
    "item_movement_title": "Move Item",
    "item_movement_description": "Click to move this item elsewhere.<p>Rotate the item with the , and . keys.",
+   "build_ladder_title": "Build Ladder",
+   "build_ladder_description": "Click to manually place a ladder to access hard to reach areas",
 
    "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",
