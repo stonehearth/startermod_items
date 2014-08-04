@@ -71,7 +71,7 @@ end
 function RadiantMath.random_xz_unit_vector(rng)
    rng = rng or _radiant.csg.get_default_rng()
 
-   local angle = rng:get_real(0, 2 * math.pi)
+   local angle = rng:get_real(0, 360)
    return RadiantMath.rotate_about_y_axis(Point3f.unit_x, angle)
 end
 
