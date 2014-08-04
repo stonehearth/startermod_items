@@ -32,11 +32,12 @@ end
 function BuildService:initialize()
    self._undo = BuildUndoManager()
 
-   self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
 
+   self._sv = self.__saved_variables:get_data()
    if not self._sv.next_building_id then
       self._sv.next_building_id = 1 -- used to number newly created buildings
+      self._sv.scaffolding_manager = radiant.create_controller('stonehearth:build_scaffolding_manager')
       self.__saved_variables:mark_changed()
    end
 end
@@ -833,6 +834,13 @@ function BuildService:add_patch_wall_to_building(building, wall_uri, normal, pos
                   :create_patch_wall(normal, region)
                   :layout()
       end)
+end
+
+function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
+   normal = ToPoint3(normal)
+   location = ToPoint3(location)
+   self._sv.scaffolding_manager:request_ladder_to(location, normal)
+   return true
 end
 
 return BuildService

@@ -25,12 +25,16 @@ App.StonehearthBuildModeView = App.View.extend({
          self._showBuildingDesigner();
       });
 
-      // show the palce item UI "place item" button on the start menu
+      // show the place item UI "place item" button on the start menu
       // is clicked.
       $(top).on('stonehearth_place_item', function() {
          self._showPlaceItemUi();
       });
 
+      // called when the "build ladder" item on the start menu is clicked
+      $(top).on('stonehearth_build_ladder', function() {
+         App.stonehearthClient.buildLadder();
+      });
    },
    
    didInsertElement: function() {

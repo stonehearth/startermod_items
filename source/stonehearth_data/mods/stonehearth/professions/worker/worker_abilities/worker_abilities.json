@@ -14,6 +14,8 @@
                "stonehearth:actions:light_firepit",               
                "stonehearth:actions:shear_sheep_action",
                "stonehearth:actions:replace_proxy_with_item",
+               "stonehearth:actions:build_ladder",
+               "stonehearth:actions:build_ladder_adjacent",
                "stonehearth:actions:fabricate_structure",
                "stonehearth:actions:fabricate_structure_adjacent",
                "stonehearth:actions:fabricate_fixture",

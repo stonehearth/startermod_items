@@ -76,15 +76,6 @@ local ARGS = {
    end
 }
 
-local XFORMED_ARG = {
-   eval = function (p, compound_action)
-      return compound_action:_get_transformed_args()
-   end,
-   tostring = function()
-      return 'ARGS'
-   end
-}
-
 local PREV = {
    eval = function (p, compound_action)
       return compound_action:_get_previous_think_output(1)
@@ -129,6 +120,5 @@ return {
    BACK = create_placeholder(BACK),
    CURRENT = create_placeholder(CURRENT),
    ENTITY = create_placeholder(ENTITY),
-   XFORMED_ARG = create_placeholder(XFORMED_ARG),
    INVALID_PLACEHOLDER = INVALID_PLACEHOLDER,
 }

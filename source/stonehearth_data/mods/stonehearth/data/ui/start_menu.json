@@ -76,6 +76,14 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
             "sticky" : true,
             "hotkey" : "p"
+         },
+         "build_ladder" : {
+            "name" : "Build a Ladder",
+            "description" : "Build a ladder to access hard to reach places",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/build_ladder.png",
+            "sticky" : true,
+            "hotkey" : "l"
          }
       }
    },

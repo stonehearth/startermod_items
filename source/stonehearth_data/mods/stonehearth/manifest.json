@@ -19,6 +19,7 @@
       "cursors:camera_move_up" : "file(data/cursors/camera_move_up.cur)",
       "cursors:create_door" : "file(data/cursors/create_door.cur)",
       "cursors:create_window" : "file(data/cursors/create_window.cur)",
+      "cursors:create_ladder" : "file(data/cursors/create_ladder.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:designate_zone" : "file(data/cursors/designate_zone.cur)",
@@ -58,6 +59,7 @@
       "wooden_peaked_roof" : "file(entities/build/roof/wooden_peaked_roof)",
       "thatch_peaked_roof" : "file(entities/build/roof/thatch_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
+      "wooden_ladder" : "file(entities/build/wooden_ladder)",
       "models:arrow" : "file(data/models/arrow.obj)",
       "entities:building" : "file(entities/build/building)",
       "entities:fabricator" : "file(entities/build/fabricator)",
@@ -347,6 +349,8 @@
       "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
       "actions:work_at_workshop" : "file(ai/actions/work_at_workshop_action.lua)",
       "actions:move_item_to_outbox" : "file(ai/actions/move_item_to_outbox_action.lua)",
+      "actions:build_ladder" : "file(ai/actions/build_ladder_action.lua)",
+      "actions:build_ladder_adjacent" : "file(ai/actions/build_ladder_adjacent_action.lua)",
       "actions:fabricate_structure" : "file(ai/actions/fabricate_structure_action.lua)",
       "actions:fabricate_structure_adjacent" : "file(ai/actions/fabricate_structure_adjacent_action.lua)",
       "actions:fabricate_fixture" : "file(ai/actions/fabricate_fixture_action.lua)",
@@ -919,6 +923,8 @@
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
+      "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
+      "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
 
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
@@ -1002,7 +1008,8 @@
       "column" : "file(components/column/column_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "roof" : "file(components/roof/roof_component.lua)",
-      "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)"
+      "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
+      "ladder" : "file(components/ladder/ladder_component.lua)"
    },
    "client_components" : {
       "wall" : "file(components/wall/wall_component.lua)",
@@ -1014,7 +1021,8 @@
       "construction_progress" : "file(components/construction_progress/construction_progress_client_component.lua)",
       "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
       "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
-      "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)"
+      "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",
+      "ladder" : "file(components/ladder/ladder_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",
@@ -1024,7 +1032,8 @@
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
-      "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)"
+      "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
+      "ladder" : "file(renderers/ladder/ladder_renderer.lua)"
    },
    "invariant_renderers" : {
       "scaffolding_renderer" : "file(renderers/scaffolding/scaffolding_renderer.lua)"

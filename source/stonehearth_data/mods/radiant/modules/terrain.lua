@@ -1,3 +1,4 @@
+local Entity = _radiant.om.Entity
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 
@@ -60,8 +61,21 @@ function Terrain.get_point_on_terrain(pt)
 end
 
 -- returns whether an entity can stand on the Point3 location
-function Terrain.is_standable(entity, location)
+function Terrain.is_standable(arg0, arg1)
+   if arg1 == nil then
+      local location = arg0
+      assert(radiant.util.is_a(location, Point3))
+      return _physics:is_standable(location)
+   end
+   local entity, location = arg0, arg1
+   assert(radiant.util.is_a(entity, Entity))
+   assert(radiant.util.is_a(location, Point3))
    return _physics:is_standable(entity, location)
+end
+
+-- returns whether an entity can stand occupy location
+function Terrain.is_blocked(entity, location)
+   return _physics:is_blocked(entity, location)
 end
 
 -- returns all entities whose locations of collision shapes intersect the cube
