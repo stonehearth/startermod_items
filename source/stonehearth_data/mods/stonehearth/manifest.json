@@ -159,7 +159,8 @@
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
       "silkweed_crop" : "file(entities/plants/silkweed/silkweed_crop)", 
 
-      "pink_flower" : "file(entities/ground_clutter/pink_flower)",
+      "brightbell" : "file(entities/plants/brightbell)",
+      "brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
 
       "berry_basket" : "file(entities/plants/berry_basket)",
       "berry_plate" : "file(entities/plants/berry_plate)",
