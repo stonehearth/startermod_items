@@ -143,6 +143,7 @@ int Application::Run(int argc, const char** argv)
       google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, std::string const& message) {
          LOG(protobuf, 0) << " " << message;
       });
+      APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR;
 
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
