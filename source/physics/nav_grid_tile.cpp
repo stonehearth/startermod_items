@@ -346,6 +346,7 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
 {
+   int tempSize = tempTrackers_.size();
    int numTrackers = 0;
    bool stopped = false;
 
@@ -354,7 +355,7 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
    // Also: we never call 'clear' on tempTrackers_, because it's only purpose is to hold
    // a list of weak refs to the actual trackers that we can safely iterate over; no
    // need to call destroy on that list (since they're weak refs).
-   while (begin != end && numTrackers < tempTrackers_.size()) {
+   while (begin != end && numTrackers < tempSize) {
       tempTrackers_[numTrackers++] = begin->second;
       begin++;
    }
