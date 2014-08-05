@@ -13,7 +13,7 @@ function AiInjector:__init(entity, ai, injecting_entity)
 end
 
 function AiInjector:inject_ai(ai)
-   log:info('injecting ai into %s', tostring(self._entity))
+   log:info('injecting ai into %s', self._entity)
    local ai_component = self._entity:add_component('stonehearth:ai')
 
    if ai.actions then
@@ -33,7 +33,12 @@ function AiInjector:inject_ai(ai)
 end
 
 function AiInjector:destroy()
-   log:info('revoking injected ai from %s', tostring(self._entity))
+   if not self._entity:is_valid() then
+      log:info('entity destroyed before revoking injected ai', self._entity)
+      return
+   end
+
+   log:info('revoking injected ai from %s', self._entity)
    local ai_component = self._entity:add_component('stonehearth:ai')
 
    if self._injected.actions then
