@@ -27,5 +27,9 @@ App.StonehearthTrappingGroundsView = App.View.extend({
          radiant.call('stonehearth:destroy_entity', self.uri)
          self.destroy();
       });
+
+      this.$('#disableButton').click(function() {
+         //xxx toggle zone enabled and disabled state.
+      })
    }
 });
