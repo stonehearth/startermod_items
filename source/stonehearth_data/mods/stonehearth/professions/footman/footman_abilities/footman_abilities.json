@@ -4,14 +4,13 @@
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:patrol_dispatcher",
                "stonehearth:actions:patrol",
                "stonehearth:actions:patrol:idle",
                "stonehearth:actions:get_patrol_route",
                "stonehearth:actions:mark_patrol_completed"
             ]
-         },
-         "injected_commands" : [
-         ]
+         }
       }
    },
    "entity_data" : {

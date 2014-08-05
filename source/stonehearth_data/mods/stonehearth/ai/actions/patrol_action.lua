@@ -4,7 +4,7 @@ local Patrol = class()
 
 Patrol.name = 'patrol'
 Patrol.status_text = 'patrolling'
-Patrol.does = 'stonehearth:work'
+Patrol.does = 'stonehearth:patrol'
 Patrol.args = {}
 Patrol.version = 2
 Patrol.priority = 1

@@ -394,6 +394,7 @@
       "actions:upgrade_equipment" : "file(ai/actions/upgrade_equipment/upgrade_equipment_action.lua)",
       "actions:find_equipment_upgrade" : "file(ai/actions/upgrade_equipment/find_equipment_upgrade_action.lua)",
 
+      "actions:patrol_dispatcher" : "file(ai/actions/patrol_dispatcher.lua)",
       "actions:patrol" : "file(ai/actions/patrol_action.lua)",
       "actions:patrol:idle" : "file(ai/actions/patrol_idle_action.lua)",
       "actions:get_patrol_route" : "file(ai/actions/get_patrol_route_action.lua)",
