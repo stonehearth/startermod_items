@@ -7,7 +7,7 @@ local TrappingCallHandler = class()
 function TrappingCallHandler:choose_trapping_grounds_location(session, response)
    stonehearth.selection:select_xz_region()
       :use_designation_marquee(Color4(122, 40, 0, 255))
-      :set_cursor('stonehearth:cursors:designate_zone')
+      :set_cursor('stonehearth:cursors:zone_trapping_grounds')
       :done(
          function(selector, box)
             local size = {
