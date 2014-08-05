@@ -8,7 +8,6 @@ local Region3 = _radiant.csg.Region3
 
 function WallLoopEditor:__init(build_service)
    self._build_service = build_service
-   self._column_editors = {}
    self._log = radiant.log.create_logger('builder')
 end
 
@@ -50,13 +49,16 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                last_location = radiant.entities.get_world_grid_location(last_column_editor:get_proxy_blueprint())
                current_column_editor = self:_create_column_editor(column_uri)
                current_column_editor:move_to(last_location)
+            else
+               current_column_editor:destroy()
             end
          end)
       :fail(function(selector)
-            selector:destroy()
-            for _, column_editor in pairs(self._column_editors) do
-               column_editor:destroy()
+            if last_column_editor then
+               last_column_editor:destroy()
             end
+            current_column_editor:destroy()
+            selector:destroy()
          end)
       :go()
    
@@ -141,9 +143,7 @@ end
 
 function WallLoopEditor:_create_column_editor(column_uri)
    local column_editor = StructureEditor()
-   column_editor:create_blueprint(column_uri, 'stonehearth:column')   
-   
-   self._column_editors[column_editor:get_proxy_blueprint():get_id()] = column_editor
+   column_editor:create_blueprint(column_uri, 'stonehearth:column')      
    return column_editor
 end
 

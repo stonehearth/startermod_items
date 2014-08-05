@@ -6,7 +6,7 @@ function InventoryCallHandler:choose_stockpile_location(session, response)
    stonehearth.selection:select_xz_region()
       :restrict_to_standable_terrain()
       :use_designation_marquee(Color4(0, 153, 255, 255))
-      :set_cursor('stonehearth:cursors:designate_zone')
+      :set_cursor('stonehearth:cursors:zone_stockpile')
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,

@@ -11,18 +11,13 @@
       },
       "stonehearth:loot_table" : {
         "num_drops" : {
-          "min" : 2,
-          "max" : 3
+          "min" : 1,
+          "max" : 2
         },
-        "items" : {
-          "jerky" : {
-            "uri" : "stonehearth:squirrel_jerky"
-          },
-          "pelt" : {
-            "uri" : "stonehearth:squirrel_pelt",
-            "unique" : true
-          }
-        }
+        "items" : [
+          { "uri" : "stonehearth:squirrel_jerky" },
+          { "uri" : "stonehearth:squirrel_pelt"  }
+        ]
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)",

@@ -6,7 +6,7 @@ function InventoryComponent:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.items = {}
       self._sv.num_items = 0
-      self._sv.capacity = json.capacity or 4
+      self._sv.capacity = json.capacity or 99
       self._sv.initialized = true
    end
 end

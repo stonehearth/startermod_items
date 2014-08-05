@@ -1,26 +1,13 @@
 {
    "type" : "entity",
+   "mixins" : "file(brightbell_ghost.json)",
+
    "components" : {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(brightbell_iconic.json)",
          "ghost_form" : "file(brightbell_ghost.json)",
          "placeable_on_ground" : true
       },      
-      "render_info" : {
-         "scale" : 0.2
-      },
-      "unit_info" : {
-         "name": "Brightbell Flower", 
-         "description": "Just a flower.",
-         "icon" : "file(brightbell.png)"
-      },      
-      "model_variants": {
-         "default": {
-		      "models": [
-			      "file(brightbell.qb)"
-		      ]
-   	   }
-      },
       "stonehearth:material" : {
          "tags" :  "plant"
       },     
