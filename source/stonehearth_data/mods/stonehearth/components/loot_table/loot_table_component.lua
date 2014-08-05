@@ -27,14 +27,12 @@ function LootTableComponent:get_loot()
    local drops = rng:get_int(self._loot_table.num_drops.min,
                              self._loot_table.num_drops.max)
    
-   --[[
-   for local i = 1, drops, 1 do
-      self:add_loot_item(items)
-   end
-   ]]
-
-   for _, item in pairs(self._loot_table.items) do
-      table.insert(items, item.uri)
+   
+   local i
+   for i = 1, drops, 1 do
+      local r = rng:get_int(1, #self._loot_table.items)
+      local loot_item = self._loot_table.items[r]
+      table.insert(items, loot_item.uri)
    end
 
    return items
@@ -54,12 +52,6 @@ function LootTableComponent:spawn_loot()
    end
 
    return item_entities
-end
-
-
-function LootTableComponent:add_loot_item(items)
-   local r = rnd:get_int(0, _num_shares)
-
 end
 
 return LootTableComponent
