@@ -78,7 +78,7 @@ csg::Point3 PathFinderSrc::GetSourceLocation() const
    return source_location_;
 }
 
-void PathFinderSrc::Start()
+void PathFinderSrc::Start(std::vector<PathFinderNode>& open)
 {
    if (use_source_override_) {
       source_location_ = source_override_;
@@ -91,4 +91,5 @@ void PathFinderSrc::Start()
          }
       }
    }
+   InitializeOpenSet(open);
 }

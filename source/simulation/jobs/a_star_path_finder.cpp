@@ -10,6 +10,7 @@
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
 #include "csg/color.h"
+#include "csg/util.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -70,6 +71,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    search_exhausted_(false),
    enabled_(false),
    entity_(entity),
+   world_changed_(false),
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
@@ -77,6 +79,8 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    auto changed_cb = [this](const char* reason) {
       RestartSearch(reason);
    };
+
+   // Watch for dirty navgrid tiles so we can restart the search if necessary
    source_.reset(new PathFinderSrc(entity, GetName(), changed_cb));
 }
 
@@ -192,7 +196,7 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
       auto changed_cb = [this](const char* reason) {
          RestartSearch(reason);
       };
-      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), entity_, dstEntity, GetName(), changed_cb));
+      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb));
       RestartSearch("added destination");
    }
    return shared_from_this();
@@ -226,9 +230,18 @@ void AStarPathFinder::Restart()
 
    rebuildHeap_ = true;
    restart_search_ = false;
-   max_cost_to_destination_ = 0;
 
-   source_->InitializeOpenSet(open_);
+   world_changed_ = false;
+   watching_tiles_.clear();
+   EnableWorldWatcher(true);
+
+   max_cost_to_destination_ = GetSim().GetOctTree().GetMovementCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
+
+   source_->Start(open_);
+   for (auto const& entry : destinations_) {
+      entry.second->Start();
+   }
+
    for (PathFinderNode& node : open_) {
       float h = EstimateCostToDestination(node.pt);
       node.f = h;
@@ -260,13 +273,28 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    }
 
 #if 0
+   float min_h = FLT_MAX;
+   float max_h = FLT_MIN;
+   std::unordered_map<csg::Point3, float, csg::Point3::Hash> costs;
+   for (const auto& node: open_) {
+      if (std::find(best.begin(), best.end(), node.pt) == best.end()) {
+         float h = EstimateCostToDestination(node.pt);
+         min_h = std::min(min_h, h);
+         max_h = std::max(max_h, h);
+         costs[node.pt] = h;
+      }
+   }
    for (const auto& node: open_) {
       if (std::find(best.begin(), best.end(), node.pt) == best.end()) {
          auto coord = msg->add_coords();
          node.pt.SaveValue(coord);
-         csg::Color4(128, 128, 255, 192).SaveValue(coord->mutable_color());
+         int c = static_cast<int>(255 * costs[node.pt] / (max_h - min_h));
+         csg::Color4(c, c, c, 192).SaveValue(coord->mutable_color());
       }
    }
+#endif
+
+#if 0
    for (const auto& pt: closed_) {
       if (std::find(best.begin(), best.end(), pt) == best.end()) {
          auto coord = msg->add_coords();
@@ -303,6 +331,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
       VERIFY_HEAPINESS();
       PathFinderNode current = PopClosestOpenNode();
       closed_.insert(current.pt);
+      WatchWorldPoint(current.pt);
+
       PathFinderDst* closest;
       float h = EstimateCostToDestination(current.pt, &closest);
       if (h == 0) {
@@ -510,6 +540,12 @@ void AStarPathFinder::RebuildHeap()
 
 void AStarPathFinder::SetSearchExhausted()
 {
+   if (world_changed_) {
+      PF_LOG(5) << "restarting search after exhaustion: world changed during search";
+      RestartSearch("world changed during search");
+      return;
+   }
+
    if (!search_exhausted_) {
       cameFrom_.clear();
       closed_.clear();
@@ -560,7 +596,11 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
    cameFrom_.clear();
    closed_.clear();
    open_.clear();
-   source_->Start();
+
+   world_changed_ = false;
+   watching_tiles_.clear();
+   EnableWorldWatcher(false);
+   
    return shared_from_this();
 }
 
@@ -600,3 +640,48 @@ std::string AStarPathFinder::DescribeProgress()
    progress << "idle? " << IsIdle();
    return progress.str();
 }
+
+void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
+{
+   if (!navgrid_guard_.Empty()) {
+      csg::Cube3 bounds = region.GetBounds();
+      csg::Cube3 chunks = csg::GetChunkIndex(bounds, phys::TILE_SIZE);
+      for (csg::Point3 const& cursor : chunks) {
+         WatchTile(cursor);
+      }
+   }
+}
+
+void AStarPathFinder::WatchWorldPoint(csg::Point3 const& pt)
+{
+   if (!navgrid_guard_.Empty()) {
+      csg::Point3 index = csg::GetChunkIndex(pt, phys::TILE_SIZE);
+      WatchTile(index);
+   }
+}
+
+void AStarPathFinder::WatchTile(csg::Point3 const& index)
+{
+   watching_tiles_.insert(index);
+}
+
+void AStarPathFinder::OnTileDirty(csg::Point3 const& index)
+{
+   if (watching_tiles_.find(index) != watching_tiles_.end()) {
+      world_changed_ = true;
+      EnableWorldWatcher(false);
+   }
+}
+
+void AStarPathFinder::EnableWorldWatcher(bool enabled)
+{
+   if (enabled) {
+      world_changed_ = false;
+      navgrid_guard_ = GetSim().GetOctTree().GetNavGrid().NotifyTileDirty([this](csg::Point3 const& pt) {
+         OnTileDirty(pt);
+      });
+   } else {
+      navgrid_guard_.Clear();
+   }
+}
+

@@ -8,6 +8,7 @@
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
+#include "a_star_path_finder.h"
 #include "csg/color.h"
 
 using namespace ::radiant;
@@ -15,11 +16,12 @@ using namespace ::radiant::simulation;
 
 #define PF_LOG(level)   LOG_CATEGORY(simulation.pathfinder.astar, level, name_ << "(dst " << std::setw(5) << id_ << ")")
 
-PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb) :
+PathFinderDst::PathFinderDst(Simulation& sim, AStarPathFinder& pathfinder, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb) :
    sim_(sim),
    dstEntity_(dst),
    srcEntity_(src),
    name_(name),
+   pathfinder_(pathfinder),
    changed_cb_(changed_cb)
 {
    ASSERT(!srcEntity_.expired());
@@ -29,7 +31,7 @@ PathFinderDst::PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef d
       id_ = entity->GetObjectId();
       PF_LOG(3) << "adding path finder dst for " << *entity;
    }
-   CreateTraces();
+   Start();
 }
 
 PathFinderDst::~PathFinderDst()
@@ -37,11 +39,11 @@ PathFinderDst::~PathFinderDst()
    DestroyTraces();
 }
 
-void PathFinderDst::CreateTraces()
+void PathFinderDst::Start()
 {
    auto dstEntity = dstEntity_.lock();
    if (dstEntity) {
-      PF_LOG(7) << "creating traces";
+      PF_LOG(7) << "starting path finder dst for " << *dstEntity;
 
       auto destination_may_have_changed = [this](const char* reason) {
          auto ep = dstEntity_.lock();
@@ -80,6 +82,12 @@ void PathFinderDst::ClipAdjacentToTerrain()
    om::EntityPtr srcEntity = srcEntity_.lock();
    if (dstEntity && srcEntity) {
       world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, srcEntity, dstEntity);
+      pathfinder_.WatchWorldRegion(world_space_adjacent_region_);
+      PF_LOG(7) << "world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
+
+      phys::OctTree& octTree = sim_.GetOctTree();
+      octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, world_space_adjacent_region_);
+      PF_LOG(7) << "standable world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
    }
 }
 
