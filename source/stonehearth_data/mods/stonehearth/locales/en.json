@@ -197,6 +197,8 @@
 
    "farm_pick_crop" : "Choose a crop",
 
+   "trapping_grounds_help" : "Trappers can place multiple traps in a trapping grounds and will periodically check to see if they have caught anything. The location of the traps determines what kind of critters will be caught.",
+
    "show_workshop_description" : "Owned by ",
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",

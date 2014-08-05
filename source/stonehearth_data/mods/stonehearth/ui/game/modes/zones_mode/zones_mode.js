@@ -10,14 +10,6 @@ App.StonehearthZonesModeView = App.View.extend({
          self._onEntitySelected(e);
       });
 
-      $(top).on('select_stockpile', function(_, stockpile) {
-         self._showStockpileUi(stockpile);
-      });
-
-      $(top).on('select_farm', function(_, farm) {
-         self._showFarmUi(farm);
-      });
-
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
             if (self._propertyView) {
@@ -72,6 +64,8 @@ App.StonehearthZonesModeView = App.View.extend({
          this._showStockpileUi(entity);
       } else if (entity['stonehearth:farmer_field']) {
          this._showFarmUi(entity);
+      } else if (entity['stonehearth:trapping_grounds']) {
+         this._showTrappingGroundsUi(entity);
       }
    },
 
@@ -113,6 +107,26 @@ App.StonehearthZonesModeView = App.View.extend({
                collision : 'fit'
             }
       });
+   },
 
+   _showTrappingGroundsUi: function(entity) {
+      var self = this;
+
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
+      var uri = typeof(entity) == 'string' ? entity : entity.__self;
+      
+      // TODO: refactor parameters with stockpile and farm?
+      this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
+            uri: uri,
+            position_hide: {
+               my : 'center bottom',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
+               of : $(document),
+               collision : 'fit'
+            }
+         });
    }
 });
