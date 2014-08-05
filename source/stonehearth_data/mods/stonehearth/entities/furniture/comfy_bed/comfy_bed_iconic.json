@@ -2,11 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "components": {
       "unit_info": {
-      "name": "Comfy Bed",
-      "description": "Ready to be deployed!",
-      "icon" : "file(comfy_bed.png)"
-   },
-   "unit_info": {
          "name": "Comfy Bed",
          "description": "Ready to be deployed!",
          "icon" : "file(comfy_bed.png)"
