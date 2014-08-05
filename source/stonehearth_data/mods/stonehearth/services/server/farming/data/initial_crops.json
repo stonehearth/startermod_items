@@ -45,7 +45,7 @@
    "data" : {
       "fallow" : {
          "name" : "Fallow", 
-         "description" : "Let the soil renew itself", 
+         "description" : "Plant no crop and let the soil renew itself.", 
          "icon" : "file(fallow.png)"   
       }
    }

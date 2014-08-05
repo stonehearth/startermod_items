@@ -128,6 +128,13 @@ App.StonehearthFarmCropPalette = App.View.extend({
          self.destroy();
       });
 
-      this.$('.item').tooltipster();
+     this.$('.item').each(function() {
+         $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+     });
+
+      //this.$('.item').tooltipster();
    }
 });
