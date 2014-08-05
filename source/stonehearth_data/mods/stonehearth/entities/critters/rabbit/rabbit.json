@@ -11,8 +11,8 @@
       },
       "stonehearth:loot_table" : {
         "num_drops" : {
-          "min" : 4,
-          "max" : 6
+          "min" : 2,
+          "max" : 4
         },
         "items" : [
           { "uri" : "stonehearth:rabbit_jerky" },
