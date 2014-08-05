@@ -10,6 +10,7 @@ local INFINITE = 1000000
 
 function ConstructionDataRenderer:initialize(render_entity, construction_data)
    self._entity = render_entity:get_entity()
+   self._render_entity = render_entity
    self._parent_node = render_entity:get_node()
    self._construction_data = construction_data
    
@@ -25,9 +26,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
                                        self:_update_region(region, visible)
                                     end)
                                  :set_visible_changed_cb(function(visible)
-                                       if self._render_node then
-                                          self._render_node:set_visible(visible)
-                                       end
+                                       self._render_entity:set_visible_override(visible)
                                     end)
 
       self._construction_data_trace = construction_data:trace_data('render')
