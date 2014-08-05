@@ -6,35 +6,68 @@
          "description" : "Safely immobilizes its prey",
          "icon" : "file(/entities/generic/default_object/default_object.png)"
       },
-       "stonehearth:material" : {
+      "stonehearth:material" : {
          "tags" : "wood"
       },
       "model_variants": {
-         "default": {
-            "models": [
+         "default" : {
+            "models" : [
                "file(snare_trap.qb)"
+            ]
+         },
+         "sprung" : {
+            "models" : [
+               "file(snare_trap_sprung.qb)"
             ]
          }
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(commands/harvest_trapped_beast)",
-            "file(commands/tame_trapped_beast)"
-         ]
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
       },
-      "effect_list" : {
-         "effects" : [
-            "stonehearth:effects:talisman_glow"
-         ]  
-      },
-      "destination": {
+      "region_collision_shape" : {
          "region": [
             {
-               "min" : { "x" : -1, "y" : -1, "z" : -1 },
-               "max" : { "x" :  2, "y" : 2, "z" :  2 }
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 2, "z" : 1 }
             }
          ]
+      },
+      "destination" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 1, "z" : 1 }
+            }
+         ]
+      },
+      "stonehearth:bait_trap" : {
+         "range" : 16
+      },
+      "sensor_list" : {
+         "sensors" : {
+            "interaction_sensor" : {
+               "type" : "sensor",
+               "radius" : 32
+            }
+         }
+      },
+      "stonehearth:sensor_ai_injector" : {
+         "sensor" : "interaction_sensor",
+         "ai" : {
+            "actions" : [
+               "stonehearth:actions:trapping:try_steal_bait",
+               "stonehearth:actions:trapping:trigger_trap",
+            ],
+            "observers" : [
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:render_materials" : {
+         "default" : "materials/voxel.material.xml",
+         "hud" : "materials/ghost_item.xml"
       }
    }
 }
-

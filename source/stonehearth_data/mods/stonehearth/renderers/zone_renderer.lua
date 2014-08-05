@@ -31,6 +31,7 @@ function ZoneRenderer:destroy()
    self:_destroy_ground_node()
 end
 
+-- size is a Point2
 function ZoneRenderer:set_size(size)
    if size ~= self._size then
       self._size = size

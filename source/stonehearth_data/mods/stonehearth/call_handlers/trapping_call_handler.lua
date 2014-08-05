@@ -12,7 +12,7 @@ function TrappingCallHandler:choose_trapping_grounds_location(session, response)
          function(selector, box)
             local size = {
                x = box.max.x - box.min.x,
-               y = box.max.z - box.min.z,
+               z = box.max.z - box.min.z,
             }
             _radiant.call('stonehearth:designate_trapping_grounds', box.min, size)
                :done(
@@ -39,8 +39,7 @@ end
 function TrappingCallHandler:designate_trapping_grounds(session, response, location, size)
    local player_id = session.player_id
    local faction = session.faction
-   local size_pt = Point2(size.x, size.y)
-   local trapping_grounds = stonehearth.trapping:designate_trapping_grounds(player_id, faction, location, size_pt)
+   local trapping_grounds = stonehearth.trapping:designate_trapping_grounds(player_id, faction, location, size)
    return { trapping_grounds = trapping_grounds }
 end
 

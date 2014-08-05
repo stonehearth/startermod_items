@@ -14,7 +14,7 @@ local ai = stonehearth.ai
 return ai:create_compound_action(Flee)
          :execute('stonehearth:run_away_from_entity', {
             threat = ai.ARGS.threat,
-            distance = 32,
+            distance = 16,
          })
          :execute('stonehearth:turn_to_face_entity', {
             entity = ai.ARGS.threat,

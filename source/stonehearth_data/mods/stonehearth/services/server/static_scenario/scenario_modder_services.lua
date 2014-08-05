@@ -30,6 +30,7 @@ function ScenarioModderServices:place_entity(uri, x, y, randomize_facing)
 end
 
 function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footprint_length, randomize_facing)
+   local entities = {}
    local rng = self.rng
    local size = self._properties.size
    local grid_spacing = self:_get_perturbation_grid_spacing(size.width, size.length, quantity)
@@ -38,7 +39,7 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footp
    local num_cells_x, num_cells_y = grid:get_dimensions()
    local cells_left = num_cells_x * num_cells_y
    local num_selected = 0
-   local x, y, probability
+   local x, y, probability, entity
 
    for j=1, num_cells_y do
       for i=1, num_cells_x do
@@ -47,16 +48,19 @@ function ScenarioModderServices:place_entity_cluster(uri, quantity, entity_footp
 
          if rng:get_real(0, 1) < probability then
             x, y = grid:get_perturbed_coordinates(i, j, margin_size)
-            self:place_entity(uri, x, y, randomize_facing)
+            entity = self:place_entity(uri, x, y, randomize_facing)
+            entities[entity:get_id()] = entity
             num_selected = num_selected + 1
 
             if num_selected == quantity then
-               return
+               return entities
             end
          end
          cells_left = cells_left - 1
       end
    end
+
+   return entities
 end
 
 -- Private API starts here

@@ -272,11 +272,12 @@
       "actions:pickup_item_on_table_adjacent" : "file(ai/actions/pickup_item_on_table_adjacent_action.lua)",
       "actions:pickup_item_type" : "file(ai/actions/pickup_item_type_action.lua)",
       "actions:pickup_item_type_trivial" : "file(ai/actions/pickup_item_type_trivial.lua)",
+      "actions:pickup_item_type_from_inventory" : "file(ai/actions/pickup_item_type_from_inventory_action.lua)",
       "actions:pickup_item_made_of" : "file(ai/actions/pickup_item_made_of.lua)",
       "actions:pickup_item_with_uri" : "file(ai/actions/pickup_item_with_uri_action.lua)",
       "actions:place_item" : "file(ai/actions/place_item_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
-      "actions:loot_item" : "file(ai/actions/loot_item.lua)",
+      "actions:loot_item" : "file(ai/actions/loot_item_action.lua)",
       "actions:put_carrying_in_inventory" : "file(ai/actions/put_carrying_in_inventory.lua)",      
       "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
@@ -337,10 +338,13 @@
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
       "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
+
       "actions:idle:despair" : "file(ai/actions/idle_despair_action.lua)",
       "actions:idle:look_around" : "file(ai/actions/idle_look_around_action.lua)",
       "actions:idle:sway" : "file(ai/actions/idle_sway_action.lua)",
       "actions:idle:warm_hands" : "file(ai/actions/idle_warm_hands_action.lua)",
+
+      "actions:crafting_task_dispatcher" : "file(ai/actions/crafting_task_dispatcher.lua)",
       "actions:work_at_workshop" : "file(ai/actions/work_at_workshop_action.lua)",
       "actions:move_item_to_outbox" : "file(ai/actions/move_item_to_outbox_action.lua)",
       "actions:build_ladder" : "file(ai/actions/build_ladder_action.lua)",
@@ -351,14 +355,24 @@
       "actions:fabricate_fixture_adjacent" : "file(ai/actions/fabricate_fixture_adjacent_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
-      "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
-      "actions:till_entire_field" : "file(ai/actions/till_entire_field_action.lua)",
-      "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
-      "actions:crafting_task_dispatcher" : "file(ai/actions/crafting_task_dispatcher.lua)",
-      
       "filters:fabricate_wooden_structure" : "file(ai/filters/fabricate_wooden_structure_filter.lua)",
       "filters:fabricate_wooden_fixture" : "file(ai/filters/fabricate_wooden_fixture_filter.lua)",
       "filters:teardown_wooden_structure" : "file(ai/filters/teardown_wooden_structure_filter.lua)",
+
+      "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
+      "actions:till_entire_field" : "file(ai/actions/till_entire_field_action.lua)",
+      "actions:plant_crop" : "file(ai/actions/plant_crop.lua)",
+
+      "actions:trapping_dispatcher" : "file(ai/actions/trapping/trapping_dispatcher.lua)",
+      "actions:trapping:survey_trapping_grounds" : "file(ai/actions/trapping/survey_trapping_grounds_action.lua)",
+      "actions:trapping:set_bait_trap" : "file(ai/actions/trapping/set_bait_trap_action.lua)",
+      "actions:trapping:set_bait_trap_adjacent" : "file(ai/actions/trapping/set_bait_trap_adjacent_action.lua)",
+      "actions:trapping:check_bait_trap" : "file(ai/actions/trapping/check_bait_trap_action.lua)",
+      "actions:trapping:harvest_trapped_beast" : "file(ai/actions/trapping/harvest_trapped_beast_action.lua)",
+      "actions:trapping:tame_trapped_beast" : "file(ai/actions/trapping/tame_trapped_beast_action.lua)",
+      "actions:trapping:try_steal_bait" : "file(ai/actions/trapping/try_steal_bait_action.lua)",
+      "actions:trapping:trigger_trap" : "file(ai/actions/trapping/trigger_trap_action.lua)",
+      "actions:trapping:despawn" : "file(ai/actions/trapping/despawn_action.lua)",
 
       "actions:combat" : "file(ai/actions/combat/combat_action.lua)",
       "actions:combat:attack_after_cooldown" : "file(ai/actions/combat/attack_after_cooldown_action.lua)",
@@ -405,6 +419,7 @@
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
+      "observers:avoid_hostile_entities" : "file(ai/observers/avoid_hostile_entities_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",
@@ -656,7 +671,6 @@
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "server"
       },
-
       "set_display_name": {
          "controller" : "file(call_handlers/entities_call_handler.lua)",
          "endpoint" : "server"
@@ -944,7 +958,8 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
-      "trapping_grounds" : "file(components/trapping_grounds/trapping_grounds_component.lua)",
+      "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
+      "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",

@@ -1,50 +1,43 @@
-local MicroWorld = require 'lib.micro_world'
 local Point3 = _radiant.csg.Point3
-
+local MicroWorld = require 'lib.micro_world'
 local TrapperTest = class(MicroWorld)
---[[
-   Instantiate a carpenter, a workbench, and a piece of wood.
-   Turn out a wooden sword
-]]
 
 function TrapperTest:__init()
-   self[MicroWorld]:__init()
+   self[MicroWorld]:__init(128)
    self:create_world()
 
+   self:place_item('stonehearth:large_oak_tree', -25, -25)
+   self:place_item('stonehearth:medium_oak_tree', -5, -25)
+   self:place_item('stonehearth:small_oak_tree',  15, -25)
 
-   self:place_tree(-9, -9)
-   local worker = self:place_citizen(-7, -7)
-   local trapper = self:place_citizen(7, 7,'trapper')
-   radiant.entities.set_faction(trapper, 'civ')
-   local trapper = self:place_citizen(-7, 7,'trapper')
-   radiant.entities.set_faction(trapper, 'civ')
+   self:place_item('stonehearth:large_juniper_tree', -25, -5)
+   self:place_item('stonehearth:medium_juniper_tree', -5, -5)
+   self:place_item('stonehearth:small_juniper_tree',  15, -5)
 
-   local rabbit = self:place_item('stonehearth:rabbit', 0, 0)
-   local rabbit = self:place_item('stonehearth:rabbit', -3, -6)
-   local rabbit = self:place_item('stonehearth:rabbit', 0, -6)
+   self:place_item('stonehearth:large_boulder',  -25, 5)
+   self:place_item('stonehearth:medium_boulder', -15, 5)
+   self:place_item('stonehearth:small_boulder',   -5, 5)
 
-   self:place_item('stonehearth:berry_basket', 0, 0)
-   self:place_item('stonehearth:berry_basket', 1, 1)
-      
+   self:place_item('stonehearth:small_boulder',    5, 5)
+       :add_component('mob'):turn_to(90)
 
-   local kit = self:place_item('stonehearth:trapper:knife', -5, -5)
+   self:place_item('stonehearth:small_boulder',    15, 5)
+       :add_component('mob'):turn_to(90)
 
-   radiant.effects.run_effect(worker, '/stonehearth/data/effects/gib_effect')
+   self:place_item('stonehearth:berry_bush', -25, 15)
+   self:place_item('stonehearth:berry_bush', -15, 15)
+   self:place_item('stonehearth:silkweed',  -5, 15)
 
-   -- place the town standard for the trapper to "return home" to when dumping his inventory
-   local town = stonehearth.town:get_town(worker)
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   town:set_banner(banner_entity)
-   radiant.terrain.place_entity(banner_entity, Point3(11, 0, 11))
+   self:place_citizen(10, 10, 'stonehearth:professions:trapper', 'stonehearth:trapper:knife_proxy')
+   --self:place_citizen(8, 8, 'stonehearth:professions:trapper', 'stonehearth:trapper:knife_proxy')
+   --self:place_citizen(8, 8, 'stonehearth:professions:footman', 'stonehearth:trapper:wooden_sword_proxy')
+   -- self:place_citizen(12, 12)
+   -- self:place_citizen(14, 14)
 
-   self:at(10,  function()
-         self:place_stockpile_cmd('player_1', 12, 12, 4, 4)
-         worker:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
-         rabbit:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)
-
-      end)
-
+   self:place_item('stonehearth:red_fox', 15, 15, 'game_master')
+   -- self:place_critter('stonehearth:rabbit', 14, 14, 'game_master')
+   -- self:place_critter('stonehearth:racoon', 13, 13, 'game_master')
+   -- self:place_critter('stonehearth:squirrel', 12, 12, 'game_master')
 end
 
 return TrapperTest
-

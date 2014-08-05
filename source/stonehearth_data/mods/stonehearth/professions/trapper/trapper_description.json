@@ -14,6 +14,12 @@
 
    "roles" : "trapper_profession hunter", 
 
+   "task_groups" : [
+      "stonehearth:task_group:trapping",
+      "stonehearth:task_group:restock", 
+      "stonehearth:task_group:harvest"
+   ],
+
    "buttonIcon" : "file(images/jobButton.png)",
 
    "score_value" : 10

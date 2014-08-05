@@ -1,5 +1,6 @@
-local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 
 FarmingService = class()
 
@@ -122,26 +123,33 @@ function FarmingService:add_crop_type(session, new_crop_type, quantity)
 end
 
 function FarmingService:_add_region_components(entity, size)
-   local destination_component = entity:add_component('destination')
-   local collision_component = entity:add_component('region_collision_shape')
-   local boxed_bounds = _radiant.sim.alloc_region()
+   local region = Region3(
+      Cube3(
+         Point3(0, 0, 0),
+         Point3(size.x, 1, size.y)
+      )
+   )
 
-   boxed_bounds:modify(
+   self:_set_region_component(entity, 'region_collision_shape', region)
+      :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+
+   self:_set_region_component(entity, 'destination', region)
+      :set_auto_update_adjacent(true)
+end
+
+function FarmingService:_set_region_component(entity, component_name, region)
+   local region_boxed = _radiant.sim.alloc_region()
+
+   region_boxed:modify(
       function (region3)
-         region3:add_unique_cube(
-            Cube3(
-               -- recall that regions in components are is in local coordiantes
-               Point3(0, 0, 0),
-               Point3(size.x, 1, size.y)
-            )
-         )
+         region3:add_region(region)
       end
    )
 
-   destination_component:set_region(boxed_bounds)
-                        :set_auto_update_adjacent(true)
-   collision_component:set_region(boxed_bounds)
-                      :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+   local component = entity:add_component(component_name)
+   component:set_region(region_boxed)
+
+   return component
 end
 
 function FarmingService:_get_crop_list(session)

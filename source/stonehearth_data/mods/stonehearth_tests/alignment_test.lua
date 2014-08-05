@@ -91,6 +91,7 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:wool_bundle', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:cloth_bolt', x, z, dx, 0); x=x_start; z=z+dz;
 
+   self:_check_item('stonehearth:trapper:snare_trap', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:mixins:resources:fur_pelt', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:amazing_corn_basket', x, z, dx, 0); x=x_start; z=z+dz;

@@ -54,7 +54,7 @@ function Terrain.get_standable_point(entity, pt)
    return _physics:get_standable_point(entity, start_point)
 end
 
--- returns the height (y coordinate) of the highest terrain voxel at (x, z)
+-- returns the Point3 of the highest terrain voxel at (x, z)
 function Terrain.get_point_on_terrain(pt)
    return radiant._root_entity:add_component('terrain')
                                  :get_point_on_terrain(pt)

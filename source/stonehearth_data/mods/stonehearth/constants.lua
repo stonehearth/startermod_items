@@ -44,9 +44,11 @@ local constants = {
 
       work = {    --Categories of work. Represented as dispatchers.
          SIMPLE_LABOR      = 1,    --basic tasks traditionally the domain of workers
+         PATROLLING        = 2,
          FARMING           = 2,
-         CRAFTING          = 3,
-         UPGRADE_EQUIPMENT = 4,
+         TRAPPING          = 2,
+         CRAFTING          = 10,
+         UPGRADE_EQUIPMENT = 20,
       },
 
       simple_labor = {
@@ -61,6 +63,14 @@ local constants = {
          PLANT              = 3,
          TILL               = 4,
          HARVEST            = 5,
+      },
+
+      trapping = {
+         SET_TRAPS = 1,
+         DROP_OFF_LOOT = 2,
+         CHECK_TRAPS = 3,
+         SURVEY_TRAPPING_GROUNDS = 4,
+         PICK_UP_LOOT = 5,
       },
 
       crafting = {

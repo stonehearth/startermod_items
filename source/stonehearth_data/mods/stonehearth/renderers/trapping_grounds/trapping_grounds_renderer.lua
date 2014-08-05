@@ -1,3 +1,4 @@
+local Point2 = _radiant.csg.Point2
 local ZoneRenderer = require 'renderers.zone_renderer'
 
 local Color4 = _radiant.csg.Color4
@@ -32,8 +33,8 @@ end
 
 function TrappingGroundsRenderer:_update()
    local data = self._datastore:get_data()
-   self._zone_renderer:set_size(data.size)
-   --self._zone_renderer:set_current_items(data.traps)
+   self._zone_renderer:set_size(Point2(data.size.x, data.size.z))
+   self._zone_renderer:set_current_items(data.traps)
 end
 
 return TrappingGroundsRenderer

@@ -13,7 +13,7 @@
          "stacks" : 1
       },
        "stonehearth:material" : {
-         "tags" : "tool bone"
+         "tags" : "tool bone melee_weapon"
       },
       "model_variants": {
          "default" : {
@@ -25,13 +25,13 @@
       "stonehearth:equipment_piece" : {
          "slot" : "mainHand",
          "render_type" : "attach_to_bone",
-         "postures" : [ "stonehearth:combat" ]
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
       }     
    },
    "entity_data" : {
       "stonehearth:combat:weapon_data" : {
-         "base_damage" : 3,
-         "reach" : 0.75
+         "base_damage" : 10,
+         "reach" : 1.2
       },
       "stonehearth:combat:melee_attacks" : [
          {
@@ -43,4 +43,3 @@
       ]
    }
 }
-
