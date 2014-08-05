@@ -37,7 +37,7 @@ function WorkshopCallHandler:choose_outbox_location(session, response, workbench
    stonehearth.selection:select_xz_region()
       :restrict_to_standable_terrain()
       :use_designation_marquee(Color4(0, 153, 255, 255))
-      :set_cursor('stonehearth:cursors:designate_zone')
+      :set_cursor('stonehearth:cursors:zone_stockpile')
       :done(function(selector, box)
             local size = Point2(box.max.x - box.min.x, box.max.z - box.min.z)
             _radiant.call('stonehearth:create_outbox', box.min, size, workbench_entity:get_id(), crafter:get_id())
