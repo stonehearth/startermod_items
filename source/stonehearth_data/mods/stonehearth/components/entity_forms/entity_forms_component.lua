@@ -1,3 +1,6 @@
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local Point3 = _radiant.csg.Point3
+
 --[[
    Belongs to all objects that have been placed in the world,
    either by the player or by the DM, and that can be picked up
@@ -27,9 +30,10 @@ end
 
 function EntityFormsComponent:_post_create(json)
    self._sv._initialized = true
+   self._sv.placeable_on_walls = json.placeable_on_walls
    self._sv.placeable_on_ground = json.placeable_on_ground
    
-   local placeable = self._sv.placeable_on_ground
+   local placeable = self:is_placeable()
 
    local iconic_entity, ghost_entity
    if json.iconic_form then
@@ -79,8 +83,14 @@ end
 
 function EntityFormsComponent:_load_placement_task()
    if self._sv.placing_at then
-      self:place_item_in_world(self._sv.placing_at.location,
-                               self._sv.placing_at.rotation)
+      if self._sv.placing_at.wall then
+         self:place_item_on_wall(self._sv.placing_at.wall,
+                                 self._sv.placing_at.location,
+                                 self._sv.placing_at.normal)
+      else
+         self:place_item_in_world(self._sv.placing_at.location,
+                                  self._sv.placing_at.rotation)
+      end   
    end
 end
 
@@ -89,6 +99,14 @@ function EntityFormsComponent:destroy()
 end
 
 function EntityFormsComponent:_destroy_placement_task()
+   if self._climb_to_item then
+      self._climb_to_item:destroy()
+      self._climb_to_item = nil
+   end
+   if self._climb_to_destination then
+      self._climb_to_destination:destroy()
+      self._climb_to_destination = nil
+   end
    if self._placement_task then
       self._placement_task:destroy()
       self._placement_task = nil
@@ -99,8 +117,49 @@ function EntityFormsComponent:_destroy_placement_task()
    end
 end
 
-function EntityFormsComponent:place_item_in_world(location, rotation)
-   assert(self._sv.placeable_on_ground, 'cannot place unplacable item')
+function EntityFormsComponent:place_item_on_wall(location, wall, normal)
+   assert(self:is_placeable_on_wall(), 'cannot place item on wall')
+
+   self:_destroy_placement_task()
+
+   local town = stonehearth.town:get_town(self._entity)
+   if town then
+      local item = self:_get_form_in_world()
+      local rotation = voxel_brush_util.normal_to_rotation(normal)
+      local climb_to = normal + location - Point3.unit_y
+
+      -- if we're currently on a wall, get off it!
+      local parent = self._entity:get_component('mob'):get_parent()
+      local parent_wall = parent and parent:get_component('stonehearth:wall')
+      if parent_wall then
+         local parent_normal = parent:get_component('stonehearth:construction_data')
+                                          :get_normal()
+         local pickup_location = radiant.entities.get_world_grid_location(self._entity) + parent_normal
+         self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, parent_normal)
+      end
+
+      -- definitely climb up to the destination
+      self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
+
+      self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_on_wall', {
+                                                               item = item,
+                                                               wall = wall,
+                                                               location = location,
+                                                               rotation = rotation,
+                                                            })
+      self:_start_placement_task(location, rotation)
+
+      self._sv.placing_at = {
+         wall = wall,
+         normal = normal,
+         location = location,
+      }
+      self.__saved_variables:mark_changed()
+   end
+end
+
+function EntityFormsComponent:place_item_on_ground(location, rotation)
+   assert(self:is_placeable_on_ground(), 'cannot place item on ground')
    assert(self._sv.iconic_entity, 'cannot place items with no iconic entity')
    assert(self._sv.ghost_entity, 'cannot place items with no ghost entity')
    
@@ -109,23 +168,15 @@ function EntityFormsComponent:place_item_in_world(location, rotation)
    local town = stonehearth.town:get_town(self._entity)
    if town then
       local item = self:_get_form_in_world()
+      
       assert(item, 'neither entity nor iconic form is in world')
 
-      radiant.terrain.place_entity_at_exact_location(self._sv.ghost_entity, location)
-      radiant.entities.turn_to(self._sv.ghost_entity, rotation)
-      
       self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item', {
-                                                item = item,
-                                                location = location,
-                                                rotation = rotation,
-                                             })
-
-      self._placement_task:set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
-                          :once()
-                          :notify_completed(function()
-                                 radiant.terrain.remove_entity(self._sv.ghost_entity)
-                              end)
-                          :start()
+                                                               item = item,
+                                                               location = location,
+                                                               rotation = rotation,
+                                                            })
+      self:_start_placement_task(location, rotation)
 
       self._sv.placing_at = {
          location = location,
@@ -136,6 +187,15 @@ function EntityFormsComponent:place_item_in_world(location, rotation)
 end
 
 function EntityFormsComponent:is_placeable()
+   return self._sv.placeable_on_ground or
+          self._sv.placeable_on_walls
+end
+
+function EntityFormsComponent:is_placeable_on_wall()
+   return self._sv.placeable_on_walls
+end
+
+function EntityFormsComponent:is_placeable_on_ground()
    return self._sv.placeable_on_ground
 end
 
@@ -167,6 +227,22 @@ function EntityFormsComponent:_get_form_in_world()
       end
    end
    return nil
+end
+
+function EntityFormsComponent:_start_placement_task(location, rotation)
+   assert(self._placement_task)
+
+   radiant.terrain.place_entity_at_exact_location(self._sv.ghost_entity, location)
+   radiant.entities.turn_to(self._sv.ghost_entity, rotation)
+   
+   self._placement_task:set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
+                       :once()
+                       :notify_completed(function()
+                              radiant.terrain.remove_entity(self._sv.ghost_entity)
+                              self._placement_task = nil
+                              self:_destroy_placement_task()
+                           end)
+                       :start()
 end
 
 return EntityFormsComponent

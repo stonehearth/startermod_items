@@ -843,6 +843,10 @@ function BuildService:create_ladder_command(session, response, ladder_uri, locat
    return true
 end
 
+function BuildService:request_ladder_to(climb_to, normal)
+   return self._sv.scaffolding_manager:request_ladder_to(climb_to, normal)
+end
+
 return BuildService
 
 

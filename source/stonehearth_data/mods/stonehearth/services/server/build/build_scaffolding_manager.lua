@@ -18,7 +18,7 @@ function BuildScaffoldingManager:request_ladder_to(to, normal)
    ladder_builder:add_point(to)
 
    return radiant.lib.Destructor(function()
-         ladder_builder:remove_point(solved_cb)
+         ladder_builder:remove_point(to)
          -- how does it get destroyed?
       end)
 end

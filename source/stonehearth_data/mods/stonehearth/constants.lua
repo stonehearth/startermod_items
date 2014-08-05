@@ -56,6 +56,7 @@ local constants = {
          RESTOCK_STOCKPILE  = 2,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
+         BUILD_LADDER       = 7,
          LIGHT_FIRE         = 10,
       },
 

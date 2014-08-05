@@ -46,7 +46,6 @@
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:work_task_dispatcher",
             "stonehearth:actions:place_item",
-            "stonehearth:actions:place_item_type",
             "stonehearth:actions:stockpile_arson",
             "stonehearth:actions:follow_entity",
             "stonehearth:actions:combat:create_engage_callback",

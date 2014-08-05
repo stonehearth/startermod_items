@@ -16,6 +16,8 @@
 
                "stonehearth:actions:build_ladder",
                "stonehearth:actions:build_ladder_adjacent",
+               "stonehearth:actions:teardown_ladder",
+               "stonehearth:actions:teardown_ladder_adjacent",
                "stonehearth:actions:fabricate_structure",
                "stonehearth:actions:fabricate_structure_adjacent",
                "stonehearth:actions:fabricate_fixture",

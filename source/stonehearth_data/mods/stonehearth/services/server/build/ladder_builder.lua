@@ -73,15 +73,18 @@ function LadderBuilder:_update_ladder_tasks()
    local climb_to = self:_get_climb_to()
    local ladder_top = self:_get_ladder_top()
    
-   local desired_height = climb_to.y + 1
+   local desired_height = climb_to.y > 0 and climb_to.y + 1 or 0
    self._ladder_component:set_desired_height(desired_height)
 
    local delta = desired_height - ladder_top.y
    if delta > 0 then
+      self:_stop_teardown_task()
       self:_start_build_task()
    elseif delta < 0 then
-      assert(false)
+      self:_stop_build_task()
+      self:_start_teardown_task()
    else
+      self:_stop_teardown_task()
       self:_stop_build_task()
    end
 end
@@ -89,7 +92,7 @@ end
 function LadderBuilder:is_ladder_finished()
    local bounds = self._vpr_component:get_region():get():get_bounds()
    local height = bounds.max.y - bounds.min.y
-   return height >= self._ladder_component:get_desired_height()
+   return height == self._ladder_component:get_desired_height()
 end
 
 function LadderBuilder:grow_ladder()
@@ -99,10 +102,24 @@ function LadderBuilder:grow_ladder()
       end)
 end
 
+function LadderBuilder:shrink_ladder()
+   self._vpr_component:get_region():modify(function(r)
+         local bounds = r:get_bounds()
+         r:subtract_point(Point3(bounds.min.x, bounds.max.y, bounds.min.z) - Point3.unit_y)
+      end)
+end
+
 function LadderBuilder:_stop_build_task()
    if self._build_task then
       self._build_task:destroy()
       self._build_task = nil
+   end
+end
+
+function LadderBuilder:_stop_teardown_task()
+   if self._teardown_task then
+      self._teardown_task:destroy()
+      self._teardown_task = nil
    end
 end
 
@@ -115,12 +132,29 @@ function LadderBuilder:_start_build_task()
                                                    builder = self,
                                                 })
 
-         self._build_task:set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
-                           :set_name('build ladder')
-                           :set_source(self._sv.ladder)
-                           :set_priority(priorities.CONSTRUCT_BUILDING)
-                           :set_max_workers(1)
-                           :start()
+         self._build_task:set_name('build ladder')
+                         :set_source(self._sv.ladder)
+                         :set_priority(priorities.BUILD_LADDER)
+                         :set_max_workers(1)
+                         :start()
+      end
+   end
+end
+
+function LadderBuilder:_start_teardown_task()
+   if not self._teardown_task then
+      local town = stonehearth.town:get_town('player_1') -- xxx: ug!  need 1 build service per player >_<
+      if town then
+         self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_ladder', {
+                                                   ladder = self._sv.ladder,
+                                                   builder = self,
+                                                })
+
+         self._teardown_task:set_name('teardown ladder')
+                            :set_source(self._sv.ladder)
+                            :set_priority(priorities.BUILD_LADDER)
+                            :set_max_workers(1)
+                            :start()
       end
    end
 end
