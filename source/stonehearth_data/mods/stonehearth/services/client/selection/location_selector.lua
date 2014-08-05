@@ -200,7 +200,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
       self._input_capture = nil
 
       if self._fail_cb then
-         self._fail_cb(self, { error = 'cancelled via keyboard '})
+         self._fail_cb(self, { error = 'cancelled via mouse '})
       end
       if self._always_cb then
          self._always_cb(self)
