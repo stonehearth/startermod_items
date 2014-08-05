@@ -312,13 +312,6 @@
 
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
-      "actions:unit_control:unload_inventory" : "file(ai/actions/unit_control/unload_inventory.lua)",
-      "actions:unit_control:abilities:snare_trap" : "file(ai/actions/unit_control/abilities/snare_trap_action.lua)",
-      "actions:unit_control:harvest_trapped_beast" : "file(ai/actions/unit_control/harvest_trapped_beast_action.lua)",
-      "actions:unit_control:tame_trapped_beast" : "file(ai/actions/unit_control/tame_trapped_beast_action.lua)",
-
-      "actions:unit_control:harvest_trapped_beast_adjacent" : "file(ai/actions/unit_control/harvest_trapped_beast_adjacent_action.lua)",
-      "actions:unit_control:tame_trapped_beast_adjacent" : "file(ai/actions/unit_control/tame_trapped_beast_adjacent_action.lua)",
 
       "actions:ambient_pet_behavior:dispatcher" : "file(ai/actions/pet/ambient_pet_dispatcher.lua)",
       "actions:pet:check_out_random_friend" : "file(ai/actions/pet/check_out_random_friend_action.lua)",
@@ -643,14 +636,6 @@
          "controller" : "file(call_handlers/terrain_call_handler.lua)",
          "endpoint" : "server"
       },
-      "harvest_trapped_beast" : {
-         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "tame_trapped_beast" : {
-         "controller": "file(call_handlers/unit_control/trapped_beast_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "release_pet" : {
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    
@@ -663,12 +648,6 @@
          "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
          "endpoint" : "server"
       },
-
-      "unload_inventory" : {
-         "controller": "file(call_handlers/unit_control/unload_inventory_call_handler.lua)",
-         "endpoint" : "server"
-      },
-
       "client_cast_aoe" : {
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "client"
