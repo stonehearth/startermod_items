@@ -35,7 +35,7 @@
       },
       "unit_info": {
          "name": "Turnip", 
-         "description": "Steeped in the soil.",
+         "description": "Fast-growing staple crop, but not particularly nutritious nor delicious.",
          "icon" : "file(icon.png)",
          "portrait" : "file(portrait.png)"
       },
