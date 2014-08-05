@@ -10,7 +10,7 @@ local FreeTimeObserver = class()
 function FreeTimeObserver:__init(entity)
 end
 
-function FreeTimeObserver:initialize(entity, json)
+function FreeTimeObserver:initialize(entity)
    self._entity = entity
 
    self._fire_task = nil

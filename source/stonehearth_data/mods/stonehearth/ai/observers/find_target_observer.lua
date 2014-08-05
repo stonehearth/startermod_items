@@ -6,7 +6,7 @@ function FindTargetObserver:__init()
    self._enable_combat = radiant.util.get_config('enable_combat', true)
 end
 
-function FindTargetObserver:initialize(entity, json)
+function FindTargetObserver:initialize(entity)
    self._entity = entity
    self._sight_sensor = self:_get_sight_sensor()
    self._target = nil

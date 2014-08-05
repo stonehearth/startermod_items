@@ -2,7 +2,7 @@ local log = radiant.log.create_logger('combat')
 
 local CombatPanicObserver = class()
 
-function CombatPanicObserver:initialize(entity, json)
+function CombatPanicObserver:initialize(entity)
    self._entity = entity
    self._panic_threshold = self:_get_panic_threshold()
 

@@ -4,7 +4,7 @@
 
 local HealthObserver = class()
 
-function HealthObserver:initialize(entity, json)
+function HealthObserver:initialize(entity)
    self._entity = entity
    self._attributes_component = entity:add_component('stonehearth:attributes')
 

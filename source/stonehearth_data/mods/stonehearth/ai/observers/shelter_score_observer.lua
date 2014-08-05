@@ -10,7 +10,7 @@ local ShelterScoreObserver = class()
 function ShelterScoreObserver:__init(entity)
 end
 
-function ShelterScoreObserver:initialize(entity, json)
+function ShelterScoreObserver:initialize(entity)
    self._entity = entity
    self._score_component = entity:add_component('stonehearth:score')
 

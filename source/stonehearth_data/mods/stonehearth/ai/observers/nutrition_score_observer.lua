@@ -16,7 +16,7 @@ local calendar = stonehearth.calendar
 function NutritionScoreObserver:__init(entity)
 end
 
-function NutritionScoreObserver:initialize(entity, json)
+function NutritionScoreObserver:initialize(entity)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
    self._score_component = entity:add_component('stonehearth:score')

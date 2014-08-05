@@ -11,7 +11,7 @@ local CalorieObserver = class()
 function CalorieObserver:__init(entity)
 end
 
-function CalorieObserver:initialize(entity, json)
+function CalorieObserver:initialize(entity)
    self._entity = entity
    self._eat_task = nil
    self._attributes_component = entity:add_component('stonehearth:attributes')

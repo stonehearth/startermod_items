@@ -2,7 +2,7 @@ local log = radiant.log.create_logger('combat')
 
 local AggroObserver = class()
 
-function AggroObserver:initialize(entity, json)
+function AggroObserver:initialize(entity)
    self._entity = entity
    self._observed_allies = {}
    self._ally_aggro_ratio = radiant.util.get_config('ally_aggro_ratio', 0.50)
@@ -15,12 +15,12 @@ function AggroObserver:_add_sensor_trace()
    self._sensor = sensor_list:get_sensor('sight')
    assert(self._sensor)
 
-   self._trace = self._sensor:trace_contents('trace_allies')
-      :on_added(function (target_id)
-            self:_on_added_to_sensor(target_id)
+   self._trace = self._sensor:trace_contents('trace allies')
+      :on_added(function (id)
+            self:_on_added_to_sensor(id)
          end)
-      :on_removed(function (target_id)
-            self:_on_removed_from_sensor(target_id)
+      :on_removed(function (id)
+            self:_on_removed_from_sensor(id)
          end)
       :push_object_state()
 end
@@ -34,6 +34,7 @@ function AggroObserver:_on_added_to_sensor(id)
    end
 
    -- TODO: eventually, we should listen for alliance change if a unit changes from ally to hostile or the reverse
+   -- TODO: only observe units, not structures that have factions
    if radiant.entities.is_friendly(other_entity, self._entity) then
       self:_observe_ally(other_entity)
    else

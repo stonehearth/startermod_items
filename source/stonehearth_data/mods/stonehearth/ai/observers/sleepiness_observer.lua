@@ -12,7 +12,7 @@ local SleepinessObserver = class()
 function SleepinessObserver:__init(entity)
 end
 
-function SleepinessObserver:initialize(entity, json)
+function SleepinessObserver:initialize(entity)
    self._entity = entity
    self._sleep_task = nil
    self._attributes_component = entity:add_component('stonehearth:attributes')
