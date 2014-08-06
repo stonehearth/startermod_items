@@ -30,13 +30,11 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                  :set_type(self._blueprint_cd:get_type())
                                  :set_normal(self._blueprint_cd:get_normal())
                                  :set_visible_ui_modes('hud')
-                                 :set_render_region_changed_cb(function(region, visible)
-                                       self:_update_region(region, visible)
+                                 :set_render_region_changed_cb(function(region)
+                                       self:_update_region(region)
                                     end)
                                  :set_visible_changed_cb(function(visible)
-                                       if self._render_node then
-                                          self._render_node:set_visible(visible)
-                                       end
+                                       self._render_entity:set_visible_override(visible)
                                     end)
 
       self._construction_data_trace = self._blueprint_cd:trace_data('render')
@@ -97,7 +95,7 @@ function FabricatorRenderer:destroy()
    end
 end
 
-function FabricatorRenderer:_update_region(region, visible)
+function FabricatorRenderer:_update_region(region)
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
@@ -109,7 +107,6 @@ function FabricatorRenderer:_update_region(region, visible)
 
       local material = self._render_entity:get_material_path('normal')
       self._render_node:set_material(material)
-      self._render_node:set_visible(visible)
    end
 end
 

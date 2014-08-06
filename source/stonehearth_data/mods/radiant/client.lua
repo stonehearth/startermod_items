@@ -28,7 +28,9 @@ function radiant.create_controller(...)
    return controller
 end
 
-radiant.lib = {}
+radiant.lib = {
+   Destructor = require 'modules.destructor'
+}
 radiant.log = require 'modules.log'
 radiant.util = require 'lib.util'
 radiant.resources = require 'modules.resources'

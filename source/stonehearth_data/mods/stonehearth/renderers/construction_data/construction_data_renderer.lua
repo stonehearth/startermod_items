@@ -22,8 +22,8 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
       self._render_tracker = ConstructionRenderTracker(self._entity)
                                  :set_type(construction_data:get_type())
                                  :set_normal(construction_data:get_normal())
-                                 :set_render_region_changed_cb(function(region, visible)
-                                       self:_update_region(region, visible)
+                                 :set_render_region_changed_cb(function(region)
+                                       self:_update_region(region)
                                     end)
                                  :set_visible_changed_cb(function(visible)
                                        self._render_entity:set_visible_override(visible)
@@ -80,14 +80,13 @@ function ConstructionDataRenderer:_trace_collision_shape()
    end
 end
 
-function ConstructionDataRenderer:_update_region(region, visible)
+function ConstructionDataRenderer:_update_region(region)
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
    end
    if region then   
       self._render_node = voxel_brush_util.create_construction_data_node(self._parent_node, self._entity, region, self._construction_data)
-      self._render_node:set_visible(visible)
    end
 end
 

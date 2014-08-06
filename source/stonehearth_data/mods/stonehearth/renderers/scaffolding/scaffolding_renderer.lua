@@ -49,10 +49,9 @@ function ScaffoldingRenderer:__init(render_entity, ed)
       -- based on those modes.  
       self._render_tracker = ConstructionRenderTracker(self._entity)
                                  :set_normal(self._construction_data:get_normal())
-                                 :set_render_region_changed_cb(function(region, visible, view_mode)
+                                 :set_render_region_changed_cb(function(region, view_mode)
                                        self._draw_region = region
                                        self:_update_shape(view_mode)
-                                       h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
                                     end)
                                  :set_visible_changed_cb(function(visible)
                                        h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
