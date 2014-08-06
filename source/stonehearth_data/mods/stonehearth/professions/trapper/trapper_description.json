@@ -1,10 +1,10 @@
 {
    "profession_id": "trapper",
+   "alias": "stonehearth:professions:trapper",
    "name": "Trapper",   
    "description": "Traps stuff, yay.",
-   "alias": "stonehearth:professions:trapper",
    "script": "file(/professions/trapper/trapper.lua)",
-   "talisman_uri" : "stonehearth:trapper:knife",
+   "talisman_uri" : "stonehearth:trapper:knife_talisman",
 
    "equipment" : {
       "abilities" : "file(trapper_abilities)",
