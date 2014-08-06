@@ -39,20 +39,26 @@ function WeightedSet:choose_random()
       return nil
    end
 
-   local roll = self._rng:get_int(1, self._total_weight)
+   local roll = self._rng:get_real(0, self._total_weight)
    local sum = 0
+   local item, weight
 
    -- traversal order does not matter
    for item, weight in pairs(self._map) do
       sum = sum + weight
-      if roll <= sum then
+
+      -- needs to be < not <=
+      if roll < sum then
          return item
       end
    end
 
-   -- should never get here
-   assert(roll <= self._total_weight)
-   assert(false)
+   -- should only get here via cumulative rounding error
+   local epsilon = self._total_weight / 1000000000
+   assert(roll < self._total_weight + epsilon)
+
+   -- return the last item, which is what should have been returned without a rounding error
+   return item
 end
 
 function WeightedSet:_calculate_total_weight()

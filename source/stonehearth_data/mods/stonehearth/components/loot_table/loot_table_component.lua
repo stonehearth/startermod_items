@@ -10,8 +10,8 @@ function LootTableComponent:initialize(entity, json)
    local loot_table = WeightedSet(rng)
 
    for _, loot_info in pairs(json.items) do
-      local frequency = loot_info.frequency or 1
-      loot_table:add(loot_info.uri, frequency)
+      local weight = loot_info.weight or 1
+      loot_table:add(loot_info.uri, weight)
    end
 
    self._loot_table = loot_table
