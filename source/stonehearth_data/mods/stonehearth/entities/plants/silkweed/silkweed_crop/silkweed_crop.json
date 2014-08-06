@@ -59,7 +59,7 @@
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
-         "growth_period" : "1h",
+         "growth_period" : "5h",
          "growth_stages" : [
             {
                "model_name" : "silkweed_1",
