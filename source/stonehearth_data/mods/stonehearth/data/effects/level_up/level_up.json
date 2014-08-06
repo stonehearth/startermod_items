@@ -1,0 +1,57 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "upward_particles": {
+         "type": "cubemitter",
+         "cubemitter": "particles/level_up/level_up.cubemitter.json",
+         "start_time" : 0,
+         "end_time" : 1000,         
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "glow": {
+         "type": "cubemitter",
+         "cubemitter": "particles/level_up/level_up_glow.cubemitter.json",
+         "start_time" : 0,
+         "end_time" : 800,       
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },      
+      "spiral": {
+         "type": "cubemitter",
+         "cubemitter": "particles/level_up/level_up_spiral.cubemitter.json",
+         "start_time" : 0,
+         "end_time" : 600,         
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "sound": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_time": 10,
+         "end_time" : 11,
+         "min_distance": 10,
+         "max_distance": 30,
+         "volume": 40,
+         "track" : "stonehearth:sounds:twinkle"
+      }
+   }
+} 
