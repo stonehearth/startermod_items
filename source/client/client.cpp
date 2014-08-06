@@ -65,6 +65,7 @@
 #include "client/renderer/raycast_result.h"
 #include "om/stonehearth.h"
 #include "lib/perfmon/timer.h"
+#include "renderer/render_node.h"
 
 //  #include "GFx/AS3/AS3_Global.h"
 #include "client.h"
@@ -1177,7 +1178,7 @@ void Client::SelectEntity(om::EntityPtr entity)
                                  SelectEntity(nullptr);
                               });
 
-         renderEntity = Renderer::GetInstance().GetRenderEntity(entity);
+         renderEntity = Renderer::GetInstance().CreateRenderEntity(RenderNode::GetUnparentedNode(), entity);
          if (renderEntity) {
             renderEntity->SetSelected(true);
          }

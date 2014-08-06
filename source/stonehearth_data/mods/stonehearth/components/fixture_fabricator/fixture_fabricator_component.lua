@@ -10,22 +10,18 @@ function FixtureFabricator:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         if self._sv.fixture_uri then
+         if self._sv.fixture_iconic_uri then
             radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+            self:_start_project()
          end
       end)
-
 end
 
 -- destroy the fabricator
 function FixtureFabricator:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)   
-end
-
--- returns the project (i.e. the build fixture)
---
-function FixtureFabricator:get_project()
-   return self._sv.project
+   self:_destroy_item_tracker_listener()
+   self:_destroy_placeable_item_trace()
+   radiant.events.unlisten(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
 end
 
 -- turn the fixture fabricator off or on.  we'll only try to put the
@@ -38,65 +34,23 @@ function FixtureFabricator:set_active(enabled)
    self:_start_project()
 end
 
+-- not used
+function FixtureFabricator:get_project()
+   return nil
+end
+
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the wall
 --
-function FixtureFabricator:start_project(fixture_uri)
-   assert(fixture_uri)
+function FixtureFabricator:start_project(fixture_iconic_uri)
+   assert(fixture_iconic_uri)
 
-   self._sv.fixture_uri = fixture_uri
+   self._sv.fixture_iconic_uri = fixture_iconic_uri
    self.__saved_variables:mark_changed()
    
-   radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
-   
-   self:_borrow_scaffolding_from_parent()
+   radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)  
    self:_start_project()
 end   
-
--- helper function called by the fabricate action to actually build the fixture.
---
-function FixtureFabricator:construct(worker, item)
-   local project, uri
-
-   -- xxx: for now, create a brand new entity.  eventually, we should simply be
-   -- replacing the ghost_entity with the full_sized_entity for the proxy.
-   local proxy_component = item:get_component('stonehearth:iconic_form')
-   if proxy_component then
-      project = proxy_component:get_root_entity()
-   else
-      project = item
-   end
-
-   -- take the proxy off the current worker or the terrain, depending on where
-   -- it came from.
-   if radiant.entities.get_carrying(worker) == item then
-      radiant.entities.remove_carrying(worker)
-   else
-      radiant.terrain.remove_entity(item)
-   end
-
-   -- find the project for our parent
-   local mob = self._entity:get_component('mob')
-   local parent_blueprint = mob:get_parent()
-   local parent_project = parent_blueprint:get_component('stonehearth:construction_progress')
-                                 :get_fabricator_component()
-                                 :get_project()
-
-   radiant.entities.add_child(parent_project, project)
-   project:add_component('mob'):set_transform(mob:get_transform())
-
-   -- change ownership so we can interact with it
-   project:add_component('unit_info')
-               :set_player_id(radiant.entities.get_player_id(self._entity))
-               :set_faction(radiant.entities.get_faction(self._entity))
-
-   -- all done!  set a flag so we know and remember the project.
-   self._sv.project = project
-   self._sv.finished = true
-   self._entity:get_component('stonehearth:construction_progress'):set_finished(true)
-
-   self.__saved_variables:mark_changed()
-end
 
 -- check the status of the project again whenever the status of our dependencies change.
 function FixtureFabricator:_on_dependencies_finished_changed()
@@ -121,82 +75,88 @@ function FixtureFabricator:_start_project()
    
    -- Now apply the deltas.  Create tasks that need creating and destroy
    -- ones that need destroying.
-   if run_teardown_task then
-      self:_start_teardown_task()
-   else
-      self:_destroy_teardown_task()
-   end
-   
+   assert(not run_teardown_task)
+
    if run_fabricate_task then
-      self:_start_fabricate_task()
-   else
-      self:_destroy_fabricate_task()
+      self:_place_fixture_in_wall()
+      self:_create_placeable_item_trace()
    end
 end
 
--- start the teardown task if it's not already running
---
-function FixtureFabricator:_start_teardown_task()
-   if not self._teardown_task then
-      local town = stonehearth.town:get_town(self._entity)
-      self._teardown_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:teardown_fixture', { fabricator = self._entity })
-                                       :set_name('teardown')
-                                       :set_source(self._entity)
-                                       :set_max_workers(1)
-                                       :set_priority(priorities.TEARDOWN_BUILDING)
-                                       :once()
-                                       :start()
-   end
-end
-
--- destroy the teardown task
---
-function FixtureFabricator:_destroy_teardown_task()
-   if self._teardown_task then
-      self._teardown_task:destroy()
-      self._teardown_task = nil
-   end
-end
 
 -- start the fabricate task if it's not already running
 --
-function FixtureFabricator:_start_fabricate_task() 
-   if not self._fabricate_task then
-      local town = stonehearth.town:get_town(self._entity)
-      self._fabricate_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_fixture', {
-                                             fabricator = self._entity,
-                                             fixture_uri = self._sv.fixture_uri 
-                                          })
-                                      :set_name('fabricate fixture')
-                                      :set_source(self._entity)
-                                      :set_max_workers(1)
-                                      :set_priority(priorities.CONSTRUCT_BUILDING)
-                                      :once()
-                                      :start()
+function FixtureFabricator:_place_fixture_in_wall() 
+   if not self._sv.placing_item then
+      -- we haven't found an item to place in our fixture slot yet.  look around for
+      -- one by asking the inventory for this player
+      local location = radiant.entities.get_world_grid_location(self._entity)
+      local inventory = stonehearth.inventory:get_inventory(self._entity)
+      local item  = inventory:find_closest_unused_placable_item(self._sv.fixture_iconic_uri, location)
+
+      if not item then
+         -- still no item exists?  listen in the basic inventory tracker for a notification that
+         -- we've gotten a new item which matches the fixture uri we want, then try again
+         if not self._item_tracker_listener then
+            self._item_tracker_listener = inventory:notify_when_item_added(self._sv.fixture_iconic_uri, function (e)
+                  self:_place_fixture_in_wall()
+                  self:_create_placeable_item_trace()
+               end)
+         end
+         return
+      end
+
+      -- we've got an item!  ask it to be placed where our fixture is      
+      local wall = self._entity:get_component('mob'):get_parent()
+      local normal = wall:get_component('stonehearth:construction_data')
+                              :get_normal()
+      
+      local root_entity = item:get_component('stonehearth:iconic_form')
+                                 :get_root_entity()
+                                 
+      -- change ownership so we can interact with it
+      root_entity:add_component('unit_info')
+                     :set_player_id(radiant.entities.get_player_id(self._entity))
+                     :set_faction(radiant.entities.get_faction(self._entity))
+
+      root_entity:get_component('stonehearth:entity_forms')
+                     :place_item_on_wall(location, wall, normal)
+
+      self._sv.placing_item = item
+      self.__saved_variables:mark_changed()
+      self:_destroy_item_tracker_listener()
    end
 end
 
--- destroy the fabricate task
---
-function FixtureFabricator:_destroy_fabricate_task()
-   if self._fabricate_task then
-      self._fabricate_task:destroy()
-      self._fabricate_task = nil
-   end      
+function FixtureFabricator:_destroy_item_tracker_listener()
+   if self._item_tracker_listener then
+      self._item_tracker_listener:destroy()
+      self._item_tracker_listener = nil
+   end
 end
 
--- borrow the scaffolding of our parent.  this makes sure the build system keeps
--- the scaffolding at our height during teardown so someone can come along and place
--- the fixture on the entity.  this only works for things which go on the scaffolding
--- side of the parent.  other fixture fabricators need to use a ladder.
---
-function FixtureFabricator:_borrow_scaffolding_from_parent()
-   local parent_blueprint = self._entity:get_component('mob'):get_parent()
-   if parent_blueprint then
-      local cd = parent_blueprint:get_component('stonehearth:construction_data')
-      if cd then
-         cd:loan_scaffolding_to(self._entity)
-      end
+function FixtureFabricator:_create_placeable_item_trace()
+   if not self._placeable_item_trace and self._sv.placing_item then
+      local root_entity = self._sv.placing_item:get_component('stonehearth:iconic_form')
+                                                   :get_root_entity()
+
+      -- whenever the placeable item shows up in the wall, destroy ourselves (since
+      -- our work will be done)
+      local wall = self._entity:get_component('mob'):get_parent()
+      self._placeable_item_trace = root_entity:get_component('mob'):trace_parent('placing fixture')
+                                             :on_changed(function(parent)
+                                                   if parent == wall then
+                                                      self:_destroy_placeable_item_trace()
+                                                      radiant.entities.destroy_entity(self._entity)
+                                                   end                                                   
+                                                end)
+   end
+end
+
+function FixtureFabricator:_destroy_placeable_item_trace()   
+   if self._placeable_item_trace then
+      self._placeable_item_trace:destroy()
+      self._placeable_item_trace = nil
    end
 end
 

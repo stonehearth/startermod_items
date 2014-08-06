@@ -62,7 +62,6 @@ function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri
    end
    local building
    stonehearth.selection:select_entity_tool()
-      :set_tool_mode(true)
       :set_cursor('stonehearth:cursors:grow_walls')
       :set_filter_fn(function(entity)
             building = self:get_building_for(entity)
@@ -72,6 +71,10 @@ function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri
             if building then
                _radiant.call_obj(self._build_service, 'grow_walls_command', building, columns_uri, walls_uri)
             end
+         end)
+      :fail(function(selector)
+            selector:destroy()
+            response:reject('failed')
          end)
       :always(function(selector)
             selector:destroy()
@@ -97,7 +100,6 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
 
    local building
    stonehearth.selection:select_entity_tool()
-      :set_tool_mode(true)
       :set_cursor('stonehearth:cursors:grow_roof')
       :set_filter_fn(function(entity)
             building = self:get_building_for(entity)
@@ -106,7 +108,16 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
       :done(function(selector, entity)
             if building then
                _radiant.call_obj(self._build_service, 'grow_roof_command', building, roof_uri, self._grow_roof_options)
+                  :done(function(r)
+                        if r.new_selection then
+                           stonehearth.selection:select_entity(r.new_selection)
+                        end
+                     end)
             end
+         end)
+      :fail(function(selector)
+         selector:destroy()
+         response:reject('failed')
          end)
       :always(function(selector)
             selector:destroy()

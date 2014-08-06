@@ -7,7 +7,7 @@ function WorkerDefense:__init()
    self._eligible_professions['stonehearth:professions:worker'] = true
    self._eligible_professions['stonehearth:professions:farmer'] = true
    self._eligible_professions['stonehearth:professions:carpenter'] = true
-   self._eligible_professions['stonehearth:professions:weaver'] = false
+   self._eligible_professions['stonehearth:professions:trapper'] = true
 end
 
 function WorkerDefense:initialize()

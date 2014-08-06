@@ -5,6 +5,12 @@ local Point3 = _radiant.csg.Point3
 local PlaceItemCallHandler = class()
 local log = radiant.log.create_logger('call_handlers.place_item')
 
+-- these are quite annoying.  we can get rid of them by implementing and using
+-- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
+local function ToPoint3(pt)
+   return Point3(pt.x, pt.y, pt.z)
+end
+
 -- Client side object to place an item in the world. The item exists as an icon first
 -- This method is invoked by POSTing to the route for this file in the manifest.
 -- TODO: merge/factor out with CreateWorkshop?
@@ -53,10 +59,12 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    if not cursor_uri then
       cursor_uri = placement_test_entity:get_uri()
    end
-      
+
+   local placing_on_wall, placing_on_wall_normal
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor(cursor_uri)
       :set_filter_fn(function (result)
+            -- if the entity is any of the forms of the thing we want to place, bail
             if result.entity == item_to_place then
                return stonehearth.selection.FILTER_IGNORE
             end
@@ -66,10 +74,32 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             if result.entity == ghost_entity then
                return stonehearth.selection.FILTER_IGNORE
             end
-            return radiant.terrain.is_standable(placement_test_entity, result.brick)
+            local normal = result.normal:to_int()
+            
+            -- check for ground placement
+            if entity_forms:is_placeable_on_ground() and normal.y == 1 then
+               if radiant.terrain.is_standable(placement_test_entity, result.brick) then
+                  return true
+               end
+            end
+
+            -- check for wall placement
+            if entity_forms:is_placeable_on_wall() and normal.y == 0 then
+               if not radiant.terrain.is_blocked(placement_test_entity, result.brick) then
+                  local entities = radiant.terrain.get_entities_at_point(result.brick - normal)
+                  for _, entity in pairs(entities) do
+                     local wall = entity:get_component('stonehearth:wall')
+                     if wall then
+                        placing_on_wall = entity
+                        placing_on_wall_normal = normal
+                        return true
+                     end
+                  end
+               end
+            end
          end)
       :done(function(selector, location, rotation)
-            _radiant.call(next_call, item_to_place, location, rotation)
+            _radiant.call(next_call, item_to_place, location, rotation, placing_on_wall, placing_on_wall_normal)
                :done(function (result)
                      response:resolve(result)
                   end)
@@ -95,8 +125,8 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, item, location, rotation)
-   local location = Point3(location.x, location.y, location.z)
+function PlaceItemCallHandler:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
+   local location = ToPoint3(location)
    if not item or not radiant.util.is_a(item, Entity) or not item:is_valid() then
       return false
    end
@@ -115,7 +145,11 @@ function PlaceItemCallHandler:place_item_in_world(session, response, item, locat
    end
    
    radiant.entities.set_player_id(item, session.player_id)
-   entity_forms:place_item_in_world(location, rotation)
+   if placing_on_wall then
+      entity_forms:place_item_on_wall(location, placing_on_wall, ToPoint3(placing_on_wall_normal))
+   else
+      entity_forms:place_item_on_ground(location, rotation)
+   end
 
    return true
 end
@@ -123,40 +157,17 @@ end
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation, placing_on_wall, placing_on_wall_normal)
    local location = Point3(location.x, location.y, location.z)
 
    -- look for entities which are not currently being placed
-   local candidates = stonehearth.inventory:get_inventory(session.player_id)
-                                           :get_items_of_type(entity_uri)
+   local item, acceptable_item_count = stonehearth.inventory:get_inventory(session.player_id)
+                                                            :find_closest_unused_placable_item(entity_uri, location)
 
-   -- returns the best item to place.  the best item is the one that isn't currently
-   -- being placed and is closest to the placement location
-   local acceptable_item_count = 0
-   local best_item, best_distance
-
-   for _, item in pairs(candidates.items) do
-      -- make sure the item isn't being placed
-      local entity_forms = item:get_component('stonehearth:iconic_form')
-                                 :get_root_entity()
-                                 :get_component('stonehearth:entity_forms')
-      if not entity_forms:is_being_placed() then
-         acceptable_item_count = acceptable_item_count + 1
-         local position = radiant.entities.get_world_grid_location(item)
-         local distance = position:distance_to(location)
-
-         -- make sure the item is better than the previous one.
-         if not best_item or distance < best_distance then
-            best_item, best_distance = item, distance
-         end
-      end
-   end
-
-   -- place the best item, if it exists
-   if not best_item then
+   if not item then
       response:fail({error = 'no more placeable items'})
    end
-   self:place_item_in_world(session, response, best_item, location, rotation)
+   self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
 
    -- return whether or not there are most items we could potentially place
    response:resolve({ more_items = acceptable_item_count > 1 })

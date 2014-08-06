@@ -63,8 +63,11 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       friend PathFinderSrc;
       friend PathFinderDst;
       void Restart();
+      void WatchWorldPoint(csg::Point3 const& point);
+      void WatchWorldRegion(csg::Region3 const& region);
 
    private:
+      void WatchTile(csg::Point3 const& index);
       void RecommendBestPath(std::vector<csg::Point3> &points) const;
       float EstimateCostToDestination(const csg::Point3 &pt) const;
       float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
@@ -76,6 +79,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
 
       void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
       void SetSearchExhausted();
+      void OnTileDirty(csg::Point3 const& index);
+      void EnableWorldWatcher(bool enabled);
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
@@ -89,11 +94,14 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool                          rebuildHeap_;
       bool                          restart_search_;
       bool                          enabled_;
+      bool                          world_changed_;
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;
    
       std::vector<PathFinderNode>   open_;
       std::set<csg::Point3>         closed_;
+      core::Guard                   navgrid_guard_;
+      std::set<csg::Point3>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
    
       std::unique_ptr<PathFinderSrc>               source_;

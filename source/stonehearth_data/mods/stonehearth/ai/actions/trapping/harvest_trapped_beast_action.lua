@@ -57,35 +57,24 @@ function HarvestTrappedBeast:_spawn_loot(target)
       return
    end
 
-   local item_uris = loot_table_component:get_loot()
-   if not item_uris then
-      return
-   end
+   local items = loot_table_component:spawn_loot()
 
-   local origin = radiant.entities.get_world_grid_location(target)
-
-   for _, item_uri in pairs(item_uris) do
-      local item = radiant.entities.create_entity(item_uri)
-
+   for id, item in pairs(items) do
       -- lease the item so nobody else picks it up
       -- leases are not ref counted, so this lease will be released when the restock action completes (or aborts)
       -- if the entity never picks up the item and never dies, how does this lease get released?
       local leased = stonehearth.ai:acquire_ai_lease(item, self._entity)
-      -- we just created it, we better be able to lease it!
-      assert(leased)
 
-      -- place the item after acquiring the lease
-      local location = radiant.terrain.find_placement_point(origin, 1, 2)
-      radiant.terrain.place_entity(item, location)
-      
-      self:_create_loot_item_task(item)
+      if leased then
+         self:_create_loot_item_task(item)
+      end
    end
 end
 
 function HarvestTrappedBeast:_create_loot_item_task(item)
    local task = self._entity:add_component('stonehearth:ai')
       :get_task_group('stonehearth:trapping')
-      :create_task('stonehearth:loot_item', { item = item })
+      :create_task('stonehearth:pickup_item_into_backpack', { item = item })
       :set_priority(stonehearth.constants.priorities.trapping.PICK_UP_LOOT)
       :once()
       :start()

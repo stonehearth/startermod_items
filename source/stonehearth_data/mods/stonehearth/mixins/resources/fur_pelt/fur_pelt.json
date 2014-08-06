@@ -7,7 +7,7 @@
          "description": "Soft, supple, and quite dead"
       },
       "stonehearth:material" : {
-         "tags" : "resource animal_part fiber"
+         "tags" : "resource animal_part pelt"
       },
       "model_variants": {
          "default": {

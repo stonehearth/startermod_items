@@ -257,42 +257,6 @@ function Town:promote_citizen(person, talisman)
    })
 end
 
-function Town:place_item_type_in_world(entity_uri, full_item_uri, location, rotation)
-   local proxy_id = item:get_id()
-   if self._placement_xs[proxy_id] ~= nil then
-      self._placement_xs[proxy_id].task:destroy()
-      radiant.entities.destroy_entity(self._placement_xs[proxy_id].ghost_entity)
-   end
-
-   local ghost_entity = radiant.entities.create_entity()
-   local ghost_entity_component = ghost_entity:add_component('stonehearth:ghost_form')
-   ghost_entity_component:set_full_sized_mod_uri(full_item_uri)
-   radiant.terrain.place_entity(ghost_entity, location)
-   radiant.entities.turn_to(ghost_entity, rotation)
-
-   local remove_ghost_entity = function(placed_item)
-      radiant.entities.destroy_entity(ghost_entity)
-   end
-
-   local filter_fn = function(item)
-      return item:get_uri() == entity_uri
-   end
-
-   local task = self:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_type', {
-         item_uri = uri,
-         location = location,
-         rotation = rotation,
-         finish_fn = remove_ghost_entity
-      })
-      :set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
-      :once()
-      :start()
-
-   self:_remember_user_initiated_task(task, 'place_item_type_in_world', entity_uri, full_item_uri, location, rotation)
-
-   return task
-end
-
 function Town:harvest_resource_node(node)
    if not radiant.util.is_a(node, Entity) then
       return false

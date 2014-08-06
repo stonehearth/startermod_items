@@ -11,9 +11,13 @@
                "stonehearth:actions:trapping:check_bait_trap",
                "stonehearth:actions:trapping:harvest_trapped_beast",
                "stonehearth:actions:trapping:tame_trapped_beast",
-               "stonehearth:actions:loot_item",
-               "stonehearth:actions:put_carrying_in_inventory",
-               "stonehearth:actions:pickup_item_type_from_inventory"
+               "stonehearth:actions:pickup_item_into_backpack",
+               "stonehearth:actions:put_carrying_in_backpack",
+               "stonehearth:actions:restock_items_in_backpack",
+               "stonehearth:actions:trapping:unload_backpack_dispatcher",
+               "stonehearth:actions:trapping:unload_backpack",
+               "stonehearth:actions:find_stockpile_for_backpack_item",
+               "stonehearth:actions:pickup_item_type_from_backpack"
             ]
          }
       }

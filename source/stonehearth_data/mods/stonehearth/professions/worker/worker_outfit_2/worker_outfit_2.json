@@ -28,7 +28,8 @@
          "render_type" : "merge_with_model",
          "roles" : "worker_profession",
          "ilevel" : 2,
-         "injected_buffs" : [ "stonehearth:buffs:devoted" ]
+         "injected_buffs" : [ "stonehearth:buffs:devoted" ],
+         "equip_effect" : "/stonehearth/data/effects/level_up"
       }
    }
 }

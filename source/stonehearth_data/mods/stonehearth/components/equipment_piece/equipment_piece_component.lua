@@ -40,6 +40,10 @@ function EquipmentPieceComponent:get_ilevel()
    return self._json.ilevel or 0
 end
 
+function EquipmentPieceComponent:get_equip_effect()
+   return self._json.equip_effect   
+end
+
 function EquipmentPieceComponent:_get_roles()
    if self._json.roles then
       return radiant.util.split_string(self._json.roles)

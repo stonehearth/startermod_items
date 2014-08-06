@@ -30,27 +30,27 @@ function AlignmentTest:__init()
 
    x_start, z_start = col[2], row[1]
    x,z = x_start,z_start; dx,dz = 8,8
-   self:_check_item('stonehearth:berry_hanging', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:geranium_hanging', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:green_hanging', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:camp_standard', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:tombstone', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:berry_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:geranium_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:green_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:camp_standard', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:tombstone', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:not_much_of_a_bed', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:comfy_bed', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:not_much_of_a_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:comfy_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:arch_backed_chair', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:simple_wooden_chair', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:arch_backed_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:simple_wooden_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:dining_table', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:table_for_one', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:dining_table', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:table_for_one', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:picket_fence', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:picket_fence', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:firepit', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:firepit', x, z, dx, 0, false); x=x_start; z=z+dz;
 
    x_start, z_start = col[3], row[1]
    x,z = x_start,z_start; dx,dz = 4,8
@@ -101,27 +101,31 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:berry_plate', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:berry_bush', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:pink_flower', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:brightbell:wild', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:brightbell', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:terrain:tall_grass', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:ball', x, z, dx, 0); x=x_start; z=z+dz;
 
 end
 
-function AlignmentTest:_check_item(uri, x, z, dx, dz)
+function AlignmentTest:_check_item(uri, x, z, dx, dz, iconic)
+   if iconic == nil then
+      iconic = true
+   end
    for angle = 0, 270, 90 do
-      local item = self:_place_item(uri, x, z, angle)
-      local collision_component = item:get_component('region_collision_shape')
-      if collision_component then
-         self:_place_mark(x, z)
-      end
+      local item = self:_place_item(uri, x, z, angle, iconic)
+      -- local collision_component = item:get_component('region_collision_shape')
+      -- if collision_component and not iconic then
+      --    self:_place_mark(x, z)
+      -- end
       x = x + dx
       z = z + dz
    end
 end
 
-function AlignmentTest:_place_item(uri, x, z, angle)
-   local item = self:place_item(uri, x, z)
+function AlignmentTest:_place_item(uri, x, z, angle, iconic)
+   local item = self:place_item(uri, x, z, nil,  { force_iconic = iconic })
    item:add_component('mob'):turn_to(angle)
    return item
 end

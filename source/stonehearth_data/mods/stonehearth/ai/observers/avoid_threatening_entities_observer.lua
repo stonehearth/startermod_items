@@ -58,9 +58,7 @@ function AvoidThreateningEntities:_on_added_to_sensor(id)
    -- you can do this now by listening for events and then having that fn call _reevaluate_threat --sdee
    if self:_is_threatening(other_entity) then
       self:_observe_threat(other_entity)
-      self:_check_avoid_entity()
-   else
-      self:_unobserve_threat(other_entity)
+      self:_check_avoid_entity(other_entity)
    end
 end
 
@@ -116,7 +114,7 @@ function AvoidThreateningEntities:_observe_threat(threat)
       self._traces[threat_id] = radiant.entities.trace_location(threat, 'avoid non-friendly entities')
          :on_changed(
             function()
-               self:_check_avoid_entity()
+               self:_check_avoid_entity(threat)
             end
          )
    end
@@ -148,13 +146,19 @@ function AvoidThreateningEntities:_reevaluate_threat()
    end
 end
 
-function AvoidThreateningEntities:_check_avoid_entity()
+function AvoidThreateningEntities:_check_avoid_entity(threat)
    if self._avoid_entity_task then
       -- already executing
       return
    end
 
-   local threat, threat_distance = self:_get_entity_to_avoid()
+   local threat_distance
+
+   if threat then
+      threat_distance = radiant.entities.distance_between(threat, self._entity)
+   else
+      threat, threat_distance = self:_get_entity_to_avoid()
+   end
 
    if threat then
       local run_distance = self._buffer_zone_radius - threat_distance

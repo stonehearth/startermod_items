@@ -537,7 +537,7 @@ function BuildService:grow_roof_command(session, response, building, roof_uri, o
    self._undo:end_transaction('grow_roof')
 
    response:resolve({
-      new_selection = roof
+      new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
    })
 end
 
@@ -670,14 +670,12 @@ end
 function BuildService:_add_portal(wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
-      local portal_blueprint_uri = portal_uri
       local data = radiant.entities.get_component_data(portal_uri, 'stonehearth:entity_forms')
-      if data then
-         portal_blueprint_uri = data.ghost_form
-      end
+      local portal_iconic_uri = data.iconic_form
+      local portal_ghost_uri = data.ghost_form
 
       local building = self:get_building_for(wall_entity)
-      local portal_blueprint = radiant.entities.create_entity(portal_blueprint_uri)
+      local portal_blueprint = radiant.entities.create_entity(portal_ghost_uri)
 
       portal_blueprint:add_component('unit_info')
                         :set_player_id(radiant.entities.get_player_id(building))
@@ -698,7 +696,7 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
       portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                        :start_project(portal_uri)
+                        :start_project(portal_iconic_uri)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
@@ -841,6 +839,10 @@ function BuildService:create_ladder_command(session, response, ladder_uri, locat
    location = ToPoint3(location)
    self._sv.scaffolding_manager:request_ladder_to(location, normal)
    return true
+end
+
+function BuildService:request_ladder_to(climb_to, normal)
+   return self._sv.scaffolding_manager:request_ladder_to(climb_to, normal)
 end
 
 return BuildService
