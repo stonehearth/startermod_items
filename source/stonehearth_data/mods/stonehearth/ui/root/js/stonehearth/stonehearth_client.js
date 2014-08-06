@@ -167,6 +167,8 @@ var StonehearthClient;
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
                   if (response.more_items) {
                      self.placeItemType(itemType, { hideTip : true });
+                  } else {
+                     $(top).trigger('radiant_hide_tip');
                   }
                })
                .fail(function(response) {
