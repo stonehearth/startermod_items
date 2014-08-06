@@ -412,7 +412,7 @@ var StonehearthClient;
          }
       },
 
-      addDoodad: function(doodadUri, o) {
+      addDoodad: function(doodadUri, precall) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -422,11 +422,11 @@ var StonehearthClient;
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
-               .always(function(response) {
+               .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
                   $(top).trigger('radiant_hide_tip');
                });
-         });
+         }, precall);
       },
 
       buildRoom: function() {

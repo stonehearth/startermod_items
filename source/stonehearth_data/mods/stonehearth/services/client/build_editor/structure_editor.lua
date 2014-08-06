@@ -11,6 +11,7 @@ end
 function StructureEditor:destroy()
    -- hide the fabricator and structure...
    self:_release_current_proxies()
+
    radiant.entities.destroy_entity(self._building_container)
 end
 
@@ -102,14 +103,6 @@ function StructureEditor:_show_editing_objects(visible)
       _radiant.client.get_render_entity(self._project)
                         :set_visible_override(visible)
    end   
-end
-
-function StructureEditor:destroy()
-   -- hide the fabricator and structure...
-   radiant.entities.destroy_entity(self._proxy_fabricator)
-   radiant.entities.destroy_entity(self._proxy_blueprint)
-   radiant.entities.destroy_entity(self._building_container)
-   self:_show_editing_objects(true)
 end
 
 function StructureEditor:get_blueprint()
