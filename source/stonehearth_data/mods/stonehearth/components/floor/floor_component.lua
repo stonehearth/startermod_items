@@ -79,4 +79,18 @@ function Floor:merge_with(old_floor)
    return self
 end
 
+function Floor:clone_from(entity)
+   if entity then
+      local other_floor_region = entity:get_component('destination'):get_region():get()
+
+      self._entity:get_component('destination')
+                     :get_region()
+                        :modify(function(r)
+                           r:copy_region(other_floor_region)
+                        end)
+      end
+   return self
+end
+
+
 return Floor
