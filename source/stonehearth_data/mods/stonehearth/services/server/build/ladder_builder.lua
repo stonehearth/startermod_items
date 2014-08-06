@@ -13,10 +13,10 @@ function LadderBuilder:initialize(base, normal)
    self.__saved_variables:mark_changed()
 
    radiant.terrain.place_entity(ladder, base)
-   ladder:add_component('stonehearth:construction_data')
-               :set_normal(normal)
 
    self._ladder_component = ladder:add_component('stonehearth:ladder')
+                                       :set_normal(normal)
+
    self._vpr_component = ladder:add_component('vertical_pathing_region')
    self._vpr_component:set_region(_radiant.sim.alloc_region())
 
