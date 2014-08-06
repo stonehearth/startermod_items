@@ -3,7 +3,9 @@
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_window_frame_iconic.json)",
-         "ghost_form" : "file(wooden_window_frame_ghost.json)"
+         "ghost_form" : "file(wooden_window_frame_ghost.json)",
+         "placeable_on_walls" : true,
+         "hide_placement_ui" : true
       }      
    }
 }

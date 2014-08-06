@@ -44,9 +44,20 @@ function CarpenterTest:__init()
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
 
- -- Tests!
-
+   -- Tests!
    --[[
+
+   local player_id = worker:get_component('unit_info'):get_player_id()
+   local town = stonehearth.town:get_town(player_id)
+   local location = Point3(7, 0, 7)
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   radiant.terrain.place_entity(banner_entity, location)
+   town:set_banner(banner_entity)
+
+   self:at(20000,  function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
+      end)
+
    --500ms seconds in, create an order for a shield (multiple types of ingredients)
    self:at(2000, function()
          --Programatically add items to the workbench's queue

@@ -24,7 +24,7 @@
             "stonehearth:actions:combat:flee"
          ],
          "observers" : [
-            "stonehearth:observers:avoid_hostile_entities"
+            "stonehearth:observers:avoid_threatening_entities"
          ]
       },
       "stonehearth:attributes": {
@@ -47,6 +47,14 @@
          "sleepiness": {
             "type" : "basic", 
             "value" : 0
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 1
+         },
+         "courage": {
+            "type" : "basic",
+            "value" : 1
          }
       },
       "sensor_list" : {

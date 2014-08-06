@@ -763,12 +763,9 @@ function entities._point_in_destination(which, entity, pt)
       local region = destination['get_' .. which](destination)
       if region then
          local region3 = region:get()
-         if region3 then      
-            local mob = entity:get_component('mob')
-            if mob then
-               pt = pt - mob:get_world_grid_location()      
-            end
-            return region3:contains(pt)
+         if region3 then
+            local rotated = entities.local_to_world(region3, entity)
+            return rotated:contains(pt)
          end
      end
    end

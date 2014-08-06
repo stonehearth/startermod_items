@@ -40,8 +40,16 @@ function WorkerDefense:enable_worker_combat(player_id)
          local combat_state = citizen:add_component('stonehearth:combat_state')
          combat_state:set_stance('aggressive')
 
+         -- add the defender buff
+         if not radiant.entities.has_buff(citizen, 'stonehearth:buffs:defender') then
+            radiant.entities.add_buff(citizen, 'stonehearth:buffs:defender');
+         end
+
          -- pop a ! over the citizen's head
          radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
+      
+         --If panicking, stop panicking
+         stonehearth.combat:set_panicking_from(citizen, nil)
       end
    end
 
@@ -57,6 +65,8 @@ function WorkerDefense:disable_worker_combat(player_id)
       if self:_performs_worker_defense(citizen) then
          local combat_state = citizen:add_component('stonehearth:combat_state')
          combat_state:set_stance('passive')
+
+         radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
 
          -- remove the ! from above the citizen's head
          radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)

@@ -47,9 +47,9 @@ function LadderRenderer:destroy()
       h3dRemoveNode(self._node)
       self._node = nil
    end
-   if self._render_tracker then
-      self._render_tracker:destroy()
-      self._render_tracker = nil   
+   if self._ladder_promise then
+      self._ladder_promise:destroy()
+      self._ladder_promise = nil   
    end
    if self._vpr_promise then
       self._vpr_promise:destroy()
@@ -57,7 +57,7 @@ function LadderRenderer:destroy()
    end
 end
 
-function LadderRenderer:_update_shape()
+function LadderRenderer:_update_shape()   
    local clip_region
    local ladder_region = self._vertical_pathing_region:get_region():get()
 

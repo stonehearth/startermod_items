@@ -74,23 +74,24 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             if result.entity == ghost_entity then
                return stonehearth.selection.FILTER_IGNORE
             end
-
+            local normal = result.normal:to_int()
+            
             -- check for ground placement
-            if entity_forms:is_placeable_on_ground() and result.normal.y == 1 then
+            if entity_forms:is_placeable_on_ground() and normal.y == 1 then
                if radiant.terrain.is_standable(placement_test_entity, result.brick) then
                   return true
                end
             end
 
             -- check for wall placement
-            if entity_forms:is_placeable_on_wall() and result.normal.y == 0 then
+            if entity_forms:is_placeable_on_wall() and normal.y == 0 then
                if not radiant.terrain.is_blocked(placement_test_entity, result.brick) then
-                  placing_on_wall_normal = result.normal:to_int()
-                  local entities = radiant.terrain.get_entities_at_point(result.brick - placing_on_wall_normal)
+                  local entities = radiant.terrain.get_entities_at_point(result.brick - normal)
                   for _, entity in pairs(entities) do
                      local wall = entity:get_component('stonehearth:wall')
                      if wall then
                         placing_on_wall = entity
+                        placing_on_wall_normal = normal
                         return true
                      end
                   end
@@ -160,36 +161,13 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    local location = Point3(location.x, location.y, location.z)
 
    -- look for entities which are not currently being placed
-   local candidates = stonehearth.inventory:get_inventory(session.player_id)
-                                           :get_items_of_type(entity_uri)
+   local item, acceptable_item_count = stonehearth.inventory:get_inventory(session.player_id)
+                                                            :find_closest_unused_placable_item(entity_uri, location)
 
-   -- returns the best item to place.  the best item is the one that isn't currently
-   -- being placed and is closest to the placement location
-   local acceptable_item_count = 0
-   local best_item, best_distance
-
-   for _, item in pairs(candidates.items) do
-      -- make sure the item isn't being placed
-      local entity_forms = item:get_component('stonehearth:iconic_form')
-                                 :get_root_entity()
-                                 :get_component('stonehearth:entity_forms')
-      if not entity_forms:is_being_placed() then
-         acceptable_item_count = acceptable_item_count + 1
-         local position = radiant.entities.get_world_grid_location(item)
-         local distance = position:distance_to(location)
-
-         -- make sure the item is better than the previous one.
-         if not best_item or distance < best_distance then
-            best_item, best_distance = item, distance
-         end
-      end
-   end
-
-   -- place the best item, if it exists
-   if not best_item then
+   if not item then
       response:fail({error = 'no more placeable items'})
    end
-   self:place_item_in_world(session, response, best_item, location, rotation, placing_on_wall, placing_on_wall_normal)
+   self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
 
    -- return whether or not there are most items we could potentially place
    response:resolve({ more_items = acceptable_item_count > 1 })

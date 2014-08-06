@@ -6,18 +6,13 @@ local Point3 = _radiant.csg.Point3
 --Create a tiny embark scenario to make sure initial gameplay functions correctly
 
 function EmbarkTest:__init()
-   self[MicroWorld]:__init()
+   self[MicroWorld]:__init(128)
    self:create_world()
 
    local bush = self:place_item('stonehearth:berry_bush', 4, 4)
    local bush = self:place_item('stonehearth:berry_bush', -1, -1)
    local bush = self:place_item('stonehearth:berry_bush', -4, 4)
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
-
-   local bush = self:place_item('stonehearth:berry_bush', 2, 4)
-   local bush = self:place_item('stonehearth:berry_bush', 1, -1)
-   local bush = self:place_item('stonehearth:berry_bush', -2, 4)
-   local bush = self:place_item('stonehearth:berry_bush', 5, -4)
 
    local tree = self:place_tree(-12, -12)
    local tree = self:place_tree(12, -10)
@@ -31,6 +26,7 @@ function EmbarkTest:__init()
    local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
 
 
+   --local worker = self:place_citizen(-5, -5, 'stonehearth:professions:footman', 'stonehearth:wooden_sword')
    local worker = self:place_citizen(-5, -5)
    radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker, description = 'person_embarks'})
@@ -60,10 +56,10 @@ function EmbarkTest:__init()
    self:place_item('stonehearth:firepit', 0, 11, player_id, { force_iconic = false })
 
    local pop = stonehearth.population:get_population(player_id)
-   radiant.entities.pickup_item(worker, pop:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:knife'))
-   radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw'))
+   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:wooden_sword_talisman'))
+   radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw_talisman'))
 
    --Place a banner
    local town = stonehearth.town:get_town(player_id)
@@ -82,17 +78,21 @@ function EmbarkTest:__init()
 
 
    -- Introduce a new person
-   self:at(10000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+   
+
+   ---[[
+   self:at(20000,  function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
       end)
 
    self:at(50000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
       end)
 
    self:at(70000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
       end)
+   --]]
 
 
 end

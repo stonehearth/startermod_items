@@ -1,5 +1,6 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 
 --[[
    Belongs to all objects that have been placed in the world,
@@ -32,8 +33,10 @@ function EntityFormsComponent:_post_create(json)
    self._sv._initialized = true
    self._sv.placeable_on_walls = json.placeable_on_walls
    self._sv.placeable_on_ground = json.placeable_on_ground
-   
+   self._sv.hide_placement_ui = json.hide_placement_ui
+
    local placeable = self:is_placeable()
+   local show_placement_uri = placeable and not self:should_hide_placement_ui()
 
    local iconic_entity, ghost_entity
    if json.iconic_form then
@@ -54,7 +57,7 @@ function EntityFormsComponent:_post_create(json)
       assert(iconic_entity, string.format('placeable entity %s missing an iconic entity form', uri))
       assert(ghost_entity,  string.format('placeable entity %s missing a ghost entity form', uri))
       
-      if radiant.is_server then
+      if radiant.is_server and show_placement_uri then
          self._entity:add_component('stonehearth:commands')
                         :add_command('/stonehearth/data/commands/move_item')
       end
@@ -69,13 +72,13 @@ function EntityFormsComponent:_post_create(json)
 
    if iconic_entity then
       iconic_entity:add_component('stonehearth:iconic_form')
-                        :set_placeable(placeable)
+                        :set_placeable(show_placement_uri)
                         :set_root_entity(self._entity)
                         :set_ghost_entity(ghost_entity)
    end
    if ghost_entity then
       ghost_entity:add_component('stonehearth:ghost_form')
-                        :set_placeable(placeable)
+                        :set_placeable(show_placement_uri)
                         :set_root_entity(self._entity)
                         :set_iconic_entity(iconic_entity)
    end
@@ -83,6 +86,10 @@ end
 
 function EntityFormsComponent:destroy()
    self:_destroy_placement_task()
+end
+
+function EntityFormsComponent:should_hide_placement_ui()
+   return self._sv.hide_placement_ui
 end
 
 function EntityFormsComponent:is_placeable()
@@ -117,8 +124,8 @@ end
 function EntityFormsComponent:_load_placement_task()
    if self._sv.placing_at then
       if self._sv.placing_at.wall then
-         self:place_item_on_wall(self._sv.placing_at.wall,
-                                 self._sv.placing_at.location,
+         self:place_item_on_wall(self._sv.placing_at.location,
+                                 self._sv.placing_at.wall,
                                  self._sv.placing_at.normal)
       else
          self:place_item_in_world(self._sv.placing_at.location,
@@ -151,6 +158,8 @@ function EntityFormsComponent:_destroy_placement_task()
 end
 
 function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
+   assert(wall_entity, 'no wall in place_item_on_wall')
+   assert(radiant.util.is_a(wall_entity, Entity), 'wall is not an entity in place_item_on_wall')
    assert(self:is_placeable_on_wall(), 'cannot place item on wall')
 
    -- cancel whatever pending tasks we had earliers.
@@ -193,7 +202,7 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
 
    -- the wall is finished.  let's start up the tasks.  if we're currently on a wall,
    -- we may need to build a ladder to pick ourselves up.  request that now.
-   local parent = self._entity:get_component('mob'):get_parent()
+   local parent = self._entity:add_component('mob'):get_parent()
    if parent and parent:get_component('stonehearth:wall') then
       local parent_normal = parent:get_component('stonehearth:construction_data')
                                        :get_normal()
@@ -265,7 +274,14 @@ function EntityFormsComponent:_create_task(activity, args)
    self._placement_task:set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
                        :once()
                        :notify_completed(function()
-                              radiant.terrain.remove_entity(self._sv.ghost_entity)
+                              -- remove the ghost entity from whatever its parent was.  this could
+                              -- best the terrain or a wall, depending on how we were placed
+                              local ghost = self._sv.ghost_entity
+                              local parent = ghost:get_component('mob'):get_parent()
+                              if parent then
+                                 radiant.entities.remove_child(parent, ghost)
+                                 radiant.entities.move_to(ghost, Point3.zero)                              
+                              end
                               self._placement_task = nil
                               self:_destroy_placement_task()
                            end)

@@ -20,15 +20,16 @@
                "stonehearth:actions:teardown_ladder_adjacent",
                "stonehearth:actions:fabricate_structure",
                "stonehearth:actions:fabricate_structure_adjacent",
-               "stonehearth:actions:fabricate_fixture",
-               "stonehearth:actions:fabricate_fixture_adjacent",
                "stonehearth:actions:teardown_structure",
                "stonehearth:actions:teardown_structure_adjacent",
 
-               "stonehearth:filters:fabricate_wooden_fixture",
                "stonehearth:filters:fabricate_wooden_structure",
                "stonehearth:filters:teardown_wooden_structure"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic"
             ]
+
          },
          "injected_commands" : [
             "file(/data/commands/build_workshop)"

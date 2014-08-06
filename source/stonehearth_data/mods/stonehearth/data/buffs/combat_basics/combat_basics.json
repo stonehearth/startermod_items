@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Combat Basics",
+   "description" : "Toughened through hours of combat training",
+   "icon" : "file(combat_basics_buff.png)",
+   "modifiers" : {
+      "courage" : {
+         "add" : 100
+      }
+   } 
+} 
