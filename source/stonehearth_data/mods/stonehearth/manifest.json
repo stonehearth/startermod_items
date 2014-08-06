@@ -365,12 +365,9 @@
       "actions:teardown_ladder_adjacent" : "file(ai/actions/teardown_ladder_adjacent_action.lua)",
       "actions:fabricate_structure" : "file(ai/actions/fabricate_structure_action.lua)",
       "actions:fabricate_structure_adjacent" : "file(ai/actions/fabricate_structure_adjacent_action.lua)",
-      "actions:fabricate_fixture" : "file(ai/actions/fabricate_fixture_action.lua)",
-      "actions:fabricate_fixture_adjacent" : "file(ai/actions/fabricate_fixture_adjacent_action.lua)",
       "actions:teardown_structure" : "file(ai/actions/teardown_structure_action.lua)",
       "actions:teardown_structure_adjacent" : "file(ai/actions/teardown_structure_adjacent_action.lua)",
       "filters:fabricate_wooden_structure" : "file(ai/filters/fabricate_wooden_structure_filter.lua)",
-      "filters:fabricate_wooden_fixture" : "file(ai/filters/fabricate_wooden_fixture_filter.lua)",
       "filters:teardown_wooden_structure" : "file(ai/filters/teardown_wooden_structure_filter.lua)",
 
       "actions:farmer_task_dispatcher" : "file(ai/actions/farmer_task_dispatcher.lua)",
