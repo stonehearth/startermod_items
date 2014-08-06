@@ -24,11 +24,19 @@ function MemorializeDeathAction:run(ai, entity, args)
    radiant.entities.set_description(tombstone, description)
    radiant.terrain.place_entity(tombstone, self._location)
 
-   radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death/death_jingle.json')
-
+   local proxy_entity = radiant.entities.create_proxy_entity()
+   radiant.terrain.place_entity(proxy_entity, self._location)
+   --radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death/death_jingle.json')
+   local effect = radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/tombstone_effect')
+   effect:set_finished_cb(
+      function()
+         radiant.entities.destroy_proxy_entity(proxy_entity)
+      end
+   )
+   
    stonehearth.events:add_entry(event_text, 'warning')
 
-   --Send the notice to the bulletin service.
+      --Send the notice to the bulletin service.
    self.notification_bulletin = stonehearth.bulletin_board:post_bulletin(self._player_id)
          :set_callback_instance(stonehearth.town:get_town(self._player_id))
          :set_type('alert')
