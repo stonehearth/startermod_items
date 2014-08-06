@@ -1,0 +1,66 @@
+{
+    "name": "fire",
+    "duration": 20,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [2.5, 2.5]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [2.75, 3.2]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [1.0, 0.94, 0.55, 1.0]
+            }
+        },
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [0.06, 0.2]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 0.0], [0.2, 1.0], [0.8, 1.0], [1.0, 0,0]
+                ]
+            }
+        },
+        "velocity": {
+            "over_lifetime_x": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 4.0], [0.125, 4.0], [0.25, -6.0], [0.375, -6.0], [0.5, 6.0], [0.625, 6.0], [0.750, -6.0], [0.825, -6.0], [1.0, 6.0]
+                ]
+            },
+
+            "over_lifetime_z": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 12.0], [0.125, -6.0], [0.25, -6.0], [0.375, 6.0], [0.5, 6.0], [0.625, -6.0], [0.750, -6.0], [0.825, 6.0], [1.0, 6.0]
+                ]
+            }
+        }
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [20]
+        },
+        "origin": {
+            "surface": "POINT",
+            "values": [0.0, 0.0]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [0]
+        }
+    }
+}

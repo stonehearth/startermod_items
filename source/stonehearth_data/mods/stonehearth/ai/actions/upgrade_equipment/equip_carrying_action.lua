@@ -29,6 +29,12 @@ function EquipCarrying:run(ai, entity, args)
 
    local old_item = entity:add_component('stonehearth:equipment')
                               :equip_item(item)
+
+   local equip_effect = equipment_piece:get_equip_effect()
+   if equip_effect then
+      radiant.effects.run_effect(entity, equip_effect);
+   end
+
    if old_item then
       local ilevel = old_item:get_component('stonehearth:equipment_piece')
                                  :get_ilevel()

@@ -10,6 +10,7 @@ function Promote:run(town, args)
       trigger_fn = function(info, args)
          if info.event == "change_outfit" then
             self:_change_profession(person, args.talisman)
+            radiant.effects.run_effect(person, '/stonehearth/data/effects/level_up')
          elseif info.event == "remove_talisman" then
             -- xx for now destroy the talisman. Eventually store it in the talisman component so we can bring it back when the civ is demoted
             radiant.entities.remove_carrying(person)
