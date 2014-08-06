@@ -39,13 +39,12 @@ PixelBufferResource::PixelBufferResource( std::string const& name) :
 PixelBufferResource::PixelBufferResource( std::string const& name, uint32 size) :
 	Resource( ResourceTypes::PixelBuffer, name, 0 ), _size(size), _buffer( 0 )
 {	
-	_loaded = true;
-   _usePinnedMemory = usePinnedMemory();
-   for (int i = 0; i < MAX_SYNCS; i++) {
-      _pinnedMemory[i] = 0;
-   }
-   _streambuff = new unsigned char[size];
 
+   initDefault();
+
+   _loaded = true;
+   _usePinnedMemory = usePinnedMemory();
+   _streambuff = new unsigned char[size];
 
    if (!_usePinnedMemory)
    {

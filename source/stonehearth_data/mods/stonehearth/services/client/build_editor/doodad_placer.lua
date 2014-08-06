@@ -78,11 +78,12 @@ function DoodadPlacer:_on_mouse_event(e)
    if e:up(1) then
       if self._wall_editor then
          self._wall_editor:submit(self._response)
-         -- WHY NOT?
-         --self._wall_editor:destroy()
+
+         -- No need to destroy, because the deferred response (submitted above)
+         -- will call self:destroy().  Surprise!
          self._wall_editor = nil
-         self:destroy()
       end
+      self:destroy()
    end
 
    if e:up(2) then
