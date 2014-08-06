@@ -55,7 +55,7 @@ App.StonehearthBuildModeView = App.View.extend({
       this._hideDesignerViews();
 
       // show the building designer
-      if (this._buildDesignerTools) {
+      if (this._buildDesignerTools && this._buildDesignerTools.$()) {
          this._buildDesignerTools.$().show();
       } else {      
          this._buildDesignerTools = App.gameView.addView(App.StonehearthBuildingDesignerTools);
