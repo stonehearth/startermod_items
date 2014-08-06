@@ -128,8 +128,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
    _deactivateTool: function(toolTag) {
       var self = this;
-      return function(asdf) {
-         self.$(toolTag).removeClass('active')         
+      return function() {
+         if (self.$(toolTag)) {
+            self.$(toolTag).removeClass('active');
+         }
       }
    },
 
