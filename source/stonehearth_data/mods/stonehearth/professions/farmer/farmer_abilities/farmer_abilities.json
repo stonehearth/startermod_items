@@ -15,7 +15,11 @@
                "stonehearth:actions:plant_crop",
                "stonehearth:actions:harvest_crop",
                "stonehearth:actions:harvest_crop_adjacent"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic"
             ]
+
          },
          "injected_commands" : [
          ]

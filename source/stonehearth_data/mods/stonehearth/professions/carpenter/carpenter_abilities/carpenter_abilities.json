@@ -26,7 +26,11 @@
                "stonehearth:filters:fabricate_wooden_fixture",
                "stonehearth:filters:fabricate_wooden_structure",
                "stonehearth:filters:teardown_wooden_structure"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic"
             ]
+
          },
          "injected_commands" : [
             "file(/data/commands/build_workshop)"

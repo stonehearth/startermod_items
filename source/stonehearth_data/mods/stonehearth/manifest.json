@@ -207,6 +207,8 @@
       "buffs:starving" : "file(data/buffs/starving/starving_buff.json)",
       "buffs:snared" : "file(data/buffs/snared/snared_buff.json)",
       "buffs:devoted" : "file(data/buffs/devoted/devoted_buff.json)",
+      "buffs:defender" : "file(data/buffs/defender/defender_buff.json)",
+      "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
 
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
@@ -422,7 +424,7 @@
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
-      "observers:avoid_hostile_entities" : "file(ai/observers/avoid_hostile_entities_observer.lua)",
+      "observers:avoid_threatening_entities" : "file(ai/observers/avoid_threatening_entities_observer.lua)",
       "observers:sleepiness" : "file(ai/observers/sleepiness_observer.lua)",
       "observers:calorie" : "file(ai/observers/calorie_observer.lua)",
       "observers:free_time" : "file(ai/observers/free_time_observer.lua)",

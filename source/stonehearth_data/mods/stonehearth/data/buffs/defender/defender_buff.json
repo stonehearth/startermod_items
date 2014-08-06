@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Defender",
+   "description" : "Rally for your town!",
+   "icon" : "file(defender_buff.png)",
+   "modifiers" : {
+      "courage" : {
+         "add" : 70
+      } 
+   }
+} 

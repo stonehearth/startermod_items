@@ -93,6 +93,14 @@
          "ferocity": {
             "type" : "basic", 
             "value" :  100
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 70
+         },
+         "courage": {
+            "type" : "basic",
+            "value" : 20
          }
       },
       "stonehearth:carry_block": {

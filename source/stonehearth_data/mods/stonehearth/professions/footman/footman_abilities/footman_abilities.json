@@ -10,7 +10,8 @@
                "stonehearth:actions:get_patrol_route",
                "stonehearth:actions:mark_patrol_completed"
             ]
-         }
+         },
+         "injected_buffs" : [ "stonehearth:buffs:combat_basics" ]
       }
    },
    "entity_data" : {
