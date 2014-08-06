@@ -91,6 +91,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                      local wall = entity:get_component('stonehearth:wall')
                      if wall then
                         placing_on_wall = entity
+                        placing_on_wall_normal = normal
                         return true
                      end
                   end
