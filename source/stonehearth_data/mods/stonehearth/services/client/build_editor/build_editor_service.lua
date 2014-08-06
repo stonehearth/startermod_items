@@ -108,6 +108,11 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
       :done(function(selector, entity)
             if building then
                _radiant.call_obj(self._build_service, 'grow_roof_command', building, roof_uri, self._grow_roof_options)
+                  :done(function(r)
+                        if r.new_selection then
+                           stonehearth.selection:select_entity(r.new_selection)
+                        end
+                     end)
             end
          end)
       :fail(function(selector)

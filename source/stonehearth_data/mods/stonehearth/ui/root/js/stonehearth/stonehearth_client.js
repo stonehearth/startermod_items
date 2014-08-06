@@ -103,13 +103,12 @@ var StonehearthClient;
             }
             self._activeTool = toolFunction()
                .done(function(response) {
+                  self._activeTool = null;
                   deferred.resolve(response);
                })
                .fail(function(response) {
-                  deferred.reject(response);
-               })
-               .always(function (){
                   self._activeTool = null;
+                  deferred.reject(response);
                });
          };
 

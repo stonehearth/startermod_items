@@ -324,22 +324,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self._saveState();
 
          // update the selected building part, if there is one
-         var wallUri = $(this).attr('brush');
          var blueprint = self.get('blueprint');
-         var constructionData = self.get('blueprint.stonehearth:construction_data')
-         var type = constructionData.type;
+         var constructionData = self.get('blueprint.stonehearth:construction_data');
 
-         if (blueprint && type == 'wall') {
+         if (blueprint && constructionData && constructionData.type == 'wall') {
+            var wallUri = $(this).attr('brush');
             App.stonehearthClient.replaceStructure(blueprint, wallUri);
-         } else {
-            // Reactivate the active tool with the new material, if an active
-            // tool exists.  Otherwise, just select the 'draw wall' tool.
-
-            if (self.$('#growWallsTool').hasClass('active')) {
-               doGrowWalls();
-            } else if (self.$('#drawWallTool').hasClass('active')) {
-               doDrawWall(true);               
-            }
+         }
+         // Reactivate the active tool with the new material, if an active
+         // tool exists.  Otherwise, just select the 'draw wall' tool.
+         if (self.$('#growWallsTool').hasClass('active')) {
+            doGrowWalls();
+         } else if (self.$('#drawWallTool').hasClass('active')) {
+            doDrawWall(true);               
          }
       });
 
