@@ -22,7 +22,8 @@ function MemorializeDeathAction:run(ai, entity, args)
 
    radiant.entities.set_name(tombstone, title)
    radiant.entities.set_description(tombstone, description)
-   radiant.terrain.place_entity(tombstone, self._location)
+
+   radiant.terrain.place_entity(tombstone, self._location, { force_iconic = false })
 
    local proxy_entity = radiant.entities.create_proxy_entity()
    radiant.terrain.place_entity(proxy_entity, self._location)

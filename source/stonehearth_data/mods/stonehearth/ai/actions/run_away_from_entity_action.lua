@@ -62,7 +62,11 @@ function RunAwayFromEntity:_calculate_location(start_location, direction, angle,
    local z = radiant.math.round(new_location.z)
    local y = start_location.y
 
-   local new_grid_location = Point3(x, y, z)
+   --Add a random factor so that if we're blocked we can try a slightly different direction later
+   local x_offset = math.random(-5, 5)
+   local z_offset = math.random(-5, 5)
+
+   local new_grid_location = Point3(x + x_offset, y, z + z_offset)
    return new_grid_location
 end
 
