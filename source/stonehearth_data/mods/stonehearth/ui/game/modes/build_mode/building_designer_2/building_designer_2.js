@@ -215,13 +215,17 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          App.stonehearthClient.undo();
       });
 
+      var activateElement = function(elPath) {
+         return function() {
+            self.$(elPath).addClass('active');
+         }
+      };
+
       // draw floor tool
       var doDrawFloor = function(showTip) {
          var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
-         App.stonehearthClient.buildFloor(brush, { hideTip: !showTip }, 
-            function() {
-               self.$('#drawFloorTool').addClass('active');
-            })
+         App.stonehearthClient.buildFloor(brush, { hideTip: !showTip },
+            activateElement('#drawFloorTool'))
             .fail(self._deactivateTool('#drawFloorTool'))
             .done(function() {
                doDrawFloor(false);
@@ -230,9 +234,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       var doEraseFloor = function(showTip) {
          App.stonehearthClient.eraseFloor({ hideTip: !showTip }, 
-            function() {
-               self.$('#eraseFloorTool').addClass('active');               
-            })
+            activateElement('#eraseFloorTool'))
             .fail(self._deactivateTool('#eraseFloorTool'))
             .done(function() {
                doEraseFloor(false);
@@ -245,9 +247,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var doDrawWall = function(showTip) {
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, { hideTip: !showTip },
-            function() {
-               self.$('#drawWallTool').addClass('active');
-            })
+            activateElement('#drawWallTool'))
             .fail(self._deactivateTool('#drawWallTool'))
             .done(function() {
                doDrawWall(false);
@@ -258,9 +258,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var doGrowWalls = function() {
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri,
-            function() {
-               self.$('#growWallsTool').addClass('active');
-            })
+            activateElement('#growWallsTool'))
             .fail(self._deactivateTool('#growWallsTool'))
             .done(function() {
                doGrowWalls();
@@ -272,14 +270,23 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var doGrowRoof = function() {
          var roofUri = self.$('#roofToolTab .roofMaterial.selected').attr('brush');
          App.stonehearthClient.growRoof(roofUri,
-            function() {
-               self.$('#growRoofTool').addClass('active');               
-            })
+            activateElement('#growRoofTool'))
             .fail(self._deactivateTool('#growRoofTool'))
             .done(function() {
                doGrowRoof();
             });
       };
+
+      // draw doodad tool
+      var doAddDoodad = function() {
+         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
+         App.stonehearthClient.addDoodad(uri,
+            activateElement('#drawDoodadTool'))
+            .fail(self._deactivateTool('#drawDoodadTool'))
+            .done(function() {
+               doAddDoodad();
+            });
+      }
 
       this.$('#drawFloorTool').click(function() {
          doDrawFloor(true);
@@ -300,6 +307,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       this.$('#growRoofTool').click(function() {
          doGrowRoof();
+      });
+
+      this.$('#drawDoodadTool').click(function() {
+         doAddDoodad();
       });
 
       // floor materials
@@ -395,19 +406,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (blueprint) {
             App.stonehearthClient.applyConstructionDataOptions(blueprint, self._state.growRoofOptions);
          }
-      });
-
-
-      // draw doodad tool
-      var doAddDoodad = function() {
-         if(self.$('#drawDoodadTool').hasClass('active')) {
-            var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
-            App.stonehearthClient.addDoodad(uri);
-         }
-      }
-
-      this.$('#drawDoodadTool').click(function() {
-         doAddDoodad();
       });
 
       // doodad material
