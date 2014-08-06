@@ -50,7 +50,9 @@ function TrappingGroundsComponent:_finish_initialization()
 end
 
 function TrappingGroundsComponent:destroy()
+   self:_destroy_survey_task()
    self:_destroy_set_trap_task()
+   self:_destroy_check_trap_task()
 
    for id, trap in pairs(self._sv.traps) do
       -- confirm trapped critters are also destroyed
@@ -348,7 +350,6 @@ function TrappingGroundsComponent:_stop_spawn_timer()
 end
 
 -- TODO: set conditions for spawn
--- TODO: set conditions for de-spawn
 function TrappingGroundsComponent:_try_spawn()
    local armed_traps = self:get_armed_traps()
    local trap = self:_choose_random_trap(armed_traps)

@@ -68,10 +68,10 @@ local constants = {
 
       trapping = {
          SET_TRAPS = 1,
-         DROP_OFF_LOOT = 2,
+         SURVEY_TRAPPING_GROUNDS = 2,
+         UNLOAD_BACKPACK = 3,
          CHECK_TRAPS = 3,
-         SURVEY_TRAPPING_GROUNDS = 4,
-         PICK_UP_LOOT = 5,
+         PICK_UP_LOOT = 10,
       },
 
       crafting = {
