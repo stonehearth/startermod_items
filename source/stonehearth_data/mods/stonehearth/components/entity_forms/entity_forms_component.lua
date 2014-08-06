@@ -1,5 +1,6 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Point3 = _radiant.csg.Point3
+local Entity = _radiant.om.Entity
 
 --[[
    Belongs to all objects that have been placed in the world,
@@ -123,8 +124,8 @@ end
 function EntityFormsComponent:_load_placement_task()
    if self._sv.placing_at then
       if self._sv.placing_at.wall then
-         self:place_item_on_wall(self._sv.placing_at.wall,
-                                 self._sv.placing_at.location,
+         self:place_item_on_wall(self._sv.placing_at.location,
+                                 self._sv.placing_at.wall,
                                  self._sv.placing_at.normal)
       else
          self:place_item_in_world(self._sv.placing_at.location,
@@ -157,6 +158,8 @@ function EntityFormsComponent:_destroy_placement_task()
 end
 
 function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
+   assert(wall_entity, 'no wall in place_item_on_wall')
+   assert(radiant.util.is_a(wall_entity, Entity), 'wall is not an entity in place_item_on_wall')
    assert(self:is_placeable_on_wall(), 'cannot place item on wall')
 
    -- cancel whatever pending tasks we had earliers.
@@ -199,7 +202,7 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
 
    -- the wall is finished.  let's start up the tasks.  if we're currently on a wall,
    -- we may need to build a ladder to pick ourselves up.  request that now.
-   local parent = self._entity:get_component('mob'):get_parent()
+   local parent = self._entity:add_component('mob'):get_parent()
    if parent and parent:get_component('stonehearth:wall') then
       local parent_normal = parent:get_component('stonehearth:construction_data')
                                        :get_normal()
