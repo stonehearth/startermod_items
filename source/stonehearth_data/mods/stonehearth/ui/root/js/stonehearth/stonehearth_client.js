@@ -92,25 +92,35 @@ var StonehearthClient;
       },
 
       // Wrapper to call all tools, handling the boilerplate tool management.
-      _callTool: function(toolFunction) {
+      _callTool: function(toolFunction, preCall) {
          var self = this;
 
          var deferred = new $.Deferred();
 
-         this.deactivateAllTools()
-            .always(function() {
-               // when all tools are deactivated, activate the tool specified in the params
-               self._activeTool = toolFunction()
-                  .done(function(response) {
-                     deferred.resolve(response);
-                  })
-                  .fail(function(response) {
-                     deferred.reject(response);
-                  })
-                  .always(function (){
-                     self._activeTool = null;
-                  })
-            });
+         var activateTool = function() {
+            if (preCall) {
+               preCall();
+            }
+            self._activeTool = toolFunction()
+               .done(function(response) {
+                  deferred.resolve(response);
+               })
+               .fail(function(response) {
+                  deferred.reject(response);
+               })
+               .always(function (){
+                  self._activeTool = null;
+               });
+         };
+
+         if (self._activeTool) {
+            // If we have an active tool, trigger a deactivate so that when that
+            // tool completes, we'll activate the new tool.
+            self._activeTool.always(activateTool);
+            this.deactivateAllTools();
+         } else {
+            activateTool();
+         }
 
          return deferred;
       },
@@ -297,7 +307,7 @@ var StonehearthClient;
          radiant.call_obj(this._build_service, 'undo_command')
       },
 
-      buildWall: function(column, wall, o) {
+      buildWall: function(column, wall, o, precall) {
          var self = this;
 
          $(top).trigger('radiant_show_tip', { 
@@ -309,15 +319,14 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  self.buildWall(column, wall, { hideTip : true });
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
-               });               
-         });
+               });
+         }, precall);
       },
 
-      buildFloor: function(floorBrush, o) {
+      buildFloor: function(floorBrush, o, precall) {
          var self = this;
 
          if (!o || !o.hideTip) {
@@ -331,15 +340,14 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  self.buildFloor(floorBrush, { hideTip : true });
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
                });
-         });
+         }, precall);
       },
 
-      eraseFloor: function(o) {
+      eraseFloor: function(o, precall) {
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
          var self = this;
 
@@ -354,21 +362,22 @@ var StonehearthClient;
             return radiant.call_obj(self._build_editor, 'erase_floor')
                .done(function(response) {                  
                   radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-                  self.eraseFloor({ hideTip : true });
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
                });
-         });
+         }, precall);
       },
 
-      growRoof: function(roof) {
+      growRoof: function(roof, precall) {
          var self = this;
 
          return this._callTool(function() {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-            return radiant.call_obj(self._build_editor, 'grow_roof', roof);
-         });
+            return radiant.call_obj(self._build_editor, 'grow_roof', roof)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+               });
+         }, precall);
       },
 
       applyConstructionDataOptions: function(blueprint, options) {
@@ -379,12 +388,14 @@ var StonehearthClient;
          return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },
 
-      growWalls: function(column, wall) {
+      growWalls: function(column, wall, precall) {
          var self = this;
          return this._callTool(function() {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
-         });
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure');
+               });
+         }, precall);
       },
 
       replaceStructure: function(old_structure, new_structure_uri) {

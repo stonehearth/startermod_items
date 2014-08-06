@@ -670,6 +670,10 @@ void AStarPathFinder::OnTileDirty(csg::Point3 const& index)
    if (watching_tiles_.find(index) != watching_tiles_.end()) {
       world_changed_ = true;
       EnableWorldWatcher(false);
+
+      if (search_exhausted_) {
+         RestartSearch("world changed after exhausted search");
+      }
    }
 }
 
