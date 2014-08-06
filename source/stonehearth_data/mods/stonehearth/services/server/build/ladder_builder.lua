@@ -12,7 +12,7 @@ function LadderBuilder:initialize(base, normal)
    self._sv.ladder = ladder
    self.__saved_variables:mark_changed()
 
-   radiant.terrain.place_entity(ladder, base)
+   radiant.terrain.place_entity_at_exact_location(ladder, base)
 
    self._ladder_component = ladder:add_component('stonehearth:ladder')
                                        :set_normal(normal)
@@ -54,14 +54,14 @@ end
 
 function LadderBuilder:_get_climb_to()
    local origin = radiant.entities.get_world_grid_location(self._sv.ladder)
-   local top = origin
+   local top
    for pt, _ in pairs(self._sv.climb_to) do
-      assert(pt.x == top.x and pt.z == top.z)
-      if pt.y > top.y then
+      assert(not top or (pt.x == top.x and pt.z == top.z))
+      if not top or pt.y > top.y then
          top = pt
       end
    end
-   return top - origin
+   return top and top - origin or nil
 end
 
 function LadderBuilder:_get_ladder_top()
@@ -73,7 +73,8 @@ function LadderBuilder:_update_ladder_tasks()
    local climb_to = self:_get_climb_to()
    local ladder_top = self:_get_ladder_top()
    
-   local desired_height = climb_to.y > 0 and climb_to.y + 1 or 0
+   --local desired_height = climb_to.y > 0 and climb_to.y + 1 or 0
+   local desired_height = climb_to and climb_to.y + 1 or 0
    self._ladder_component:set_desired_height(desired_height)
 
    local delta = desired_height - ladder_top.y

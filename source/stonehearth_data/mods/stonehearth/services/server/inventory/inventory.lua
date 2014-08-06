@@ -153,4 +153,57 @@ function Inventory:get_items_of_type(uri)
    return tracking_data[uri]
 end
 
+-- call the `cb` function whenever the inventory receives a new item matching `uri`
+--
+-- @param uri - looks for entities with the given uri
+-- @param cb - the callback function to call when an item is added
+--
+function Inventory:notify_when_item_added(uri, cb)
+   local tracker = self:get_item_tracker('stonehearth:basic_inventory_tracker')
+   return radiant.events.listen(tracker, 'stonehearth:inventory_tracker:item_added', function (e)
+         if e.key == uri then
+            cb()
+         end
+      end)
+end
+
+-- find a placeable item whose iconic form has the given `uri` which is not currently
+-- being placed.  if multiple items are not being placed, return the one closest to
+-- `location`.  also returns the total number of items which match `uri` and are not
+-- currently placed as the 2nd result.
+--
+-- @param uri - the uri of the iconic entity to look for
+-- @param location - of all the candiates, will return the one closest to location
+--
+function Inventory:find_closest_unused_placable_item(uri, location)
+   -- look for entities which are not currently being placed
+   local candidates = self:get_items_of_type(uri)
+   if not candidates then
+      return
+   end
+   
+   -- returns the best item to place.  the best item is the one that isn't currently
+   -- being placed and is closest to the placement location
+   local acceptable_item_count = 0
+   local best_item, best_distance
+
+   for _, item in pairs(candidates.items) do
+      -- make sure the item isn't being placed
+      local entity_forms = item:get_component('stonehearth:iconic_form')
+                                 :get_root_entity()
+                                 :get_component('stonehearth:entity_forms')
+      if not entity_forms:is_being_placed() then
+         acceptable_item_count = acceptable_item_count + 1
+         local position = radiant.entities.get_world_grid_location(item)
+         local distance = position:distance_to(location)
+
+         -- make sure the item is better than the previous one.
+         if not best_item or distance < best_distance then
+            best_item, best_distance = item, distance
+         end
+      end
+   end
+   return best_item, acceptable_item_count
+end
+
 return Inventory

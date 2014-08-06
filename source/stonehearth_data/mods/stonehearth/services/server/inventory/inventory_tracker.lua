@@ -40,6 +40,8 @@ function InventoryTracker:add_item(entity)
       local tracking_data = self._sv.tracking_data[key]
       self._sv.tracking_data[key] = controller:add_entity_to_tracking_data(entity, tracking_data)
       self.__saved_variables:mark_changed()
+
+      radiant.events.trigger_async(self, 'stonehearth:inventory_tracker:item_added', { key = key })
    end
 end
 
@@ -54,6 +56,8 @@ function InventoryTracker:remove_item(entity_id)
       local tracking_data = self._sv.tracking_data[key]
       self._sv.tracking_data[key] = controller:remove_entity_from_tracking_data(entity_id, tracking_data)
       self.__saved_variables:mark_changed()
+      
+      radiant.events.trigger_async(self, 'stonehearth:inventory_tracker:item_removed', { key = key })
    end
 end
 

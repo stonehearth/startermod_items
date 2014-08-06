@@ -29,8 +29,13 @@ end
 function PortalEditor:set_fixture_uri(fixture_uri)
    local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
 
+   assert(data, 'portals must also have all 3 entity forms')
+   assert(data.iconic_form, 'portal missing iconic entity form')
+   assert(data.ghost_form, 'portal missing ghost entity form')
+   
    self._fixture_uri = fixture_uri
-   self._fixture_blueprint_uri = data and data.ghost_form or fixture_uri
+   self._fixture_iconic_uri = data.iconic_form
+   self._fixture_blueprint_uri = data.ghost_form
 
    return self
 end
