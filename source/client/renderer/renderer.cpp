@@ -32,6 +32,9 @@ using namespace ::radiant::client;
 
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
+#define UI_WIDTH 1920
+#define UI_HEIGHT 1080
+
 H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
@@ -1210,8 +1213,8 @@ void Renderer::ResizeViewport()
    int top = 0;
    int width = windowWidth_;
    int height = windowHeight_;
-   if (windowWidth_ < 1920 || windowHeight_ < 1080) {
-      desiredAspect = 1920.0 / 1080.0;
+   if (windowWidth_ < UI_WIDTH || windowHeight_ < UI_HEIGHT) {
+      desiredAspect = (float)UI_WIDTH / (float)UI_HEIGHT;
       double aspect = windowWidth_ / (double)windowHeight_;
 
       double widthAspect = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0;
@@ -1531,7 +1534,7 @@ H3DRes Renderer::GetPipeline(std::string const& name)
 
 void Renderer::LoadResources()
 {
-   uiBuffer_.allocateBuffers(std::max(uiWidth_, 1920), std::max(1080, uiHeight_));
+   uiBuffer_.allocateBuffers(std::max(uiWidth_, UI_WIDTH), std::max(UI_HEIGHT, uiHeight_));
 
    if (!LoadMissingResources()) {
       // at this time, there's a bug in horde3d (?) which causes render
@@ -1575,9 +1578,9 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 
 void Renderer::SetUITextureSize(int width, int height)
 {
-   uiWidth_ = 1920;
-   uiHeight_ = 1080;
-   if (width >= 1920 && height >= 1080) {
+   uiWidth_ = UI_WIDTH;
+   uiHeight_ = UI_HEIGHT;
+   if (width >= UI_WIDTH && height >= UI_HEIGHT) {
       uiWidth_ = width;
       uiHeight_ = height;
    }

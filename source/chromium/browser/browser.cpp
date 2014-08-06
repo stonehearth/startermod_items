@@ -13,6 +13,9 @@
 
 #define BROWSER_LOG(level)    LOG(browser, level)
 
+#define BROWSER_WIDTH 1920
+#define BROWSER_HEIGHT 1080
+
 using namespace radiant;
 using namespace radiant::chromium;
 
@@ -30,9 +33,9 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    _parentWindow(parentWindow),
    _dirty(false)
 { 
-   _uiWidth = 1920;
-   _uiHeight = 1080;
-   if (_screenWidth >= 1920 && _screenHeight >= 1080) {
+   _uiWidth = BROWSER_WIDTH;
+   _uiHeight = BROWSER_HEIGHT;
+   if (_screenWidth >= BROWSER_WIDTH && _screenHeight >= BROWSER_HEIGHT) {
       _uiWidth = _screenWidth;
       _uiHeight = _screenHeight;
    }
@@ -577,12 +580,12 @@ void Browser::OnScreenResize(int w, int h)
    _screenWidth = w;
    _screenHeight = h;
 
-   if (_screenWidth >= 1920 && _screenHeight >= 1080) {
+   if (_screenWidth >= BROWSER_WIDTH && _screenHeight >= BROWSER_HEIGHT) {
       _uiWidth = _screenWidth;
       _uiHeight = _screenHeight;
    } else {
-      _uiWidth = 1920;
-      _uiHeight = 1080;
+      _uiWidth = BROWSER_WIDTH;
+      _uiHeight = BROWSER_HEIGHT;
    }
 
    _browserFB.resize(_uiWidth * _uiHeight);
