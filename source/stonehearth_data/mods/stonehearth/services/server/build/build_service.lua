@@ -537,7 +537,7 @@ function BuildService:grow_roof_command(session, response, building, roof_uri, o
    self._undo:end_transaction('grow_roof')
 
    response:resolve({
-      new_selection = roof
+      new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
    })
 end
 
