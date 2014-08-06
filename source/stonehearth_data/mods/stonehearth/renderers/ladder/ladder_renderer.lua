@@ -1,9 +1,7 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
-local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3f = _radiant.csg.Point3f
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
-local TraceCategories = _radiant.dm.TraceCategories
 
 local LadderRenderer = class()
 local log = radiant.log.create_logger('ladder.renderer')
@@ -29,32 +27,15 @@ function LadderRenderer:initialize(render_entity, ladder)
 
    -- Call _update_shape whenever the collision shape changes
    self._vertical_pathing_region = self._entity:get_component('vertical_pathing_region')
-   self._construction_data = self._entity:get_component('stonehearth:construction_data')
    
-   self._render_tracker = ConstructionRenderTracker(self._entity)
-                              :set_render_region_changed_cb(function(region, visible, view_mode)
-                                    self._clip_region = region
-                                    self._view_mode = view_mode
-                                    self:_update_shape()
-                                    h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
-                                 end)
-                              :set_visible_changed_cb(function(visible)
-                                    h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
-                                 end)
 
-   self._cd_promise = self._construction_data:trace_data('drawing ladder', TraceCategories.SYNC_TRACE)
+   self._vpr_promise = self._vertical_pathing_region:trace_region('drawing ladder')
                                           :on_changed(function ()
-                                                self._render_tracker:set_normal(self._construction_data:get_normal())
+                                                self:_update_shape()
                                              end)
                                           :push_object_state()
 
-   self._vpr_promise = self._vertical_pathing_region:trace_region('drawing ladder', TraceCategories.SYNC_TRACE)
-                                          :on_changed(function ()
-                                                self._render_tracker:set_region(self._vertical_pathing_region:get_region())
-                                             end)
-                                          :push_object_state()
-
-   self._ladder_promise = self._ladder:trace('drawing ladder', TraceCategories.SYNC_TRACE)
+   self._ladder_promise = self._ladder:trace('drawing ladder')
                                           :on_changed(function ()
                                                 self:_update_shape()
                                              end)
@@ -74,10 +55,6 @@ function LadderRenderer:destroy()
       self._vpr_promise:destroy()
       self._vpr_promise = nil
    end
-   if self._cd_promise then
-      self._cd_promise:destroy()
-      self._cd_promise = nil
-   end
 end
 
 function LadderRenderer:_update_shape()
@@ -85,7 +62,7 @@ function LadderRenderer:_update_shape()
    local ladder_region = self._vertical_pathing_region:get_region():get()
 
    -- update the normal
-   local normal = self._construction_data:get_normal()
+   local normal = self._ladder:get_normal()
    if normal then
       self._rotation = voxel_brush_util.normal_to_rotation(normal)
    end
@@ -98,8 +75,6 @@ function LadderRenderer:_update_shape()
    local ladder_points, ghost_points = {}, {}
    for y= 0, ladder_height-1 do
       local pt = Point3(0, y, 0)
-      -- ignore this for now
-      -- if not self._clip_region or self._clip_region:get():contains(pt) then 
       if ladder_region:contains(pt) then
          table.insert(ladder_points, pt)
       else

@@ -1,65 +1,49 @@
+local WeightedSet = require 'services.server.world_generation.math.weighted_set'
 local rng = _radiant.csg.get_default_rng()
 
 local LootTableComponent = class()
 
 function LootTableComponent:initialize(entity, json)
    self._entity = entity
-   self._loot_table = json
-   self._num_shares = 0
-   for _, item in ipairs(self._loot_table.items) do
-      local frequency 
+   self._num_drops = json.num_drops
 
-      if item.frequency then
-         frequency = item.frequency
-      else
-         frequency = 1
-      end
+   local loot_table = WeightedSet(rng)
 
-      self._num_shares = self._num_shares + frequency
+   for _, loot_info in pairs(json.items) do
+      local weight = loot_info.weight or 1
+      loot_table:add(loot_info.uri, weight)
    end
+
+   self._loot_table = loot_table
 end
 
 -- use this when you want to get the loot and do some operation on the information.
 -- If you just want to dump the loot on the ground, use spawn_loot
-function LootTableComponent:get_loot()
-   local items = {}
-
-   local drops = rng:get_int(self._loot_table.num_drops.min,
-                             self._loot_table.num_drops.max)
+function LootTableComponent:roll_loot()
+   local item_uris = {}
+   local num_drops = rng:get_int(self._num_drops.min, self._num_drops.max)
    
-   --[[
-   for local i = 1, drops, 1 do
-      self:add_loot_item(items)
-   end
-   ]]
-
-   for _, item in pairs(self._loot_table.items) do
-      table.insert(items, item.uri)
+   for i = 1, num_drops do
+      local item_uri = self._loot_table:choose_random()
+      table.insert(item_uris, item_uri)
    end
 
-   return items
+   return item_uris
 end
 
 function LootTableComponent:spawn_loot()
-   local items = self:get_loot()
-   local location = radiant.entities.get_location_aligned(self._entity)
-   local item_entities = {}
+   local origin = radiant.entities.get_world_grid_location(self._entity)
+   local items_uris = self:roll_loot()
+   local items = {}
    
-   for _, item_uri in ipairs(items) do
+   for _, item_uri in pairs(items_uris) do
       local item = radiant.entities.create_entity(item_uri)
-      location.x = location.x + math.random(-1, 1)
-      location.z = location.z + math.random(-1, 1)
+      local location = radiant.terrain.find_placement_point(origin, 1, 2)
       radiant.terrain.place_entity(item, location)
-      table.insert(item_entities, item)
+      items[item:get_id()] = item
    end
 
-   return item_entities
-end
-
-
-function LootTableComponent:add_loot_item(items)
-   local r = rnd:get_int(0, _num_shares)
-
+   return items
 end
 
 return LootTableComponent

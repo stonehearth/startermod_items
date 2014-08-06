@@ -82,6 +82,10 @@ function events.listen(object, event, self, fn)
       entry.self = self
    end
    table.insert(listeners, entry)
+
+   return radiant.lib.Destructor(function()
+         events.unlisten(object, event, self, fn)
+      end)
 end
 
 function events.unpublish(object)

@@ -12,8 +12,8 @@ CheckBaitTrap.version = 2
 CheckBaitTrap.priority = 1
 
 function CheckBaitTrap:start_thinking(ai, entity, args)
-   local inventory_component = entity:add_component('stonehearth:inventory')
-   if inventory_component and not inventory_component:is_full() then
+   local backpack_component = entity:add_component('stonehearth:backpack')
+   if backpack_component and not backpack_component:is_full() then
       ai:set_think_output()
    end
 end

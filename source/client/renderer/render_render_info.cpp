@@ -123,7 +123,7 @@ void RenderRenderInfo::CheckVisible(om::RenderInfoPtr render_info)
    }
    RI_LOG(9) << "updating visibility of " << *entity_.GetEntity() << " (visible: " << std::boolalpha << visible << ")";
 
-   H3DNode node = entity_.GetNode();
+   H3DNode node = entity_.GetOriginNode();
    if (visible) {
       h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false, false);
    } else {

@@ -26,6 +26,7 @@ function Fabricator:__init(name, entity, blueprint, project)
 
    self._log:debug('creating fabricator')
    
+   self._finished = false
    self._entity = entity
    self._fabricator_dst = self._entity:add_component('destination')
    self._fabricator_rcs = self._entity:add_component('region_collision_shape')
@@ -306,7 +307,10 @@ function Fabricator:_start_project()
    -- If we're tearing down the project, we only need to start the teardown
    -- task.  If we're building up and all our dependencies are finished
    -- building up, start the pickup and fabricate tasks
-   self._log:detail('start_project (activated:%s teardown:%s deps_finished:%s)', self._active, self._should_teardown, self._dependencies_finished)
+   self._log:detail('start_project (activated:%s teardown:%s finished:%s deps_finished:%s)', tostring(self._active), tostring(self._should_teardown), self._finished, self._dependencies_finished)
+   if self._finished then
+      return
+   end
 
    if self._active and self._dependencies_finished then
       if self._should_teardown then
@@ -512,7 +516,6 @@ function Fabricator:_update_fabricator_region()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br
-   local finished = false
 
    self._should_teardown = not teardown_region:empty()
    if self._should_teardown then
@@ -568,20 +571,19 @@ function Fabricator:_update_fabricator_region()
          for _, pt in ipairs(points_to_add) do
             cursor:add_unique_point(pt)
          end
-         finished = cursor:empty()
+         self._finished = cursor:empty()
       end)
    else
-      self._log:debug('updating build region')
-      self._fabricator_rcs:get_region():modify(function(cursor)
+      self._log:debug('updating build region')     
+      self._fabricator_rcs:get_region():modify(function(cursor)                             
          cursor:copy_region(br - pr)
-         finished = cursor:empty()
+         self._finished = cursor:empty()
       end)
-
    end
 
    if self._blueprint and self._blueprint:is_valid() then
       self._blueprint:add_component('stonehearth:construction_progress')
-                     :set_finished(finished)
+                     :set_finished(self._finished)
       -- finishing in teardown mode might cause us to immediately be destroyed.
       -- if so, there's no point in continuing.
       if not self._entity:is_valid() then
@@ -589,7 +591,7 @@ function Fabricator:_update_fabricator_region()
       end
    end
    
-   if finished then
+   if self._finished then
       self:_stop_project()
    else
       self:_start_project()

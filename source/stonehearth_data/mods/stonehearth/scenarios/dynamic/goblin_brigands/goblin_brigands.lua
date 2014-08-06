@@ -103,6 +103,14 @@ function GoblinBrigands:_on_spawn()
       self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
       self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
 
+      --Set the thief to only attack when attacked.
+      --If he's not being attacked, he will go collect stuff
+      stonehearth.combat:set_stance(self._sv._thief, 'defensive')
+
+      --When he's attacked, he will use this wooden sword
+      local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+      radiant.entities.equip_item(self._sv._thief, weapon)
+
       --Pick how many escorts
       local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
       local num_escorts = 1

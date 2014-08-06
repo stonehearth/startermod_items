@@ -26,11 +26,11 @@
                   </div>
                </a>
             {{/each}}
-            <div id="inventory">
-               {{#if inventoryFull}}
-                  <div id="full">{{i18n stonehearth:inventory_full}}</div>
+            <div id="backpack">
+               {{#if backpackFull}}
+                  <div id="full">{{i18n stonehearth:backpack_full}}</div>
                {{else}}
-                  <div>{{stonehearth:inventory.items.length}} / {{stonehearth:inventory.capacity}}</div>
+                  <div>{{stonehearth:backpack.num_items}} / {{stonehearth:backpack.capacity}}</div>
                {{/if}}
             </div>
          </div>

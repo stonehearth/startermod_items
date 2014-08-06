@@ -1,6 +1,6 @@
-local InventoryComponent = class()
+local BackpackComponent = class()
 
-function InventoryComponent:initialize(entity, json)
+function BackpackComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    
    if not self._sv.initialized then
@@ -11,7 +11,7 @@ function InventoryComponent:initialize(entity, json)
    end
 end
    
-function InventoryComponent:add_item(item)
+function BackpackComponent:add_item(item)
    if self:is_full() then
       return false
    end
@@ -27,37 +27,50 @@ function InventoryComponent:add_item(item)
    return true
 end
 
-function InventoryComponent:remove_item(item)
+function BackpackComponent:remove_item(item)
    local id = item:get_id()
 
    if self._sv.items[id] then
       self._sv.items[id] = nil
       self._sv.num_items = self._sv.num_items - 1
       self.__saved_variables:mark_changed()
+      return true
    end
+
+   return false
 end
 
-function InventoryComponent:get_items()
+function BackpackComponent:contains_item(item)
+   for id, backpack_item in pairs(self._sv.items) do
+      if backpack_item == item then
+         return true
+      end
+   end
+   
+   return false
+end
+
+function BackpackComponent:get_items()
    return self._sv.items
 end
 
-function InventoryComponent:num_items()
+function BackpackComponent:num_items()
    return self._sv.num_items
 end
 
-function InventoryComponent:capacity()
+function BackpackComponent:capacity()
    return self._sv.capacity
 end
 
-function InventoryComponent:is_empty()
+function BackpackComponent:is_empty()
    return self._sv.num_items == 0
 end
 
-function InventoryComponent:is_full()
+function BackpackComponent:is_full()
    return self._sv.num_items >= self._sv.capacity
 end
 
-function InventoryComponent:remove_first_item()
+function BackpackComponent:remove_first_item()
    local id, item = next(self._sv.items)
 
    if item then
@@ -67,4 +80,4 @@ function InventoryComponent:remove_first_item()
    return item
 end
 
-return InventoryComponent
+return BackpackComponent

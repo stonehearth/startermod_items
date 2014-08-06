@@ -22,7 +22,6 @@ function LadderEditor:go(session, response)
    self._cursor_mob = self._cursor:add_component('mob')
    self._cursor_vpr = self._cursor:add_component('vertical_pathing_region')
    self._cursor_vpr:set_region(_radiant.client.alloc_region())
-   self._cursor_cd = self._cursor:add_component('stonehearth:construction_data')
    self._cursor_ladder = self._cursor:add_component('stonehearth:ladder')
 
    stonehearth.selection:select_location()
@@ -68,12 +67,12 @@ function LadderEditor:_update_ladder_cursor(brick, normal)
       self._ladder_height = self._ladder_height + 1
    end
    self._normal = normal
-   self._cursor_cd:set_normal(normal)
-   self._cursor_ladder:set_desired_height(self._ladder_height)
+   
+   self._cursor_ladder:set_normal(normal)
+                      :set_desired_height(self._ladder_height)
 
    -- fill in the region so it's rendered solid in preview mode
    local shape = Cube3(Point3.zero, Point3(1, self._ladder_height + 1, 1))
-   self._cursor_cd:set_normal(normal)
    self._cursor_vpr:get_region():modify(function(r)
          r:clear()
          r:add_unique_cube(shape)

@@ -27,7 +27,7 @@ App.StonehearthUnitFrameView = App.View.extend({
             "*" : {}
          }
       },
-      "stonehearth:inventory" : {},
+      "stonehearth:backpack" : {},
       "unit_info": {}
    },
 
@@ -73,12 +73,12 @@ App.StonehearthUnitFrameView = App.View.extend({
         this.set('context.buffs', vals);
     }.observes('context.stonehearth:buffs'),
 
-   inventoryFull: function() {
-      var inventory = this.get('context.stonehearth:inventory')
-      var full = inventory && inventory.items && inventory.items.length == inventory.capacity
-      this.set('context.inventoryFull', full)
+   backpackFull: function() {
+      var backpack = this.get('context.stonehearth:backpack')
+      var full = backpack && backpack.num_items == backpack.capacity
+      this.set('context.backpackFull', full)
 
-   }.observes('context.stonehearth:inventory.items'),
+   }.observes('context.stonehearth:backpack.num_items'),
 
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
@@ -97,9 +97,9 @@ App.StonehearthUnitFrameView = App.View.extend({
          });
       });
 
-      this.$('#inventory').tooltipster({
-            content: $('<div class=title>' + i18n.t('stonehearth:inventory_title') + '</div>' + 
-                       '<div class=description>' + i18n.t('stonehearth:inventory_description') + '</div>')
+      this.$('#backpack').tooltipster({
+            content: $('<div class=title>' + i18n.t('stonehearth:backpack_title') + '</div>' + 
+                       '<div class=description>' + i18n.t('stonehearth:backpack_description') + '</div>')
         });
 
       
@@ -108,7 +108,7 @@ App.StonehearthUnitFrameView = App.View.extend({
         });
 
       this._updateCommandButtons();      
-      this._updateInventory();
+      this._updateBackpack();
    },
 
    _updateCommandButtons: function() {
@@ -122,17 +122,17 @@ App.StonehearthUnitFrameView = App.View.extend({
       }
    }.observes('context.stonehearth:commands.commands'),
 
-   _updateInventory: function() {
+   _updateBackpack: function() {
       if (this.$()) {
-        var inventory = this.get('context.stonehearth:inventory');
-        if (!inventory) {
-          this.$('#inventory').hide()
+        var backpack = this.get('context.stonehearth:backpack');
+        if (!backpack) {
+          this.$('#backpack').hide()
         } else {
-          this.$('#inventory').show()
+          this.$('#backpack').show()
         }
       }
 
-   }.observes('context.stonehearth:inventory'),
+   }.observes('context.stonehearth:backpack'),
 
 });
 

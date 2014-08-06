@@ -19,7 +19,10 @@ MovementHelper::MovementHelper(int logLevel) :
 
 bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3& closestPoint)
 {
-   csg::Region3 const region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
+   csg::Region3 region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
+
+   phys::OctTree& octTree = sim.GetOctTree();
+   octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, region);
 
    if (region.IsEmpty()) {
       MH_LOG(5) << "region is empty in GetClosestPointAdjacentToEntity.  returning false";
@@ -61,7 +64,6 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
    }
    if (adjacent) {      
       region = phys::LocalToWorld(adjacent->Get(), dstEntity);
-      octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, region);
    } else {
       MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
       static csg::Point3 defaultAdjacentPoints[] = {
@@ -72,12 +74,7 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
       };
       for (csg::Point3 const& point : defaultAdjacentPoints) {
          csg::Point3 location = origin + point;
-         if (octTree.GetNavGrid().IsStandable(srcEntity, location)) {
-            MH_LOG(9) << location << " is standable by " << *srcEntity << ".  adding point.";
-            region.AddUnique(csg::Cube3(location));
-         } else {
-            MH_LOG(9) << location << " is not standable by " << *srcEntity << ".  skipping point.";
-         }
+         region.AddUnique(csg::Cube3(location));
       }
    }
 

@@ -2,6 +2,7 @@ local ConstructionRenderTracker = class()
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local INFINITE = 100000000
+local RPG_REGION_HEIGHT = 2
 
 -- create a new construction render tracker for the specified entity.  the entity is used
 -- during visibility calculations in xrag mode.
@@ -132,7 +133,7 @@ function ConstructionRenderTracker:_compute_rpg_render_region()
    end
    if self._rpg_region_dirty then
       local clipper = Cube3(Point3(-INFINITE, 0, -INFINITE),
-                            Point3( INFINITE, 2,  INFINITE))
+                            Point3( INFINITE, RPG_REGION_HEIGHT,  INFINITE))
       self._rpg_region:modify(function(cursor)
             cursor:copy_region(self._region:get():clipped(clipper))
          end)
@@ -181,20 +182,10 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
       -- roofs are only visible in normal mode.
       if self._type == 'roof' then
          self._build_mode_visible = self._mode ~= 'rpg' and self._mode ~= 'xray'
-         self:_update_visible()
-         return
-      end
-
-      -- if we're entering or leaving rpg mode, the region has almost certainly changed.
-      -- check up on it.
-      if self._mode == 'rpg' or last_mode == 'rpg' then
-         self:_fire_on_region_changed()
-      end
-
-      -- if we're going into xray mode, start listening to camera changes so we can update
-      -- the render state appropriately.  if not, remove the listener and double check our
-      -- visible state.
-      if self._mode == 'xray' then
+      elseif self._mode == 'xray' then
+         -- if we're going into xray mode, start listening to camera changes so we can update
+         -- the render state appropriately.  if not, remove the listener and double check our
+         -- visible state.
          if not self._listening_to_camera then
             radiant.events.listen(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
             self._listening_to_camera = true
@@ -206,8 +197,15 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
             self._listening_to_camera = false
          end
          self._build_mode_visible = true
-         self:_update_visible()
       end
+
+      -- if we're entering or leaving rpg mode, the region has almost certainly changed.
+      -- check up on it.
+      if self._mode == 'rpg' or last_mode == 'rpg' then
+         self:_fire_on_region_changed()
+      end
+      self:_update_visible()
+      self:_update_children_visibility()
    end
 end
 
@@ -219,6 +217,20 @@ function ConstructionRenderTracker:_update_visible()
       self._visible = visible
       if self._on_visible_changed then
          self._on_visible_changed(visible)
+      end
+   end
+end
+
+function ConstructionRenderTracker:_update_children_visibility()
+   local ec = self._entity:get_component('entity_container')
+   if ec then
+      local is_rpg = self._mode == 'rpg'
+      for _, child in ec:each_child() do
+         local re = _radiant.client.get_render_entity(child)
+         if re then
+            local visible = not is_rpg or radiant.entities.get_location_aligned(child).y < RPG_REGION_HEIGHT
+            re:set_visible_override(visible)
+         end
       end
    end
 end

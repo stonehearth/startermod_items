@@ -13,12 +13,13 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class Path;
 class PathFinder;
 class Simulation;
+class AStarPathFinder;
 
 class PathFinderDst {
 public:
    typedef std::function<void(const char *reason)> ChangedCb;
 
-   PathFinderDst(Simulation& sim, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
+   PathFinderDst(Simulation& sim, AStarPathFinder&, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
 
    om::EntityPtr GetEntity() const;
@@ -28,15 +29,16 @@ public:
    csg::Point3 GetPointOfInterest(csg::Point3 const& adjacent) const;
    float EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
+   void Start();
    
 private:
-   void CreateTraces();
    void DestroyTraces();
    void ClipAdjacentToTerrain();
    float EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
 
 public:
    Simulation&                sim_;
+   AStarPathFinder&           pathfinder_;
    std::string                name_;
    dm::ObjectId               id_;
    om::EntityRef              srcEntity_;
