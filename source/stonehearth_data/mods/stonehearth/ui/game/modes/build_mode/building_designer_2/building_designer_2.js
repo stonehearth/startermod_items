@@ -325,9 +325,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          // update the selected building part, if there is one
          var blueprint = self.get('blueprint');
-         var type = self.get('blueprint.stonehearth:construction_data').type;
+         var constructionData = self.get('blueprint.stonehearth:construction_data');
 
-         if (blueprint && type == 'wall') {
+         if (blueprint && constructionData && constructionData.type == 'wall') {
             var wallUri = $(this).attr('brush');
             App.stonehearthClient.replaceStructure(blueprint, wallUri);
          }
