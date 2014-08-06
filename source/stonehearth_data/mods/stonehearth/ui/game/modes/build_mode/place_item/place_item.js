@@ -50,6 +50,8 @@ App.StonehearthPlaceItemView = App.View.extend({
          var itemType = $(this).attr('uri');
          App.stonehearthClient.placeItemType(itemType);
       });
+
+      self.$('.item').tooltipster();
    },
 
    _mapToArray : function(map, convert_fn) {
