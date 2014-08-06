@@ -162,6 +162,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
+   radiant.entities.turn_to(banner_entity, 180)
 
    -- build the camp
    local camp_x = pt.x
@@ -171,6 +172,8 @@ function NewGameCallHandler:create_camp(session, response, pt)
       local citizen = self:place_citizen(pop, x, z, profession, talisman)
       radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                              {entity = citizen, description = 'person_embarks'})
+
+      radiant.entities.turn_to(citizen, 180)
       return citizen
    end
 
