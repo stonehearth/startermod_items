@@ -11,6 +11,10 @@ var StonehearthClient;
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
+               radiant.trace(self._build_editor)
+                  .progress(function(change) {
+                     $(top).trigger('selected_sub_part_changed', change.selected_sub_part);
+                  });
             })
             .fail(function(e) {
                console.log('error getting build editor')

@@ -8,10 +8,15 @@ App.StonehearthBuildModeView = App.View.extend({
       var self = this;
 
       // track the selection
-      $(top).on("radiant_selection_changed", function (_, e) {
+      $(top).on('radiant_selection_changed', function (_, e) {
          self._selectedEntity = e.selected_entity;
-         self._onStateChanged()
+         self._onStateChanged();
       });
+
+      $(top).on('selected_sub_part_changed', function(_, sub_part) {
+         self._sub_selected_part = sub_part;
+         self._onStateChanged();
+      }); 
 
       // track game mode changes and nuke any UI that we've show when we exit build mode
       $(top).on('mode_changed', function(_, mode) {
@@ -110,8 +115,8 @@ App.StonehearthBuildModeView = App.View.extend({
             self.selectedEntityTrace.destroy();
          }
 
-         if (this._selectedEntity) {
-            self.selectedEntityTrace = radiant.trace(this._selectedEntity)
+         if (this._selectedEntity && this._sub_selected_part) {
+            self.selectedEntityTrace = radiant.trace(this._sub_selected_part)
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {

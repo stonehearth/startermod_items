@@ -15,6 +15,8 @@ local log = radiant.log.create_logger('build_editor')
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
    self.__saved_variables:set_controller(self)
+   self._sv = self.__saved_variables:get_data()
+   self._sv.selected_sub_part = nil
 
    _radiant.call('stonehearth:get_service', 'build')
       :done(function(r)
@@ -54,7 +56,10 @@ function BuildEditorService:on_selection_changed()
       return
    end
 
+   self._sv.selected_sub_part = selected
    stonehearth.selection:select_entity(be)
+
+   self.__saved_variables:mark_changed()
 end
 
 function BuildEditorService:build_ladder(session, response)
