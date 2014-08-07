@@ -1399,7 +1399,7 @@ void Renderer::OnMouseMove(double x, double y)
    memset(input_.mouse.down, 0, sizeof input_.mouse.down);
 
    if (input_.mouse.drag_start_x > 0 || input_.mouse.drag_start_y > 0) {
-      if (std::abs(input_.mouse.drag_start_x - input_.mouse.x) > 1 || std::abs(input_.mouse.drag_start_y - input_.mouse.y) > 1) {
+      if (std::abs(input_.mouse.drag_start_x - input_.mouse.x) > 10 || std::abs(input_.mouse.drag_start_y - input_.mouse.y) > 10) {
          input_.mouse.dragging = true;
       }
    } 
@@ -1418,15 +1418,18 @@ void Renderer::OnMouseButton(int button, int press)
 
    CallMouseInputCallbacks();
 
+   // Update dragging state _after_ calling back.  Otherwise, clients will see one
+   // frame with no dragging and a key-release, instead of a frame with a key release,
+   // followed by a frame with no dragging.
    if (press == GLFW_PRESS) {
       input_.mouse.drag_start_x = input_.mouse.x;
       input_.mouse.drag_start_y = input_.mouse.y;
    } else if (press == GLFW_RELEASE) {
       input_.mouse.drag_start_x = -1;
       input_.mouse.drag_start_y = -1;
+      input_.mouse.dragging = false;
    }
 
-   input_.mouse.dragging = false;
 }
 
 void Renderer::OnRawInput(UINT msg, WPARAM wParam, LPARAM lParam)

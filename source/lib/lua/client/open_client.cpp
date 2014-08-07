@@ -521,6 +521,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("in_client_area", &MouseInput::in_client_area)
                .def("up",               &MouseEvent_GetUp)
                .def("down",             &MouseEvent_GetDown)
+               .def_readonly("dragging",&MouseInput::dragging)
                .enum_("constants") [
                   value("MOUSE_BUTTON_1",    GLFW_MOUSE_BUTTON_1),
                   value("MOUSE_BUTTON_2",    GLFW_MOUSE_BUTTON_2),

@@ -86,7 +86,7 @@ function DoodadPlacer:_on_mouse_event(e)
       self:destroy()
    end
 
-   if e:up(2) then
+   if e:up(2) and not e.dragging then
       self:deactivate_tool()
    end
    return true

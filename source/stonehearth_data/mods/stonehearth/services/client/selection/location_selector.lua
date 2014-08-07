@@ -195,7 +195,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    end
 
    -- if the user right clicks, cancel the selection
-   if event and event:up(2) then
+   if event and event:up(2) and not event.dragging then
       self._input_capture:destroy()
       self._input_capture = nil
 
