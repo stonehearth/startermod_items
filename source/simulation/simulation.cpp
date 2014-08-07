@@ -808,8 +808,8 @@ void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
    EncodeServerTick(c);
    FlushStream(c);
    EncodeDebugShapes(c->send_queue);
-   EncodeUpdates(c);
    EncodeEndUpdate(c);
+   EncodeUpdates(c);
 }
 
 void Simulation::ReadClientMessages()
