@@ -17,12 +17,15 @@
          }
       },
       "Decorations" : {
-         "berry_hanging" : {
-            "uri" : "file(berry_hanging_recipe.json)"
-         }, 
-         "green_hanging" : {
-            "uri" : "file(green_hanging_recipe.json)"
-         }
+         "banner_wall_big" : {
+            "uri" : "file(banner_wall_big_recipe.json)"
+         },
+         "banner_wall_small" : {
+            "uri" : "file(banner_wall_small_recipe.json)"
+         },
+         "tapestry_wall" : {
+            "uri" : "file(tapestry_wall_recipe.json)"
+         }         
       }
    }
 }

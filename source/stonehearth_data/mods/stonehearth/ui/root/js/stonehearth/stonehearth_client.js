@@ -419,9 +419,10 @@ var StonehearthClient;
       addDoodad: function(doodadUri, precall) {
          var self = this;
 
+         // xxx localize
          $(top).trigger('radiant_show_tip', { 
-            title : 'Place Object',
-            description : 'Click to place.  ESC to cancel.'
+            title : 'Place Door or Window',
+            description : 'Click on a wall to place your door or window.<br><br>Right click to exit this mode.'
          });
 
          return this._callTool(function() {

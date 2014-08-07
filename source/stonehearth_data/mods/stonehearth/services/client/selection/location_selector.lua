@@ -59,6 +59,19 @@ function LocationSelector:use_ghost_entity_cursor(uri)
    return self
 end
 
+function LocationSelector:set_rotation_disabled(disabled)
+   self._rotation_disabled = disabled
+   return self
+end
+
+function LocationSelector:set_rotation(rotation)   
+   self._rotation = rotation
+   if self._cursor_entity then
+      self._cursor_entity:add_component('mob'):turn_to(self._rotation)
+   end
+   return self
+end
+
 -- sets the entity to be used as the cursor while choosing a location.  the
 -- location selector takes ownership of this entity.  it will automatically be
 -- destroyed when the selection finishes.  for this reason, the cursor entity
@@ -122,7 +135,7 @@ function LocationSelector:_get_selected_brick(x, y)
 
       -- skip the cursor...
       if result.entity ~= self._cursor_entity then
-         local filter_result = not self._filter_fn or self._filter_fn(result)
+         local filter_result = not self._filter_fn or self._filter_fn(result, self)
          if filter_result == stonehearth.selection.FILTER_IGNORE then
             -- keep going...
          elseif filter_result == true then
@@ -214,15 +227,17 @@ function LocationSelector:_on_keyboard_event(e)
    local deltaRot = 0
 
    -- period and comma rotate the cursor
-   if e.key == _radiant.client.KeyboardInput.KEY_COMMA and e.down then
-      deltaRot = 90
-   elseif e.key == _radiant.client.KeyboardInput.KEY_PERIOD and e.down then
-      deltaRot = -90
-   end
+   if not self._rotation_disabled then
+      if e.key == _radiant.client.KeyboardInput.KEY_COMMA and e.down then
+         deltaRot = 90
+      elseif e.key == _radiant.client.KeyboardInput.KEY_PERIOD and e.down then
+         deltaRot = -90
+      end
 
-   if deltaRot ~= 0 then
-      self._rotation = (self._rotation + deltaRot) % 360
-      self._cursor_entity:add_component('mob'):turn_to(self._rotation)     
+      if deltaRot ~= 0 then
+         local new_rotation = (self._rotation + deltaRot) % 360
+         self:set_rotation(new_rotation)
+      end
    end
 end
 

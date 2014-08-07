@@ -2,10 +2,6 @@
    "mixins": "file(wooden_wall_lantern_ghost.json)",
 
    "components" : {
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 },
-         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
-      },
       "region_collision_shape" : {
          "region": [
             {
@@ -20,7 +16,7 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_wall_lantern_iconic.json)",
          "ghost_form" : "file(wooden_wall_lantern_ghost.json)",
-         "placeable_on_walls" : true
+      "placeable_on_walls" : true
       }
    }
 }
