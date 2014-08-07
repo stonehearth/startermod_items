@@ -6,8 +6,8 @@ FindStockpileForBackpackItem.name = 'find stockpile for backpack item'
 FindStockpileForBackpackItem.does = 'stonehearth:find_stockpile_for_backpack_item'
 FindStockpileForBackpackItem.args = {}
 FindStockpileForBackpackItem.think_output = {
-   path = Path,
    stockpile = Entity,
+   path = Path,
 }
 FindStockpileForBackpackItem.version = 2
 FindStockpileForBackpackItem.priority = 1

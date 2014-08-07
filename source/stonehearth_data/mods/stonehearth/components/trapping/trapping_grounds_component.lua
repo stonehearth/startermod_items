@@ -286,9 +286,8 @@ end
 
 function TrappingGroundsComponent:_create_check_trap_task()
    local town = stonehearth.town:get_town(self._entity)
-   local id, trap = next(self._sv.traps)
 
-   if self._check_trap_task or not trap or not town then
+   if self._check_trap_task or self._sv.num_traps == 0 or not town then
       -- exit if we're already checking traps or we have nothing to do
       return
    end
@@ -296,7 +295,7 @@ function TrappingGroundsComponent:_create_check_trap_task()
    self._check_trap_task = town:create_task_for_group('stonehearth:task_group:trapping',
                                                       'stonehearth:trapping:check_bait_trap',
                                                       {
-                                                         trap = trap
+                                                         trapping_grounds = self._entity
                                                       })
       :set_source(self._entity)
       :set_name('check trap task')
