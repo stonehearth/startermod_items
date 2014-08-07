@@ -31,41 +31,47 @@ end
 
 function BuildEditorService:on_selection_changed()
    local selected = stonehearth.selection:get_selected()
-
-   if not selected then
-      return
-   end
-
-   local fab = selected:get_component('stonehearth:fabricator')
-   if not fab then
-      return
-   end
-
-   local bp = fab.get_blueprint and fab:get_blueprint()
-   if not bp then
-      return
-   end
-
-   local cpc = bp:get_component('stonehearth:construction_progress')
-   if not cpc then
-      return
-   end
-
-   local be = cpc:get_building_entity()
-   if not be then
-      return
-   end
-
    local old_selected = self._sv.selected_sub_part
-   self._sv.selected_sub_part = selected
-   stonehearth.selection:select_entity(be)
+   local building_entity
 
+   if selected then
+     local fab = selected:get_component('stonehearth:fabricator')
+     if fab then
+       local bp = fab:get_blueprint()
+       if bp then
+         local cpc = bp:get_component('stonehearth:construction_progress')
+         if cpc then
+           building_entity = cpc:get_building_entity()
+           if not building_entity then
+              selected = nil
+           end
+         end
+       end
+     end
+   end   
+
+   if building_entity then
+     radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+     stonehearth.selection:select_entity(building_entity)
+     radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+   end
+
+   if old_selected == selected then
+      return
+   end
+
+   self._sv.selected_sub_part = selected
    self.__saved_variables:mark_changed()
+
    radiant.events.trigger(self, 'stonehearth:sub_selection_changed', 
       {
          old_selection = old_selected,
          new_selection = selected
       })
+end
+
+function BuildEditorService:get_sub_selection()
+   return self._sv.selected_sub_part
 end
 
 function BuildEditorService:build_ladder(session, response)

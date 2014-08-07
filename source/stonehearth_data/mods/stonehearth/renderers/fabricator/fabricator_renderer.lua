@@ -66,7 +66,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
             :push_object_state()
       end
    end
-
+   self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.xml')
    radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
 end
 
@@ -98,10 +98,13 @@ function FabricatorRenderer:destroy()
 end
 
 function FabricatorRenderer:_on_build_selection_changed(e)
-   if e.new_selection == self._entity then
-      self._render_node:set_material('materials/blueprint_selected.material.xml')
-   elseif e.old_selection == self._entity then
-      self._render_node:set_material(self._render_entity:get_material_path('normal'))
+   self:update_selection_material(e.new_selection, 'materials/blueprint_selected.material.xml')
+   self:update_selection_material(e.old_selection, self._render_entity:get_material_path('normal'))
+end
+
+function FabricatorRenderer:update_selection_material(selected_entity, material)
+   if selected_entity == self._entity then
+      self._render_node:set_material(material)
    end
 end
 
@@ -117,6 +120,7 @@ function FabricatorRenderer:_update_region(region)
 
       local material = self._render_entity:get_material_path('normal')
       self._render_node:set_material(material)
+      self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.xml')
    end
 end
 
