@@ -56,10 +56,16 @@ function BuildEditorService:on_selection_changed()
       return
    end
 
+   local old_selected = self._sv.selected_sub_part
    self._sv.selected_sub_part = selected
    stonehearth.selection:select_entity(be)
 
    self.__saved_variables:mark_changed()
+   radiant.events.trigger(self, 'stonehearth:sub_selection_changed', 
+      {
+         old_selection = old_selected,
+         new_selection = selected
+      })
 end
 
 function BuildEditorService:build_ladder(session, response)

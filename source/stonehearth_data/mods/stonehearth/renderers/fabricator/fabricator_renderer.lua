@@ -66,6 +66,8 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
             :push_object_state()
       end
    end
+
+   radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
 end
 
 function FabricatorRenderer:destroy()
@@ -92,6 +94,14 @@ function FabricatorRenderer:destroy()
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
+   end
+end
+
+function FabricatorRenderer:_on_build_selection_changed(e)
+   if e.new_selection == self._entity then
+      self._render_node:set_material('materials/blueprint_selected.material.xml')
+   elseif e.old_selection == self._entity then
+      self._render_node:set_material(self._render_entity:get_material_path('normal'))
    end
 end
 
