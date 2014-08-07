@@ -61,7 +61,7 @@ function HarvestTrappedBeast:_spawn_loot(target)
 
    for id, item in pairs(items) do
       -- lease the item so nobody else picks it up
-      -- leases are not ref counted, so this lease will be released when the restock action completes (or aborts)
+      -- leases are not ref counted, so this lease will be released after we pick up the item
       -- if the entity never picks up the item and never dies, how does this lease get released?
       local leased = stonehearth.ai:acquire_ai_lease(item, self._entity)
 

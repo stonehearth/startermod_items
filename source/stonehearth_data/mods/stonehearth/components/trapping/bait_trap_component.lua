@@ -72,6 +72,8 @@ function BaitTrapComponent:release()
       -- move the trapped entity outside the trap
       local origin = mob:get_world_grid_location()
       local location = radiant.terrain.find_placement_point(origin, 1, 1)
+      -- if we can't find an open location, just drop at origin
+      location = location or origin
       radiant.terrain.place_entity(trapped_entity, location)
 
       self._sv.trapped_entity = nil
