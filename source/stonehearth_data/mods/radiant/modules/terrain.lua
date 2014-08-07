@@ -141,7 +141,9 @@ function Terrain.find_placement_point(starting_location, min_radius, max_radius)
 
    -- make sure x, z is inside the donut described by min_radius and max_radius   
    local function valid(x, z)
-      if z >= -min_radius and z <= min_radius then
+      -- if z inside min_radius
+      if z > -min_radius and z < min_radius then
+         -- return whether x is on or outside min_radius
          return x <= -min_radius or x >= min_radius
       end
       return true
@@ -153,8 +155,9 @@ function Terrain.find_placement_point(starting_location, min_radius, max_radius)
    -- point as the placement point.
    local pt
    local found = false
-   for i=1,max_radius * max_radius do
-      x, z = inc(x, z)
+   local diameter = 2*max_radius + 1 -- add 1 to include origin square
+
+   for i=1, diameter*diameter do
       if valid(x, z) then
          pt = starting_location + Point3(x, 0, z)
          if _physics:is_standable(pt) and not _physics:is_occupied(pt) then
@@ -162,7 +165,9 @@ function Terrain.find_placement_point(starting_location, min_radius, max_radius)
             break
          end
       end
+      x, z = inc(x, z)
    end
+
    return pt, found
 end
 
