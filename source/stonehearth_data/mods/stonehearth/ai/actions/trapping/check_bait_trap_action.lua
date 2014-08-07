@@ -6,7 +6,7 @@ CheckBaitTrap.name = 'check bait trap'
 CheckBaitTrap.status_text = 'checking traps'
 CheckBaitTrap.does = 'stonehearth:trapping:check_bait_trap'
 CheckBaitTrap.args = {
-   trap = Entity
+   trapping_grounds = Entity
 }
 CheckBaitTrap.version = 2
 CheckBaitTrap.priority = 1
@@ -21,10 +21,15 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(CheckBaitTrap)
    :execute('stonehearth:drop_carrying_now')
-   :execute('stonehearth:goto_entity', {
-      entity = ai.ARGS.trap,
-      stop_distance = 1.7
+   :execute('stonehearth:trapping:find_trap_in_trapping_grounds', {
+      trapping_grounds = ai.ARGS.trapping_grounds
+   })
+   :execute('stonehearth:reserve_entity', {
+      entity = ai.BACK(1).trap
+   })
+   :execute('stonehearth:follow_path', {
+      path = ai.BACK(2).path
    })
    :execute('stonehearth:trapping:check_bait_trap_adjacent', {
-      trap = ai.ARGS.trap
+      trap = ai.BACK(3).trap
    })

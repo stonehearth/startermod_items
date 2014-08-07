@@ -7,6 +7,18 @@ local log = radiant.log.create_logger('trapping')
 
 local TrappingGroundsComponent = class()
 
+local function getXZCubeAroundPoint(location, radius)
+   local cube = Cube3(
+      Point3(location.x-radius,   location.y,   location.z-radius),
+      Point3(location.x+radius+1, location.y+1, location.z+radius+1)
+   )
+   return cube
+end
+
+function has_ai(entity)
+   return entity and entity:is_valid() and entity:get_component('stonehearth:ai') ~= nil
+end
+
 function TrappingGroundsComponent:__init()
 end
 
@@ -185,15 +197,12 @@ function TrappingGroundsComponent:_is_valid_trap_location(location)
       end
    end
 
+   -- make sure 3x3 cube around location is clear
    return self:_is_empty_location(location, 1)
 end
 
 function TrappingGroundsComponent:_is_empty_location(location, radius)
-   -- 3x3 square about location
-   local cube = Cube3(
-      Point3(location.x-radius,   location.y,   location.z-radius),
-      Point3(location.x+radius+1, location.y+1, location.z+radius+1)
-   )
+   local cube = getXZCubeAroundPoint(location, radius)
    local entities = radiant.terrain.get_entities_in_cube(cube)
 
    -- remove the trapping grounds from the set
@@ -286,9 +295,8 @@ end
 
 function TrappingGroundsComponent:_create_check_trap_task()
    local town = stonehearth.town:get_town(self._entity)
-   local id, trap = next(self._sv.traps)
 
-   if self._check_trap_task or not trap or not town then
+   if self._check_trap_task or self._sv.num_traps == 0 or not town then
       -- exit if we're already checking traps or we have nothing to do
       return
    end
@@ -296,7 +304,7 @@ function TrappingGroundsComponent:_create_check_trap_task()
    self._check_trap_task = town:create_task_for_group('stonehearth:task_group:trapping',
                                                       'stonehearth:trapping:check_bait_trap',
                                                       {
-                                                         trap = trap
+                                                         trapping_grounds = self._entity
                                                       })
       :set_source(self._entity)
       :set_name('check trap task')
@@ -349,21 +357,57 @@ function TrappingGroundsComponent:_stop_spawn_timer()
    end
 end
 
--- TODO: set conditions for spawn
 function TrappingGroundsComponent:_try_spawn()
+   -- must be within the interaction sensor range of the trap
+   local max_spawn_distance = 15
+   -- won't spawn if threat within this distance of trap or spawn location
+   -- TODO: refactor this distance with the avoid_threatening_entities_observer
+   local threat_distance = 16
+
    local armed_traps = self:get_armed_traps()
    local trap = self:_choose_random_trap(armed_traps)
 
-   if trap then
+   -- don't retry if there are threats detected. you lose this spawn, do not pass go
+   -- place trapping grounds away from trafficed areas if you want to catch things
+   if trap and self:_location_is_clear_of_threats(trap, threat_distance) then
       local critter_uri = self:_choose_spawned_critter_type()
       local critter = self:_create_critter(critter_uri)
-      local spawn_location = self:_get_spawn_location(trap, 15, critter)
-      if spawn_location then
+
+      local spawn_location = self:_get_spawn_location(trap, max_spawn_distance, critter)
+
+      if spawn_location and self:_location_is_clear_of_threats(spawn_location, threat_distance) then
          radiant.terrain.place_entity(critter, spawn_location)
       end
    end
 
    self:_start_spawn_timer()
+end
+
+-- takes an Point3 or Entity
+function TrappingGroundsComponent:_location_is_clear_of_threats(location, threat_distance)
+   if radiant.entities.is_entity(location) then
+      location = radiant.entities.get_world_grid_location(location)
+   end
+
+   local cube = getXZCubeAroundPoint(location, threat_distance)
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+
+   for id, other_entity in pairs(entities) do
+      if self:_is_threatening_to_critter(other_entity) then
+         return false
+      end
+   end
+
+   return true
+end
+
+function TrappingGroundsComponent:_is_threatening_to_critter(other_entity)
+   if not has_ai(other_entity) then
+      return false
+   end
+
+   local other_faction = radiant.entities.get_faction(other_entity)
+   return other_faction ~= 'critter'
 end
 
 function TrappingGroundsComponent:_create_critter(uri)

@@ -381,6 +381,7 @@
       "actions:trapping:set_bait_trap" : "file(ai/actions/trapping/set_bait_trap_action.lua)",
       "actions:trapping:set_bait_trap_adjacent" : "file(ai/actions/trapping/set_bait_trap_adjacent_action.lua)",
       "actions:trapping:check_bait_trap" : "file(ai/actions/trapping/check_bait_trap_action.lua)",
+      "actions:trapping:find_trap_in_trapping_grounds" : "file(ai/actions/trapping/find_trap_in_trapping_grounds_action.lua)",
       "actions:trapping:harvest_trapped_beast" : "file(ai/actions/trapping/harvest_trapped_beast_action.lua)",
       "actions:trapping:tame_trapped_beast" : "file(ai/actions/trapping/tame_trapped_beast_action.lua)",
       "actions:trapping:try_steal_bait" : "file(ai/actions/trapping/try_steal_bait_action.lua)",
@@ -576,6 +577,10 @@
       "sounds:heartbreak_02" : "file(data/sounds/effects/sh_heartbreak_02.wav)",
       "sounds:health_up" : "file(data/sounds/effects/sh_health_up.wav)",
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
+      "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
+      "sounds:drumroll_start" : "file(data/sounds/effects/sh_drumroll_start.wav)", 
+      "sounds:drumroll_loop" : "file(data/sounds/effects/sh_drumroll_loop.wav)",
+      "sounds:chorus_loop" : "file(data/sounds/effects/sh_chorus_loop.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
