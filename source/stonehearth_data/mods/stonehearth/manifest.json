@@ -193,6 +193,7 @@
 
       "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
       "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
+      "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",
 
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",

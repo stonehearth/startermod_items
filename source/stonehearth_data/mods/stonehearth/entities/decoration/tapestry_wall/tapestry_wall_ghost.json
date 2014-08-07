@@ -1,0 +1,26 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tapestry_wall.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": -0.5, "z": -0.5 },
+         "region_origin" : { "x": 0.0, "y": 0, "z": 0.0 }
+      },      
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Wall-Mounted Tapestry",
+         "description": "A decorative scene, woven in colored thread and cord. Designed to brighten your day!",
+         "icon" : "file(tapestry_wall.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}
