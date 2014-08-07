@@ -24,6 +24,37 @@ function BuildEditorService:initialize()
             -- it to us =(
             self._build_service = r.result:__tojson()
          end)
+   radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+end
+
+function BuildEditorService:on_selection_changed()
+   local selected = stonehearth.selection:get_selected()
+
+   if not selected then
+      return
+   end
+
+   local fab = selected:get_component('stonehearth:fabricator')
+   if not fab then
+      return
+   end
+
+   local bp = fab.get_blueprint and fab:get_blueprint()
+   if not bp then
+      return
+   end
+
+   local cpc = bp:get_component('stonehearth:construction_progress')
+   if not cpc then
+      return
+   end
+
+   local be = cpc:get_building_entity()
+   if not be then
+      return
+   end
+
+   stonehearth.selection:select_entity(be)
 end
 
 function BuildEditorService:build_ladder(session, response)
