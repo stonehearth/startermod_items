@@ -191,6 +191,8 @@
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "thread" : "file(entities/cloth/thread)",
 
+      "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
+
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 

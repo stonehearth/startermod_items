@@ -18,10 +18,7 @@
       },
       "Decorations" : {
          "berry_hanging" : {
-            "uri" : "file(berry_hanging_recipe.json)"
-         }, 
-         "green_hanging" : {
-            "uri" : "file(green_hanging_recipe.json)"
+            "uri" : "file(banner_wall_big_recipe.json)"
          }
       }
    }
