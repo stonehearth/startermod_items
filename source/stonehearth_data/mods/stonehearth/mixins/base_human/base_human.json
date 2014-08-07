@@ -82,8 +82,7 @@
             "stonehearth:observers:free_time", 
             "stonehearth:observers:nutrition_score", 
             "stonehearth:observers:shelter_score", 
-            "stonehearth:observers:health_score",
-            "stonehearth:observers:avoid_threatening_entities"
+            "stonehearth:observers:health_score"
          ]
       },
       "unit_info" : {

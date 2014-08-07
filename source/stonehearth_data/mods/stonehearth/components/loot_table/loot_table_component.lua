@@ -38,7 +38,7 @@ function LootTableComponent:spawn_loot()
    
    for _, item_uri in pairs(items_uris) do
       local item = radiant.entities.create_entity(item_uri)
-      local location = radiant.terrain.find_placement_point(origin, 1, 2)
+      local location = radiant.terrain.find_placement_point(origin, 1, 3)
       radiant.terrain.place_entity(item, location)
       items[item:get_id()] = item
    end

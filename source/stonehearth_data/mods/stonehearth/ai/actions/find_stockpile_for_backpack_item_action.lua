@@ -56,7 +56,7 @@ function FindStockpileForBackpackItem:stop_thinking(ai, entity, args)
 end
 
 function FindStockpileForBackpackItem:_can_currently_stock_backpack_item(stockpile_component)
-   if not stockpile_component or stockpile_component:is_full() then
+   if not stockpile_component or stockpile_component:is_full() or stockpile_component:is_outbox() then
       return false
    end
 

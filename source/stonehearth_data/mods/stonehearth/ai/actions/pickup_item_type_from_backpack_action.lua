@@ -2,10 +2,9 @@ local Entity = _radiant.om.Entity
 local PickupItemTypeFromBackpack = class()
 
 PickupItemTypeFromBackpack.name = 'pickup item type from backpack'
-PickupItemTypeFromBackpack.does = 'stonehearth:pickup_item_type'
+PickupItemTypeFromBackpack.does = 'stonehearth:pickup_item_type_from_backpack'
 PickupItemTypeFromBackpack.args = {
-   filter_fn = 'function',
-   description = 'string',
+   filter_fn = 'function'
 }
 PickupItemTypeFromBackpack.think_output = {
    item = Entity
