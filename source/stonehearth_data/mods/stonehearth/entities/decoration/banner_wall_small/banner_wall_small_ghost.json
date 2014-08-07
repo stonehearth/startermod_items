@@ -3,7 +3,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(banner_wall_big.qb)"
+               "file(banner_wall_small.qb)"
             ]
          }
       },
@@ -15,9 +15,9 @@
          "scale" : 0.10
       },     
       "unit_info": {
-         "name": "Big Wall-Mounted Banner",
+         "name": "Small Wall-Mounted Banner",
          "description": "Show your town pride with this banner.",
-         "icon" : "file(banner_wall_big.png)"
+         "icon" : "file(banner_wall_small.png)"
       },
       "stonehearth:material" : {
          "tags" : "decoration crafted"

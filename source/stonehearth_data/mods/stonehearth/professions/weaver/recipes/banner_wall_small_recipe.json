@@ -2,9 +2,9 @@
    "type":"recipe",
 
    "work_units"  : 3,
-   "recipe_name" : "Big Wall-Mounted Banner",
+   "recipe_name" : "Small Wall-Mounted Banner",
    "description" : "Show your town pride with this decorative banner.",
-   "portrait"    : "/stonehearth/entities/decoration/banner_wall_big/banner_wall_big.png",
+   "portrait"    : "/stonehearth/entities/decoration/banner_wall_small/banner_wall_small.png",
 
    "ingredients": [
       {
@@ -18,7 +18,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:decoration:banner_wall_big"
+         "item":"stonehearth:decoration:banner_wall_small"
       }
   ]
 }
