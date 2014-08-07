@@ -103,7 +103,7 @@ function FabricatorRenderer:_on_build_selection_changed(e)
 end
 
 function FabricatorRenderer:update_selection_material(selected_entity, material)
-   if selected_entity == self._entity then
+   if selected_entity == self._entity and self._render_node then
       self._render_node:set_material(material)
    end
 end

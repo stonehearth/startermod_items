@@ -30,25 +30,25 @@ function BuildEditorService:initialize()
 end
 
 function BuildEditorService:on_selection_changed()
-   local selected = stonehearth.selection:get_selected()
+   local selected = nil
    local old_selected = self._sv.selected_sub_part
    local building_entity
 
-   if selected then
-     local fab = selected:get_component('stonehearth:fabricator')
+   if stonehearth.selection:get_selected() then
+     local fab = stonehearth.selection:get_selected():get_component('stonehearth:fabricator')
      if fab then
        local bp = fab:get_blueprint()
        if bp then
          local cpc = bp:get_component('stonehearth:construction_progress')
          if cpc then
            building_entity = cpc:get_building_entity()
-           if not building_entity then
-              selected = nil
+           if building_entity then
+              selected = stonehearth.selection:get_selected()
            end
          end
        end
      end
-   end   
+   end
 
    if building_entity then
      radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
