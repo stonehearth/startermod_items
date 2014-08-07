@@ -745,16 +745,15 @@ void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished
  * When we have a new effect, create an sf::SoundBuffer and sf::Sound to play it
  * Store all relevant parameters
 */
-#define PLAY_SOUND_EFFECT_DEFAULT_START_DELAY 0;
-#define PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST 20;
-#define PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST 60;
-#define PLAY_SOUND_EFFECT_DEFAULT_LOOP false;
-#define PLAY_SOUND_EFFECT_MIN_VOLUME 0.1f;
+#define PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST 20
+#define PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST 60
+#define PLAY_SOUND_EFFECT_DEFAULT_LOOP false
+#define PLAY_SOUND_EFFECT_MIN_VOLUME 0.1f
 
 PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
    RenderEffect(e, "sound")
 {
-   startTime_ = effect->GetStartTime();
+   effectStartTime_ = effect->GetStartTime();
    firstPlay_ = true;
 
    std::string track = "";
@@ -781,7 +780,6 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
 */
 void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    bool loop = PLAY_SOUND_EFFECT_DEFAULT_LOOP;
-   int delay = PLAY_SOUND_EFFECT_DEFAULT_START_DELAY;
    int minDistance = PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST; 
    int maxDistance = PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST;
    float attenuation;
@@ -789,8 +787,17 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    //Optional members
    auto i = node.find("start_time");
    if (i != node.end()) {
-      delay = (int)i->as_int();
-   } 
+      startTime_ = (int)i->as_int();
+   } else {
+      startTime_ = 0;
+   }
+	
+   i = node.find("end_time");
+   if (i != node.end()) {
+      endTime_ = (int)i->as_int();
+   } else {
+      endTime_ = 0;
+   }
 
    i = node.find("min_distance");
    if (i != node.end()) {
@@ -811,7 +818,7 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    i = node.find("loop");
    if (i != node.end()) {
       loop = (int)i->as_bool();
-   } 
+   }
 
    i = node.find("volume");
    if (i != node.end()) {
@@ -827,7 +834,6 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    attenuation = CalculateAttenuation(maxDistance, minDistance);
 
    //Set member variables
-   delay_ = delay;
    maxDistance_ = maxDistance; 
 
    //Set sound parameters
@@ -872,6 +878,17 @@ PlaySoundEffect::~PlaySoundEffect()
 **/
 void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
 {
+   int now = info.now - effectStartTime_;
+
+   // How this is supposed to work:
+   //  1) Effect starts at start_time
+   //  2) If loop is set, sound loops for the duration
+   //  3) If end_time is set, stop playing the sound at end_time, EVEN IF LOOP IS SET.
+   //     In this case, loop just loops the between end_time and start_time.
+   //  4) If end_time is not set, mark the effect as finished when the natural duration
+   //     of the sound is done.
+   // - tony
+
    // Entity should never be null here, but it helps to code defensively.
    om::EntityPtr entity = entity_.GetEntity();
    if (!entity) {
@@ -885,13 +902,27 @@ void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
       sound_->setPosition(loc.x, loc.y, loc.z);
    }
 
-   if (firstPlay_ && (info.now >= startTime_+ delay_) ) {
+   // if not end time was specified in the JSON, compute the end time based on the
+   // duration of the sound
+
+   if (firstPlay_ && (now >= startTime_) ) {
       sound_->play();
       firstPlay_ = false;
       finished = false;
-   } else if (sound_->getLoop()) {
+   } else if (sound_->getLoop() && endTime_ == 0) {
+      // If we're looping and there's no end time in the JSON, loop forever
       finished = false;
    } else {
-      finished = info.now > startTime_ + delay_ + sound_->getBuffer()->getDuration().asMilliseconds(); 
+      // If there's no endTime in the JSON, compute it
+      int endTime = endTime_;
+      if (endTime == 0) {
+         endTime = startTime_ + sound_->getBuffer()->getDuration().asMilliseconds();
+      }
+      finished = now > endTime;
+
+      // if we're looping, stop early 
+      if (finished && sound_->getLoop()) {
+         sound_->stop();
+      }
    }
 }
