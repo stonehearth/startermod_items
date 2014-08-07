@@ -578,9 +578,7 @@
       "sounds:health_up" : "file(data/sounds/effects/sh_health_up.wav)",
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
       "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
-      "sounds:drumroll_start" : "file(data/sounds/effects/sh_drumroll_start.wav)", 
-      "sounds:drumroll_loop" : "file(data/sounds/effects/sh_drumroll_loop.wav)",
-      "sounds:chorus_loop" : "file(data/sounds/effects/sh_chorus_loop.wav)",
+      "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
