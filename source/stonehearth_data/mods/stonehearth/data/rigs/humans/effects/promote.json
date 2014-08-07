@@ -14,14 +14,34 @@
             "animation": "promote.json",
             "loop": false
       },
-      "sound": {
+      "drumroll_start": {
          "type": "sound_effect",
-         "duration": 8000,
+         "duration": 2000,
          "start_time": 0,
          "min_distance": 40,
-         "max_distance": 60,
+         "max_distance": 80,
+         "volume" : 40,
+         "track" : "stonehearth:sounds:drumroll_start"
+      },
+      "drumroll_loop": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_time": 300,
+         "end_time": 4950,
+         "min_distance": 50,
+         "max_distance": 200,
          "volume" : 80,
-         "track" : "stonehearth:sounds:prom_angel_jingle_sound" 
+         "track" : "stonehearth:sounds:drumroll_loop"
+      },
+      "twinkle": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_time": 275,
+         "end_time": 4950,
+         "min_distance": 50,
+         "max_distance": 200,
+         "volume" : 100,
+         "track" : "stonehearth:sounds:twinkle"         
       },
       "promote_trigger" : {
             "type": "trigger_effect",

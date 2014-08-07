@@ -167,9 +167,10 @@ public:
 
 private:
    std::shared_ptr<sf::Sound>       sound_;
+   int             effectStartTime_;
    int             startTime_;   //Time when the sound starts to play
+   int             endTime_;     //Time when the sound should end (or 0 if natural duration)
    bool            firstPlay_;   //Whether this is the first time we're playing the sound
-   int             delay_;       //How long to wait before starting the sound
    int             maxDistance_; //distance under which sound will be heard at maximum volume. 1 is default
 
    void  AssignFromJSON_(const JSONNode& node);
