@@ -128,7 +128,7 @@ function EntityFormsComponent:_load_placement_task()
                                  self._sv.placing_at.wall,
                                  self._sv.placing_at.normal)
       else
-         self:place_item_in_world(self._sv.placing_at.location,
+         self:place_item_on_ground(self._sv.placing_at.location,
                                   self._sv.placing_at.rotation)
       end   
    end
