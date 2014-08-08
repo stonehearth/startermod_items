@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(plushie_toy_rabbit.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Plushie Toy Rabbit",
+         "description": "A toy...for children of course.",
+         "icon" : "file(plushie_toy_rabbit.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "toy crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

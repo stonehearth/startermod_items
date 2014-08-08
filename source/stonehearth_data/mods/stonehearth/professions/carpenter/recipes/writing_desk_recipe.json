@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Writing Desk",
+   "description" : "Great for writing...stuff. Or something. (XXX Stephanie, please do better!)",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/furniture/writing_desk/writing_desk.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:writing_desk"
+      }
+  ]
+}
