@@ -15,7 +15,6 @@ function WorkerDefense:initialize()
 
    if not self._sv.initialized then
       self._sv.worker_combat_enabled = {}
-      self._sv.original_stance = {}
    else
       for player_id, enabled in pairs(self._sv.worker_combat_enabled) do
          if enabled then
@@ -39,7 +38,6 @@ function WorkerDefense:enable_worker_combat(player_id)
    for _, citizen in pairs(citizens) do
       if self:_performs_worker_defense(citizen) then
          local combat_state = citizen:add_component('stonehearth:combat_state')
-         self._sv.original_stance[citizen:get_id()] = combat_state:get_stance()
          combat_state:set_stance('aggressive')
 
          -- add the defender buff
@@ -66,14 +64,7 @@ function WorkerDefense:disable_worker_combat(player_id)
    for _, citizen in pairs(citizens) do
       if self:_performs_worker_defense(citizen) then
          local combat_state = citizen:add_component('stonehearth:combat_state')
-
-         -- Set them back to their old stance, or if none, then passive
-         local original_stance = self._sv.original_stance[citizen:get_id()]
-         if original_stance then
-            combat_state:set_stance(original_stance)
-         else 
-            combat_state:set_stance('passive')
-         end
+         combat_state:set_stance('passive')
 
          radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
 
