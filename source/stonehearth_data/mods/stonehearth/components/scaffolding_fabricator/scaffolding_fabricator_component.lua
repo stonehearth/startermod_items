@@ -4,6 +4,7 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
+local Array2D = _radiant.csg.Array2D
 local TraceCategories = _radiant.dm.TraceCategories
 
 local COORD_MAX = 1000000 -- 1 million enough?
@@ -154,17 +155,64 @@ function ScaffoldingFabricator:_cover_project_region(max_height)
       -- at every point and has no gaps in it when the project has gaps
       -- (e.g. for doors and windows).  it will not work, however, for
       -- irregularaly sized projects.  revisit if those ever show up!
-      local bounds = project_rgn:get_bounds()
+      local project_bounds = project_rgn:get_bounds()
       cursor:clear()
       
-      if bounds:get_area() > 0 then
+      if project_bounds:get_area() > 0 then
+         local blueprint_bounds = blueprint_rgn:get_bounds()
+         local is_grounded = blueprint_bounds.min.y == 0
+
+         local size = blueprint_bounds:get_size()
+         local origin = Point2(blueprint_bounds.min.x, blueprint_bounds.min.z)
+
+         -- compute the max height for every column in the blueprint
+         local blueprint_min_heights
+         local blueprint_max_heights = Array2D(size.x, size.z, origin, -COORD_MAX)
+         if not is_grounded then
+            blueprint_min_heights = Array2D(size.x, size.z, origin, COORD_MAX)
+         end
+
+         for cube in blueprint_rgn:each_cube() do
+            for x = cube.min.x, cube.max.x - 1 do
+               for z = cube.min.z, cube.max.z - 1 do
+                  local h = blueprint_max_heights:get(x, z)
+                  blueprint_max_heights:set(x, z, math.max(h, cube.max.y - 1))
+                  if not is_grounded then
+                     h = blueprint_min_heights:get(x, z)
+                     blueprint_min_heights:set(x, z, math.min(h, cube.min.y))
+                  end
+               end
+            end
+         end
+
          -- if the top row isn't finished, lower the height by 1.  the top
          -- row is finished if the project - the blueprint is empty
-         local clipper = Cube3(Point3(-COORD_MAX, bounds.min.y, -COORD_MAX),
-                               Point3( COORD_MAX, bounds.max.y,  COORD_MAX))
+         local clipper = Cube3(Point3(-COORD_MAX, project_bounds.min.y, -COORD_MAX),
+                               Point3( COORD_MAX, project_bounds.max.y,  COORD_MAX))
                                
          if not (blueprint_rgn:clipped(clipper) - project_rgn):empty() then
-            bounds.max = bounds.max - Point3(0, 1, 0)
+            project_bounds.max = project_bounds.max - Point3.unit_y
+         end
+         if max_height then
+            max_height = math.min(max_height, project_bounds.max.y)
+         else
+            max_height = project_bounds.max.y
+         end
+
+   
+         -- add a piece of scaffolding for every xz column in `bounds`.  the
+         -- height of the scaffolding will be the min of the max height and the
+         -- previously computed blueprint_max_heights entry for that xz position
+         local scaffolding_heights = Array2D(size.x, size.z, origin, -COORD_MAX)               
+         local function add_scaffolding(bounds)
+            local xz_bounds = Cube3(Point3(bounds.min.x, 0, bounds.min.z),
+                                    Point3(bounds.max.x, 1, bounds.max.z))
+                                              
+            for pt in xz_bounds:each_point() do
+               local h = blueprint_max_heights:get(pt.x, pt.z)
+               h = math.min(h, max_height)
+               scaffolding_heights:set(pt.x, pt.z, h)
+             end
          end
 
          -- create a vertical stripe in the scaffolding reaching from
@@ -176,28 +224,37 @@ function ScaffoldingFabricator:_cover_project_region(max_height)
 
          -- first make sure the scaffolding fills in all the holes across gaps
          -- (consider the first row of a wall with a door in it)
-         local top_row_clipper = Cube3(Point3(bounds.min.x, bounds.max.y - 1, bounds.min.z), bounds.max)
-         local top_row_bounds = project_rgn:clipped(top_row_clipper):get_bounds()
-         if top_row_bounds then
-            local column = Cube3(Point3(top_row_bounds.min.x, 0, top_row_bounds.min.z), top_row_bounds.max)
-            column:translate(self._sv.normal)
-            cursor:add_cube(column)
+         if max_height > 0 then
+            local top_row_clipper = Cube3(Point3(-COORD_MAX, project_bounds.max.y, -COORD_MAX),
+                                          Point3( COORD_MAX, COORD_MAX,  COORD_MAX))
+            local blueprint_top_row = blueprint_rgn:clipped(top_row_clipper)
+            add_scaffolding(blueprint_top_row:get_bounds())
+
+            -- now make sure everything completely covers the project
+            add_scaffolding(project_rgn:get_bounds())
          end
 
-         -- now make sure everything goes all the way down to the bottom
-         for cube in project_rgn:each_cube() do
-            local y = math.min(bounds.max.y, cube.max.y)
-            local column = Cube3(Point3(cube.min.x, 0, cube.min.z),
-                                 Point3(cube.max.x, y, cube.max.z))
-            column:translate(self._sv.normal)
-            cursor:add_cube(column)
-         end
-
-         -- if a max_height is specified, throw out everything above it
-         if max_height then
-            local clipper = Cube3(Point3(-COORD_MAX, max_height, -COORD_MAX),
-                                  Point3( COORD_MAX, COORD_MAX,  COORD_MAX))
-            cursor:subtract_cube(clipper)
+         -- finally, iterate through every column in the scaffolding heights
+         -- array and add the columns        
+         for x = blueprint_bounds.min.x, blueprint_bounds.max.x - 1 do
+            for z = blueprint_bounds.min.z, blueprint_bounds.max.z - 1 do                  
+               local base, h = 0, scaffolding_heights:get(x, z)
+               if h ~= -COORD_MAX then
+                  if not is_grounded then
+                     -- if the region is floating in the air, we put the base of the
+                     -- column at the base of the blueprint
+                     assert(blueprint_min_heights)
+                     base = blueprint_min_heights:get(x, z)
+                     assert(base ~= COORD_MAX)
+                  end
+                  if base < h then
+                     local column = Cube3(Point3(x, base, z), 
+                                          Point3(x + 1, h, z + 1))
+                     column:translate(self._sv.normal)
+                     cursor:add_unique_cube(column)
+                  end
+               end
+            end
          end
 
          -- finally, don't put scaffolding where the project is slated to go!

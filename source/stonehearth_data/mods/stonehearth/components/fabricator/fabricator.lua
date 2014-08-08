@@ -280,6 +280,7 @@ function Fabricator:remove_block(location)
          if project_rgn:contains(pt) then
             break
          end
+         top = top - 1
       end
       if not project_rgn:contains(pt) then
          assert(false, 'could not compute block to teardown from projected adjacent')
@@ -436,15 +437,35 @@ function Fabricator:_update_dst_region()
                                  Point3( COORD_MAX, COORD_MAX,   COORD_MAX)))
    local dst_region = rcs_rgn - clipper
    dst_region:set_tag(0)
-   dst_region:optimize_by_merge()
 
    -- some projects want the worker to stand at the base of the project and
    -- push columns up.  for example, scaffolding always gets built from the
    -- base.  if this is one of those, translate the adjacent region all the
    -- way to the bottom.
    if self._blueprint_construction_data:get_project_adjacent_to_base() then
-      dst_region:translate(Point3(0, -bottom, 0))
+      -- reference the proper source for where the columns are based on whether
+      -- we're tearing down or building up
+      local shape_region
+      if self._should_teardown then
+         shape_region = self._project_dst:get_region():get()
+      else
+         shape_region = self._blueprint_dst:get_region():get()
+      end
+
+      -- project each column down to the base
+      local dr = Region3()      
+      for cube in dst_region:each_cube() do
+         for pt in cube:each_point() do
+            pt.y = bottom
+            while not shape_region:contains(pt) do
+               pt.y = pt.y + 1
    end
+            dr:add_unique_point(pt)
+         end         
+      end
+      dst_region = dr
+   end
+   dst_region:optimize_by_merge()
 
    --self._log:detail('update dst region')
    --self:_log_region(rcs_rgn, 'region collision shape ->')
