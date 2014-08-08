@@ -8,11 +8,13 @@
          "file(static/terrain/small_boulder_cluster)",
          "file(static/terrain/medium_boulder_cluster)",
          "file(static/terrain/large_boulder_cluster)",
-         "file(static/terrain/silkweed_field)"
+         "file(static/terrain/silkweed_field)",
+         "file(static/terrain/frostsnap_field)",
+         "file(static/terrain/brightbell_field)"
       ],
       "categories" : {
          "terrain" : {
-            "frequency" : 25.0,
+            "frequency" : 30.0,
             "priority" : 0,
             "activation_type" : "immediate"
          },
