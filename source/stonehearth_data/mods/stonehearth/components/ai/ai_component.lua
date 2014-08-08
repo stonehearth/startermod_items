@@ -79,12 +79,10 @@ function AIComponent:destroy()
    self._dead = true
    self:_terminate_thread()
 
-   for _, obs in pairs(self._observer_instances) do
-      if obs.destroy then
-         obs:destroy(self._entity)
-      end
+   for uri, _ in pairs(self._observer_instances) do
+      self:remove_observer(uri)
    end
-   self._observer_instances = {}
+   
    self._action_index = {}
 end
 
