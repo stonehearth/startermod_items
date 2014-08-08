@@ -176,7 +176,7 @@ end
 -- executing, and inject would never return to the caller!
 --
 function AIComponent:_notify_action_index_changed(activity_name, add_remove, key, entry)
-   assert(not self._thread:is_running())
+   assert(not self._thread or not self._thread:is_running())
 
    local frames = self._all_execution_frames[activity_name]
    if frames then
