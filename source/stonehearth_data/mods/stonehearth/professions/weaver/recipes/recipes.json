@@ -2,11 +2,15 @@
    "craftable_recipes" : {
       "Crafting Materials" : {
          "thread" : {
-            "uri" : "file(thread.json)"
+            "uri" : "file(thread_recipe.json)"
          },
          "cloth_bolt" : {
-            "uri" : "file(cloth_bolt.json)"
+            "uri" : "file(cloth_bolt_recipe.json)"
+         },
+         "leather_bolt" : {
+            "uri" : "file(leather_bolt_recipe.json)"
          }
+
       },
       "Clothing & Armor" : {
          "worker_outfit_2" : {
@@ -14,6 +18,9 @@
          },
          "cloth_padded_vest" : {
             "uri" : "file(cloth_padded_vest_recipe.json)"
+         },
+         "leather_vest" : {
+            "uri" : "file(leather_vest_recipe.json)"
          }
       },
       "Decorations" : {
@@ -26,6 +33,11 @@
          "tapestry_wall" : {
             "uri" : "file(tapestry_wall_recipe.json)"
          }         
+      },
+      "Toys" : {
+         "plushie_toy_rabbit" : {
+            "uri" : "file(plushie_toy_rabbit_recipe.json)"
+         }
       }
    }
 }

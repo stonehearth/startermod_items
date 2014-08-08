@@ -1,0 +1,20 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Wooden Wall-Mounted Sign",
+   "description" : "A generic sign, to identify your buildings",
+   "portrait"    : "/stonehearth/entities/decoration/wooden_sign/wooden_sign.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:decoration:wooden_sign"
+      }
+  ]
+}

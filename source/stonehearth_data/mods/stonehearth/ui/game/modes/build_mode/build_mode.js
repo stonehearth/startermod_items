@@ -7,11 +7,10 @@ App.StonehearthBuildModeView = App.View.extend({
 
       var self = this;
 
-      // track the selection
-      $(top).on("radiant_selection_changed", function (_, e) {
-         self._selectedEntity = e.selected_entity;
-         self._onStateChanged()
-      });
+      $(top).on('selected_sub_part_changed', function(_, sub_part) {
+         self._sub_selected_part = sub_part;
+         self._onStateChanged();
+      }); 
 
       // track game mode changes and nuke any UI that we've show when we exit build mode
       $(top).on('mode_changed', function(_, mode) {
@@ -66,7 +65,7 @@ App.StonehearthBuildModeView = App.View.extend({
 
    _destroyBuildingDesigner: function() {
       if (this._buildDesignerTools) {
-         this._buildDesignerTools.destroy();
+         this._buildDesignerTools.invokeDestroy();
          this._buildDesignerTools = null;
       }
    },
@@ -86,7 +85,7 @@ App.StonehearthBuildModeView = App.View.extend({
 
    _destroyPlaceItemUi: function() {
       if (this._placeItemUi) {
-         this._placeItemUi.destroy();
+         this._placeItemUi.invokeDestroy();
          this._placeItemUi = null;
       }
    },
@@ -104,14 +103,14 @@ App.StonehearthBuildModeView = App.View.extend({
       var self = this;
 
       if (this._mode == "build") {
-      
-         //trace the selected entity to determine its components   
+         //trace the selected entity to determine its components
          if (self.selectedEntityTrace) {
             self.selectedEntityTrace.destroy();
+            self.selectedEntityTrace = null;
          }
 
-         if (this._selectedEntity) {
-            self.selectedEntityTrace = radiant.trace(this._selectedEntity)
+         if (this._sub_selected_part) {
+            self.selectedEntityTrace = radiant.trace(this._sub_selected_part)
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
@@ -123,13 +122,11 @@ App.StonehearthBuildModeView = App.View.extend({
                .fail(function(e) {
                   console.log(e);
                });         
-         } else {
+         } else if (this._buildDesignerTools) {
             self._showBuildingDesigner();
          }
       } else {
          this._destroyAllViews();
       }
-
    },
-
 });

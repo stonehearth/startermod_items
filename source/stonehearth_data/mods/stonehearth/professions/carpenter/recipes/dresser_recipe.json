@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Wooden Dresser",
+   "description" : "A chest of drawers for storing clothing and personal possessions.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/furniture/dresser/dresser.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:dresser"
+      }
+  ]
+}

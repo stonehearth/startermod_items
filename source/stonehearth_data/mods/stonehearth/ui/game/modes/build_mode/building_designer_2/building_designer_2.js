@@ -157,14 +157,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // style the tabs to reflect the new active tab
          self.$('.tabButton').removeClass('active');
          $(this).addClass('active');
-
-         // if the selected entity is not applicable to this tab, deselect the entity
-         var buildingType = $(this).attr('buildingType');
-         var constructionData = self.get('blueprint.stonehearth:construction_data')
-
-         if (constructionData && buildingType != constructionData.type) {
-            radiant.call('stonehearth:select_entity', null);   
-         }
          
          // restore the last used tool for the tab
          var activeTool = self._state[tabId + "ActiveTool"];

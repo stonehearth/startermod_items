@@ -28,7 +28,8 @@
          "render_type" : "merge_with_model",
          "slot" : "outfit",
          "ilevel" : 2,
-         "roles" : "combat"
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
       }
    }
 }
