@@ -71,6 +71,8 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
 end
 
 function FabricatorRenderer:destroy()
+   radiant.events.unlisten(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
+
    if self._render_tracker then
       self._render_tracker:destroy()
       self._render_tracker = nil   

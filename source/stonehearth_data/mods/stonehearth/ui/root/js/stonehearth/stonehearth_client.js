@@ -315,11 +315,12 @@ var StonehearthClient;
       buildWall: function(column, wall, o, precall) {
          var self = this;
 
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Click to place wall segments',
-            description : 'Hold down SHIFT while clicking to draw connected walls!'
-         });
-
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click to place wall segments',
+               description : 'Hold down SHIFT while clicking to draw connected walls!'
+            });
+         }
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
