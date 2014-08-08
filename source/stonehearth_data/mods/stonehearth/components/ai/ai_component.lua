@@ -8,6 +8,7 @@ function AIComponent:initialize(entity, json)
    self._entity = entity
    self._action_index = {}
    self._task_groups = {}
+   self._last_added_actions = {}
    self._observer_instances = {}
    self._all_execution_frames = {}
    self._sv = self.__saved_variables:get_data()
@@ -142,10 +143,41 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
       injecting_entity = injecting_entity,
    }
    self._action_index[does][key] = entry
-   self:_notify_action_index_changed(does, 'add', key, entry)
+   self:_queue_action_index_changed_notification(does, 'add', key, entry)
 end
 
+-- queues a notification that the action index has changed.  this will schedule a call to
+-- :_notify_action_index_changed() for the next game loop.  Why not call _notify_action_index_changed
+-- directly?  see the function comment atop that file for why
+--
+function AIComponent:_queue_action_index_changed_notification(activity_name, add_remove, key, entry)
+   table.insert(self._last_added_actions, {
+      activity_name = activity_name,
+      add_remove = add_remove,
+      key = key,
+      entry = entry,
+   })
+
+   if #self._last_added_actions == 1 then
+      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+            local added_actions = self._last_added_actions
+            self._last_added_actions = {}
+            for _, o in ipairs(added_actions) do
+               self:_notify_action_index_changed(o.activity_name, o.add_remove, o.key, o.entry)
+            end
+         end)
+   end
+end
+
+-- notifies all frames in the ai that a new action which does `activity_name` has been
+-- added or removed.  this function may not be called on the ai thread!  consider what
+-- happens if someone on the ai thread were to inject an action which would cause a
+-- preemption of its parent.  the preemption would kill the pcall stack we're currently
+-- executing, and inject would never return to the caller!
+--
 function AIComponent:_notify_action_index_changed(activity_name, add_remove, key, entry)
+   assert(not self._thread or not self._thread:is_running())
+
    local frames = self._all_execution_frames[activity_name]
    if frames then
       self._notifying_action_index_changed = true
@@ -192,7 +224,7 @@ function AIComponent:remove_action(key)
       --self._log:spam('%s, ai_component:remove_action: %s', self._entity, self:_action_key_to_name(key))
       self._log:detail('triggering stonehearth:action_index_changed:' .. does)
       self._action_index[does][key] = nil
-      self:_notify_action_index_changed(does, 'remove', key, entry)
+      self:_queue_action_index_changed_notification(does, 'remove', key, entry)
    else
       self._log:debug('could not find action for key %s in :remove_action', tostring(key))
    end

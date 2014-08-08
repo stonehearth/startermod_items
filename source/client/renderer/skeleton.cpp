@@ -66,7 +66,7 @@ H3DNode Skeleton::CreateBone(std::string const& bone)
 {
    H3DNode parent = _renderEntity.GetNode();
    std::ostringstream name;
-   name << "Skeleton " << parent << " " + bone + " bone";
+   name << "Skeleton " << parent << " " << bone << " bone";
    //H3DNode scaler = h3dAddGroupNode(_parent, name.str().c_str());
    //h3dSetNodeTransform(scaler, 0, 0, 0, 0, 0, 0, .1f, .1f, .1f);
 

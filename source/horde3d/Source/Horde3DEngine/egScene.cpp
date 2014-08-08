@@ -11,6 +11,7 @@
 // *************************************************************************************************
 
 #include "radiant.h"
+#include "radiant_logger.h"
 #include "egScene.h"
 #include "egSceneGraphRes.h"
 #include "egLight.h"
@@ -91,6 +92,8 @@ void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
 		((MeshNode *)this)->_ignoreAnim = true;
 	}
 	
+   SCENE_LOG(9) << "setting relative transform for node " << _name << " to " << "(" << trans.x << ", " << trans.y << ", " << trans.z << ")";
+
 	_relTrans = Matrix4f::ScaleMat( scale.x, scale.y, scale.z );
 	_relTrans.rotate( degToRad( rot.x ), degToRad( rot.y ), degToRad( rot.z ) );
 	_relTrans.translate( trans.x, trans.y, trans.z );
@@ -282,13 +285,11 @@ bool SceneNode::canAttach( SceneNode &/*parent*/ )
 void SceneNode::markChildrenDirty()
 {
    for (const auto& child : _children)
-   {
-		if( !child->_dirty )
-		{	
-			child->_dirty = true;
-			child->_transformed = true;
-			child->markChildrenDirty();
-		}
+   {      
+      SCENE_LOG(9) << "marking child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty ";
+		child->_dirty = true;
+		child->_transformed = true;
+		child->markChildrenDirty();
 	}
 }
 
@@ -297,10 +298,14 @@ void SceneNode::markDirty(uint32 dirtyKind)
  	_dirty = true;
 	_transformed = true;
 
+   SCENE_LOG(9) << "marking node (handle:" << _handle << " name:" << _name << " dirty";
+
    if (dirtyKind & SceneNodeDirtyKind::Ancestors) {
 	   SceneNode *node = _parent;
 	   while( node != 0x0 )
 	   {
+         SCENE_LOG(9) << "marking ancestor node (handle:" << node->_handle << " name:" << node->_name << " dirty via SceneNodeDirtyKind::Ancestors";
+
  		   node->_dirty = true;
 		   node = node->_parent;
 	   }
@@ -316,11 +321,14 @@ void SceneNode::update()
 {
 	if( !_dirty ) return;
 
+   SCENE_LOG(9) << "updating node (handle:" << _handle << " name:" << _name << ")";
+
 	onPreUpdate();
 	
 	// Calculate absolute matrix
 	if( _parent != 0x0 ) {
 		Matrix4f::fastMult43( _absTrans, _parent->_absTrans, _relTrans );
+      SCENE_LOG(9) << "calculated absolute transform for (handle:" << _handle << " name:" << _name << " to " << "(" << _absTrans.c[3][0] << ", " << _absTrans.c[3][1] << ", " << _absTrans.c[3][2] << ") matrix addr:" << (void*)&_absTrans.c;
 	} else {
 		_absTrans = _relTrans;
    }
@@ -1108,6 +1116,7 @@ NodeHandle SceneManager::addNode( SceneNode *node, SceneNode &parent )
    _registry[node->_type].nodes[node->getHandle()] = node;
 
    // Attach to parent
+   SCENE_LOG(9) << "adding child (handle:" << node->_handle << " name:" << node->_name << ") to node (handle:" << parent._handle << " name:" << parent._name << ")";
 	parent._children.push_back( node );
 
 	// Raise event
@@ -1173,6 +1182,7 @@ void SceneManager::removeNode( SceneNode &node )
 		{
 			if( parent->_children[i] == nodeAddr )
 			{
+            SCENE_LOG(9) << "removing child (handle:" << node._handle << " name:" << node._name << ") from node (handle:" << parent->_handle << " name:" << parent->_name << ")";
 				parent->_children.erase( parent->_children.begin() + i );
 				break;
 			}
@@ -1204,13 +1214,15 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
 	{
 		if( node._parent->_children[i] == &node )
 		{
+         SCENE_LOG(9) << "removing child (handle:" << node._handle << " name:" << node._name << ") from node (handle:" << node._parent->_handle << " name:" << node._parent->_name << ") relocate";
 			node._parent->_children.erase( node._parent->_children.begin() + i );
 			break;
 		}
 	}
 
 	// Attach to new parent
-	parent._children.push_back( &node );
+   SCENE_LOG(9) << "adding child (handle:" << node._handle << " name:" << node._name << ") from node (handle:" << parent._handle << " name:" << parent._name << ") relocate";
+   parent._children.push_back( &node );
 	node._parent = &parent;
 	node.onAttach( parent );
 	
