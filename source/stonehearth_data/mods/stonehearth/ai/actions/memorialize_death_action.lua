@@ -31,7 +31,7 @@ function MemorializeDeathAction:run(ai, entity, args)
    local effect = radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/tombstone_effect')
    effect:set_finished_cb(
       function()
-         radiant.entities.destroy_proxy_entity(proxy_entity)
+         radiant.entities.destroy_entity(proxy_entity)
       end
    )
    
