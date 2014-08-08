@@ -7,20 +7,26 @@ function BuildScaffoldingManager:initialize()
    self._sv.ladder_builders = {}
 end
 
-function BuildScaffoldingManager:request_ladder_to(to, normal)
+function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
    local base = self:get_base_of_ladder_to(to)
    
    local ladder_builder = self._sv.ladder_builders[base]
    if not ladder_builder then
-      ladder_builder = radiant.create_controller('stonehearth:ladder_builder', base, normal)
+      ladder_builder = radiant.create_controller('stonehearth:ladder_builder', self, base, normal, removable)
       self._sv.ladder_builders[base] = ladder_builder
    end
    ladder_builder:add_point(to)
 
    return radiant.lib.Destructor(function()
          ladder_builder:remove_point(to)
-         -- how does it get destroyed?
       end)
+end
+
+function BuildScaffoldingManager:remove_ladder(base)
+   local ladder_builder = self._sv.ladder_builders[base]
+   if ladder_builder then
+      ladder_builder:clear_all_points()
+   end
 end
 
 -- returns the location where a ladder to reach `to` should be
@@ -54,6 +60,12 @@ function BuildScaffoldingManager:_should_build_rung(pt)
       end
    end
    return true
+end
+
+function BuildScaffoldingManager:_destroy_builder(base, ladder_builder)
+   assert(self._sv.ladder_builders[base] == ladder_builder)
+   self._sv.ladder_builders[base] = nil
+   ladder_builder:destroy()
 end
 
 return BuildScaffoldingManager

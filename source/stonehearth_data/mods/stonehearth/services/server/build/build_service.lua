@@ -6,6 +6,7 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
+local Entity = _radiant.om.Entity
 
 local STRUCTURE_COMPONENTS = {
    'stonehearth:wall',
@@ -849,7 +850,17 @@ end
 function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
    normal = ToPoint3(normal)
    location = ToPoint3(location)
-   self._sv.scaffolding_manager:request_ladder_to(location, normal)
+   self._sv.scaffolding_manager:request_ladder_to(location, normal, true)
+   return true
+end
+
+function BuildService:remove_ladder_command(session, response, ladder_entity)
+   if radiant.util.is_a(ladder_entity, Entity) then
+      local ladder = ladder_entity:get_component('stonehearth:ladder')
+      if ladder then
+         self._sv.scaffolding_manager:remove_ladder(ladder:get_base())
+      end
+   end
    return true
 end
 

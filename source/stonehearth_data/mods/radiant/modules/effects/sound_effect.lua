@@ -6,7 +6,6 @@ function SoundEffect:__init(start_time, info)
    self._info = info
    self._loop = false
    self._start_time = start_time + self:_get_start_time()
-   self._end_time = 0
    
    if self._info.loop ~= nil then
       self._loop = self._info.loop
