@@ -456,7 +456,7 @@ function Fabricator:_update_dst_region()
       local dr = Region3()      
       for cube in dst_region:each_cube() do
          for pt in cube:each_point() do
-            pt.y = bottom
+            pt.y = 0
             while not shape_region:contains(pt) do
                pt.y = pt.y + 1
    end

@@ -31,6 +31,10 @@ function env.create_world(world_generator_script)
    env.create_enemy_kingdom()
 end
 
+function env.get_player_id()
+   return 'player_1'
+end
+
 function env.create_enemy_kingdom()
    local session = {
       player_id = 'enemy',
