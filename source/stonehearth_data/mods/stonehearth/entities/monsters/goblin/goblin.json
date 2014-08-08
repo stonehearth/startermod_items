@@ -87,7 +87,7 @@
          },
          "speed": {
             "type" : "basic",
-            "value" : 50
+            "value" : 80
          },
          "ferocity": {
             "type" : "basic", 

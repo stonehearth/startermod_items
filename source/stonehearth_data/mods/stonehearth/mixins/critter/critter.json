@@ -38,7 +38,7 @@
          }, 
          "speed" : {
             "type" : "basic", 
-            "value": 50
+            "value": 110
          },
           "calories": {
             "type" : "basic", 
