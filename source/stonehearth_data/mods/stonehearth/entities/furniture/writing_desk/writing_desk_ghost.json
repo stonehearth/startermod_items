@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(writing_desk.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Writing Desk",
+         "description": "Furniture",
+         "icon" : "file(writing_desk.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

@@ -1,0 +1,35 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Thick Leather Vest",
+         "description": "Hardened leather provides study protection against light arms.",
+         "icon" : "file(leather_vest.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(leather_vest.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(leather_vest_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(leather_vest_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "slot" : "outfit",
+         "ilevel" : 4,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   }
+}

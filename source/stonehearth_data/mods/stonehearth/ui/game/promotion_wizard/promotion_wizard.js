@@ -116,14 +116,14 @@ App.StonehearthPromotionWizard = App.View.extend({
       })
 
       this.$('#closeButton').click(function() {
-         self.destroy();
+         self.invokeDestroy();
       });
 
       this.$('#finishPage #backButton').click(function() {
          if (self.$('#jobsPage').is(':visible')) {
             self.$('#finishPage').hide(); 
          } else {
-            self.destroy();
+            self.invokeDestroy();
          }
         
       })
@@ -210,7 +210,7 @@ App.StonehearthPromotionWizard = App.View.extend({
             .animate({ bottom: 200 }, 150, function () {
                // close the wizard after a short delay
                setTimeout(function() {
-                  self.destroy();
+                  self.invokeDestroy();
                }, 1500);
             });
          });

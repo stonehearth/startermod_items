@@ -46,6 +46,14 @@
       }
    },
 
+   invokeDestroy: function() {
+      if (this.state == 'preRender') {
+         Ember.run.scheduleOnce('afterRender', this, this.destroy);
+      } else {
+         this.destroy();
+      }
+   },
+
    _addHotkeys: function() {
       this.$('[hotkey]').each(function() {
          var el = $(this);

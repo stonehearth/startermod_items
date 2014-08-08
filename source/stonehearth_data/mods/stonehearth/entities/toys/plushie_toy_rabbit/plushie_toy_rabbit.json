@@ -1,0 +1,18 @@
+{
+   "mixins" : "file(plushie_toy_rabbit_ghost.json)",
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(plushie_toy_rabbit_iconic.json)",
+         "ghost_form" : "file(plushie_toy_rabbit_ghost.json)",
+         "placeable_on_ground" : true
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 2, "z" : 1 }
+            }
+         ]
+      }
+   }
+}
