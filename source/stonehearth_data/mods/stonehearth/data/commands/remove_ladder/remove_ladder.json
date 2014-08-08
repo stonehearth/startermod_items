@@ -1,0 +1,15 @@
+{
+   "type" : "command",
+
+   "name": "remove_ladder",
+   "tooltip": "Remove",
+   "description" : "Remove this ladder.",
+   "default_enabled": true,
+   "icon": "file(remove_ladder.png)",
+
+   "action": "fire_event",
+   "event_name" : "radiant_remove_ladder",
+   "event_data" : {
+      "self": "{{self}}"
+   }
+}

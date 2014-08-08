@@ -5,17 +5,25 @@ local Point3 = _radiant.csg.Point3
 
 local LadderBuilder = class()
 
-function LadderBuilder:initialize(base, normal)
+function LadderBuilder:initialize(manager, base, normal, removeable)
    self._sv.climb_to = {}
 
    local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder')
+   if removeable then
+      ladder:add_component('stonehearth:commands')
+                  :add_command('/stonehearth/data/commands/remove_ladder')
+   end
+
+   self._sv.manager = manager
    self._sv.ladder = ladder
+   self._sv.base = base
    self.__saved_variables:mark_changed()
 
    radiant.terrain.place_entity_at_exact_location(ladder, base)
 
    self._ladder_component = ladder:add_component('stonehearth:ladder')
                                        :set_normal(normal)
+                                       :set_base(base)
 
    self._vpr_component = ladder:add_component('vertical_pathing_region')
    self._vpr_component:set_region(_radiant.sim.alloc_region())
@@ -24,23 +32,39 @@ function LadderBuilder:initialize(base, normal)
                                              :on_changed(function()
                                                    self:_update_ladder_tasks()
                                                 end)
-                                             :push_object_state()
 end
 
 function LadderBuilder:destroy()
+   self:_stop_teardown_task()   
+   self:_stop_build_task()
+
    if self._vpr_trace then
       self._vpr_trace:destroy()
       self._vpr_trace = nil
+   end   
+   if self._sv.ladder then
+      radiant.entities.destroy_entity(self._sv.ladder)
+      self._vpr_component = nil
+      self._sv.ladder = nil
+      self.__saved_variables:mark_changed()
    end
 end
 
 function LadderBuilder:add_point(to)
    self._sv.climb_to[to] = 1
+   self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
 
 function LadderBuilder:remove_point(to)
    self._sv.climb_to[to] = nil
+   self.__saved_variables:mark_changed()   
+   self:_update_ladder_tasks()
+end
+
+function LadderBuilder:clear_all_points()
+   self._sv.climb_to = {}
+   self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
 
@@ -87,10 +111,14 @@ function LadderBuilder:_update_ladder_tasks()
    else
       self:_stop_teardown_task()
       self:_stop_build_task()
+      self:_check_if_valid()
    end
 end
 
 function LadderBuilder:is_ladder_finished()
+   if not self._vpr_component then
+      return true
+   end
    local bounds = self._vpr_component:get_region():get():get_bounds()
    local height = bounds.max.y - bounds.min.y
    return height == self._ladder_component:get_desired_height()
@@ -155,10 +183,23 @@ function LadderBuilder:_start_teardown_task()
                             :set_source(self._sv.ladder)
                             :set_priority(priorities.BUILD_LADDER)
                             :set_max_workers(1)
+                            :notify_completed(function()
+                                 self._teardown_task = nil
+                                 self:_check_if_valid()
+                              end)
                             :start()
       end
    end
 end
 
+function LadderBuilder:_check_if_valid()
+   -- if no one wants the ladder around anymore, destroy it
+   if self:is_empty() then
+      local ladder_top = self:_get_ladder_top()
+      if ladder_top.y == 0 then
+         self._sv.manager:_destroy_builder(self._sv.base, self)
+      end
+   end
+end
 
 return LadderBuilder
