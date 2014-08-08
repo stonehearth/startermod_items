@@ -57,7 +57,7 @@
          "ai" : {
             "actions" : [
                "stonehearth:actions:trapping:try_steal_bait",
-               "stonehearth:actions:trapping:trigger_trap",
+               "stonehearth:actions:trapping:trigger_trap"
             ],
             "observers" : [
             ]
