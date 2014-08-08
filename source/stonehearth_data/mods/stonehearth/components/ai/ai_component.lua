@@ -21,10 +21,6 @@ function AIComponent:initialize(entity, json)
                           :set_entity(self._entity)
 
    if not self._sv._initialized then
-      self._sv._initialized = true
-      self._sv._observer_datastores = {}
-      self._sv.status_text = ''
-
       -- wait until the entity is completely initialized before piling all our
       -- observers and actions
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
@@ -213,69 +209,64 @@ function AIComponent:remove_custom_action(action_ctor, injecting_entity)
 end
 
 function AIComponent:add_observer(uri)
-   self.__saved_variables:modify_data(function (o)
-         o._observers[uri] = true
-      end)
-   self:_add_observer_script(uri)
-end
-
-function AIComponent:_add_observer_script(uri)
-   
-   --If we already have an observer instance at this URI, 
-   --(ie, pet collars on load) just return
    if self._observer_instances[uri] then
       return
    end
 
    local ctor = radiant.mods.load_script(uri)   
-   local new_observer_instance = ctor(self._entity)
+   local observer = ctor(self._entity)
    
-   --Do we have a datastore for this observer? if not, create one
    if not self._sv._observer_datastores[uri] then
       self._sv._observer_datastores[uri] = radiant.create_datastore()
-      self.__saved_variables:mark_changed()
    end
-   new_observer_instance.__saved_variables = self._sv._observer_datastores[uri]
-   new_observer_instance:initialize(self._entity)
 
-   self._observer_instances[uri] = new_observer_instance
+   observer.__saved_variables = self._sv._observer_datastores[uri]
+   observer:initialize(self._entity)
+
+   self._observer_instances[uri] = observer
+   self.__saved_variables:mark_changed()
 end
 
-function AIComponent:remove_observer(key)
-   self._sv._observers = {}
-   self.__saved_variables:mark_changed()
+function AIComponent:remove_observer(uri)
+   local observer = self._observer_instances[uri]
 
-   local observer = self._observer_instances[key]
    if observer then
       if observer.destroy then
          observer:destroy()
       end
-      self._observer_instances[key] = nil
+
+      self._observer_instances[uri] = nil
+      self._sv._observer_datastores[uri] = nil
+      self.__saved_variables:mark_changed()
    end
 end
 
-function AIComponent:_initialize(json)  
-   if self._sv._actions then
-      for uri, _ in pairs(self._sv._actions) do
-         self:_add_action_script(uri)
-      end
-   else
+function AIComponent:_initialize(json)
+   if not self._sv._initialized then
+      self._sv.status_text = ''
       self._sv._actions = {}
+      self._sv._observer_instances = {}
+      self._sv._observer_datastores = {}
+
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
       end
-   end
 
-   if self._sv._observers then
-      for uri, _ in pairs(self._sv._observers) do
-         self:_add_observer_script(uri)
-      end
-   else
-      self._sv._observers = {}
       for _, uri in ipairs(json.observers or {}) do
          self:add_observer(uri)
       end
+   else
+      for uri, _ in pairs(self._sv._actions) do
+         self:_add_action_script(uri)
+      end
+
+      for uri, _ in pairs(self._sv._observer_datastores) do
+         self:add_observer(uri)
+      end
    end
+
+   self._sv._initialized = true
+   self.__saved_variables:mark_changed()
 end
 
 function AIComponent:_start()
