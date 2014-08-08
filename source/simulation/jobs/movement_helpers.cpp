@@ -56,6 +56,7 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
    }
 
    csg::Point3 const origin = mob->GetWorldGridLocation();
+   MH_LOG(9) << *dstEntity << " location: " << origin;
 
    om::Region3BoxedPtr adjacent;
    om::DestinationPtr const destination = dstEntity->GetComponent<om::Destination>();
@@ -63,6 +64,7 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
       adjacent = destination->GetAdjacent();
    }
    if (adjacent) {      
+      MH_LOG(9) << "adjacent local region bounds: " << adjacent->Get().GetBounds();
       region = phys::LocalToWorld(adjacent->Get(), dstEntity);
    } else {
       MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
