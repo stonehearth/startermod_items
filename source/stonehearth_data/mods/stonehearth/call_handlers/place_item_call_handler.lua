@@ -1,3 +1,4 @@
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local priorities = require('constants').priorities.worker_task
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
@@ -60,10 +61,14 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
       cursor_uri = placement_test_entity:get_uri()
    end
 
+   -- don't allow rotation if we're placing stuff on the wall
+   local rotation_disabled = entity_forms:is_placeable_on_wall()
+
    local placing_on_wall, placing_on_wall_normal
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor(cursor_uri)
-      :set_filter_fn(function (result)
+      :set_rotation_disabled(rotation_disabled)
+      :set_filter_fn(function (result, selector)
             -- if the entity is any of the forms of the thing we want to place, bail
             if result.entity == item_to_place then
                return stonehearth.selection.FILTER_IGNORE
@@ -90,8 +95,10 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                   for _, entity in pairs(entities) do
                      local wall = entity:get_component('stonehearth:wall')
                      if wall then
+                        local rotation = voxel_brush_util.normal_to_rotation(normal)
                         placing_on_wall = entity
                         placing_on_wall_normal = normal
+                        selector:set_rotation(rotation)
                         return true
                      end
                   end

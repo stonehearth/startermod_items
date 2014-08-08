@@ -191,6 +191,10 @@
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "thread" : "file(entities/cloth/thread)",
 
+      "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
+      "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
+      "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",
+
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
@@ -578,9 +582,7 @@
       "sounds:health_up" : "file(data/sounds/effects/sh_health_up.wav)",
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
       "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
-      "sounds:drumroll_start" : "file(data/sounds/effects/sh_drumroll_start.wav)", 
-      "sounds:drumroll_loop" : "file(data/sounds/effects/sh_drumroll_loop.wav)",
-      "sounds:chorus_loop" : "file(data/sounds/effects/sh_chorus_loop.wav)",
+      "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
