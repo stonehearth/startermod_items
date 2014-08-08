@@ -2666,7 +2666,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       VoxelMeshNode *meshNode = (VoxelMeshNode *)entry.node;
       VoxelModelNode *modelNode = meshNode->getParentModel();
 
-#define RENDER_LOG() R_LOG(9) << " mesh " << meshNode->_handle << ": " 
+#define RENDER_LOG() R_LOG(9) << "  mesh " << meshNode->_handle << " " << modelNode->getParent()->getName() << ": " 
 
       RENDER_LOG() << "starting";
 
@@ -2788,6 +2788,7 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
       // World transformation
       if( curShader->uni_worldMat >= 0 )
       {
+         RENDER_LOG() << "setting world matrix to " << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";;
          gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
       }
       if( curShader->uni_worldNormalMat >= 0 )
@@ -2859,21 +2860,26 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 	MaterialResource *curMatRes = 0x0;
 
    R_LOG(9) << "drawVoxelMeshes_Instances (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
-   #define RENDER_LOG() R_LOG(9) << " instance (geo:" << curVoxelGeoRes->getHandle() << " " << curVoxelGeoRes->getName() << "): "
+   #define RENDER_LOG() R_LOG(9) << " instance (" \
+                                 << "geo:" << curVoxelGeoRes->getHandle() \
+                                 << " name:" << curVoxelGeoRes->getName() \
+                                 << " vmn:" << (vmn ? vmn->getParentModel()->getParent()->getName() : std::string("?")) \
+                                 << ") "
 
    // Loop over mesh queue
 	for( const auto& instanceKind : Modules::sceneMan().getInstanceRenderableQueue(SceneNodeTypes::VoxelMesh) )
 	{
       const InstanceKey& instanceKey = instanceKind.first;
       const VoxelGeometryResource *curVoxelGeoRes = (VoxelGeometryResource*) instanceKind.first.geoResource;
+      VoxelMeshNode* vmn = nullptr;
 		// Check that mesh is valid
-		if(curVoxelGeoRes == 0x0) {
+		if (curVoxelGeoRes == 0x0) {
          R_LOG(9) << "geometry not loaded.  ignoring.";
 			continue;
       }
 
       if (instanceKind.second.size() <= 0) {
-         RENDER_LOG() << "no instances created.  ignoring.";
+         R_LOG(9) << "no instances created for " << curVoxelGeoRes->getName() << " .  ignoring.";
          continue;
       }
 
@@ -2881,7 +2887,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
       Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", useInstancing);
 
       // TODO(klochek): awful--but how to fix?  We can keep cramming stuff into the InstanceKey, but to what end?
-      VoxelMeshNode* vmn = (VoxelMeshNode*)instanceKind.second.front().node;
+      vmn = (VoxelMeshNode*)instanceKind.second.front().node;
 
 		// Bind geometry
 		// Indices
@@ -2899,7 +2905,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
          if (Modules::renderer()._materialOverride != 0x0) {
 				if( !Modules::renderer().setMaterial(Modules::renderer()._materialOverride, shaderContext ) )
 				{	
-                  RENDER_LOG() << "no material override for context " << shaderContext << ".  RETURNING!";
+               RENDER_LOG() << "no material override for context " << shaderContext << ".  RETURNING!";
                return;
 				}
 				curMatRes = Modules::renderer()._materialOverride;
@@ -2943,7 +2949,7 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
          glDisable(GL_POLYGON_OFFSET_FILL);
       }
 
-      RENDER_LOG() << "rendering...";
+      RENDER_LOG() << "rendering (use instancing: " << useInstancing << ")";
       if (useInstancing) {
          drawVoxelMesh_Instances_WithInstancing(instanceKind.second, vmn, lodLevel);
       } else {
@@ -2964,23 +2970,31 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    // Set vertex layout
 	gRDI->setVertexLayout( Modules::renderer()._vlInstanceVoxelModel );
 
+   #define RENDER_LOG() R_LOG(9) << " drawing with instancing (" \
+                                 << " name:" << vmn->getParentModel()->getParent()->getName() \
+                                 << ") "
+
    uint32 vbInstanceData = 0;
    auto idcIt = _instanceDataCache.find(&renderableQueue);
    if (idcIt != _instanceDataCache.end()) {
       vbInstanceData = idcIt->second;
+      RENDER_LOG() << "using cached instance data " << vbInstanceData;
    } else {
       vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
+      RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
 		   const VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		   const VoxelModelNode *modelNode = meshNode->getParentModel();
 		
          memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
+         RENDER_LOG() << "adding world matrix (" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
          transformBuffer += 16;
       }
       gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
       _instanceDataCache[&renderableQueue] = vbInstanceData;
    }
+
    radiant::perfmon::SwitchToCounter("draw mesh instances");
    // Draw instanced meshes.
    gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
@@ -2990,6 +3004,8 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
 	// Render
 	Modules::stats().incStat( EngineStats::BatchCount, 1 );
    Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount(lodLevel) / 3.0f) * renderableQueue.size() );
+
+   #undef RENDER_LOG
 }
 
 
@@ -3001,9 +3017,17 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
    gRDI->setVertexLayout( Modules::renderer()._vlVoxelModel );
    ShaderCombination* curShader = Modules::renderer().getCurShader();
 
+   #define RENDER_LOG() R_LOG(9) << " drawing without instancing (" \
+                                 << " handle:" << modelNode->getParent()->getHandle() \
+                                 << " name:" << modelNode->getParent()->getName() \
+                                 << ") "
+
    for (const auto& node : renderableQueue) {
 		VoxelMeshNode *meshNode = (VoxelMeshNode *)node.node;
 		const VoxelModelNode *modelNode = meshNode->getParentModel();
+
+      RENDER_LOG() << "setting (mesh handle:" << meshNode->getHandle() << " mesh name:" << meshNode->getName() << ") world matrix to " 
+                   << "(" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ") matrix addr:" << (void*)&meshNode->_absTrans.c;
 
       gRDI->setShaderConst( curShader->uni_worldMat, CONST_FLOAT44, &meshNode->_absTrans.x[0] );
       gRDI->drawIndexed(RDIPrimType::PRIM_TRILIST, vmn->getBatchStart(lodLevel), vmn->getBatchCount(lodLevel),
@@ -3012,6 +3036,8 @@ void Renderer::drawVoxelMesh_Instances_WithoutInstancing(const RenderableQueue& 
       Modules::stats().incStat( EngineStats::BatchCount, 1 );
    }
    Modules::stats().incStat( EngineStats::TriCount, (vmn->getBatchCount(lodLevel) / 3.0f) * renderableQueue.size() );
+
+   #undef RENDER_LOG
 }
 
 

@@ -4,7 +4,6 @@
       "unit_info" : {
          "name" : "Farm plot",
          "description" : "For growing crops",
-         "portrait": "file(portrait.png)",
          "character_sheet_info" : "file(field_character_sheet_info.json)"
       },
       "stonehearth:farmer_field" : {

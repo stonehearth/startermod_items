@@ -15,6 +15,8 @@ local log = radiant.log.create_logger('build_editor')
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
    self.__saved_variables:set_controller(self)
+   self._sv = self.__saved_variables:get_data()
+   self._sv.selected_sub_part = nil
 
    _radiant.call('stonehearth:get_service', 'build')
       :done(function(r)
@@ -24,6 +26,58 @@ function BuildEditorService:initialize()
             -- it to us =(
             self._build_service = r.result:__tojson()
          end)
+   radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+end
+
+function BuildEditorService:on_selection_changed()
+   local selected = nil
+   local maybe_selected = stonehearth.selection:get_selected()
+   local old_selected = self._sv.selected_sub_part
+   local building_entity
+
+   if maybe_selected then
+     local fab = maybe_selected:get_component('stonehearth:fabricator')
+     if fab then
+       local bp = fab:get_blueprint()
+       if bp then
+         local cpc = bp:get_component('stonehearth:construction_progress')
+         if cpc then
+           building_entity = cpc:get_building_entity()
+           if building_entity then
+              selected = maybe_selected
+           end
+         end
+       end
+     end
+   end
+
+   if old_selected == selected then
+      return
+   end
+
+   if old_selected and not old_selected:is_valid() then
+      old_selected = nil
+   end
+
+   self._sv.selected_sub_part = selected
+   self.__saved_variables:mark_changed()
+
+   radiant.events.trigger(self, 'stonehearth:sub_selection_changed', 
+      {
+         old_selection = old_selected,
+         new_selection = selected
+      })
+
+   if building_entity then
+     radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+     stonehearth.selection:select_entity(building_entity)
+     radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+   end
+
+end
+
+function BuildEditorService:get_sub_selection()
+   return self._sv.selected_sub_part
 end
 
 function BuildEditorService:build_ladder(session, response)
