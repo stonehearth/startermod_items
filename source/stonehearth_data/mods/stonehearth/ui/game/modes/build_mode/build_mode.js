@@ -123,6 +123,8 @@ App.StonehearthBuildModeView = App.View.extend({
                .fail(function(e) {
                   console.log(e);
                });         
+         } else {
+            self._showBuildingDesigner();
          }
       } else {
          this._destroyAllViews();
