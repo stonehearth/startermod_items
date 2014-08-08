@@ -113,6 +113,12 @@ function ConstructionDataComponent:needs_scaffolding()
    return self._sv.needs_scaffolding
 end
 
+function ConstructionDataComponent:set_needs_scaffolding(enabled)
+   self._sv.needs_scaffolding = enabled
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 function ConstructionDataComponent:get_savestate()
    -- xxx: this isn't even a copy!  it's the *actual data*
    return self._sv
@@ -173,6 +179,12 @@ end
 function ConstructionDataComponent:get_project_adjacent_to_base()
    -- coearse to bool 
    return self._sv.project_adjacent_to_base and true or false
+end
+
+function ConstructionDataComponent:set_project_adjacent_to_base(enabled)
+   self._sv.project_adjacent_to_base = enabled
+   self.__saved_variables:mark_changed()
+   return self
 end
 
 function ConstructionDataComponent:get_allow_crouching_construction()

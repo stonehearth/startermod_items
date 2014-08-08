@@ -377,6 +377,8 @@ function TrappingGroundsComponent:_try_spawn()
 
       if spawn_location and self:_location_is_clear_of_threats(spawn_location, threat_distance) then
          radiant.terrain.place_entity(critter, spawn_location)
+      else
+         radiant.entities.destroy_entity(critter)
       end
    end
 

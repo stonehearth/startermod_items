@@ -183,7 +183,7 @@ function ScaffoldingRenderer:_update_shape(mode)
    for x, t in pairs(self._tops) do
       for z, top in pairs(t) do
          local pt = Point3(x, top.top_y, z)
-         top.node:set_visible(show_region and show_region:contains(pt))
+         top.node:set_visible(show_region and show_region:contains(pt) or false)
       end
    end
 end

@@ -1,31 +1,31 @@
 {
    "type" : "entity",
    "mixins" : "stonehearth:mixins:critter",   
-   "components": {
+   "components" : {
       "unit_info" : {
-        "name": "A Fox",
-        "description": "Small forest creature",
-        "portrait": "file(portrait.png)",
-        "faction": "critter",
-        "character_sheet_info" : "file(red_fox_character_sheet_info.json)"
+         "name" : "A Fox",
+         "description" : "Small forest creature",
+         "portrait" : "file(portrait.png)",
+         "faction" : "critter",
+         "character_sheet_info" : "file(red_fox_character_sheet_info.json)"
       },
       "stonehearth:loot_table" : {
-        "num_drops" : {
-          "min" : 2,
-          "max" : 4
-        },
-        "items" : [
-          { "uri" : "stonehearth:red_fox_jerky" },
-          { "uri" : "stonehearth:red_fox_pelt"  }
-        ]
+         "num_drops" : {
+            "min" : 2,
+            "max" : 4
+         },
+         "items" : [
+            { "uri" : "stonehearth:red_fox_jerky" },
+            { "uri" : "stonehearth:red_fox_pelt"  }
+         ]
       },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)",
          "scale" : 0.12
       },
-      "model_variants": {
-         "default": {
-            "models": [
+      "model_variants" : {
+         "default" : {
+            "models" : [
                "file(red_fox.qb)"
             ]
          }
