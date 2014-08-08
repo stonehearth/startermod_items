@@ -103,8 +103,7 @@ App.StonehearthBuildModeView = App.View.extend({
       var self = this;
 
       if (this._mode == "build") {
-      
-         //trace the selected entity to determine its components   
+         //trace the selected entity to determine its components
          if (self.selectedEntityTrace) {
             self.selectedEntityTrace.destroy();
             self.selectedEntityTrace = null;
@@ -123,6 +122,8 @@ App.StonehearthBuildModeView = App.View.extend({
                .fail(function(e) {
                   console.log(e);
                });         
+         } else if (this._buildDesignerTools) {
+            self._showBuildingDesigner();
          }
       } else {
          this._destroyAllViews();

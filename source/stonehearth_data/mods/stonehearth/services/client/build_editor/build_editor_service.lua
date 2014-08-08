@@ -51,6 +51,12 @@ function BuildEditorService:on_selection_changed()
      end
    end
 
+   if building_entity then
+     radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+     stonehearth.selection:select_entity(building_entity)
+     radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+   end
+
    if old_selected == selected then
       return
    end
@@ -67,13 +73,6 @@ function BuildEditorService:on_selection_changed()
          old_selection = old_selected,
          new_selection = selected
       })
-
-   if building_entity then
-     radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
-     stonehearth.selection:select_entity(building_entity)
-     radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
-   end
-
 end
 
 function BuildEditorService:get_sub_selection()
