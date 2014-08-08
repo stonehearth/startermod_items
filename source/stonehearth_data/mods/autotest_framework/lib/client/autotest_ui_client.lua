@@ -20,7 +20,7 @@ _server.on[commands.SELECT_ENTITY] = function(entity)
       _fail('could not select invalid entity')
    end
    autotest_framework.log:info('selecting entity: %s', tostring(entity))
-   _radiant.client.select_entity(entity)
+   stonehearth.selection:select_entity(entity)
 end
 
 _server.on[commands.CLICK_DOM_ELEMENT] = function(jq_selector)
