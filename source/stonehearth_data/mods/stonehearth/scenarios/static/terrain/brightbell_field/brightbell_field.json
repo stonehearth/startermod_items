@@ -1,21 +1,21 @@
 {
    "mixins" : "file(../../entity_cluster)",
-   "name" : "silkweed_field",
+   "name" : "brightbell_field",
    "category" : "terrain", 
    "habitat_types" : ["plains"],
    "size" : {
-      "width" : 3,
-      "length" : 3
+      "width" : 4,
+      "length" : 4
    },
-   "weight" : 20,
+   "weight" : 10,
    "habitat_types" : ["plains", "foothills"],
 
    "scenario_info" : {
-      "entity_type" : "stonehearth:silkweed",
-      "entity_footprint_length" : 1,
+      "entity_type" : "stonehearth:brightbell:wild",
+      "entity_footprint_length" : 2,
       "quantity" : {
          "min" : 1,
-         "max" : 6
+         "max" : 3
       }
    }
 }

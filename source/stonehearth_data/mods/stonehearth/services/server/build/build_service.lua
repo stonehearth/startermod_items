@@ -831,6 +831,18 @@ function BuildService:add_patch_wall_to_building(building, wall_uri, normal, pos
          wall:add_component('stonehearth:wall')
                   :create_patch_wall(normal, region)
                   :layout()
+
+         -- we're going to cheat a little bit here.  it's very very difficult to
+         -- get scaffolding building looking 'proper' on patch walls.  to do a good
+         -- job, we need to make sure the scaffolding only gets built where the roof
+         -- exists to support it and avoid all sorts of issues with "reachable but
+         -- unsupported" pieces of wall being created (since walls can be built diagonally)
+         -- it turns out to look much better to pound up patch walls like columns, so
+         -- do that until we have more time to invest in building patch walls like every
+         -- other wall.
+         wall:add_component('stonehearth:construction_data')
+                  :set_project_adjacent_to_base(true)
+                  :set_needs_scaffolding(false)
       end)
 end
 

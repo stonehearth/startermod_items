@@ -1,14 +1,17 @@
 local score_tests = {}
 
+local function place_town_banner(autotest)
+   local banner = autotest.env:create_entity(0,0, 'stonehearth:camp_standard', { force_iconic = false })
+   local town = stonehearth.town:get_town(autotest.env.get_player_id())
+   town:set_banner(banner)
+end
+
 -- Spawn an immigration failure scenario, confirm trade
 function score_tests.immigration_failure(autotest)
+   place_town_banner(autotest)
    local worker = autotest.env:create_person(2, 2, {
          profession = 'worker'
       })
-   local player_id = worker:get_component('unit_info'):get_player_id()
-   local banner = autotest.env:create_entity(0,0, 'stonehearth:camp_standard')
-   local town = stonehearth.town:get_town(player_id)
-   town:set_banner(banner)
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       local uri = e.entity:get_uri()
@@ -37,12 +40,8 @@ end
 
 -- Have a caravan come by and offer for the berry baskets in the stockpile
 function score_tests.simple_carvan(autotest)
+   place_town_banner(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
-
-   local player_id = worker:get_component('unit_info'):get_player_id()
-   local banner = autotest.env:create_entity(0,0, 'stonehearth:camp_standard')
-   local town = stonehearth.town:get_town(player_id)
-   town:set_banner(banner)
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local log = autotest.env:create_entity(3, 3, 'stonehearth:oak_log')
@@ -85,6 +84,7 @@ end
 
 -- Spawn an immigrant when the situation is correct
 function score_tests.immigrant(autotest)
+   place_town_banner(autotest)
    local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)

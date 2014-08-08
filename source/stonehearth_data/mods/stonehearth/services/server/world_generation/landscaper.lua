@@ -20,7 +20,6 @@ local medium = 'medium'
 local large = 'large'
 local tree_sizes = { small, medium, large }
 
-local brightbell_name = mod_prefix .. 'brightbell:wild'
 local berry_bush_name = mod_prefix .. 'berry_bush'
 local generic_vegetaion_name = "vegetation"
 local boulder_name = "boulder"
@@ -71,7 +70,6 @@ function Landscaper:_initialize_function_table()
    end
 
    function_table[berry_bush_name] = self._place_berry_bush
-   function_table[brightbell_name] = self._place_flower
 
    -- need a better name for this
    self._function_table = function_table
@@ -465,9 +463,6 @@ function Landscaper:mark_flowers(elevation_map, feature_map)
                   elevation = elevation_map:get(i, j)
                   terrain_type = terrain_info:get_terrain_type(elevation)
 
-                  if terrain_type == TerrainType.plains then
-                     feature_map:set(i, j, brightbell_name)
-                  end
                end
             end
          end
