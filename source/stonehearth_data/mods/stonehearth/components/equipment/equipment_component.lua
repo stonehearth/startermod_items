@@ -22,8 +22,6 @@ function EquipmentComponent:get_item_in_slot(slot)
    return self._sv.equipped_items[slot]
 end
 
--- expect an entity, but if you pass a uri we'll make a new one
--- if slot is specified, unequips existing item in slot first and returns the unequipped item
 function EquipmentComponent:equip_item(item)
    local ep
 
@@ -57,9 +55,15 @@ function EquipmentComponent:equip_item(item)
    return unequipped_item
 end
 
--- expect a uri or an enitity
+-- takes an enity or a uri
 function EquipmentComponent:unequip_item(equipped_item)
-   local uri = equipped_item:get_uri()
+   local uri
+
+   if type(equipped_item) == 'string' then
+      uri = equipped_item
+   else
+      uri = equipped_item:get_uri()
+   end
 
    for key, item in pairs(self._sv.equipped_items) do
       local item_uri = item:get_uri()
