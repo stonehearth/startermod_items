@@ -120,7 +120,7 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
                self._always_cb(self)
             end
          end
-      elseif event:up(2) then
+      elseif event:up(2) and not event.dragging then
       -- if the user right clicks, cancel the selection
          self._input_capture:destroy()
          self._input_capture = nil

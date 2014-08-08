@@ -1,0 +1,11 @@
+{
+   "mixins" : "file(tapestry_wall_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(tapestry_wall_iconic.json)",
+         "ghost_form" : "file(tapestry_wall_ghost.json)",
+         "placeable_on_walls" : true
+      }
+   }
+}

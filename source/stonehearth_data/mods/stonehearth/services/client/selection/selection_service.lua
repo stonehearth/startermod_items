@@ -65,7 +65,7 @@ function SelectionService:deactivate_all_tools()
 end
 
 function SelectionService:_on_mouse_input(e)
-   if e:up(1) then
+   if e:up(1) and not e.dragging then
       local selected     
       local results = _radiant.client.query_scene(e.x, e.y)
       for r in results:each_result() do 

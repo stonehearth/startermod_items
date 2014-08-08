@@ -1,4 +1,5 @@
 {
+   "mixins" : "file(../../entity_cluster)",
    "name" : "silkweed_field",
    "category" : "terrain", 
    "habitat_types" : ["plains"],
@@ -6,15 +7,15 @@
       "width" : 3,
       "length" : 3
    },
-   "weight" : 10,
-   "difficulty" : {
-      "min" : 0
-   },
-   "unique" : false,
-   "script" : "file(silkweed_field.lua)",
+   "weight" : 20,
+   "habitat_types" : ["plains", "foothills"],
 
    "scenario_info" : {
       "entity_type" : "stonehearth:silkweed",
-      "density" : 0.5
+      "entity_footprint_length" : 1,
+      "quantity" : {
+         "min" : 1,
+         "max" : 6
+      }
    }
 }

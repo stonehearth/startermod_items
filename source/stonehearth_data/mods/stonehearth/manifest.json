@@ -165,6 +165,9 @@
       "brightbell" : "file(entities/plants/brightbell)",
       "brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
 
+      "frostsnap" : "file(entities/plants/frostsnap)",
+      "frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
+
       "berry_basket" : "file(entities/plants/berry_basket)",
       "berry_plate" : "file(entities/plants/berry_plate)",
 
@@ -190,6 +193,10 @@
       "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
       "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "thread" : "file(entities/cloth/thread)",
+
+      "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
+      "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
+      "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",
 
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
@@ -381,6 +388,7 @@
       "actions:trapping:set_bait_trap" : "file(ai/actions/trapping/set_bait_trap_action.lua)",
       "actions:trapping:set_bait_trap_adjacent" : "file(ai/actions/trapping/set_bait_trap_adjacent_action.lua)",
       "actions:trapping:check_bait_trap" : "file(ai/actions/trapping/check_bait_trap_action.lua)",
+      "actions:trapping:find_trap_in_trapping_grounds" : "file(ai/actions/trapping/find_trap_in_trapping_grounds_action.lua)",
       "actions:trapping:harvest_trapped_beast" : "file(ai/actions/trapping/harvest_trapped_beast_action.lua)",
       "actions:trapping:tame_trapped_beast" : "file(ai/actions/trapping/tame_trapped_beast_action.lua)",
       "actions:trapping:try_steal_bait" : "file(ai/actions/trapping/try_steal_bait_action.lua)",
@@ -576,6 +584,8 @@
       "sounds:heartbreak_02" : "file(data/sounds/effects/sh_heartbreak_02.wav)",
       "sounds:health_up" : "file(data/sounds/effects/sh_health_up.wav)",
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
+      "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
+      "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",

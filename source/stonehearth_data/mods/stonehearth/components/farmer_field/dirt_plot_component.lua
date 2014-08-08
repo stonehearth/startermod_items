@@ -150,9 +150,6 @@ function DirtPlotComponent:plant_crop(crop_type)
       return
    end
 
-   --Unlisten on the event
-   --radiant.events.unlisten(self._entity, 'stonehearth:crop_planted', self, self._on_crop_planted)
-
    local planted_entity = radiant.entities.create_entity(crop_type)
    radiant.terrain.place_entity(planted_entity, radiant.entities.get_world_grid_location(self._entity))
    self._sv.contents = planted_entity
@@ -186,6 +183,7 @@ function DirtPlotComponent:_unlisten_from_crop_events()
       -- contents might already be destroyed, in which case the event is orphaned until radiant.events cleans up
       radiant.events.unlisten(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
       radiant.events.unlisten(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+      self._listening_to_crop_events = false
    end
 end
 

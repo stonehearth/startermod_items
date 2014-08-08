@@ -1,0 +1,26 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(banner_wall_big.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": -0.5, "z": -0.5 },
+         "region_origin" : { "x": 0.0, "y": 0, "z": 0.0 }
+      },      
+      "render_info" : {
+         "scale" : 0.10
+      },     
+      "unit_info": {
+         "name": "Big Wall-Mounted Banner",
+         "description": "Show your town pride with this banner.",
+         "icon" : "file(banner_wall_big.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}

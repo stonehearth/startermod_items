@@ -1,0 +1,21 @@
+{
+   "mixins" : "file(../../entity_cluster)",
+   "name" : "frostsnap_field",
+   "category" : "terrain", 
+   "habitat_types" : ["plains"],
+   "size" : {
+      "width" : 8,
+      "length" : 8
+   },
+   "weight" : 2,
+   "habitat_types" : ["plains", "foothills"],
+
+   "scenario_info" : {
+      "entity_type" : "stonehearth:frostsnap:wild",
+      "entity_footprint_length" : 2,
+      "quantity" : {
+         "min" : 1,
+         "max" : 6
+      }
+   }
+}

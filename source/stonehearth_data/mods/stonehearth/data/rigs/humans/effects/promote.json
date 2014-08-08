@@ -14,14 +14,25 @@
             "animation": "promote.json",
             "loop": false
       },
-      "sound": {
+      "harp_loop": {
          "type": "sound_effect",
-         "duration": 8000,
-         "start_time": 0,
-         "min_distance": 40,
-         "max_distance": 60,
-         "volume" : 80,
-         "track" : "stonehearth:sounds:prom_angel_jingle_sound" 
+         "loop" : true,
+         "start_time": 275,
+         "end_time": 4950,
+         "min_distance": 60,
+         "max_distance": 200,
+         "volume" : 20,
+         "track" : "stonehearth:sounds:harp_loop"
+      },
+      "twinkle": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_time": 275,
+         "end_time": 4950,
+         "min_distance": 60,
+         "max_distance": 200,
+         "volume" : 100,
+         "track" : "stonehearth:sounds:twinkle"         
       },
       "promote_trigger" : {
             "type": "trigger_effect",
