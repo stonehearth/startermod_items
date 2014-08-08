@@ -165,6 +165,9 @@
       "brightbell" : "file(entities/plants/brightbell)",
       "brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
 
+      "frostsnap" : "file(entities/plants/frostsnap)",
+      "frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
+
       "berry_basket" : "file(entities/plants/berry_basket)",
       "berry_plate" : "file(entities/plants/berry_plate)",
 
