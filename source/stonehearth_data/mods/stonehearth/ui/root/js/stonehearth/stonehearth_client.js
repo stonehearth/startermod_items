@@ -1,3 +1,13 @@
+
+$(document).ready(function(){
+   $(top).on("radiant_remove_ladder", function (_, e) {
+      var item = e.event_data.self
+
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
+      App.stonehearthClient.removeLadder(e.event_data.self);
+   });
+});
+
 var StonehearthClient;
 
 (function () {
@@ -203,6 +213,11 @@ var StonehearthClient;
                   $(top).trigger('radiant_hide_tip');
                });
          });
+      },
+
+      // item type is a uri, not an item entity
+      removeLadder: function(ladder) {
+         return radiant.call_obj(this._build_service, 'remove_ladder_command', ladder);
       },
 
       boxHarvestResources: function(o) {

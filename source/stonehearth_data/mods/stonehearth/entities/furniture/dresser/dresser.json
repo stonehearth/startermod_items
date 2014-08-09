@@ -1,0 +1,18 @@
+{
+   "mixins" : "file(dresser_ghost.json)",
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(dresser_iconic.json)",
+         "ghost_form" : "file(dresser_ghost.json)",
+         "placeable_on_ground" : true
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : 0 },
+               "max" : { "x" : 2, "y" : 2, "z" : 1 }
+            }
+         ]
+      }
+   }
+}

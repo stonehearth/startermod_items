@@ -31,9 +31,12 @@
             "uri" : "file(picket_fence_gate_recipe.json)"
          }
       },
-      "Furniture & Decoration" : {
+      "Furniture" : {
          "simple_wooden_chair" : {
             "uri" : "file(simple_wooden_chair_recipe.json)"
+         }, 
+         "comfy_chair" : {
+            "uri" : "file(comfy_chair_recipe.json)"
          }, 
          "arch_backed_chair" : {
             "uri" : "file(arch_backed_chair_recipe.json)"
@@ -49,7 +52,28 @@
          },
          "comfy_bed" : {
             "uri" : "file(comfy_bed_recipe.json)" 
+         },
+         "park_bench" : {
+            "uri" : "file(park_bench_recipe.json)" 
+         },
+         "dresser" : {
+            "uri" : "file(dresser_recipe.json)" 
+         },
+         "writing_desk" : {
+            "uri" : "file(writing_desk_recipe.json)" 
          }
+      },
+      "Signage & Decoration" : {
+         "wooden_sign" : {
+            "uri" : "file(wooden_sign_recipe.json)" 
+         },
+         "wooden_sign_carpenter" : {
+            "uri" : "file(wooden_sign_carpenter_recipe.json)" 
+         },
+         "wooden_sign_weaver" : {
+            "uri" : "file(wooden_sign_weaver_recipe.json)" 
+         }
+
       }
    }
 }

@@ -169,7 +169,7 @@
          },
          "speed": {
             "type" : "derived",
-            "equation" : "body * 10 + speed_adjustment"
+            "equation" : "60 + body * 10 + speed_adjustment"
          },
          "stamina_adjustment": {
             "type" : "random_range",
