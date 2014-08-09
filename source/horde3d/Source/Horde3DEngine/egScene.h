@@ -120,6 +120,16 @@ struct SceneNodeFlags
 	};
 };
 
+struct SceneNodeDirtyState
+{
+   enum List
+   {
+      Clean = 0,
+      Partial = 1,
+      Dirty = 2
+   };
+};
+
 // =================================================================================================
 
 struct SceneNodeTpl
@@ -229,7 +239,7 @@ protected:
    uint32                      _accumulatedFlags;
 	float                       _sortKey;
    InstanceKey                 _instanceKey;
-	bool                        _dirty;  // Does the node need to be updated?
+	uint32                      _dirty;  // Does the node need to be updated?
 	bool                        _transformed;
 	bool                        _renderable;
    bool                        _noInstancing;
