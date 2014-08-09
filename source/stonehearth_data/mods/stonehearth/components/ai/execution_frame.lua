@@ -275,7 +275,8 @@ function ExecutionFrame:_remove_action(unit)
    if self._state == 'ready' then
       return self:_remove_action_from_ready(unit)
    end
-   if self:in_state('running', 'switching', 'starting') then
+   -- CODE REVIEW NEEDED! Tony, Is it OK to put 'started' here as a state we can exit from? (-sdee, albert)
+   if self:in_state('running', 'switching', 'starting', 'started') then
       return self:_remove_action_from_running(unit)
    end
    if self._state == 'stopping' then
