@@ -53,6 +53,11 @@ function BuildScaffoldingManager:_should_build_rung(pt)
       return false
    end
    
+   -- if the space isn't blocked, definitely build one.
+   if not radiant.terrain.is_blocked(pt) then
+      return true
+   end
+
    local entities = radiant.terrain.get_entities_at_point(pt)
    for _, entity in pairs(entities) do
       if not is_empty_enough(entity) then

@@ -74,7 +74,15 @@ function Terrain.is_standable(arg0, arg1)
 end
 
 -- returns whether an entity can stand occupy location
-function Terrain.is_blocked(entity, location)
+function Terrain.is_blocked(arg0, arg1)
+   if arg1 == nil then
+      local location = arg0
+      assert(radiant.util.is_a(location, Point3))
+      return _physics:is_blocked(location)
+   end
+   local entity, location = arg0, arg1
+   assert(radiant.util.is_a(entity, Entity))
+   assert(radiant.util.is_a(location, Point3))
    return _physics:is_blocked(entity, location)
 end
 
