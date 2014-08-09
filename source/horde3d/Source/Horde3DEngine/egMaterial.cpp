@@ -461,7 +461,7 @@ void MaterialResource::setElemParamF( int elem, int elemIdx, int param, int comp
 
 void MaterialResource::updateSamplerAnimation(int samplerNum, float animTime) 
 {
-   if (_samplers.size() >= samplerNum) {
+   if (samplerNum >= _samplers.size()) {
       return;
    }
    if (_samplers[samplerNum].animatedTextures.size() == 0) {
