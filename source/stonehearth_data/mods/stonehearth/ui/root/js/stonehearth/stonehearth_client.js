@@ -1,3 +1,13 @@
+
+$(document).ready(function(){
+   $(top).on("radiant_remove_ladder", function (_, e) {
+      var item = e.event_data.self
+
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
+      App.stonehearthClient.removeLadder(e.event_data.self);
+   });
+});
+
 var StonehearthClient;
 
 (function () {
@@ -11,6 +21,10 @@ var StonehearthClient;
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
+               radiant.trace(self._build_editor)
+                  .progress(function(change) {
+                     $(top).trigger('selected_sub_part_changed', change.selected_sub_part);
+                  });
             })
             .fail(function(e) {
                console.log('error getting build editor')
@@ -201,6 +215,11 @@ var StonehearthClient;
          });
       },
 
+      // item type is a uri, not an item entity
+      removeLadder: function(ladder) {
+         return radiant.call_obj(this._build_service, 'remove_ladder_command', ladder);
+      },
+
       boxHarvestResources: function(o) {
          var self = this;
 
@@ -311,11 +330,12 @@ var StonehearthClient;
       buildWall: function(column, wall, o, precall) {
          var self = this;
 
-         $(top).trigger('radiant_show_tip', { 
-            title : 'Click to place wall segments',
-            description : 'Hold down SHIFT while clicking to draw connected walls!'
-         });
-
+         if (!o || !o.hideTip) {
+            $(top).trigger('radiant_show_tip', { 
+               title : 'Click to place wall segments',
+               description : 'Hold down SHIFT while clicking to draw connected walls!'
+            });
+         }
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {

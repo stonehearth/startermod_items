@@ -53,7 +53,7 @@ static std::string FlagsToString(int flags)
 
 SceneNode::SceneNode( const SceneNodeTpl &tpl ) :
 	_parent( 0x0 ), _type( tpl.type ), _handle( 0 ), _flags( 0 ), _sortKey( 0 ),
-	_dirty( true ), _transformed( true ), _renderable( false ),
+   _dirty( SceneNodeDirtyState::Dirty ), _transformed( true ), _renderable( false ),
    _name( tpl.name ), _attachment( tpl.attachmentString ), _userFlags(0), _accumulatedFlags(0),
    _renderStamp(0), _noInstancing(true)
 {
@@ -70,7 +70,7 @@ SceneNode::~SceneNode()
 
 void SceneNode::getTransform( Vec3f &trans, Vec3f &rot, Vec3f &scale )
 {
-	if( _dirty ) Modules::sceneMan().updateNodes();
+   if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
 	
 	_relTrans.decompose( trans, rot, scale );
 	rot.x = radToDeg( rot.x );
@@ -136,13 +136,13 @@ void SceneNode::getTransMatrices( const float **relMat, const float **absMat ) c
 {
 	if( relMat != 0x0 )
 	{
-		if( _dirty ) Modules::sceneMan().updateNodes();
+		if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
 		*relMat = &_relTrans.x[0];
 	}
 	
 	if( absMat != 0x0 )
 	{
-		if( _dirty ) Modules::sceneMan().updateNodes();
+		if( _dirty != SceneNodeDirtyState::Clean ) Modules::sceneMan().updateNodes();
 		*absMat = &_absTrans.x[0];
 	}
 }
@@ -286,19 +286,29 @@ void SceneNode::markChildrenDirty()
 {
    for (const auto& child : _children)
    {      
-      SCENE_LOG(9) << "marking child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty ";
-		child->_dirty = true;
-		child->_transformed = true;
-		child->markChildrenDirty();
+      if (child->_dirty != SceneNodeDirtyState::Dirty) {
+         SCENE_LOG(9) << "marking child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty ";
+         child->_dirty = SceneNodeDirtyState::Dirty;
+		   child->_transformed = true;
+		   child->markChildrenDirty();
+      }
 	}
 }
 
 void SceneNode::markDirty(uint32 dirtyKind)
 {
- 	_dirty = true;
 	_transformed = true;
 
+   // To start, we assume our children are partly dirty, partly clean, and hence we are partial.
+   _dirty = SceneNodeDirtyState::Partial;
+
    SCENE_LOG(9) << "marking node (handle:" << _handle << " name:" << _name << " dirty";
+
+   if (dirtyKind & SceneNodeDirtyKind::Children) {
+      // If we mark all children as dirty, then we are dirty.
+   	markChildrenDirty();
+      _dirty = SceneNodeDirtyState::Dirty;
+   }
 
    if (dirtyKind & SceneNodeDirtyKind::Ancestors) {
 	   SceneNode *node = _parent;
@@ -306,20 +316,26 @@ void SceneNode::markDirty(uint32 dirtyKind)
 	   {
          SCENE_LOG(9) << "marking ancestor node (handle:" << node->_handle << " name:" << node->_name << " dirty via SceneNodeDirtyKind::Ancestors";
 
- 		   node->_dirty = true;
+         // At first, assume the ancestor is dirty, and try to prove it isn't.
+         node->_dirty = SceneNodeDirtyState::Dirty;
+
+         for (const auto& child : node->_children) {
+            if (child->_dirty != SceneNodeDirtyState::Dirty) {
+               // If any child is NOT dirty, then the ancestor cannot be dirty.
+               node->_dirty = SceneNodeDirtyState::Partial;
+               break;
+            }
+         }
+
 		   node = node->_parent;
 	   }
-   }
-
-   if (dirtyKind & SceneNodeDirtyKind::Children) {
-   	markChildrenDirty();
    }
 }
 
 
 void SceneNode::update()
 {
-	if( !_dirty ) return;
+   if( _dirty == SceneNodeDirtyState::Clean ) return;
 
    SCENE_LOG(9) << "updating node (handle:" << _handle << " name:" << _name << ")";
 
@@ -344,7 +360,7 @@ void SceneNode::update()
 	
 	onPostUpdate();
 
-	_dirty = false;
+   _dirty = SceneNodeDirtyState::Clean;
 
    // Visit children
 	for( uint32 i = 0, s = (uint32)_children.size(); i < s; ++i )
@@ -1399,7 +1415,7 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 {
 	// Note: This function is a bit hacky with all the hard-coded node types
 	
-	if( node._dirty ) updateNodes();
+   if( node._dirty != SceneNodeDirtyState::Clean ) updateNodes();
 
 	// Check occlusion
 	if( checkOcclusion && cam._occSet >= 0 )

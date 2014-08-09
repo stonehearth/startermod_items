@@ -10,7 +10,7 @@
    "ingredients": [
       {
          "material" : "cloth resource",
-         "count" : 4
+         "count" : 2
       }
   ],
   "produces": [

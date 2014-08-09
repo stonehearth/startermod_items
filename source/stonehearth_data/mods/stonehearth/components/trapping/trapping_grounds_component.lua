@@ -172,6 +172,11 @@ function TrappingGroundsComponent:_pick_next_trap_location()
    local size = self._sv.size
    local tries = 5
 
+   if size.x < 3 or size.z < 3 then
+      -- no space for trap
+      return nil
+   end
+
    -- setting n traps takes O(n^2) time, but n is tiny
    -- use services.server.world_generation.perturbation_grid to make this O(n) instead
    -- currently not worth the added code complexity
@@ -415,12 +420,26 @@ end
 function TrappingGroundsComponent:_create_critter(uri)
    local critter = radiant.entities.create_entity(uri)
    radiant.entities.set_player_id(critter, 'game_master')
-   self:_inject_despawn_ai(critter)
+
+   local despawn_ai = self:_inject_despawn_ai(critter)
+
+   local trapped_trace = radiant.events.listen_once(critter, 'stonehearth:trapped',
+      function()
+         despawn_ai:destroy()
+      end
+   )
+
+   local destroy_trace = radiant.events.listen_once(critter, 'stonehearth:pre-destroy',
+      function()
+         trapped_trace:destroy()
+      end
+   )
+
    return critter
 end
 
 function TrappingGroundsComponent:_inject_despawn_ai(entity)
-   stonehearth.ai:inject_ai(entity, {
+   return stonehearth.ai:inject_ai(entity, {
       actions = {
          "stonehearth:actions:trapping:despawn"
       }

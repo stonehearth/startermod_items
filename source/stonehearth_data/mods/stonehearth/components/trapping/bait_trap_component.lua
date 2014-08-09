@@ -50,10 +50,13 @@ function BaitTrapComponent:trigger(entity)
 
       -- change to collision type so we can place it inside the collision region
       mob:set_mob_collision_type(_radiant.om.Mob.NONE)
+
       radiant.entities.add_child(trap, entity, Point3.zero)
 
-      -- warning: this will inject a compelled action that will likely pre-empt the current action
+      -- warning: this will inject a compelled action that will pre-empt the current action
       radiant.entities.add_buff(entity, 'stonehearth:buffs:snared')
+
+      radiant.events.trigger_async(entity, 'stonehearth:trapped')
    end
 
    self.__saved_variables:mark_changed()

@@ -744,11 +744,8 @@ end
 
 function entities.get_world_speed(entity)
    local speed_attribute = radiant.entities.get_attribute(entity, 'speed')
-   speed_attribute = speed_attribute or 50
-
-   local world_speed = math.floor(50 + (50 * speed_attribute / 60)) / 100
-   -- fudge factor for tuning speed globally up or down
-   world_speed = world_speed * 1.2
+   speed_attribute = speed_attribute or 100
+   local world_speed = speed_attribute / 100
    return world_speed
 end
 
