@@ -18,7 +18,7 @@ function ScaffoldingFabricator:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         if self._sv.blueprint then
+         if self._sv.blueprint and self._sv.project then
             self:_restore()
          end
       end)
@@ -50,6 +50,7 @@ function ScaffoldingFabricator:support_project(project, blueprint, normal)
    self._entity_ladder = self._entity:add_component('vertical_pathing_region')
    self._entity_ladder:set_region(_radiant.sim.alloc_region())
                       :set_normal(normal)
+   self.__saved_variables:mark_changed()
    self:_start()
 end
 
