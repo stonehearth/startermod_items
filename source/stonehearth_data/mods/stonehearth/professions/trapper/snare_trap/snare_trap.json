@@ -47,7 +47,6 @@
       "sensor_list" : {
          "sensors" : {
             "interaction_sensor" : {
-               "type" : "sensor",
                "radius" : 32
             }
          }
