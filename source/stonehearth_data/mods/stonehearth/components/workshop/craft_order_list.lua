@@ -57,7 +57,7 @@ end
    Note: do not call existing add/remove or we'll have multiple UI updates.
 ]]
 function CraftOrderList:change_order_position(new, id)
-   local i = self:_find_index_of(id)
+   local i = self:find_index_of(id)
    local order = self._sv.orders[i]
    table.remove(self._sv.orders, i)
    table.insert(self._sv.orders, new, order)
@@ -77,7 +77,7 @@ end
              can't be found.
 ]]
 function CraftOrderList:remove_order_id(order_id)
-    local i = self:_find_index_of(order_id)
+    local i = self:find_index_of(order_id)
     if i then
       local order = self._sv.orders[i]
       table.remove(self._sv.orders, i)
@@ -94,7 +94,7 @@ end
    returns:  the craft_order associated with the ID or nil if the order
              cannot be found
 ]]
-function CraftOrderList:_find_index_of(order_id)
+function CraftOrderList:find_index_of(order_id)
    for i, order in ipairs(self._sv.orders) do
       if order:get_id() == order_id then
          return i
@@ -105,7 +105,7 @@ function CraftOrderList:_find_index_of(order_id)
 end
 
 function CraftOrderList:_on_order_list_changed()
-   radiant.events.trigger(self, 'order_list_changed')
+   radiant.events.trigger(self, 'stonehearth:order_list_changed')
    self.__saved_variables:mark_changed()
 end
 

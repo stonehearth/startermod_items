@@ -15,7 +15,7 @@ function WorkAtWorkshop:run(town, args)
                                                   :add_worker(self._crafter)
 
    self._inventory = stonehearth.inventory:get_inventory(town:get_player_id())
-   radiant.events.listen(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
+   radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
    --Listen on this to re-check mantain whenever an item is removed from the stockpile
@@ -25,14 +25,19 @@ function WorkAtWorkshop:run(town, args)
       local order = self:_get_next_order()
 
       order:set_crafting_status(true)
-      self:_collect_ingredients(order)
-      self:_process_order(order)
-      order:set_crafting_status(false)
-      
-      if order:is_complete() then
-         self._craft_order_list:remove_order(order)
-      end
 
+      --Rewrite this loop so that this can fail when the order in question is deleted
+      --EC: add a new task if that new task is added to the top of the queue
+      local collection_success = self:_collect_ingredients(order) 
+      if collection_success then
+         self:_process_order(order)
+         order:set_crafting_status(false)
+         
+         if order:is_complete() then
+            self._craft_order_list:remove_order(order)
+         end
+
+      end
       self._town:run_orchestrator(ClearWorkshop, {
          crafter = self._crafter,
          task_group = self._task_group,
@@ -42,18 +47,22 @@ function WorkAtWorkshop:run(town, args)
 end
 
 function WorkAtWorkshop:stop(args)
-   radiant.events.unlisten(self._craft_order_list, 'order_list_changed', self, self._on_order_list_changed)
+   radiant.events.unlisten(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    radiant.events.unlisten(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 end
 
 function WorkAtWorkshop:_collect_ingredients(order)
    local recipe = order:get_recipe()
 
-   self._town:run_orchestrator(CollectIngredients, {
+   local result = self._town:run_orchestrator(CollectIngredients, {
       task_group = self._task_group,
       workshop = self._workshop,
-      ingredients = recipe.ingredients
+      ingredients = recipe.ingredients, 
+      order_list = self._craft_order_list,
+      order = order
    })
+   
+   return result
 end
 
 function WorkAtWorkshop:_process_order(order)
@@ -99,6 +108,7 @@ function WorkAtWorkshop:_get_next_order()
    end
 end
 
+--TODO: add trigger for item deletion
 function WorkAtWorkshop:_on_order_list_changed()
    if self._waiting_for_order then
       self._thread:resume()

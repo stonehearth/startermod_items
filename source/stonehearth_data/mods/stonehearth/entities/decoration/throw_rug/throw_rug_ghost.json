@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(throw_rug.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Decorative Throw Rug",
+         "description": "Brightens up that old dusty floor.",
+         "icon" : "file(throw_rug.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "cloth crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

@@ -1,0 +1,11 @@
+{
+   "mixins" : "file(fur_rug_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(fur_rug_iconic.json)",
+         "ghost_form" : "file(fur_rug_ghost.json)",
+         "placeable_on_ground" : true
+      }
+   }
+}

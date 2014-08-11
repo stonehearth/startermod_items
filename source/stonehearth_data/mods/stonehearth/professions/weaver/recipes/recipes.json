@@ -32,7 +32,16 @@
          },
          "tapestry_wall" : {
             "uri" : "file(tapestry_wall_recipe.json)"
-         }         
+         },
+         "curtains" : {
+            "uri" : "file(curtains_recipe.json)"
+         },
+         "throw_rug" : {
+            "uri" : "file(throw_rug_recipe.json)"
+         },
+         "fur_rug" : {
+            "uri" : "file(fur_rug_recipe.json)"
+         }
       },
       "Toys" : {
          "plushie_toy_rabbit" : {

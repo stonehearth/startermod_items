@@ -8,6 +8,7 @@ local ZoneRenderer = class()
 function ZoneRenderer:__init(render_entity)
    local default_color = Color4(128, 128, 128, 128)
 
+   self._render_entity = render_entity
    self._items = {}
    self._designation_color_interior = default_color
    self._designation_color_border = default_color
@@ -108,14 +109,25 @@ function ZoneRenderer:_set_ghost_mode(render_entity, ghost_mode)
 
    if ghost_mode then
       material_kind = 'hud'
-      render_entity:add_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
    else
       material_kind = 'default'
-      render_entity:remove_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE)
    end
 
-   local material = render_entity:get_material_path(material_kind)           
+   local material = render_entity:get_material_path(material_kind)
    render_entity:set_material_override(material)
+
+   local selectable = not ghost_mode
+   self:_set_selectable(render_entity, selectable)
+end
+
+function ZoneRenderer:_set_selectable(render_entity, selectable)
+   local unselectable_flag = _radiant.renderer.QueryFlags.UNSELECTABLE
+
+   if selectable then
+      render_entity:remove_query_flag(unselectable_flag)
+   else
+      render_entity:add_query_flag(unselectable_flag)
+   end
 end
 
 function ZoneRenderer:_on_ui_mode_changed()
@@ -127,6 +139,9 @@ function ZoneRenderer:_on_ui_mode_changed()
       self:_update_item_states(self._items, self:_in_hud_mode())
       self:_regenerate_designation_node()
       -- no need to regenerate ground node
+
+      local ground_selectable = self:_in_hud_mode()
+      self:_set_selectable(self._render_entity, ground_selectable)
    end
 end
 

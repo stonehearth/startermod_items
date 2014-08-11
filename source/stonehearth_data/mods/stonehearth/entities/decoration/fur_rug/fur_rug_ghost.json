@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(fur_rug.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Fur Rug",
+         "description": "Made from animal pelts.",
+         "icon" : "file(fur_rug.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "animal_part crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

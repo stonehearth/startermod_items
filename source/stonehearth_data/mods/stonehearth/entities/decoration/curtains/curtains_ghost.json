@@ -1,0 +1,26 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(curtains.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.55, "y": -0.5, "z": -0.5 },
+         "region_origin" : { "x": 0.0, "y": 0, "z": 0.0 }
+      },      
+      "render_info" : {
+         "scale" : 0.10
+      },     
+      "unit_info": {
+         "name": "Curtains",
+         "description": "Dresses up a window.",
+         "icon" : "file(curtains.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}

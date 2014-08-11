@@ -1,0 +1,20 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Fur Rug",
+   "description" : "A warm and cozy rug, sewn from various animal pelts.",
+   "portrait"    : "/stonehearth/entities/decoration/fur_rug/fur_rug.png",
+
+   "ingredients": [
+      {
+         "material" : "pelt resource",
+         "count" : 3
+      }
+  ],
+  "produces": [
+      {
+         "item" : "stonehearth:decoration:fur_rug"
+      }
+  ]
+}

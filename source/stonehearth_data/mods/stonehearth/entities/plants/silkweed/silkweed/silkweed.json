@@ -7,7 +7,7 @@
       },
       "unit_info" : {
          "name": "Wild silkweed", 
-         "description": "This plant's fiber can be spun into thread",
+         "description": "This plant's fiber can be spun into thread.",
          "portrait": "file(portrait.png)"
       },
       "model_variants": {

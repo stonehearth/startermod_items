@@ -2,7 +2,7 @@ local Point3 = _radiant.csg.Point3
 
 local sensor_tests = {}
 
--- the sensor radius is 32.  position the sensor at the center of the
+-- the sensor radius is 10.  position the sensor at the center of the
 -- 0,0 tile, which means 8 units of slack on either side will be on
 -- the fringe.
 
@@ -165,8 +165,8 @@ function sensor_tests.moving_sensor(autotest)
          local log_pos = entry.position
          local dx = log_pos.x - pos.x
          local dz = log_pos.z - pos.z
-         if dx >= -SENSOR_RADIUS and dx < SENSOR_RADIUS and
-            dz >= -SENSOR_RADIUS and dz < SENSOR_RADIUS then
+         if dx >= -SENSOR_RADIUS and dx <= SENSOR_RADIUS and
+            dz >= -SENSOR_RADIUS and dz <= SENSOR_RADIUS then
             table.insert(expected, entry.log)
          end
       end
