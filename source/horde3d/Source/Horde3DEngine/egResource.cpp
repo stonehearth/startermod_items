@@ -383,7 +383,6 @@ void ResourceManager::releaseUnusedResources()
    // Delete unused resources
    for (ResHandle handle : killList) {
       auto i = _resources.find(handle);
-      Modules::log().writeInfo( "Removed resource '%s'", i->second->_name.c_str() );
       delete i->second;
       _resources.erase(i);
    }
