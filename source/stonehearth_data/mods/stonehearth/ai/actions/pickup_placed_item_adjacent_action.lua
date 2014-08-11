@@ -1,3 +1,4 @@
+local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 local PickupPlacedItemAdjacent = class()
 
@@ -37,8 +38,15 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, item)
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    
-   local location = item:get_component('mob'):get_world_grid_location()   
-   radiant.terrain.remove_entity(item)
+   local location = item:get_component('mob'):get_world_grid_location()
+
+   -- remove the item entity from whatever its parent was.  this could
+   -- best the terrain or a wall, depending on how we were placed
+   local parent = item:get_component('mob'):get_parent()
+   if parent then
+      radiant.entities.remove_child(parent, item)
+      radiant.entities.move_to(item, Point3.zero)                              
+   end
    radiant.terrain.place_entity(self._iconic_entity, location)
    
    --sometimes the location of the parent object is not adjacent to the
