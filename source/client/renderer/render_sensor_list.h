@@ -13,9 +13,11 @@ class Renderer;
 
 class RenderSensorList : public RenderComponent {
    public:
-      RenderSensorList(const RenderEntity& entity, om::SensorListPtr sensorList);
+      RenderSensorList(RenderEntity const& entity, om::SensorListPtr sensorList);
 
    private:
+      void AddSensorShape(std::string const& name, om::SensorPtr const& sensor);
+
       RenderEntity const&           entity_;
       om::SensorListRef             sensorList_;
       dm::TracePtr                  trace_;
