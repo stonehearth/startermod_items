@@ -123,6 +123,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
             self._addEventHandlers();
             self._restoreUiState();
+            self._updateControls();
          });
    },
 
