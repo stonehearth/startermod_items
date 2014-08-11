@@ -179,10 +179,6 @@
       "furniture:writing_desk" : "file(entities/furniture/writing_desk)",
       "furniture:dresser" : "file(entities/furniture/dresser)",
 
-      "decoration:wooden_sign" : "file(entities/decoration/wooden_sign)",
-      "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
-      "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
-
       "berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
       "geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
 
@@ -209,9 +205,15 @@
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
       "armor:leather_vest" : "file(entities/armor/leather_vest)",
 
+      "decoration:wooden_sign" : "file(entities/decoration/wooden_sign)",
+      "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
+      "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
       "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
       "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
       "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",
+      "decoration:throw_rug" : "file(entities/decoration/throw_rug)",
+      "decoration:fur_rug" : "file(entities/decoration/fur_rug)",
+      "decoration:curtains" : "file(entities/decoration/curtains)",
 
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
