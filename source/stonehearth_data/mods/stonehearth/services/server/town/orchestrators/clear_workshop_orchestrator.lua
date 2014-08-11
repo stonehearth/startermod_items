@@ -11,7 +11,7 @@ function ClearWorkshop:run(thread, args)
    local container = workshop:get_component('entity_container')
 
 
-   while container:num_children() > 0 do
+   while container and container:num_children() > 0 do
       local id, child = container:first_child()
       if not child or not child:is_valid() then
          container:remove_child(id)
