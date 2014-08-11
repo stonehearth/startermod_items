@@ -5,7 +5,7 @@
    "icon" : "file(carrying_buff.png)",
    "modifiers" : {
       "speed" : {
-         "multiply" : 0.5
+         "multiply" : 0.75
       }
    }
 } 
