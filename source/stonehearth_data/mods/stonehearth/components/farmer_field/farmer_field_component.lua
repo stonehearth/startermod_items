@@ -106,6 +106,7 @@ function FarmerFieldComponent:destroy()
             -- i.e. render the plant as decayed and implement a work task to clear rubble
             -- remember to undo ghost mode if you keep the entities around (see stockpile_renderer:destroy)
             radiant.entities.destroy_entity(field_spacer)
+            self._sv.contents[x][y] = nil
          end
       end
    end
@@ -114,6 +115,9 @@ function FarmerFieldComponent:destroy()
       crop:destroy()
       self._sv.crops[i] = nil
    end
+
+   radiant.entities.destroy_entity(self._sv.soil_layer)
+   self._sv.soil_layer = nil
 
    self._till_task:destroy()
 end
