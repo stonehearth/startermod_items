@@ -13,14 +13,20 @@ function BasicInventoryTracker:restore()
 end
 
 -- Part of the inventory tracker interface.  Given an `entity`, return the key
--- used to store tracker data for entities of that type.  Since we're just counting
--- the entities with the same uri, this is just the entity uri.
+-- used to store tracker data for entities of that type.  Most of the
+-- time this is just the entity uri, but if the item is actually the 'iconic'
+-- version of a larger entity, it's full entity's uri, not the iconic's uri.
 --
 --    @param entity - the entity currently being tracked
 -- 
 function BasicInventoryTracker:create_key_for_entity(entity)
    assert(entity:is_valid(), 'entity is not valid.')
-   return entity:get_uri()
+   local uri = entity:get_uri()
+   local iconic_component = entity:get_component('stonehearth:iconic_form')
+   if iconic_component then
+      uri = iconic_component:get_root_entity():get_uri()
+   end 
+   return uri
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
