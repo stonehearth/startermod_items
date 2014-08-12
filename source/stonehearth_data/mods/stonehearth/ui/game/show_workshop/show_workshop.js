@@ -1,12 +1,22 @@
 $(document).ready(function(){
+   App.stonehearth.showWorkshopView = null;
+
    $(top).on("radiant_show_workshop", function (_, e) {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
-      var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });
+      if (App.stonehearth.showWorkshopView) {
+         App.stonehearth.showWorkshopView.hide();
+      } else {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
+         App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });         
+      }
    });
 
    $(top).on("radiant_show_workshop_from_crafter", function (_, e) {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
-      var view = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
+      if (App.stonehearth.showWorkshopView) {
+         App.stonehearth.showWorkshopView.hide();
+      } else {
+         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
+         App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
+      }
    });
 
 });
@@ -56,6 +66,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    destroy: function() {
       radiant.keyboard.setFocus(null);
+      App.stonehearth.showWorkshopView = null;
       this._super();
    },
 
@@ -67,15 +78,21 @@ App.StonehearthCrafterView = App.View.extend({
       return this.currentRecipe;
    },
 
+   hide: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
+      var self = this;
+      /* the animation is causing races between when the rest of the UI thinks the view should be destroyed and when it is actually destroyed (at the end of the animation)
+      self.$("#craftWindow")
+         .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
+            self.destroy();
+            App.stonehearth.showWorkshopView = null;
+      });   
+      */
+
+      self.destroy();
+   },
+
    actions: {
-      hide: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
-         var self = this;
-         self.$("#craftWindow")
-            .animate({ top: -1900 }, 500, 'easeOutBounce', function() {
-               self.destroy()
-         });
-      },
 
       select: function(object, remaining, maintainNumber) {
          this.currentRecipe = object;
