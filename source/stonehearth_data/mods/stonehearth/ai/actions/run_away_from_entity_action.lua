@@ -61,17 +61,16 @@ function RunAwayFromEntity:_choose_destination(entity, threat, distance)
    local sign = rng:get_int(0, 1)*2 - 1
    local angles = { 0, sign*90, -sign*90 }
    local entity_grid_location_as_float = entity_grid_location:to_float()
-   local destination = nil
 
    for _, angle in ipairs(angles) do
-      destination = self:_calculate_location(entity_grid_location_as_float, opposite_direction, angle, distance)
+      local destination = self:_calculate_location(entity_grid_location_as_float, opposite_direction, angle, distance)
       -- could also find the longest path, instead of just the first path > 1
-      if self:_get_path_length(entity, entity_grid_location, destination) > 1 then
-         break
+      if self:_get_path_length(entity, entity_grid_location, destination) > 1.5 then
+         return destination
       end
    end
 
-   return destination
+   return nil
 end
 
 -- start_location and direction are Point3fs
