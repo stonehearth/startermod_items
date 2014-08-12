@@ -48,7 +48,7 @@ function InventoryService:get_inventory(arg1)
    elseif radiant.util.is_a(arg1, Entity) then
       player_id = radiant.entities.get_player_id(arg1)
    else
-      error(string.format('unexpected value %s in get_inventory', radiant.util.to_string(player_id)))
+      error(string.format('unexpected value %s in get_inventory', radiant.util.tostring(player_id)))
    end
    radiant.check.is_string(player_id)
    
