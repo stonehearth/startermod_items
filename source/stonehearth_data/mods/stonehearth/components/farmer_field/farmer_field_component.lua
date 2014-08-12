@@ -96,6 +96,11 @@ end
 
 --- On destroy, remove all listeners from the plots
 function FarmerFieldComponent:destroy()
+   for i, crop in ipairs(self._sv.crops) do
+      crop:destroy()
+      self._sv.crops[i] = nil
+   end
+
    --Unlisten on all the field plot things
    for x=1, self._sv.size.x do
       for y=1, self._sv.size.y do
@@ -109,11 +114,6 @@ function FarmerFieldComponent:destroy()
             self._sv.contents[x][y] = nil
          end
       end
-   end
-
-   for i, crop in ipairs(self._sv.crops) do
-      crop:destroy()
-      self._sv.crops[i] = nil
    end
 
    radiant.entities.destroy_entity(self._sv.soil_layer)
