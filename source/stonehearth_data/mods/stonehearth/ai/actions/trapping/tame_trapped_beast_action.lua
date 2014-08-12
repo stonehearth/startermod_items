@@ -9,7 +9,7 @@ TameTrappedBeast.args = {
 }
 TameTrappedBeast.version = 2
 TameTrappedBeast.priority = 1
-TameTrappedBeast.weight = 1
+TameTrappedBeast.weight = 1000
 
 function TameTrappedBeast:start_thinking(ai, entity, args)
    if not args.trap:is_valid() then
@@ -40,11 +40,18 @@ function TameTrappedBeast:run(ai, entity, args)
       local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
       equipment_component:equip_item(pet_collar)
 
+      local unit_info_component = pet:add_component('unit_info')
+
+      -- set the pet's faction
       local faction = radiant.entities.get_faction(entity)
       pet:add_component('unit_info'):set_faction(faction)
 
       local town = stonehearth.town:get_town(entity)
       town:add_pet(pet)
+
+      -- adjust the pet's name and description to indicate that it's a pet. xxx, localize
+      radiant.entities.set_name(pet, 'Pet ' .. radiant.entities.get_name(pet))
+      radiant.entities.set_description(pet, 'Befriended by ' .. radiant.entities.get_name(entity))
 
       trap_component:release()
    end

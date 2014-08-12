@@ -1,8 +1,8 @@
 {
    "jobs" : [
       "stonehearth:professions:carpenter",
-      "stonehearth:professions:farmer",
       "stonehearth:professions:trapper",
+      "stonehearth:professions:farmer",
       "stonehearth:professions:footman", 
       "stonehearth:professions:weaver"
    ]
