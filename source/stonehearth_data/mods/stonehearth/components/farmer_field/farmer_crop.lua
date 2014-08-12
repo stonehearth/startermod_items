@@ -66,6 +66,20 @@ end
 
 
 function FarmerCrop:destroy()
+   for cube in self:get_harvestable_region():get():each_cube() do
+      for pt in cube:each_point() do
+         local plot = self:get_field_spacer(pt + self._sv.location)
+         if plot then
+            radiant.events.unlisten(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
+         end
+      end
+   end
+
+   if self._till_trace then
+      self._till_trace:destroy()
+      self._till_trace = nil
+   end
+
    radiant.entities.destroy_entity(self._sv.plantable_region_entity)
    self._sv.plantable_region_entity = nil
 
