@@ -9,7 +9,7 @@ TameTrappedBeast.args = {
 }
 TameTrappedBeast.version = 2
 TameTrappedBeast.priority = 1
-TameTrappedBeast.weight = 1000
+TameTrappedBeast.weight = 1
 
 function TameTrappedBeast:start_thinking(ai, entity, args)
    if not args.trap:is_valid() then

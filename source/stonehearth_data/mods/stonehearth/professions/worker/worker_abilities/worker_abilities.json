@@ -5,6 +5,7 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower",
                "stonehearth:actions:town_defense:town_defense_watcher",
                "stonehearth:actions:town_defense:town_defense_dispatcher",
                "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
