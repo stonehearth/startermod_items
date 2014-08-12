@@ -32,9 +32,9 @@
                "file(../silkweed/silkweed.qb)"
             ]
          }, 
-         "silkweed_9": {
+         "silkweed_20": {
             "models": [
-               "file(silkweed_9.qb)"
+               "file(silkweed_20.qb)"
             ]
          }
       },
@@ -53,7 +53,7 @@
       "stonehearth:crop" : {
          "resource_pairings" : {
             "silkweed_5": "stonehearth:silkweed_bundle",
-            "silkweed_9": ""
+            "silkweed_20": ""
          }, 
          "harvest_threshhold" : "silkweed_5", 
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
@@ -82,7 +82,7 @@
                "name": "Mature silkweed"
             },
             {
-               "model_name" : "silkweed_9",
+               "model_name" : "silkweed_20",
                "name": "Rotten silkweed"
             }
          ]

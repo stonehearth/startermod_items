@@ -10,7 +10,11 @@ local rng = _radiant.csg.get_default_rng()
    something from a craftsman. 
 
    This is also a great opportunty to give the town with something significant, like a new 
-   recipe or crop to plant. 
+   recipe or crop to plant. Though this is not currently enabled because silkweed is 
+   available from the beginning it can be enabled by adding something like this to the rewards: 
+      "stonehearth:silkweed_crop" : {
+         "type" : "crop"
+      },
 ]]
 
 -- The returning trader will only spawn if there is at least one carpenter in the population
@@ -124,7 +128,7 @@ function ReturningTrader:_get_desired_items()
    local wanted_item_uri = self._want_table[random_want_index]
    local proposed_number = rng:get_int(self._trade_data.wants[wanted_item_uri].min, self._trade_data.wants[wanted_item_uri].max)
 
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv._player_id)
    local inventory_data_for_item = inventory:get_items_of_type(wanted_item_uri)
    if inventory_data_for_item and inventory_data_for_item.count > 0 then
       if proposed_number < inventory_data_for_item.count then
@@ -236,7 +240,7 @@ function ReturningTrader:_on_accepted()
 
    --make a timer to express how long to wait before the caravan returns
    self._sv._wait_time = self._sv._trade_data.num_days
-   self:_create_timer('24h')--self._sv._wait_time .. 'd'--)
+   self:_create_timer(self._sv._wait_time .. 'd')
 
    --Put up a non-dismissable notification to keep track of the time remaining
    --Send the notice to the bulletin service
@@ -282,7 +286,7 @@ end
 -- The trader's deal was accepted, and now he's back. 
 function ReturningTrader:_make_return_trip()
    local town_has_goods = false
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)   
+   local inventory = stonehearth.inventory:get_inventory(self._sv._player_id)   
    local inventory_data_for_item = inventory:get_items_of_type(self._sv._trade_data.want_uri)
    if inventory_data_for_item and inventory_data_for_item.count >= self._sv._trade_data.want_count then
       --We have the items desired. Reserve them all/as many as possible
