@@ -3,7 +3,7 @@
    "mixins" : "stonehearth:mixins:critter",   
    "components": {
       "unit_info" : {
-         "name" : "A rabbit",
+         "name" : "Rabbit",
          "description" : "Om nom nom",
          "portrait" : "file(portrait.png)",
          "faction" : "critter",
