@@ -1,7 +1,7 @@
 {
    "type" : "buff",
    "name" : "Defender",
-   "description" : "Rally for your town!",
+   "description" : "Increased courage!",
    "icon" : "file(defender_buff.png)",
    "modifiers" : {
       "courage" : {

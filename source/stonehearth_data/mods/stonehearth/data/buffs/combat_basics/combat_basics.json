@@ -1,7 +1,7 @@
 {
    "type" : "buff",
-   "name" : "Combat Basics",
-   "description" : "Toughened through hours of combat training",
+   "name" : "Basic Combat Training",
+   "description" : "Increased courage through hours of combat training",
    "icon" : "file(combat_basics_buff.png)",
    "modifiers" : {
       "courage" : {
