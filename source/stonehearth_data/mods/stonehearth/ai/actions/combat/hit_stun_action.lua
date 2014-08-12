@@ -45,6 +45,14 @@ end
 
 function HitStun:on_hit_stun(args)
    self._log:spam('got hit stun message!')
+
+   -- find a better way to do this
+   local posture = radiant.entities.get_posture(self._entity)
+   if posture == 'stonehearth:cower' then
+      -- cowering is a defensive posture that does not allow hit stun
+      return
+   end
+
    if not self._think_output_set then
       self._log:spam('calling set think output for hitstun')
       self._ai:set_think_output()
@@ -64,7 +72,7 @@ function HitStun:_start_new_effect()
       self._hit_effect:stop()
    end
 
-   self._hit_effect = radiant.effects.run_effect(self._entity, 'combat_1h_hit')
+   self._hit_effect = radiant.effects.run_effect(self._entity, 'hit_stun')
    self._hit_effect:set_finished_cb(
       function ()
          if self._ai then

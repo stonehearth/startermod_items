@@ -425,6 +425,7 @@
       "actions:combat:panic_dispatcher" : "file(ai/actions/combat/panic_dispatcher.lua)",
       "actions:combat:panic_watcher" : "file(ai/actions/combat/panic_watcher_action.lua)",
       "actions:combat:flee" : "file(ai/actions/combat/flee_action.lua)",
+      "actions:combat:cower" : "file(ai/actions/combat/cower_action.lua)",
       "actions:combat:stop_panicking" : "file(ai/actions/combat/stop_panicking_action.lua)",
       "actions:combat:hit_stun" : "file(ai/actions/combat/hit_stun_action.lua)",
       "actions:combat:create_engage_callback" : "file(ai/actions/combat/create_engage_callback_action.lua)",
