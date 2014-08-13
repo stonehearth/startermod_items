@@ -83,14 +83,14 @@ App.StonehearthUnitFrameView = App.View.extend({
    //When we hover over a command button, show its tooltip
    didInsertElement: function() {
       var self = this;
-      this.$('#unitFrame > #buffs').find('.item').each(function() {
+      this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>')
          });
       });
 
-      this.$('#unitFrame > #commandButtons').find('[title]').each(function() {
+      this.$('#unitFrame #commandButtons').find('[title]').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
                        '<div class=description>' + $(this).attr('description') + '</div>')
