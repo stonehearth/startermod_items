@@ -18,7 +18,7 @@
          "icon" : "file(cloth_bolt.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "cloth resource"
+         "tags" :  "cloth resource cloth_asset"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
