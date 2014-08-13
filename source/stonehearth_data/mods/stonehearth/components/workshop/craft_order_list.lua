@@ -81,7 +81,8 @@ function CraftOrderList:remove_order_id(order_id)
     if i then
       local order = self._sv.orders[i]
       table.remove(self._sv.orders, i)
-      order:destroy()
+      
+      radiant.destroy_controller(order)
       self:_on_order_list_changed()
    end
 end

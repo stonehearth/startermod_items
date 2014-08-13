@@ -121,7 +121,8 @@ function DynamicScenarioService:num_running_scenarios()
       if scenario:is_running() then
          num_running = num_running + 1
       else 
-         table.remove(self._sv.running_scenarios, i)
+         local s = table.remove(self._sv.running_scenarios, i)
+         radiant.destroy_controller(s)
       end
    end
    self.__saved_variables:mark_changed()

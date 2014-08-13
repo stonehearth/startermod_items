@@ -45,15 +45,15 @@ end
 
 function BuildService:set_active(building, enabled)
    local function _set_active_recursive(blueprint, enabled)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         for id, child in ec:each_child() do
-            _set_active_recursive(child, enabled)
-         end
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if not cp then
+         return
       end
-      local c = blueprint:get_component('stonehearth:construction_progress')
-      if c then
-         c:set_active(enabled)
+      cp:set_active(enabled)
+      for _,child in pairs(cp:get_dependencies()) do
+         if child and child:is_valid() then
+            _set_active_recursive(child, enabled)
+         end         
       end
    end  
    _set_active_recursive(building, enabled)
@@ -61,17 +61,15 @@ end
 
 function BuildService:set_teardown(blueprint, enabled)
    local function _set_teardown_recursive(blueprint)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         for id, child in ec:each_child() do         
-            if child and child:is_valid() then
-               _set_teardown_recursive(child, enabled)
-            end
-         end
-      end
       local cp = blueprint:get_component('stonehearth:construction_progress')
-      if cp then
-         cp:set_teardown(enabled)
+      if not cp then
+         return
+      end
+      cp:set_teardown(enabled)
+      for _,child in pairs(cp:get_dependencies()) do
+         if child and child:is_valid() then
+            _set_teardown_recursive(child, enabled)
+         end         
       end
    end  
    _set_teardown_recursive(blueprint, enabled)
