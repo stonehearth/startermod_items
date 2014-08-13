@@ -428,8 +428,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
          var building_entity = self.get('building');
          if (building_entity) {
-            //stonehearth.server.build.remove_building(building_entity.__self, value);
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
+            self.set('context.selection', null);
          }
       });
 

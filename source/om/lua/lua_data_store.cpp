@@ -120,6 +120,13 @@ DataStore_CreateController(DataStorePtr data_store, std::string const& type, std
    return controller;
 }
 
+void DataStore_DestroyController(DataStorePtr data_store)
+{
+   if (data_store) {
+      data_store->DestroyController();
+   }
+}
+
 luabind::object
 DataStore_GetController(DataStorePtr data_store)
 {
@@ -145,6 +152,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("set_controller", &DataStore_SetController)
          .def("get_controller", &DataStore_GetController)
          .def("create_controller", &DataStore_CreateController)
+         .def("destroy_controller", &DataStore_DestroyController)
          .def("mark_changed",   &DataStore_MarkChanged)
       ,
       lua::RegisterTypePtr<lua::DataObject>("DataObject")

@@ -40,7 +40,8 @@ end
 
 
 function CameraService:pop_controller()
-   table.remove(self._sv.controllers, #self._sv.controllers)
+   local c = table.remove(self._sv.controllers, #self._sv.controllers)
+   radiant.destroy_controller(c)
 end
 
 

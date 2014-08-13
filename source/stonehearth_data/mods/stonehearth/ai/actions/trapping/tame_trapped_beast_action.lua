@@ -16,6 +16,11 @@ function TameTrappedBeast:start_thinking(ai, entity, args)
       return
    end
 
+   -- not allowing entities to own more than one pet at a time
+   if entity:add_component('stonehearth:pet_owner'):num_pets() > 0 then
+      return
+   end
+
    local trap_component = args.trap:add_component('stonehearth:bait_trap')
    if trap_component:get_trapped_entity() then
       ai:set_think_output()
@@ -40,11 +45,7 @@ function TameTrappedBeast:run(ai, entity, args)
       local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
       equipment_component:equip_item(pet_collar)
 
-      local unit_info_component = pet:add_component('unit_info')
-
-      -- set the pet's faction
-      local faction = radiant.entities.get_faction(entity)
-      pet:add_component('unit_info'):set_faction(faction)
+      entity:add_component('stonehearth:pet_owner'):add_pet(pet)
 
       local town = stonehearth.town:get_town(entity)
       town:add_pet(pet)

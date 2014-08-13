@@ -195,6 +195,7 @@ function TownPatrol:_remove_from_patrol_list(object_id)
 
       if player_patrollable_objects[object_id] then
          -- optionally cancel existing patrol routes here
+         radiant.destroy_controller(player_patrollable_objects[object_id])
          player_patrollable_objects[object_id] = nil
       end
    end
