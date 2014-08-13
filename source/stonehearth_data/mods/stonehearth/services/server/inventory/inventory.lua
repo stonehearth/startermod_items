@@ -41,6 +41,7 @@ function Inventory:create_stockpile(location, size)
    return entity
 end
 
+--Returns a map of the stockpiles, sorted by ID
 function Inventory:get_all_storage()
    return self._sv.storage
 end

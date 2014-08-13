@@ -48,35 +48,18 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
 
       var workbenchEntity = null;
       var workbenchType = this.get('context.stonehearth:profession.profession_uri.workshop.workbench_type');
-      radiant.call('stonehearth:choose_workbench_location', workbenchType)
+      var crafter = self.get('context');
+      radiant.call('stonehearth:choose_workbench_location', workbenchType, crafter = crafter.__self)
          .done(function(o){
-            workbenchEntity = o.workbench_entity;
             $(top).trigger('radiant_hide_tip');
-            
-            self._gotoPage2();
-
-            $(top).trigger('radiant_show_tip', {
-               title : "Click and drag to create your crafter's outbox",
-               description : 'Your crafter will store crafted goods in the outbox.'
-            });
-
-            var crafter = self.get('context');
-            radiant.call('stonehearth:choose_outbox_location', workbenchEntity, crafter = crafter.__self)
-               .done(function() {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-               })
-               .always(function() {
-                  self._finish();
-               });
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+         })
+         .always(function() {
+            self._finish();
          })
          .fail(function() {
             self._finish();
          });
-   },
-
-   _gotoPage2 : function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
-      this.$('#page2').show();
    },
 
    _finish : function() {
