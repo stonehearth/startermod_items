@@ -40,11 +40,11 @@
             "type" : "basic", 
             "value": 110
          },
-          "calories": {
+          "calories" : {
             "type" : "basic", 
             "value" : 30
          },
-         "sleepiness": {
+         "sleepiness" : {
             "type" : "basic", 
             "value" : 0
          },
@@ -63,6 +63,13 @@
                "radius" : 16
             }
          }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:observers:avoid_threatening_entities" : {
+         "treat_neutral_as_hostile" : true,
+         "min_avoidance_distance" : 16,
+         "max_avoidance_distance" : 16
       }
    }
 }

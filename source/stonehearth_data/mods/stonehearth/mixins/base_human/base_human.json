@@ -276,6 +276,11 @@
    },
    "entity_data" : {
       "stonehearth:entity_radius" : 0.75,
-      "stonehearth:entity_reach" : 1.0
+      "stonehearth:entity_reach" : 1.0,
+
+      "stonehearth:observers:avoid_threatening_entities" : {
+         "min_avoidance_distance" : 16,
+         "max_avoidance_distance" : 16
+      }
    }
 }
