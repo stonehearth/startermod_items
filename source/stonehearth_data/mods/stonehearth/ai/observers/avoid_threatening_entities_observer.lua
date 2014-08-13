@@ -45,10 +45,11 @@ function AvoidThreateningEntities:initialize(entity)
 
    self._min_avoidance_distance = entity_data and entity_data.min_avoidance_distance or 16
    self._max_avoidance_distance = entity_data and entity_data.max_avoidance_distance or 32
+   self._courage = self._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
 
+   self:_add_attribute_traces()
    self:_add_sensor_trace()
    self:_add_panic_trace()
-   self:_add_attribute_traces()
 end
 
 function AvoidThreateningEntities:destroy()
@@ -94,7 +95,6 @@ function AvoidThreateningEntities:_add_panic_trace()
 end
 
 function AvoidThreateningEntities:_add_attribute_traces()
-   self._courage = self._entity:add_component('stonehearth:attributes'):get_attribute('courage') or 0
    local courage_trace = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:courage', self, self._on_courage_changed)
    self._entity_traces['courage'] = courage_trace
 end
