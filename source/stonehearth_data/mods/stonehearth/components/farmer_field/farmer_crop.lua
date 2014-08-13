@@ -38,6 +38,10 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
 end
 
 function FarmerCrop:restore()
+   -- TODO: hack to fix farm deletion/saving.  Why on earth isn't the FarmerCrop being reaped?
+   if not self._sv.farm_tilled_region then
+      return
+   end
    self._till_trace = self._sv.farm_tilled_region:trace('tilling trace', TraceCategories.SYNC_TRACE)
       :on_changed(function(region)
          self:_update_plantable_region()
