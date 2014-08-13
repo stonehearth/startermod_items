@@ -9,9 +9,10 @@ Cower.args = {
 }
 Cower.version = 2
 Cower.priority = 1
+Cower.weight = 2
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Cower)
    :execute('stonehearth:set_posture', { posture = 'stonehearth:cower' })
-   :execute('stonehearth:run_effect', { effect = 'cower', times = 50 })
+   :execute('stonehearth:run_effect', { effect = 'cower', times = 20 })
    :execute('stonehearth:unset_posture', { posture = 'stonehearth:cower' })

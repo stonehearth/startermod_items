@@ -8,7 +8,8 @@ Flee.args = {
    threat = Entity,
 }
 Flee.version = 2
-Flee.priority = 2
+Flee.priority = 1
+Flee.weight = 10
 
 local ai = stonehearth.ai
 return ai:create_compound_action(Flee)
