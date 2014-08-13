@@ -18,7 +18,6 @@ function WorkshopComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.order_list then
-      self._sv.outbox_entity = nil
       self._sv.skin_class = json.skin_class or 'default'
       self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list')
       self._sv.is_paused = false
@@ -171,13 +170,8 @@ function WorkshopComponent:_create_workshop_orchestrator()
       })
 end
 
-function WorkshopComponent:get_outbox()
-   return self._sv.outbox_entity
-end
-
-function WorkshopComponent:finish_construction(workshop_entity, outbox_entity)
+function WorkshopComponent:finish_construction(workshop_entity)
    self._sv.workshop_entity = workshop_entity
-   self._sv.outbox_entity = outbox_entity
    self.__saved_variables:mark_changed()
 end
 

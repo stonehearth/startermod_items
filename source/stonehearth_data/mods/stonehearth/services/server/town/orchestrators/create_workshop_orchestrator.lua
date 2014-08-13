@@ -5,8 +5,6 @@ local CreateWorkshop = class()
 function CreateWorkshop:run(town, args)
    local crafter = args.crafter
    local ghost_workshop = args.ghost_workshop
-   local outbox_entity = args.outbox_entity
-
    local workshop_component = ghost_workshop:get_component('stonehearth:ghost_form')
                                                 :get_root_entity()
                                                 :get_component('stonehearth:workshop')
@@ -34,7 +32,7 @@ function CreateWorkshop:run(town, args)
       return
    end
 
-   self:_complete_construction(crafter, ghost_workshop, outbox_entity, args.workshop_task_group)
+   self:_complete_construction(crafter, ghost_workshop, args.workshop_task_group)
    return true
 end
 
@@ -49,7 +47,7 @@ function CreateWorkshop:stop()
    end
 end
 
-function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_entity, workshop_task_group)
+function CreateWorkshop:_complete_construction(crafter, ghost_workshop, workshop_task_group)
    local workshop_entity = ghost_workshop:get_component('stonehearth:ghost_form')
                                              :get_root_entity()
    local workshop_component = workshop_entity:get_component('stonehearth:workshop')
@@ -60,7 +58,7 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, outbox_e
 
    radiant.terrain.place_entity(workshop_entity, location)
    workshop_entity:get_component('mob'):set_rotation(q)
-   workshop_component:finish_construction(workshop_entity, outbox_entity)
+   workshop_component:finish_construction(workshop_entity)
    radiant.terrain.remove_entity(ghost_workshop)
 
    radiant.entities.set_faction(workshop_entity, crafter)

@@ -159,33 +159,20 @@ function CrafterComponent:get_work_effect()
    return self._sv.work_effect
 end
 
-function CrafterComponent:create_workshop(ghost_workshop, outbox_location, outbox_size)
-   local faction = radiant.entities.get_faction(self._entity)
-   local outbox_entity = radiant.entities.create_entity('stonehearth:workshop_outbox')
-   radiant.terrain.place_entity(outbox_entity, outbox_location)
-   
-   radiant.entities.set_faction(outbox_entity, self._entity)
-   radiant.entities.set_player_id(outbox_entity, self._entity)
-
-   local outbox_component = outbox_entity:get_component('stonehearth:stockpile')
-   outbox_component:set_size(outbox_size.x, outbox_size.y)
-   outbox_component:set_outbox(true)
-
-   self:_create_workshop_orchestrator(ghost_workshop, outbox_entity)
+function CrafterComponent:create_workshop(ghost_workshop)
+   self:_create_workshop_orchestrator(ghost_workshop)
 end
 
-function CrafterComponent:_create_workshop_orchestrator(ghost_workshop, outbox_entity)
+function CrafterComponent:_create_workshop_orchestrator(ghost_workshop)
    -- create a task group for the workshop.  we'll use this both to build it and
    -- to feed the crafter orders when it's finally created
    local town = stonehearth.town:get_town(self._entity)
    self._orchestrator = town:create_orchestrator(CreateWorkshop, {
       crafter = self._entity,
-      ghost_workshop = ghost_workshop,
-      outbox_entity = outbox_entity,
+      ghost_workshop = ghost_workshop
    })
    self._sv._create_workshop_args = {
-      ghost_workshop = ghost_workshop,
-      outbox_entity = outbox_entity,
+      ghost_workshop = ghost_workshop
    }
    self.__saved_variables:mark_changed()
 end

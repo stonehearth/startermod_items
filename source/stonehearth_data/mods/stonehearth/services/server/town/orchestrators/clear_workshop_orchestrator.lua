@@ -2,9 +2,6 @@ local ClearWorkshop = class()
 
 function ClearWorkshop:run(thread, args)
    local workshop = args.workshop
-   local outbox = workshop:get_component('stonehearth:workshop')
-                          :get_outbox()
-                          :get_component('stonehearth:stockpile')                          
    local task_group = args.task_group
    local crafter = args.crafter
    
@@ -17,15 +14,13 @@ function ClearWorkshop:run(thread, args)
          container:remove_child(id)
       else
          local args = {
-            outbox = outbox,
             item = child,
          }
 
-         local task = task_group:create_task('stonehearth:move_item_to_outbox', args)
+         local task = task_group:create_task('stonehearth:clear_workshop', args)
                          :set_priority(stonehearth.constants.priorities.top.WORK)
                          :once()
                          :start()
-
 
          local check_task_fn = function()
             if not child:is_valid() or not container:get_child(child:get_id()) then
