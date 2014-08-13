@@ -1001,6 +1001,8 @@
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
+      "pet" : "file(components/pet/pet_component.lua)",
+      "pet_owner" : "file(components/pet/pet_owner_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
