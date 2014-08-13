@@ -696,14 +696,6 @@
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    
       },
-      "client_move_unit" : {
-         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
-         "endpoint" : "client"
-      },
-      "server_move_unit" : {
-         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "client_cast_aoe" : {
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
          "endpoint" : "client"
