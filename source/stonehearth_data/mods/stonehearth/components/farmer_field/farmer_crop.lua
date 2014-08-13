@@ -70,11 +70,13 @@ end
 
 
 function FarmerCrop:destroy()
-   for cube in self:get_harvestable_region():get():each_cube() do
-      for pt in cube:each_point() do
-         local plot = self:get_field_spacer(pt + self._sv.location)
-         if plot then
-            radiant.events.unlisten(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
+   if self:get_harvestable_region() then
+      for cube in self:get_harvestable_region():get():each_cube() do
+         for pt in cube:each_point() do
+            local plot = self:get_field_spacer(pt + self._sv.location)
+            if plot then
+               radiant.events.unlisten(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
+            end
          end
       end
    end
@@ -125,7 +127,11 @@ end
 
 
 function FarmerCrop:get_harvestable_region()
-   return self._sv.harvestable_region_entity:get_component('destination'):get_region()
+   local dc = self._sv.harvestable_region_entity:get_component('destination')
+   if dc then
+      return dc:get_region()
+   end
+   return nil
 end
 
 
