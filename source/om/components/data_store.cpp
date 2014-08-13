@@ -215,7 +215,6 @@ void DataStore::DestroyController()
             luabind::object cb(L, destroy);
             cb(_controllerObject);
          }
-         _controllerObject["__saved_variables"] = 0;
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(L, e);
       }
