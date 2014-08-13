@@ -26,7 +26,8 @@
                "stonehearth:actions:teardown_structure_adjacent"
             ],
             "observers" : [
-               "stonehearth:observers:combat_panic"
+               "stonehearth:observers:combat_panic",
+               "stonehearth:observers:avoid_threatening_entities"
             ]
          },
          "injected_commands" : [
