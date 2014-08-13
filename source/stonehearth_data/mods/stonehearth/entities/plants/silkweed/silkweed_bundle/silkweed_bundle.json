@@ -8,7 +8,7 @@
          "max_stacks" : 3
       },
       "stonehearth:material" : {
-         "tags" : "fiber resource"
+         "tags" : "fiber resource plant"
       },
       "model_variants": {
          "default": {

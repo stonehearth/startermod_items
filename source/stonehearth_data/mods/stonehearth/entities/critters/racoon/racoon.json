@@ -3,7 +3,7 @@
    "mixins" : "stonehearth:mixins:critter",   
    "components" : {
       "unit_info" : {
-         "name" : "A racoon",
+         "name" : "Racoon",
          "description" : "Small forest creature",
          "portrait" : "file(portrait.png)",
          "faction" : "critter",

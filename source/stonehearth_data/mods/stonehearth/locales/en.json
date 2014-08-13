@@ -170,6 +170,7 @@
    "stockpile_tooltip_stone" : "stone",
    "stockpile_tooltip_ore" : "ore",
    "stockpile_tooltip_animal_part" : "animal parts",
+   "stockpile_tooltip_plant" : "plants",
    "stockpile_tooltip_portal" : "doors & windows",
    "stockpile_tooltip_furniture" : "furniture",
    "stockpile_tooltip_defense" : "defenses",

@@ -4,7 +4,7 @@
    "components": {
       "item": {
          "material": "wood",
-         "stacks": 30
+         "stacks": 80
       },
       "stonehearth:material" : {
          "tags" : "wood resource"

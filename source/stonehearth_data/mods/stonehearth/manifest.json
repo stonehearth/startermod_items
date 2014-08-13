@@ -425,6 +425,7 @@
       "actions:combat:panic_dispatcher" : "file(ai/actions/combat/panic_dispatcher.lua)",
       "actions:combat:panic_watcher" : "file(ai/actions/combat/panic_watcher_action.lua)",
       "actions:combat:flee" : "file(ai/actions/combat/flee_action.lua)",
+      "actions:combat:cower" : "file(ai/actions/combat/cower_action.lua)",
       "actions:combat:stop_panicking" : "file(ai/actions/combat/stop_panicking_action.lua)",
       "actions:combat:hit_stun" : "file(ai/actions/combat/hit_stun_action.lua)",
       "actions:combat:create_engage_callback" : "file(ai/actions/combat/create_engage_callback_action.lua)",
@@ -694,14 +695,6 @@
       "release_pet" : {
          "controller": "file(call_handlers/unit_control/pet_call_handler.lua)",
          "endpoint" : "server"    
-      },
-      "client_move_unit" : {
-         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
-         "endpoint" : "client"
-      },
-      "server_move_unit" : {
-         "controller": "file(call_handlers/unit_control/move_unit_call_handler.lua)",
-         "endpoint" : "server"
       },
       "client_cast_aoe" : {
          "controller": "file(call_handlers/unit_control/cast_aoe_call_handler.lua)",
@@ -1000,6 +993,8 @@
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
       "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
+      "pet" : "file(components/pet/pet_component.lua)",
+      "pet_owner" : "file(components/pet/pet_owner_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
