@@ -14,7 +14,7 @@
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
-      static const int ReadBufferSize   = 1024 * 1024;
+      static const int ReadBufferSize   = 16 * 1024 * 1024;
 
       class Buffer {
       public:
@@ -102,18 +102,27 @@ namespace radiant {
                   break;
                }
 
-               T msg;
-               google::protobuf::uint32 c = 0;
+               // We're going to read message size, but if we don't have the bytes,
+               // wait until the next time through.
+               if (remaining < sizeof(int32)) {
+                  NETWORK_LOG(3) << "breaking processing loop early (went to read size)";
+                  break;
+               }
 
-               if (!decoder.ReadLittleEndian32(&c)) {
-                  break;
-               }
+               T msg;
+               // Read the size of the incoming message, without consuming it.
+               google::protobuf::uint32 c = *(google::protobuf::uint32*)tail;
+
                NETWORK_LOG(7) << "next message size: " << c;
-               if (c > (remaining - sizeof(int32))) {
-                  NETWORK_LOG(3) << "breaking processing loop early (not enough buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
+
+               ASSERT(c > 0 && c < ReadBufferSize);
+               if (c > remaining - sizeof(int32)) {
+                  NETWORK_LOG(3) << "breaking processing loop early (not enough message in the buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
                   break;
                }
-               ASSERT(c > 0 && c < ReadBufferSize);
+
+               // Consume that message size.
+               decoder.ReadLittleEndian32(&c);
 
                auto limit = decoder.PushLimit(c);
                if (!msg.ParseFromCodedStream(&decoder)) {
