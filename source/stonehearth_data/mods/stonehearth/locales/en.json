@@ -6,7 +6,6 @@
    "back" : "Back",
    "next" : "Next",
    "hotkey" : "hot key: ",
-   "loading" : "Loading...",
    "remove" : "Remove",
    "close" : "Close",
 
@@ -18,7 +17,6 @@
    "title_screen_new_game": "New Game",
    "title_screen_load_game": "Load Game",
    "title_screen_quick_start": "Quick Start",
-   "title_screen_load_game": "Load Game",
    "title_screen_patch_notes": "Show Patch Notes",
 
    "opt_title" : "Help us make Stonehearth better!",
