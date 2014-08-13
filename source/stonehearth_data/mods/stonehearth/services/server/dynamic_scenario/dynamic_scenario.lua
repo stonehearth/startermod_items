@@ -6,6 +6,10 @@ function DynamicScenario:initialize(scenario)
    scenario._sv.__scenario = self
 end
 
+function DynamicScenario:destroy()
+   radiant.destroy_controller(self._sv._scenario)
+end
+
 function DynamicScenario:restore()
 end
 

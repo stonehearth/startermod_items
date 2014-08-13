@@ -16,6 +16,10 @@ end
 
 function TargetTables:destroy()
    radiant.events.unlisten(radiant, 'stonehearth:very_slow_poll', self, self._clean_target_tables)
+   
+   for _, target_table in pairs(self._sv.target_tables) do
+      radiant.destroy_controller(target_table)
+   end
 end
 
 function TargetTables:get_target_table(table_name)

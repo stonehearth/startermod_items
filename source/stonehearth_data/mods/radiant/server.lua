@@ -29,6 +29,10 @@ function radiant.create_controller(...)
    return controller
 end
 
+function radiant.destroy_controller(c)
+   c.__saved_variables:destroy_controller()
+end
+
 function radiant.exit(code)
    _host:exit(code)
 end

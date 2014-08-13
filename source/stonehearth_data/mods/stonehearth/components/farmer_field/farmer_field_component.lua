@@ -97,7 +97,7 @@ end
 --- On destroy, remove all listeners from the plots
 function FarmerFieldComponent:destroy()
    for i, crop in ipairs(self._sv.crops) do
-      crop:destroy()
+      radiant.destroy_controller(crop)
       self._sv.crops[i] = nil
    end
 

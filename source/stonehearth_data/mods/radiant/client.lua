@@ -28,6 +28,10 @@ function radiant.create_controller(...)
    return controller
 end
 
+function radiant.destroy_controller(c)
+   c.__saved_variables:destroy_controller()
+end
+
 radiant.lib = {
    Destructor = require 'modules.destructor'
 }

@@ -43,6 +43,7 @@ function BulletinBoardService:remove_bulletin(bulletin_id)
    local datastore = self:get_datastore(player_id)
    local bulletins = datastore:get_data().bulletins
 
+   radiant.destroy_controller(bulletins[bulletin_id])
    bulletins[bulletin_id] = nil
    datastore:mark_changed()
 end
