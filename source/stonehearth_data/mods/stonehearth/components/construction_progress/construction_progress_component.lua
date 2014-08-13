@@ -316,6 +316,10 @@ function ConstructionProgress:get_dependencies_finished()
    return self._sv.dependencies_finished
 end
 
+function ConstructionProgress:get_dependencies()
+   return self._sv.dependencies
+end
+
 -- returns the fabricator component for this entity.  the exact name of the component
 -- was specified during the :set_fabricator_entity() call.  for walls, columns, etc,
 -- it's 'stonehearth:fabricator'.  for windows, lanterns, flags, etc. it's 
