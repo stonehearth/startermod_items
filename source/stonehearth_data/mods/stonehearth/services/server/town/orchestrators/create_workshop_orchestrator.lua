@@ -24,6 +24,7 @@ function CreateWorkshop:run(town, args)
       ghost_workshop = ghost_workshop,
       sound_effect = build_sound_effect,
    }
+
    local result = town:command_unit(crafter, 'stonehearth:complete_workshop_construction', args)   
                         :once()
                         :start()
@@ -56,7 +57,7 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, workshop
    local location = radiant.entities.get_world_grid_location(ghost_workshop)
    local q = ghost_workshop:get_component('mob'):get_rotation()
 
-   radiant.terrain.place_entity(workshop_entity, location)
+   radiant.terrain.place_entity(workshop_entity, location, { force_iconic = false })
    workshop_entity:get_component('mob'):set_rotation(q)
    workshop_component:finish_construction(workshop_entity)
    radiant.terrain.remove_entity(ghost_workshop)

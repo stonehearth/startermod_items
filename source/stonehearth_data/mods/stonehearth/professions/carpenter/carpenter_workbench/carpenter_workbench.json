@@ -15,7 +15,9 @@
          ]
       },
       "stonehearth:entity_forms" : {
-         "ghost_form" : "file(carpenter_workbench_ghost.json)"
+         "ghost_form" : "file(carpenter_workbench_ghost.json)", 
+         "iconic_form" : "file(carpenter_workbench_iconic.json)",
+         "placeable_on_ground" : true
       },
       "stonehearth:workshop": {
          "profession_name" : "Carpenter",

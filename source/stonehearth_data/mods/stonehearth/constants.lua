@@ -7,6 +7,7 @@ local constants = {
       -- numbers (xxx: this comment will be true once Tony implements the action
       -- priority system next week).
       -- Note: use these when the task is created, not in the action header
+      --TODO: move all priorities from here to the ones under top, remove worker_task and farmer_task
       worker_task = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
@@ -57,6 +58,7 @@ local constants = {
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
+         PLACE_ITEM         = 8,
          LIGHT_FIRE         = 10,
       },
 

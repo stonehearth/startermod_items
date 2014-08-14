@@ -271,7 +271,7 @@ function EntityFormsComponent:_create_task(activity, args)
    assert(not self._placement_task)  
 
    self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', activity, args)
-   self._placement_task:set_priority(stonehearth.constants.priorities.worker_task.PLACE_ITEM)                    
+   self._placement_task:set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM)                    
                        :once()
                        :notify_completed(function()
                               -- remove the ghost entity from whatever its parent was.  this could

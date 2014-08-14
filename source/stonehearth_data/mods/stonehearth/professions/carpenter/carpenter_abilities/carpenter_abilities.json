@@ -26,7 +26,19 @@
                "stonehearth:actions:teardown_structure_adjacent",
 
                "stonehearth:filters:fabricate_wooden_structure",
-               "stonehearth:filters:teardown_wooden_structure"
+               "stonehearth:filters:teardown_wooden_structure",
+
+               "stonehearth:actions:place_item",
+               "stonehearth:actions:place_item_on_wall",
+               "stonehearth:actions:place_carrying_on_wall_adjacent",
+               "stonehearth:actions:replace_proxy_with_item",
+               "stonehearth:actions:build_ladder",
+               "stonehearth:actions:build_ladder_adjacent",
+               "stonehearth:actions:teardown_ladder",
+               "stonehearth:actions:teardown_ladder_adjacent"
+
+
+
             ],
             "observers" : [
                "stonehearth:observers:combat_panic"

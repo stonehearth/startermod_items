@@ -12,7 +12,7 @@ function CarpenterTest:__init()
    self:create_world()
 
    --Add a worker
-   local worker = self:place_citizen(-5, -5)
+   --local worker = self:place_citizen(-5, -5)
 
    --Create the carpenter. You will have to create the bench as part of the test
    local carpenter = self:place_citizen(-12, 7, 'carpenter')
@@ -44,7 +44,7 @@ function CarpenterTest:__init()
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
 
-   local player_id = worker:get_component('unit_info'):get_player_id()
+   local player_id = carpenter:get_component('unit_info'):get_player_id()
    local town = stonehearth.town:get_town(player_id)
    local location = Point3(7, 0, 7)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
