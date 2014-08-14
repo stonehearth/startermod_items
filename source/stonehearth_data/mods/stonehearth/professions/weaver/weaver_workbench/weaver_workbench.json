@@ -2,7 +2,9 @@
    "mixins" : "file(weaver_workbench_ghost.json)",
    "components": {
       "stonehearth:entity_forms" : {
-         "ghost_form" : "file(weaver_workbench_ghost.json)"
+         "ghost_form" : "file(weaver_workbench_ghost.json)",
+         "iconic_form" : "file(weaver_workbench_iconic.json)",
+         "placeable_on_ground" : true
       },
       "stonehearth:commands" : {
          "commands" : [
