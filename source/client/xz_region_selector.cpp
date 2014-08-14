@@ -220,7 +220,6 @@ z_check:
          }
       }
    }
-finished:
    _p1.x = xend;
    _p1.y = _p0.y;
    _p1.z = zend;
