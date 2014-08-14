@@ -92,26 +92,22 @@ namespace radiant {
             google::protobuf::io::ArrayInputStream input(readBuf_.data(), readBuf_.size());
             google::protobuf::io::CodedInputStream decoder(&input);
 
-            int remaining = readBuf_.size();
+            const void* tail;
+            int remaining = 0;
+            int consumed = 0;
+            decoder.GetDirectBufferPointer(&tail, &remaining);
 
             // Read all we can...
-            while (!readBuf_.empty() && !process_timeout.expired()) {
-               const void* tail;
-               if (!decoder.GetDirectBufferPointer(&tail, &remaining)) {
-                  remaining = 0;
-                  break;
-               }
-
+            while (remaining > 0 && !process_timeout.expired()) {
+               google::protobuf::uint32 c = 0;
                // We're going to read message size, but if we don't have the bytes,
                // wait until the next time through.
-               if (remaining < sizeof(int32)) {
+               if (!decoder.ReadLittleEndian32(&c)) {
                   NETWORK_LOG(3) << "breaking processing loop early (went to read size)";
                   break;
                }
 
                T msg;
-               // Read the size of the incoming message, without consuming it.
-               google::protobuf::uint32 c = *(google::protobuf::uint32*)tail;
 
                NETWORK_LOG(7) << "next message size: " << c;
 
@@ -120,20 +116,27 @@ namespace radiant {
                   NETWORK_LOG(3) << "breaking processing loop early (not enough message in the buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
                   break;
                }
-
-               // Consume that message size.
-               decoder.ReadLittleEndian32(&c);
+               
+               // Parsing comes next, so consider this message processed.
+               consumed += c + sizeof(int32);
 
                auto limit = decoder.PushLimit(c);
                if (!msg.ParseFromCodedStream(&decoder)) {
+                  NETWORK_LOG(1) << "breaking processing early (error parsing message)";
                   break;
                }
                decoder.PopLimit(limit);
+
+               // Once the message has been read, we have to update the number of remaining bytes
+               // in the buffer.
+               if (!decoder.GetDirectBufferPointer(&tail, &remaining)) {
+                  remaining = 0;
+               }
+
                if (!fn(msg)) {
                   break;
                }
             }
-            int consumed = readBuf_.size() - remaining;
             readBuf_.consume(consumed);
             if (!readPending_) {
                Read();

@@ -13,6 +13,10 @@ function LeaseHolderComponent:initialize(entity, json)
    if not self._sv.leases then
       self._sv.leases = {}
    end
+
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+         self:_remove_nonpersistent_leases()
+      end)
 end
 
 function LeaseHolderComponent:_add_lease(lease_name, entity)
@@ -23,6 +27,10 @@ function LeaseHolderComponent:_add_lease(lease_name, entity)
    end
    leases[entity:get_id()] = entity
    self.__saved_variables:mark_changed()
+end
+
+function LeaseHolderComponent:_remove_nonpersistent_leases()
+   self._sv.leases['ai_reservation'] = nil
 end
 
 function LeaseHolderComponent:_remove_lease(lease_name, entity)
