@@ -8,10 +8,11 @@
 using namespace radiant;
 using namespace radiant::client;
 
-XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain, int userFlags) :   
+XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain) :   
    _inputHandlerId(0),
    _terrain(terrain),
-   _userFlags(userFlags)
+   _requireSupported(false),
+   _requireUnblocked(false)
 {
 }
 
@@ -153,7 +154,8 @@ void XZRegionSelector::SelectP1(const MouseInput &me)
 
 bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
-   RaycastResult castResult = Renderer::GetInstance().QuerySceneRay(x, y, _userFlags);
+   int const terrain_nodes_only_flag = 1;
+   RaycastResult castResult = Renderer::GetInstance().QuerySceneRay(x, y, terrain_nodes_only_flag);
    if (castResult.GetNumResults() == 0) {
       return false;
    }
