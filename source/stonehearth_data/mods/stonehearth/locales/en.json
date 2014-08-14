@@ -212,6 +212,7 @@
    "workshop_remove_confirm": "Remove?",
    "workshop_open" : "Open!",
    "workshop_closed" : "Closed",
+   "maintain_option_disabled" : "Build a stockpile to unlock more crafting options!", 
 
    "build_workshop" : "Build Workshop",
    "build_workshop_requirements" : "Requirements",

@@ -53,7 +53,7 @@ function CraftOrder:initialize(id, recipe, condition, player_id, order_list)
    self._sv.portrait = recipe.portrait
    self._sv.condition = condition
    self._sv.enabled = true
-   self._sv.is_crafting = true
+   self._sv.is_crafting = false
    self._sv.order_list = order_list
    self._sv.player_id = player_id
 
@@ -121,6 +121,14 @@ function CraftOrder:should_execute_order()
    if condition.type == "make" then
       return condition.remaining > 0 
    elseif condition.type == "maintain" then
+      --Check if the crafter (if we have one) has a don't maintain flag
+      --If "maintain" is not working right now, for example, because we have
+      --no stockpiles, then don't craft. The UI will warn the player.
+      local crafter = self._sv.order_list:get_workshop():get_component('stonehearth:workshop'):get_crafter()
+      if not crafter:get_component('stonehearth:crafter'):should_maintain() then
+         return false
+      end
+
       local we_have = 0
       local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
       local inventory_data_for_item = inventory:get_items_of_type(self._sv.recipe.produces[1].item)

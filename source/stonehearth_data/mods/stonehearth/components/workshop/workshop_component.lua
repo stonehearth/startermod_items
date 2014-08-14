@@ -19,7 +19,7 @@ function WorkshopComponent:initialize(entity, json)
 
    if not self._sv.order_list then
       self._sv.skin_class = json.skin_class or 'default'
-      self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list')
+      self._sv.order_list = radiant.create_controller('stonehearth:craft_order_list', self._entity)
       self._sv.is_paused = false
    end
    self._construction_ingredients = json.ingredients

@@ -17,5 +17,6 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(WorkAtWorkshop)
+            :execute('stonehearth:drop_carrying_now')
             :execute('stonehearth:goto_entity', { entity = ai.ARGS.workshop })
             :execute('stonehearth:run_effect', { effect = ai.ARGS.effect, times = ai.ARGS.times, facing_entity = ai.ARGS.workshop})
