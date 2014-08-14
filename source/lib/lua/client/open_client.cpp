@@ -232,7 +232,7 @@ Client_QueryScene(lua_State* L, int x, int y)
 
 XZRegionSelectorPtr Client_CreateXZRegionSelector()
 {
-   XZRegionSelectorPtr foo = Client::GetInstance().CreateXZRegionSelector(0);
+   XZRegionSelectorPtr foo = Client::GetInstance().CreateXZRegionSelector();
    return foo;
 }
 
