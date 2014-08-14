@@ -49,6 +49,7 @@ function CrafterComponent:destroy()
       self._orchestrator:destroy()
       self._orchestrator = nil
    end
+   local inventory = stonehearth.inventory:get_inventory(self._entity)
    radiant.events.unlisten(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
    radiant.events.unlisten(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
 end
