@@ -10,15 +10,14 @@ function LeaseComponent:initialize(entity, json)
       self._sv.leases = {}
    end
 
-   radiant.events.listen(radiant, 'radiant:game_loaded', function()
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          self:_remove_nonpersistent_leases()
-         return radiant.events.UNLISTEN
       end)
 end
 
-function LeaseComponent:_remove_nonpersistent_leases(lease_name, entity, options)
+function LeaseComponent:_remove_nonpersistent_leases()
    for lease_name, info in pairs(self._sv.leases) do
-      if info.persistent then
+      if not info.persistent then
          self._sv.leases[lease_name] = nil
       end
    end
