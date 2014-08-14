@@ -26,9 +26,11 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    if type(item_to_place) == 'string' then   
       next_call = 'stonehearth:place_item_type_in_world'
       placement_test_entity = radiant.entities.create_entity(item_to_place)
+      --[[  xxx, place_item_type_in_world is capable of dealing with non-iconic entity forms, so this is unnecessary.
       item_to_place = placement_test_entity:get_component('stonehearth:entity_forms')
                                              :get_iconic_entity()
                                                 :get_uri()
+      ]]
       destroy_placement_test_entity = true
    else
       next_call = 'stonehearth:place_item_in_world'
@@ -171,13 +173,15 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    local item, acceptable_item_count = stonehearth.inventory:get_inventory(session.player_id)
                                                             :find_closest_unused_placable_item(entity_uri, location)
 
-   if not item then
+   if item then
+      self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
+   
+      -- return whether or not there are most items we could potentially place
+      response:resolve({ more_items = acceptable_item_count > 1 })
+   else 
       response:fail({error = 'no more placeable items'})
    end
-   self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
 
-   -- return whether or not there are most items we could potentially place
-   response:resolve({ more_items = acceptable_item_count > 1 })
 end
 
 
