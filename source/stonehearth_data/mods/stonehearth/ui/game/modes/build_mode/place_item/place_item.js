@@ -100,9 +100,18 @@ App.StonehearthPlaceItemView = App.View.extend({
                   return info;
                })
             }
+
+            category.items.sort(function(a, b) {
+              return a.display_name.localeCompare(b.display_name);
+            });
+            
             return category
          });
       }      
+
+      arr.sort(function(a, b) {
+         return a.name.localeCompare(b.name);
+      });
 
       this.set('context.categories', arr);
     }.observes('context.tracking_data.[]').on('init'),
