@@ -75,7 +75,8 @@ function WorkAtWorkshop:_process_order(order)
    local args = {
       workshop = self._workshop,
       times = 1,
-      effect = effect
+      effect = effect, 
+      item_name = recipe.recipe_name
    }
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
                                      :set_priority(stonehearth.constants.priorities.crafting.DEFAULT)

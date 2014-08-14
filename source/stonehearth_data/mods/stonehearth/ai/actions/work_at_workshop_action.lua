@@ -6,13 +6,14 @@ WorkAtWorkshop.does = 'stonehearth:work_at_workshop'
 WorkAtWorkshop.args = {
    workshop = Entity,
    times = 'number',
-   effect = 'string'
+   effect = 'string', 
+   item_name = 'string'
 }
 WorkAtWorkshop.version = 2
 WorkAtWorkshop.priority = 1
 
 function WorkAtWorkshop:start(ai, entity, args)
-   ai:set_status_text('crafting...(insert item being crafter here)')
+   ai:set_status_text('crafting... ' .. args.item_name)
 end
 
 local ai = stonehearth.ai
