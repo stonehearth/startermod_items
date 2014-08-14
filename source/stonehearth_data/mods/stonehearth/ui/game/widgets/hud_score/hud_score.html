@@ -1,0 +1,10 @@
+<script type="text/x-handlebars" data-template-name="hudScore">
+<div id="hudScore">
+   <div id="netWorth" class="scoreElement" title="Net worth">{{score_data.net_worth.total_score}}</div>
+   <div id="population" class="scoreElement">--</div>
+   <div id="happiness" class="scoreElement" title="Town happiness level">
+      <div id="icon" {{bind-attr class=happinessIconClass}} />
+      <div id="meter" {{bind-attr class=happinessMeterClass}} />
+   </div>
+</div>
+</script>
