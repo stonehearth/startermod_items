@@ -187,9 +187,7 @@ function entities.get_world_location(entity)
    return mob:get_world_location()
 end
 
---- Given an object, find a place near it
---  Make sure it doesn't come in exactly on top of the previous object
--- TODO: this could pick something down a cliff or across a long fence...
+-- prefer radiant.terrain.find_placement_point
 function entities.pick_nearby_location(entity, radius)
    local target_location = entities.get_world_grid_location(entity)
    local dx = rng:get_int(-radius, radius)
@@ -204,6 +202,28 @@ function entities.pick_nearby_location(entity, radius)
    destination.x = destination.x + dx
    destination.z = destination.z + dz
    return destination
+end
+
+-- uris are key, value pairs of uri, quantity
+function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
+   local items = {}
+
+   for uri, quantity in pairs(uris) do
+      for i = 1, quantity do
+         local location = radiant.terrain.find_placement_point(origin, min_radius, max_radius)
+         local item = radiant.entities.create_entity(uri)
+
+         items[item:get_id()] = item
+
+         if player_id then
+            entities.set_player_id(item, player_id)
+         end
+
+         radiant.terrain.place_entity(item, location)
+      end
+   end
+
+   return items
 end
 
 function entities.distance_between(object_a, object_b)
@@ -735,11 +755,6 @@ end
 function entities._are_neutral_factions(faction_a, faction_b)
    return faction_a == nil or faction_a == '' or faction_a == 'critter' or
           faction_b == nil or faction_b == '' or faction_b == 'critter'
-end
-
-function entities.on_entity_moved(entity, fn, reason)
-   reason = reason and reason or 'on_entity_moved promise'
-   return entity:add_component('mob'):trace_transform(reason):on_changed(fn)
 end
 
 function entities.get_world_speed(entity)

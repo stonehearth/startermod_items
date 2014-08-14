@@ -230,30 +230,30 @@ Client_QueryScene(lua_State* L, int x, int y)
    return Renderer::GetInstance().QuerySceneRay(x, y, 0);
 }
 
-rpc::LuaDeferredPtr Client_SelectXZRegionWithFlags(lua_State* L, int userFlagMask)
-{  
-   XZRegionSelectorPtr selector = Client::GetInstance().CreateXZRegionSelector(userFlagMask);
-   auto d = selector->Activate();
+XZRegionSelectorPtr Client_CreateXZRegionSelector()
+{
+   XZRegionSelectorPtr foo = Client::GetInstance().CreateXZRegionSelector();
+   return foo;
+}
+
+rpc::LuaDeferredPtr Client_ActivateXZRegionSelector(lua_State* L, XZRegionSelectorPtr selector)
+{
+   auto deferred = selector->Activate();
 
    rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferredObject<XZRegionSelector>>(selector, "select xz region");
-   d->Progress([L, result](csg::Cube3 const& c) {
+
+   deferred->Progress([L, result](csg::Cube3 const& c) {
       result->Notify(luabind::object(L, c));
    });
-   d->Done([L, result](csg::Cube3 const& c) {
+   deferred->Done([L, result](csg::Cube3 const& c) {
       result->Resolve(luabind::object(L, c));
    });
-   d->Fail([L, result, d](std::string const& error) {
+   deferred->Fail([L, result](std::string const& error) {
       result->Reject(luabind::object(L, error));
    });
 
    return result;
 }
-
-rpc::LuaDeferredPtr Client_SelectXZRegion(lua_State* L)
-{  
-   return Client_SelectXZRegionWithFlags(L, 0);
-}
-
 
 class CaptureInputPromise;
 class TraceRenderFramePromise;
@@ -469,8 +469,6 @@ void lua::client::open(lua_State* L)
             def("get_render_entity",               &Client_GetRenderEntity),
             def("capture_input",                   &Client_CaptureInput),
             def("query_scene",                     &Client_QueryScene),
-            def("select_xz_region",                &Client_SelectXZRegion),
-            def("select_xz_region",                &Client_SelectXZRegionWithFlags),
             def("trace_render_frame",              &Client_TraceRenderFrame),
             def("set_cursor",                      &Client_SetCursor),
             def("create_voxel_node",               &Client_CreateVoxelNode),
@@ -486,7 +484,14 @@ void lua::client::open(lua_State* L)
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
-            
+
+            def("create_xz_region_selector",       &Client_CreateXZRegionSelector),
+            lua::RegisterTypePtr_NoTypeInfo<XZRegionSelector>("xz_region_selector")
+                .def("require_supported",          &XZRegionSelector::RequireSupported)
+                .def("require_unblocked",          &XZRegionSelector::RequireUnblocked)
+                .def("activate",                   &Client_ActivateXZRegionSelector)
+            ,
+
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
                .def("destroy",           &CaptureInputPromise::Destroy)

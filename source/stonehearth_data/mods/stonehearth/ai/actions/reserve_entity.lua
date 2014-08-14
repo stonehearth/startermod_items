@@ -32,7 +32,7 @@ function ReserveEntity:start_thinking(ai, entity, args)
       -- but we JUST stabilized the AI system and I don't want to wreak havoc on it yet
       -- again. -- tony
       ai:get_log():debug('%s cannot acquire ai lease on %s.  future abort is quite likey.', args.entity, entity)
-      self._start_thinking_timer = radiant.set_realtime_timer(100, function ()
+      self._start_thinking_timer = radiant.set_realtime_timer(1000, function ()
             self._start_thinking_timer = nil
             ai:set_think_output()
          end)

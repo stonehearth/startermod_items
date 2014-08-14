@@ -20,30 +20,21 @@ end
 -- use this when you want to get the loot and do some operation on the information.
 -- If you just want to dump the loot on the ground, use spawn_loot
 function LootTableComponent:roll_loot()
-   local item_uris = {}
+   local uris = {}
    local num_drops = rng:get_int(self._num_drops.min, self._num_drops.max)
    
    for i = 1, num_drops do
-      local item_uri = self._loot_table:choose_random()
-      table.insert(item_uris, item_uri)
+      local uri = self._loot_table:choose_random()
+      uris[uri] = 1
    end
 
-   return item_uris
+   return uris
 end
 
 function LootTableComponent:spawn_loot()
    local origin = radiant.entities.get_world_grid_location(self._entity)
-   local items_uris = self:roll_loot()
-   local items = {}
-   
-   for _, item_uri in pairs(items_uris) do
-      local item = radiant.entities.create_entity(item_uri)
-      local location = radiant.terrain.find_placement_point(origin, 1, 3)
-      radiant.terrain.place_entity(item, location)
-      items[item:get_id()] = item
-   end
-
-   return items
+   local uris = self:roll_loot()
+   return radiant.entities.spawn_items(uris, origin, 1, 3)
 end
 
 return LootTableComponent
