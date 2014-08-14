@@ -50,6 +50,7 @@ class NavGrid {
       // Support Queries.  Supported means all the blocks directly under the bottom
       // row of the region are capable of supporting weight.
       bool IsSupport(csg::Point3 const& worldPoint);
+      bool IsSupported(csg::Point3 const& worldPoint);
       
       // Standable Queries.  Standable means the region below the bottom of the location
       // is Support and the entire region is not Blocked

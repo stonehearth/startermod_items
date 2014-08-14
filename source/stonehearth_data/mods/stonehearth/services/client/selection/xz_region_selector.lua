@@ -10,9 +10,20 @@ local TERRAIN_NODES = 1
 
 function XZRegionSelector:__init()
    self._mode = 'selection'
-   self._selection_flags = TERRAIN_NODES
+   self._require_supported = false
+   self._require_unblocked = false
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
+end
+
+function XZRegionSelector:require_supported(supported)
+   self._require_supported = supported
+   return self
+end
+
+function XZRegionSelector:require_unblocked(unblocked)
+   self._require_unblocked = unblocked
+   return self
 end
 
 function XZRegionSelector:done(cb)
@@ -22,11 +33,6 @@ end
 
 function XZRegionSelector:progress(cb)
    self._progress_cb = cb
-   return self
-end
-
-function XZRegionSelector:restrict_to_standable_terrain()
-   self._selection_flags = 0
    return self
 end
 
@@ -79,9 +85,9 @@ function XZRegionSelector:destroy()
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
-   if self._xz_selector then
-      self._xz_selector:destroy()
-      self._xz_selector = nil
+   if self._deferred then
+      self._deferred:destroy()
+      self._deferred = nil
    end
 end
 
@@ -96,7 +102,11 @@ function XZRegionSelector:go()
 
    stonehearth.selection:register_tool(self, true)
 
-   self._xz_selector = _radiant.client.select_xz_region(self._selection_flags)
+   local selector = _radiant.client.create_xz_region_selector()
+      :require_supported(self._require_supported)
+      :require_unblocked(self._require_unblocked)
+
+   self._deferred = selector:activate()
       :progress(function (box)
             if self._render_node then
                self._render_node:destroy()

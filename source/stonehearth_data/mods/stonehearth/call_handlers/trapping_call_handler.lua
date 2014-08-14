@@ -6,6 +6,7 @@ local TrappingCallHandler = class()
 -- runs on the client!!
 function TrappingCallHandler:choose_trapping_grounds_location(session, response)
    stonehearth.selection:select_xz_region()
+      :require_supported(true)
       :use_designation_marquee(Color4(122, 40, 0, 255))
       :set_cursor('stonehearth:cursors:zone_trapping_grounds')
       :done(

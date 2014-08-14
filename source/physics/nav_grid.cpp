@@ -819,6 +819,17 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    return GridTileResident(index).IsSupport(offset);
 }
 
+/*
+ * -- NavGrid::IsSupported
+ *
+ * Returns whether or not the coordinate at `worldPoint` is supported.  A supported
+ * point has a support point one y unit below it.
+ *
+ */
+bool NavGrid::IsSupported(csg::Point3 const& worldPoint)
+{
+   return IsSupport(worldPoint - csg::Point3::unitY);
+}
 
 /*
  * -- NavGrid::IsStandable
@@ -833,7 +844,7 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    if (!bounds_.Contains(worldPoint)) {
       return true;
    }
-   return !IsBlocked(worldPoint) && IsSupport(worldPoint - csg::Point3::unitY);
+   return !IsBlocked(worldPoint) && IsSupported(worldPoint);
 }
 
 

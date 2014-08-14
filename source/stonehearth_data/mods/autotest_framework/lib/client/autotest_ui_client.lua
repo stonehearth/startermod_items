@@ -6,7 +6,6 @@ local ResponseQueue = require 'lib.common.response_queue'
 local RequestDispatcher = require 'lib.common.request_dispatcher'
 
 local _mouse_capture = require 'lib.common.mouse_capture'
-local _select_xz_region = _radiant.client._select_xz_region
 local _browser = ResponseQueue()
 local _server = RequestDispatcher()
 local _browser_cmd_queue = {}

@@ -20,6 +20,18 @@ XZRegionSelector::~XZRegionSelector()
    Deactivate();
 }
 
+std::shared_ptr<XZRegionSelector> XZRegionSelector::RequireSupported(bool requireSupported)
+{
+   _requireSupported = requireSupported;
+   return shared_from_this();
+}
+
+std::shared_ptr<XZRegionSelector> XZRegionSelector::RequireUnblocked(bool requireUnblocked)
+{
+   _requireUnblocked = requireUnblocked;
+   return shared_from_this();
+}
+
 std::shared_ptr<XZRegionSelector::Deferred> XZRegionSelector::Activate()
 {
    ASSERT(_inputHandlerId == 0);
@@ -161,15 +173,18 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 
 bool XZRegionSelector::IsValidLocation(int x, int y, int z) 
 {
-   // If we're only selecting the terrain and therefore ignoring entities (done when
-   // harvesting, for example), then simply return true.
-   if (_userFlags == 1) {
-      return true;
+   phys::NavGrid& navGrid = Client::GetInstance().GetOctTree().GetNavGrid();
+   csg::Point3 point(x, y, z);
+
+   if (_requireUnblocked && navGrid.IsBlocked(point)) {
+      return false;
    }
 
-   // Otherwise, consult the octree for standability.
-   phys::OctTree& octtree = Client::GetInstance().GetOctTree();
-   return octtree.GetNavGrid().IsStandable(csg::Point3(x, y, z));
+   if (_requireSupported && !navGrid.IsSupported(point)) {
+      return false;
+   }
+
+   return true;
 }
 
 void XZRegionSelector::ValidateP1(int newx, int newz)
@@ -204,4 +219,9 @@ finished:
    _p1.x = validx;
    _p1.y = _p0.y;
    _p1.z = validz;
+}
+
+std::ostream& client::operator<<(std::ostream& os, XZRegionSelector const& o)
+{
+   return os << "[XZRegionSelector ...]";
 }
