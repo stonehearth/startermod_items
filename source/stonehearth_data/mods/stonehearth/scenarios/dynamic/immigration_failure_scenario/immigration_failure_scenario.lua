@@ -112,17 +112,18 @@ end
 --- Once the user has acknowledged the bulletin, add the target reward beside the banner
 function ImmigrationFailure:acknowledge()
    local town = stonehearth.town:get_town(self._sv.player_id)
-   local banner_entity = town:get_banner()
-
-   for i=1, self._sv.notice_data.quantity do
-      --TODO: eventually, the trader will drop this when standing near the banner, but for now...
-      local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
-
-      local gift = radiant.entities.create_entity(self._sv.notice_data.reward)   
-      radiant.terrain.place_entity(gift, target_location)
-
-      --TODO: attach a brief particle effect to the new stuff
+   local banner = town:get_banner()
+   if not banner then
+      -- occurs mostly in testing. should we drop somewhere else?
+      return
    end
+
+   local drop_origin = radiant.entities.get_world_grid_location(banner)
+   local uris = {}
+   uris[self._sv.notice_data.reward] = self._sv.notice_data.quantity
+
+   --TODO: attach a brief particle effect to the new stuff
+   radiant.entities.spawn_items(uris, drop_origin, 1, 3, self._sv.player_id)
 end
 
 --- Only actually spawn the object after the user clicks OK

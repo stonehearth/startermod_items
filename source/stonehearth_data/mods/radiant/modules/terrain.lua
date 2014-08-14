@@ -130,7 +130,7 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                         :on_removed(removed_cb)
 end
 
-function Terrain.find_placement_point(starting_location, min_radius, max_radius)
+function Terrain.find_placement_point(origin, min_radius, max_radius)
    -- pick a random start location
    local x = math.random(-max_radius, max_radius)
    local z = math.random(-max_radius, max_radius)
@@ -167,7 +167,7 @@ function Terrain.find_placement_point(starting_location, min_radius, max_radius)
 
    for i=1, diameter*diameter do
       if valid(x, z) then
-         pt = starting_location + Point3(x, 0, z)
+         pt = origin + Point3(x, 0, z)
          if _physics:is_standable(pt) and not _physics:is_occupied(pt) then
             found = true
             break
