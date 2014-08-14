@@ -193,32 +193,35 @@ void XZRegionSelector::ValidateP1(int newx, int newz)
    int dz = (newz >= _p0.z) ? 1 : -1;
    int validx, validz;
 
-   // grow in the x direction
-   for (validx = _p0.x + dx; validx != newx + dx; validx += dx) {
-      for (int z = _p0.z; z != newz + dz; z += dz) {
+   int xend = newx;
+   int zend = newz;
+
+   for (validx = _p0.x; validx != xend + dx; validx += dx) {
+      if (!IsValidLocation(validx, _p0.y, _p0.z)) {
+         validx -= dx;
+         goto z_check;
+      }
+      for (int z = _p0.z; z != zend + dz; z += dz) {
          if (!IsValidLocation(validx, _p0.y, z)) {
+            zend = z - dz;
             goto z_check;
          }
       }
    }
-
-z_check:
    validx -= dx;
-   // grow in the z direction
-   for (validz = _p0.z + dz; validz != newz + dz; validz += dz) {
-      for (int x = _p0.x; x != validx + dx; x += dx) {
+z_check:
+   for (validz = _p0.z; validz != zend + dz; validz += dz) {
+      for (int x = validx; x != xend + dx; x += dx) {
          if (!IsValidLocation(x, _p0.y, validz)) {
-            goto finished;
+            xend = x - dx;
+            break;
          }
       }
    }
-
 finished:
-   validz -= dz;
-
-   _p1.x = validx;
+   _p1.x = xend;
    _p1.y = _p0.y;
-   _p1.z = validz;
+   _p1.z = zend;
 }
 
 std::ostream& client::operator<<(std::ostream& os, XZRegionSelector const& o)
