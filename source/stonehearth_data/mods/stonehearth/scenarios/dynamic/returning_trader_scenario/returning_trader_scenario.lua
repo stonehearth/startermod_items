@@ -400,19 +400,20 @@ function ReturningTrader:_accept_trade()
 
    --Add the new items to the space near the banner
    local town = stonehearth.town:get_town(self._sv._player_id)
-   local banner_entity = town:get_banner()
+   local banner = town:get_banner()
+   if not banner then
+      -- occurs mostly in testing. should we drop somewhere else?
+      return
+   end
+   local drop_origin = radiant.entities.get_world_grid_location(banner)
 
    --If the reward type was an object, make the new objects
    if self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'object' then
-      for i=1, self._sv._trade_data.reward_count do
-         local target_location = radiant.entities.pick_nearby_location(banner_entity, 3)
-         local item = radiant.entities.create_entity(self._sv._trade_data.reward_uri)   
-         radiant.entities.set_player_id(item, self._sv._player_id)
-         radiant.terrain.place_entity(item, target_location)
-
-         --TODO: attach a brief particle effect to the new stuff
-      end
-   elseif  self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'crop' then
+      local uris = {}
+      uris[self._sv._trade_data.reward_uri] = self._sv._trade_data.reward_count
+      --TODO: attach a brief particle effect to the new stuff
+      radiant.entities.spawn_items(uris, drop_origin, 1, 3, self._sv.player_id)
+   elseif self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'crop' then
       local session = {
          player_id = self._sv._player_id,
          kingdom = self._sv._kingdom

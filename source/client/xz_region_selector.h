@@ -20,8 +20,11 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       DECLARE_SHARED_POINTER_TYPES(Deferred)
 
    public:
-      XZRegionSelector(om::TerrainPtr terrain, int userFlags);
+      XZRegionSelector(om::TerrainPtr terrain);
       ~XZRegionSelector();
+
+      std::shared_ptr<XZRegionSelector> RequireSupported(bool requireSupported);
+      std::shared_ptr<XZRegionSelector> RequireUnblocked(bool requireUnblocked);
 
       std::shared_ptr<Deferred> Activate();
       void Deactivate();
@@ -37,18 +40,20 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       csg::Cube3 CreateSelectedCube();
 
    protected:
-      std::shared_ptr<Deferred>        deferred_;
-      int                              _inputHandlerId;
-      om::TerrainPtr                   _terrain;
-      csg::Color3                   _color;
-      csg::Point3                  _p0;
-      csg::Point3                  _p1;
-      bool                             _finishedP0;
-      bool                             _startedP0;
-      bool                             _finished;
-      int                          _userFlags;
+      bool                        _requireSupported;
+      bool                        _requireUnblocked;
+      std::shared_ptr<Deferred>   deferred_;
+      int                         _inputHandlerId;
+      om::TerrainPtr              _terrain;
+      csg::Color3                 _color;
+      csg::Point3                 _p0;
+      csg::Point3                 _p1;
+      bool                        _finishedP0;
+      bool                        _startedP0;
+      bool                        _finished;
 };
 
+std::ostream& operator<<(std::ostream& os, XZRegionSelector const& o);
 
 END_RADIANT_CLIENT_NAMESPACE
 

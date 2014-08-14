@@ -18,6 +18,7 @@ function FloorEditor:go(response, brush_shape)
    local brush = _radiant.voxel.create_brush(brush_shape)
 
    stonehearth.selection:select_xz_region()
+      :require_unblocked(true)
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
             local model = brush:paint_through_stencil(Region3(box))

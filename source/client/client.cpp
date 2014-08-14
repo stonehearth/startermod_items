@@ -1444,9 +1444,9 @@ void Client::ProcessBrowserJobQueue()
    browserJobQueue_.clear();
 }
 
-XZRegionSelectorPtr Client::CreateXZRegionSelector(int userFlags)
+XZRegionSelectorPtr Client::CreateXZRegionSelector()
 {
-   return std::make_shared<XZRegionSelector>(GetTerrain(), userFlags);
+   return std::make_shared<XZRegionSelector>(GetTerrain());
 }
 
 void Client::EnableDisableSaveStressTest()

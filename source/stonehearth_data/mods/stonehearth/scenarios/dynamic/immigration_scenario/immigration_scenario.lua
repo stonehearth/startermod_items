@@ -173,8 +173,13 @@ function Immigration:place_citizen(citizen)
    if not spawn_point then
       --Just use a place near the banner
       local town = stonehearth.town:get_town(self._sv.player_id)
-      local banner_entity = town:get_banner()
-      spawn_point = radiant.entities.pick_nearby_location(banner_entity, 30)
+      local banner = town:get_banner()
+      if not banner then
+         -- occurs mostly in testing. should we drop somewhere else?
+         return
+      end
+      local spawn_origin = radiant.entities.get_world_grid_location(banner)
+      local spawn_point = radiant.find_placement_point(spawn_origin, 1, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)
@@ -186,7 +191,6 @@ function Immigration:place_citizen(citizen)
                                           :set_priority(stonehearth.constants.priorities.unit_control.DEFAULT)
                                           :once()
                                           :start()
-
 
    self:_inform_player(citizen)
 

@@ -7,12 +7,13 @@
 local CraftOrder = require 'components.workshop.craft_order'
 
 local CraftOrderList = class()
-function CraftOrderList:initialize()
+function CraftOrderList:initialize(workshop_entity)
    self._sv.orders = {
       n = 0,
    }
    self._sv.next_order_id = 0
    self._sv.is_paused = false
+   self._sv.workshop_entity = workshop_entity
    self.__saved_variables:mark_changed()
 end
 
@@ -23,6 +24,10 @@ end
 function CraftOrderList:toggle_pause()
    self._sv.is_paused = not self._sv.is_paused
    self:_on_order_list_changed()
+end
+
+function CraftOrderList:get_workshop()
+   return self._sv.workshop_entity
 end
 
 --[[
@@ -109,6 +114,5 @@ function CraftOrderList:_on_order_list_changed()
    radiant.events.trigger(self, 'stonehearth:order_list_changed')
    self.__saved_variables:mark_changed()
 end
-
 
 return CraftOrderList

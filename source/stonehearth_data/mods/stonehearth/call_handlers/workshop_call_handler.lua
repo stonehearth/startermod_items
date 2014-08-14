@@ -41,6 +41,10 @@ function WorkshopCallHandler:create_ghost_workbench(session, response, workbench
    local entity_forms = workbench:get_component('stonehearth:entity_forms')
    local ghost_entity = entity_forms:get_ghost_entity()
 
+   --Disable move on the ghost entity until it is built once!
+    ghost_entity:add_component('stonehearth:commands')
+                     :remove_command('move_item')
+
    radiant.terrain.place_entity(ghost_entity, location)
    radiant.entities.turn_to(ghost_entity, rotation)
 
