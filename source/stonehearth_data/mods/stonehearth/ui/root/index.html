@@ -61,15 +61,20 @@
          resGetPath: '../../../__ns__/locales/__lng__.json'
       });
 
-      // global exception catcher
-      /*
-      window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-         console.error("Error occured: " + errorMsg);
-         console.error(url);
-         console.error('line ' + lineNumber);
+      window.onerror = function (message, file, line, column, errorObj) {
+         //console.log('Error: ' + errorObj.stack);
+         var error = {
+            message: message,
+            file: file,
+            line: line
+         }
+         App.gameView.addView(App.StonehearthJsErrorDialogView, { error : error });
          return true;
       }
-      */
+
+      window.addEventListener("error", function (e) {
+         //console.log(e.error.message, "from", e.error.stack);
+      });
 
    </script>
 
