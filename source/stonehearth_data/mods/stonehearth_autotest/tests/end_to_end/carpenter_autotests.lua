@@ -20,6 +20,7 @@ function carpenter_tests.place_workshop(autotest)
    radiant.events.listen(carpenter, 'stonehearth:crafter:workshop_changed', function (e)
          workshop = e.workshop:get_entity()
          autotest:resume()
+         return radiant.events.UNLISTEN
       end)
    autotest:suspend()
    
@@ -31,7 +32,9 @@ function carpenter_tests.place_workshop(autotest)
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       if e.entity:get_uri() == 'stonehearth:table_for_one' then 
          autotest:success()
+         return radiant.events.UNLISTEN
       end
+
    end)
 
    autotest:sleep(120 * 10000)
@@ -60,6 +63,7 @@ function carpenter_tests.maintain_x(autotest)
    radiant.events.listen(carpenter, 'stonehearth:crafter:workshop_changed', function (e)
          workshop = e.workshop:get_entity()
          autotest:resume()
+         return radiant.events.UNLISTEN
       end)
    autotest:suspend()
 
@@ -80,6 +84,7 @@ function carpenter_tests.maintain_x(autotest)
             autotest.ui:click_terrain(2, 2)
          elseif num_built == 2 then
             autotest:success()
+            return radiant.events.UNLISTEN
          end
       end
    end)
