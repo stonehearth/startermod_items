@@ -3,12 +3,18 @@ App = Ember.Application.createWithMixins({
     LOG_TRANSITIONS: true,
 
   	init: function() {
-      radiant.events.poll();
+      this._super();
+      var self = this;
 
-  		this.deferReadiness();
-  		this._super();
+      radiant.events.poll();
       this._getOptions();
-      this._loadModules();
+
+      this.deferReadiness();
+      var deferreds = []
+      radiant.call('stonehearth:sign_in').done(function() {
+        self._loadModules()
+      });
+     
   	},
 
     getModuleData: function() {
@@ -33,7 +39,7 @@ App = Ember.Application.createWithMixins({
 
              // when all the tempalates are loading, contune loading the app
              $.when.apply($, deferreds).then(function() {
-                self.advanceReadiness();
+                self._loadGameServices()
              })
          .fail(function(e) {
             radiant.report_error('call to radiant.get_modules failed', e);
@@ -164,6 +170,27 @@ App = Ember.Application.createWithMixins({
       });
 
       return deferred;
+    },
+
+    _loadGameServices: function() {
+      var self = this;
+      var deferreds = [];
+
+      // build up the array of deferreds, one for each service
+      deferreds.push($.Deferred());
+      App.population = new StonehearthPopulation(deferreds[deferreds.length - 1]);
+
+      deferreds.push($.Deferred());
+      App.inventory = new StonehearthInventory(deferreds[deferreds.length - 1]);
+
+      deferreds.push($.Deferred());
+      App.bulletinBoard = new StonehearthBulletinBoard(deferreds[deferreds.length - 1]);
+       
+      //this._traceCalendar();
+
+      $.when.apply($, deferreds).then(function() {
+        self.advanceReadiness();
+      })
     },
 
     // parse the querystring into a map of options

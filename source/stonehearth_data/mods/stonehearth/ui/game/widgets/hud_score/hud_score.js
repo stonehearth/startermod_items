@@ -16,6 +16,19 @@ App.StonehearthHudScoreWidget = App.View.extend({
                   self._convertHappiness(eobj.score_data.happiness);
                });
          });
+
+
+      App.population.getTrace()
+         .progress(function(pop) {
+            self.set('context.num_citizens', Object.keys(pop.citizens).length);
+         });
+   },
+
+   destroy: function() {
+      if (this.radiantTrace != undefined) {
+         this.radiantTrace.destroy();
+      }
+      this._super();
    },
 
    didInsertElement: function() {
@@ -33,13 +46,6 @@ App.StonehearthHudScoreWidget = App.View.extend({
 
       this.set('context.happinessIconClass', 'happiness_' + iconValue);
       this.set('context.happinessMeterClass', 'happiness_' + meterValue);
-   },
-
-   destroy: function() {
-      if (this.radiantTrace != undefined) {
-         this.radiantTrace.destroy();
-      }
-      this._super();
    },
 
 });

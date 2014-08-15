@@ -30,18 +30,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       return this._date;
    },
 
-   initGameServices: function() {
-      if (!this._gameServicesInitialized) {
-         App.population = new StonehearthPopulation();
-         App.inventory = new StonehearthInventory();
-         App.bulletinBoard = new StonehearthBulletinBoard();
-         
-         this._traceCalendar();
-
-         this._gameServicesInitialized = true;         
-      }
-   },
-
    _addViews: function(views) {
       var views = views || [];
       var self = this;

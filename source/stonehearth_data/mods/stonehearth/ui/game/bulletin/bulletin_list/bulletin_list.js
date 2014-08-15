@@ -36,6 +36,19 @@ App.StonehearthBulletinListWidget = App.View.extend({
       var self = this;
       self._super();
 
+      App.bulletinBoard.getTrace()
+         .progress(function(result) {
+            var bulletins = result.bulletins;
+
+            if (bulletins && Object.keys(bulletins).length > 0) {
+               self.$('#bulletinListWidget')
+               .show()
+               .pulse();
+            } else {
+               self.$('#bulletinListWidget').hide();
+            }
+         });
+
       self.$('#bulletinListWidget').click(function() {
          App.bulletinBoard.toggleListView();
       });

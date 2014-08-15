@@ -21,8 +21,9 @@ var StonehearthPopulation;
          }
       },
 
-      init: function() {
+      init: function(initCompletedDeferred) {
          var self = this;
+         this._initCompleteDeferred = initCompletedDeferred;
 
          radiant.call('stonehearth:get_population')
             .done(function(response){
@@ -34,8 +35,11 @@ var StonehearthPopulation;
       _createTrace: function() {
          var self = this;
 
-         this._radiantTrace = new RadiantTrace();
-         this._populationTrace = this._radiantTrace.traceUri(this._populationUri, this.components);
+         self._radiantTrace = new RadiantTrace();
+         self._populationTrace = this._radiantTrace.traceUri(this._populationUri, this.components);
+
+         // notify that the class is fully initialized
+         self._initCompleteDeferred.resolve();
       },
 
       getTrace: function() {
