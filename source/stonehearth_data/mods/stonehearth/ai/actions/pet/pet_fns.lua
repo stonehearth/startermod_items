@@ -12,12 +12,14 @@ function PetFns.get_friends_nearby(pet, range)
    for _, pop in pairs(friendly_pops) do
       local citizens = pop:get_citizens()
       for _, citizen in pairs (citizens) do
-         local citizen_location = citizen:add_component('mob'):get_world_location()
-         local distance_squared = (pet_location - citizen_location):distance_squared()
+         if citizen:is_valid() then
+            local citizen_location = citizen:add_component('mob'):get_world_location()
+            local distance_squared = (pet_location - citizen_location):distance_squared()
 
-         if distance_squared <= range_squared then
-            table.insert(friends, citizen)
-            num_friends = num_friends + 1
+            if distance_squared <= range_squared then
+               table.insert(friends, citizen)
+               num_friends = num_friends + 1
+            end
          end
       end
    end

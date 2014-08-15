@@ -36,8 +36,9 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 
       bool GetHoverBrick(int x, int y, csg::Point3 &pt);
       void ValidateP1(int x, int z);
-      bool IsValidLocation(int x, int y, int z);
+      bool IsValidLocation(int x, int y, int z) const;
       csg::Cube3 CreateSelectedCube();
+      void largestBox(int di, int dj, int istart, int *iend, int jstart, int *jend, int y, std::function<bool(int x, int y, int z)> const& isValid) const;
 
    protected:
       bool                        _requireSupported;

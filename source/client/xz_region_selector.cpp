@@ -166,14 +166,17 @@ bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
    if (!entity || entity->GetObjectId() != _terrain->GetEntity().GetObjectId()) {
       return false;
    }
-
-   // add in the normal to get the adjacent brick
-   pt = r.brick + csg::ToInt(r.normal);
-
-   return true;
+   
+   // Add in the normal to get the adjacent brick; validate.
+   csg::Point3 tempPt = r.brick + csg::ToInt(r.normal);
+   if (IsValidLocation(tempPt.x, tempPt.y, tempPt.z)) {
+      pt = tempPt;
+      return true;
+   }
+   return false;
 }
 
-bool XZRegionSelector::IsValidLocation(int x, int y, int z) 
+bool XZRegionSelector::IsValidLocation(int x, int y, int z) const
 {
    phys::NavGrid& navGrid = Client::GetInstance().GetOctTree().GetNavGrid();
    csg::Point3 point(x, y, z);
@@ -189,38 +192,53 @@ bool XZRegionSelector::IsValidLocation(int x, int y, int z)
    return true;
 }
 
+// Trace lines in the direction of the 'j' vector, while moving across the region in the direction of the 'i' vector.  If we encounter a blockage in the 'j'
+// direction, make that obstruction our new 'end' for the j taces--UNLESS the resulting area of the new rectangle is too small, in which case terminate
+// immediately.  If the start of a line trace is ever invalid, immediately end.
+void XZRegionSelector::largestBox(int di, int dj, int istart, int *iend, int jstart, int *jend, int y, std::function<bool(int x, int y, int z)> const& isValid) const
+{
+   int lastArea = 0;
+   for (int i = istart; i != *iend + di; i += di) {
+      if (!isValid(i, y, jstart)) {
+         *iend = i - di;
+         return;
+      }
+      for (int j = jstart; j != *jend + dj; j += dj) {
+         if (!isValid(i, y, j)) {
+            int curArea = abs(istart - *iend) * abs(jstart - (j - dj));
+            if (curArea < lastArea * 0.50f) {
+               *iend = i - di;
+               return;
+            }
+            *jend = j - dj;
+            break;
+         }
+      }
+      lastArea = abs(istart - *iend) * abs(jstart - *jend);
+   }
+}
+
 void XZRegionSelector::ValidateP1(int newx, int newz)
 {
    int dx = (newx >= _p0.x) ? 1 : -1;
    int dz = (newz >= _p0.z) ? 1 : -1;
-   int validx, validz;
+   int xend = newx;
+   int zend = newz;
+   int lx = abs(_p0.x - newx);
+   int lz = abs(_p0.z - newz);
 
-   // grow in the x direction
-   for (validx = _p0.x + dx; validx != newx + dx; validx += dx) {
-      for (int z = _p0.z; z != newz + dz; z += dz) {
-         if (!IsValidLocation(validx, _p0.y, z)) {
-            goto z_check;
-         }
-      }
+   if (lx >= lz) {
+      largestBox(dx, dz, _p0.x, &xend, _p0.z, &zend, _p0.y, [this](int x, int y, int z) -> bool {
+         return IsValidLocation(x, y, z);
+      });
+   } else {
+      largestBox(dz, dx, _p0.z, &zend, _p0.x, &xend, _p0.y, [this](int z, int y, int x) -> bool {
+         return IsValidLocation(x, y, z);
+      });
    }
-
-z_check:
-   validx -= dx;
-   // grow in the z direction
-   for (validz = _p0.z + dz; validz != newz + dz; validz += dz) {
-      for (int x = _p0.x; x != validx + dx; x += dx) {
-         if (!IsValidLocation(x, _p0.y, validz)) {
-            goto finished;
-         }
-      }
-   }
-
-finished:
-   validz -= dz;
-
-   _p1.x = validx;
+   _p1.x = xend;
    _p1.y = _p0.y;
-   _p1.z = validz;
+   _p1.z = zend;
 }
 
 std::ostream& client::operator<<(std::ostream& os, XZRegionSelector const& o)
