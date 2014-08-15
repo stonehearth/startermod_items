@@ -314,8 +314,10 @@
    "9_score" : "Buoyant",
    "10_score" : "Incandescent", 
 
+   "town_net_worth" : "Net worth",
+   "town_overall_happiness" : "Overall Happiness",
    "town_overview" : "Town Overview",
-   "journal_notices" : "Notices",
+   "town_happiness_tab" : "Happiness",
    "journal_today" : "Today", 
    "journal_town_log" : "Town Log",
    "journal_praises" : "Praises", 

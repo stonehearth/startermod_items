@@ -1,27 +1,31 @@
 #town {
    margin: auto auto auto auto;
+   position: relative;
 
    .window {
       width: 750px;
       height: 600px;
       //height: 850px;
+      position: relative;
+   }
+
+   .tabPage {
+      position: absolute;
+      top: 66px;
+      left: 10px;
+      right: 10px;
    }
 
    #info {
       position: relative;
+      height: 100px;
       padding-top: 10px;
       padding-left: 20px;
       padding-right: 20px;
 
-      #icon {
-         width: 85px;
-         height: 90px;
-         background: url(images/tmp_town_icon.png);
-      }
-
       #townTitle {
          position: absolute;
-         left: 110px;
+         left: 10px;
          top: 20px;
 
          #descriptor {
@@ -67,97 +71,58 @@
       }
    }
 
-   #netWorthSection {
-      position: relative;
-      margin-top: 35px;
-      height: 125px;
+   #scores {
+      top: 200px;
 
-      .ui-progressbar {
-         position: absolute;
-         width: 665px;
-         height: 52px;
-         border-width: 11px 11px 20px 11px;
-         border-image: url(images/net_worth_frame.png) 11 11 20 11 repeat;
-         text-align: center;
-      } 
-
-      .ui-progressbar-value {
-         height: 35px;
-         background-color: #38b400;
-         border-width: 9px;
-         border-image: url(images/net_worth_value.png) 9 repeat;
-      }
-
-      #netWorthNumeric {
-         position: absolute;
-         top: 43px;
-         left: 11px;
-         width: 665px;
-         height: 52px;
+      .row {
          font-family: @controlFontFamily;
-         font-size: 30px;
-         color: #d2ff00;
-         text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 6px 6px rgba(0,0,0,0.4);
-         display: flex;
+         font-size: 22px;
 
-         #value {
-            margin: auto;
+         div {
+            display: inline-block;
          }
-      }
-   }
 
-   .bigSection {
-      margin-bottom: 10px;
-   }
-
-   .scoreBar {
-      width: 675px;
-      height: 52px;
-      background-image: url(images/rating_bg.png);
-      background-position: right center;
-      background-repeat: no-repeat;
-      background-size: 52px 52px;
-      background-color: #1d1d1e;
-      border: 4px solid #000;
-
-      .ui-progressbar-value {
-         background-color: rgba(0,0,0,0);
-         font-family: @controlFontFamily;
-         color: #fff;
-         font-size: 30px;
-         padding-right: 10px;
-         text-align: right;
-         text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 6px 6px rgba(0,0,0,0.4);
-         background-color: #ffc000;
-         border-width: 9px 0px 9px 0px;
-         border-image: url(images/rating_border.png) 9 9 9 9 repeat;
-         height: 32px;
-      }
-
-      .numericValue {
-         position: absolute;
-         right: 10px;
-      }
-   }
-
-   .smallSection {
-      float: left;
-      margin-right: 30px;
-
-      .scoreBar {
-         width: 316px;
-         height: 42px;
-         background-size: 42px 42px;
-         
-         .ui-progressbar-value {
-            font-size: 20px;
-            height: 24px;
-            text-shadow: -2px -2px 0px #000, 0px -2px 0px #000, 2px -2px 0px #000, -2px 0px 0px #000, 2px 0px 0px #000, -2px 2px 0px #000, 0px 2px 0px #000, 2px 2px 0px #000, 4px 4px rgba(0,0,0,0.4);
+         div:nth-of-type(1) {
+            width: 40px;
+            height: 40px;
          }
+
+         div:nth-of-type(2) {
+            color: #a8935d;
+            width: 300px;
+         }
+
+         div:nth-of-type(3) {
+            color: #fedb17;
+         }
+
+      }
+
+      #netWorthIcon {
+         position: relative;
+         top: 4px;
+         background-image: url(images/net_worth_icon.png);
+         background-position: center center;
+         background-repeat: no-repeat;
+      }
+
+      #happinessIcon {
+         position: relative;
+         top: 6px;
+         left: 6px;
+         width: 40px;
+         height: 30px;
+         background-repeat: no-repeat;
+         background-image: url(/stonehearth/ui/game/widgets/hud_score/images/happiness_icon.png);
       }
    }
-   
-   .logTitle {
+
+   #tabs {
+      position: absolute;
+      bottom: -56px;
+   }
+
+   .logTitle { 
       color: #cf5300;   
    }
 
@@ -176,8 +141,6 @@
       right: 20px;
       width: 350px;
       overflow-y: auto;
-
-
    }
 
    .signature {
@@ -190,8 +153,6 @@
    #backForwardDiv {
       position: relative;
       width: 740px;
-
-
    }
  
    #journalsTab {
