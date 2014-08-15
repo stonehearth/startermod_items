@@ -1,16 +1,7 @@
 --[[
    Keep track of the scores relevant to different players
 
-   There are a couple kinds of scores. 
-   
-   1. Scores aggregated from citizens 
-      If citizens have fed/happiness/etc scores (incremented by observers and collected on a per-citizen 
-      basis by a score_component) we count them all up and present a town-level summary
-      for a given player. To add an aggregate scoare, specify it a .json file that belongs to the citizen 
-      (for example, see base_human.json) and then manipulate it via observer. 
-      Whenever the citizen-related score changes, someone will call the update_citizen_scores function
-   
-   2. Cumulative scores for the whole town. (For example, net worth for the inventory for the whole town, etc.)
+   -  Cumulative scores for the whole town. (For example, net worth for the inventory for the whole town, etc.)
       Every 10 minutes of in-game time, we calculate the cumulative scores. 
       To add a cumulative score, call 'add_aggregate_eval_fn' with a score category, score name and an eval function
       for how to calc the score for a given entity by that metric. For example, see inventory_service.lua.
@@ -70,8 +61,13 @@ end
 --- Given an entity, get the score for it, aka the entity's net worth 
 --  If we don't have a score for that entity, use the default score, which is 1
 function ScoreService:get_score_for_entity(entity)
-   local score_for_item = radiant.entities.get_entity_data(entity, 'net_worth') or 1
-   return score_for_item
+   local score_for_item = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
+
+   if score_for_item then
+      return score_for_item
+   else
+      return 1
+   end
 end
 
 
