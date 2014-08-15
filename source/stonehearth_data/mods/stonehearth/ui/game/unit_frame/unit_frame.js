@@ -1,20 +1,3 @@
-
-$(document).ready(function(){
-  var unitFrame = {
-      view: null,
-  }
-
-  $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-     if (!unitFrame.view && App.gameView) {
-        unitFrame.view = App.gameView.addView(App.StonehearthUnitFrameView);
-     }
-
-     if (unitFrame.view) {
-      unitFrame.view.set('uri', data.selected_entity);
-     }
-  });  
-});
-
 App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
 
@@ -109,6 +92,10 @@ App.StonehearthUnitFrameView = App.View.extend({
 
       this._updateCommandButtons();      
       this._updateBackpack();
+
+      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+        self.set('uri', data.selected_entity);
+      });        
    },
 
    _updateCommandButtons: function() {
