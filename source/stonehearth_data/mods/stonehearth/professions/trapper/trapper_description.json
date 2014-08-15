@@ -21,7 +21,5 @@
    ],
 
    "buttonIcon" : "file(images/jobButton.png)",
-   "bannerIcon" : "file(images/banner.png)",
-
-   "score_value" : 10
+   "bannerIcon" : "file(images/banner.png)"
 }

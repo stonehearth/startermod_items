@@ -1,0 +1,15 @@
+<script type="text/x-handlebars" data-template-name="errorDialogJs">
+   <div id="errorDialog">
+      <div class="heading">message <a id="close" {{action close target=view}}>close window</a></div>
+      <div class="value">{{ view.error.message }}</div>
+      <div class="heading">backtrace</div>
+      <div class="value">{{ view.error.backtrace }}</div>
+      <div class="heading">line number</div>
+      {{ view.error.line }}
+      <div class="heading">char offset</div>
+      {{ char_offset }}
+      <div class="heading">filename</div>
+      {{ view.error.file }}
+   </div>
+</div>
+</script>

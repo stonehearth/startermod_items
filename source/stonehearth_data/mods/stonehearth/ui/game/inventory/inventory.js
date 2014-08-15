@@ -12,8 +12,9 @@ var StonehearthInventory;
          }
       },
 
-      init: function() {
+      init: function(initCompletedDeferred) {
          var self = this;
+         this._initCompleteDeferred = initCompletedDeferred;
 
          return radiant.call('stonehearth:get_inventory')
             .done(function(response) {
@@ -33,6 +34,8 @@ var StonehearthInventory;
                   inventory : self._inventory
                });
             });
+
+         this._initCompleteDeferred.resolve();
       },
 
       getData: function() {

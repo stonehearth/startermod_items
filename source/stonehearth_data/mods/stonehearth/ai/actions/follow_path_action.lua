@@ -27,6 +27,8 @@ function FollowPathAction:start_thinking(ai, entity, args)
    local distance_to_path_start = start_location:distance_to(args.path:get_start_point())
    local path_length = args.path:get_distance()
    local cost = distance_to_path_start + path_length
+   self._run_distance  = cost
+   
    ai:get_log():spam('cost of traversing path is distance from ai.CURRENT to start (%s -> %s = %.3f) and path distance (%.3f) = %.3f',
                       ai.CURRENT.location, args.path:get_start_point(), distance_to_path_start, path_length, cost)
    
@@ -51,6 +53,12 @@ function FollowPathAction:run(ai, entity, args)
    log:detail('following path: %s', path)
    if path:is_empty() then
       log:detail('path is empty.  returning')
+      return
+   end
+   
+   -- If there is literally no distance to run, then don't even bother switch postures, etc; this causes animation flicker
+   if self._run_distance == 0 then
+      log:detail('path distance is zero, no movemenet necessary')
       return
    end
 

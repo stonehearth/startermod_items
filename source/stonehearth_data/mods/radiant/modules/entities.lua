@@ -342,6 +342,13 @@ function entities.get_entity_data(arg0, key)
       uri = arg0
    else
       local entity = arg0
+
+      -- if this is an icon, find the rood entity
+      local iconic_component = entity:get_component('stonehearth:iconic_form')
+      if iconic_component then
+         entity = iconic_component:get_root_entity()
+      end
+
       uri = entity:get_uri()
    end
    if uri and #uri > 0 then

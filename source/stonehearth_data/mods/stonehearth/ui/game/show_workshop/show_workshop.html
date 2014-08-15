@@ -111,6 +111,7 @@
       <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth:craft_number_right}}</label>
       </div>
 
+      {{#if show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.should_maintain}}
       <div id="maintainOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="maintain" class="craftRadioButton" id="maintain">
       <label for="maintain" style='width:auto' clicksound="sounds:ui:carpenter_menu:add_remove">{{i18n stonehearth:craft_up_to_left}}</label>
@@ -121,6 +122,9 @@
       </span>
       <label class="rightText" for="maintain" style='width:auto'>{{i18n stonehearth:craft_up_to_right}}</label>
       </div>
+      {{else}}
+      <label id="maintainDisabledId">{{i18n stonehearth:maintain_option_disabled}}</label>
+      {{/if}}
 
       <a id="craftButton" href='#' {{action craft target=view}}>
          <div id="craftButtonLabel">Craft!</div>

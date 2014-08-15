@@ -113,7 +113,11 @@ var RadiantTrace;
       _expand_uri: function(uri, properties, level) {
          var self = this;
 
-         Ember.assert("attempting to fetch something that's not a uri " + uri.toString(), toString.call(uri) == '[object String]')
+         
+         if (!typeof(uri) == "string") {
+            console.error("attempting to fetch something that's not a uri " + uri);   
+         }
+         //Ember.assert("attempting to fetch something that's not a uri " + uri.toString(), toString.call(uri) == '[object String]')
 
          self._log(level, 'fetching uri: ' + uri);
 

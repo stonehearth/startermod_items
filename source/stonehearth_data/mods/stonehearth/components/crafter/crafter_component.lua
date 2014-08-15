@@ -25,6 +25,7 @@ function CrafterComponent:initialize(entity, json)
       -- parts of our save state used by the ui.  careful modifying these     
       self._sv.craftable_recipes = craftable_recipes
 
+
       self._sv.active = false
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
@@ -36,6 +37,11 @@ function CrafterComponent:initialize(entity, json)
    end
    -- what about the orchestrator?  hmm...  will the town restore it for us?
    -- how do we get a pointer to it so we can destroy it?
+
+   local inventory = stonehearth.inventory:get_inventory(self._entity)
+   radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
+   radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+
 end
 
 function CrafterComponent:destroy()
@@ -43,6 +49,25 @@ function CrafterComponent:destroy()
       self._orchestrator:destroy()
       self._orchestrator = nil
    end
+   local inventory = stonehearth.inventory:get_inventory(self._entity)
+   radiant.events.unlisten(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
+   radiant.events.unlisten(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+end
+
+function CrafterComponent:_on_storage_changed()
+   self:_determine_maintain()
+end
+
+-- True if there are stockpiles, false otherwise. 
+-- TODO: consider elaborating to whether the stockpiles can contain stuff crafted by this crafter
+function CrafterComponent:_determine_maintain()
+   local num_stockpiles = stonehearth.inventory:get_inventory(self._entity):get_num_active_stockpiles()
+   self._sv.should_maintain = num_stockpiles > 0
+   self.__saved_variables:mark_changed()
+end
+
+function CrafterComponent:should_maintain()
+   return self._sv.should_maintain
 end
 
 --- Build the list sent to the UI from the json

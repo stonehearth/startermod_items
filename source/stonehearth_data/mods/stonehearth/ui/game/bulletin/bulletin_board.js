@@ -11,8 +11,9 @@ var StonehearthBulletinBoard;
          }
       },
 
-      init: function() {
+      init: function(initCompletedDeferred) {
          var self = this;
+         this._initCompleteDeferred = initCompletedDeferred;
 
          self._lastViewedBulletinId = -1;
 
@@ -44,6 +45,8 @@ var StonehearthBulletinBoard;
                   self._tryShowNextBulletin();
                }
             });
+
+         this._initCompleteDeferred.resolve();
       },
 
       _mapToList: function(map) {

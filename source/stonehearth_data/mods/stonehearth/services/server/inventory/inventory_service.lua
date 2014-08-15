@@ -74,7 +74,7 @@ function InventoryService:_register_score_functions()
    --eval function for placed items
    stonehearth.score:add_aggregate_eval_function('net_worth', 'placed_item', function(entity, agg_score_bag)
       if entity:get_component('stonehearth:entity_forms') then
-         local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+         local item_value = stonehearth.score:get_score_for_entity(entity)
          agg_score_bag.placed_item = agg_score_bag.placed_item + item_value
       end
    end)
@@ -94,7 +94,7 @@ function InventoryService:_register_score_functions()
          local total_score = 0
          for id, item in pairs(items) do
             if radiant.entities.is_material(item, 'food_container') or radiant.entities.is_material(item, 'food') then
-               local item_value = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+               local item_value = stonehearth.score:get_score_for_entity(entity)
                agg_score_bag.edibles = agg_score_bag.edibles + item_value
             end
          end
@@ -106,18 +106,18 @@ end
 function InventoryService:_get_score_for_building(entity)
    local region = entity:get_component('destination'):get_region()
    local area = region:get():get_area()
-   local item_multiplier = stonehearth.score:get_score_for_entity_type(entity:get_uri())
+   local item_multiplier = stonehearth.score:get_score_for_entity(entity)
    return area * item_multiplier / 10
 end
 
 --- Returns the score for all the items in the stockpile. 
---  The score for an item is usually the default (1) but is otherwise defined in score_entity_data.json
+--  The score for an item is usually the default (1) but is otherwise defined in entity's entity_data
 function InventoryService:_get_score_for_stockpile(entity)
    local stockpile_component = entity:get_component('stonehearth:stockpile')
    local items = stockpile_component:get_items()
    local total_score = 0
    for id, item in pairs(items) do
-      local item_value = stonehearth.score:get_score_for_entity_type(item:get_uri())
+      local item_value = stonehearth.score:get_score_for_entity(item)
       total_score = total_score + item_value
    end
    return total_score

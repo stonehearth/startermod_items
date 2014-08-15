@@ -31,12 +31,11 @@ function WorkAtWorkshop:run(town, args)
       local collection_success = self:_collect_ingredients(order) 
       if collection_success then
          self:_process_order(order)
-         order:set_crafting_status(false)
          
          if order:is_complete() then
             self._craft_order_list:remove_order(order)
          end
-
+         order:set_crafting_status(false)
       end
       self._town:run_orchestrator(ClearWorkshop, {
          crafter = self._crafter,
@@ -65,6 +64,7 @@ function WorkAtWorkshop:_collect_ingredients(order)
    return result
 end
 
+--- Run to the workshop and work. If the workshop has moved, run there. 
 function WorkAtWorkshop:_process_order(order)
    local recipe = order:get_recipe()
 
@@ -74,19 +74,18 @@ function WorkAtWorkshop:_process_order(order)
                          :get_work_effect()
    local args = {
       workshop = self._workshop,
-      times = recipe.work_units,
-      effect = effect
+      times = 1,
+      effect = effect, 
+      item_name = recipe.recipe_name
    }
    local task = self._task_group:create_task('stonehearth:work_at_workshop', args)
                                      :set_priority(stonehearth.constants.priorities.crafting.DEFAULT)
-                                     :once()
+                                     :times(recipe.work_units)
                                      :start()
    if not task:wait() then
       return false
    end
 
-   --TODO: what happens when a wildfire destroys the bench? See the clear_workshop orchestrator
-   
    self:_destroy_items_on_bench()
    self:_add_outputs_to_bench(recipe)
    order:on_item_created()

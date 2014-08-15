@@ -14,6 +14,7 @@ function Inventory:initialize(session)
    self._sv.kingdom = session.kingdom
    self._sv.faction = session.faction
    self._sv.storage = {}
+   self._sv.num_stockpiles = 0
    self._sv.items = {}
    self._sv.trackers = {}
    self.__saved_variables:mark_changed()
@@ -46,9 +47,14 @@ function Inventory:get_all_storage()
    return self._sv.storage
 end
 
+function Inventory:get_num_active_stockpiles()
+   return self._sv.num_stockpiles
+end
+
 function Inventory:add_storage(storage_entity)
    assert(not self._sv.storage[storage_entity:get_id()])
    self._sv.storage[storage_entity:get_id()] = storage_entity
+   self._sv.num_stockpiles = self._sv.num_stockpiles + 1
    self.__saved_variables:mark_changed()
    radiant.events.trigger(self, 'stonehearth:storage_added', { storage = storage_entity })
 end
@@ -59,6 +65,7 @@ function Inventory:remove_storage(storage_entity)
       self._sv.storage[id] = nil
       self.__saved_variables:mark_changed()
    end
+   self._sv.num_stockpiles = self._sv.num_stockpiles - 1
    radiant.events.trigger(self, 'stonehearth:storage_removed', { storage = storage_entity })
    --xxx remove the items?
 end

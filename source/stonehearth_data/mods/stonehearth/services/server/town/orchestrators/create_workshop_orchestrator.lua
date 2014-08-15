@@ -62,6 +62,11 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, workshop
    workshop_component:finish_construction(workshop_entity)
    radiant.terrain.remove_entity(ghost_workshop)
 
+   --Re-enable move on ghost
+   ghost_workshop:add_component('stonehearth:commands')
+                  :add_command('/stonehearth/data/commands/move_item')
+
+
    radiant.entities.set_faction(workshop_entity, crafter)
    radiant.entities.set_player_id(workshop_entity, crafter)
 

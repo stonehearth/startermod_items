@@ -10,6 +10,11 @@ MoveItemToAvailableStockpile.args = {
 MoveItemToAvailableStockpile.version = 2
 MoveItemToAvailableStockpile.priority = 2
 
+function MoveItemToAvailableStockpile:start(ai, entity, args)
+   ai:set_status_text('moving item to stockpile')
+end
+
+
 local ai = stonehearth.ai
 return ai:create_compound_action(MoveItemToAvailableStockpile)
          :execute('stonehearth:wait_for_closest_stockpile_space', { item = ai.ARGS.item })

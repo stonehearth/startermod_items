@@ -14,8 +14,6 @@
 
    "roles" : "weaver_profession crafter", 
 
-   "score_value" : 10, 
-
    "buttonIcon" : "file(images/jobButton.png)",
    "bannerIcon" : "file(images/banner.png)",
 

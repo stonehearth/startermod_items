@@ -13,7 +13,9 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthTaskManagerView",
             "StonehearthGameSpeedWidget",
             "StonehearthBuildingVisionWidget",
-            "StonehearthBulletinListWidget"
+            "StonehearthBulletinListWidget",
+            "StonehearthHudScoreWidget",
+            "StonehearthUnitFrameView"
          ]
       };
       
@@ -27,18 +29,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
 
    getDate: function() {
       return this._date;
-   },
-
-   initGameServices: function() {
-      if (!this._gameServicesInitialized) {
-         App.population = new StonehearthPopulation();
-         App.inventory = new StonehearthInventory();
-         App.bulletinBoard = new StonehearthBulletinBoard();
-         
-         this._traceCalendar();
-
-         this._gameServicesInitialized = true;         
-      }
    },
 
    _addViews: function(views) {

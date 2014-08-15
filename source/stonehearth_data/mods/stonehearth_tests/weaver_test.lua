@@ -7,7 +7,7 @@ function WeaverTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   --self:place_citizen(-12, 4)
+   self:place_citizen(-12, 4)
    local weaver = self:place_citizen(-12, 7, 'weaver')
    local player_id = radiant.entities.get_player_id(weaver)
 

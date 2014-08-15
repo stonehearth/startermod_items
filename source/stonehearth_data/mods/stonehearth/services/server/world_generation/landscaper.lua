@@ -18,7 +18,8 @@ local tree_types = { oak, juniper }
 local small = 'small'
 local medium = 'medium'
 local large = 'large'
-local tree_sizes = { small, medium, large }
+local ancient = 'ancient'
+local tree_sizes = { small, medium, large, ancient }
 
 local berry_bush_name = mod_prefix .. 'berry_bush'
 local generic_vegetaion_name = "vegetation"
@@ -251,11 +252,17 @@ function Landscaper:_get_tree_type(terrain_type, step)
 end
 
 function Landscaper:_get_tree_size(value)
+   local rng = self._rng
+
    local large_tree_threshold = 20
    local medium_tree_threshold = 4
 
    if value >= large_tree_threshold then
-      return large
+      if rng:get_int(1, 10) == 10 then
+         return ancient
+      else 
+         return large
+      end
    end
 
    if value >= medium_tree_threshold then

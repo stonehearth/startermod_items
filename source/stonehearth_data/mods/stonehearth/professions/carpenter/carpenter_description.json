@@ -13,8 +13,6 @@
    "roles" : "carpenter_profession crafter",
    "talisman_uri" : "stonehearth:carpenter:saw_talisman",
    
-   "score_value": 10, 
-   
    "buttonIcon" : "file(images/jobButton.png)",
    "bannerIcon" : "file(images/banner.png)",
    
