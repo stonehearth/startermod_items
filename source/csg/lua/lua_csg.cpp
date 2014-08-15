@@ -89,7 +89,9 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaQuaternion::RegisterLuaTypes(L),
             LuaRay::RegisterLuaTypes(L),
             LuaRandomNumberGenerator::RegisterLuaTypes(L),
+            def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2 const&)) &csg::GetCentroid<int, 2>),
             def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3 const&)) &csg::GetCentroid<int, 3>),
+            def("get_region_centroid", (csg::Point2f(*)(csg::Region2 const&)) &csg::GetCentroid<int, 2>),
             def("get_region_centroid", (csg::Point3f(*)(csg::Region3 const&)) &csg::GetCentroid<int, 3>)
          ]
       ]

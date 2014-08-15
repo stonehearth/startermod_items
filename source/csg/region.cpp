@@ -851,4 +851,5 @@ DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
 
 // define centroid methods
+template Point2f csg::GetCentroid(Region2 const& region);
 template Point3f csg::GetCentroid(Region3 const& region);

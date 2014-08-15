@@ -424,4 +424,5 @@ DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
 
 // define centroid methods
+template Point2f csg::GetCentroid(Rect2 const& rect);
 template Point3f csg::GetCentroid(Cube3 const& cube);
