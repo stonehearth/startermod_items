@@ -16,7 +16,6 @@
       }
    },
    "entity_data" : {
-      "stonehearth:chair" : {},
-      "stonehearth:net_worth" : 10
+      "stonehearth:chair" : {}
    }
 }

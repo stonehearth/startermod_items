@@ -66,7 +66,7 @@ function ScoreService:get_score_for_entity(entity)
    if score_for_item then
       return score_for_item
    else
-      return 1
+      return 10
    end
 end
 
