@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "xz_region_selector.h"
 #include "om/components/terrain.ridl.h"
-#include "client/renderer/raycast_result.h"
 #include "client/client.h"
 #include "client/renderer/renderer.h" // xxx: move to Client
 
@@ -14,6 +13,15 @@ XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain) :
    _requireSupported(false),
    _requireUnblocked(false)
 {
+   _filterFn = [this](RaycastResult results) -> int {
+      for (int i = 0; i < results.GetNumResults(); i++) {
+         om::EntityPtr entity = results.GetResult(i).entity.lock();
+         if (entity && entity->GetObjectId() == _terrain->GetEntity().GetObjectId()) {
+            return i;
+         }
+      }
+      return -1;
+   };
 }
 
 XZRegionSelector::~XZRegionSelector()
@@ -30,6 +38,12 @@ std::shared_ptr<XZRegionSelector> XZRegionSelector::RequireSupported(bool requir
 std::shared_ptr<XZRegionSelector> XZRegionSelector::RequireUnblocked(bool requireUnblocked)
 {
    _requireUnblocked = requireUnblocked;
+   return shared_from_this();
+}
+
+std::shared_ptr<XZRegionSelector> XZRegionSelector::WithFilter(FilterFn filter)
+{
+   _filterFn = filter;
    return shared_from_this();
 }
 
@@ -154,18 +168,18 @@ void XZRegionSelector::SelectP1(const MouseInput &me)
 
 bool XZRegionSelector::GetHoverBrick(int x, int y, csg::Point3 &pt)
 {
-   int const terrain_nodes_only_flag = 1;
-   RaycastResult castResult = Renderer::GetInstance().QuerySceneRay(x, y, terrain_nodes_only_flag);
+   int const all_nodes_flag = 0;
+   RaycastResult castResult = Renderer::GetInstance().QuerySceneRay(x, y, all_nodes_flag);
    if (castResult.GetNumResults() == 0) {
       return false;
    }
 
-   // Compare the very first intersection with the terrain.
-   RaycastResult::Result r = castResult.GetResult(0);
-   om::EntityPtr entity = r.entity.lock();
-   if (!entity || entity->GetObjectId() != _terrain->GetEntity().GetObjectId()) {
+   int idx = _filterFn(castResult);
+   if (idx < 0) {
       return false;
    }
+
+   RaycastResult::Result r = castResult.GetResult(idx);
    
    // Add in the normal to get the adjacent brick; validate.
    csg::Point3 tempPt = r.brick + csg::ToInt(r.normal);

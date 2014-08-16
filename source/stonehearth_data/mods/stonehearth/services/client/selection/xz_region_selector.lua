@@ -12,6 +12,7 @@ function XZRegionSelector:__init()
    self._mode = 'selection'
    self._require_supported = false
    self._require_unblocked = false
+   self._filter_fn = nil
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
@@ -23,6 +24,11 @@ end
 
 function XZRegionSelector:require_unblocked(unblocked)
    self._require_unblocked = unblocked
+   return self
+end
+
+function XZRegionSelector:with_filter(filter_fn)
+   self._filter_fn = filter_fn
    return self
 end
 
@@ -105,6 +111,10 @@ function XZRegionSelector:go()
    local selector = _radiant.client.create_xz_region_selector()
       :require_supported(self._require_supported)
       :require_unblocked(self._require_unblocked)
+
+   if self._filter_fn then
+      selector:with_filter(self._filter_fn)
+   end
 
    self._deferred = selector:activate()
       :progress(function (box)
