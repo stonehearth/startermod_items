@@ -8,6 +8,7 @@
 #include "csg/point.h"
 #include "csg/cube.h"
 #include "csg/color.h"
+#include "client/renderer/raycast_result.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -19,12 +20,15 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       };
       DECLARE_SHARED_POINTER_TYPES(Deferred)
 
+      typedef std::function<int(RaycastResult results)> FilterFn;
+
    public:
       XZRegionSelector(om::TerrainPtr terrain);
       ~XZRegionSelector();
 
       std::shared_ptr<XZRegionSelector> RequireSupported(bool requireSupported);
       std::shared_ptr<XZRegionSelector> RequireUnblocked(bool requireUnblocked);
+      std::shared_ptr<XZRegionSelector> WithFilter(FilterFn filter);
 
       std::shared_ptr<Deferred> Activate();
       void Deactivate();
@@ -52,6 +56,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       bool                        _finishedP0;
       bool                        _startedP0;
       bool                        _finished;
+      FilterFn                    _filterFn;
 };
 
 std::ostream& operator<<(std::ostream& os, XZRegionSelector const& o);
