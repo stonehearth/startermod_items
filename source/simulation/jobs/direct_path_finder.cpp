@@ -141,7 +141,8 @@ PathPtr DirectPathFinder::GetPath()
       return nullptr;
    }
 
-   // Walk the path from start to end and see how far we get.  
+   // Walk the path from start to end and see how far we get.
+   // GetPathPoints should always return at least the starting point, but check if empty in case this ever changes.
    std::vector<csg::Point3> points = MovementHelper(logLevel_).GetPathPoints(sim_, entity, reversiblePath_, start, end);
 
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
@@ -164,6 +165,7 @@ PathPtr DirectPathFinder::GetPath()
    // destinationRef will be invalid if using a point as the destination
    PathPtr path = std::make_shared<Path>(points, entityRef_, destinationRef_, poi);
    DPF_LOG(5) << "returning path: " << *path;
+
    return path;
 }
 

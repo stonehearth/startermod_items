@@ -25,10 +25,13 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    stopDistance_(stopDistance),
    stopIndex_(-1)
 {
+   path_->PrunePoints();
+
    om::EntityPtr entity = entity_.lock();
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       csg::Point3f startLocation = mob->GetWorldLocation();
+      pursuing_ = CalculateStartIndex(csg::ToClosestInt(startLocation));
       stopIndex_ = CalculateStopIndex(startLocation, path_->GetPoints(), path_->GetDestinationPointOfInterest(), stopDistance_);
    }
 
@@ -41,6 +44,18 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
 FollowPath::~FollowPath()
 {
    Report("destroying pathfinder");
+}
+
+int FollowPath::CalculateStartIndex(csg::Point3 const& startGridLocation) const
+{
+   std::vector<csg::Point3> points = path_->GetPoints();
+
+   if (points.size() > 1 && points.front() == startGridLocation) {
+      // skip the first point so that we don't seek the center of the current voxel before starting on the path
+      return 1;
+   } else {
+      return 0;
+   }
 }
 
 int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const

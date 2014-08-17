@@ -2,6 +2,7 @@
 #include "path.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
+#include "movement_helpers.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -18,6 +19,11 @@ Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::Ent
    id_(next_path_id_++)
 {
    ASSERT(!points.empty());
+}
+
+void Path::PrunePoints()
+{
+   points_ = MovementHelper().PruneCollinearPathPoints(points_);
 }
 
 std::ostream& Path::Format(std::ostream& os) const
