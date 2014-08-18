@@ -170,16 +170,18 @@ end
 
 function Immigration:place_citizen(citizen)
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(citizen, 80)
+   local town = stonehearth.town:get_town(self._sv.player_id)
+
    if not spawn_point then
-      --Just use a place near the banner
-      local town = stonehearth.town:get_town(self._sv.player_id)
-      local banner = town:get_banner()
-      if not banner then
-         -- occurs mostly in testing. should we drop somewhere else?
-         return
-      end
-      local spawn_origin = radiant.entities.get_world_grid_location(banner)
-      spawn_point = radiant.terrain.find_placement_point(spawn_origin, 1, 30)
+      --Spawn somewhere near the center of town
+      local faction = town:get_faction()
+      local explored_region = stonehearth.terrain:get_visible_region(faction):get()
+      local center_location = _radiant.csg.get_region_centroid(explored_region)
+      local x = radiant.math.round(center_location.x)
+      local y = 0
+      local z = radiant.math.round(center_location.y)
+      local center_grid_location = Point3(x, y, z)
+      spawn_point = radiant.terrain.find_placement_point(center_grid_location, 20, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)
@@ -187,10 +189,10 @@ function Immigration:place_citizen(citizen)
    --Give the entity the task to run to the banner
    self._approach_task = citizen:get_component('stonehearth:ai')
                            :get_task_group('stonehearth:unit_control')
-                                          :create_task('stonehearth:goto_town_banner', {})
-                                          :set_priority(stonehearth.constants.priorities.unit_control.DEFAULT)
-                                          :once()
-                                          :start()
+                                 :create_task('stonehearth:goto_town_center', {town = town})
+                                 :set_priority(stonehearth.constants.priorities.unit_control.DEFAULT)
+                                 :once()
+                                 :start()
 
    self:_inform_player(citizen)
 
