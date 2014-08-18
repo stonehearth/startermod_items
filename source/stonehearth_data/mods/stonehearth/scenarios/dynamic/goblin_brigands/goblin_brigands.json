@@ -1,5 +1,4 @@
 {
-   "name" : "Goblin Brigands",
    "scenario_types" : {
       "combat" : {
          "min_strength" : 22,
@@ -7,7 +6,7 @@
       }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:goblin_brigands",
+   "uri" : "stonehearth:scenarios:goblin_brigands",
    "scenario_data" : {
       "title" : "Armed goblins are taking your stuff!", 
       "quote" : [

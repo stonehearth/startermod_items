@@ -91,7 +91,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
       pace_keepers[implementing_type]:spawning_scenario(best_scenario)
    end
 
-   log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.name)
+   log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.uri)
    
    local new_scenario = self:_create_scenario(best_scenario)
    new_scenario:start()

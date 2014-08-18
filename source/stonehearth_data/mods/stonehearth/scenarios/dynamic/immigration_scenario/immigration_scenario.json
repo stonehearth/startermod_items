@@ -1,11 +1,10 @@
 {
-   "name" : "Immigration",
    "scenario_types" : {
       "population" : {
       }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:immigration", 
+   "uri" : "stonehearth:scenarios:immigration", 
    "scenario_data" : {
       "expiration_timeout" : "6h",
       "happiness_threshold" : 4,
