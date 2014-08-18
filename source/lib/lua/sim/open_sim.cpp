@@ -346,6 +346,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
                .def("get_name", &FollowPath::GetName)
+               .def("arrived",  &FollowPath::Arrived)
                .def("stop",     &FollowPath::Stop)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
