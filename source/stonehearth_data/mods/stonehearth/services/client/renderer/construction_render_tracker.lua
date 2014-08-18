@@ -204,8 +204,8 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
       if self._mode == 'rpg' or last_mode == 'rpg' then
          self:_fire_on_region_changed()
       end
+
       self:_update_visible()
-      self:_update_children_visibility()
    end
 end
 
@@ -218,21 +218,9 @@ function ConstructionRenderTracker:_update_visible()
       if self._on_visible_changed then
          self._on_visible_changed(visible)
       end
+      return true
    end
-end
-
-function ConstructionRenderTracker:_update_children_visibility()
-   local ec = self._entity:get_component('entity_container')
-   if ec then
-      local is_rpg = self._mode == 'rpg'
-      for _, child in ec:each_child() do
-         local re = _radiant.client.get_render_entity(child)
-         if re then
-            local visible = not is_rpg or radiant.entities.get_location_aligned(child).y < RPG_REGION_HEIGHT
-            re:set_visible_override(visible)
-         end
-      end
-   end
+   return false
 end
 
 -- checks the position of the camera vs the position of the entity to see if
