@@ -61,12 +61,20 @@ end
 --- Given an entity, get the score for it, aka the entity's net worth 
 --  If we don't have a score for that entity, use the default score, which is 1
 function ScoreService:get_score_for_entity(entity)
-   local score_for_item = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
+   local score_entity = entity;
+
+   -- if this is an icon, find the root entity
+   local iconic_component = entity:get_component('stonehearth:iconic_form')
+   if iconic_component then
+      score_entity = iconic_component:get_root_entity()
+   end
+
+   local score_for_item = radiant.entities.get_entity_data(score_entity, 'stonehearth:net_worth')
 
    if score_for_item then
       return score_for_item
    else
-      return 1
+      return 10
    end
 end
 

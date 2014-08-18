@@ -181,7 +181,7 @@ function Immigration:place_citizen(citizen)
       local y = 0
       local z = radiant.math.round(center_location.y)
       local center_grid_location = Point3(x, y, z)
-      local spawn_point = radiant.terrain.find_placement_point(center_grid_location, 20, 30)
+      spawn_point = radiant.terrain.find_placement_point(center_grid_location, 20, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)

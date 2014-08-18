@@ -236,6 +236,25 @@ XZRegionSelectorPtr Client_CreateXZRegionSelector()
    return foo;
 }
 
+XZRegionSelectorPtr XZRegionSelector_SetFilterFn(XZRegionSelectorPtr rsp, luabind::object unsafe_filter_fn)
+{
+   if (rsp) {
+      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
+      luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
+
+      rsp->WithFilter([filter_fn, cb_thread](RaycastResult results) -> int {
+         try {
+            return luabind::call_function<int>(filter_fn, results);
+         } catch (std::exception const& e) {
+            lua::ScriptHost::ReportCStackException(cb_thread, e);
+         }
+         return false;
+      });
+   }
+   return rsp;
+}
+
+
 rpc::LuaDeferredPtr Client_ActivateXZRegionSelector(lua_State* L, XZRegionSelectorPtr selector)
 {
    auto deferred = selector->Activate();
@@ -490,6 +509,7 @@ void lua::client::open(lua_State* L)
                 .def("require_supported",          &XZRegionSelector::RequireSupported)
                 .def("require_unblocked",          &XZRegionSelector::RequireUnblocked)
                 .def("activate",                   &Client_ActivateXZRegionSelector)
+                .def("with_filter",                &XZRegionSelector_SetFilterFn)
             ,
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")

@@ -504,9 +504,8 @@ void AStarPathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const 
       solution.push_back(i->second);
       i = cameFrom_.find(i->second);
    }
-   // the point on the very from contains the exact location of the starting entity.  we
-   // don't want that point in the path, so pull it off before reversing the vectory
-   solution.pop_back();
+   // following convention, we include the origin point in the path
+   // follow path can decide to skip this point so that we don't run to the origin of the current block first
    std::reverse(solution.begin(), solution.end());
 }
 

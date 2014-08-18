@@ -25,10 +25,13 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    stopDistance_(stopDistance),
    stopIndex_(-1)
 {
+   path_->PrunePoints();
+
    om::EntityPtr entity = entity_.lock();
    if (entity) {
-      om::MobPtr mob = entity->GetComponent<om::Mob>();
+      om::MobPtr mob = entity->AddComponent<om::Mob>();
       csg::Point3f startLocation = mob->GetWorldLocation();
+      pursuing_ = CalculateStartIndex(csg::ToClosestInt(startLocation));
       stopIndex_ = CalculateStopIndex(startLocation, path_->GetPoints(), path_->GetDestinationPointOfInterest(), stopDistance_);
    }
 
@@ -41,6 +44,18 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
 FollowPath::~FollowPath()
 {
    Report("destroying pathfinder");
+}
+
+int FollowPath::CalculateStartIndex(csg::Point3 const& startGridLocation) const
+{
+   std::vector<csg::Point3> points = path_->GetPoints();
+
+   if (points.size() > 1 && points.front() == startGridLocation) {
+      // skip the first point so that we don't seek the center of the current voxel before starting on the path
+      return 1;
+   } else {
+      return 0;
+   }
 }
 
 int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const
@@ -102,9 +117,9 @@ bool FollowPath::Work(platform::timer const& timer)
 
    float moveDistance = speed_ * GetSim().GetBaseWalkSpeed();
    std::vector<csg::Point3> const& points = path_->GetPoints();
-   auto mob = entity->GetComponent<om::Mob>();
+   om::MobPtr mob = entity->AddComponent<om::Mob>();
 
-   while (!Arrived(mob) && !Obstructed() && moveDistance > 0)  {
+   while (!Arrived() && !Obstructed() && moveDistance > 0)  {
       csg::Point3f const location = mob->GetLocation();
       csg::Point3f const goal = csg::ToFloat(points[pursuing_]);
       csg::Point3f const goalVector = goal - location;
@@ -125,7 +140,7 @@ bool FollowPath::Work(platform::timer const& timer)
       }
    }
 
-   if (Arrived(mob)) {
+   if (Arrived()) {
       Report("arrived!");
       if (arrived_cb_.is_valid()) {
          try {
@@ -140,12 +155,12 @@ bool FollowPath::Work(platform::timer const& timer)
    return true;
 }
 
-bool FollowPath::Arrived(om::MobPtr mob)
+bool FollowPath::Arrived() const
 {
    ASSERT(path_);
 
-   if (pursuing_ > stopIndex_) {
-      return true;
+   if (pursuing_ < stopIndex_) {
+      return false;
    }
 
    // Don't travel all the way to stopIndex_ if not necessary.
@@ -155,26 +170,32 @@ bool FollowPath::Arrived(om::MobPtr mob)
    // If stopDistance_ == 0 then make sure we finish pursuing all points on the path.
    // This is important when the entity and poi are at the same location and we're trying
    // to move to a point in the adjacent region (e.g. to pick up the item).
-   if (pursuing_ == stopIndex_ && stopDistance_ > 0) {
-      csg::Point3f const poi = csg::ToFloat(path_->GetDestinationPointOfInterest());
-      csg::Point3f const location = mob->GetLocation();
-      float const distance = location.DistanceTo(poi);
+   if (pursuing_ == stopIndex_) {
+      om::EntityPtr entity = entity_.lock();
+      if (entity) {
+         om::MobPtr mob = entity->AddComponent<om::Mob>();
+         csg::Point3f location = mob->GetLocation();
 
-      if (distance <= stopDistance_) {
-         return true;
+         if (stopDistance_ > 0) {
+            csg::Point3f poi = csg::ToFloat(path_->GetDestinationPointOfInterest());
+            float distance = location.DistanceTo(poi);
+            return distance <= stopDistance_;
+         } else {
+            std::vector<csg::Point3> const& points = path_->GetPoints();
+            csg::Point3f goal = csg::ToFloat(points[stopIndex_]);
+            return location == goal;
+         }
       }
    }
-   return false;
+
+   return true;
 }
 
-bool FollowPath::Obstructed()
-{   
-   //ASSERT(_terrain && path_);
-   //const std::vector<csg::Point3> &points = path_->GetPoints();
-
-   // xxx: IGNORE_OBSTRUCTED:
+bool FollowPath::Obstructed() const
+{
+   // We'll need to implement this to prevent entities from walking through geometry that
+   // didn't exist when the path was created.
    return false;
-   //return pursuing_ < points.size() && !_grid->isPassable(points[pursuing_]);
 }
 
 void FollowPath::Stop()
@@ -183,7 +204,7 @@ void FollowPath::Stop()
    entity_.reset();
 }
 
-void FollowPath::Report(std::string const& msg)
+void FollowPath::Report(std::string const& msg) const
 {
    auto entity = entity_.lock();
    if (entity) {
@@ -191,7 +212,7 @@ void FollowPath::Report(std::string const& msg)
       if (!points.empty()) {
          auto start = points.front();
          auto end = points.back();
-         auto location = entity->GetComponent<om::Mob>()->GetWorldLocation();
+         auto location = entity->AddComponent<om::Mob>()->GetWorldLocation();
          FP_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " " << start << " -> " << end << " currently at " << location << ")";
       } else {
          FP_LOG(5) << msg << " (entity:" << entity->GetObjectId() << " path has no points)";

@@ -15,6 +15,7 @@ class Path {
          return points_;
       }
 
+      void PrunePoints();
       bool IsEmpty() const { return points_.size() == 0; }
       float GetDistance() const;
       om::EntityRef GetDestination() const { return destination_; }
