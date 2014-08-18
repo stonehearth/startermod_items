@@ -368,6 +368,8 @@
 
       "actions:get_town_banner" : "file(ai/actions/get_town_banner.lua)",
       "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
+      "actions:goto_town_center" : "file(ai/actions/goto_town_center.lua)",
+      "actions:get_town_center" : "file(ai/actions/get_town_center.lua)",
       "actions:harvest_resource_node_action" : "file(ai/actions/harvest_resource_node.lua)",
       "actions:harvest_resource_node_adjacent_action" : "file(ai/actions/harvest_resource_node_adjacent.lua)",
       "actions:harvest_crop" : "file(ai/actions/harvest_crop.lua)",
