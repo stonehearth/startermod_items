@@ -22,10 +22,6 @@ end
 function BasicInventoryTracker:create_key_for_entity(entity)
    assert(entity:is_valid(), 'entity is not valid.')
    local uri = entity:get_uri()
-   local iconic_component = entity:get_component('stonehearth:iconic_form')
-   if iconic_component then
-      uri = iconic_component:get_root_entity():get_uri()
-   end 
    return uri
 end
 
