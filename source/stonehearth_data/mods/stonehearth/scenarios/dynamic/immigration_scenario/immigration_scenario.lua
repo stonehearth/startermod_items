@@ -179,7 +179,7 @@ function Immigration:place_citizen(citizen)
          return
       end
       local spawn_origin = radiant.entities.get_world_grid_location(banner)
-      local spawn_point = radiant.find_placement_point(spawn_origin, 1, 30)
+      spawn_point = radiant.terrain.find_placement_point(spawn_origin, 1, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)
