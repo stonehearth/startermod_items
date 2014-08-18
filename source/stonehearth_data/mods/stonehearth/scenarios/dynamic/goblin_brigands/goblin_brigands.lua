@@ -44,7 +44,7 @@ function GoblinBrigands:start()
    local session = {
       player_id = 'game_master',
       faction = 'goblin',
-      kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
+      kingdom = 'stonehearth:kingdoms:goblin'
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)

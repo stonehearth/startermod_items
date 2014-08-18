@@ -48,10 +48,10 @@
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
       "mixins:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
-      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
-      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
-      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
-      "kingdoms:golden_conquering_arm" : "file(services/server/population/data/golden_conquering_arm.json)",
+      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy_population.json)",
+      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
+      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
+      "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -124,7 +124,8 @@
       "female_2" : "file(entities/humans/female_2)",
       "female_3" : "file(entities/humans/female_3)",
 
-      "goblin" : "file(entities/monsters/goblin)",
+      "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
+      "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 

@@ -44,7 +44,7 @@ function PatrolTest:create_enemy_kingdom()
    local session = {
       player_id = 'game_master',
       faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
+      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
