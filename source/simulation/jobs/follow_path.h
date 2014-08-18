@@ -15,16 +15,14 @@ public:
 
 public:
    bool Work(const platform::timer &timer) override;
-
-public:
+   bool Arrived() const;
    void Stop();
 
 protected:
    int CalculateStartIndex(csg::Point3 const& startGridLocation) const;
    int CalculateStopIndex(csg::Point3f const& startLocation, std::vector<csg::Point3> const& points, csg::Point3 const& pointOfInterest, float stopDistance) const;
-   bool Arrived(om::MobPtr mob);
-   bool Obstructed();
-   void Report(std::string const& msg);
+   bool Obstructed() const;
+   void Report(std::string const& msg) const;
 
 protected:
    om::EntityRef           entity_;

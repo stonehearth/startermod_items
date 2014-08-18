@@ -4,10 +4,10 @@ local FollowPathAction = class()
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
 FollowPathAction.args = {
-   path = Path,          -- the path to follow
+   path = Path,
    stop_distance = {
-      type = 'number',
-      default = 0,
+      type = 'number', -- stop when closer than this distance to the point of interest
+      default = 0,     -- may be (and typically is) a floating point value
    },
    move_effect = {
       type = 'string',
@@ -27,7 +27,6 @@ function FollowPathAction:start_thinking(ai, entity, args)
    local distance_to_path_start = start_location:distance_to(args.path:get_start_point())
    local path_length = args.path:get_distance()
    local cost = distance_to_path_start + path_length
-   self._run_distance  = cost
    
    ai:get_log():spam('cost of traversing path is distance from ai.CURRENT to start (%s -> %s = %.3f) and path distance (%.3f) = %.3f',
                       ai.CURRENT.location, args.path:get_start_point(), distance_to_path_start, path_length, cost)
@@ -46,46 +45,42 @@ function FollowPathAction:run(ai, entity, args)
    self._ai = ai
    self._entity = entity
 
-   -- make sure we record the starting posture. if the posture changed recently, the async trigger
-   -- may not have fired yet and we want to know if it has really changed or not.
-   self._posture = radiant.entities.get_posture(entity)
-   
    log:detail('following path: %s', path)
    if path:is_empty() then
       log:detail('path is empty.  returning')
       return
    end
-   
-   -- If there is literally no distance to run, then don't even bother switch postures, etc; this causes animation flicker
-   if self._run_distance == 0 then
-      log:detail('path distance is zero, no movemenet necessary')
-      return
-   end
-
-   self._listening = true
-   radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
 
    local speed = radiant.entities.get_world_speed(entity)
 
-   -- should we do this using a buff?
+   -- TODO: use a buff for this?
    if self._posture == 'stonehearth:patrol' then
       speed = speed * 0.3
    end
-
-   -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
-   -- people will only play through the animation once.
-   self._effect = radiant.effects.run_effect(entity, args.move_effect)
-      :set_cleanup_on_finish(false)
 
    local arrived_fn = function()
       ai:resume('mover finished')
    end
    
-   self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)   
-   ai:get_log():debug('starting mover %s...', self._mover:get_name());
-   ai:suspend('waiting for mover to finish')
+   self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)
 
-   -- manually stop now to terminate the effect and remove the posture
+   if not self._mover:arrived() then
+      -- make sure we record the starting posture. if the posture changed recently, the async trigger
+      -- may not have fired yet and we want to know if it has really changed or not.
+      self._posture = radiant.entities.get_posture(entity)
+      radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
+      self._listening = true
+
+      -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
+      -- people will only play through the animation once.
+      self._effect = radiant.effects.run_effect(entity, args.move_effect)
+         :set_cleanup_on_finish(false)
+
+      ai:get_log():debug('starting mover %s...', self._mover:get_name());
+      ai:suspend('waiting for mover to finish')
+   end
+
+   -- stop isn't called until all actions in a compound action finish, so stop the effect here now
    self:stop(ai, entity, args)
 end
 
