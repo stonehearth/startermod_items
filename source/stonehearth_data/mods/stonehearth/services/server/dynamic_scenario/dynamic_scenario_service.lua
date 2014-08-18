@@ -15,10 +15,10 @@ function DynamicScenarioService:initialize()
 end
 
 
-function DynamicScenarioService:force_spawn_scenario(scenario_name)
+function DynamicScenarioService:force_spawn_scenario(scenario_uri)
    for _, scenario_sets in pairs(self._sv._scenarios) do
       for _, scenario in pairs(scenario_sets) do
-         if scenario.properties.name == scenario_name then
+         if scenario.uri == scenario_uri then
             local new_scenario = self:_create_scenario(scenario)
             new_scenario:start()
             table.insert(self._sv.running_scenarios, new_scenario)
@@ -161,6 +161,5 @@ function DynamicScenarioService:_create_scenario(scenario)
 
    return dyn_scenario
 end
-
 
 return DynamicScenarioService

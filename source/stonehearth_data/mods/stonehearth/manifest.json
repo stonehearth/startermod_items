@@ -630,6 +630,7 @@
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
+      "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "score_category_data" : "file(data/score/score_category_data.json)",
@@ -971,13 +972,14 @@
       "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)",
       "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
 
-      "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
-      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+      "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
+      "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+      "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.lua)",
 
-      "immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
-      "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
-      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
-      "returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
+      "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
+      "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
+      "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
+      "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",

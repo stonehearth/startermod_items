@@ -33,7 +33,7 @@ function score_tests.immigration_failure(autotest)
    end)
 
    --Try to spawn the immigration_failure scenario
-   stonehearth.dynamic_scenario:force_spawn_scenario('Immigration Failure')
+   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:immigration_failure')
 
    autotest.util:fail_if_expired(60 * 1000, 'failed to get stuff from traveller')
 end

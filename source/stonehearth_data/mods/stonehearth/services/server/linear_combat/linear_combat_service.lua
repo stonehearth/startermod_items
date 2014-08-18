@@ -55,7 +55,7 @@ function LinearCombatService:_first_spawn()
    self._timer = stonehearth.calendar:set_interval(spawn_interval, function() self:_subsequent_spawn() end)
    self._sv.expire_time = self._timer:get_expire_time()
 
-   stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
 end
 
 function LinearCombatService:_subsequent_spawn()
@@ -65,10 +65,10 @@ function LinearCombatService:_subsequent_spawn()
 
    --If no goblin has been killed yet, spawn a thief. 
    if self._sv.num_killed < 1 then
-      stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
    else 
       --Otherwise, spawn a brigand
-      stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = self._num_escorts })
+      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = self._num_escorts })
       if self._num_escorts < 3 then
          self._num_escorts = self._num_escorts + 1
       end
