@@ -18,19 +18,18 @@ function ScenarioTest:__init()
    --self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
 
    -- Introduce a new person/scenario 
-   --[[
-   self:at(30000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+   self:at(5000,  function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
       end)
 
-   self:at(40000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+   self:at(10000,  function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
       end)
 
    self:at(70000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Thief')
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
       end)
-   ]]
+
    
 end
 

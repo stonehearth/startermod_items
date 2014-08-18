@@ -185,8 +185,8 @@ App = Ember.Application.createWithMixins({
 
       deferreds.push($.Deferred());
       App.bulletinBoard = new StonehearthBulletinBoard(deferreds[deferreds.length - 1]);
-       
-      //this._traceCalendar();
+
+      // xxx, move the calendar to a game service!       
 
       $.when.apply($, deferreds).then(function() {
         self.advanceReadiness();

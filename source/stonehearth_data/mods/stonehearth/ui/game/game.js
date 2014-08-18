@@ -20,6 +20,9 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       };
       
       this._addViews(this.views.initial);
+
+      // xxx, move the calendar to a data service like population
+      this._traceCalendar();
    },
 
    destroy: function() {

@@ -10,8 +10,6 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#pragma optimize( "", off )
-
 /*
  * -- phys::LocalToWorld
  *
@@ -106,5 +104,3 @@ template csg::Point3 phys::LocalToWorld(csg::Point3 const&, om::EntityPtr);
 template csg::Region3 phys::LocalToWorld(csg::Region3 const&, om::EntityPtr);
 
 template csg::Point3 phys::WorldToLocal(csg::Point3 const&, om::EntityPtr);
-
-#pragma optimize( "", on )

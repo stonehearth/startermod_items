@@ -82,15 +82,15 @@ function EmbarkTest:__init()
 
    ---[[
    self:at(20000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
 
    self:at(50000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
 
    self:at(70000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
    --]]
 

@@ -1,11 +1,10 @@
 {
-   "name" : "Immigration Failure",
    "scenario_types" : {
       "population" : {
       }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:immigration_failure", 
+   "uri" : "stonehearth:scenarios:immigration_failure", 
    "scenario_data" : {
       "edible_threshold" : 10,
       "title" : "A traveller approaches holding a bundle.",

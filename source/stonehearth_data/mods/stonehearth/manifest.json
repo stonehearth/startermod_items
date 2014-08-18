@@ -48,10 +48,10 @@
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
       "mixins:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
-      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy.json)",
-      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance.json)",
-      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children.json)",
-      "kingdoms:golden_conquering_arm" : "file(services/server/population/data/golden_conquering_arm.json)",
+      "kingdoms:ascendancy" : "file(services/server/population/data/ascendancy_population.json)",
+      "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
+      "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
+      "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -124,7 +124,8 @@
       "female_2" : "file(entities/humans/female_2)",
       "female_3" : "file(entities/humans/female_3)",
 
-      "goblin" : "file(entities/monsters/goblin)",
+      "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
+      "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
@@ -368,6 +369,8 @@
 
       "actions:get_town_banner" : "file(ai/actions/get_town_banner.lua)",
       "actions:goto_town_banner" : "file(ai/actions/goto_town_banner.lua)",
+      "actions:goto_town_center" : "file(ai/actions/goto_town_center.lua)",
+      "actions:get_town_center" : "file(ai/actions/get_town_center.lua)",
       "actions:harvest_resource_node_action" : "file(ai/actions/harvest_resource_node.lua)",
       "actions:harvest_resource_node_adjacent_action" : "file(ai/actions/harvest_resource_node_adjacent.lua)",
       "actions:harvest_crop" : "file(ai/actions/harvest_crop.lua)",
@@ -629,6 +632,7 @@
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
+      "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "score_category_data" : "file(data/score/score_category_data.json)",
@@ -970,13 +974,14 @@
       "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)",
       "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
 
-      "goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
-      "goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+      "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
+      "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
+      "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.lua)",
 
-      "immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
-      "immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
-      "simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
-      "returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
+      "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
+      "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
+      "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
+      "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",

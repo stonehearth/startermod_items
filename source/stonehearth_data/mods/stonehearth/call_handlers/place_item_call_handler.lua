@@ -170,8 +170,13 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    local location = Point3(location.x, location.y, location.z)
 
    -- look for entities which are not currently being placed
+   local uri = entity_uri
+   local data = radiant.entities.get_component_data(uri, 'stonehearth:entity_forms')
+   if data and data.iconic_form then
+      uri = data.iconic_form
+   end
    local item, acceptable_item_count = stonehearth.inventory:get_inventory(session.player_id)
-                                                            :find_closest_unused_placable_item(entity_uri, location)
+                                                            :find_closest_unused_placable_item(uri, location)
 
    if item then
       self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)

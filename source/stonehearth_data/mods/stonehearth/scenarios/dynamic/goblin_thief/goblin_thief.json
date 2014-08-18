@@ -1,5 +1,4 @@
 {
-   "name" : "Goblin Thief",
    "scenario_types" : {
    "combat" : {
      "min_strength" : 0,
@@ -7,7 +6,7 @@
    }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:goblin_thief", 
+   "uri" : "stonehearth:scenarios:goblin_thief", 
    "scenario_data" : {
       "title" : "A goblin is stealing your stuff!", 
       "quote" : [

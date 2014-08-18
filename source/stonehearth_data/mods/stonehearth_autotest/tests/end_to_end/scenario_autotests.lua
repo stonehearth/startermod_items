@@ -33,7 +33,7 @@ function score_tests.immigration_failure(autotest)
    end)
 
    --Try to spawn the immigration_failure scenario
-   stonehearth.dynamic_scenario:force_spawn_scenario('Immigration Failure')
+   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:immigration_failure')
 
    autotest.util:fail_if_expired(60 * 1000, 'failed to get stuff from traveller')
 end
@@ -68,7 +68,7 @@ function score_tests.simple_carvan(autotest)
 
    --Wait until the person has put the thing in the stockpile
    radiant.events.listen(stockpile, 'stonehearth:item_added', function(e)
-      stonehearth.dynamic_scenario:force_spawn_scenario('Simple Caravan')
+      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:simple_caravan')
       return radiant.events.UNLISTEN
    end)
 
