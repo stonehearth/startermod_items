@@ -1,11 +1,10 @@
 {
-   "name" : "Simple Caravan",
    "scenario_types" : {
       "population" : {
       }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:simple_caravan", 
+   "uri" : "stonehearth:scenarios:simple_caravan", 
    "scenario_data" : {
       "title" : "A caravan approaches!",
       "expiration_timeout" : "1h",

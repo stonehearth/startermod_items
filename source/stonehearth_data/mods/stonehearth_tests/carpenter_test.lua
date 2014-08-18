@@ -53,13 +53,13 @@ function CarpenterTest:__init()
 
    -- Tests!
    --self:at(50000,  function()
-   --      stonehearth.dynamic_scenario:force_spawn_scenario('Returning Trader')
+   --      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:returning_trader')
    --   end)
 
 
    --[[
    self:at(20000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('Goblin Brigands', { num_escorts = 1 })
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
 
    --500ms seconds in, create an order for a shield (multiple types of ingredients)

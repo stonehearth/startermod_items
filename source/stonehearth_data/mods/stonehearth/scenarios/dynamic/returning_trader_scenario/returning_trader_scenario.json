@@ -1,11 +1,10 @@
 {
-   "name" : "Returning Trader",
    "scenario_types" : {
       "population" : {
       }
    },
    "rarity" : "common",
-   "uri" : "stonehearth:returning_trader", 
+   "uri" : "stonehearth:scenarios:returning_trader", 
    "scenario_data" : {
       "expiration_timeout" : "6h",
       "score_threshold" : 1000,

@@ -2,14 +2,12 @@
    "mixins" : "file(../../entity_cluster)",
    "name" : "brightbell_field",
    "category" : "terrain", 
-   "habitat_types" : ["plains"],
+   "habitat_types" : ["plains", "foothills"],
+   "weight" : 10,
    "size" : {
       "width" : 4,
       "length" : 4
    },
-   "weight" : 10,
-   "habitat_types" : ["plains", "foothills"],
-
    "scenario_info" : {
       "entity_type" : "stonehearth:brightbell:wild",
       "entity_footprint_length" : 2,

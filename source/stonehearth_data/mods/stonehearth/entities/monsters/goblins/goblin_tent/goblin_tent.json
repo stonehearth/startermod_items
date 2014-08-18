@@ -1,0 +1,37 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info" : {
+         "name": "A Tent",
+         "description": "Made from crudely-sewn animal hides",
+         "faction": "goblin"
+      },      
+      "render_info" : {
+         "scale" : 0.5
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(goblin_tent_1.qb)", 
+                     "file(goblin_tent_2.qb)", 
+                     "file(goblin_tent_3.qb)"
+                  ]
+               }
+            ]
+         }
+      },
+      "mob" : {
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0,  "z" : -3 },
+               "max" : { "x" :  3, "y" : 24, "z" :  4 }
+            }
+         ]
+      }      
+   }
+}

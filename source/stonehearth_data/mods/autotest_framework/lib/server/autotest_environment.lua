@@ -39,7 +39,7 @@ function env.create_enemy_kingdom()
    local session = {
       player_id = 'enemy',
       faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:golden_conquering_arm'
+      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
