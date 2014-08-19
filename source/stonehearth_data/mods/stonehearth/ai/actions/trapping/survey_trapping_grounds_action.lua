@@ -17,7 +17,8 @@ return ai:create_compound_action(SurveyTrappingGrounds)
       entity = ai.ARGS.trapping_grounds
    })
    :execute('stonehearth:create_proxy_entity', {
-      location = ai.PREV.point_of_interest
+      location = ai.PREV.point_of_interest,
+      place_on_standable_point = true,
    })
    :execute('stonehearth:turn_to_face_entity', {
       entity = ai.PREV.entity
