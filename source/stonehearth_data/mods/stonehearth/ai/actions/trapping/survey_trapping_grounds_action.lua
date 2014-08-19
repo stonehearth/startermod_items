@@ -17,6 +17,7 @@ return ai:create_compound_action(SurveyTrappingGrounds)
       entity = ai.ARGS.trapping_grounds
    })
    :execute('stonehearth:create_proxy_entity', {
+      reason = 'surveying trapping grounds',
       location = ai.PREV.point_of_interest
    })
    :execute('stonehearth:turn_to_face_entity', {

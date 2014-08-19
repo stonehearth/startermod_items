@@ -8,10 +8,11 @@ CreateProxyEntity.name = 'create proxy entity'
 CreateProxyEntity.does = 'stonehearth:create_proxy_entity'
 CreateProxyEntity.args = {
    location = Point3,
+   reason = 'string',
    use_default_adjacent_region = {
       type = 'boolean',
       default = false,
-   }
+   },
 }
 CreateProxyEntity.think_output = {
    entity = Entity   -- the proxy entity
@@ -26,7 +27,7 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
 
    self._using_proxy_entity = false
 
-   self._proxy_entity = radiant.entities.create_proxy_entity(args.use_default_adjacent_region)
+   self._proxy_entity = radiant.entities.create_proxy_entity(args.reason, args.use_default_adjacent_region)
 
    -- do not use radiant.terrain.place_entity, here.  that will put the entity on the terrain,
    -- which may not be the *exact* location passed in, which may screw some people up
