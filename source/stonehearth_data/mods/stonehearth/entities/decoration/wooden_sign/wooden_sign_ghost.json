@@ -16,7 +16,7 @@
       },     
       "unit_info": {
          "name": "Wooden Wall-Mounted Sign",
-         "description": "A generic sign, to identify your buildings",
+         "description": "An expression of future intent.",
          "icon" : "file(wooden_sign.png)"
       },
       "stonehearth:material" : {

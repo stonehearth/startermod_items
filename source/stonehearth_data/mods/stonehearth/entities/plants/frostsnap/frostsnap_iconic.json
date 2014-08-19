@@ -2,11 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "unit_info": {
-         "name": "Frostsnap Flower Pot",
-         "description": "Ready to be deployed!",
-         "icon" : "file(frostsnap.png)"
-      },
       "model_variants": {
          "default": {
             "models": [

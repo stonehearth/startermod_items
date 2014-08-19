@@ -4,6 +4,7 @@
    "work_units"  : 3,
    "recipe_name" : "Carpenter's Wall-Mounted Sign",
    "description" : "A sign with the mark of the Carpenter, to be placed on buildings.",
+   "flavor"      : "Get your wooden things right here!",
    "portrait"    : "/stonehearth/entities/decoration/wooden_sign_carpenter/wooden_sign_carpenter.png",
 
    "ingredients": [

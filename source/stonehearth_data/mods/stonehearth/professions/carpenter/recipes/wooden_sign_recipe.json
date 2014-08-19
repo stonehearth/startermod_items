@@ -4,6 +4,7 @@
    "work_units"  : 3,
    "recipe_name" : "Wooden Wall-Mounted Sign",
    "description" : "A generic sign, to identify your buildings",
+   "flavor"      : "But if it's *generic*, how will...? NM. (-sdee)",
    "portrait"    : "/stonehearth/entities/decoration/wooden_sign/wooden_sign.png",
 
    "ingredients": [
