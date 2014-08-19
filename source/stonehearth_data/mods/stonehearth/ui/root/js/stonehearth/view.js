@@ -34,6 +34,17 @@
       this._super();
    },
 
+   show: function() {
+      var self = this;
+      Ember.run.scheduleOnce('afterRender', this, function() {
+         self.$().show();
+      });
+   },
+
+   hide: function() {
+      this.$().hide();
+   },
+   
    didInsertElement: function() {
       var position = this.get('position');
 
