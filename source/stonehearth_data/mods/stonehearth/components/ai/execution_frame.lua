@@ -275,13 +275,7 @@ function ExecutionFrame:_remove_action(unit)
    if self._state == 'ready' then
       return self:_remove_action_from_ready(unit)
    end
-   -- Attention Tony!
-   -- BUG?? When a goblin is carrying something and is attacked by multiple dudes at once, he tries to go from
-   -- remove a "started" action (usually, as he fluctuates between combat things to do.)
-   -- This causes a giant assert here. Is it OK to added 'started' to the states below? Why is it not
-   -- ok to remove something from 'started' when it IS ok to remove something from 'starting'? 
-   -- (sdee, albert)
-   if self:in_state('running', 'switching', 'starting') then
+   if self:in_state('running', 'switching', 'starting', 'started') then
       return self:_remove_action_from_running(unit)
    end
    if self._state == 'stopping' then

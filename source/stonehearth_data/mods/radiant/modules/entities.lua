@@ -37,6 +37,26 @@ function entities.destroy_entity(entity)
             entities.destroy_entity(child)
          end
       end
+      --If we're the big one, destroy the little and ghost one
+      local entity_forms = entity:get_component('stonehearth:entity_forms')
+      if entity_forms then
+         local iconic_entity = entity_forms:get_iconic_entity()
+         if iconic_entity then
+            _radiant.sim.destroy_entity(iconic_entity)
+         end
+         local ghost_entity = entity_forms:get_ghost_entity()
+         if ghost_entity then
+            _radiant.sim.destroy_entity(ghost_entity)
+         end
+      end
+      --If we're the little one, call destroy on the big one and exit
+      local iconic_component = entity:get_component('stonehearth:iconic_form')
+      if iconic_component then
+         local full_sized = iconic_component:get_root_entity()
+         entities.destroy_entity(full_sized)
+         return 
+      end
+
       _radiant.sim.destroy_entity(entity)
    end
 end
