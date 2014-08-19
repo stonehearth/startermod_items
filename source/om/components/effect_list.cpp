@@ -3,6 +3,8 @@
 #include "effect_list.ridl.h"
 #include "om/entity.h"
 
+static const int NO_DEFAULT = 0;
+
 using namespace ::radiant;
 using namespace ::radiant::om;
 
@@ -14,7 +16,7 @@ std::ostream& operator<<(std::ostream& os, EffectList const& o)
 void EffectList::ConstructObject()
 {
    Component::ConstructObject();
-   default_effect_id_ = 0;
+   default_effect_id_ = NO_DEFAULT;
    next_id_ = 1;
 }
 
@@ -47,10 +49,10 @@ void EffectList::AddRemoveDefault()
       //If there is no default, then always return
       return;
    }
-   if (default_effect_id_ > 0) {
+   if (default_effect_id_ != NO_DEFAULT) {
       if (effects_.GetSize() >= 2) {
          effects_.Remove(default_effect_id_);
-         default_effect_id_ = 0;
+         default_effect_id_ = NO_DEFAULT;
       }
    } else {
       //The default is not in the list, so add it if there are no other effects
@@ -90,6 +92,7 @@ void EffectList::OnLoadObject(dm::SerializationType r)
    // Remove all effects from an Entity after loading.  Whoever put the effect on there
    // to begin with is responsible for putting it back at load time.
    if (r == dm::PERSISTANCE) {
+      default_effect_id_ = NO_DEFAULT;
       effects_.Clear();
       AddRemoveDefault();
    }

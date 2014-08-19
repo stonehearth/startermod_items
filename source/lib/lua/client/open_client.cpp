@@ -242,7 +242,7 @@ XZRegionSelectorPtr XZRegionSelector_SetFilterFn(XZRegionSelectorPtr rsp, luabin
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
       luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
 
-      rsp->WithFilter([filter_fn, cb_thread](RaycastResult results) -> int {
+      rsp->WithFilter([filter_fn, cb_thread](RaycastResult const& results) -> int {
          try {
             return luabind::call_function<int>(filter_fn, results);
          } catch (std::exception const& e) {

@@ -63,7 +63,13 @@ function BuildService:set_teardown(blueprint, enabled)
    local function _set_teardown_recursive(blueprint)
       local ec = blueprint:get_component('entity_container')  
       if ec then
-         for id, child in ec:each_child() do         
+         -- Copy the blueprint's (container's) children into a local var first, because
+         -- _set_teardown_recursive could cause the entity container to be invalidated.
+         local ec_children = {}
+         for id, child in ec:each_child() do
+            ec_children[id] = child
+         end
+         for id, child in pairs(ec_children) do
             if child and child:is_valid() then
                _set_teardown_recursive(child, enabled)
             end

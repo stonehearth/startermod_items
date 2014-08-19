@@ -60,8 +60,8 @@ end
 --Test that 2 workers can compete to move the bed to a target location
 --Starting from a proxy, place it and then move it several times
 function placement_autotests.two_place_multiple_times(autotest)
-   autotest.env:create_person(10, 10, { profession = 'worker' })
-   autotest.env:create_person(-10, -10, { profession = 'worker' })
+   autotest.env:create_person(-8, 8, { profession = 'worker' })
+   autotest.env:create_person(20, -20, { profession = 'worker' })
 
    local big_bed = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed')
    local bed_proxy = big_bed:get_component('stonehearth:entity_forms')
