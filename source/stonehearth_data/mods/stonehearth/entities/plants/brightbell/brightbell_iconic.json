@@ -2,11 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "unit_info": {
-         "name": "Brightbell Flower Pot",
-         "description": "Ready to be deployed!",
-         "icon" : "file(brightbell.png)"
-      },
       "model_variants": {
          "default": {
             "models": [

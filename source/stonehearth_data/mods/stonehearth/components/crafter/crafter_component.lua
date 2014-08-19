@@ -39,6 +39,7 @@ function CrafterComponent:initialize(entity, json)
    -- how do we get a pointer to it so we can destroy it?
 
    local inventory = stonehearth.inventory:get_inventory(self._entity)
+   self:_determine_maintain()
    radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
    radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
 

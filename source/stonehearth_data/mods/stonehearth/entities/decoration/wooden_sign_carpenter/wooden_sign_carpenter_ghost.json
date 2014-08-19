@@ -16,7 +16,7 @@
       },     
       "unit_info": {
          "name": "Carpenter's Wall-Mounted Sign",
-         "description": "A sign with the mark of the Carpenter, to be placed on buildings.",
+         "description": "A sign with the mark of the Carpenter.",
          "icon" : "file(wooden_sign_carpenter.png)"
       },
       "stonehearth:material" : {

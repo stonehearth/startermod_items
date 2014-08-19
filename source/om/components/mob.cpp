@@ -250,7 +250,7 @@ csg::Cube3 Mob::GetMobCollisionBox() const
       return csg::Cube3::one;
       break;
    case Mob::HUMANOID:
-      return csg::Cube3(csg::Point3::zero, csg::Point3(1, 4, 1));
+      return csg::Cube3(csg::Point3::zero, csg::Point3(1, 3, 1));
    }
    NOT_REACHED();
    return csg::Cube3::zero;

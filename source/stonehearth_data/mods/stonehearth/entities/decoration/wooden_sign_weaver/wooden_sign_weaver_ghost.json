@@ -16,7 +16,7 @@
       },     
       "unit_info": {
          "name": "Weaver's Wall-Mounted Sign",
-         "description": "A sign with the mark of the Weaver, to be placed on buildings.",
+         "description": "A sign with the mark of the Weaver.",
          "icon" : "file(wooden_sign_weaver.png)"
       },
       "stonehearth:material" : {

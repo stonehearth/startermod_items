@@ -3,8 +3,8 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wooden Wall-mounted Lantern",
-   "description" : "A simple, but workable lantern. Place this on your buildings to provide a source of light at night time.",
-   "flavor"      : "",
+   "description" : "A simple lantern. Place on buildings to provide light at night.",
+   "flavor"      : "So comfortinzzzzzzzz...",
    "portrait"    : "/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png",
 
    "ingredients": [

@@ -4,7 +4,7 @@
    "work_units"  : 5,
    "recipe_name" : "Pretty Curtains",
    "description" : "Dresses up an otherwise ordinary window.",
-   "flavor"      : "",
+   "flavor"      : "Light-blocking technology encourages sleeping-in.",
    "portrait"    : "/stonehearth/entities/decoration/curtains/curtains.png",
 
    "ingredients": [

@@ -1084,7 +1084,7 @@ csg::Region3 NavGrid::GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::P
             return csg::Region3(location);
             break;
          case om::Mob::HUMANOID:
-            return csg::Region3(csg::Cube3(location, location + csg::Point3(1, 4, 1)));
+            return csg::Region3(csg::Cube3(location, location + csg::Point3(1, 3, 1)));
             break;
          }
       }

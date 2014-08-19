@@ -3,7 +3,7 @@
    "components": {
       "unit_info": {
          "name": "Brightbell Flower",
-         "description": "Just a flower",
+         "description": "Just a flower.",
          "icon" : "file(brightbell.png)"
       },
       "render_info" : {
