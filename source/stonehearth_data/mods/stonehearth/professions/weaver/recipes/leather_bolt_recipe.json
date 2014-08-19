@@ -4,7 +4,7 @@
    "work_units"  : 3,
    "recipe_name" : "Bundle of Leather",
    "description" : "Prepared sheets of leather, ready to be put to good use.",
-   "flavor"      : "",
+   "flavor"      : "You can hardly see the individual sources.",
    "portrait"    : "/stonehearth/entities/cloth/leather_bolt/leather_bolt.png",
 
    "ingredients": [

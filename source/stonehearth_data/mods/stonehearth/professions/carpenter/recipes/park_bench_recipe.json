@@ -4,7 +4,7 @@
    "work_units"  : 3,
    "recipe_name" : "Wooden Park Bench",
    "description" : "Outdoor seating for moments of relaxation.",
-   "flavor"      : "",
+   "flavor"      : "Life is like a plate of berries.",
    "portrait"    : "/stonehearth/entities/furniture/park_bench/park_bench.png",
 
    "ingredients": [

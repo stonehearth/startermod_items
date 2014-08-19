@@ -9,7 +9,7 @@
       },
       "unit_info": {
          "name": "Wooden Dresser",
-         "description": "Furniture",
+         "description": "Decorative in the absence of belongings.",
          "icon" : "file(dresser.png)"
       },
       "stonehearth:material" : {

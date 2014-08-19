@@ -16,7 +16,7 @@
       },     
       "unit_info": {
          "name": "Wall-Mounted Tapestry",
-         "description": "A decorative scene, woven in colored thread and cord. Designed to brighten your day!",
+         "description": "A decorative scene, woven in colored thread and cord.",
          "icon" : "file(tapestry_wall.png)"
       },
       "stonehearth:material" : {
