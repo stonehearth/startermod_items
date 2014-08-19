@@ -9,7 +9,7 @@
       },
       "unit_info": {
          "name": "Plushie Toy Rabbit",
-         "description": "A toy...for children of course.",
+         "description": "A toy... for children of course.",
          "icon" : "file(plushie_toy_rabbit.png)"
       },
       "stonehearth:material" : {

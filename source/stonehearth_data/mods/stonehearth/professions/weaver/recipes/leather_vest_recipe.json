@@ -3,8 +3,8 @@
 
    "work_units"  : 5,
    "recipe_name" : "Thick Leather Vest",
-   "description" : "Hardened leather provides study protection against light arms.",
-   "flavor"      : "",
+   "description" : "Hardened leather provides study protection against light weapons.",
+   "flavor"      : "Insults bounce right off too!",
    "portrait"    : "/stonehearth/entities/armor/leather_vest/leather_vest.png",
 
    "ingredients": [

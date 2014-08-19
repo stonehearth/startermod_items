@@ -14,7 +14,7 @@
       },
       "unit_info": {
          "name": "Bolt of Cloth",
-         "description": "Shimmery.",
+         "description": "Soft and comforting.",
          "icon" : "file(cloth_bolt.png)"
       },
       "stonehearth:material" : {

@@ -3,7 +3,8 @@
 
    "work_units"  : 3,
    "recipe_name" : "Wall-Mounted Tapestry",
-   "description" : "A decorative scene, woven in colored thread and cord. Designed to brighten your day!",
+   "description" : "A decorative scene, woven in colored thread and cord.",
+   "flavor"      : "What you see in its knotted depths tells you something about yourself.",
    "portrait"    : "/stonehearth/entities/decoration/tapestry_wall/tapestry_wall.png",
 
    "ingredients": [

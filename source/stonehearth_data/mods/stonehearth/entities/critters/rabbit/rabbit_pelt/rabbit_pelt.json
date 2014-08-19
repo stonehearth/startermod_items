@@ -4,7 +4,7 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Rabbit pelt",
+         "name": "Rabbit Pelt",
          "description": "Soft, supple, and quite dead."
       }
    }
