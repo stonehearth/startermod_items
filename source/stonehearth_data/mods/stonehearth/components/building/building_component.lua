@@ -13,7 +13,7 @@ local INFINITE = 10000000
 
 -- all structure types, and a table containing them to make iteration handy.
 local WALL = 'stonehearth:wall'
-local COLUMN = 'stonehearth:columns'
+local COLUMN = 'stonehearth:column'
 local ROOF = 'stonehearth:roof'
 local FLOOR = 'stonehearth:floor'
 
@@ -52,6 +52,8 @@ function Building:initialize(entity, json)
          end)      
    end
    self._traces = {}
+
+   self._no_construction_zone = self._entity:add_component('stonehearth:no_construction_zone')
 end
 
 function Building:_get_structures(type)
@@ -193,6 +195,7 @@ function Building:_trace_entity(entity)
       self:_save_trace(entity, trace)
       trace:push_object_state()
    end
+   self._no_construction_zone:add_structure(entity)
 end
 
 function Building:_save_trace(entity, trace)
