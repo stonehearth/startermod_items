@@ -45,15 +45,15 @@ end
 
 function BuildService:set_active(building, enabled)
    local function _set_active_recursive(blueprint, enabled)
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if not cp then
-         return
-      end
-      cp:set_active(enabled)
-      for _,child in pairs(cp:get_dependencies()) do
-         if child and child:is_valid() then
+      local ec = blueprint:get_component('entity_container')  
+      if ec then
+         for id, child in ec:each_child() do
             _set_active_recursive(child, enabled)
-         end         
+         end
+      end
+      local c = blueprint:get_component('stonehearth:construction_progress')
+      if c then
+         c:set_active(enabled)
       end
    end  
    _set_active_recursive(building, enabled)
@@ -61,15 +61,23 @@ end
 
 function BuildService:set_teardown(blueprint, enabled)
    local function _set_teardown_recursive(blueprint)
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if not cp then
-         return
+      local ec = blueprint:get_component('entity_container')  
+      if ec then
+         -- Copy the blueprint's (container's) children into a local var first, because
+         -- _set_teardown_recursive could cause the entity container to be invalidated.
+         local ec_children = {}
+         for id, child in ec:each_child() do
+            ec_children[id] = child
+         end
+         for id, child in pairs(ec_children) do
+            if child and child:is_valid() then
+               _set_teardown_recursive(child, enabled)
+            end
+         end
       end
-      cp:set_teardown(enabled)
-      for _,child in pairs(cp:get_dependencies()) do
-         if child and child:is_valid() then
-            _set_teardown_recursive(child, enabled)
-         end         
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if cp then
+         cp:set_teardown(enabled)
       end
    end  
    _set_teardown_recursive(blueprint, enabled)

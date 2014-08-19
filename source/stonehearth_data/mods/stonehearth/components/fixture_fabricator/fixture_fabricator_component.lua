@@ -39,6 +39,10 @@ function FixtureFabricator:get_project()
    return nil
 end
 
+function FixtureFabricator:set_teardown()
+   -- noop.
+end
+
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the wall
 --

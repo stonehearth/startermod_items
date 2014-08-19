@@ -130,8 +130,14 @@ function CraftOrder:should_execute_order()
       end
 
       local we_have = 0
+      local uri = self._sv.recipe.produces[1].item
+      local data = radiant.entities.get_component_data(uri, 'stonehearth:entity_forms')
+      if data and data.iconic_form then
+         uri = data.iconic_form
+      end
+
       local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-      local inventory_data_for_item = inventory:get_items_of_type(self._sv.recipe.produces[1].item)
+      local inventory_data_for_item = inventory:get_items_of_type(uri)
       if inventory_data_for_item and inventory_data_for_item.count then
          we_have = inventory_data_for_item.count
       end

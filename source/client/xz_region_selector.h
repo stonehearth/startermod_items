@@ -20,7 +20,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
       };
       DECLARE_SHARED_POINTER_TYPES(Deferred)
 
-      typedef std::function<int(RaycastResult results)> FilterFn;
+      typedef std::function<int(RaycastResult const& results)> FilterFn;
 
    public:
       XZRegionSelector(om::TerrainPtr terrain);
@@ -28,7 +28,7 @@ class XZRegionSelector : public std::enable_shared_from_this<XZRegionSelector>
 
       std::shared_ptr<XZRegionSelector> RequireSupported(bool requireSupported);
       std::shared_ptr<XZRegionSelector> RequireUnblocked(bool requireUnblocked);
-      std::shared_ptr<XZRegionSelector> WithFilter(FilterFn filter);
+      std::shared_ptr<XZRegionSelector> WithFilter(FilterFn const& filter);
 
       std::shared_ptr<Deferred> Activate();
       void Deactivate();

@@ -13,7 +13,7 @@ XZRegionSelector::XZRegionSelector(om::TerrainPtr terrain) :
    _requireSupported(false),
    _requireUnblocked(false)
 {
-   _filterFn = [this](RaycastResult results) -> int {
+   _filterFn = [this](RaycastResult const& results) -> int {
       for (int i = 0; i < results.GetNumResults(); i++) {
          om::EntityPtr entity = results.GetResult(i).entity.lock();
          if (entity && entity->GetObjectId() == _terrain->GetEntity().GetObjectId()) {
@@ -41,7 +41,7 @@ std::shared_ptr<XZRegionSelector> XZRegionSelector::RequireUnblocked(bool requir
    return shared_from_this();
 }
 
-std::shared_ptr<XZRegionSelector> XZRegionSelector::WithFilter(FilterFn filter)
+std::shared_ptr<XZRegionSelector> XZRegionSelector::WithFilter(FilterFn const& filter)
 {
    _filterFn = filter;
    return shared_from_this();
