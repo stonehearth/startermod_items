@@ -71,6 +71,7 @@ App.StonehearthZonesModeView = App.View.extend({
       $.each(this._subViews, function(i, view) {
          if (view && !view.isDestroyed) {
             view.hide();
+            //this._stockpileView.invokeDestroy();
          }
       })
    },
@@ -80,8 +81,8 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      if (!this._stockpileView || this._stockpileView.isDestroyed) {
-         this._stockpileView = App.gameView.addView(App.StonehearthStockpileView, { 
+      if (!self._stockpileView || self._stockpileView.isDestroyed) {
+         self._stockpileView = App.gameView.addView(App.StonehearthStockpileView, { 
                uri: uri,
                position_hide: {
                   my : 'center bottom',
@@ -91,10 +92,10 @@ App.StonehearthZonesModeView = App.View.extend({
                }
             }); 
 
-         this._subViews[App.StonehearthStockpileView] = this._stockpileView;
+         self._subViews[App.StonehearthStockpileView] = this._stockpileView;
       } else {
-         this._stockpileView.set('uri', uri);
-         this._stockpileView.show();
+         self._stockpileView.set('uri', uri);
+         self._stockpileView.show();
       }
    },
 
@@ -103,8 +104,8 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
 
-      if (!this._farmView || this._farmView.isDestroyed) {
-         this._farmView = App.gameView.addView(App.StonehearthFarmView, { 
+      if (!self._farmView || self._farmView.isDestroyed) {
+         self._farmView = App.gameView.addView(App.StonehearthFarmView, { 
                uri: uri,
                position_hide: {
                   my : 'center bottom',
@@ -113,10 +114,10 @@ App.StonehearthZonesModeView = App.View.extend({
                   collision : 'fit'
                }
          });
-         this._subViews[App.StonehearthFarmView] = this._farmView;
+         self._subViews[App.StonehearthFarmView] = self._farmView;
       } else {
-         this._farmView.set('uri', uri);
-         this._farmView.show();
+         self._farmView.set('uri', uri);
+         self._farmView.show();
       }
    },
 
@@ -126,8 +127,8 @@ App.StonehearthZonesModeView = App.View.extend({
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
       // TODO: refactor parameters with stockpile and farm?
-      if (!this._trappingGroundsView || this._trappingGroundsView.isDestroyed) {
-         this._trappingGroundsView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
+      if (!self._trappingGroundsView || self._trappingGroundsView.isDestroyed) {
+         self._trappingGroundsView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
                uri: uri,
                position_hide: {
                   my : 'center bottom',
@@ -136,10 +137,10 @@ App.StonehearthZonesModeView = App.View.extend({
                   collision : 'fit'
                }
             });
-         this._subViews[App.StonehearthTrappingGroundsView] = this._trappingGroundsView;
+         self._subViews[App.StonehearthTrappingGroundsView] = self._trappingGroundsView;
       } else {
-         this._trappingGroundsView.set('uri', uri);
-         this._trappingGroundsView.show();         
+         self._trappingGroundsView.set('uri', uri);
+         self._trappingGroundsView.show();         
       }
    }
 });

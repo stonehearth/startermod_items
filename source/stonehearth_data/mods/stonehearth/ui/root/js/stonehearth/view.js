@@ -37,13 +37,13 @@
    show: function() {
       var self = this;
       Ember.run.scheduleOnce('afterRender', this, function() {
-         self.$().show();
+         self.$().children().show();
       });
    },
 
    hide: function() {
       if (this.$()) {
-         this.$().hide();   
+         this.$().children().hide();   
       }
    },
    
