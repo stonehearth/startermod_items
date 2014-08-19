@@ -168,6 +168,11 @@ function CombatStateComponent:_compile_combat_actions(action_type)
       end
    end
 
+   for _, action in pairs(actions) do
+      -- parse active_frame into a more usable time_to_impact
+      action.time_to_impact = self:_get_time_to_impact(action)
+   end
+
    table.sort(actions,
       function (a, b)
          return a.priority > b.priority
@@ -175,6 +180,12 @@ function CombatStateComponent:_compile_combat_actions(action_type)
    )
 
    return actions
+end
+
+function CombatStateComponent:_get_time_to_impact(action)
+   local MS_PER_FRAME = 1000/30
+   -- should we subtract 1 off the active frame?
+   return action.active_frame * MS_PER_FRAME
 end
 
 function CombatStateComponent:_on_equipment_changed()

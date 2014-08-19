@@ -26,6 +26,7 @@ function AttackMeleeAdjacent:start_thinking(ai, entity, args)
       return
    end
 
+   -- refetch every start_thinking as the set of actions may have changed
    self._attack_types = stonehearth.combat:get_combat_actions(entity, 'stonehearth:combat:melee_attacks')
 
    if next(self._attack_types) == nil then
@@ -60,7 +61,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
-   local attack_info = stonehearth.combat:choose_combat_action(entity, self._attack_types)
+   local attack_info = stonehearth.combat:choose_attack_action(entity, self._attack_types)
 
    if not attack_info then
       log:warning('%s unable to attack becuase no melee attacks are currently available.', entity)
@@ -68,30 +69,29 @@ function AttackMeleeAdjacent:run(ai, entity, args)
       return
    end
 
-   local time_to_impact = stonehearth.combat:get_time_to_impact(attack_info)
-   local impact_time = radiant.gamestate.now() + time_to_impact
-
    radiant.entities.turn_to_face(entity, target)
 
    ai:execute('stonehearth:bump_against_entity', { entity = target, distance = melee_range_ideal })
 
    stonehearth.combat:start_cooldown(entity, attack_info)
 
-   self._context = AssaultContext('melee', entity, target, impact_time)
-   stonehearth.combat:begin_assault(self._context)
+   local impact_time = radiant.gamestate.now() + attack_info.time_to_impact
+   self._assault_context = AssaultContext('melee', entity, target, impact_time)
+   stonehearth.combat:begin_assault(self._assault_context)
 
    -- can't ai:execute this. it needs to run in parallel with the attack animation
    self._hit_effect = radiant.effects.run_effect(
-      target, '/stonehearth/data/effects/hit_sparks/hit_effect.json', time_to_impact
+      target, '/stonehearth/data/effects/hit_sparks/hit_effect.json', attack_info.time_to_impact
    )
 
-   self._timer = stonehearth.combat:set_timer(time_to_impact,
+   self._timer = stonehearth.combat:set_timer(attack_info.time_to_impact,
       function ()
          local range = radiant.entities.distance_between(entity, target)
          local out_of_range = range > melee_range_max
 
-         if out_of_range or self._context.target_defending then
+         if out_of_range or self._assault_context.target_defending then
             self._hit_effect:stop()
+            self._hit_effect = nil
          else
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
@@ -106,22 +106,23 @@ end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)
    if self._hit_effect ~= nil then
-      if radiant.gamestate.now() < self._context.impact_time then
+      if radiant.gamestate.now() < self._assault_context.impact_time then
          self._hit_effect:stop()
       end
       self._hit_effect = nil
    end
 
    if self._timer ~= nil then
+      -- cancel the timer if we were pre-empted
       self._timer:destroy()
       self._timer = nil
    end
 
-   if self._context then
-      stonehearth.combat:end_assault(self._context)
+   if self._assault_context then
+      stonehearth.combat:end_assault(self._assault_context)
    end
 
-   self._context = nil
+   self._assault_context = nil
 end
 
 return AttackMeleeAdjacent

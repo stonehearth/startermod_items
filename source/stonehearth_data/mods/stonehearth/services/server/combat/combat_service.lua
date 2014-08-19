@@ -3,8 +3,6 @@ local log = radiant.log.create_logger('combat')
 
 CombatService = class()
 
-local MS_PER_FRAME = 1000/30
-
 function CombatService:__init()
 end
 
@@ -73,6 +71,7 @@ function CombatService:end_assault(context)
    end
 
    self:_set_assaulting(attacker, false)
+   context.assault_active = false
 end
 
 -- Notify target that it has been hit by an attack.
@@ -196,11 +195,6 @@ function CombatService:get_entity_radius(entity)
    return entity_radius
 end
 
-function CombatService:get_time_to_impact(action_info)
-   -- should we subtract 1 off the active frame?
-   return action_info.active_frame * MS_PER_FRAME
-end
-
 -- used for synchronizing animation
 function CombatService:ms_to_game_seconds(ms)
    return ms / stonehearth.calendar:get_constants().ticks_per_second
@@ -312,25 +306,42 @@ function CombatService:get_combat_actions(entity, action_type)
    return combat_state:get_combat_actions(action_type)
 end
 
--- placeholder logic for now
-function CombatService:choose_combat_action(entity, actions)
+-- get the highest priority action that is ready now
+-- assumes actions are sorted by descending priority
+function CombatService:choose_attack_action(entity, actions)
+   local filter_fn = function(combat_state, action_info)
+      return not combat_state:in_cooldown(action_info.name)
+   end
+   return self:_choose_combat_action(entity, actions, filter_fn)
+end
+
+-- get the highest priority action that can take effect before the impact_time
+-- assumes actions are sorted by descending priority
+function CombatService:choose_defense_action(entity, actions, attack_impact_time)
+   local filter_fn = function(combat_state, action_info)
+      local ready_time = combat_state:get_cooldown_end_time(action_info.name) or radiant.gamestate.now()
+      local defense_impact_time = ready_time + action_info.time_to_impact
+      return defense_impact_time <= attack_impact_time
+   end
+   return self:_choose_combat_action(entity, actions, filter_fn)
+end
+
+-- assumes actions are sorted by descending priority
+function CombatService:_choose_combat_action(entity, actions, filter_fn)
    local combat_state = self:get_combat_state(entity)
    local candidates = {}
    local priority = nil
 
-   for i, action_info in ipairs(actions) do
-      if not combat_state:in_cooldown(action_info.name) then
-         if priority == nil then
+   for _, action_info in ipairs(actions) do
+      if filter_fn(combat_state, action_info) then
+         if not priority or action_info.priority == priority then
+            -- add the available action and any other actions at the same priority
             table.insert(candidates, action_info)
             priority = action_info.priority
          else
-            -- add any other available actions at the same priority
-            if action_info.priority == priority then
-               table.insert(candidates, action_info)
-            else
-               -- lower priority action, nothing else to find
-               break
-            end
+            -- lower priority action, nothing else to find (recall that actions is sorted by priority)
+            assert(action_info.priority < priority)
+            break
          end
       end
    end
