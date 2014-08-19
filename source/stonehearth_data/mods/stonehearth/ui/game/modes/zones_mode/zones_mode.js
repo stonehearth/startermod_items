@@ -2,8 +2,6 @@ App.StonehearthZonesModeView = App.View.extend({
    templateName: 'zonesMode',
    i18nNamespace: 'stonehearth',
 
-   _subViews: {},
-
    init: function() {
       this._super();
 
@@ -14,7 +12,9 @@ App.StonehearthZonesModeView = App.View.extend({
 
       $(top).on('mode_changed', function(_, mode) {
          if (mode != 'zones') {
-            self._hideZoneViews();
+            if (self._propertyView) {
+               self._propertyView.destroy();
+            }
          } 
       });
    },
@@ -56,7 +56,9 @@ App.StonehearthZonesModeView = App.View.extend({
    },
 
    _examineEntity: function(entity) {
-      this._hideZoneViews();
+      if (!entity && this._propertyView) {
+         this._propertyView.destroy();
+      }
 
       if (entity['stonehearth:stockpile']) {
          this._showStockpileUi(entity);
@@ -67,80 +69,64 @@ App.StonehearthZonesModeView = App.View.extend({
       }
    },
 
-   _hideZoneViews: function() {
-      $.each(this._subViews, function(i, view) {
-         if (view && !view.isDestroyed) {
-            view.hide();
-            //this._stockpileView.invokeDestroy();
-         }
-      })
-   },
-
    _showStockpileUi: function(entity) {
       var self = this;
 
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      if (!self._stockpileView || self._stockpileView.isDestroyed) {
-         self._stockpileView = App.gameView.addView(App.StonehearthStockpileView, { 
-               uri: uri,
-               position_hide: {
-                  my : 'center bottom',
-                  at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-                  of : $(document),
-                  collision : 'fit'
-               }
-            }); 
-
-         self._subViews[App.StonehearthStockpileView] = this._stockpileView;
-      } else {
-         self._stockpileView.set('uri', uri);
-         self._stockpileView.show();
-      }
+      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { 
+            uri: uri,
+            position_hide: {
+               my : 'center bottom',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
+               of : $(document),
+               collision : 'fit'
+            }
+         });
    },
 
    _showFarmUi: function(entity) {
       var self = this;
 
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
 
-      if (!self._farmView || self._farmView.isDestroyed) {
-         self._farmView = App.gameView.addView(App.StonehearthFarmView, { 
-               uri: uri,
-               position_hide: {
-                  my : 'center bottom',
-                  at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-                  of : $(document),
-                  collision : 'fit'
-               }
-         });
-         self._subViews[App.StonehearthFarmView] = self._farmView;
-      } else {
-         self._farmView.set('uri', uri);
-         self._farmView.show();
-      }
+      this._propertyView = App.gameView.addView(App.StonehearthFarmView, { 
+            uri: uri,
+            position_hide: {
+               my : 'center bottom',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
+               of : $(document),
+               collision : 'fit'
+            }
+      });
    },
 
    _showTrappingGroundsUi: function(entity) {
       var self = this;
 
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
       // TODO: refactor parameters with stockpile and farm?
-      if (!self._trappingGroundsView || self._trappingGroundsView.isDestroyed) {
-         self._trappingGroundsView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
-               uri: uri,
-               position_hide: {
-                  my : 'center bottom',
-                  at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-                  of : $(document),
-                  collision : 'fit'
-               }
-            });
-         self._subViews[App.StonehearthTrappingGroundsView] = self._trappingGroundsView;
-      } else {
-         self._trappingGroundsView.set('uri', uri);
-         self._trappingGroundsView.show();         
-      }
+      this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
+            uri: uri,
+            position_hide: {
+               my : 'center bottom',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
+               of : $(document),
+               collision : 'fit'
+            }
+         });
    }
 });

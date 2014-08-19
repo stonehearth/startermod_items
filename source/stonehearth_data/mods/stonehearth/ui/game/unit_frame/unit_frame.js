@@ -1,3 +1,12 @@
+ $(document).ready(function(){      
+      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
+        var unitFrame = App.gameView.getView(App.StonehearthUnitFrameView);
+        if (unitFrame) {
+          unitFrame.set('uri', data.selected_entity);  
+        }
+      });
+  });
+
 App.StonehearthUnitFrameView = App.View.extend({
 	templateName: 'unitFrame',
 
@@ -63,9 +72,9 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    }.observes('context.stonehearth:backpack.num_items'),
 
-   //When we hover over a command button, show its tooltip
    didInsertElement: function() {
       var self = this;
+
       this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
@@ -93,9 +102,6 @@ App.StonehearthUnitFrameView = App.View.extend({
       this._updateCommandButtons();      
       this._updateBackpack();
 
-      $(top).on("radiant_selection_changed.unit_frame", function (_, data) {
-        self.set('uri', data.selected_entity);
-      });        
    },
 
    _updateCommandButtons: function() {
