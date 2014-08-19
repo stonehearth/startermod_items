@@ -67,7 +67,8 @@ function TrappingGroundsComponent:destroy()
    self:_destroy_check_trap_task()
 
    for id, trap in pairs(self._sv.traps) do
-      -- confirm trapped critters are also destroyed
+      local bait_trap_component = trap:add_component('stonehearth:bait_trap')
+      bait_trap_component:release()
       radiant.entities.destroy_entity(trap)
    end
 end

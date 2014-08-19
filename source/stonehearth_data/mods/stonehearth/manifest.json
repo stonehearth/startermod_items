@@ -111,8 +111,7 @@
       "racoon_jerky" : "file(entities/critters/racoon/racoon_jerky)",
       "red_fox" : "file(entities/critters/red_fox)",
       "red_fox_pelt" : "file(entities/critters/red_fox/red_fox_pelt)",
-      "red_fox_jerk
-      y" : "file(entities/critters/red_fox/red_fox_jerky)",
+      "red_fox_jerky" : "file(entities/critters/red_fox/red_fox_jerky)",
       "sheep" : "file(entities/critters/sheep)",
       "sheep_jerky" : "file(entities/critters/sheep/sheep_jerky)",
       "wolf" : "file(entities/critters/wolf)",
