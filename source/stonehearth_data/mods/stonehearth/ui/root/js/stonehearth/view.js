@@ -42,7 +42,9 @@
    },
 
    hide: function() {
-      this.$().hide();
+      if (this.$()) {
+         this.$().hide();   
+      }
    },
    
    didInsertElement: function() {
