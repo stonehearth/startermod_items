@@ -2,7 +2,7 @@ App.StonehearthZonesModeView = App.View.extend({
    templateName: 'zonesMode',
    i18nNamespace: 'stonehearth',
 
-   _subViews: [],
+   _subViews: {},
 
    init: function() {
       this._super();
@@ -69,7 +69,9 @@ App.StonehearthZonesModeView = App.View.extend({
 
    _hideZoneViews: function() {
       $.each(this._subViews, function(i, view) {
-         view.hide();
+         if (view && !view.isDestroyed) {
+            view.hide();
+         }
       })
    },
 
@@ -78,7 +80,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      if (!this._stockpileView) {
+      if (!this._stockpileView || this._stockpileView.isDestroyed) {
          this._stockpileView = App.gameView.addView(App.StonehearthStockpileView, { 
                uri: uri,
                position_hide: {
@@ -89,7 +91,7 @@ App.StonehearthZonesModeView = App.View.extend({
                }
             }); 
 
-         this._subViews.push(this._stockpileView);
+         this._subViews[App.StonehearthStockpileView] = this._stockpileView;
       } else {
          this._stockpileView.set('uri', uri);
          this._stockpileView.show();
@@ -101,7 +103,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
 
-      if (!this._farmView) {
+      if (!this._farmView || this._farmView.isDestroyed) {
          this._farmView = App.gameView.addView(App.StonehearthFarmView, { 
                uri: uri,
                position_hide: {
@@ -111,7 +113,7 @@ App.StonehearthZonesModeView = App.View.extend({
                   collision : 'fit'
                }
          });
-         this._subViews.push(this._farmView);
+         this._subViews[App.StonehearthFarmView] = this._farmView;
       } else {
          this._farmView.set('uri', uri);
          this._farmView.show();
@@ -124,7 +126,7 @@ App.StonehearthZonesModeView = App.View.extend({
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
       // TODO: refactor parameters with stockpile and farm?
-      if (!this._trappingGroundsView) {
+      if (!this._trappingGroundsView || this._trappingGroundsView.isDestroyed) {
          this._trappingGroundsView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
                uri: uri,
                position_hide: {
@@ -134,7 +136,7 @@ App.StonehearthZonesModeView = App.View.extend({
                   collision : 'fit'
                }
             });
-         this._subViews.push(this._trappingGroundsView);         
+         this._subViews[App.StonehearthTrappingGroundsView] = this._trappingGroundsView;
       } else {
          this._trappingGroundsView.set('uri', uri);
          this._trappingGroundsView.show();         
