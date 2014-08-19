@@ -33,6 +33,9 @@ function LadderEditor:go(session, response)
             return self:_update_ladder_cursor(result.brick, result.normal:to_int())
          end)
       :progress(function(selector, location, rotation)
+            if not location then
+               location = Point3(0, -100000, 0)
+            end
             self._cursor_mob:move_to_grid_aligned(location - Point3(0, self._ladder_height, 0))
          end)
       :done(function(selector, location, rotation)
