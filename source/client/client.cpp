@@ -1587,7 +1587,6 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
          om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
          datastores.emplace_back(ds);
-         ASSERT(datastoreMap_.find(ds->GetObjectId()) == datastoreMap_.end());
          datastoreMap_[ds->GetObjectId()] = ds;
       }
    })->PushStoreState();   

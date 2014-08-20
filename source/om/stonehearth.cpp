@@ -54,8 +54,8 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
             obj->LoadFromJson(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
-            // We're manually allocating a datastore (not using 'sim', because we might not be in the sim!).
-            // This means we manually destroy them, too.
+            // We're manually allocating a datastore (because we can't tell if we're on the server
+            // or the client).  The entity will manually delete them when being destroyed.
             om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
             datastore->SetData(luabind::newtable(L));
             component = datastore->CreateController(om::DataStoreRef(datastore), "components", name);
@@ -91,8 +91,8 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string const& name
          obj->LoadFromJson(scriptHost->LuaToJson(data));
          component = scriptHost->CastObjectToLua(obj);
       } else {
-         // We're manually allocating a datastore (not using 'sim', because we might not be in the sim!).
-         // This means we manually destroy them, too.
+         // We're manually allocating a datastore (because we can't tell if we're on the server
+         // or the client).  The entity will manually delete them when being destroyed.
          om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
          datastore->SetData(luabind::newtable(L));
          component = datastore->CreateController(datastore, "components", name);
