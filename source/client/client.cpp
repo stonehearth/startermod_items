@@ -539,6 +539,7 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRouteV("radiant:client:save_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
       json::Node gameinfo(json::Node(f.args).get_node(1));
+      gameinfo.set("version", PRODUCT_FILE_VERSION_STR);
       SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
@@ -556,13 +557,17 @@ void Client::OneTimeIninitializtion()
       fs::path savedir = core::Config::GetInstance().GetSaveDirectory();
       if (fs::is_directory(savedir)) {
          for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
-            std::string name = it->path().filename().string();
-            std::ifstream jsonfile((it->path() / "metadata.json").string());
-            JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
-            json::Node entry;
-            entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
-            entry.set("gameinfo", metadata);
-            games.set(name, entry);
+            try {
+               std::string name = it->path().filename().string();
+               std::ifstream jsonfile((it->path() / "metadata.json").string());
+               JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
+               json::Node entry;
+               entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
+               entry.set("gameinfo", metadata);
+
+               games.set(name, entry);
+            } catch (std::exception const& e) {
+            }
          }
       }
       return games;

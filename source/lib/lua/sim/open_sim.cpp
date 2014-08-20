@@ -36,6 +36,11 @@ static Simulation& GetSim(lua_State* L)
    return *sim;
 }
 
+std::string Sim_GetVersion(lua_State* L)
+{
+   return GetSim(L).GetVersion();
+}
+
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
@@ -289,6 +294,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
+            def("get_version",               &Sim_GetVersion),
             def("create_entity",             &Sim_CreateEntity),
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),

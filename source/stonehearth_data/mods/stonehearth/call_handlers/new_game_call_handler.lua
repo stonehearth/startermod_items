@@ -19,7 +19,10 @@ function NewGameCallHandler:sign_in(session, response, num_tiles_x, num_tiles_y,
       stonehearth.inventory:add_inventory(session)
       stonehearth.population:add_population(session)
    end
-   return {}
+
+   return {
+      version = _radiant.sim.get_version()
+   }
 end 
 
 function NewGameCallHandler:set_game_options(session, response, options)

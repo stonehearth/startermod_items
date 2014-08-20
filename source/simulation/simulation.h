@@ -47,8 +47,10 @@ class Path;
 class Simulation
 {
 public:
-   Simulation();
+   Simulation(std::string const& versionStr);
    ~Simulation();
+
+   std::string const& GetVersion() const;
 
    om::DataStoreRef Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
@@ -200,6 +202,8 @@ private:
    FreeMotionTaskMap                   freeMotionTasks_;
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
+
+   std::string                         _versionStr;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE
