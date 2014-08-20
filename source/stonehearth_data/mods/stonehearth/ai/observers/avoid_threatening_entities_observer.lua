@@ -160,7 +160,7 @@ function AvoidThreateningEntities:_on_threat_menace_changed(threat)
    if self:_is_threatening(threat) then
       self:_check_avoid_entity(threat)
    else
-      self:_unobserve_threat(other_entity)
+      self:_unobserve_threat(threat)
    end
 end
 
