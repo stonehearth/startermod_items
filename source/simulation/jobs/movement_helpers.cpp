@@ -294,7 +294,10 @@ MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, fl
       majorAxis = Axis::Z;
    }
 
-   assert(absMajor > 0);
+   if (absMajor == 0) {
+      assert(absdx == 0 && absdz == 0);
+      return majorAxis;
+   }
 
    // This point must be within 0.5 units of the actual line, otherwise the point above or below would have been closer.
    maxSlope = (minor + 0.5f) / absMajor;
@@ -469,7 +472,9 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPoints(std::vector<cs
          subsetPoints.clear();
       }
 
-      subsetPoints.push_back(currentPoint);
+      if (currentPoint != previousPoint) {
+         subsetPoints.push_back(currentPoint);
+      }
    }
 
    // Process the last open subset.
