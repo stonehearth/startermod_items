@@ -80,7 +80,7 @@
             {
                "model_name" : "silkweed_5",
                "name": "Mature silkweed"
-            },
+            }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
             {
                "model_name" : "silkweed_20",
                "name": "Rotten silkweed"
