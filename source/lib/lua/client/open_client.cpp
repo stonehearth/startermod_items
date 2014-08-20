@@ -390,12 +390,20 @@ std::shared_ptr<T> Client_AllocObject()
    return Client::GetInstance().GetAuthoringStore().AllocObject<T>();
 }
 
-om::DataStorePtr Client_CreateDataStore(lua_State* L)
+om::DataStoreRef Client_CreateDataStore(lua_State* L)
 {
    // make sure we return the strong pointer version
-   om::DataStorePtr db = Client_AllocObject<om::DataStore>();
-   db->SetData(newtable(L));
+   om::DataStoreRef db = Client::GetInstance().AllocateDatastore(Client::GetInstance().GetAuthoringStore().GetStoreId());
+   db.lock()->SetData(newtable(L));
    return db;
+}
+
+void Client_DestroyDataStore(lua_State* L, om::DataStoreRef ds)
+{
+   auto datastore = ds.lock();
+   if (datastore) {
+      Client::GetInstance().DestroyDatastore(datastore->GetObjectId());
+   }
 }
 
 bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)

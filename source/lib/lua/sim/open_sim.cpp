@@ -49,15 +49,6 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
    return entity;
 }
 
-om::DataStorePtr Sim_AllocDataStore(lua_State* L)
-{
-   // make sure we return the strong pointer version
-   om::DataStorePtr datastore = Sim_AllocObject<om::DataStore>(L);
-   datastore->SetData(newtable(L));
-
-   return datastore;
-}
-
 luabind::object Sim_GetObject(lua_State* L, object id)
 {
    dm::ObjectPtr obj;
@@ -75,13 +66,30 @@ luabind::object Sim_GetObject(lua_State* L, object id)
    return lua_obj;
 }
 
+om::DataStoreRef Sim_AllocDataStore(lua_State* L)
+{
+   // Return the weak ptr version.
+   om::DataStoreRef datastore = GetSim(L).AllocDatastore();
+   datastore.lock()->SetData(newtable(L));
+
+   return datastore;
+}
+
+void Sim_DestroyDatastore(lua_State* L, om::DataStoreRef ds)
+{
+   auto datastore = ds.lock();
+   if (datastore) {
+      GetSim(L).DestroyDatastore(datastore->GetObjectId());
+   }
+}
+
 void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
 {
    auto entity = e.lock();
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
       entity = nullptr;
-      return GetSim(L).DestroyEntity(id);
+      GetSim(L).DestroyEntity(id);
    }
 }
 
@@ -288,6 +296,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region",              &Sim_AllocObject<om::Region3Boxed>),
             def("alloc_region2",             &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",          &Sim_AllocDataStore),
+            def("destroy_datastore",         &Sim_DestroyDatastore),
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),

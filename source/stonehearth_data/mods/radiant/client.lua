@@ -29,7 +29,7 @@ function radiant.create_controller(...)
 end
 
 function radiant.destroy_controller(c)
-   c.__saved_variables:destroy_controller()
+   _radiant.client.destroy_datastore(c.__saved_variables)
 end
 
 radiant.lib = {

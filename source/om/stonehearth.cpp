@@ -48,15 +48,17 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
    if (!component) {
       auto entity = e.lock();
       if (entity) {
-         lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
          om::ComponentPtr obj = entity->AddComponent(name);
          if (obj) {
+            lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
             obj->LoadFromJson(JSONNode());
             component = scriptHost->CastObjectToLua(obj);
          } else {
+            // We're manually allocating a datastore (not using 'sim', because we might not be in the sim!).
+            // This means we manually destroy them, too.
             om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
             datastore->SetData(luabind::newtable(L));
-            component = datastore->CreateController(datastore, "components", name);
+            component = datastore->CreateController(om::DataStoreRef(datastore), "components", name);
             if (component) {
                entity->AddLuaComponent(name, datastore);
                SetEntityForComponent(L, component, entity, luabind::newtable(L));
@@ -89,6 +91,8 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string const& name
          obj->LoadFromJson(scriptHost->LuaToJson(data));
          component = scriptHost->CastObjectToLua(obj);
       } else {
+         // We're manually allocating a datastore (not using 'sim', because we might not be in the sim!).
+         // This means we manually destroy them, too.
          om::DataStorePtr datastore = entity->GetStore().AllocObject<om::DataStore>();
          datastore->SetData(luabind::newtable(L));
          component = datastore->CreateController(datastore, "components", name);
@@ -117,7 +121,7 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
          if (datastore) {
             component = datastore->GetController();
             if (!component) {
-               component = luabind::object(L, datastore);
+               component = luabind::object(L, std::weak_ptr<om::DataStore>(datastore));
             }
          }
       }

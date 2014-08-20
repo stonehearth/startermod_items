@@ -30,7 +30,8 @@ function radiant.create_controller(...)
 end
 
 function radiant.destroy_controller(c)
-   c.__saved_variables:destroy_controller()
+   -- The destruction of the datastore will destroy the controller.
+   _radiant.sim.destroy_datastore(c.__saved_variables)
 end
 
 function radiant.exit(code)

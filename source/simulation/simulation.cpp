@@ -228,6 +228,13 @@ void Simulation::InitializeDataObjectTraces()
    })->PushStoreState();   
 }
 
+om::DataStoreRef Simulation::AllocDatastore()
+{
+   auto datastore = GetStore().AllocObject<om::DataStore>();
+   datastoreMap_[datastore->GetObjectId()] = datastore;
+   return datastore;
+}
+
 void Simulation::ShutdownDataObjectTraces()
 {
    object_model_traces_.reset();
@@ -243,7 +250,9 @@ void Simulation::InitializeGameObjects()
    octtree_->EnableSensorTraces(true);
    freeMotion_ = std::unique_ptr<phys::FreeMotion>(new phys::FreeMotion(*this, octtree_->GetNavGrid()));
 
-   scriptHost_.reset(new lua::ScriptHost("server"));
+   scriptHost_.reset(new lua::ScriptHost("server", [this](int storeId) {
+      return AllocDatastore();
+   }));
 
    lua_State* L = scriptHost_->GetInterpreter();
    lua_State* callback_thread = scriptHost_->GetCallbackThread();
@@ -278,6 +287,7 @@ void Simulation::ShutdownGameObjects()
    jobs_.clear();
    tasks_.clear();
    entityMap_.clear();
+   datastoreMap_.clear();
 
    task_manager_deferred_ = nullptr;
    perf_counter_deferred_ = nullptr;
@@ -482,6 +492,16 @@ om::EntityPtr Simulation::GetEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    return i != entityMap_.end() ? i->second : nullptr;
+}
+
+void Simulation::DestroyDatastore(dm::ObjectId id)
+{
+   auto i = datastoreMap_.find(id);
+   if (i != datastoreMap_.end()) {
+      om::DataStorePtr datastore = i->second;
+      datastore->DestroyController();
+      datastoreMap_.erase(i);
+   }
 }
 
 void Simulation::DestroyEntity(dm::ObjectId id)
@@ -922,11 +942,13 @@ void Simulation::Load()
       client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
    }
    std::vector<om::DataStorePtr> datastores;
-   store_->TraceStore("sim")->OnAlloced([&datastores](dm::ObjectPtr obj) mutable {
+   store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr obj) mutable {
       if (obj->GetObjectType() == om::DataStoreObjectType) {
-         datastores.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
+         om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         datastores.emplace_back(ds);
+         datastoreMap_[ds->GetObjectId()] = ds;
       }
-   })->PushStoreState(); 
+   })->PushStoreState();
 
    scriptHost_->LoadGame(modList_, entityMap_, datastores);
 

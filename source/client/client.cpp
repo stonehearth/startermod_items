@@ -624,7 +624,9 @@ void Client::Shutdown()
 
 void Client::InitializeDataObjects()
 {
-   scriptHost_.reset(new lua::ScriptHost("client"));
+   scriptHost_.reset(new lua::ScriptHost("client", [this](int storeId) {
+      return AllocateDatastore(storeId);
+   }));
    store_.reset(new dm::Store(2, "game"));
    authoringStore_.reset(new dm::Store(3, "tmp"));
 
@@ -679,6 +681,8 @@ void Client::ShutdownDataObjectTraces()
 
 void Client::ShutdownDataObjects()
 {
+   datastoreMap_.clear();
+
    radiant_ = luabind::object();
 
    // the script host must go last, after all the luabind::objects spread out
@@ -1404,6 +1408,26 @@ void Client::CallHttpReactor(std::string const& path, const json::Node& query, s
    return;
 }
 
+om::DataStoreRef Client::AllocateDatastore(int storeId)
+{
+   om::DataStorePtr result;
+   if (storeId == store_->GetStoreId()) {
+      result = store_->AllocObject<om::DataStore>();   
+   } else {
+      result = authoringStore_->AllocObject<om::DataStore>();
+      datastoreMap_[result->GetObjectId()] = result;
+   }
+   return result;
+}
+
+void Client::DestroyDatastore(dm::ObjectId id) {
+   auto ds = datastoreMap_.find(id);
+   if (ds != datastoreMap_.end()) {
+      ds->second->DestroyController();
+      datastoreMap_.erase(ds);
+   }
+}
+
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = authoringStore_->AllocObject<om::Entity>();   
@@ -1561,7 +1585,10 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
       if (type == om::EntityObjectType) {
          authoredEntities_[id] = std::static_pointer_cast<om::Entity>(obj);
       } else if (obj->GetObjectType() == om::DataStoreObjectType) {
-         datastores.emplace_back(std::static_pointer_cast<om::DataStore>(obj));
+         om::DataStorePtr ds = std::static_pointer_cast<om::DataStore>(obj);
+         datastores.emplace_back(ds);
+         ASSERT(datastoreMap_.find(ds->GetObjectId()) == datastoreMap_.end());
+         datastoreMap_[ds->GetObjectId()] = ds;
       }
    })->PushStoreState();   
 
@@ -1637,11 +1664,8 @@ void Client::ReportLoadProgress()
  */
 void Client::RestoreDatastores()
 {
-   for (om::DataStoreRef d : datastores_to_restore_) {
-      om::DataStorePtr datastore = d.lock();
-      if (datastore) {
-         datastore->RestoreController(datastore);
-      }
+   for (om::DataStorePtr d : datastores_to_restore_) {
+      d->RestoreController(d);
    }
    datastores_to_restore_.clear();
 }

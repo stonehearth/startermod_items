@@ -68,7 +68,7 @@ using namespace radiant;
    OBJECT_TYPE(om::EntityRef,                om::Entity::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::EffectPtr,                om::Effect::DmType,                    RegisterGameObjectType) \
    OBJECT_TYPE(om::SensorRef,                om::Sensor::DmType,                    RegisterGameObjectType) \
-   OBJECT_TYPE(om::DataStorePtr,             om::DataStore::DmType,                 RegisterGameObjectType) \
+   OBJECT_TYPE(om::DataStoreRef,             om::DataStore::DmType,                 RegisterGameObjectType) \
    OBJECT_TYPE(om::ModelLayerPtr,            om::ModelLayer::DmType,                RegisterGameObjectType) \
    OBJECT_TYPE(om::ErrorBrowserPtr,          om::ErrorBrowser::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region2BoxedPtr,          om::Region2Boxed::DmType,              RegisterGameObjectType) \

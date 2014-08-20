@@ -16,10 +16,6 @@ luabind::object json_to_lua(dm::Store const& store, lua_State* L, JSONNode const
       if (node.type() == JSON_STRING) {
          dm::ObjectPtr obj = store.FetchObject<dm::Object>(node.as_string());
          if (obj) {
-
-            if (obj->GetObjectType() == DataStoreObjectType) {
-               return object(L, std::static_pointer_cast<DataStore>(obj));
-            }
 #define OM_OBJECT(Cls, lower) \
             case Cls ## ObjectType: \
                return object(L, std::weak_ptr<Cls>(std::static_pointer_cast<Cls>(obj)));
