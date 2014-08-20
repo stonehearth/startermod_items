@@ -296,7 +296,7 @@ MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, fl
 
    if (absMajor == 0) {
       assert(absdx == 0 && absdz == 0);
-      return majorAxis;
+      throw core::Exception("GetSlopeBounds is undefined for a zero point.");
    }
 
    // This point must be within 0.5 units of the actual line, otherwise the point above or below would have been closer.
@@ -355,6 +355,9 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
 // because the (2,0) point is farther from the line than the (2,1) point.
 //
 // It seems like someone should have inverted Bresenham's algorithm before, but I couldn't find any reference.
+//
+// Notes: This method assumes points are of the same elevation and duplicates have been removed.
+// It is called by PruneCollinearPathPoints which performs the pre-processing.
 std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vector<csg::Point3> const& points) const
 {
    std::vector<csg::Point3> result;
@@ -381,6 +384,13 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
       csg::Point3 previousPoint = points[i-1];
       csg::Point3 currentPoint = points[i];
       csg::Point3 delta = currentPoint - segmentStart;
+
+      if (currentPoint == previousPoint) {
+         throw core::Exception("PruneCollinearPathPointsPlanar does not support duplicate points. Call PruneCollinearPathPoints to pre-process."); 
+      }
+      if (currentPoint.y != previousPoint.y) {
+         throw core::Exception("PruneCollinearPathPointsPlanar does not support elevation changes. Call PruneCollinearPathPoints to pre-process.");
+      }
 
       float maxSlope, minSlope, centerSlope;
       Axis pointMajorAxis = GetSlopeBounds(delta, maxSlope, minSlope, centerSlope);
@@ -454,8 +464,8 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPoints(std::vector<cs
    std::vector<csg::Point3> result;
 
    int numPoints = points.size();
-   if (numPoints <= 2) {
-      result = points; // Two points define a line - nothing to prune.
+   if (numPoints <= 1) {
+      result = points; // Let the code below run for 2 points to check for duplicates.
       return result;
    }
 
@@ -472,6 +482,7 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPoints(std::vector<cs
          subsetPoints.clear();
       }
 
+      // Reject duplicate points here so we can simplify the pruning loop.
       if (currentPoint != previousPoint) {
          subsetPoints.push_back(currentPoint);
       }
