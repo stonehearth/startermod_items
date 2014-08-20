@@ -661,6 +661,10 @@
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
+      "set_game_options": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "new_game": {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
@@ -1086,6 +1090,7 @@
          "file(ui/common/confirm/confirm.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
+         "file(ui/shell/new_game_options/new_game_options.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
          "file(ui/shell/embark/embark.html)",
@@ -1136,6 +1141,7 @@
          "file(ui/common/confirm/confirm.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
+         "file(ui/shell/new_game_options/new_game_options.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/embark/embark.js)",
@@ -1195,6 +1201,7 @@
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",
+         "file(ui/shell/new_game_options/new_game_options.less)",
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/embark/embark.less)",
