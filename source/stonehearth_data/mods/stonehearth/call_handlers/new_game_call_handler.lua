@@ -19,7 +19,9 @@ function NewGameCallHandler:sign_in(session, response, num_tiles_x, num_tiles_y,
       stonehearth.population:add_population(session)
    end
 
-   return {}
+   return {
+      version = _radiant.sim.get_version()
+   }
 end 
 
 function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)

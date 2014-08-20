@@ -60,7 +60,7 @@ namespace proto = ::radiant::tesseract::protocol;
 
 #define MEASURE_TASK_TIME(category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf_timeline_, category);
 
-Simulation::Simulation() :
+Simulation::Simulation(std::string const& versionStr) :
    store_(nullptr),
    paused_(false),
    noidle_(false),
@@ -69,7 +69,8 @@ Simulation::Simulation() :
    _singleStepPathFinding(false),
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
-   begin_loading_(false)
+   begin_loading_(false),
+   _versionStr(versionStr)
 {
    OneTimeIninitializtion();
 }
@@ -178,7 +179,11 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:server:load", [this](rpc::Function const& f) {
       return BeginLoad(json::Node(f.args).get<std::string>("saveid"));
    });
+}
 
+std::string const& Simulation::GetVersion() const
+{
+   return _versionStr;
 }
 
 void Simulation::Initialize()

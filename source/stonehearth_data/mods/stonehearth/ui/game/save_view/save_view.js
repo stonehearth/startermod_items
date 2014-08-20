@@ -174,6 +174,7 @@ App.StonehearthSaveListView = App.View.extend({
    refresh: function() {
       var self = this;
       var saveKey = App.stonehearthClient.gameState.saveKey;
+      var simVer = App.stonehearthVersion;
 
       radiant.call("radiant:client:get_save_games")
          .done(function(json) {
@@ -200,6 +201,13 @@ App.StonehearthSaveListView = App.View.extend({
                if(keyA > keyB) return -1;
                return 0;
             });
+
+            $.each(vals, function(k, v) {
+               // For now, just blindly warn if versions are different.
+               if (!v.gameinfo.version || v.gameinfo.version != simVer) {
+                  v['differentVersions'] = true;
+               }
+            })
 
             self.set('context.saves', vals);
             Ember.run.scheduleOnce('afterRender', self, 'selectFirstItem')
