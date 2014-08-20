@@ -215,7 +215,6 @@ void DataStore::DestroyController()
          if (destroy) {
             luabind::object cb(L, destroy);
             cb(_controllerObject);
-            _controllerObject.swap(luabind::adl::object());
          }
       } catch (std::exception const& e) {
          lua::ScriptHost::ReportCStackException(L, e);

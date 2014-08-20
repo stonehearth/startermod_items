@@ -66,6 +66,7 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
          }
       }
    }
+
    return component;
 }
 
@@ -121,7 +122,7 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
          if (datastore) {
             component = datastore->GetController();
             if (!component) {
-               component = luabind::object(L, std::weak_ptr<om::DataStore>(datastore));
+               component = luabind::object(L, om::DataStoreRef(datastore));
             }
          }
       }

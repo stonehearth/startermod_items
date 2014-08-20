@@ -47,6 +47,7 @@ void Entity::Destroy()
    for (auto& entry : lua_components_) {
       entry.second->DestroyController();
    }
+   lua_components_.Clear();
 }
 
 void Entity::InitializeRecordFields()
