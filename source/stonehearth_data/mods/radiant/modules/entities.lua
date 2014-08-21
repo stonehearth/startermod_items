@@ -61,13 +61,15 @@ function entities.destroy_entity(entity)
    end
 end
 
-function entities.create_proxy_entity(use_default_adjacent_region)
+function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
+   assert(type(debug_text) == 'string')
+
    if use_default_adjacent_region == nil then
       use_default_adjacent_region = false
    end
 
    local proxy_entity = radiant.entities.create_entity()
-   proxy_entity:set_debug_text('proxy entity')
+   proxy_entity:set_debug_text(debug_text)
    log:debug('created proxy entity %s', proxy_entity)
 
    if not use_default_adjacent_region then

@@ -106,7 +106,10 @@ function EntityFormsComponent:is_placeable_on_ground()
 end
 
 function EntityFormsComponent:is_being_placed()
-   return self._placement_task ~= nil
+   -- use the saved variables as the authorative source as to whether or not
+   -- we're being placed.  this avoids some races at load time (e.g. what if
+   -- someone asks before we've had the opportunity to create our task?)
+   return self._sv.placing_at ~= nil
 end
 
 function EntityFormsComponent:get_placeable_category()

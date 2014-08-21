@@ -86,7 +86,7 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    PatrolHelpers.order_waypoints(self._entity, start_location, waypoints)
 
    -- the proxy target for the pathfinder, since the a* pathfinder requires an entity destination
-   self._proxy_entity = radiant.entities.create_proxy_entity(false)
+   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
 
    -- doesn't matter where it we place it, we'll move it later
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)

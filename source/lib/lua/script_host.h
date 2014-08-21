@@ -125,8 +125,6 @@ private:
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
-   bool                 enable_profile_memory_;
-   bool                 profile_memory_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;
 
@@ -135,9 +133,17 @@ private:
 
    int                  error_count;  // Count of script errors encountered.
 
+   // Memory profiling
+   bool                 enable_profile_memory_;
+   bool                 profile_memory_;
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
+
+   // CPU profiling
+   bool                 enable_profile_cpu_;
+   bool                 profile_cpu_;
+
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;

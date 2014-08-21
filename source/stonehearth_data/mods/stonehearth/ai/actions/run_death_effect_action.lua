@@ -15,7 +15,7 @@ function RunDeathEffect:run(ai, entity, args)
    -- hide the entity
    radiant.terrain.remove_entity(entity)
 
-   self._proxy_entity = radiant.entities.create_proxy_entity()
+   self._proxy_entity = radiant.entities.create_proxy_entity('running death effect')
    radiant.terrain.place_entity(self._proxy_entity, self._location)
 
    self._effect = radiant.effects.run_effect(self._proxy_entity, '/stonehearth/data/effects/death/death.json')

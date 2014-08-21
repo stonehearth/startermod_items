@@ -372,8 +372,6 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, float movementCost)
 {
-   PF_LOG(10) << "       Adding Edge from " << current.pt << " to " << next << " cost:" << movementCost;
-
    VERIFY_HEAPINESS();
 
    if (closed_.find(next) == closed_.end()) {
@@ -393,7 +391,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
          float f = g + h;
 
          // not found in the open list.  add a brand new node.
-         PF_LOG(10) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
+         PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
          cameFrom_[next] = current.pt;
          open_.push_back(PathFinderNode(next, f, g));
          if (!rebuildHeap_) {
@@ -403,16 +401,23 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
       } else {
          // found.  should we update?
          if (g < open_[i].g) {
-            float h = EstimateCostToDestination(next);
-            float f = g + h;
+            PathFinderNode &node = open_[i];
+
+            float old_h = node.f - node.g;
+            float old_g = node.g;
+            float f = g + old_h;
 
             cameFrom_[next] = current.pt;
-            open_[i].g = g;
-            open_[i].f = f;
+            node.g = g;
+            node.f = f;
             rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
-            PF_LOG(10) << "          (updating) Adding " << next << " to open set (f:" << f << " g:" << g << ").";
+            PF_LOG(9) << "          Updated " << next << " in open set (f:" << f << " g:" << g << "old_g: " << old_g << ")";
+         } else {
+            PF_LOG(9) << "          Ignoring update to " << next << " to open set (g:" << g << " old_g:" << open_[i].g << ")";
          }
       }
+   } else {
+      PF_LOG(9) << "       Ignoring edge in closed set from " << current.pt << " to " << next << " cost:" << movementCost;
    }
 
    VERIFY_HEAPINESS();

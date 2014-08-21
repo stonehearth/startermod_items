@@ -25,7 +25,8 @@ function MemorializeDeathAction:run(ai, entity, args)
 
    radiant.terrain.place_entity(tombstone, self._location, { force_iconic = false })
 
-   local proxy_entity = radiant.entities.create_proxy_entity()
+   -- TODO: why don't we just run the effect on the tombstone? -tony (see commented code, below)
+   local proxy_entity = radiant.entities.create_proxy_entity('tombstone music')
    radiant.terrain.place_entity(proxy_entity, self._location)
    --radiant.effects.run_effect(tombstone, '/stonehearth/data/effects/death/death_jingle.json')
    local effect = radiant.effects.run_effect(proxy_entity, '/stonehearth/data/effects/tombstone_effect')
