@@ -19,7 +19,6 @@
                "stonehearth:actions:pet:eat_from_container_adjacent",
 
                "stonehearth:actions:ambient_pet_behavior:dispatcher",
-               "stonehearth:actions:follow_entity",
                "stonehearth:actions:pet:check_out_random_friend",
                "stonehearth:actions:pet:run_in_circles"
             ],

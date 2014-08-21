@@ -34,6 +34,8 @@ function TownPatrol:initialize()
       self._sv.object_to_player_map = {}
 
       self._sv.initialized = true
+      self.__saved_variables:mark_changed()
+      
       self._world_objects_trace:push_object_state()
    else
       for player_id, player_patrollable_objects in pairs(self._sv.patrollable_objects) do

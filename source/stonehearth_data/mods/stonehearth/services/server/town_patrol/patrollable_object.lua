@@ -10,6 +10,7 @@ function PatrollableObject:initialize(object)
    self._sv.object = object
    self._sv.object_id = object:get_id()
    self._sv.last_patrol_time = radiant.gamestate.now()
+   self.__saved_variables:mark_changed()
 end
 
 function PatrollableObject:get_last_patrol_time()

@@ -8,12 +8,10 @@ FollowEntity.name = 'follow entity'
 FollowEntity.does = 'stonehearth:follow_entity'
 FollowEntity.args = {
    target = Entity,
-
    follow_distance = {
       type = 'number',
       default = 3
    },
-
    settle_distance = {
       type = 'number',
       default = 2
@@ -22,13 +20,7 @@ FollowEntity.args = {
 FollowEntity.version = 2
 FollowEntity.priority = 1
 
---[[
-Only run this action if I have an object of obsession and if I'm far from them
-]]
 function FollowEntity:start_thinking(ai, entity, args)
-   
-   --If I'm within 3 of my target, trace the target's move so we get called
-   --again on change.
    local log = ai:get_log()
    local target = args.target
    local settle_distance = args.settle_distance
@@ -37,12 +29,12 @@ function FollowEntity:start_thinking(ai, entity, args)
       return
    end
 
-   local function check_distance()
+   local check_distance = function()
       local distance = radiant.entities.distance_between(entity, target)
       if distance > args.follow_distance then 
-         -- Note: this could pick a location off a cliff. Instead, maybe have the
-         -- person run towards and stop an arbirtray distance from the target?
-         local location = radiant.entities.pick_nearby_location(target, settle_distance)
+         -- TODO: ensure that placement point is topologically close to target (not down a cliff or across a long fence)
+         local origin = radiant.entities.get_world_grid_location(target)
+         local location = radiant.terrain.find_placement_point(origin, 1, settle_distance)
          log:debug('starting to follow %s (distance: %.2f)', target, distance)
          ai:set_think_output({ location = location })
          if self._trace then

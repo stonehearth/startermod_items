@@ -92,7 +92,8 @@ function combat_tests.worker_defense(autotest)
       end
    )
 
-   stonehearth.worker_defense:enable_worker_combat(autotest.env.get_player_id())
+   local town = stonehearth.town:get_town(autotest.env.get_player_id())
+   town:enable_worker_combat()
 
    autotest:sleep(20000)
    autotest:fail('woker defense failed to complete on time')
