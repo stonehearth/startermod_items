@@ -7,18 +7,20 @@ local CreateWorkshop = require 'services.server.town.orchestrators.create_worksh
 
 local Town = class()
 
-function Town:__init(session, saved_variables)
-   self.__saved_variables = saved_variables
-   self._sv = self.__saved_variables:get_data()
-   
-   if session then
-      self._sv.faction = session.faction
-      self._sv.kingdom = session.kingdom
-      self._sv.player_id = session.player_id
-      self._sv._saved_calls = {}
-      self._sv._next_saved_call_id = 1
-   end
+function Town:initialize(session)
+   self._sv.faction = session.faction
+   self._sv.kingdom = session.kingdom
+   self._sv.player_id = session.player_id
+   self._sv._saved_calls = {}
+   self._sv._next_saved_call_id = 1
+   self._sv.worker_combat_enabled = false
+   self._sv.rally_to_battle_standard = false
+   self.__saved_variables:mark_changed()
 
+   self:restore()
+end
+
+function Town:restore()
    self._log = radiant.log.create_logger('town', self._sv.player_id)
 
    self:_create_task_groups()
@@ -28,11 +30,26 @@ function Town:__init(session, saved_variables)
    self._harvest_tasks = {}
    self._blueprints = {}
    self._placement_xs = {}
-   
-   radiant.events.listen(radiant, 'radiant:game_loaded', function()
-         self:_restore_saved_calls()
-         return radiant.events.UNLISTEN
-      end)
+   self._worker_combat_tasks = {}
+   self._rally_tasks = {}
+
+   radiant.events.listen_once(radiant, 'radiant:game_loaded',
+      function()
+         self:_on_game_loaded()
+      end
+   )
+end
+
+function Town:_on_game_loaded()
+   self:_restore_saved_calls()
+
+   if self._sv.worker_combat_enabled then
+      self:enable_worker_combat()
+   end
+
+   if self._sv.rally_to_battle_standard then
+      self:enable_rally_to_battle_standard()
+   end
 end
 
 function Town:_create_task_groups()
@@ -92,6 +109,11 @@ end
 
 function Town:get_kingdom()
    return self._sv.kingdom
+end
+
+function Town:get_citizens()
+   local population = stonehearth.population:get_population(self._sv.player_id)
+   return population:get_citizens()
 end
 
 function Town:destroy()
@@ -187,6 +209,15 @@ end
 
 function Town:get_banner()
    return self._sv.banner
+end
+
+function Town:set_battle_standard(entity)
+   self._sv.battle_standard = entity
+   self.__saved_variables:mark_changed()
+end
+
+function Town:get_battle_standard()
+   return self._sv.battle_standard
 end
 
 --- xxx: deprecated.  get rid of this
@@ -357,5 +388,107 @@ function Town:plant_crop(crop)
    return task
 end
 
-return Town
+function Town:_is_in_profession_map(entity, profession_map)
+   local profession_component = entity:get_component('stonehearth:profession')
+   if not profession_component then
+      return false
+   end
 
+   local profession = profession_component:get_profession_uri()
+   return profession_map[profession] == true
+end
+
+----- Worker combat methods -----
+
+local worker_defense_professions = {
+   ['stonehearth:professions:worker'] = true,
+   ['stonehearth:professions:farmer'] = true,
+   ['stonehearth:professions:carpenter'] = true,
+   ['stonehearth:professions:trapper'] = true,
+}
+
+function Town:worker_combat_enabled()
+   return self._sv.worker_combat_enabled
+end
+
+function Town:enable_worker_combat()
+   local citizens = self:get_citizens()
+   
+   for _, citizen in pairs(citizens) do
+      if self:_is_in_profession_map(citizen, worker_defense_professions) then
+         stonehearth.combat:set_panicking_from(citizen, nil)
+         stonehearth.combat:set_stance(citizen, 'aggressive')
+         radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
+         radiant.entities.add_buff(citizen, 'stonehearth:buffs:defender');
+
+         local task = citizen:add_component('stonehearth:ai')
+            :get_task_group('stonehearth:urgent_actions')
+            :create_task('stonehearth:town_defense:dispatcher')
+            :set_priority(stonehearth.constants.priorities.urgent_actions.TOWN_DEFENSE)
+            :start()
+
+         self._worker_combat_tasks[citizen:get_id()] = task
+      end
+   end
+
+   self._sv.worker_combat_enabled = true
+   self.__saved_variables:mark_changed()
+end
+
+function Town:disable_worker_combat()
+   for id, task in pairs(self._worker_combat_tasks) do
+      task:destroy()
+
+      local citizen = radiant.entities.get_entity(id)
+      if citizen then
+         stonehearth.combat:set_stance(citizen, 'passive')
+         radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
+         radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
+      end
+   end
+   self._worker_combat_tasks = {}
+   self._sv.worker_combat_enabled = false
+   self.__saved_variables:mark_changed()
+end
+
+----- Rally to battle standard methods -----
+
+local military_professions = {
+   ['stonehearth:professions:footman'] = true,
+}
+
+-- TODO: listen for new citizens or citizens that are promoted to a military profession
+function Town:enable_rally_to_battle_standard()
+   local battle_standard = self:get_battle_standard()
+   local citizens = self:get_citizens()
+
+   for _, citizen in pairs(citizens) do
+      if self:_is_in_profession_map(citizen, military_professions) then
+         local task = citizen:add_component('stonehearth:ai')
+            :get_task_group('stonehearth:urgent_actions')
+            :create_task('stonehearth:follow_entity', {
+               target = battle_standard,
+               follow_distance = 4,
+               settle_distance = 4
+            })
+            :set_priority(stonehearth.constants.priorities.urgent_actions.RALLY)
+            :start()
+
+         self._rally_tasks[citizen:get_id()] = task
+      end
+   end
+
+   self._sv.rally_to_battle_standard = true
+   self.__saved_variables:mark_changed()
+end
+
+function Town:disable_rally_to_battle_standard()
+   for _, task in pairs(self._rally_tasks) do
+      task:destroy()
+   end
+   self._rally_tasks = {}
+   self._sv.rally_to_battle_standard = false
+   self.__saved_variables:mark_changed()
+end
+
+return Town

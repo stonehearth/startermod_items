@@ -6,14 +6,11 @@ local TownService = class()
 
 function TownService:initialize()
    self._sv = self.__saved_variables:get_data() 
-   if not self._sv.towns then
+
+   if not self._sv.initialized then
       self._sv.towns = {}
-   else
-      for player_id, ss in pairs(self._sv.towns) do
-         self._sv.towns[player_id] = Town(nil, ss)
-      end
+      self._sv.initialized = true
    end
-   radiant.log.write('town', 0, 'initialize not implemented for town service!')
 end
 
 function TownService:add_town(session)
@@ -23,7 +20,7 @@ function TownService:add_town(session)
 
    assert(not self._sv.towns[session.player_id])
 
-   local town = Town(session, radiant.create_datastore())
+   local town = radiant.create_controller('stonehearth:town', session)
    self._sv.towns[session.player_id] = town
    self.__saved_variables:mark_changed()
    return town

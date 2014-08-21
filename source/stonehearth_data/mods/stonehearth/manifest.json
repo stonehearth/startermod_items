@@ -354,7 +354,7 @@
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
       "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
       "actions:free_time:dispatcher" : "file(ai/actions/free_time/free_time_dispatcher.lua)",
-
+      "actions:urgent_actions:dispatcher" : "file(ai/actions/urgent_actions/urgent_actions_dispatcher.lua)",
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
 
@@ -454,7 +454,6 @@
       "actions:town_defense:town_defense_dispatcher" : "file(ai/actions/town_defense/town_defense_dispatcher.lua)",
       "actions:town_defense:town_defense_idle_dispatcher" : "file(ai/actions/town_defense/town_defense_idle_dispatcher.lua)",
       "actions:town_defense:town_defense_idle_ready" : "file(ai/actions/town_defense/town_defense_idle_ready_action.lua)",
-      "actions:town_defense:town_defense_watcher" : "file(ai/actions/town_defense/town_defense_watcher_action.lua)",
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
@@ -946,7 +945,7 @@
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       },
-      "worker_combat_is_enabled": {
+      "worker_combat_enabled": {
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       }
@@ -954,6 +953,7 @@
    
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
+      "town" : "file(services/server/town/town.lua)",
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
@@ -962,7 +962,6 @@
       "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
       "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
-
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
