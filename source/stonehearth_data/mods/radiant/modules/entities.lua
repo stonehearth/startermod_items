@@ -738,10 +738,10 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    local attributes_b = entity_b:get_component('stonehearth:attributes')
 
    if attributes_a and attributes_b then
-      local ferocity_a = attributes_a:get_attribute(attribute)
-      local ferocity_b = attributes_b:get_attribute(attribute)
+      local att_a = attributes_a:get_attribute(attribute)
+      local att_b = attributes_b:get_attribute(attribute)
 
-      return ferocity_a - ferocity_b
+      return att_a - att_b
    end
 
    return 0
