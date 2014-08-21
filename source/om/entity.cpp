@@ -42,9 +42,12 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 
 void Entity::Destroy()
 {
+   // Our component datastores are manually allocated, so we manually destroy them, too.  (All
+   // others go through 'sim'.
    for (auto& entry : lua_components_) {
       entry.second->DestroyController();
    }
+   lua_components_.Clear();
 }
 
 void Entity::InitializeRecordFields()

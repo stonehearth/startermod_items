@@ -234,9 +234,10 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
-ScriptHost::ScriptHost(std::string const& site) :
+ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs) :
    site_(site),
-   error_count(0)
+   error_count(0),
+   _allocDs(allocDs)
 {
    current_line = 0;
    *current_file = '\0';
@@ -820,8 +821,8 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
          luabind::object savestate = mods->GetMod(mod_name);
 
          if (!savestate || !savestate.is_valid()) {
-            om::DataStorePtr datastore = mods->GetStore().AllocObject<om::DataStore>();
-            datastore->SetData(luabind::newtable(L_));
+            om::DataStoreRef datastore = _allocDs(mods->GetStore().GetStoreId());
+            datastore.lock()->SetData(luabind::newtable(L_));
             savestate = luabind::object(L_, datastore);
          }
          module = Require(script_name);

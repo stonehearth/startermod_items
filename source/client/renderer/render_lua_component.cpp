@@ -37,7 +37,7 @@ RenderLuaComponent::RenderLuaComponent(RenderEntity& entity, std::string const& 
             if (fn) {
                luabind::object controller = datastore->GetController();
                if (!controller) {
-                  controller = luabind::object(L, datastore);
+                  controller = luabind::object(L, om::DataStoreRef(datastore));
                }
                fn(component_renderer_, re, controller);
             }

@@ -244,6 +244,15 @@ std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::Enti
    return result;
 }
 
+MovementHelper::Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) const
+{
+   if (std::abs(delta.x) >= std::abs(delta.z)) {
+      return Axis::X;
+   } else {
+      return Axis::Z;
+   }
+}
+
 bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart, csg::Point3 const& previous, csg::Point3 const& current, Axis axis) const
 {
    int d;
@@ -272,34 +281,35 @@ bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart
 // maxSlope is the slope bounds closest to +inf.
 // minSlope is the slope bounds closest to -inf.
 // Comparing floats should be ok, since we shouldn't have any floating point drift.
-MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, float& maxSlope, float& minSlope, float& centerSlope) const
+void MovementHelper::GetSlopeBounds(csg::Point3 const& delta, Axis axis, float& maxSlope, float& minSlope, float& centerSlope) const
 {
-   int absdx = std::abs(delta.x);
-   int absdz = std::abs(delta.z);
    int major, minor;
-   float absMajor;
-   Axis majorAxis;
 
    // Get the major and minor coordinates.
    // If equal, default to x-major axis. we'll fix this later if we deviate from the diagonal.
-   if (absdx >= absdz) {
-      major = delta.x;
-      minor = delta.z;
-      absMajor = (float) absdx;
-      majorAxis = Axis::X;
-   } else {
-      major = delta.z;
-      minor = delta.x;
-      absMajor = (float) absdz;
-      majorAxis = Axis::Z;
+   switch (axis) {
+      case Axis::X:
+         major = delta.x;
+         minor = delta.z;
+         break;
+      case Axis::Z:
+         major = delta.z;
+         minor = delta.x;
+         break;
+      default:
+         throw core::Exception("GetSlopeBounds: Illegal axis");
    }
 
-   if (absMajor == 0) {
-      assert(absdx == 0 && absdz == 0);
-      throw core::Exception("GetSlopeBounds is undefined for a zero point.");
+   if (major == 0) {
+      throw core::Exception("GetSlopeBounds: Major axis coordinate cannot be zero");
+   }
+
+   if (std::abs(minor) > std::abs(major)) {
+      throw core::Exception("GetSlopeBounds: Minor axis is longer than major axis");
    }
 
    // This point must be within 0.5 units of the actual line, otherwise the point above or below would have been closer.
+   float absMajor = (float) std::abs(major);
    maxSlope = (minor + 0.5f) / absMajor;
    minSlope = (minor - 0.5f) / absMajor;
    centerSlope = minor / absMajor;
@@ -309,14 +319,14 @@ MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, fl
    assert(centerSlope >= -1.0f);
    assert(maxSlope <=  1.5f);
    assert(minSlope >= -1.5f);
-
-   return majorAxis;
 }
 
 void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& maxSlope, float& minSlope) const
 {
+   // do x and z have opposite signs?
    if ((delta.x ^ delta.z) < 0) {
-      // minor = -major, recalculate the transposed slope values
+      // Opposite signs, so minor = -major
+      // Recalculate the transposed slope values
       //
       // Given that:
       //   oldMaxSlope = (minor + 0.5f) / absMajor;
@@ -334,7 +344,8 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
       maxSlope = -minSlope;
       minSlope = -temp;
    } else {
-      // minor == major, The transposed slope values are the same as the original values.
+      // Same sign, so minor == major
+      // The transposed slope values are the same as the original values.
    }
 }
 
@@ -384,6 +395,7 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
       csg::Point3 previousPoint = points[i-1];
       csg::Point3 currentPoint = points[i];
       csg::Point3 delta = currentPoint - segmentStart;
+      Axis pointMajorAxis = GetMajorAxis(delta);
 
       if (currentPoint == previousPoint) {
          throw core::Exception("PruneCollinearPathPointsPlanar does not support duplicate points. Call PruneCollinearPathPoints to pre-process."); 
@@ -391,9 +403,6 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
       if (currentPoint.y != previousPoint.y) {
          throw core::Exception("PruneCollinearPathPointsPlanar does not support elevation changes. Call PruneCollinearPathPoints to pre-process.");
       }
-
-      float maxSlope, minSlope, centerSlope;
-      Axis pointMajorAxis = GetSlopeBounds(delta, maxSlope, minSlope, centerSlope);
 
       // Don't prune when the path doubles back on itself.
       // Don't prune when there are two points at the same major axis coordinate.
@@ -407,10 +416,13 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
                // We have a diagonal line that just became non-diagonal.
                TransposeDiagonalSlope(delta, segmentMaxSlope, segmentMinSlope);
             } else {
-               // Major axis defined on the second point of the segment, just assign it below.
+               // Initial assignment of major axis
             }
             segmentMajorAxis = pointMajorAxis;
          }
+
+         float maxSlope, minSlope, centerSlope; // out parameters
+         GetSlopeBounds(delta, pointMajorAxis, maxSlope, minSlope, centerSlope);
 
          // Add the slope constraints of the current point to the existing constraints.
          if (maxSlope < segmentMaxSlope) {

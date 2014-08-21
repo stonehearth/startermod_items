@@ -31,8 +31,9 @@ private:
    };
 
    std::vector<csg::Point3> PruneCollinearPathPointsPlanar(std::vector<csg::Point3> const& points) const;
+   Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) const;
    bool CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart, csg::Point3 const& previous, csg::Point3 const& current, Axis axis) const;
-   Axis GetSlopeBounds(csg::Point3 const& delta, float& maxSlope, float& minSlope, float& centerSlope) const;
+   void GetSlopeBounds(csg::Point3 const& delta, Axis axis, float& maxSlope, float& minSlope, float& centerSlope) const;
    void TransposeDiagonalSlope(csg::Point3 const& delta, float& maxSlope, float& minSlope) const;
    int      _logLevel;
 };

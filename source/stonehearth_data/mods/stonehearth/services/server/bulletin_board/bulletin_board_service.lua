@@ -10,6 +10,7 @@ function BulletinBoardService:initialize()
       self._sv.bulletin_to_player_map = {}
       self._sv.next_bulletin_id = 100 -- can't use 1 because we want bulletins to serialize as a map
       self._sv.initialized = true
+      self.__saved_variables:mark_changed()
    end
 end
 

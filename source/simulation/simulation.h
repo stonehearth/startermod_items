@@ -47,11 +47,15 @@ class Path;
 class Simulation
 {
 public:
-   Simulation();
+   Simulation(std::string const& versionStr);
    ~Simulation();
 
+   std::string const& GetVersion() const;
+
+   om::DataStoreRef Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
    void DestroyEntity(dm::ObjectId id);
+   void DestroyDatastore(dm::ObjectId id);
    void Run(tcp::acceptor* acceptor, boost::asio::io_service* io_service);
 
    /* New object model stuff goes here */
@@ -157,6 +161,7 @@ private:
 
    luabind::object                              radiant_;
    std::unordered_map<dm::ObjectId, om::EntityPtr>        entityMap_;
+   std::unordered_map<dm::ObjectId, om::DataStorePtr>     datastoreMap_;
 
    rpc::SessionPtr             session_;
    rpc::CoreReactorPtr         core_reactor_;
@@ -197,6 +202,8 @@ private:
    FreeMotionTaskMap                   freeMotionTasks_;
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
+
+   std::string                         _versionStr;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

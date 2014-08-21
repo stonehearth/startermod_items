@@ -57,6 +57,8 @@ class Client : public core::Singleton<Client> {
       om::EntityPtr CreateAuthoringEntity(std::string const& uri);
       void DestroyAuthoringEntity(dm::ObjectId id);
 
+      om::DataStoreRef AllocateDatastore(int storeId);
+      void DestroyDatastore(dm::ObjectId id);
       dm::Store& GetStore() { return *store_; }
       dm::Store& GetAuthoringStore() { return *authoringStore_; }
       phys::OctTree& GetOctTree() const { return *octtree_; }
@@ -188,6 +190,7 @@ private:
       std::unordered_map<dm::ObjectId, om::EntityPtr> authoredEntities_;
       om::EntityPtr                    localRootEntity_;
       om::ModListPtr                   localModList_;
+      std::unordered_map<dm::ObjectId, om::DataStorePtr> datastoreMap_;
 
       // local collision tests...
       std::unique_ptr<phys::OctTree>     octtree_;
@@ -255,7 +258,7 @@ private:
       int                         networkUpdatesCount_;
       int                         networkUpdatesExpected_;
       bool                        debug_track_object_lifetime_;
-      std::vector<om::DataStoreRef>  datastores_to_restore_;
+      std::vector<om::DataStorePtr>  datastores_to_restore_;
       std::vector<dm::TracePtr>   lua_component_traces_;
 
       rpc::ReactorDeferredPtr     load_progress_deferred_;

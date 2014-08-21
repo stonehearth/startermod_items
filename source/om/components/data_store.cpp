@@ -50,7 +50,7 @@ void DataStore::SerializeToJson(json::Node& node) const
    Record::SerializeToJson(node);
 }
 
-luabind::object DataStore::RestoreController(DataStorePtr self)
+luabind::object DataStore::RestoreController(DataStoreRef self)
 {
    // Whenever the data object changes, write the root value back into
    // _sv of the controller.  This won't help anyone who caches _sv values
@@ -72,7 +72,7 @@ luabind::object DataStore::RestoreController(DataStorePtr self)
    return RestoreControllerRecursive(self, visitedTables, visited);
 }
 
-luabind::object DataStore::RestoreControllerRecursive(DataStorePtr self, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
+luabind::object DataStore::RestoreControllerRecursive(DataStoreRef self, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
 {
    ASSERT(visited.find(GetObjectId()) == visited.end());
 
@@ -145,11 +145,12 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabin
             DS_LOG(8) << "restoring table for key " << key;
             RestoreContainedDatastores(*i, visitedTables, visited);
          } else {
-            boost::optional<om::DataStorePtr> ds = luabind::object_cast_nothrow<om::DataStorePtr>(*i);
+            boost::optional<om::DataStoreRef> ds = luabind::object_cast_nothrow<om::DataStoreRef>(*i);
             if (ds) {
                luabind::object controller;
-               om::DataStorePtr datastore = ds.get();
-               dm::ObjectId id = datastore->GetObjectId();
+               om::DataStoreRef datastore = ds.get();
+               om::DataStorePtr dsObj = datastore.lock();
+               dm::ObjectId id = dsObj->GetObjectId();
 
                auto j = visited.find(id);
                if (j != visited.end()) {
@@ -157,7 +158,7 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabin
                   controller = j->second;
                } else {
                   DS_LOG(8) << "restoring datastore at " << key << ".";
-                  controller = datastore->RestoreControllerRecursive(datastore, visitedTables, visited);
+                  controller = dsObj->RestoreControllerRecursive(datastore, visitedTables, visited);
                }
                if (controller.is_valid()) {
                   if (luabind::type(i.key()) == LUA_TSTRING) {
@@ -227,7 +228,7 @@ void DataStore::SetController(luabind::object controller)
    _controllerObject = controller;
 }
 
-luabind::object DataStore::CreateController(DataStorePtr self, std::string type, std::string const& name)
+luabind::object DataStore::CreateController(DataStoreRef self, std::string type, std::string const& name)
 {
    controller_type_ = type;
    controller_name_ = name;

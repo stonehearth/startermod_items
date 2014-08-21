@@ -11,7 +11,8 @@ App = Ember.Application.createWithMixins({
 
       this.deferReadiness();
       var deferreds = []
-      radiant.call('stonehearth:sign_in').done(function() {
+      radiant.call('stonehearth:sign_in').done(function(r) {
+        App.stonehearthVersion = r.version;
         self._loadModules()
       });
      

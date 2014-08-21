@@ -13,7 +13,9 @@ BEGIN_RADIANT_LUA_NAMESPACE
 
 class ScriptHost {
 public:
-   ScriptHost(std::string const& site);
+   typedef std::function<om::DataStoreRef(int storeId)> AllocDataStoreFn;
+public:
+   ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs);
    ~ScriptHost();
 
    lua_State* GetInterpreter();
@@ -145,6 +147,8 @@ private:
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
+
+   AllocDataStoreFn     _allocDs;
 };
 
 END_RADIANT_LUA_NAMESPACE

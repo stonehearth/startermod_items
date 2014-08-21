@@ -32,9 +32,9 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
       if (t != om::DataStoreObjectType) {
          return nullptr;
       }
-      om::DataStorePtr db = std::dynamic_pointer_cast<om::DataStore>(o);
+      om::DataStoreRef db = std::dynamic_pointer_cast<om::DataStore>(o);
 
-      object obj = db->GetController();
+      object obj = db.lock()->GetController();
       if (!obj.is_valid()) {
          return nullptr;
       }

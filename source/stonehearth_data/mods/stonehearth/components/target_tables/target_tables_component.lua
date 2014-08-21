@@ -8,6 +8,7 @@ function TargetTables:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.target_tables = {}
       self._sv.initialized = true
+      self.__saved_variables:mark_changed()
    end
 
    -- ten second or minute poll is sufficient
