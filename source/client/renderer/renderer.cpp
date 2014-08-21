@@ -850,6 +850,7 @@ void Renderer::Initialize()
    ResizeViewport();
    CallWindowResizeListeners();
 
+   last_render_time_ = 0;
    last_render_time_wallclock_ = platform::get_current_time_in_ms();
 }
 
@@ -963,6 +964,8 @@ bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
 
 void Renderer::RenderOneFrame(int now, float alpha)
 {
+   ASSERT(now >= last_render_time_);
+
    // Initialize all the new render entities we created this frame.
    platform::timer t(_maxRenderEntityLoadTime);
 

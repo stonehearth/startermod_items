@@ -53,6 +53,10 @@ function FollowPathAction:run(ai, entity, args)
 
    local speed = radiant.entities.get_world_speed(entity)
 
+   -- make sure we record the starting posture. if the posture changed recently, the async trigger
+   -- may not have fired yet and we want to know if it has really changed or not.
+   self._posture = radiant.entities.get_posture(entity)
+      
    -- TODO: use a buff for this?
    if self._posture == 'stonehearth:patrol' then
       speed = speed * 0.3
@@ -65,9 +69,7 @@ function FollowPathAction:run(ai, entity, args)
    self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)
 
    if not self._mover:arrived() then
-      -- make sure we record the starting posture. if the posture changed recently, the async trigger
-      -- may not have fired yet and we want to know if it has really changed or not.
-      self._posture = radiant.entities.get_posture(entity)
+
       radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
       self._listening = true
 

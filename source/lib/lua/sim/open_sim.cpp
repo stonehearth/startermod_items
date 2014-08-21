@@ -36,6 +36,11 @@ static Simulation& GetSim(lua_State* L)
    return *sim;
 }
 
+std::string Sim_GetVersion(lua_State* L)
+{
+   return GetSim(L).GetVersion();
+}
+
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
@@ -47,15 +52,6 @@ om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
    om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
    om::Stonehearth::InitEntity(entity, uri, L);
    return entity;
-}
-
-om::DataStorePtr Sim_AllocDataStore(lua_State* L)
-{
-   // make sure we return the strong pointer version
-   om::DataStorePtr datastore = Sim_AllocObject<om::DataStore>(L);
-   datastore->SetData(newtable(L));
-
-   return datastore;
 }
 
 luabind::object Sim_GetObject(lua_State* L, object id)
@@ -75,13 +71,30 @@ luabind::object Sim_GetObject(lua_State* L, object id)
    return lua_obj;
 }
 
+om::DataStoreRef Sim_AllocDataStore(lua_State* L)
+{
+   // Return the weak ptr version.
+   om::DataStoreRef datastore = GetSim(L).AllocDatastore();
+   datastore.lock()->SetData(newtable(L));
+
+   return datastore;
+}
+
+void Sim_DestroyDatastore(lua_State* L, om::DataStoreRef ds)
+{
+   auto datastore = ds.lock();
+   if (datastore) {
+      GetSim(L).DestroyDatastore(datastore->GetObjectId());
+   }
+}
+
 void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
 {
    auto entity = e.lock();
    if (entity) {
       dm::ObjectId id = entity->GetObjectId();
       entity = nullptr;
-      return GetSim(L).DestroyEntity(id);
+      GetSim(L).DestroyEntity(id);
    }
 }
 
@@ -281,6 +294,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
+            def("get_version",               &Sim_GetVersion),
             def("create_entity",             &Sim_CreateEntity),
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),
@@ -288,6 +302,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("alloc_region",              &Sim_AllocObject<om::Region3Boxed>),
             def("alloc_region2",             &Sim_AllocObject<om::Region2Boxed>),
             def("create_datastore",          &Sim_AllocDataStore),
+            def("destroy_datastore",         &Sim_DestroyDatastore),
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),

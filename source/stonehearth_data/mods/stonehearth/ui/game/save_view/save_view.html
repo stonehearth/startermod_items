@@ -31,7 +31,7 @@
 <script type="text/x-handlebars" data-template-name="saveList">
    <div class="saveList list">
       {{#each saves}}
-         <div class="saveSlot row" {{bind-attr class=current:current:notCurrent key=key}}>
+         <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key}} >
             <div class="screenshot">
                <img {{bind-attr src=this.screenshot}} />
             </div>
