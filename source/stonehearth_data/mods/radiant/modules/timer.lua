@@ -7,6 +7,7 @@ radiant.events.listen(radiant, 'stonehearth:gameloop', function()
    end)
 
 function radiant.get_realtime()
+   -- returns seconds, not milliseconds!
    return _host:get_realtime()
 end
 
