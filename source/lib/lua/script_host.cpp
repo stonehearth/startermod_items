@@ -245,7 +245,9 @@ ScriptHost::ScriptHost(std::string const& site) :
    bytes_allocated_ = 0;
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
+   enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
    profile_memory_ = false;
+   profile_cpu_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
    set_pcall_callback(PCallCallbackFn);

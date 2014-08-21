@@ -38,12 +38,18 @@ function Building:initialize(entity, json)
    self._entity = entity
    if not self._sv.initialized then
       self._sv.initialized = true
+      self._sv.envelope_entity = radiant.entities.create_entity()    
+      self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')      
+                                 :set_building_entity(self._entity)
+      radiant.entities.add_child(self._entity, self._sv.envelope_entity)
+
       self._sv.structures = {}
       for _, structure_type in pairs(STRUCTURE_TYPES) do
          self._sv.structures[structure_type] = {}
       end
    else
-      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             for _, structures in pairs(self._sv.structures) do
                for _, entry in pairs(structures) do
                   self:_trace_entity(entry.entity)
@@ -52,8 +58,6 @@ function Building:initialize(entity, json)
          end)      
    end
    self._traces = {}
-
-   self._no_construction_zone = self._entity:add_component('stonehearth:no_construction_zone')
 end
 
 function Building:_get_structures(type)
@@ -195,7 +199,9 @@ function Building:_trace_entity(entity)
       self:_save_trace(entity, trace)
       trace:push_object_state()
    end
-   self._no_construction_zone:add_structure(entity)
+
+   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                 :add_structure(entity)
 end
 
 function Building:_save_trace(entity, trace)
