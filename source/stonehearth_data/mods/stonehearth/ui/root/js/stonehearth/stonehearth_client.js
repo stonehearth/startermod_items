@@ -16,8 +16,6 @@ var StonehearthClient;
       init: function() {
          var self = this;
 
-         self.rallyWorkersEnabled = false;
-
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
@@ -518,19 +516,19 @@ var StonehearthClient;
 
       _redAlertWidget: null,
       rallyWorkers: function() {
-         // TODO: add sound and visual indicator that this state is on
-         if (self.rallyWorkersEnabled) {
-            radiant.call('stonehearth:disable_worker_combat');
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off' );
-            self.rallyWorkersEnabled = false;
-            if (self._redAlertWidget) {
-               self._redAlertWidget.destroy();   
-            }
-         } else {
-            radiant.call('stonehearth:enable_worker_combat');
-            self.rallyWorkersEnabled = true;
-            self._redAlertWidget = App.gameView.addView(App.StonehearthRedAlertWidget);
-         }
+         radiant.call('stonehearth:worker_combat_enabled')
+            .done(function(response) {
+               if (response.enabled) {
+                  radiant.call('stonehearth:disable_worker_combat');
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off');
+                  if (self._redAlertWidget) {
+                     self._redAlertWidget.destroy();   
+                  }
+               } else {
+                  radiant.call('stonehearth:enable_worker_combat');
+                  self._redAlertWidget = App.gameView.addView(App.StonehearthRedAlertWidget);
+               }
+            })
       },
 
    });
