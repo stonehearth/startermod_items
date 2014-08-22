@@ -471,19 +471,7 @@ end
 
 function TrappingGroundsComponent:_get_actual_spawn_location(trap, proposed_spawn_location, spawned_entity)
    local trap_location = radiant.entities.get_world_grid_location(trap)
-   local actual_spawn_location = nil
-
-   local direct_path_finder = _radiant.sim.create_direct_path_finder(spawned_entity)
-      :set_start_location(trap_location)
-      :set_end_location(proposed_spawn_location)
-      :set_allow_incomplete_path(true)
-      :set_reversible_path(true)
-
-   local path = direct_path_finder:get_path()
-   if path then
-      actual_spawn_location = path:get_finish_point()
-   end
-
+   local actual_spawn_location = radiant.terrain.get_direct_path_end_point(trap_location, proposed_spawn_location, spawned_entity)
    return actual_spawn_location
 end
 
