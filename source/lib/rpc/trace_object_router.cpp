@@ -94,9 +94,13 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
    entry.obj = obj;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
 
-   entry.trace->OnModified_([this, uri, entry]() {
-      auto obj = entry.obj.lock();
-      auto deferred = entry.deferred.lock();
+   // We _must_ capture only the refs to the object/deferred.  Capturing the ptr means that
+   // the closure of the object will hold a strong-ref to itself; it will never go away!.
+   dm::ObjectRef objRef = entry.obj;
+   ReactorDeferredRef defRef = entry.deferred;
+   entry.trace->OnModified_([this, uri, objRef, defRef]() {
+      auto obj = objRef.lock();
+      auto deferred = defRef.lock();
       if (obj && deferred) {
          json::Node data;
           if (obj->GetObjectType() == om::JsonBoxedObjectType) {
@@ -111,5 +115,10 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
          traces_.erase(uri);
       }
    });
+   entry.trace->OnDestroyed_([uri, this]() {
+      traces_.erase(uri);
+   });
    entry.trace->PushObjectState_();
 }
+
+#pragma optimize("", on)
