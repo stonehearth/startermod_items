@@ -11,9 +11,12 @@
 #include "om/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
+#include "movement_helpers.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
+
+static const int DIRECT_PATH_SEARCH_COOLDOWN = 8;
 
 std::vector<std::weak_ptr<AStarPathFinder>> AStarPathFinder::all_pathfinders_;
 
@@ -72,6 +75,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    enabled_(false),
    entity_(entity),
    world_changed_(false),
+   direct_path_search_cooldown_(0),
    debug_color_(255, 192, 0, 128)
 {
    PF_LOG(3) << "creating pathfinder";
@@ -333,14 +337,26 @@ void AStarPathFinder::Work(const platform::timer &timer)
       closed_.insert(current.pt);
       WatchWorldPoint(current.pt);
 
-      PathFinderDst* closest;
+      PathFinderDst* closest = nullptr;
       float h = EstimateCostToDestination(current.pt, &closest);
+
       if (h == 0) {
          // xxx: be careful!  this may end up being re-entrant (for example, removing
          // destinations).
-         SolveSearch(current.pt, closest);
+         ASSERT(closest);
+
+         std::vector<csg::Point3> solution;
+         ReconstructPath(solution, current.pt);
+         SolveSearch(solution, *closest);
          return;
-      } else if (current.g + h > max_cost_to_destination_) {
+      } 
+
+      if (closest && FindDirectPathToDestination(current.pt, *closest)) {
+         // Found a solution!  Bail.
+         return;
+      }
+
+      if (current.g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded.  marking search as exhausted.";
          SetSearchExhausted();
          return;
@@ -365,10 +381,11 @@ void AStarPathFinder::Work(const platform::timer &timer)
          AddEdge(current, pt, cost);
          VERIFY_HEAPINESS();
       }
+
+      direct_path_search_cooldown_--;
    }
    VERIFY_HEAPINESS();
 }
-
 
 void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, float movementCost)
 {
@@ -563,20 +580,14 @@ void AStarPathFinder::SetSearchExhausted()
    }
 }
 
-void AStarPathFinder::SolveSearch(const csg::Point3& last, PathFinderDst* dst)
+void AStarPathFinder::SolveSearch(std::vector<csg::Point3>& solution, PathFinderDst& dst)
 {
-   std::vector<csg::Point3> points;
-
-   VERIFY_HEAPINESS();
-
-   ReconstructPath(points, last);
-
-   if (points.empty()) {
-      points.push_back(source_->GetSourceLocation());
+   if (solution.empty()) {
+      solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3 dst_point_of_interest = dst->GetPointOfInterest(points.back());
-   PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << last << ")";
-   solution_ = std::make_shared<Path>(points, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
+   csg::Point3 dst_point_of_interest = dst.GetPointOfInterest(solution.back());
+   PF_LOG(5) << "found solution to destination " << dst.GetEntityId() << " (last point is " << solution.back() << ")";
+   solution_ = std::make_shared<Path>(solution, entity_.lock(), dst.GetEntity(), dst_point_of_interest);
    if (solved_cb_) {
       PF_LOG(5) << "calling lua solved callback";
       solved_cb_(solution_);
@@ -603,6 +614,8 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
 
    world_changed_ = false;
    watching_tiles_.clear();
+   direct_path_search_cooldown_ = 0;
+
    EnableWorldWatcher(false);
    
    return shared_from_this();
@@ -693,3 +706,26 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
    }
 }
 
+bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst)
+{   
+   if (direct_path_search_cooldown_ > 0) {
+      return false;
+   }
+   direct_path_search_cooldown_ = DIRECT_PATH_SEARCH_COOLDOWN;
+
+   MovementHelper mh(LOG_LEVEL(simulation.pathfinder.astar));
+   om::EntityPtr entity = entity_.lock();
+
+   csg::Region3 const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
+   csg::Point3 to = dstRegion.GetClosestPoint(from);
+
+   std::vector<csg::Point3> directPath = mh.GetPathPoints(GetSim(), entity, false, from, to);
+   if (directPath.empty() || directPath.back() != to) {
+      return false;
+   }
+
+   std::vector<csg::Point3> solution;
+   ReconstructPath(solution, from);
+   solution.insert(solution.end(), directPath.begin(), directPath.end());
+   SolveSearch(solution, dst);
+}

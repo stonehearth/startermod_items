@@ -21,8 +21,6 @@
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
 
-#pragma optimize( "", off )
-
 using namespace radiant;
 using namespace radiant::phys;
 
