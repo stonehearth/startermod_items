@@ -2,7 +2,6 @@ local ResourceNodeComponent = class()
 
 function ResourceNodeComponent:initialize(entity, json)
    self._entity = entity
-   self._durability = json.durability or 1
    self._harvester_effect = json.harvester_effect
    self._task_group_name = json.task_group_name
    self._description = json.description
@@ -10,11 +9,16 @@ function ResourceNodeComponent:initialize(entity, json)
    self._harvest_tool = json.harvest_tool
 
    self._sv = self.__saved_variables:get_data()
-   if not self._sv._initialized then
-      self._sv._initialized = true
+   if not self._sv.initialized then
+      self._sv.durability = json.durability or 1
+      self._sv.harvestable = true
+      self._sv.initialized = true
       self._sv.resource = json.resource
    end
+end
 
+function ResourceNodeComponent:is_harvestable()
+   return self._sv.durability > 0
 end
 
 -- Update the resource spawned by this entity
@@ -49,10 +53,14 @@ function ResourceNodeComponent:spawn_resource(collect_location)
       local pt = radiant.terrain.find_placement_point(collect_location, 0, 4)
       radiant.terrain.place_entity(item, pt)
    end
-   self._durability = self._durability - 1
-   if self._durability <= 0 then
+
+   self._sv.durability = self._sv.durability - 1
+
+   if self._sv.durability <= 0 then
       radiant.entities.destroy_entity(self._entity)
    end
+
+   self.__saved_variables:mark_changed()
 end
 
 return ResourceNodeComponent
