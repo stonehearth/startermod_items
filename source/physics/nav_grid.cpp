@@ -1176,6 +1176,7 @@ csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 con
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
+         pos = mob->GetWorldGridLocation();
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
             return mob->GetMobCollisionRegion().Translated(location);
          }
