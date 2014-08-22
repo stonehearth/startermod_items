@@ -94,9 +94,13 @@ App.StonehearthPerfmonView = App.View.extend({
          self.destroy();
       });
 
-      self._perf_trace = radiant.call('radiant:game:get_perf_counters')
+      self._srv_perf_trace = radiant.call('radiant:game:get_perf_counters')
          .progress(function(data) {
-            self._updateCounters(data);
+            self._updateCounters(data, 'server');
+         });
+      self._client_perf_trace = radiant.call('radiant:client:get_perf_counters')
+         .progress(function(data) {
+            self._updateCounters(data, 'client');
          });
    },
 
@@ -153,7 +157,7 @@ App.StonehearthPerfmonView = App.View.extend({
       return formatFn(data.value);
    },
 
-   _updateCounters: function (data) {
+   _updateCounters: function (data, counterType) {
       // this should not be necessary, but the trace is not being destroyed properly
       if (!this._perf_trace) {
          return
@@ -171,7 +175,7 @@ App.StonehearthPerfmonView = App.View.extend({
       })
 
       counters.sort( function(l, r) { return l.name < r.name })
-      this.set('context.counters', counters)
+      this.set('context.counters_' + counterType, counters)
    },
 
 });
