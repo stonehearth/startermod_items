@@ -49,7 +49,7 @@ function PatrollableObject:get_centroid()
    return centroid
 end
 
-function PatrollableObject:get_waypoints(distance)
+function PatrollableObject:get_waypoints(distance, entity)
    local object = self:get_object()
    local location = radiant.entities.get_world_grid_location(object)
    local collision_component = object:get_component('region_collision_shape')
@@ -57,10 +57,8 @@ function PatrollableObject:get_waypoints(distance)
    if collision_component ~= nil then
       local object_region = collision_component:get_region():get()
       local bounds = object_region:get_bounds():translated(location)
-      local inscribed_bounds = self:_get_inscribed_bounds(bounds)
-      local expanded_bounds = self:_expand_cube_xz(inscribed_bounds, distance)
       local clockwise = rng:get_int(0, 1) == 1
-      local waypoints = self:_get_projected_vertices(expanded_bounds, clockwise)
+      local waypoints = self:_get_waypoints(bounds, distance, clockwise, entity)
       return waypoints
    else
       -- TODO: decide what waypoints to use in this case
@@ -86,45 +84,38 @@ function PatrollableObject:release_lease(entity)
    return released
 end
 
--- terrain aligned objects have their position shifted by (-0.5, 0, -0.5)
--- this returns the grid aligned points enclosed by the bounds when the object is placed on the terrain
-function PatrollableObject:_get_inscribed_bounds(bounds)
+function PatrollableObject:_get_waypoints(bounds, distance, clockwise, entity)
    local min = bounds.min
    local max = bounds.max
-   return Cube3(
-      min,
-      Point3(max.x-1, max.y, max.z-1)
-   )
-end
+   local start_point = Point3(0, min.y, 0)
+   local desired_point, resolved_point
+   local waypoints = {}
 
--- make cube larger in the x and z dimensions
-function PatrollableObject:_expand_cube_xz(cube, distance)
-   local min = cube.min
-   local max = cube.max
-   return Cube3(
-      Point3(min.x - distance, min.y, min.z - distance),
-      Point3(max.x + distance, max.y, max.z + distance)
-   )
-end
+   start_point.x, start_point.z = min.x, min.z
+   desired_point = start_point + Point3(-distance, 0, -distance)
+   resolved_point = radiant.terrain.get_direct_path_end_point(start_point, desired_point, entity)
+   table.insert(waypoints, resolved_point)
 
-function PatrollableObject:_get_projected_vertices(cube, clockwise)
-   local min = cube.min
-   local max = cube.max
-   local y = min.y
-   local verticies = {
-      -- in counterclockwise order
-      Point3(min.x, y, min.z),
-      Point3(min.x, y, max.z),
-      Point3(max.x, y, max.z),
-      Point3(max.x, y, min.z)
-   }
+   start_point.x, start_point.z = max.x-1, min.z   -- -1 to convert from the bounds to the point
+   desired_point = start_point + Point3(distance, 0, -distance)
+   resolved_point = radiant.terrain.get_direct_path_end_point(start_point, desired_point, entity)
+   table.insert(waypoints, resolved_point)
 
-   if clockwise then
-      -- make clockwise
-      verticies[2], verticies[4] = verticies[4], verticies[2]
+   start_point.x, start_point.z = max.x-1, max.z-1
+   desired_point = start_point + Point3(distance, 0, distance)
+   resolved_point = radiant.terrain.get_direct_path_end_point(start_point, desired_point, entity)
+   table.insert(waypoints, resolved_point)
+
+   start_point.x, start_point.z = min.x, max.z-1
+   desired_point = start_point + Point3(-distance, 0, distance)
+   resolved_point = radiant.terrain.get_direct_path_end_point(start_point, desired_point, entity)
+   table.insert(waypoints, resolved_point)
+
+   if not clockwise then
+      waypoints[2], waypoints[4] = waypoints[4], waypoints[2]
    end
-   
-   return verticies
+
+   return waypoints
 end
 
 return PatrollableObject

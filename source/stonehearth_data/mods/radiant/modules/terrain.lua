@@ -179,4 +179,23 @@ function Terrain.find_placement_point(origin, min_radius, max_radius)
    return pt, found
 end
 
+function Terrain.get_direct_path_end_point(start_location, desired_destination, entity)
+   local resolved_destination
+
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
+      :set_start_location(start_location)
+      :set_end_location(desired_destination)
+      :set_allow_incomplete_path(true)
+      :set_reversible_path(true)
+
+   local path = direct_path_finder:get_path()
+   if path and not path:is_empty() then
+      resolved_destination = path:get_finish_point()
+   else
+      resolved_destination = start_location
+   end
+
+   return resolved_destination
+end
+
 return Terrain
