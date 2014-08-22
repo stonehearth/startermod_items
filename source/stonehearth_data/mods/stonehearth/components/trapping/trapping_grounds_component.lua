@@ -43,22 +43,24 @@ function TrappingGroundsComponent:initialize(entity, json)
       --    end
       -- )
    else
-      for id, trap in pairs(self._sv.traps) do
-         self:_listen_to_destroy_trap(trap)
-      end
-
-      -- TODO: restore timers on load
-
-      radiant.events.listen_once(radiant, 'radiant:game_loaded',
-         function ()
-            self:start_tasks()
-         end
-      )
+      self:_restore()
    end
 end
 
-function TrappingGroundsComponent:_finish_initialization()
-   self:_create_set_trap_task()
+function TrappingGroundsComponent:_restore()
+   for id, trap in pairs(self._sv.traps) do
+      self:_listen_to_destroy_trap(trap)
+   end
+
+   if self._sv.next_check_trap_time then
+      local duration = self:_time_to_duration(self._sv.next_check_trap_time)
+      self:_start_check_trap_timer(duration)
+   end
+
+   if self._sv.next_spawn_time then
+      local duration = self:_time_to_duration(self._sv.next_spawn_time)
+      self:_start_spawn_timer(duration)
+   end
 end
 
 function TrappingGroundsComponent:destroy()
@@ -133,8 +135,9 @@ function TrappingGroundsComponent:add_trap(trap)
 
    if self._sv.num_traps == 1 then
       -- start timer when first trap is added
-      self:_start_check_trap_timer()
-      self:_start_spawn_timer()
+      self:_start_check_trap_timer(self._sv.check_traps_interval)
+      local duration = self:_get_spawn_duration()
+      self:_start_spawn_timer(duration)
    end
 end
 
@@ -325,15 +328,17 @@ function TrappingGroundsComponent:_create_check_trap_task()
       :start()
 end
 
-function TrappingGroundsComponent:_start_check_trap_timer()
+function TrappingGroundsComponent:_start_check_trap_timer(duration)
    self:_stop_check_trap_timer()
 
-   self._check_trap_timer = stonehearth.calendar:set_timer(self._sv.check_traps_interval,
+   self._check_trap_timer = stonehearth.calendar:set_timer(duration,
       function()
-         self._start_check_trap_timer = nil
+         self:_stop_check_trap_timer()
          self:_create_check_trap_task()
       end
    )
+
+   self._sv.next_check_trap_time = self._check_trap_timer:get_expire_time()
 end
 
 function TrappingGroundsComponent:_stop_check_trap_timer()
@@ -341,19 +346,21 @@ function TrappingGroundsComponent:_stop_check_trap_timer()
       self._check_trap_timer:destroy()
       self._check_trap_timer = nil
    end
+
+   self._sv.next_check_trap_time = nil
 end
 
-function TrappingGroundsComponent:_start_spawn_timer()
+function TrappingGroundsComponent:_start_spawn_timer(duration)
    self:_stop_spawn_timer()
 
-   local seconds = rng:get_real(self._sv.spawn_interval_min, self._sv.spawn_interval_max)
-
-   self._spawn_timer = stonehearth.calendar:set_timer(seconds,
+   self._spawn_timer = stonehearth.calendar:set_timer(duration,
       function ()
-         self._spawn_timer = nil
+         self:_stop_spawn_timer()
          self:_try_spawn()
       end
    )
+
+   self._sv.next_spawn_time = self._spawn_timer:get_expire_time()
 end
 
 function TrappingGroundsComponent:_stop_spawn_timer()
@@ -361,6 +368,8 @@ function TrappingGroundsComponent:_stop_spawn_timer()
       self._spawn_timer:destroy()
       self._spawn_timer = nil
    end
+
+   self._sv.next_spawn_time = nil
 end
 
 function TrappingGroundsComponent:_try_spawn()
@@ -388,7 +397,8 @@ function TrappingGroundsComponent:_try_spawn()
       end
    end
 
-   self:_start_spawn_timer()
+   local duration = self:_get_spawn_duration()
+   self:_start_spawn_timer(duration)
 end
 
 -- takes an Point3 or Entity
@@ -499,6 +509,17 @@ function TrappingGroundsComponent:_choose_random_trap(traps)
 
    local roll = rng:get_int(1, #trap_array)
    return trap_array[roll]
+end
+
+function TrappingGroundsComponent:_get_spawn_duration()
+   local duration = rng:get_real(self._sv.spawn_interval_min, self._sv.spawn_interval_max)
+   return duration
+end
+
+function TrappingGroundsComponent:_time_to_duration(time)
+   local duration = time - stonehearth.calendar:get_elapsed_time()
+   duration = math.max(duration, 1) -- timer doesn't like 0 durations?
+   return duration
 end
 
 return TrappingGroundsComponent
