@@ -107,29 +107,6 @@ int call_obj(lua_State* L)
    return call_impl(L, 3, luaL_checkstring(L, 1), luaL_checkstring(L, 2));
 }
 
-LuaDeferredPtr trace_obj(lua_State* L, object obj)
-{
-   std::string object_name;
-   if (type(obj) == LUA_TSTRING) {
-      object_name = object_cast<std::string>(obj);
-   } else if (type(obj) == LUA_TUSERDATA) {
-      try {
-         object_name = call_function<std::string>(obj["__tojson"], obj, obj);
-      } catch (std::exception& e) {
-         throw std::invalid_argument(BUILD_STRING("failed to convert object to uri in trace_obj: " << e.what()));
-      }
-   }
-   Trace t(object_name);
-
-   ReactorDeferredPtr d = GetReactor(L)->InstallTrace(t);
-   LuaDeferredPtr l = LuaDeferred::Wrap(L, BUILD_STRING("lua " << t), d);
-
-   l->Always([L, t]() {
-      GetReactor(L)->RemoveTrace(UnTrace(t.caller, t.call_id));
-   });
-   return l;
-}
-
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);
 DEFINE_INVALID_LUA_CONVERSION(CoreReactor)
 DEFINE_INVALID_JSON_CONVERSION(CoreReactor);
