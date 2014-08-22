@@ -120,5 +120,3 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
    });
    entry.trace->PushObjectState_();
 }
-
-#pragma optimize("", on)
