@@ -572,8 +572,38 @@ void Client::OneTimeIninitializtion()
       }
       return games;
    });
+   core_reactor_->AddRoute("radiant:client:get_perf_counters", [this](rpc::Function const& f) {
+      return StartPerformanceCounterPush();
+   });
 
 };
+
+rpc::ReactorDeferredPtr Client::StartPerformanceCounterPush()
+{
+   if (!perf_counter_deferred_) {
+      perf_counter_deferred_ = std::make_shared<rpc::ReactorDeferred>("client perf counters");
+   }
+   return perf_counter_deferred_ ;
+}
+
+void Client::PushPerformanceCounters()
+{
+   if (perf_counter_deferred_) {
+      json::Node counters(JSON_ARRAY);
+
+      auto addCounter = [&counters](const char* name, double value, const char* type) {
+         json::Node row;
+         row.set("name", name);
+         row.set("value", value);
+         row.set("type", type);
+         counters.add(row);
+      };
+
+      GetScriptHost()->ComputeCounters(addCounter);
+
+      perf_counter_deferred_->Notify(counters);
+   }
+}
 
 void Client::EnableDisableLifetimeTracking()
 {
@@ -749,6 +779,8 @@ void Client::ShutdownGameObjects()
    Horde3D::Modules::log().SetNotifyErrorCb(nullptr);
    scriptHost_->SetNotifyErrorCb(nullptr);
 
+   perf_counter_deferred_ = nullptr;
+
    core_reactor_->RemoveRouter(luaModuleRouter_);
    core_reactor_->RemoveRouter(luaObjectRouter_);
    core_reactor_->RemoveRouter(traceObjectRouter_);
@@ -820,6 +852,8 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
+   PushPerformanceCounters();
+
    process_messages();
    ProcessBrowserJobQueue();
 

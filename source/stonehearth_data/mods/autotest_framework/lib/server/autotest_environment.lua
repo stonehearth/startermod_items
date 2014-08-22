@@ -26,6 +26,10 @@ function env.create_world(world_generator_script)
          _all_entities[id] = entity
       end)
 
+   radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
+         _all_entities[e.entity_id] = nil
+      end)
+
    env.town = stonehearth.town:get_town(env.session.player_id)
 
    env.create_enemy_kingdom()
