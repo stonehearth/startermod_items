@@ -38,8 +38,6 @@ class OctTree {
 
       bool ValidMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 
-      void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
-
    protected:
       bool Intersects(csg::Cube3f bounds, om::RegionCollisionShapePtr rgnCollsionShape) const;   
       bool ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;

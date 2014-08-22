@@ -76,6 +76,8 @@ namespace radiant {
    };
 };
 
+#define LOG_LEVEL(l)    (log_levels_.l)
+
 // _LOG writes to the logfile unconditionally.  This is not the macro
 // you're looking for.
 #define LOG_(x)  BOOST_LOG_SEV(__radiant_log_source, x)
@@ -90,7 +92,7 @@ namespace radiant {
    LOG_(level) << " | " << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
 
 // Check to see if the specified log level is enabled
-#define LOG_IS_ENABLED(category, level)   (log_levels_.category >= level)
+#define LOG_IS_ENABLED(category, level)   (LOG_LEVEL(category) >= level)
 
 // LOG_CATEGORY writes to the log using a very specialized category string.
 // Useful when you want the log to contain context which might change each

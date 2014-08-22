@@ -30,7 +30,8 @@ public:
    float EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    void Start();
-   
+   csg::Region3 const& GetWorldSpaceAdjacentRegion() const;
+
 private:
    void DestroyTraces();
    void ClipAdjacentToTerrain();

@@ -42,10 +42,16 @@ public:
 
    bool IsBlocked(csg::Point3 const& pt);
    bool IsBlocked(csg::Cube3 const& bounds);
+   bool IsBlocked(csg::Region3 const& region);
 
    bool IsSupport(csg::Point3 const& pt);
    bool IsSupport(csg::Cube3 const& bounds);
    bool IsSupport(csg::Region3 const& region);
+
+   bool IsTerrain(csg::Point3 const& pt);
+   bool IsTerrain(csg::Cube3 const& bounds);
+   bool IsTerrain(csg::Region3 const& region);
+
    void FlushDirty(NavGrid& ng, csg::Point3 const& index);
 
    bool IsDataResident() const;
@@ -84,11 +90,13 @@ private:
 
 private:
    void MarkDirty(TrackerType type);
-   bool IsMarked(TrackerType type, csg::Point3 const& offest);
-   bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
    void UpdateCollisionTracker(TrackerType type, CollisionTracker const& tracker);
    csg::Cube3 GetWorldBounds(csg::Point3 const& index) const;
+
+   typedef bool (NavGridTile::*IsMarkedPredicate)(csg::Point3 const& pt);
+   bool IsMarked(IsMarkedPredicate predicate, csg::Region3 const& region);
+   bool IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube);
 
 private:
    void OnTrackerAdded(CollisionTrackerPtr tracker);
