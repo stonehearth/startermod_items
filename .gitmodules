@@ -66,3 +66,7 @@
 	path = modules/libpng
 	url = https://github.com/radent/libpng.git
 	branch = master
+[submodule "modules/eastl"]
+	path = modules/eastl
+	url = https://github.com/radent/eastl.git
+	branch = master
