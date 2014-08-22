@@ -9,7 +9,7 @@
          "faction": "wolf"
       },
       "stonehearth:attributes": {
-         "ferocity": {
+         "menace": {
             "type" : "basic", 
             "value" :  10
         },

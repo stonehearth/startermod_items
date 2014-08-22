@@ -10,10 +10,6 @@ function ZoneRenderer:__init(render_entity)
 
    self._render_entity = render_entity
    self._items = {}
-   self._designation_color_interior = default_color
-   self._designation_color_border = default_color
-   self._ground_color_interior = default_color
-   self._ground_color_border = default_color
    self._parent_node = render_entity:get_node()
 
    self:set_size(Point2.zero)
@@ -34,14 +30,14 @@ end
 
 -- size is a Point2
 function ZoneRenderer:set_size(size)
-   if size ~= self._size then
-      self._size = size
-      self._region = Region2(Rect2(Point2.zero, self._size))
+   self:set_region2(Region2(Rect2(Point2.zero, size)))
+   return self
+end
 
-      self:_regenerate_designation_node()      
-      self:_regenerate_ground_node()
-   end
-
+function ZoneRenderer:set_region2(region2)
+   self._region = region2
+   self:_regenerate_designation_node()      
+   self:_regenerate_ground_node()
    return self
 end
 
@@ -159,9 +155,11 @@ end
 function ZoneRenderer:_regenerate_designation_node()
    self:_destroy_designation_node()
 
-   if self:_in_hud_mode() then
-      self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
-                               self._designation_color_interior, self._designation_color_border);
+   if self._designation_color_interior and self._designation_color_border then
+      if self:_in_hud_mode() then
+         self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
+                                  self._designation_color_interior, self._designation_color_border)
+      end
    end
 end
 
@@ -174,9 +172,11 @@ end
 
 function ZoneRenderer:_regenerate_ground_node() 
    self:_destroy_ground_node()
-
-   self._ground_node = _radiant.client.create_stockpile_node(self._parent_node, self._region,
-                       self._ground_color_interior, self._ground_color_border);
+   
+   if self._ground_color_interior and self._ground_color_border then
+      self._ground_node = _radiant.client.create_stockpile_node(self._parent_node, self._region,
+                          self._ground_color_interior, self._ground_color_border)
+   end
 end
 
 return ZoneRenderer

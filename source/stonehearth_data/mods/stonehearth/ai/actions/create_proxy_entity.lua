@@ -8,6 +8,7 @@ CreateProxyEntity.name = 'create proxy entity'
 CreateProxyEntity.does = 'stonehearth:create_proxy_entity'
 CreateProxyEntity.args = {
    location = Point3,
+   reason = 'string',
    use_default_adjacent_region = {
       type = 'boolean',
       default = false,
@@ -30,7 +31,7 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
 
    self._using_proxy_entity = false
 
-   self._proxy_entity = radiant.entities.create_proxy_entity(args.use_default_adjacent_region)
+   self._proxy_entity = radiant.entities.create_proxy_entity(args.reason, args.use_default_adjacent_region)
 
    if args.place_on_standable_point then
       -- use standard logic to decide at what elevation to place the entity

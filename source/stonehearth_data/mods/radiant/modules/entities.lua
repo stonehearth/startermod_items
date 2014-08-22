@@ -61,13 +61,15 @@ function entities.destroy_entity(entity)
    end
 end
 
-function entities.create_proxy_entity(use_default_adjacent_region)
+function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
+   assert(type(debug_text) == 'string')
+
    if use_default_adjacent_region == nil then
       use_default_adjacent_region = false
    end
 
    local proxy_entity = radiant.entities.create_entity()
-   proxy_entity:set_debug_text('proxy entity')
+   proxy_entity:set_debug_text(debug_text)
    log:debug('created proxy entity %s', proxy_entity)
 
    if not use_default_adjacent_region then
@@ -737,10 +739,10 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    local attributes_b = entity_b:get_component('stonehearth:attributes')
 
    if attributes_a and attributes_b then
-      local ferocity_a = attributes_a:get_attribute(attribute)
-      local ferocity_b = attributes_b:get_attribute(attribute)
+      local att_a = attributes_a:get_attribute(attribute)
+      local att_b = attributes_b:get_attribute(attribute)
 
-      return ferocity_a - ferocity_b
+      return att_a - att_b
    end
 
    return 0

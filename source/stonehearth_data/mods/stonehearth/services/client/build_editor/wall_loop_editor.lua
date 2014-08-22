@@ -28,6 +28,9 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
             if result.entity == current_column_editor:get_proxy_fabricator() then
                return stonehearth.selection.FILTER_IGNORE
             end
+            if result.entity:get_component('stonehearth:building') then
+               return stonehearth.selection.FILTER_IGNORE
+            end
             return result.entity:get_component('terrain') ~= nil
          end)
       :progress(function(selector, location, rotation)
@@ -36,6 +39,8 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                   location = self:_fit_point_to_constraints(last_location, location, current_column_editor:get_proxy_blueprint())
                end
                current_column_editor:move_to(location)
+            else
+               current_column_editor:move_to(Point3(0, -100000, 0))
             end
          end)
       :done(function(selector, location, rotation, finished)
@@ -115,6 +120,8 @@ function WallLoopEditor:_pump_queue()
 end
 
 function WallLoopEditor:_fit_point_to_constraints(p0, p1, column1)  
+   p0, p1 = Point3(p0.x, p0.y, p0.z), Point3(p1.x, p1.y, p1.z)
+   
    local t, n, dt, d
    if math.abs(p0.x - p1.x) >  math.abs(p0.z - p1.z) then
       t = 'x'

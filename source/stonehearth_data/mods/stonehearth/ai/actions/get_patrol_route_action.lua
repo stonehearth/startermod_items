@@ -65,7 +65,7 @@ function GetPatrolPoint:_check_for_patrol_route()
    self._patrollable_object = stonehearth.town_patrol:get_patrol_route(self._entity)
 
    if self._patrollable_object then
-      local waypoints = self._patrollable_object:get_waypoints(patrol_margin)
+      local waypoints = self._patrollable_object:get_waypoints(patrol_margin, self._entity)
       self:_find_path(self._start_location, waypoints)
 
       self._listening = false
@@ -82,11 +82,15 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    -- remove waypoints that this entity cannot stand on
    PatrolHelpers.prune_non_standable_points(self._entity, waypoints)
 
+   if #waypoints == 0 then
+      return
+   end
+
    -- find the "best" order of traversal
    PatrolHelpers.order_waypoints(self._entity, start_location, waypoints)
 
    -- the proxy target for the pathfinder, since the a* pathfinder requires an entity destination
-   self._proxy_entity = radiant.entities.create_proxy_entity(false)
+   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
 
    -- doesn't matter where it we place it, we'll move it later
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)

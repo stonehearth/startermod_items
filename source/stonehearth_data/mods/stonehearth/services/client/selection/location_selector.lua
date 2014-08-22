@@ -168,7 +168,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
 
    -- if the user installed a progress handler, go ahead and call it now
    if self._progress_cb then
-      self._progress_cb(self, pt or OFFSCREEN, self._rotation)
+      self._progress_cb(self, pt, self._rotation)
    end
 
    -- early exit if the ray missed the entire world   

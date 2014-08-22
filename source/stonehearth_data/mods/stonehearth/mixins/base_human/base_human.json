@@ -206,10 +206,6 @@
             "type" : "derived",
             "equation" : "spirit * 10 + stamina_adjustment"
          },
-		   "ferocity": {
-            "type" : "basic",
-            "value" : 1
-         },
          "menace": {
             "type" : "basic",
             "value" : 10

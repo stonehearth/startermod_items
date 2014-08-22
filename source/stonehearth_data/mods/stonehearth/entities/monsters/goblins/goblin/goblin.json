@@ -85,10 +85,6 @@
             "type" : "basic",
             "value" : 80
          },
-         "ferocity": {
-            "type" : "basic", 
-            "value" :  100
-         },
          "menace": {
             "type" : "basic",
             "value" : 70

@@ -429,9 +429,6 @@ void Simulation::UpdateGameState()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      int interval = static_cast<int>(game_speed_ * game_tick_interval_);
-      now_ = now_ + interval;
-      clock_->SetTime(now_);
       luabind::call_function<int>(radiant_["update"], profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
@@ -730,11 +727,20 @@ void Simulation::Mainloop()
    }
 
    if (!paused_) {
+      int interval = static_cast<int>(game_speed_ * game_tick_interval_);
+      now_ = now_ + interval;
+      clock_->SetTime(now_);
+
+      scriptHost_->Trigger("radiant:gameloop:start");
+
       UpdateGameState();
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();
+
+      scriptHost_->Trigger("radiant:gameloop:end");
    }
+
    if (next_counter_push_.expired()) {
       PushPerformanceCounters();
       next_counter_push_.set(500);

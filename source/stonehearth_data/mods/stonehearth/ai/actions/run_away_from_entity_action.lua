@@ -89,29 +89,9 @@ function RunAwayFromEntity:_calculate_location(start_location, direction, angle,
 end
 
 -- start_location and destination are Point3s
-function RunAwayFromEntity:_get_path_length(entity, start_location, destination)
-   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
-      :set_start_location(start_location)
-      :set_end_location(destination)
-      :set_allow_incomplete_path(true)
-      :set_reversible_path(true)
-
-   local path = direct_path_finder:get_path()
-   local distance = self:_get_distance_to_end(start_location, path)
-   return distance
-end
-
--- this is not the distance travelled along the path, just the distance between start and end
--- we explicitly specify the start_location because, by convention, the path leaves this point off
--- to prevent travelling to the center of the current block first
-function RunAwayFromEntity:_get_distance_to_end(start_location, path)
-   if not path or path:is_empty() then
-      return 0
-   end
-
-   -- get_finish_point is undefined when the path is empty
-   local end_location = path:get_finish_point()
-   local distance = start_location:distance_to(end_location)
+function RunAwayFromEntity:_get_path_length(entity, start_location, desired_destination)
+   local resolved_destination = radiant.terrain.get_direct_path_end_point(start_location, desired_destination, entity)
+   local distance = start_location:distance_to(resolved_destination)
    return distance
 end
 

@@ -1,5 +1,6 @@
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
+local linear_combat_service =  stonehearth.linear_combat
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
@@ -23,6 +24,11 @@ function NewGameCallHandler:sign_in(session, response, num_tiles_x, num_tiles_y,
       version = _radiant.sim.get_version()
    }
 end 
+
+function NewGameCallHandler:set_game_options(session, response, options)
+   linear_combat_service:enable(options.enable_enemies)
+   return true
+end
 
 function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
    local wgs = stonehearth.world_generation
