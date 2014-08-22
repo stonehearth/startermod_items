@@ -20,22 +20,18 @@ end
 
 function SetBaitTrapAdjacent:run(ai, entity, args)
    local trapping_grounds = args.trapping_grounds
+
+   if not trapping_grounds:is_valid() then
+      ai:abort('cannot set trap because trapping grounds is destroyed')
+   end
+
    self._trap = radiant.entities.create_entity(args.trap_uri)
    local picked_up = radiant.entities.pickup_item(entity, self._trap)
-   assert(picked_up) -- should have dropped item in SetBaitTrap compound action
+   assert(picked_up)
 
    ai:execute('stonehearth:drop_carrying_adjacent', {
       location = args.location
    })
-
-   -- trap is large, so we need to get some separation distance
-   -- could replace this by supporting stop distances in goto_location as we do with goto_entity
-   ai:execute('stonehearth:bump_against_entity', {
-      entity = self._trap,
-      distance = 1.7
-   })
-
-   ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
    if trapping_grounds:is_valid() then
       local trap_component = self._trap:add_component('stonehearth:bait_trap')
@@ -46,6 +42,15 @@ function SetBaitTrapAdjacent:run(ai, entity, args)
 
       self._trap_added = true
    end
+
+   -- trap is large, so we need to get some separation distance
+   -- could replace this by supporting stop distances in goto_location as we do with goto_entity
+   ai:execute('stonehearth:bump_against_entity', {
+      entity = self._trap,
+      distance = 1.7
+   })
+
+   ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 end
 
 function SetBaitTrapAdjacent:stop(ai, entity, args)

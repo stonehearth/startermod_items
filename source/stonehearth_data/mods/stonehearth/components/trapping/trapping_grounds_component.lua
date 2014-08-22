@@ -25,23 +25,19 @@ end
 function TrappingGroundsComponent:initialize(entity, json)
    self._entity = entity
 
+   self.max_traps = json.max_traps or 4
+   self.min_distance_between_traps = json.min_distance_between_traps or 16
+   self.spawn_interval_min = stonehearth.calendar:parse_duration(json.spawn_interval_min)
+   self.spawn_interval_max = stonehearth.calendar:parse_duration(json.spawn_interval_max)
+   self.check_traps_interval = stonehearth.calendar:parse_duration(json.check_traps_interval)
+
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
       self._sv.traps = {}
       self._sv.num_traps = 0
-      self._sv.max_traps = json.max_traps or 4
-      self._sv.min_distance_between_traps = json.min_distance_between_traps or 16
-      self._sv.spawn_interval_min = stonehearth.calendar:duration_string_to_seconds(json.spawn_interval_min)
-      self._sv.spawn_interval_max = stonehearth.calendar:duration_string_to_seconds(json.spawn_interval_max)
-      self._sv.check_traps_interval = stonehearth.calendar:duration_string_to_seconds(json.check_traps_interval)
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
-
-      -- radiant.events.listen_once(self._entity, 'radiant:entity:post_create',
-      --    function ()
-      --       self:start_tasks()
-      --    end
-      -- )
+      -- start_tasks is called externally so we don't have to guess when we're ready to start tasks
    else
       self:_restore()
    end
@@ -52,15 +48,12 @@ function TrappingGroundsComponent:_restore()
       self:_listen_to_destroy_trap(trap)
    end
 
-   if self._sv.next_check_trap_time then
-      local duration = self:_time_to_duration(self._sv.next_check_trap_time)
-      self:_start_check_trap_timer(duration)
-   end
-
    if self._sv.next_spawn_time then
-      local duration = self:_time_to_duration(self._sv.next_spawn_time)
+      local duration = stonehearth.calendar:get_seconds_until(self._sv.next_spawn_time)
       self:_start_spawn_timer(duration)
    end
+
+   self:start_tasks()
 end
 
 function TrappingGroundsComponent:destroy()
@@ -96,7 +89,18 @@ function TrappingGroundsComponent:start_tasks()
          end
       )
    else
-      self:_create_check_trap_task()
+      if self._sv.next_check_trap_time then
+         local duration = stonehearth.calendar:get_seconds_until(self._sv.next_check_trap_time)
+         self:_start_check_trap_timer(duration)
+
+         -- timer is active, keep setting traps until we have max_traps (or have no space)
+         if self._sv.num_traps < self.max_traps then
+            self:_create_set_trap_task()
+         end
+      else
+         -- timer expired, check all the traps
+         self:_create_check_trap_task()
+      end
    end
 end
 
@@ -119,7 +123,7 @@ function TrappingGroundsComponent:get_armed_traps()
 end
 
 function TrappingGroundsComponent:max_traps()
-   return self._sv.max_traps
+   return self.max_traps
 end
 
 function TrappingGroundsComponent:add_trap(trap)
@@ -135,7 +139,7 @@ function TrappingGroundsComponent:add_trap(trap)
 
    if self._sv.num_traps == 1 then
       -- start timer when first trap is added
-      self:_start_check_trap_timer(self._sv.check_traps_interval)
+      self:_start_check_trap_timer(self.check_traps_interval)
       local duration = self:_get_spawn_duration()
       self:_start_spawn_timer(duration)
    end
@@ -201,7 +205,7 @@ end
 function TrappingGroundsComponent:_is_valid_trap_location(location)
    -- this iteration can be avoided by using a perturbation grid
    for id, trap in pairs(self._sv.traps) do
-      if radiant.entities.distance_between(trap, location) < self._sv.min_distance_between_traps then
+      if radiant.entities.distance_between(trap, location) < self.min_distance_between_traps then
          return false
       end
    end
@@ -266,7 +270,7 @@ function TrappingGroundsComponent:_create_set_trap_task()
    local trap_uri = 'stonehearth:trapper:snare_trap'
    local town = stonehearth.town:get_town(self._entity)
 
-   if self._set_trap_task or self._sv.num_traps >= self._sv.max_traps or not town then
+   if self._set_trap_task or self._sv.num_traps >= self.max_traps or not town then
       return
    end
 
@@ -339,6 +343,7 @@ function TrappingGroundsComponent:_start_check_trap_timer(duration)
    )
 
    self._sv.next_check_trap_time = self._check_trap_timer:get_expire_time()
+   self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_stop_check_trap_timer()
@@ -348,6 +353,7 @@ function TrappingGroundsComponent:_stop_check_trap_timer()
    end
 
    self._sv.next_check_trap_time = nil
+   self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_start_spawn_timer(duration)
@@ -361,6 +367,7 @@ function TrappingGroundsComponent:_start_spawn_timer(duration)
    )
 
    self._sv.next_spawn_time = self._spawn_timer:get_expire_time()
+   self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_stop_spawn_timer()
@@ -370,6 +377,7 @@ function TrappingGroundsComponent:_stop_spawn_timer()
    end
 
    self._sv.next_spawn_time = nil
+   self.__saved_variables:mark_changed()
 end
 
 function TrappingGroundsComponent:_try_spawn()
@@ -512,13 +520,7 @@ function TrappingGroundsComponent:_choose_random_trap(traps)
 end
 
 function TrappingGroundsComponent:_get_spawn_duration()
-   local duration = rng:get_real(self._sv.spawn_interval_min, self._sv.spawn_interval_max)
-   return duration
-end
-
-function TrappingGroundsComponent:_time_to_duration(time)
-   local duration = time - stonehearth.calendar:get_elapsed_time()
-   duration = math.max(duration, 1) -- timer doesn't like 0 durations?
+   local duration = rng:get_real(self.spawn_interval_min, self.spawn_interval_max)
    return duration
 end
 
