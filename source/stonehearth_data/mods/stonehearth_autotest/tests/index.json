@@ -64,6 +64,13 @@
                   "file(blackbox/region_autotests.lua)",
                   "file(blackbox/calendar_autotests.lua)"
                ]
+            },
+
+            "memory" : {
+               "name" : "Memory stress tests",
+               "scripts" : [
+                  "file(end_to_end/memory_autotests.lua)"
+               ]
             }
          }
       }
