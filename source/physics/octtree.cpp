@@ -60,6 +60,7 @@ void OctTree::Cleanup()
 
 void OctTree::SetRootEntity(om::EntityPtr root)
 {
+   navgrid_.SetRootEntity(root);
    TraceEntity(root);
 }
 
@@ -316,7 +317,10 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
       if (navgrid_.IsStandable(entity, to)) {
+         OT_LOG(9) << to << " is standable.  adding to list";
          result.push_back(std::make_pair(to, GetMovementCost(from, to)));
+      } else {
+         OT_LOG(9) << to << " is not standable.  not adding to list";
       }
    }
    return result;
@@ -351,11 +355,6 @@ float OctTree::GetSquaredMovementCost(const csg::Point3& start, const csg::Point
    cost += static_cast<float>(dx*dx + dz*dz);
 
    return cost;
-}
-
-void OctTree::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
-{
-   navgrid_.ShowDebugShapes(pt, msg);
 }
 
 void OctTree::EnableSensorTraces(bool enabled)

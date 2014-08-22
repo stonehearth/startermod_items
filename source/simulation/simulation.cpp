@@ -103,6 +103,16 @@ void Simulation::OneTimeIninitializtion()
       debug_navgrid_enabled_ = args.get<bool>("enabled", false);
       if (debug_navgrid_enabled_) {
          debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
+         om::EntityPtr pawn = GetStore().FetchObject<om::Entity>(args.get<std::string>("pawn", ""));
+
+         if (pawn != debug_navgrid_pawn_.lock()) {
+            debug_navgrid_pawn_ = pawn;
+            if (pawn) {
+               SIM_LOG(0) << "setting debug nav grid pawn to " << *pawn;
+            } else {
+               SIM_LOG(0) << "clearing debug nav grid pawn";
+            }
+         }
       }
    });
 
@@ -576,7 +586,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
       });
    }
    if (debug_navgrid_enabled_) {
-      GetOctTree().ShowDebugShapes(debug_navgrid_point_, msg);
+      GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
    }
    queue->Push(protocol::Encode(update));
 }

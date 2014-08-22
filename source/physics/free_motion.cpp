@@ -79,6 +79,7 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
             switch (type) {
             case om::Mob::TINY:
             case om::Mob::HUMANOID:
+            case om::Mob::TITAN:
                if (current.y < valid.y) {
                   // The entity is stuck inside a collision shape.  Just pop them
                   // up and poke them

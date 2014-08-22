@@ -39,7 +39,6 @@ private:
    om::MobRef        mob_;
    csg::Cube3        bounds_;
    csg::Cube3        last_bounds_;
-   csg::Region3      localRegion_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE
