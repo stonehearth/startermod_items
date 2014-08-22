@@ -163,7 +163,8 @@ class Client : public core::Singleton<Client> {
       void CreateErrorBrowser();
       void ReportLoadProgress();
       void RestoreDatastores();
-
+      rpc::ReactorDeferredPtr StartPerformanceCounterPush();
+      void PushPerformanceCounters();
 private:
       /*
        * The type of DestroyCursor is WINUSERAPI BOOL WINAPI (HCURSOR).  Strip off all
@@ -263,6 +264,7 @@ private:
 
       rpc::ReactorDeferredPtr     load_progress_deferred_;
       rpc::ReactorDeferredPtr     server_load_deferred_;
+      rpc::ReactorDeferredPtr     perf_counter_deferred_;
 
       bool                        loading_;
 };

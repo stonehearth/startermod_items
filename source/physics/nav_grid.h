@@ -38,6 +38,8 @@ class NavGrid {
       NavGrid(dm::TraceCategories trace_category);
       ~NavGrid();
 
+      void SetRootEntity(om::EntityPtr);
+
       typedef std::function<bool(om::EntityPtr)> ForEachEntityCb;
 
       // Blocked Queries.  Blocked means there is some opaque voxel making that location
@@ -70,12 +72,18 @@ class NavGrid {
 
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
-      void ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg);
+      void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> cb);
-      csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
+      bool IsTerrain(csg::Point3 const& location);
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);
+
+   private:
+      bool IsMarked(int bit, om::EntityPtr entity, csg::Point3 const& pt);
+      bool IsMarked(int bit, csg::Point3 const& worldPoint);
+      bool IsMarked(int bit, csg::Cube3 const& worldCube);
+      bool IsMarked(int bit, csg::Region3 const& worldRegion);
 
    private: // methods for internal helper classes
       friend CollisionTracker;
@@ -104,9 +112,11 @@ class NavGrid {
       bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
       csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
       bool IsBlocked(om::EntityPtr entity, csg::Region3 const& region);
-      bool IsStandable(om::EntityPtr entity, csg::Region3 const& region);
+      bool IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& collisionShape);
+      bool RegionIsSupported(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& r);
       bool RegionIsSupported(csg::Region3 const& r);
-      bool IsEntitySolid(om::EntityPtr entity) const;
+      bool RegionIsSupportedForTitan(csg::Region3 const& r);
+      bool UseFastCollisionDetection(om::EntityPtr entity) const;
 
    private: // methods exposed only to the OctTree
       friend OctTree;
@@ -137,6 +147,7 @@ class NavGrid {
       void EvictNextUnvisitedTile(csg::Point3 const& pt);
 
    private: // instance variables
+      om::EntityRef                    rootEntity_;
       dm::TraceCategories              trace_category_;
       ResidentTileList                 resident_tiles_;
       int                              last_evicted_;

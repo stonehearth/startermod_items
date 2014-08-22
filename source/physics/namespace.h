@@ -46,6 +46,8 @@ enum {
  * COLLISION - bits that are on represent voxels which overlap some entities
  *             collision shape.  Mobile entities cannot overlap these voxels.
  *
+ * TERRAIN - marks pieces of the actual terrain.
+ *
  * LADDER - represents bits which overlap some entities VerticalPathingRegion
  *          region.  These bits are both traversable (i.e. you can walk through
  *          them) and can support an entity (i.e. you can stand on them).
@@ -54,6 +56,7 @@ enum {
  */
 enum TrackerType {
    COLLISION = 0,
+   TERRAIN,
    LADDER,
 
    NUM_BIT_VECTOR_TRACKERS,

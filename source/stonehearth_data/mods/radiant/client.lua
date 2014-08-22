@@ -17,6 +17,10 @@ function radiant.create_datastore(data)
    return datastore
 end
 
+function radiant.destroy_datastore(datastore)
+   _radiant.client.destroy_datastore(datastore)
+end
+
 function radiant.create_controller(...)
    local args = { ... }
    local name = table.remove(args, 1)

@@ -138,3 +138,7 @@ om::EntityPtr PathFinderDst::GetEntity() const
    return dstEntity_.lock();
 }
 
+csg::Region3 const& PathFinderDst::GetWorldSpaceAdjacentRegion() const
+{
+   return world_space_adjacent_region_;
+}

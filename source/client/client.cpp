@@ -566,14 +566,44 @@ void Client::OneTimeIninitializtion()
                entry.set("gameinfo", metadata);
 
                games.set(name, entry);
-            } catch (std::exception const& e) {
+            } catch (std::exception const&) {
             }
          }
       }
       return games;
    });
+   core_reactor_->AddRoute("radiant:client:get_perf_counters", [this](rpc::Function const& f) {
+      return StartPerformanceCounterPush();
+   });
 
 };
+
+rpc::ReactorDeferredPtr Client::StartPerformanceCounterPush()
+{
+   if (!perf_counter_deferred_) {
+      perf_counter_deferred_ = std::make_shared<rpc::ReactorDeferred>("client perf counters");
+   }
+   return perf_counter_deferred_ ;
+}
+
+void Client::PushPerformanceCounters()
+{
+   if (perf_counter_deferred_) {
+      json::Node counters(JSON_ARRAY);
+
+      auto addCounter = [&counters](const char* name, double value, const char* type) {
+         json::Node row;
+         row.set("name", name);
+         row.set("value", value);
+         row.set("type", type);
+         counters.add(row);
+      };
+
+      GetScriptHost()->ComputeCounters(addCounter);
+
+      perf_counter_deferred_->Notify(counters);
+   }
+}
 
 void Client::EnableDisableLifetimeTracking()
 {
@@ -749,6 +779,8 @@ void Client::ShutdownGameObjects()
    Horde3D::Modules::log().SetNotifyErrorCb(nullptr);
    scriptHost_->SetNotifyErrorCb(nullptr);
 
+   perf_counter_deferred_ = nullptr;
+
    core_reactor_->RemoveRouter(luaModuleRouter_);
    core_reactor_->RemoveRouter(luaObjectRouter_);
    core_reactor_->RemoveRouter(traceObjectRouter_);
@@ -820,6 +852,8 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
+   PushPerformanceCounters();
+
    process_messages();
    ProcessBrowserJobQueue();
 
@@ -1276,8 +1310,12 @@ void Client::UpdateDebugCursor()
          RaycastResult::Result r = cast.GetResult(0);
          json::Node args;
          csg::Point3 pt = r.brick + csg::ToInt(r.normal);
+         om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
          args.set("cursor", pt);
+         if (selectedEntity) {
+            args.set("pawn", selectedEntity->GetStoreAddress());
+         }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::TILE_SIZE);
       } else {

@@ -154,6 +154,7 @@ private:
    bool                                         _singleStepPathFinding;
    bool                                         debug_navgrid_enabled_;
    csg::Point3                                  debug_navgrid_point_;
+   om::EntityRef                                debug_navgrid_pawn_;
 
    std::unordered_map<dm::ObjectId, EntityJobSchedulerPtr>  entity_jobs_schedulers_;
    std::list<std::weak_ptr<Job>>                jobs_;

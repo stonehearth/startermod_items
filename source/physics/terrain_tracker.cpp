@@ -15,7 +15,7 @@ using namespace radiant::phys;
  * Construct a new TerrainTracker
  */
 TerrainTracker::TerrainTracker(NavGrid& ng, om::EntityPtr entity, om::TerrainPtr terrain) :
-   CollisionTracker(ng, COLLISION, entity),
+   CollisionTracker(ng, TERRAIN, entity),
    terrain_(terrain)
 {
 }
