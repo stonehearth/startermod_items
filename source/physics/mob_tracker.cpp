@@ -20,7 +20,6 @@ MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
    last_bounds_(csg::Point3::zero, csg::Point3::zero),
    mob_(mob)
 {
-   localRegion_.AddUnique(mob->GetMobCollisionBox());
 }
 
 
@@ -93,7 +92,11 @@ csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
  */
 csg::Region3 const& MobTracker::GetLocalRegion() const
 {
-   return localRegion_;
+   om::MobPtr mob = mob_.lock();
+   if (mob) {
+      return mob->GetMobCollisionRegion();
+   }
+   return csg::Region3::empty;
 }
 
 /*
@@ -127,5 +130,5 @@ csg::Cube3 MobTracker::ComputeWorldBounds() const
    if (!mob) {
       return csg::Cube3::zero;
    }
-   return mob->GetMobCollisionBox() + mob->GetWorldGridLocation();
+   return mob->GetMobCollisionRegion().GetBounds() + mob->GetWorldGridLocation();
 }

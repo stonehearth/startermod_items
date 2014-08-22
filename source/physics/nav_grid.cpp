@@ -21,12 +21,41 @@
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
 
+#pragma optimize( "", off )
+
 using namespace radiant;
 using namespace radiant::phys;
 
 static const int DEFAULT_WORKING_SET_SIZE = 128;
+static const int SMALL_ITEM_MAX_HEIGHT = 2;
+static const int SMALL_ITEM_MAX_WIDTH = 4;
 
 #define NG_LOG(level)              LOG(physics.navgrid, level)
+
+static csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
+
+static bool IsSmallObject(om::EntityPtr entity)
+{
+   if (entity) {
+      if (entity->GetObjectId() != 1) {
+         csg::Region3 region = GetEntityWorldCollisionRegion(entity, csg::Point3::zero);
+         csg::Point3 size = region.GetBounds().GetSize();
+         return size.x <= SMALL_ITEM_MAX_WIDTH && size.y <= SMALL_ITEM_MAX_HEIGHT && size.z <= SMALL_ITEM_MAX_WIDTH;
+      }
+   }
+   return false;
+}
+
+static om::Mob::MobCollisionTypes GetMobCollisionType(om::EntityPtr entity)
+{
+   if (entity) {
+      om::MobPtr mob = entity->GetComponent<om::Mob>();
+      if (mob) {
+         return mob->GetMobCollisionType();
+      }
+   }
+   return om::Mob::NONE;
+}
 
 NavGrid::NavGrid(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
@@ -396,14 +425,27 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
  *
  * Push some debugging information into the shaplist.
  */ 
-void NavGrid::ShowDebugShapes(csg::Point3 const& pt, protocol::shapelist* msg)
+void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg)
 {
    csg::Point3 index = csg::GetChunkIndex(pt, TILE_SIZE);
+   om::EntityPtr p = pawn.lock();
 
    // Render all the standable locations in the block pointed to by `pt`
-   csg::Color4 standable_color(0, 0, 255, 64);
+   csg::Color4 standable_color;
+   switch (GetMobCollisionType(p)) {
+      case om::Mob::TITAN:
+         standable_color = csg::Color4(128, 0, 0, 64);
+         break;
+      case om::Mob::HUMANOID:
+         standable_color = csg::Color4(0, 0, 128, 64);
+         break;
+      default:
+         standable_color = csg::Color4(0, 0, 255, 64);
+         break;
+   }
    for (csg::Point3 i : csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE)) {
-      if (IsStandable(i)) {
+      bool standable = p != nullptr ? IsStandable(p, i) : IsStandable(i);
+      if (standable) {
          protocol::coord* coord = msg->add_coords();
          i.SaveValue(coord);
          standable_color.SaveValue(coord->mutable_color());
@@ -703,7 +745,7 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
-   if (IsEntitySolid(entity)) {
+   if (!UseFastCollisionDetection(entity)) {
       return IsBlocked(entity, region);
    }
    return IsBlocked(region);
@@ -722,13 +764,20 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Region3 const& region)
 {
-   bool stopped = ForEachTrackerInRegion(region, [this, &entity](CollisionTrackerPtr tracker) -> bool {
+   bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
+
+   bool stopped = ForEachTrackerInRegion(region, [this, ignoreSmallObjects, &entity](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
       
       // Ignore the trackers for the entity we're asking about.
       if (entity != tracker->GetEntity()) {
-         if (tracker->GetType() == TrackerType::COLLISION) {
+         switch (tracker->GetType()) {
+         case TrackerType::COLLISION:
+            stop = !ignoreSmallObjects || !IsSmallObject(tracker->GetEntity());
+            break;
+         case TrackerType::TERRAIN:
             stop = true;
+            break;
          }
       }
       return stop;
@@ -890,9 +939,54 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
    return RegionIsSupported(r);
 }
 
+/*
+ * -- NavGrid::RegionIsSupported
+ *
+ * Returns whether or not the region `r` in world space is supported.
+ *
+ */
+
+bool NavGrid::RegionIsSupported(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& r)
+{
+   if (GetMobCollisionType(entity) == om::Mob::TITAN) {
+      return RegionIsSupportedForTitan(r);
+   }
+   return RegionIsSupported(r);
+}
 
 /*
- * -- NavGrid::IsStandable
+ * -- NavGrid::RegionIsSupportedForTitan
+ *
+ * Returns whether or not the region `r` in world space is supported.
+ * Ideall, a Region3 is standable if the entire space occupied by
+ * the region is not blocked and every point under the bottom-most slice of the
+ * region is standable.  Unfortuantely, that runs into weird collision problems
+ * and odd-nesss in non-ideal situations.
+ *
+ * So instead we say a region is supported if ANY of the points under the bottom
+ * stripe of the region are supported.  sigh.
+ *
+ */
+
+bool NavGrid::RegionIsSupportedForTitan(csg::Region3 const& r)
+{
+   for (csg::Cube3 const& cube : r) {
+      csg::Cube3 slice(csg::Point3(cube.min.x, cube.min.y - 1, cube.min.z),
+                       csg::Point3(cube.max.x, cube.min.y    , cube.max.z));
+      for (csg::Point3 const& pt : slice) {
+         if (IsTerrain(pt)) {
+            NG_LOG(7) << pt << "is support!  returnin true. (titan)";
+            return true;
+         }
+      }
+   }
+   NG_LOG(7) << "is region supported for " << r.GetBounds() << " returning false. (titan)";
+   return false;
+}
+
+
+/*
+ * -- NavGrid::RegionIsSupported
  *
  * Returns whether or not the region `r` in world space is supported.
  * Ideall, a Region3 is standable if the entire space occupied by
@@ -908,7 +1002,6 @@ bool NavGrid::IsStandable(csg::Region3 const& r) {
 bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 {
    csg::Cube3 rb = r.GetBounds();
-   csg::Region3 footprint;
 
    NG_LOG(7) << "checking is region supported for " << r.GetBounds();
 
@@ -920,14 +1013,13 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
                           csg::Point3(cube.max.x, bottom    , cube.max.z));
          for (csg::Point3 const& pt : slice) {
             if (IsSupport(pt)) {
-               NG_LOG(7) << pt << "is not support!  returnin false";
+               NG_LOG(7) << pt << "is support!  returnin true";
                return true;
             }
          }
-         footprint.AddUnique(slice);
       }
    }
-   NG_LOG(7) << "is region supported for " << r.GetBounds() << " returning true";
+   NG_LOG(7) << "is region supported for " << r.GetBounds() << " returning false";
    return false;
 }
 
@@ -944,8 +1036,8 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
-   if (IsEntitySolid(entity)) {
-      return IsStandable(entity, region);
+   if (!UseFastCollisionDetection(entity)) {
+      return IsStandable(entity, location, region);
    }
    if (!region.IsEmpty()) {
       return IsStandable(region);
@@ -964,12 +1056,12 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
  *
  */
 
-bool NavGrid::IsStandable(om::EntityPtr entity, csg::Region3 const& region)
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& collisionShape)
 {
-   if (IsBlocked(entity, region)) {
+   if (IsBlocked(entity, collisionShape)) {
       return false;
    }
-   return RegionIsSupported(region);
+   return RegionIsSupported(entity, location, collisionShape);
 }
 
 
@@ -988,21 +1080,22 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Region3 const& region)
 
 csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
 {
-   csg::Region3 region = GetEntityWorldCollisionRegion(entity, pt);
+   csg::Point3 location = bounds_.GetClosestPoint(pt);
+
+   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
    if (region.IsEmpty()) {
-      region.AddUnique(pt);
+      region.AddUnique(location);
    }
 
-   NG_LOG(7) << "collision region for " << *entity << " at " << pt << " is " << region.GetBounds() << " in ::GetStandablePoint.";
+   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << region.GetBounds() << " in ::GetStandablePoint.";
    
-   csg::Point3 location = pt;
    csg::Point3 direction(0, IsBlocked(entity, region) ? 1 : -1, 0);
 
    NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
 
    while (bounds_.Contains(location)) {
       NG_LOG(7) << "::GetStandablePoint checking location " << location;
-      if (IsStandable(entity, region)) {
+      if (IsStandable(entity, location, region)) {
          NG_LOG(7) << "Found it!  Breaking";
          break;
       }
@@ -1044,7 +1137,7 @@ void NavGrid::SignalTileDirty(csg::Point3 const& index)
 
 
 /*
- * -- NavGrid::IsEntitySolid
+ * -- NavGrid::UseFastCollisionDetection
  *
  * Return whether any part of the `entity` is solid for the purposes of collision
  * detection.  Non-solid entities can compute their placement and movement
@@ -1052,40 +1145,41 @@ void NavGrid::SignalTileDirty(csg::Point3 const& index)
  * to inspect all the trackers to avoid colliding with itself.
  *
  */
-bool NavGrid::IsEntitySolid(om::EntityPtr entity) const
+bool NavGrid::UseFastCollisionDetection(om::EntityPtr entity) const
 {
    if (entity) {
       om::RegionCollisionShapePtr rcs = entity->GetComponent<om::RegionCollisionShape>();
       if (rcs && rcs->GetRegionCollisionType() == om::RegionCollisionShape::SOLID) {
-         return true;
+         // can't use the fast collision detection path here because we'll collide with
+         // the bits our own shape put into the nav grid tiles!
+         return false;
+      }
+      if (GetMobCollisionType(entity) == om::Mob::TITAN) {
+         // can't use the fast collsion detection path here because titan's aren't
+         // obstructed by small objects.
+         return false;
       }
    }
    return false;
 }
 
 /*
- * -- NavGrid::GetEntityWorldCollisionRegion
+ * -- GetEntityWorldCollisionRegion
  *
  * Get a region representing the collision shape of the `entity` at world location
  * `location`.  This shape is useful ONLY for doing queries about the world (e.g.
  * can an entity of this shape fit here?). 
  *
  */
-csg::Region3 NavGrid::GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location)
+csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Point3 pos(csg::Point3::zero);
 
    if (entity) {
-      om::MobPtr mob = entity->AddComponent<om::Mob>();
-      pos = csg::ToInt(mob->GetWorldTransform().position);
+      om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         switch (mob->GetMobCollisionType()) {
-         case om::Mob::TINY:
-            return csg::Region3(location);
-            break;
-         case om::Mob::HUMANOID:
-            return csg::Region3(csg::Cube3(location, location + csg::Point3(1, 3, 1)));
-            break;
+         if (mob->GetMobCollisionType() != om::Mob::NONE) {
+            return mob->GetMobCollisionRegion().Translated(location);
          }
       }
 
@@ -1126,3 +1220,17 @@ void NavGrid::RemoveEntity(dm::ObjectId id)
    }
 }
 
+bool NavGrid::IsTerrain(csg::Point3 const& location)
+{
+   csg::Point3 index, offset;
+   csg::GetChunkIndex(location, TILE_SIZE, index, offset);
+   bool isTerrain = GridTileResident(index).IsTerrain(offset);
+
+   NG_LOG(7) << "checking if " << location << " is terrain (result:" << std::boolalpha << isTerrain << ")";
+   return isTerrain;
+}
+
+void NavGrid::SetRootEntity(om::EntityPtr root)
+{
+   rootEntity_ = root;
+}

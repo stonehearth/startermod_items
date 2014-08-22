@@ -566,7 +566,7 @@ void Client::OneTimeIninitializtion()
                entry.set("gameinfo", metadata);
 
                games.set(name, entry);
-            } catch (std::exception const& e) {
+            } catch (std::exception const&) {
             }
          }
       }
@@ -1276,8 +1276,12 @@ void Client::UpdateDebugCursor()
          RaycastResult::Result r = cast.GetResult(0);
          json::Node args;
          csg::Point3 pt = r.brick + csg::ToInt(r.normal);
+         om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
          args.set("cursor", pt);
+         if (selectedEntity) {
+            args.set("pawn", selectedEntity->GetStoreAddress());
+         }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::TILE_SIZE);
       } else {

@@ -109,29 +109,7 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
  * `cube` must be passed in *tile local* coordinates (so 0 - 15 for all
  * coordinates)
  */
-bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
-{
-   ASSERT(data_);
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
 
-   for (csg::Point3 pt : cube) {
-      if (IsBlocked(pt)) {
-         return true;
-      }
-   }
-   return false;
-}
-
-
-/*
- * -- NavGridTile::IsBlocked
- *
- * Returns true if the point is marked in the COLLISION set. Otherwise, false.
- *
- * `pt` must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
    ASSERT(data_);
@@ -140,29 +118,16 @@ bool NavGridTile::IsBlocked(csg::Point3 const& pt)
    return data_->IsMarked(COLLISION, pt);
 }
 
-
-/*
- * -- NavGridTile::IsBlocked
- *
- * Returns true if any point in the cube is a support point set.
- * Otherwise, false.
- *
- * `cube` must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
-bool NavGridTile::IsSupport(csg::Cube3 const& cube)
+bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
 {
-   ASSERT(data_);
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
-
-   for (csg::Point3 pt : cube) {
-      if (IsSupport(pt)) {
-         return true;
-      }
-   }
-   return false;
+   return IsMarked(&NavGridTile::IsBlocked, cube);
 }
+
+bool NavGridTile::IsBlocked(csg::Region3 const& region)
+{
+   return IsMarked(&NavGridTile::IsBlocked, region);
+}
+
 
 /*
  * -- NavGridTile::IsSupport
@@ -181,14 +146,66 @@ bool NavGridTile::IsSupport(csg::Point3 const& pt)
    return data_->IsMarked(COLLISION, pt) || data_->IsMarked(LADDER, pt);
 }
 
+bool NavGridTile::IsSupport(csg::Cube3 const& cube)
+{
+   return IsMarked(&NavGridTile::IsSupport, cube);
+}
+
 bool NavGridTile::IsSupport(csg::Region3 const& region)
 {
+   return IsMarked(&NavGridTile::IsSupport, region);
+}
+
+
+/*
+ * -- NavGridTile::IsTerrain
+ *
+ * Returns true if the can_stand `pt` is a support point.
+ *
+ * The pt must be passed in *tile local* coordinates (so 0 - 15 for all
+ * coordinates)
+ *
+ */
+bool NavGridTile::IsTerrain(csg::Point3 const& pt)
+{
+   ASSERT(data_);
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+
+   return data_->IsMarked(TERRAIN, pt);
+}
+
+bool NavGridTile::IsTerrain(csg::Cube3 const& cube)
+{
+   return IsMarked(&NavGridTile::IsTerrain, cube);
+}
+
+bool NavGridTile::IsTerrain(csg::Region3 const& region)
+{
+   return IsMarked(&NavGridTile::IsTerrain, region);
+}
+
+bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Region3 const& region)
+{
    for (csg::Cube3 const& cube : region ) {
-      if (!IsSupport(cube)) {
+      if (!IsMarked(predicate, cube)) {
          return false;
       }
    }
    return true;
+}
+
+bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
+{
+   ASSERT(data_);
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
+
+   for (csg::Point3 pt : cube) {
+      if ((this->*predicate)(pt)) {
+         return true;
+      }
+   }
+   return false;
 }
 
 /*
