@@ -1,16 +1,23 @@
 local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
-local HarvestResourceNodeAction = class()
+local HarvestResourceNode = class()
 
-HarvestResourceNodeAction.name = 'harvest resource node'
-HarvestResourceNodeAction.does = 'stonehearth:harvest_resource_node'
-HarvestResourceNodeAction.args = {
+HarvestResourceNode.name = 'harvest resource node'
+HarvestResourceNode.does = 'stonehearth:harvest_resource_node'
+HarvestResourceNode.args = {
    node = Entity      -- the entity to harvest
 }
-HarvestResourceNodeAction.version = 2
-HarvestResourceNodeAction.priority = 1
+HarvestResourceNode.version = 2
+HarvestResourceNode.priority = 1
 
-function HarvestResourceNodeAction:start(ai, entity, args)
+function HarvestResourceNode:start_thinking(ai, entity, args)
+   local resource_node_component = args.node:get_component('stonehearth:resource_node')
+   if resource_node_component and resource_node_component:is_harvestable() then
+      ai:set_think_output()
+   end
+end
+
+function HarvestResourceNode:start(ai, entity, args)
    ai:set_status_text('harvesting ' .. radiant.entities.get_name(args.node))
 end
 
@@ -20,7 +27,7 @@ local tool_reach = 0.75     -- read this from entity_data.stonehearth:weapon_dat
 local harvest_range = entity_reach + tool_reach + resource_radius
 
 local ai = stonehearth.ai
-return ai:create_compound_action(HarvestResourceNodeAction)
+return ai:create_compound_action(HarvestResourceNode)
          :when( function (ai) return ai.CURRENT.carrying == nil end )
          :execute('stonehearth:goto_entity', {
             entity = ai.ARGS.node,
