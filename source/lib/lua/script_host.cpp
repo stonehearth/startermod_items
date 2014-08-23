@@ -328,6 +328,14 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[listen " << oldLine << "]");
+   } else if (srcName == "=[C]" && fnName == "insert") {
+      int oldLine = stack.currentline;
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
    }
 
    return BUILD_STRING(stack.source << ":" << fnName << ":" << stack.currentline);
