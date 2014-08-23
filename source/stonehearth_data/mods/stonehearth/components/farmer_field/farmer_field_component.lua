@@ -44,7 +44,7 @@ function FarmerFieldComponent:initialize(entity, json)
                        :set_reserved(_radiant.sim.alloc_region())
                        :set_auto_update_adjacent(true)
    else
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
          self.destination = self._sv.soil_layer:get_component('destination')
          self.destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
          if #self._sv.contents > 0 then
