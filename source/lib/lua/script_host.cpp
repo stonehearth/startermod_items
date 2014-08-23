@@ -375,13 +375,16 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
          int r = lua_getstack(l, 0, &stack);
 
          if (!r) {
-            l = host->L_;
+            l = l == host->L_ ? host->cb_thread_ : host->L_;
          }
          r = lua_getstack(l, 0, &stack);
 
          if (r) {
             std::string key = ExtractAllocKey(l);
             host->alloc_map[key][realloced] = nsize;
+            host->alloc_backmap[realloced] = key;
+         } else {
+            host->alloc_map["unknown"][realloced] = nsize;
             host->alloc_backmap[realloced] = key;
          }
       }
