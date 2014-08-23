@@ -11,13 +11,13 @@
 
             <div id="citizenCount">
                <div id="workers" class="counter">
-                  <div>10</div>
+                  <div>{{num_workers}}</div>
                </div>
                <div id="crafters" class="counter">
-                  <div>10</div>
+                  <div>{{num_crafters}}</div>
                </div>
                <div id="soldiers" class="counter">
-                  <div>10</div>
+                  <div>{{num_soldiers}}</div>
                </div>
             </div>
          </div>
@@ -27,11 +27,23 @@
                <div>{{i18n town_net_worth}}</div>
                <div>{{score_data.net_worth.total_score}}</div>
             </div>
+
             <div class="row">
                <div id="happinessIcon" {{bind-attr class=view.happinessIconClass}} />
                <div>{{i18n town_overall_happiness}}</div>
                <div>{{view.overall_happiness}}</div>
             </div>
+            <div class="row">
+               <div id="happinessIcon" {{bind-attr class=view.foodHappinessIconClass}} />
+               <div>{{i18n town_food_happiness}}</div>
+               <div>{{view.food_happiness}}</div>
+            </div>
+            <div class="row">
+               <div id="happinessIcon" {{bind-attr class=view.shelterHappinessIconClass}} />
+               <div>{{i18n town_shelter_happiness}}</div>
+               <div>{{view.shelter_happiness}}</div>
+            </div>
+
          </div>
       </div>
       
