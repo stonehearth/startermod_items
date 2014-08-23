@@ -2,6 +2,7 @@ local RenewableResourceNodeComponent = class()
 
 function RenewableResourceNodeComponent:initialize(entity, json)
    self._entity = entity
+
    self._calendar_constants = stonehearth.calendar:get_constants();
    
    self._original_description = self._entity:get_component('unit_info'):get_description()
@@ -17,17 +18,28 @@ function RenewableResourceNodeComponent:initialize(entity, json)
    self._harvest_tool = json.harvest_tool
 
    if json.renewal_time then
-      local duration = string.sub(json.renewal_time, 1, -2)
-      local time_unit = string.sub(json.renewal_time, -1, -1)
-
-      if time_unit == 'd' then
-         duration = duration * self._calendar_constants.hours_per_day
-      elseif time_unit == 'm' then
-         assert(false, 'durations under 1 hour are not supported for renewable resource nodes!')
-      end
-
-      self._renewal_time = tonumber(duration) -- how long until the resource respawns
+      self._renewal_time = stonehearth.calendar:parse_duration(json.renewal_time)
    end
+
+   self._sv = self.__saved_variables:get_data()
+   if not self._sv.initialized then
+      self._sv.harvestable = true
+      self._sv.initialized = true
+      self.__saved_variables:mark_changed()
+   else
+      self:_restore()
+   end
+end
+
+function RenewableResourceNodeComponent:_restore()
+   if self._sv.next_renew_time then
+      local duration = stonehearth.calendar:get_seconds_until(self._sv.next_renew_time)
+      self:_start_renew_timer(duration)
+   end
+end
+
+function RenewableResourceNodeComponent:is_harvestable()
+   return self._sv.harvestable
 end
 
 function RenewableResourceNodeComponent:get_task_group_name()
@@ -52,8 +64,7 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       --start the countdown to respawn.
       local render_info = self._entity:add_component('render_info')
       render_info:set_model_variant('depleted')
-      self._renewal_countdown = self._renewal_time
-      radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
+      self:_start_renew_timer(self._renewal_time)
 
       --Change the description
       if self._unripe_description then
@@ -64,12 +75,12 @@ function RenewableResourceNodeComponent:spawn_resource(location)
       if self._renew_effect_name then
       end
 
-      -- Fire an event to let everyone else know we've just been harvested
-      radiant.events.trigger_async(self._entity, 'stonehearth:harvested', { entity = self._entity} )
+      self._sv.harvestable = false
+      self.__saved_variables:mark_changed()
+
       return item
    end
 end
-
 
 --- Reset the model to the default. Also, stop listening for effects
 function RenewableResourceNodeComponent:_reset_model()
@@ -107,19 +118,32 @@ function RenewableResourceNodeComponent:renew(location)
    --Change the description
    self._entity:get_component('unit_info'):set_description(self._original_description)
 
-   -- Fire an event to let everyone else know we're harvestable
-   radiant.events.trigger_async(self._entity, 'stonehearth:is_harvestable', { entity = self._entity} )
+   self._sv.harvestable = true
+   self.__saved_variables:mark_changed()
 end
 
+function RenewableResourceNodeComponent:_start_renew_timer(duration)
+   self:_stop_renew_timer()
 
+   self._renew_timer = stonehearth.calendar:set_timer(duration,
+      function ()
+         self:_stop_renew_timer()
+         self:renew()
+      end
+   )
 
-function RenewableResourceNodeComponent:on_hourly()
-   if self._renewal_countdown <= 0 then
-      radiant.events.unlisten(stonehearth.calendar, 'stonehearth:hourly', self, self.on_hourly)
-      self:renew()
-   else 
-      self._renewal_countdown = self._renewal_countdown - 1
+   self._sv.next_renew_time = self._renew_timer:get_expire_time()
+   self.__saved_variables:mark_changed()
+end
+
+function RenewableResourceNodeComponent:_stop_renew_timer()
+   if self._renew_timer then
+      self._renew_timer:destroy()
+      self._renew_timer = nil
    end
+
+   self._sv.next_renew_time = nil
+   self.__saved_variables:mark_changed()
 end
 
 return RenewableResourceNodeComponent
