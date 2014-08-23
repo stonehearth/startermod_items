@@ -296,15 +296,18 @@ function Town:harvest_resource_node(node)
    local id = node:get_id()
    if not self._harvest_tasks[id] then
       local node_component = node:get_component('stonehearth:resource_node')
-      if node_component then
+      if node_component and node_component:is_harvestable() then
          local task_group_name = node_component:get_task_group_name()
          local effect_name = node_component:get_harvest_overlay_effect()
          local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_resource_node', { node = node })
-                                      :set_source(node)
-                                      :add_entity_effect(node, effect_name)
-                                      :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                      :once()
-                                      :start()
+            :set_source(node)
+            :add_entity_effect(node, effect_name)
+            :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+            :once()
+            :notify_completed(function()
+               self._harvest_tasks[id] = nil
+            end)
+            :start()
          self._harvest_tasks[id] = task
          self:_remember_user_initiated_task(task, 'harvest_resource_node', node)
       end
@@ -320,25 +323,20 @@ function Town:harvest_renewable_resource_node(plant)
    local id = plant:get_id()
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
-      if node_component then
+      if node_component and node_component:is_harvestable() then
          local task_group_name = node_component:get_task_group_name()
          local effect_name = node_component:get_harvest_overlay_effect()
          local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_plant', { plant = plant })
-                                :set_source(plant)
-                                :add_entity_effect(plant, effect_name)
-                                :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-                                :once()
-                                :start()
+            :set_source(plant)
+            :add_entity_effect(plant, effect_name)
+            :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+            :once()
+            :notify_completed(function()
+               self._harvest_tasks[id] = nil
+            end)
+            :start()
          self._harvest_tasks[id] = task
          self:_remember_user_initiated_task(task, 'harvest_renewable_resource_node', plant)
-
-         radiant.events.listen(plant, 'stonehearth:is_harvestable', function(e) 
-            local plant = e.entity
-            if not plant or not plant:is_valid() then
-               return radiant.events.UNLISTEN
-            end
-            self._harvest_tasks[plant:get_id()] = nil
-         end)
       end
    end
    return true
@@ -352,9 +350,13 @@ function Town:harvest_crop(crop, player_initialized)
    local id = crop:get_id()
    if not self._harvest_tasks[id] then
       local task = self:create_task_for_group('stonehearth:task_group:simple_farming', 'stonehearth:harvest_crop', { crop = crop })
-                                   :set_source(crop)
-                                   :set_priority(stonehearth.constants.priorities.farming.HARVEST)
-                                   :once()
+         :set_source(crop)
+         :set_priority(stonehearth.constants.priorities.farming.HARVEST)
+         :once()
+         :notify_completed(function()
+            self._harvest_tasks[id] = nil
+         end)
+
       self._harvest_tasks[id] = task
 
       --Only track the task here if it was player initialized.
@@ -363,8 +365,8 @@ function Town:harvest_crop(crop, player_initialized)
          task:add_entity_effect(crop, '/stonehearth/data/effects/chop_overlay_effect')
          self:_remember_user_initiated_task(task, 'harvest_crop', crop, player_initialized)
       end
-      task:start()
 
+      task:start()
    end
    return true
 end

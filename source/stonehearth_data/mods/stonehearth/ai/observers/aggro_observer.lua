@@ -120,6 +120,10 @@ end
 
 function AggroObserver:destroy()
    self:_destroy_trace()
+
+   for i, a in pairs(self._observed_allies) do
+      radiant.events.unlisten(a, 'stonehearth:combat:battery', self, self._on_ally_battery)
+   end
 end
 
 function AggroObserver:_destroy_trace()

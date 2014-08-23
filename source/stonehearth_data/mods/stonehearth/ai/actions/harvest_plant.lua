@@ -10,6 +10,13 @@ HarvestPlant.args = {
 HarvestPlant.version = 2
 HarvestPlant.priority = 1
 
+function HarvestPlant:start_thinking(ai, entity, args)
+   local resource_node_component = args.plant:get_component('stonehearth:renewable_resource_node')
+   if resource_node_component and resource_node_component:is_harvestable() then
+      ai:set_think_output()
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestPlant)
          :execute('stonehearth:drop_carrying_now', {})

@@ -20,7 +20,12 @@ function Personality:initialize(entity, json)
       self._sv.substitutions = {}
       self._sv.todays_events = {}    --Each notable thing that's happened today
    end
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self.on_midnight)
+   self._midnight_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self.on_midnight)
+end
+
+function Personality:destroy()
+   self._midnight_listener:destroy()
+   self._midnight_listener = nil
 end
 
 function Personality:set_personality(personality)

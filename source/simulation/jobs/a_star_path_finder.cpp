@@ -728,4 +728,5 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathF
    ReconstructPath(solution, from);
    solution.insert(solution.end(), directPath.begin(), directPath.end());
    SolveSearch(solution, dst);
+   return true;
 }
