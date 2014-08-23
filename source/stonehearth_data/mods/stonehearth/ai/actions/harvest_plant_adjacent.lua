@@ -20,6 +20,10 @@ function HarvestPlantsAction:run(ai, entity, args)
 
    --Fiddle with the bush and pop the basket
    local factory = plant:get_component('stonehearth:renewable_resource_node')
+   if not factory:is_harvestable() then
+      ai:abort('resource is not currently harvestable')
+   end
+
    if factory then
       ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
       local location = radiant.entities.get_world_grid_location(entity)
