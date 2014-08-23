@@ -3,7 +3,7 @@
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(picket_fence_iconic.json)",
-         "ghost_form" : "file(picket_fence_iconic.json)"
+         "ghost_form" : "file(picket_fence_ghost.json)"
       },
       "region_collision_shape" : {
          "region": [
