@@ -21,7 +21,12 @@ function HealthObserver:initialize(entity)
       --end)
    end
 
-   radiant.events.listen(self._entity, 'stonehearth:attribute_changed:health', self, self._on_health_changed)
+   self._health_changed_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:health', self, self._on_health_changed)
+end
+
+function HealthObserver:destroy()
+   self._health_changed_listener:destroy()
+   self._health_changed_listener = nil
 end
 
 -- We care about full health, three quarters, half, and quarter health

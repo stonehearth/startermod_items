@@ -26,11 +26,12 @@ function CombatStateComponent:initialize(entity, json)
       end
    end
 
-   radiant.events.listen(self._entity, 'stonehearth:equipment_changed', self, self._on_equipment_changed)
+   self._equipment_changed_listener = radiant.events.listen(self._entity, 'stonehearth:equipment_changed', self, self._on_equipment_changed)
 end
 
 function CombatStateComponent:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:equipment_changed', self, self._on_equipment_changed)
+   self._equipment_changed_listener:destroy()
+   self._equipment_changed_listener = nil
 end
 
 -- duration is in milliseconds at game speed 1
