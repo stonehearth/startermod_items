@@ -14,8 +14,8 @@ function memory_tests.entity_spawn(autotest)
       end
       autotest:sleep(25)
 
-      for i = 1, 49 do
-         radiant.entities.destroy_entity(es[i])
+      for _, e in ipairs(es) do
+         radiant.entities.destroy_entity(e)
       end
    end
 

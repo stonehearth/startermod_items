@@ -10,7 +10,8 @@ local log = radiant.log.create_logger('events')
 function events.__init()
    events._senders = {}
    events._async_triggers = {}
-end
+   events._dead_listeners = {}
+end   
 
 function events._convert_object_to_key(object)
    if type(object) == 'userdata' then
@@ -84,7 +85,7 @@ function events.listen(object, event, self, fn)
    table.insert(listeners, entry)
 
    return radiant.lib.Destructor(function()
-         events.unlisten(object, event, self, fn)
+         events._unlisten(object, key, event, self, fn)
       end)
 end
 
@@ -100,15 +101,13 @@ function events.unpublish(object)
    events._senders[key] = nil
 end
 
-function events.unlisten(object, event, self, fn)
-   local key = events._convert_object_to_key(object)
-
-   assert(object and event and self)
+function events._unlisten(object, key, event, self, fn)
    local senders = events._senders[key]
    if not senders then
       log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
       return
    end
+
    local listeners = senders[event]
    if not listeners then
       log:debug('unlisten unknown event: %s on sender %s', event, tostring(object))
@@ -120,13 +119,36 @@ function events.unlisten(object, event, self, fn)
          log:spam('unlistening to event ' .. event)
          if listeners.trigger_depth > 0 then
             entry.dead = true
+            local dead_entry = {
+               entry = entry,
+               object = object,
+               key = key,
+               event = event,
+               self = self,
+               fn = fn
+            }
+            table.insert(events._dead_listeners, dead_entry)
          else
             table.remove(listeners, i)
+
+            if #listeners == 0 then
+               senders[event] = nil
+               if #events._senders[key] == 0 then
+                  events._senders[key] = nil
+               end
+            end
          end
          return
       end
    end
    log:warning('unlisten could not find registered listener for event: %s', event)
+end
+
+function events.unlisten(object, event, self, fn)
+   local key = events._convert_object_to_key(object)
+   assert(object and event and self)
+
+   events._unlisten(object, key, event, self, fn)
 end
 
 function events.trigger_async(object, event, ...)
@@ -190,6 +212,12 @@ function events.trigger(object, event, ...)
 end
 
 function events._update()
+   for _, entry in ipairs(events._dead_listeners) do
+      entry.entry.dead = false
+      events._unlisten(entry.object, entry.key, entry.event, entry.self, entry.fn)
+   end
+   events._dead_listeners = {}
+
    local now = { now = radiant.gamestate.now() }
    
    local async_triggers = events._async_triggers
