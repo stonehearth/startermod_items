@@ -239,6 +239,7 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    error_count(0),
    _allocDs(allocDs)
 {
+   _curLuaState = nullptr;
    current_line = 0;
    *current_file = '\0';
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
@@ -306,6 +307,33 @@ int ScriptHost::GetErrorCount() const
    return error_count;
 }
 
+
+std::string ExtractAllocKey(lua_State *l) {
+    // At this point, we know we have a valid stack to extract info from--so do that!
+   lua_Debug stack;
+
+   lua_getstack(l, 0, &stack);
+   lua_getinfo(l, "nSl", &stack);
+
+   std::string fnName(stack.name ? stack.name : "");
+   std::string srcName(stack.source ? stack.source : "");
+
+   if (srcName == "@radiant/modules/events.lua" && fnName == "listen") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[listen " << oldLine << "]");
+   }
+
+   return BUILD_STRING(stack.source << ":" << fnName << ":" << stack.currentline);
+ }
+
+
 /*
  * The type of the memory-allocation function used by Lua states. The allocator function must
  * provide a functionality similar to realloc, but not exactly the same. Its arguments are ud,
@@ -342,9 +370,20 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
       host->alloc_map[key].erase(ptr);
       host->alloc_backmap.erase(ptr);
       if (realloced) {
-         std::string key = BUILD_STRING(host->current_file << ":" << host->current_line);
-         host->alloc_map[key][realloced] = nsize;
-         host->alloc_backmap[realloced] = key;
+         lua_Debug stack;
+         lua_State *l = host->_curLuaState ? host->_curLuaState : host->L_;
+         int r = lua_getstack(l, 0, &stack);
+
+         if (!r) {
+            l = host->L_;
+         }
+         r = lua_getstack(l, 0, &stack);
+
+         if (r) {
+            std::string key = ExtractAllocKey(l);
+            host->alloc_map[key][realloced] = nsize;
+            host->alloc_backmap[realloced] = key;
+         }
       }
    }
    return realloced;
@@ -582,8 +621,10 @@ int ScriptHost::GetAllocBytesCount() const
 void ScriptHost::Trigger(std::string const& eventName, luabind::object evt)
 {
    try {
+      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       TriggerOn(radiant, eventName, evt);
+      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
@@ -595,8 +636,10 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
       if (!evt || !evt.is_valid()) {
          evt = luabind::newtable(L_);
       }
+      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       radiant["events"]["trigger"](obj, eventName, evt);
+      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
