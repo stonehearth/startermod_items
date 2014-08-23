@@ -79,6 +79,7 @@ private:
    mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
    mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;
+   mutable std::unordered_map<std::string, std::string>    _canonicalPaths;
 };
 
 END_RADIANT_RES_NAMESPACE
