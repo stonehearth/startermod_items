@@ -15,6 +15,34 @@ App.StonehearthTownView = App.View.extend({
       this._super();
       self.set('context.town_name', App.stonehearthClient.settlementName())
 
+      this._popTrace = App.population.getTrace()
+         .progress(function(pop) {
+            var numWorkers = 0;
+            var numCrafters = 0;
+            var numSoldiers = 0;
+            $.each(pop.citizens, function(k, citizen) {
+               console.log(citizen);
+
+               if (!citizen['stonehearth:profession']) {
+                  return;
+               }
+
+               var roles = citizen['stonehearth:profession']['profession_uri']['roles'];
+
+               if (roles && roles.indexOf('crafter') > -1) {
+                  numCrafters++;
+               } else if (roles && roles.indexOf('combat') > -1) {
+                  numSoldiers++;
+               } else {
+                  numWorkers++;
+               }
+            });
+
+            self.set('context.num_workers', numWorkers);
+            self.set('context.num_crafters', numCrafters);
+            self.set('context.num_soldiers', numSoldiers);
+         });
+
       radiant.call('stonehearth:get_score')
          .done(function(response){
             var uri = response.score;
@@ -54,10 +82,15 @@ App.StonehearthTownView = App.View.extend({
    },
 
    destroy: function() {
-      if (this.radiantTrace != undefined) {
+      if (this._popTrace) {
+         this._popTrace.destroy()
+      }
+
+      if (this.radiantTrace) {
          this.radiantTrace.destroy();
       }
-      if (this.radiantTraceJournals != undefined) {
+
+      if (this.radiantTraceJournals) {
          this.radiantTraceJournals.destroy();
       }
       this._super();
@@ -118,6 +151,8 @@ App.StonehearthTownView = App.View.extend({
    _updateUi: function() {
       // town label
       var happiness = this.get('context.score_data.happiness.happiness')
+      var foodHappiness = this.get('context.score_data.happiness.nutrition')
+      var shelterHappiness = this.get('context.score_data.happiness.shelter')
       var netWorthLevel = this.get('context.score_data.net_worth.level')
 
       var settlementSize = i18n.t('stonehearth:' + netWorthLevel);
@@ -129,11 +164,18 @@ App.StonehearthTownView = App.View.extend({
       }
 
       // happiness indicatior
-      var h = this.get('context.score_data.happiness.happiness');
-      this.set('overall_happiness', Math.round(h) / 10);
+      this.set('overall_happiness', Math.round(happiness) / 10);
+      this.set('food_happiness', Math.round(foodHappiness) / 10);
+      this.set('shelter_happiness', Math.round(shelterHappiness) / 10);
 
-      var iconValue = Math.floor(happiness / 10); // value between 1 and 10
-      this.set('happinessIconClass', 'happiness_' + iconValue);
+      this._setIconClass('happinessIconClass', happiness);
+      this._setIconClass('foodHappinessIconClass', foodHappiness);
+      this._setIconClass('shelterHappinessIconClass', shelterHappiness);
+   },
+
+   _setIconClass: function(className, value) {
+      var iconValue = Math.floor(value / 10); // value between 1 and 10
+      this.set(className, 'happiness_' + iconValue);
    },
 
    _observerScores: function() {

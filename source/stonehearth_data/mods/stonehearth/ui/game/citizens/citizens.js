@@ -19,7 +19,10 @@ App.StonehearthCitizensView = App.View.extend({
    },
 
    destroy: function() {
-      this._trace.destroy();
+      if (this._trace) {
+         this._trace.destroy();   
+      }
+      
       this._super();
    },
 

@@ -65,8 +65,10 @@ var StonehearthPopulation;
       },
 
       destroy: function() {
-         this._radiantTrace.destroy();
-         this._radiantTrace = null;
+         if (this._radiantTrace) {
+            this._radiantTrace.destroy();
+            this._radiantTrace = null;            
+         }
       }
 
    });
