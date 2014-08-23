@@ -133,7 +133,7 @@ function events._unlisten(object, key, event, self, fn)
 
             if #listeners == 0 then
                senders[event] = nil
-               if #events._senders[key] == 0 then
+               if next(events._senders[key]) == nil then
                   events._senders[key] = nil
                end
             end
