@@ -68,12 +68,22 @@
             file: file,
             line: line
          }
-         App.gameView.addView(App.StonehearthJsErrorDialogView, { error : error });
+         if (App.gameView) {
+            App.gameView.addView(App.StonehearthJsErrorDialogView, { error : error });   
+         }
+         console.error(message)
+         console.error(file)
+         console.error(line)
          return true;
       }
 
       window.addEventListener("error", function (e) {
          //console.log(e.error.message, "from", e.error.stack);
+      });
+
+      Ember.RSVP.configure('onerror', function(e) {
+         console.error(e.message); 
+         console.error(e.stack);
       });
 
    </script>
