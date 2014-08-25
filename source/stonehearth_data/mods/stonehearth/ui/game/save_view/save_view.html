@@ -39,6 +39,9 @@
                <div class="name">{{this.gameinfo.town_name}}</div>
                <div class="gameTime">{{this.gameinfo.game_date}}</div>
                <div class="time">{{this.gameinfo.game_time}}</div>
+               {{#if differentVersions}}
+                  <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
+               {{/if}}
             </div>
          </div>
       {{/each}}
