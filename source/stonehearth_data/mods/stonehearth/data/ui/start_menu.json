@@ -28,25 +28,19 @@
          },
          "create_farm" : {
             "name" : "Farm",
-            "locked_name" : "Farm (Locked)",
             "description" : "Place a farm on the terrain.",
-            "locked_description" : "Create a farmer to unlock this zone.",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
             "sticky" : true,
-            "hotkey" : "f",
-            "required_profession" : "stonehearth:professions:farmer"
+            "hotkey" : "f"
          },
          "create_trapping_grounds" : {
             "name" : "Trapping Ground",
-            "locked_name" : "Trapping Ground (Locked)",
             "description" : "Place traps to capture small critters.",
-            "locked_description" : "Create a trapper to unlock this zone.",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
             "sticky" : true,
-            "hotkey" : "t",
-            "required_profession" : "stonehearth:professions:trapper"
+            "hotkey" : "t"
          }
 
       }
