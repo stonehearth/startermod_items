@@ -1,6 +1,6 @@
+local selector_util = require 'services.client.selection.selector_util'
 local LocationSelector = class()
 local Point3 = _radiant.csg.Point3
-
 
 local OFFSCREEN = Point3(0, -100000, 0)
 
@@ -124,28 +124,18 @@ end
 -- is almost certainly going to get in the way!)
 --
 function LocationSelector:_get_selected_brick(x, y)
-   -- query the scene to figure out what's under the mouse cursor
-   local s = _radiant.client.query_scene(x, y)
-
-   for result in s:each_result() do
-      -- adjust the brick location to the the one adjacent to the brick
-      -- selected.  this is almost always what you want.
-      local normal = result.normal
-      result.brick = result.brick + normal:to_int()
-
-      -- skip the cursor...
-      if result.entity ~= self._cursor_entity then
-         local filter_result = not self._filter_fn or self._filter_fn(result, self)
-         if filter_result == stonehearth.selection.FILTER_IGNORE then
-            -- keep going...
-         elseif filter_result == true then
-            return result.brick
-         else
-            -- everything else (including false and nil) indicates failure
-            return nil
+   return selector_util.get_selected_brick(x, y, function(result)
+         -- skip the cursor...
+         if result.entity == self._cursor_entity then
+            return stonehearth.selection.FILTER_IGNORE
          end
-      end
-   end
+         
+         -- if not filter is installed, return the first brick
+         if not self._filter_fn then
+            return true
+         end
+         return self._filter_fn(result, self)
+      end)
 end
 
 function LocationSelector:_shift_down()

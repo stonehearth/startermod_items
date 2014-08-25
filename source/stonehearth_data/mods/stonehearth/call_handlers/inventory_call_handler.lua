@@ -3,24 +3,45 @@ local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
+   -- returns whether or not the zone can contain the specified entity
+   local function zone_can_contain(entity)
+      -- zones cannot be dragged around things that "take up space".  these things all
+      -- have non-NONE collision regions
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return false
+      end
+      -- zones cannot contain other zones, either
+      if entity:get_component('stonehearth:stockpile') then
+         return false
+      end
+      return true
+   end
+
    stonehearth.selection:select_xz_region()
       :require_supported(true)
       :require_unblocked(true)
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:zone_stockpile')
-      :with_filter(function(entities)
-           local first_ent = entities:get_result(0).entity
-           if first_ent then
-             if first_ent:get_component('terrain') then
-                return 0
-             end
-             local cd = first_ent:get_component('stonehearth:construction_data')
-             if cd and cd:get_type() == 'floor' then
-               return 0
-             end
-           end
-           return -1
-         end) 
+      :set_find_support_filter(function(result)
+            local entity = result.entity
+            -- make sure we draw zones atop either the terrain, something we've built, or
+            -- something that's solid
+            if entity:get_component('terrain') then
+               return true
+            end
+            if entity:get_component('stonehearth:construction_data') then
+               return true
+            end
+            local rcs = entity:get_component('region_collision_shape')
+            if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+               return false
+            end
+            return stonehearth.selection.FILTER_IGNORE
+         end)
+      :set_can_contain_entity_filter(function (entity)
+            return zone_can_contain(entity)
+         end)
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,
