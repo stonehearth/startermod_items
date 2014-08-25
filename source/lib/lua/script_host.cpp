@@ -393,7 +393,7 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
             host->alloc_backmap[realloced] = key;
          } else {
             host->alloc_map["unknown"][realloced] = nsize;
-            host->alloc_backmap[realloced] = key;
+            host->alloc_backmap[realloced] = "unknown";
          }
       }
    }
