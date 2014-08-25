@@ -3,7 +3,11 @@
 
 #include <vector>
 #include <map>
+#include <EASTL/fixed_vector.h>
 #include "cube.h"
+
+//#define EASTL_REGIONS
+#define INITIAL_CUBE_SPACE    64
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -13,7 +17,11 @@ class Region
 public:
    typedef Cube<S, C> Cube;
    typedef Point<S, C> Point;
+#if !defined(EASTL_REGIONS)
    typedef std::vector<Cube> CubeVector;
+#else
+   typedef eastl::fixed_vector<Cube, INITIAL_CUBE_SPACE, true> CubeVector;
+#endif
    typedef S ScalarType;
 
 public:

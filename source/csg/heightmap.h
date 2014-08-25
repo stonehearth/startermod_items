@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <vector>
 #include <list>
-#include "region.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
 

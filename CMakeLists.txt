@@ -97,6 +97,7 @@ INCLUDE(${RADIANT_MODULE_ROOT}/poco/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/protobuf/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/sfml/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/snappy/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/eastl/cmake/config.txt)
 
 set(Boost_USE_STATIC_LIBS     ON)
 set(Boost_USE_STATIC_RUNTIME  ON)
@@ -114,6 +115,9 @@ FIND_PACKAGE(Boost 1.48.0 COMPONENTS filesystem thread system regex date_time pr
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 add_definitions( -DCURL_STATICLIB )
+
+# to get EASTL to get the correct definition for wide characters
+add_definitions( -DEA_CHAR16_NATIVE=1 )
 
 add_subdirectory(source)
 
