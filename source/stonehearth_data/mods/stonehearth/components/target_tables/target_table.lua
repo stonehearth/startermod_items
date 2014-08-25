@@ -15,6 +15,10 @@ function TargetTable:initialize()
    self.__saved_variables:mark_changed()
 end
 
+function TargetTable:destroy()
+   radiant.events.unpublish(self)
+end
+
 function TargetTable:get_top()
    if not self:_top_is_valid() then
       self:_calculate_top()

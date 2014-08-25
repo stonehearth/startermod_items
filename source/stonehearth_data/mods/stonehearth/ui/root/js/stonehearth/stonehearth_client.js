@@ -462,10 +462,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
 
          if (this._crafterManager) {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
 
          // toggle the town menu
@@ -473,6 +475,7 @@ var StonehearthClient;
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
             this._townMenu.destroy();
+            this._townMenu = null;
          }         
       },
 
@@ -481,10 +484,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._crafterManager) {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
 
          if (this._townMenu) {
             this._townMenu.destroy();
+            this._townMenu = null;
          }
 
          // toggle the citizenManager
@@ -492,6 +497,7 @@ var StonehearthClient;
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
       },
 
@@ -500,10 +506,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
 
          if (this._townMenu) {
             this._townMenu.destroy();
+            this._townMenu = null;
          }         
          
          // toggle the citizenManager
@@ -511,6 +519,7 @@ var StonehearthClient;
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
       },
 

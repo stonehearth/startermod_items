@@ -316,8 +316,10 @@
 
    "town_net_worth" : "Net worth",
    "town_overall_happiness" : "Overall Happiness",
+   "town_food_happiness" : "Food",
+   "town_shelter_happiness" : "Shelter",
    "town_overview" : "Town Overview",
-   "town_happiness_tab" : "Happiness",
+   "town_happiness_tab" : "Journal",
    "journal_today" : "Today", 
    "journal_town_log" : "Town Log",
    "journal_praises" : "Praises", 
