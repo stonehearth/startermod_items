@@ -13,5 +13,8 @@
             ]
          }
       }
+   },
+   "entity_data" : {
+      "stonehearth:hide_child_entities_from_pathfinder" : true
    }
 }

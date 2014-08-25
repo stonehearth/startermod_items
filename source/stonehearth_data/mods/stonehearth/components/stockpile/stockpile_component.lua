@@ -186,13 +186,6 @@ function StockpileComponent:get_filter()
             end
          end
 
-         -- only restock items that are not contained in other items
-         local mob = item:get_component('mob')
-         local parent = mob and mob:get_parent()
-         if parent ~= radiant.entities.get_root_entity() then
-            return false
-         end
-
          return _can_stock_entity(item, captured_filter)
       end
 
