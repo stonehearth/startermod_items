@@ -5,6 +5,7 @@ local AggroObserver = class()
 function AggroObserver:initialize(entity)
    self._entity = entity
    self._observed_allies = {}
+   self._observed_allies_listeners = {}
    self._ally_aggro_ratio = radiant.util.get_config('ally_aggro_ratio', 0.50)
 
    self:_add_sensor_trace()
@@ -66,7 +67,8 @@ function AggroObserver:_observe_ally(ally)
 
    if not self._observed_allies[ally_id] then
       -- TODO: eventually, we should listen for alliance change if a unit changes from ally to hostile or the reverse
-      radiant.events.listen(ally, 'stonehearth:combat:battery', self, self._on_ally_battery)
+      local listener = radiant.events.listen(ally, 'stonehearth:combat:battery', self, self._on_ally_battery)
+      self._observed_allies_listeners[ally_id] = listener
       self._observed_allies[ally_id] = ally
    end
 end
@@ -77,7 +79,8 @@ function AggroObserver:_unobserve_ally(ally)
    if self._observed_allies[ally_id] then
       -- TODO: make sure we unlisten when entities are about to be destroyed
       -- or have radiant.events periodically clean up listeners on destroyed entities
-      radiant.events.unlisten(ally, 'stonehearth:combat:battery', self, self._on_ally_battery)
+      self._observed_allies_listeners[ally_id]:destroy()
+      self._observed_allies_listeners[ally_id] = nil
       self._observed_allies[ally_id] = nil
    end
 end
@@ -121,9 +124,10 @@ end
 function AggroObserver:destroy()
    self:_destroy_trace()
 
-   for i, a in pairs(self._observed_allies) do
-      radiant.events.unlisten(a, 'stonehearth:combat:battery', self, self._on_ally_battery)
+   for _, listener in pairs(self._observed_allies_listeners) do
+      listener:destroy()
    end
+   self._observed_allies_listeners = nil
 end
 
 function AggroObserver:_destroy_trace()

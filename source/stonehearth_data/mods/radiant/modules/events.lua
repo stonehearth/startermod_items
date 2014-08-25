@@ -10,7 +10,8 @@ local log = radiant.log.create_logger('events')
 function events.__init()
    events._senders = {}
    events._async_triggers = {}
-end
+   events._dead_listeners = {}
+end   
 
 function events._convert_object_to_key(object)
    if type(object) == 'userdata' then
@@ -83,8 +84,15 @@ function events.listen(object, event, self, fn)
    end
    table.insert(listeners, entry)
 
+   for i, entry in ipairs(events._dead_listeners) do
+      if entry.event == event and entry.key == key and entry.fn == fn and entry.self == self then
+         table.remove(events._dead_listeners, i)
+         return
+      end
+   end
+
    return radiant.lib.Destructor(function()
-         events.unlisten(object, event, self, fn)
+         events._unlisten(object, key, event, self, fn)
       end)
 end
 
@@ -96,19 +104,33 @@ function events.unpublish(object)
       log:debug('unpublish on unknown sender: %s', tostring(object))
       return
    end
-   log:debug('forcibly removing listeners while unpublishing %s')
+   log:debug('forcibly removing listeners while unpublishing %s', key)
    events._senders[key] = nil
 end
 
-function events.unlisten(object, event, self, fn)
-   local key = events._convert_object_to_key(object)
+function events._clear_listener(i, key, event)
+   local senders = events._senders[key]
+   local listeners = senders[event]
 
-   assert(object and event and self)
+   log:spam('unlistening to event ' .. event)
+
+   table.remove(listeners, i)
+
+   if #listeners == 0 then
+      senders[event] = nil
+      if next(events._senders[key]) == nil then
+         events._senders[key] = nil
+      end
+   end
+end
+
+function events._unlisten(object, key, event, self, fn)
    local senders = events._senders[key]
    if not senders then
       log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
       return
    end
+
    local listeners = senders[event]
    if not listeners then
       log:debug('unlisten unknown event: %s on sender %s', event, tostring(object))
@@ -117,16 +139,32 @@ function events.unlisten(object, event, self, fn)
 
    for i, entry in ipairs(listeners) do
       if entry.fn == fn and entry.self == self and not entry.dead then
-         log:spam('unlistening to event ' .. event)
          if listeners.trigger_depth > 0 then
+            log:spam('queuing dead event ' .. event)
             entry.dead = true
+            local dead_entry = {
+               entry = entry,
+               object = object,
+               key = key,
+               event = event,
+               self = entry.self,
+               fn = entry.fn
+            }
+            table.insert(events._dead_listeners, dead_entry)
          else
-            table.remove(listeners, i)
+            events._clear_listener(i, key, event)
          end
          return
       end
    end
    log:warning('unlisten could not find registered listener for event: %s', event)
+end
+
+function events.unlisten(object, event, self, fn)
+   local key = events._convert_object_to_key(object)
+   assert(object and event and self)
+
+   events._unlisten(object, key, event, self, fn)
 end
 
 function events.trigger_async(object, event, ...)
@@ -177,7 +215,7 @@ function events.trigger(object, event, ...)
             
             if result == radiant.events.UNLISTEN then
                log:detail('   removing listener index %d (count:%d)', i, #listeners)
-               table.remove(listeners, i)
+               events._clear_listener(i, key, event)
                count = count - 1
             else
                log:detail('   advancing index %d (count:%d)', i, #listeners)
@@ -219,6 +257,13 @@ function events._update()
    if now.now % (1000 * 60) == 0 then
       events.trigger(radiant, 'stonehearth:minute_poll', now)
    end
+
+   for _, entry in ipairs(events._dead_listeners) do
+      log:spam('removing dead-list event %s', entry.event)
+      entry.entry.dead = false
+      events._unlisten(entry.object, entry.key, entry.event, entry.self, entry.fn)
+   end
+   events._dead_listeners = {}
 end
 
 radiant.create_background_task = function(name, fn)
