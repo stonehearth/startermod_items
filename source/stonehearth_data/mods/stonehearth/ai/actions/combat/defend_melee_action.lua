@@ -42,6 +42,11 @@ function DefendMelee:stop_thinking(ai, entity, args)
    self:_destroy_timer()
 end
 
+function DefendMelee:destroy()
+   self:_remove_assault_trace()
+   self:_destroy_timer()
+end
+
 function DefendMelee:_add_assault_trace()
     self._assault_trace = radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
 end
@@ -61,6 +66,9 @@ function DefendMelee:_destroy_timer()
 end
 
 function DefendMelee:_on_assault(assault_context)
+   if not self._entity:is_valid() then
+      return
+   end
    if assault_context.attack_method ~= 'melee' then
       return
    end
