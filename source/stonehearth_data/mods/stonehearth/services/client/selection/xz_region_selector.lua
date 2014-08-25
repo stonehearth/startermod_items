@@ -129,7 +129,7 @@ function XZRegionSelector:_is_valid_location(brick, check_containment_filter)
    if self._require_unblocked and radiant.terrain.is_blocked(brick) then
       return false
    end
-   if self._require_supported and not radiant.terrain.is_standable(brick) then
+   if self._require_supported and not radiant.terrain.is_supported(brick) then
       return false
    end
    if check_containment_filter and self._can_contain_entity_filter_fn then

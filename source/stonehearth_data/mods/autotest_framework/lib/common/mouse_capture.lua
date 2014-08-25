@@ -179,8 +179,15 @@ function mouse_capture.click(x, y, z)
 end
 
 function mouse_capture.set_select_xz_region(p0, p1)
-   assert(not _region_selector_deferred:is_active(), 'cannot have more than 1 region selector active in autotest')
-   _region_selector_deferred:set_region(p0, p1)
+   --assert(not _region_selector_deferred:is_active(), 'cannot have more than 1 region selector active in autotest')
+   --_region_selector_deferred:set_region(p0, p1)
+   local start  = _radiant.renderer.camera.world_to_screen(p0:to_float())
+   local finish = _radiant.renderer.camera.world_to_screen(p1:to_float())
+   queue_mouse_event(MouseEvent({ x = start.x,  y = start.y,  down = { 1 } }))
+   for i = 1,8 do
+      queue_mouse_event(MouseEvent({ x = finish.x, y = finish.y }))
+   end
+   queue_mouse_event(MouseEvent({ x = finish.x, y = finish.y, up = { 1 } }))   
 end
 
 function mouse_capture.hook()
