@@ -88,7 +88,6 @@ function SharedBfsPathFinder:_start_pathfinder()
                         :set_filter_fn(function(target)
                               return self:_is_valid_destination(target)
                            end)
-                        :set_include_child_entities(false)
                         :start()
 end
 
