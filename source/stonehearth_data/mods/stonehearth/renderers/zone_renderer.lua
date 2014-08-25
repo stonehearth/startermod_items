@@ -113,17 +113,7 @@ function ZoneRenderer:_set_ghost_mode(render_entity, ghost_mode)
    render_entity:set_material_override(material)
 
    local selectable = not ghost_mode
-   self:_set_selectable(render_entity, selectable)
-end
-
-function ZoneRenderer:_set_selectable(render_entity, selectable)
-   local unselectable_flag = _radiant.renderer.QueryFlags.UNSELECTABLE
-
-   if selectable then
-      render_entity:remove_query_flag(unselectable_flag)
-   else
-      render_entity:add_query_flag(unselectable_flag)
-   end
+   stonehearth.selection:set_selectable(render_entity:get_entity(), selectable)
 end
 
 function ZoneRenderer:_on_ui_mode_changed()
@@ -137,7 +127,7 @@ function ZoneRenderer:_on_ui_mode_changed()
       -- no need to regenerate ground node
 
       local ground_selectable = self:_in_hud_mode()
-      self:_set_selectable(self._render_entity, ground_selectable)
+      stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
    end
 end
 

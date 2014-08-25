@@ -7,6 +7,20 @@
 #include <boost/filesystem.hpp>
 #include "radiant.h"
 
+
+/*
+ * EASTL expects these operators to exist.  Just redirect them to the standard operator new[]
+ */
+void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+   return new char[size];
+}
+
+void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+   return new char[size];
+}
+
 extern int lua_main(int argc, const char **argv);
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)

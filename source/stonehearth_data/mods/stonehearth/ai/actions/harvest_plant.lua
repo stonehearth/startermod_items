@@ -17,6 +17,10 @@ function HarvestPlant:start_thinking(ai, entity, args)
    end
 end
 
+function HarvestPlant:start(ai, entity, args)
+   ai:set_status_text('harvesting ' .. radiant.entities.get_name(args.plant))
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestPlant)
          :execute('stonehearth:drop_carrying_now', {})

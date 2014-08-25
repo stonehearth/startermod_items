@@ -12,8 +12,6 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-#if 0
-
 static const int PERF_TEST_DURATION_SECONDS = 2;
 
 TEST(RegionTest, SubtractCube) {
@@ -113,9 +111,9 @@ void RunPerfmonTest(ExpectedTime *times, std::function<void()> execute)
     
    core::Guard g = perfmon::OnFrameEnd(verify_times);
    {
-      perfmon::BeginFrame();
+      perfmon::BeginFrame(true);
       execute();
-      perfmon::BeginFrame();
+      perfmon::BeginFrame(true);
    }
 }
 
@@ -189,9 +187,6 @@ TEST(Perfmon, TimelineNestedInner) {
    });
 }
 
-#endif
-
-#if 0
 TEST(RegionTools2D, ForEachPlane) {
    Region2 r2;
    r2.AddUnique(Rect2(Point2(1, 2), Point2(3, 4)));
@@ -199,7 +194,7 @@ TEST(RegionTools2D, ForEachPlane) {
    RegionTools2 tools;
    tools.ForEachPlane(r2, [=](Region1 const& r1, RegionTools2::PlaneInfo const& pi) {
       for (const auto &c : r1) {
-         LOG_() << c << " " << pi.reduced_value;
+         LOG_(0) << c << " " << pi.reduced_value;
       }
    });
 }
@@ -210,19 +205,8 @@ TEST(RegionTools2, ForEachEdge) {
 
    RegionTools2 tools;
    tools.ForEachEdge(r2, [=](csg::EdgeInfo2 const& edge_info) {
-      LOG_() << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
+      LOG_(0) << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
-}
-
-TEST(RegionTools2, Inset) {
-   Region2 r2;
-   r2.AddUnique(Rect2(Point2(1, 2), Point2(3, 4)));
-
-   RegionTools2 tools;
-   Region2f inset = tools.Inset(r2, 0.1f);
-   for (const auto &c : inset) {
-      LOG_() << c;
-   }
 }
 
 TEST(RegionTools3, ForEachPlane) {
@@ -232,7 +216,7 @@ TEST(RegionTools3, ForEachPlane) {
    RegionTools3 tools;
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
       for (const auto &c : r2) {
-         LOG_() << c << " " << pi.reduced_value;
+         LOG_(0) << c << " " << pi.reduced_value;
       }
    });
 }
@@ -244,50 +228,20 @@ TEST(RegionTools3, ForEachEdge) {
    RegionTools3 tools;
    int i = 0;
    tools.ForEachEdge(r3, [&](csg::EdgeInfo3 const& edge_info) {
-      LOG_() << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
-   });
-}
-
-TEST(RegionTools3, Inset) {
-   Region3 r3;
-   r3.AddUnique(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)));
-
-   RegionTools3 tools;
-   Region3f inset = tools.Inset(r3, 0.01f);
-   for (const auto &c : inset) {
-      LOG_() << c;
-   }
-   LOG_() << "---";
-   tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
-      Region2f inset = RegionTools2().Inset(r2, 0.1f);
-      for (const auto &c : inset) {
-         LOG_() << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
-      }
+      LOG_(0) << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
 }
 
 
-TEST(RegionTools3, InsetConcave) {
-   Region3 r3;
-   r3.Add(Cube3(Point3(-10, -2, -3), Point3(10, 2, 3)));
-   r3.Add(Cube3(Point3(-1, -20, -3), Point3(1, 20, 3)));
-   r3.Add(Cube3(Point3(-1, -2, -30), Point3(1, 2, 30)));
-
-   RegionTools3 tools;
-   Region3f inset = tools.Inset(r3, 1);
-   for (const auto &c : inset) {
-      LOG_() << c;
-   }
-   LOG_() << "---";
-   tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
-      Region2f inset = RegionTools2().Inset(r2, 1);
-      for (const auto &c : inset) {
-         LOG_() << RegionToolsTraits<float, 3>::ExpandCube(c, ToFloat(pi));
-      }
-   });
+void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+   return std::malloc(size);
 }
 
-#endif
+void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
+{
+   return std::malloc(size);
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

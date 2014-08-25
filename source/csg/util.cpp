@@ -265,7 +265,7 @@ EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const
       int coord = (plane == 0) ? 1 : 0;
       normal[plane] = normal_dir;
 
-      std::vector<Line1> lines = region.GetContents();
+      Region1::CubeVector lines = region.GetContents();
 
       // Join adjacent: xxx - why not just region.Optimize()?
       int i = 0, c = lines.size();

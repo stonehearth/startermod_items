@@ -93,10 +93,6 @@ $.widget( "stonehearth.stonehearthMenu", {
       this.hideMenu();
 
       this.menu.on( 'click', '.menuItem', function() {
-         if ($(this).hasClass('locked')) {
-            // xxx, hey doug, play a "denied" sound here. 
-            return;
-         }
 
          // close all open tooltips
          self.menu.find('.menuItem').tooltipster('hide');
@@ -188,18 +184,6 @@ $.widget( "stonehearth.stonehearthMenu", {
                      .append('<div class=hotkey>' + hotkey + '</div>')
                      .appendTo(el);
 
-         // if this node requires a profession to unlock, note that and style the node as locked
-         if (node.required_profession && !self._foundProfessions[node.required_profession]) {
-
-            /* can put back once the population service in start_menu.js is properly initialized
-            item.attr('required_profession', node.required_profession)
-               .addClass('locked')
-               .append('<div class="lock"></div>');
-
-            description = node.locked_description;
-            */
-         }
-
          self._buildTooltip(item);
 
          if (node.items) {
@@ -216,22 +200,6 @@ $.widget( "stonehearth.stonehearthMenu", {
       }
    },
 
-   unlock: function(profession) {
-      var self = this;
-      this._foundProfessions[profession] = true;
-
-      var unlockedButtons = this.element.find('[required_profession="' + profession + '"]');
-      unlockedButtons.each(function(i) {
-         var item = $(this);
-         item.removeClass('locked');
-         item.find('.lock').remove();
-         item.tooltipster('destroy');
-         self._buildTooltip(item);
-      });
-
-      
-   },
-
    _buildTooltip: function(item) {
       var self = this;
       var id = item.attr('id');
@@ -240,11 +208,6 @@ $.widget( "stonehearth.stonehearthMenu", {
       var name = node.name;
       var description = node.description;
       var hotkey = node.hotkey;
-
-      if (node.required_profession && !self._foundProfessions[node.required_profession]) {
-         name = node.locked_name;
-         description = node.locked_description;
-      }      
 
       item.tooltipster({
          content: $('<div class=title>' + name + '</div>' + 

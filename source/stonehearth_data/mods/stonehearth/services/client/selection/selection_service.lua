@@ -8,6 +8,8 @@ local SelectionService = class()
 -- services.
 SelectionService.FILTER_IGNORE = 'ignore'
 
+local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
+
 function SelectionService:initialize()
    self._all_tools = {}
    self._input_capture = stonehearth.input:capture_input()
@@ -48,6 +50,35 @@ end
 
 function SelectionService:select_location()
    return LocationSelector()
+end
+
+function SelectionService:is_selectable(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+
+   local render_entity = _radiant.client.get_render_entity(entity)
+   local selectable = render_entity and render_entity:has_query_flag(UNSELECTABLE_FLAG)
+   return selectable
+end
+
+function SelectionService:set_selectable(entity, selectable)
+   if not entity or not entity:is_valid() then
+      return
+   end
+
+   local render_entity = _radiant.client.get_render_entity(entity)
+
+   if render_entity then
+      if selectable then
+         render_entity:remove_query_flag(UNSELECTABLE_FLAG)
+      else
+         render_entity:add_query_flag(UNSELECTABLE_FLAG)
+         if entity == self._selected then
+            self:select_entity(nil)
+         end
+      end
+   end
 end
 
 function SelectionService:select_entity_tool()

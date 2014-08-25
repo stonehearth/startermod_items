@@ -10,7 +10,6 @@ local service_creation_order = {
    'camera',
    'renderer',
    'sky_renderer',
-   'unit_control',
    'selection',
    'hilight',
    'build_editor',

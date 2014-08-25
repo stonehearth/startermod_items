@@ -367,6 +367,14 @@ std::shared_ptr<std::istream> ResourceManager2::OpenResourceCanonical(std::strin
 std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, const char* search_ext) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
+   std::string key(path);
+   if (search_ext) {
+      key += std::string(":ext=") + std::string(search_ext);
+   }
+   auto k = _canonicalPaths.find(key);
+   if (k != _canonicalPaths.end()) {
+      return k->second;
+   }
 
    std::string path_exp = ExpandMacro(path, ".", true); // so we can lookup things like 'stonehearth:wooden_axe'
 
@@ -398,6 +406,8 @@ std::string ResourceManager2::ConvertToCanonicalPath(std::string const& path, co
       RES_LOG(3) << "overriding path " << path_exp << " with " << j->second;
       canonical_path = j->second;
    }
+   _canonicalPaths[key] = canonical_path;
+
    return canonical_path;
 }
 
@@ -599,29 +609,19 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
 std::string ResourceManager2::FindScript(std::string const& script) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-
-   std::string path = ExpandMacro(script, ".", true); // so we can lookup things like 'stonehearth:sleep_action'
-   if (!boost::ends_with(path, ".lua")) {
-      throw std::logic_error("expected script path to end with .lua");
+   std::string path;
+   try {
+      path = ConvertToCanonicalPath(script, ".lua");
+   } catch (std::exception const&) {
    }
-
-   std::string modname;
-   std::vector<std::string> parts;
-   ParsePath(path, modname, parts);
-
-   auto i = modules_.find(modname);
-   if (i == modules_.end()) {
+   try {
+      path = ConvertToCanonicalPath(script, ".luac");
+   } catch (std::exception const&) {
+   }
+   if (path.empty()) {
       throw InvalidFilePath(path);
    }
-
-   if (!i->second->CheckFilePath(parts)) {
-      // try the compiled version...
-      parts.back() += "c";
-      if (!i->second->CheckFilePath(parts)) {
-         throw InvalidFilePath(script);
-      }
-   }
-   return modname + "/" + boost::algorithm::join(parts, "/");
+   return path;
 }
 
 voxel::QubicleFile const* ResourceManager2::OpenQubicleFile(std::string const& uri)

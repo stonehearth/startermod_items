@@ -150,7 +150,7 @@ function GoblinBrigands:_squad_killed(e)
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
-   self._sv._suqad = nil
+   self._sv._squad = nil
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')

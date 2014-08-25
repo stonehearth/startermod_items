@@ -3,6 +3,7 @@ FIND_PACKAGE(Libjson REQUIRED)
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
 FIND_PACKAGE(ChromiumEmbedded REQUIRED)
+FIND_PACKAGE(Eastl REQUIRED)
 
 # FIND_PACKAGE(Bullet     REQUIRED NO_MODULE)
 
@@ -27,6 +28,7 @@ target_link_libraries(stonehearth
                              ${Cryptopp_LIBRARIES}
                              ${Libjson_LIBRARIES}
                              ${Libpng_LIBRARIES}
+                             ${Eastl_LIBRARIES}
                              comctl32
                              winmm
                              client
