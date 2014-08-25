@@ -21,6 +21,9 @@
             ]
          }
       },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(leather_vest_iconic.json)"
       },
