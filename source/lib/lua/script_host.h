@@ -30,8 +30,6 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void ClearMemoryProfile();
-   void ProfileMemory(bool value);
    void WriteMemoryProfile(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;

@@ -46,7 +46,6 @@ end
 function Thread.resume_thread(thread)
    local success, thread_status, result1 = thread:_do_resume()
    assert(success, 'thread coroutine failed to resume')
-
    local status = coroutine.status(thread._co)
    if status == 'dead' then
       Thread.terminate_thread(thread)
@@ -382,10 +381,6 @@ end
 function Thread:_do_resume()
    assert(self._co, 'thread has no coroutine in resume')
    assert(not self:is_running(), 'thread is not running in resume')
-   if coroutine.status(self._co) ~= 'suspended' then
-      local co = coroutine.running()
-      local thread = Thread.all_threads[co]
-   end
    assert(coroutine.status(self._co) == 'suspended', 'thread coroutine not suspened in _do_resume()')
 
    self._log:spam('coroutine.resume (status:%s).', coroutine.status(self._co))
