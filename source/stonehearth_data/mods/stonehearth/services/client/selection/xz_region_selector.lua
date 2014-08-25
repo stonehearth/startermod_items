@@ -15,7 +15,9 @@ function XZRegionSelector:__init()
    self._mode = 'selection'
    self._require_supported = false
    self._require_unblocked = false
-   self._find_support_filter_fn = nil
+   self._find_support_filter_fn = function(result)
+      return self:_default_find_support_filter(result)
+   end
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
@@ -266,6 +268,18 @@ function XZRegionSelector:_notify_progress(box)
    end   
 end
 
+function XZRegionSelector:_default_find_support_filter(result)
+   local entity = result.entity
+   if entity:get_component('terrain') then
+      return true
+   end
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      return true
+   end
+   return stonehearth.selection.FILTER_IGNORE
+end
+
 function XZRegionSelector:go()
    local box_color = self._box_color or DEFAULT_BOX_COLOR
 
@@ -273,12 +287,6 @@ function XZRegionSelector:go()
    -- will stick around until :destroy() is called on the selector!
    if self._cursor then
       self._cursor_obj = _radiant.client.set_cursor(self._cursor)
-   end
-
-   if not self._find_support_filter_fn then
-      self._find_support_filter_fn = function(result)
-            return result.entity:get_id() == 1
-         end
    end
 
    stonehearth.selection:register_tool(self, true)

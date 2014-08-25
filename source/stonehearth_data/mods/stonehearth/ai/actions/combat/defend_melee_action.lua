@@ -66,7 +66,7 @@ function DefendMelee:_destroy_timer()
 end
 
 function DefendMelee:_on_assault(assault_context)
-   if not self._entity:is_valid() then
+   if not self._entity or not self._entity:is_valid() then
       return
    end
    if assault_context.attack_method ~= 'melee' then
