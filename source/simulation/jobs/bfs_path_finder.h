@@ -45,6 +45,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       BfsPathFinderPtr SetSolvedCb(SolvedCb solved_cb);
       BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb exhausted_cb);
       BfsPathFinderPtr SetFilterFn(FilterFn filter_fn);
+      BfsPathFinderPtr SetIncludeChildEntities(bool include_child_entities);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
       BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);
@@ -71,9 +72,11 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
    private:
       static std::vector<std::weak_ptr<BfsPathFinder>> all_pathfinders_;
       om::EntityRef        entity_;
+      om::EntityRef        root_entity_;
       AStarPathFinderPtr   pathfinder_;
       ExhaustedCb          exhausted_cb_;
       FilterFn             filter_fn_;
+      bool                 include_child_entities_;
       int                  search_order_index_;
       float                explored_distance_;
       float                travel_distance_;
