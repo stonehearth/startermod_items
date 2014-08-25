@@ -16,6 +16,9 @@
 
       },
       "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
+      "stonehearth:material" : {
          "tags" : "wood melee_weapon crafted"
       }     
    }

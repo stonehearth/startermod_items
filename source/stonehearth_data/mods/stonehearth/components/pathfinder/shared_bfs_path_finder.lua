@@ -15,6 +15,8 @@ local SharedBfsPathFinder = class()
 --
 function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destroy_cb)
    NEXT_ID = NEXT_ID + 1
+   self._root_entity = radiant.entities.get_root_entity()
+
    self._entity = entity
    self._start_location = start_location
    self._filter_fn = filter_fn
@@ -88,7 +90,6 @@ function SharedBfsPathFinder:_start_pathfinder()
                         :set_filter_fn(function(target)
                               return self:_is_valid_destination(target)
                            end)
-                        :set_include_child_entities(false)
                         :start()
 end
 
@@ -129,6 +130,10 @@ function SharedBfsPathFinder:_is_valid_destination(target)
       return false
    end
 
+   if not self:_entity_visible_to_pathfinder(target) then
+      return false
+   end
+
    if not stonehearth.ai:can_acquire_ai_lease(target, self._entity) then
       self._log:debug('ignoring %s (cannot acquire ai lease)', target)
       return false
@@ -136,6 +141,35 @@ function SharedBfsPathFinder:_is_valid_destination(target)
 
    self._log:detail('entity %s is ok!', target)
    return true
+end
+
+function SharedBfsPathFinder:_entity_visible_to_pathfinder(target)
+   local child = target
+
+   while true do
+      local parent = self:_get_parent_entity(child)
+
+      if not parent then
+         return false
+      end
+
+      if parent == self._root_entity then
+         return true
+      end
+
+      local child_hidden = radiant.entities.get_entity_data(parent, 'stonehearth:hide_child_entities_from_pathfinder') or false
+      if child_hidden then
+         return false
+      end
+
+      child = parent
+   end
+end
+
+function SharedBfsPathFinder:_get_parent_entity(target)
+   local mob = target:get_component('mob')
+   local parent = mob and mob:get_parent()
+   return parent
 end
 
 function SharedBfsPathFinder:_consider_destination(target)

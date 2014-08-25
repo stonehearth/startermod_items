@@ -120,7 +120,6 @@ BfsPathFinder::BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string 
    running_(false),
    max_travel_distance_(static_cast<float>(max_range))
 {
-   root_entity_ = sim.GetRootEntity();
    pathfinder_ = AStarPathFinder::Create(sim, BUILD_STRING(name << "(slave pathfinder)"), entity);
    BFS_LOG(3) << "creating bfs pathfinder";
 }
@@ -198,19 +197,6 @@ BfsPathFinderPtr BfsPathFinder::SetFilterFn(FilterFn filter_fn)
    return shared_from_this();
 }
 
-/*
- * -- BfsPathFinder::SetIncludeChildEntities
- *
- * Determines whether the search will include entities that are children of
- * entities placed on the terrain.
- *
- */
-
-BfsPathFinderPtr BfsPathFinder::SetIncludeChildEntities(bool include_child_entities)
-{
-   include_child_entities_ = include_child_entities;
-   return shared_from_this();
-}
 
 /*
  * -- BfsPathFinder::IsIdle
@@ -355,32 +341,14 @@ void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
    visited_ids_.insert(id);
 
    if (filter_fn_(entity)) {
-      bool add_destination;
-
-      if (include_child_entities_) {
-         add_destination = true;
-      } else {
-         add_destination = false;
-         om::MobPtr mob = entity->GetComponent<om::Mob>();
-         if (mob) {
-            om::EntityPtr parent = mob->GetParent().lock();
-            om::EntityPtr root_entity = root_entity_.lock();
-            if (parent && parent == root_entity) {
-               add_destination = true;
-            }
-         }
-      }
-
-      if (add_destination) {
-         BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
-         pathfinder_->AddDestination(entity);
-      } else {
-         BFS_LOG(7) << *entity << " rejected because its parent was not the root entity.";
-      }
+      BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
+      pathfinder_->AddDestination(entity);
    } else {
       BFS_LOG(7) << *entity << " failed the filter!!";
    }
 }
+
+
 
 /*
  * -- BfsPathFinder::ConsiderAddedEntity
