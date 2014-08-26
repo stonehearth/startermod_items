@@ -21,8 +21,8 @@ void TraceObjectRouter::CheckDeferredTraces()
 {
    auto i = deferred_traces_.begin();
    while (i != deferred_traces_.end()) {
-      ReactorDeferredPtr d = i->second.lock();
-      if (!d) {
+      ReactorDeferredPtr d = i->second;
+      if (!d->IsPending() || d.use_count() == 1) {
          i = deferred_traces_.erase(i);
          continue;
       }
@@ -75,9 +75,8 @@ ReactorDeferredPtr TraceObjectRouter::GetTrace(Trace const& trace)
    if (i != traces_.end()) {
       ObjectTraceEntry &entry = i->second;
       dm::ObjectPtr obj = entry.obj.lock();
-      ReactorDeferredPtr deferred = entry.deferred.lock();
-      if (obj && deferred) {
-         return deferred;
+      if (obj) {
+         return entry.deferred;
       }
       traces_.erase(i);
    }

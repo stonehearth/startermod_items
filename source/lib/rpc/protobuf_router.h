@@ -26,7 +26,7 @@ private:
 
 private:
    SendRequestFn           send_request_fn_;
-   std::unordered_map<int, ReactorDeferredRef>  pending_calls_;
+   std::unordered_map<int, ReactorDeferredPtr>  pending_calls_;
 };
 
 END_RADIANT_RPC_NAMESPACE

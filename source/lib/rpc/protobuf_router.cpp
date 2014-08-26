@@ -71,21 +71,10 @@ ReactorDeferredPtr ProtobufRouter::SendNewRequest(proto::PostCommandRequest& r)
 ReactorDeferredPtr ProtobufRouter::RemoveTrace(UnTrace const& u)
 {
    RPC_LOG(5) << "protobuf router removing trace " << u;
-   for (const auto& entry : pending_calls_) {
-      auto obj = entry.second.lock();
-      if (obj) {
-         RPC_LOG(5) << "  " << entry.first << " -> " << *obj;
-      } else {
-         RPC_LOG(5) << "  " << entry.first << " -> " << "expired";
-      }
-   }
 
    auto i = pending_calls_.find(u.call_id);
    if (i != pending_calls_.end()) {
-      ReactorDeferredPtr d = i->second.lock();
-      if (d) {
-         d->ResolveWithMsg("trace removed");
-      }
+      i->second->ResolveWithMsg("trace removed");
       pending_calls_.erase(i);
    } else {
       RPC_LOG(5) << "could not find trace!  that's... odd";
@@ -113,14 +102,7 @@ void ProtobufRouter::OnPostCommandReply(proto::PostCommandReply const& reply)
    }
 
    JSONNode content;
-   ReactorDeferredPtr d = i->second.lock();
-
-   if (!d) {
-      RPC_LOG(3) << "deferred for pending call " << reply.call_id() << " is null.  removing.";
-      // xxx: if this was a trace, we need to remove the trace from the remote end!
-      pending_calls_.erase(i);
-      return;
-   }
+   ReactorDeferredPtr d = i->second;
 
    std::string json;
    std::string const& compressed_content = reply.content();
