@@ -14,6 +14,12 @@ function ResourceCallHandler:box_harvest_resources(session, response)
       :require_supported(true)
       :use_outline_marquee(Color4(0, 255, 0, 32), Color4(0, 255, 0, 255))
       :set_cursor('stonehearth:cursors:harvest')
+      :set_find_support_filter(function(result)
+            if result.entity:get_component('terrain') then
+               return true
+            end
+            return stonehearth.selection.FILTER_IGNORE
+         end)
       :done(function(selector, box)
             _radiant.call('stonehearth:server_box_harvest_resources', box)
             response:resolve(true)
