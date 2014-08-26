@@ -10,11 +10,13 @@
 #include "dm/boxed.h"
 #include "dm/map.h"
 #include "dm/store.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_OM_NAMESPACE
 
 class Entity : public dm::Record,
-               public std::enable_shared_from_this<Entity> {
+               public std::enable_shared_from_this<Entity>,
+               public core::ObjectCounter<Entity> {
 public:
    DEFINE_OM_OBJECT_TYPE(Entity, entity);
 

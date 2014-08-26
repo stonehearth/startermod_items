@@ -8,10 +8,11 @@
 #include "dm/set.h"
 #include "om/entity.h"
 #include "lib/json/node.h"
-
+#include "core/object_counter.h"
 BEGIN_RADIANT_OM_NAMESPACE
    
-class Component : public dm::Record
+class Component : public dm::Record,
+                  public core::ObjectCounter<Component>
 {
 public:
    Component() { }
