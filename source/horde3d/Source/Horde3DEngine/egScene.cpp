@@ -287,10 +287,12 @@ void SceneNode::markChildrenDirty()
    for (const auto& child : _children)
    {      
       if (child->_dirty != SceneNodeDirtyState::Dirty) {
-         SCENE_LOG(9) << "marking child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty ";
+         SCENE_LOG(9) << "marking  child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty ";
          child->_dirty = SceneNodeDirtyState::Dirty;
 		   child->_transformed = true;
 		   child->markChildrenDirty();
+      } else {
+         SCENE_LOG(9) << "skipping child node (handle:" << child->_handle << " name:" << child->_name << " dirty via markChildrenDirty (already dirty)";
       }
 	}
 }
