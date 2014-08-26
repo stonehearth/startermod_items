@@ -714,7 +714,7 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
       portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                        :start_project(portal_iconic_uri)
+                        :start_project(portal_iconic_uri, portal_uri)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
@@ -890,12 +890,11 @@ end
 function BuildService:instabuild_command(session, response, building)
    -- get everything built.
    self:_call_all_children(building, function(entity)
-         if entity:get_uri() ~= 'stonehearth:scaffolding' then
-            local fabricator = entity:get_component('stonehearth:fabricator')
-            if not fabricator then
-               fabricator = entity:get_component('stonehearth:fixture_fabricator')
-            end
+         local cp = entity:get_component('stonehearth:construction_progress')
+         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+            local fabricator = cp:get_fabricator_component()
             if fabricator then
+               radiant.log.write('', 0, '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
                fabricator:instabuild()
             end
          end

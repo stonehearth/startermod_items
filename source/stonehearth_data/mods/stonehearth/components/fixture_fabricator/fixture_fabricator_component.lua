@@ -1,3 +1,4 @@
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local priorities = require('constants').priorities.simple_labor
 
 local FixtureFabricator = class()
@@ -44,14 +45,32 @@ function FixtureFabricator:set_teardown()
 end
 
 function FixtureFabricator:instabuild()
+   local root_entity = radiant.entities.create_entity(self._sv.fixture_uri)
+   local wall = self._entity:get_component('mob'):get_parent()
+   local normal = wall:get_component('stonehearth:construction_data')
+                           :get_normal()  
+   local rotation = voxel_brush_util.normal_to_rotation(normal)
+   local location = self._entity:get_component('mob'):get_grid_location()
+
+   -- change ownership so we can interact with it
+   root_entity:add_component('unit_info')
+                  :set_player_id(radiant.entities.get_player_id(self._entity))
+                  :set_faction(radiant.entities.get_faction(self._entity))
+
+   radiant.entities.add_child(wall, root_entity, location)
+   root_entity:add_component('mob')
+                  :turn_to(rotation)
+
+   radiant.entities.destroy_entity(self._entity)
 end
 
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the wall
 --
-function FixtureFabricator:start_project(fixture_iconic_uri)
+function FixtureFabricator:start_project(fixture_iconic_uri, fixture_uri)
    assert(fixture_iconic_uri)
 
+   self._sv.fixture_uri = fixture_uri
    self._sv.fixture_iconic_uri = fixture_iconic_uri
    self.__saved_variables:mark_changed()
    
@@ -113,7 +132,7 @@ function FixtureFabricator:_place_fixture_in_wall()
          return
       end
 
-      -- we've got an item!  ask it to be placed where our fixture is      
+      -- we've got an item!  ask it to be placed where our fixture is
       local wall = self._entity:get_component('mob'):get_parent()
       local normal = wall:get_component('stonehearth:construction_data')
                               :get_normal()
