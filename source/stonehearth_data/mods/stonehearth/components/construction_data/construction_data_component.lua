@@ -36,7 +36,10 @@ function ConstructionDataComponent:initialize(entity, json)
    end
 end
 
-function ConstructionDataComponent:trace_data(reason)
+function ConstructionDataComponent:trace_data(reason, category)
+   if category then
+      return self.__saved_variables:trace_data(reason, category)
+   end
    return self.__saved_variables:trace_data(reason)
 end
 

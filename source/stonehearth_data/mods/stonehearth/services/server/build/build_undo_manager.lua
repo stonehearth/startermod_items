@@ -98,6 +98,7 @@ function BuildUndoManager:undo()
                -- later
                if radiant.util.is_a(o.obj, _radiant.om.DataStore) then
                   table.insert(datastores, o.obj)
+                  o.obj:mark_changed()
                end
             end
          end
