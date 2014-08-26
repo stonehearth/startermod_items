@@ -57,7 +57,16 @@ function Building:initialize(entity, json)
             end
          end)      
    end
+   self:_trace_entity_container()
    self._traces = {}
+end
+
+function Building:destroy()
+   if self._ec_trace then
+      self._ec_trace:destroy()
+      self._ec_trace = nil
+   end
+   radiant.entities.destroy_entity(self._sv.envelope_entity)
 end
 
 function Building:_get_structures(type)
@@ -186,6 +195,19 @@ function Building:_save_trace(entity, trace)
       self._traces[id] = {}
    end
    table.insert(self._traces[id], trace)
+end
+
+function Building:_trace_entity_container()
+   local ec = self._entity:add_component('entity_container')
+   self._ec_trace = ec:trace_children('auto-destroy building')
+                        :on_removed(function()
+                              if ec:is_valid() and ec:num_children() == 1 then
+                                 local teardown = self._entity:get_component('stonehearth:construction_progress'):get_teardown()
+                                 if teardown then
+                                    radiant.entities.destroy_entity(self._entity)
+                                 end
+                              end
+                           end)
 end
 
 function Building:_trace_entity(entity)
