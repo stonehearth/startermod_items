@@ -26,7 +26,7 @@ function EmbarkTest:__init()
    local critter1 = self:place_item('stonehearth:red_fox', 2, 2)
 
 
-   --local worker = self:place_citizen(-5, -5, 'stonehearth:professions:footman', 'stonehearth:wooden_sword')
+   --local worker = self:place_citizen(-5, -5, 'stonehearth:professions:footman', 'stonehearth:weapons:wooden_sword')
    local worker = self:place_citizen(-5, -5)
    radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker, description = 'person_embarks'})
@@ -58,7 +58,7 @@ function EmbarkTest:__init()
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:wooden_sword_talisman'))
+   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:weapons:wooden_sword_talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw_talisman'))
 
    --Place a banner
