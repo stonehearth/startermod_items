@@ -194,19 +194,14 @@ function XZRegionSelector:_compute_p1_loop(p1, i)
 end
 
 -- given a candidate p1, compute the p1 which would result in a valid xz region.
--- tries to make the biggest rect possible by iterating over the 'x' and 'z'
--- major directions independantly, and taking whichever ended up bigger.
 --
 function XZRegionSelector:_compute_p1(p1)
-   local p1_x = self:_compute_p1_loop(p1, 'x')
-   local p1_z = self:_compute_p1_loop(p1, 'z')
-   
-   local box_x = self:_create_cube(self._p0, p1_x)
-   local box_z = self:_create_cube(self._p0, p1_z)
-   if box_x:get_area() > box_z:get_area() then
-      return p1_x
-   end
-   return p1_z
+   local lx = math.abs(p1.x - self._p0.x)
+   local lz = math.abs(p1.z - self._p0.z)
+
+   local coord = lx > lz and 'x' or 'z'
+
+   return self:_compute_p1_loop(p1, coord)
 end
 
 function XZRegionSelector:_on_mouse_event(event)
@@ -271,8 +266,8 @@ end
 function XZRegionSelector:_default_find_support_filter(result)
    local entity = result.entity
 
-   -- the terrain is always good.
-   if entity:get_component('terrain') then
+   -- fast check for 'is terrain'
+   if entity:get_id() == 1 then
       return true
    end
 

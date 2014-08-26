@@ -1098,6 +1098,8 @@ void Client::ProcessReadQueue()
 }
 
 void Client::OnInput(Input const& input) {
+   perfmon::SwitchToCounter("dispatching input");
+
    // If we're loading, we don't want the user to be able to click anything.
    if (loading_) {
       return;
