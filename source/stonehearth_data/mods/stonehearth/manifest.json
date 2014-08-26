@@ -1152,6 +1152,7 @@
          "file(ui/shell/settings/settings.js)",
          "file(ui/debug/debug.js)",
          "file(ui/debug/console/console.js)",
+         "file(ui/debug/console/console_commands.js)",
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/debug/error_dialog_js/error_dialog_js.js)",
