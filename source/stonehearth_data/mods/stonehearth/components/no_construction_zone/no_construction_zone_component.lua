@@ -38,6 +38,15 @@ function NoConstructionZoneComponent:initialize(entity, json)
    end
 end
 
+function NoConstructionZoneComponent:destroy()
+   self._dirty = false
+   for _, traces in pairs(self._traces) do
+      for _, trace in pairs(traces) do
+         trace:destroy()
+      end
+   end
+end
+
 function NoConstructionZoneComponent:set_building_entity(entity)
    self._sv.building_entity = entity
    self.__saved_variables:mark_changed()
@@ -80,6 +89,14 @@ function NoConstructionZoneComponent:add_structure(structure)
    end
 end
 
+function NoConstructionZoneComponent:remove_structure(id)
+   if self._sv.structures[id] then
+      self._sv.structures[id] = nil
+      self.__saved_variables:mark_changed()
+      self:_mark_dirty()
+   end
+end
+
 function NoConstructionZoneComponent:_trace_structure(id, structure)
    assert(not self._traces[id])
 
@@ -111,8 +128,10 @@ function NoConstructionZoneComponent:_mark_dirty()
    if not self._dirty then
       self._dirty = true
       radiant.events.listen_once(radiant, 'radiant:gameloop:end', function()
-            self:_update_no_construction_shape()
-            self._dirty = false
+            if self._dirty then
+               self:_update_no_construction_shape()
+               self._dirty = false
+            end
          end)
    end
 end
