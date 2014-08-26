@@ -270,13 +270,21 @@ end
 
 function XZRegionSelector:_default_find_support_filter(result)
    local entity = result.entity
+
+   -- the terrain is always good.
    if entity:get_component('terrain') then
       return true
    end
-   local rcs = entity:get_component('region_collision_shape')
-   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-      return true
+
+   -- solid regions are good if we're pointing at the top face
+   if result.normal:to_int().y == 1 then
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return true
+      end
    end
+
+   -- otherwise, keep looking!
    return stonehearth.selection.FILTER_IGNORE
 end
 
