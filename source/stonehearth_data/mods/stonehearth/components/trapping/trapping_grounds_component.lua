@@ -203,9 +203,13 @@ function TrappingGroundsComponent:_pick_next_trap_location()
 end
 
 function TrappingGroundsComponent:_is_valid_trap_location(location)
-   -- this iteration can be avoided by using a perturbation grid
-   for id, trap in pairs(self._sv.traps) do
-      if radiant.entities.distance_between(trap, location) < self.min_distance_between_traps then
+   local radius = math.max(self.min_distance_between_traps-1, 0) -- -1 because min_distance is valid
+   local cube = getXZCubeAroundPoint(location, radius)
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+
+   for id, entity in pairs(entities) do
+      if entity:get_component('stonehearth:bait_trap') then
+         -- it's a trap! ;)
          return false
       end
    end
@@ -216,7 +220,13 @@ end
 
 function TrappingGroundsComponent:_is_empty_location(location, radius)
    local cube = getXZCubeAroundPoint(location, radius)
-   local entities = radiant.terrain.get_entities_in_cube(cube)
+   local entities = radiant.terrain.get_entities_in_cube(cube,
+      function (entity)
+         if has_ai(entity) then
+            return false
+         end
+      end
+   )
 
    -- remove the trapping grounds from the set
    entities[self._entity:get_id()] = nil
