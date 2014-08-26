@@ -110,7 +110,7 @@ function Fabricator:_initialize_existing_project(project)
    end)
 end
 
-function FixtureFabricator:instabuild()
+function Fabricator:instabuild()
    self._project_dst:get_region():modify(function(cursor)
          cursor:copy_region(self._blueprint_dst:get_region():get())
       end)

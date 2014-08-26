@@ -54,25 +54,25 @@ function BuildService:_call_all_children(entity, cb)
       end
       for id, child in pairs(ec_children) do
          if child and child:is_valid() then
-            _call_all_children(child)
+            self:_call_all_children(child, cb)
          end
       end
    end
    cb(entity)
 end
 
-function BuildService:set_active(building, enabled)
-   self:_call_all_children(building, function(entity)
-         local c = blueprint:get_component('stonehearth:construction_progress')
+function BuildService:set_active(entity, enabled)
+   self:_call_all_children(entity, function(entity)
+         local c = entity:get_component('stonehearth:construction_progress')
          if c then
             c:set_active(enabled)
          end
       end)
 end
 
-function BuildService:set_teardown(blueprint, enabled)
-   self:_call_all_children(building, function(entity)
-         local c = blueprint:get_component('stonehearth:construction_progress')
+function BuildService:set_teardown(entity, enabled)
+   self:_call_all_children(entity, function(entity)
+         local c = entity:get_component('stonehearth:construction_progress')
          if c then
             c:set_teardown(enabled)
          end
