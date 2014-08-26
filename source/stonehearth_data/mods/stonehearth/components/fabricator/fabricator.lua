@@ -110,6 +110,12 @@ function Fabricator:_initialize_existing_project(project)
    end)
 end
 
+function FixtureFabricator:instabuild()
+   self._project_dst:get_region():modify(function(cursor)
+         cursor:copy_region(self._blueprint_dst:get_region():get())
+      end)
+end
+
 function Fabricator:_create_new_project()
    -- initialize the fabricator entity.  we'll manually update the
    -- adjacent region of the destination so we can build the project

@@ -43,44 +43,40 @@ function BuildService:initialize()
    end
 end
 
-function BuildService:set_active(building, enabled)
-   local function _set_active_recursive(blueprint, enabled)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         for id, child in ec:each_child() do
-            _set_active_recursive(child, enabled)
+function BuildService:_call_all_children(entity, cb)
+   local ec = entity:get_component('entity_container')  
+   if ec then
+      -- Copy the blueprint's (container's) children into a local var first, because
+      -- _set_teardown_recursive could cause the entity container to be invalidated.
+      local ec_children = {}
+      for id, child in ec:each_child() do
+         ec_children[id] = child
+      end
+      for id, child in pairs(ec_children) do
+         if child and child:is_valid() then
+            _call_all_children(child)
          end
       end
-      local c = blueprint:get_component('stonehearth:construction_progress')
-      if c then
-         c:set_active(enabled)
-      end
-   end  
-   _set_active_recursive(building, enabled)
+   end
+   cb(entity)
+end
+
+function BuildService:set_active(building, enabled)
+   self:_call_all_children(building, function(entity)
+         local c = blueprint:get_component('stonehearth:construction_progress')
+         if c then
+            c:set_active(enabled)
+         end
+      end)
 end
 
 function BuildService:set_teardown(blueprint, enabled)
-   local function _set_teardown_recursive(blueprint)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         -- Copy the blueprint's (container's) children into a local var first, because
-         -- _set_teardown_recursive could cause the entity container to be invalidated.
-         local ec_children = {}
-         for id, child in ec:each_child() do
-            ec_children[id] = child
+   self:_call_all_children(building, function(entity)
+         local c = blueprint:get_component('stonehearth:construction_progress')
+         if c then
+            c:set_teardown(enabled)
          end
-         for id, child in pairs(ec_children) do
-            if child and child:is_valid() then
-               _set_teardown_recursive(child, enabled)
-            end
-         end
-      end
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if cp then
-         cp:set_teardown(enabled)
-      end
-   end  
-   _set_teardown_recursive(blueprint, enabled)
+      end)
 end
 
 function BuildService:undo_command(session, response)
@@ -872,6 +868,20 @@ end
 
 function BuildService:request_ladder_to(climb_to, normal)
    return self._sv.scaffolding_manager:request_ladder_to(climb_to, normal)
+end
+
+function BuildService:instabuild_command(session, response, building)
+   self:_call_all_children(building, function(entity)
+         local fabricator = child:get_component('stonehearth:fabricator')
+         if not fabricator then
+            fabricator = child:get_component('stonehearth:fixture_fabricator')
+         end
+         if fabricator then
+            fabricator:instabuild()
+         end
+      end)
+
+   return true
 end
 
 return BuildService
