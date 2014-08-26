@@ -1,24 +1,24 @@
-local GoblinBrigands = class()
+local GoblinRaidingCamp = class()
 local EscortSquad = require 'scenarios.dynamic.goblin_brigands.escort_squad'
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
-function GoblinBrigands:can_spawn()
+function GoblinRaidingCamp:can_spawn()
    return false --true
 end
 
 --[[ 
 Goblin Brigands
 ]]
-function GoblinBrigands:__init(saved_variables)
+function GoblinRaidingCamp:__init(saved_variables)
 end
 
-function GoblinBrigands:initialize()
+function GoblinRaidingCamp:initialize()
    --ID of the player who the goblin is attacking, not the player ID of the DM
    self._sv.player_id = 'player_1'
 end
 
-function GoblinBrigands:restore()
+function GoblinRaidingCamp:restore()
    if self._sv.__scenario:is_running() then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             if self._sv._squad then
@@ -38,7 +38,7 @@ function GoblinBrigands:restore()
    end
 end
 
-function GoblinBrigands:start()
+function GoblinRaidingCamp:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
@@ -46,6 +46,15 @@ function GoblinBrigands:start()
       faction = 'goblin',
       kingdom = 'stonehearth:kingdoms:goblin'
    }
+   
+   -- the camp's stockpile
+   --self._sv._stockpile = self._inventory:create_stockpile({0,0,0}, {x=2, y=1})
+
+   --self._sv.services:place_entity('stonehearth:monsters:goblins:goblin_tent', 0, 0, true)
+   
+   return
+
+   --[[
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
       self._inventory = stonehearth.inventory:add_inventory(session)
@@ -56,18 +65,19 @@ function GoblinBrigands:start()
       self._population = stonehearth.population:get_population(session.player_id)
    end
    -- End hack
+   ]]
 
-   self:_schedule_spawn(1)
+   
 end
 
-function GoblinBrigands:_attach_listeners()
+function GoblinRaidingCamp:_attach_listeners()
    radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
    radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
    radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
-function GoblinBrigands:_add_restock_task(e)
+function GoblinRaidingCamp:_add_restock_task(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    e:get_component('stonehearth:ai')
       :get_task_group('stonehearth:work')
@@ -78,9 +88,11 @@ function GoblinBrigands:_add_restock_task(e)
       :start()
 
    local town = stonehearth.town:get_town(self._sv.player_id)
+   local banner = town:get_banner()
    e:get_component('stonehearth:ai')
       :get_task_group('stonehearth:work')
-      :create_task('stonehearth:goto_town_center', { town = town })
+      :create_task('stonehearth:goto_entity', { entity = banner })
+      :set_source(self._sv._stockpile)
       :set_name('introduce self task')
       :set_priority(stonehearth.constants.priorities.goblins.RUN_TOWARDS_SETTLEMENT)
       :once()
@@ -89,14 +101,14 @@ function GoblinBrigands:_add_restock_task(e)
    self.__saved_variables:mark_changed()
 end
 
-function GoblinBrigands:_schedule_spawn(t)
+function GoblinRaidingCamp:_schedule_spawn(t)
    stonehearth.calendar:set_timer(t, function()
          self:_on_spawn()
       end)
 end
 
 --Determine the # of brigands based on the wealth of the town
-function GoblinBrigands:_on_spawn()
+function GoblinRaidingCamp:_on_spawn()
    if not self._sv._squad then
       self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
       self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
@@ -105,8 +117,8 @@ function GoblinBrigands:_on_spawn()
       --If he's not being attacked, he will go collect stuff
       stonehearth.combat:set_stance(self._sv._thief, 'defensive')
 
-      --When he's attacked, he will use this weapon
-      local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
+      --When he's attacked, he will use this wooden sword
+      local weapon = radiant.entities.create_entity('stonehearth:weapons:wooden_sword')
       radiant.entities.equip_item(self._sv._thief, weapon)
 
       --Pick how many escorts
@@ -120,7 +132,7 @@ function GoblinBrigands:_on_spawn()
       end
 
       for i = 1, num_escorts do 
-         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
+         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:wooden_sword')
       end
    end
 
@@ -145,18 +157,18 @@ function GoblinBrigands:_on_spawn()
    self.__saved_variables:mark_changed()
 end
 
-function GoblinBrigands:_squad_killed(e)
+function GoblinRaidingCamp:_squad_killed(e)
    radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
-   self._sv._squad = nil
+   self._sv._suqad = nil
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
-function GoblinBrigands:_thief_killed(e)
+function GoblinRaidingCamp:_thief_killed(e)
    radiant.events.unlisten(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
    radiant.events.unlisten(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
 
@@ -171,9 +183,9 @@ function GoblinBrigands:_thief_killed(e)
    self.__saved_variables:mark_changed()
 end
 
-function GoblinBrigands:_theft_event(e)
+function GoblinRaidingCamp:_theft_event(e)
    if not self._sv.bulletin_fired then
-      local message_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+      local message_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_info
       self._sv.title = message_data.title
       local message_index = rng:get_int(1, #message_data.quote)
       self._sv.message = message_data.quote[message_index] .. ' --' .. radiant.entities.get_name(self._sv._thief)
@@ -196,7 +208,7 @@ function GoblinBrigands:_theft_event(e)
 end
 
 
-function GoblinBrigands:_item_added(e)
+function GoblinRaidingCamp:_item_added(e)
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    if self._sv._stockpile:is_valid() and s_comp:is_full() and self._sv._thief:is_valid() then
       self._sv._thief:get_component('stonehearth:ai')
@@ -212,4 +224,4 @@ function GoblinBrigands:_item_added(e)
    end
 end
 
-return GoblinBrigands
+return GoblinRaidingCamp
