@@ -98,31 +98,31 @@ function NoConstructionZoneComponent:remove_structure(id)
 end
 
 function NoConstructionZoneComponent:_trace_structure(id, structure)
-   assert(not self._traces[id])
+   if not self._traces[id] then
+      local trace
+      local traces = {}
+      self._traces[id] = traces
 
-   local trace
-   local traces = {}
-   self._traces[id] = traces
+      trace = structure:add_component('stonehearth:construction_data'):trace_data('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+      table.insert(traces, trace)
 
-   trace = structure:add_component('stonehearth:construction_data'):trace_data('create no-construction zone', TraceCategories.SYNC_TRACE)
-                                       :on_changed(function()
-                                             self:_mark_dirty()
-                                          end)
-   table.insert(traces, trace)
+      trace = structure:add_component('mob'):trace('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+      table.insert(traces, trace)
 
-   trace = structure:add_component('mob'):trace('create no-construction zone', TraceCategories.SYNC_TRACE)
-                                       :on_changed(function()
-                                             self:_mark_dirty()
-                                          end)
-   table.insert(traces, trace)
-
-   local destination = structure:get_component('destination')
-   trace = destination:trace_region('create no-construction zone', TraceCategories.SYNC_TRACE)
-                                       :on_changed(function()
-                                             self:_mark_dirty()
-                                          end)
-                                       
-   table.insert(traces, trace)
+      local destination = structure:get_component('destination')
+      trace = destination:trace_region('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+                                          
+      table.insert(traces, trace)
+   end
 end
 
 function NoConstructionZoneComponent:_mark_dirty()
