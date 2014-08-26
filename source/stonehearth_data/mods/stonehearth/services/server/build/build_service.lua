@@ -871,13 +871,16 @@ function BuildService:request_ladder_to(climb_to, normal)
 end
 
 function BuildService:instabuild_command(session, response, building)
+   -- get everything built.
    self:_call_all_children(building, function(entity)
-         local fabricator = child:get_component('stonehearth:fabricator')
-         if not fabricator then
-            fabricator = child:get_component('stonehearth:fixture_fabricator')
-         end
-         if fabricator then
-            fabricator:instabuild()
+         if entity:get_uri() ~= 'stonehearth:scaffolding' then
+            local fabricator = entity:get_component('stonehearth:fabricator')
+            if not fabricator then
+               fabricator = entity:get_component('stonehearth:fixture_fabricator')
+            end
+            if fabricator then
+               fabricator:instabuild()
+            end
          end
       end)
 
