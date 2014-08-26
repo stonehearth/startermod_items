@@ -26,15 +26,16 @@ App.StonehearthConsoleView = App.View.extend({
       this.$('#input').keypress(function(e) {        
          if (e.which == 13) { // return
             var command = $(this).val();
-            
-            //xxx, call something on the server. In the done handler, call _appendToConsole?
-            self._appendToConsole(command)
-            
             $(this).val('');
+
+            radiant.console.run(command);
+            //xxx, call something on the server. In the done handler, call _appendToConsole?
+            //self._appendToConsole(command)            
          }
       });
 
       this.$().hide();
+      radiant.console.setContainer(self.$('.output'));
    },
 
    focus: function() {
