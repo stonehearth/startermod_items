@@ -16,28 +16,46 @@ function PanicWatcher:start_thinking(ai, entity, args)
    self._entity = entity
    self._ai = ai
 
-   if not self:_check_panicking() then
-      self._listening = true
-      radiant.events.listen(self._entity, 'stonehearth:combat:panic_changed', self, self._check_panicking)
+   local threat = self:_get_panicking_from()
+
+   if threat then
+      self:_set_panicking(threat)
+   else
+      self._panicking_listener = radiant.events.listen(self._entity, 'stonehearth:combat:panic_changed', self, self._on_check_panicking)
    end
 end
 
 function PanicWatcher:stop_thinking(ai, entity, args)
-   if self._listening then
-      radiant.events.unlisten(self._entity, 'stonehearth:combat:panic_changed', self, self._check_panicking)
-      self._listening = false
+   if self._panicking_listener then
+      self._panicking_listener:destroy()
+      self._panicking_listener = nil
    end
 end
 
-function PanicWatcher:_check_panicking()
+function PanicWatcher:_get_panicking_from()
    local threat = stonehearth.combat:get_panicking_from(self._entity)
 
    if threat and threat:is_valid() then
-      self._ai:set_think_output({ threat = threat })
-      self._listening = false
-      return radiant.events.UNLISTEN
+      return threat
    end
    return nil
+end
+
+function PanicWatcher:_on_check_panicking()
+   local threat = self:_get_panicking_from()
+
+   if threat then
+      self:_set_panicking(threat)
+   end
+end
+
+function PanicWatcher:_set_panicking(threat)
+   self._ai:set_think_output({ threat = threat })
+
+   if self._panicking_listener then
+      self._panicking_listener:destroy()
+      self._panicking_listener = nil
+   end
 end
 
 return PanicWatcher

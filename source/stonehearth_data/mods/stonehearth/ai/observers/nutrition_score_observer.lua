@@ -29,16 +29,21 @@ function NutritionScoreObserver:initialize(entity)
       self._sv._last_foods = {}
    end
 
-   radiant.events.listen(entity, 'stonehearth:eat_food', self, self._on_eat)
-   radiant.events.listen(calendar, 'stonehearth:midnight', self, self._on_midnight)
-   radiant.events.listen(entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
+   self._eat_listener = radiant.events.listen(entity, 'stonehearth:eat_food', self, self._on_eat)
+   self._midnight_listener = radiant.events.listen(calendar, 'stonehearth:midnight', self, self._on_midnight)
+   self._malnoursh_listener = radiant.events.listen(entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
 end
 
 --Stop listening to all this stuff
 function NutritionScoreObserver:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:eat_food', self, self._on_eat)
-   radiant.events.unlisten(calendar, 'stonehearth:midnight', self, self._on_midnight)
-   radiant.events.unlisten(self._entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
+   self._eat_listener:destroy()
+   self._eat_listener = nil
+
+   self._midnight_listener:destroy()
+   self._midnight_listener = nil
+
+   self._malnoursh_listener:destroy()
+   self._malnoursh_listener = nil
 end
 
 --Once per day, if you lose health due to malnourishment, take a hit to the nutrition score

@@ -80,7 +80,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._ai_component = entity:get_component('stonehearth:ai')
 
    if activity_name == 'stonehearth:top' then
-      radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+      self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
       self._position_trace = radiant.entities.trace_location(self._entity, 'find path to entity')
                                                 :on_changed(function()
                                                    self:_on_position_changed()
@@ -398,7 +398,10 @@ function ExecutionFrame:_do_destroy()
    self._entity:get_component('stonehearth:ai')
                   :_unregister_execution_frame(self._activity_name, self)
 
-   radiant.events.unlisten(self._entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
+   if self._carry_listener then
+      self._carry_listener:destroy()
+      self._carry_listener = nil
+   end
 end
 
 function ExecutionFrame:start_thinking(args, entity_state)

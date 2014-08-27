@@ -14,18 +14,22 @@ function ConstructionRenderTracker:__init(entity)
    self._build_mode_visible = false
    self._ui_mode_visible = true
    
-   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
-   radiant.events.listen(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
+   self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   self._vision_mode_listener = radiant.events.listen(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
    self:_on_building_visions_mode_changed()
 end
 
 -- destroy the construction render tracker.  
 function ConstructionRenderTracker:destroy()
-   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
-   radiant.events.unlisten(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
-   if self._listening_to_camera then
-      radiant.events.unlisten(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
-      self._listening_to_camera = false
+   self._mode_listener:destroy()
+   self._mode_listener = nil
+
+   self._vision_mode_listener:destroy()
+   self._vision_mode_listener = nil
+
+   if self._camera_listener then
+      self._camera_listener:destroy()
+      self._camera_listener = nil
    end
 end
 
@@ -186,15 +190,14 @@ function ConstructionRenderTracker:_on_building_visions_mode_changed()
          -- if we're going into xray mode, start listening to camera changes so we can update
          -- the render state appropriately.  if not, remove the listener and double check our
          -- visible state.
-         if not self._listening_to_camera then
-            radiant.events.listen(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
-            self._listening_to_camera = true
+         if not self._camera_listener then
+            self._camera_listener = radiant.events.listen(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
          end
          self:_update_camera()
       else
-         if self._listening_to_camera then
-            radiant.events.unlisten(stonehearth.camera, 'stonehearth:camera:update', self, self._update_camera)
-            self._listening_to_camera = false
+         if self._camera_listener then
+            self._camera_listener:destroy()
+            self._camera_listener = nil
          end
          self._build_mode_visible = true
       end

@@ -77,8 +77,8 @@ end
 
 function FirepitComponent:_startup()
    log:debug('listining for calendar sunset/sunrise events')
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._start_or_stop_firepit)
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._start_or_stop_firepit)
+   self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._start_or_stop_firepit)
+   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._start_or_stop_firepit)
    self:_start_or_stop_firepit()
 end
 
@@ -86,8 +86,12 @@ end
 -- Call when firepit is moving or being destroyed.
 function FirepitComponent:_shutdown()
    log:debug('unlistining for calendar sunset/sunrise events')
-   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunrise', self, self._start_or_stop_firepit)
-   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunset', self, self._start_or_stop_firepit)
+
+   self._sunrise_listener:destroy()
+   self._sunrise_listener = nil
+
+   self._sunset_listener:destroy()
+   self._sunset_listener = nil
    self:_extinguish()
 
    if self._sv.seats then

@@ -32,7 +32,7 @@ function HitStun:_register_events(ai, entity)
       self._ai = ai
       self._entity = entity
       self._log:debug('listening for hit_stun messages')
-      radiant.events.listen(entity, 'stonehearth:combat:hit_stun', self, self.on_hit_stun)
+      self._hit_stun_listener = radiant.events.listen(entity, 'stonehearth:combat:hit_stun', self, self.on_hit_stun)
       self._registered = true
    end
 end
@@ -40,7 +40,8 @@ end
 function HitStun:_unregister_events()
    if self._registered then
       self._log:debug('unlistening for hit_stun messages')
-      radiant.events.unlisten(self._entity, 'stonehearth:combat:hit_stun', self, self.on_hit_stun)
+      self._hit_stun_listener:destroy()
+      self._hit_stun_listener = nil
       self._registered = false
    end
 end

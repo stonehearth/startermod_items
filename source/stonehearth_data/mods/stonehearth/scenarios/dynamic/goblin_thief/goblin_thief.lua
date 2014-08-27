@@ -57,9 +57,9 @@ function GoblinThief:start()
 end
 
 function GoblinThief:_attach_listeners()
-   radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.listen(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
-   radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   radiant.events.listen_once(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
+   self._carrying_listener = radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 --The goblin thief heads towards the town, and if he sees stuff, he will grab it
@@ -126,9 +126,11 @@ function GoblinThief:_create_goblin_thief()
 end
 
 function GoblinThief:_goblin_killed(e)
-   radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
-   radiant.events.unlisten(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._item_added_listener:destroy()
+   self._item_added_listener = nil
+
+   self._carrying_listener:destroy()
+   self._carrying_listener = nil
 
    radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 

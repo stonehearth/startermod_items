@@ -23,8 +23,8 @@ function FindEquipmentUpgrade:start_thinking(ai, entity, args)
          if self._ready then
             return
          end
-      end   
-      radiant.events.listen(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
+      end
+      self._added_listener = radiant.events.listen(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
    end
 end
 
@@ -67,7 +67,10 @@ function FindEquipmentUpgrade:stop_thinking(ai, entity)
    self._ai = nil
    self._ready = false
    if self._inventory then
-      radiant.events.unlisten(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
+      if self._added_listener then
+         self._added_listener:destroy()
+         self._added_listener = nil
+      end
    end
 end
 

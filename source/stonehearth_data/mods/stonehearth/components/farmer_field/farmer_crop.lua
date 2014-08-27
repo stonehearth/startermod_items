@@ -51,12 +51,13 @@ function FarmerCrop:restore()
    d = self._sv.harvestable_region_entity:get_component('destination')
    d:set_reserved(_radiant.sim.alloc_region())
 
+   self._plot_listeners = {}
    -- We have to re-listen to each dirt plot on load, to figure out when harvesting
    -- has been completed.
    for cube in self:get_harvestable_region():get():each_cube() do
       for pt in cube:each_point() do
          local plot = self:get_field_spacer(pt + self._sv.location)
-         radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
+         table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
       end
    end
 
@@ -66,16 +67,10 @@ end
 
 
 function FarmerCrop:destroy()
-   if self:get_harvestable_region() then
-      for cube in self:get_harvestable_region():get():each_cube() do
-         for pt in cube:each_point() do
-            local plot = self:get_field_spacer(pt + self._sv.location)
-            if plot then
-               radiant.events.unlisten(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
-            end
-         end
-      end
+   for _, listener in ipairs(self._plot_listeners) do
+      listener:destroy()
    end
+   self._plot_listeners = nil
 
    if self._till_trace then
       self._till_trace:destroy()
@@ -173,7 +168,7 @@ function FarmerCrop:notify_planting_done(location)
 
    dirt_plot_comp:plant_crop(self._sv.crop_type)
 
-   radiant.events.listen(dirt_plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
+   radiant.events.listen_once(dirt_plot, 'stonehearth:crop_removed', self, self.notify_harvest_done)
 
    local p = Point3(x_offset - 1, 0, z_offset - 1)
    self:get_plantable_region():modify(function(cursor)
@@ -199,8 +194,6 @@ function FarmerCrop:notify_harvest_done(e)
       cursor:subtract_point(p)
    end)
    self.__saved_variables:mark_changed()
-
-   return radiant.events.UNLISTEN
 end
 
 return FarmerCrop

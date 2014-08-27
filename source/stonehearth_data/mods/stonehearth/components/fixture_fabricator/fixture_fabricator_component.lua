@@ -12,7 +12,7 @@ function FixtureFabricator:initialize(entity, json)
    self._entity = entity
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.fixture_iconic_uri then
-            radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+            self._deps_listener = radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
             self:_start_project()
          end
       end)
@@ -22,7 +22,9 @@ end
 function FixtureFabricator:destroy()
    self:_destroy_item_tracker_listener()
    self:_destroy_placeable_item_trace()
-   radiant.events.unlisten(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+
+   self._deps_listener:destroy()
+   self._deps_listener = nil
 end
 
 -- turn the fixture fabricator off or on.  we'll only try to put the

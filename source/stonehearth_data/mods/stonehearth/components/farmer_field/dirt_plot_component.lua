@@ -170,8 +170,8 @@ function DirtPlotComponent:_listen_to_crop_events()
 
    --listen for if the planted crop gets destroyed for any reason
    if not self._listening_to_crop_events and contents and contents:is_valid() then
-      radiant.events.listen(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
-      radiant.events.listen(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+      self._removed_listener = radiant.events.listen(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
+      self._harvestable_listener = radiant.events.listen(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
       self._listening_to_crop_events = true
    end
 end
@@ -180,9 +180,11 @@ function DirtPlotComponent:_unlisten_from_crop_events()
    local contents = self._sv.contents
 
    if self._listening_to_crop_events and contents and contents:is_valid() then
-      -- contents might already be destroyed, in which case the event is orphaned until radiant.events cleans up
-      radiant.events.unlisten(contents, 'radiant:entity:pre_destroy', self, self._on_crop_removed)
-      radiant.events.unlisten(contents, 'stonehearth:crop_harvestable', self, self._on_crop_harvestable)
+      self._removed_listener:destroy()
+      self._removed_listener = nil
+
+      self._harvestable_listener:destroy()
+      self._harvestable_listener = nil
       self._listening_to_crop_events = false
    end
 end

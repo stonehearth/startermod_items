@@ -6,11 +6,12 @@ function CombatPanicObserver:initialize(entity)
    self._entity = entity
    self._panic_threshold = self:_get_panic_threshold()
 
-   radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
+   self._battery_listener = radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
 function CombatPanicObserver:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
+   self._battery_listener:destroy()
+   self._battery_listener = nil
 end
 
 -- just using health right now, but this could depend on other attributes as well

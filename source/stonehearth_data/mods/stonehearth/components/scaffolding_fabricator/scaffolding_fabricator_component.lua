@@ -25,8 +25,12 @@ function ScaffoldingFabricator:initialize(entity, json)
 end
 
 function ScaffoldingFabricator:destroy()
-   radiant.events.unlisten(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
-   radiant.events.unlisten(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)   
+   self._teardown_listener:destroy()
+   self._teardown_listener = nil
+
+   self._finished_listener:destroy()
+   self._finished_listener = nil
+
    if self._project_trace then
       self._project_trace:destroy()
       self._project_trace = nil
@@ -67,8 +71,8 @@ function ScaffoldingFabricator:_start()
    self._blueprint_dst = self._sv.blueprint:get_component('destination')
    self._blueprint_cd = self._sv.blueprint:get_component('stonehearth:construction_data')
    self._blueprint_cp = self._sv.blueprint:get_component('stonehearth:construction_progress')
-   radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
-   radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)
+   self._teardown_listener = radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:teardown_changed', self, self._update_scaffolding_size)
+   self._finished_listener = radiant.events.listen(self._sv.blueprint, 'stonehearth:construction:finished_changed', self, self._update_scaffolding_size)
    
    self._project_trace = self._project_dst:trace_region('generating scaffolding', TraceCategories.SYNC_TRACE)
                                              :on_changed(function()

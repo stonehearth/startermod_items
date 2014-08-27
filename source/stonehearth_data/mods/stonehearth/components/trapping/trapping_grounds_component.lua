@@ -164,11 +164,12 @@ function TrappingGroundsComponent:remove_trap(id)
 end
 
 function TrappingGroundsComponent:_listen_to_destroy_trap(trap)
-   radiant.events.listen(trap, 'radiant:entity:pre_destroy', self, self._on_destroy_trap)
+   self._destroy_listener = radiant.events.listen(trap, 'radiant:entity:pre_destroy', self, self._on_destroy_trap)
 end
 
 function TrappingGroundsComponent:_unlisten_to_destroy_trap(trap)
-   radiant.events.unlisten(trap, 'radiant:entity:pre_destroy', self, self._on_destroy_trap)
+   self._destroy_listener:destroy()
+   self._destroy_listener = nil
 end
 
 function TrappingGroundsComponent:_on_destroy_trap(args)
