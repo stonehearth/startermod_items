@@ -85,16 +85,18 @@ function events.listen(object, event, self, fn)
    end
    table.insert(listeners, entry)
 
+   local destructor = radiant.lib.Destructor(function()
+         events._unlisten(object, key, event, self, fn)
+      end)
+
    for i, entry in ipairs(events._dead_listeners) do
       if entry.event == event and entry.key == key and entry.fn == fn and entry.self == self then
          table.remove(events._dead_listeners, i)
-         return
+         return destructor
       end
    end
 
-   return radiant.lib.Destructor(function()
-         events._unlisten(object, key, event, self, fn)
-      end)
+   return destructor
 end
 
 function events.unpublish(object)
