@@ -237,7 +237,8 @@ IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs) :
    site_(site),
    error_count(0),
-   _allocDs(allocDs)
+   _allocDs(allocDs),
+   L_(nullptr)
 {
    _curLuaState = nullptr;
    current_line = 0;
@@ -248,10 +249,10 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
-   profile_memory_ = false;
    profile_cpu_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
+   lua_setalloc2f(L_, LuaAllocFnWithState, this);
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
    luaopen_lpeg(L_);
@@ -328,7 +329,7 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[listen " << oldLine << "]");
-   } else if (srcName == "=[C]" && fnName == "insert") {
+   } else if (srcName == "=[C]" && (fnName == "insert" || fnName == "resume")) {
       int oldLine = stack.currentline;
       lua_getstack(l, 1, &stack);
       lua_getinfo(l, "nSl", &stack);
@@ -336,6 +337,16 @@ std::string ExtractAllocKey(lua_State *l) {
       if (stack.name) {
          fnName = stack.name;
       }
+   } else if (srcName == "@radiant/modules/log.lua" && fnName == "create_logger") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[logger " << oldLine << "]");
    }
 
    return BUILD_STRING(stack.source << ":" << fnName << ":" << stack.currentline);
@@ -355,13 +366,46 @@ std::string ExtractAllocKey(lua_State *l) {
  * allocator never fails when osize >= nsize.
  */
 
-void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
+void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State *L)
+{
+   ScriptHost* host = static_cast<ScriptHost*>(ud);
+   void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
+   if (host->enable_profile_memory_) {
+      host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+      host->alloc_backmap.erase(ptr);
+      if (realloced) {
+         std::string key = "unknown";
+         lua_State *l = L;
+         if (l != nullptr) {
+            lua_Debug stack;
+            int r = lua_getstack(l, 0, &stack);
+
+            if (!r) {
+               l = host->L_;
+
+               if (l) {
+                  r = lua_getstack(l, 0, &stack);
+               }
+            }
+            if (r) {
+               key = ExtractAllocKey(l);
+            }
+         }
+         host->alloc_map[key][realloced] = nsize;
+         host->alloc_backmap[realloced] = key;
+      }
+   }
+   return realloced;
+}
+
+ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
 {
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    void *realloced;
 
    host->bytes_allocated_ += (nsize - osize);
-   
+
+
    if (nsize == 0) {
       delete [] ptr;
       realloced = nullptr;
@@ -370,31 +414,6 @@ void* ScriptHost::LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize)
       if (osize) {
          memcpy(realloced, ptr, std::min(nsize, osize));
          delete [] ptr;
-      }
-   }
-
-   if (host->profile_memory_) {
-      std::string const& key = host->alloc_backmap[ptr];
-      host->alloc_map[key].erase(ptr);
-      host->alloc_backmap.erase(ptr);
-      if (realloced) {
-         lua_Debug stack;
-         lua_State *l = host->_curLuaState ? host->_curLuaState : host->L_;
-         int r = lua_getstack(l, 0, &stack);
-
-         if (!r) {
-            l = l == host->L_ ? host->cb_thread_ : host->L_;
-         }
-         r = lua_getstack(l, 0, &stack);
-
-         if (r) {
-            std::string key = ExtractAllocKey(l);
-            host->alloc_map[key][realloced] = nsize;
-            host->alloc_backmap[realloced] = key;
-         } else {
-            host->alloc_map["unknown"][realloced] = nsize;
-            host->alloc_backmap[realloced] = key;
-         }
       }
    }
    return realloced;
@@ -656,22 +675,9 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
    }
 }
 
-void ScriptHost::ClearMemoryProfile()
-{
-   if (enable_profile_memory_) {
-      alloc_backmap.clear();
-      alloc_map.clear();
-      LUA_LOG(0) << " cleared lua memory profile data";
-   }
-}
-
 void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 {
    if (!enable_profile_memory_) {
-      return;
-   }
-   if (!profile_memory_) {
-      LUA_LOG(0) << "memory profile is not running.";
       return;
    }
 
@@ -714,20 +720,6 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       output(i->second.first, i->second.second, i->first);
    }
    LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
-}
-
-void ScriptHost::ProfileMemory(bool value)
-{
-   if (enable_profile_memory_) {
-      if (profile_memory_ && !value) {
-         lua_sethook(L_, LuaTrackLine, 0, 1);
-         ClearMemoryProfile();
-      } else if (!profile_memory_ && value) {
-         lua_sethook(L_, LuaTrackLine, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE, 1);
-      }
-      profile_memory_  = value;
-      LUA_LOG(0) << " lua memory profiling turned " << (profile_memory_ ? "on" : "off");
-   }
 }
 
 void ScriptHost::ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const

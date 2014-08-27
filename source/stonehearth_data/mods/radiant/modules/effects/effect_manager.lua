@@ -7,7 +7,7 @@ function EffectManager:__init(entity)
    self._effects = {}
 
    self._entity = entity
-   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_event_loop)
+   self._loop_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_event_loop)
 
    self.animation_table_name = radiant.entities.get_animation_table(self._entity)
    if self.animation_table_name and self.animation_table_name ~= "" then
@@ -20,6 +20,10 @@ function EffectManager:__init(entity)
         self._postures = radiant.resources.load_json(obj.postures)
       end
    end
+end
+
+function EffectManager:destroy()
+  self._loop_listener:destroy()
 end
 
 function EffectManager:on_event_loop(e)

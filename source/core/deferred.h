@@ -8,12 +8,13 @@
 #include "ipromise.h"
 #include "radiant_logger.h"
 #include "radiant_macros.h"
+#include "core/object_counter.h"
 
 #define DEFERRED_LOG(level)      LOG(deferred, level)
 
 BEGIN_RADIANT_CORE_NAMESPACE
 
-class DeferredBase {
+class DeferredBase : public core::ObjectCounter<DeferredBase> {
 public:
    DeferredBase() : id_(next_deferred_id_++) { };
    DeferredBase(std::string const& dbg_name) : dbg_name_(dbg_name), id_(next_deferred_id_++) {
