@@ -17,10 +17,6 @@ ChaseEntity.args = {
       type = 'number',
       default = 1,
    },
-   move_effect = {
-      type = 'string',
-      default = 'run',
-   },
    grid_location_changed_cb = {  -- triggered as the chasing entity changes grid locations
       type = 'function',
       default = stonehearth.ai.NIL,
@@ -212,7 +208,7 @@ function ChaseEntity:run(ai, entity, args)
       return
    end
 
-   self:_start_run_effect(entity, args.move_effect)
+   self:_start_run_effect(entity)
    self._moving = true
 
    while not finished do
@@ -265,11 +261,11 @@ function ChaseEntity:_trace_entity_location(callback)
       :push_object_state()
 end
 
-function ChaseEntity:_start_run_effect(entity, move_effect)
+function ChaseEntity:_start_run_effect(entity)
    if not self._run_effect then
       -- make sure the event doesn't clean up after itself when the effect finishes.
       -- otherwise, people will only play through the animation once.
-      self._run_effect = radiant.effects.run_effect(entity, move_effect)
+      self._run_effect = radiant.effects.run_effect(entity, 'run')
          :set_cleanup_on_finish(false)
    end
 end
