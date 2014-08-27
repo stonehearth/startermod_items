@@ -434,6 +434,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                message : "Once you begin building this structure it cannot be edited. Are you sure you want to build now?",
                buttons : [
                   { 
+                     id: 'confirmBuilding',
                      label: "Yes, start building!",
                      click: doStartBuilding
                   },

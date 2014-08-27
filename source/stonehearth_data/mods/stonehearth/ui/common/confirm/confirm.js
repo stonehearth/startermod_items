@@ -18,6 +18,10 @@ App.StonehearthConfirmView = App.View.extend({
 
          element.html(button.label);
 
+         if (button.id) {
+            element.attr('id', button.id);
+         }
+
          if (button.click) {
             element.click(function() {
                button.click();
