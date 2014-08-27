@@ -19,6 +19,8 @@ function EatItem:run(ai, entity, args)
       ai:abort('Cannot eat: No food data for %s.', tostring(food))
    end
 
+   ai:set_status_text('eating ' .. radiant.entities.get_name(food))
+
    ai:execute('stonehearth:run_effect', {
       effect = 'eat',
       times = self._food_data.effect_loops or 3
@@ -38,10 +40,6 @@ function EatItem:run(ai, entity, args)
                                    {entity = entity, description = self._food_data.journal_message})
    end
 end
-
-function EatItem:stop(ai, entity, args)
-   ai:set_status_text('eating ' .. radiant.entities.get_name(args.food))
-end   
 
 function EatItem:stop(ai, entity, args)
    local attributes_component = entity:add_component('stonehearth:attributes')
