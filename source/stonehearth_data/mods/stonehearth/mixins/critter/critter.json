@@ -16,7 +16,6 @@
             "stonehearth:actions:wander_when_bored",
             "stonehearth:actions:choose_point_around_leash",
             "stonehearth:actions:set_posture",
-            "stonehearth:actions:unset_posture",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:panic_dispatcher",
             "stonehearth:actions:combat:panic_watcher",

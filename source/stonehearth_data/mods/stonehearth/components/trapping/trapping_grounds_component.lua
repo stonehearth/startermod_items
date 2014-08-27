@@ -31,6 +31,8 @@ function TrappingGroundsComponent:initialize(entity, json)
    self.spawn_interval_max = stonehearth.calendar:parse_duration(json.spawn_interval_max)
    self.check_traps_interval = stonehearth.calendar:parse_duration(json.check_traps_interval)
 
+   self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:post_destroy', self, self._on_destroy_trap)
+
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
       self._sv.traps = {}
@@ -44,10 +46,6 @@ function TrappingGroundsComponent:initialize(entity, json)
 end
 
 function TrappingGroundsComponent:_restore()
-   for id, trap in pairs(self._sv.traps) do
-      self:_listen_to_destroy_trap(trap)
-   end
-
    if self._sv.next_spawn_time then
       local duration = stonehearth.calendar:get_seconds_until(self._sv.next_spawn_time)
       self:_start_spawn_timer(duration)
@@ -57,7 +55,11 @@ function TrappingGroundsComponent:_restore()
 end
 
 function TrappingGroundsComponent:destroy()
-   self:_destroy_survey_task()
+   if self._destroy_listener then
+      self._destroy_listener:destroy()
+      self._destroy_listener = nil
+   end
+
    self:_destroy_set_trap_task()
    self:_destroy_check_trap_task()
 
@@ -112,14 +114,20 @@ function TrappingGroundsComponent:get_armed_traps()
    local armed_traps = {}
 
    for id, trap in pairs(self._sv.traps) do
-      -- if we store trap components instead of traps, we could be polymorphic and support other types of traps
-      local trap_component = trap:add_component('stonehearth:bait_trap')
-      if trap_component:is_armed() then
-         armed_traps[id] = trap
+      if trap:is_valid() then
+         -- if we store trap components instead of traps, we could be polymorphic and support other types of traps
+         local trap_component = trap:add_component('stonehearth:bait_trap')
+         if trap_component:is_armed() then
+            armed_traps[id] = trap
+         end
       end
    end
 
    return armed_traps
+end
+
+function TrappingGroundsComponent:num_traps()
+   return self._sv.num_traps
 end
 
 function TrappingGroundsComponent:max_traps()
@@ -130,8 +138,6 @@ function TrappingGroundsComponent:add_trap(trap)
    local id = trap:get_id()
 
    if not self._sv.traps[id] then
-      self:_listen_to_destroy_trap(trap)
-
       self._sv.traps[id] = trap
       self._sv.num_traps = self._sv.num_traps + 1
       self.__saved_variables:mark_changed()
@@ -147,32 +153,22 @@ end
 
 function TrappingGroundsComponent:remove_trap(id)
    if self._sv.traps[id] then
-      local trap = radiant.entities.get_entity(id)
-      if trap:is_valid() then
-         self:_unlisten_to_destroy_trap(trap)
-      end
-
       self._sv.traps[id] = nil
       self._sv.num_traps = self._sv.num_traps - 1
       self.__saved_variables:mark_changed()
+
+      if self._sv.num_traps == 0 then
+         -- when all traps have been harvested, start setting them again
+         self:start_tasks()
+      end
    end
-
-   if self._sv.num_traps == 0 then
-      -- when all traps have been harvested, start setting them again
-      self:start_tasks()
-   end
-end
-
-function TrappingGroundsComponent:_listen_to_destroy_trap(trap)
-   radiant.events.listen(trap, 'radiant:entity:pre_destroy', self, self._on_destroy_trap)
-end
-
-function TrappingGroundsComponent:_unlisten_to_destroy_trap(trap)
-   radiant.events.unlisten(trap, 'radiant:entity:pre_destroy', self, self._on_destroy_trap)
 end
 
 function TrappingGroundsComponent:_on_destroy_trap(args)
-   self:remove_trap(args.entity_id)
+   -- for clarity, filter out entities we didn't create
+   if self._sv.traps[args.entity_id] then
+      self:remove_trap(args.entity_id)
+   end
 end
 
 function TrappingGroundsComponent:_pick_next_trap_location()
@@ -185,8 +181,7 @@ function TrappingGroundsComponent:_pick_next_trap_location()
       return nil
    end
 
-   -- setting n traps takes O(n^2) time, but n is tiny
-   -- use services.server.world_generation.perturbation_grid to make this O(n) instead
+   -- use services.server.world_generation.perturbation_grid to make this more robust
    -- currently not worth the added code complexity
    for i = 1, tries do
       -- offset is 0 to size-1, with a 1 voxel margin to avoid edges
@@ -203,9 +198,13 @@ function TrappingGroundsComponent:_pick_next_trap_location()
 end
 
 function TrappingGroundsComponent:_is_valid_trap_location(location)
-   -- this iteration can be avoided by using a perturbation grid
-   for id, trap in pairs(self._sv.traps) do
-      if radiant.entities.distance_between(trap, location) < self.min_distance_between_traps then
+   local radius = math.max(self.min_distance_between_traps-1, 0) -- -1 because min_distance is valid
+   local cube = getXZCubeAroundPoint(location, radius)
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+
+   for id, entity in pairs(entities) do
+      if entity:get_component('stonehearth:bait_trap') then
+         -- it's a trap! ;)
          return false
       end
    end
@@ -216,7 +215,13 @@ end
 
 function TrappingGroundsComponent:_is_empty_location(location, radius)
    local cube = getXZCubeAroundPoint(location, radius)
-   local entities = radiant.terrain.get_entities_in_cube(cube)
+   local entities = radiant.terrain.get_entities_in_cube(cube,
+      function (entity)
+         if has_ai(entity) then
+            return false
+         end
+      end
+   )
 
    -- remove the trapping grounds from the set
    entities[self._entity:get_id()] = nil
@@ -442,15 +447,29 @@ function TrappingGroundsComponent:_create_critter(uri)
 
    local despawn_ai = self:_inject_despawn_ai(critter)
 
-   local trapped_trace = radiant.events.listen_once(critter, 'stonehearth:trapped',
+   local trapped_listener, destroy_listener
+
+   local destroy_listeners = function()
+      if trapped_listener then
+         trapped_listener:destroy()
+         trapped_listener = nil
+      end
+      if destroy_listener then
+         destroy_listener:destroy()
+         destroy_listener = nil
+      end
+   end
+
+   trapped_listener = radiant.events.listen(critter, 'stonehearth:trapped',
       function()
          despawn_ai:destroy()
+         destroy_listeners()
       end
    )
 
-   local destroy_trace = radiant.events.listen_once(critter, 'stonehearth:pre-destroy',
+   destroy_listener = radiant.events.listen(critter, 'stonehearth:pre-destroy',
       function()
-         trapped_trace:destroy()
+         destroy_listeners()
       end
    )
 

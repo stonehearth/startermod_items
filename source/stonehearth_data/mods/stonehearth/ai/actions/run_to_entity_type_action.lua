@@ -6,10 +6,6 @@ RunToEntityType.does = 'stonehearth:goto_entity_type'
 RunToEntityType.args = {
    filter_fn = 'function',
    description = 'string',             -- description of the initiating compound task (for debugging)
-   move_effect = {
-      type = 'string',
-      default = 'run',
-   },
 }
 RunToEntityType.think_output = {
    destination_entity = Entity
@@ -25,6 +21,5 @@ return ai:create_compound_action(RunToEntityType)
          })
          :execute('stonehearth:follow_path', {
             path = ai.PREV.path,
-            move_effect = ai.ARGS.move_effect,
          })
          :set_think_output({ destination_entity = ai.PREV.path:get_destination()})

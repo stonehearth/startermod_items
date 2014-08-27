@@ -15,11 +15,11 @@ function WorkAtWorkshop:run(town, args)
                                                   :add_worker(self._crafter)
 
    self._inventory = stonehearth.inventory:get_inventory(town:get_player_id())
-   radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
+   self._order_changed_listener = radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
    --Listen on this to re-check mantain whenever an item is removed from the stockpile
-   radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
+   self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
 
    while true do
       local order = self:_get_next_order()
@@ -46,8 +46,11 @@ function WorkAtWorkshop:run(town, args)
 end
 
 function WorkAtWorkshop:stop(args)
-   radiant.events.unlisten(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
-   radiant.events.unlisten(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
+   self._order_changed_listener:destroy()
+   self._order_changed_listener = nil
+
+   self._item_removed_listener:destroy()
+   self._item_removed_listener = nil
 end
 
 function WorkAtWorkshop:_collect_ingredients(order)

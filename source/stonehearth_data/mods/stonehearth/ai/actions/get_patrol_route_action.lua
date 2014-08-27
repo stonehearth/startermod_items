@@ -19,20 +19,18 @@ function GetPatrolPoint:start_thinking(ai, entity, args)
    self._entity = entity
    self._ai = ai
    self._start_location = ai.CURRENT.location
-   self._listening = false
 
    self:_check_for_patrol_route()
 
    if not self._patrollable_object then
-      self._listening = true
-      radiant.events.listen(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
+      self._patrol_listener = radiant.events.listen(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
    end
 end
 
 function GetPatrolPoint:stop_thinking(ai, entity, args)
-   if self._listening then
-      radiant.events.unlisten(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
-      self._listening = false
+   if self._patrol_listener then
+      self._patrol_listener:destroy()
+      self._patrol_listener = nil
    end
 
    if self._proxy_entity then
@@ -68,7 +66,8 @@ function GetPatrolPoint:_check_for_patrol_route()
       local waypoints = self._patrollable_object:get_waypoints(patrol_margin, self._entity)
       self:_find_path(self._start_location, waypoints)
 
-      self._listening = false
+      -- This works; 'destroy' works too, but this avoids enqueing on the 'dead_listeners' list.
+      self._patrol_listener = nil
       return radiant.events.UNLISTEN
    end
 end

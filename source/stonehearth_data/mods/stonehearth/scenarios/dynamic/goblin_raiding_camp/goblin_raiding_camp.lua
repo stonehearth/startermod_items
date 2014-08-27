@@ -71,10 +71,10 @@ function GoblinRaidingCamp:start()
 end
 
 function GoblinRaidingCamp:_attach_listeners()
-   radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
-   radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
-   radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._destroy_listener = radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+   self._carrying_listener = radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 function GoblinRaidingCamp:_add_restock_task(e)
@@ -158,7 +158,8 @@ function GoblinRaidingCamp:_on_spawn()
 end
 
 function GoblinRaidingCamp:_squad_killed(e)
-   radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener:destroy()
+   self._item_added_listener = nil
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
@@ -169,8 +170,11 @@ function GoblinRaidingCamp:_squad_killed(e)
 end
 
 function GoblinRaidingCamp:_thief_killed(e)
-   radiant.events.unlisten(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
-   radiant.events.unlisten(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+   self._carrying_listener:destroy()
+   self._carrying_listener = nil
+
+   self._destroy_listener:destroy()
+   self._destroy_listener = nil
 
    radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 

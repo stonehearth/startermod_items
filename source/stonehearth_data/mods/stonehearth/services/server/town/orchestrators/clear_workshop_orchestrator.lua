@@ -28,9 +28,9 @@ function ClearWorkshop:run(thread, args)
             end
          end
 
-         radiant.events.listen(crafter, 'stonehearth:ai:halt', check_task_fn)
+         local halt_listener = radiant.events.listen(crafter, 'stonehearth:ai:halt', check_task_fn)
          task:wait()
-         radiant.events.unlisten(crafter, 'stonehearth:ai:halt', check_task_fn)
+         halt_listener:destroy()
       end
    end
 end

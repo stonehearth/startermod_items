@@ -26,7 +26,7 @@ function BuildEditorService:initialize()
             -- it to us =(
             self._build_service = r.result:__tojson()
          end)
-   radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+   self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
 end
 
 function BuildEditorService:on_selection_changed()
@@ -36,25 +36,25 @@ function BuildEditorService:on_selection_changed()
    local building_entity
 
    if maybe_selected then
-     local fab = maybe_selected:get_component('stonehearth:fabricator')
-     if fab then
-       local bp = fab:get_blueprint()
-       if bp then
-         local cpc = bp:get_component('stonehearth:construction_progress')
-         if cpc then
-           building_entity = cpc:get_building_entity()
-           if building_entity then
-              selected = maybe_selected
-           end
+      local fab = maybe_selected:get_component('stonehearth:fabricator')
+      if fab then
+         local bp = fab:get_blueprint()
+         if bp then
+            local cpc = bp:get_component('stonehearth:construction_progress')
+            if cpc then
+               building_entity = cpc:get_building_entity()
+               if building_entity then
+                  selected = maybe_selected
+               end
+            end
          end
-       end
-     end
+      end
    end
 
    if building_entity then
-     radiant.events.unlisten(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
-     stonehearth.selection:select_entity(building_entity)
-     radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+      self._sel_changed_listener:destroy()
+      stonehearth.selection:select_entity(building_entity)
+      self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
    end
 
    if old_selected == selected then

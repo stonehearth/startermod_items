@@ -23,9 +23,9 @@ function RunTaskAction:_create_execution_frame(ai)
 
       self._log:detail('creating execution frame for %s', self._activity.name)
       self._execution_frame = ai:spawn(self._activity.name)
-      radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
-      radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
-      radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
+      self._started_listener = radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
+      self._stopped_listener = radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
+      self._work_available_listener = radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
    end
 end
 
@@ -125,9 +125,15 @@ function RunTaskAction:destroy()
    if self._execution_frame then
       self._execution_frame:destroy()
       self._execution_frame = nil
-      radiant.events.unlisten(self._task, 'started', self, self._start_stop_thinking)
-      radiant.events.unlisten(self._task, 'stopped', self, self._start_stop_thinking)
-      radiant.events.unlisten(self._task, 'work_available', self, self._start_stop_thinking)
+
+      self._started_listener:destroy()
+      self._started_listener = nil
+
+      self._stopped_listener:destroy()
+      self._stopped_listener = nil
+
+      self._work_available_listener:destroy()
+      self._work_available_listener = nil
    end
 end
 

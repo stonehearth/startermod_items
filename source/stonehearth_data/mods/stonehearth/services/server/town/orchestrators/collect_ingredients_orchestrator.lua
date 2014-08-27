@@ -9,7 +9,7 @@ function CollectIngredients:run(town, args)
    self._order = args.order
 
    if self._craft_order_list and self._order then
-      radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
+      self._order_list_listener = radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    end
 
    ingredients:remove_contained_ingredients(workshop)
@@ -52,7 +52,8 @@ function CollectIngredients:destroy()
    end
    
    if self._craft_order_list then
-      radiant.events.unlisten(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
+      self._order_list_listener:destroy()
+      self._order_list_listener = nil
    end
 end
 

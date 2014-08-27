@@ -156,11 +156,14 @@
       "corn_crop"   : "file(entities/plants/corn/corn_crop)",
       "corn_basket" : "file(entities/plants/corn/corn_basket)",
       "amazing_corn_basket" : "file(entities/plants/corn/amazing_corn_basket)",
-      "corn_cob"    : "file(entities/plants/corn/corn_cob)",
-      "amazing_corn_cob"    : "file(entities/plants/corn/amazing_corn_cob)",
+      "corn_serving"    : "file(entities/plants/corn/corn_serving)",
+      "amazing_corn_serving"    : "file(entities/plants/corn/amazing_corn_serving)",
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
-      "turnip" : "file(entities/plants/turnip/turnip_serving)",
+      "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+      "pumpkin_crop" : "file(entities/plants/pumpkin/pumpkin_crop)",
+      "pumpkin_serving" : "file(entities/plants/pumpkin/pumpkin_serving)",
+      "pumpkin_harvest" : "file(entities/plants/pumpkin/pumpkin_harvest)",
       "tester_crop" : "file(entities/plants/tester/tester_crop)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
@@ -238,6 +241,7 @@
       "buffs:devoted" : "file(data/buffs/devoted/devoted_buff.json)",
       "buffs:defender" : "file(data/buffs/defender/defender_buff.json)",
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
+      "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
 
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
@@ -459,7 +463,6 @@
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
-      "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",

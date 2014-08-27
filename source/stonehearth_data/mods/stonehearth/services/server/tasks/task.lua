@@ -156,12 +156,16 @@ function Task:wait()
 
    if not self:is_completed() then
       local function cb()
-         radiant.events.unlisten(self, COMPLETED, cb)
-         radiant.events.unlisten(self, DESTROYED, cb)
+         self._completed_listener:destroy()
+         self._completed_listener = nil
+
+         self._destroyed_listener:destroy()
+         self._destroyed_listener = nil
+
          thread:resume()
       end
-      radiant.events.listen(self, COMPLETED, cb)
-      radiant.events.listen(self, DESTROYED, cb)
+      self._completed_listener = radiant.events.listen(self, COMPLETED, cb)
+      self._destroyed_listener = radiant.events.listen(self, DESTROYED, cb)
       
       thread:suspend()
       assert(self:is_completed())
