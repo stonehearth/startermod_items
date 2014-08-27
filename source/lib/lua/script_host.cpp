@@ -249,6 +249,17 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    filter_c_exceptions_ = core::Config::GetInstance().Get<bool>("lua.filter_exceptions", true);
    enable_profile_memory_ = core::Config::GetInstance().Get<bool>("lua.enable_memory_profiler", false);
    enable_profile_cpu_ = core::Config::GetInstance().Get<bool>("lua.enable_cpu_profiler", false);
+   std::string gc_setting = core::Config::GetInstance().Get<std::string>("lua.gc_setting", "auto");
+
+   if (gc_setting == "auto") {
+      _gc_setting = 0;
+   } else if (gc_setting == "step") {
+      _gc_setting = 1;
+   } else {
+      // "full"
+      _gc_setting = 2;
+   }
+
    profile_cpu_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
@@ -486,10 +497,16 @@ void ScriptHost::FullGC()
 
 void ScriptHost::GC(platform::timer &timer)
 {
-   bool finished = false;
+   if (_gc_setting == 0) {
+      return;
+   } else if (_gc_setting = 1) {
+      bool finished = false;
 
-   while (!timer.expired() && !finished) {
-      finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
+      while (!timer.expired() && !finished) {
+         finished = (lua_gc(L_, LUA_GCSTEP, 1) != 0);
+      }
+   } else {
+      FullGC();
    }
 }
 

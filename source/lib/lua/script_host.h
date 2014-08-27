@@ -134,7 +134,7 @@ private:
 
    // Memory profiling
    bool                 enable_profile_memory_;
-   bool                 profile_memory_;
+   int                  _gc_setting;
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
