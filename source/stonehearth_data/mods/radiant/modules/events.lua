@@ -5,6 +5,7 @@ local singleton = {
    jobs = {}
 }
 
+local trigger_depth = 0
 local log = radiant.log.create_logger('events')
 
 function events.__init()
@@ -139,7 +140,7 @@ function events._unlisten(object, key, event, self, fn)
 
    for i, entry in ipairs(listeners) do
       if entry.fn == fn and entry.self == self and not entry.dead then
-         if listeners.trigger_depth > 0 then
+         if trigger_depth > 0 then
             log:spam('queuing dead event ' .. event)
             entry.dead = true
             local dead_entry = {
@@ -176,19 +177,28 @@ function events.trigger_async(object, event, ...)
    table.insert(events._async_triggers, trigger)
 end
 
+-- report the current stack to the host so we can log it
+function events._trigger_error_handler(err)
+   local traceback = debug.traceback()
+   _host:report_error(err, traceback)
+   return err   
+end
+
 function events.trigger(object, event, ...)
    log:spam('triggering %s', tostring(event))
    
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]
+   local args = { ... }
 
    if sender then
       local listeners = sender[event]
       if listeners then
          log:debug('trigging %d listeners for "%s"', #listeners, event)
 
-         listeners.trigger_depth = listeners.trigger_depth + 1
-
+         -- do the actual triggering a pcall to make sure all the triggers get
+         -- hit and our trigger_depth counter doesn't get screwed up
+         trigger_depth = trigger_depth + 1
          local i, count = 1, #listeners
          while i <= count do
             local entry = listeners[i]
@@ -204,13 +214,17 @@ function events.trigger(object, event, ...)
                log:detail('   listener %d has been collected.  not firing.', i)
                result = radiant.events.UNLISTEN
             else
-               if entry.fn ~= nil then
-               -- type 1: listen was called with 'self' and a method to call
-                  result = entry.fn(entry.self, ...)
-               else
-                  -- type 2: listen was called with just a function!  call it
-                  result = entry.self(...)
-               end
+               -- do the actual call in an xpcall to make sure our trigger depth stays
+               -- in sync.
+               xpcall(function()
+                     if entry.fn ~= nil then
+                     -- type 1: listen was called with 'self' and a method to call
+                        result = entry.fn(entry.self, unpack(args))
+                     else
+                        -- type 2: listen was called with just a function!  call it
+                        result = entry.self(unpack(args))
+                     end
+                  end, events._trigger_error_handler)
             end
             
             if result == radiant.events.UNLISTEN then
@@ -222,12 +236,14 @@ function events.trigger(object, event, ...)
                i = i + 1
             end
          end
-         listeners.trigger_depth = listeners.trigger_depth - 1
+
+         trigger_depth = trigger_depth - 1
       end
    end
 end
 
 function events._update()
+   assert(trigger_depth == 0)
    local now = { now = radiant.gamestate.now() }
    
    local async_triggers = events._async_triggers
@@ -258,6 +274,7 @@ function events._update()
       events.trigger(radiant, 'stonehearth:minute_poll', now)
    end
 
+   assert(trigger_depth == 0)
    for _, entry in ipairs(events._dead_listeners) do
       log:spam('removing dead-list event %s', entry.event)
       entry.entry.dead = false

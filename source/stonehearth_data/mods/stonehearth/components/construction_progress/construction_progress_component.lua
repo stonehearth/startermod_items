@@ -326,11 +326,12 @@ end
 -- 'stonehearth:fixture_fabricator'.  both implement the same interface.
 ---
 function ConstructionProgress:get_fabricator_component()
-   assert(self._sv.fabricator_entity)
-   assert(self._sv._fabricator_component_name)
-   local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
-   assert(component)
-   return component
+   if self._sv.fabricator_entity then
+      assert(self._sv._fabricator_component_name)
+      local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
+      assert(component)
+      return component
+   end
 end
 
 return ConstructionProgress
