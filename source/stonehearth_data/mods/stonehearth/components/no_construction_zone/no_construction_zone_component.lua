@@ -161,6 +161,10 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
          end
       end)
 
+   self:_update_overlapping_structures(origin)
+end
+
+function NoConstructionZoneComponent:_update_overlapping_structures(origin)   
    -- compoute how much stuff our envelope overlaps
    local bounds = self._region:get():get_bounds()
    bounds:translate(origin)
@@ -168,6 +172,7 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
    local current_overlap = {}
    local potenial_overlaps = radiant.terrain.get_entities_in_cube(bounds)
    for id, candidate in pairs(potenial_overlaps) do
+      -- buildings whose ncz may overlap ours
       local candidate_ncz = candidate:get_component('stonehearth:no_construction_zone')
       if candidate_ncz then
          local building = candidate_ncz:get_building_entity()
@@ -175,22 +180,31 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
             current_overlap[id] = candidate
          end
       end
+      -- big solid blocks of something (trees, cliffs, etc.)
+      local rcs = candidate:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         current_overlap[id] = candidate
+      end
    end
    
    -- add the overlap flag to things which we are newly overlapping
    for id, overlapping in pairs(current_overlap) do
       if not self._sv.overlapping[id] then
          self:_twiddle_overlap_bit(id, overlapping)
-         overlapping:get_component('stonehearth:no_construction_zone')
-                        :_twiddle_overlap_bit(self._entity:get_id(), self._entity)
+         local ncz = overlapping:get_component('stonehearth:no_construction_zone')
+         if ncz then
+            ncz:_twiddle_overlap_bit(self._entity:get_id(), self._entity)
+         end
       end
    end
    -- remove the overlap flag from things which we no longer overlap
    for id, overlapping in pairs(self._sv.overlapping) do
       if not current_overlap[id] then
          self:_twiddle_overlap_bit(id, nil)
-         overlapping:get_component('stonehearth:no_construction_zone')
-                        :_twiddle_overlap_bit(self._entity:get_id(), nil)
+         local ncz = overlapping:get_component('stonehearth:no_construction_zone')
+         if ncz then
+            ncz:_twiddle_overlap_bit(self._entity:get_id(), nil)
+         end
       end
    end
 end
