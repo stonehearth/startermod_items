@@ -1,5 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local TraceCategories = _radiant.dm.TraceCategories
+local log = radiant.log.create_logger('carry_block')
 
 local CarryBlock = class()
 
@@ -26,6 +27,7 @@ end
 function CarryBlock:set_carrying(new_item)
    -- if new_item is not valid, just remove what we're carrying
    if not new_item or not new_item:is_valid() then
+      log:info('%s set_carrying to nil or invalid item', self._entity)
       self:_remove_carrying()
       return
    end
@@ -45,6 +47,8 @@ function CarryBlock:set_carrying(new_item)
    
    self._sv._carried_item = new_item
    self.__saved_variables:mark_changed()
+
+   log:info('%s adding %s to carry bone', self._entity, new_item)
    
    self._entity:add_component('entity_container')
                      :add_child_to_bone(new_item, 'carry')
@@ -61,6 +65,8 @@ function CarryBlock:_remove_carrying()
       self:_destroy_carried_item_trace()
 
       if self._sv._carried_item:is_valid() then
+         log:info('%s removing %s from carry bone', self._entity, new_item)
+
          self._entity:add_component('entity_container')
                            :remove_child(self._sv._carried_item:get_id())
       end

@@ -60,7 +60,7 @@ function EffectManager:start_effect(action, delay, trigger_handler, args)
    --if trigger_handler then radiant.check.is_callable(trigger_handler) end
    if args then radiant.check.is_table(args) end
 
-   log:debug("staring effect %s at %d", resolved_action, when)
+   log:debug("starting effect %s at %d", resolved_action, when)
    return self:_add_effect(resolved_action, when, trigger_handler, args);
 end
 
