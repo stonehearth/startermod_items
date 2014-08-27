@@ -38,8 +38,10 @@ function CropComponent:get_dirt_plot()
 end
 
 function CropComponent:destroy()
-   self._growing_listener:destroy()
-   self._growing_listener = nil
+   if self._growing_listener then
+      self._growing_listener:destroy()
+      self._growing_listener = nil
+   end
 end
 
 --- When all components are created, double-check on whether this is a growing crop
@@ -68,8 +70,10 @@ function CropComponent:_on_grow_period(e)
    end
    if e.finished then
       --TODO: is growth ever really complete? Design the difference between "can't continue" and "growth complete"
-      self._growing_listener:destroy()
-      self._growing_listener = nil
+      if self._growing_listener then
+         self._growing_listener:destroy()
+         self._growing_listener = nil
+      end
    end
    self.__saved_variables:mark_changed()
 end

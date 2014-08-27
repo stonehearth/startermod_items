@@ -72,8 +72,10 @@ end
 function Fabricator:destroy()
    self._log:debug('destroying fabricator')
 
-   self._finished_listener:destroy()
-   self._finished_listener = nil
+   if self._finished_listener then
+      self._finished_listener:destroy()
+      self._finished_listener = nil
+   end
 
    for _, trace in ipairs(self._traces) do
       trace:destroy()
