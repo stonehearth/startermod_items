@@ -22,7 +22,7 @@ public:     // IRouter
 private:
    struct ObjectTraceEntry {
       dm::ObjectRef           obj;
-      ReactorDeferredRef      deferred;
+      ReactorDeferredPtr      deferred;
       dm::TracePtr            trace;
    };
 
@@ -33,7 +33,7 @@ private:
 private:
    dm::Store&                                            store_;
    std::unordered_map<std::string, ObjectTraceEntry>     traces_;
-   std::unordered_map<std::string, ReactorDeferredRef>   deferred_traces_;
+   std::unordered_map<std::string, ReactorDeferredPtr>   deferred_traces_;
 };
 
 END_RADIANT_RPC_NAMESPACE

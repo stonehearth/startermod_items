@@ -28,7 +28,7 @@ void Trace::SignalDestroyed()
    }
 }
 
-std::string const& Trace::GetReason() const
+const char* Trace::GetReason() const
 {
    return reason_;
 }
