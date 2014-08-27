@@ -1,5 +1,6 @@
 local Path = _radiant.sim.Path
 local FollowPathAction = class()
+local log = radiant.log.create_logger('pathfinder')
 
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
@@ -53,11 +54,8 @@ function FollowPathAction:run(ai, entity, args)
 
    local speed = radiant.entities.get_world_speed(entity)
 
-   -- make sure we record the starting posture. if the posture changed recently, the async trigger
-   -- may not have fired yet and we want to know if it has really changed or not.
-   self._posture = radiant.entities.get_posture(entity)
-      
    -- TODO: use a buff for this?
+   self._posture = radiant.entities.get_posture(entity)
    if self._posture == 'stonehearth:patrol' then
       speed = speed * 0.3
    end
@@ -69,14 +67,10 @@ function FollowPathAction:run(ai, entity, args)
    self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)
 
    if not self._mover:arrived() then
+      self._speed_listener = radiant.events.listen(entity, 'stonehearth:attribute_changed:speed', self, self._on_speed_changed)
+      self._posture_listener = radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
 
-      radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
-      self._listening = true
-
-      -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
-      -- people will only play through the animation once.
-      self._effect = radiant.effects.run_effect(entity, args.move_effect)
-         :set_cleanup_on_finish(false)
+      self:_start_move_effect()
 
       ai:get_log():debug('starting mover %s...', self._mover:get_name());
       ai:suspend('waiting for mover to finish')
@@ -86,19 +80,47 @@ function FollowPathAction:run(ai, entity, args)
    self:stop(ai, entity, args)
 end
 
-function FollowPathAction:_on_posture_changed()
-   local new_posture = radiant.entities.get_posture(self._entity)
+function FollowPathAction:_on_speed_changed()
+   if not self._entity:is_valid() then
+      log:error('speed_changed listener should have been destroyed in stop')
+   end
+    
+   local speed = radiant.entities.get_world_speed(self._entity)
+   self._mover:set_speed(speed)
+end
 
+function FollowPathAction:_on_posture_changed()
+   if not self._entity:is_valid() then
+      log:error('posture_changed listener should have been destroyed in stop')
+   end
+
+   local new_posture = radiant.entities.get_posture(self._entity)
    if new_posture ~= self._posture then
-      self._ai:abort('posture changed (from %s to %s) while following path',
-         tostring(self._posture), tostring(new_posture))
+      self._posture = new_posture
+      self:_start_move_effect()
    end
 end
 
+function FollowPathAction:_start_move_effect()
+   if self._effect then
+      self._effect:stop()
+   end
+
+   -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
+   -- people will only play through the animation once.
+   self._effect = radiant.effects.run_effect(self._entity, 'run')
+      :set_cleanup_on_finish(false)
+end
+
 function FollowPathAction:stop(ai, entity)
-   if self._listening then
-      radiant.events.unlisten(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
-      self._listening = false
+   if self._speed_listener then
+      self._speed_listener:destroy()
+      self._speed_listener = nil
+   end
+
+   if self._posture_listener then
+      self._posture_listener:destroy()
+      self._posture_listener = nil
    end
 
    if self._mover then
