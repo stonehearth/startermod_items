@@ -9,17 +9,17 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(turnip_basket.qb)"
+               "file(pumpkin_harvest.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Basket of Turnips",
-         "description": "Juicy and exciting!",
-         "icon" : "file(turnip_basket.png)"
+         "name": "Pumpkin",
+         "description": "Ready for eating",
+         "icon" : "file(pumpkin_harvest.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "resource vegetable food_container turnip"
+         "tags" :  "resource vegetable food_container pumpkin"
       },
       "mob" : {
          "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
@@ -28,7 +28,7 @@
    "entity_data" : {
       "stonehearth:food_container" : {
          "effect": "fiddle",
-         "food": "stonehearth:turnip_serving",
+         "food": "stonehearth:pumpkin_serving",
          "stacks_per_serving": 6
       }
    }

@@ -44,7 +44,6 @@
       },
       "stonehearth:crop" : {
          "resource_pairings" : {
-            "turnip_3": "stonehearth:turnip",
             "turnip_4": "stonehearth:turnip_basket", 
             "turnip_12": ""
          },
