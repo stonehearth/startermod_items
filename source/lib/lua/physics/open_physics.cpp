@@ -37,6 +37,18 @@ bool Physics_IsBlockedPoint(lua_State *L, OctTree &octTree, csg::Point3 const& l
    return octTree.GetNavGrid().IsBlocked(location);
 }
 
+
+bool Physics_IsSupported(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+{
+   return octTree.GetNavGrid().IsSupported(location);
+}
+
+
+bool Physics_IsTerrain(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+{
+   return octTree.GetNavGrid().IsTerrain(location);
+}
+
 bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3 const& location)
 {
    return octTree.GetNavGrid().IsOccupied(location);
@@ -98,6 +110,8 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_standable",         &Physics_IsStandablePoint)
                .def("is_blocked",           &Physics_IsBlocked)
                .def("is_blocked",           &Physics_IsBlockedPoint)
+               .def("is_supported",         &Physics_IsSupported)
+               .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube),

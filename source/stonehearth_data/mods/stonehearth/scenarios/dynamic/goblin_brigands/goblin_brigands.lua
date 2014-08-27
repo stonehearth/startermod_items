@@ -105,8 +105,8 @@ function GoblinBrigands:_on_spawn()
       --If he's not being attacked, he will go collect stuff
       stonehearth.combat:set_stance(self._sv._thief, 'defensive')
 
-      --When he's attacked, he will use this wooden sword
-      local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+      --When he's attacked, he will use this weapon
+      local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
       radiant.entities.equip_item(self._sv._thief, weapon)
 
       --Pick how many escorts
@@ -120,7 +120,7 @@ function GoblinBrigands:_on_spawn()
       end
 
       for i = 1, num_escorts do 
-         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
       end
    end
 

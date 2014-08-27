@@ -1,6 +1,7 @@
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
+local TraceCategories = _radiant.dm.TraceCategories
 
 local NoConstructionZoneComponent = class()
 
@@ -31,10 +32,19 @@ function NoConstructionZoneComponent:initialize(entity, json)
    else
       self._region = entity:get_component('region_collision_shape'):get_region()
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-            for id, structure in pairs(self._sv.structures) do
-               self:_trace_structure(id, structure)
+            for id, entry in pairs(self._sv.structures) do
+               self:_trace_structure(id, entry.structure)
             end
          end)
+   end
+end
+
+function NoConstructionZoneComponent:destroy()
+   self._dirty = false
+   for _, traces in pairs(self._traces) do
+      for _, trace in pairs(traces) do
+         trace:destroy()
+      end
    end
 end
 
@@ -49,71 +59,84 @@ end
 
 function NoConstructionZoneComponent:add_structure(structure)
    assert(self._sv.building_entity)
+   local id = structure:get_id()
 
-   local destination = structure:get_component('destination')
-   if destination then
-      local id = structure:get_id()
-      
-      assert(not self._sv.structures[id])
-
-      local region = destination:get_region()
-      local structure_type
-      for _, t in ipairs(STRUCTURE_TYPES) do
-         if structure:get_component(t) then
-            structure_type = t
-            break
+   if not self._sv.structures[id] then
+      local destination = structure:get_component('destination')
+      if destination then
+         local region = destination:get_region()
+         local structure_type
+         for _, t in ipairs(STRUCTURE_TYPES) do
+            if structure:get_component(t) then
+               structure_type = t
+               break
+            end
          end
-      end
-      if not structure_type then
-         return
-      end
+         if not structure_type then
+            return
+         end
 
-      self._sv.structures[id] = {
-         region = region,
-         structure = structure,
-         structure_type = structure_type
-      }
+         self._sv.structures[id] = {
+            region = region,
+            structure = structure,
+            structure_type = structure_type
+         }
+         self.__saved_variables:mark_changed()
+
+         self:_trace_structure(id, structure)
+         self:_mark_dirty()
+      end
+   end
+end
+
+function NoConstructionZoneComponent:remove_structure(id)
+   if self._sv.structures[id] then
+      self._sv.structures[id] = nil
       self.__saved_variables:mark_changed()
-
-      self:_trace_structure(id, structure)
       self:_mark_dirty()
    end
 end
 
 function NoConstructionZoneComponent:_trace_structure(id, structure)
-   assert(not self._traces[id])
+   if not self._traces[id] then
+      local trace
+      local traces = {}
+      self._traces[id] = traces
 
-   local trace
-   local traces = {}
-   self._traces[id] = traces
+      trace = structure:add_component('stonehearth:construction_data'):trace_data('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+      table.insert(traces, trace)
 
-   local function mark_dirty()
-      self:_mark_dirty()
+      trace = structure:add_component('mob'):trace('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+      table.insert(traces, trace)
+
+      local destination = structure:get_component('destination')
+      trace = destination:trace_region('create no-construction zone', TraceCategories.SYNC_TRACE)
+                                          :on_changed(function()
+                                                self:_mark_dirty()
+                                             end)
+                                          
+      table.insert(traces, trace)
    end
-
-   trace = structure:add_component('stonehearth:construction_data'):trace_data('create no-construction zone')
-                                       :on_changed(mark_dirty)
-   table.insert(traces, trace)
-
-   trace = structure:add_component('mob'):trace('create no-construction zone')
-                                       :on_changed(mark_dirty)
-   table.insert(traces, trace)
-
-   local destination = structure:get_component('destination')
-   trace = destination:trace_region('create no-construction zone')
-                                       :on_changed(mark_dirty)
-                                       
-   table.insert(traces, trace)
 end
 
 function NoConstructionZoneComponent:_mark_dirty()
-   -- defer updating the no-construction zones til the end of the gameloop
-   if not self._dirty then
-      self._dirty = true
-      radiant.events.listen_once(radiant, 'radiant:gameloop:end', function()
-            self:_update_no_construction_shape()
-            self._dirty = false
-         end)
+   if stonehearth.build:in_transaction() then
+      if not self._dirty then
+         self._dirty = true      
+         stonehearth.build:at_end_of_transaction(function()
+               self:_update_no_construction_shape()
+               self._dirty = false
+            end)
+      end
+   else
+      self:_update_no_construction_shape()
+      self._dirty = false      
    end
 end
 
@@ -142,15 +165,32 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
    local bounds = self._region:get():get_bounds()
    bounds:translate(origin)
 
+   local current_overlap = {}
    local potenial_overlaps = radiant.terrain.get_entities_in_cube(bounds)
    for id, candidate in pairs(potenial_overlaps) do
       local candidate_ncz = candidate:get_component('stonehearth:no_construction_zone')
       if candidate_ncz then
          local building = candidate_ncz:get_building_entity()
          if building ~= self._sv.building_entity then
-            self:_twiddle_overlap_bit(id, candidate)
-            candidate_ncz:_twiddle_overlap_bit(self._entity:get_id(), self._entity)
+            current_overlap[id] = candidate
          end
+      end
+   end
+   
+   -- add the overlap flag to things which we are newly overlapping
+   for id, overlapping in pairs(current_overlap) do
+      if not self._sv.overlapping[id] then
+         self:_twiddle_overlap_bit(id, overlapping)
+         overlapping:get_component('stonehearth:no_construction_zone')
+                        :_twiddle_overlap_bit(self._entity:get_id(), self._entity)
+      end
+   end
+   -- remove the overlap flag from things which we no longer overlap
+   for id, overlapping in pairs(self._sv.overlapping) do
+      if not current_overlap[id] then
+         self:_twiddle_overlap_bit(id, nil)
+         overlapping:get_component('stonehearth:no_construction_zone')
+                        :_twiddle_overlap_bit(self._entity:get_id(), nil)
       end
    end
 end

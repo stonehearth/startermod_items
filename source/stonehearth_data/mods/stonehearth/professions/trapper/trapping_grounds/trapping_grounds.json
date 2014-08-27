@@ -12,5 +12,8 @@
          "spawn_interval_max" : "70m",
          "check_traps_interval" : "6h"
       }
+   },
+   "entity_data" : {
+      "stonehearth:designation" : {}
    }
 }

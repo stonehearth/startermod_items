@@ -30,6 +30,7 @@
    "save_new": "New Save",
    "load_game": "Load Game",
    "loading": "Loading...",
+   "game_different_version" : "incompatible save version",
 
    "settings_title" : "Settings",
    "settings_gfx_cardinfo" : "__gpuRenderer__ (__gpuDriver__)",

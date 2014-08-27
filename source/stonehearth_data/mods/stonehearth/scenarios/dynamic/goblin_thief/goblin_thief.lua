@@ -119,7 +119,7 @@ end
 
 function GoblinThief:_create_goblin_thief()
    local thief = self._population:create_new_citizen()
-   local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+   local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
    radiant.entities.equip_item(thief, weapon)
    stonehearth.combat:set_stance(thief, 'defensive')
    return thief

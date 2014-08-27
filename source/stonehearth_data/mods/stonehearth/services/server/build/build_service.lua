@@ -43,44 +43,40 @@ function BuildService:initialize()
    end
 end
 
-function BuildService:set_active(building, enabled)
-   local function _set_active_recursive(blueprint, enabled)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         for id, child in ec:each_child() do
-            _set_active_recursive(child, enabled)
+function BuildService:_call_all_children(entity, cb)
+   local ec = entity:get_component('entity_container')  
+   if ec then
+      -- Copy the blueprint's (container's) children into a local var first, because
+      -- _set_teardown_recursive could cause the entity container to be invalidated.
+      local ec_children = {}
+      for id, child in ec:each_child() do
+         ec_children[id] = child
+      end
+      for id, child in pairs(ec_children) do
+         if child and child:is_valid() then
+            self:_call_all_children(child, cb)
          end
       end
-      local c = blueprint:get_component('stonehearth:construction_progress')
-      if c then
-         c:set_active(enabled)
-      end
-   end  
-   _set_active_recursive(building, enabled)
+   end
+   cb(entity)
 end
 
-function BuildService:set_teardown(blueprint, enabled)
-   local function _set_teardown_recursive(blueprint)
-      local ec = blueprint:get_component('entity_container')  
-      if ec then
-         -- Copy the blueprint's (container's) children into a local var first, because
-         -- _set_teardown_recursive could cause the entity container to be invalidated.
-         local ec_children = {}
-         for id, child in ec:each_child() do
-            ec_children[id] = child
+function BuildService:set_active(entity, enabled)
+   self:_call_all_children(entity, function(entity)
+         local c = entity:get_component('stonehearth:construction_progress')
+         if c then
+            c:set_active(enabled)
          end
-         for id, child in pairs(ec_children) do
-            if child and child:is_valid() then
-               _set_teardown_recursive(child, enabled)
-            end
+      end)
+end
+
+function BuildService:set_teardown(entity, enabled)
+   self:_call_all_children(entity, function(entity)
+         local c = entity:get_component('stonehearth:construction_progress')
+         if c then
+            c:set_teardown(enabled)
          end
-      end
-      local cp = blueprint:get_component('stonehearth:construction_progress')
-      if cp then
-         cp:set_teardown(enabled)
-      end
-   end  
-   _set_teardown_recursive(blueprint, enabled)
+      end)
 end
 
 function BuildService:undo_command(session, response)
@@ -98,34 +94,40 @@ end
 --    @param box - the area of the new floor segment
 
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
-   self._undo:begin_transaction('add_floor')
-   local floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
-   self._undo:end_transaction('add_floor')
+   local floor
+   local success = self:_do_command('add_floor', response, function()
+         floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
+      end)
 
-   -- if we managed to create some floor, return the fabricator to the client as the
-   -- new selected entity.  otherwise, return an error.
-   if floor then
-      local floor_fab = floor:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-      response:resolve({
-         new_selection = floor_fab
-      })
-   else
-      response:reject({ error = 'could not create floor' })
+   if success then
+      -- if we managed to create some floor, return the fabricator to the client as the
+      -- new selected entity.  otherwise, return an error.
+      if floor then
+         local floor_fab = floor:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+         response:resolve({
+            new_selection = floor_fab
+         })
+      else
+         response:reject({ error = 'could not create floor' })
+      end
    end
 end
 
 function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
-   self._undo:begin_transaction('add_wall')
-   local wall = self:_add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
-   self._undo:end_transaction('add_wall')
+   local wall
+   local success = self:_do_command('add_wall', response, function()
+         wall = self:_add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+      end)
 
-   if wall then
-      local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
-      response:resolve({
-         new_selection = wall_fab
-      })
-   else
-      response:reject({ error = 'could not create wall' })      
+   if success then
+      if wall then
+         local wall_fab = wall:get_component('stonehearth:construction_progress'):get_fabricator_entity()      
+         response:resolve({
+            new_selection = wall_fab
+         })
+      else
+         response:reject({ error = 'could not create wall' })      
+      end
    end
 end
 
@@ -179,10 +181,11 @@ function BuildService:_erase_floor(session, box)
 end
 
 function BuildService:erase_floor_command(session, response, box)
-   self._undo:begin_transaction('add_wall')
-   self:_erase_floor(session, ToCube3(box))
-   self._undo:end_transaction('add_wall')
-   return true
+   local success = self:_do_command('erase_floor', response, function()
+         self:_erase_floor(session, ToCube3(box))
+      end)
+
+   return success or nil
 end
 
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
@@ -291,6 +294,7 @@ function BuildService:_create_new_building(session, location)
 
    -- finally, put the entity on the ground at the requested location
    radiant.terrain.place_entity(building, location)
+
    return building
 end
 
@@ -485,10 +489,10 @@ end
 --    @param walls_uri - the type of walls to generate
 --
 function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
-   self._undo:begin_transaction('grow_walls')
-   self:_grow_walls(building, columns_uri, walls_uri)
-   self._undo:end_transaction('grow_walls')
-   response:resolve(true)
+   local success = self:_do_command('grow_walls', response, function()
+         self:_grow_walls(building, columns_uri, walls_uri)
+      end)
+   return success or nil
 end
 
 function BuildService:_grow_walls(building, columns_uri, walls_uri)
@@ -539,13 +543,17 @@ end
 --    @param roof_uri - what kind of roof to make
 
 function BuildService:grow_roof_command(session, response, building, roof_uri, options)
-   self._undo:begin_transaction('grow_roof')
-   local roof = self:_grow_roof(building, roof_uri, options)
-   self._undo:end_transaction('grow_roof')
+   local roof
+   local success = self:_do_command('grow_roof', response, function()
+         roof = self:_grow_roof(building, roof_uri, options)
+      end)
 
-   response:resolve({
-      new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-   })
+   if success then
+      assert(roof)
+      response:resolve({
+         new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+      })
+   end
 end
 
 function BuildService:_grow_roof(building, roof_uri, options)
@@ -665,13 +673,16 @@ end
 --    @param location - where to put the portal, in wall-local coordinates
 --
 function BuildService:add_portal_command(session, response, wall_entity, portal_uri, location)
-   self._undo:begin_transaction('add_portal')
-   local portal = self:_add_portal(wall_entity, portal_uri, location)
-   self._undo:end_transaction('add_portal')
+   local portal
+   local success = self:_do_command('add_portal', response, function()
+         portal = self:_add_portal(wall_entity, portal_uri, location)
+      end)
 
-   response:resolve({
-      new_selection = portal
-   })   
+   if success then
+      response:resolve({
+         new_selection = portal
+      })
+   end
 end
 
 function BuildService:_add_portal(wall_entity, portal_uri, location)
@@ -703,7 +714,7 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
       portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                        :start_project(portal_iconic_uri)
+                        :start_project(portal_iconic_uri, portal_uri)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
@@ -724,20 +735,23 @@ end
 --    @param new_uri - the uri of the new guy to take `old`'s place
 --
 function BuildService:substitute_blueprint_command(session, response, old, new_uri)
-   self._undo:begin_transaction('subsitute_blueprint')
-   local replaced = self:_substitute_blueprint(old, new_uri)
-   self._undo:end_transaction('subsitute_blueprint')
-   
-   if not replaced then
-      return false
+   local replaced
+   local success = self:_do_command('substitute_blueprint', response, function()
+         replaced = self:_substitute_blueprint(old, new_uri)
+      end)
+
+   if success then   
+      if not replaced then
+         return false
+      end
+      
+      -- set the fabricator as the new selected entity to preserve the illusion that
+      -- the entity selected in the editor got changed.
+      local replaced_fab = replaced:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+      response:resolve({
+         new_selection = replaced_fab
+      })
    end
-   
-   -- set the fabricator as the new selected entity to preserve the illusion that
-   -- the entity selected in the editor got changed.
-   local replaced_fab = replaced:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-   response:resolve({
-      new_selection = replaced_fab
-   })
 end
 
 function BuildService:_substitute_blueprint(old, new_uri)
@@ -798,11 +812,10 @@ end
 --    @param options - the options to change.  
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
-   self._undo:begin_transaction('add_floor')
-   local success = self:_apply_options(blueprint, options)
-   self._undo:end_transaction('add_floor')
-
-   return success
+   local success = self:_do_command('apply_options', response, function()
+         self:_apply_options(blueprint, options)
+      end)
+   return success or nil
 end
 
 function BuildService:_apply_options(blueprint, options)
@@ -874,6 +887,47 @@ function BuildService:request_ladder_to(climb_to, normal)
    return self._sv.scaffolding_manager:request_ladder_to(climb_to, normal)
 end
 
-return BuildService
+function BuildService:instabuild_command(session, response, building)
+   -- get everything built.
+   self:_call_all_children(building, function(entity)
+         local cp = entity:get_component('stonehearth:construction_progress')
+         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+            local fabricator = cp:get_fabricator_component()
+            if fabricator then
+               radiant.log.write('', 0, '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
+               fabricator:instabuild()
+            end
+         end
+      end)
 
+   return true
+end
+
+function BuildService:_do_command(reason, response, cb)
+   self._undo:begin_transaction(reason)
+   self._in_transaction = true
+   self._at_end_of_transaction_cbs = {}
+   cb()
+   self._in_transaction = false
+   
+   local _, cb = next(self._at_end_of_transaction_cbs)
+   while cb do
+      cb()
+      _, cb = next(self._at_end_of_transaction_cbs, _)
+   end
+   self._at_end_of_transaction_cbs = {}
+
+   self._undo:end_transaction(reason)
+   return true
+end
+
+function BuildService:in_transaction()
+   return self._in_transaction
+end
+
+function BuildService:at_end_of_transaction(fn)
+   table.insert(self._at_end_of_transaction_cbs, fn)
+end
+
+return BuildService
 

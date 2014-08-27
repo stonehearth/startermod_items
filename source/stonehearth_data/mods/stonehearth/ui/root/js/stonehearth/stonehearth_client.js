@@ -403,6 +403,10 @@ var StonehearthClient;
          return radiant.call_obj(this._build_service, 'apply_options_command', blueprint.__self, options);
       },
 
+      instabuild: function(building) {
+         return radiant.call_obj(this._build_service, 'instabuild_command', building.__self);
+      },
+
       setGrowRoofOptions: function(options) {
          return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },

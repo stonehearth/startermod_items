@@ -58,6 +58,10 @@ function FabricatorComponent:destroy()
    end
 end
 
+function FabricatorComponent:instabuild()
+   self._fabricator:instabuild()
+end
+
 function FabricatorComponent:set_active(enabled)
    self._log:info('setting active to %s', tostring(enabled))
    

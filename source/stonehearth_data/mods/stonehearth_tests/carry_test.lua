@@ -16,7 +16,7 @@ function CarryTest:__init()
    local saw = self:place_item('stonehearth:carpenter:saw', 11, 11)
    local bolt = self:place_item('stonehearth:cloth_bolt', 11, 10)
    local buckler = self:place_item('stonehearth:wooden_buckler', 11, 9)
-   local sword = self:place_item('stonehearth:wooden_sword', 11, 8)
+   local sword = self:place_item('stonehearth:weapons:wooden_sword', 11, 8)
    local log =  self:place_item('stonehearth:oak_log', 11, 7)
 
    local movable_items = {saw, bolt, buckler, sword, log}

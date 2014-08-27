@@ -7,7 +7,6 @@
 #include "core/config.h"
 #include "radiant_file.h"
 #include "radiant_exceptions.h"
-#include "xz_region_selector.h"
 #include "om/entity.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/components/terrain.ridl.h"
@@ -1096,6 +1095,8 @@ void Client::ProcessReadQueue()
 }
 
 void Client::OnInput(Input const& input) {
+   perfmon::SwitchToCounter("dispatching input");
+
    // If we're loading, we don't want the user to be able to click anything.
    if (loading_) {
       return;
@@ -1506,11 +1507,6 @@ void Client::ProcessBrowserJobQueue()
       fn();
    }
    browserJobQueue_.clear();
-}
-
-XZRegionSelectorPtr Client::CreateXZRegionSelector()
-{
-   return std::make_shared<XZRegionSelector>(GetTerrain());
 }
 
 void Client::EnableDisableSaveStressTest()

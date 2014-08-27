@@ -133,6 +133,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (self.$(toolTag)) {
             self.$(toolTag).removeClass('active');
          }
+         $(top).trigger('radiant_hide_tip');
       }
    },
 

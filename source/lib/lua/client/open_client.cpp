@@ -10,7 +10,6 @@
 #include "lib/lua/script_host.h"
 #include "lib/perfmon/perfmon.h"
 #include "client/client.h"
-#include "client/xz_region_selector.h"
 #include "client/renderer/renderer.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/render_entity.h" // xxx: move to renderer::open when we move the renderer!
 #include "client/renderer/lua_render_entity.h" // xxx: move to renderer::open when we move the renderer!
@@ -228,50 +227,6 @@ static RaycastResult
 Client_QueryScene(lua_State* L, int x, int y)
 {
    return Renderer::GetInstance().QuerySceneRay(x, y, 0);
-}
-
-XZRegionSelectorPtr Client_CreateXZRegionSelector()
-{
-   XZRegionSelectorPtr foo = Client::GetInstance().CreateXZRegionSelector();
-   return foo;
-}
-
-XZRegionSelectorPtr XZRegionSelector_SetFilterFn(XZRegionSelectorPtr rsp, luabind::object unsafe_filter_fn)
-{
-   if (rsp) {
-      lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
-      luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
-
-      rsp->WithFilter([filter_fn, cb_thread](RaycastResult const& results) -> int {
-         try {
-            return luabind::call_function<int>(filter_fn, results);
-         } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(cb_thread, e);
-         }
-         return false;
-      });
-   }
-   return rsp;
-}
-
-
-rpc::LuaDeferredPtr Client_ActivateXZRegionSelector(lua_State* L, XZRegionSelectorPtr selector)
-{
-   auto deferred = selector->Activate();
-
-   rpc::LuaDeferredPtr result = std::make_shared<rpc::LuaDeferredObject<XZRegionSelector>>(selector, "select xz region");
-
-   deferred->Progress([L, result](csg::Cube3 const& c) {
-      result->Notify(luabind::object(L, c));
-   });
-   deferred->Done([L, result](csg::Cube3 const& c) {
-      result->Resolve(luabind::object(L, c));
-   });
-   deferred->Fail([L, result](std::string const& error) {
-      result->Reject(luabind::object(L, error));
-   });
-
-   return result;
 }
 
 class CaptureInputPromise;
@@ -512,14 +467,6 @@ void lua::client::open(lua_State* L)
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
-
-            def("create_xz_region_selector",       &Client_CreateXZRegionSelector),
-            lua::RegisterTypePtr_NoTypeInfo<XZRegionSelector>("xz_region_selector")
-                .def("require_supported",          &XZRegionSelector::RequireSupported)
-                .def("require_unblocked",          &XZRegionSelector::RequireUnblocked)
-                .def("activate",                   &Client_ActivateXZRegionSelector)
-                .def("with_filter",                &XZRegionSelector_SetFilterFn)
-            ,
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)

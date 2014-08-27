@@ -1,0 +1,21 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(jagged_cleaver.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Jagged Cleaver",
+         "description": "A crude, ineffective weapon",
+         "icon" : "file(jagged_cleaver.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "bone melee_weapon"
+      }
+   }
+}

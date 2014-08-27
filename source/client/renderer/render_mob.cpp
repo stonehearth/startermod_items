@@ -203,9 +203,13 @@ void RenderMob::UpdateParent()
          std::string const& bone = mob->GetBone();
          if (bone.empty()) {
             parentNode = re->GetOriginNode();
+            M_LOG(5) << "attaching " << *entity_.GetEntity() << " to " << *re->GetEntity();
          } else {
             parentNode = re->GetSkeleton().GetSceneNode(bone);
+            M_LOG(5) << "attaching " << *entity_.GetEntity() << " to \"" << bone << "\" bone on " << *re->GetEntity();
          }
+      } else {
+         M_LOG(5) << "attaching " << *entity_.GetEntity() << " to unparented render node";
       }
       entity_.SetParent(parentNode);
    }

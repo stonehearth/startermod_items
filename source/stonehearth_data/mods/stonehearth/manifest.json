@@ -223,9 +223,10 @@
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
       
+      "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
+      "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "weapons:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_door" : "file(entities/construction/wooden_door)",
-      "wooden_sword" : "file(entities/weapons/wooden_sword)",
-      "wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "ball" : "file(entities/toys/ball)",
 
@@ -1096,6 +1097,7 @@
          "file(ui/shell/embark/embark.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/shell/settings/settings.html)",
+         "file(ui/debug/console/console.html)",
          "file(ui/debug/error_browser/error_browser.html)",
          "file(ui/debug/error_dialog/error_dialog.html)",
          "file(ui/debug/error_dialog_js/error_dialog_js.html)",
@@ -1149,6 +1151,8 @@
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/debug/debug.js)",
+         "file(ui/debug/console/console.js)",
+         "file(ui/debug/console/console_commands.js)",
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/debug/error_dialog_js/error_dialog_js.js)",
@@ -1208,6 +1212,7 @@
          "file(ui/shell/embark/map.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",
+         "file(ui/debug/console/console.less)",
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/debug/error_dialog_js/error_dialog_js.less)",

@@ -57,7 +57,16 @@ function Building:initialize(entity, json)
             end
          end)      
    end
+   self:_trace_entity_container()
    self._traces = {}
+end
+
+function Building:destroy()
+   if self._ec_trace then
+      self._ec_trace:destroy()
+      self._ec_trace = nil
+   end
+   radiant.entities.destroy_entity(self._sv.envelope_entity)
 end
 
 function Building:_get_structures(type)
@@ -147,13 +156,7 @@ function Building:remove_structure(entity)
    end
 
    -- if there are any traces for this entity, nuke them now, too.
-   local traces = self._traces[id]
-   if traces then
-      self._traces[id] = nil
-      for _, trace in ipairs(traces) do
-         trace:destroy()
-      end
-   end
+   self:_untrace_entity(id)
 end
 
 function Building:_add_wall(wall)
@@ -186,6 +189,27 @@ function Building:_add_roof(roof)
    end
 end
 
+function Building:_save_trace(entity, trace)
+   local id = entity:get_id()
+   if not self._traces[id] then
+      self._traces[id] = {}
+   end
+   table.insert(self._traces[id], trace)
+end
+
+function Building:_trace_entity_container()
+   local ec = self._entity:add_component('entity_container')
+   self._ec_trace = ec:trace_children('auto-destroy building')
+                        :on_removed(function()
+                              if ec:is_valid() and ec:num_children() == 1 then
+                                 local teardown = self._entity:get_component('stonehearth:construction_progress'):get_teardown()
+                                 if teardown then
+                                    radiant.entities.destroy_entity(self._entity)
+                                 end
+                              end
+                           end)
+end
+
 function Building:_trace_entity(entity)
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
          self:remove_structure(entity)
@@ -204,12 +228,19 @@ function Building:_trace_entity(entity)
                                  :add_structure(entity)
 end
 
-function Building:_save_trace(entity, trace)
-   local id = entity:get_id()
-   if not self._traces[id] then
-      self._traces[id] = {}
+function Building:_untrace_entity(id)
+   local traces = self._traces[id]
+   if traces then
+      self._traces[id] = nil
+      for _, trace in ipairs(traces) do
+         trace:destroy()
+      end
    end
-   table.insert(self._traces[id], trace)
+
+   if self._sv.envelope_entity:is_valid() then
+      self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                    :remove_structure(id)
+   end
 end
 
 function Building:grow_local_box_to_roof(entity, local_box)
@@ -263,6 +294,9 @@ function Building:unlink_entity(entity)
          break
       end
    end
+   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                 :remove_structure(entity:get_id())
+
    self.__saved_variables:mark_changed()
 end
 
