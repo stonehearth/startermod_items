@@ -111,10 +111,19 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
           }
          deferred->Notify(data);
       } else {
+         if (deferred) {
+            json::Node emptyData;
+            deferred->Resolve(emptyData);
+         }
          traces_.erase(uri);
       }
    });
-   entry.trace->OnDestroyed_([uri, this]() {
+   entry.trace->OnDestroyed_([uri, defRef, this]() {
+      auto deferred = defRef.lock();
+      if (deferred) {
+         json::Node emptyData;
+         deferred->Resolve(emptyData);
+      }
       traces_.erase(uri);
    });
    entry.trace->PushObjectState_();

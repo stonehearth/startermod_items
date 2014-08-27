@@ -42,7 +42,14 @@ ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const&
       if (!d->IsPending() || query.get<int>("long_poll", 0) != 0) {
          // go ahead and send the result now as a result of the GET.
          return d;
-      } 
+      }
+
+      int id = d->GetId();
+      _deferreds[id] = d;
+      d->Always([id, this]() {
+         _deferreds.erase(id);
+      });
+
       return CreateDeferredResponse(fn, d);
 
 
