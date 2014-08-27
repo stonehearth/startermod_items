@@ -34,17 +34,23 @@ end
 
 function FindTargetObserver:_subscribe_to_events()
    self._aggro_table = self._entity:add_component('stonehearth:target_tables'):get_target_table('aggro')
-   radiant.events.listen(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
-   radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
-   radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
+   self._table_change_listener = radiant.events.listen(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
+   self._stance_change_listener = radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
+   self._assault_listener = radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
    self:_trace_entity_location()
    -- listen for stance change
 end
 
 function FindTargetObserver:_unsubscribe_from_events()
-   radiant.events.unlisten(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
-   radiant.events.unlisten(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
+   self._stance_change_listener:destroy()
+   self._stance_change_listener = nil
+
+   self._assault_listener:destroy()
+   self._assault_listener = nil
+
+   self._table_change_listener:destroy()
+   self._table_change_listener = nil
+
    self:_destroy_entity_location_trace()
 end
 
@@ -105,7 +111,7 @@ end
 
 function FindTargetObserver:_listen_for_target_pre_destroy()
    if self._target and self._target:is_valid() then
-      radiant.events.listen(self._target, 'radiant:entity:pre_destroy', self, self._on_target_pre_destroy)
+      self._pre_destroy_listener = radiant.events.listen(self._target, 'radiant:entity:pre_destroy', self, self._on_target_pre_destroy)
       self._listening_target_pre_destroy = true
    end
 end
@@ -113,7 +119,8 @@ end
 function FindTargetObserver:_unlisten_from_target_pre_destroy()
    if self._listening_target_pre_destroy then
       -- because events are asynchronous, target may have already been destroyed
-      radiant.events.unlisten(self._target, 'radiant:entity:pre_destroy', self, self._on_target_pre_destroy)
+      self._pre_destroy_listener:destroy()
+      self._pre_destroy_listener = nil
       self._listening_target_pre_destroy = false
    end
 end

@@ -12,8 +12,8 @@ function LampComponent:initialize(entity, json)
 
    self:_check_light()
 
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
+   self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
+   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
 end
 
 function LampComponent:destroy()
@@ -22,8 +22,11 @@ function LampComponent:destroy()
       self._open_effect = nil
    end
 
-   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
-   radiant.events.unlisten(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
+   self._sunset_listener:destroy()
+   self._sunset_listener = nil
+
+   self._sunrise_listener:destroy()
+   self._sunrise_listener = nil
 end
 
 function LampComponent:_check_light()

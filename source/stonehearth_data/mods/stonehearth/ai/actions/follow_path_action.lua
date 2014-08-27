@@ -70,8 +70,7 @@ function FollowPathAction:run(ai, entity, args)
 
    if not self._mover:arrived() then
 
-      radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
-      self._listening = true
+      self._posture_listener = radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
 
       -- make sure the event doesn't clean up after itself when the effect finishes.  otherwise,
       -- people will only play through the animation once.
@@ -96,9 +95,9 @@ function FollowPathAction:_on_posture_changed()
 end
 
 function FollowPathAction:stop(ai, entity)
-   if self._listening then
-      radiant.events.unlisten(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
-      self._listening = false
+   if self._posture_listener then
+      self._posture_listener:destroy()
+      self._posture_listener = nil
    end
 
    if self._mover then

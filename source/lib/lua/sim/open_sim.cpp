@@ -360,9 +360,10 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def_readonly("category",  &TracerBufferedWrapper::category)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
-               .def("get_name", &FollowPath::GetName)
-               .def("arrived",  &FollowPath::Arrived)
-               .def("stop",     &FollowPath::Stop)
+               .def("set_speed", &FollowPath::SetSpeed)
+               .def("get_name",  &FollowPath::GetName)
+               .def("arrived",   &FollowPath::Arrived)
+               .def("stop",      &FollowPath::Stop)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,

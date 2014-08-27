@@ -23,8 +23,8 @@ function SleepinessObserver:initialize(entity)
       self._sv.should_be_sleeping = false
    end
 
-   radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
-   radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
+   self._hourly_listener = radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
+   self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
 
    --Should we be sleeping? If so, let's do that
    if self._sv.should_be_sleeping then
@@ -35,8 +35,11 @@ function SleepinessObserver:initialize(entity)
 end
 
 function SleepinessObserver:destroy()
-   radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self._on_hourly)
-   radiant.events.unlisten(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
+   self._hourly_listener:destroy()
+   self._hourly_listener = nil
+
+   self._sleepiness_listener:destroy()
+   self._sleepiness_listener = nil
 end
 
 -- Whenever our sleepiness score is changed,

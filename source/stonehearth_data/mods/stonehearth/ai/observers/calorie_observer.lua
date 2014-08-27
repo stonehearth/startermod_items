@@ -25,8 +25,8 @@ function CalorieObserver:initialize(entity)
    --Hunger is on by default. If it's NOT on, don't do any of this. 
    self._enable_hunger = radiant.util.get_config('enable_hunger', true)
    if self._enable_hunger then
-      radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
-      radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
+      self._hour_listener = radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
+      self._calorie_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
    
       --Also, should we be eating right now? If so, let's do that
       if self._sv.should_be_eating then
@@ -37,8 +37,11 @@ end
 
 function CalorieObserver:destroy()
    if self._enable_hunger then
-      radiant.events.unlisten(calendar, 'stonehearth:hourly', self, self._on_hourly)
-      radiant.events.unlisten(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
+      self._hour_listener:destroy()
+      self._hour_listener = nil
+
+      self._calorie_listener:destroy()
+      self._calorie_listener = nil
    end
 end
 
