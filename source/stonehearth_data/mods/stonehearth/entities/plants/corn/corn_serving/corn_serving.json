@@ -3,8 +3,8 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Amazing Maize",
-         "description": "Heavenly nutritious."
+         "name": "Corn Cob",
+         "description": "Crunch and spray."
       },      
       "stonehearth:material" : {
          "tags" : "food"
@@ -12,21 +12,18 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(amazing_corn_serving.qb)"
+               "file(corn_serving.qb)"
             ]
          }
-      },
-      "mob" : {
-         "model_origin" : { "x": 0, "y": 0, "z": 0 }
       }
    },
    "entity_data" : {
       "stonehearth:food" : {
          "stonehearth:sitting_on_chair" : {
-            "satisfaction" : 200
+            "satisfaction" : 35
          },
          "default" : {
-            "satisfaction" : 100
+            "satisfaction" : 30
          }
       }
    }   

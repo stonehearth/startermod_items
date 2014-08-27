@@ -52,7 +52,7 @@
       },
       "stonehearth:crop" : {
          "resource_pairings" : {
-            "corn_3": "stonehearth:corn_cob",
+            "corn_3": "stonehearth:corn_serving",
             "corn_4": "stonehearth:corn_basket",
             "corn_5": "stonehearth:amazing_corn_basket",
             "corn_8": ""
