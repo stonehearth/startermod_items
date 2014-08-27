@@ -65,7 +65,7 @@ function CarryBlock:_remove_carrying()
       self:_destroy_carried_item_trace()
 
       if self._sv._carried_item:is_valid() then
-         log:info('%s removing %s from carry bone', self._entity, new_item)
+         log:info('%s removing %s from carry bone', self._entity, self._sv._carried_item)
 
          self._entity:add_component('entity_container')
                            :remove_child(self._sv._carried_item:get_id())
