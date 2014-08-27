@@ -96,7 +96,7 @@ function DefendMelee:_schedule_defense(assault_context, defend_info)
       -- buffer time ensures that we have enough time to get to run before starting the effect
       self._timer = stonehearth.combat:set_timer(defend_start_delay - buffer_time,
          function()
-            if self._assault_context.assault_active then
+            if self._assault_context.assault_active and self._ai ~= nil then
                self._ai:set_think_output()
             end
          end
