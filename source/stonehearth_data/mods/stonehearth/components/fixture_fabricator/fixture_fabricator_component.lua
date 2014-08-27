@@ -23,8 +23,10 @@ function FixtureFabricator:destroy()
    self:_destroy_item_tracker_listener()
    self:_destroy_placeable_item_trace()
 
-   self._deps_listener:destroy()
-   self._deps_listener = nil
+   if self._deps_listener then
+      self._deps_listener:destroy()
+      self._deps_listener = nil
+   end
 end
 
 -- turn the fixture fabricator off or on.  we'll only try to put the
