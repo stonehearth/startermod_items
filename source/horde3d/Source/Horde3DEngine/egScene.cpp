@@ -469,7 +469,7 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
          int numRemoved = _gridElements[gridNum]._nodes.erase(&sceneNode);
          ASSERT(numRemoved == 1);
       }
-      _nodeGridLookup[h].clear();
+      _nodeGridLookup.erase(h);
       auto &iter = _nocullNodes.find(h);
       if (iter != _nocullNodes.end()) {
          _nocullNodes.erase(iter);
