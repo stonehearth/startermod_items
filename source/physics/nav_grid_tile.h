@@ -86,7 +86,6 @@ public:
 private:
    NO_COPY_CONSTRUCTOR(NavGridTile);
    friend NavGridTileData;
-   std::shared_ptr<NavGridTileData> GetTileData();
 
 private:
    void MarkDirty(TrackerType type);
@@ -113,7 +112,7 @@ private:
    NavGrid&                                  _ng;
    TrackerMap                                trackers_;
    csg::Point3                               _index;
-   std::shared_ptr<NavGridTileData>          data_;
+   std::unique_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
    std::vector<CollisionTrackerRef>          tempTrackers_;
 };

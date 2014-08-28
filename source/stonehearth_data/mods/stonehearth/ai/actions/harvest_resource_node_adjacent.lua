@@ -24,11 +24,11 @@ function HarvestResourceNodeAdjacent:run(ai, entity, args)
 
    if factory then
       radiant.entities.turn_to_face(entity, node)
+      local location = radiant.entities.get_world_grid_location(entity)
       repeat
          local effect = factory:get_harvester_effect()
          ai:execute('stonehearth:run_effect', { effect = effect})
 
-         local location = radiant.entities.get_world_grid_location(entity)
          factory:spawn_resource(location)
       until not node:is_valid()   
     

@@ -247,10 +247,10 @@ bool NavGridTile::IsDataResident() const
  */
 void NavGridTile::SetDataResident(bool value)
 {
-   if (value && !data_) {
-      data_ = std::make_shared<NavGridTileData>();
-   } else if (!value && data_) {
-      data_ = nullptr;
+   if (value && !IsDataResident()) {
+      data_.reset(new NavGridTileData());
+   } else if (!value && IsDataResident()) {
+      data_.reset(nullptr);
    }
 }
 
@@ -296,18 +296,6 @@ csg::Cube3 NavGridTile::GetWorldBounds(csg::Point3 const& index) const
 {
    csg::Point3 min(index.Scaled(TILE_SIZE));
    return csg::Cube3(min, min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-}
-
-/*
- * -- NavGridTile::GetTileData
- *
- * Get the NavGridTileData for this tile.  This is only used by other
- * NavGridTileData objects to handle computation on the borders.
- *
- */
-std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
-{
-   return data_;
 }
 
 /*

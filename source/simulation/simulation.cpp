@@ -762,9 +762,8 @@ void Simulation::Mainloop()
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
 
-   //LuaGC();
+   LuaGC();
    Idle();
-
 }
 
 void Simulation::LuaGC()
