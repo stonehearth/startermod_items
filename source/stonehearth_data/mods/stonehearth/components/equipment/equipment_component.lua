@@ -6,11 +6,28 @@ function EquipmentComponent:initialize(entity, json)
    if not self._sv.equipped_items then
       self._sv.equipped_items = {}
    end
+   self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
 end
 
 function EquipmentComponent:destroy()
    -- xxx, revoke injected ais for all equipped items
    --stonehearth.ai:revoke_injected_ai(self._injected_ai_token)
+   self._kill_listener:destroy()
+   self._kill_listener = nil
+end
+
+--When we've been killed, dump things that are >0 iLevel on the ground
+function EquipmentComponent:_on_kill_event()
+   if self._sv.equipped_items then
+      for key, item in pairs(self._sv.equipped_items) do
+         local ep = item:get_component('stonehearth:equipment_piece')
+         if ep and ep:get_ilevel() > 0 then 
+            local location = radiant.entities.get_world_grid_location(self._entity)
+            local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+            radiant.terrain.place_entity(item, placement_point)
+         end
+      end
+   end
 end
 
 -- use pairs (not ipairs) to iterate through all the itmes
