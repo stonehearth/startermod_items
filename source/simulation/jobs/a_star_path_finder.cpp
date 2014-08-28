@@ -76,7 +76,8 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    entity_(entity),
    world_changed_(false),
    direct_path_search_cooldown_(0),
-   debug_color_(255, 192, 0, 128)
+   debug_color_(255, 192, 0, 128),
+   _rebuildOpenHeuristics(false)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -197,11 +198,12 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
    auto dstEntity = e.lock();
    if (dstEntity) {
-      auto changed_cb = [this](const char* reason) {
-         RestartSearch(reason);
+      auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
+         OnPathFinderDstChanged(dst, reason);
       };
-      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb));
-      RestartSearch("added destination");
+      PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
+      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(dst);
+      OnPathFinderDstChanged(*dst, "added destination");
    }
    return shared_from_this();
 }
@@ -260,53 +262,35 @@ void AStarPathFinder::Restart()
 
 void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
-   std::vector<csg::Point3> best;
    csg::Color4 pathColor;
    if (!solution_) {
-      RecommendBestPath(best);
       pathColor = csg::Color4(192, 32, 0);
    } else {
-      best = solution_->GetPoints();
       pathColor = csg::Color4(32, 192, 0);
    }
 
-   for (const auto& pt : best) {
-      auto coord = msg->add_coords();
-      pt.SaveValue(coord);
-      pathColor.SaveValue(coord->mutable_color());
-   }
-
-#if 0
    float min_h = FLT_MAX;
    float max_h = FLT_MIN;
    std::unordered_map<csg::Point3, float, csg::Point3::Hash> costs;
    for (const auto& node: open_) {
-      if (std::find(best.begin(), best.end(), node.pt) == best.end()) {
-         float h = EstimateCostToDestination(node.pt);
-         min_h = std::min(min_h, h);
-         max_h = std::max(max_h, h);
-         costs[node.pt] = h;
-      }
+      float h = EstimateCostToDestination(node.pt);
+      min_h = std::min(min_h, h);
+      max_h = std::max(max_h, h);
+      costs[node.pt] = h;
    }
    for (const auto& node: open_) {
-      if (std::find(best.begin(), best.end(), node.pt) == best.end()) {
-         auto coord = msg->add_coords();
-         node.pt.SaveValue(coord);
-         int c = static_cast<int>(255 * costs[node.pt] / (max_h - min_h));
-         csg::Color4(c, c, c, 192).SaveValue(coord->mutable_color());
-      }
-   }
-#endif
+      auto coord = msg->add_coords();
+      int c = static_cast<int>(255 * costs[node.pt] / (max_h - min_h));
 
-#if 0
-   for (const auto& pt: closed_) {
-      if (std::find(best.begin(), best.end(), pt) == best.end()) {
-         auto coord = msg->add_coords();
-         pt.SaveValue(coord);
-         csg::Color4(0, 0, 128, 192).SaveValue(coord->mutable_color());
-      }
+      node.pt.SaveValue(coord);
+      csg::Color4(c, c, c, 255).SaveValue(coord->mutable_color());
    }
-#endif
+
+   for (const auto& pt: closed_) {
+      auto coord = msg->add_coords();
+      pt.SaveValue(coord);
+      csg::Color4(0, 0, 64, 192).SaveValue(coord->mutable_color());
+   }
 
    for (const auto& dst : destinations_) {
       dst.second->EncodeDebugShapes(msg, debug_color_);
@@ -326,6 +310,21 @@ void AStarPathFinder::Work(const platform::timer &timer)
          PF_LOG(7) << "open set is empty!  returning";
          SetSearchExhausted();
          return;
+      }
+
+      if (_rebuildOpenHeuristics) {
+         // The value of h for all search points has changed!  That doesn't
+         // affect g, though.  Go through the whole openset and re-compute
+         // f based on the existing g and the new h.
+         for (PathFinderNode& node : open_) {
+            float h = EstimateCostToDestination(node.pt);      
+            node.f = node.g + h;
+         }
+         _rebuildOpenHeuristics = false;
+
+         // Changing all those f's around probably destroyed the heap property
+         // of the open vector, so rebuild it.
+         rebuildHeap_ = true;
       }
 
       if (rebuildHeap_) {
@@ -604,20 +603,21 @@ PathPtr AStarPathFinder::GetSolution() const
 
 AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
 {
-   PF_LOG(3) << "requesting search restart: " << reason;
-   restart_search_ = true;
-   search_exhausted_ = false;
-   solution_ = nullptr;
-   cameFrom_.clear();
-   closed_.clear();
-   open_.clear();
+   if (!restart_search_) {
+      PF_LOG(3) << "requesting search restart: " << reason;
+      restart_search_ = true;
+      search_exhausted_ = false;
+      solution_ = nullptr;
+      cameFrom_.clear();
+      closed_.clear();
+      open_.clear();
 
-   world_changed_ = false;
-   watching_tiles_.clear();
-   direct_path_search_cooldown_ = 0;
+      world_changed_ = false;
+      watching_tiles_.clear();
+      direct_path_search_cooldown_ = 0;
 
-   EnableWorldWatcher(false);
-   
+      EnableWorldWatcher(false);
+   }   
    return shared_from_this();
 }
 
@@ -730,3 +730,14 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathF
    SolveSearch(solution, dst);
    return true;
 }
+
+void AStarPathFinder::OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason)
+{
+   if (false) {
+      // the dst contains a closed node
+      RestartSearch(reason);
+      return;
+   }
+   _rebuildOpenHeuristics = true;
+}
+

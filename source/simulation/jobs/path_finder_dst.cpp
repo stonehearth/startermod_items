@@ -49,7 +49,7 @@ void PathFinderDst::Start()
          auto ep = dstEntity_.lock();
          if (ep) {
             ClipAdjacentToTerrain();
-            changed_cb_(reason);
+            changed_cb_(*this, reason);
          }
       };
 
