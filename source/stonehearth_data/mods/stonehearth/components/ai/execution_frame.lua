@@ -733,6 +733,11 @@ function ExecutionFrame:_set_active_unit(unit, think_output)
          new_entity_state = self._saved_entity_state
          self._log:spam('copying saved state %s to current state %s', tostring(new_entity_state), tostring(self._current_entity_state))
       end
+
+      -- clear the table to make sure nil values are copied from the new to the current state
+      for name in pairs(self._current_entity_state) do
+         self._current_entity_state[name] = nil
+      end
       for name, value in pairs(new_entity_state) do
          self._current_entity_state[name] = value
       end

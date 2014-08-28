@@ -10,12 +10,74 @@
    .output {
       height: 200px;
       padding: 4px;
-      white-space: pre;
       overflow: auto;
-      .title {
-         font-weight: bold;
-         font-color: #ccf;
-      }      
+
+      .command {
+         position: relative;
+         .title {
+            min-width: 256px;
+            font-weight: bold;
+            font-color: #ccf;
+         }
+      }
+
+      .graph {
+         .legend {
+            vertical-align: top;
+            display: inline-block;
+         }
+
+         .yaxis {
+            width:100px;
+            display: inline-block;
+         }
+
+         .chart_container {
+            display: inline-block;
+         };
+
+         .chart {
+            display: inline-block;
+         }
+      }
+
+      .floating {
+         .debug;
+         position:absolute;
+      }
+
+      .hover {
+      }
+
+      .buttons {
+         position: absolute;
+         top: 2px;
+         right: 2px;
+         white-space: auto;
+
+         div {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            -webkit-filter: invert(100%);
+         }
+         .hover {
+            background: #0f0;
+         }
+         .button {
+            margin-left: 4px;
+         }
+         background: #002;
+      }
+      #close_button {
+         background-image: url(icons/x-2x.png);
+      }
+      #popout_button {
+         background-image: url(icons/external-link-2x.png);
+      }
+      #graph_button {
+         background-image: url(icons/graph-2x.png);
+      }
    }
 
    .input {

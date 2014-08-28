@@ -203,7 +203,7 @@ private:
    FreeMotionTaskMap                   freeMotionTasks_;
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
-
+   std::vector<std::function<void()>>  _bottomLoopFns;
    std::string                         _versionStr;
 };
 

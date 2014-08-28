@@ -12,6 +12,10 @@
          "quantity" : 5
       },
       {
+         "crop_type" : "stonehearth:pumpkin_crop",
+         "quantity" : 5
+      },
+      {
          "crop_type" : "stonehearth:silkweed_crop",
          "quantity" : 5
       }      

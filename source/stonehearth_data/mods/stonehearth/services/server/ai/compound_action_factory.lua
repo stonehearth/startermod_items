@@ -10,16 +10,8 @@ function CompoundActionFactory:__init(action)
    self.priority = action.priority
 
    self._base_action = action
-   self._when_sequence = {}
    self._activity_sequence = {}
    self._think_output_placeholders = nil
-end
-
-function CompoundActionFactory:when(fn)
-   assert(#self._activity_sequence == 0, 'all when clauses must be placed at the start of a compound action')
-   assert(not self._think_output_placeholders, 'all when clauses must be placed at the start of a compound action')
-   table.insert(self._when_sequence, fn)
-   return self
 end
 
 function CompoundActionFactory:execute(name, args)
@@ -37,7 +29,7 @@ function CompoundActionFactory:set_think_output(arg_placeholders)
 end
 
 function CompoundActionFactory:create_action(entity, injecting_entity)
-   return CompoundAction(entity, injecting_entity, self._base_action, self._activity_sequence, self._when_sequence, self._think_output_placeholders)
+   return CompoundAction(entity, injecting_entity, self._base_action, self._activity_sequence, self._think_output_placeholders)
 end
 
 return CompoundActionFactory

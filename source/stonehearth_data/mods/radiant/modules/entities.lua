@@ -431,19 +431,17 @@ function entities.get_display_name(entity)
    radiant.check.is_entity(entity)
 
    local component = entity:get_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   return component:get_display_name()
+   if component then
+      return component:get_display_name()
+   end
 end
 
 function entities.set_display_name(entity, name)
    radiant.check.is_entity(entity)
    radiant.check.is_string(name)
 
-   local component = entity:add_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   component:set_display_name(name)
+   entity:add_component('unit_info')
+               :set_display_name(name)
 end
 
 function entities.get_attribute(entity, attribute_name)
@@ -828,10 +826,6 @@ function entities.is_material(entity, materials)
       is_material = material_component:is(materials)
    end
    return is_material
-end
-
-function entities.same_entity(e0, e1)
-   return e0 and e1 and e0:is_valid() and e1:is_valid() and e0:equals(e1)
 end
 
 function entities.local_to_world(pt, e)

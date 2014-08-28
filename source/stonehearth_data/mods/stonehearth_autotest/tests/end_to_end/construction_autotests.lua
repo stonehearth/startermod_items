@@ -45,6 +45,7 @@ function construction_tests.simple_build(autotest)
    autotest.ui:click_terrain(-4, -2)
 
    autotest.ui:click_dom_element('#startBuilding')
+   autotest.ui:click_dom_element('#confirmBuilding')
    autotest.ui:click_dom_element('.stonehearthMenu .close')
 
    autotest:sleep(3*60*1000)

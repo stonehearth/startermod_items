@@ -1,0 +1,35 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 6,
+         "max_stacks" : 6
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(pumpkin_harvest.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Pumpkin",
+         "description": "Ready for eating",
+         "icon" : "file(pumpkin_harvest.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource vegetable food_container pumpkin"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:pumpkin_serving",
+         "stacks_per_serving": 6
+      }
+   }
+}

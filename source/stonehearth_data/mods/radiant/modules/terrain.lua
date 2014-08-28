@@ -45,8 +45,10 @@ function Terrain.place_entity_at_exact_location(entity, location, options)
 end
 
 function Terrain.remove_entity(entity)
-   radiant.entities.remove_child(radiant._root_entity, entity)
-   radiant.entities.move_to(entity, Point3.zero)
+   if entity and entity:is_valid() then
+      radiant.entities.remove_child(radiant._root_entity, entity)
+      radiant.entities.move_to(entity, Point3.zero)
+   end
 end
 
 function Terrain.get_standable_point(entity, pt)
