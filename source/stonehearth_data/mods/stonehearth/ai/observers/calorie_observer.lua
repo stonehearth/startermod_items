@@ -114,13 +114,13 @@ function CalorieObserver:_on_hourly(e)
    self._attributes_component:set_attribute('calories', calories)
 
    --If it's mealtime, everyone go eat. 
-   self:_handle_mealtimes(e.now.hour)
+   self:_handle_mealtimes(e.now.hour, calories)
 end
 
 -- If it's mealtime, start the looking for food task
 -- TODO: is this necessary: If it's not mealtime, and we're not malnourished, stop eating
-function CalorieObserver:_handle_mealtimes(hour)
-   if hour == stonehearth.constants.food.MEALTIME_START then
+function CalorieObserver:_handle_mealtimes(hour, calories)
+   if hour == stonehearth.constants.food.MEALTIME_START and  calories < stonehearth.constants.food.MAX_ENERGY then
       self:_start_eat_task()
    end
 end
