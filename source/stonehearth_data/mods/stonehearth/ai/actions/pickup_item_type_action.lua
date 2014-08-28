@@ -13,11 +13,14 @@ PickupItemType.think_output = {
 PickupItemType.version = 2
 PickupItemType.priority = 1
 
+function PickupItemType:start_thinking(ai, entity, args)
+   if not ai.CURRENT.carrying then
+      ai:set_think_output()
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItemType)
-         :when( function (ai)
-               return ai.CURRENT.carrying == nil
-            end )
          :execute('stonehearth:goto_entity_type', {
             filter_fn = ai.ARGS.filter_fn,
             description = ai.ARGS.description,

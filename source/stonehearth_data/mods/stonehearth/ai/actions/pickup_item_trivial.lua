@@ -9,9 +9,10 @@ PickupItemTrivial.args = {
 PickupItemTrivial.version = 2
 PickupItemTrivial.priority = 1
 
+function PickupItemTrivial:start_thinking(ai, entity, args)
+   if ai.CURRENT.carrying == args.item then
+      ai:set_think_output()
+   end
+end
 
-local ai = stonehearth.ai
-return ai:create_compound_action(PickupItemTrivial)
-         :when( function (ai, entity, args)
-               return radiant.entities.same_entity(ai.CURRENT.carrying, args.item)
-            end )
+return PickupItemTrivial

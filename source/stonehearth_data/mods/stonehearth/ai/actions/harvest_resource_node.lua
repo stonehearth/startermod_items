@@ -11,9 +11,11 @@ HarvestResourceNode.version = 2
 HarvestResourceNode.priority = 1
 
 function HarvestResourceNode:start_thinking(ai, entity, args)
-   local resource_node_component = args.node:get_component('stonehearth:resource_node')
-   if resource_node_component and resource_node_component:is_harvestable() then
-      ai:set_think_output()
+   if not ai.CURRENT.carrying then
+      local resource_node_component = args.node:get_component('stonehearth:resource_node')
+      if resource_node_component and resource_node_component:is_harvestable() then
+         ai:set_think_output()
+      end
    end
 end
 
@@ -28,7 +30,6 @@ local harvest_range = entity_reach + tool_reach + resource_radius
 
 local ai = stonehearth.ai
 return ai:create_compound_action(HarvestResourceNode)
-         :when( function (ai) return ai.CURRENT.carrying == nil end )
          :execute('stonehearth:goto_entity', {
             entity = ai.ARGS.node,
             stop_distance = harvest_range,
