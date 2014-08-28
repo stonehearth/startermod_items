@@ -12,10 +12,6 @@ RunToLocation.args = {
       type = 'boolean',   -- whether to stop adjacent to destination
       default = false,
    },
-   move_effect = {
-      type = 'string',
-      default = 'run',
-   },
 }
 RunToLocation.version = 2
 RunToLocation.priority = 1
@@ -30,5 +26,4 @@ return ai:create_compound_action(RunToLocation)
          })
          :execute('stonehearth:goto_entity', {
             entity = ai.PREV.entity,
-            move_effect = ai.ARGS.move_effect,
          })

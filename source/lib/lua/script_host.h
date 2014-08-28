@@ -30,8 +30,6 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void ClearMemoryProfile();
-   void ProfileMemory(bool value);
    void WriteMemoryProfile(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
@@ -99,6 +97,7 @@ public: // the static interface
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
+   static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
@@ -135,7 +134,7 @@ private:
 
    // Memory profiling
    bool                 enable_profile_memory_;
-   bool                 profile_memory_;
+   int                  _gc_setting;
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;

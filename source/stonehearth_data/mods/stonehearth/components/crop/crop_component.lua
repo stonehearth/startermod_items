@@ -15,15 +15,14 @@ function CropComponent:initialize(entity, json)
       self._sv.harvestable = false
    else
       --We're loading
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+      radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             if self._sv.harvestable then
                radiant.events.trigger_async(self._entity, 'stonehearth:crop_harvestable', {crop = self._entity})
             end
-            return radiant.events.UNLISTEN
          end)
    end
 
-   radiant.events.listen(entity, 'radiant:entity:post_create', self, self._on_create_complete)
+   radiant.events.listen_once(entity, 'radiant:entity:post_create', self, self._on_create_complete)
 end
 
 function CropComponent:get_product()
@@ -39,16 +38,18 @@ function CropComponent:get_dirt_plot()
 end
 
 function CropComponent:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:growing', self, self._on_grow_period)
+   if self._growing_listener then
+      self._growing_listener:destroy()
+      self._growing_listener = nil
+   end
 end
 
 --- When all components are created, double-check on whether this is a growing crop
 function CropComponent:_on_create_complete()
    --If this is the sort of crop that will change as it grows
    if self._entity:get_component('stonehearth:growing') then
-      radiant.events.listen(self._entity, 'stonehearth:growing', self, self._on_grow_period)
+      self._growing_listener = radiant.events.listen(self._entity, 'stonehearth:growing', self, self._on_grow_period)
    end
-   return radiant.events.UNLISTEN
 end
 
 --- As we grow, change the resources we yield and, if appropriate, command harvest
@@ -69,7 +70,10 @@ function CropComponent:_on_grow_period(e)
    end
    if e.finished then
       --TODO: is growth ever really complete? Design the difference between "can't continue" and "growth complete"
-      radiant.events.unlisten(self._entity, 'stonehearth:growing', self, self._on_grow_period)
+      if self._growing_listener then
+         self._growing_listener:destroy()
+         self._growing_listener = nil
+      end
    end
    self.__saved_variables:mark_changed()
 end

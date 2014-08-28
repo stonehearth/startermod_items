@@ -416,13 +416,33 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // building buttons
       this.$('#startBuilding').click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
-         var building_entity = self.get('building');
-         if (building_entity) {
-            var value = !self.get('building.active')
-            //stonehearth.server.build.set_building_active(building_entity.__self, value);
-            radiant.call('stonehearth:set_building_active', building_entity.__self, value)
+         var doStartBuilding = function() {
+            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
+            var building_entity = self.get('building');
+            if (building_entity) {
+               var value = !self.get('building.active')
+               radiant.call('stonehearth:set_building_active', building_entity.__self, value);
+
+               //xxx hack! The server should do this for us
+               self.set('building.active', true);
+            }
          }
+
+         App.gameView.addView(App.StonehearthConfirmView, 
+            { 
+               title : "Really Start Building?",
+               message : "Once you begin building this structure it cannot be edited. Are you sure you want to build now?",
+               buttons : [
+                  { 
+                     id: 'confirmBuilding',
+                     label: "Yes, start building!",
+                     click: doStartBuilding
+                  },
+                  {
+                     label: "Not yet, I have more edits"
+                  }
+               ] 
+            });         
       });
 
       this.$('#removeBuilding').click(function() {

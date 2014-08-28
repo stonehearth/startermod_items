@@ -12,10 +12,6 @@ RunAwayFromEntity.does = 'stonehearth:run_away_from_entity'
 RunAwayFromEntity.args = {
    threat = Entity,
    distance = 'number',
-   move_effect = {
-      type = 'string',
-      default = 'run',
-   },
 }
 RunAwayFromEntity.version = 1
 RunAwayFromEntity.priority = 1
@@ -39,10 +35,7 @@ function RunAwayFromEntity:start_thinking(ai, entity, args)
 end
 
 function RunAwayFromEntity:run(ai, entity, args)
-   ai:execute('stonehearth:go_toward_location', {
-      destination = self._destination,
-      move_effect = args.move_effect,
-   })
+   ai:execute('stonehearth:go_toward_location', { destination = self._destination })
 end
 
 function RunAwayFromEntity:_choose_destination(entity, threat, distance)

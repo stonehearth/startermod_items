@@ -63,8 +63,7 @@
             "stonehearth:actions:combat:get_primary_target",
             "stonehearth:actions:combat:set_global_attack_cooldown",
             "stonehearth:actions:combat:wait_for_global_attack_cooldown",
-            "stonehearth:actions:set_posture",
-            "stonehearth:actions:unset_posture"
+            "stonehearth:actions:set_posture"
          ],
          "observers": [
             "stonehearth:observers:aggro",

@@ -29,6 +29,7 @@ private:
    CoreReactor&            core_;
    ReactorDeferredPtr      get_events_deferred_;
    JSONNode                queued_events_;
+   std::unordered_map<int, ReactorDeferredPtr> _deferreds;
 };
 
 END_RADIANT_RPC_NAMESPACE

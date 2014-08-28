@@ -95,6 +95,11 @@ int FollowPath::CalculateStopIndex(csg::Point3f const& startLocation, std::vecto
    return index;
 }
 
+void FollowPath::SetSpeed(float speed)
+{
+   speed_ = speed;
+}
+
 static float angle(csg::Point3f const& v)
 {
    ASSERT(v.x != 0 || v.z != 0);

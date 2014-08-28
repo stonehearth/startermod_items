@@ -30,7 +30,7 @@ function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destro
 
    self._log:info("created")
 
-   radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
+   self._reconsider_listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
 end
 
 -- destroys the bfs pathfinder.   the pathfinder is destroyed when the last solution function
@@ -39,7 +39,9 @@ end
 function SharedBfsPathFinder:_destroy()
    self._log:info("destroying")
    self:_stop_pathfinder()
-   radiant.events.unlisten(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
+
+   self._reconsider_listener:destroy()
+   self._reconsider_listener = nil
    self._on_destroy_cb()
 end
 

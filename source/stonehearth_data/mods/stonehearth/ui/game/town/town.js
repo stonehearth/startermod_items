@@ -15,8 +15,8 @@ App.StonehearthTownView = App.View.extend({
       this._super();
       self.set('context.town_name', App.stonehearthClient.settlementName())
 
-      this._popTrace = App.population.getTrace()
-         .progress(function(pop) {
+      this._popTrace = App.population.getTrace();
+      this._popTrace.progress(function(pop) {
             var numWorkers = 0;
             var numCrafters = 0;
             var numSoldiers = 0;

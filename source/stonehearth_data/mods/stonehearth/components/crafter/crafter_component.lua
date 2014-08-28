@@ -40,8 +40,8 @@ function CrafterComponent:initialize(entity, json)
 
    local inventory = stonehearth.inventory:get_inventory(self._entity)
    self:_determine_maintain()
-   radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
-   radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+   self._added_listener = radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
+   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
 
 end
 
@@ -51,8 +51,12 @@ function CrafterComponent:destroy()
       self._orchestrator = nil
    end
    local inventory = stonehearth.inventory:get_inventory(self._entity)
-   radiant.events.unlisten(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
-   radiant.events.unlisten(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+
+   self._added_listener:destroy()
+   self._added_listener = nil
+
+   self._removed_listener:destroy()
+   self._removed_listener = nil
 end
 
 function CrafterComponent:_on_storage_changed()

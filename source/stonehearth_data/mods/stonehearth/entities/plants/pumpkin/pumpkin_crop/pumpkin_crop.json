@@ -1,0 +1,87 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(pumpkin_crop_4.qb)"
+            ]
+         },
+         "pumpkin_1": {
+            "models": [
+               "file(pumpkin_crop_1.qb)"
+            ]
+         },
+         "pumpkin_2": {
+            "models": [
+               "file(pumpkin_crop_2.qb)"
+            ]
+         },
+         "pumpkin_3": {
+            "models": [
+               "file(pumpkin_crop_3.qb)"
+            ]
+         },
+         "pumpkin_4": {
+            "models": [
+               "file(pumpkin_crop_4.qb)"
+            ]
+         }, 
+         "pumpkin_12": {
+            "models": [
+               "file(pumpkin_crop_12.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Pumpkin", 
+         "description": "Big, round, and fast-growing, but tasty it is not.",
+         "icon" : "file(icon.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "pumpkin_3": "stonehearth:pumpkin",
+            "pumpkin_4": "stonehearth:pumpkin_harvest", 
+            "pumpkin_12": ""
+         },
+         "harvest_threshhold" : "pumpkin_4",
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json"
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "7h",
+         "growth_stages" : [
+            {
+               "model_name" : "pumpkin_1",
+               "name": "Pumpkin Seedling", 
+               "description": "A unrealized pumpkin."
+            },
+            {
+               "model_name" : "pumpkin_2",
+               "name": "Pumpkin Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "pumpkin_3",
+               "name": "Baby pumpkin", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "pumpkin_4",
+               "name": "Ripe pumpkin", 
+               "description": "Delicious!"
+            }, {}, {}, {}, {}, {}, {}, {},
+            {
+               "model_name" : "pumpkin_12",
+               "name": "Rotten pumpkin", 
+               "description": "Moldy and disgusting."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop pumpkin"
+      }
+   }
+}
