@@ -28,9 +28,9 @@ function TrapperTest:__init()
    self:place_item('stonehearth:berry_bush', -15, 15)
    self:place_item('stonehearth:silkweed',  -5, 15)
 
-   self:place_citizen(10, 10, 'stonehearth:professions:trapper', 'stonehearth:trapper:knife_proxy')
-   --self:place_citizen(8, 8, 'stonehearth:professions:trapper', 'stonehearth:trapper:knife_proxy')
-   --self:place_citizen(8, 8, 'stonehearth:professions:footman', 'stonehearth:trapper:wooden_sword_proxy')
+   self:place_citizen(10, 10, 'stonehearth:professions:trapper')
+   --self:place_citizen(8, 8, 'stonehearth:professions:trapper')
+   --self:place_citizen(8, 8, 'stonehearth:professions:footman')
    -- self:place_citizen(12, 12)
    -- self:place_citizen(14, 14)
 

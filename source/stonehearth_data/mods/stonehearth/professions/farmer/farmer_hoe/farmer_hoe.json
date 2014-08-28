@@ -21,6 +21,9 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(farmer_hoe_talisman.json)"
+      },
       "stonehearth:equipment_piece" : {
          "slot" : "mainHand",
          "render_type" : "attach_to_bone",
