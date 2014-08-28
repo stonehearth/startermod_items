@@ -462,6 +462,7 @@ function ExecutionUnitV2:_destroy_from_thinking()
    self:_destroy_execution_frames()
    self:_call_stop_thinking()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -477,6 +478,7 @@ function ExecutionUnitV2:_destroy_from_starting()
       self:_call_stop()
    end
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -485,6 +487,7 @@ function ExecutionUnitV2:_destroy_from_stopping()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -493,6 +496,7 @@ function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -501,6 +505,7 @@ function ExecutionUnitV2:_destroy_from_running()
    self:_destroy_execution_frames()
    self:_call_stop()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -509,6 +514,7 @@ function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -571,6 +577,13 @@ function ExecutionUnitV2:_destroy_execution_frames()
    end
    self._execution_frames = {}
    self._current_execution_frame = nil
+end
+
+function ExecutionUnitV2:_destroy_interface()
+   for k, v in pairs(self._ai_interface) do
+      self._ai_interface[k] = nil
+   end
+   self._ai_interface = {}
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)
