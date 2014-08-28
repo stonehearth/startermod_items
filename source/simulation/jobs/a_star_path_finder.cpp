@@ -313,18 +313,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       if (_rebuildOpenHeuristics) {
-         // The value of h for all search points has changed!  That doesn't
-         // affect g, though.  Go through the whole openset and re-compute
-         // f based on the existing g and the new h.
-         for (PathFinderNode& node : open_) {
-            float h = EstimateCostToDestination(node.pt);      
-            node.f = node.g + h;
-         }
-         _rebuildOpenHeuristics = false;
-
-         // Changing all those f's around probably destroyed the heap property
-         // of the open vector, so rebuild it.
-         rebuildHeap_ = true;
+         RebuildOpenHeuristics();
       }
 
       if (rebuildHeap_) {
@@ -447,6 +436,10 @@ float AStarPathFinder::EstimateCostToSolution()
    if (restart_search_) {
       Restart();
    }
+   if (_rebuildOpenHeuristics) {
+      RebuildOpenHeuristics();
+   }
+
    if (IsIdle()) {
       return FLT_MAX;
    }
@@ -740,4 +733,21 @@ void AStarPathFinder::OnPathFinderDstChanged(PathFinderDst const& dst, const cha
    }
    _rebuildOpenHeuristics = true;
 }
+
+void AStarPathFinder::RebuildOpenHeuristics()
+{
+   // The value of h for all search points has changed!  That doesn't
+   // affect g, though.  Go through the whole openset and re-compute
+   // f based on the existing g and the new h.
+   for (PathFinderNode& node : open_) {
+      float h = EstimateCostToDestination(node.pt);      
+      node.f = node.g + h;
+   }
+   _rebuildOpenHeuristics = false;
+
+   // Changing all those f's around probably destroyed the heap property
+   // of the open vector, so rebuild it.
+   rebuildHeap_ = true;
+}
+
 

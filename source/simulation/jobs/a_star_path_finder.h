@@ -83,6 +83,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void EnableWorldWatcher(bool enabled);
       bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst);
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
+      void RebuildOpenHeuristics();
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
