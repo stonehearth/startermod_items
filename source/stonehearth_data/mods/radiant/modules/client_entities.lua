@@ -16,7 +16,7 @@ function client_entities.create_entity(ref)
 end
 
 function client_entities.destroy_entity(entity)
-   if entity then
+   if entity and entity:is_valid() then
       _radiant.client.destroy_authoring_entity(entity:get_id())
    end
 end
