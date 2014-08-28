@@ -27,10 +27,7 @@ App.StonehearthConsoleView = App.View.extend({
          if (e.which == 13) { // return
             var command = $(this).val();
             $(this).val('');
-
             radiant.console.run(command);
-            //xxx, call something on the server. In the done handler, call _appendToConsole?
-            //self._appendToConsole(command)            
          }
       });
 
@@ -43,11 +40,4 @@ App.StonehearthConsoleView = App.View.extend({
          .val('')
          .focus();
    },
-
-   _appendToConsole: function(message) {
-      var self = this;
-      
-      self.$('.output').append('\n' + message);
-   }
-
 });

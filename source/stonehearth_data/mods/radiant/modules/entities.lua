@@ -431,19 +431,17 @@ function entities.get_display_name(entity)
    radiant.check.is_entity(entity)
 
    local component = entity:get_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   return component:get_display_name()
+   if component then
+      return component:get_display_name()
+   end
 end
 
 function entities.set_display_name(entity, name)
    radiant.check.is_entity(entity)
    radiant.check.is_string(name)
 
-   local component = entity:add_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   component:set_display_name(name)
+   entity:add_component('unit_info')
+               :set_display_name(name)
 end
 
 function entities.get_attribute(entity, attribute_name)

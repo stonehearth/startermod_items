@@ -17,10 +17,10 @@ function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destro
    NEXT_ID = NEXT_ID + 1
    self._root_entity = radiant.entities.get_root_entity()
 
+   self._id = NEXT_ID
    self._entity = entity
    self._start_location = start_location
    self._filter_fn = filter_fn
-   self._description = string.format("id:%d", NEXT_ID)
    self._on_destroy_cb = on_destroy_cb
    self._log = radiant.log.create_logger('bfs_path_finder')
                           :set_prefix(self._description)
@@ -42,6 +42,19 @@ function SharedBfsPathFinder:_destroy()
    radiant.events.unlisten(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
    self._on_destroy_cb()
 end
+
+-- set the description to use when creating the cpp object
+--
+function SharedBfsPathFinder:set_description(description)
+   self._description = description
+end
+
+-- get the description of what we're searching for
+--
+function SharedBfsPathFinder:get_description()
+   return self._description
+end
+
 
 -- registered the `solved_cb` to notify a client that a solution has been found.  this can be
 -- called multiple time to register multiple clients.
@@ -84,7 +97,7 @@ function SharedBfsPathFinder:_start_pathfinder()
    end
 
    self._log:info("starting pathfinder from %s", self._start_location)   
-   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, self._description, self._range)
+   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, 'bfs: ' .. self._description, self._range)
                         :set_source(self._start_location)
                         :set_solved_cb(solved)
                         :set_filter_fn(function(target)
