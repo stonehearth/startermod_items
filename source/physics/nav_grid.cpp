@@ -386,6 +386,7 @@ NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
  * not yet exist.  If you don't want to create the tile if the point is invalid,
  * use .find on tiles_ directly.
  */
+
 NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
 {
    NavGridTileMap::iterator i = tiles_.find(index);
@@ -396,23 +397,23 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
    NavGridTile& tile = i->second;
 
    if (make_resident) {
-      if (tile.IsDataResident()) {
-         for (auto &entry : resident_tiles_) {
-            if (entry.first == index) {
-               entry.second = true;
-               break;
-            }
-         }
-      } else {
+      int cacheIndex = tile.GetResidentTileIndex();
+      if (cacheIndex < 0) {
          NG_LOG(3) << "making nav grid tile " << index << " resident";
-         tile.SetDataResident(true);
          if (resident_tiles_.size() >= max_resident_) {
-            EvictNextUnvisitedTile(index);
+            cacheIndex = EvictNextUnvisitedTile(index);
          } else {
+            cacheIndex = resident_tiles_.size();
             resident_tiles_.push_back(std::make_pair(index, true));
          }
+         tile.SetDataResident(true, cacheIndex);
       }
-      tile.FlushDirty(*this, index);
+      ASSERT(cacheIndex >= 0 && cacheIndex < (int)resident_tiles_.size());
+      ASSERT(cacheIndex == tile.GetResidentTileIndex());
+      ASSERT(resident_tiles_[cacheIndex].first == index);
+
+      resident_tiles_[cacheIndex].second = true;   // Mark resident in the vector
+      tile.FlushDirty(*this);
    }
 
    return tile;
@@ -490,7 +491,7 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
  *
  * (see http://en.wikipedia.org/wiki/Page_replacement_algorithm#Clock)
  */ 
-void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
+int NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
 {
    while (true) {
       if (last_evicted_ == resident_tiles_.size() - 1) {
@@ -505,8 +506,7 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
          GridTileNonResident(entry.first).SetDataResident(false);
          entry.first = pt;
          entry.second = true;
-         last_evicted_++;
-         return;
+         return last_evicted_++;
       }
       last_evicted_++;
    }
