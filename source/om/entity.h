@@ -60,15 +60,27 @@ public:
    void SetUri(std::string str) { uri_ = str; }
 
    void SerializeToJson(json::Node& node) const;
+   void OnLoadObject(dm::SerializationType r) override;
 
 private:
-   template <typename T> void CacheComponent(std::shared_ptr<T> component) { }
-   template <typename T> std::shared_ptr<T> GetCachedComponent() const { return nullptr; }
-   template <typename T> bool IsCachedComponent() const { return false; }
+   template <typename T> void CacheComponent(std::shared_ptr<T> component) {
+   }
+   template <typename T> std::shared_ptr<T> GetCachedComponent() const {
+      return nullptr;
+   }
+   template <typename T> bool IsCachedComponent() const {
+      return false;
+   }
 
-   template <> void CacheComponent<Mob>(std::shared_ptr<Mob> component) { cached_mob_component_ = component; }
-   template <> std::shared_ptr<Mob> GetCachedComponent<Mob>() const { return cached_mob_component_.lock(); }
-   template <> bool IsCachedComponent<Mob>() const { return !cached_mob_component_.expired(); }
+   template <> void CacheComponent<Mob>(std::shared_ptr<Mob> component) {
+      cached_mob_component_ = component;
+   }
+   template <> std::shared_ptr<Mob> GetCachedComponent<Mob>() const {
+      return cached_mob_component_.lock();
+   }
+   template <> bool IsCachedComponent<Mob>() const {
+      return true;
+   }
 
 private:
    void InitializeRecordFields() override;
