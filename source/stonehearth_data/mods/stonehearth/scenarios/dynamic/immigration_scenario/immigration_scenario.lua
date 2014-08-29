@@ -176,12 +176,9 @@ function Immigration:place_citizen(citizen)
       --Spawn somewhere near the center of town
       local faction = town:get_faction()
       local explored_region = stonehearth.terrain:get_visible_region(faction):get()
-      local center_location = _radiant.csg.get_region_centroid(explored_region)
-      local x = radiant.math.round(center_location.x)
-      local y = 0
-      local z = radiant.math.round(center_location.y)
-      local center_grid_location = Point3(x, y, z)
-      spawn_point = radiant.terrain.find_placement_point(center_grid_location, 20, 30)
+      local center_location = _radiant.csg.get_region_centroid(explored_region):to_closest_int()
+      local proposed_location = Point3(center_location.x, 0, center_location.y)
+      spawn_point = radiant.terrain.find_placement_point(proposed_location, 20, 30)
    end
 
    radiant.terrain.place_entity(citizen, spawn_point)
