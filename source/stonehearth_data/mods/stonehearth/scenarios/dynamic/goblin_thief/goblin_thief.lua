@@ -97,6 +97,11 @@ function GoblinThief:_on_spawn_jerk()
 
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
+   if spawn_point then
+      --make sure the spawn point is actually on valid ground
+      spawn_point = radiant.terrain.find_placement_point(spawn_point, 1, 20)
+   end
+
    if not spawn_point then
       -- Couldn't find a spawn point, so reschedule to try again later.
       radiant.entities.destroy_entity(self._sv._goblin)
@@ -105,7 +110,8 @@ function GoblinThief:_on_spawn_jerk()
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=1})
+   --TODO: How do we make sure the whole stockpile is in empty space?
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=1, y=1})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: Right now the filter is broken Why???
    --s_comp:set_filter({'resource wood'})
