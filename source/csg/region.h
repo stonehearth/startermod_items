@@ -6,7 +6,7 @@
 #include <EASTL/fixed_vector.h>
 #include "cube.h"
 
-//#define EASTL_REGIONS
+#define EASTL_REGIONS
 #define INITIAL_CUBE_SPACE    64
 
 BEGIN_RADIANT_CSG_NAMESPACE

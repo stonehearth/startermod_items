@@ -1472,7 +1472,7 @@ void Client::DestroyDatastore(dm::ObjectId id) {
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = authoringStore_->AllocObject<om::Entity>();   
-   om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
+   om::Stonehearth::InitEntity(entity, uri.c_str(), scriptHost_->GetInterpreter());
 
    authoredEntities_[entity->GetObjectId()] = entity;
 

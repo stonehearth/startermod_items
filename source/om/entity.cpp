@@ -95,13 +95,13 @@ template <class T> std::shared_ptr<T> Entity::AddComponent()
 }
 
 
-ComponentPtr Entity::AddComponent(std::string const& name)
+ComponentPtr Entity::AddComponent(const char* name)
 {
    ComponentPtr obj = GetComponent(name);
 
    if (!obj) {
 #define OM_OBJECT(Clas, lower)  \
-      else if (name == #lower) { \
+      else if (strcmp(name, #lower) == 0) { \
          obj = AddComponent<Clas>(); \
       } 
 
@@ -113,12 +113,12 @@ ComponentPtr Entity::AddComponent(std::string const& name)
 }
 
 
-ComponentPtr Entity::GetComponent(std::string const& name) const
+ComponentPtr Entity::GetComponent(const char* name) const
 {
-   return components_.Get(name, nullptr);
+   return components_.Get(name, ComponentPtr());
 }
 
-void Entity::AddLuaComponent(std::string const& name, DataStorePtr obj)
+void Entity::AddLuaComponent(const char* name, DataStorePtr obj)
 {
    // client side lua will use set_lua_component_data to construct temporary objects...
    // ASSERT(!lua_components_.Contains(name));
@@ -127,7 +127,7 @@ void Entity::AddLuaComponent(std::string const& name, DataStorePtr obj)
    lua_components_.Add(name, obj);
 }
 
-DataStorePtr Entity::GetLuaComponent(std::string const& name) const
+DataStorePtr Entity::GetLuaComponent(const char* name) const
 {
    auto i = lua_components_.find(name);
    if (i != lua_components_.end()) {
@@ -138,14 +138,13 @@ DataStorePtr Entity::GetLuaComponent(std::string const& name) const
 
 template <class T> std::shared_ptr<T> Entity::GetComponent() const
 {
-   std::shared_ptr<T> component = GetCachedComponent<T>();
-   if (!component) {
-      component = std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
+   if (IsCachedComponent<T>()) {
+      return GetCachedComponent<T>();
    }
-   return component;
+   return std::static_pointer_cast<T>(GetComponent(T::GetClassNameLower()));
 }
 
-void Entity::RemoveComponent(std::string const& name)
+void Entity::RemoveComponent(const char* name)
 {
    components_.Remove(name);
 
