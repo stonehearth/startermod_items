@@ -150,7 +150,7 @@ function EquipmentPieceComponent:_remove_item_rendering()
       self._sv.owner:add_component('render_info'):remove_entity(self._entity:get_uri())
    elseif render_type == 'attach_to_bone' then
       local postures = self._json.postures
-      if postures then
+      if postures and self._posture_changed_listener then
          self._posture_changed_listener:destroy()
          self._posture_changed_listener = nil
       end
