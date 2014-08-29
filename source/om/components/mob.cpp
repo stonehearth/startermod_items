@@ -118,7 +118,7 @@ csg::Point3f Mob::GetWorldLocation() const
 csg::Transform Mob::GetWorldTransform() const
 {
    EntityPtr parent = (*parent_).lock();
-   MobPtr mob = nullptr;
+   MobPtr mob;
    
    if (parent) {
       mob = parent->GetComponent<om::Mob>();

@@ -24,6 +24,8 @@ enum {
    StringMapObjectType,
 };
 
+typedef const char* CString;
+
 typedef int GenerationId;
 typedef int TraceId;
 typedef int ObjectId;
