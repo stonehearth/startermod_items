@@ -705,14 +705,13 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathF
    csg::Region3 const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
    csg::Point3 to = dstRegion.GetClosestPoint(from);
 
-   std::vector<csg::Point3> directPath = mh.GetPathPoints(GetSim(), entity, false, from, to);
-   if (directPath.empty() || directPath.back() != to) {
+   if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {
       return false;
    }
 
    std::vector<csg::Point3> solution;
    ReconstructPath(solution, from);
-   solution.insert(solution.end(), directPath.begin(), directPath.end());
+   solution.insert(solution.end(), _directPathCandiate.begin(), _directPathCandiate.end());
    SolveSearch(solution, dst);
    return true;
 }
