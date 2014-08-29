@@ -115,7 +115,9 @@ ComponentPtr Entity::AddComponent(const char* name)
 
 ComponentPtr Entity::GetComponent(const char* name) const
 {
-   if (strcmp(name, Mob::GetClassNameLower()) == 0) {
+   if (strcmp(name, Mob::GetClassNameLower()) == 0 && 
+         IsCachedComponent<Mob>()) { // xxx: this can go once IsCachedComponent returns true uncondiionally
+
       // Make sure we go through the cache mechanism, even when using the const char* version
       // of ::GetComponent.  This is a perf-loss for non-Mob components, but a HUGE per win
       // for Mobs, which are extremely extremely commonly queried for.

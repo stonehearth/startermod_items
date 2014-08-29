@@ -79,7 +79,12 @@ private:
       return cached_mob_component_.lock();
    }
    template <> bool IsCachedComponent<Mob>() const {
-      return true;
+      /* we would like to return true here (i.e. always rely on the cached version), but that
+       * causes problems on the client.  since no one did an AddComponent on the client, the
+       * cache pointer will never get hooked up!  we could trace the container to determine when
+       * the mob changes, but that's an extra tracer per entity for no good reason!
+       */
+      return !cached_mob_component_.expired();
    }
 
 private:
