@@ -355,20 +355,13 @@ void AStarPathFinder::Work(const platform::timer &timer)
       // Check each neighbor...
       const auto& o = GetSim().GetOctTree();
    
-      phys::OctTree::MovementCostVector neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
-      PF_LOG(7) << "compute neighbor movement cost from " << current.pt << " returned " << neighbors.size() << " results";
-      if (neighbors.size() == 0) {
-         //DebugBreak();
-      }
-
       VERIFY_HEAPINESS();
-      for (const auto& neighbor : neighbors) {
-         const csg::Point3& pt = neighbor.first;
-         float cost = neighbor.second;
+
+      o.ComputeNeighborMovementCost(entity_.lock(), current.pt, [this, &current](csg::Point3 const& to, float cost) {
          VERIFY_HEAPINESS();
-         AddEdge(current, pt, cost);
+         AddEdge(current, to, cost);
          VERIFY_HEAPINESS();
-      }
+      });
 
       direct_path_search_cooldown_--;
    }

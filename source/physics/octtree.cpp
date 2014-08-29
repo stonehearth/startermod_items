@@ -265,10 +265,8 @@ bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& 
    return true;
 }
 
-OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const
+void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb cb) const
 {
-   MovementCostVector result;
-
    // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 cardinal_directions[] = {
       // cardinals and diagonals
@@ -294,7 +292,7 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (navgrid_.IsStandable(entity, to)) {
-            result.push_back(std::make_pair(to, GetMovementCost(from, to)));
+            cb(to, GetMovementCost(from, to));
             break;
          }
       }
@@ -309,7 +307,7 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
          if (!ValidDiagonalMove(entity, from, to)) {
             continue;
          }
-         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
+         cb(to, GetMovementCost(from, to));
          break;
       }
    }
@@ -318,12 +316,11 @@ OctTree::MovementCostVector OctTree::ComputeNeighborMovementCost(om::EntityPtr e
       csg::Point3 to = from + direction;
       if (navgrid_.IsStandable(entity, to)) {
          OT_LOG(9) << to << " is standable.  adding to list";
-         result.push_back(std::make_pair(to, GetMovementCost(from, to)));
+         cb(to, GetMovementCost(from, to));
       } else {
          OT_LOG(9) << to << " is not standable.  not adding to list";
       }
    }
-   return result;
 }
 
 

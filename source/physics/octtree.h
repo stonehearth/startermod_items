@@ -27,9 +27,9 @@ class OctTree {
       typedef std::function<void (om::EntityPtr, float)> RayQueryCallback;
 
       // Path finding helpers
-      typedef std::vector<std::pair<csg::Point3, float>> MovementCostVector;
+      typedef std::function<void(csg::Point3 const&, float)> MovementCostCb;
 
-      MovementCostVector ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from) const;
+      void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb cb) const;
       float GetMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
       float GetSquaredMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
 
