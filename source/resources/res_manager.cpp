@@ -609,19 +609,35 @@ std::string ResourceManager2::ExpandMacro(std::string const& current, std::strin
 std::string ResourceManager2::FindScript(std::string const& script) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
-   std::string path;
-   try {
-      path = ConvertToCanonicalPath(script, ".lua");
-   } catch (std::exception const&) {
+
+   auto k = _canonicalPaths.find(script);
+   if (k != _canonicalPaths.end()) {
+      return k->second;
    }
-   try {
-      path = ConvertToCanonicalPath(script, ".luac");
-   } catch (std::exception const&) {
+
+   // It would be nice if we could share this logic with ::ConvertToCanonicalPath, but the
+   // logic is just different enough to warrent a copy/paste job.
+   std::string path = ExpandMacro(script, ".", true); // so we can lookup things like 'stonehearth:sleep_action'
+   if (!boost::ends_with(path, ".lua")) {
+      throw std::logic_error("expected script path to end with .lua");
    }
-   if (path.empty()) {
+   std::string modname;
+   std::vector<std::string> parts;
+   ParsePath(path, modname, parts);
+   auto i = modules_.find(modname);
+   if (i == modules_.end()) {
       throw InvalidFilePath(path);
    }
-   return path;
+   if (!i->second->CheckFilePath(parts)) {
+      // try the compiled version...
+      parts.back() += "c";
+      if (!i->second->CheckFilePath(parts)) {
+         throw InvalidFilePath(script);
+      }
+   }
+   std::string canonical_path = modname + "/" + boost::algorithm::join(parts, "/");
+   _canonicalPaths[script] = canonical_path;
+   return canonical_path;
 }
 
 voxel::QubicleFile const* ResourceManager2::OpenQubicleFile(std::string const& uri)
