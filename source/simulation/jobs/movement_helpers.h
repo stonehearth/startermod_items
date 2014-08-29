@@ -15,12 +15,11 @@ public:
    bool GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3& closestPoint) const;
    csg::Region3 GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const;
    csg::Point3 GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity) const;
-   std::vector<csg::Point3> GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end) const;
+   bool GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end, std::vector<csg::Point3> &result) const;
    std::vector<csg::Point3> PruneCollinearPathPoints(std::vector<csg::Point3> const& points) const;
 
-   template <class T>
-   bool TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
-                          csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation) const;
+   bool TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,
+                          csg::Point3 const& fromLocation, int dx, int dz, csg::Point3& resolvedLocation) const;
 
 private:
    enum Axis {

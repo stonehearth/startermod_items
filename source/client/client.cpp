@@ -1315,7 +1315,7 @@ void Client::UpdateDebugCursor()
             args.set("pawn", selectedEntity->GetStoreAddress());
          }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::TILE_SIZE);
+         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
          args.set("enabled", false);

@@ -355,20 +355,13 @@ void AStarPathFinder::Work(const platform::timer &timer)
       // Check each neighbor...
       const auto& o = GetSim().GetOctTree();
    
-      phys::OctTree::MovementCostVector neighbors = o.ComputeNeighborMovementCost(entity_.lock(), current.pt);
-      PF_LOG(7) << "compute neighbor movement cost from " << current.pt << " returned " << neighbors.size() << " results";
-      if (neighbors.size() == 0) {
-         //DebugBreak();
-      }
-
       VERIFY_HEAPINESS();
-      for (const auto& neighbor : neighbors) {
-         const csg::Point3& pt = neighbor.first;
-         float cost = neighbor.second;
+
+      o.ComputeNeighborMovementCost(entity_.lock(), current.pt, [this, &current](csg::Point3 const& to, float cost) {
          VERIFY_HEAPINESS();
-         AddEdge(current, pt, cost);
+         AddEdge(current, to, cost);
          VERIFY_HEAPINESS();
-      }
+      });
 
       direct_path_search_cooldown_--;
    }
@@ -655,7 +648,7 @@ void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
 {
    if (!navgrid_guard_.Empty()) {
       csg::Cube3 bounds = region.GetBounds();
-      csg::Cube3 chunks = csg::GetChunkIndex(bounds, phys::TILE_SIZE);
+      csg::Cube3 chunks = csg::GetChunkIndex<phys::TILE_SIZE>(bounds);
       for (csg::Point3 const& cursor : chunks) {
          WatchTile(cursor);
       }
@@ -665,7 +658,7 @@ void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
 void AStarPathFinder::WatchWorldPoint(csg::Point3 const& pt)
 {
    if (!navgrid_guard_.Empty()) {
-      csg::Point3 index = csg::GetChunkIndex(pt, phys::TILE_SIZE);
+      csg::Point3 index = csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       WatchTile(index);
    }
 }
@@ -712,14 +705,13 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathF
    csg::Region3 const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
    csg::Point3 to = dstRegion.GetClosestPoint(from);
 
-   std::vector<csg::Point3> directPath = mh.GetPathPoints(GetSim(), entity, false, from, to);
-   if (directPath.empty() || directPath.back() != to) {
+   if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {
       return false;
    }
 
    std::vector<csg::Point3> solution;
    ReconstructPath(solution, from);
-   solution.insert(solution.end(), directPath.begin(), directPath.end());
+   solution.insert(solution.end(), _directPathCandiate.begin(), _directPathCandiate.end());
    SolveSearch(solution, dst);
    return true;
 }
