@@ -308,8 +308,8 @@ dm::TraceCategories NavGrid::GetTraceCategory()
 void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
    NG_LOG(3) << "collision tracker bounds " << bounds << " changed (last_bounds: " << last_bounds << ")";
-   csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
-   csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
+   csg::Cube3 current_chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
+   csg::Cube3 previous_chunks = csg::GetChunkIndex<TILE_SIZE>(last_bounds);
 
    csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
    csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
@@ -343,7 +343,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
 {
    NG_LOG(3) << "tracker for entity " << entityId << " covering " << bounds << " destroyed";
 
-   csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
@@ -352,7 +352,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    }
 
    // Signal the top tile, too.
-   SignalTileDirty(csg::GetChunkIndex(bounds.max + csg::Point3::unitY, TILE_SIZE));
+   SignalTileDirty(csg::GetChunkIndex<TILE_SIZE>(bounds.max + csg::Point3::unitY));
 }
 
 /*
@@ -426,7 +426,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
  */ 
 void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg)
 {
-   csg::Point3 index = csg::GetChunkIndex(pt, TILE_SIZE);
+   csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(pt);
    om::EntityPtr p = pawn.lock();
 
    // Render all the standable locations in the block pointed to by `pt`
@@ -608,7 +608,7 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
 {
    bool stopped = false;
    csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
-   csg::Cube3 indexBounds = csg::GetChunkIndex(clippedWorldBounds, TILE_SIZE);
+   csg::Cube3 indexBounds = csg::GetChunkIndex<TILE_SIZE>(clippedWorldBounds);
 
    auto i = indexBounds.begin(), end = indexBounds.end();
    while (!stopped && i != end) {
@@ -797,7 +797,7 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
    // anyone using the point API is actually iterating (so this is cheaper and faster
    // than the collision tracker method)
    csg::Point3 index, offset;
-   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
    bool blocked = GridTileResident(index).IsBlocked(offset);
 
    NG_LOG(7) << "checking if " << worldPoint << " is blocked (result:" << std::boolalpha << blocked << ")";
@@ -834,9 +834,9 @@ bool NavGrid::IsBlocked(csg::Region3 const& region)
 bool NavGrid::IsBlocked(csg::Cube3 const& cube)
 {
    csg::Cube3 stencil = csg::Cube3::one.Scaled(TILE_SIZE);
-   csg::Cube3 chunks = csg::GetChunkIndex(cube, TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(cube);
 
-   bool stopped = csg::PartitionCubeIntoChunks(cube, TILE_SIZE, [this](csg::Point3 const& index, csg::Cube3 const& c) {
+   bool stopped = csg::PartitionCubeIntoChunks<TILE_SIZE>(cube, [this](csg::Point3 const& index, csg::Cube3 const& c) {
       bool stop = GridTileResident(index).IsBlocked(c);
       return stop;
    });
@@ -862,7 +862,7 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // anyone using the point API is actually iterating (so this is cheaper and faster
    // than the collision tracker method)
    csg::Point3 index, offset;
-   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
    return GridTileResident(index).IsSupport(offset);
 }
 
@@ -907,7 +907,7 @@ bool NavGrid::IsOccupied(csg::Point3 const& worldPoint)
    bool stopped = false;
 
    if (bounds_.Contains(worldPoint)) {
-      csg::Point3 index = csg::GetChunkIndex(worldPoint, TILE_SIZE);
+      csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(worldPoint);
       stopped = GridTileNonResident(index).ForEachTracker([worldPoint](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
          ASSERT(tracker->GetEntity());
@@ -1222,7 +1222,7 @@ void NavGrid::RemoveEntity(dm::ObjectId id)
 bool NavGrid::IsTerrain(csg::Point3 const& location)
 {
    csg::Point3 index, offset;
-   csg::GetChunkIndex(location, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(location, index, offset);
    bool isTerrain = GridTileResident(index).IsTerrain(offset);
 
    NG_LOG(7) << "checking if " << location << " is terrain (result:" << std::boolalpha << isTerrain << ")";

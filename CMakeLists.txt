@@ -120,6 +120,11 @@ add_definitions( -DCURL_STATICLIB )
 # to get EASTL to get the correct definition for wide characters
 add_definitions( -DEA_CHAR16_NATIVE=1 )
 
+IF(NO_ASSERT)
+MESSAGE(" ** ASSERT's have been turned off!! **")
+add_definitions( -DNO_ASSERT )
+ENDIF()
+
 add_subdirectory(source)
 
 

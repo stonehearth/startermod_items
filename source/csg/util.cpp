@@ -55,48 +55,51 @@ int csg::ToClosestInt(float s) {
    return ToInt(s - 0.5f);
 }
 
-int csg::GetChunkIndex(int value, int width)
+int csg::GetChunkAddressSlow(int value, int width)
+{
+   return GetChunkIndexSlow(value, width) * width;
+}
+
+int csg::GetChunkIndexSlow(int value, int width)
 {
    return (int) std::floor((float)value / width);
 }
 
-void csg::GetChunkIndex(int value, int chunk_width, int& index, int& offset)
+void csg::GetChunkIndexSlow(int value, int chunk_width, int& index, int& offset)
 {
-   index = csg::GetChunkIndex(value, chunk_width);
+   index = csg::GetChunkIndexSlow(value, chunk_width);
    offset = value - (index * chunk_width);
    ASSERT(offset >= 0 && offset < chunk_width);
 }
 
-Point3 csg::GetChunkIndex(Point3 const& value, int chunk_width)
+Point3 csg::GetChunkIndexSlow(Point3 const& value, int chunk_width)
 {
-   Point3 index;
-   for (int i = 0; i < 3; i++) {
-      index[i] = GetChunkIndex(value[i], chunk_width);
-   }
-   return index;
+   return Point3(GetChunkIndexSlow(value.x, chunk_width),
+                 GetChunkIndexSlow(value.y, chunk_width),
+                 GetChunkIndexSlow(value.z, chunk_width));
 }
 
-void csg::GetChunkIndex(Point3 const& value, int chunk_width, Point3& index, Point3& offset)
+void csg::GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset)
 {
-   for (int i = 0; i < 3; i++) {
-      GetChunkIndex(value[i], chunk_width, index[i], offset[i]);
-   }
+   GetChunkIndexSlow(value.x, chunk_width, index.x, offset.x);
+   GetChunkIndexSlow(value.y, chunk_width, index.y, offset.y);
+   GetChunkIndexSlow(value.z, chunk_width, index.z, offset.z);
 }
 
-Cube3 csg::GetChunkIndex(Cube3 const& value, int chunk_width)
+Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
 {
    Point3 ceil(chunk_width - 1, chunk_width - 1, chunk_width - 1);
-   Cube3 index = Cube3(GetChunkIndex(value.min, chunk_width),
-                       GetChunkIndex(value.max + ceil, chunk_width),
+   Cube3 index = Cube3(GetChunkIndexSlow(value.min, chunk_width),
+                       GetChunkIndexSlow(value.max + ceil, chunk_width),
                        value.GetTag());
    return index;
 }
 
-bool csg::PartitionCubeIntoChunks(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> cb)
+bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> cb)
 {
    Point3 const& cmin = cube.GetMin();
    Point3 const& cmax = cube.GetMax();
-   Cube3 chunks = GetChunkIndex(cube, width);
+   Cube3 chunks = GetChunkIndexSlow(cube, width);
 
    for (Point3 const& cursor : chunks) {
       Cube3 c;
@@ -118,9 +121,76 @@ bool csg::PartitionCubeIntoChunks(Cube3 const& cube, int width, std::function<bo
 }
 
 
-int csg::GetChunkAddress(int value, int width)
+template <int S> 
+int csg::GetChunkAddress(int value)
 {
-   return GetChunkIndex(value, width) * width;
+   return GetChunkIndex<S>(value) * S;
+}
+
+template <int S> 
+int csg::GetChunkIndex(int value)
+{
+   return (int) std::floor((float)value / S);
+}
+
+template <int S> 
+void csg::GetChunkIndex(int value, int& index, int& offset)
+{
+   index = csg::GetChunkIndex<S>(value);
+   offset = value - (index * S);
+   ASSERT(offset >= 0 && offset < S);
+}
+
+template <int S> 
+Point3 csg::GetChunkIndex(Point3 const& value)
+{
+   return Point3(GetChunkIndex<S>(value.x),
+                 GetChunkIndex<S>(value.y),
+                 GetChunkIndex<S>(value.z));
+}
+
+template <int S> 
+void csg::GetChunkIndex(Point3 const& value, Point3& index, Point3& offset)
+{
+   GetChunkIndex<S>(value.x, index.x, offset.x);
+   GetChunkIndex<S>(value.y, index.y, offset.y);
+   GetChunkIndex<S>(value.z, index.z, offset.z);
+}
+
+template <int S> 
+Cube3 csg::GetChunkIndex(Cube3 const& value)
+{
+   Point3 ceil(S - 1, S - 1, S - 1);
+   Cube3 index = Cube3(GetChunkIndex<S>(value.min),
+                       GetChunkIndex<S>(value.max + ceil),
+                       value.GetTag());
+   return index;
+}
+
+template <int S>
+bool csg::PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool (Point3 const& index, Cube3 const& cube)> cb)
+{
+   Point3 const& cmin = cube.GetMin();
+   Point3 const& cmax = cube.GetMax();
+   Cube3 chunks = GetChunkIndex<S>(cube);
+
+   for (Point3 const& cursor : chunks) {
+      Cube3 c;
+      for (int i = 0; i < 3; i++) {
+         c.min[i] = std::max(cmin[i] - cursor[i] * S, 0);
+         c.max[i] = std::min(cmax[i] - cursor[i] * S, S);
+      }
+      c.SetTag(cube.GetTag());
+
+      // sometimes this generates cubes of 0 dimensions. not sure why yet...
+      if (c.GetArea() > 0) {
+         bool stop = cb(cursor, c);
+         if (stop) {
+            return true;
+         }
+      }
+   }
+   return false;
 }
 
 Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
@@ -524,3 +594,17 @@ void EdgeList::Fragment()
    *this = fragmented;
 }
 
+template<> int csg::GetChunkIndex<16>(int value)
+{
+   return value >> 4;
+}
+
+#define MAKE_CHUNK_TEMPLATES(N) \
+   template int csg::GetChunkAddress<N>(int value); \
+   template void csg::GetChunkIndex<N>(int value, int& index, int& offset); \
+   template Point3 csg::GetChunkIndex<N>(Point3 const& value); \
+   template void csg::GetChunkIndex<N>(Point3 const& value, Point3& index, Point3& offset); \
+   template Cube3 csg::GetChunkIndex<N>(Cube3 const& value); \
+   template bool csg::PartitionCubeIntoChunks<N>(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
+
+MAKE_CHUNK_TEMPLATES(16)

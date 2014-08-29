@@ -648,7 +648,7 @@ void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
 {
    if (!navgrid_guard_.Empty()) {
       csg::Cube3 bounds = region.GetBounds();
-      csg::Cube3 chunks = csg::GetChunkIndex(bounds, phys::TILE_SIZE);
+      csg::Cube3 chunks = csg::GetChunkIndex<phys::TILE_SIZE>(bounds);
       for (csg::Point3 const& cursor : chunks) {
          WatchTile(cursor);
       }
@@ -658,7 +658,7 @@ void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
 void AStarPathFinder::WatchWorldPoint(csg::Point3 const& pt)
 {
    if (!navgrid_guard_.Empty()) {
-      csg::Point3 index = csg::GetChunkIndex(pt, phys::TILE_SIZE);
+      csg::Point3 index = csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       WatchTile(index);
    }
 }
