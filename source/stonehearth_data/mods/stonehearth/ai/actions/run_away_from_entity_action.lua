@@ -68,16 +68,12 @@ end
 
 -- start_location and direction are Point3fs
 function RunAwayFromEntity:_calculate_location(start_location, direction, angle, distance)
+   assert(direction.y == 0)
    local vector = radiant.math.rotate_about_y_axis(direction, angle)
    vector:scale(distance)
 
    local new_location = start_location + vector
-
-   local x = radiant.math.round(new_location.x)
-   local z = radiant.math.round(new_location.z)
-   local y = start_location.y
-
-   local new_grid_location = Point3(x, y, z)
+   local new_grid_location = new_location:to_closest_int()
    return new_grid_location
 end
 

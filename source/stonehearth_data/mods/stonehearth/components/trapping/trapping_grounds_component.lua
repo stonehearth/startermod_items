@@ -496,12 +496,7 @@ function TrappingGroundsComponent:_get_proposed_spawn_location(trap, distance)
    local vector = radiant.math.random_xz_unit_vector(rng)
    vector:scale(distance)
    local spawn_location = trap_location + vector
-
-   -- TODO: should be able to call to_closest_int here
-   local x = radiant.math.round(spawn_location.x)
-   local y = radiant.math.round(spawn_location.y)
-   local z = radiant.math.round(spawn_location.z)
-   local spawn_grid_location = Point3(x, y, z)
+   local spawn_grid_location = spawn_location:to_closest_int()
 
    return spawn_grid_location
 end
