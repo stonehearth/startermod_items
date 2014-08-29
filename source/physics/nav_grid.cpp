@@ -1158,7 +1158,7 @@ bool NavGrid::UseFastCollisionDetection(om::EntityPtr entity) const
          return false;
       }
    }
-   return false;
+   return true;
 }
 
 /*

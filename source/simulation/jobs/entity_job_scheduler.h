@@ -3,6 +3,7 @@
 
 #include "om/om.h"
 #include "job.h"
+#include "lib/perfmon/namespace.h"
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -26,8 +27,16 @@ public:
    virtual ~EntityJobScheduler();
 
 public:
+   typedef std::function<void(std::string const&, int)> GetPathfinderTimesCb;
    void RegisterPathfinder(PathFinderPtr pathfinder);
+   void GetPathfinderTimes(GetPathfinderTimesCb cb);
 
+   typedef std::unordered_map<std::string, perfmon::CounterValueType> PathfinderTimeMap;
+   void SetRecordPathfinderTimes(bool enabled);
+   PathfinderTimeMap const& GetPathfinderTimes();
+   void ResetPathfinderTimes();
+   om::EntityRef GetEntity() const;
+   
 public: // Job Interface
    bool IsIdle() const override;
    bool IsFinished() const override;
@@ -39,17 +48,11 @@ private:
    PathFinderPtr GetClosestPathfinder() const;
 
 private:
-   struct PathFinderJob {
-      PathFinderRef     pathfinder;
-
-      PathFinderJob() { }
-      PathFinderJob(PathFinderPtr p) : pathfinder(p) { }
-   };
-
-private:
-   om::EntityRef                       entity_;
-   mutable std::vector<PathFinderJob>  pathfinders_;
-   mutable PathFinderRef               closest_pathfinder_;
+   om::EntityRef                          entity_;
+   mutable std::vector<PathFinderRef>     pathfinders_;
+   mutable PathFinderRef                  closest_pathfinder_;
+   bool                                   _recordPathfinderTimes;
+   PathfinderTimeMap                      _pathfinderTimes;
 };
 
 typedef std::weak_ptr<EntityJobScheduler> EntityJobSchedulerRef;

@@ -9,11 +9,14 @@ PickupItem.args = {
 PickupItem.version = 2
 PickupItem.priority = 1
 
+function PickupItem:start_thinking(ai, entity, args)
+   if not ai.CURRENT.carrying then
+      ai:set_think_output()
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(PickupItem)
-         :when( function (ai)
-               return ai.CURRENT.carrying == nil
-            end )
          :execute('stonehearth:reserve_entity', { entity = ai.ARGS.item })
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.item })
          :execute('stonehearth:pickup_item_adjacent', { item = ai.ARGS.item })

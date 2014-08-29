@@ -8,6 +8,7 @@ MaterialToFilterFn.args = {
 }
 MaterialToFilterFn.think_output = {
    filter_fn = 'function',   -- a function which checks those tags
+   description = 'string',    -- a description of the filter   
 }
 MaterialToFilterFn.version = 2
 MaterialToFilterFn.priority = 1
@@ -31,6 +32,7 @@ function MaterialToFilterFn:start_thinking(ai, entity, args)
 
    ai:set_think_output({
          filter_fn = filter_fn,
+         description = string.format('material is "%s"', args.material),
       })
 end
 

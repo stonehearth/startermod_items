@@ -26,7 +26,7 @@ end
 --    @param filter_fn - the filter to determine which items qualify as destinations
 --    @param on_destroy_cb - the callback to call when the last solved cb has been removed
 --
-function PathFinder:find_path_to_item_type(location, filter_fn, solved_cb)
+function PathFinder:find_path_to_item_type(location, filter_fn, description, solved_cb)
    local pfkey = string.format('%s : %s', tostring(location), tostring(filter_fn))
    local pf = self._pathfinders[pfkey]
 
@@ -34,8 +34,10 @@ function PathFinder:find_path_to_item_type(location, filter_fn, solved_cb)
       pf = SharedBfsPathFinder(self._entity, location, filter_fn, function()
             self._pathfinders[pfkey] = nil
          end)
+      pf:set_description(description)      
       self._pathfinders[pfkey] = pf
    end
+   assert(pf:get_description() == description)
    self.__saved_variables:mark_changed()
 
    pf:add_solved_cb(solved_cb)

@@ -9,16 +9,15 @@ PickupPlacedItemAdjacentTrivial.args = {
 PickupPlacedItemAdjacentTrivial.version = 2
 PickupPlacedItemAdjacentTrivial.priority = 2
 
+function PickupPlacedItemAdjacentTrivial:start_thinking(ai, entity, args)
+   local item = ai.CURRENT.carrying
 
-local ai = stonehearth.ai
-return ai:create_compound_action(PickupPlacedItemAdjacentTrivial)
-         :when(function (ai, entity, args)
-               if not ai.CURRENT.carrying then
-                  return false
-               end
-               local iconic_form = ai.CURRENT.carrying:get_component('stonehearth:iconic_form')
-               if not iconic_form then
-                  return false
-               end
-               return iconic_form:get_root_entity() == args.item
-            end )
+   if item then
+      local iconic_form = item:get_component('stonehearth:iconic_form')
+      if iconic_form and iconic_form:get_root_entity() == args.item then
+         ai:set_think_output()
+      end
+   end
+end
+
+return PickupPlacedItemAdjacentTrivial

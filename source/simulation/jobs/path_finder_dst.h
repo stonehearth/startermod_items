@@ -17,7 +17,7 @@ class AStarPathFinder;
 
 class PathFinderDst {
 public:
-   typedef std::function<void(const char *reason)> ChangedCb;
+   typedef std::function<void(PathFinderDst const&, const char *reason)> ChangedCb;
 
    PathFinderDst(Simulation& sim, AStarPathFinder&, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();

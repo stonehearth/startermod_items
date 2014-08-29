@@ -2,6 +2,7 @@
 #include "om/entity.h"
 #include "entity_job_scheduler.h"
 #include "path_finder.h"
+#include "lib/perfmon/timer.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -27,6 +28,7 @@ using namespace ::radiant::simulation;
  */
 EntityJobScheduler::EntityJobScheduler(Simulation& sim, om::EntityPtr entity) :
    Job(sim, BUILD_STRING(*entity)),
+   _recordPathfinderTimes(false),
    entity_(entity)
 {
 }
@@ -73,8 +75,18 @@ void EntityJobScheduler::Work(const platform::timer &timer)
 {
    PathFinderPtr p = closest_pathfinder_.lock();
    if (p) {
+      perfmon::CounterValueType time;
+      if (_recordPathfinderTimes) {
+         time = perfmon::Timer::GetCurrentTime();
+      }
+
       E_LOG(7) << "pumping pathfinder " << p->GetName() << " : " << p->GetProgress();
       p->Work(timer);
+
+      if (_recordPathfinderTimes) {
+         time = perfmon::Timer::GetCurrentTime() - time;
+         _pathfinderTimes[p->GetName()] += time;
+      }
    }
 }
 
@@ -101,7 +113,7 @@ void EntityJobScheduler::EncodeDebugShapes(protocol::shapelist *msg) const
 {
    uint i, c = pathfinders_.size();
    for (i = 0; i < c; i++) {
-      PathFinderPtr p = pathfinders_[i].pathfinder.lock();
+      PathFinderPtr p = pathfinders_[i].lock();
       if (p) {
          p->EncodeDebugShapes(msg);
       } else {
@@ -123,7 +135,7 @@ PathFinderPtr EntityJobScheduler::GetClosestPathfinder() const
    float best_distance = FLT_MAX;
    uint i, c = pathfinders_.size();
    for (i = 0; i < c; i++) {
-      PathFinderPtr p = pathfinders_[i].pathfinder.lock();
+      PathFinderPtr p = pathfinders_[i].lock();
       if (p) {
          if (!p->IsIdle()) {
             float distance = p->EstimateCostToSolution();
@@ -148,5 +160,25 @@ PathFinderPtr EntityJobScheduler::GetClosestPathfinder() const
  */
 void EntityJobScheduler::RegisterPathfinder(PathFinderPtr p)
 {
-   pathfinders_.emplace_back(PathFinderJob(p));
+   pathfinders_.emplace_back(p);
+}
+
+void EntityJobScheduler::SetRecordPathfinderTimes(bool enabled)
+{
+   _recordPathfinderTimes = enabled;
+}
+
+EntityJobScheduler::PathfinderTimeMap const& EntityJobScheduler::GetPathfinderTimes()
+{
+   return _pathfinderTimes;
+}
+
+void EntityJobScheduler::ResetPathfinderTimes()
+{
+   _pathfinderTimes.clear();
+}
+
+om::EntityRef EntityJobScheduler::GetEntity() const
+{
+   return entity_;
 }

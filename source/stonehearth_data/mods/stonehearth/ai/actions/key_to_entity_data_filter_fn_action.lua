@@ -8,6 +8,7 @@ KeyToEntityDataFilter.args = {
 }
 KeyToEntityDataFilter.think_output = {
    filter_fn = 'function',    -- a function which checks for that key
+   description = 'string',    -- a description of the filter
 }
 KeyToEntityDataFilter.version = 2
 KeyToEntityDataFilter.priority = 1
@@ -31,6 +32,7 @@ function KeyToEntityDataFilter:start_thinking(ai, entity, args)
 
    ai:set_think_output({
          filter_fn = filter_fn,
+         description = string.format('has "%s" entity data', args.key),
       })
 end
 

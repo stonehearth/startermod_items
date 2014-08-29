@@ -180,6 +180,35 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:server:load", [this](rpc::Function const& f) {
       return BeginLoad(json::Node(f.args).get<std::string>("saveid"));
    });
+   core_reactor_->AddRoute("radiant:show_pathfinder_time", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("show pathfinder time");
+      _bottomLoopFns.emplace_back([this, d]() {
+         JSONNode obj;
+         for (auto const& entry : entity_jobs_schedulers_) {
+            EntityJobSchedulerPtr scheduler = entry.second;
+            scheduler->SetRecordPathfinderTimes(true);
+
+            om::EntityPtr entity = scheduler->GetEntity().lock();
+            if (entity) {
+               JSONNode subobj;
+               perfmon::CounterValueType total = 0;
+
+               EntityJobScheduler::PathfinderTimeMap const& times = scheduler->GetPathfinderTimes();
+               for (auto const& entry : times) {
+                  total += entry.second;
+                  subobj.push_back(JSONNode(entry.first, perfmon::CounterToMilliseconds(entry.second)));
+               }
+               scheduler->ResetPathfinderTimes(); // xxx: this will screw up future bottom loop handlers =(
+
+               subobj.push_back(JSONNode("total", total));
+               subobj.set_name(BUILD_STRING(*entity));
+               obj.push_back(subobj);
+            }
+         }
+         d->Notify(obj);
+      });
+      return d;
+   });
 }
 
 std::string const& Simulation::GetVersion() const
@@ -578,6 +607,9 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    }
    if (debug_navgrid_enabled_) {
       GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
+   }
+   for (auto const& cb : _bottomLoopFns)  {
+      cb();
    }
    queue->Push(protocol::Encode(update));
 }
