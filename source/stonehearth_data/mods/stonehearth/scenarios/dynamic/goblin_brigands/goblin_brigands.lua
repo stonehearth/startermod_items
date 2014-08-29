@@ -119,6 +119,14 @@ function GoblinBrigands:_on_spawn()
          end
       end
 
+      --Throttle the max # of escorts
+      local scenario_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+      local max_escorts = scenario_data.max_squad
+
+      if num_escorts > max_escorts then
+         num_escorts = max_escorts
+      end
+
       for i = 1, num_escorts do 
          self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
       end
