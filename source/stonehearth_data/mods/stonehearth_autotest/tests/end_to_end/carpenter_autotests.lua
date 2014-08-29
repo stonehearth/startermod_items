@@ -42,7 +42,8 @@ function carpenter_tests.place_workshop(autotest)
 end
 --]]
 
---TODO: write an autotest for maintain
+---[[
+--Autotest for maintain
 function carpenter_tests.maintain_x(autotest)
    autotest.env:create_person(2, 2, { profession = 'worker' })
    local stockpile = autotest.env:create_stockpile(-10, -10, { size = { x = 5, y = 5 }})
@@ -91,7 +92,44 @@ function carpenter_tests.maintain_x(autotest)
    
    autotest:sleep(120 * 10000)
    autotest:fail('failed to mantain 1 wooden table')
+end
+--]]
 
+--Autotest for move workshop
+function carpenter_tests.move_workshop(autotest)
+   local carpenter = autotest.env:create_person(2, 2, { profession = 'carpenter' })
+   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   autotest:sleep(500)
+
+   autotest.ui:push_unitframe_command_button(carpenter, 'build_workshop')
+   autotest.ui:click_terrain(4, 4)
+
+   local workshop
+   radiant.events.listen(carpenter, 'stonehearth:crafter:workshop_changed', function (e)
+         workshop = e.workshop:get_entity()
+         autotest:resume()
+         return radiant.events.UNLISTEN
+      end)
+   autotest:suspend()
+
+   local trace
+   trace = radiant.entities.trace_location(workshop, 'sh move workshop autotest')
+      :on_changed(function()
+         local location = radiant.entities.get_world_grid_location(workshop)
+         if workshop:get_component('mob'):get_parent() ~= nil then
+            if location.x == 8 and location.z == 8 then
+               trace:destroy()
+               autotest:success()
+               return radiant.events.UNLISTEN
+            end
+         end
+      end)
+
+   autotest.ui:push_unitframe_command_button(workshop, 'move_item')
+   autotest.ui:click_terrain(8, 8)
+
+   autotest:sleep(120 * 10000)
+   autotest:fail('failed to mantain 1 wooden table')
 end
 
 return carpenter_tests

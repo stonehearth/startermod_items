@@ -9,6 +9,7 @@
    "uri" : "stonehearth:scenarios:goblin_brigands",
    "scenario_data" : {
       "title" : "Armed goblins are taking your stuff!", 
+      "max_squad" : 3, 
       "quote" : [
          "I hear these travellers dangerous. Bring friend!",
          "All your things are belong to us!",

@@ -22,6 +22,7 @@ using namespace radiant::phys;
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    _ng(ng),
    _index(index),
+   _residentTileIndex(-1),
    changed_slot_("tile changes")
 {
 }
@@ -37,6 +38,7 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
 NavGridTile::NavGridTile(NavGridTile &&other) :
    _ng(other._ng),
    _index(other._index),
+   _residentTileIndex(-1),
    changed_slot_("tile changes")
 {
    ASSERT(other.data_ == nullptr);
@@ -218,25 +220,12 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
  * then walk through the derived vectors.
  *
  */
-void NavGridTile::FlushDirty(NavGrid& ng, csg::Point3 const& index)
+void NavGridTile::FlushDirty(NavGrid& ng)
 {
    ASSERT(data_);
 
-   data_->FlushDirty(ng, trackers_, GetWorldBounds(index));
+   data_->FlushDirty(ng, trackers_, GetWorldBounds());
 }
-
-
-/*
- * -- NavGridTile::IsDataResident
- *
- * Return whether or not the NavGridTileData for this tile is loaded.
- *
- */
-bool NavGridTile::IsDataResident() const
-{
-   return data_.get() != nullptr;
-}
-
 
 /*
  * -- NavGridTile::SetDataResident
@@ -245,14 +234,22 @@ bool NavGridTile::IsDataResident() const
  * creates the Data object.  It will be updated lazily when required.
  *
  */
-void NavGridTile::SetDataResident(bool value)
+void NavGridTile::SetDataResident(bool value, int index)
 {
    if (value && !IsDataResident()) {
       data_.reset(new NavGridTileData());
    } else if (!value && IsDataResident()) {
       data_.reset(nullptr);
    }
+   _residentTileIndex = index;
+
+   if (data_.get()) {
+      ASSERT(_residentTileIndex >= 0);
+   } else {
+      ASSERT(_residentTileIndex < 0);
+   }
 }
+ 
 
 
 /*
@@ -292,9 +289,9 @@ void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId, TrackerType t)
  * Given the address of the tile in the world, compute its bounds.
  *
  */
-csg::Cube3 NavGridTile::GetWorldBounds(csg::Point3 const& index) const
+csg::Cube3 NavGridTile::GetWorldBounds() const
 {
-   csg::Point3 min(index.Scaled(TILE_SIZE));
+   csg::Point3 min(_index.Scaled(TILE_SIZE));
    return csg::Cube3(min, min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
 }
 
@@ -396,4 +393,18 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
 core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
 {
    return changed_slot_.Register(cb);
+}
+
+
+/*
+ * -- NavGridTile::GetResidentTileIndex
+ *
+ * Returns the index in the nav_grid's resident tile array where this
+ * tile is stored.  This is necessary to help support the O(1) update
+ * of the cache array in NavGrid::GridTile.
+ *
+ */ 
+int NavGridTile::GetResidentTileIndex() const
+{
+   return _residentTileIndex;
 }

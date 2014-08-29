@@ -1315,7 +1315,7 @@ void Client::UpdateDebugCursor()
             args.set("pawn", selectedEntity->GetStoreAddress());
          }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex(pt, phys::TILE_SIZE);
+         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
          args.set("enabled", false);
@@ -1472,7 +1472,7 @@ void Client::DestroyDatastore(dm::ObjectId id) {
 om::EntityPtr Client::CreateAuthoringEntity(std::string const& uri)
 {
    om::EntityPtr entity = authoringStore_->AllocObject<om::Entity>();   
-   om::Stonehearth::InitEntity(entity, uri, scriptHost_->GetInterpreter());
+   om::Stonehearth::InitEntity(entity, uri.c_str(), scriptHost_->GetInterpreter());
 
    authoredEntities_[entity->GetObjectId()] = entity;
 

@@ -22,6 +22,10 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(trapper_knife_talisman.json)"
+      },
+
       "stonehearth:equipment_piece" : {
          "slot" : "mainHand",
          "render_type" : "attach_to_bone",

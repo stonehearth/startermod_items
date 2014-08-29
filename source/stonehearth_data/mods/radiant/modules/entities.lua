@@ -61,6 +61,26 @@ function entities.destroy_entity(entity)
    end
 end
 
+-- Use when the entity is being killed in the world
+-- Will trigger sync "kill" event so all components can clean up after themselves
+function entities.kill_entity(entity)
+   if entity and entity:is_valid() then
+      log:debug('killing entity %s', entity)
+      radiant.check.is_entity(entity)
+
+      --Trigger an event synchronously, so we don't delete the item till all listeners have done their thing
+      radiant.events.trigger(entity, 'stonehearth:kill_event')
+
+      --For now, just call regular destroy on the entity
+      --Review Question: Will it ever be the case that calling destroy is insufficient?
+      --for example, if we also need to recursively kill child entities? Are we ever
+      --going to apply this to marsupials? If you kill an oiliphant, the dudes on its
+      --back aren't immediately killed too, they just fall to the ground, right?
+      --"It still only counts as one!" --ChrisGimli
+      entities.destroy_entity(entity)
+   end
+end
+
 function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
    assert(type(debug_text) == 'string')
 

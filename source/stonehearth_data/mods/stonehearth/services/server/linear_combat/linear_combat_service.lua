@@ -13,7 +13,7 @@ function LinearCombatService:initialize()
    self._num_escorts = 1
 
    if not self._sv._init then
-      self._sv.init = true
+      self._sv._init = true
       self._timer = stonehearth.calendar:set_timer(time_till_first_spawn, function()
           self:_first_spawn() end)
       self._sv.expire_time = self._timer:get_expire_time()

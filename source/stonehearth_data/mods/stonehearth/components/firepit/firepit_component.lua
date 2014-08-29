@@ -87,11 +87,14 @@ end
 function FirepitComponent:_shutdown()
    log:debug('unlistining for calendar sunset/sunrise events')
 
-   self._sunrise_listener:destroy()
-   self._sunrise_listener = nil
-
-   self._sunset_listener:destroy()
-   self._sunset_listener = nil
+   if self._sunrise_listener then
+      self._sunrise_listener:destroy()   
+      self._sunrise_listener = nil
+   end
+   if self._sunset_listener then
+      self._sunset_listener:destroy()   
+      self._sunset_listener = nil
+   end
    self:_extinguish()
 
    if self._sv.seats then

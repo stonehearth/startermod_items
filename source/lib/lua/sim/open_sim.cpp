@@ -47,7 +47,7 @@ std::shared_ptr<T> Sim_AllocObject(lua_State* L)
    return GetSim(L).GetStore().AllocObject<T>();
 }
 
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
+om::EntityRef Sim_CreateEntity(lua_State* L, const char* uri)
 {
    om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
    om::Stonehearth::InitEntity(entity, uri, L);

@@ -32,7 +32,8 @@ function DestroyEntity:run(ai, entity, args)
             if entity:is_valid() then
                log:detail('Destroying %s', entity)
                local id = entity:get_id()
-               radiant.entities.destroy_entity(entity)
+               --TODO: move all this functionality to an observer
+               radiant.entities.kill_entity(entity)
                destroy_scheduled[id] = nil
             end
          end

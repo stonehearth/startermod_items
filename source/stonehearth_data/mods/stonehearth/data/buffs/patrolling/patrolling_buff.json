@@ -1,8 +1,5 @@
 {
    "type" : "debuff",
-   "name" : "Patrolling",
-   "description" : "On the lookout for trouble!",
-   "icon" : "file(patrolling_buff.png)",
    "modifiers" : {
       "speed" : {
          "multiply" : 0.30

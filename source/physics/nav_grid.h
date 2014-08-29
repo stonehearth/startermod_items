@@ -144,7 +144,7 @@ class NavGrid {
       CollisionTrackerPtr CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       void CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       void OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef);
-      void EvictNextUnvisitedTile(csg::Point3 const& pt);
+      int EvictNextUnvisitedTile(csg::Point3 const& pt);
 
    private: // instance variables
       om::EntityRef                    rootEntity_;

@@ -356,6 +356,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
+   /*
+    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
+    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
+    * true, this wouldn't be a problem (sigh).
+    */
+   root_entity_->AddComponent<om::Clock>();
+
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);

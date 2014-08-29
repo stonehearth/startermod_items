@@ -128,70 +128,50 @@ csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPointW
    return poiWorld;
 }
 
-template <class T>
-static std::vector<csg::Point<T,3>> GetElevations(csg::Point<T,3> const& location, bool const reversible)
+static std::vector<csg::Point3> const& GetElevationOffsets(om::EntityPtr entity, bool reversible)
 {
-   static csg::Point<T,3> elevations[] = {
-      csg::Point<T,3>(0,  0, 0),   // test the flat case first
-      csg::Point<T,3>(0,  1, 0),   // then up before down
-      csg::Point<T,3>(0, -1, 0),
-      csg::Point<T,3>(0, -2, 0)
-   };
+   static std::vector<csg::Point3> elevations, reversibleElevations;
 
-   static csg::Point<T,3> reversibleElevations[] = {
-      elevations[0], elevations[1], elevations[2]
-   };
-
-   std::vector<csg::Point<T,3>> points;
-
-   if (reversible) {
-      for (auto const& offset : reversibleElevations) {
-         points.push_back(location + offset);
-      }
-   } else {
-      for (auto const& offset : elevations) {
-         points.push_back(location + offset);
-      }
+   if (elevations.empty()) {
+      // Technically, this isn't at all thread safe.
+      elevations.emplace_back(csg::Point3(0,  0, 0));   // test the flat case first
+      elevations.emplace_back(csg::Point3(0,  1, 0));   // then up before down
+      elevations.emplace_back(csg::Point3(0, -1, 0));
+      elevations.emplace_back(csg::Point3(0, -2, 0));
+      reversibleElevations.emplace_back(elevations[0]);
+      reversibleElevations.emplace_back(elevations[1]);
+      reversibleElevations.emplace_back(elevations[2]);
    }
-
-   return points;
+   return reversible ? reversibleElevations : elevations;
 }
 
 // returns true if this is a legal move (doesn't check adjacency yet though due to high game speed issues)
-// resolvedLocation contains the updated standing location
+// to contains the updated standing location
 // reversible indicates whether to include moves that cannot be reversed and (may cause the entity to get stuck)
-template <class T>
-bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
-                                       csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation) const
+bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,
+                                      csg::Point3 const& from, int dx, int dz, csg::Point3& to) const
 {
-   phys::OctTree const& octTree = sim.GetOctTree();
-   csg::Point<T,3> toLocationProjected = toLocation;
-   toLocationProjected.y = fromLocation.y;
+   phys::OctTree& octTree = sim.GetOctTree();
+   csg::Point3 toCandidate(from.x + dx, from.y, from.z + dz);
 
-   std::vector<csg::Point<T,3>> const elevations = GetElevations(toLocationProjected, reversible);
+   phys::NavGrid& ng = octTree.GetNavGrid();
 
-   // find a valid elevation to move to
-   csg::Point<T,3> finalToLocation;
-   if (!octTree.CanStandOnOneOf(entity, elevations, finalToLocation)) {
-      return false;
+   for (csg::Point3 const& offset : GetElevationOffsets(entity, reversible)) {
+      csg::Point3 pt(toCandidate + offset);
+      if (ng.IsStandable(entity, pt)) {
+         if (octTree.ValidMove(entity, reversible, csg::ToClosestInt(pt), csg::ToClosestInt(pt))) {
+            to = pt;
+            return true;
+         }
+      }
    }
-
-   // enforce rules for adjacent moves
-   if (!octTree.ValidMove(entity, reversible, csg::ToClosestInt(fromLocation), csg::ToClosestInt(finalToLocation))) {
-      return false;
-   }
-
-   resolvedLocation = finalToLocation;
-   return true;
+   return false;
 }
-
-template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&) const;
-template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&) const;
 
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end) const
+bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end, std::vector<csg::Point3> &result) const
 {
    int const x0 = start.x;
    int const z0 = start.z;
@@ -204,30 +184,35 @@ std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::Enti
    int error = dx - dz;
    int error2;
    csg::Point3 current(start);
-   csg::Point3 proposed;
    csg::Point3 next;
-   std::vector<csg::Point3> result;
    bool passable;
 
    // following convention, we include the origin point in the path
    // follow path can decide to skip this point so that we don't run to the origin of the current block first
+   result.clear();
    result.push_back(start);
 
    while (true) {
+      int next_dx, next_dz;
       error2 = error*2;
-      proposed = current;
 
       if (error2 > -dz) {
          error -= dz;
-         proposed.x = current.x + sx;
+         next_dx = sx;
+      } else {
+         next_dx = 0;
       }
 
       if (error2 < dx) {
          error += dx;
-         proposed.z = current.z + sz;
+         next_dz = sz;
+      } else {
+         next_dz = 0;
       }
 
-      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, proposed, next);
+      ASSERT(next_dx != 0 || next_dz != 0);
+
+      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, next_dx, next_dz, next);
       if (!passable) {
          break;
       }
@@ -241,7 +226,7 @@ std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::Enti
       current = next;
    }
 
-   return result;
+   return !result.empty() && result.back() == end;
 }
 
 MovementHelper::Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) const

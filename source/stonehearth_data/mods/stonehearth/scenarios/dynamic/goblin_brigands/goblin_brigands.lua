@@ -119,6 +119,14 @@ function GoblinBrigands:_on_spawn()
          end
       end
 
+      --Throttle the max # of escorts
+      local scenario_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+      local max_escorts = scenario_data.max_squad
+
+      if num_escorts > max_escorts then
+         num_escorts = max_escorts
+      end
+
       for i = 1, num_escorts do 
          self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
       end
@@ -127,13 +135,19 @@ function GoblinBrigands:_on_spawn()
    local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
       self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
 
+   if spawn_points[1] then
+      --make sure the spawn point is actually on valid ground
+      spawn_points[1] = radiant.terrain.find_placement_point(spawn_points[1], 1, 20)
+   end
+
+
    if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
       self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=2, y=2})
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=1, y=1})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: right now the filter is broken. Why???
    --s_comp:set_filter({'resource wood'})

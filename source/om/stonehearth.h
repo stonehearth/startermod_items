@@ -16,19 +16,19 @@ class Stonehearth
 {
 public:
    // xxx this file has no reason to exist anymore now that lua handles most of this
-   static void InitEntity(om::EntityPtr entity, std::string const& uri, lua_State* L);
-   static luabind::object AddComponent(lua_State* L, om::EntityRef e, std::string const& name);
-   static void RemoveComponent(lua_State* L, om::EntityRef e, std::string const& name);
-   static luabind::object GetComponent(lua_State* L, om::EntityRef e, std::string const& name);
-   static luabind::object AddComponentData(lua_State* L, om::EntityRef e, std::string const& name);
-   static luabind::object GetComponentData(lua_State* L, om::EntityRef e, std::string const& name);
-   static luabind::object SetComponentData(lua_State* L, om::EntityRef e, std::string const& name, luabind::object data);
+   static void InitEntity(om::EntityPtr entity, const char* uri, lua_State* L);
+   static luabind::object AddComponent(lua_State* L, om::EntityRef e, const char* name);
+   static void RemoveComponent(lua_State* L, om::EntityRef e, const char* name);
+   static luabind::object GetComponent(lua_State* L, om::EntityRef e, const char* name);
+   static luabind::object AddComponentData(lua_State* L, om::EntityRef e, const char* name);
+   static luabind::object GetComponentData(lua_State* L, om::EntityRef e, const char* name);
+   static luabind::object SetComponentData(lua_State* L, om::EntityRef e, const char* name, luabind::object data);
    static void RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity);
    static void SetEntityForComponent(lua_State* L, luabind::object component, om::EntityPtr entity, luabind::object json);
-   static luabind::object ConstructController(lua::ScriptHost* scriptHost, std::string const& uri, om::DataStorePtr datastore);
+   static luabind::object ConstructController(lua::ScriptHost* scriptHost, const char* uri, om::DataStorePtr datastore);
 
 private:
-   static void InitEntityByUri(om::EntityPtr entity, std::string const& uri, lua_State* L);
+   static void InitEntityByUri(om::EntityPtr entity, const char* uri, lua_State* L);
 };
 
 END_RADIANT_OM_NAMESPACE

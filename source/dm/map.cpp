@@ -11,26 +11,26 @@ using namespace radiant::dm;
 
 #define MAP_LOG(level)  LOG(dm.map, level) << "[map <" << GetShortTypeName<K>() << "," << GetShortTypeName<V>() << "> id:" << GetObjectId() << "] "
 
-template <class K, class V, class H>
-std::shared_ptr<MapTrace<Map<K, V, H>>> Map<K, V, H>::TraceChanges(const char* reason, int category) const
+template <class K, class V, class H, class MH>
+std::shared_ptr<MapTrace<Map<K, V, H, MH>>> Map<K, V, H, MH>::TraceChanges(const char* reason, int category) const
 {
    return GetStore().TraceMapChanges(reason, *this, category);
 }
 
-template <class K, class V, class H>
-TracePtr Map<K, V, H>::TraceObjectChanges(const char* reason, int category) const
+template <class K, class V, class H, class MH>
+TracePtr Map<K, V, H, MH>::TraceObjectChanges(const char* reason, int category) const
 {
    return GetStore().TraceMapChanges(reason, *this, category);
 }
 
-template <class K, class V, class H>
-TracePtr Map<K, V, H>::TraceObjectChanges(const char* reason, Tracer* tracer) const
+template <class K, class V, class H, class MH>
+TracePtr Map<K, V, H, MH>::TraceObjectChanges(const char* reason, Tracer* tracer) const
 {
    return GetStore().TraceMapChanges(reason, *this, tracer);
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::LoadValue(SerializationType r, Protocol::Value const& value)
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::LoadValue(SerializationType r, Protocol::Value const& value)
 {
    auto msg = value.GetExtension(Protocol::Map::extension);
    K key;
@@ -47,8 +47,8 @@ void Map<K, V, H>::LoadValue(SerializationType r, Protocol::Value const& value)
    }
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::SaveValue(SerializationType r, Protocol::Value* value) const
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::SaveValue(SerializationType r, Protocol::Value* value) const
 {
    Store const& store = GetStore();
    Protocol::Map::Update* msg = value->MutableExtension(Protocol::Map::extension);
@@ -60,8 +60,8 @@ void Map<K, V, H>::SaveValue(SerializationType r, Protocol::Value* value) const
    }
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::GetDbgInfo(DbgInfo &info) const {
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::GetDbgInfo(DbgInfo &info) const {
    if (WriteDbgInfoHeader(info)) {
       info.os << " {" << std::endl;
       {
@@ -82,14 +82,14 @@ void Map<K, V, H>::GetDbgInfo(DbgInfo &info) const {
 }
 
 
-template <class K, class V, class H>
-int Map<K, V, H>::GetSize() const
+template <class K, class V, class H, class MH>
+int Map<K, V, H, MH>::GetSize() const
 {
    return items_.size();
 }
 
-template <class K, class V, class H>
-bool Map<K, V, H>::IsEmpty() const
+template <class K, class V, class H, class MH>
+bool Map<K, V, H, MH>::IsEmpty() const
 {
    return items_.empty();
 }
@@ -102,24 +102,24 @@ template <typename T> bool Equals(std::weak_ptr<T> const& lhs, std::weak_ptr<T> 
    return lhs.lock() == rhs.lock();
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::Add(K const& key, V const& value) {
-   auto i = items_.find(key);
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::Add(K const& key, V const& value) {
+   auto i = items_.find(MH()(key));
    if (i != items_.end()) {
       i->second = value;
       MAP_LOG(7) << "modifying " << key << " (size: " << items_.size() << ")";
       GetStore().OnMapChanged(*this, key, value);
    } else {
-      items_[key] = value;
+      items_[MH()(key)] = value;
       lastErasedIterator_ = items_.end();
       MAP_LOG(7) << "adding " << key << " (size: " << items_.size() << ")";
       GetStore().OnMapChanged(*this, key, value);
    }
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::Remove(const K& key) {
-   auto i = items_.find(key);
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::Remove(const K& key) {
+   auto i = items_.find(MH()(key));
    if (i != items_.end()) {
       MAP_LOG(7) << "removing " << key;
       lastErasedIterator_ = items_.erase(i);
@@ -127,52 +127,52 @@ void Map<K, V, H>::Remove(const K& key) {
    }
 }
 
-template <class K, class V, class H>
-bool Map<K, V, H>::Contains(const K& key) const {
-   return items_.find(key) != items_.end();
+template <class K, class V, class H, class MH>
+bool Map<K, V, H, MH>::Contains(const K& key) const {
+   return items_.find(MH()(key)) != items_.end();
 }
 
-template <class K, class V, class H>
-V Map<K, V, H>::Get(const K& key, V default) const {
-   auto i = items_.find(key);
+template <class K, class V, class H, class MH>
+V Map<K, V, H, MH>::Get(const K& key, V default) const {
+   auto i = items_.find(MH()(key));
    return i != items_.end() ? i->second : default;
 }
 
-template <class K, class V, class H>
-void Map<K, V, H>::Clear() {
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::Clear() {
    MAP_LOG(7) << "clearing";
    while (!items_.empty()) {
       Remove(items_.begin()->first);
    }
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::ContainerType const& Map<K, V, H>::GetContainer() const
+template <class K, class V, class H, class MH>
+typename Map<K, V, H, MH>::ContainerType const& Map<K, V, H, MH>::GetContainer() const
 {
    MAP_LOG(7) << "returning container size " << items_.size();
    return items_;
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::Iterator Map<K, V, H>::begin() const
+template <class K, class V, class H, class MH>
+typename Map<K, V, H, MH>::Iterator Map<K, V, H, MH>::begin() const
 {
    return Iterator(*this, items_.begin());
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::Iterator Map<K, V, H>::end() const
+template <class K, class V, class H, class MH>
+typename Map<K, V, H, MH>::Iterator Map<K, V, H, MH>::end() const
 {
    return Iterator(*this, items_.end());
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::Iterator Map<K, V, H>::find(K const& key) const
+template <class K, class V, class H, class MH>
+typename Map<K, V, H, MH>::Iterator Map<K, V, H, MH>::find(K const& key) const
 {
-   return Iterator(*this, items_.find(key));
+   return Iterator(*this, items_.find(MH()(key)));
 }
 
-template <class K, class V, class H>
-typename Map<K, V, H>::ContainerType::const_iterator const& Map<K, V, H>::GetLastErasedIterator() const
+template <class K, class V, class H, class MH>
+typename Map<K, V, H, MH>::ContainerType::const_iterator const& Map<K, V, H, MH>::GetLastErasedIterator() const
 {
    return lastErasedIterator_;
 }

@@ -46,6 +46,7 @@ function CarpenterTest:__init()
    -- put some items in the world
    self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
+   self:place_item_cluster('stonehearth:silkweed_bundle', 8, 0, 5, 5)
 
    local player_id = carpenter:get_component('unit_info'):get_player_id()
    local town = stonehearth.town:get_town(player_id)

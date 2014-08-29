@@ -108,6 +108,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       std::set<csg::Point3>         closed_;
       std::set<csg::Point3>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
+      std::vector<csg::Point3>      _directPathCandiate;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
