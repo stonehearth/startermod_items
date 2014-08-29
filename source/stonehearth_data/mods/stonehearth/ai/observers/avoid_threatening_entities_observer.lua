@@ -74,13 +74,11 @@ function AvoidThreateningEntities:_add_sensor_trace()
    assert(self._sensor)
 
    local sensor_trace = self._sensor:trace_contents('trace threatening entities')
-      :on_added(
-         function (id)
+      :on_added(function(id)
             self:_on_added_to_sensor(id)
          end
       )
-      :on_removed(
-         function (id)
+      :on_removed(function(id)
             self:_on_removed_from_sensor(id)
          end
       )
@@ -115,13 +113,7 @@ function AvoidThreateningEntities:_on_added_to_sensor(id)
 end
 
 function AvoidThreateningEntities:_on_removed_from_sensor(id)
-   local other_entity = radiant.entities.get_entity(id)
-
-   if not other_entity then
-      return
-   end
-
-   self:_unobserve_threat(other_entity)
+   self:_unobserve_threat(id)
 end
 
 function AvoidThreateningEntities:_on_panic_changed()
@@ -145,7 +137,7 @@ function AvoidThreateningEntities:_on_courage_changed()
       if self:_is_threatening(other_entity) then
          self:_observe_threat(other_entity)
       else
-         self:_unobserve_threat(other_entity)
+         self:_unobserve_threat(other_entity:get_id())
       end
    end
 
@@ -160,7 +152,7 @@ function AvoidThreateningEntities:_on_threat_menace_changed(threat)
    if self:_is_threatening(threat) then
       self:_check_avoid_entity(threat)
    else
-      self:_unobserve_threat(threat)
+      self:_unobserve_threat(threat:get_id())
    end
 end
 
@@ -205,15 +197,13 @@ function AvoidThreateningEntities:_observe_threat(threat)
       local threat_tracker = ThreatTracker(threat)
 
       local location_trace = radiant.entities.trace_location(threat, 'avoid threatening entities')
-         :on_changed(
-            function()
+         :on_changed(function()
                self:_on_threat_location_changed(threat)
             end
          )
       threat_tracker:add_trace('location', location_trace)
       
-      local menace_trace = radiant.events.listen(threat, 'stonehearth:attribute_changed:menace',
-         function()
+      local menace_trace = radiant.events.listen(threat, 'stonehearth:attribute_changed:menace', function()
             self:_on_threat_menace_changed(threat)
          end
       )
@@ -223,13 +213,12 @@ function AvoidThreateningEntities:_observe_threat(threat)
    end
 end
 
-function AvoidThreateningEntities:_unobserve_threat(threat)
-   local threat_id = threat:get_id()
-   local threat_tracker = self._threats[threat_id]
+function AvoidThreateningEntities:_unobserve_threat(id)
+   local threat_tracker = self._threats[id]
 
    if threat_tracker then
       threat_tracker:destroy()
-      self._threats[threat_id] = nil
+      self._threats[id] = nil
    end
 end
 
@@ -284,16 +273,20 @@ function AvoidThreateningEntities:_get_entity_to_avoid()
 
    for id, threat_tracker in pairs(self._threats) do
       local threat = threat_tracker:get_threat()
-      local threat_distance = radiant.entities.distance_between(threat, self._entity)
-      local threat_ratio = self:_get_threat_ratio(threat)
-      local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
-      if threat_distance <= avoidance_distance then
-         local threat_score = threat_ratio * 100 / threat_distance -- * 100 to make it easier for humans to read
+      -- if not valid, we'll wait for the sensor to remove it
+      if threat:is_valid() then
+         local threat_distance = radiant.entities.distance_between(threat, self._entity)
+         local threat_ratio = self:_get_threat_ratio(threat)
+         local avoidance_distance = self:_get_avoidance_distance(threat_ratio)
 
-         if not greatest_threat or threat_score > greatest_threat_score then
-            greatest_threat = threat
-            greatest_threat_score = threat_score
+         if threat_distance <= avoidance_distance then
+            local threat_score = threat_ratio * 100 / threat_distance -- * 100 to make it easier for humans to read
+
+            if not greatest_threat or threat_score > greatest_threat_score then
+               greatest_threat = threat
+               greatest_threat_score = threat_score
+            end
          end
       end
    end
