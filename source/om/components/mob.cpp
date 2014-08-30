@@ -150,18 +150,9 @@ csg::Quaternion Mob::GetRotation() const
 //TODO: keep testing; not sure if it works from all 360 angles
 csg::Point3f Mob::GetLocationInFront() const
 {
-#if 1
+   csg::Point3f const& position = (*transform_).position;
    csg::Quaternion q = (*transform_).orientation;
-   csg::Point3f translation = q.rotate(csg::Point3f(0, 0, 1));
-   float x = (*transform_).position.x + (float)floor(translation.x + 0.5);
-   float z = (*transform_).position.z + (float)floor(translation.z + 0.5);
-   return csg::Point3f(x, (*transform_).position.y, z);
-#else
-   // This seems to be the proper implementation, but doesn't work at all.  Why?
-   NOT_TESTED();
-   csg::Quaternion q = (*transform_).orientation;
-   return q.rotate(csg::Point3f(0, 0, -1));
-#endif
+   return position + q.rotate(csg::Point3f(0, 0, -1));
 }
 
 
