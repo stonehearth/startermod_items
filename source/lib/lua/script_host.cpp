@@ -338,15 +338,19 @@ std::string ExtractAllocKey(lua_State *l) {
 
       if (stack.name) {
          fnName = stack.name;
+      } else {
+         fnName = "";
       }
       fnName += BUILD_STRING("[listen " << oldLine << "]");
-   } else if (srcName == "=[C]" && (fnName == "insert" || fnName == "resume")) {
+   } else if (srcName == "=[C]") {
       int oldLine = stack.currentline;
       lua_getstack(l, 1, &stack);
       lua_getinfo(l, "nSl", &stack);
 
       if (stack.name) {
          fnName = stack.name;
+      } else {
+         fnName = "";
       }
    } else if (srcName == "@radiant/modules/log.lua" && fnName == "create_logger") {
       int oldLine = stack.currentline;
@@ -358,6 +362,26 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[logger " << oldLine << "]");
+   } else if (srcName == "@radiant/modules/log.lua" && fnName == "set_prefix") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[set_prefix " << oldLine << "]");
+   } else if (srcName == "@radiant/lualibs/unclasslib.lua" && fnName == "build") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[build " << oldLine << "]");
    }
 
    return BUILD_STRING(stack.source << ":" << fnName << ":" << stack.currentline);
@@ -382,28 +406,36 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
    if (host->enable_profile_memory_) {
-      host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
-      host->alloc_backmap.erase(ptr);
-      if (realloced) {
-         std::string key = "unknown";
-         lua_State *l = L;
-         if (l != nullptr) {
-            lua_Debug stack;
-            int r = lua_getstack(l, 0, &stack);
+      if (realloced && osize != nsize && ptr && host->alloc_backmap[ptr] != "") {
+         std::string oldKey = host->alloc_backmap[ptr];
+         host->alloc_map[oldKey].erase(ptr);
+         host->alloc_backmap.erase(ptr);
+         host->alloc_map[oldKey][realloced] = nsize;
+         host->alloc_backmap[realloced] = oldKey;
+      } else {
+         host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+         host->alloc_backmap.erase(ptr);
+         if (realloced) {
+            std::string key = "unknown";
+            lua_State *l = L;
+            if (l != nullptr) {
+               lua_Debug stack;
+               int r = lua_getstack(l, 0, &stack);
 
-            if (!r) {
-               l = host->L_;
+               if (!r) {
+                  l = host->L_;
 
-               if (l) {
-                  r = lua_getstack(l, 0, &stack);
+                  if (l) {
+                     r = lua_getstack(l, 0, &stack);
+                  }
+               }
+               if (r) {
+                  key = ExtractAllocKey(l);
                }
             }
-            if (r) {
-               key = ExtractAllocKey(l);
-            }
+            host->alloc_map[key][realloced] = nsize;
+            host->alloc_backmap[realloced] = key;
          }
-         host->alloc_map[key][realloced] = nsize;
-         host->alloc_backmap[realloced] = key;
       }
    }
    return realloced;
@@ -499,7 +531,7 @@ void ScriptHost::GC(platform::timer &timer)
 {
    if (_gc_setting == 0) {
       return;
-   } else if (_gc_setting = 1) {
+   } else if (_gc_setting == 1) {
       bool finished = false;
 
       while (!timer.expired() && !finished) {
