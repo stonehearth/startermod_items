@@ -20,14 +20,27 @@ function LadderBuilder:initialize(manager, base, normal, removeable)
    self.__saved_variables:mark_changed()
 
    radiant.terrain.place_entity_at_exact_location(ladder, base)
-
    self._ladder_component = ladder:add_component('stonehearth:ladder')
                                        :set_normal(normal)
                                        :set_base(base)
 
    self._vpr_component = ladder:add_component('vertical_pathing_region')
    self._vpr_component:set_region(_radiant.sim.alloc_region())
+   
+   self:_install_traces()  
+end
 
+function LadderBuilder:restore()
+   radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         local ladder = self._sv.ladder
+         self._ladder_component = ladder:get_component('stonehearth:ladder')
+         self._vpr_component = ladder:get_component('vertical_pathing_region')
+         self:_install_traces()
+         self:_update_ladder_tasks()
+      end)
+end
+
+function LadderBuilder:_install_traces()
    self._vpr_trace = self._vpr_component:trace_region('ladder builder')
                                              :on_changed(function()
                                                    self:_update_ladder_tasks()
@@ -51,13 +64,13 @@ function LadderBuilder:destroy()
 end
 
 function LadderBuilder:add_point(to)
-   self._sv.climb_to[to] = 1
+   self._sv.climb_to[to:key_value()] = to
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
 
 function LadderBuilder:remove_point(to)
-   self._sv.climb_to[to] = nil
+   self._sv.climb_to[to:key_value()] = nil
    self.__saved_variables:mark_changed()   
    self:_update_ladder_tasks()
 end
@@ -79,7 +92,7 @@ end
 function LadderBuilder:_get_climb_to()
    local origin = radiant.entities.get_world_grid_location(self._sv.ladder)
    local top
-   for pt, _ in pairs(self._sv.climb_to) do
+   for _, pt in pairs(self._sv.climb_to) do
       assert(not top or (pt.x == top.x and pt.z == top.z))
       if not top or pt.y > top.y then
          top = pt
