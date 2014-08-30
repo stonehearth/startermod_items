@@ -6,14 +6,28 @@ App.StonehearthCitizensView = App.View.extend({
       var self = this;
       this._super();
       this.set('title', 'Citizens');
-      App.population.getTrace()
-         .progress(function(pop) {
-            self.set('context.model', pop)
+
+      //this.components = App.population.getComponents();
+      //this.set('uri', App.population.getUri();
+      
+      this._trace =  new StonehearthPopulationTrace();
+
+      this._trace.progress(function(pop) {
+            self.set('context.model', pop);
+            self._buildCitizensArray();
          })
    },
 
+   destroy: function() {
+      if (this._trace) {
+         this._trace.destroy();   
+      }
+      
+      this._super();
+   },
+
    didInsertElement: function() {
-      var self = this;
+      var self = this;  
       this._super();
 
       // remember the citizen for the row that the mouse is over
@@ -94,7 +108,7 @@ App.StonehearthCitizensView = App.View.extend({
       }
 
       this.set('context.model.citizensArray', vals);
-    }.observes('context.model.citizens.[]').on('init'),
+    },
 
     _citizenFilterFn: function (citizen) {
       return true;

@@ -100,7 +100,7 @@ function score_tests.immigrant(autotest)
    end)
 
    --The force spawn ignores "can spawn"
-   stonehearth.dynamic_scenario:force_spawn_scenario('Immigration')
+   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:immigration')
 
    autotest.util:fail_if_expired(60 * 1000, 'failed to get immigrant')
 end

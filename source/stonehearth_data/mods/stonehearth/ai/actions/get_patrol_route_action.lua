@@ -19,20 +19,18 @@ function GetPatrolPoint:start_thinking(ai, entity, args)
    self._entity = entity
    self._ai = ai
    self._start_location = ai.CURRENT.location
-   self._listening = false
 
    self:_check_for_patrol_route()
 
    if not self._patrollable_object then
-      self._listening = true
-      radiant.events.listen(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
+      self._patrol_listener = radiant.events.listen(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
    end
 end
 
 function GetPatrolPoint:stop_thinking(ai, entity, args)
-   if self._listening then
-      radiant.events.unlisten(stonehearth.town_patrol, 'stonehearth:patrol_route_available', self, self._check_for_patrol_route)
-      self._listening = false
+   if self._patrol_listener then
+      self._patrol_listener:destroy()
+      self._patrol_listener = nil
    end
 
    if self._proxy_entity then
@@ -65,10 +63,11 @@ function GetPatrolPoint:_check_for_patrol_route()
    self._patrollable_object = stonehearth.town_patrol:get_patrol_route(self._entity)
 
    if self._patrollable_object then
-      local waypoints = self._patrollable_object:get_waypoints(patrol_margin)
+      local waypoints = self._patrollable_object:get_waypoints(patrol_margin, self._entity)
       self:_find_path(self._start_location, waypoints)
 
-      self._listening = false
+      -- This works; 'destroy' works too, but this avoids enqueing on the 'dead_listeners' list.
+      self._patrol_listener = nil
       return radiant.events.UNLISTEN
    end
 end
@@ -82,11 +81,15 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    -- remove waypoints that this entity cannot stand on
    PatrolHelpers.prune_non_standable_points(self._entity, waypoints)
 
+   if #waypoints == 0 then
+      return
+   end
+
    -- find the "best" order of traversal
    PatrolHelpers.order_waypoints(self._entity, start_location, waypoints)
 
    -- the proxy target for the pathfinder, since the a* pathfinder requires an entity destination
-   self._proxy_entity = radiant.entities.create_proxy_entity(false)
+   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
 
    -- doesn't matter where it we place it, we'll move it later
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)

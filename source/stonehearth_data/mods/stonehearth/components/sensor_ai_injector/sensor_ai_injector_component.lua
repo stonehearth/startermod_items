@@ -24,6 +24,11 @@ function SensorAiInjectorComponent:initialize(entity, json)
                                     ) 
 end
 
+function SensorAiInjectorComponent:destroy()
+   self.promise:destroy()
+   self.promise = nil
+end
+
 function SensorAiInjectorComponent:on_added_to_sensor(entity_id, entity)
    local ai_component = entity:get_component('stonehearth:ai')
    if ai_component then

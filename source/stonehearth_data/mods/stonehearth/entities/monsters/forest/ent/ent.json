@@ -1,0 +1,69 @@
+{
+   "type": "entity", 
+   "mixins" : "stonehearth:mixins:mob",
+   "components": {
+      "mob": {
+         "mob_collision_type": "titan"
+      }, 
+
+      "render_info" : {
+         "animation_table": "file(/data/rigs/monsters/ent)",
+         "scale" : 0.50
+      },
+
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(ent.qb)"
+            ]
+         }
+      }, 
+      "stonehearth:ai": {
+         "actions" : [
+            "stonehearth:actions:idle:look_around"
+         ],
+         "observers": [
+         ]
+      },
+      "unit_info" : {
+         "name": "Ent",
+         "faction": "forest",
+         "description": "Guardian of the forest"
+      },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "radius": 64
+            }
+         }
+      },
+      "stonehearth:attributes": {
+          "max_health": {
+            "type" : "basic", 
+            "value" : 500
+         },
+         "health": {
+            "type" : "variable", 
+            "equation" :  "max_health"
+         },
+         "speed": {
+            "type" : "basic",
+            "value" : 80
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 70
+         },
+         "courage": {
+            "type" : "basic",
+            "value" : 200
+         }
+      },
+      "stonehearth:posture": [
+      ]
+   },
+   "entity_data" : {
+      "stonehearth:entity_radius" : 2.0,
+      "stonehearth:entity_reach" : 2.0
+   }
+}

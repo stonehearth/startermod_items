@@ -2,11 +2,29 @@
 #include "mob.ridl.h"
 #include "csg/matrix4.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
+#include "csg/cube.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
 #define M_LOG(level)    LOG(om.mob, level)
+
+static csg::Region3 NoCollisionShape;
+static csg::Region3 TitanCollisionShape;
+static csg::Region3 TrivialCollisionShape;
+static csg::Region3 HumanoidCollisionShape;
+
+
+class ConstructRegions {
+public:
+   ConstructRegions() {
+      TrivialCollisionShape.Add(csg::Cube3::one);
+      HumanoidCollisionShape.Add(csg::Cube3(csg::Point3::zero, csg::Point3(1, 3, 1)));
+      TitanCollisionShape.Add(csg::Cube3(csg::Point3(-3, 1, -3), csg::Point3(4, 7, 4)));
+      TitanCollisionShape.Add(csg::Cube3(csg::Point3(-2, 0, -2), csg::Point3(3, 8, 3)));
+   }
+};
+static ConstructRegions constructRegions;
 
 std::ostream& operator<<(std::ostream& os, Mob const& o)
 {
@@ -100,7 +118,7 @@ csg::Point3f Mob::GetWorldLocation() const
 csg::Transform Mob::GetWorldTransform() const
 {
    EntityPtr parent = (*parent_).lock();
-   MobPtr mob = nullptr;
+   MobPtr mob;
    
    if (parent) {
       mob = parent->GetComponent<om::Mob>();
@@ -190,6 +208,7 @@ void Mob::LoadFromJson(json::Node const& obj)
       __str_to_type["humanoid"] = HUMANOID;
       __str_to_type["tiny"]  = TINY;
       __str_to_type["clutter"]  = CLUTTER;
+      __str_to_type["titan"]  = TITAN;
    }
 
    if (obj.has("parent")) {
@@ -213,6 +232,7 @@ void Mob::SerializeToJson(json::Node& node) const
       __type_to_str[HUMANOID] = "humanoid";
       __type_to_str[TINY] = "tiny";
       __type_to_str[CLUTTER] = "clutter";
+      __type_to_str[TITAN] = "titan";
    }
    node.set("transform", GetTransform());
    node.set("model_origin", GetModelOrigin());
@@ -234,25 +254,27 @@ void Mob::SetLocationGridAligned(csg::Point3 const& location)
 }
 
 /*
- * -- Mob::GetMobCollisionBox
+ * -- Mob::GetMobCollisionRegion
  *
  * Return the size of the collision box in the entity's local coordinate system
  * given its mob collision type value.
  *
  */
-csg::Cube3 Mob::GetMobCollisionBox() const
+csg::Region3 const& Mob::GetMobCollisionRegion() const
 {
    switch (*mob_collision_type_) {
    case Mob::NONE:
-      return csg::Cube3::zero;
+      return NoCollisionShape;
    case Mob::TINY:
    case Mob::CLUTTER:
-      return csg::Cube3::one;
+      return TrivialCollisionShape;
       break;
    case Mob::HUMANOID:
-      return csg::Cube3(csg::Point3::zero, csg::Point3(1, 3, 1));
+      return HumanoidCollisionShape;
+   case Mob::TITAN:
+      return TitanCollisionShape;
    }
    NOT_REACHED();
-   return csg::Cube3::zero;
+   return NoCollisionShape;
 }
 

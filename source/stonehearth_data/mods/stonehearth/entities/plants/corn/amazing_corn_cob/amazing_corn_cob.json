@@ -12,7 +12,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(amazing_corn_cob.qb)"
+               "file(amazing_corn_serving.qb)"
             ]
          }
       },

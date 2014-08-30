@@ -3,7 +3,7 @@ var StonehearthPopulation;
 (function () {
    StonehearthPopulation = SimpleClass.extend({
 
-      components: {
+      _components: {
          "citizens" : {
             "*" : {
                "unit_info": {},           
@@ -28,29 +28,59 @@ var StonehearthPopulation;
          radiant.call('stonehearth:get_population')
             .done(function(response){
                self._populationUri = response.population;
-               self._createTrace();
+               self._initCompleteDeferred.resolve();
             });
       },
 
-      _createTrace: function() {
-         var self = this;
+      getUri: function() {
+         return this._populationUri;
+      },
 
-         self._radiantTrace = new RadiantTrace();
-         self._populationTrace = this._radiantTrace.traceUri(this._populationUri, this.components);
-
-         // notify that the class is fully initialized
-         self._initCompleteDeferred.resolve();
+      getComponents: function() {
+         return this._components;
       },
 
       getTrace: function() {
-         return this._populationTrace;
-      },
-
-      getCitizen: function(uri) {
-         var parts = uri.split('/');
-         var id = parts[parts.length - 1]
-         return (self._population[id]);
+         return new StonehearthPopulationTrace();
       }
    });
-})();
 
+   StonehearthDataTrace = SimpleClass.extend({
+
+      init: function() {
+         this._radiantTrace = new RadiantTrace();
+         this._deferred = this._radiantTrace.traceUri(this._uri, this._components);
+      },
+
+      progress: function(fn) {
+         this._deferred.progress(fn);
+      },
+
+      done: function(fn) {
+         this._deferred.done(fn);
+      },
+
+      fail: function(fn) {
+         this._deferred.fail(fn);
+      },
+
+      destroy: function() {
+         if (this._radiantTrace) {
+            this._radiantTrace.destroy();
+            this._radiantTrace = null;            
+         }
+      }
+
+   });
+
+   StonehearthPopulationTrace = StonehearthDataTrace.extend({
+
+      init: function() {
+         this._uri = App.population.getUri();
+         this._components = App.population.getComponents();
+         this._super();
+      }
+   });
+
+
+})();

@@ -9,7 +9,7 @@ using namespace radiant;
 using namespace radiant::phys;
 
 TerrainTileTracker::TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& offset, om::Region3BoxedPtr region) :
-   CollisionTracker(ng, COLLISION, entity),
+   CollisionTracker(ng, TERRAIN, entity),
    offset_(offset),
    region_(region),
    last_bounds_(csg::Cube3::zero)

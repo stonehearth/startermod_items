@@ -14,6 +14,9 @@
             ]
          }
       },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(weaver_spindle_talisman.json)"
+      },
       "stonehearth:equipment_piece" : {
          "slot" : "mainHand",
          "render_type" : "attach_to_bone",

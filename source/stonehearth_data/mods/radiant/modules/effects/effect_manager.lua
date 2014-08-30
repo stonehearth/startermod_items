@@ -7,7 +7,7 @@ function EffectManager:__init(entity)
    self._effects = {}
 
    self._entity = entity
-   radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_event_loop)
+   self._loop_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', self, self.on_event_loop)
 
    self.animation_table_name = radiant.entities.get_animation_table(self._entity)
    if self.animation_table_name and self.animation_table_name ~= "" then
@@ -20,6 +20,10 @@ function EffectManager:__init(entity)
         self._postures = radiant.resources.load_json(obj.postures)
       end
    end
+end
+
+function EffectManager:destroy()
+  self._loop_listener:destroy()
 end
 
 function EffectManager:on_event_loop(e)
@@ -60,7 +64,7 @@ function EffectManager:start_effect(action, delay, trigger_handler, args)
    --if trigger_handler then radiant.check.is_callable(trigger_handler) end
    if args then radiant.check.is_table(args) end
 
-   log:debug("staring effect %s at %d", resolved_action, when)
+   log:debug("starting effect %s at %d", resolved_action, when)
    return self:_add_effect(resolved_action, when, trigger_handler, args);
 end
 

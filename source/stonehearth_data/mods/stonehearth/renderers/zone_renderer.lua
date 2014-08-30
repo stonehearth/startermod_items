@@ -10,20 +10,17 @@ function ZoneRenderer:__init(render_entity)
 
    self._render_entity = render_entity
    self._items = {}
-   self._designation_color_interior = default_color
-   self._designation_color_border = default_color
-   self._ground_color_interior = default_color
-   self._ground_color_border = default_color
    self._parent_node = render_entity:get_node()
 
    self:set_size(Point2.zero)
    self:_on_ui_mode_changed()
 
-   radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 function ZoneRenderer:destroy()
-   radiant.events.unlisten(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   self._mode_listener:destroy()
+   self._mode_listener = nil
 
    -- take all items out of ghost mode
    self:_update_item_states(self._items, false)
@@ -34,14 +31,14 @@ end
 
 -- size is a Point2
 function ZoneRenderer:set_size(size)
-   if size ~= self._size then
-      self._size = size
-      self._region = Region2(Rect2(Point2.zero, self._size))
+   self:set_region2(Region2(Rect2(Point2.zero, size)))
+   return self
+end
 
-      self:_regenerate_designation_node()      
-      self:_regenerate_ground_node()
-   end
-
+function ZoneRenderer:set_region2(region2)
+   self._region = region2
+   self:_regenerate_designation_node()      
+   self:_regenerate_ground_node()
    return self
 end
 
@@ -117,17 +114,7 @@ function ZoneRenderer:_set_ghost_mode(render_entity, ghost_mode)
    render_entity:set_material_override(material)
 
    local selectable = not ghost_mode
-   self:_set_selectable(render_entity, selectable)
-end
-
-function ZoneRenderer:_set_selectable(render_entity, selectable)
-   local unselectable_flag = _radiant.renderer.QueryFlags.UNSELECTABLE
-
-   if selectable then
-      render_entity:remove_query_flag(unselectable_flag)
-   else
-      render_entity:add_query_flag(unselectable_flag)
-   end
+   stonehearth.selection:set_selectable(render_entity:get_entity(), selectable)
 end
 
 function ZoneRenderer:_on_ui_mode_changed()
@@ -141,7 +128,7 @@ function ZoneRenderer:_on_ui_mode_changed()
       -- no need to regenerate ground node
 
       local ground_selectable = self:_in_hud_mode()
-      self:_set_selectable(self._render_entity, ground_selectable)
+      stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
    end
 end
 
@@ -159,9 +146,11 @@ end
 function ZoneRenderer:_regenerate_designation_node()
    self:_destroy_designation_node()
 
-   if self:_in_hud_mode() then
-      self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
-                               self._designation_color_interior, self._designation_color_border);
+   if self._designation_color_interior and self._designation_color_border then
+      if self:_in_hud_mode() then
+         self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
+                                  self._designation_color_interior, self._designation_color_border)
+      end
    end
 end
 
@@ -174,9 +163,11 @@ end
 
 function ZoneRenderer:_regenerate_ground_node() 
    self:_destroy_ground_node()
-
-   self._ground_node = _radiant.client.create_stockpile_node(self._parent_node, self._region,
-                       self._ground_color_interior, self._ground_color_border);
+   
+   if self._ground_color_interior and self._ground_color_border then
+      self._ground_node = _radiant.client.create_stockpile_node(self._parent_node, self._region,
+                          self._ground_color_interior, self._ground_color_border)
+   end
 end
 
 return ZoneRenderer

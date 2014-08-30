@@ -25,7 +25,7 @@
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:wooden_sword_talisman" : {
+         "stonehearth:weapons:wooden_sword_talisman" : {
             "min" : 3, 
             "max" : 8
          }, 

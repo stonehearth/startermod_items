@@ -31,9 +31,14 @@ function is_available_bed(target, entity)
    return false
 end
 
+function SleepInNewBed:start_thinking(ai, entity, args)
+   if not currently_has_bed(entity) then
+      ai:set_think_output()
+   end
+end
+
 local ai = stonehearth.ai
 return ai:create_compound_action(SleepInNewBed)
-         :when(function (ai, entity) return not currently_has_bed(entity) end)
          :execute('stonehearth:drop_carrying_now')
          :execute('stonehearth:goto_entity_type', {
             filter_fn = is_available_bed,

@@ -61,10 +61,10 @@ function GoblinBrigands:start()
 end
 
 function GoblinBrigands:_attach_listeners()
-   radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
-   radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
-   radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._destroy_listener = radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+   self._carrying_listener = radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 function GoblinBrigands:_add_restock_task(e)
@@ -105,8 +105,8 @@ function GoblinBrigands:_on_spawn()
       --If he's not being attacked, he will go collect stuff
       stonehearth.combat:set_stance(self._sv._thief, 'defensive')
 
-      --When he's attacked, he will use this wooden sword
-      local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+      --When he's attacked, he will use this weapon
+      local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
       radiant.entities.equip_item(self._sv._thief, weapon)
 
       --Pick how many escorts
@@ -119,13 +119,27 @@ function GoblinBrigands:_on_spawn()
          end
       end
 
+      --Throttle the max # of escorts
+      local scenario_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+      local max_escorts = scenario_data.max_squad
+
+      if num_escorts > max_escorts then
+         num_escorts = max_escorts
+      end
+
       for i = 1, num_escorts do 
-         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:wooden_sword')
+         self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
       end
    end
 
    local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
       self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
+
+   if spawn_points[1] then
+      --make sure the spawn point is actually on valid ground
+      spawn_points[1] = radiant.terrain.find_placement_point(spawn_points[1], 1, 20)
+   end
+
 
    if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
@@ -133,7 +147,7 @@ function GoblinBrigands:_on_spawn()
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=2, y=2})
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=1, y=1})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: right now the filter is broken. Why???
    --s_comp:set_filter({'resource wood'})
@@ -146,19 +160,23 @@ function GoblinBrigands:_on_spawn()
 end
 
 function GoblinBrigands:_squad_killed(e)
-   radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener:destroy()
+   self._item_added_listener = nil
 
    radiant.entities.destroy_entity(self._sv._stockpile)
    self._sv._stockpile = nil
-   self._sv._suqad = nil
+   self._sv._squad = nil
    self.__saved_variables:mark_changed()
 
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function GoblinBrigands:_thief_killed(e)
-   radiant.events.unlisten(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
-   radiant.events.unlisten(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
+   self._carrying_listener:destroy()
+   self._carrying_listener = nil
+
+   self._destroy_listener:destroy();
+   self._destroy_listener = nil
 
    radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 

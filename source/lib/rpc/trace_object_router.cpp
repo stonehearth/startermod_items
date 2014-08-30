@@ -21,8 +21,8 @@ void TraceObjectRouter::CheckDeferredTraces()
 {
    auto i = deferred_traces_.begin();
    while (i != deferred_traces_.end()) {
-      ReactorDeferredPtr d = i->second.lock();
-      if (!d) {
+      ReactorDeferredPtr d = i->second;
+      if (!d->IsPending() || d.use_count() == 1) {
          i = deferred_traces_.erase(i);
          continue;
       }
@@ -75,9 +75,8 @@ ReactorDeferredPtr TraceObjectRouter::GetTrace(Trace const& trace)
    if (i != traces_.end()) {
       ObjectTraceEntry &entry = i->second;
       dm::ObjectPtr obj = entry.obj.lock();
-      ReactorDeferredPtr deferred = entry.deferred.lock();
-      if (obj && deferred) {
-         return deferred;
+      if (obj) {
+         return entry.deferred;
       }
       traces_.erase(i);
    }
@@ -94,9 +93,13 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
    entry.obj = obj;
    entry.trace = obj->TraceObjectChanges("rpc", dm::RPC_TRACES);
 
-   entry.trace->OnModified_([this, uri, entry]() {
-      auto obj = entry.obj.lock();
-      auto deferred = entry.deferred.lock();
+   // We _must_ capture only the refs to the object/deferred.  Capturing the ptr means that
+   // the closure of the object will hold a strong-ref to itself; it will never go away!.
+   dm::ObjectRef objRef = entry.obj;
+   ReactorDeferredRef defRef = entry.deferred;
+   entry.trace->OnModified_([this, uri, objRef, defRef]() {
+      auto obj = objRef.lock();
+      auto deferred = defRef.lock();
       if (obj && deferred) {
          json::Node data;
           if (obj->GetObjectType() == om::JsonBoxedObjectType) {
@@ -108,8 +111,20 @@ void TraceObjectRouter::InstallTrace(std::string const& uri, ReactorDeferredPtr 
           }
          deferred->Notify(data);
       } else {
+         if (deferred) {
+            json::Node emptyData;
+            deferred->Resolve(emptyData);
+         }
          traces_.erase(uri);
       }
+   });
+   entry.trace->OnDestroyed_([uri, defRef, this]() {
+      auto deferred = defRef.lock();
+      if (deferred) {
+         json::Node emptyData;
+         deferred->Resolve(emptyData);
+      }
+      traces_.erase(uri);
    });
    entry.trace->PushObjectState_();
 }

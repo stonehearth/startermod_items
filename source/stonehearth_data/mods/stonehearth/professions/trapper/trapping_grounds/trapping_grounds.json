@@ -7,10 +7,13 @@
       },
       "stonehearth:trapping_grounds" : {
          "max_traps" : 4,
-         "min_distance_between_traps" : 16,
+         "min_distance_between_traps" : 12,
          "spawn_interval_min" : "50m",
          "spawn_interval_max" : "70m",
          "check_traps_interval" : "6h"
       }
+   },
+   "entity_data" : {
+      "stonehearth:designation" : {}
    }
 }

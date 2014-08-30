@@ -17,7 +17,7 @@ class AStarPathFinder;
 
 class PathFinderDst {
 public:
-   typedef std::function<void(const char *reason)> ChangedCb;
+   typedef std::function<void(PathFinderDst const&, const char *reason)> ChangedCb;
 
    PathFinderDst(Simulation& sim, AStarPathFinder&, om::EntityRef src, om::EntityRef dst, std::string const& name, ChangedCb changed_cb);
    ~PathFinderDst();
@@ -30,7 +30,8 @@ public:
    float EstimateMovementCost(const csg::Point3& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    void Start();
-   
+   csg::Region3 const& GetWorldSpaceAdjacentRegion() const;
+
 private:
    void DestroyTraces();
    void ClipAdjacentToTerrain();

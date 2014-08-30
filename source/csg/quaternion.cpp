@@ -231,28 +231,28 @@ Quaternion::lookAt(const Point3f& from, const Point3f& target)
    float trace = right.x + up.y + forward.z;
 
    if (trace > 0) {
-      float s = sqrtf(trace + 1.0) * 2.0f;
+      float s = sqrtf(trace + 1.0f) * 2.0f;
       float s_recip = 1.0f / s;
 	   w = 0.25f * s;
 	   x = (up.z - forward.y) * s_recip;
 	   y = (forward.x - right.z) * s_recip;
 	   z = (right.y - up.x) * s_recip;
    } else if (right.x > up.y && right.x > forward.z) {
-      float s = sqrtf(1.0 + right.x - up.y - forward.z) * 2.0f;
+      float s = sqrtf(1.0f + right.x - up.y - forward.z) * 2.0f;
       float s_recip = 1.0f / s;
 	   w = (up.z - forward.y) * s_recip;
 	   x = 0.25f * s;
 	   y = (up.x + right.y) * s_recip;
 	   z = (forward.x + right.z) * s_recip;
    } else if (up.y > forward.z) {
-      float s = sqrtf(1.0 + up.y - right.x - forward.z) * 2.0f;
+      float s = sqrtf(1.0f + up.y - right.x - forward.z) * 2.0f;
       float s_recip = 1.0f / s;
 	   w = (forward.x - right.z) * s_recip;
 	   x = (up.x + right.y) * s_recip;
 	   y = 0.25f * s;
 	   z = (forward.y + up.z) * s_recip;
    } else {
-      float s = sqrtf(1.0 + forward.z - right.x - up.y) * 2.0f;
+      float s = sqrtf(1.0f + forward.z - right.x - up.y) * 2.0f;
       float s_recip = 1.0f / s;
 	   w = (right.y - up.x) * s_recip;
 	   x = (forward.x + right.z) * s_recip;

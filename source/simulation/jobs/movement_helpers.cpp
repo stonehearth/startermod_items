@@ -128,70 +128,50 @@ csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPointW
    return poiWorld;
 }
 
-template <class T>
-static std::vector<csg::Point<T,3>> GetElevations(csg::Point<T,3> const& location, bool const reversible)
+static std::vector<csg::Point3> const& GetElevationOffsets(om::EntityPtr entity, bool reversible)
 {
-   static csg::Point<T,3> elevations[] = {
-      csg::Point<T,3>(0,  0, 0),   // test the flat case first
-      csg::Point<T,3>(0,  1, 0),   // then up before down
-      csg::Point<T,3>(0, -1, 0),
-      csg::Point<T,3>(0, -2, 0)
-   };
+   static std::vector<csg::Point3> elevations, reversibleElevations;
 
-   static csg::Point<T,3> reversibleElevations[] = {
-      elevations[0], elevations[1], elevations[2]
-   };
-
-   std::vector<csg::Point<T,3>> points;
-
-   if (reversible) {
-      for (auto const& offset : reversibleElevations) {
-         points.push_back(location + offset);
-      }
-   } else {
-      for (auto const& offset : elevations) {
-         points.push_back(location + offset);
-      }
+   if (elevations.empty()) {
+      // Technically, this isn't at all thread safe.
+      elevations.emplace_back(csg::Point3(0,  0, 0));   // test the flat case first
+      elevations.emplace_back(csg::Point3(0,  1, 0));   // then up before down
+      elevations.emplace_back(csg::Point3(0, -1, 0));
+      elevations.emplace_back(csg::Point3(0, -2, 0));
+      reversibleElevations.emplace_back(elevations[0]);
+      reversibleElevations.emplace_back(elevations[1]);
+      reversibleElevations.emplace_back(elevations[2]);
    }
-
-   return points;
+   return reversible ? reversibleElevations : elevations;
 }
 
 // returns true if this is a legal move (doesn't check adjacency yet though due to high game speed issues)
-// resolvedLocation contains the updated standing location
+// to contains the updated standing location
 // reversible indicates whether to include moves that cannot be reversed and (may cause the entity to get stuck)
-template <class T>
-bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr const& entity, bool const reversible,
-                                       csg::Point<T,3> const& fromLocation, csg::Point<T,3> const& toLocation, csg::Point<T,3>& resolvedLocation) const
+bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,
+                                      csg::Point3 const& from, int dx, int dz, csg::Point3& to) const
 {
-   phys::OctTree const& octTree = sim.GetOctTree();
-   csg::Point<T,3> toLocationProjected = toLocation;
-   toLocationProjected.y = fromLocation.y;
+   phys::OctTree& octTree = sim.GetOctTree();
+   csg::Point3 toCandidate(from.x + dx, from.y, from.z + dz);
 
-   std::vector<csg::Point<T,3>> const elevations = GetElevations(toLocationProjected, reversible);
+   phys::NavGrid& ng = octTree.GetNavGrid();
 
-   // find a valid elevation to move to
-   csg::Point<T,3> finalToLocation;
-   if (!octTree.CanStandOnOneOf(entity, elevations, finalToLocation)) {
-      return false;
+   for (csg::Point3 const& offset : GetElevationOffsets(entity, reversible)) {
+      csg::Point3 pt(toCandidate + offset);
+      if (ng.IsStandable(entity, pt)) {
+         if (octTree.ValidMove(entity, reversible, csg::ToClosestInt(pt), csg::ToClosestInt(pt))) {
+            to = pt;
+            return true;
+         }
+      }
    }
-
-   // enforce rules for adjacent moves
-   if (!octTree.ValidMove(entity, reversible, csg::ToClosestInt(fromLocation), csg::ToClosestInt(finalToLocation))) {
-      return false;
-   }
-
-   resolvedLocation = finalToLocation;
-   return true;
+   return false;
 }
-
-template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3 const&, csg::Point3 const&, csg::Point3&) const;
-template bool MovementHelper::TestAdjacentMove(Simulation&, om::EntityPtr const&, bool const, csg::Point3f const&, csg::Point3f const&, csg::Point3f&) const;
 
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end) const
+bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end, std::vector<csg::Point3> &result) const
 {
    int const x0 = start.x;
    int const z0 = start.z;
@@ -204,30 +184,35 @@ std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::Enti
    int error = dx - dz;
    int error2;
    csg::Point3 current(start);
-   csg::Point3 proposed;
    csg::Point3 next;
-   std::vector<csg::Point3> result;
    bool passable;
 
    // following convention, we include the origin point in the path
    // follow path can decide to skip this point so that we don't run to the origin of the current block first
+   result.clear();
    result.push_back(start);
 
    while (true) {
+      int next_dx, next_dz;
       error2 = error*2;
-      proposed = current;
 
       if (error2 > -dz) {
          error -= dz;
-         proposed.x = current.x + sx;
+         next_dx = sx;
+      } else {
+         next_dx = 0;
       }
 
       if (error2 < dx) {
          error += dx;
-         proposed.z = current.z + sz;
+         next_dz = sz;
+      } else {
+         next_dz = 0;
       }
 
-      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, proposed, next);
+      ASSERT(next_dx != 0 || next_dz != 0);
+
+      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, next_dx, next_dz, next);
       if (!passable) {
          break;
       }
@@ -241,7 +226,16 @@ std::vector<csg::Point3> MovementHelper::GetPathPoints(Simulation& sim, om::Enti
       current = next;
    }
 
-   return result;
+   return !result.empty() && result.back() == end;
+}
+
+MovementHelper::Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) const
+{
+   if (std::abs(delta.x) >= std::abs(delta.z)) {
+      return Axis::X;
+   } else {
+      return Axis::Z;
+   }
 }
 
 bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart, csg::Point3 const& previous, csg::Point3 const& current, Axis axis) const
@@ -272,34 +266,35 @@ bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart
 // maxSlope is the slope bounds closest to +inf.
 // minSlope is the slope bounds closest to -inf.
 // Comparing floats should be ok, since we shouldn't have any floating point drift.
-MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, float& maxSlope, float& minSlope, float& centerSlope) const
+void MovementHelper::GetSlopeBounds(csg::Point3 const& delta, Axis axis, float& maxSlope, float& minSlope, float& centerSlope) const
 {
-   int absdx = std::abs(delta.x);
-   int absdz = std::abs(delta.z);
    int major, minor;
-   float absMajor;
-   Axis majorAxis;
 
    // Get the major and minor coordinates.
    // If equal, default to x-major axis. we'll fix this later if we deviate from the diagonal.
-   if (absdx >= absdz) {
-      major = delta.x;
-      minor = delta.z;
-      absMajor = (float) absdx;
-      majorAxis = Axis::X;
-   } else {
-      major = delta.z;
-      minor = delta.x;
-      absMajor = (float) absdz;
-      majorAxis = Axis::Z;
+   switch (axis) {
+      case Axis::X:
+         major = delta.x;
+         minor = delta.z;
+         break;
+      case Axis::Z:
+         major = delta.z;
+         minor = delta.x;
+         break;
+      default:
+         throw core::Exception("GetSlopeBounds: Illegal axis");
    }
 
-   if (absMajor == 0) {
-      assert(absdx == 0 && absdz == 0);
-      throw core::Exception("GetSlopeBounds is undefined for a zero point.");
+   if (major == 0) {
+      throw core::Exception("GetSlopeBounds: Major axis coordinate cannot be zero");
+   }
+
+   if (std::abs(minor) > std::abs(major)) {
+      throw core::Exception("GetSlopeBounds: Minor axis is longer than major axis");
    }
 
    // This point must be within 0.5 units of the actual line, otherwise the point above or below would have been closer.
+   float absMajor = (float) std::abs(major);
    maxSlope = (minor + 0.5f) / absMajor;
    minSlope = (minor - 0.5f) / absMajor;
    centerSlope = minor / absMajor;
@@ -309,14 +304,14 @@ MovementHelper::Axis MovementHelper::GetSlopeBounds(csg::Point3 const& delta, fl
    assert(centerSlope >= -1.0f);
    assert(maxSlope <=  1.5f);
    assert(minSlope >= -1.5f);
-
-   return majorAxis;
 }
 
 void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& maxSlope, float& minSlope) const
 {
+   // do x and z have opposite signs?
    if ((delta.x ^ delta.z) < 0) {
-      // minor = -major, recalculate the transposed slope values
+      // Opposite signs, so minor = -major
+      // Recalculate the transposed slope values
       //
       // Given that:
       //   oldMaxSlope = (minor + 0.5f) / absMajor;
@@ -334,7 +329,8 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
       maxSlope = -minSlope;
       minSlope = -temp;
    } else {
-      // minor == major, The transposed slope values are the same as the original values.
+      // Same sign, so minor == major
+      // The transposed slope values are the same as the original values.
    }
 }
 
@@ -384,6 +380,7 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
       csg::Point3 previousPoint = points[i-1];
       csg::Point3 currentPoint = points[i];
       csg::Point3 delta = currentPoint - segmentStart;
+      Axis pointMajorAxis = GetMajorAxis(delta);
 
       if (currentPoint == previousPoint) {
          throw core::Exception("PruneCollinearPathPointsPlanar does not support duplicate points. Call PruneCollinearPathPoints to pre-process."); 
@@ -391,9 +388,6 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
       if (currentPoint.y != previousPoint.y) {
          throw core::Exception("PruneCollinearPathPointsPlanar does not support elevation changes. Call PruneCollinearPathPoints to pre-process.");
       }
-
-      float maxSlope, minSlope, centerSlope;
-      Axis pointMajorAxis = GetSlopeBounds(delta, maxSlope, minSlope, centerSlope);
 
       // Don't prune when the path doubles back on itself.
       // Don't prune when there are two points at the same major axis coordinate.
@@ -407,10 +401,13 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
                // We have a diagonal line that just became non-diagonal.
                TransposeDiagonalSlope(delta, segmentMaxSlope, segmentMinSlope);
             } else {
-               // Major axis defined on the second point of the segment, just assign it below.
+               // Initial assignment of major axis
             }
             segmentMajorAxis = pointMajorAxis;
          }
+
+         float maxSlope, minSlope, centerSlope; // out parameters
+         GetSlopeBounds(delta, pointMajorAxis, maxSlope, minSlope, centerSlope);
 
          // Add the slope constraints of the current point to the existing constraints.
          if (maxSlope < segmentMaxSlope) {

@@ -57,9 +57,9 @@ function GoblinThief:start()
 end
 
 function GoblinThief:_attach_listeners()
-   radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.listen(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
-   radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   radiant.events.listen_once(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
+   self._carrying_listener = radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
 
 --The goblin thief heads towards the town, and if he sees stuff, he will grab it
@@ -97,6 +97,11 @@ function GoblinThief:_on_spawn_jerk()
 
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
+   if spawn_point then
+      --make sure the spawn point is actually on valid ground
+      spawn_point = radiant.terrain.find_placement_point(spawn_point, 1, 20)
+   end
+
    if not spawn_point then
       -- Couldn't find a spawn point, so reschedule to try again later.
       radiant.entities.destroy_entity(self._sv._goblin)
@@ -105,7 +110,8 @@ function GoblinThief:_on_spawn_jerk()
       return
    end
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=2, y=1})
+   --TODO: How do we make sure the whole stockpile is in empty space?
+   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=1, y=1})
    local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    --TODO: Right now the filter is broken Why???
    --s_comp:set_filter({'resource wood'})
@@ -119,16 +125,18 @@ end
 
 function GoblinThief:_create_goblin_thief()
    local thief = self._population:create_new_citizen()
-   local weapon = radiant.entities.create_entity('stonehearth:wooden_sword')
+   local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
    radiant.entities.equip_item(thief, weapon)
    stonehearth.combat:set_stance(thief, 'defensive')
    return thief
 end
 
 function GoblinThief:_goblin_killed(e)
-   radiant.events.unlisten(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
-   radiant.events.unlisten(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
-   radiant.events.unlisten(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
+   self._item_added_listener:destroy()
+   self._item_added_listener = nil
+
+   self._carrying_listener:destroy()
+   self._carrying_listener = nil
 
    radiant.events.trigger_async(stonehearth.linear_combat, 'stonehearth:goblin_killed')
 

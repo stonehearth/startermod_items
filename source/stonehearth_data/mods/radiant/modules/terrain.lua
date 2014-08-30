@@ -45,8 +45,10 @@ function Terrain.place_entity_at_exact_location(entity, location, options)
 end
 
 function Terrain.remove_entity(entity)
-   radiant.entities.remove_child(radiant._root_entity, entity)
-   radiant.entities.move_to(entity, Point3.zero)
+   if entity and entity:is_valid() then
+      radiant.entities.remove_child(radiant._root_entity, entity)
+      radiant.entities.move_to(entity, Point3.zero)
+   end
 end
 
 function Terrain.get_standable_point(entity, pt)
@@ -71,6 +73,12 @@ function Terrain.is_standable(arg0, arg1)
    assert(radiant.util.is_a(entity, Entity))
    assert(radiant.util.is_a(location, Point3))
    return _physics:is_standable(entity, location)
+end
+
+-- returns whether an entity can stand on the Point3 location
+function Terrain.is_supported(location)
+   assert(radiant.util.is_a(location, Point3))
+   return _physics:is_supported(location)
 end
 
 -- returns whether an entity can stand occupy location
@@ -177,6 +185,25 @@ function Terrain.find_placement_point(origin, min_radius, max_radius)
    end
 
    return pt, found
+end
+
+function Terrain.get_direct_path_end_point(start_location, desired_destination, entity)
+   local resolved_destination
+
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
+      :set_start_location(start_location)
+      :set_end_location(desired_destination)
+      :set_allow_incomplete_path(true)
+      :set_reversible_path(true)
+
+   local path = direct_path_finder:get_path()
+   if path and not path:is_empty() then
+      resolved_destination = path:get_finish_point()
+   else
+      resolved_destination = start_location
+   end
+
+   return resolved_destination
 end
 
 return Terrain

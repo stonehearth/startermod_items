@@ -60,7 +60,7 @@ namespace proto = ::radiant::tesseract::protocol;
 
 #define MEASURE_TASK_TIME(category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf_timeline_, category);
 
-Simulation::Simulation() :
+Simulation::Simulation(std::string const& versionStr) :
    store_(nullptr),
    paused_(false),
    noidle_(false),
@@ -69,7 +69,8 @@ Simulation::Simulation() :
    _singleStepPathFinding(false),
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
-   begin_loading_(false)
+   begin_loading_(false),
+   _versionStr(versionStr)
 {
    OneTimeIninitializtion();
 }
@@ -102,6 +103,16 @@ void Simulation::OneTimeIninitializtion()
       debug_navgrid_enabled_ = args.get<bool>("enabled", false);
       if (debug_navgrid_enabled_) {
          debug_navgrid_point_ = args.get<csg::Point3>("cursor", csg::Point3::zero);
+         om::EntityPtr pawn = GetStore().FetchObject<om::Entity>(args.get<std::string>("pawn", ""));
+
+         if (pawn != debug_navgrid_pawn_.lock()) {
+            debug_navgrid_pawn_ = pawn;
+            if (pawn) {
+               SIM_LOG(0) << "setting debug nav grid pawn to " << *pawn;
+            } else {
+               SIM_LOG(0) << "clearing debug nav grid pawn";
+            }
+         }
       }
    });
 
@@ -151,17 +162,8 @@ void Simulation::OneTimeIninitializtion()
       profile_next_lua_update_ = true;
       SIM_LOG(0) << "profiling next lua update";
    });
-   core_reactor_->AddRouteV("radiant:start_lua_memory_profile", [this](rpc::Function const& f) {
-      scriptHost_->ProfileMemory(true);
-   });
-   core_reactor_->AddRouteV("radiant:stop_lua_memory_profile", [this](rpc::Function const& f) {
-      scriptHost_->ProfileMemory(false);
-   });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
-   });
-   core_reactor_->AddRouteV("radiant:clear_lua_memory_profile", [this](rpc::Function const& f) {
-      scriptHost_->ClearMemoryProfile();
    });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
@@ -178,7 +180,40 @@ void Simulation::OneTimeIninitializtion()
    core_reactor_->AddRoute("radiant:server:load", [this](rpc::Function const& f) {
       return BeginLoad(json::Node(f.args).get<std::string>("saveid"));
    });
+   core_reactor_->AddRoute("radiant:show_pathfinder_time", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>("show pathfinder time");
+      _bottomLoopFns.emplace_back([this, d]() {
+         JSONNode obj;
+         for (auto const& entry : entity_jobs_schedulers_) {
+            EntityJobSchedulerPtr scheduler = entry.second;
+            scheduler->SetRecordPathfinderTimes(true);
 
+            om::EntityPtr entity = scheduler->GetEntity().lock();
+            if (entity) {
+               JSONNode subobj;
+               perfmon::CounterValueType total = 0;
+
+               EntityJobScheduler::PathfinderTimeMap const& times = scheduler->GetPathfinderTimes();
+               for (auto const& entry : times) {
+                  total += entry.second;
+                  subobj.push_back(JSONNode(entry.first, perfmon::CounterToMilliseconds(entry.second)));
+               }
+               scheduler->ResetPathfinderTimes(); // xxx: this will screw up future bottom loop handlers =(
+
+               subobj.push_back(JSONNode("total", total));
+               subobj.set_name(BUILD_STRING(*entity));
+               obj.push_back(subobj);
+            }
+         }
+         d->Notify(obj);
+      });
+      return d;
+   });
+}
+
+std::string const& Simulation::GetVersion() const
+{
+   return _versionStr;
 }
 
 void Simulation::Initialize()
@@ -321,6 +356,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
+   /*
+    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
+    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
+    * true, this wouldn't be a problem (sigh).
+    */
+   root_entity_->AddComponent<om::Clock>();
+
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
@@ -424,9 +466,6 @@ void Simulation::UpdateGameState()
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
    try {
-      int interval = static_cast<int>(game_speed_ * game_tick_interval_);
-      now_ = now_ + interval;
-      clock_->SetTime(now_);
       luabind::call_function<int>(radiant_["update"], profile_next_lua_update_);      
    } catch (std::exception const& e) {
       SIM_LOG(3) << "fatal error initializing game update: " << e.what();
@@ -574,7 +613,10 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
       });
    }
    if (debug_navgrid_enabled_) {
-      GetOctTree().ShowDebugShapes(debug_navgrid_point_, msg);
+      GetOctTree().GetNavGrid().ShowDebugShapes(debug_navgrid_point_, debug_navgrid_pawn_, msg);
+   }
+   for (auto const& cb : _bottomLoopFns)  {
+      cb();
    }
    queue->Push(protocol::Encode(update));
 }
@@ -725,11 +767,20 @@ void Simulation::Mainloop()
    }
 
    if (!paused_) {
+      int interval = static_cast<int>(game_speed_ * game_tick_interval_);
+      now_ = now_ + interval;
+      clock_->SetTime(now_);
+
+      scriptHost_->Trigger("radiant:gameloop:start");
+
       UpdateGameState();
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();
+
+      scriptHost_->Trigger("radiant:gameloop:end");
    }
+
    if (next_counter_push_.expired()) {
       PushPerformanceCounters();
       next_counter_push_.set(500);
@@ -750,9 +801,8 @@ void Simulation::Mainloop()
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
 
-   //LuaGC();
+   LuaGC();
    Idle();
-
 }
 
 void Simulation::LuaGC()

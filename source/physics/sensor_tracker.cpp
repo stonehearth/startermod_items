@@ -111,8 +111,8 @@ void SensorTracker::TraceNavGridTiles()
 {
    ST_LOG(5) << "tracking tiles (bounds: " << bounds_ << " last_bounds: " << last_bounds_ << ")";
 
-   csg::Cube3 current = csg::GetChunkIndex(bounds_, TILE_SIZE);
-   csg::Cube3 previous = csg::GetChunkIndex(last_bounds_, TILE_SIZE);
+   csg::Cube3 current = csg::GetChunkIndex<TILE_SIZE>(bounds_);
+   csg::Cube3 previous = csg::GetChunkIndex<TILE_SIZE>(last_bounds_);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.

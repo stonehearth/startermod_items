@@ -23,7 +23,24 @@ function ProfessionComponent:initialize(entity, json)
             return radiant.events.UNLISTEN
          end)
    end
+   self._kill_listener = radiant.events.listen(self._entity, 'stonehearth:kill_event', self, self._on_kill_event)
+end
 
+function ProfessionComponent:destroy()
+   self._kill_listener:destroy()
+   self._kill_listener = nil
+end
+
+--When we've been killed, dump our talisman on the ground
+function ProfessionComponent:_on_kill_event()
+   if self._sv.talisman_uri then
+      local location = radiant.entities.get_world_grid_location(self._entity)
+      local player_id = radiant.entities.get_player_id(self._entity)
+      local output_table = {}
+      output_table[self._sv.talisman_uri] = 1
+      --TODO: is it possible that this gets dumped onto an inaccessible location?
+      radiant.entities.spawn_items(output_table, location, 1, 2, player_id)
+   end
 end
 
 -- xxx, I think this might be dead code, -Tom
@@ -39,15 +56,16 @@ function ProfessionComponent:get_roles()
    return self._profession_json.roles or ''
 end
 
-function ProfessionComponent:promote_to(profession_uri, talisman_uri)
+function ProfessionComponent:promote_to(profession_uri)
    self._profession_json = radiant.resources.load_json(profession_uri, true)
    if self._profession_json then
       self:demote()
       self._sv.profession_uri = profession_uri
+      self._sv.talisman_uri = self._profession_json.talisman_uri
       self:_load_profession_script(self._profession_json)
       self:_set_unit_info(self._profession_json)
       self:_equip_outfit(self._profession_json)
-      self:_call_profession_script('promote', self._profession_json, talisman_uri)
+      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
 
       if self._profession_json.task_groups then
          self:_add_to_task_groups(self._profession_json.task_groups)

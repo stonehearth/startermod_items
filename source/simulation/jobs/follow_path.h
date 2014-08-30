@@ -14,6 +14,7 @@ public:
    virtual ~FollowPath();
 
 public:
+   void SetSpeed(float speed);
    bool Work(const platform::timer &timer) override;
    bool Arrived() const;
    void Stop();

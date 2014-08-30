@@ -5,12 +5,14 @@ local singleton = {
    jobs = {}
 }
 
+local trigger_depth = 0
 local log = radiant.log.create_logger('events')
 
 function events.__init()
    events._senders = {}
    events._async_triggers = {}
-end
+   events._dead_listeners = {}
+end   
 
 function events._convert_object_to_key(object)
    if type(object) == 'userdata' then
@@ -83,8 +85,15 @@ function events.listen(object, event, self, fn)
    end
    table.insert(listeners, entry)
 
+   for i, entry in ipairs(events._dead_listeners) do
+      if entry.event == event and entry.key == key and entry.fn == fn and entry.self == self then
+         table.remove(events._dead_listeners, i)
+         break
+      end
+   end
+
    return radiant.lib.Destructor(function()
-         events.unlisten(object, event, self, fn)
+         events._unlisten(object, key, event, self, fn)
       end)
 end
 
@@ -96,19 +105,33 @@ function events.unpublish(object)
       log:debug('unpublish on unknown sender: %s', tostring(object))
       return
    end
-   log:debug('forcibly removing listeners while unpublishing %s')
+   log:debug('forcibly removing listeners while unpublishing %s', key)
    events._senders[key] = nil
 end
 
-function events.unlisten(object, event, self, fn)
-   local key = events._convert_object_to_key(object)
+function events._clear_listener(i, key, event)
+   local senders = events._senders[key]
+   local listeners = senders[event]
 
-   assert(object and event and self)
+   log:spam('unlistening to event ' .. event)
+
+   table.remove(listeners, i)
+
+   if #listeners == 0 then
+      senders[event] = nil
+      if next(events._senders[key]) == nil then
+         events._senders[key] = nil
+      end
+   end
+end
+
+function events._unlisten(object, key, event, self, fn)
    local senders = events._senders[key]
    if not senders then
       log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
       return
    end
+
    local listeners = senders[event]
    if not listeners then
       log:debug('unlisten unknown event: %s on sender %s', event, tostring(object))
@@ -117,11 +140,20 @@ function events.unlisten(object, event, self, fn)
 
    for i, entry in ipairs(listeners) do
       if entry.fn == fn and entry.self == self and not entry.dead then
-         log:spam('unlistening to event ' .. event)
-         if listeners.trigger_depth > 0 then
+         if trigger_depth > 0 then
+            log:spam('queuing dead event ' .. event)
             entry.dead = true
+            local dead_entry = {
+               entry = entry,
+               object = object,
+               key = key,
+               event = event,
+               self = entry.self,
+               fn = entry.fn
+            }
+            table.insert(events._dead_listeners, dead_entry)
          else
-            table.remove(listeners, i)
+            events._clear_listener(i, key, event)
          end
          return
       end
@@ -138,19 +170,28 @@ function events.trigger_async(object, event, ...)
    table.insert(events._async_triggers, trigger)
 end
 
+-- report the current stack to the host so we can log it
+function events._trigger_error_handler(err)
+   local traceback = debug.traceback()
+   _host:report_error(err, traceback)
+   return err   
+end
+
 function events.trigger(object, event, ...)
    log:spam('triggering %s', tostring(event))
    
    local key = events._convert_object_to_key(object)
    local sender = events._senders[key]
+   local args = { ... }
 
    if sender then
       local listeners = sender[event]
       if listeners then
          log:debug('trigging %d listeners for "%s"', #listeners, event)
 
-         listeners.trigger_depth = listeners.trigger_depth + 1
-
+         -- do the actual triggering a pcall to make sure all the triggers get
+         -- hit and our trigger_depth counter doesn't get screwed up
+         trigger_depth = trigger_depth + 1
          local i, count = 1, #listeners
          while i <= count do
             local entry = listeners[i]
@@ -166,30 +207,36 @@ function events.trigger(object, event, ...)
                log:detail('   listener %d has been collected.  not firing.', i)
                result = radiant.events.UNLISTEN
             else
-               if entry.fn ~= nil then
-               -- type 1: listen was called with 'self' and a method to call
-                  result = entry.fn(entry.self, ...)
-               else
-                  -- type 2: listen was called with just a function!  call it
-                  result = entry.self(...)
-               end
+               -- do the actual call in an xpcall to make sure our trigger depth stays
+               -- in sync.
+               xpcall(function()
+                     if entry.fn ~= nil then
+                     -- type 1: listen was called with 'self' and a method to call
+                        result = entry.fn(entry.self, unpack(args))
+                     else
+                        -- type 2: listen was called with just a function!  call it
+                        result = entry.self(unpack(args))
+                     end
+                  end, events._trigger_error_handler)
             end
             
             if result == radiant.events.UNLISTEN then
                log:detail('   removing listener index %d (count:%d)', i, #listeners)
-               table.remove(listeners, i)
+               events._clear_listener(i, key, event)
                count = count - 1
             else
                log:detail('   advancing index %d (count:%d)', i, #listeners)
                i = i + 1
             end
          end
-         listeners.trigger_depth = listeners.trigger_depth - 1
+
+         trigger_depth = trigger_depth - 1
       end
    end
 end
 
 function events._update()
+   assert(trigger_depth == 0)
    local now = { now = radiant.gamestate.now() }
    
    local async_triggers = events._async_triggers
@@ -219,6 +266,14 @@ function events._update()
    if now.now % (1000 * 60) == 0 then
       events.trigger(radiant, 'stonehearth:minute_poll', now)
    end
+
+   assert(trigger_depth == 0)
+   for _, entry in ipairs(events._dead_listeners) do
+      log:spam('removing dead-list event %s', entry.event)
+      entry.entry.dead = false
+      events._unlisten(entry.object, entry.key, entry.event, entry.self, entry.fn)
+   end
+   events._dead_listeners = {}
 end
 
 radiant.create_background_task = function(name, fn)

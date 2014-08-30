@@ -125,6 +125,7 @@
 
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
+      "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
 
@@ -155,11 +156,14 @@
       "corn_crop"   : "file(entities/plants/corn/corn_crop)",
       "corn_basket" : "file(entities/plants/corn/corn_basket)",
       "amazing_corn_basket" : "file(entities/plants/corn/amazing_corn_basket)",
-      "corn_cob"    : "file(entities/plants/corn/corn_cob)",
-      "amazing_corn_cob"    : "file(entities/plants/corn/amazing_corn_cob)",
+      "corn_serving"    : "file(entities/plants/corn/corn_serving)",
+      "amazing_corn_serving"    : "file(entities/plants/corn/amazing_corn_serving)",
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
-      "turnip" : "file(entities/plants/turnip/turnip_serving)",
+      "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
+      "pumpkin_crop" : "file(entities/plants/pumpkin/pumpkin_crop)",
+      "pumpkin_serving" : "file(entities/plants/pumpkin/pumpkin_serving)",
+      "pumpkin_harvest" : "file(entities/plants/pumpkin/pumpkin_harvest)",
       "tester_crop" : "file(entities/plants/tester/tester_crop)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
@@ -222,9 +226,10 @@
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
       
+      "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
+      "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "weapons:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_door" : "file(entities/construction/wooden_door)",
-      "wooden_sword" : "file(entities/weapons/wooden_sword)",
-      "wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "ball" : "file(entities/toys/ball)",
 
@@ -236,6 +241,7 @@
       "buffs:devoted" : "file(data/buffs/devoted/devoted_buff.json)",
       "buffs:defender" : "file(data/buffs/defender/defender_buff.json)",
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
+      "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
 
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
@@ -354,7 +360,7 @@
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
       "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
       "actions:free_time:dispatcher" : "file(ai/actions/free_time/free_time_dispatcher.lua)",
-
+      "actions:urgent_actions:dispatcher" : "file(ai/actions/urgent_actions/urgent_actions_dispatcher.lua)",
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
 
@@ -454,11 +460,9 @@
       "actions:town_defense:town_defense_dispatcher" : "file(ai/actions/town_defense/town_defense_dispatcher.lua)",
       "actions:town_defense:town_defense_idle_dispatcher" : "file(ai/actions/town_defense/town_defense_idle_dispatcher.lua)",
       "actions:town_defense:town_defense_idle_ready" : "file(ai/actions/town_defense/town_defense_idle_ready_action.lua)",
-      "actions:town_defense:town_defense_watcher" : "file(ai/actions/town_defense/town_defense_watcher_action.lua)",
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
-      "actions:unset_posture" : "file(ai/actions/unset_posture_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
@@ -658,6 +662,10 @@
          "endpoint" : "server"
       },
       "sign_in": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_game_options": {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -946,7 +954,7 @@
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       },
-      "worker_combat_is_enabled": {
+      "worker_combat_enabled": {
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       }
@@ -954,6 +962,7 @@
    
    "controllers" :  {
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
+      "town" : "file(services/server/town/town.lua)",
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
@@ -962,7 +971,6 @@
       "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
       "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
-
 
       "craft_order" : "file(components/workshop/craft_order.lua)",
       "craft_order_list" : "file(components/workshop/craft_order_list.lua)",
@@ -1086,11 +1094,13 @@
          "file(ui/common/confirm/confirm.html)",
          "file(ui/shell/shell.html)",
          "file(ui/shell/title/title.html)",
+         "file(ui/shell/new_game_options/new_game_options.html)",
          "file(ui/shell/analytics_opt/analytics_opt.html)",
          "file(ui/shell/new_game/new_game.html)",
          "file(ui/shell/embark/embark.html)",
          "file(ui/shell/loading_screen/loading_screen.html)",
          "file(ui/shell/settings/settings.html)",
+         "file(ui/debug/console/console.html)",
          "file(ui/debug/error_browser/error_browser.html)",
          "file(ui/debug/error_dialog/error_dialog.html)",
          "file(ui/debug/error_dialog_js/error_dialog_js.html)",
@@ -1136,6 +1146,7 @@
          "file(ui/common/confirm/confirm.js)",
          "file(ui/shell/shell.js)",
          "file(ui/shell/title/title.js)",
+         "file(ui/shell/new_game_options/new_game_options.js)",
          "file(ui/shell/analytics_opt/analytics_opt.js)",
          "file(ui/shell/new_game/new_game.js)",
          "file(ui/shell/embark/embark.js)",
@@ -1143,6 +1154,8 @@
          "file(ui/shell/loading_screen/loading_screen.js)",
          "file(ui/shell/settings/settings.js)",
          "file(ui/debug/debug.js)",
+         "file(ui/debug/console/console.js)",
+         "file(ui/debug/console/console_commands.js)",
          "file(ui/debug/error_browser/error_browser.js)",
          "file(ui/debug/error_dialog/error_dialog.js)",
          "file(ui/debug/error_dialog_js/error_dialog_js.js)",
@@ -1195,12 +1208,14 @@
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",
+         "file(ui/shell/new_game_options/new_game_options.less)",
          "file(ui/shell/analytics_opt/analytics_opt.less)",
          "file(ui/shell/new_game/new_game.less)",
          "file(ui/shell/embark/embark.less)",
          "file(ui/shell/embark/map.less)",
          "file(ui/shell/loading_screen/loading_screen.less)",
          "file(ui/shell/settings/settings.less)",
+         "file(ui/debug/console/console.less)",
          "file(ui/debug/error_browser/error_browser.less)",
          "file(ui/debug/error_dialog/error_dialog.less)",
          "file(ui/debug/error_dialog_js/error_dialog_js.less)",

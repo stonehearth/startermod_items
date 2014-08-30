@@ -12,6 +12,11 @@ function TargetTable:initialize()
    self._sv.top = nil
    self._sv.top_score = nil
    self._sv.top_is_dirty = false
+   self.__saved_variables:mark_changed()
+end
+
+function TargetTable:destroy()
+   radiant.events.unpublish(self)
 end
 
 function TargetTable:get_top()

@@ -145,7 +145,7 @@ App.StonehearthPromotionWizard = App.View.extend({
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {
-         this.set('profession', talisman.profession);
+         this.set('profession', self.getProfessionInfo(talisman['stonehearth:promotion_talisman'].profession) );
          self.$('#jobsPage').hide();
          self.$('#finishPage').show();
          self.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));

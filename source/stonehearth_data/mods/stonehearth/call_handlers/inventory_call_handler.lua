@@ -3,24 +3,9 @@ local InventoryCallHandler = class()
 
 -- runs on the client!!
 function InventoryCallHandler:choose_stockpile_location(session, response)
-   stonehearth.selection:select_xz_region()
-      :require_supported(true)
-      :require_unblocked(true)
+   stonehearth.selection:select_designation_region()
       :use_designation_marquee(Color4(0, 153, 255, 255))
       :set_cursor('stonehearth:cursors:zone_stockpile')
-      :with_filter(function(entities)
-           local first_ent = entities:get_result(0).entity
-           if first_ent then
-             if first_ent:get_component('terrain') then
-                return 0
-             end
-             local cd = first_ent:get_component('stonehearth:construction_data')
-             if cd and cd:get_type() == 'floor' then
-               return 0
-             end
-           end
-           return -1
-         end) 
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,

@@ -266,7 +266,10 @@ function AIComponent:remove_observer(uri)
       end
 
       self._observer_instances[uri] = nil
-      self._sv._observer_datastores[uri] = nil
+      if self._sv._observer_datastores[uri] then
+         radiant.destroy_datastore(self._sv._observer_datastores[uri])
+         self._sv._observer_datastores[uri] = nil
+      end
       self.__saved_variables:mark_changed()
    end
 end

@@ -67,11 +67,12 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
       end
    end
    self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.xml')
-   radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
+   self._sub_sel_listener = radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
 end
 
 function FabricatorRenderer:destroy()
-   radiant.events.unlisten(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
+   self._sub_sel_listener:destroy()
+   self._sub_sel_listener = nil
 
    if self._render_tracker then
       self._render_tracker:destroy()

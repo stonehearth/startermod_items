@@ -57,9 +57,15 @@ function CalendarService:initialize()
    end
 end
 
---Returns the # of seconds that have passed
+-- returns the number of game seconds that have passed
 function CalendarService:get_elapsed_time()
    return radiant.gamestate.now() / self._constants.ticks_per_second
+end
+
+-- returns the number of game seconds until time
+function CalendarService:get_seconds_until(time)
+   local duration = time - stonehearth.calendar:get_elapsed_time()
+   return duration
 end
 
 -- sets a calendar timer.  
@@ -68,7 +74,6 @@ end
 --    set_timer(120, cb)  -- 2 minute timer
 --    set_timer('2m', cb) -- also a 2 minute timer
 --    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
-
 function CalendarService:set_timer(duration, fn)
    return self:_create_timer(duration, fn, false)
 end
@@ -77,7 +82,8 @@ function CalendarService:set_interval(duration, fn)
    return self:_create_timer(duration, fn, true)
 end
 
-function CalendarService:duration_string_to_seconds(str)
+-- parses a duration string into game seconds
+function CalendarService:parse_duration(str)
    local get_value = function(str, suffix, multiplier)
       local quantity = string.match(str, '(%d+)' .. suffix) or 0
       return quantity * multiplier
@@ -92,17 +98,18 @@ function CalendarService:duration_string_to_seconds(str)
    return seconds
 end
 
+-- currently zero duration timers will fire on the following game loop
 function CalendarService:_create_timer(duration, fn, repeating)
    assert(type(fn) == 'function')
    
    local timeout_s
 
    if type(duration) == 'string' then
-      timeout_s = self:duration_string_to_seconds(duration)
+      timeout_s = self:parse_duration(duration)
    else
       timeout_s = duration
    end
-   assert(timeout_s > 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
+   assert(timeout_s >= 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
    return self._time_tracker:set_timer(timeout_s, fn, repeating)
 end
@@ -144,6 +151,8 @@ function CalendarService:_on_event_loop(e)
 
    self._time_tracker:set_elapsed_time(self:get_elapsed_time())
    self.__saved_variables:mark_changed()
+
+   radiant.set_performance_counter('game time', self:get_elapsed_time())
 end
 
 --[[

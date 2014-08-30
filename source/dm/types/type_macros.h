@@ -15,12 +15,14 @@
 #  define CREATE_SET(S)
 #endif
 
-#define UNWRAP2(x, y)      x, y
-#define UNWRAP3(x, y, z)   x, y, z
+#define UNWRAP2(x, y)         x, y
+#define UNWRAP3(x, y, z)      x, y, z
+#define UNWRAP4(x, y, z, zz)  x, y, z, zz
 
-#define SET(v)          CREATE_SET(dm::Set<v>)
-#define BOXED(v)        CREATE_BOXED(dm::Boxed<v>)
-#define MAP(k, v)       CREATE_MAP(dm::Map<UNWRAP2(k, v)>)
-#define MAP3(k, v, h)   CREATE_MAP(dm::Map<UNWRAP3(k, v, h)>)
+#define SET(v)             CREATE_SET(dm::Set<v>)
+#define BOXED(v)           CREATE_BOXED(dm::Boxed<v>)
+#define MAP(k, v)          CREATE_MAP(dm::Map<UNWRAP2(k, v)>)
+#define MAP3(k, v, h)      CREATE_MAP(dm::Map<UNWRAP3(k, v, h)>)
+#define MAP4(k, v, h, kt)  CREATE_MAP(dm::Map<UNWRAP4(k, v, h, kt)>)
 
 #endif // _DM_TYPES_TYPE_MACROS_H

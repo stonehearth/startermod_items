@@ -115,8 +115,13 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
       int count = 0;
       for (csg::Cube3 const& cube : overlap) {
          for (csg::Point3 const& pt : cube) {
+            int offset = Offset(pt);
+
             NG_LOG(9) << "marking " << pt << " in vector " << type;
-            marked_[type][Offset(pt)] = true;
+            marked_[type][offset] = true;
+            if (type == TERRAIN) {
+               marked_[COLLISION][offset] = true;
+            }
             count++;
          }
       }

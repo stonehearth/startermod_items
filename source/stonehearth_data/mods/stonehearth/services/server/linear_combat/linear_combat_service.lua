@@ -11,8 +11,9 @@ local spawn_interval = '24h'
 function LinearCombatService:initialize()
    self._sv = self.__saved_variables:get_data()
    self._num_escorts = 1
+
    if not self._sv._init then
-      self._sv.init = true
+      self._sv._init = true
       self._timer = stonehearth.calendar:set_timer(time_till_first_spawn, function()
           self:_first_spawn() end)
       self._sv.expire_time = self._timer:get_expire_time()
@@ -48,7 +49,16 @@ function LinearCombatService:_create_load_timer()
    end
 end
 
+function LinearCombatService:enable(enable)
+   self._sv.enabled = enable
+   self.__saved_variables:mark_changed()
+end
+
 function LinearCombatService:_first_spawn()
+   if self._sv.enabled ~= nil and not self._sv.enabled then
+      return
+   end
+
    self._sv.first_spawn = true
 
    --After the first spawn, spawn something every interval mentioned above
@@ -59,6 +69,10 @@ function LinearCombatService:_first_spawn()
 end
 
 function LinearCombatService:_subsequent_spawn()
+   if self._sv.enabled ~= nil and not self._sv.enabled then
+      return
+   end
+
    if self._timer then
       self._sv.expire_time = self._timer:get_expire_time()
    end

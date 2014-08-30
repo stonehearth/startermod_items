@@ -8,10 +8,10 @@ local FindPathToEntity = class()
 FindPathToEntity.name = 'find path to entity'
 FindPathToEntity.does = 'stonehearth:find_path_to_entity'
 FindPathToEntity.args = {
-   destination = Entity,      -- entity to find a path to
+   destination = Entity,   -- entity to find a path to
 }
 FindPathToEntity.think_output = {
-   path = Path,       -- the path to destination, from the current Entity
+   path = Path,            -- the path to destination, from the current Entity
 }
 FindPathToEntity.version = 2
 FindPathToEntity.priority = 1

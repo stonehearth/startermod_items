@@ -61,13 +61,35 @@ function entities.destroy_entity(entity)
    end
 end
 
-function entities.create_proxy_entity(use_default_adjacent_region)
+-- Use when the entity is being killed in the world
+-- Will trigger sync "kill" event so all components can clean up after themselves
+function entities.kill_entity(entity)
+   if entity and entity:is_valid() then
+      log:debug('killing entity %s', entity)
+      radiant.check.is_entity(entity)
+
+      --Trigger an event synchronously, so we don't delete the item till all listeners have done their thing
+      radiant.events.trigger(entity, 'stonehearth:kill_event')
+
+      --For now, just call regular destroy on the entity
+      --Review Question: Will it ever be the case that calling destroy is insufficient?
+      --for example, if we also need to recursively kill child entities? Are we ever
+      --going to apply this to marsupials? If you kill an oiliphant, the dudes on its
+      --back aren't immediately killed too, they just fall to the ground, right?
+      --"It still only counts as one!" --ChrisGimli
+      entities.destroy_entity(entity)
+   end
+end
+
+function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
+   assert(type(debug_text) == 'string')
+
    if use_default_adjacent_region == nil then
       use_default_adjacent_region = false
    end
 
    local proxy_entity = radiant.entities.create_entity()
-   proxy_entity:set_debug_text('proxy entity')
+   proxy_entity:set_debug_text(debug_text)
    log:debug('created proxy entity %s', proxy_entity)
 
    if not use_default_adjacent_region then
@@ -104,7 +126,6 @@ function entities.add_child(parent, child, location)
    component:add_child(child)
    if location then
       entities.move_to(child, location)
-   else
    end
 end
 
@@ -430,19 +451,17 @@ function entities.get_display_name(entity)
    radiant.check.is_entity(entity)
 
    local component = entity:get_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   return component:get_display_name()
+   if component then
+      return component:get_display_name()
+   end
 end
 
 function entities.set_display_name(entity, name)
    radiant.check.is_entity(entity)
    radiant.check.is_string(name)
 
-   local component = entity:add_component('unit_info')
-   --radiant.check.is_a(component, UnitInfo)
-
-   component:set_display_name(name)
+   entity:add_component('unit_info')
+               :set_display_name(name)
 end
 
 function entities.get_attribute(entity, attribute_name)
@@ -738,10 +757,10 @@ function entities.compare_attribute(entity_a, entity_b, attribute)
    local attributes_b = entity_b:get_component('stonehearth:attributes')
 
    if attributes_a and attributes_b then
-      local ferocity_a = attributes_a:get_attribute(attribute)
-      local ferocity_b = attributes_b:get_attribute(attribute)
+      local att_a = attributes_a:get_attribute(attribute)
+      local att_b = attributes_b:get_attribute(attribute)
 
-      return ferocity_a - ferocity_b
+      return att_a - att_b
    end
 
    return 0
@@ -827,10 +846,6 @@ function entities.is_material(entity, materials)
       is_material = material_component:is(materials)
    end
    return is_material
-end
-
-function entities.same_entity(e0, e1)
-   return e0 and e1 and e0:is_valid() and e1:is_valid() and e0:equals(e1)
 end
 
 function entities.local_to_world(pt, e)

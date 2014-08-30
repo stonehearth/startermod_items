@@ -12,14 +12,10 @@ PickupItemAdjacent.priority = 1
 local log = radiant.log.create_logger('actions.pickup_item')
 
 function PickupItemAdjacent:start_thinking(ai, entity, args)
-   -- xxx: should probably add a :when() function to actions to do gating like
-   -- this...
-   if ai.CURRENT.carrying ~= nil then
-      return
+   if not ai.CURRENT.carrying then
+      ai.CURRENT.carrying = args.item
+      ai:set_think_output()
    end
-
-   ai.CURRENT.carrying = args.item
-   ai:set_think_output()
 end
 
 function PickupItemAdjacent:run(ai, entity, args)

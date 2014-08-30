@@ -24,13 +24,17 @@ using namespace ::radiant::csg;
 template <class S, int C>
 Region<S, C>::Region()
 {
-   cubes_.reserve(64);
+#if !defined(EASTL_REGIONS)
+   cubes_.reserve(INITIAL_CUBE_SPACE);
+#endif
 }
 
 template <class S, int C>
 Region<S, C>::Region(Cube const& cube)
 {
-   cubes_.reserve(64);
+#if !defined(EASTL_REGIONS)
+   cubes_.reserve(INITIAL_CUBE_SPACE);
+#endif
    if (!cube.IsEmpty()) {
       cubes_.push_back(cube);
    }

@@ -62,7 +62,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    
    if self._blueprint_construction_progress then
       self._dependencies_finished = self._blueprint_construction_progress:check_dependencies()
-      radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+      self._finished_listener = radiant.events.listen(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
    else
       self._dependencies_finished = true
    end   
@@ -72,7 +72,10 @@ end
 function Fabricator:destroy()
    self._log:debug('destroying fabricator')
 
-   radiant.events.unlisten(self._blueprint, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+   if self._finished_listener then
+      self._finished_listener:destroy()
+      self._finished_listener = nil
+   end
 
    for _, trace in ipairs(self._traces) do
       trace:destroy()
@@ -108,6 +111,12 @@ function Fabricator:_initialize_existing_project(project)
    self._fabricator_dst:get_reserved():modify(function(cursor)
       cursor:clear()
    end)
+end
+
+function Fabricator:instabuild()
+   self._project_dst:get_region():modify(function(cursor)
+         cursor:copy_region(self._blueprint_dst:get_region():get())
+      end)
 end
 
 function Fabricator:_create_new_project()

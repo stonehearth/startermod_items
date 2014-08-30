@@ -22,6 +22,7 @@ using namespace radiant::phys;
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    _ng(ng),
    _index(index),
+   _residentTileIndex(-1),
    changed_slot_("tile changes")
 {
 }
@@ -37,6 +38,7 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
 NavGridTile::NavGridTile(NavGridTile &&other) :
    _ng(other._ng),
    _index(other._index),
+   _residentTileIndex(-1),
    changed_slot_("tile changes")
 {
    ASSERT(other.data_ == nullptr);
@@ -109,29 +111,7 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
  * `cube` must be passed in *tile local* coordinates (so 0 - 15 for all
  * coordinates)
  */
-bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
-{
-   ASSERT(data_);
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
 
-   for (csg::Point3 pt : cube) {
-      if (IsBlocked(pt)) {
-         return true;
-      }
-   }
-   return false;
-}
-
-
-/*
- * -- NavGridTile::IsBlocked
- *
- * Returns true if the point is marked in the COLLISION set. Otherwise, false.
- *
- * `pt` must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
    ASSERT(data_);
@@ -140,29 +120,16 @@ bool NavGridTile::IsBlocked(csg::Point3 const& pt)
    return data_->IsMarked(COLLISION, pt);
 }
 
-
-/*
- * -- NavGridTile::IsBlocked
- *
- * Returns true if any point in the cube is a support point set.
- * Otherwise, false.
- *
- * `cube` must be passed in *tile local* coordinates (so 0 - 15 for all
- * coordinates)
- */
-bool NavGridTile::IsSupport(csg::Cube3 const& cube)
+bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
 {
-   ASSERT(data_);
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
-
-   for (csg::Point3 pt : cube) {
-      if (IsSupport(pt)) {
-         return true;
-      }
-   }
-   return false;
+   return IsMarked(&NavGridTile::IsBlocked, cube);
 }
+
+bool NavGridTile::IsBlocked(csg::Region3 const& region)
+{
+   return IsMarked(&NavGridTile::IsBlocked, region);
+}
+
 
 /*
  * -- NavGridTile::IsSupport
@@ -181,14 +148,66 @@ bool NavGridTile::IsSupport(csg::Point3 const& pt)
    return data_->IsMarked(COLLISION, pt) || data_->IsMarked(LADDER, pt);
 }
 
+bool NavGridTile::IsSupport(csg::Cube3 const& cube)
+{
+   return IsMarked(&NavGridTile::IsSupport, cube);
+}
+
 bool NavGridTile::IsSupport(csg::Region3 const& region)
 {
+   return IsMarked(&NavGridTile::IsSupport, region);
+}
+
+
+/*
+ * -- NavGridTile::IsTerrain
+ *
+ * Returns true if the can_stand `pt` is a support point.
+ *
+ * The pt must be passed in *tile local* coordinates (so 0 - 15 for all
+ * coordinates)
+ *
+ */
+bool NavGridTile::IsTerrain(csg::Point3 const& pt)
+{
+   ASSERT(data_);
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+
+   return data_->IsMarked(TERRAIN, pt);
+}
+
+bool NavGridTile::IsTerrain(csg::Cube3 const& cube)
+{
+   return IsMarked(&NavGridTile::IsTerrain, cube);
+}
+
+bool NavGridTile::IsTerrain(csg::Region3 const& region)
+{
+   return IsMarked(&NavGridTile::IsTerrain, region);
+}
+
+bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Region3 const& region)
+{
    for (csg::Cube3 const& cube : region ) {
-      if (!IsSupport(cube)) {
+      if (!IsMarked(predicate, cube)) {
          return false;
       }
    }
    return true;
+}
+
+bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
+{
+   ASSERT(data_);
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
+   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
+
+   for (csg::Point3 pt : cube) {
+      if ((this->*predicate)(pt)) {
+         return true;
+      }
+   }
+   return false;
 }
 
 /*
@@ -201,25 +220,12 @@ bool NavGridTile::IsSupport(csg::Region3 const& region)
  * then walk through the derived vectors.
  *
  */
-void NavGridTile::FlushDirty(NavGrid& ng, csg::Point3 const& index)
+void NavGridTile::FlushDirty(NavGrid& ng)
 {
    ASSERT(data_);
 
-   data_->FlushDirty(ng, trackers_, GetWorldBounds(index));
+   data_->FlushDirty(ng, trackers_, GetWorldBounds());
 }
-
-
-/*
- * -- NavGridTile::IsDataResident
- *
- * Return whether or not the NavGridTileData for this tile is loaded.
- *
- */
-bool NavGridTile::IsDataResident() const
-{
-   return data_.get() != nullptr;
-}
-
 
 /*
  * -- NavGridTile::SetDataResident
@@ -228,14 +234,22 @@ bool NavGridTile::IsDataResident() const
  * creates the Data object.  It will be updated lazily when required.
  *
  */
-void NavGridTile::SetDataResident(bool value)
+void NavGridTile::SetDataResident(bool value, int index)
 {
    if (value && !data_) {
-      data_ = std::make_shared<NavGridTileData>();
+      data_.reset(new NavGridTileData());
    } else if (!value && data_) {
-      data_ = nullptr;
+      data_.reset(nullptr);
+   }
+   _residentTileIndex = index;
+
+   if (data_.get()) {
+      ASSERT(_residentTileIndex >= 0);
+   } else {
+      ASSERT(_residentTileIndex < 0);
    }
 }
+ 
 
 
 /*
@@ -275,22 +289,10 @@ void NavGridTile::OnTrackerRemoved(dm::ObjectId entityId, TrackerType t)
  * Given the address of the tile in the world, compute its bounds.
  *
  */
-csg::Cube3 NavGridTile::GetWorldBounds(csg::Point3 const& index) const
+csg::Cube3 NavGridTile::GetWorldBounds() const
 {
-   csg::Point3 min(index.Scaled(TILE_SIZE));
+   csg::Point3 min(_index.Scaled(TILE_SIZE));
    return csg::Cube3(min, min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-}
-
-/*
- * -- NavGridTile::GetTileData
- *
- * Get the NavGridTileData for this tile.  This is only used by other
- * NavGridTileData objects to handle computation on the borders.
- *
- */
-std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
-{
-   return data_;
 }
 
 /*
@@ -391,4 +393,18 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
 core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
 {
    return changed_slot_.Register(cb);
+}
+
+
+/*
+ * -- NavGridTile::GetResidentTileIndex
+ *
+ * Returns the index in the nav_grid's resident tile array where this
+ * tile is stored.  This is necessary to help support the O(1) update
+ * of the cache array in NavGrid::GridTile.
+ *
+ */ 
+int NavGridTile::GetResidentTileIndex() const
+{
+   return _residentTileIndex;
 }

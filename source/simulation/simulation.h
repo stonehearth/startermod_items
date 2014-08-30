@@ -47,8 +47,10 @@ class Path;
 class Simulation
 {
 public:
-   Simulation();
+   Simulation(std::string const& versionStr);
    ~Simulation();
+
+   std::string const& GetVersion() const;
 
    om::DataStoreRef Simulation::AllocDatastore();
    om::EntityPtr Simulation::GetEntity(dm::ObjectId id);
@@ -152,6 +154,7 @@ private:
    bool                                         _singleStepPathFinding;
    bool                                         debug_navgrid_enabled_;
    csg::Point3                                  debug_navgrid_point_;
+   om::EntityRef                                debug_navgrid_pawn_;
 
    std::unordered_map<dm::ObjectId, EntityJobSchedulerPtr>  entity_jobs_schedulers_;
    std::list<std::weak_ptr<Job>>                jobs_;
@@ -200,6 +203,8 @@ private:
    FreeMotionTaskMap                   freeMotionTasks_;
    bool                                begin_loading_;
    boost::filesystem::path             load_saveid_;
+   std::vector<std::function<void()>>  _bottomLoopFns;
+   std::string                         _versionStr;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -4,16 +4,16 @@ local combat_tests = {}
 
 function combat_tests.battle_royale(autotest)
    local footmen = {
-      autotest.env:create_person(-15, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -7, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  1, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  9, -15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person(-15, -15, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -7, -15, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person(  1, -15, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person(  9, -15, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
    }
 
    local any_valid_entities = function(entities)
@@ -39,9 +39,9 @@ function combat_tests.battle_royale(autotest)
 end
 
 function combat_tests.patrol(autotest)
-   local stockpile1 = autotest.env:create_stockpile(12, 10, { size = { x = 2, y = 2 }})
-   local stockpile2 = autotest.env:create_stockpile(5, 10, { size = { x = 2, y = 2 }})
-   local footman = autotest.env:create_person(15, 15, { profession = 'footman', talisman = 'stonehearth:wooden_sword' })
+   local stockpile1 = autotest.env:create_stockpile(30, 30, { size = { x = 2, y = 2 }})
+   local stockpile2 = autotest.env:create_stockpile(20, 20, { size = { x = 2, y = 2 }})
+   local footman = autotest.env:create_person(28, 28, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' })
    local patrol_point = radiant.entities.get_world_grid_location(stockpile2) - Point3(2, 0, 2)
 
    local trace
@@ -70,8 +70,8 @@ function combat_tests.worker_defense(autotest)
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
    }
 
    local any_valid_entities = function(entities)
@@ -92,7 +92,8 @@ function combat_tests.worker_defense(autotest)
       end
    )
 
-   stonehearth.worker_defense:enable_worker_combat(autotest.env.get_player_id())
+   local town = stonehearth.town:get_town(autotest.env.get_player_id())
+   town:enable_worker_combat()
 
    autotest:sleep(20000)
    autotest:fail('woker defense failed to complete on time')

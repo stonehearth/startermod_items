@@ -16,8 +16,6 @@ var StonehearthClient;
       init: function() {
          var self = this;
 
-         self.rallyWorkersEnabled = false;
-
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
@@ -405,6 +403,10 @@ var StonehearthClient;
          return radiant.call_obj(this._build_service, 'apply_options_command', blueprint.__self, options);
       },
 
+      instabuild: function(building) {
+         return radiant.call_obj(this._build_service, 'instabuild_command', building.__self);
+      },
+
       setGrowRoofOptions: function(options) {
          return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },
@@ -464,10 +466,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
 
          if (this._crafterManager) {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
 
          // toggle the town menu
@@ -475,6 +479,7 @@ var StonehearthClient;
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
             this._townMenu.destroy();
+            this._townMenu = null;
          }         
       },
 
@@ -483,10 +488,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._crafterManager) {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
 
          if (this._townMenu) {
             this._townMenu.destroy();
+            this._townMenu = null;
          }
 
          // toggle the citizenManager
@@ -494,6 +501,7 @@ var StonehearthClient;
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
       },
 
@@ -502,10 +510,12 @@ var StonehearthClient;
          // hide the other population managers....oh lord this is ugly code
          if (this._citizenManager) {
             this._citizenManager.destroy();
+            this._citizenManager = null;
          }
 
          if (this._townMenu) {
             this._townMenu.destroy();
+            this._townMenu = null;
          }         
          
          // toggle the citizenManager
@@ -513,24 +523,25 @@ var StonehearthClient;
             this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
          } else {
             this._crafterManager.destroy();
+            this._crafterManager = null;
          }
       },
 
       _redAlertWidget: null,
       rallyWorkers: function() {
-         // TODO: add sound and visual indicator that this state is on
-         if (self.rallyWorkersEnabled) {
-            radiant.call('stonehearth:disable_worker_combat');
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off' );
-            self.rallyWorkersEnabled = false;
-            if (self._redAlertWidget) {
-               self._redAlertWidget.destroy();   
-            }
-         } else {
-            radiant.call('stonehearth:enable_worker_combat');
-            self.rallyWorkersEnabled = true;
-            self._redAlertWidget = App.gameView.addView(App.StonehearthRedAlertWidget);
-         }
+         radiant.call('stonehearth:worker_combat_enabled')
+            .done(function(response) {
+               if (response.enabled) {
+                  radiant.call('stonehearth:disable_worker_combat');
+                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off');
+                  if (self._redAlertWidget) {
+                     self._redAlertWidget.destroy();   
+                  }
+               } else {
+                  radiant.call('stonehearth:enable_worker_combat');
+                  self._redAlertWidget = App.gameView.addView(App.StonehearthRedAlertWidget);
+               }
+            })
       },
 
    });

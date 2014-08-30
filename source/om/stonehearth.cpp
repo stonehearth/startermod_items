@@ -42,7 +42,7 @@ Stonehearth::SetEntityForComponent(lua_State* L, luabind::object component, om::
 }
 
 object
-Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
+Stonehearth::AddComponent(lua_State* L, EntityRef e, const char* name)
 {
    object component = GetComponent(L, e, name);
    if (!component) {
@@ -66,11 +66,12 @@ Stonehearth::AddComponent(lua_State* L, EntityRef e, std::string const& name)
          }
       }
    }
+
    return component;
 }
 
 void
-Stonehearth::RemoveComponent(lua_State* L, EntityRef e, std::string const& name)
+Stonehearth::RemoveComponent(lua_State* L, EntityRef e, const char* name)
 {
    auto entity = e.lock();
    if (entity) {
@@ -79,7 +80,7 @@ Stonehearth::RemoveComponent(lua_State* L, EntityRef e, std::string const& name)
 }
 
 object
-Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string const& name, object data)
+Stonehearth::SetComponentData(lua_State* L, EntityRef e, const char* name, object data)
 {
    object component;
    om::EntityPtr entity = e.lock();
@@ -106,7 +107,7 @@ Stonehearth::SetComponentData(lua_State* L, EntityRef e, std::string const& name
 }
 
 object
-Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
+Stonehearth::GetComponent(lua_State* L, EntityRef e, const char* name)
 {
    object component;
    lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
@@ -121,7 +122,7 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
          if (datastore) {
             component = datastore->GetController();
             if (!component) {
-               component = luabind::object(L, std::weak_ptr<om::DataStore>(datastore));
+               component = luabind::object(L, om::DataStoreRef(datastore));
             }
          }
       }
@@ -130,19 +131,19 @@ Stonehearth::GetComponent(lua_State* L, EntityRef e, std::string const& name)
 }
 
 void
-Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
+Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
 {
    ASSERT(L);
 
    lua::ScriptHost* scriptHost = lua::ScriptHost::GetScriptHost(L);
    entity->SetUri(uri);
-   if (!uri.empty()) {
+   if (uri[0]) {
       res::ResourceManager2::GetInstance().LookupJson(uri, [&](const JSONNode& node) {
          auto i = node.find("components");
          if (i != node.end() && i->type() == JSON_NODE) {
             for (auto const& entry : *i) {
                std::string const& component_name = entry.name();
-               ComponentPtr component = entity->AddComponent(component_name);
+               ComponentPtr component = entity->AddComponent(component_name.c_str());
                if (component) {
                   component->LoadFromJson(json::Node(entry));
                } else {
@@ -150,7 +151,7 @@ Stonehearth::InitEntity(EntityPtr entity, std::string const& uri, lua_State* L)
                   datastore->SetData(luabind::newtable(L));
                   object lua_component = datastore->CreateController(datastore, "components", component_name);
                   if (lua_component.is_valid()) {
-                     entity->AddLuaComponent(component_name, datastore);
+                     entity->AddLuaComponent(component_name.c_str(), datastore);
                      SetEntityForComponent(L, lua_component, entity, lua::ScriptHost::JsonToLua(L, entry));
                   }
                }

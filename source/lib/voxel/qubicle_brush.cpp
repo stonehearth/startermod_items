@@ -279,8 +279,8 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
    // Figure out the extents of our iterator...
    csg::Point3 min, max;
    for (int i = 0; i < 3; i++) {
-      min[i] = csg::GetChunkIndex(stencil_min[i], brush_size[i]);
-      max[i] = csg::GetChunkIndex(stencil_max[i], brush_size[i]) + 1;
+      min[i] = csg::GetChunkIndexSlow(stencil_min[i], brush_size[i]);
+      max[i] = csg::GetChunkIndexSlow(stencil_max[i], brush_size[i]) + 1;
    }
 
    // Now iterate and draw the brush

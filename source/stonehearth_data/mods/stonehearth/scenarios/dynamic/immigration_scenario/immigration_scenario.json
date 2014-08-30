@@ -35,7 +35,7 @@
          "stonehearth:professions:footman" : {
             "shares" : 2, 
             "rating" : 3, 
-            "equipment" : "stonehearth:wooden_sword"
+            "equipment" : "stonehearth:weapons:wooden_sword"
          }
       }
    }

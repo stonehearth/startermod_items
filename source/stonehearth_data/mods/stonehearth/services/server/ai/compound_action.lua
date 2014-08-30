@@ -19,7 +19,7 @@ local placeholders = require 'services.server.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
 local CompoundAction = class()
 
-function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, when_predicates, think_output_placeholders)
+function CompoundAction:__init(entity, injecting_entity, action_ctor, activities, think_output_placeholders)
    -- initialize metadata
    self._entity = entity
    self._injecting_entity = injecting_entity
@@ -32,7 +32,6 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self.args = self._action.args
    self.think_output = self._action.think_output
 
-   self._when_predicates = when_predicates
    self._activities = activities
    self._think_output_placeholders = think_output_placeholders
    self._previous_think_output = {}
@@ -104,15 +103,6 @@ function CompoundAction:start_thinking(ai, entity, args)
       self:_create_execution_frames()
    end
 
-   -- invoke all the when clauses.  if any of them return false, just bail immediately
-   for i, clause_fn in ipairs(self._when_predicates) do
-      if not clause_fn(ai, entity, args) then
-         self._log:debug('when clause %d failed.  hanging in start_thinking intentionally', i)
-         return
-      end
-      self._log:spam('when %d succeeded', i)
-   end
- 
    -- copy ai.CURRENT into self._action_ai.CURRENT for actions that implement start_thinking()
    if self._action_ai then
       self._action_ai.CURRENT = ai.CURRENT

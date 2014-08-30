@@ -6,7 +6,8 @@ App.StonehearthDebugView = App.ContainerView.extend({
 
       var json = {
          views : [
-            "StonehearthErrorBrowserView"
+            "StonehearthErrorBrowserView",
+            "StonehearthConsoleView"
          ]
       };
 

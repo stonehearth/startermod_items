@@ -14,13 +14,16 @@ function ShelterScoreObserver:initialize(entity)
    self._entity = entity
    self._score_component = entity:add_component('stonehearth:score')
 
-   radiant.events.listen(entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
-   radiant.events.listen(entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
+   self._sleep_in_bed_listener = radiant.events.listen(entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
+   self._sleep_on_ground_listener = radiant.events.listen(entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
 end
 
 function ShelterScoreObserver:destroy()
-   radiant.events.unlisten(self._entity, 'stonehearth:sleep_in_bed', self, self._on_sleep_in_bed)
-   radiant.events.unlisten(self._entity, 'stonehearth:sleep_on_ground', self, self._on_sleep_on_ground)
+   self._sleep_in_bed_listener:destroy()
+   self._sleep_in_bed_listener = nil
+
+   self._sleep_on_ground_listener:destroy()
+   self._sleep_on_ground_listener = nil
 end
 
 function ShelterScoreObserver:_on_sleep_in_bed(e)

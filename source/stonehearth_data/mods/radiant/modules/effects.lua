@@ -29,6 +29,14 @@ function effects.run_effect(entity, effect_name, ...)
 end
 
 radiant.events.listen(radiant, 'stonehearth:gameloop', effects, effects._on_event_loop)
+radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
+   local em = singleton._all_effects[e.entity_id]
+   if em then
+      em:destroy()
+      singleton._all_effects[e.entity_id] = nil
+   end
+end)
+
 
 effects.__init()
 return effects

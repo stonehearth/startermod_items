@@ -20,6 +20,10 @@ function ConstructionProgress:initialize(entity, json)
       self._sv.teardown = false
       self._sv.dependencies_finished = false
    end
+
+   self._blueprint_listeners = {}
+   self._teardown_listeners = {}
+   self._finished_listeners = {}
    
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          for id, blueprint in pairs(self._sv.dependencies) do
@@ -61,15 +65,29 @@ function ConstructionProgress:clone_from(other)
 end
 
 function ConstructionProgress:_listen_for_changes(blueprint)
-   radiant.events.listen(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
-   radiant.events.listen(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)
-   radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
+   self._blueprint_listeners[blueprint] = radiant.events.listen(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
+   self._teardown_listeners[blueprint] = radiant.events.listen(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)
+   self._finished_listeners[blueprint] = radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
 end
 
 function ConstructionProgress:_unlisten_for_changes(blueprint)
-   radiant.events.unlisten(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
-   radiant.events.unlisten(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)
-   radiant.events.unlisten(blueprint, 'stonehearth:construction:finished_changed', self, self.check_dependencies)
+   local l = self._blueprint_listeners[blueprint]
+   if l then
+      l:destroy()
+      self._blueprint_listeners[blueprint] = nil
+   end
+
+   l = self._teardown_listeners[blueprint]
+   if l then
+      l:destroy()
+      self._teardown_listeners[blueprint] = nil
+   end
+
+   l = self._finished_listeners[blueprint]
+   if l then
+      l:destroy()
+      self._finished_listeners[blueprint] = nil
+   end
 end
 
 function ConstructionProgress:unlink()
@@ -326,11 +344,12 @@ end
 -- 'stonehearth:fixture_fabricator'.  both implement the same interface.
 ---
 function ConstructionProgress:get_fabricator_component()
-   assert(self._sv.fabricator_entity)
-   assert(self._sv._fabricator_component_name)
-   local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
-   assert(component)
-   return component
+   if self._sv.fabricator_entity then
+      assert(self._sv._fabricator_component_name)
+      local component = self._sv.fabricator_entity:get_component(self._sv._fabricator_component_name)
+      assert(component)
+      return component
+   end
 end
 
 return ConstructionProgress

@@ -74,8 +74,8 @@ EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
          attached_items_.Remove(id);
       }
    }
+   RemoveTrace(id);
    if (child) {
-      RemoveTrace(id);
       auto mob = child->GetComponent<Mob>();
       if (!mob->GetBone().empty()) {
          mob->SetBone("");
@@ -92,7 +92,7 @@ void EntityContainer::AddTrace(std::weak_ptr<Entity> c)
       dm::ObjectId childId = child->GetObjectId();
       dtor_traces_[childId] = child->TraceChanges("entity container lifetime", dm::OBJECT_MODEL_TRACES)
          ->OnDestroyed([this, childId]() {
-            children_.Remove(childId);
+            RemoveChild(childId);
          });
    }
 }

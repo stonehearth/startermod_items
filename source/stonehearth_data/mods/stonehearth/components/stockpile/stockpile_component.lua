@@ -177,16 +177,15 @@ function StockpileComponent:get_filter()
       -- function, and captured local variables.
       filter_fn = function(item, worker)
          local containing_component = get_stockpile_containing_entity(item)
-         local containing_entity
-         if containing_component then
-            containing_entity = containing_component:get_entity()
-         end
+         local containing_entity = containing_component and containing_component:get_entity()
+
          if containing_entity then
             local already_stocked = not radiant.entities.is_hostile(worker, containing_entity)
             if already_stocked then
                return false
             end
-         end        
+         end
+
          return _can_stock_entity(item, captured_filter)
       end
 

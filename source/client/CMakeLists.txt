@@ -24,7 +24,6 @@ add_library(client
             clock.cpp
             client.cpp
             main.cpp
-            xz_region_selector.cpp
             pch.cpp
             )
 

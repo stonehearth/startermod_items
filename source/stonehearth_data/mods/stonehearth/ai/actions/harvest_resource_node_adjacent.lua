@@ -17,17 +17,20 @@ end
 function HarvestResourceNodeAdjacent:run(ai, entity, args)   
    local node = args.node
    local factory = node:get_component('stonehearth:resource_node')
-   radiant.entities.turn_to_face(entity, node)
+
+   if not factory:is_harvestable() then
+      ai:abort('resource is not currently harvestable')
+   end
 
    if factory then
+      radiant.entities.turn_to_face(entity, node)
+      local location = radiant.entities.get_world_grid_location(entity)
       repeat
-            local effect = factory:get_harvester_effect()
-            ai:execute('stonehearth:run_effect', { effect = effect})
+         local effect = factory:get_harvester_effect()
+         ai:execute('stonehearth:run_effect', { effect = effect})
 
-            local location = radiant.entities.get_world_grid_location(entity)
-            factory:spawn_resource(location)
+         factory:spawn_resource(location)
       until not node:is_valid()   
-
     
       local description = factory:get_description()
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 

@@ -36,13 +36,18 @@ static Simulation& GetSim(lua_State* L)
    return *sim;
 }
 
+std::string Sim_GetVersion(lua_State* L)
+{
+   return GetSim(L).GetVersion();
+}
+
 template <typename T>
 std::shared_ptr<T> Sim_AllocObject(lua_State* L)
 {
    return GetSim(L).GetStore().AllocObject<T>();
 }
 
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
+om::EntityRef Sim_CreateEntity(lua_State* L, const char* uri)
 {
    om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
    om::Stonehearth::InitEntity(entity, uri, L);
@@ -289,6 +294,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
          namespace_("sim") [
             lua::RegisterType_NoTypeInfo<Simulation>("Simulation")
             ,
+            def("get_version",               &Sim_GetVersion),
             def("create_entity",             &Sim_CreateEntity),
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),
@@ -354,9 +360,10 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def_readonly("category",  &TracerBufferedWrapper::category)
             ,
             lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
-               .def("get_name", &FollowPath::GetName)
-               .def("arrived",  &FollowPath::Arrived)
-               .def("stop",     &FollowPath::Stop)
+               .def("set_speed", &FollowPath::SetSpeed)
+               .def("get_name",  &FollowPath::GetName)
+               .def("arrived",   &FollowPath::Arrived)
+               .def("stop",      &FollowPath::Stop)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,

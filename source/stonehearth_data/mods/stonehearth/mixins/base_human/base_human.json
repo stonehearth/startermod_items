@@ -63,7 +63,6 @@
             "stonehearth:actions:combat:wait_for_global_attack_cooldown",
             "stonehearth:actions:chase_entity",
             "stonehearth:actions:set_posture",
-            "stonehearth:actions:unset_posture",
             "stonehearth:actions:die_citizen",
             "stonehearth:actions:free_time:dispatcher",
             "stonehearth:actions:equip_carrying",
@@ -206,10 +205,6 @@
             "type" : "derived",
             "equation" : "spirit * 10 + stamina_adjustment"
          },
-		   "ferocity": {
-            "type" : "basic",
-            "value" : 1
-         },
          "menace": {
             "type" : "basic",
             "value" : 10
@@ -224,7 +219,7 @@
          }, 
          "calories": {
             "type" : "basic", 
-            "value" : 75
+            "value" : 90
          },
          "sleepiness": {
             "type" : "random_range", 

@@ -31,6 +31,12 @@
          radiant.keyboard.enableHotkeys(true);
       }
 
+      // if we're on the mobal stack, remove us from it
+      var index = App.stonehearth.modalStack.indexOf(this)
+      if (index > -1) {
+         App.stonehearth.modalStack.splice(index, 1);
+      }
+
       this._super();
    },
 

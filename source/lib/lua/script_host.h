@@ -30,8 +30,6 @@ public:
    void GC(platform::timer &timer);
    void FullGC();
    int GetAllocBytesCount() const;
-   void ClearMemoryProfile();
-   void ProfileMemory(bool value);
    void WriteMemoryProfile(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
@@ -99,6 +97,7 @@ public: // the static interface
 
 private:
    luabind::object ScriptHost::GetConfig(std::string const& flag);
+   static void* LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t nsize, lua_State* L);
    static void* LuaAllocFn(void *ud, void *ptr, size_t osize, size_t nsize);
    static void LuaTrackLine(lua_State *L, lua_Debug *ar);
    void Log(const char* category, int level, const char* str);
@@ -125,8 +124,6 @@ private:
    std::map<std::string, luabind::object> required_;
    std::vector<JsonToLuaFn>   to_lua_converters_;
    bool                 filter_c_exceptions_;
-   bool                 enable_profile_memory_;
-   bool                 profile_memory_;
    ReportErrorCb        error_cb_;
    int                  bytes_allocated_;
 
@@ -135,14 +132,24 @@ private:
 
    int                  error_count;  // Count of script errors encountered.
 
+   // Memory profiling
+   bool                 enable_profile_memory_;
+   int                  _gc_setting;
    typedef std::unordered_map<void*, int>          Allocations;
    std::unordered_map<void *, std::string>         alloc_backmap;
    std::unordered_map<std::string, Allocations>    alloc_map;
+
+   // CPU profiling
+   bool                 enable_profile_cpu_;
+   bool                 profile_cpu_;
+
    std::unordered_map<std::string, std::pair<double, std::string>>   performanceCounters_;
 
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
    AllocDataStoreFn     _allocDs;
+
+   lua_State*           _curLuaState;
 };
 
 END_RADIANT_LUA_NAMESPACE

@@ -42,14 +42,21 @@ public:
 
    bool IsBlocked(csg::Point3 const& pt);
    bool IsBlocked(csg::Cube3 const& bounds);
+   bool IsBlocked(csg::Region3 const& region);
 
    bool IsSupport(csg::Point3 const& pt);
    bool IsSupport(csg::Cube3 const& bounds);
    bool IsSupport(csg::Region3 const& region);
-   void FlushDirty(NavGrid& ng, csg::Point3 const& index);
+
+   bool IsTerrain(csg::Point3 const& pt);
+   bool IsTerrain(csg::Cube3 const& bounds);
+   bool IsTerrain(csg::Region3 const& region);
+
+   void FlushDirty(NavGrid& ng);
 
    bool IsDataResident() const;
-   void SetDataResident(bool value);
+   void SetDataResident(bool value, int index = -1);
+   int GetResidentTileIndex() const;
 
    bool ForEachTracker(ForEachTrackerCb cb);
    bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
@@ -80,15 +87,16 @@ public:
 private:
    NO_COPY_CONSTRUCTOR(NavGridTile);
    friend NavGridTileData;
-   std::shared_ptr<NavGridTileData> GetTileData();
 
 private:
    void MarkDirty(TrackerType type);
-   bool IsMarked(TrackerType type, csg::Point3 const& offest);
-   bool IsMarked(TrackerType type, int bit_index);
    int Offset(csg::Point3 const& pt);
    void UpdateCollisionTracker(TrackerType type, CollisionTracker const& tracker);
-   csg::Cube3 GetWorldBounds(csg::Point3 const& index) const;
+   csg::Cube3 GetWorldBounds() const;
+
+   typedef bool (NavGridTile::*IsMarkedPredicate)(csg::Point3 const& pt);
+   bool IsMarked(IsMarkedPredicate predicate, csg::Region3 const& region);
+   bool IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube);
 
 private:
    void OnTrackerAdded(CollisionTrackerPtr tracker);
@@ -105,9 +113,10 @@ private:
    NavGrid&                                  _ng;
    TrackerMap                                trackers_;
    csg::Point3                               _index;
-   std::shared_ptr<NavGridTileData>          data_;
+   std::unique_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
    std::vector<CollisionTrackerRef>          tempTrackers_;
+   int                                       _residentTileIndex;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

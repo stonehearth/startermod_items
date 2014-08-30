@@ -20,7 +20,7 @@ function ReserveStockpileSpace:start_thinking(ai, entity, args)
    self._stockpile = args.stockpile
    self._ready = false
 
-   radiant.events.listen(self._stockpile, 'space_available', self, self._on_space_available)
+   self._space_listener = radiant.events.listen(self._stockpile, 'space_available', self, self._on_space_available)
    self:_on_space_available(self._stockpile, not self._stockpile:is_full())
 end
 
@@ -44,7 +44,8 @@ function ReserveStockpileSpace:_on_space_available(stockpile, space_available)
 end
 
 function ReserveStockpileSpace:stop_thinking(ai, entity)
-   radiant.events.unlisten(self._stockpile, 'space_available', self, self._on_space_available)
+   self._space_listener:destroy();
+   self._space_listener = nil
 end
 
 return ReserveStockpileSpace

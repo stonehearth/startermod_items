@@ -16,12 +16,17 @@ HarvestPlantsAction.priority = 1
 
 function HarvestPlantsAction:run(ai, entity, args)
    local plant = args.plant
-   radiant.entities.turn_to_face(entity, plant)
 
    --Fiddle with the bush and pop the basket
    local factory = plant:get_component('stonehearth:renewable_resource_node')
+   if not factory:is_harvestable() then
+      ai:abort('resource is not currently harvestable')
+   end
+
    if factory then
+      radiant.entities.turn_to_face(entity, plant)
       ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
+
       local location = radiant.entities.get_world_grid_location(entity)
       local spawned_item = factory:spawn_resource(location)
 
@@ -36,7 +41,6 @@ function HarvestPlantsAction:run(ai, entity, args)
 
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                                   {entity = entity, description = 'gathering_supplies'})
-
    end   
 end
 

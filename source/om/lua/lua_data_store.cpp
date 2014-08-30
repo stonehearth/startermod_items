@@ -5,6 +5,7 @@
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "om/components/data_store.ridl.h"
 #include "lua_data_store.h"
+#include "dm/trace_categories.h"
 #include <luabind/adopt_policy.hpp>
 #include <luabind/dependency_policy.hpp>
 
@@ -15,15 +16,22 @@ using namespace ::radiant::om;
 IMPLEMENT_TRIVIAL_TOSTRING(lua::DataObject);
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<lua::DataObject>);
 
+
 static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>
-DataStore_Trace(DataStoreRef data_store, const char* reason)
+DataStore_Trace(DataStoreRef data_store, const char* reason, dm::TraceCategories category)
 {
    auto ds = data_store.lock();
    if (ds) {
-      auto trace = ds->TraceDataObject(reason, dm::LUA_ASYNC_TRACES);
+      auto trace = ds->TraceDataObject(reason, category);
       return std::make_shared<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>(trace);
    }
    return nullptr;
+}
+
+static std::shared_ptr<lua::BoxedTraceWrapper<dm::BoxedTrace<dm::Boxed<lua::DataObject>>>>
+DataStore_TraceAsync(DataStoreRef data_store, const char* reason)
+{
+   return DataStore_Trace(data_store, reason, dm::LUA_ASYNC_TRACES);
 }
 
 static void
@@ -160,6 +168,7 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
+         .def("trace_data",     &DataStore_TraceAsync)
          .def("restore",        &DataStore_Restore)
          .def("set_controller", &DataStore_SetController)
          .def("get_controller", &DataStore_GetController)

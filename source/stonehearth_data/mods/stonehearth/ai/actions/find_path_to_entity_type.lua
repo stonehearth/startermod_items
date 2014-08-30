@@ -35,6 +35,7 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    self._pathfinder = entity:add_component('stonehearth:pathfinder')
                                  :find_path_to_item_type(ai.CURRENT.location, -- where to search from?
                                                          args.filter_fn,      -- the actual filter function
+                                                         args.description,    -- for those of us in meat space
                                                          solved)              -- our solved callback
 end
 

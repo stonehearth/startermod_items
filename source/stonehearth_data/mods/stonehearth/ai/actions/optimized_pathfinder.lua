@@ -64,7 +64,15 @@ function OptimizedPathfinder:start()
       self:_on_success('a* path found', path)
    end
 
-   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, 'find path to entity')
+   local name = radiant.entities.get_display_name(self._destination)
+   if not name then
+      name = self._destination:get_debug_text()
+   end
+   if #name == 0 then
+      name = '-unnamed-'
+   end
+   local description = string.format('astar: find %s (%d)', name, self._destination:get_id())
+   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, description)
                          :set_source(self._start_location)
                          :add_destination(self._destination)
                          :set_solved_cb(solved)

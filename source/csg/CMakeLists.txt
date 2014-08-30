@@ -1,8 +1,10 @@
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
+FIND_PACKAGE(Eastl REQUIRED)
 
 include_directories(${Lua_INCLUDE_DIRS})
 include_directories(${Luabind_INCLUDE_DIRS})
+include_directories(${Eastl_INCLUDE_DIRS})
 
 add_library(csg STATIC
             color.cpp
@@ -40,9 +42,11 @@ target_link_libraries(unittests_csg
                       winmm.lib
                       ${Boost_LIBRARIES}
                       ${GTest_LIBRARIES}
+                      ${Eastl_LIBRARIES}
                       csg
                       perfmon
                       core
+                      lib_json
                      )
 if (MSVC)
    set_target_properties(csg PROPERTIES COMPILE_FLAGS "/Yupch.h")

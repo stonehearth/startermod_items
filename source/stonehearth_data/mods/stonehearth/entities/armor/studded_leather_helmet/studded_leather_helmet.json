@@ -11,6 +11,9 @@
             ]
          }
       }, 
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
       "unit_info": {
          "name": "Studded Leather Helmet", 
          "description": "Protects your head"

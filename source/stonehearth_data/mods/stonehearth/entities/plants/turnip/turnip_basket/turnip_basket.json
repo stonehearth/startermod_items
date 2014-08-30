@@ -28,7 +28,7 @@
    "entity_data" : {
       "stonehearth:food_container" : {
          "effect": "fiddle",
-         "food": "stonehearth:turnip",
+         "food": "stonehearth:turnip_serving",
          "stacks_per_serving": 6
       }
    }

@@ -49,7 +49,7 @@ void PathFinderDst::Start()
          auto ep = dstEntity_.lock();
          if (ep) {
             ClipAdjacentToTerrain();
-            changed_cb_(reason);
+            changed_cb_(*this, reason);
          }
       };
 
@@ -138,3 +138,7 @@ om::EntityPtr PathFinderDst::GetEntity() const
    return dstEntity_.lock();
 }
 
+csg::Region3 const& PathFinderDst::GetWorldSpaceAdjacentRegion() const
+{
+   return world_space_adjacent_region_;
+}

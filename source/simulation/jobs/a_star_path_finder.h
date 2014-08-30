@@ -77,10 +77,13 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
-      void SolveSearch(const csg::Point3& last, PathFinderDst* dst);
+      void SolveSearch(std::vector<csg::Point3>& solution, PathFinderDst& dst);
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
+      bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst);
+      void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
+      void RebuildOpenHeuristics();
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
@@ -95,14 +98,17 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool                          restart_search_;
       bool                          enabled_;
       bool                          world_changed_;
+      bool                          _rebuildOpenHeuristics;
+      int                           direct_path_search_cooldown_;
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;
    
+      core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode>   open_;
       std::set<csg::Point3>         closed_;
-      core::Guard                   navgrid_guard_;
       std::set<csg::Point3>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
+      std::vector<csg::Point3>      _directPathCandiate;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;

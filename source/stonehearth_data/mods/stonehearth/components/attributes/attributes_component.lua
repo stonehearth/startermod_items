@@ -6,7 +6,7 @@
    - variable attributes are changed in game, but have a min of 0 and a (soft) max of some other stat (soft to account for temp buffs)
 
    Here are the 3 example types as described in json:
-   "ferocity": {
+   "menace": {
       "type" : "basic",
       "value" : 1
    },

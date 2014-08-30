@@ -14,6 +14,11 @@ local CALL_NOT_IMPLEMENTED = {}
 
 local placeholders = require 'services.server.ai.placeholders'
 
+local ENTITY_STATE_FIELDS = {
+   location = true,
+   carrying = true,
+}
+
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
    assert(action.name)
    assert(action.does)
@@ -462,6 +467,7 @@ function ExecutionUnitV2:_destroy_from_thinking()
    self:_destroy_execution_frames()
    self:_call_stop_thinking()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -477,6 +483,7 @@ function ExecutionUnitV2:_destroy_from_starting()
       self:_call_stop()
    end
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -485,6 +492,7 @@ function ExecutionUnitV2:_destroy_from_stopping()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -493,6 +501,7 @@ function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -501,6 +510,7 @@ function ExecutionUnitV2:_destroy_from_running()
    self:_destroy_execution_frames()
    self:_call_stop()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -509,6 +519,7 @@ function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._current_execution_frame)
    self:_destroy_execution_frames()
    self:_call_destroy()
+   self:_destroy_interface()
    self:_set_state(DEAD)
 end
 
@@ -551,6 +562,15 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
 
    if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
+   else
+      self:_verify_entity_state(self._ai_interface.CURRENT)
+   end
+end
+
+function ExecutionUnitV2:_verify_entity_state(entity_state)
+   for name in pairs(entity_state) do
+      assert(ENTITY_STATE_FIELDS[name] == true,
+             string.format('invalid field "%s" in ai.CURRENT (entity_state) after calling start_thinking on "%s"', name, self._action.name))
    end
 end
 
@@ -571,6 +591,13 @@ function ExecutionUnitV2:_destroy_execution_frames()
    end
    self._execution_frames = {}
    self._current_execution_frame = nil
+end
+
+function ExecutionUnitV2:_destroy_interface()
+   for k, v in pairs(self._ai_interface) do
+      self._ai_interface[k] = nil
+   end
+   self._ai_interface = {}
 end
 
 -- the interface facing actions (i.e. the 'ai' interface)
