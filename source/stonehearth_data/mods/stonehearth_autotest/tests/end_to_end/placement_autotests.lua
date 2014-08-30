@@ -1,64 +1,10 @@
+local Point3 = _radiant.csg.Point3
+
 local placement_autotests = {}
 
---[[
---Pickup a proxy item and move it to a new location
-function placement_autotests.place_one_proxy_item(autotest)
-   autotest.env:create_person(10, 10, { profession = 'worker' })
-   local bed_proxy = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed', { force_iconic = false })
-
-   --If the big bed moves to the target location, we win!
-   local trace
-   radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-      local target_entity = e.entity
-      if target_entity:get_uri() == 'stonehearth:comfy_bed' then
-         trace = radiant.entities.trace_location(target_entity, 'sh placement autotest')
-            :on_changed(function()
-                  local location = radiant.entities.get_world_grid_location(target_entity)
-                  if location.x == 6 and location.z == 6 then
-                     autotest:success()
-                     return radiant.events.UNLISTEN
-                  end
-               end)
-      end
-   end)
-   
-   autotest.ui:sleep(500)
-   autotest.ui:push_unitframe_command_button(bed_proxy, 'place_item')
-   autotest.ui:sleep(500)
-   autotest.ui:click_terrain(6, 6)
-
-   autotest:sleep(20000)
-   autotest:fail('worker failed to place the bed')
-end
---]]
-
---Move an existing item to a new location
---[[
-function placement_autotests.move_one_proxy_item(autotest)
-   autotest.env:create_person(10, 10, { profession = 'worker' })
-   local bed = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed', { force_iconic = false })
-
-   local trace = radiant.entities.trace_location(bed, 'sh placement autotest')
-            :on_changed(function()
-                  local location = radiant.entities.get_world_grid_location(bed)
-                  if location.x == 6 and location.z == 6 then
-                     autotest:success()
-                     return radiant.events.UNLISTEN
-                  end
-               end)
-   
-   autotest.ui:sleep(500)
-   autotest.ui:push_unitframe_command_button(bed, 'move_item')
-   autotest.ui:sleep(500)
-   autotest.ui:click_terrain(6, 6)
-
-   autotest:sleep(20000)
-   autotest:fail('worker failed to move the bed')
-end
---]]
-
---Test that 2 workers can compete to move the bed to a target location
---Starting from a proxy, place it and then move it several times
+-- Test that 2 workers can compete to move the bed to a target location
+-- Starting from a proxy, place it and then move it several times
+--
 function placement_autotests.two_place_multiple_times(autotest)
    autotest.env:create_person(-8, 8, { profession = 'worker' })
    autotest.env:create_person(20, -20, { profession = 'worker' })
@@ -92,6 +38,55 @@ function placement_autotests.two_place_multiple_times(autotest)
 
    autotest:sleep(60000)
    autotest:fail('worker failed to move the bed')
+end
+
+-- make sure we can place items on walls
+--
+function placement_autotests.place_on_wall(autotest)
+   autotest.env:create_person(-8, 8, { profession = 'worker' })   
+   autotest.env:create_entity(5, 8, 'stonehearth:oak_log')
+
+   local stockpile = autotest.env:create_stockpile(4, 8)
+   local sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
+   
+   local session = autotest.env:get_player_session()
+   radiant.entities.set_player_id(sign, session.player_id)
+
+   local wall, normal
+
+   -- create a wall super fast.
+   stonehearth.build:do_command('place_on_wall', nil, function()
+         normal = Point3(0, 0, 1)
+         wall = stonehearth.build:add_wall(session,
+                                           'stonehearth:wooden_column',
+                                           'stonehearth:wooden_wall',
+                                           Point3(-2, 1, 2),
+                                           Point3( 2, 1, 2),
+                                           normal)
+         local building = stonehearth.build:get_building_for(wall)
+         stonehearth.build:instabuild(building)         
+      end)
+   
+   -- place the signe on the wall
+   local placement_location = Point3(1, 6, 3)
+   sign:get_component('stonehearth:entity_forms')
+               :place_item_on_wall(placement_location, wall, normal)
+
+   local trace = radiant.entities.trace_location(sign, 'find path to entity')
+      :on_changed(function()         
+            if radiant.entities.get_world_grid_location(sign) == placement_location then
+               -- by now the sign is on the wall.   make sure the ladder gets torn down
+               radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+                     if e.entity:get_component('stonehearth:ladder') then
+                        autotest:success()
+                     end
+                     return radiant.events.UNLISTEN
+                  end)
+            end
+         end)
+      
+   autotest:sleep(10000)
+   autotest:fail('worker failed to place sign and remove ladder')
 end
 
 return placement_autotests

@@ -12,6 +12,10 @@ RunToLocation.args = {
       type = 'boolean',   -- whether to stop adjacent to destination
       default = false,
    },
+   use_standable_y_point = {
+      type = 'boolean',   -- force y to be standable
+      default = false,
+   },
 }
 RunToLocation.version = 2
 RunToLocation.priority = 1
@@ -22,7 +26,7 @@ return ai:create_compound_action(RunToLocation)
             reason = 'goto location',
             location = ai.ARGS.location,
             use_default_adjacent_region = ai.ARGS.stop_when_adjacent,
-            place_on_standable_point = true,
+            place_on_standable_point = ai.ARGS.use_standable_y_point,
          })
          :execute('stonehearth:goto_entity', {
             entity = ai.PREV.entity,

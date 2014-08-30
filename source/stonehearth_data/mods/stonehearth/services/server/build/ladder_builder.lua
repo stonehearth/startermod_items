@@ -183,10 +183,6 @@ function LadderBuilder:_start_teardown_task()
                             :set_source(self._sv.ladder)
                             :set_priority(priorities.BUILD_LADDER)
                             :set_max_workers(1)
-                            :notify_completed(function()
-                                 self._teardown_task = nil
-                                 self:_check_if_valid()
-                              end)
                             :start()
       end
    end
