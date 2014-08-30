@@ -236,9 +236,9 @@ void NavGridTile::FlushDirty(NavGrid& ng)
  */
 void NavGridTile::SetDataResident(bool value, int index)
 {
-   if (value && !IsDataResident()) {
+   if (value && !data_) {
       data_.reset(new NavGridTileData());
-   } else if (!value && IsDataResident()) {
+   } else if (!value && data_) {
       data_.reset(nullptr);
    }
    _residentTileIndex = index;
