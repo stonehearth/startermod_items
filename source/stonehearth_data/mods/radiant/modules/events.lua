@@ -65,28 +65,15 @@ function events.listen(object, event, self, fn)
 
 
    log:spam('listening to event ' .. event)  
-   local entry = {}   
-   if fn then
-      -- this is a method on an object.  theoretical question:  what
-      -- happens if an object instance listens for an event and forgets
-      -- to unlisten before the last reference to it goes away?  we
-      -- don't want to be the only one keeping that object alive, and we certainly
-      -- don't want to fire notifications into the ether that are not 
-      -- useful (which presumedly these are, since the object should have
-      -- been garbage collected!)   To prevent this, use a weak table to
-      -- make sure the object gets collected if this is the very very last
-      -- reference to it.
-      setmetatable(entry, { __mode = 'kv' })
-      entry.self = self
-      entry.fn = fn
-   else
-      -- self is actually just a function
-      entry.self = self
-   end
+   local entry = {
+      dead = false,
+      self = self,
+      fn = fn
+   }
    table.insert(listeners, entry)
 
-   for i, entry in ipairs(events._dead_listeners) do
-      if entry.event == event and entry.key == key and entry.fn == fn and entry.self == self then
+   for i, dead_entry in ipairs(events._dead_listeners) do
+      if dead_entry.event == event and dead_entry.key == key and dead_entry.fn == fn and dead_entry.self == self then
          table.remove(events._dead_listeners, i)
          break
       end
@@ -268,11 +255,13 @@ function events._update()
    end
 
    assert(trigger_depth == 0)
+   local oldsize = #events._dead_listeners
    for _, entry in ipairs(events._dead_listeners) do
       log:spam('removing dead-list event %s', entry.event)
       entry.entry.dead = false
       events._unlisten(entry.object, entry.key, entry.event, entry.self, entry.fn)
    end
+   assert(#events._dead_listeners == oldsize)
    events._dead_listeners = {}
 end
 
