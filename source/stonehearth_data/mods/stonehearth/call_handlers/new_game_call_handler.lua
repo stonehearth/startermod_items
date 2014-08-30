@@ -196,6 +196,9 @@ function NewGameCallHandler:create_camp(session, response, pt)
    local worker6 = place_citizen_embark(camp_x-3, camp_z+0)
    local worker6 = place_citizen_embark(camp_x+3, camp_z+0)   
    
+   local ent = radiant.entities.create_entity('stonehearth:monsters:forest:ent')
+   radiant.terrain.place_entity(ent, Point3(camp_x + 10, 1, camp_z + 10))
+
    self:place_item(pop, 'stonehearth:firepit', camp_x, camp_z+3, { force_iconic = false })
 
    radiant.entities.pickup_item(worker1, pop:create_entity('stonehearth:oak_log'))
