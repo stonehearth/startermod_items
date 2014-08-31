@@ -186,44 +186,48 @@ bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity,
    csg::Point3 current(start);
    csg::Point3 next;
    bool passable;
+   bool hasXZMovement = (dx != 0 || dz != 0);
 
    // following convention, we include the origin point in the path
    // follow path can decide to skip this point so that we don't run to the origin of the current block first
    result.clear();
    result.push_back(start);
 
-   while (true) {
-      int next_dx, next_dz;
-      error2 = error*2;
+   // we only direct path find if there is movement in the xz plane
+   if (hasXZMovement) {
+      while (true) {
+         int next_dx, next_dz;
+         error2 = error*2;
 
-      if (error2 > -dz) {
-         error -= dz;
-         next_dx = sx;
-      } else {
-         next_dx = 0;
+         if (error2 > -dz) {
+            error -= dz;
+            next_dx = sx;
+         } else {
+            next_dx = 0;
+         }
+
+         if (error2 < dx) {
+            error += dx;
+            next_dz = sz;
+         } else {
+            next_dz = 0;
+         }
+
+         ASSERT(next_dx != 0 || next_dz != 0);
+
+         passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, next_dx, next_dz, next);
+         if (!passable) {
+            break;
+         }
+
+         result.push_back(next);
+
+         if (next.x == x1 && next.z == z1) {
+            break;
+         }
+
+         current = next;
       }
-
-      if (error2 < dx) {
-         error += dx;
-         next_dz = sz;
-      } else {
-         next_dz = 0;
-      }
-
-      ASSERT(next_dx != 0 || next_dz != 0);
-
-      passable = MovementHelper::TestAdjacentMove(sim, entity, reversible, current, next_dx, next_dz, next);
-      if (!passable) {
-         break;
-      }
-
-      result.push_back(next);
-
-      if (next.x == x1 && next.z == z1) {
-         break;
-      }
-
-      current = next;
    }
 
    return !result.empty() && result.back() == end;
