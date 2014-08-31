@@ -91,6 +91,11 @@ void Mob::TurnToFacePoint(csg::Point3f const& location)
    csg::Point3f v = location - position;
    csg::Point3f forward(0, 0, -1);
 
+   if (v.x == 0 && v.z == 0) {
+      // location and position are at the same XZ location, so keep our current facing.
+      return;
+   }
+
    float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
    if (angle < 0)  {
       angle += 2 * csg::k_pi;
