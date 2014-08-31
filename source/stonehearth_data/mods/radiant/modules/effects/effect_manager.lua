@@ -23,7 +23,12 @@ function EffectManager:__init(entity)
 end
 
 function EffectManager:destroy()
-  self._loop_listener:destroy()
+   self._loop_listener:destroy()
+   self._loop_listener = nil
+   for effect, _ in pairs(self._effects) do
+       effect:stop()
+       self._effects[effect] = nil
+   end
 end
 
 function EffectManager:on_event_loop(e)

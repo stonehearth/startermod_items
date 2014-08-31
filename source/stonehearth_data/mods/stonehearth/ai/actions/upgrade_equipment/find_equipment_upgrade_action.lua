@@ -64,13 +64,13 @@ function FindEquipmentUpgrade:_check_equipment_piece(item)
 end
 
 function FindEquipmentUpgrade:stop_thinking(ai, entity)
-   self._ai = nil
-   self._ready = false
-   if self._inventory then
-      if self._added_listener then
-         self._added_listener:destroy()
-         self._added_listener = nil
-      end
+   self:destroy()
+end
+
+function FindEquipmentUpgrade:destroy()
+   if self._added_listener then
+      self._added_listener:destroy()
+      self._added_listener = nil
    end
 end
 

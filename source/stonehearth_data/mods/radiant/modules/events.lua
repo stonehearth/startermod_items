@@ -70,13 +70,21 @@ function events.listen(object, event, self, fn)
       self = self,
       fn = fn
    }
-   table.insert(listeners, entry)
 
+   local resurrected = false
    for i, dead_entry in ipairs(events._dead_listeners) do
       if dead_entry.event == event and dead_entry.key == key and dead_entry.fn == fn and dead_entry.self == self then
          table.remove(events._dead_listeners, i)
+         dead_entry.entry.dead = false
+         resurrected = true
          break
       end
+   end
+
+   if not resurrected then
+      table.insert(listeners, entry)
+   else
+      log:spam('resurrecting listener for ' .. event)
    end
 
    return radiant.lib.Destructor(function()
@@ -112,6 +120,20 @@ function events._clear_listener(i, key, event)
    end
 end
 
+function events._mark_listener_dead(entry, object, key, event)
+   log:spam('queuing dead event ' .. event)
+   entry.dead = true
+   local dead_entry = {
+      entry = entry,
+      object = object,
+      key = key,
+      event = event,
+      self = entry.self,
+      fn = entry.fn
+   }
+   table.insert(events._dead_listeners, dead_entry)
+end
+
 function events._unlisten(object, key, event, self, fn)
    local senders = events._senders[key]
    if not senders then
@@ -128,17 +150,7 @@ function events._unlisten(object, key, event, self, fn)
    for i, entry in ipairs(listeners) do
       if entry.fn == fn and entry.self == self and not entry.dead then
          if trigger_depth > 0 then
-            log:spam('queuing dead event ' .. event)
-            entry.dead = true
-            local dead_entry = {
-               entry = entry,
-               object = object,
-               key = key,
-               event = event,
-               self = entry.self,
-               fn = entry.fn
-            }
-            table.insert(events._dead_listeners, dead_entry)
+            events._mark_listener_dead(entry, object, key, event)
          else
             events._clear_listener(i, key, event)
          end
@@ -179,21 +191,9 @@ function events.trigger(object, event, ...)
          -- do the actual triggering a pcall to make sure all the triggers get
          -- hit and our trigger_depth counter doesn't get screwed up
          trigger_depth = trigger_depth + 1
-         local i, count = 1, #listeners
-         while i <= count do
-            local entry = listeners[i]
-            local result
-            if not entry then
-               result = radiant.events.UNLISTEN
-            elseif entry.dead then
-               result = radiant.events.UNLISTEN
-            elseif not entry.self then
-               -- the object got garbage collected before it could unlisten.  it's
-               -- probably buggy, but let's not let that bother us too much.  just
-               -- remove it from the array.
-               log:detail('   listener %d has been collected.  not firing.', i)
-               result = radiant.events.UNLISTEN
-            else
+         for _, entry in ipairs(listeners) do
+            local result = nil
+            if not entry.dead then
                -- do the actual call in an xpcall to make sure our trigger depth stays
                -- in sync.
                xpcall(function()
@@ -206,14 +206,9 @@ function events.trigger(object, event, ...)
                      end
                   end, events._trigger_error_handler)
             end
-            
+
             if result == radiant.events.UNLISTEN then
-               log:detail('   removing listener index %d (count:%d)', i, #listeners)
-               events._clear_listener(i, key, event)
-               count = count - 1
-            else
-               log:detail('   advancing index %d (count:%d)', i, #listeners)
-               i = i + 1
+               events._mark_listener_dead(entry, object, key, event)
             end
          end
 
