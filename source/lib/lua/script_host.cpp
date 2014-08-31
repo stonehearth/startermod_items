@@ -406,7 +406,8 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
    if (host->enable_profile_memory_) {
-      if (realloced && osize != nsize && ptr && host->alloc_backmap[ptr] != "") {
+      if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+         ASSERT(nsize > 0);
          std::string oldKey = host->alloc_backmap[ptr];
          host->alloc_map[oldKey].erase(ptr);
          host->alloc_backmap.erase(ptr);
@@ -414,8 +415,12 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
          host->alloc_backmap[realloced] = oldKey;
       } else {
          host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+         if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
+            host->alloc_map.erase(host->alloc_backmap[ptr]);
+         }
          host->alloc_backmap.erase(ptr);
          if (realloced) {
+            ASSERT(nsize > 0);
             std::string key = "unknown";
             lua_State *l = L;
             if (l != nullptr) {
@@ -724,13 +729,63 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
    }
 }
 
+void ScriptHost::DumpHeap(std::string const& filename) const
+{
+   std::unordered_map<std::string, int> keyMap;
+   FILE* outf = fopen(filename.c_str(), "wb");
+   
+   // Dump keys first.  Create an index for the keys, too.
+   int numkeys = alloc_map.size();
+   fwrite(&numkeys, sizeof(numkeys), 1, outf);
+   int keyidx = 0;
+   for (const auto& v : alloc_map) {
+      keyMap[v.first] = keyidx;
+
+      // + 1 for the null terminator!
+      fwrite(v.first.c_str(), 1, v.first.size() + 1, outf);
+
+      keyidx++;
+   }
+
+   // Record and write the total number of memory allocations.
+   int totalallocs = 0;
+   for (const auto& entry : alloc_map) {
+      totalallocs += entry.second.size();
+   }
+   fwrite(&totalallocs, sizeof(totalallocs), 1, outf);
+   for (const auto& entry : alloc_map) {
+      int idx = keyMap[entry.first];
+      for (const auto& alloc : entry.second) {
+         // key (redundancy makes things easier)
+         fwrite(&idx, sizeof(idx), 1, outf);
+
+         // ptr
+         fwrite(&alloc.first, sizeof(idx), 1, outf);
+
+         // size
+         fwrite(&alloc.second, sizeof(idx), 1, outf);
+
+         // write the bytes!
+         fwrite(alloc.first, 1, alloc.second, outf);
+      }
+   }
+
+   fclose(outf);
+}
+
+typedef struct {
+   std::string key;
+   int allocs;
+   int totalBytes;
+} _MemSample;
+
 void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 {
    if (!enable_profile_memory_) {
       return;
    }
 
-   std::map<int, std::pair<std::string, int>> totals;
+   std::vector<_MemSample> samples;
    int grand_total = 0;
    unsigned int w = 0;
    for (const auto& entry : alloc_map) {
@@ -739,7 +794,11 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
          total += alloc.second;
       }
       grand_total += total;
-      totals[total] = std::make_pair(entry.first, entry.second.size());
+      _MemSample s;
+      s.key = entry.first;
+      s.allocs = entry.second.size();
+      s.totalBytes = total;
+      samples.push_back(s);
       w = std::max(w, entry.first.size() + 2);
    }
 
@@ -763,10 +822,14 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       f << std::endl;
    };
 
+   std::sort(samples.begin(), samples.end(), [](_MemSample const& a, _MemSample const& b) -> bool {
+      return a.totalBytes > b.totalBytes;
+   });
+
    output("Total Memory Tracked", 0, grand_total);
    output("Total Memory Allocated", 0, GetAllocBytesCount());
-   for (auto i = totals.rbegin(); i != totals.rend(); i++) {
-      output(i->second.first, i->second.second, i->first);
+   for (const auto& sample : samples) {
+      output(sample.key, sample.allocs, sample.totalBytes);
    }
    LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
 }
