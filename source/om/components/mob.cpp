@@ -85,10 +85,10 @@ void Mob::TurnTo(float angle)
    });
 }
 
-void Mob::TurnToFacePoint(const csg::Point3& location)
+void Mob::TurnToFacePoint(csg::Point3f const& location)
 {
    csg::Point3f position = GetWorldLocation();
-   csg::Point3f v = csg::ToFloat(location) - position;
+   csg::Point3f v = location - position;
    csg::Point3f forward(0, 0, -1);
 
    float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));

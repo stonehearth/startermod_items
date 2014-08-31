@@ -113,7 +113,7 @@ function carpenter_tests.move_workshop(autotest)
    autotest:suspend()
 
    local trace
-   trace = radiant.entities.trace_location(workshop, 'sh move workshop autotest')
+   trace = radiant.entities.trace_grid_location(workshop, 'sh move workshop autotest')
       :on_changed(function()
          local location = radiant.entities.get_world_grid_location(workshop)
          if workshop:get_component('mob'):get_parent() ~= nil then

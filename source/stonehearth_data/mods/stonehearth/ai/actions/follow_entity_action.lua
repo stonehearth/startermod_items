@@ -50,7 +50,7 @@ function FollowEntity:start_thinking(ai, entity, args)
    local started = check_distance()
    if not started then
       assert(not self._trace)
-      self._trace = radiant.entities.trace_location(target, 'find path to entity')
+      self._trace = radiant.entities.trace_grid_location(target, 'find path to entity')
          :on_changed(function()
                check_distance()
             end)

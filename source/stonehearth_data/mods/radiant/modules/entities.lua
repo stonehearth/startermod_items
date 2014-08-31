@@ -1,13 +1,15 @@
-local entities = {}
---local singleton = {}
+local FilteredTrace = require 'modules.filtered_trace'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('entities')
 local rng = _radiant.csg.get_default_rng()
+
+local entities = {}
 
 function entities.__init()
 end
@@ -305,12 +307,13 @@ function entities.turn_to(entity, degrees)
 end
 
 function entities.turn_to_face(entity, arg2)
-   --local location = util:is_a(arg2, Entity) and singleton.get_world_grid_location(arg2) or arg2
    local location
-   if radiant.util.is_a(arg2, Point3) then
+   if radiant.util.is_a(arg2, Entity) then
+      location = entities.get_world_location(arg2)
+   elseif radiant.util.is_a(arg2, Point3) then
+      location = arg2:to_float()
+   elseif radiant.util.is_a(arg2, Point3f) then
       location = arg2
-   elseif radiant.util.is_a(arg2, Entity) then
-      location = entities.get_world_grid_location(arg2)
    end
 
    if location then
@@ -803,9 +806,26 @@ function entities.get_world_speed(entity)
    return world_speed
 end
 
--- xxx: prefer this over on_entity_moved()
 function entities.trace_location(entity, reason)
    return entity:add_component('mob'):trace_transform(reason)
+end
+
+function entities.trace_grid_location(entity, reason)
+   local last_location = radiant.entities.get_world_grid_location(entity)
+   local filter_fn = function()
+         local current_location = radiant.entities.get_world_grid_location(entity)
+
+         if current_location == last_location then
+            return false
+         else 
+            last_location = current_location
+            return true
+         end
+      end
+
+   local trace_impl = entity:add_component('mob'):trace_transform(reason)
+   local filtered_trace = FilteredTrace(trace_impl, filter_fn)
+   return filtered_trace
 end
 
 function entities._point_in_destination(which, entity, pt)

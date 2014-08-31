@@ -15,7 +15,7 @@ function placement_autotests.two_place_multiple_times(autotest)
 
    --If the big bed moves to the target location, we win!
    local trace
-   trace = radiant.entities.trace_location(big_bed, 'sh placement autotest')
+   trace = radiant.entities.trace_grid_location(big_bed, 'sh placement autotest')
       :on_changed(function()
             local location = radiant.entities.get_world_grid_location(big_bed)
             -- Check to see if the mob has a parent, meaning we're in the world, and not being
@@ -72,7 +72,7 @@ function placement_autotests.place_on_wall(autotest)
    sign:get_component('stonehearth:entity_forms')
                :place_item_on_wall(placement_location, wall, normal)
 
-   local trace = radiant.entities.trace_location(sign, 'find path to entity')
+   local trace = radiant.entities.trace_grid_location(sign, 'find path to entity')
       :on_changed(function()         
             if radiant.entities.get_world_grid_location(sign) == placement_location then
                -- by now the sign is on the wall.   make sure the ladder gets torn down
