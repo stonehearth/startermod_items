@@ -33,10 +33,11 @@ public:
 
    virtual void NotifyDestroyed() { }
 
+   const char* GetReason() const;
+
 protected:
    virtual void SignalObjectState() = 0;
    virtual void ClearCachedState() { }
-   const char* GetReason() const;
 
 public:
    void SignalModified();  // must ALWAYS be signals first when sending multiple signals

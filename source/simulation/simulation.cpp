@@ -837,6 +837,11 @@ void Simulation::Idle()
          SIM_LOG(0) << "     " << std::setw(10) << count << " " << ti.name() << " (total:" << current_checkpoint[ti] << ")";
          return --c > 0;
       });
+
+      SIM_LOG(0) << "-- Traces -----------------------------------";
+      for (auto const& kv : store_->DumpTraceReasons()) {
+         SIM_LOG(0) << kv.first << " :: " << kv.second;
+      }
       nextAuditTime = now + 5000;
    }
 #endif
