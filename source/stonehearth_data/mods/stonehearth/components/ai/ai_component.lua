@@ -4,6 +4,12 @@ local ExecutionFrame = require 'components.ai.execution_frame'
 
 local action_key_to_activity = {}
 
+-- We want the key-to-activity entry to go away when no-one else is referencing it,
+-- so make this table's keys weak.
+local akta_meta = {}
+setmetatable(action_key_to_activity, akta_meta)
+akta_meta.__mode = 'k'
+
 function AIComponent:initialize(entity, json)
    self._entity = entity
    self._action_index = {}
@@ -223,7 +229,6 @@ function AIComponent:remove_action(key)
       self._log:detail('triggering stonehearth:action_index_changed:' .. does)
       self._action_index[does][key] = nil
       self:_queue_action_index_changed_notification(does, 'remove', key, entry)
-      action_key_to_activity[key] = nil
    else
       self._log:debug('could not find action for key %s in :remove_action', tostring(key))
    end
