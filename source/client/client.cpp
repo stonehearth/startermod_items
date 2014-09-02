@@ -373,14 +373,21 @@ void Client::OneTimeIninitializtion()
       return result;
    });
 
+
    //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.get_node(0).as<std::string>();
+         json::Node params = node.get_node(0);
+
+         std::string sound_url = params.get<std::string>("track");
+         
          audio::AudioManager &a = audio::AudioManager::GetInstance();
-         a.PlaySound(sound_url);
+         int vol = params.get<int>("volume", audio::DEF_UI_SFX_VOL);
+        
+         a.PlaySound(sound_url, vol);
+         
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));

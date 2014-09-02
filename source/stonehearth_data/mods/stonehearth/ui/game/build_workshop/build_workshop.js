@@ -33,8 +33,8 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    },
 
    createWorkbench: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
+      radiant.call('radiant:play_sound', {'track': 'stonehearth:sounds:ui:start_menu:popup'});
+      radiant.call('radiant:play_sound', {'track': 'stonehearth:sounds:ui:start_menu:page_up'});
       var self = this;
       // xxx, localize
       $(top).trigger('radiant_show_tip', {

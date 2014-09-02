@@ -32,7 +32,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    init: function() {
       var self = this;
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_up' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_up'} );
       this._super();
 
       // XXX, Don't know why I have to manually set the trace below
@@ -65,7 +65,7 @@ App.StonehearthPromotionWizard = App.View.extend({
 
    destroy: function() {
       $(top).off("radiant_selection_changed.promote_view");
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'} );
       this._super();
    },   
 
@@ -165,7 +165,7 @@ App.StonehearthPromotionWizard = App.View.extend({
    chooseCitizen: function() {
       var self = this;
 
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:sub_menu' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:sub_menu'} );
 
       var workerFilterFn = function(person) {
          return person['stonehearth:profession'].profession_uri == 'stonehearth:professions:worker';
@@ -188,7 +188,7 @@ App.StonehearthPromotionWizard = App.View.extend({
                      // `person` is part of the people picker's model.  it will be destroyed as
                      // soon as that view is destroyed, which will happen immediately after the
                      // callback is fired!  scrape everything we need out of it before this happens.
-                     radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
+                     radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:select'} );
                      self.set('citizen', person);
                      self.showApproveStamper();
                   }
@@ -196,7 +196,7 @@ App.StonehearthPromotionWizard = App.View.extend({
    },
 
    approve: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'} );
       var self = this;
 
       self.promote();

@@ -2,7 +2,7 @@ App.StonehearthRedAlertWidget = App.View.extend({
    templateName: 'stonehearthRedAlert',
 
    didInsertElement: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:redalert'} );
       this._super();
 
       this.$('#redAlert').click(function() {

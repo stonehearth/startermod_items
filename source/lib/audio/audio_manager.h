@@ -19,7 +19,7 @@ public:
    AudioManager();
    ~AudioManager();
 
-   void PlaySound(std::string const& uri);
+   void PlaySound(std::string const& uri, int vol);
    std::shared_ptr<sf::Sound> CreateSound(std::string const& uri);
 
    //These set the vars from whcih the next call to PlayMusic will draw its parameters
