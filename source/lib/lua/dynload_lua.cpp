@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "dynload_lua.h"
 extern "C" {
 #  include "lib/lua/lua.h"
 }
@@ -136,7 +135,7 @@ void lua::Initialize(bool enableJit)
    jitEnabled = enableJit;
    luadll = LoadLibrary(enableJit ? "lua-5.1.5.jit.dll" : "lua-5.1.5.dll");
 
-   LOG(lua.data, 1, "lua git is " << (enableJit ? "enabled" : "disabled"));
+   LOG(lua.data, 0) << "lua git is " << (enableJit ? "enabled" : "disabled");
 
    lua_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lua_newstate");
    lua_close_fn = (void(*)(lua_State *L))LoadSymbol("lua_close");
