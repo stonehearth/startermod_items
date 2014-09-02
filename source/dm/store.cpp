@@ -75,7 +75,7 @@ ObjectPtr Store::AllocObject(ObjectType t, ObjectId id)
    return obj;
 }
 
-void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
+void Store::RegisterAllocator(ObjectType t, ObjectAllocFn const& allocator)
 {
    ASSERT(!allocators_[t]);
    allocators_[t] = allocator;

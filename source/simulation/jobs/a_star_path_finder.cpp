@@ -117,13 +117,13 @@ float AStarPathFinder::GetTravelDistance()
    return open_.front().g;
 }
 
-AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb solved_cb)
+AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb const& solved_cb)
 {
    solved_cb_ = solved_cb;
    return shared_from_this();
 }
 
-AStarPathFinderPtr AStarPathFinder::SetSearchExhaustedCb(ExhaustedCb exhausted_cb)
+AStarPathFinderPtr AStarPathFinder::SetSearchExhaustedCb(ExhaustedCb const& exhausted_cb)
 {
    exhausted_cb_ = exhausted_cb;
    return shared_from_this();
@@ -464,7 +464,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
          i = destinations_.erase(i);
          continue;
       }
-      i++;
+      ++i;
 
       float h = dst->EstimateMovementCost(from);
       if (h < hMin) {

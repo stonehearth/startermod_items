@@ -53,13 +53,13 @@ struct DeepRegionGuard : public std::enable_shared_from_this<DeepRegionGuard> {
    virtual ~DeepRegionGuard() {
    }
 
-   std::shared_ptr<DeepRegionGuard> OnChanged(std::function<void(csg::Region3 const& r)> cb)
+   std::shared_ptr<DeepRegionGuard> OnChanged(std::function<void(csg::Region3 const& r)> const& cb)
    {
       changed_cb_ = cb;
       return shared_from_this();
    }
 
-   std::shared_ptr<DeepRegionGuard> OnModified(std::function<void()> cb)
+   std::shared_ptr<DeepRegionGuard> OnModified(std::function<void()> const& cb)
    {
       changed_cb_ = [cb](csg::Region3 const& r) {
          cb();

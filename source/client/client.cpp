@@ -1172,7 +1172,7 @@ void Client::RemoveInputHandler(InputHandlerId id)
          input_handlers_.erase(i);
          break;
       } else {
-         i++;
+         ++i;
       }
    }
 };
@@ -1366,7 +1366,7 @@ Client::CursorStackId Client::InstallCursor(std::string const& name)
 
 void Client::RemoveCursor(CursorStackId id)
 {
-   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); i++) {
+   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); ++i) {
       if (i->first == id) {
          cursor_stack_.erase(i);
          return;
@@ -1559,13 +1559,13 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
       
       load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
-      server_load_deferred_->Progress([this] (const JSONNode n) {
+      server_load_deferred_->Progress([this] (JSONNode const& n) {
          double server_progress = n.at("progress").as_float();
          load_progress_deferred_->Notify(JSONNode("progress", server_progress / 2.0));
       });
       Renderer::GetInstance().SetLoading(true);
 
-      load_progress_deferred_->Progress([this] (const JSONNode n) {
+      load_progress_deferred_->Progress([this] (JSONNode const& n) {
          float progress = n.as_float();
          Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
       });

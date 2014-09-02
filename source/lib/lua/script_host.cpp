@@ -82,7 +82,7 @@ ScriptHost* ScriptHost::GetScriptHost(dm::Store const& store)
    return GetScriptHost(store.GetInterpreter());
 }
 
-void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
+void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn const& fn)
 {
    to_lua_converters_.emplace_back(fn);
 }
@@ -130,7 +130,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
             return result;
          } else {
             JSONNode result(JSON_NODE);
-            for (iterator i(obj), end; i != end; i++) {
+            for (iterator i(obj), end; i != end; ++i) {
                JSONNode key = luaToJson(i.key());
                JSONNode value = luaToJson(*i);
                value.set_name(key.as_string());
@@ -512,7 +512,6 @@ void ScriptHost::GC(platform::timer &timer)
 
 luabind::object ScriptHost::LoadScript(std::string const& path)
 {
-   std::ifstream in;
    luabind::object obj;
 
    LUA_LOG(5) << "loading script " << path;
@@ -550,8 +549,7 @@ void ScriptHost::OnError(std::string const& description)
 
 luabind::object ScriptHost::Require(std::string const& s)
 {
-   std::string path, name;
-   std::ostringstream script;
+   std::string path;
 
    std::vector<std::string> parts;
    boost::split(parts, s, boost::is_any_of("."));
@@ -733,7 +731,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 
    output("Total Memory Tracked", 0, grand_total);
    output("Total Memory Allocated", 0, GetAllocBytesCount());
-   for (auto i = totals.rbegin(); i != totals.rend(); i++) {
+   for (auto i = totals.rbegin(); i != totals.rend(); ++i) {
       output(i->second.first, i->second.second, i->first);
    }
    LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
@@ -782,7 +780,7 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
    return result;
 }
 
-void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn cast_fn)
+void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn const& cast_fn)
 {
    ASSERT(!object_cast_table_[type]);
    object_cast_table_[type] = cast_fn;

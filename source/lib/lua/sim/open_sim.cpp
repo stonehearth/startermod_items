@@ -268,7 +268,7 @@ PathPtr Path_CombinePaths(luabind::object const& table)
    ASSERT(type(table) == LUA_TTABLE);
    std::vector<PathPtr> paths;
 
-   for (luabind::iterator i(table), end; i != end; i++) {
+   for (luabind::iterator i(table), end; i != end; ++i) {
       paths.push_back(luabind::object_cast<PathPtr>(*i));
    }
    

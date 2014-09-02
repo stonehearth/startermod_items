@@ -71,7 +71,6 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
-   std::string error = e.message();
    if (!e) {
       static int i = 0;
       static int total = 0;

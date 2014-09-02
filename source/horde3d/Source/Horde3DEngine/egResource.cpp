@@ -222,7 +222,7 @@ Resource *ResourceManager::getNextResource( int type, ResHandle start )
    }
 
    while (_iterator != _resources.end() && _iterator->second->getType() != type) {
-      _iterator++;
+      ++_iterator;
    }
 
    if (_iterator == _resources.end()) {
@@ -230,7 +230,7 @@ Resource *ResourceManager::getNextResource( int type, ResHandle start )
    }
 
    Resource* result = _iterator->second;
-   _iterator++;
+   ++_iterator;
    return result;
 }
 
@@ -245,7 +245,7 @@ ResHandle ResourceManager::addResource( Resource &resource )
 
 ResHandle ResourceManager::addResource( int type, std::string const& name, int flags, bool userCall )
 {
-	if( name == "" )
+	if( name.empty() )
 	{	
 		Modules::log().writeDebugInfo( "Invalid name for added resource of type %i", type );
 		return 0;
@@ -276,7 +276,7 @@ ResHandle ResourceManager::addResource( int type, std::string const& name, int f
 
 ResHandle ResourceManager::addNonExistingResource( Resource &resource, bool userCall )
 {
-	if( resource._name == "" ) return 0;
+	if( resource._name.empty() ) return 0;
 
    for (auto const& entry : _resources) {
       Resource* res = entry.second;
@@ -293,7 +293,7 @@ ResHandle ResourceManager::addNonExistingResource( Resource &resource, bool user
 ResHandle ResourceManager::cloneResource( Resource &sourceRes, std::string const& name )
 {
 	// Check that name does not yet exist
-	if( name != "" )
+	if( !name.empty() )
 	{
             for (auto const& entry : _resources) {
                Resource* res = entry.second;
@@ -307,11 +307,11 @@ ResHandle ResourceManager::cloneResource( Resource &sourceRes, std::string const
 	Resource *newRes = sourceRes.clone();
 	if( newRes == 0x0 ) return 0;
 
-	newRes->_name = name != "" ? name : "|tmp|";
+	newRes->_name = !name.empty() ? name : "|tmp|";
 	newRes->_userRefCount = 1;
 	int handle = addResource( *newRes );
 	
-	if( name == "" )
+	if( name.empty() )
 	{
 		stringstream ss;
 		ss << sourceRes._name << "|" << handle;

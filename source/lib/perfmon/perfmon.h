@@ -26,7 +26,7 @@ private:
 
 void BeginFrame(bool enabled);
 void SwitchToCounter(char const* name);
-core::Guard OnFrameEnd(std::function<void(Frame*)>);
+core::Guard OnFrameEnd(std::function<void(Frame*)> const&);
 uint CounterToMilliseconds(CounterValueType value);
 CounterValueType MillisecondsToCounter(uint value);
 

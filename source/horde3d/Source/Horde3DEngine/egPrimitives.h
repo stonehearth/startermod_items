@@ -238,7 +238,7 @@ public:
 	void buildViewFrustum( const Matrix4f &viewMat, const Matrix4f &projMat );
 	void buildBoxFrustum( const Matrix4f &transMat, float left, float right,
 	                      float bottom, float top, float front, float back );
-	bool cullSphere( Vec3f pos, float rad ) const;
+	bool cullSphere( Vec3f const& pos, float rad ) const;
 	bool cullBox( const BoundingBox &b ) const;
 	bool cullFrustum( const Frustum &frust ) const;
 

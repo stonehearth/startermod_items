@@ -42,9 +42,9 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       typedef std::function<bool(om::EntityPtr)> FilterFn;
 
       BfsPathFinderPtr SetSource(csg::Point3 const& source);
-      BfsPathFinderPtr SetSolvedCb(SolvedCb solved_cb);
-      BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb exhausted_cb);
-      BfsPathFinderPtr SetFilterFn(FilterFn filter_fn);
+      BfsPathFinderPtr SetSolvedCb(SolvedCb const& solved_cb);
+      BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted_cb);
+      BfsPathFinderPtr SetFilterFn(FilterFn const& filter_fn);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
       BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);

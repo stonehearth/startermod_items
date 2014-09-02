@@ -24,11 +24,11 @@ public:
    void RemoveRouter(IRouterPtr router);
    void AddRouter(IRouterPtr router);
    void SetRemoteRouter(IRouterPtr router);
-   void AddRoute(std::string const& route, CallCb cb);
-   void AddRouteB(std::string const& route, CallBCb cb);
-   void AddRouteV(std::string const& route, CallVCb cb);
-   void AddRouteS(std::string const& route, CallSCb cb);
-   void AddRouteJ(std::string const& route, CallJCb cb);
+   void AddRoute(std::string const& route, CallCb const& cb);
+   void AddRouteB(std::string const& route, CallBCb const& cb);
+   void AddRouteV(std::string const& route, CallVCb const& cb);
+   void AddRouteS(std::string const& route, CallSCb const& cb);
+   void AddRouteJ(std::string const& route, CallJCb const& cb);
 
 private:
    std::string FindRouteToFunction(Function const& fn);

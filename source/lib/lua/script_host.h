@@ -35,7 +35,7 @@ public:
    int GetErrorCount() const;
 
    typedef std::function<luabind::object(lua_State* L, JSONNode const& json)> JsonToLuaFn;
-   void AddJsonToLuaConverter(JsonToLuaFn fn);
+   void AddJsonToLuaConverter(JsonToLuaFn const& fn);
 
    luabind::object JsonToLua(JSONNode const& json);
    JSONNode LuaToJson(luabind::object obj);
@@ -49,7 +49,7 @@ public:
    void SetNotifyErrorCb(ReportErrorCb const& cb);
 
    typedef std::function<luabind::object(lua_State*L, dm::ObjectPtr)> ObjectToLuaFn;
-   void AddObjectToLuaConvertor(dm::ObjectType type,  ObjectToLuaFn cast_fn);
+   void AddObjectToLuaConvertor(dm::ObjectType type,  ObjectToLuaFn const& cast_fn);
    luabind::object CastObjectToLua(dm::ObjectPtr obj);
 
    template <typename T, typename A0, typename A1, typename A2, typename A3, typename A4>

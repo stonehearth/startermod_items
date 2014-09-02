@@ -159,7 +159,7 @@ BfsPathFinderPtr BfsPathFinder::SetSource(csg::Point3 const& location)
  *
  */
 
-BfsPathFinderPtr BfsPathFinder::SetSolvedCb(SolvedCb solved_cb)
+BfsPathFinderPtr BfsPathFinder::SetSolvedCb(SolvedCb const& solved_cb)
 {
    pathfinder_->SetSolvedCb(solved_cb);
    return shared_from_this();
@@ -174,7 +174,7 @@ BfsPathFinderPtr BfsPathFinder::SetSolvedCb(SolvedCb solved_cb)
  *
  */
 
-BfsPathFinderPtr BfsPathFinder::SetSearchExhaustedCb(ExhaustedCb exhausted_cb)
+BfsPathFinderPtr BfsPathFinder::SetSearchExhaustedCb(ExhaustedCb const& exhausted_cb)
 {
    NOT_YET_IMPLEMENTED(); // no one yet fires exhausted_cb_
    exhausted_cb_ = exhausted_cb;
@@ -191,7 +191,7 @@ BfsPathFinderPtr BfsPathFinder::SetSearchExhaustedCb(ExhaustedCb exhausted_cb)
  *
  */
 
-BfsPathFinderPtr BfsPathFinder::SetFilterFn(FilterFn filter_fn)
+BfsPathFinderPtr BfsPathFinder::SetFilterFn(FilterFn const& filter_fn)
 {
    filter_fn_ = filter_fn;
    return shared_from_this();

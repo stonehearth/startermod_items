@@ -633,7 +633,7 @@ void Simulation::ProcessTaskList()
       std::shared_ptr<Task> task = i->lock();
 
       if (task && task->Work(game_loop_timer_)) {
-         i++;
+         ++i;
       } else {
          i = tasks_.erase(i);
       }

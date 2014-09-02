@@ -66,14 +66,14 @@ class NavGrid {
 
       // Queries.  
       bool IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds);
-      bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb);
-      bool ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb);
-      bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb cb);
+      bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb);
+      bool ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb const& cb);
+      bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb const& cb);
 
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
-      core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> cb);
+      core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
       bool IsTerrain(csg::Point3 const& location);
 
       // Maintence.  Not for public consumption
@@ -106,10 +106,10 @@ class NavGrid {
       void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
       void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type);
-      bool ForEachTileInBounds(csg::Cube3 const& bounds, ForEachTileCb);
-      bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb);
-      bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb cb);
-      bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
+      bool ForEachTileInBounds(csg::Cube3 const& bounds, ForEachTileCb const& cb);
+      bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const& cb);
+      bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb const& cb);
+      bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb);
       csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
       bool IsBlocked(om::EntityPtr entity, csg::Region3 const& region);
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& collisionShape);

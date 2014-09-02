@@ -26,7 +26,6 @@ TEST(RegionTest, SubtractCube) {
                for (int ty = 0; ty < 3; ty++) {
                   for (int tz = 0; tz < 3; tz++) {
                      Point3 tester(tx, ty, tz);
-                     std::ostringstream test;
                      EXPECT_EQ(pt != tester, r.Intersects(tester)) << "checking " << tester << " after removing point " << pt << " from region";
                   }
                }
@@ -97,7 +96,7 @@ TEST(RegionPerfTest, RegionSubCubePerfTest) {
 struct ExpectedTime { const char* name; uint expected; };
 static const int perfmon_gap_time = 400;
 
-void RunPerfmonTest(ExpectedTime *times, std::function<void()> execute)
+void RunPerfmonTest(ExpectedTime *times, std::function<void()> const& execute)
 {
    auto verify_times = [=](perfmon::Frame* f) {
       static const uint threshold = 10;

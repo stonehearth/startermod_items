@@ -16,10 +16,10 @@ public:
 public:
    StoreTrace(Store const& store);
 
-   StoreTracePtr OnAlloced(AllocedCb on_alloced);
-   StoreTracePtr OnRegistered(RegisteredCb on_registered);
-   StoreTracePtr OnModified(ModifiedCb on_modified);
-   StoreTracePtr OnDestroyed(DestroyedCb on_destroyed);
+   StoreTracePtr OnAlloced(AllocedCb const& on_alloced);
+   StoreTracePtr OnRegistered(RegisteredCb const& on_registered);
+   StoreTracePtr OnModified(ModifiedCb const& on_modified);
+   StoreTracePtr OnDestroyed(DestroyedCb const& on_destroyed);
    StoreTracePtr PushStoreState();
 
 protected:

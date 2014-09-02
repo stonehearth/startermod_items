@@ -48,14 +48,14 @@ Guard const& Guard::operator+=(Guard&& other)
    return *this;
 }
 
-Guard const& Guard::operator=(std::function<void()> untrack)
+Guard const& Guard::operator=(std::function<void()> const& untrack)
 {
    UntrackNodes();
    nodes_.push_back(untrack);
    return *this;
 }
 
-Guard const& Guard::operator+=(std::function<void()> untrack)
+Guard const& Guard::operator+=(std::function<void()> const& untrack)
 {
    nodes_.push_back(untrack);
    return *this;

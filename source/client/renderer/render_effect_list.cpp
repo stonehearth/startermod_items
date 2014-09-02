@@ -99,7 +99,7 @@ RenderEffectList::~RenderEffectList()
    EL_LOG_NOPREFIX(9) << "destroying render effect list";
 }
 
-void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
+void RenderEffectList::AddEffect(int effect_id, om::EffectPtr effect)
 {
    std::string name = effect->GetName();
    EL_LOG(5) << "adding effect " << name;
@@ -126,7 +126,7 @@ void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
       if (finished) {
          i = effects_.erase(i);
       } else {
-         i++;
+         ++i;
       }
    }
 }
@@ -637,7 +637,7 @@ void RenderAttachItemEffectTrack::Update(FrameStartInfo const& info, bool& finis
 // see http://libclaw.sourceforge.net/tweeners.html
 
 claw::tween::single_tweener::easing_function
-get_easing_function(std::string easing)
+get_easing_function(std::string const& easing)
 {
 #define GET_EASING_FUNCTION(name) \
    if (eq == std::string(#name)) { \

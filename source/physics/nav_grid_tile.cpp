@@ -87,7 +87,7 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
       dm::ObjectId id = entity->GetObjectId();
       TrackerMap::const_iterator i;
       auto range = trackers_.equal_range(id);
-      for (i = range.first; i != range.second; i++) {
+      for (i = range.first; i != range.second; ++i) {
          if (i->second.lock() == tracker) {
             break;
          }
@@ -323,7 +323,7 @@ std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
  * was stopped early.
  *
  */ 
-bool NavGridTile::ForEachTracker(ForEachTrackerCb cb)
+bool NavGridTile::ForEachTracker(ForEachTrackerCb const& cb)
 {
    bool stopped = ForEachTrackerInRange(trackers_.begin(), trackers_.end(), cb);
    return stopped;
@@ -340,7 +340,7 @@ bool NavGridTile::ForEachTracker(ForEachTrackerCb cb)
  * was stopped early.
  *
  */ 
-bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb)
 {
    auto range = trackers_.equal_range(entityId);
    bool stopped = ForEachTrackerInRange(range.first, range.second, cb);
@@ -358,7 +358,7 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  * was stopped early.
  *
  */ 
-bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb)
+bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb)
 {
    int tempSize = tempTrackers_.size();
    int numTrackers = 0;
@@ -371,12 +371,12 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
    // need to call destroy on that list (since they're weak refs).
    while (begin != end && numTrackers < tempSize) {
       tempTrackers_[numTrackers++] = begin->second;
-      begin++;
+      ++begin;
    }
    while (begin != end) {
       tempTrackers_.emplace_back(begin->second);
       numTrackers++;
-      begin++;
+      ++begin;
    }
 
    for (int i = 0; i < numTrackers; i++) {
@@ -402,7 +402,7 @@ bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, Tracke
  * NavGridTile::ChangeNotification for more details.
  *
  */ 
-core::Guard NavGridTile::RegisterChangeCb(ChangeCb cb)
+core::Guard NavGridTile::RegisterChangeCb(ChangeCb const& cb)
 {
    return changed_slot_.Register(cb);
 }

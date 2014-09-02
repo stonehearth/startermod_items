@@ -58,8 +58,8 @@ public:
    void SetDataResident(bool value, int index = -1);
    int GetResidentTileIndex() const;
 
-   bool ForEachTracker(ForEachTrackerCb cb);
-   bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb);
+   bool ForEachTracker(ForEachTrackerCb const& cb);
+   bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb);
 
    enum ChangeNotifications {
       ENTITY_REMOVED = (1 << 0),
@@ -79,7 +79,7 @@ public:
 
    typedef std::function<void(ChangeNotification const&)> ChangeCb;
 
-   core::Guard RegisterChangeCb(ChangeCb cb);
+   core::Guard RegisterChangeCb(ChangeCb const& cb);
 
 public:
    void ShowDebugShapes(protocol::shapelist* msg, csg::Point3 const& index);
@@ -102,7 +102,7 @@ private:
 private:
    void OnTrackerAdded(CollisionTrackerPtr tracker);
    void PruneExpiredChangeTrackers();
-   bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb cb);
+   bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb);
 
    enum DirtyBits {
       BASE_VECTORS =    (1 << 0),

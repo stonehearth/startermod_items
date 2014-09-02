@@ -29,7 +29,7 @@ class OctTree {
       // Path finding helpers
       typedef std::function<void(csg::Point3 const&, float)> MovementCostCb;
 
-      void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb cb) const;
+      void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb const& cb) const;
       float GetMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
       float GetSquaredMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
 

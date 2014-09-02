@@ -34,8 +34,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr RemoveDestination(dm::ObjectId id);
 
       AStarPathFinderPtr SetSource(csg::Point3 const& source);
-      AStarPathFinderPtr SetSolvedCb(SolvedCb solved);
-      AStarPathFinderPtr SetSearchExhaustedCb(ExhaustedCb exhausted);
+      AStarPathFinderPtr SetSolvedCb(SolvedCb const& solved);
+      AStarPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted);
       AStarPathFinderPtr RestartSearch(const char* reason);
       AStarPathFinderPtr Start();
       AStarPathFinderPtr Stop();

@@ -114,8 +114,6 @@ std::ostream& csg::operator<<(std::ostream& out, RandomNumberGenerator const& rn
 
 std::istream& csg::operator>>(std::istream& in, RandomNumberGenerator& rng)
 {
-   std::string header, footer;
-
    // read header
    bool success = MatchString(in, SerializationHeader);
    if (!success) {
