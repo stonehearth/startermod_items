@@ -25,6 +25,7 @@ namespace Horde3D {
 class HudElement
 {
 public:
+   virtual ~HudElement() {}
    const BoundingBox& getBounds() const;
    virtual void updateGeometry(const Matrix4f& absTrans) = 0;
    virtual void draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat);
@@ -52,7 +53,7 @@ private:
 
 protected:
    WorldspaceLineHudElement(NodeHandle parentNode, int width, Vec4f color, ResHandle matRes);
-   ~WorldspaceLineHudElement();
+   virtual ~WorldspaceLineHudElement() {}
 
    friend class HudElementNode;
 };
@@ -79,7 +80,7 @@ private:
 
 protected:
    ScreenspaceRectHudElement(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
-   ~ScreenspaceRectHudElement();
+   virtual ~ScreenspaceRectHudElement();
 
    friend class HudElementNode;
 };
@@ -108,7 +109,7 @@ private:
 
 protected:
    WorldspaceRectHudElement(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes);
-   ~WorldspaceRectHudElement();
+   virtual ~WorldspaceRectHudElement();
 
    friend class HudElementNode;
 };
@@ -145,7 +146,7 @@ public:
 	static SceneNodeTpl *parsingFunc( std::map< std::string, std::string > &attribs );
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 
-	~HudElementNode();
+	virtual ~HudElementNode();
 
    
    ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
