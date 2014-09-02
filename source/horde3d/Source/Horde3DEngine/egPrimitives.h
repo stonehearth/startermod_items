@@ -204,7 +204,7 @@ struct BoundingBox
    {
       ASSERT_VALID_BOX
 
-      _max += v;
+      _min += v;
 
       ASSERT_VALID_BOX
    }
