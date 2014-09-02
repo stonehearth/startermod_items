@@ -35,10 +35,14 @@ function CombatIdleShuffle:run(ai, entity, args)
    local enemy = args.enemy
    if not enemy:is_valid() then
       ai:abort('enemy has been destroyed')
-      return
    end
 
    ai:execute('stonehearth:go_toward_location', { destination = self._destination })
+
+   -- check again after moving
+   if not enemy:is_valid() then
+      ai:abort('enemy has been destroyed')
+   end
 
    local weapon = stonehearth.combat:get_melee_weapon(entity)
    if weapon ~= nil and weapon:is_valid() then
@@ -50,7 +54,8 @@ function CombatIdleShuffle:run(ai, entity, args)
    end
 
    ai:execute('stonehearth:bump_allies', { distance = 2 })
-   ai:execute('stonehearth:turn_to_face_entity', { entity = enemy })
+   
+   radiant.entities.turn_to_face(entity, enemy)
    ai:execute('stonehearth:run_effect', { effect = 'combat_1h_idle' })
 end
 
