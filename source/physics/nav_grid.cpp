@@ -20,6 +20,7 @@
 #include "derived_region_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
+#include <EASTL/fixed_set.h>
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -576,7 +577,7 @@ bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
 bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb const &cb)
 {
    bool stopped;
-   std::set<dm::ObjectId> visited;
+   eastl::fixed_set<dm::ObjectId, 64> visited;
 
    stopped = ForEachTrackerInRegion(region, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
@@ -636,7 +637,7 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
 bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const &cb)
 {
    bool stopped = false;
-   std::set<csg::Point3> visited;
+   eastl::fixed_set<csg::Point3, 8> visited;
 
    auto i = region.begin(), end = region.end();
    while (!stopped && i != end) {
@@ -668,7 +669,7 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cons
 bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb const &cb)
 {
    bool stopped;
-   std::set<CollisionTracker*> visited;
+   eastl::fixed_set<CollisionTracker*, 16> visited;
    csg::Cube3 regionBounds = region.GetBounds();
 
    stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
