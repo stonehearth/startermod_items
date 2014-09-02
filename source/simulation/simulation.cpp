@@ -889,7 +889,6 @@ void Simulation::ReadClientMessages()
    SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
-   _io_service->reset();
 
    // We'll let the simulation process as many messages as it wants.
    platform::timer timeout(100000);
