@@ -75,7 +75,7 @@ void DataObject::SaveValue(dm::Store const& store, dm::SerializationType r, Prot
    lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
    ASSERT(s);
    if (s) {
-      int flags;
+      int flags = 0;
       if (r == dm::REMOTING) { flags |= marshall::Convert::REMOTE; }
       marshall::Convert(store, flags).ToProtobuf(data_object_, msg->mutable_lua_object());
    }
@@ -86,7 +86,7 @@ void DataObject::LoadValue(dm::Store const& store, dm::SerializationType  r, con
    lua::ScriptHost* s = lua::ScriptHost::GetScriptHost(store.GetInterpreter());
    ASSERT(s);
    if (s) {
-      int flags;
+      int flags = 0;
       if (r == dm::REMOTING) { flags |= marshall::Convert::REMOTE; }
       marshall::Convert(store, flags).ToLua(msg.lua_object(), data_object_);
       dirty_ = true;

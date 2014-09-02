@@ -38,7 +38,7 @@ int csg::ToInt(int i)
 int csg::ToInt(float s)
 {
    if (s > 0) {
-      static_cast<int>(s + csg::k_epsilon);
+      return static_cast<int>(s + csg::k_epsilon);
    }
    return static_cast<int>(s - csg::k_epsilon);
 }

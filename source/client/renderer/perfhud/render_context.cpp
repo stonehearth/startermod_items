@@ -52,7 +52,7 @@ void RenderContext::DrawString(std::string const& s, csg::Point2f const& pt, csg
 
 void RenderContext::SetScreenSize(csg::Point2 const& size)
 {
-   one_pixel_.x = 1.0f / size.y;
+   one_pixel_.x = 1.0f / size.x;
    one_pixel_.y = 1.0f / size.y;
    text_size_ = one_pixel_.y * 20;
 }

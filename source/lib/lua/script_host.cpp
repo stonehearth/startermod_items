@@ -499,7 +499,7 @@ void ScriptHost::GC(platform::timer &timer)
 {
    if (_gc_setting == 0) {
       return;
-   } else if (_gc_setting = 1) {
+   } else if (_gc_setting == 1) {
       bool finished = false;
 
       while (!timer.expired() && !finished) {
