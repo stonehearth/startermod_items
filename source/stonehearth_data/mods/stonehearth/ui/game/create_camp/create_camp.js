@@ -15,7 +15,7 @@ App.StonehearthCreateCampView = App.View.extend({
 
    actions : {
       placeBanner: function () {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_grab');
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_grab'});
          var self = this;
          this._hideBanner();
          radiant.call('stonehearth:choose_camp_location')
