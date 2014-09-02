@@ -16,7 +16,7 @@ Thread::Thread() :
    InitializeCriticalSection(&_lock);
 }
 
-void Thread::Start(ThreadFn fn)
+void Thread::Start(ThreadFn const& fn)
 {
    _fn = fn;
    _thread = ::CreateThread(NULL, 0, thread_main, this, 0, &_thread_id);

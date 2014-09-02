@@ -95,7 +95,7 @@ end
 
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
    local floor
-   local success = self:_do_command('add_floor', response, function()
+   local success = self:do_command('add_floor', response, function()
          floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
       end)
 
@@ -115,8 +115,8 @@ end
 
 function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
    local wall
-   local success = self:_do_command('add_wall', response, function()
-         wall = self:_add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
+   local success = self:do_command('add_wall', response, function()
+         wall = self:add_wall(session, columns_uri, walls_uri, ToPoint3(p0), ToPoint3(p1), ToPoint3(normal))
       end)
 
    if success then
@@ -181,7 +181,7 @@ function BuildService:_erase_floor(session, box)
 end
 
 function BuildService:erase_floor_command(session, response, box)
-   local success = self:_do_command('erase_floor', response, function()
+   local success = self:do_command('erase_floor', response, function()
          self:_erase_floor(session, ToCube3(box))
       end)
 
@@ -457,7 +457,7 @@ function BuildService:_merge_building_into(merge_into, building)
    self:unlink_entity(building)
 end
 
-function BuildService:_add_wall(session, columns_uri, walls_uri, p0, p1, normal)
+function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
    local c1 = self:_get_blueprint_at_point(p1)
@@ -489,7 +489,7 @@ end
 --    @param walls_uri - the type of walls to generate
 --
 function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
-   local success = self:_do_command('grow_walls', response, function()
+   local success = self:do_command('grow_walls', response, function()
          self:_grow_walls(building, columns_uri, walls_uri)
       end)
    return success or nil
@@ -544,7 +544,7 @@ end
 
 function BuildService:grow_roof_command(session, response, building, roof_uri, options)
    local roof
-   local success = self:_do_command('grow_roof', response, function()
+   local success = self:do_command('grow_roof', response, function()
          roof = self:_grow_roof(building, roof_uri, options)
       end)
 
@@ -674,7 +674,7 @@ end
 --
 function BuildService:add_portal_command(session, response, wall_entity, portal_uri, location)
    local portal
-   local success = self:_do_command('add_portal', response, function()
+   local success = self:do_command('add_portal', response, function()
          portal = self:_add_portal(wall_entity, portal_uri, location)
       end)
 
@@ -736,7 +736,7 @@ end
 --
 function BuildService:substitute_blueprint_command(session, response, old, new_uri)
    local replaced
-   local success = self:_do_command('substitute_blueprint', response, function()
+   local success = self:do_command('substitute_blueprint', response, function()
          replaced = self:_substitute_blueprint(old, new_uri)
       end)
 
@@ -812,7 +812,7 @@ end
 --    @param options - the options to change.  
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
-   local success = self:_do_command('apply_options', response, function()
+   local success = self:do_command('apply_options', response, function()
          self:_apply_options(blueprint, options)
       end)
    return success or nil
@@ -889,6 +889,11 @@ end
 
 function BuildService:instabuild_command(session, response, building)
    -- get everything built.
+   self:instabuild(building)
+   return true
+end
+
+function BuildService:instabuild(building)
    self:_call_all_children(building, function(entity)
          local cp = entity:get_component('stonehearth:construction_progress')
          if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
@@ -899,11 +904,9 @@ function BuildService:instabuild_command(session, response, building)
             end
          end
       end)
-
-   return true
 end
 
-function BuildService:_do_command(reason, response, cb)
+function BuildService:do_command(reason, response, cb)
    self._undo:begin_transaction(reason)
    self._in_transaction = true
    self._at_end_of_transaction_cbs = {}

@@ -92,7 +92,7 @@ void CoreReactor::AddRouter(IRouterPtr router)
    routers_.emplace_back(router);
 }
 
-void CoreReactor::AddRoute(std::string const& route, CallCb cb)
+void CoreReactor::AddRoute(std::string const& route, CallCb const& cb)
 {
    auto i = routes_.find(route);
    if (i != routes_.end()) {
@@ -103,7 +103,7 @@ void CoreReactor::AddRoute(std::string const& route, CallCb cb)
    }
 }
 
-void CoreReactor::AddRouteB(std::string const& route, CallBCb cb)
+void CoreReactor::AddRouteB(std::string const& route, CallBCb const& cb)
 {
    AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
       std::string msg;
@@ -117,7 +117,7 @@ void CoreReactor::AddRouteB(std::string const& route, CallBCb cb)
    });
 }
 
-void CoreReactor::AddRouteV(std::string const& route, CallVCb cb)
+void CoreReactor::AddRouteV(std::string const& route, CallVCb const& cb)
 {
    AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
@@ -127,7 +127,7 @@ void CoreReactor::AddRouteV(std::string const& route, CallVCb cb)
    });
 }
 
-void CoreReactor::AddRouteS(std::string const& route, CallSCb cb)
+void CoreReactor::AddRouteS(std::string const& route, CallSCb const& cb)
 {
    AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);
@@ -136,7 +136,7 @@ void CoreReactor::AddRouteS(std::string const& route, CallSCb cb)
    });
 }
 
-void CoreReactor::AddRouteJ(std::string const& route, CallJCb cb)
+void CoreReactor::AddRouteJ(std::string const& route, CallJCb const& cb)
 {
    AddRoute(route, [cb](Function const& f) -> ReactorDeferredPtr {
       rpc::ReactorDeferredPtr d = std::make_shared<rpc::ReactorDeferred>(f.route);

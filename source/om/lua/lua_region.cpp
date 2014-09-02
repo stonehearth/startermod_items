@@ -10,11 +10,14 @@ LuaDeepRegionGuard::LuaDeepRegionGuard(DeepRegionGuardPtr trace) :
 {
 }
 
-std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::object changed_cb)
+std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::object unsafe_changed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_changed on invalid trace");
    }
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
+   luabind::object changed_cb(cb_thread, unsafe_changed_cb);
+
    trace_->OnChanged([this, changed_cb](csg::Region3 const& value) {
       try {
          luabind::call_function<void>(changed_cb, value);

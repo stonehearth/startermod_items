@@ -13,7 +13,7 @@ class Thread {
       Thread();
       typedef std::function <void()> ThreadFn;
 
-      void Start(ThreadFn fn);
+      void Start(ThreadFn const& fn);
       bool IsRunning();
 
    protected:

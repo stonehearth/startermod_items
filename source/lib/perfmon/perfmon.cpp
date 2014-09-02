@@ -71,7 +71,7 @@ void perfmon::BeginFrame(bool enabled)
    }
 }
 
-core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> fn)
+core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> const& fn)
 {
    return GetThreadTimeline().OnFrameEnd(fn);
 }

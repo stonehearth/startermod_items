@@ -22,7 +22,6 @@ return ai:create_compound_action(RunToLocation)
             reason = 'goto location',
             location = ai.ARGS.location,
             use_default_adjacent_region = ai.ARGS.stop_when_adjacent,
-            place_on_standable_point = true,
          })
          :execute('stonehearth:goto_entity', {
             entity = ai.PREV.entity,

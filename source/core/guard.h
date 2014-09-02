@@ -25,10 +25,10 @@ public:
    int GetId() const { return id_; }
 
    const Guard& operator=(Guard&& rhs);
-   const Guard& operator=(std::function<void()> untrack);
+   const Guard& operator=(std::function<void()> const& untrack);
 
    const Guard& operator+=(Guard&& other);
-   const Guard& operator+=(std::function<void()> untrack);
+   const Guard& operator+=(std::function<void()> const& untrack);
 
    bool Empty() const;
    void Clear();

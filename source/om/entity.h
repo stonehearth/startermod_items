@@ -54,21 +54,38 @@ public:
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
 
    std::string GetDebugText() const { return *debug_text_; }
-   void SetDebugText(std::string str) { debug_text_ = str; }
+   void SetDebugText(std::string const& str) { debug_text_ = str; }
 
    std::string GetUri() const { return *uri_; }
-   void SetUri(std::string str) { uri_ = str; }
+   void SetUri(std::string const& str) { uri_ = str; }
 
    void SerializeToJson(json::Node& node) const;
+   void OnLoadObject(dm::SerializationType r) override;
 
 private:
-   template <typename T> void CacheComponent(std::shared_ptr<T> component) { }
-   template <typename T> std::shared_ptr<T> GetCachedComponent() const { return nullptr; }
-   template <typename T> bool IsCachedComponent() const { return false; }
+   template <typename T> void CacheComponent(std::shared_ptr<T> component) {
+   }
+   template <typename T> std::shared_ptr<T> GetCachedComponent() const {
+      return nullptr;
+   }
+   template <typename T> bool IsCachedComponent() const {
+      return false;
+   }
 
-   template <> void CacheComponent<Mob>(std::shared_ptr<Mob> component) { cached_mob_component_ = component; }
-   template <> std::shared_ptr<Mob> GetCachedComponent<Mob>() const { return cached_mob_component_.lock(); }
-   template <> bool IsCachedComponent<Mob>() const { return !cached_mob_component_.expired(); }
+   template <> void CacheComponent<Mob>(std::shared_ptr<Mob> component) {
+      cached_mob_component_ = component;
+   }
+   template <> std::shared_ptr<Mob> GetCachedComponent<Mob>() const {
+      return cached_mob_component_.lock();
+   }
+   template <> bool IsCachedComponent<Mob>() const {
+      /* we would like to return true here (i.e. always rely on the cached version), but that
+       * causes problems on the client.  since no one did an AddComponent on the client, the
+       * cache pointer will never get hooked up!  we could trace the container to determine when
+       * the mob changes, but that's an extra tracer per entity for no good reason!
+       */
+      return !cached_mob_component_.expired();
+   }
 
 private:
    void InitializeRecordFields() override;

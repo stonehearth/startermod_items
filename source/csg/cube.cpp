@@ -159,7 +159,7 @@ Cube<S, C> Cube<S, C>::Inflated(Point const& amount) const
    Point newMin = min - amount;
    Point newMax = max + amount;
    for (int i = 0; i < C; i++) {
-      if (newMin[i] >= newMax[i] || newMax[i] <= newMin[i]) {
+      if (newMin[i] >= newMax[i]) {
          return Cube::zero;
       }
    }

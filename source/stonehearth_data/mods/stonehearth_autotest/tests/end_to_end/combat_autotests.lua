@@ -45,7 +45,7 @@ function combat_tests.patrol(autotest)
    local patrol_point = radiant.entities.get_world_grid_location(stockpile2) - Point3(2, 0, 2)
 
    local trace
-   trace = radiant.entities.trace_location(footman, 'patrol autotest')
+   trace = radiant.entities.trace_grid_location(footman, 'patrol autotest')
       :on_changed(
          function()
             local location = radiant.entities.get_world_grid_location(footman)

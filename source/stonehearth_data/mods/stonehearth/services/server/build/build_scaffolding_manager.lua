@@ -5,15 +5,18 @@ local BuildScaffoldingManager = class()
 
 function BuildScaffoldingManager:initialize()
    self._sv.ladder_builders = {}
+   self.__saved_variables:mark_changed()
 end
+
 
 function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
    local base = self:get_base_of_ladder_to(to)
    
-   local ladder_builder = self._sv.ladder_builders[base]
+   local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if not ladder_builder then
       ladder_builder = radiant.create_controller('stonehearth:ladder_builder', self, base, normal, removable)
-      self._sv.ladder_builders[base] = ladder_builder
+      self._sv.ladder_builders[base:key_value()] = ladder_builder
+      self.__saved_variables:mark_changed()
    end
    ladder_builder:add_point(to)
 
@@ -23,7 +26,7 @@ function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
 end
 
 function BuildScaffoldingManager:remove_ladder(base)
-   local ladder_builder = self._sv.ladder_builders[base]
+   local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if ladder_builder then
       ladder_builder:clear_all_points()
    end
@@ -68,9 +71,11 @@ function BuildScaffoldingManager:_should_build_rung(pt)
 end
 
 function BuildScaffoldingManager:_destroy_builder(base, ladder_builder)
-   assert(self._sv.ladder_builders[base] == ladder_builder)
-   self._sv.ladder_builders[base] = nil
+   assert(self._sv.ladder_builders[base:key_value()] == ladder_builder)
+
    radiant.destroy_controller(ladder_builder)
+   self._sv.ladder_builders[base:key_value()] = nil
+   self.__saved_variables:mark_changed()
 end
 
 return BuildScaffoldingManager

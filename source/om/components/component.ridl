@@ -184,51 +184,51 @@ public:
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.add == 'define':
-   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value)
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} const& key, ${map.accessor_value.name} const& value)
    { 
       ${name}_.Add(key, value);
       return *this;
    }
 
    % elif map.add == 'declare':
-   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} key, ${map.accessor_value.name} value);
+   ${C.__name__}& Add${singular_name | env.upper}(${map.key.name} const& key, ${map.accessor_value.name} const& value);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.remove == 'define':
-   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} key)
+   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} const& key)
    {
       ${name}_.Remove(key);
       return *this;
    }
       
    % elif map.remove == 'declare':
-   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} key);
+   ${C.__name__}& Remove${singular_name | env.upper}(${map.key.name} const& key);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.get == 'define':
-   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key)
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} const& key)
    {
       return ${name}_.Get(key, ${map.value.name}());
    }
       
    % elif map.get == 'declare':
-   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} key);
+   ${map.accessor_value.name} Get${singular_name | env.upper}(${map.key.name} const& key);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):
    <% singular_name = hasattr(map, 'singular_name') and map.singular_name or name %>
    % if map.contains == 'define':
-   bool Contains${singular_name | env.upper}(${map.key.name} key)
+   bool Contains${singular_name | env.upper}(${map.key.name} const& key)
    {
       return ${name}_.Contains(key);
    }
       
    % elif map.get == 'declare':
-   bool Contains${singular_name | env.upper}(${map.key.name} key);
+   bool Contains${singular_name | env.upper}(${map.key.name} const& key);
    % endif
 % endfor
 % for name, map in env.properties(C, dm.Map):

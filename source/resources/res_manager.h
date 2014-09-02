@@ -22,8 +22,8 @@ public:
 
    std::vector<std::string> const& GetModuleNames() const;
 
-   void LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> callback) const;
-   void LookupJson(std::string const& path, std::function<void(JSONNode const& n)> callback) const;
+   void LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> const& callback) const;
+   void LookupJson(std::string const& path, std::function<void(JSONNode const& n)> const& callback) const;
    const JSONNode GetModules() const;
 
 

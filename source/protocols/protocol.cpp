@@ -8,6 +8,10 @@
 using namespace ::radiant;
 using namespace ::radiant::protocol;
 
+#pragma optimize( "", off )
+
+static const int BUFFER_SIZE = 16 * 1024 * 1024;
+
 SendQueuePtr SendQueue::Create(boost::asio::ip::tcp::socket& s)
 {
    return std::make_shared<SendQueue>(s);
@@ -18,31 +22,61 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
    ASSERT(sendQueue);
    
    if (sendQueue) {
-      auto &queue = sendQueue->queue_;
+      auto &queue = sendQueue->_queue;
 
       while (!queue.empty()) {
          auto buffer = queue.front();
-         sendQueue->socket_.async_send(boost::asio::buffer(buffer->data(), buffer->size()), 
-                                       std::bind(&SendQueue::HandleWrite, sendQueue, buffer, std::placeholders::_1, std::placeholders::_2));
-         queue.pop();
+         queue.pop_front();
+
+         auto writeFinished = [sendQueue, buffer](const boost::system::error_code& error, size_t bytes_transferred) {
+            ASSERT(!error);
+            sendQueue->_freelist.push(buffer);
+         };
+         sendQueue->socket_.async_send(boost::asio::buffer(buffer->data, buffer->size), writeFinished);
       }
    }
 }
 
-void SendQueue::Push(google::protobuf::MessageLite const& protobuf)
+void SendQueue::Push(google::protobuf::MessageLite const& msg)
 {
-   Push(Encode(protobuf));
+   unsigned int msgSize = msg.ByteSize();
+   unsigned int requiredSize = msgSize + sizeof(uint32);
+   BufferPtr buffer;
+
+   if (!_queue.empty() && (BUFFER_SIZE - _queue.front()->size > requiredSize)) {
+      buffer = _queue.front();
+   } else {
+      if (!_freelist.empty()) {
+         buffer = _freelist.top();
+         _freelist.pop();
+      } else {
+         buffer = std::make_shared<Buffer>();
+      }
+      buffer->size = 0;
+      _queue.push_back(buffer);
+   }
+   ASSERT(!_queue.empty() && buffer == _queue.front());
+   int bufferSize = buffer->size;
+   unsigned int remaining = sizeof(buffer->data) - bufferSize;
+   char *base = buffer->data + bufferSize;
+
+   ASSERT(remaining > requiredSize);
+   {
+      google::protobuf::io::ArrayOutputStream output(base, remaining);
+      {
+         google::protobuf::io::CodedOutputStream encoder(&output);
+
+         encoder.WriteLittleEndian32(msgSize);
+         msg.SerializeToCodedStream(&encoder);
+
+         unsigned int written = static_cast<int>(encoder.ByteCount());
+         ASSERT(written <= requiredSize);
+         ASSERT(bufferSize + written <= BUFFER_SIZE);
+         buffer->size += written;
+      }
+   }
 }
 
-void SendQueue::Push(std::string&& s)
-{
-   queue_.push(std::make_shared<std::string>(std::forward<std::string>(s)));
-}
-
-void SendQueue::HandleWrite(SendQueuePtr queue, std::shared_ptr<std::string> buffer, const boost::system::error_code& error, size_t bytes_transferred)
-{
-   ASSERT(!error);
-}
 
 RecvQueue::RecvQueue(boost::asio::ip::tcp::socket& s) : 
    socket_(s),
@@ -71,7 +105,6 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
-   std::string error = e.message();
    if (!e) {
       static int i = 0;
       static int total = 0;

@@ -16,7 +16,7 @@ class ThreadPool {
       void Stop();
       void Wait();
 
-      void SubmitWork(WorkFn fn);
+      void SubmitWork(WorkFn const& fn);
 
    protected:
       bool GetWork(ThreadPool::WorkFn &work);

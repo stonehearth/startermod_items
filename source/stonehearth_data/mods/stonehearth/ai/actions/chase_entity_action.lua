@@ -54,25 +54,21 @@ end
 
 function ChaseEntity:_trace_target_location()
    local target_mob = self._target:add_component('mob')
-   local target_last_location = self._target:add_component('mob'):get_world_grid_location()
 
    local on_target_moved = function()
-      local target_current_location = target_mob:get_world_grid_location()
+      local target_location = target_mob:get_world_grid_location()
 
-      if target_current_location ~= target_last_location then
-         -- include target_current_location in target_location_history before recalculating path
-         table.insert(self._target_location_history, target_current_location)
-         target_last_location = target_current_location
+      -- include target_location in target_location_history before recalculating path
+      table.insert(self._target_location_history, target_location)
 
-         -- don't waste cycles recalculating the path if we haven't started running yet,
-         -- especially since a future solution may make the current solution obsolete
-         if self._moving then
-            local found_path = self:_try_recalculate_path()
-            if found_path then
-               -- restart the mover using the new path
-               self:_destroy_mover()
-               self._ai:resume()
-            end
+      -- don't waste cycles recalculating the path if we haven't started running yet,
+      -- especially since a future solution may make the current solution obsolete
+      if self._moving then
+         local found_path = self:_try_recalculate_path()
+         if found_path then
+            -- restart the mover using the new path
+            self:_destroy_mover()
+            self._ai:resume()
          end
       end
    end
@@ -84,7 +80,7 @@ function ChaseEntity:_trace_target_location()
       ai:abort('Target destroyed')
    end
 
-   self._trace_target = radiant.entities.trace_location(self._target, 'chase entity')
+   self._trace_target = radiant.entities.trace_grid_location(self._target, 'chase entity')
       :on_changed(on_target_moved)
       :on_destroyed(on_target_destroyed)
 end
@@ -199,7 +195,9 @@ function ChaseEntity:run(ai, entity, args)
    ai:set_status_text('chasing ' .. radiant.entities.get_name(args.target))
 
    -- trace entity location before checking early exit, so that we fire the callback at least once
-   self:_trace_entity_location(args.grid_location_changed_cb)
+   self._trace_entity = radiant.entities.trace_grid_location(self._entity, 'chase entity')
+      :on_changed(args.grid_location_changed_cb)
+      :push_object_state()
 
    -- FollowPath stops on grid positions, so don't move if we're within a half cell
    -- otherwise this will cause bouncing when we call BumpAgainstEntity
@@ -242,23 +240,6 @@ function ChaseEntity:run(ai, entity, args)
 
       ai:suspend('Waiting for mover to finish')
    end
-end
-
-function ChaseEntity:_trace_entity_location(callback)
-   local mob = self._entity:add_component('mob')
-   local last_location = self._entity:add_component('mob'):get_world_grid_location()
-
-   local on_moved = function()
-      local current_location = mob:get_world_grid_location()
-      if current_location ~= last_location then
-         callback()
-      end
-      last_location = current_location
-   end
-
-   self._trace_entity = radiant.entities.trace_location(self._entity, 'chase entity')
-      :on_changed(on_moved)
-      :push_object_state()
 end
 
 function ChaseEntity:_start_run_effect(entity)

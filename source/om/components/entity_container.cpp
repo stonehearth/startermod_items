@@ -60,7 +60,7 @@ void EntityContainer::AddChildToContainer(dm::Map<dm::ObjectId, EntityRef> &chil
    }
 }
 
-EntityContainer& EntityContainer::RemoveChild(dm::ObjectId id)
+EntityContainer& EntityContainer::RemoveChild(dm::ObjectId const& id)
 {
    EntityPtr child;
    auto i = children_.find(id);

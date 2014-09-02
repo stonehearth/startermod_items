@@ -14,8 +14,21 @@ function PlacementTest:__init()
    local citizen = self:place_citizen(12, 12)
    self:place_item('stonehearth:comfy_bed', 1, 5)
 
+   stonehearth.build:do_command('place_on_wall', nil, function()
+         local normal = Point3(0, 0, 1)
+         local wall = stonehearth.build:add_wall(self:get_session(),
+                                                 'stonehearth:wooden_column',
+                                                 'stonehearth:wooden_wall',
+                                                 Point3(-10, 1, 2),
+                                                 Point3( -6, 1, 2),
+                                                 normal)
+         local building = stonehearth.build:get_building_for(wall)
+         stonehearth.build:instabuild(building)         
+      end)
+
    self:place_item('stonehearth:comfy_bed', 2, 5)
    self:place_item('stonehearth:wooden_garden_lantern', 4, 5)
+   self:place_item('stonehearth:decoration:wooden_sign_carpenter', 4, 6)
 
    local citizen2 = self:place_citizen(-12, -12)
    local player_id = radiant.entities.get_player_id(citizen)
