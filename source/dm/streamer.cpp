@@ -192,7 +192,7 @@ void Streamer::OnModified(TraceBufferedRef t, Object const* obj)
 
 void Streamer::QueueUpdate(proto::Update const& update)
 {
-   queue_->Push(protocol::Encode(update));
+   queue_->Push(update);
 }
 
 

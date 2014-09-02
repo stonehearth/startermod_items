@@ -480,7 +480,7 @@ void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::BeginUpdate);
    auto msg = update.MutableExtension(proto::BeginUpdate::extension);
    msg->set_sequence_number(1);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
@@ -488,7 +488,7 @@ void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
    proto::Update update;
 
    update.set_type(proto::Update::EndUpdate);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
@@ -501,7 +501,7 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    msg->set_interval(net_send_interval_);
    msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
@@ -618,7 +618,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    for (auto const& cb : _bottomLoopFns)  {
       cb();
    }
-   queue->Push(protocol::Encode(update));
+   queue->Push(update);
 }
 
 void Simulation::ProcessTaskList()
