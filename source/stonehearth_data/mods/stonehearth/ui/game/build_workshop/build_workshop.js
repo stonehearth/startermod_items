@@ -52,7 +52,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       radiant.call('stonehearth:choose_workbench_location', workbenchType, crafter = crafter.__self)
          .done(function(o){
             $(top).trigger('radiant_hide_tip');
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
          })
          .always(function() {
             self._finish();
