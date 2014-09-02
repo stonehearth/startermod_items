@@ -56,7 +56,7 @@ bool ThreadPool::GetWork(ThreadPool::WorkFn &work)
    return true;
 }
 
-void ThreadPool::SubmitWork(WorkFn fn)
+void ThreadPool::SubmitWork(WorkFn const& fn)
 {
    EnterCriticalSection (&_tasksLock);
    _tasks.push_back(fn);

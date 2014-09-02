@@ -147,10 +147,10 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
-      core::Guard OnScreenResize(std::function<void(csg::Point2)> fn);
-      core::Guard OnServerTick(std::function<void(int)> fn);
-      core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn);
-      core::Guard OnShowDebugShapesChanged(std::function<void(bool)> fn);
+      core::Guard OnScreenResize(std::function<void(csg::Point2)> const& fn);
+      core::Guard OnServerTick(std::function<void(int)> const& fn);
+      core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn);
+      core::Guard OnShowDebugShapesChanged(std::function<void(bool)> const& fn);
 
       bool ShowDebugShapes();
       void SetShowDebugShapes(bool show_debug_shapes);
@@ -206,7 +206,7 @@ class Renderer
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
       void UpdateFoW(H3DNode node, const csg::Region2& region);
-      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb cb);
+      void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb const& cb);
 
       void ResizeViewport();
       void ResizePipelines();

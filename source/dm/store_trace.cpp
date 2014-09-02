@@ -10,25 +10,25 @@ StoreTrace::StoreTrace(Store const& store) :
 {
 }
 
-StoreTracePtr StoreTrace::OnAlloced(AllocedCb on_alloced)
+StoreTracePtr StoreTrace::OnAlloced(AllocedCb const& on_alloced)
 {
    on_alloced_ = on_alloced;
    return shared_from_this();
 }
 
-StoreTracePtr StoreTrace::OnRegistered(RegisteredCb on_registered)
+StoreTracePtr StoreTrace::OnRegistered(RegisteredCb const& on_registered)
 {
    on_registered_ = on_registered;
    return shared_from_this();
 }
 
-StoreTracePtr StoreTrace::OnModified(ModifiedCb on_modified)
+StoreTracePtr StoreTrace::OnModified(ModifiedCb const& on_modified)
 {
    on_modified_ = on_modified;
    return shared_from_this();
 }
 
-StoreTracePtr StoreTrace::OnDestroyed(DestroyedCb on_destroyed)
+StoreTracePtr StoreTrace::OnDestroyed(DestroyedCb const& on_destroyed)
 {
    on_destroyed_ = on_destroyed;
    return shared_from_this();

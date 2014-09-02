@@ -356,6 +356,13 @@ void Simulation::CreateGame()
    now_ = clock_->GetTime();
    modList_ = root_entity_->AddComponent<om::ModList>();
 
+   /*
+    * Stick a Mob on the root entity so there's a cached pointer there.  This greatly
+    * speeds up Mob::GetWorldGridLocation.  If Entity::IsCachedComponent always returned
+    * true, this wouldn't be a problem (sigh).
+    */
+   root_entity_->AddComponent<om::Clock>();
+
    error_browser_ = store_->AllocObject<om::ErrorBrowser>();
    scriptHost_->SetNotifyErrorCb([=](om::ErrorBrowser::Record const& r) {
       error_browser_->AddRecord(r);
@@ -473,7 +480,7 @@ void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::BeginUpdate);
    auto msg = update.MutableExtension(proto::BeginUpdate::extension);
    msg->set_sequence_number(1);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
@@ -481,7 +488,7 @@ void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
    proto::Update update;
 
    update.set_type(proto::Update::EndUpdate);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
@@ -494,7 +501,7 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    msg->set_interval(net_send_interval_);
    msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
@@ -611,7 +618,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    for (auto const& cb : _bottomLoopFns)  {
       cb();
    }
-   queue->Push(protocol::Encode(update));
+   queue->Push(update);
 }
 
 void Simulation::ProcessTaskList()
@@ -626,7 +633,7 @@ void Simulation::ProcessTaskList()
       std::shared_ptr<Task> task = i->lock();
 
       if (task && task->Work(game_loop_timer_)) {
-         i++;
+         ++i;
       } else {
          i = tasks_.erase(i);
       }
@@ -882,7 +889,6 @@ void Simulation::ReadClientMessages()
    SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
-   _io_service->reset();
 
    // We'll let the simulation process as many messages as it wants.
    platform::timer timeout(100000);

@@ -237,7 +237,7 @@ protected:
    void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
 	void setupShadowMap( bool noShadows );
-	Matrix4f calcCropMatrix( const Frustum &frustSlice, const Vec3f lightPos, const Matrix4f &lightViewProjMat );
+	Matrix4f calcCropMatrix( const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
    void computeTightCameraBounds(float* minDist, float* maxDist);

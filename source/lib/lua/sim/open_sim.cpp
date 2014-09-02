@@ -47,7 +47,7 @@ std::shared_ptr<T> Sim_AllocObject(lua_State* L)
    return GetSim(L).GetStore().AllocObject<T>();
 }
 
-om::EntityRef Sim_CreateEntity(lua_State* L, std::string const& uri)
+om::EntityRef Sim_CreateEntity(lua_State* L, const char* uri)
 {
    om::EntityPtr entity = Sim_AllocObject<om::Entity>(L);
    om::Stonehearth::InitEntity(entity, uri, L);
@@ -268,7 +268,7 @@ PathPtr Path_CombinePaths(luabind::object const& table)
    ASSERT(type(table) == LUA_TTABLE);
    std::vector<PathPtr> paths;
 
-   for (luabind::iterator i(table), end; i != end; i++) {
+   for (luabind::iterator i(table), end; i != end; ++i) {
       paths.push_back(luabind::object_cast<PathPtr>(*i));
    }
    

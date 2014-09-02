@@ -20,6 +20,7 @@
 #include "derived_region_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
+#include <EASTL/fixed_set.h>
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -308,8 +309,8 @@ dm::TraceCategories NavGrid::GetTraceCategory()
 void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
 {
    NG_LOG(3) << "collision tracker bounds " << bounds << " changed (last_bounds: " << last_bounds << ")";
-   csg::Cube3 current_chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
-   csg::Cube3 previous_chunks = csg::GetChunkIndex(last_bounds, TILE_SIZE);
+   csg::Cube3 current_chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
+   csg::Cube3 previous_chunks = csg::GetChunkIndex<TILE_SIZE>(last_bounds);
 
    csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
    csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
@@ -343,7 +344,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
 {
    NG_LOG(3) << "tracker for entity " << entityId << " covering " << bounds << " destroyed";
 
-   csg::Cube3 chunks = csg::GetChunkIndex(bounds, TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
@@ -352,7 +353,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    }
 
    // Signal the top tile, too.
-   SignalTileDirty(csg::GetChunkIndex(bounds.max + csg::Point3::unitY, TILE_SIZE));
+   SignalTileDirty(csg::GetChunkIndex<TILE_SIZE>(bounds.max + csg::Point3::unitY));
 }
 
 /*
@@ -386,6 +387,7 @@ NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
  * not yet exist.  If you don't want to create the tile if the point is invalid,
  * use .find on tiles_ directly.
  */
+
 NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
 {
    NavGridTileMap::iterator i = tiles_.find(index);
@@ -396,23 +398,23 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
    NavGridTile& tile = i->second;
 
    if (make_resident) {
-      if (tile.IsDataResident()) {
-         for (auto &entry : resident_tiles_) {
-            if (entry.first == index) {
-               entry.second = true;
-               break;
-            }
-         }
-      } else {
+      int cacheIndex = tile.GetResidentTileIndex();
+      if (cacheIndex < 0) {
          NG_LOG(3) << "making nav grid tile " << index << " resident";
-         tile.SetDataResident(true);
          if (resident_tiles_.size() >= max_resident_) {
-            EvictNextUnvisitedTile(index);
+            cacheIndex = EvictNextUnvisitedTile(index);
          } else {
+            cacheIndex = resident_tiles_.size();
             resident_tiles_.push_back(std::make_pair(index, true));
          }
+         tile.SetDataResident(true, cacheIndex);
       }
-      tile.FlushDirty(*this, index);
+      ASSERT(cacheIndex >= 0 && cacheIndex < (int)resident_tiles_.size());
+      ASSERT(cacheIndex == tile.GetResidentTileIndex());
+      ASSERT(resident_tiles_[cacheIndex].first == index);
+
+      resident_tiles_[cacheIndex].second = true;   // Mark resident in the vector
+      tile.FlushDirty(*this);
    }
 
    return tile;
@@ -425,7 +427,7 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
  */ 
 void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg)
 {
-   csg::Point3 index = csg::GetChunkIndex(pt, TILE_SIZE);
+   csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(pt);
    om::EntityPtr p = pawn.lock();
 
    // Render all the standable locations in the block pointed to by `pt`
@@ -463,7 +465,7 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
 
    // Draw a purple box around all the mobs
    auto i = collision_trackers_.begin(), end = collision_trackers_.end();
-   for (; i != end; i++) {
+   for (; i != end; ++i) {
       for (auto const& entry : i->second) {
          CollisionTrackerPtr tracker = entry.second;
          if (tracker->GetType() == MOB) {
@@ -490,7 +492,7 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
  *
  * (see http://en.wikipedia.org/wiki/Page_replacement_algorithm#Clock)
  */ 
-void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
+int NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
 {
    while (true) {
       if (last_evicted_ == resident_tiles_.size() - 1) {
@@ -505,8 +507,7 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
          GridTileNonResident(entry.first).SetDataResident(false);
          entry.first = pt;
          entry.second = true;
-         last_evicted_++;
-         return;
+         return last_evicted_++;
       }
       last_evicted_++;
    }
@@ -522,7 +523,7 @@ void NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
  * was stopped early.
  *
  */ 
-bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb)
 {
    bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
@@ -547,7 +548,7 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb const &cb)
 {
    bool stopped;
    stopped = ForEachTileInBounds(worldBounds, [&worldBounds, cb](csg::Point3 const& index, NavGridTile &tile) {
@@ -573,10 +574,10 @@ bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb const &cb)
 {
    bool stopped;
-   std::set<dm::ObjectId> visited;
+   eastl::fixed_set<dm::ObjectId, 64> visited;
 
    stopped = ForEachTrackerInRegion(region, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
@@ -604,11 +605,11 @@ bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb 
  * was stopped early.
  *
  */
-bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb cb)
+bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb const& cb)
 {
    bool stopped = false;
    csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
-   csg::Cube3 indexBounds = csg::GetChunkIndex(clippedWorldBounds, TILE_SIZE);
+   csg::Cube3 indexBounds = csg::GetChunkIndex<TILE_SIZE>(clippedWorldBounds);
 
    auto i = indexBounds.begin(), end = indexBounds.end();
    while (!stopped && i != end) {
@@ -633,10 +634,10 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
  *
  */
 
-bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
+bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const &cb)
 {
    bool stopped = false;
-   std::set<csg::Point3> visited;
+   eastl::fixed_set<csg::Point3, 8> visited;
 
    auto i = region.begin(), end = region.end();
    while (!stopped && i != end) {
@@ -665,10 +666,10 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
  *
  */
 
-bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb cb)
+bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb const &cb)
 {
    bool stopped;
-   std::set<CollisionTracker*> visited;
+   eastl::fixed_set<CollisionTracker*, 16> visited;
    csg::Cube3 regionBounds = region.GetBounds();
 
    stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
@@ -697,7 +698,7 @@ bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerC
  *
  */
 
-bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb)
 {
    bool stopped = false;
    auto i = collision_trackers_.find(entityId), end = collision_trackers_.end();
@@ -797,7 +798,7 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
    // anyone using the point API is actually iterating (so this is cheaper and faster
    // than the collision tracker method)
    csg::Point3 index, offset;
-   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
    bool blocked = GridTileResident(index).IsBlocked(offset);
 
    NG_LOG(7) << "checking if " << worldPoint << " is blocked (result:" << std::boolalpha << blocked << ")";
@@ -834,9 +835,9 @@ bool NavGrid::IsBlocked(csg::Region3 const& region)
 bool NavGrid::IsBlocked(csg::Cube3 const& cube)
 {
    csg::Cube3 stencil = csg::Cube3::one.Scaled(TILE_SIZE);
-   csg::Cube3 chunks = csg::GetChunkIndex(cube, TILE_SIZE);
+   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(cube);
 
-   bool stopped = csg::PartitionCubeIntoChunks(cube, TILE_SIZE, [this](csg::Point3 const& index, csg::Cube3 const& c) {
+   bool stopped = csg::PartitionCubeIntoChunks<TILE_SIZE>(cube, [this](csg::Point3 const& index, csg::Cube3 const& c) {
       bool stop = GridTileResident(index).IsBlocked(c);
       return stop;
    });
@@ -862,7 +863,7 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // anyone using the point API is actually iterating (so this is cheaper and faster
    // than the collision tracker method)
    csg::Point3 index, offset;
-   csg::GetChunkIndex(worldPoint, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
    return GridTileResident(index).IsSupport(offset);
 }
 
@@ -907,7 +908,7 @@ bool NavGrid::IsOccupied(csg::Point3 const& worldPoint)
    bool stopped = false;
 
    if (bounds_.Contains(worldPoint)) {
-      csg::Point3 index = csg::GetChunkIndex(worldPoint, TILE_SIZE);
+      csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(worldPoint);
       stopped = GridTileNonResident(index).ForEachTracker([worldPoint](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
          ASSERT(tracker->GetEntity());
@@ -1115,7 +1116,7 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
  * spiking the CPU.
  *
  */
-core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> cb)
+core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb)
 {
    return _dirtyTilesSlot.Register(cb);
 }
@@ -1222,7 +1223,7 @@ void NavGrid::RemoveEntity(dm::ObjectId id)
 bool NavGrid::IsTerrain(csg::Point3 const& location)
 {
    csg::Point3 index, offset;
-   csg::GetChunkIndex(location, TILE_SIZE, index, offset);
+   csg::GetChunkIndex<TILE_SIZE>(location, index, offset);
    bool isTerrain = GridTileResident(index).IsTerrain(offset);
 
    NG_LOG(7) << "checking if " << location << " is terrain (result:" << std::boolalpha << isTerrain << ")";

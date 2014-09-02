@@ -14,12 +14,16 @@
 #  error ASSERT defined before inclusion of radiant_macros.h.  Aborting
 #endif
 
-#define ASSERT(x) \
-   do { \
-      if (!(x)) { \
-         radiant::HandleAssert(#x); \
-      } \
-   } while(false)
+#if defined(NO_ASSERT)
+#  define ASSERT(x)
+#else
+#  define ASSERT(x) \
+      do { \
+         if (!(x)) { \
+            radiant::HandleAssert(#x); \
+         } \
+      } while(false)
+#endif
 
 #define BUILD_STRING(x) static_cast<std::ostringstream&>(std::ostringstream() << x).str()
 

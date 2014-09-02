@@ -6,6 +6,7 @@
 #include "script_host.h"
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
+#include "lib/lua/lua.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
@@ -13,8 +14,6 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
-
-extern "C" int luaopen_lpeg (lua_State *L);
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -82,7 +81,7 @@ ScriptHost* ScriptHost::GetScriptHost(dm::Store const& store)
    return GetScriptHost(store.GetInterpreter());
 }
 
-void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn fn)
+void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn const& fn)
 {
    to_lua_converters_.emplace_back(fn);
 }
@@ -130,7 +129,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
             return result;
          } else {
             JSONNode result(JSON_NODE);
-            for (iterator i(obj), end; i != end; i++) {
+            for (iterator i(obj), end; i != end; ++i) {
                JSONNode key = luaToJson(i.key());
                JSONNode value = luaToJson(*i);
                value.set_name(key.as_string());
@@ -263,10 +262,15 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    profile_cpu_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
-   lua_setalloc2f(L_, LuaAllocFnWithState, this);
+
+   if (lua::JitIsEnabled()) {
+      lua_setallocf(L_, LuaAllocFn, this);
+   } else {
+      lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   }
+
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
-   luaopen_lpeg(L_);
 
    luabind::open(L_);
    luabind::bind_class_info(L_);
@@ -499,7 +503,7 @@ void ScriptHost::GC(platform::timer &timer)
 {
    if (_gc_setting == 0) {
       return;
-   } else if (_gc_setting = 1) {
+   } else if (_gc_setting == 1) {
       bool finished = false;
 
       while (!timer.expired() && !finished) {
@@ -512,7 +516,6 @@ void ScriptHost::GC(platform::timer &timer)
 
 luabind::object ScriptHost::LoadScript(std::string const& path)
 {
-   std::ifstream in;
    luabind::object obj;
 
    LUA_LOG(5) << "loading script " << path;
@@ -550,8 +553,7 @@ void ScriptHost::OnError(std::string const& description)
 
 luabind::object ScriptHost::Require(std::string const& s)
 {
-   std::string path, name;
-   std::ostringstream script;
+   std::string path;
 
    std::vector<std::string> parts;
    boost::split(parts, s, boost::is_any_of("."));
@@ -733,7 +735,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 
    output("Total Memory Tracked", 0, grand_total);
    output("Total Memory Allocated", 0, GetAllocBytesCount());
-   for (auto i = totals.rbegin(); i != totals.rend(); i++) {
+   for (auto i = totals.rbegin(); i != totals.rend(); ++i) {
       output(i->second.first, i->second.second, i->first);
    }
    LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
@@ -782,7 +784,7 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
    return result;
 }
 
-void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn cast_fn)
+void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn const& cast_fn)
 {
    ASSERT(!object_cast_table_[type]);
    object_cast_table_[type] = cast_fn;

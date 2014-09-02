@@ -92,12 +92,14 @@ INCLUDE(${RADIANT_MODULE_ROOT}/libclaw/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/libjson/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/libpng/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/lua/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/luajit/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/luabind/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/poco/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/protobuf/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/sfml/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/snappy/cmake/config.txt)
 INCLUDE(${RADIANT_MODULE_ROOT}/eastl/cmake/config.txt)
+INCLUDE(${RADIANT_MODULE_ROOT}/tbb/cmake/config.txt)
 
 set(Boost_USE_STATIC_LIBS     ON)
 set(Boost_USE_STATIC_RUNTIME  ON)
@@ -118,6 +120,11 @@ add_definitions( -DCURL_STATICLIB )
 
 # to get EASTL to get the correct definition for wide characters
 add_definitions( -DEA_CHAR16_NATIVE=1 )
+
+IF(NO_ASSERT)
+MESSAGE(" ** ASSERT's have been turned off!! **")
+add_definitions( -DNO_ASSERT )
+ENDIF()
 
 add_subdirectory(source)
 

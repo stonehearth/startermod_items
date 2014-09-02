@@ -215,7 +215,7 @@ void RenderRenderInfo::RemoveObsoleteNodes(FlatModelMap const& m)
       if (j == m.end() || j->second != i->second.matrices) {
          i = nodes_.erase(i);
       } else {
-         i++;
+         ++i;
       }
    }
 }
@@ -324,7 +324,7 @@ void RenderRenderInfo::AddMissingNodes(om::RenderInfoPtr render_info, FlatModelM
          AddModelNode(render_info, i->first, i->second, offset);
          offset += 1.0f;
       }
-      i++;
+      ++i;
    }
 }
 

@@ -52,7 +52,7 @@ function OptimizedPathfinder:start()
 
    log:detail('no direct path found.  starting a* pathfinder.')
    
-   self._trace = radiant.entities.trace_location(self._destination, 'OptimizedPathfinder')
+   self._trace = radiant.entities.trace_grid_location(self._destination, 'OptimizedPathfinder')
       :on_changed(function()
          self:_on_failure('destination changed')
       end)

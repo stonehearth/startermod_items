@@ -2,12 +2,13 @@
 #define _RADIANT_DM_MAP_H_
 
 #include "object.h"
+#include "map_util.h"
 #include "map_iterator.h"
 #include <unordered_map>
 
 BEGIN_RADIANT_DM_NAMESPACE
 
-template <class K, class V, class Hash=std::unordered_map<K, V>::hasher>
+template <class K, class V, class Hash=std::unordered_map<K, V>::hasher, class KeyTransform=NopKeyTransform<K>>
 class Map : public Object
 {
 public:
@@ -55,6 +56,14 @@ private:
    ContainerType                 items_;
    typename ContainerType::const_iterator lastErasedIterator_;
 };
+
+/*
+ * This would be nice,
+ *
+template <typename V, int Namespace=-1> using CStringMap = Map<CString, V, SharedCStringHash, CStringKeyTransform<Namespace>>;
+
+ * but Microsoft still does not support alias templates.  ARGH!
+ */
 
 END_RADIANT_DM_NAMESPACE
 

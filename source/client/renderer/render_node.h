@@ -46,7 +46,7 @@ public:
 
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
    static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
-   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn cb);
+   static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb);
 
    static void Initialize();
    static void Shutdown();

@@ -7,9 +7,11 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <boost/asio.hpp>
+#include <stack>
 #include <queue>
 
 #define NETWORK_LOG(level)    LOG(network, level)
+#define SEND_BUFFER_SIZE      (16 * 1024 * 1024)
 
 namespace radiant {
    namespace protocol {
@@ -69,17 +71,23 @@ namespace radiant {
          static void Flush(SendQueuePtr q);
 
       public:
-         bool Empty() const { return queue_.empty(); }
          void Push(google::protobuf::MessageLite const &protobuf);
-         void Push(std::string&& s);
 
       public: // xxx - only because make_shared is silly
          SendQueue(boost::asio::ip::tcp::socket& s) : socket_(s) { }
-         static void HandleWrite(SendQueuePtr queue, std::shared_ptr<std::string> buffer, const boost::system::error_code& error, size_t bytes_transferred);
+
+      private:
+         struct Buffer {
+            char data[SEND_BUFFER_SIZE];
+            unsigned int size;
+            Buffer() { }
+         };
+         typedef std::shared_ptr<Buffer> BufferPtr;
 
       private:
          boost::asio::ip::tcp::socket& socket_;
-         std::queue<std::shared_ptr<std::string>> queue_;
+         std::deque<BufferPtr>   _queue;
+         std::stack<BufferPtr>   _freelist;
       };
 
       class RecvQueue : public std::enable_shared_from_this<RecvQueue> {

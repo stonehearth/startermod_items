@@ -138,7 +138,7 @@ void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* ms
             tables.push_back(obj);
 
             Protocol::LuaObject_Table* table_msg = rootmsg->add_tables();
-            for (luabind::iterator i(from), end; i != end; i++) {
+            for (luabind::iterator i(from), end; i != end; ++i) {
                luabind::object key = i.key();
             
                if (flags_ & Convert::REMOTE) {

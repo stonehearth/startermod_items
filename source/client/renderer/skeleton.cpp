@@ -96,7 +96,7 @@ void Skeleton::SetBoneVisible(std::string const& bone, bool visible)
    } else {
       i->second--;
    }
-   if (visible) {
+   if (i->second > 0) {
       h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, false, false);
    } else {
       h3dTwiddleNodeFlags(node, H3DNodeFlags::NoDraw | H3DNodeFlags::NoRayQuery, true, false);

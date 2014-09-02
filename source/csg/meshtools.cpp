@@ -27,7 +27,7 @@ mesh_tools& mesh_tools::SetTesselator(tesselator_map const& t)
    return *this;
 }
 
-void mesh_tools::ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb cb)
+void mesh_tools::ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb const& cb)
 {
    pi.normal_dir = normal_dir;
 
@@ -48,7 +48,7 @@ void mesh_tools::ForEachRegionSegment(SegmentMap const& front, SegmentMap const&
    }
 }
 
-void mesh_tools::ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb cb)
+void mesh_tools::ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb const& cb)
 {
    // xxx: this is in no way thread safe! (see SH-8)
    static const SegmentInfo segment_data [] = {
@@ -68,7 +68,7 @@ void mesh_tools::ForEachRegionSegment(Region2 const& region, int flags, ForEachR
    }
 }
 
-void mesh_tools::ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb cb)
+void mesh_tools::ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb const& cb)
 {
    pi.normal_dir = normal_dir;
 
@@ -90,7 +90,7 @@ void mesh_tools::ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back,
 }
 
 // Iterate through every outward facing plane in the region...
-void mesh_tools::ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb cb)
+void mesh_tools::ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb const& cb)
 {
    // xxx: this is in no way thread safe! (see SH-8)
    static const PlaneInfoX plane_data [] = {
@@ -111,7 +111,7 @@ void mesh_tools::ForEachRegionPlane(Region3 const& region, int flags, ForEachReg
    }
 }
 
-void mesh_tools::ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb cb)
+void mesh_tools::ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb const& cb)
 {
    EdgeInfo ei;
    ForEachRegionPlane(region, 0, [&](Region2 const& r2, PlaneInfoX const& pi) {

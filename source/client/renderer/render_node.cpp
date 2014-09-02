@@ -91,7 +91,7 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mes
    return CreateVoxelNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn create_mesh_fn)
+RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& create_mesh_fn)
 {   
    GeometryInfo geo;
    if (!Pipeline::GetInstance().GetSharedGeometry(key, geo)) {

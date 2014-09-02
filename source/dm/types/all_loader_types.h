@@ -40,6 +40,22 @@ IMPLEMENT_DM_EXTENSION(csg::Quaternion, Protocol::quaternion)
 IMPLEMENT_DM_EXTENSION(csg::Ray3, Protocol::ray3f)
 IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
 
+template<>
+struct ::radiant::dm::SaveImpl<const char *>
+{
+   static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const char* value) {
+      msg->SetExtension(Protocol::string, value);
+   }
+   static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, const char *& value) {
+      // This is potentially dangerous!  The returned const char* will be valid only as long as the msg extension
+      // is around (and doesn't reallocate)!  Luckily, our usage of the string is as a temporary in ::LoadObject
+      // for Maps, but if we run into suspicious crashing or corruption problems, consider looking here first!
+      value = msg.GetExtension(Protocol::string).c_str();
+   }
+   static void GetDbgInfo(const char *obj, DbgInfo &info) {
+      info.os << obj;
+   }
+};
 
 template<>
 struct dm::SaveImpl<lua::DataObject> {
@@ -57,12 +73,12 @@ struct dm::SaveImpl<lua::DataObject> {
 template<>
 struct dm::SaveImpl<luabind::object> {
    static void SaveValue(const dm::Store& store, dm::SerializationType r, Protocol::Value* msg, luabind::object const& obj) {
-      int flags;
+      int flags = 0;
       if (r == REMOTING) { flags |= marshall::Convert::REMOTE; }
       marshall::Convert(store, flags).ToProtobuf(obj, msg);
    }
    static void LoadValue(const Store& store, dm::SerializationType r, const Protocol::Value& msg, luabind::object& obj) {
-      int flags;
+      int flags = 0;
       if (r == REMOTING) { flags |= marshall::Convert::REMOTE; }
       marshall::Convert(store, flags).ToLua(msg, obj);
    }

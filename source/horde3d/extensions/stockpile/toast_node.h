@@ -45,7 +45,7 @@ public:
          x(_x), y(_y), z(_z), tu(_tu), tv(_tv) { }
    };
 
-   void SetText(std::string text);
+   void SetText(std::string const& text);
 
    void SetNode(H3DNode node) { node_ = node; }
    H3DNode GetNode() const { return node_; }

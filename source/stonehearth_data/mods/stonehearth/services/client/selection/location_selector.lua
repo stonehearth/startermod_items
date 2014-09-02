@@ -150,6 +150,20 @@ end
 function LocationSelector:_on_mouse_event(mouse_pos, event)
    assert(self._input_capture, "got mouse event after releasing capture")
 
+   -- if the user right clicks, cancel the selection
+   if event and event:up(2) and not event.dragging then
+      self._input_capture:destroy()
+      self._input_capture = nil
+
+      if self._fail_cb then
+         self._fail_cb(self, { error = 'cancelled via mouse '})
+      end
+      if self._always_cb then
+         self._always_cb(self)
+      end
+      return
+   end
+
    local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
@@ -194,19 +208,6 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
          if self._always_cb then
             self._always_cb(self)
          end
-      end
-   end
-
-   -- if the user right clicks, cancel the selection
-   if event and event:up(2) and not event.dragging then
-      self._input_capture:destroy()
-      self._input_capture = nil
-
-      if self._fail_cb then
-         self._fail_cb(self, { error = 'cancelled via mouse '})
-      end
-      if self._always_cb then
-         self._always_cb(self)
       end
    end
 end

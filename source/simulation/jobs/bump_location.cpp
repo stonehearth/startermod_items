@@ -37,7 +37,7 @@ bool BumpLocation::Work(platform::timer const& timer)
    csg::Point3 const proposedGridLocation = csg::ToClosestInt(proposedLocation);
 
    std::vector<csg::Point3> points;
-   points = MovementHelper().GetPathPoints(GetSim(), entity, true, currentGridLocation, proposedGridLocation);
+   MovementHelper().GetPathPoints(GetSim(), entity, true, currentGridLocation, proposedGridLocation, points);
 
    if (points.empty()) {
       // could perform a subgrid move

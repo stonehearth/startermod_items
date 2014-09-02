@@ -33,7 +33,7 @@ void TraceObjectRouter::CheckDeferredTraces()
          i = deferred_traces_.erase(i);
          continue;
       }
-      i++;
+      ++i;
    }
 }
 

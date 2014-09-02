@@ -99,11 +99,11 @@ RenderEffectList::~RenderEffectList()
    EL_LOG_NOPREFIX(9) << "destroying render effect list";
 }
 
-void RenderEffectList::AddEffect(int effect_id, const om::EffectPtr effect)
+void RenderEffectList::AddEffect(int effect_id, om::EffectPtr effect)
 {
    std::string name = effect->GetName();
    EL_LOG(5) << "adding effect " << name;
-   effects_[effect_id] = RenderInnerEffectList(entity_, effect);
+   effects_[effect_id] = RenderEffect(entity_, effect);
 }
 
 void RenderEffectList::RemoveEffect(int effect_id)
@@ -126,43 +126,46 @@ void RenderEffectList::UpdateEffects(FrameStartInfo const& info)
       if (finished) {
          i = effects_.erase(i);
       } else {
-         i++;
+         ++i;
       }
    }
 }
 
-RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::EffectPtr effect)
+RenderEffect::RenderEffect(RenderEntity& renderEntity, om::EffectPtr effect) :
+   _effectId(effect->GetEffectId())
 {
-   log_prefix_ = BUILD_STRING("[" << *renderEntity.GetEntity() << " inner_effect_list" << "]");
+   log_prefix_ = BUILD_STRING("[" << *renderEntity.GetEntity() << " inner_effect_list " << _effectId << "]");
    try {
       EL_LOG(5) << "adding effects to list...";
       std::string name = effect->GetName();
       res::ResourceManager2::GetInstance().LookupJson(name, [&](const JSONNode& data) {
          for (const JSONNode& node : data["tracks"]) {
             std::string type = node["type"].as_string();
-            std::shared_ptr<RenderEffect> e;
+            std::shared_ptr<RenderEffectTrack> e;
+
+            EL_LOG(5) << "adding effect of type " << type << " to effect list";
+
             if (type == "animation_effect") {
-               e = std::make_shared<RenderAnimationEffect>(renderEntity, effect, node); 
+               e = std::make_shared<RenderAnimationEffectTrack>(renderEntity, effect, node); 
             } else if (type == "attach_item_effect") {
-               e = std::make_shared<RenderAttachItemEffect>(renderEntity, effect, node); 
+               e = std::make_shared<RenderAttachItemEffectTrack>(renderEntity, effect, node); 
             } else if (type == "floating_combat_text") {
-               e = std::make_shared<FloatingCombatTextEffect>(renderEntity, effect, node); 
+               e = std::make_shared<FloatingCombatTextEffectTrack>(renderEntity, effect, node); 
             } else if (type == "hide_bone") {
-               e = std::make_shared<HideBoneEffect>(renderEntity, effect, node);
+               e = std::make_shared<HideBoneEffectTrack>(renderEntity, effect, node);
             } else if (type == "activity_overlay_effect") {
-               e = std::make_shared<ActivityOverlayEffect>(renderEntity, effect, node);
+               e = std::make_shared<ActivityOverlayEffectTrack>(renderEntity, effect, node);
             } else if (type == "unit_status_effect") {
-               e = std::make_shared<UnitStatusEffect>(renderEntity, effect, node);
+               e = std::make_shared<UnitStatusEffectTrack>(renderEntity, effect, node);
             } else if (type == "sound_effect") {
-               e = std::make_shared<PlaySoundEffect>(renderEntity, effect, node); 
+               e = std::make_shared<PlaySoundEffectTrack>(renderEntity, effect, node); 
             } else if (type == "cubemitter") {
-               e = std::make_shared<CubemitterEffect>(renderEntity, effect, node);
+               e = std::make_shared<CubemitterEffectTrack>(renderEntity, effect, node);
             } else if (type == "light") {
-               e = std::make_shared<LightEffect>(renderEntity, effect, node);
+               e = std::make_shared<LightEffectTrack>(renderEntity, effect, node);
             }
             if (e) {
-               EL_LOG(5) << "adding effect of type " << type << " to effect list";
-               effects_.push_back(e);
+               tracks_.push_back(e);
             }
          }
       });
@@ -171,22 +174,22 @@ RenderInnerEffectList::RenderInnerEffectList(RenderEntity& renderEntity, om::Eff
    }
 }
 
-RenderInnerEffectList::~RenderInnerEffectList()
+RenderEffect::~RenderEffect()
 {
-   EL_LOG_NOPREFIX(9) << "destroying render inner effect list";
+   EL_LOG_NOPREFIX(9) << "destroying render inner effect list (effect: " << _effectId << ")";
 }
 
-void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
+void RenderEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    EL_LOG(9) << "update...";
-   int i = 0, c = effects_.size();
+   int i = 0, c = tracks_.size();
    while (i < c) {
-      auto effect = effects_[i];
+      auto effect = tracks_[i];
       bool done = false;
       effect->Update(info, done);
       if (done) {
-         effects_[i] = effects_[--c];
-         effects_.resize(c);
+         tracks_[i] = tracks_[--c];
+         tracks_.resize(c);
          // Keep the effect around until the effect has run it's entire course.
          // The ensures that destructors of each individual effect don't run
          // until all effects are finished.  For example, if an effect has overridden
@@ -197,7 +200,7 @@ void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
          i++;
       }
    }
-   finished = effects_.empty();
+   finished = tracks_.empty();
    if (finished) {
       EL_LOG(9) << "all effects finished!";
       finished_.clear();
@@ -205,18 +208,18 @@ void RenderInnerEffectList::Update(FrameStartInfo const& info, bool& finished)
 }
 
 
-RenderEffect::RenderEffect(RenderEntity& entity, std::string const& prefix) :
+RenderEffectTrack::RenderEffectTrack(RenderEntity& entity, int effectId, std::string const& prefix) :
    entity_(entity)
 {
-   log_prefix_ = BUILD_STRING("[" << *entity_.GetEntity() << " " << prefix << "]");
+   log_prefix_ = BUILD_STRING("[" << *entity_.GetEntity() << " effect:" << effectId << " " << prefix << "]");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// RenderAnimationEffect
+// RenderAnimationEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "animation")
+RenderAnimationEffectTrack::RenderAnimationEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "animation")
 {
    om::EntityPtr entity = e.GetEntity();
 
@@ -255,12 +258,12 @@ RenderAnimationEffect::RenderAnimationEffect(RenderEntity& e, om::EffectPtr effe
    }
 }
 
-RenderAnimationEffect::~RenderAnimationEffect()
+RenderAnimationEffectTrack::~RenderAnimationEffectTrack()
 {
    EL_LOG(9) << "destroying animation effect" << animationName_;
 }
 
-void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
+void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    EL_LOG(9) << "updating animation effect" << animationName_;
    if (!animation_) {
@@ -291,37 +294,41 @@ void RenderAnimationEffect::Update(FrameStartInfo const& info, bool& finished)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// HideBoneEffect
+// HideBoneEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-HideBoneEffect::HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "hide bone")
+HideBoneEffectTrack::HideBoneEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "hide bone")
 {
    auto i = node.find("bone");
    if (i != node.end()) {
       boneName_ = i->as_string();
+      EL_LOG(5) << "hiding bone " << boneName_;
       entity_.GetSkeleton().SetBoneVisible(boneName_, false);
+   } else {
+      EL_LOG(5) << "could not find bone key in HideBoneEffectTrack!";
    }
 }
 
-HideBoneEffect::~HideBoneEffect()
+HideBoneEffectTrack::~HideBoneEffectTrack()
 {
    if (!boneName_.empty()) {
+      EL_LOG(5) << "showing bone " << boneName_;
       entity_.GetSkeleton().SetBoneVisible(boneName_, true);
    }
 }
 
-void HideBoneEffect::Update(FrameStartInfo const& info, bool& finished)
+void HideBoneEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// CubemitterEffect
+// CubemitterEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "cubemitter"),
+CubemitterEffectTrack::CubemitterEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "cubemitter"),
    cubemitterNode_(0),
    parent_(e.GetNode())
 {
@@ -344,11 +351,11 @@ CubemitterEffect::CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const 
    rot_.z = transforms.get("rz", 0.0f);
 }
 
-CubemitterEffect::~CubemitterEffect()
+CubemitterEffectTrack::~CubemitterEffectTrack()
 {
 }
 
-void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
+void CubemitterEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    if (info.now > startTime_) {
       if (!cubemitterNode_.get()) {
@@ -370,11 +377,11 @@ void CubemitterEffect::Update(FrameStartInfo const& info, bool& finished)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// LightEffect
+// LightEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "light effect"),
+LightEffectTrack::LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "light effect"),
    lightNode_(0)
 {
    auto animatedLightFileName = node["light"].as_string();
@@ -390,7 +397,7 @@ LightEffect::LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& 
    lightNode_ = H3DNodeUnique(l);
 }
 
-void LightEffect::parseTransforms(const JSONNode& node, float* x, float* y, float* z)
+void LightEffectTrack::parseTransforms(const JSONNode& node, float* x, float* y, float* z)
 {
    json::Node o(node);
 
@@ -400,18 +407,18 @@ void LightEffect::parseTransforms(const JSONNode& node, float* x, float* y, floa
 }
 
 
-LightEffect::~LightEffect()
+LightEffectTrack::~LightEffectTrack()
 {
 }
 
-void LightEffect::Update(FrameStartInfo const& info, bool& finished)
+void LightEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// ActivityOverlayEffect
+// ActivityOverlayEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
 void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H3DNode node)
@@ -447,8 +454,8 @@ void getBoundsForGroupNode(float* minX, float* maxX, float *minY, float *maxY, H
    }
 }
 
-ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "activity overlay"),
+ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "activity overlay"),
    _positioned(false)
 {
    json::Node cjo(node);
@@ -461,12 +468,12 @@ ActivityOverlayEffect::ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effe
    overlayNode_ = H3DNodeUnique(_hud->getHandle());
 }
 
-ActivityOverlayEffect::~ActivityOverlayEffect()
+ActivityOverlayEffectTrack::~ActivityOverlayEffectTrack()
 {
    h3dRemoveResource(_matRes);
 }
 
-bool ActivityOverlayEffect::PositionOverlayNode()
+bool ActivityOverlayEffectTrack::PositionOverlayNode()
 {
    float minX, maxX, minY, maxY;
    getBoundsForGroupNode(&minX, &maxX, &minY, &maxY, entity_.GetNode());
@@ -489,7 +496,7 @@ bool ActivityOverlayEffect::PositionOverlayNode()
    return true;
 }
 
-void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
+void ActivityOverlayEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
    if (!_positioned) {
@@ -500,11 +507,11 @@ void ActivityOverlayEffect::Update(FrameStartInfo const& info, bool& finished)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// UnitStatusEffect
+// UnitStatusEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "unit status")
+UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "unit status")
 {
    json::Node cjo(node);
    std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
@@ -526,22 +533,22 @@ UnitStatusEffect::UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const 
    statusNode_ = H3DNodeUnique(hud->getHandle());
 }
 
-UnitStatusEffect::~UnitStatusEffect()
+UnitStatusEffectTrack::~UnitStatusEffectTrack()
 {
    h3dRemoveResource(_matRes);
 }
 
-void UnitStatusEffect::Update(FrameStartInfo const& info, bool& finished)
+void UnitStatusEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    finished = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// RenderAttachItemEffect
+// RenderAttachItemEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "attach item"),
+RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "attach item"),
    finished_(false),
    use_model_variant_override_(false)
 {
@@ -569,10 +576,10 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
    } else {
       item = authored_entity_ = Client::GetInstance().GetAuthoringStore().AllocObject<om::Entity>();
       try {
-         om::Stonehearth::InitEntity(item, kind, Client::GetInstance().GetScriptHost()->GetInterpreter());
+         om::Stonehearth::InitEntity(item, kind.c_str(), Client::GetInstance().GetScriptHost()->GetInterpreter());
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
-         EL_LOG(5) << "!!!!!!! ERROR IN RenderAttachItemEffect: " << e.what();
+         EL_LOG(5) << "!!!!!!! ERROR IN RenderAttachItemEffectTrack: " << e.what();
       }
    }
 
@@ -601,7 +608,7 @@ RenderAttachItemEffect::RenderAttachItemEffect(RenderEntity& e, om::EffectPtr ef
    }
 }
 
-RenderAttachItemEffect::~RenderAttachItemEffect()
+RenderAttachItemEffectTrack::~RenderAttachItemEffectTrack()
 {
    if (use_model_variant_override_) {
       use_model_variant_override_ = false;
@@ -609,7 +616,7 @@ RenderAttachItemEffect::~RenderAttachItemEffect()
    }
 }
 
-void RenderAttachItemEffect::Update(FrameStartInfo const& info, bool& finished)
+void RenderAttachItemEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    if (finished_) {
       finished = true;
@@ -630,7 +637,7 @@ void RenderAttachItemEffect::Update(FrameStartInfo const& info, bool& finished)
 // see http://libclaw.sourceforge.net/tweeners.html
 
 claw::tween::single_tweener::easing_function
-get_easing_function(std::string easing)
+get_easing_function(std::string const& easing)
 {
 #define GET_EASING_FUNCTION(name) \
    if (eq == std::string(#name)) { \
@@ -661,11 +668,11 @@ get_easing_function(std::string easing)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// FloatingCombatTextEffect
+// FloatingCombatTextEffectTrack
 ///////////////////////////////////////////////////////////////////////////////
 
-FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "floating combat text"),
+FloatingCombatTextEffectTrack::FloatingCombatTextEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "floating combat text"),
    height_(0),
    lastUpdated_(0)
 {
@@ -709,7 +716,7 @@ FloatingCombatTextEffect::FloatingCombatTextEffect(RenderEntity& e, om::EffectPt
    Renderer::GetInstance().LoadResources();
 }
 
-FloatingCombatTextEffect::~FloatingCombatTextEffect()
+FloatingCombatTextEffectTrack::~FloatingCombatTextEffectTrack()
 {
    if (toastNode_) {
       h3dRemoveNode(toastNode_->GetNode());
@@ -717,7 +724,7 @@ FloatingCombatTextEffect::~FloatingCombatTextEffect()
    }
 }
 
-void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished)
+void FloatingCombatTextEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    double dt = lastUpdated_ ? (info.now - lastUpdated_) : 0.0;
    lastUpdated_ = info.now;
@@ -734,13 +741,13 @@ void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished
    h3dSetNodeTransform(toastNode_->GetNode(), 0, static_cast<float>(height_), 0, 0, 0, 0, 1, 1, 1);
 }
 
-/* PlaySoundEffect
+/* PlaySoundEffectTrack
  * Class to play a short sound. Loads sound into memory.
  * TODO: if we run out of sounds too quickly, only create sounds if the
  * camera is in range of them. (Make sound a ptr and create/dispose as necessary)
 **/
 
-/* PlaySoundEffect
+/* PlaySoundEffectTrack
  * Constructor
  * When we have a new effect, create an sf::SoundBuffer and sf::Sound to play it
  * Store all relevant parameters
@@ -750,8 +757,8 @@ void FloatingCombatTextEffect::Update(FrameStartInfo const& info, bool& finished
 #define PLAY_SOUND_EFFECT_DEFAULT_LOOP false
 #define PLAY_SOUND_EFFECT_MIN_VOLUME 0.1f
 
-PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
-   RenderEffect(e, "sound")
+PlaySoundEffectTrack::PlaySoundEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node) :
+   RenderEffectTrack(e, effect->GetEffectId(), "sound")
 {
    effectStartTime_ = effect->GetStartTime();
    firstPlay_ = true;
@@ -774,11 +781,11 @@ PlaySoundEffect::PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JS
    AssignFromJSON_(node);
 }
 
-/* PlaySoundEffect::AssignFromJSON
+/* PlaySoundEffectTrack::AssignFromJSON
  * Make initial values for all the sound parameters
  * Extract the optional values from the json, verify, and assign them.
 */
-void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
+void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
    bool loop = PLAY_SOUND_EFFECT_DEFAULT_LOOP;
    int minDistance = PLAY_SOUND_EFFECT_DEFAULT_MIN_DIST; 
    int maxDistance = PLAY_SOUND_EFFECT_DEFAULT_MAX_DIST;
@@ -842,7 +849,7 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
    sound_->setMinDistance((float)minDistance);
 }
 
-/* PlaySoundEffect::CalculateAttenuation
+/* PlaySoundEffectTrack::CalculateAttenuation
  *  SFML has an attentuation parameter that determines how fast sound fades.
  * Since we'd rather expose max distance to the user (the max distance at which a sound can be heard)
  * we will use sfml's attentuation function to figure out what attentuation should be based on
@@ -852,14 +859,14 @@ void PlaySoundEffect::AssignFromJSON_(const JSONNode& node) {
  * Note: remember, doing an operation of int and float converts everything to a float
  * Returns a float. 1 means the sound sticks around for a long time. Higher numbers means it softens faster.
 */
-float PlaySoundEffect::CalculateAttenuation(int maxDistance, int minDistance) {
+float PlaySoundEffectTrack::CalculateAttenuation(int maxDistance, int minDistance) {
    float interm1 = maxDistance / PLAY_SOUND_EFFECT_MIN_VOLUME;
    float interm2 = interm1 - minDistance;
    float interm3 = (float)(maxDistance - minDistance);
    return (interm2/interm3);
 }
 
-PlaySoundEffect::~PlaySoundEffect()
+PlaySoundEffectTrack::~PlaySoundEffectTrack()
 {
    if (sound_->getLoop()) {
       sound_->stop();
@@ -869,14 +876,14 @@ PlaySoundEffect::~PlaySoundEffect()
    }
 }
 
-/* PlaySoundEffect::Update
+/* PlaySoundEffectTrack::Update
  * Update location of sound.
  * If we were delaying the sound start and now is the time to actually start the sound, start it. 
  * If the sound was in a loop, we are not yet finished.
  * If the sound is finished, set finished to true
  * TODO: on update, check if camera is between min and max distances. If so, create/destroy sound as necessary
 **/
-void PlaySoundEffect::Update(FrameStartInfo const& info, bool& finished)
+void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
    int now = info.now - effectStartTime_;
 

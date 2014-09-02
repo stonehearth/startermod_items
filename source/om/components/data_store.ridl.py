@@ -20,7 +20,7 @@ class DataStore(dm.Record):
    luabind::object GetData() const;
    void SetData(luabind::object o);
    luabind::object RestoreController(DataStoreRef self);
-   luabind::object CreateController(DataStoreRef self, std::string type, std::string const& alias);
+   luabind::object CreateController(DataStoreRef self, std::string const& type, std::string const& alias);
    void SetController(luabind::object controller);
    void DestroyController();
    void OnLoadObject(dm::SerializationType r) override;
@@ -29,8 +29,8 @@ class DataStore(dm.Record):
 
    _private = \
    """
-   luabind::object RestoreControllerRecursive(DataStoreRef self, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited);
-   void RestoreContainedDatastores(luabind::object o, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited);
+   luabind::object RestoreControllerRecursive(DataStoreRef self, std::vector<luabind::object>& visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited);
+   void RestoreContainedDatastores(luabind::object o, std::vector<luabind::object>& visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited);
    std::string GetControllerUri();
    luabind::object _controllerObject;
    bool _needsRestoration;

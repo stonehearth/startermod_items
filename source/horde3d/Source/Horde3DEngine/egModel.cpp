@@ -158,7 +158,7 @@ bool ModelNode::setMorphParam( std::string const& targetName, float weight )
 	// Set specified morph target or all targets if targetName == ""
 	for( uint32 i = 0; i < _morphers.size(); ++i )
 	{
-		if( targetName == "" || _morphers[i].name == targetName )
+		if( targetName.empty() || _morphers[i].name == targetName )
 		{
 			_morphers[i].weight = weight;
 			result = true;
