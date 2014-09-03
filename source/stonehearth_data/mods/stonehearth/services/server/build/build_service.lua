@@ -62,10 +62,20 @@ function BuildService:_call_all_children(entity, cb)
 end
 
 function BuildService:set_active(entity, enabled)
+   if enabled then
+      entity:get_component('stonehearth:building'):clear_no_construction_zone_traces()
+   end
+
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
          if c then
             c:set_active(enabled)
+         end
+         if enabled then
+            local bc = entity:get_component('stonehearth:building')
+            if bc then
+               bc:clear_no_construction_zone_traces()
+            end
          end
       end)
 end

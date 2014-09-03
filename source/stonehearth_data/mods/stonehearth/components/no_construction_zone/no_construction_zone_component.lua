@@ -41,11 +41,7 @@ end
 
 function NoConstructionZoneComponent:destroy()
    self._dirty = false
-   for _, traces in pairs(self._traces) do
-      for _, trace in pairs(traces) do
-         trace:destroy()
-      end
-   end
+   self:clear_traces()
 end
 
 function NoConstructionZoneComponent:set_building_entity(entity)
@@ -94,6 +90,16 @@ function NoConstructionZoneComponent:remove_structure(id)
       self._sv.structures[id] = nil
       self.__saved_variables:mark_changed()
       self:_mark_dirty()
+   end
+end
+
+-- Called when the user starts construction; we no longer need to care about update the
+-- zone, because it will never be updated!
+function NoConstructionZoneComponent:clear_traces()
+   for _, traces in pairs(self._traces) do
+      for _, trace in pairs(traces) do
+         trace:destroy()
+      end
    end
 end
 

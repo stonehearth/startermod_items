@@ -210,6 +210,10 @@ function Building:_trace_entity_container()
                            end)
 end
 
+function Building:clear_no_construction_zone_traces()
+   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone'):clear_traces()
+end
+
 function Building:_trace_entity(entity)
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
          self:remove_structure(entity)
