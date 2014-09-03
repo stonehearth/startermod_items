@@ -240,7 +240,6 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    _allocDs(allocDs),
    L_(nullptr)
 {
-   _curLuaState = nullptr;
    current_line = 0;
    *current_file = '\0';
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
@@ -705,10 +704,8 @@ int ScriptHost::GetAllocBytesCount() const
 void ScriptHost::Trigger(std::string const& eventName, luabind::object evt)
 {
    try {
-      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       TriggerOn(radiant, eventName, evt);
-      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
@@ -720,10 +717,8 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
       if (!evt || !evt.is_valid()) {
          evt = luabind::newtable(L_);
       }
-      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       radiant["events"]["trigger"](obj, eventName, evt);
-      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }

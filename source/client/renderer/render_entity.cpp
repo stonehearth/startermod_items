@@ -104,6 +104,8 @@ void RenderEntity::FinishConstruction()
 
 RenderEntity::~RenderEntity()
 {
+   E_LOG(7) << "destroying render entity " << node_name_;
+
    nodeToRenderEntity.erase(node_);
 
    Destroy();
@@ -115,8 +117,6 @@ RenderEntity::~RenderEntity()
 void RenderEntity::Destroy()
 {
    lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
-
-   E_LOG(7) << "destroying render entity " << node_name_;
 
    // xxx: share this with render_lua_component!!
    for (const auto& entry : lua_invariants_) {
