@@ -9,10 +9,9 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 template <typename Shape> Shape LocalToWorld(Shape const& shape, om::EntityPtr entity);
 template <typename Shape> Shape WorldToLocal(Shape const& shape, om::EntityPtr entity);
 
-// returns whether a voxel with a center at the specified coordinate is aligned to the terrain
-bool IsTerrainAligned(float voxelCenter);
+bool IsTerrainAligned(float modelOrigin);
 
-float GetTerrainAlignmentOffset(float coordinate);
+float GetTerrainAlignmentOffset(float modelOrigin);
 
 END_RADIANT_PHYSICS_NAMESPACE
 

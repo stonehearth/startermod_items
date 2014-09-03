@@ -121,7 +121,6 @@ void Config::ParseCmdLineOption(json::Node& node, std::string const& param) cons
 json::Node Config::ParseCommandLine(int argc, const char *argv[]) const
 {
    json::Node node;
-   std::string key, value;
 
    for (int i=1; i < argc; i++) {
       ParseCmdLineOption(node, argv[i]);

@@ -149,9 +149,9 @@ public:
 	virtual ~HudElementNode();
 
    
-   ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes);
-   WorldspaceRectHudElement* addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes);
-   WorldspaceLineHudElement* addWorldspaceLine(int width, Vec4f color, ResHandle matRes);
+   ScreenspaceRectHudElement* addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f const& color, ResHandle matRes);
+   WorldspaceRectHudElement* addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f const& color, ResHandle matRes);
+   WorldspaceLineHudElement* addWorldspaceLine(int width, Vec4f const& color, ResHandle matRes);
 
 	void recreateNodeList();
 	int getParamI( int param );

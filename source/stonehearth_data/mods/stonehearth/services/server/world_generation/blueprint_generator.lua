@@ -98,7 +98,8 @@ function BlueprintGenerator:shard_and_store_map(blueprint, key, full_map)
             (i-1)*features_per_tile+1, (j-1)*features_per_tile+1,
             features_per_tile, features_per_tile)
 
-         blueprint:get(i, j)[key] = local_map
+         local e = blueprint:get(i, j)
+         e[key] = local_map
       end
    end
 end

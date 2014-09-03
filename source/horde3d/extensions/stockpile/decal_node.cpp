@@ -103,7 +103,7 @@ void DecalNode::renderFunc(std::string const& shaderContext, std::string const& 
    }
 }
 
-bool DecalNode::SetMaterial(std::string name)
+bool DecalNode::SetMaterial(std::string const& name)
 {
    H3DRes mat = h3dAddResource(H3DResTypes::Material, name.c_str(), 0);
 

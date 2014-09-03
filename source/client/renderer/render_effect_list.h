@@ -18,9 +18,9 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class Renderer;
 class RenderEntity;
 
-class RenderEffect {
+class RenderEffectTrack {
 public:
-   RenderEffect(RenderEntity& entity, std::string const& prefix);
+   RenderEffectTrack(RenderEntity& entity, int effectId, std::string const& prefix);
    virtual void Update(FrameStartInfo const& info, bool& done) = 0;
 
 protected:
@@ -28,10 +28,10 @@ protected:
    std::string    log_prefix_;
 };
 
-class RenderAnimationEffect : public RenderEffect {
+class RenderAnimationEffectTrack : public RenderEffectTrack {
 public:
-   RenderAnimationEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~RenderAnimationEffect();
+   RenderAnimationEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~RenderAnimationEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -43,10 +43,10 @@ private:
    res::AnimationPtr  animation_;
 };
 
-struct RenderAttachItemEffect : public RenderEffect {
+struct RenderAttachItemEffectTrack : public RenderEffectTrack {
 public:
-   RenderAttachItemEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~RenderAttachItemEffect();
+   RenderAttachItemEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~RenderAttachItemEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -60,10 +60,10 @@ private:
    std::string                   bone_;
 };
 
-struct FloatingCombatTextEffect : public RenderEffect {
+struct FloatingCombatTextEffectTrack : public RenderEffectTrack {
 public:
-   FloatingCombatTextEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~FloatingCombatTextEffect();
+   FloatingCombatTextEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~FloatingCombatTextEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -75,10 +75,10 @@ private:
    std::unique_ptr<claw::tween::single_tweener> tweener_;
 };
 
-struct HideBoneEffect : public RenderEffect {
+struct HideBoneEffectTrack : public RenderEffectTrack {
 public:
-   HideBoneEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~HideBoneEffect();
+   HideBoneEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~HideBoneEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -86,11 +86,10 @@ private:
    std::string                   boneName_;
 };
 
-/* For creating cubemitters from a given JSON file. */
-struct CubemitterEffect : public RenderEffect {
+struct CubemitterEffectTrack : public RenderEffectTrack {
 public:
-   CubemitterEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~CubemitterEffect();
+   CubemitterEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~CubemitterEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -105,10 +104,10 @@ private:
 };
 
 /* For creating lights from a given JSON file. */
-struct LightEffect : public RenderEffect {
+struct LightEffectTrack : public RenderEffectTrack {
 public:
-   LightEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~LightEffect();
+   LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~LightEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -119,10 +118,10 @@ private:
 class ::radiant::horde3d::DecalNode;
 
 /* For creating activity effects from a given JSON file. */
-struct ActivityOverlayEffect : public RenderEffect {
+struct ActivityOverlayEffectTrack : public RenderEffectTrack {
 public:
-   ActivityOverlayEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~ActivityOverlayEffect();
+   ActivityOverlayEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~ActivityOverlayEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -143,10 +142,10 @@ private:
 
 
 /* For creating unit overlay effects from a given JSON file. */
-struct UnitStatusEffect : public RenderEffect {
+struct UnitStatusEffectTrack : public RenderEffectTrack {
 public:
-   UnitStatusEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~UnitStatusEffect();
+   UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~UnitStatusEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -158,10 +157,10 @@ private:
 
 /* For playing short sound effects*/
 
-struct PlaySoundEffect : public RenderEffect {
+struct PlaySoundEffectTrack : public RenderEffectTrack {
 public:
-   PlaySoundEffect(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
-   ~PlaySoundEffect();
+   PlaySoundEffectTrack(RenderEntity& e, om::EffectPtr effect, const JSONNode& node);
+   ~PlaySoundEffectTrack();
 
    void Update(FrameStartInfo const& info, bool& done) override;
 
@@ -178,16 +177,17 @@ private:
 
 };
 
-struct RenderInnerEffectList {
-   RenderInnerEffectList() {}
-   RenderInnerEffectList(RenderEntity& e, om::EffectPtr effect);
-   ~RenderInnerEffectList();
+struct RenderEffect {
+   RenderEffect() {}
+   RenderEffect(RenderEntity& e, om::EffectPtr effect);
+   ~RenderEffect();
 
    void Update(FrameStartInfo const& info, bool& finished);
 private:
+   int                  _effectId;
    std::string          log_prefix_;
-   std::vector<std::shared_ptr<RenderEffect>>   effects_;
-   std::vector<std::shared_ptr<RenderEffect>>   finished_;
+   std::vector<std::shared_ptr<RenderEffectTrack>>   tracks_;
+   std::vector<std::shared_ptr<RenderEffectTrack>>   finished_;
 };
 
 class RenderEffectList : public RenderComponent {
@@ -201,7 +201,7 @@ private:
    void UpdateEffects(FrameStartInfo const& info);
 
 private:
-   typedef std::unordered_map<dm::ObjectId, RenderInnerEffectList> EffectMap;
+   typedef std::unordered_map<dm::ObjectId, RenderEffect> EffectMap;
 
 private:
    RenderEntity&        entity_;

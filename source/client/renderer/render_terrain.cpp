@@ -267,9 +267,11 @@ void RenderTerrain::AddTerrainTypeToTesselation(csg::Region3 const& region, csg:
    std::unordered_map<int, csg::Region2> layers;
 
    for (csg::Cube3 const& cube : region) {
-      ASSERT(cube.GetMin().y == cube.GetMax().y - 1); // 1 block thin, pizza box
-      layers[cube.GetMin().y].AddUnique(csg::Rect2(csg::Point2(cube.GetMin().x, cube.GetMin().z),
-                                                   csg::Point2(cube.GetMax().x, cube.GetMax().z)));
+      csg::Point3 const& min = cube.GetMin();
+      csg::Point3 const& max = cube.GetMax();
+      ASSERT(min.y == max.y - 1); // 1 block thin, pizza box
+      layers[min.y].AddUnique(csg::Rect2(csg::Point2(min.x, min.z),
+                                         csg::Point2(max.x, max.z)));
    }
    for (auto const& layer : layers) {
       TesselateLayer(layer.second, layer.first, terrain, tess, ringInfo);
@@ -285,16 +287,20 @@ void RenderTerrain::TesselateLayer(csg::Region2 const& layer, int height, csg::R
       T_LOG(7) << " Building terrain ring " << height << " " << layer.width;
       csg::Region2 edge = csg::EdgeListToRegion2(segments, layer.width, &inner);      
       for (csg::Rect2 const& rect : edge) {
-         csg::Point3 p0(rect.GetMin().x, height, rect.GetMin().y);
-         csg::Point3 p1(rect.GetMax().x, height + 1, rect.GetMax().y);
+         csg::Point2 const& min = rect.GetMin();
+         csg::Point2 const& max = rect.GetMax();
+         csg::Point3 p0(min.x, height, min.y);
+         csg::Point3 p1(max.x, height + 1, max.y);
          tess.AddUnique(csg::Cube3(p0, p1, layer.type));
       }
       segments->Inset(layer.width);
       inner -= edge;
    }
    for (csg::Rect2 const& rect : inner) {
-      tess.AddUnique(csg::Cube3(csg::Point3(rect.GetMin().x, height, rect.GetMin().y),
-                                csg::Point3(rect.GetMax().x, height + 1, rect.GetMax().y),
+      csg::Point2 const& min = rect.GetMin();
+      csg::Point2 const& max = rect.GetMax();
+      tess.AddUnique(csg::Cube3(csg::Point3(min.x, height, min.y),
+                                csg::Point3(max.x, height + 1, max.y),
                                 ringInfo.inner));
    }
 }

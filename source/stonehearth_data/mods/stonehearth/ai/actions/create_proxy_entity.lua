@@ -12,10 +12,6 @@ CreateProxyEntity.args = {
    use_default_adjacent_region = {
       type = 'boolean',
       default = false,
-   },
-   place_on_standable_point = {
-      type = 'boolean',
-      default = false,
    }
 }
 CreateProxyEntity.think_output = {
@@ -33,14 +29,10 @@ function CreateProxyEntity:start_thinking(ai, entity, args)
 
    self._proxy_entity = radiant.entities.create_proxy_entity(args.reason, args.use_default_adjacent_region)
 
-   if args.place_on_standable_point then
-      -- use standard logic to decide at what elevation to place the entity
-      radiant.terrain.place_entity(self._proxy_entity, args.location)
-   else
-      -- do not use radiant.terrain.place_entity, here.  that will put the entity on the terrain,
-      -- which may not be the *exact* location passed in, which may screw some people up downstream
-      radiant.entities.add_child(radiant._root_entity, self._proxy_entity, args.location)
-   end
+   -- do not use radiant.terrain.place_entity, here.  that will put the entity on the terrain,
+   -- which may not be the *exact* location passed in, which may screw some people up
+   -- downstream
+   radiant.entities.add_child(radiant._root_entity, self._proxy_entity, args.location)
 
    ai:set_think_output({ entity = self._proxy_entity })
 end

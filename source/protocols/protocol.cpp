@@ -8,9 +8,9 @@
 using namespace ::radiant;
 using namespace ::radiant::protocol;
 
-SendQueuePtr SendQueue::Create(boost::asio::ip::tcp::socket& s)
+SendQueuePtr SendQueue::Create(boost::asio::ip::tcp::socket& s, const char* endpoint)
 {
-   return std::make_shared<SendQueue>(s);
+   return std::make_shared<SendQueue>(s, endpoint);
 }
 
 void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
@@ -18,36 +18,75 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
    ASSERT(sendQueue);
    
    if (sendQueue) {
-      auto &queue = sendQueue->queue_;
+      auto &queue = sendQueue->_queue;
 
       while (!queue.empty()) {
          auto buffer = queue.front();
-         sendQueue->socket_.async_send(boost::asio::buffer(buffer->data(), buffer->size()), 
-                                       std::bind(&SendQueue::HandleWrite, sendQueue, buffer, std::placeholders::_1, std::placeholders::_2));
-         queue.pop();
+         queue.pop_front();
+
+         auto writeFinished = [sendQueue, buffer](const boost::system::error_code& error, size_t bytes_transferred) {
+            sendQueue->_bufferedBytes -= buffer->size;
+            NETWORK_LOG(3) << sendQueue->_endpoint << " finished sending buffer of size " << buffer->size << "(bytes pending: " << sendQueue->_bufferedBytes << ")";
+            ASSERT(!error);
+            sendQueue->_freelist.push(buffer);
+         };
+         sendQueue->_bufferedBytes += buffer->size;
+         NETWORK_LOG(3) << sendQueue->_endpoint << " sending buffer of size " << buffer->size << "(bytes pending: " << sendQueue->_bufferedBytes << ")";
+         sendQueue->socket_.async_send(boost::asio::buffer(buffer->data, buffer->size), writeFinished);
       }
    }
 }
 
-void SendQueue::Push(google::protobuf::MessageLite const& protobuf)
+void SendQueue::Push(google::protobuf::MessageLite const& msg)
 {
-   Push(Encode(protobuf));
+   unsigned int msgSize = msg.ByteSize();
+   unsigned int requiredSize = msgSize + sizeof(uint32);
+   BufferPtr buffer;
+
+   ASSERT(requiredSize < SEND_BUFFER_SIZE);
+
+   if (!_queue.empty() && (SEND_BUFFER_SIZE - _queue.back()->size > requiredSize)) {
+      buffer = _queue.back();
+   } else {
+      if (!_freelist.empty()) {
+         NETWORK_LOG(7) << _endpoint << " popping recycled send buffer off free list";
+         buffer = _freelist.top();
+         _freelist.pop();
+      } else {
+         NETWORK_LOG(7) << _endpoint << " allocating new send buffer";
+         buffer = std::make_shared<Buffer>();
+      }
+      buffer->size = 0;
+      _queue.push_back(buffer);
+   }
+   ASSERT(!_queue.empty() && buffer == _queue.back());
+   int bufferSize = buffer->size;
+   unsigned int remaining = sizeof(buffer->data) - bufferSize;
+   char *base = buffer->data + bufferSize;
+
+   ASSERT(remaining > requiredSize);
+   {
+      google::protobuf::io::ArrayOutputStream output(base, remaining);
+      {
+         google::protobuf::io::CodedOutputStream encoder(&output);
+
+         encoder.WriteLittleEndian32(msgSize);
+         msg.SerializeToCodedStream(&encoder);
+
+         unsigned int written = static_cast<int>(encoder.ByteCount());
+         ASSERT(written <= requiredSize);
+         ASSERT(bufferSize + written <= SEND_BUFFER_SIZE);
+         buffer->size += written;
+      }
+   }
 }
 
-void SendQueue::Push(std::string&& s)
-{
-   queue_.push(std::make_shared<std::string>(std::forward<std::string>(s)));
-}
 
-void SendQueue::HandleWrite(SendQueuePtr queue, std::shared_ptr<std::string> buffer, const boost::system::error_code& error, size_t bytes_transferred)
-{
-   ASSERT(!error);
-}
-
-RecvQueue::RecvQueue(boost::asio::ip::tcp::socket& s) : 
+RecvQueue::RecvQueue(boost::asio::ip::tcp::socket& s, const char* endpoint) : 
    socket_(s),
    readPending_(false),
-   readBuf_(ReadBufferSize)
+   readBuf_(ReadBufferSize),
+   endpoint_(endpoint)
 {
 }
 
@@ -62,7 +101,7 @@ void RecvQueue::Read()
       auto read_handler = std::bind(&RecvQueue::HandleRead, this, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
       socket_.async_receive(boost::asio::buffer((void *)readBuf_.nextdata(), readBuf_.remaining()), read_handler);
    } else {
-      NETWORK_LOG(3) << "buffer full in RecvQueue::Read.  Waiting for next process loop...";
+      NETWORK_LOG(3) << endpoint_ << " buffer full in RecvQueue::Read.  Waiting for next process loop...";
    }
 }
 
@@ -71,23 +110,25 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
-   std::string error = e.message();
-   if (!e) {
-      static int i = 0;
-      static int total = 0;
-      static int startTime = 0;
+   ASSERT(!e);
 
-      if (!startTime) {
-         startTime = timeGetTime();
-      }
-      readBuf_.grow(bytes_transferred);
-      total += bytes_transferred;
 
-      int deltaTime = timeGetTime() - startTime;
-      double kbps = (total * 8 / 1024.0) * 1000 / deltaTime;
-      NETWORK_LOG(7) << "(" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
-      Read();
+   static int i = 0;
+   static int total = 0;
+   static int startTime = 0;
+
+   if (!startTime) {
+      startTime = timeGetTime();
    }
+   readBuf_.grow(bytes_transferred);
+   total += bytes_transferred;
+
+   NETWORK_LOG(3) << endpoint_ << " received " << bytes_transferred << " bytes (read buf size is now: " << readBuf_.size() << ")";
+
+   int deltaTime = timeGetTime() - startTime;
+   double kbps = (total * 8 / 1024.0) * 1000 / deltaTime;
+   NETWORK_LOG(7) << endpoint_ << " (" << std::fixed << std::setw(11) << std::setprecision(2) << kbps << ") kbps... " << total << " bytes in " << deltaTime / 1000.0 << " seconds";
+   Read();
 }
 
 

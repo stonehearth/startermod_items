@@ -55,7 +55,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void RemoveQueryFlag(int flag);
       bool HasQueryFlag(int flag) const;
 
-      void ForAllSceneNodes(std::function<void(H3DNode node)> fn);
+      void ForAllSceneNodes(std::function<void(H3DNode node)> const& fn);
 
       void SetModelVariantOverride(std::string const& variant);
       void SetMaterialOverride(std::string const& overrideKind);
@@ -78,7 +78,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       void AddComponent(std::string const& key, std::shared_ptr<dm::Object> value);
       void AddLuaComponent(std::string const& key, om::DataStorePtr obj);
       void RemoveComponent(std::string const& key);
-      void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn);
+      void ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> const& fn);
       void SetRenderInfoDirtyBits(int bits);
 
    protected:

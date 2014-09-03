@@ -81,16 +81,16 @@ public:
    };
    typedef std::function<void(EdgeInfo const& info)> ForEachRegionEdgeCb;
 
-   void ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb cb);
-   void ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb cb);
-   void ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb cb);
+   void ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb const& cb);
+   void ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb const& cb);
+   void ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb const& cb);
 private:
    typedef std::unordered_map<int, Region1> SegmentMap;
    typedef std::unordered_map<int, Region2> PlaneMap;
    typedef std::unordered_map<int, EdgeList> EdgeListMap;
 
-   void ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb cb);
-   void ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb cb);
+   void ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb const& cb);
+   void ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb const& cb);
 
 private:
    void AddRegionToMesh(Region2 const& region, PlaneInfoX const& p, mesh& m);

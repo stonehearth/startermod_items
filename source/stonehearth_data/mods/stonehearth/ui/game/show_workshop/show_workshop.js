@@ -5,7 +5,7 @@ $(document).ready(function(){
       if (App.stonehearth.showWorkshopView) {
          App.stonehearth.showWorkshopView.hide();
       } else {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_open'} );
          App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });         
       }
    });
@@ -14,7 +14,7 @@ $(document).ready(function(){
       if (App.stonehearth.showWorkshopView) {
          App.stonehearth.showWorkshopView.hide();
       } else {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_open' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_open'} );
          App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
       }
    });
@@ -79,7 +79,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    hide: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_closed'} );
       var self = this;
       /* the animation is causing races between when the rest of the UI thinks the view should be destroyed and when it is actually destroyed (at the end of the animation)
       self.$("#craftWindow")
@@ -107,7 +107,7 @@ App.StonehearthCrafterView = App.View.extend({
 
       //Call this function when the user is ready to submit an order
       craft: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:confirm' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:confirm'} );
          var workshop = this.getWorkshop();
          var recipe = this.getCurrentRecipe();
 
@@ -132,9 +132,9 @@ App.StonehearthCrafterView = App.View.extend({
          var workshop = this.getWorkshop();
 
          if (this.get('context.show_workshop.stonehearth:workshop.is_paused')) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:open' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:open'} );
          } else {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:closed' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:closed'} );
          }
 
          radiant.call_obj(workshop, 'toggle_pause');
@@ -392,7 +392,7 @@ App.StonehearthCrafterView = App.View.extend({
                radiant.call_obj(workshop, 'delete_order', id)
                   .done(function(return_data){
                      ui.item.remove();
-                     radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
+                     radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
                   });
              }
          },
@@ -400,7 +400,7 @@ App.StonehearthCrafterView = App.View.extend({
             //Called whenever we hover over a new target
             if (event.target.id == "garbageList") {
                ui.item.find(".deleteLabel").addClass("showDelete");
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:highlight' );
+               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:highlight'} );
             } else {
                ui.item.find(".deleteLabel").removeClass("showDelete");
             }

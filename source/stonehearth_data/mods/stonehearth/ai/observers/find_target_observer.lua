@@ -87,19 +87,10 @@ function FindTargetObserver:_on_grid_location_changed()
 end
 
 function FindTargetObserver:_trace_entity_location()
-   local mob = self._entity:add_component('mob')
-   local last_location = self._entity:add_component('mob'):get_world_grid_location()
-
-   local on_moved = function()
-      local current_location = mob:get_world_grid_location()
-      if current_location ~= last_location then
-         self:_on_grid_location_changed()
-      end
-      last_location = current_location
-   end
-
-   self._trace_entity_location = radiant.entities.trace_location(self._entity, 'find target observer')
-      :on_changed(on_moved)
+   self._trace_entity_location = radiant.entities.trace_grid_location(self._entity, 'find target observer')
+      :on_changed(function()
+            self:_on_grid_location_changed()
+         end)
 end
 
 function FindTargetObserver:_destroy_entity_location_trace()

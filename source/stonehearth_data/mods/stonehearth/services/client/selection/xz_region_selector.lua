@@ -206,9 +206,12 @@ end
 
 function XZRegionSelector:_on_mouse_event(event)
    -- cancel on mouse button 2.
-   if not event.dragging and event:up(2) then
+   if event and event:up(2) and not event.dragging then
       if self._fail_cb then
          self._fail_cb(self)
+      end
+      if self._always_cb then
+         self._always_cb(self)
       end
       self:destroy()
       return

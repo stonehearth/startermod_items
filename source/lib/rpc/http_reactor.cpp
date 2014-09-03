@@ -215,7 +215,6 @@ void HttpReactor::GetMimeType(std::string const& uri, std::string& mimetype)
    };
 
    // Determine the file extension.
-   std::string mimeType;
    std::size_t last_dot_pos = uri.find_last_of(".");
    if (last_dot_pos != std::string::npos) {
       std::string extension = uri.substr(last_dot_pos + 1);

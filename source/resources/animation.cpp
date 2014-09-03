@@ -45,7 +45,7 @@ std::string Animation::JsonToBinary(const JSONNode &node)
    header->framesPerSecond = 30;
 
    // copy the bone names...
-   for (auto i = firstFrame.begin(); i != firstFrame.end(); i++) {
+   for (auto i = firstFrame.begin(); i != firstFrame.end(); ++i) {
       std::string name = i->name();
       result.insert(result.end(), name.begin(), name.end());
       result.push_back(0);
@@ -64,8 +64,8 @@ std::string Animation::JsonToBinary(const JSONNode &node)
                                          csg::Quaternion(csg::Point3f::unitX, -csg::k_pi / 2);
 
    // copy the frames
-   for (auto i = frames.begin(); i != frames.end(); i++) {
-      for (auto j = (*i).begin(); j != (*i).end(); j++) {
+   for (auto i = frames.begin(); i != frames.end(); ++i) {
+      for (auto j = (*i).begin(); j != (*i).end(); ++j) {
          const JSONNode &pos = (*j)["pos"];
          const JSONNode &rot = (*j)["rot"];
 
@@ -100,7 +100,7 @@ float Animation::GetDuration()
    //return ((float)header->numFrames) / header->framesPerSecond;
 }
 
-void Animation::MoveNodes(int32 timeOffset, AnimationFn fn)
+void Animation::MoveNodes(int32 timeOffset, AnimationFn const& fn)
 {
    perfmon::TimelineCounterGuard tcg("ani move nodes");
    float duration = GetDuration();
@@ -112,7 +112,7 @@ void Animation::MoveNodes(int32 timeOffset, AnimationFn fn)
    MoveNodes(position / duration, fn);  
 }
 
-void Animation::MoveNodes(float offset, AnimationFn fn)
+void Animation::MoveNodes(float offset, AnimationFn const& fn)
 {
    BinaryHeader *header = (BinaryHeader *)_base;
    float alpha;
@@ -181,7 +181,7 @@ void Animation::GetFrames(float offset, int &f0, int &f1, float &alpha)
    }
 }
 
-bool Animation::HasBone(std::string name)
+bool Animation::HasBone(std::string const& name)
 {
    BinaryHeader *header = (BinaryHeader *)_base;
    char *boneptr = ((char *)(header + 1));

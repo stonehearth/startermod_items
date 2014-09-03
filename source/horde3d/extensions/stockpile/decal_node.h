@@ -42,7 +42,7 @@ public:
    };
 
    Horde3D::MaterialResource* GetMaterial() { return material_; }
-   bool SetMaterial(std::string name);
+   bool SetMaterial(std::string const& name);
    void UpdateShape(const Vertex* verts, int cVerts);
 
 private:

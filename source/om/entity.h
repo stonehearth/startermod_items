@@ -54,10 +54,10 @@ public:
    std::shared_ptr<Entity> GetPtr() { return shared_from_this(); }
 
    std::string GetDebugText() const { return *debug_text_; }
-   void SetDebugText(std::string str) { debug_text_ = str; }
+   void SetDebugText(std::string const& str) { debug_text_ = str; }
 
    std::string GetUri() const { return *uri_; }
-   void SetUri(std::string str) { uri_ = str; }
+   void SetUri(std::string const& str) { uri_ = str; }
 
    void SerializeToJson(json::Node& node) const;
    void OnLoadObject(dm::SerializationType r) override;

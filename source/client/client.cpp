@@ -373,14 +373,21 @@ void Client::OneTimeIninitializtion()
       return result;
    });
 
+
    //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:play_sound");
       try {
          json::Node node(f.args);
-         std::string sound_url = node.get_node(0).as<std::string>();
+         json::Node params = node.get_node(0);
+
+         std::string sound_url = params.get<std::string>("track");
+         
          audio::AudioManager &a = audio::AudioManager::GetInstance();
-         a.PlaySound(sound_url);
+         int vol = params.get<int>("volume", audio::DEF_UI_SFX_VOL);
+        
+         a.PlaySound(sound_url, vol);
+         
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
@@ -568,8 +575,27 @@ void Client::OneTimeIninitializtion()
       }
       return games;
    });
+   
    core_reactor_->AddRoute("radiant:client:get_perf_counters", [this](rpc::Function const& f) {
       return StartPerformanceCounterPush();
+   });
+
+   core_reactor_->AddRouteJ("radiant:get_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+      std::string key = args.get<std::string>(0);
+      return core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
+   });
+
+   core_reactor_->AddRouteJ("radiant:set_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+
+      std::string key = args.get<std::string>(0);
+      JSONNode value = args.get<JSONNode>(1);
+      core::Config::GetInstance().Set<JSONNode>(key, value);
+
+      json::Node result;
+      result.set<std::string>("result", "OK");
+      return result;
    });
 
 };
@@ -832,7 +858,7 @@ void Client::handle_connect(const boost::system::error_code& error)
       CLIENT_LOG(3) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket, "client");
       connected_ = true;
    }
 }
@@ -840,7 +866,7 @@ void Client::handle_connect(const boost::system::error_code& error)
 void Client::setup_connections()
 {
    connected_ = false;
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+   send_queue_ = protocol::SendQueue::Create(_tcp_socket, "client");
 
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
@@ -1172,7 +1198,7 @@ void Client::RemoveInputHandler(InputHandlerId id)
          input_handlers_.erase(i);
          break;
       } else {
-         i++;
+         ++i;
       }
    }
 };
@@ -1366,7 +1392,7 @@ Client::CursorStackId Client::InstallCursor(std::string const& name)
 
 void Client::RemoveCursor(CursorStackId id)
 {
-   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); i++) {
+   for (auto i = cursor_stack_.begin(); i != cursor_stack_.end(); ++i) {
       if (i->first == id) {
          cursor_stack_.erase(i);
          return;
@@ -1559,13 +1585,13 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
       
       load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
-      server_load_deferred_->Progress([this] (const JSONNode n) {
+      server_load_deferred_->Progress([this] (JSONNode const& n) {
          double server_progress = n.at("progress").as_float();
          load_progress_deferred_->Notify(JSONNode("progress", server_progress / 2.0));
       });
       Renderer::GetInstance().SetLoading(true);
 
-      load_progress_deferred_->Progress([this] (const JSONNode n) {
+      load_progress_deferred_->Progress([this] (JSONNode const& n) {
          float progress = n.as_float();
          Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
       });

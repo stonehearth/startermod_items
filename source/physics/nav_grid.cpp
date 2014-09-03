@@ -20,6 +20,7 @@
 #include "derived_region_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
+#include <EASTL/fixed_set.h>
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -464,7 +465,7 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
 
    // Draw a purple box around all the mobs
    auto i = collision_trackers_.begin(), end = collision_trackers_.end();
-   for (; i != end; i++) {
+   for (; i != end; ++i) {
       for (auto const& entry : i->second) {
          CollisionTrackerPtr tracker = entry.second;
          if (tracker->GetType() == MOB) {
@@ -522,7 +523,7 @@ int NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
  * was stopped early.
  *
  */ 
-bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb)
 {
    bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
@@ -547,7 +548,7 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb cb)
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb const &cb)
 {
    bool stopped;
    stopped = ForEachTileInBounds(worldBounds, [&worldBounds, cb](csg::Point3 const& index, NavGridTile &tile) {
@@ -573,10 +574,10 @@ bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb cb)
+bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb const &cb)
 {
    bool stopped;
-   std::set<dm::ObjectId> visited;
+   eastl::fixed_set<dm::ObjectId, 64> visited;
 
    stopped = ForEachTrackerInRegion(region, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
@@ -604,7 +605,7 @@ bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb 
  * was stopped early.
  *
  */
-bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb cb)
+bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb const& cb)
 {
    bool stopped = false;
    csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
@@ -633,10 +634,10 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
  *
  */
 
-bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
+bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const &cb)
 {
    bool stopped = false;
-   std::set<csg::Point3> visited;
+   eastl::fixed_set<csg::Point3, 8> visited;
 
    auto i = region.begin(), end = region.end();
    while (!stopped && i != end) {
@@ -665,10 +666,10 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cb)
  *
  */
 
-bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb cb)
+bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb const &cb)
 {
    bool stopped;
-   std::set<CollisionTracker*> visited;
+   eastl::fixed_set<CollisionTracker*, 16> visited;
    csg::Cube3 regionBounds = region.GetBounds();
 
    stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
@@ -697,7 +698,7 @@ bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerC
  *
  */
 
-bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb cb)
+bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb)
 {
    bool stopped = false;
    auto i = collision_trackers_.find(entityId), end = collision_trackers_.end();
@@ -1115,7 +1116,7 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
  * spiking the CPU.
  *
  */
-core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> cb)
+core::Guard NavGrid::NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb)
 {
    return _dirtyTilesSlot.Register(cb);
 }

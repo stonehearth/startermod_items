@@ -140,7 +140,7 @@ void Frustum::buildBoxFrustum( const Matrix4f &transMat, float left, float right
 }
 
 
-bool Frustum::cullSphere( Vec3f pos, float rad ) const
+bool Frustum::cullSphere( Vec3f const& pos, float rad ) const
 {
 	// Check the distance of the center to the planes
 	for( uint32 i = 0; i < 6; ++i )

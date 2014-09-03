@@ -92,7 +92,7 @@ namespace radiant {
          return false;
       }
 
-      template <class T> bool UniqueInsert(std::vector<std::weak_ptr<T>> &container, const std::shared_ptr<T> element) {
+      template <class T> bool UniqueInsert(std::vector<std::weak_ptr<T>> &container, std::shared_ptr<T> const& element) {
          bool found = false;
          uint i = 0, c = container.size();
          while (i < c) {
@@ -184,7 +184,7 @@ namespace radiant {
       
 
       template <class K, class V> void RemoveValue(std::map<K, V> &container, const K &item) {
-         for (auto i = container.begin(); i != container.end(); i++) {
+         for (auto i = container.begin(); i != container.end(); ++i) {
             if (i->second == item) {
                container.erase(i);
             }
@@ -243,7 +243,7 @@ namespace radiant {
                i = container.erase(i);
             } else {
                fn(p);
-               i++;
+               ++i;
             }
          }
       }
@@ -257,7 +257,7 @@ namespace radiant {
                size--;
             } else {
                fn(p);
-               i++;
+               ++i;
             }
          }
          container.resize(size);
@@ -282,7 +282,7 @@ namespace radiant {
                i = container.erase(i);
             } else {
                fn(i->first, p);
-               i++;
+               ++i;
             }
          }
       }
