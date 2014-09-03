@@ -8,8 +8,6 @@
 using namespace ::radiant;
 using namespace ::radiant::protocol;
 
-#pragma optimize( "", off )
-
 static const int BUFFER_SIZE = 16 * 1024 * 1024;
 
 SendQueuePtr SendQueue::Create(boost::asio::ip::tcp::socket& s)
