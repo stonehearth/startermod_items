@@ -17,12 +17,10 @@ using namespace ::radiant::audio;
 DEFINE_SINGLETON(AudioManager);
 
 #define MAX_SOUNDS 200
-#define EFX_DEF_VOL 50
 #define EFX_MASTER_DEF_VOL 1.0
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
 AudioManager::AudioManager() :
-   efx_volume_(EFX_DEF_VOL),
    master_efx_volume_(EFX_MASTER_DEF_VOL)
 {
    empty_sound_ = std::make_shared<sf::Sound>(sf::SoundBuffer());
@@ -42,10 +40,10 @@ AudioManager::~AudioManager()
 //First, see if the soundbuffer for the uri already exists. If so, reuse.
 //If not, make a new soundbuffer for the sound. Then, load it into a new sound
 //and play that sound. 
-void AudioManager::PlaySound(std::string const& uri) 
+void AudioManager::PlaySound(std::string const& uri, int vol) 
 {
    std::shared_ptr<sf::Sound> s = CreateSoundInternal(uri);
-   s->setVolume(efx_volume_ * master_efx_volume_);
+   s->setVolume((float)vol * master_efx_volume_);
    s->play();
 }
 

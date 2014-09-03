@@ -100,8 +100,8 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    # luajit up in here! party time!!
-   #LUA_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
-   #cp -u $LUA_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR
+   LUAJIT_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
+   cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR/lua-5.1.5.jit.dll
 
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32
@@ -149,11 +149,15 @@ function compile_lua_and_package_module
    echo Compiling lua and packaging module in $1
    MOD_NAME=${1##*/}
    pushd $OUTPUT_DIR/$1/.. > /dev/null
+   pwd
+   #set LUA_PATH=$LUAJIT_BIN_ROOT
    for infile in $(find $MOD_NAME -type f -name '*.lua'); do
      OUTFILE=${infile}c
-     $LUA_BIN_ROOT/luac.exe -o $OUTFILE $infile
+     # $LUAJIT_BIN_ROOT/luajit.exe -b $infile $OUTFILE
+     echo "Compiling $infile ..."
+     $LUA_BIN_ROOT/lua.exe $STONEHEARTH_ROOT/scripts/stage/LuaSrcDiet-0.12.1/bin/LuaSrcDiet.lua $infile --quiet --maximum -o $OUTFILE
      if [ $? -ne 0 ]; then
-       echo "luac failed to compile $infile"
+       echo "failed to compile $infile"
        exit 1
      fi
      rm -f $infile
@@ -170,7 +174,8 @@ function compile_lua_and_package_module
 
 if [ ! -z $STAGE_DATA ]; then
    DATA_ROOT=$STONEHEARTH_ROOT/source/stonehearth_data
-   LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco/solutions/release
+   LUA_BIN_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco/solutions/Release
+   LUAJIT_BIN_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
 
    pushd $DATA_ROOT > /dev/null
    find . -maxdepth 1 -type f  \

@@ -6,6 +6,7 @@
 #include "script_host.h"
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
+#include "lib/lua/lua.h"
 #include "lib/json/namespace.h"
 #include "lib/perfmon/timer.h"
 #include "lib/perfmon/store.h"
@@ -13,8 +14,6 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
-
-extern "C" int luaopen_lpeg (lua_State *L);
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -263,10 +262,15 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    profile_cpu_ = false;
 
    L_ = lua_newstate(LuaAllocFn, this);
-   lua_setalloc2f(L_, LuaAllocFnWithState, this);
+
+   if (lua::JitIsEnabled()) {
+      lua_setallocf(L_, LuaAllocFn, this);
+   } else {
+      lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   }
+
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);
-   luaopen_lpeg(L_);
 
    luabind::open(L_);
    luabind::bind_class_info(L_);

@@ -11,12 +11,12 @@
 #include <queue>
 
 #define NETWORK_LOG(level)    LOG(network, level)
-#define SEND_BUFFER_SIZE      (16 * 1024 * 1024)
+#define SEND_BUFFER_SIZE      (2 * 1024 * 1024)
 
 namespace radiant {
    namespace protocol {
       static const int ReadLowWaterMark = 1024;
-      static const int ReadBufferSize   = 16 * 1024 * 1024;
+      static const int ReadBufferSize   = 2 * 1024 * 1024;
 
       class Buffer {
       public:
@@ -67,14 +67,14 @@ namespace radiant {
 
       class SendQueue {
       public:
-         static SendQueuePtr Create(boost::asio::ip::tcp::socket& s);
+         static SendQueuePtr Create(boost::asio::ip::tcp::socket& s, const char *endpoint);
          static void Flush(SendQueuePtr q);
 
       public:
          void Push(google::protobuf::MessageLite const &protobuf);
 
       public: // xxx - only because make_shared is silly
-         SendQueue(boost::asio::ip::tcp::socket& s) : socket_(s) { }
+         SendQueue(boost::asio::ip::tcp::socket& s, const char* endpoint) : socket_(s), _bufferedBytes(0), _endpoint(endpoint) { }
 
       private:
          struct Buffer {
@@ -88,65 +88,75 @@ namespace radiant {
          boost::asio::ip::tcp::socket& socket_;
          std::deque<BufferPtr>   _queue;
          std::stack<BufferPtr>   _freelist;
+         int32                   _bufferedBytes;
+         const char*             _endpoint;
       };
 
       class RecvQueue : public std::enable_shared_from_this<RecvQueue> {
       public:
-         RecvQueue(boost::asio::ip::tcp::socket& s);
+         RecvQueue(boost::asio::ip::tcp::socket& s, const char* endpoint);
 
       public:
          template <class T> void Process(std::function<bool(T&)> fn, platform::timer& process_timeout)
          {
-            google::protobuf::io::ArrayInputStream input(readBuf_.data(), readBuf_.size());
-            google::protobuf::io::CodedInputStream decoder(&input);
+            if (!readBuf_.empty()) {
+               google::protobuf::io::ArrayInputStream input(readBuf_.data(), readBuf_.size());
+               google::protobuf::io::CodedInputStream decoder(&input);
 
-            const void* tail;
-            int remaining = 0;
-            int consumed = 0;
-            decoder.GetDirectBufferPointer(&tail, &remaining);
+               const void* tail;
+               int remaining = 0;
+               int consumed = 0;
+               decoder.GetDirectBufferPointer(&tail, &remaining);
 
-            // Read all we can...
-            while (remaining > 0 && !process_timeout.expired()) {
-               google::protobuf::uint32 c = 0;
-               // We're going to read message size, but if we don't have the bytes,
-               // wait until the next time through.
-               if (!decoder.ReadLittleEndian32(&c)) {
-                  NETWORK_LOG(3) << "breaking processing loop early (went to read size)";
-                  break;
-               }
+               NETWORK_LOG(3) << endpoint_ << " read loop chomping on " << readBuf_.size() << " bytes";
 
+               // Read all we can...
                T msg;
+               while (remaining > 0 && !process_timeout.expired()) {
+                  google::protobuf::uint32 c = 0;
+                  // We're going to read message size, but if we don't have the bytes,
+                  // wait until the next time through.
+                  if (!decoder.ReadLittleEndian32(&c)) {
+                     NETWORK_LOG(3) << endpoint_ << " breaking processing loop early (went to read size)";
+                     break;
+                  }
 
-               NETWORK_LOG(7) << "next message size: " << c;
+                  NETWORK_LOG(7) << endpoint_ << " next message size: " << c;
 
-               ASSERT(c > 0 && c < ReadBufferSize);
-               if (c > remaining - sizeof(int32)) {
-                  NETWORK_LOG(3) << "breaking processing loop early (not enough message in the buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
-                  break;
-               }
+                  ASSERT(c > 0 && c < ReadBufferSize);
+                  if (c > remaining - sizeof(int32)) {
+                     NETWORK_LOG(3) << endpoint_ << " breaking processing loop early (not enough message in the buffer: " << (remaining - sizeof(int32)) << " < " << c << ")";
+                     break;
+                  }
                
-               // Parsing comes next, so consider this message processed.
-               consumed += c + sizeof(int32);
+                  // Parsing comes next, so consider this message processed.
+                  consumed += c + sizeof(int32);
 
-               auto limit = decoder.PushLimit(c);
-               if (!msg.ParseFromCodedStream(&decoder)) {
-                  NETWORK_LOG(1) << "breaking processing early (error parsing message)";
-                  break;
-               }
-               decoder.PopLimit(limit);
+                  auto limit = decoder.PushLimit(c);
+                  msg.Clear();
+                  if (!msg.ParseFromCodedStream(&decoder)) {
+                     NETWORK_LOG(1) << endpoint_ << " breaking processing early (error parsing message)";
+                     break;
+                  }
+                  decoder.PopLimit(limit);
 
-               // Once the message has been read, we have to update the number of remaining bytes
-               // in the buffer.
-               if (!decoder.GetDirectBufferPointer(&tail, &remaining)) {
-                  remaining = 0;
-               }
+                  // Once the message has been read, we have to update the number of remaining bytes
+                  // in the buffer.
+                  if (!decoder.GetDirectBufferPointer(&tail, &remaining)) {
+                     remaining = 0;
+                  }
 
-               if (!fn(msg)) {
-                  break;
+                  if (!fn(msg)) {
+                     break;
+                  }
                }
+               readBuf_.consume(consumed);
+
+               NETWORK_LOG(3) << endpoint_ << " read done chomping. " << readBuf_.size() << " bytes remain.";
             }
-            readBuf_.consume(consumed);
+
             if (!readPending_) {
+               NETWORK_LOG(3) << endpoint_ << " no read pending flag set.  calling Read()";
                Read();
             }
          }
@@ -161,6 +171,7 @@ namespace radiant {
          boost::asio::ip::tcp::socket&    socket_;
          bool                             readPending_;
          Buffer                           readBuf_;
+         const char*                      endpoint_;
       };
 
      std::string Encode(google::protobuf::MessageLite const& protobuf);

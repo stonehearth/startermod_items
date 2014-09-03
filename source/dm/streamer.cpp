@@ -73,9 +73,10 @@ void Streamer::QueueAllocated()
 void Streamer::QueueUnsavedObjects()
 {
    if (!unsaved_objects_.empty()) {
+      proto::Update update;
       for (const auto& entry : unsaved_objects_) {
          ObjectId id = entry.first;
-         proto::Update update;
+         update.Clear();
          update.set_type(proto::Update::UpdateObject);
          Protocol::Object* msg = update.MutableExtension(proto::UpdateObject::extension)->mutable_object();
          entry.second->SaveObject(REMOTING, msg);

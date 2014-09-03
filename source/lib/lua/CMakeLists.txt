@@ -10,6 +10,7 @@ include_directories(${Luabind_INCLUDE_DIRS})
 include_directories(${Horde3D_INCLUDE_DIRS})
 
 add_library(lua
+            dynload_lua.cpp
             script_host.cpp
             data_object.cpp
             lua_supplemental.cpp
@@ -44,7 +45,6 @@ target_link_libraries(lua
                       ${Python_LIBRARIES}
                       ${Cryptopp_LIBRARIES}
                       ${Libjson_LIBRARIES}
-                      ${Lua_LIBRARIES}
                       ${Luabind_LIBRARIES}
                       )
 

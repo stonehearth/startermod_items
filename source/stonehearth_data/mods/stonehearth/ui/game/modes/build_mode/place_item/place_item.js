@@ -3,7 +3,7 @@ $(document).ready(function(){
    $(top).on("radiant_place_item", function (_, e) {
       var item = e.event_data.self
 
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
       App.stonehearthClient.placeItem(e.event_data.self);
    });
 });
@@ -45,7 +45,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       var self = this;
 
       self.$('.itemButton').click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
 
          var itemType = $(this).attr('uri');
          App.stonehearthClient.placeItemType(itemType);

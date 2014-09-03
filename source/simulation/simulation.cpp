@@ -318,6 +318,9 @@ void Simulation::ShutdownGameObjects()
    root_entity_ = nullptr;
    modList_ = nullptr;
 
+   freeMotion_.reset();
+   octtree_.reset();
+
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
@@ -337,8 +340,6 @@ void Simulation::ShutdownGameObjects()
 
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
-   freeMotion_.reset();
-   octtree_.reset();
    scriptHost_.reset();
 }
 
@@ -720,8 +721,8 @@ void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost:
       std::shared_ptr<RemoteClient> c = std::make_shared<RemoteClient>();
 
       c->socket = socket;
-      c->send_queue = protocol::SendQueue::Create(*socket);
-      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
+      c->send_queue = protocol::SendQueue::Create(*socket, "server");
+      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket, "server");
       c->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, c->send_queue.get());
       _clients.push_back(c);
 
