@@ -2,6 +2,8 @@ local log = radiant.log.create_logger('bulletin')
 
 BulletinBoardService = class()
 
+-- should we make this part of Town?
+-- that way we don't have to do this per-player bookkeeping
 function BulletinBoardService:initialize()
    self._sv = self.__saved_variables:get_data()
 
@@ -17,6 +19,7 @@ end
 function BulletinBoardService:destroy()
 end
 
+-- do we still need this?
 function BulletinBoardService:update(bulletin_id)
    local player_id = self._sv.bulletin_to_player_map[bulletin_id]
    local datastore = self:get_datastore(player_id)
@@ -36,6 +39,7 @@ function BulletinBoardService:post_bulletin(player_id)
          time = stonehearth.calendar:get_time_and_date()
       })
 
+   self.__saved_variables:mark_changed()
    return bulletin
 end
 
@@ -46,7 +50,9 @@ function BulletinBoardService:remove_bulletin(bulletin_id)
 
    radiant.destroy_controller(bulletins[bulletin_id])
    bulletins[bulletin_id] = nil
+   self._sv.bulletin_to_player_map[bulletin_id] = nil
    datastore:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 function BulletinBoardService:get_bulletin(bulletin_id)
@@ -66,6 +72,8 @@ function BulletinBoardService:get_datastore(player_id)
       self._sv.datastores[player_id] = datastore
       local data = datastore:get_data()
       data.bulletins = {}
+      datastore:mark_changed()
+      self.__saved_variables:mark_changed()
    end
 
    return datastore
@@ -79,6 +87,7 @@ function BulletinBoardService:_add_bulletin(player_id, bulletin)
    bulletins[bulletin_id] = bulletin
    self._sv.bulletin_to_player_map[bulletin_id] = player_id
    datastore:mark_changed()
+   self.__saved_variables:mark_changed()
 end
 
 return BulletinBoardService
