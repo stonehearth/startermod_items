@@ -81,7 +81,7 @@ function firepit_autotests.move_lit_fire(autotest)
 
    --Once it's moved, test to see if we're admiring the fire. 
    local firepit_moved = false
-   local trace = radiant.entities.trace_location(firepit, 'sh firepit autotest')
+   local trace = radiant.entities.trace_grid_location(firepit, 'sh firepit autotest')
             :on_changed(function()
                local location = radiant.entities.get_world_grid_location(firepit)
                -- Check to see if the mob has a parent, meaning we're in the world, and not being

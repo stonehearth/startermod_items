@@ -9,6 +9,11 @@ local Terrain = _radiant.om.Terrain
 function MicroWorld:__init(size)
    self._nextTime = 1
    self._running = false
+   self._session = {
+      player_id = 'player_1',
+      faction = 'civ',
+      kingdom = 'stonehearth:kingdoms:ascendancy',
+   }
 
    if not size then
       size = 32
@@ -16,12 +21,12 @@ function MicroWorld:__init(size)
    self._size = size
 end
 
+function MicroWorld:get_session()
+   return self._session
+end
+
 function MicroWorld:create_world()
-   local session = {
-      player_id = 'player_1',
-      faction = 'civ',
-      kingdom = 'stonehearth:kingdoms:ascendancy',
-   }
+   local session = self:get_session()
    stonehearth.town:add_town(session)
    stonehearth.inventory:add_inventory(session)
    stonehearth.population:add_population(session)

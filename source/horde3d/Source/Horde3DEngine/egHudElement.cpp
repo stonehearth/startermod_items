@@ -427,21 +427,21 @@ void HudElementNode::onFinishedUpdate()
 }
 
 
-ScreenspaceRectHudElement* HudElementNode::addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f color, ResHandle matRes)
+ScreenspaceRectHudElement* HudElementNode::addScreenspaceRect(int width, int height, int offsetX, int offsetY, Vec4f const& color, ResHandle matRes)
 {
    ScreenspaceRectHudElement* result = new ScreenspaceRectHudElement(width, height, offsetX, offsetY, color, matRes);
    elements_.push_back(result);
    return result;
 }
 
-WorldspaceRectHudElement* HudElementNode::addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f color, ResHandle matRes)
+WorldspaceRectHudElement* HudElementNode::addWorldspaceRect(float width, float height, float offsetX, float offsetY, Vec4f const& color, ResHandle matRes)
 {
    WorldspaceRectHudElement* result = new WorldspaceRectHudElement(width, height, offsetX, offsetY, color, matRes);
    elements_.push_back(result);
    return result;
 }
 
-WorldspaceLineHudElement* HudElementNode::addWorldspaceLine(int width, Vec4f color, ResHandle matRes)
+WorldspaceLineHudElement* HudElementNode::addWorldspaceLine(int width, Vec4f const& color, ResHandle matRes)
 {
    WorldspaceLineHudElement* result = new WorldspaceLineHudElement(getParent()->getHandle(), width, color, matRes);
    elements_.push_back(result);

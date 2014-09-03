@@ -85,11 +85,16 @@ void Mob::TurnTo(float angle)
    });
 }
 
-void Mob::TurnToFacePoint(const csg::Point3& location)
+void Mob::TurnToFacePoint(csg::Point3f const& location)
 {
    csg::Point3f position = GetWorldLocation();
-   csg::Point3f v = csg::ToFloat(location) - position;
+   csg::Point3f v = location - position;
    csg::Point3f forward(0, 0, -1);
+
+   if (v.x == 0 && v.z == 0) {
+      // location and position are at the same XZ location, so keep our current facing.
+      return;
+   }
 
    float angle = (float)(atan2(-v.z, v.x) - atan2(-forward.z, forward.x));
    if (angle < 0)  {
@@ -150,18 +155,9 @@ csg::Quaternion Mob::GetRotation() const
 //TODO: keep testing; not sure if it works from all 360 angles
 csg::Point3f Mob::GetLocationInFront() const
 {
-#if 1
+   csg::Point3f const& position = (*transform_).position;
    csg::Quaternion q = (*transform_).orientation;
-   csg::Point3f translation = q.rotate(csg::Point3f(0, 0, 1));
-   float x = (*transform_).position.x + (float)floor(translation.x + 0.5);
-   float z = (*transform_).position.z + (float)floor(translation.z + 0.5);
-   return csg::Point3f(x, (*transform_).position.y, z);
-#else
-   // This seems to be the proper implementation, but doesn't work at all.  Why?
-   NOT_TESTED();
-   csg::Quaternion q = (*transform_).orientation;
-   return q.rotate(csg::Point3f(0, 0, -1));
-#endif
+   return position + q.rotate(csg::Point3f(0, 0, -1));
 }
 
 

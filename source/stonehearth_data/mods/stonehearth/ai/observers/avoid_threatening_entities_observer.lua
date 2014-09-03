@@ -196,7 +196,7 @@ function AvoidThreateningEntities:_observe_threat(threat)
    if not self._threats[threat_id] then
       local threat_tracker = ThreatTracker(threat)
 
-      local location_trace = radiant.entities.trace_location(threat, 'avoid threatening entities')
+      local location_trace = radiant.entities.trace_grid_location(threat, 'avoid threatening entities')
          :on_changed(function()
                self:_on_threat_location_changed(threat)
             end

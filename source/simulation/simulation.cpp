@@ -319,6 +319,9 @@ void Simulation::ShutdownGameObjects()
    root_entity_ = nullptr;
    modList_ = nullptr;
 
+   freeMotion_.reset();
+   octtree_.reset();
+
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
@@ -338,8 +341,6 @@ void Simulation::ShutdownGameObjects()
 
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
-   freeMotion_.reset();
-   octtree_.reset();
    scriptHost_.reset();
 }
 
@@ -481,7 +482,7 @@ void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
    update.set_type(proto::Update::BeginUpdate);
    auto msg = update.MutableExtension(proto::BeginUpdate::extension);
    msg->set_sequence_number(1);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
@@ -489,7 +490,7 @@ void Simulation::EncodeEndUpdate(std::shared_ptr<RemoteClient> c)
    proto::Update update;
 
    update.set_type(proto::Update::EndUpdate);
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
@@ -502,7 +503,7 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
    msg->set_interval(net_send_interval_);
    msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
-   c->send_queue->Push(protocol::Encode(update));
+   c->send_queue->Push(update);
 }
 
 void Simulation::EncodeUpdates(std::shared_ptr<RemoteClient> c)
@@ -619,7 +620,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
    for (auto const& cb : _bottomLoopFns)  {
       cb();
    }
-   queue->Push(protocol::Encode(update));
+   queue->Push(update);
 }
 
 void Simulation::ProcessTaskList()
@@ -634,7 +635,7 @@ void Simulation::ProcessTaskList()
       std::shared_ptr<Task> task = i->lock();
 
       if (task && task->Work(game_loop_timer_)) {
-         i++;
+         ++i;
       } else {
          i = tasks_.erase(i);
       }
@@ -721,8 +722,8 @@ void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost:
       std::shared_ptr<RemoteClient> c = std::make_shared<RemoteClient>();
 
       c->socket = socket;
-      c->send_queue = protocol::SendQueue::Create(*socket);
-      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
+      c->send_queue = protocol::SendQueue::Create(*socket, "server");
+      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket, "server");
       c->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, c->send_queue.get());
       _clients.push_back(c);
 

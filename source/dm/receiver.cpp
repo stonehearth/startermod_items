@@ -41,7 +41,7 @@ void Receiver::ProcessUpdate(tesseract::protocol::UpdateObject const& msg)
    obj->LoadObject(REMOTING, update);
 }
 
-void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg, std::function<void(dm::ObjectPtr)> onDestroyCb)
+void Receiver::ProcessRemove(tesseract::protocol::RemoveObjects const& msg, std::function<void(dm::ObjectPtr)> const& onDestroyCb)
 {
    for (int id : msg.objects()) {
       auto i = objects_.find(id);

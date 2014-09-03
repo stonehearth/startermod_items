@@ -54,7 +54,7 @@ static void ParsePath(std::string const& path, std::string& modname, std::vector
       modname = *s.begin();
       std::copy(s.begin() + 1, s.end(), std::back_inserter(parts));
    } else {
-      modname = "";
+      modname.clear();
    }
 }
 
@@ -142,7 +142,6 @@ ResourceManager2::ResourceManager2()
 void ResourceManager2::LoadModules()
 {
    fs::directory_iterator const end;
-   std::vector<fs::path> paths;
    
    for (fs::directory_iterator i(resource_dir_); i != end; i++) {
       fs::path const path = i->path();
@@ -158,7 +157,6 @@ void ResourceManager2::LoadModules()
       // load directories only if the coresponding zip file does not exist
       if (fs::is_directory(path)) {
          std::string const module_name = path.filename().string();
-         std::string const potential_smod = module_name + ".smod";
          if (!fs::is_regular_file(resource_dir_ / (module_name + ".smod"))) {
             ASSERT(!stdutil::contains(modules_, module_name));
             modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
@@ -257,14 +255,14 @@ Manifest ResourceManager2::LookupManifestInternal(std::string const& modname) co
    return Manifest(modname, result);
 }
 
-void ResourceManager2::LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> callback) const
+void ResourceManager2::LookupManifest(std::string const& modname, std::function<void(Manifest const& m)> const& callback) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
    callback(LookupManifestInternal(modname));
 }
 
 
-void ResourceManager2::LookupJson(std::string const& path, std::function<void(JSONNode const& n)> callback) const
+void ResourceManager2::LookupJson(std::string const& path, std::function<void(JSONNode const& n)> const& callback) const
 {
    std::lock_guard<std::recursive_mutex> lock(mutex_);
    callback(LookupJsonInternal(path));
@@ -655,7 +653,6 @@ voxel::QubicleFile const* ResourceManager2::OpenQubicleFile(std::string const& u
       return i->second.get();
    }
    voxel::QubicleFilePtr f = std::make_shared<voxel::QubicleFile>(path);
-   std::ifstream input;
    std::shared_ptr<std::istream> is = OpenResource(uri);
    (*is) >> *f;
    qubicle_files_[path] = f;

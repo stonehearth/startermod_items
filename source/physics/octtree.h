@@ -13,9 +13,9 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 class OctTree {
    public:
       OctTree(dm::TraceCategories trace_category);
+      virtual ~OctTree();
 
       void SetRootEntity(om::EntityPtr);
-      void Cleanup();
 
       void EnableSensorTraces(bool enabled);
 
@@ -29,7 +29,7 @@ class OctTree {
       // Path finding helpers
       typedef std::function<void(csg::Point3 const&, float)> MovementCostCb;
 
-      void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb cb) const;
+      void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb const& cb) const;
       float GetMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
       float GetSquaredMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
 
@@ -55,7 +55,6 @@ class OctTree {
       };
       std::map<dm::ObjectId, EntityMapEntry>    entities_;
       std::map<dm::ObjectId, std::pair<SensorTrackerPtr, dm::TracePtr>>  sensor_trackers_;
-      core::Guard                               guards_;
       mutable NavGrid                           navgrid_;
       bool                                      enable_sensor_traces_;
       dm::TraceCategories                       trace_category_;

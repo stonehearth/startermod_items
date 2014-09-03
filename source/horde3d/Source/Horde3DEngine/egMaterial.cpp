@@ -58,7 +58,7 @@ void MaterialResource::initDefault()
 	_shaderRes = 0x0;
 	_matLink = 0x0;
    _parentMaterial = 0x0;
-	_class = "";
+	_class.clear();
 }
 
 
@@ -260,7 +260,7 @@ bool MaterialResource::isOfClass( std::string const& theClass )
 {
 	static std::string theClass2;
 
-	if( theClass != "" )
+	if( !theClass.empty() )
 	{
 		if( theClass[0]	!= '~' )
 		{

@@ -93,6 +93,21 @@ end
 function EntitySelector:_on_mouse_event(mouse_pos, event)
    assert(self._input_capture, "got mouse event after releasing capture")
 
+   if event and event:up(2) and not event.dragging then
+   -- if the user right clicks, cancel the selection
+      self._input_capture:destroy()
+      self._input_capture = nil
+      if not self._tool_mode then
+         if self._fail_cb then
+            self._fail_cb(self, { error = 'cancelled via keyboard '})
+         end
+      end
+      if self._always_cb then
+         self._always_cb(self)
+      end
+      return
+   end
+
    local entity = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
 
    -- if the user installed a progress handler, go ahead and call it now
@@ -108,27 +123,13 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
       self._cursor_obj = _radiant.client.set_cursor(cursor_uri)
    end
 
-   if event then
-      if entity and event:up(1) then
-         if self._done_cb then
-            self._done_cb(self, entity)
-         end
-         if not self._tool_mode then
-            self._input_capture:destroy()
-            self._input_capture = nil
-            if self._always_cb then
-               self._always_cb(self)
-            end
-         end
-      elseif event:up(2) and not event.dragging then
-      -- if the user right clicks, cancel the selection
+   if entity and event and event:up(1) then
+      if self._done_cb then
+         self._done_cb(self, entity)
+      end
+      if not self._tool_mode then
          self._input_capture:destroy()
          self._input_capture = nil
-         if not self._tool_mode then
-            if self._fail_cb then
-               self._fail_cb(self, { error = 'cancelled via keyboard '})
-            end
-         end
          if self._always_cb then
             self._always_cb(self)
          end

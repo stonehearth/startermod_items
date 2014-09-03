@@ -39,6 +39,10 @@ function env.get_player_id()
    return 'player_1'
 end
 
+function env.get_player_session()
+   return env.session
+end
+
 function env.create_enemy_kingdom()
    local session = {
       player_id = 'enemy',

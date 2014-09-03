@@ -16,11 +16,11 @@ public:
    Trace(const char* reason);
    virtual ~Trace();
 
-   void OnModified_(ModifiedCb modified)
+   void OnModified_(ModifiedCb const& modified)
    {
       on_modified_ = modified;
    }
-   void OnDestroyed_(DestroyedCb destroyed)
+   void OnDestroyed_(DestroyedCb const& destroyed)
    {
       on_destroyed_ = destroyed;
    }

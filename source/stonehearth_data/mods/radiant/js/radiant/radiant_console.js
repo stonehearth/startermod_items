@@ -240,6 +240,8 @@ var RadiantConsole;
       },
 
       createView : function(title, cmdid, options) {
+         var self = this;
+
          var buttons = '<div class="buttons"> \
                            <div id="graph_button" class="button"></div> \
                            <div id="popout_button" class="button"></div> \
@@ -247,6 +249,8 @@ var RadiantConsole;
                         </div>';
          var view = $('<div class="command" cmdid="'+ cmdid + '"><div class="title">' + title + '</div>' + buttons + '<div class="content"></div></div>');
          this._container.append(view);
+         setTimeout(function() { self._container.scrollTop(1E10); }, 100);
+         
          return view
       },
 

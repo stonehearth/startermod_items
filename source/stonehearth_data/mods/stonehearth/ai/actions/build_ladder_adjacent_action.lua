@@ -12,7 +12,14 @@ BuildLadderAdjacent.version = 2
 BuildLadderAdjacent.priority = 1
 
 function BuildLadderAdjacent:start_thinking(ai, entity, args)
-   local material = args.builder:get_material()
+   local builder = args.builder
+
+   if builder:is_ladder_finished() then
+      -- if the ladder's already finished, there's nothing to do
+      return
+   end
+   
+   local material = builder:get_material()
    if not radiant.entities.is_material(ai.CURRENT.carrying, material) then
       return
    end

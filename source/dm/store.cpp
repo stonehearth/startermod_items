@@ -90,7 +90,7 @@ ObjectPtr Store::AllocObject(ObjectType t, ObjectId id)
    return obj;
 }
 
-void Store::RegisterAllocator(ObjectType t, ObjectAllocFn allocator)
+void Store::RegisterAllocator(ObjectType t, ObjectAllocFn const& allocator)
 {
    ASSERT(!allocators_[t]);
    allocators_[t] = allocator;
@@ -202,7 +202,7 @@ std::string Store::SaveObject(ObjectId id, std::string& error)
             Object* obj = objects_[id];
             if (!obj) {
                error = BUILD_STRING("no such object id " << id);
-               return false;
+               return std::string();
             }
             obj->SaveObject(PERSISTANCE, &msg);
             msg.SerializeToCodedStream(&cos);

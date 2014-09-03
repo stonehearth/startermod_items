@@ -376,7 +376,7 @@ void PipelineResource::addRenderTarget( std::string const& id, bool depthBuf, ui
 
 RenderTarget *PipelineResource::findRenderTarget( std::string const& id )
 {
-	if( id == "" ) return 0x0;
+	if( id.empty() ) return 0x0;
 	
 	for( uint32 i = 0; i < _renderTargets.size(); ++i )
 	{
@@ -522,7 +522,7 @@ PipelineStagePtr PipelineResource::compileStageNode(XMLNode const& node)
    auto stage = std::make_shared<PipelineStage>();
 	std::string errorMsg = parseStage(node, stage);
 
-	if( errorMsg != "" ) {
+	if( !errorMsg.empty() ) {
 		raiseError( "Error in stage '" + stage->id + "': " + errorMsg );
       return nullptr;
    }
@@ -670,7 +670,7 @@ bool PipelineResource::getRenderTargetData( std::string const& target, int bufIn
                                             int *compCount, void *dataBuffer, int bufferSize )
 {
 	uint32 rbObj = 0;
-	if( target != "" )
+	if( !target.empty() )
 	{	
 		RenderTarget *rt = findRenderTarget( target );
 		if( rt == 0x0 ) return false;

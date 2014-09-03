@@ -29,9 +29,9 @@ App.StonehearthBulletinNotification = App.View.extend({
       });
 
       if (this.get('context.type') == 'alert') {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:alert' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:alert'} );
       } else {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:caravan' );   
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:caravan'} );   
       }
       
    },

@@ -279,12 +279,6 @@ void DebugShapesNode::decode_region(const protocol::region3i &region)
 void DebugShapesNode::add_aabb(const csg::Cube3f& aabb, const csg::Color4& color)
 {  
    csg::Point3f a(aabb.GetMin()), b(aabb.GetMax());
-   csg::Point3f bot_tris[] = {
-      csg::Point3f(a.x, a.y, a.z),
-      csg::Point3f(b.x, a.y, a.z),
-      csg::Point3f(a.x, a.y, b.z),
-      csg::Point3f(b.x, a.y, b.z)
-   };
    csg::Point3f bot[] = {
       csg::Point3f(a.x, a.y, a.z),
       csg::Point3f(b.x, a.y, a.z),

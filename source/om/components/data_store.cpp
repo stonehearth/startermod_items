@@ -72,7 +72,7 @@ luabind::object DataStore::RestoreController(DataStoreRef self)
    return RestoreControllerRecursive(self, visitedTables, visited);
 }
 
-luabind::object DataStore::RestoreControllerRecursive(DataStoreRef self, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
+luabind::object DataStore::RestoreControllerRecursive(DataStoreRef self, std::vector<luabind::object>& visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
 {
    ASSERT(visited.find(GetObjectId()) == visited.end());
 
@@ -119,7 +119,7 @@ luabind::object DataStore::RestoreControllerRecursive(DataStoreRef self, std::ve
    return _controllerObject;
 }
 
-void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabind::object> visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
+void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabind::object>& visitedTables, std::unordered_map<dm::ObjectId, luabind::object>& visited)
 {
    if (luabind::type(o) == LUA_TTABLE) {
       for (luabind::object v : visitedTables) {
@@ -130,7 +130,7 @@ void DataStore::RestoreContainedDatastores(luabind::object o, std::vector<luabin
       }
       visitedTables.emplace_back(o);
 
-      for (luabind::iterator i(o), end; i != end; i++) {
+      for (luabind::iterator i(o), end; i != end; ++i) {
          int t = luabind::type(i.key());
          std::string key;
          if (LOG_IS_ENABLED(om.data_store, 8)) {
@@ -228,7 +228,7 @@ void DataStore::SetController(luabind::object controller)
    _controllerObject = controller;
 }
 
-luabind::object DataStore::CreateController(DataStoreRef self, std::string type, std::string const& name)
+luabind::object DataStore::CreateController(DataStoreRef self, std::string const& type, std::string const& name)
 {
    controller_type_ = type;
    controller_name_ = name;

@@ -202,7 +202,7 @@ void ToastNode::render()
 
 
 
-void ToastNode::SetText(std::string text)
+void ToastNode::SetText(std::string const& text)
 {
    int total_width = 0;
    for (char c: text) {

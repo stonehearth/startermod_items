@@ -9,7 +9,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
 
       self._newGame(function(e) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
          $('#map').stonehearthMap({
             mapGrid: e.map,
 
@@ -39,11 +39,11 @@ App.StonehearthEmbarkView = App.View.extend({
       });
 
       this.$("#regenerateButton").click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:reroll' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
 
          self._newGame(function(e) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:paper_menu' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
             self.$('#map').stonehearthMap('setMap', e.map);
          });
       });
@@ -151,7 +151,7 @@ App.StonehearthEmbarkView = App.View.extend({
       try {
          self.$('#embarkPin').tooltipster('destroy');
          self.$('#embarkPin').hide();
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:menu_closed' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_closed'} );
       } catch(e) {
       }
 
@@ -166,7 +166,7 @@ App.StonehearthEmbarkView = App.View.extend({
    _embark: function(cellX, cellY) {
       var self = this;
 
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:embark' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'} );
       radiant.call('stonehearth:generate_start_location', cellX, cellY);
       App.shellView.addView(App.StonehearthLoadingScreenView);
       self.destroy();

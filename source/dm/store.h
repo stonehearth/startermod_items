@@ -36,7 +36,7 @@ public:
    std::vector<ObjectId> GetModifiedSince(GenerationId when);
    bool IsDynamicObject(ObjectId id);
 
-   void RegisterAllocator(ObjectType t, ObjectAllocFn allocator);
+   void RegisterAllocator(ObjectType t, ObjectAllocFn const& allocator);
 
    ObjectPtr AllocObject(ObjectType t, ObjectId id = 0);
 

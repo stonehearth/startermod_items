@@ -23,17 +23,17 @@ App.StonehearthStockpileView = App.View.extend({
       });
 
       this.items.click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
          self._onItemClick($(this));
       });
 
       this.allButton.click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
          self._selectAll();
       });
       
       this.noneButton.click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
          self._selectNone();
       });
 
@@ -45,7 +45,7 @@ App.StonehearthStockpileView = App.View.extend({
       });
 
       this.$('button.ok').click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
          self.destroy();
       });
 
@@ -104,7 +104,7 @@ App.StonehearthStockpileView = App.View.extend({
    }.observes('context.stonehearth:stockpile.filter'),
 
    _onGroupClick : function(element) {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:action_click' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
       var checked = element.prop('checked');
 
       element.parent().siblings().each(function(i, sibling) {

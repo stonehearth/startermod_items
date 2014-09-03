@@ -1116,7 +1116,7 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
    }
 }
 
-void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb cb)
+void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb const& cb)
 {
    if (!rootRenderObject_) {
       return;
@@ -1594,17 +1594,17 @@ void Renderer::SetUITextureSize(int width, int height)
    uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 
-core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> fn)
+core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> const& fn)
 {
    return screen_resize_slot_.Register(fn);
 }
 
-core::Guard Renderer::OnServerTick(std::function<void(int)> fn)
+core::Guard Renderer::OnServerTick(std::function<void(int)> const& fn)
 {
    return server_tick_slot_.Register(fn);
 }
 
-core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> fn)
+core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn)
 {
    return render_frame_start_slot_.Register(fn);
 }
@@ -1620,7 +1620,7 @@ void Renderer::SetShowDebugShapes(bool show_debug_shapes)
    show_debug_shapes_changed_slot_.Signal(show_debug_shapes);
 }
 
-core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> fn)
+core::Guard Renderer::OnShowDebugShapesChanged(std::function<void(bool)> const& fn)
 {
    return show_debug_shapes_changed_slot_.Register(fn);
 }

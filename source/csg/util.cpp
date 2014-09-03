@@ -38,7 +38,7 @@ int csg::ToInt(int i)
 int csg::ToInt(float s)
 {
    if (s > 0) {
-      static_cast<int>(s + csg::k_epsilon);
+      return static_cast<int>(s + csg::k_epsilon);
    }
    return static_cast<int>(s - csg::k_epsilon);
 }
@@ -95,7 +95,7 @@ Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
    return index;
 }
 
-bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> cb)
+bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> const& cb)
 {
    Point3 const& cmin = cube.GetMin();
    Point3 const& cmax = cube.GetMax();

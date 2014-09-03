@@ -408,7 +408,7 @@ bool RenderEntity::HasQueryFlag(int flag) const
    return (query_flags_ & flag) != 0;
 }
 
-void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> fn)
+void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> const& fn)
 {
    ForAllSceneNodes(node_, fn);
 }
@@ -423,7 +423,7 @@ void RenderEntity::ForAllSceneNodes(std::function<void(H3DNode node)> fn)
  * 3 swords are contained in a chest, calling ForAllSceneNodes on the node for the
  * chest will *not* iterate through the nodes of the swords.
  */
-void RenderEntity::ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> fn)
+void RenderEntity::ForAllSceneNodes(H3DNode node, std::function<void(H3DNode node)> const& fn)
 {
    // Look in the `nodeToRenderEntity` map to see if this is the root node for
    // a RenderEntity.  If so, and that RenderEntity isn't us, then we must have

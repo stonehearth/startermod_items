@@ -54,8 +54,10 @@ OctTree::OctTree(dm::TraceCategories trace_category) :
 {
 }
 
-void OctTree::Cleanup()
+OctTree::~OctTree()
 {
+   entities_.clear();
+   sensor_trackers_.clear();
 }
 
 void OctTree::SetRootEntity(om::EntityPtr root)
@@ -244,7 +246,7 @@ bool OctTree::ValidDiagonalMove(om::EntityPtr const& entity, csg::Point3 const& 
    return true;
 }
 
-void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb cb) const
+void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb const& cb) const
 {
    // xxx: this is in no way thread safe! (see SH-8)
    static const csg::Point3 cardinal_directions[] = {

@@ -186,10 +186,13 @@ function NoConstructionZoneComponent:_update_overlapping_structures(origin)
             current_overlap[id] = candidate
          end
       end
-      -- big solid blocks of something (trees, cliffs, etc.)
-      local rcs = candidate:get_component('region_collision_shape')
-      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-         current_overlap[id] = candidate
+      -- ignore structures...
+      if not candidate:get_component('stonehearth:construction_data') then
+         -- big solid blocks of something (trees, cliffs, etc.)
+         local rcs = candidate:get_component('region_collision_shape')
+         if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+            current_overlap[id] = candidate
+         end
       end
    end
    
