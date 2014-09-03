@@ -8,7 +8,7 @@
                {
                   "type": "one_of",
                   "items": [
-                     "file(ancient_oak_tree.qb)"
+                     "file(ancient_juniper_tree.qb)"
                   ]
                }
             ]

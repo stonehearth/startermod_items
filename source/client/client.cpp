@@ -839,7 +839,7 @@ void Client::handle_connect(const boost::system::error_code& error)
       CLIENT_LOG(3) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket, "client");
       connected_ = true;
    }
 }
@@ -847,7 +847,7 @@ void Client::handle_connect(const boost::system::error_code& error)
 void Client::setup_connections()
 {
    connected_ = false;
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+   send_queue_ = protocol::SendQueue::Create(_tcp_socket, "client");
 
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));
