@@ -21,10 +21,28 @@ $(document).ready(function(){
       },
    });
 
+   // Usage: select 12345  # enity id
    radiant.console.register('select', {
       call: function(cmdobj, fn, args) {
          var entity = 'object://game/' + args[0]
          return radiant.call('radiant:client:select_entity', entity);
+      },
+   });
+
+   // Usage: get_config foo.bar.baz
+   radiant.console.register('get_config', {
+      call: function(cmdobj, fn, args) {
+         var key = args[0]
+         return radiant.call('radiant:get_config', key);
+      },
+   });
+
+   // Usage: set_config foo.bar.baz { value = 1 }
+   radiant.console.register('set_config', {
+      call: function(cmdobj, fn, args) {
+         var key = args[0];
+         var value = JSON.parse(args[1]);
+         return radiant.call('radiant:set_config', key, value);
       },
    });
 });

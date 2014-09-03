@@ -575,8 +575,27 @@ void Client::OneTimeIninitializtion()
       }
       return games;
    });
+   
    core_reactor_->AddRoute("radiant:client:get_perf_counters", [this](rpc::Function const& f) {
       return StartPerformanceCounterPush();
+   });
+
+   core_reactor_->AddRouteJ("radiant:get_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+      std::string key = args.get<std::string>(0);
+      return core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
+   });
+
+   core_reactor_->AddRouteJ("radiant:set_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+
+      std::string key = args.get<std::string>(0);
+      JSONNode value = args.get<JSONNode>(1);
+      core::Config::GetInstance().Set<JSONNode>(key, value);
+
+      json::Node result;
+      result.set<std::string>("result", "OK");
+      return result;
    });
 
 };
