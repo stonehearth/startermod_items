@@ -28,8 +28,10 @@ function WaitForAttributeBelow:stop_thinking(ai, entity, args)
 end
 
 function WaitForAttributeBelow:destroy()
-   self._attribute_listener:destroy()
-   self._attribute_listener = nil
+   if self._attribute_listener then
+      self._attribute_listener:destroy()
+      self._attribute_listener = nil
+   end
 end
 
 function WaitForAttributeBelow:_on_attribute_changed()

@@ -46,11 +46,19 @@ function WorkAtWorkshop:run(town, args)
 end
 
 function WorkAtWorkshop:stop(args)
-   self._order_changed_listener:destroy()
-   self._order_changed_listener = nil
+   self:destroy()
+end
 
-   self._item_removed_listener:destroy()
-   self._item_removed_listener = nil
+function WorkAtWorkshop:destroy()
+   if self._order_changed_listener then
+      self._order_changed_listener:destroy()
+      self._order_changed_listener = nil
+   end
+
+   if self._item_removed_listener then
+      self._item_removed_listener:destroy()
+      self._item_removed_listener = nil
+   end
 end
 
 function WorkAtWorkshop:_collect_ingredients(order)
