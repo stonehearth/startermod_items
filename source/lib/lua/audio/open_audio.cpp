@@ -31,9 +31,9 @@ void play_music(std::string const& track, std::string const& channel) {
    a.PlayMusic(track, channel);
 }
 
-void play_sound(std::string const& uri) {
+void play_sound(std::string const& uri, int volume) {
    audio::AudioManager &a = audio::AudioManager::GetInstance();
-   a.PlaySound(uri);
+   a.PlaySound(uri, volume);
 }
 
 

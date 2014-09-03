@@ -101,7 +101,8 @@ $.widget( "stonehearth.stonehearthMenu", {
          var nodeData = self._dataToMenuItemMap[id]
 
          if (nodeData.clickSound) {
-            radiant.call('radiant:play_sound', nodeData.clickSound );
+            //Sample instance of setting volume: menu sfx is now 100 instead of default 50
+            radiant.call('radiant:play_sound', {'track' : nodeData.clickSound, 'volume' : 100});
          }
 
          // deactivate any tools that are open
@@ -110,10 +111,10 @@ $.widget( "stonehearth.stonehearthMenu", {
          // if this menu has sub-items, hide any menus that are open now so we can show a new one
          if (nodeData.items) {
             if (self.getMenu() == id) {
-               radiant.call('radiant:play_sound', nodeData.menuHideSound );
+               radiant.call('radiant:play_sound', {'track' : nodeData.menuHideSound} );
                self.hideMenu();
             } else {
-               radiant.call('radiant:play_sound', nodeData.menuShowSound );
+               radiant.call('radiant:play_sound', {'track' : nodeData.menuShowSound} );
                self.showMenu(id);
             }
          } else {

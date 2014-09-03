@@ -99,7 +99,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    didInsertElement: function() {
       if (this.get('context')) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:scroll_open' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:scroll_open'} );
          $('#crafterPromoteScroll')
             .hide()
             .fadeIn();
@@ -108,7 +108,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
 
    actions: {
       chooseCitizen: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:sub_menu' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:sub_menu'} );
          console.log('instantiate the picker!');
 
          var self = this;
@@ -129,7 +129,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
                         // `person` is part of the people picker's model.  it will be destroyed as
                         // soon as that view is destroyed, which will happen immediately after the
                         // callback is fired!  scrape everything we need out of it before this happens.
-                        radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:select' );
+                        radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:select'} );
                         self.set('context.selectedUnitName', person.unit_info.name);
                         self._selectedUnitUri = person.__self;
                         self._gotoApproveStep()
@@ -138,7 +138,7 @@ App.StonehearthClassesPromoteView = App.View.extend({
       },
 
       approve: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'} );
          var self = this;
 
          App.gameView.getView(App.StonehearthUnitFrameView).supressSelection(false);

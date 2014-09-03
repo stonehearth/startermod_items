@@ -3,7 +3,7 @@ $(document).ready(function(){
    $(top).on("radiant_remove_ladder", function (_, e) {
       var item = e.event_data.self
 
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' )
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
       App.stonehearthClient.removeLadder(e.event_data.self);
    });
 });
@@ -151,7 +151,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', item)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
                })
                .always(function(response) {
                   App.setGameMode('normal');
@@ -175,7 +175,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_place_item_location', itemType)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' )
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
                   if (response.more_items) {
                      self.placeItemType(itemType, { hideTip : true });
                   } else {
@@ -204,7 +204,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'build_ladder')
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   self.buildLadder({ hideTip : true });
                })
                .fail(function(response) {
@@ -231,7 +231,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:box_harvest_resources')
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
                   self.boxHarvestResources({ hideTip : true });
                })
                .fail(function(response) {
@@ -256,7 +256,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   radiant.call('stonehearth:select_entity', response.stockpile);
                   self.createStockpile({ hideTip : true });
                })
@@ -284,7 +284,7 @@ var StonehearthClient;
          return this._callTool(function(){
             return radiant.call('stonehearth:choose_new_field_location')
             .done(function(response) {
-               radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                radiant.call('stonehearth:select_entity', response.field);
                self.createFarm({ hideTip : true });
             })
@@ -311,7 +311,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_trapping_grounds_location')
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   radiant.call('stonehearth:select_entity', response.trapping_grounds);
                   self.createTrappingGrounds({ hideTip : true });
                })
@@ -337,7 +337,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
@@ -358,7 +358,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
@@ -367,7 +367,7 @@ var StonehearthClient;
       },
 
       eraseFloor: function(o, precall) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
          if (!o || !o.hideTip) {
@@ -380,7 +380,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'erase_floor')
                .done(function(response) {                  
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
                   $(top).trigger('radiant_hide_tip');
@@ -394,7 +394,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_roof', roof)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                });
          }, precall);
       },
@@ -416,7 +416,7 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure');
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'});
                });
          }, precall);
       },
@@ -424,7 +424,7 @@ var StonehearthClient;
       replaceStructure: function(old_structure, new_structure_uri) {
          var self = this;
          if (old_structure) {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
             radiant.call_obj(self._build_service, 'substitute_blueprint_command', old_structure.__self, new_structure_uri)
                .done(function(o) {
                   if (o.new_selection) {
@@ -446,18 +446,18 @@ var StonehearthClient;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
                .done(function(response) {
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   $(top).trigger('radiant_hide_tip');
                });
          }, precall);
       },
 
       buildRoom: function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:popup' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'create_room');
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:place_structure' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
          });
       },
 
@@ -533,7 +533,7 @@ var StonehearthClient;
             .done(function(response) {
                if (response.enabled) {
                   radiant.call('stonehearth:disable_worker_combat');
-                  radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:scenarios:redalert_off');
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:redalert_off'});
                   if (self._redAlertWidget) {
                      self._redAlertWidget.destroy();   
                   }
