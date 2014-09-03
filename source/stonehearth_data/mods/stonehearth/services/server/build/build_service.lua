@@ -63,6 +63,7 @@ end
 
 function BuildService:set_active(entity, enabled)
    if enabled then
+      self._undo:clear()  -- can't undo once building starts!
       entity:get_component('stonehearth:building'):clear_no_construction_zone_traces()
    end
 
