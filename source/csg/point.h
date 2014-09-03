@@ -276,6 +276,12 @@ public:
    S Coord(int i) const { return (&x)[i]; }
    S& Coord(int i) { return (&x)[i]; }
 
+   Point operator/(S amount) const {
+      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      ASSERT(amount != 0);
+      return Point(x / amount, y / amount);
+   }
+
 public:
    template <class T> void SaveValue(T* msg) const {
       msg->set_x(x);
