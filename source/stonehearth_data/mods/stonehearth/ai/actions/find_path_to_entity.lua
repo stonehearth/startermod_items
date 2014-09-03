@@ -1,4 +1,4 @@
-local OptimizedPathfinder = require 'ai.actions.optimized_pathfinder'
+local OptimizedPathfinder = require 'ai.lib.optimized_pathfinder'
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('pathfinder')

@@ -1,5 +1,5 @@
 local PatrolHelpers = require 'ai.actions.patrol_helpers'
-local OptimizedPathfinder = require 'ai.actions.optimized_pathfinder'
+local OptimizedPathfinder = require 'ai.lib.optimized_pathfinder'
 local Point3 = _radiant.csg.Point3
 local Path = _radiant.sim.Path
 local log = radiant.log.create_logger('town_patrol')

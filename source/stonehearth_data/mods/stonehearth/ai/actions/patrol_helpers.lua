@@ -1,4 +1,4 @@
-local PatrolHelpers = require 'ai.actions.optimized_pathfinder'
+local PatrolHelpers = require 'ai.lib.optimized_pathfinder'
 local Point3 = _radiant.csg.Point3
 
 local PatrolHelpers = class()
