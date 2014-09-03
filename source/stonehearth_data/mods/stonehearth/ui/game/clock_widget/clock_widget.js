@@ -40,8 +40,8 @@ App.StonehearthCalendarView = App.View.extend({
        var date = this.get('context.date');
 
       if (date.hour == this._constants.event_times.sunrise && !this._sunrise_sounds_played) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:rooster_call' );
-         radiant.call('radiant:play_sound', 'stonehearth:music:daybreak_stinger_01' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:rooster_call'} );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:music:daybreak_stinger_01'} );
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_day',
                'channel': 'ambient',
@@ -72,8 +72,8 @@ App.StonehearthCalendarView = App.View.extend({
 
          this._sunset_start_sounds_played = true;         
       } else if (date.hour == this._constants.event_times.sunset && !this._sunset_sounds_played) {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:owl_call' );
-         radiant.call('radiant:play_sound', 'stonehearth:music:nightfall_stinger_01' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:owl_call'} );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:music:nightfall_stinger_01'} );
          radiant.call('radiant:play_music', {
                'track': 'stonehearth:ambient:summer_night',
                'channel': 'ambient',

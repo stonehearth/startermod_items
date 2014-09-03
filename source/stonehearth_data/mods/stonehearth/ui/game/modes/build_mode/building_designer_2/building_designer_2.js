@@ -417,7 +417,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // building buttons
       this.$('#startBuilding').click(function() {
          var doStartBuilding = function() {
-            radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:submenu_select' );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
             var building_entity = self.get('building');
             if (building_entity) {
                var value = !self.get('building.active')
@@ -446,7 +446,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       this.$('#removeBuilding').click(function() {
-         radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:carpenter_menu:trash' );
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
          var building_entity = self.get('building');
          if (building_entity) {
             radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)

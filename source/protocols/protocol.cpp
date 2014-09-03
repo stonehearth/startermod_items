@@ -8,8 +8,6 @@
 using namespace ::radiant;
 using namespace ::radiant::protocol;
 
-#pragma optimize( "", off )
-
 static const int BUFFER_SIZE = 16 * 1024 * 1024;
 
 SendQueuePtr SendQueue::Create(boost::asio::ip::tcp::socket& s)
@@ -43,8 +41,8 @@ void SendQueue::Push(google::protobuf::MessageLite const& msg)
    unsigned int requiredSize = msgSize + sizeof(uint32);
    BufferPtr buffer;
 
-   if (!_queue.empty() && (BUFFER_SIZE - _queue.front()->size > requiredSize)) {
-      buffer = _queue.front();
+   if (!_queue.empty() && (BUFFER_SIZE - _queue.back()->size > requiredSize)) {
+      buffer = _queue.back();
    } else {
       if (!_freelist.empty()) {
          buffer = _freelist.top();
@@ -55,7 +53,7 @@ void SendQueue::Push(google::protobuf::MessageLite const& msg)
       buffer->size = 0;
       _queue.push_back(buffer);
    }
-   ASSERT(!_queue.empty() && buffer == _queue.front());
+   ASSERT(!_queue.empty() && buffer == _queue.back());
    int bufferSize = buffer->size;
    unsigned int remaining = sizeof(buffer->data) - bufferSize;
    char *base = buffer->data + bufferSize;
