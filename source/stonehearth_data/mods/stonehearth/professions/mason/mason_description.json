@@ -1,0 +1,39 @@
+{
+   "profession_id": "mason",
+   "alias": "stonehearth:professions:mason",
+   "name": "Mason",      
+   "description": "The Mason crafts building materials and decorative items from stone.",
+   "script": "file(mason.lua)",
+   "equipment" : {
+      "abilities" : "file(mason_abilities)",
+      "outfit" : "file(mason_outfit)",
+      "mainhand_weapon" : "stonehearth:mason:chisel"
+   },
+
+   "roles" : "mason_profession crafter",
+   "talisman_uri" : "stonehearth:mason:chisel_talisman",
+   
+   "buttonIcon" : "file(images/jobButton.png)",
+   "bannerIcon" : "file(images/banner.png)",
+   
+   "task_groups" : [
+      "stonehearth:task_group:restock", 
+      "stonehearth:task_group:placement",
+      "stonehearth:task_group:build"
+   ],
+   "crafter" : {
+      "work_effect": "saw",
+      "recipe_list": "/stonehearth/professions/mason/recipes"
+   },
+   "workshop" : {
+      "name": "Mason's Workshop",
+      "description": "insert description here",
+      "long_description" : "The Mason crafts building materials and decorative items from stone.",
+      "portrait" : "file(./mason_workbench/mason_workbench.png)",
+      "skin" : "file(./skin/workshop.png)",
+      "workbench_type" : "stonehearth:mason:workbench",
+      "ingredients": [
+         { "material" : "wood resource", "count" : 1 }
+      ]
+   }
+}

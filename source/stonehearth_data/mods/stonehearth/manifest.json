@@ -74,6 +74,11 @@
       "carpenter:saw" : "file(professions/carpenter/carpenter_saw)",
       "carpenter:saw_talisman" : "file(professions/carpenter/carpenter_saw/carpenter_saw_talisman.json)",
 
+      "mason:workbench" : "file(professions/mason/mason_workbench)",
+      "mason:outfit" : "file(professions/mason/mason_outfit)",
+      "mason:chisel" : "file(professions/mason/mason_chisel)",
+      "mason:chisel_talisman" : "file(professions/mason/mason_chisel/mason_chisel_talisman.json)",
+
       "farmer:outfit" : "file(professions/farmer/farmer_outfit)",
       "farmer:field" : "file(professions/farmer/field)",
       "farmer:hoe" : "file(professions/farmer/farmer_hoe)", 
@@ -642,6 +647,7 @@
       "professions:worker" : "file(professions/worker/worker_description.json)",
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
+      "professions:mason" : "file(professions/mason/mason_description.json)",
       "professions:weaver" : "file(professions/weaver/weaver_description.json)",
       "professions:trapper" : "file(professions/trapper/trapper_description.json)",
       "professions:footman" : "file(professions/footman/footman_description.json)",
@@ -957,6 +963,10 @@
       "worker_combat_enabled": {
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "force_spawn_scenario": {
+         "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
+         "endpoint" : "server"
       }
    },
    
@@ -1115,6 +1125,7 @@
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
+         "file(ui/game/help_basics/element_highlight.html)",
          "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
@@ -1173,6 +1184,8 @@
          "file(ui/game/save_view/save_view.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
+         "file(ui/game/help_basics/help_basics.js)",
+         "file(ui/game/help_basics/element_highlight.js)",
          "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
@@ -1231,6 +1244,7 @@
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
+         "file(ui/game/help_basics/element_highlight.less)",
          "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",

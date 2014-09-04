@@ -136,6 +136,13 @@ var StonehearthClient;
          return deferred;
       },
 
+      showTip: function(title, description, options) {
+         $(top).trigger('radiant_show_tip', {
+            title : title,
+            description : description
+         });
+      },
+
       // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
       placeItem: function(item, o) {
          var self = this;
