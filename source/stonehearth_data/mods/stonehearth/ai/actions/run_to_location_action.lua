@@ -1,7 +1,4 @@
-local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Region3 = _radiant.csg.Region3
-local Entity = _radiant.om.Entity
 local RunToLocation = class()
 
 RunToLocation.name = 'run to location'

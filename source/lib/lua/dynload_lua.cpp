@@ -133,7 +133,7 @@ static void (__cdecl *luaL_openlibs_fn)(lua_State *L);
 void lua::Initialize(bool enableJit)
 {
    jitEnabled = enableJit;
-   luadll = LoadLibrary(enableJit ? "lua-5.1.5.jit.dll" : "lua-5.1.5.dll");
+   luadll = LoadLibraryExW(enableJit ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
 
    LOG(lua.data, 0) << "lua git is " << (enableJit ? "enabled" : "disabled");
 

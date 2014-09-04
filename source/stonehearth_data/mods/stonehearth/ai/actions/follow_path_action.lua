@@ -1,6 +1,8 @@
+local FollowPath = require 'ai.lib.follow_path'
 local Path = _radiant.sim.Path
-local FollowPathAction = class()
 local log = radiant.log.create_logger('follow_path')
+
+local FollowPathAction = class()
 
 FollowPathAction.name = 'follow path'
 FollowPathAction.does = 'stonehearth:follow_path'
@@ -32,6 +34,11 @@ function FollowPathAction:start_thinking(ai, entity, args)
 end
 
 function FollowPathAction:run(ai, entity, args)
+   if entity:add_component('mob'):get_parent() ~= radiant.entities.get_root_entity() then
+      log:warning('cannot follow path because %s is not a child of the root entity', entity)
+      ai:abort('cannot follow path because entity is not a child of the root entity')
+   end
+
    local path = args.path
    self._ai = ai
    self._entity = entity
@@ -47,8 +54,16 @@ function FollowPathAction:run(ai, entity, args)
    local arrived_fn = function()
       ai:resume('mover finished')
    end
+
+   local aborted_fn = function()
+      log:detail('mover aborted (path may no longer be traversable)')
+      ai:abort('mover aborted')
+   end
    
-   self._mover = _radiant.sim.create_follow_path(entity, speed, path, args.stop_distance, arrived_fn)
+   self._mover = FollowPath(entity, speed, path)
+      :set_stop_distance(args.stop_distance)
+      :set_arrived_cb(arrived_fn)
+      :set_aborted_cb(aborted_fn)
 
    if not self._mover:arrived() then
       self._posture = radiant.entities.get_posture(entity)
@@ -57,7 +72,8 @@ function FollowPathAction:run(ai, entity, args)
 
       self:_start_move_effect()
 
-      log:debug('starting mover %s...', self._mover:get_name());
+      log:debug('starting mover');
+      self._mover:start()
       ai:suspend('waiting for mover to finish')
    end
 
@@ -110,7 +126,7 @@ function FollowPathAction:stop(ai, entity)
    end
 
    if self._mover then
-      log:debug('stopping mover %s in stop...', self._mover:get_name());
+      log:debug('stopping mover in stop...');
       self._mover:stop()
       self._mover = nil
    end

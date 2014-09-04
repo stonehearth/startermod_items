@@ -158,7 +158,9 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register2<Point2f>(L, "Point2f")
          .def("to_int",             &Pointf_ToInt<2>)
          .def("to_closest_int",     &Pointf_ToClosestInt<2>)
-         .def("to_float",           &Pointf_ToFloat<2>),
+         .def("to_float",           &Pointf_ToFloat<2>)
+         .def(const_self * float())
+         .def(const_self / float()),
       Register3<Point3 >(L, "Point3")
          .def("to_int",             &Point_ToInt<3>)
          .def("to_closest_int",     &Point_ToClosestInt<3>)
@@ -167,6 +169,8 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def("to_int",             &Pointf_ToInt<3>)
          .def("to_closest_int",     &Pointf_ToClosestInt<3>)
          .def("to_float",           &Pointf_ToFloat<3>)
+         .def(const_self * float())
+         .def(const_self / float())
          .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
       lua::RegisterType<Transform>("Transform")
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),

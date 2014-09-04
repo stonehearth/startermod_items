@@ -15,7 +15,8 @@ class Path {
          return points_;
       }
 
-      void PrunePoints();
+      std::vector<csg::Point3> const& GetPrunedPoints();
+
       bool IsEmpty() const { return points_.size() == 0; }
       float GetDistance() const;
       om::EntityRef GetDestination() const { return destination_; }
@@ -31,6 +32,7 @@ class Path {
    private:
       int                       id_;
       std::vector<csg::Point3>  points_;
+      std::vector<csg::Point3>  prunedPoints_;
       csg::Point3               poi_;
       om::EntityRef             source_;
       om::EntityRef             destination_;

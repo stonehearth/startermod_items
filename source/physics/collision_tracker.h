@@ -4,6 +4,7 @@
 #include "namespace.h"
 #include "csg/cube.h"
 #include "om/om.h"
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -15,7 +16,8 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  * MarkChanged, and call the NavGrid's Add*Tracker functions to register themselves
  * with the NavGrid.
  */
-class CollisionTracker : public std::enable_shared_from_this<CollisionTracker> {
+class CollisionTracker : public std::enable_shared_from_this<CollisionTracker>,
+                         public core::ObjectCounter<CollisionTracker> {
 public:
    CollisionTracker(NavGrid& ng, TrackerType type, om::EntityPtr entity);
    virtual ~CollisionTracker() { }

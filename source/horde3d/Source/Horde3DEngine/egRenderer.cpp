@@ -2974,10 +2974,12 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
                                  << " name:" << vmn->getParentModel()->getParent()->getName() \
                                  << ") "
 
+   unsigned int numQueued = 0;
    uint32 vbInstanceData = 0;
    auto idcIt = _instanceDataCache.find(&renderableQueue);
    if (idcIt != _instanceDataCache.end()) {
       vbInstanceData = idcIt->second;
+      numQueued = renderableQueue.size();
       RENDER_LOG() << "using cached instance data " << vbInstanceData;
    } else {
       vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
@@ -2990,15 +2992,33 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
          memcpy(transformBuffer, &meshNode->_absTrans.x[0], sizeof(float) * 16);
          RENDER_LOG() << "adding world matrix (" << meshNode->_absTrans.c[3][0] << ", " << meshNode->_absTrans.c[3][1] << ", " << meshNode->_absTrans.c[3][2] << ")";
          transformBuffer += 16;
+         numQueued++;
+
+         if (numQueued == MaxVoxelInstanceCount) {
+            gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+            gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
+            gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), MaxVoxelInstanceCount);
+            numQueued = 0;
+            transformBuffer = _vbInstanceVoxelBuf;
+            vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
+         }
       }
-      gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
-      _instanceDataCache[&renderableQueue] = vbInstanceData;
+
+      if (numQueued > 0) {
+         gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+      }
+
+      if (numQueued == renderableQueue.size()) {
+         _instanceDataCache[&renderableQueue] = vbInstanceData;
+      }
    }
 
-   radiant::perfmon::SwitchToCounter("draw mesh instances");
-   // Draw instanced meshes.
-   gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
-   gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), renderableQueue.size());
+   if (numQueued > 0) {
+      radiant::perfmon::SwitchToCounter("draw mesh instances");
+      // Draw instanced meshes.
+      gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
+      gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), numQueued);
+   }
    radiant::perfmon::SwitchToCounter("drawVoxelMeshes_Instances");
 
 	// Render

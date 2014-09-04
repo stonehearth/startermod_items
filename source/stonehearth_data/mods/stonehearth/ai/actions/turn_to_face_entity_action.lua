@@ -10,8 +10,9 @@ TurnToFaceEntity.version = 2
 TurnToFaceEntity.priority = 1
 
 function TurnToFaceEntity:run(ai, entity, args)
-   radiant.check.is_entity(args.entity)
-   radiant.entities.turn_to_face(entity, args.entity)
+   if args.entity:is_valid() then
+      radiant.entities.turn_to_face(entity, args.entity)
+   end
 end
 
 return TurnToFaceEntity

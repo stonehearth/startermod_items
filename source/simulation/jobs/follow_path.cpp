@@ -25,8 +25,6 @@ FollowPath::FollowPath(Simulation& sim, om::EntityRef e, float speed, std::share
    stopDistance_(stopDistance),
    stopIndex_(-1)
 {
-   path_->PrunePoints();
-
    om::EntityPtr entity = entity_.lock();
    if (entity) {
       om::MobPtr mob = entity->AddComponent<om::Mob>();

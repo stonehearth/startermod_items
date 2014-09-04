@@ -5,32 +5,25 @@ App.StonehearthHelpCameraView = App.View.extend({
       this._super();
       var self = this;
 
-      radiant.call('stonehearth:load_browser_object', 'stonehearth:help_camera')
+      radiant.call('radiant:get_config', 'hide_help.camera')
          .done(function(o) {
-            var anyVisible = true;
-            self.camera_vars = o.value;
-            if (!self.camera_vars) {
-               self.camera_vars = {
-                  pan: false,
-                  orbit: false,
-                  zoom: false
-               };
-            }
-            anyVisible = !(self.camera_vars.pan && self.camera_vars.orbit && self.camera_vars.zoom);
+            self._cameraVars = o;
 
-            if (!self.camera_vars.pan) {
-               $("#panHint").toggle();  
+            if (!self._cameraVars.pan) {
+               $("#panHint").show();
             }
-            if (!self.camera_vars.orbit) {
-               $("#orbitHint").toggle();
+            if (!self._cameraVars.orbit) {
+               $("#orbitHint").show();
             }
-            if (self.zoomVisible(self.camera_vars)) {
-               $("#zoomHint").toggle();
+            if (self.showZoom()) {
+               $("#zoomHint").show();
             }
+
+            var anyVisible = !(self._cameraVars.pan && self._cameraVars.orbit && self._cameraVars.zoom);
             if (anyVisible) {
                radiant.call('stonehearth:get_camera_tracker')
                   .done(function(o) {
-                     this.cameraTrace = radiant.trace(o.camera_tracker)
+                     self.cameraTrace = radiant.trace(o.camera_tracker)
                         .progress(function(cameraUpdate) {
                            self._updateHints(cameraUpdate);
                         })
@@ -38,15 +31,42 @@ App.StonehearthHelpCameraView = App.View.extend({
                             console.log('failed! ', o)
                         });
                   });
+            }
+         });
+
+      /*
+      radiant.call('stonehearth:load_browser_object', 'stonehearth:help_camera')
+         .done(function(o) {
+            var anyVisible = true;
+            self._cameraVars = o.value;
+            if (!self._cameraVars) {
+               self._cameraVars = {
+                  pan: false,
+                  orbit: false,
+                  zoom: false
+               };
+            }
+            anyVisible = !(self._cameraVars.pan && self._cameraVars.orbit && self._cameraVars.zoom);
+
+            if (!self._cameraVars.pan) {
+               $("#panHint").toggle();  
+            }
+            if (!self._cameraVars.orbit) {
+               $("#orbitHint").toggle();
+            }
+            if (self.showZoom(self._cameraVars)) {
+               $("#zoomHint").toggle();
+            }
+            if (anyVisible) {
             } else {
                self.destroy();
             }
          });
-
+      */
    },
 
-   zoomVisible: function() {
-      return !this.camera_vars.zoom && this.camera_vars.orbit && this.camera_vars.pan;
+   showZoom: function() {
+      return !this._cameraVars.zoom && this._cameraVars.orbit && this._cameraVars.pan;
    },
 
    destroy: function() {
@@ -56,38 +76,43 @@ App.StonehearthHelpCameraView = App.View.extend({
       this._super();
    },
 
-   didInsertElement: function() {
-
-   },
-
    _updateHints: function(cameraUpdate) {
       if (cameraUpdate.pan) {
          $("#panHint").fadeOut();
-         this.camera_vars.pan = true;
+         this._cameraVars.pan = true;
       }
 
       if (cameraUpdate.orbit) {
          $("#orbitHint").fadeOut();
-         this.camera_vars.orbit = true;
+         this._cameraVars.orbit = true;
       }
 
       if (cameraUpdate.zoom) {
          $("#zoomHint").fadeOut();
-         this.camera_vars.zoom = true;
+         this._cameraVars.zoom = true;
       }
 
-      if (this.zoomVisible()) {
+      if (this.showZoom()) {
          $("#zoomHint").fadeIn();
       }
 
-      radiant.call('stonehearth:save_browser_object', 'stonehearth:help_camera', 
+      radiant.call('radiant:set_config', 'hide_help.camera', 
          {
-            pan : this.camera_vars.pan, 
-            orbit : this.camera_vars.orbit,
-            zoom : this.camera_vars.zoom
+            pan : this._cameraVars.pan, 
+            orbit : this._cameraVars.orbit,
+            zoom : this._cameraVars.zoom
          });
 
-      if (this.camera_vars.pan && this.camera_vars.orbit && this.camera_vars.zoom) {
+      /*
+      radiant.call('stonehearth:save_browser_object', 'stonehearth:help_camera', 
+         {
+            pan : this._cameraVars.pan, 
+            orbit : this._cameraVars.orbit,
+            zoom : this._cameraVars.zoom
+         });
+      */
+
+      if (this._cameraVars.pan && this._cameraVars.orbit && this._cameraVars.zoom) {
          this.destroy();
       }
    }

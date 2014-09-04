@@ -94,6 +94,8 @@ public:
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
 
+   std::unordered_map<const char*, int> DumpTraceReasons();
+
 private:
    typedef std::vector<TraceRef> TraceList;
    typedef std::vector<StoreTraceRef> StoreTraceList;

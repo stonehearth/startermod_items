@@ -51,7 +51,13 @@ end
 
 function PanicWatcher:_set_panicking(threat)
    self._ai:set_think_output({ threat = threat })
+   if self._panicking_listener then
+      self._panicking_listener:destroy()
+      self._panicking_listener = nil
+   end
+end
 
+function PanicWatcher:destroy()
    if self._panicking_listener then
       self._panicking_listener:destroy()
       self._panicking_listener = nil

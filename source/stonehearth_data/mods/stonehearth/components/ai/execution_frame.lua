@@ -59,6 +59,9 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._execution_units = {}
    self._execution_filters = {}
    self._saved_think_output = {}
+   self._ready_cb = nil
+   self._state = STOPPED
+   self._ai_component = entity:get_component('stonehearth:ai')
 
    local prefix = string.format('%s (%s)', self._debug_route, self._activity_name)
    self._log = radiant.log.create_logger('ai.exec_frame')
@@ -77,7 +80,6 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self:_set_state(STOPPED)
 
    self:_create_execution_units()
-   self._ai_component = entity:get_component('stonehearth:ai')
 
    if activity_name == 'stonehearth:top' then
       self._carry_listener = radiant.events.listen(entity, 'stonehearth:carry_block:carrying_changed', self, self._on_carrying_changed)
@@ -1049,6 +1051,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
          self._log:debug('removing execution unit "%s"', unit:get_name())
          unit:_destroy()
          self._execution_units[key] = nil
+         self._saved_think_output[u] = nil
          return
       end
    end

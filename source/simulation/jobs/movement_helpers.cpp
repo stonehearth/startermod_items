@@ -152,15 +152,15 @@ bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, boo
                                       csg::Point3 const& from, int dx, int dz, csg::Point3& to) const
 {
    phys::OctTree& octTree = sim.GetOctTree();
-   csg::Point3 toCandidate(from.x + dx, from.y, from.z + dz);
+   csg::Point3 base(from.x + dx, from.y, from.z + dz);
 
    phys::NavGrid& ng = octTree.GetNavGrid();
 
    for (csg::Point3 const& offset : GetElevationOffsets(entity, reversible)) {
-      csg::Point3 pt(toCandidate + offset);
-      if (ng.IsStandable(entity, pt)) {
-         if (octTree.ValidMove(entity, reversible, csg::ToClosestInt(pt), csg::ToClosestInt(pt))) {
-            to = pt;
+      csg::Point3 toCandidate(base + offset);
+      if (ng.IsStandable(entity, toCandidate)) {
+         if (octTree.ValidMove(entity, reversible, from, toCandidate)) {
+            to = toCandidate;
             return true;
          }
       }

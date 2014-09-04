@@ -174,6 +174,24 @@ TracerBufferedWrapperPtr Sim_CreateTracer(lua_State* L, const char* name)
    return tracer;
 }
 
+float Sim_GetBaseWalkSpeed(lua_State* L)
+{
+   return GetSim(L).GetBaseWalkSpeed();
+}
+
+bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg::Point3 const& from, csg::Point3 const& to)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (entity) {
+      Simulation &sim = GetSim(L);
+      phys::OctTree& octTree = sim.GetOctTree();
+      bool valid = octTree.ValidMove(entity, reversible, from, to);
+      return valid;
+   } else {
+      return false;
+   }
+}
+
 AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std::string const& name)
 {
    AStarPathFinderPtr pf;
@@ -263,6 +281,29 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
    return pf;
 }
 
+template <typename T>
+luabind::object CppToLuaArray(lua_State *L, std::vector<T> const& vector)
+{
+   luabind::object array = luabind::newtable(L);
+   int i = 1;
+
+   for (T const& element : vector) {
+      array[i++] = luabind::object(L, element);
+   }
+
+   return array;
+}
+
+luabind::object Path_GetPoints(lua_State *L, PathPtr const& path)
+{
+   return CppToLuaArray(L, path->GetPoints());
+}
+
+luabind::object Path_GetPrunedPoints(lua_State *L, PathPtr const& path)
+{
+   return CppToLuaArray(L, path->GetPrunedPoints());
+}
+
 PathPtr Path_CombinePaths(luabind::object const& table)
 {
    ASSERT(type(table) == LUA_TTABLE);
@@ -313,10 +354,13 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("load_object",               &Sim_LoadObject),
             def("save_object",               &Sim_SaveObject),
             def("create_tracer",             &Sim_CreateTracer),
+            def("get_base_walk_speed",       &Sim_GetBaseWalkSpeed),
+            def("is_valid_move",             &Sim_IsValidMove),
             lua::RegisterTypePtr_NoTypeInfo<Path>("Path")
                .def("is_empty",           &Path::IsEmpty)
                .def("get_distance",       &Path::GetDistance)
-               .def("get_points",         &Path::GetPoints, return_stl_iterator)
+               .def("get_points",         &Path_GetPoints)
+               .def("get_pruned_points",  &Path_GetPrunedPoints)
                .def("get_source",         &Path::GetSource)
                .def("get_destination",    &Path::GetDestination)
                .def("get_start_point",    &Path::GetStartPoint)

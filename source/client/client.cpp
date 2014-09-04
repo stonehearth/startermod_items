@@ -610,8 +610,27 @@ void Client::OneTimeIninitializtion()
       }
       return games;
    });
+   
    core_reactor_->AddRoute("radiant:client:get_perf_counters", [this](rpc::Function const& f) {
       return StartPerformanceCounterPush();
+   });
+
+   core_reactor_->AddRouteJ("radiant:get_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+      std::string key = args.get<std::string>(0);
+      return core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
+   });
+
+   core_reactor_->AddRouteJ("radiant:set_config", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+
+      std::string key = args.get<std::string>(0);
+      JSONNode value = args.get<JSONNode>(1);
+      core::Config::GetInstance().Set<JSONNode>(key, value);
+
+      json::Node result;
+      result.set<std::string>("result", "OK");
+      return result;
    });
 
 };
@@ -874,7 +893,7 @@ void Client::handle_connect(const boost::system::error_code& error)
       CLIENT_LOG(3) << "connection to server failed (" << error << ").  retrying...";
       setup_connections();
    } else {
-      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket);
+      recv_queue_ = std::make_shared<protocol::RecvQueue>(_tcp_socket, "client");
       connected_ = true;
    }
 }
@@ -882,7 +901,7 @@ void Client::handle_connect(const boost::system::error_code& error)
 void Client::setup_connections()
 {
    connected_ = false;
-   send_queue_ = protocol::SendQueue::Create(_tcp_socket);
+   send_queue_ = protocol::SendQueue::Create(_tcp_socket, "client");
 
    boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::address::from_string("127.0.0.1"), server_port_);
    _tcp_socket.async_connect(endpoint, std::bind(&Client::handle_connect, this, std::placeholders::_1));

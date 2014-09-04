@@ -106,6 +106,14 @@ function TrappingGroundsComponent:start_tasks()
    end
 end
 
+function TrappingGroundsComponent:stop_tasks()
+   self:_destroy_survey_task()
+   self:_destroy_set_trap_task()
+   self:_destroy_check_trap_task()
+   self:_stop_check_trap_timer()
+   self:_stop_spawn_timer()
+end
+
 function TrappingGroundsComponent:get_traps()
    return self._sv.traps
 end

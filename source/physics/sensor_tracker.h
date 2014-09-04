@@ -7,6 +7,7 @@
 #include "core/guard.h"
 #include <unordered_map>
 #include <boost/container/flat_map.hpp>
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -18,7 +19,8 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  * SensorTracker just manages the lifetime aof the SensorTrackerTiles and arbitrates
  * access to the actual sensor data.
  */
-class SensorTracker : public std::enable_shared_from_this<SensorTracker> {
+class SensorTracker : public std::enable_shared_from_this<SensorTracker>,
+                      public core::ObjectCounter<SensorTracker> {
 public:
    SensorTracker(NavGrid& navgrid, om::EntityPtr entity, om::SensorPtr sensor);
    virtual ~SensorTracker() { }

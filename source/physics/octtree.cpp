@@ -54,8 +54,10 @@ OctTree::OctTree(dm::TraceCategories trace_category) :
 {
 }
 
-void OctTree::Cleanup()
+OctTree::~OctTree()
 {
+   entities_.clear();
+   sensor_trackers_.clear();
 }
 
 void OctTree::SetRootEntity(om::EntityPtr root)

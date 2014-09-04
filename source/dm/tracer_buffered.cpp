@@ -81,7 +81,16 @@ void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
          stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
             t->Flush();
          });
-         if (i->second.empty()) {
+
+         bool anyValidTracesLeft = false;
+         for (const auto& tr : i->second) {
+            if (tr.lock()) {
+               anyValidTracesLeft = true;
+               break;
+            }
+         }
+
+         if (!anyValidTracesLeft) {
             traces_.erase(i);
          }
       }
@@ -93,10 +102,20 @@ void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
          stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
             t->SignalDestroyed();
          });
-         if (i->second.empty()) {
+
+         bool anyValidTracesLeft = false;
+         for (const auto& tr : i->second) {
+            if (tr.lock()) {
+               anyValidTracesLeft = true;
+               break;
+            }
+         }
+
+         if (!anyValidTracesLeft) {
             traces_.erase(i);
          }
       }
    };
 }
+
 

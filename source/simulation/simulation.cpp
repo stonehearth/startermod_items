@@ -164,6 +164,7 @@ void Simulation::OneTimeIninitializtion()
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
+      scriptHost_->DumpHeap("lua.heap");      
    });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
@@ -318,6 +319,9 @@ void Simulation::ShutdownGameObjects()
    root_entity_ = nullptr;
    modList_ = nullptr;
 
+   freeMotion_.reset();
+   octtree_.reset();
+
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
@@ -337,8 +341,6 @@ void Simulation::ShutdownGameObjects()
 
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
-   freeMotion_.reset();
-   octtree_.reset();
    scriptHost_.reset();
 }
 
@@ -720,8 +722,8 @@ void Simulation::handle_accept(std::shared_ptr<tcp::socket> socket, const boost:
       std::shared_ptr<RemoteClient> c = std::make_shared<RemoteClient>();
 
       c->socket = socket;
-      c->send_queue = protocol::SendQueue::Create(*socket);
-      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket);
+      c->send_queue = protocol::SendQueue::Create(*socket, "server");
+      c->recv_queue = std::make_shared<protocol::RecvQueue>(*socket, "server");
       c->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, c->send_queue.get());
       _clients.push_back(c);
 
@@ -801,9 +803,8 @@ void Simulation::Mainloop()
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
 
-   //LuaGC();
+   LuaGC();
    Idle();
-
 }
 
 void Simulation::LuaGC()
@@ -838,6 +839,11 @@ void Simulation::Idle()
          SIM_LOG(0) << "     " << std::setw(10) << count << " " << ti.name() << " (total:" << current_checkpoint[ti] << ")";
          return --c > 0;
       });
+
+      SIM_LOG(0) << "-- Traces -----------------------------------";
+      for (auto const& kv : store_->DumpTraceReasons()) {
+         SIM_LOG(0) << kv.first << " :: " << kv.second;
+      }
       nextAuditTime = now + 5000;
    }
 #endif
@@ -889,6 +895,7 @@ void Simulation::ReadClientMessages()
    SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
+   _io_service->reset();
 
    // We'll let the simulation process as many messages as it wants.
    platform::timer timeout(100000);

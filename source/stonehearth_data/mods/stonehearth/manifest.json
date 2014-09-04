@@ -252,6 +252,7 @@
       "actions:run_to_location" : "file(ai/actions/run_to_location_action.lua)",
       "actions:run_toward_entity" : "file(ai/actions/run_toward_entity_action.lua)",
       "actions:run_toward_location" : "file(ai/actions/run_toward_location_action.lua)",
+      "actions:run_to_closest_standable_location" : "file(ai/actions/run_to_closest_standable_location_action.lua)",
       "actions:bump_entity" : "file(ai/actions/bump_entity_action.lua)",
       "actions:bump_against_entity" : "file(ai/actions/bump_against_entity_action.lua)",
       "actions:bump_allies" : "file(ai/actions/bump_allies_action.lua)",

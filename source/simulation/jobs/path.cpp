@@ -21,9 +21,12 @@ Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::Ent
    ASSERT(!points.empty());
 }
 
-void Path::PrunePoints()
+std::vector<csg::Point3> const& Path::GetPrunedPoints()
 {
-   points_ = MovementHelper().PruneCollinearPathPoints(points_);
+   if (prunedPoints_.size() == 0 && points_.size() > 0) {
+      prunedPoints_ = MovementHelper().PruneCollinearPathPoints(points_);
+   }
+   return prunedPoints_;
 }
 
 std::ostream& Path::Format(std::ostream& os) const
@@ -37,6 +40,7 @@ std::ostream& Path::Format(std::ostream& os) const
    if (destination) {
       os << *destination << " -> ";
    }
+   os << "endpoint: " << points_.back();
    os << " dpoi:" << poi_ << "]";
    return os;
 }
