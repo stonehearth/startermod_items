@@ -149,6 +149,17 @@ function env.create_stockpile(x, z, options)
    return inventory:create_stockpile(location, size)
 end
 
+function env.create_trapping_grounds(x, z, options)
+   options = options or {}
+   
+   local player_id = env.session.player_id
+   local faction = options.faction or DEFAULT_FACTION
+   local size = options.size or { x = 16, z = 16 }
+
+   local location = Point3(x, 1, z)
+   return stonehearth.trapping:designate_trapping_grounds(player_id, faction, location, size)
+end
+
 function env.equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
    radiant.entities.equip_item(entity, weapon)

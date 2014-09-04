@@ -39,10 +39,10 @@ function combat_tests.battle_royale(autotest)
 end
 
 function combat_tests.patrol(autotest)
-   local stockpile1 = autotest.env:create_stockpile(30, 30, { size = { x = 2, y = 2 }})
-   local stockpile2 = autotest.env:create_stockpile(20, 20, { size = { x = 2, y = 2 }})
-   local footman = autotest.env:create_person(28, 28, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' })
-   local patrol_point = radiant.entities.get_world_grid_location(stockpile2) - Point3(2, 0, 2)
+   local stockpile1 = autotest.env:create_stockpile(-5, -5, { size = { x = 2, y = 2 }})
+   local stockpile2 = autotest.env:create_stockpile(0, 0, { size = { x = 2, y = 2 }})
+   local footman = autotest.env:create_person(5, 5, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' })
+   local patrol_point = radiant.entities.get_world_grid_location(stockpile1) - Point3(2, 0, 2)
 
    local trace
    trace = radiant.entities.trace_grid_location(footman, 'patrol autotest')

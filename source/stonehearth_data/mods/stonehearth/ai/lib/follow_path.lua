@@ -31,6 +31,9 @@ function FollowPath:__init(entity, speed, path)
       -- e.g. see place_item_action
       -- TODO: decide how to handle cases when entities are bumped from their path
    end
+
+   log:debug('%s following path: start_index: %d, stop_index: %d, num_points: %d',
+             self._entity, self._pursuing, self._stop_index, self._num_points)
 end
 
 function FollowPath:set_speed(speed)
@@ -146,25 +149,33 @@ end
 -- to moving away from the point. At this time, we validate the next contiguous move.
 function FollowPath:_is_valid_move(from, to)
    local current_point = self._contiguous_points[self._contiguous_index]
-   if self:_moving_towards_point(from, to, current_point:to_float()) then
-      -- still moving towards the current point, which was already validated
-      return true
+
+   -- iterate until we're moving towards the next contiguous point
+   -- this better handles cases where the entity's start location does not match the path start location
+   -- or when the entity is bumped off the path
+   while self:_moving_away_from_point(from, to, current_point:to_float()) do
+      -- validate the move from the current point to the next point
+      self._contiguous_index = self._contiguous_index + 1
+      local next_point = self._contiguous_points[self._contiguous_index]
+
+      local valid_move = _radiant.sim.is_valid_move(self._entity, false, current_point, next_point)
+      if not valid_move then
+         return false
+      end
+      
+      current_point = next_point
+      log:debug('%s has skipped points on the contiguous path', self._entity)
    end
 
-   -- validate the move from the current point to the next point
-   self._contiguous_index = self._contiguous_index + 1
-   local next_point = self._contiguous_points[self._contiguous_index]
-
-   local valid = _radiant.sim.is_valid_move(self._entity, false, current_point, next_point)
-   return valid
+   return true
 end
 
-function FollowPath:_moving_towards_point(from, to, point)
+function FollowPath:_moving_away_from_point(from, to, point)
    local move_vector = to - from
    local location_vector = point - from
 
-   -- we're moving towards the point if the dot product is positive
-   local moving_towards_point = move_vector:dot(location_vector) > 0
+   -- we're moving away from the point if the dot product is negative
+   local moving_towards_point = move_vector:dot(location_vector) < 0
    return moving_towards_point
 end
 
