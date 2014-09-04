@@ -34,6 +34,11 @@ function FollowPathAction:start_thinking(ai, entity, args)
 end
 
 function FollowPathAction:run(ai, entity, args)
+   if entity:add_component('mob'):get_parent() ~= radiant.entities.get_root_entity() then
+      log:warning('cannot follow path because %s is not a child of the root entity', entity)
+      ai:abort('cannot follow path because entity is not a child of the root entity')
+   end
+
    local path = args.path
    self._ai = ai
    self._entity = entity
