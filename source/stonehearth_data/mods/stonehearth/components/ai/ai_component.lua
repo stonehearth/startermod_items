@@ -4,6 +4,12 @@ local ExecutionFrame = require 'components.ai.execution_frame'
 
 local action_key_to_activity = {}
 
+-- We want the key-to-activity entry to go away when no-one else is referencing it,
+-- so make this table's keys weak.
+local akta_meta = {}
+setmetatable(action_key_to_activity, akta_meta)
+akta_meta.__mode = 'k'
+
 function AIComponent:initialize(entity, json)
    self._entity = entity
    self._action_index = {}

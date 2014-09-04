@@ -239,7 +239,6 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    _allocDs(allocDs),
    L_(nullptr)
 {
-   _curLuaState = nullptr;
    current_line = 0;
    *current_file = '\0';
    current_file[ARRAY_SIZE(current_file) - 1] = '\0';
@@ -342,15 +341,19 @@ std::string ExtractAllocKey(lua_State *l) {
 
       if (stack.name) {
          fnName = stack.name;
+      } else {
+         fnName = "";
       }
       fnName += BUILD_STRING("[listen " << oldLine << "]");
-   } else if (srcName == "=[C]" && (fnName == "insert" || fnName == "resume")) {
+   } else if (srcName == "=[C]") {
       int oldLine = stack.currentline;
       lua_getstack(l, 1, &stack);
       lua_getinfo(l, "nSl", &stack);
 
       if (stack.name) {
          fnName = stack.name;
+      } else {
+         fnName = "";
       }
    } else if (srcName == "@radiant/modules/log.lua" && fnName == "create_logger") {
       int oldLine = stack.currentline;
@@ -362,6 +365,26 @@ std::string ExtractAllocKey(lua_State *l) {
          fnName = stack.name;
       }
       fnName += BUILD_STRING("[logger " << oldLine << "]");
+   } else if (srcName == "@radiant/modules/log.lua" && fnName == "set_prefix") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[set_prefix " << oldLine << "]");
+   } else if (srcName == "@radiant/lualibs/unclasslib.lua" && fnName == "build") {
+      int oldLine = stack.currentline;
+      // Reach back to find the listener.
+      lua_getstack(l, 1, &stack);
+      lua_getinfo(l, "nSl", &stack);
+
+      if (stack.name) {
+         fnName = stack.name;
+      }
+      fnName += BUILD_STRING("[build " << oldLine << "]");
    }
 
    return BUILD_STRING(stack.source << ":" << fnName << ":" << stack.currentline);
@@ -386,28 +409,41 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    void *realloced = ScriptHost::LuaAllocFn(ud, ptr, osize, nsize);
    if (host->enable_profile_memory_) {
-      host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
-      host->alloc_backmap.erase(ptr);
-      if (realloced) {
-         std::string key = "unknown";
-         lua_State *l = L;
-         if (l != nullptr) {
-            lua_Debug stack;
-            int r = lua_getstack(l, 0, &stack);
+      if (realloced && ptr && host->alloc_backmap[ptr] != "") {
+         ASSERT(nsize > 0);
+         std::string oldKey = host->alloc_backmap[ptr];
+         host->alloc_map[oldKey].erase(ptr);
+         host->alloc_backmap.erase(ptr);
+         host->alloc_map[oldKey][realloced] = nsize;
+         host->alloc_backmap[realloced] = oldKey;
+      } else {
+         host->alloc_map[host->alloc_backmap[ptr]].erase(ptr);
+         if (host->alloc_map[host->alloc_backmap[ptr]].size() == 0) {
+            host->alloc_map.erase(host->alloc_backmap[ptr]);
+         }
+         host->alloc_backmap.erase(ptr);
+         if (realloced) {
+            ASSERT(nsize > 0);
+            std::string key = "unknown";
+            lua_State *l = L;
+            if (l != nullptr) {
+               lua_Debug stack;
+               int r = lua_getstack(l, 0, &stack);
 
-            if (!r) {
-               l = host->L_;
+               if (!r) {
+                  l = host->L_;
 
-               if (l) {
-                  r = lua_getstack(l, 0, &stack);
+                  if (l) {
+                     r = lua_getstack(l, 0, &stack);
+                  }
+               }
+               if (r) {
+                  key = ExtractAllocKey(l);
                }
             }
-            if (r) {
-               key = ExtractAllocKey(l);
-            }
+            host->alloc_map[key][realloced] = nsize;
+            host->alloc_backmap[realloced] = key;
          }
-         host->alloc_map[key][realloced] = nsize;
-         host->alloc_backmap[realloced] = key;
       }
    }
    return realloced;
@@ -670,10 +706,8 @@ int ScriptHost::GetAllocBytesCount() const
 void ScriptHost::Trigger(std::string const& eventName, luabind::object evt)
 {
    try {
-      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       TriggerOn(radiant, eventName, evt);
-      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
@@ -685,14 +719,62 @@ void ScriptHost::TriggerOn(luabind::object obj, std::string const& eventName, lu
       if (!evt || !evt.is_valid()) {
          evt = luabind::newtable(L_);
       }
-      _curLuaState = cb_thread_;
       luabind::object radiant = globals(cb_thread_)["radiant"];
       radiant["events"]["trigger"](obj, eventName, evt);
-      _curLuaState = nullptr;
    } catch (std::exception const& e) {
       ReportCStackThreadException(cb_thread_, e);
    }
 }
+
+void ScriptHost::DumpHeap(std::string const& filename) const
+{
+   std::unordered_map<std::string, int> keyMap;
+   FILE* outf = fopen(filename.c_str(), "wb");
+   
+   // Dump keys first.  Create an index for the keys, too.
+   int numkeys = alloc_map.size();
+   fwrite(&numkeys, sizeof(numkeys), 1, outf);
+   int keyidx = 0;
+   for (const auto& v : alloc_map) {
+      keyMap[v.first] = keyidx;
+
+      // + 1 for the null terminator!
+      fwrite(v.first.c_str(), 1, v.first.size() + 1, outf);
+
+      keyidx++;
+   }
+
+   // Record and write the total number of memory allocations.
+   int totalallocs = 0;
+   for (const auto& entry : alloc_map) {
+      totalallocs += entry.second.size();
+   }
+   fwrite(&totalallocs, sizeof(totalallocs), 1, outf);
+   for (const auto& entry : alloc_map) {
+      int idx = keyMap[entry.first];
+      for (const auto& alloc : entry.second) {
+         // key (redundancy makes things easier)
+         fwrite(&idx, sizeof(idx), 1, outf);
+
+         // ptr
+         fwrite(&alloc.first, sizeof(idx), 1, outf);
+
+         // size
+         fwrite(&alloc.second, sizeof(idx), 1, outf);
+
+         // write the bytes!
+         fwrite(alloc.first, 1, alloc.second, outf);
+      }
+   }
+
+   fclose(outf);
+}
+
+typedef struct {
+   std::string key;
+   int allocs;
+   int totalBytes;
+} _MemSample;
 
 void ScriptHost::WriteMemoryProfile(std::string const& filename) const
 {
@@ -700,7 +782,7 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       return;
    }
 
-   std::map<int, std::pair<std::string, int>> totals;
+   std::vector<_MemSample> samples;
    int grand_total = 0;
    unsigned int w = 0;
    for (const auto& entry : alloc_map) {
@@ -709,7 +791,11 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
          total += alloc.second;
       }
       grand_total += total;
-      totals[total] = std::make_pair(entry.first, entry.second.size());
+      _MemSample s;
+      s.key = entry.first;
+      s.allocs = entry.second.size();
+      s.totalBytes = total;
+      samples.push_back(s);
       w = std::max(w, entry.first.size() + 2);
    }
 
@@ -733,10 +819,14 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
       f << std::endl;
    };
 
+   std::sort(samples.begin(), samples.end(), [](_MemSample const& a, _MemSample const& b) -> bool {
+      return a.totalBytes > b.totalBytes;
+   });
+
    output("Total Memory Tracked", 0, grand_total);
    output("Total Memory Allocated", 0, GetAllocBytesCount());
-   for (auto i = totals.rbegin(); i != totals.rend(); ++i) {
-      output(i->second.first, i->second.second, i->first);
+   for (const auto& sample : samples) {
+      output(sample.key, sample.allocs, sample.totalBytes);
    }
    LUA_LOG(0) << " wrote lua memory profile data to lua_memory_profile.txt";
 }

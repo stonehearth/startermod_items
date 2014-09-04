@@ -122,16 +122,24 @@ end
 
 function RunTaskAction:destroy()
    self._task:__action_destroyed(self)
+   self._task = nil
+   self._activity = nil
    if self._execution_frame then
       self._execution_frame:destroy()
       self._execution_frame = nil
+   end
 
+   if self._started_listener then
       self._started_listener:destroy()
       self._started_listener = nil
+   end
 
+   if self._stopped_listener then
       self._stopped_listener:destroy()
       self._stopped_listener = nil
+   end
 
+   if self._work_available_listener then
       self._work_available_listener:destroy()
       self._work_available_listener = nil
    end

@@ -184,7 +184,7 @@ function BuildUndoManager:_trace_entity(entity)
 
 
    local function trace_component(component, name)
-      return component:trace('building undo', self._tracer_category)
+      return component:trace('building undo.tc', self._tracer_category)
                      :on_changed(function()
                            if entity:is_valid() then
                               log:detail('component %s for entity %s changed', name, entity)
@@ -195,7 +195,7 @@ function BuildUndoManager:_trace_entity(entity)
    end
    
    local function trace_lua_component(component, name)
-      return component.__saved_variables:trace('building undo', self._tracer_category)
+      return component.__saved_variables:trace('building undo.tlc', self._tracer_category)
                      :on_changed(function()
                            if entity:is_valid() then
                               log:detail('component %s for entity %s changed', name, entity)
@@ -206,7 +206,7 @@ function BuildUndoManager:_trace_entity(entity)
    end
    
    local function trace_region(component, name)
-      return component:trace_region('building undo', self._tracer_category)
+      return component:trace_region('building undo.tr', self._tracer_category)
                      :on_changed(function(r)
                            if entity:is_valid() then
                               local region = component:get_region()
@@ -218,7 +218,7 @@ function BuildUndoManager:_trace_entity(entity)
    end
    
    local function trace_entity_container(component)
-      return component:trace_children('building undo', self._tracer_category)
+      return component:trace_children('building undo.tec', self._tracer_category)
                      :on_added(function(id, e)
                            log:detail('child %s added to entity %s', e, entity)
                            self:_trace_entity(e)
@@ -230,7 +230,7 @@ function BuildUndoManager:_trace_entity(entity)
                      :push_object_state()
    end
    
-   traces.components = entity:trace_components('building undo', self._tracer_category)
+   traces.components = entity:trace_components('building undo.tc2', self._tracer_category)
                               :on_added(function (name)
                                     if entity:is_valid() then
                                        local component = entity:get_component(name)
@@ -257,7 +257,7 @@ function BuildUndoManager:_trace_entity(entity)
                                  end)
                               :push_object_state()
 
-   traces.lua_components = entity:trace_lua_components('building undo', self._tracer_category)
+   traces.lua_components = entity:trace_lua_components('building undo.tlc2', self._tracer_category)
                               :on_added(function (name)
                                     if entity:is_valid() then
                                        local component = entity:get_component(name)
@@ -281,6 +281,14 @@ function BuildUndoManager:_trace_entity(entity)
       uri = entity:get_uri(),
       entity = entity,
    } 
+end
+
+function BuildUndoManager:clear()
+   assert(not self._in_transaction)
+
+   for eid, _ in pairs(self._entity_traces) do
+      self:_untrace_entity(eid)
+   end
 end
 
 function BuildUndoManager:_untrace_entity(id)  

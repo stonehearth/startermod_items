@@ -237,9 +237,9 @@ void NavGridTile::FlushDirty(NavGrid& ng)
 void NavGridTile::SetDataResident(bool value, int index)
 {
    if (value && !data_) {
-      data_ = std::make_shared<NavGridTileData>();
+      data_.reset(new NavGridTileData());
    } else if (!value && data_) {
-      data_ = nullptr;
+      data_.reset(nullptr);
    }
    _residentTileIndex = index;
 
@@ -293,18 +293,6 @@ csg::Cube3 NavGridTile::GetWorldBounds() const
 {
    csg::Point3 min(_index.Scaled(TILE_SIZE));
    return csg::Cube3(min, min + csg::Point3(TILE_SIZE, TILE_SIZE, TILE_SIZE));
-}
-
-/*
- * -- NavGridTile::GetTileData
- *
- * Get the NavGridTileData for this tile.  This is only used by other
- * NavGridTileData objects to handle computation on the borders.
- *
- */
-std::shared_ptr<NavGridTileData> NavGridTile::GetTileData()
-{
-   return data_;
 }
 
 /*

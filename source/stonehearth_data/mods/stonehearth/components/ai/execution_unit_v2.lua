@@ -584,10 +584,10 @@ function ExecutionUnitV2:_destroy_execution_frames()
       frame:destroy()
    end
    self._execution_frames = {}
+
    self._current_execution_frame = nil
 end
 
--- the interface facing actions (i.e. the 'ai' interface)
 function ExecutionUnitV2:__get_log()
    return self._log
 end

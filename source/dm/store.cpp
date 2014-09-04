@@ -59,6 +59,21 @@ Store::~Store(void)
 {
 }
 
+std::unordered_map<const char*, int> Store::DumpTraceReasons()
+{
+   std::unordered_map<const char*, int> reasonMap;
+   for (auto const& tracelist : traces_) {
+      for (auto const& trace : tracelist.second) {
+         auto t = trace.lock();
+         if (t) {
+            reasonMap[t->GetReason()]++;
+         }
+      }
+   }
+
+   return reasonMap;
+}
+
 ObjectPtr Store::AllocObject(ObjectType t, ObjectId id)
 {
    ASSERT(allocators_[t]);
