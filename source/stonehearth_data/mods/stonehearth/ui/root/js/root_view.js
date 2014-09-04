@@ -77,6 +77,8 @@ App.RootView = Ember.ContainerView.extend({
             'channel': 'ambient', 
             'volume' : 60
          });  
+
+      //this._help = new StonehearthHelpBasics();
    },
 
    gotoShell: function() {

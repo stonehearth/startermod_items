@@ -1,79 +1,135 @@
 <script type="text/x-handlebars" data-template-name="citizenCharacterSheet">
-   <div id="citizenCharacterSheet">
-      <div id="header">
-         <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} />
-         <div id="description">{{unit_info.description}}</div>
-      </div>
-      <div id="infoTable">
-         <table>
-            <tr><td>Personality<td id="personality">
-            <tr><td>Traits<td id="traits"> TBD. Stay tuned!
-            <tr><td>Birthday<td>TBD. Stay tuned!
-         </table>
-      </div>
+   <div class="gui">
+      <div class="window" id="citizenCharacterSheet">
+         <div class="title">
+            Character Info
+            <div class="closeButton"></div>
+         </div>
 
-      <div id="glass">
-         <div id="mind">{{stonehearth:attributes.attributes.mind.effective_value}}</div>
-         <div id="body">{{stonehearth:attributes.attributes.body.effective_value}}</div>
-         <div id="spirit">{{stonehearth:attributes.attributes.spirit.effective_value}}</div>
-      </div>
+         <div id="header">
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} />
+            <div id="description">{{unit_info.description}}</div>
 
-      <div class="content">
+            <div id="stats">
 
-         <div id="persona" class="column1">
-            <h2>{{i18n stonehearth:show_character_sheet_happiness}}</h2>
-            <table>
-               <tr><td>{{i18n stonehearth:show_character_sheet_overall_happiness}}<td><div id='happiness' class=value>{{stonehearth:score.scores.happiness.score}}</div>
-               <tr><td>{{i18n stonehearth:show_character_sheet_happiness_nutrition}}<td><div id='nutrition' class=value>{{stonehearth:score.scores.nutrition.score}}</div>
-               <tr><td>{{i18n stonehearth:show_character_sheet_happiness_shelter}}<td><div id='shelter' class=value>{{stonehearth:score.scores.shelter.score}}</div>
-               <tr><td>{{i18n stonehearth:show_character_sheet_happiness_safety}}<td><div id='safety'class=value>{{stonehearth:score.scores.safety.score}}</div>
-            </table>
+               <!-- health -->
+               <div class="stat">
+                  <div class="label">health</div>
+                  <div class="bar">
+                     <div class="healthBar" />
+                     <div class="value">{{stonehearth:attributes.attributes.health.effective_value}} / {{stonehearth:attributes.attributes.max_health.effective_value}}</div>
+                  </div>
+               </div>
 
-            <br>
-            <h2>{{i18n stonehearth:show_character_sheet_latest_journal}}</h2>
-            <div id="latestJournal">
-               
-               <div class="entry">
-                  <p class="date">{{firstJournalEntry.date}}</p>
-                  <p class="title">{{firstJournalEntryTitle}}</p> 
-                  
-                  <div>
-                  {{#if firstJournalEntryScore}}
-                     {{#if firstJournalEntryScoreIsUp}}
-                        <div class="scoreIndicator goodEntry"></div>
-                     {{else}}
-                        <div class="scoreIndicator badEntry"></div>
-                     {{/if}}
-                  {{/if}}
-                  <p>{{firstJournalEntryText}}</p>
+               <!-- morale -->
+               <div class="stat">
+                  <div class="label">morale</div>
+                  <div class="bar">
+                     <div class="moraleBar" />
+                     <div class="value">{{stonehearth:score.scores.happiness.score}} / 100</div>
+                  </div>
+               </div>
+
+               <!-- experience -->
+               <div class="stat" id="experienceStat">
+                  <div class="label">experience</div>
+                  <div class="bar">
+                     <div class="expBar" />
+                     <div class="value">100 / 100</div>
                   </div>
                </div>
             </div>
-
          </div>
 
-         <div id="attributes" class="column2">
-            <h2>{{i18n stonehearth:show_character_sheet_attributes}}</h2>
-            <table>
-               <tr><td>{{i18n stonehearth:diligence_attribute}}<td><div id='diligence' class=value>{{stonehearth:attributes.attributes.diligence.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:curiosity_attribute}}<td><div id='curiosity' class=value>{{stonehearth:attributes.attributes.curiosity.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:inventiveness_attribute}}<td><div id='inventiveness'class=value>{{stonehearth:attributes.attributes.inventiveness.effective_value}}</div>
-            </table>
-            <br>
-            <table>
-               <tr><td>{{i18n stonehearth:muscle_attribute}}<td><div  id='muscle' class=value>{{stonehearth:attributes.attributes.muscle.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:speed_attribute}}<td><div  id='speed' class=value>{{stonehearth:attributes.attributes.speed.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:stamina_attribute}}<td><div id='stamina' class=value>{{stonehearth:attributes.attributes.stamina.effective_value}}</div>
-            </table>
-            <br>
-            <table>
-               <tr><td>{{i18n stonehearth:courage_attribute}}<td><div id='courage' class=value>{{stonehearth:attributes.attributes.courage.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:willpower_attribute}}<td><div  id='willpower' class=value>{{stonehearth:attributes.attributes.willpower.effective_value}}</div>
-               <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id='compassion' class=value>{{stonehearth:attributes.attributes.compassion.effective_value}}</div>
-            </table>
-
-
+         <div id="glass">
+            <div id="mind">{{stonehearth:attributes.attributes.mind.effective_value}}</div>
+            <div id="body">{{stonehearth:attributes.attributes.body.effective_value}}</div>
+            <div id="spirit">{{stonehearth:attributes.attributes.spirit.effective_value}}</div>
          </div>
+         <div id="buffs">
+            {{#each buffs}}
+               {{#if this.name}}
+                  <div class="item" {{bind-attr title=this.name description=this.description}}>
+                     <img {{bind-attr src=this.icon}} />
+                  </div>
+               {{/if}}
+            {{/each}}
+         </div>
+
+         <div id="details" class="downSection">
+            <div id="equipmentTab" class="tabPage"> 
+               <h2>{{i18n stonehearth:equipment}}</h2>
+            </div>
+
+            <div id="attributesTab" class="tabPage">
+               <h2>{{i18n stonehearth:attributes}}</h2>
+               <table>
+                  <tr><td>{{i18n stonehearth:diligence_attribute}}<td><div id="diligence" class="value">{{stonehearth:attributes.attributes.diligence.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:curiosity_attribute}}<td><div id="curiosity" class="value">{{stonehearth:attributes.attributes.curiosity.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:inventiveness_attribute}}<td><div id="inventiveness"class="value">{{stonehearth:attributes.attributes.inventiveness.effective_value}}</div>
+               </table>
+               <br>
+               <table>
+                  <tr><td>{{i18n stonehearth:muscle_attribute}}<td><div  id="muscle" class="value">{{stonehearth:attributes.attributes.muscle.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:speed_attribute}}<td><div  id="speed" class="value">{{stonehearth:attributes.attributes.speed.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:stamina_attribute}}<td><div id="stamina" class="value">{{stonehearth:attributes.attributes.stamina.effective_value}}</div>
+               </table>
+               <br>
+               <table>
+                  <tr><td>{{i18n stonehearth:courage_attribute}}<td><div id="courage" class="value">{{stonehearth:attributes.attributes.courage.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:willpower_attribute}}<td><div  id="willpower" class="value">{{stonehearth:attributes.attributes.willpower.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id="compassion" class="value">{{stonehearth:attributes.attributes.compassion.effective_value}}</div>
+               </table>
+            </div>
+            <div id="moraleTab" class="tabPage">
+               <div id="persona" class="column">
+                  <h2>{{i18n stonehearth:happiness}}</h2>
+                  <table>
+                     <tr><td>{{i18n stonehearth:overall_happiness}}<td><div id="happiness" class="value">{{stonehearth:score.scores.happiness.score}}</div>
+                     <tr><td>{{i18n stonehearth:happiness_nutrition}}<td><div id="nutrition" class="value">{{stonehearth:score.scores.nutrition.score}}</div>
+                     <tr><td>{{i18n stonehearth:happiness_shelter}}<td><div id="shelter" class="value">{{stonehearth:score.scores.shelter.score}}</div>
+                     <tr><td>{{i18n stonehearth:happiness_safety}}<td><div id="safety"class="value">{{stonehearth:score.scores.safety.score}}</div>
+                  </table>
+               </div>
+               <div id="journal" class="column">
+                  <h2>{{i18n stonehearth:journal}}</h2>
+                  <div id="entries">
+                     
+                     <div class="entry">
+                        <p class="date">{{firstJournalEntry.date}}</p>
+                        <p class="entryTitle">{{firstJournalEntryTitle}}</p> 
+                        
+                        <div>
+                        {{#if firstJournalEntryScore}}
+                           {{#if firstJournalEntryScoreIsUp}}
+                              <div class="scoreIndicator goodEntry"></div>
+                           {{else}}
+                              <div class="scoreIndicator badEntry"></div>
+                           {{/if}}
+                        {{/if}}
+                        <p>{{firstJournalEntryText}}</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+         <div>
+
+         <div id="infoTable">
+            <table>
+               <tr><td>Personality<td id="personality">
+               <tr><td>Traits<td id="traits"> TBD. Stay tuned!
+               <tr><td>Birthday<td>TBD. Stay tuned!
+            </table>
+         </div>
+
+         <div id="tabs">
+            <div class="tab active" tabPage="equipmentTab">{{i18n stonehearth:equipment}}</div>
+            <div class="tab" tabPage="attributesTab">{{i18n stonehearth:attributes}}</div>
+            <div class="tab" tabPage="moraleTab">{{i18n stonehearth:happiness}}</div>
+         </div>
+
       </div>
+
    </div>
 </script>
