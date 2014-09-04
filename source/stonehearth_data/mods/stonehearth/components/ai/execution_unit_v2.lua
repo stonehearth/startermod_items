@@ -624,9 +624,7 @@ function ExecutionUnitV2:__execute(activity_name, args)
    self._current_execution_frame:wait_until(READY)
    self._current_execution_frame:run()
    self._current_execution_frame:stop()
-   self._current_execution_frame:destroy()
    self._current_execution_frame = nil
-   self._execution_frames[activity_name] = nil
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
