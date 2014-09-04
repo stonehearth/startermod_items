@@ -1,0 +1,23 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_sword.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Wooden Sword",
+         "description": "Basic wooden sword.",
+         "icon" : "file(wooden_sword.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}

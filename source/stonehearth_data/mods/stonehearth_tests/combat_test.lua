@@ -29,17 +29,22 @@ end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:professions:footman', 'stonehearth:weapons:wooden_sword'),
-      --self:place_citizen( -7, -15, 'stonehearth:professions:footman', 'stonehearth:weapons:wooden_sword'),
-      --self:place_citizen(  1, -15, 'stonehearth:professions:footman', 'stonehearth:weapons:wooden_sword'),
-      --self:place_citizen(  9, -15, 'stonehearth:professions:footman', 'stonehearth:weapons:wooden_sword'),
+      self:place_citizen(-9, -15, 'stonehearth:professions:footman'),
+      self:place_citizen( -7, -15, 'stonehearth:professions:carpenter'),
+      self:place_citizen(  1, -15, 'stonehearth:professions:weaver'),
+      self:place_citizen(  9, -15, 'stonehearth:professions:farmer'),
+      self:place_citizen(  11, -15, 'stonehearth:professions:trapper'),
    }
 
    self._enemies = {
       self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver'),
       self:place_enemy( -1, 15, 'stonehearth:weapons:jagged_cleaver'),
       self:place_enemy(  7, 15, 'stonehearth:weapons:jagged_cleaver'),
-      --self:place_enemy( 15, 15, 'stonehearth:weapons:jagged_cleaver'),
+      self:place_enemy( 15, 15, 'stonehearth:weapons:jagged_cleaver'),
+      self:place_enemy( -9, 10, 'stonehearth:weapons:jagged_cleaver'),
+      self:place_enemy( -1, 10, 'stonehearth:weapons:jagged_cleaver'),
+      self:place_enemy(  7, 10, 'stonehearth:weapons:jagged_cleaver'),
+      self:place_enemy( 15, 10, 'stonehearth:weapons:jagged_cleaver'),
    }
 end
 
