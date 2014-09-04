@@ -1,6 +1,7 @@
 local Entity = _radiant.om.Entity
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local rng = _radiant.csg.get_default_rng()
 
 local Terrain = {}
 local singleton = {}
@@ -140,8 +141,8 @@ end
 
 function Terrain.find_placement_point(origin, min_radius, max_radius)
    -- pick a random start location
-   local x = math.random(-max_radius, max_radius)
-   local z = math.random(-max_radius, max_radius)
+   local x = rng:get_int(-max_radius, max_radius)
+   local z = rng:get_int(-max_radius, max_radius)
 
    -- move to the next point in the box defined by max_radius
    local function inc(x, z)
@@ -187,23 +188,80 @@ function Terrain.find_placement_point(origin, min_radius, max_radius)
    return pt, found
 end
 
-function Terrain.get_direct_path_end_point(start_location, desired_destination, entity)
-   local resolved_destination
+function Terrain.is_valid_direct_path(from, to, entity, reversible)
+   local end_point = Terrain.get_direct_path_end_point(from, to, entity, reversible)
+   return end_point == to
+end
+
+function Terrain.get_direct_path_end_point(from, to, entity, reversible)
+   if reversible == nil then
+      reversible = true
+   end
+
+   local end_point
 
    local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
-      :set_start_location(start_location)
-      :set_end_location(desired_destination)
+      :set_start_location(from)
+      :set_end_location(to)
       :set_allow_incomplete_path(true)
-      :set_reversible_path(true)
+      :set_reversible_path(reversible)
 
    local path = direct_path_finder:get_path()
    if path and not path:is_empty() then
-      resolved_destination = path:get_finish_point()
+      end_point = path:get_finish_point()
    else
-      resolved_destination = start_location
+      end_point = from
    end
 
-   return resolved_destination
+   return end_point
+end
+
+-- only finds points at the same elevation as location
+function Terrain.find_closest_standable_point_to(location, max_radius, entity)
+   if Terrain._is_standable_and_unblocked(location) then
+      return location, true
+   end
+
+   -- randomize signs so we don't favor the top-left corner
+   local sx = rng:get_int(0, 1)*2 - 1
+   local sz = rng:get_int(0, 1)*2 - 1
+   local point = Point3(0, location.y, 0)
+
+   for radius = 1, max_radius do
+      -- apply the randomized iteration direction
+      local rx = radius * sx
+      local rz = radius * sz
+
+      -- top and bottom edges
+      for z = -rz, rz, 2*rz do
+         for x = -rx, rx, sx do
+            point.x = location.x + x
+            point.z = location.z + z
+            if Terrain._is_standable_and_unblocked(point) then
+               return point, true
+            end
+         end
+      end
+
+      -- left and right edges
+      for z = -rz+sz, rz-sz, sz do  -- +/- sz so we skip points on the top and bottom eedges that were already checked
+         for x = -rx, rx, 2*rx do
+            point.x = location.x + x
+            point.z = location.z + z
+            if Terrain._is_standable_and_unblocked(point) then
+               return point, true
+            end
+         end
+      end
+   end
+
+   -- return the origin and a flag indicating failure
+   return location, false
+end
+
+function Terrain._is_standable_and_unblocked(pt)
+   local result = _physics:is_standable(pt) and not _physics:is_occupied(pt)
+   return result
 end
 
 return Terrain
