@@ -164,7 +164,7 @@ function FollowPath:_is_valid_move(from, to)
       end
       
       current_point = next_point
-      log:warning('%s has skipped points on the contiguous path', self._entity)
+      log:debug('%s has skipped points on the contiguous path', self._entity)
    end
 
    return true
