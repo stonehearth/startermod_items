@@ -23,6 +23,7 @@ $(document).ready(function(){
 
 App.StonehearthTipPopup = App.View.extend({
    templateName: 'stonehearthTipPopup',
+   classNames: ['fullScreen', 'flex'],
 
    didInsertElement: function() {
       this._super();

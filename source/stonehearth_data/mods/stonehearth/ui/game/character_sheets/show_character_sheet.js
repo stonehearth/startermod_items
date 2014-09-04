@@ -4,7 +4,7 @@ $(document).ready(function(){
       var trace = new RadiantTrace()
       var viewName = 'StonehearthSimpleCharacterSheetView';
 
-
+      /*
       trace.traceUri(e.entity, { unit_info: {} })
          .progress(function(o) {
             if (trace) {
@@ -27,7 +27,12 @@ $(document).ready(function(){
             trace.destroy();
             trace = null;
          });
-
-      //var view = App.gameView.addView(App.StonehearthCitizenCharacterSheetView, { uri: e.entity });
+      */
+      
+      if (App.stonehearthCharacterSheet != null) {
+         App.stonehearthCharacterSheet.destroy();
+         App.stonehearthCharacterSheet = null;
+      }
+      App.stonehearthCharacterSheet = App.gameView.addView(App.StonehearthCitizenCharacterSheetView, { uri: e.entity });
    });
 });

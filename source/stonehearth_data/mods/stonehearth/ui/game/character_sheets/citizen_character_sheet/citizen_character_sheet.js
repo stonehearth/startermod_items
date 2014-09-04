@@ -1,6 +1,6 @@
 App.StonehearthCitizenCharacterSheetView = App.View.extend({
 	templateName: 'citizenCharacterSheet',
-   modal: true,
+   closeOnEsc: true,
 
    components: {
       "unit_info": {},
@@ -38,26 +38,46 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    }.observes('context.stonehearth:personality'),
 
-   //Fires whenever the sheet is present and the buffs item changes
-   _setBuffData: function() {
-      this._updateAttributes();
-   }.observes('context.stonehearth:buffs'),
+   buffs: function() {
+        var vals = [];
+        var attributeMap = this.get('context.stonehearth:buffs.buffs');
+        
+        if (attributeMap) {
+           $.each(attributeMap, function(k ,v) {
+              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
+                 vals.push(v);
+              }
+           });
+        }
+
+        this.set('context.buffs', vals);
+    }.observes('context.stonehearth:buffs'),
 
    _setAttributeData: function() {
       this._updateAttributes();
-   }.observes('context.stonehearth:attributes'),
+   }.observes('context.stonehearth:attributes, context.stonehearth:buffs'),
 
    _updateAttributes: function() {
       var self = this;
       var buffsByAttribute = this._sortBuffsByAttribute();
 
-      $('.value').each(function(index){
+      if (!self.$()) {
+         return;
+      }
+
+      self.$('.value').each(function(index){
          self._showBuffEffects(this, buffsByAttribute);
       });
 
-      $('#glass > div').each(function() {
+      self.$('#glass > div').each(function() {
          self._showBuffEffects(this, buffsByAttribute);
       }); 
+
+      var healthPercent = Math.floor(self.get('context.stonehearth:attributes.attributes.health.effective_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.effective_value'))
+      var moralePercent = Math.floor(self.get('context.stonehearth:score.scores.happiness.score'));
+      //self.$('.healthBar').width(healthPercent + '%');
+      self.$('.healthBar').width('50px');
+      self.$('.moraleBar').width(50);
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
@@ -156,6 +176,17 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var p = this.get('context.stonehearth:personality');
       var b = this.get('context.stonehearth:buffs');
 
+
+      this.$('.tab').click(function() {
+         var tabPage = $(this).attr('tabPage');
+
+         self.$('.tabPage').hide();
+         self.$('.tab').removeClass('active');
+         $(this).addClass('active');
+
+         self.$('#' + tabPage).show();
+      });
+
       this.$('#name').focus(function (e) {
          radiant.call('stonehearth:enable_camera_movement', false)
       });
@@ -175,9 +206,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $('#personality').html($.t(p.personality));   
       }
       if (b) {
-         this._updateAttributes();
+         self._updateAttributes();
       }
-
-   }
+   },
 
 });

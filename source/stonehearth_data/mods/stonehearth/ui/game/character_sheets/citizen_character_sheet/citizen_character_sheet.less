@@ -2,25 +2,59 @@
    position: absolute;
    top: 10px;
    left: 10px;
-   width: 764px;
-   height: 930px;
-   background: url('./images/bg.png');
-
-   .date {
-      font-style: italic;;
-   }
-   
-   #header {
+   width: 724px;
+   height: 900px;
+   z-index: 999;
+  
+   #glass {
+      .controlFont;
       position: absolute;
-      top: 130px;
-      left: 70px;
+      top: 20px;
+      right: 10px;
+      width: 271px;
+      height: 333px;
+      background-image: url(images/glass.png);
+      color: #fff;
+      font-size: 50px;
+      text-shadow: -4px -4px 0px #000, 0px -4px 0px #000, 4px -4px 0px #000, -4px 0px 0px #000, 4px 0px 0px #000, -4px 4px 0px #000, 0px 4px 0px #000, 4px 4px 0px #000;
+      text-align: center;
+      pointer-events: none;
+
+      #mind {
+         position: absolute;
+         left: 30px;
+         top: 75px;
+         width: 100px;
+      }
+
+      #body {
+         position: absolute;
+         top: 75px;
+         left: 135px;
+         width: 100px;
+      }
+
+      #spirit {
+         position: absolute;
+         top: 175px;
+         left: 80px;
+         width: 100px;
+      }
+   }
+
+   #header {
+      .outlined;
+      position: absolute;
+      top: 68px;
+      left: 30px;
       font-family: @headerFontFamily;
-      color: #473c28;
+      color: #fff;
 
       #name {
+         .outlined;
          font-family: @headerFontFamily;
          background: rgba(0,0,0,0.0);
-         color: #3d3420;
+         color: #ffc000;
          font-size: 36px;
          width: 400px;
          border: 0px;
@@ -29,78 +63,124 @@
       }      
 
       #description {
+         color: #ffe850;
          font-size: 26px;
+      }
+
+      #stats {
+         .baseFont;
+         .outlined;
+         color: #fff;
+
+         // remove this style when we support exp and levels
+         #experienceStat {
+            display: none;
+         }
+
+         .stat {
+            padding-top: 20px;
+
+            .label {
+               width: 120px;
+               display: inline-block;
+            }
+
+            .bar {
+               position: relative;
+               width: 200px;
+               height: 15px;
+               display: inline-block;
+               border: 3px solid #000;
+               background: #1f282e;
+               text-align: right;
+
+               .value {
+                  position: absolute;
+                  right: 4px;
+                  top: -10px;
+                  font-size: 16px;
+               }
+            }
+
+            .healthBar {
+               background: #b13b2e;
+               height: 100%;
+            }
+
+            .moraleBar {
+               background: #1575ca;
+               height: 100%;
+            }
+
+            .expBar {
+               background: #42d00e;
+               height: 100%;
+            }
+
+         }
+      }
+   }
+
+   #buffs {
+      position: absolute;
+      top: 330px;
+      left: 10px;
+      right: 10px;
+      height: 70px;
+      background: rgba(255,0,0,0.0);
+   }
+
+   #details {
+      position: absolute;
+      top: 400px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+
+      .tabPage {
+         position: absolute;
+         top: 0px;
+         left: 0px;
+         right: 0px;
+         bottom: 0px;
+         padding: 0px 10px 10px 10px;
+         overflow-y: auto;
+         vertical-align: top;
+
+         h2 {
+            color: #84754f;
+            font-size: 26px;
+         }
+      }
+
+      #equipmentTab {
+         //display: none;
+      }
+
+      #moraleTab {
+         display: none;
+      }
+
+      #attributesTab {
+         display: none;
       }
    }
 
    #infoTable {
+      display: none;
       position: absolute;
       top: 240px;
       left: 70px;
       right: 370px;
       font-size: 15px;
-
-
-   }
-
-   #glass {
-      .controlFont;
-      position: absolute;
-      top: 105px;
-      left: 440px;
-      color: #fff;
-      font-size: 50px;
-      text-shadow: -4px -4px 0px #000, 0px -4px 0px #000, 4px -4px 0px #000, -4px 0px 0px #000, 4px 0px 0px #000, -4px 4px 0px #000, 0px 4px 0px #000, 4px 4px 0px #000;
-      text-align: center;
-      
-
-      #mind {
-         width: 100px;
-      }
-
-      #body {
-         position: absolute;
-         top: 0px;
-         left: 110px;
-         width: 100px;
-      }
-
-      #spirit {
-         position: absolute;
-         top: 100px;
-         left: 50px;
-         width: 100px;
-      }
-   }
-
-   .content {
-      h2 {
-         color: #000;
-         text-shadow: none;
-         margin: 6px 0px;
-      }
-   }
-
-   .column1 {
-      position: absolute;
-      top: 467px;
-      left: 78px;
-      width: 275px;
-   }
-
-   .column2 {
-      position: absolute;
-      top: 467px;
-      left: 407px;
-      width: 275px;      
    }
 
    table {
       width: 100%;
       border-collapse:collapse;
 
-      td 
-{         vertical-align: top;
+      td {
+         vertical-align: top;
          padding: 4px;
       }
 
@@ -118,7 +198,7 @@
       }
    }
 
-   #persona {
+   #journal {
       font-size: 15px;
 
       .scoreIndicator {
@@ -136,21 +216,18 @@
          background-image: url('./images/score_down.png');
       }
 
-      #latestJournal {
-         float: left;
+      .entry {
+         .entryTitle {
+            font-size: 16px;
+         }
+
+         .date {
+            font-style: italic;
+         }         
+      }
+
+      #entries {
          font-size: 11px;
-      }
-   }
-
-   #attributes {
-      font-size: 15px;
-
-      .value {
-      }
-
-      .value:first-letter {
-         //font-size: 20px;
-         //font-weight: bold;
       }
    }
 
@@ -166,23 +243,11 @@
       color: white;
    }
 
-   #group {
-      padding-bottom: 16px;
+   #tabs {
+      position: absolute;
+      bottom: -67px;
+   }
 
-      .name {
-         float: left;
-      }
-      .value {
-         float: right;
-      }
-
-      .clear {
-         content: '.';
-         display: block;
-         clear: both;
-         visibility: hidden;
-      }         
-   }  
 }
 
 .buffTooltip {

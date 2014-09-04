@@ -153,15 +153,15 @@
    "hint_camera_zoom_title": "To zoom in and out",
    "hint_camera_zoom": "Use the mouse scroll wheel",
 
-   "show_character_sheet_persona" : "Persona",
-   "show_character_sheet_latest_journal" : "Latest Journal",
-   "show_character_sheet_attributes" : "Attributes",
+   "journal" : "Journal",
+   "attributes" : "Attributes",
+   "equipment" : "Equipment",
 
-   "show_character_sheet_happiness" : "Happiness",
-   "show_character_sheet_overall_happiness" : "Overall Happiness",
-   "show_character_sheet_happiness_nutrition" : "Nutrition",
-   "show_character_sheet_happiness_shelter" : "Shelter",
-   "show_character_sheet_happiness_safety" : "Safety",
+   "happiness" : "Morale",
+   "overall_happiness" : "Overall Morale",
+   "happiness_nutrition" : "Nutrition",
+   "happiness_shelter" : "Shelter",
+   "happiness_safety" : "Safety",
    
    "stockpile_all" : "All",
    "stockpile_none" : "None",
