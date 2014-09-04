@@ -8,6 +8,8 @@
 #include <SFML/Audio.hpp>
 #include "resources/res_manager.h"
 #include "platform/utils.h"
+#include "core/config.h"
+
 
 using namespace ::radiant;
 using namespace ::radiant::audio;
@@ -17,14 +19,25 @@ using namespace ::radiant::audio;
 DEFINE_SINGLETON(AudioManager);
 
 #define MAX_SOUNDS 200
-#define EFX_MASTER_DEF_VOL 1.0
+
+const float DEFAULT_PLAYER_BGM_VOL = 1.0f;
+const float DEFAULT_PLAYER_EFX_VOL = 1.0f;
+
+//#pragma optimize("", off)
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
-AudioManager::AudioManager() :
-   master_efx_volume_(EFX_MASTER_DEF_VOL)
+AudioManager::AudioManager()
 {
    empty_sound_ = std::make_shared<sf::Sound>(sf::SoundBuffer());
+
+   const core::Config& config = core::Config::GetInstance();
+   player_bgm_volume_ = config.Get("audio.bgm_volume", DEFAULT_PLAYER_BGM_VOL);
+   player_efx_volume_ = config.Get("audio.efx_volume", DEFAULT_PLAYER_EFX_VOL);
+
+   bgm_channel_.SetPlayerVolume(player_bgm_volume_);
+   ambient_channel_.SetPlayerVolume(player_efx_volume_);
 }
+//#pragma optimize("", on)
 
 //Iterate through the map and list, cleaning memory
 AudioManager::~AudioManager()
@@ -35,6 +48,34 @@ AudioManager::~AudioManager()
    }
 }
 
+void AudioManager::SetPlayerVolume(float bgmVolume, float efxVolume)
+{
+   player_bgm_volume_ = bgmVolume;
+   bgm_channel_.SetPlayerVolume(bgmVolume);
+
+   player_efx_volume_ = efxVolume;
+   ambient_channel_.SetPlayerVolume(efxVolume);
+
+   //TODO: the effects that play in the game have to get the volume from this class.
+
+   //Save to config now? Save later/less often?
+   core::Config& config = core::Config::GetInstance();
+   config.Set("audio.bgm_volume", player_bgm_volume_);
+   config.Set("audio.efx_volume", player_efx_volume_);
+}
+
+float AudioManager::GetPlayerBgmVolume() 
+{
+   return player_bgm_volume_;
+}
+
+float AudioManager::GetPlayerEfxVolume()
+{
+   return player_efx_volume_;
+}
+
+
+
 //Use with sounds that play immediately and with consistant volume
 //If there are less than 200 sounds currently playing, play this sound
 //First, see if the soundbuffer for the uri already exists. If so, reuse.
@@ -43,7 +84,7 @@ AudioManager::~AudioManager()
 void AudioManager::PlaySound(std::string const& uri, int vol) 
 {
    std::shared_ptr<sf::Sound> s = CreateSoundInternal(uri);
-   s->setVolume((float)vol * master_efx_volume_);
+   s->setVolume((float)vol * player_efx_volume_);
    s->play();
 }
 

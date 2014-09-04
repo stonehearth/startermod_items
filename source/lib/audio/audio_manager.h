@@ -28,6 +28,11 @@ public:
    void SetNextMusicLoop(bool loop, std::string const& channel);
    void SetNextMusicCrossfade(bool crossfade, std::string const& channel);
 
+   //Get and set the player volumes
+   void SetPlayerVolume(float bgmVolume, float efxVolume);
+   float GetPlayerBgmVolume();
+   float GetPlayerEfxVolume();
+
    void PlayMusic(std::string const& track, std::string const& channel);
    void UpdateAudio();
 
@@ -40,7 +45,10 @@ private:
    std::vector<std::shared_ptr<sf::Sound>> sounds_;
    std::shared_ptr<sf::Sound>              empty_sound_;
    int num_sounds_;
-   int efx_volume_;
+
+   float player_efx_volume_;
+   float player_bgm_volume_;
+
    float master_efx_volume_;
 
    //TODO: if we ever have more than 2, use a vector of channels

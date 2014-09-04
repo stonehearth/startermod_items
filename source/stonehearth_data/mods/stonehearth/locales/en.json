@@ -33,6 +33,8 @@
    "game_different_version" : "incompatible save version",
 
    "settings_title" : "Settings",
+   "settings_graphics_subtitle" : "Graphics!",
+   "settings_card" : "Display Adapter: ",
    "settings_gfx_cardinfo" : "__gpuRenderer__ (__gpuDriver__)",
    "settings_gfx_enable_shadows" : "Enable Shadows",
    "settings_gfx_enable_vsync" : "Enable Vertical Sync",
@@ -55,6 +57,11 @@
    "settings_aa_slider_2" : "a little more",
    "settings_aa_slider_3" : "a lot",
    "settings_aa_slider_4" : "a whole lot!",
+
+   "settings_sound_subtitle" : "Sound!",
+   "settings_background_music_volume" : "Background Music Volume:",
+   "settings_effects_volume" : "Effects Volume:",
+
 
    "new_game_embark_button" : "Embark!",
    "new_game_founding_charter" : "Founder's Manual",

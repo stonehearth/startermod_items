@@ -31,6 +31,7 @@
 #include "lib/audio/input_stream.h"
 #include "csg/random_number_generator.h"
 #include <SFML/Audio.hpp>
+#include "lib/audio/audio_manager.h"
 #include "horde3d\Source\Horde3DEngine\egHudElement.h"
 #include "horde3d\Source\Shared\utMath.h"
 
@@ -828,9 +829,11 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
    }
 
    i = node.find("volume");
+   volume_ = PLAY_SOUND_EFFECT_MIN_VOLUME;
    if (i != node.end()) {
-      double value = std::min(std::max(i->as_float(), 0.0), 100.0);
-      sound_->setVolume(static_cast<float>(value));
+      volume_ = std::min(std::max(i->as_float(), 0.0), 100.0);
+      float player_volume = audio::AudioManager::GetInstance().GetPlayerEfxVolume();
+      sound_->setVolume(static_cast<float>(volume_) * player_volume );
    }
 
    i = node.find("pitch");
@@ -876,6 +879,8 @@ PlaySoundEffectTrack::~PlaySoundEffectTrack()
    }
 }
 
+//#pragma optimize("", off)
+
 /* PlaySoundEffectTrack::Update
  * Update location of sound.
  * If we were delaying the sound start and now is the time to actually start the sound, start it. 
@@ -902,6 +907,14 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
       finished = true;
       return;
    }
+
+   float player_volume = audio::AudioManager::GetInstance().GetPlayerEfxVolume();
+   if (sound_ != nullptr && sound_->getVolume() != volume_ * player_volume) {
+      sound_->setVolume(volume_ * player_volume);
+   }
+
+   //float curr_volume = sound_->getVolume();
+   //sound_->setVolume(curr_volume * player_volume );
 
    om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
@@ -933,3 +946,6 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
       }
    }
 }
+
+//#pragma optimize("", on)
+

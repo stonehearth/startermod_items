@@ -47,6 +47,18 @@ App.StonehearthSettingsView = App.View.extend({
       $('#applyButton').prop('disabled', false);
    },
 
+   volumeChange: function() {
+      var newVolumeConfig = {
+         "bgm_volume" : $( "#bgmMusicSlider" ).slider( "value" ) / 100,
+         "efx_volume" : $( "#effectsSlider" ).slider( "value" ) / 100
+      };
+      $('#bgmMusicSliderDescription').html( $("#bgmMusicSlider" ).slider( "value" ) + '%');
+      $('#efxSliderDescription').html( $("#effectsSlider" ).slider( "value" ) + '%');
+
+      radiant.call('radiant:set_audio_config', newVolumeConfig);
+      this.anySettingDidChange();
+   },
+
    didInsertElement : function() {
       var self = this;
 
@@ -72,6 +84,33 @@ App.StonehearthSettingsView = App.View.extend({
 
       $('#opt_numSamples').change(reloadableCallback);
       $('#opt_shadowRes').change(reloadableCallback);
+
+      radiant.call('radiant:get_audio_config')
+         .done(function(o) {
+            //Move to done of other call
+            $('#bgmMusicSlider').slider({
+               value: o.bgm_volume * 100,  
+               min: 0, 
+               max: 100,
+               step: 10,
+               change: function(event, ui) {
+                  self.volumeChange();
+               }
+            });
+            $('#bgmMusicSliderDescription').html( $("#bgmMusicSlider" ).slider( "value" ) + '%');
+
+            //Move to done of other call
+            $('#effectsSlider').slider({
+               value: o.efx_volume * 100, 
+               min: 0, 
+               max: 100,
+               step: 10,
+               change: function(event, ui) {
+                  self.volumeChange();
+               }
+            });
+            $('#efxSliderDescription').html( $("#effectsSlider" ).slider( "value" ) + '%');
+         });
 
       radiant.call('radiant:get_config_options')
          .done(function(o) {
@@ -156,6 +195,7 @@ App.StonehearthSettingsView = App.View.extend({
                }
             });
             $('#drawDistDescription').html(self.get('context.draw_distance'));
+
          });
 
    },
