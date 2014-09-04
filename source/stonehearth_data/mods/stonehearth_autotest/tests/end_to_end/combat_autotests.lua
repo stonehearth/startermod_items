@@ -99,4 +99,41 @@ function combat_tests.worker_defense(autotest)
    autotest:fail('woker defense failed to complete on time')
 end
 
+function combat_tests.talsman_drop(autotest)
+   autotest.env:create_person(-15, -15, { profession = 'footman' })
+   autotest.env:create_person( -7, -15, { profession = 'carpenter'})
+   autotest.env:create_person(  1, -15, { profession = 'farmer'})
+   autotest.env:create_person(  9, -15, { profession = 'trapper'})
+   autotest.env:create_person(  9, -15, { profession = 'weaver'})
+
+   autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 13, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 13, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 10, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 10, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 8, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+   autotest.env:create_person( -1, 8, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+
+   local num_talismans = 0
+
+   radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
+      if e.entity:get_uri() == 'stonehearth:carpenter:saw_talisman' or 
+         e.entity:get_uri() == 'stonehearth:weaver:spindle_talisman' or 
+         e.entity:get_uri() == 'stonehearth:farmer:hoe_talisman' or
+         e.entity:get_uri() == 'stonehearth:trapper:knife_talisman' or
+         e.entity:get_uri() == 'stonehearth:weapons:wooden_sword_talisman' then
+         num_talismans = num_talismans + 1
+      end
+      if num_talismans == 5 then
+         autotest:success()
+         return radiant.events.UNLISTEN
+      end
+   end)
+
+   autotest:sleep(200000)
+   autotest:fail('talisman_drop failed to complete on time')
+end
+
+
 return combat_tests
