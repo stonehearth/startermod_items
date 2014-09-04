@@ -75,12 +75,6 @@ function BuildService:set_active(entity, enabled)
          if c then
             c:set_active(enabled)
          end
-         if enabled then
-            local bc = entity:get_component('stonehearth:building')
-            if bc then
-               bc:clear_no_construction_zone_traces()
-            end
-         end
       end)
 end
 

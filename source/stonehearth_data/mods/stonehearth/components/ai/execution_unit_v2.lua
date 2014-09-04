@@ -585,10 +585,7 @@ function ExecutionUnitV2:_destroy_execution_frames()
    end
    self._execution_frames = {}
 
-   if self._current_execution_frame then
-      self._current_execution_frame:destroy()
-      self._current_execution_frame = nil
-   end
+   self._current_execution_frame = nil
 end
 
 function ExecutionUnitV2:__get_log()

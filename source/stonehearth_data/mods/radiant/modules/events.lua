@@ -63,13 +63,7 @@ function events.listen(object, event, self, fn)
       sender[event] = listeners
    end
 
-
    log:spam('listening to event ' .. event)  
-   local entry = {
-      dead = false,
-      self = self,
-      fn = fn
-   }
 
    local resurrected = false
    for i, dead_entry in ipairs(events._dead_listeners) do
@@ -82,6 +76,12 @@ function events.listen(object, event, self, fn)
    end
 
    if not resurrected then
+      local entry = {
+         dead = false,
+         self = self,
+         fn = fn
+      }
+
       table.insert(listeners, entry)
    else
       log:spam('resurrecting listener for ' .. event)
