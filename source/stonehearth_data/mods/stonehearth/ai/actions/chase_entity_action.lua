@@ -252,6 +252,10 @@ function ChaseEntity:_start_run_effect(entity)
 end
 
 function ChaseEntity:stop(ai, entity, args)
+   self:destroy()
+end
+
+function ChaseEntity:destroy()
    self._selected_to_run = false
    self._moving = false
    self:_clean_up_references()

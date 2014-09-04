@@ -11,13 +11,12 @@ GotoTownCenter.args = {
 GotoTownCenter.version = 2
 GotoTownCenter.priority = 1
 
--- This function is a fallback for stonehearth:goto_town_banner. 
--- Since it's at a lower priority, it will run if 
--- there is no banner. Instead, go to somewhere in the center of town
--- This could be someone's house, or a lake, or a farm, so the banner is
--- better. 
-
 local ai = stonehearth.ai
 return ai:create_compound_action(GotoTownCenter)
-         :execute('stonehearth:get_town_center', { town = ai.ARGS.town })   
-         :execute('stonehearth:goto_location', { location = ai.PREV.location })
+         :execute('stonehearth:get_town_center', {
+            town = ai.ARGS.town
+         })
+         :execute('stonehearth:goto_closest_standable_location', {
+            location = ai.PREV.location,
+            max_radius = 16,
+         })

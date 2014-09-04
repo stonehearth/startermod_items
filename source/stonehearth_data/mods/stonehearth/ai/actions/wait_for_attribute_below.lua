@@ -18,16 +18,20 @@ function WaitForAttributeBelow:start_thinking(ai, entity, args)
    self._attribute = args.attribute
    self._below_value = args.value
    self._signaled = false
+   self._attribute_listener = radiant.events.listen(entity, 'stonehearth:attribute_changed:' .. args.attribute, self, self._on_attribute_changed)
 
-   local attribute = 'stonehearth:attribute_changed:' .. args.attribute
-   self._attribute_listener = radiant.events.listen(entity, attribute, self, self._on_attribute_changed)
    self:_on_attribute_changed()
 end
 
 function WaitForAttributeBelow:stop_thinking(ai, entity, args)
-   local attribute = 'stonehearth:attribute_changed:' .. args.attribute
-   self._attribute_listener:destroy()
-   self._attribute_listener = nil
+   self:destroy()
+end
+
+function WaitForAttributeBelow:destroy()
+   if self._attribute_listener then
+      self._attribute_listener:destroy()
+      self._attribute_listener = nil
+   end
 end
 
 function WaitForAttributeBelow:_on_attribute_changed()

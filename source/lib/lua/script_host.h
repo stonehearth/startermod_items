@@ -31,6 +31,7 @@ public:
    void FullGC();
    int GetAllocBytesCount() const;
    void WriteMemoryProfile(std::string const& filename) const;
+   void DumpHeap(std::string const& filename) const;
    void ComputeCounters(std::function<void(const char*, double, const char*)> const& addCounter) const;
    int GetErrorCount() const;
 
@@ -148,8 +149,6 @@ private:
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
    AllocDataStoreFn     _allocDs;
-
-   lua_State*           _curLuaState;
 };
 
 END_RADIANT_LUA_NAMESPACE
