@@ -1,9 +1,14 @@
 <script type="text/x-handlebars" data-template-name="settings">
    <div id="settings" class="settings gui">
       <div class="window">
-         <div class="title">{{i18n stonehearth:settings_title}}, <span id="gfxCardString"></span></div>
+         <div class="title">{{i18n stonehearth:settings_title}}, </div>
          
-         
+         <h2>{{i18n stonehearth:settings_graphics_subtitle}}</h2>
+
+         <div class="setting">
+            <label>{{i18n stonehearth:settings_card}}</label>
+            <span id="gfxCardString"></span>
+         </div>
 
          <div class="setting">
             <input type="checkbox" id="opt_enableVsync" {{bind-attr checked="vsync_enabled"}}>
@@ -41,6 +46,19 @@
          <div class="setting">
             <input type="checkbox" id="opt_enableSsao" {{bind-attr checked="enable_ssao"}} {{bind-attr disabled="ssao_forbidden"}}>
             <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
+         </div>
+
+         <h2>{{i18n stonehearth:settings_sound_subtitle}}</h2>
+
+         <div class="setting">
+            {{i18n stonehearth:settings_background_music_volume}}
+            <div id="bgmMusicSlider"></div>
+            <div id="bgmMusicSliderDescription" class="sliderDescription"></div>     
+         </div>
+         <div class="setting">
+            {{i18n stonehearth:settings_effects_volume}}
+            <div id="effectsSlider"></div>
+            <div id="efxSliderDescription" class="sliderDescription"></div>     
          </div>
 
          <div id=buttons>

@@ -373,6 +373,40 @@ void Client::OneTimeIninitializtion()
       return result;
    });
 
+   core_reactor_->AddRoute("radiant:set_audio_config", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_player_volume");
+      try {
+         json::Node node(f.args);
+         json::Node params = node.get_node(0);
+
+         float bgm_volume = params.get<float>("bgm_volume");
+         float efx_volume = params.get<float>("efx_volume");
+
+         audio::AudioManager &a = audio::AudioManager::GetInstance();
+         a.SetPlayerVolume(bgm_volume, efx_volume);
+
+         result->ResolveWithMsg("success");
+
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
+
+   core_reactor_->AddRoute("radiant:get_audio_config", [this](rpc::Function const& f) {
+      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:get_audio_config");
+      try {
+         json::Node node;
+         node.set("bgm_volume", audio::AudioManager::GetInstance().GetPlayerBgmVolume());
+         node.set("efx_volume", audio::AudioManager::GetInstance().GetPlayerEfxVolume());
+
+         result->Resolve(node);
+
+      } catch (std::exception const& e) {
+         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
+      }
+      return result;
+   });
 
    //TODO: take arguments to accomodate effects sounds
    core_reactor_->AddRoute("radiant:play_sound", [this](rpc::Function const& f) {
@@ -389,6 +423,7 @@ void Client::OneTimeIninitializtion()
          a.PlaySound(sound_url, vol);
          
          result->ResolveWithMsg("success");
+
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
       }

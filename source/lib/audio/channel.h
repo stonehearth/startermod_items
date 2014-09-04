@@ -24,6 +24,8 @@ public:
    void SetNextMusicLoop(bool loop);
    void SetNextMusicCrossfade(bool crossfade);
 
+   void SetPlayerVolume(float volume);
+
    void PlayMusic(std::string const& track);
    void UpdateMusic(int currTime);
 
@@ -41,7 +43,7 @@ private:
    double         volume_;
    double         fading_volume_;
    double         rising_volume_;
-   float          master_volume_;
+   float          player_volume_;
    std::string    nextTrack_;
    int            lastUpdated_;
    std::unique_ptr<claw::tween::single_tweener> fading_tweener_;

@@ -171,6 +171,7 @@ private:
    int             endTime_;     //Time when the sound should end (or 0 if natural duration)
    bool            firstPlay_;   //Whether this is the first time we're playing the sound
    int             maxDistance_; //distance under which sound will be heard at maximum volume. 1 is default
+   double          volume_;      //Volume specified by json for sound
 
    void  AssignFromJSON_(const JSONNode& node);
    float CalculateAttenuation(int maxDistance, int minDistance);

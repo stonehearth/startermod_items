@@ -26,10 +26,7 @@ using namespace ::radiant::audio;
 
 #define A_LOG(level)    LOG(audio, level)
 
-//#define DEF_VOL 50         //The volume for the playing music
-#define MASTER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
-//#define DEF_FADE 1000      //MS to have old music fade during crossfade
-//#define DEFAULT_LOOP true
+#define PLAYER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
 
 Channel::Channel() :
    music_(nullptr),
@@ -38,7 +35,7 @@ Channel::Channel() :
    fading_tweener_(nullptr),
    fade_(DEF_MUSIC_FADE),
    volume_(DEF_MUSIC_VOL),
-   master_volume_(MASTER_DEF_VOL),
+   player_volume_(PLAYER_DEF_VOL),
    loop_(DEF_MUSIC_LOOP),
    crossfade_(DEF_MUSIC_CROSSFADE),
    lastUpdated_(0)
@@ -49,6 +46,15 @@ Channel::~Channel()
 {
 }
 
+//This is the volume that the player sets; a number between 0.0 and 1.0
+//The actual volume derived with player_volume_ * game volume, or just volume
+void Channel::SetPlayerVolume(float vol)
+{
+   player_volume_ = vol;
+}
+
+//This is the volume the music on this track will next play at
+//The actual volume derived with this * player_volume_
 void Channel::SetNextMusicVolume(int volume)
 {
    volume_ = volume;
@@ -90,6 +96,8 @@ void Channel::PlayMusic(std::string const& track)
    }
 }
 
+//Pass in the name of the track to play and the game's desired volume for the music
+//Note: the player's desired volume is added right before the music is played
 void Channel::SetAndPlayMusic(std::string const& track, double target_volume)
 {
    auto i = music_buffers_.find(track);
@@ -103,7 +111,7 @@ void Channel::SetAndPlayMusic(std::string const& track, double target_volume)
    if (music_->openFromMemory(music_buffers_[track].c_str(), music_buffers_[track].size())) {
       music_->setLoop(loop_);
       //Change to reflect that music's user-set and dynamically-set value can change
-      music_->setVolume((float)target_volume * master_volume_);
+      music_->setVolume((float)target_volume * player_volume_);
       music_->play();
       music_name_ = track;
    } else { 
@@ -151,17 +159,24 @@ void Channel::UpdateMusic(int currTime)
       } else {
          //If the tweener is not finished, soften the volume
          fading_tweener_->update(dt);
-         outgoing_music_->setVolume((float)fading_volume_ * master_volume_);
+         outgoing_music_->setVolume((float)fading_volume_ * player_volume_);
 
          //If crossfade is on, raise that volume
          if (crossfade_) {
             rising_tweener_->update(dt);
-            music_->setVolume((float)rising_volume_ * master_volume_);
+            music_->setVolume((float)rising_volume_ * player_volume_);
          }
+      }
+   } else {
+      //If nobody is fading out (or fading in) then just one piece of music is playing
+      //adjust that music by player volume
+      //TODO: this might cause audio weirdness if the player is adjusting the volume during a fade
+      if (music_ != nullptr && music_->getVolume() != volume_ * player_volume_) {
+         music_->setVolume(volume_ * player_volume_);
       }
    }
    
-   //If we have a rising tweener that is finsihed, then set it to null.
+   //If we have a rising tweener that is finished, then set it to null.
    if (rising_tweener_.get() && rising_tweener_->is_finished()) {
       rising_tweener_.reset(nullptr);
    }
