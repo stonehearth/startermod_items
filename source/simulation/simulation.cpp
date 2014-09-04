@@ -164,6 +164,7 @@ void Simulation::OneTimeIninitializtion()
    });
    core_reactor_->AddRouteV("radiant:write_lua_memory_profile", [this](rpc::Function const& f) {
       scriptHost_->WriteMemoryProfile("lua_memory_profile.txt");      
+      scriptHost_->DumpHeap("lua.heap");      
    });
 
    core_reactor_->AddRoute("radiant:server:get_error_browser", [this](rpc::Function const& f) {
@@ -802,9 +803,8 @@ void Simulation::Mainloop()
       SIM_LOG_GAMELOOP(7) << "net log still has " << net_send_timer_.remaining() << " till expired.";
    }
 
-   //LuaGC();
+   LuaGC();
    Idle();
-
 }
 
 void Simulation::LuaGC()
@@ -839,6 +839,11 @@ void Simulation::Idle()
          SIM_LOG(0) << "     " << std::setw(10) << count << " " << ti.name() << " (total:" << current_checkpoint[ti] << ")";
          return --c > 0;
       });
+
+      SIM_LOG(0) << "-- Traces -----------------------------------";
+      for (auto const& kv : store_->DumpTraceReasons()) {
+         SIM_LOG(0) << kv.first << " :: " << kv.second;
+      }
       nextAuditTime = now + 5000;
    }
 #endif

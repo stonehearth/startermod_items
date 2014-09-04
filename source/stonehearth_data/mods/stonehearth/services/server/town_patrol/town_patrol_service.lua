@@ -151,7 +151,10 @@ function TownPatrol:_add_player_id_trace(object)
 end
 
 function TownPatrol:_remove_player_id_trace(object_id)
-   self._player_id_traces[object_id] = nil
+   if self._player_id_traces[object_id] then
+      self._player_id_traces[object_id]:destroy()
+      self._player_id_traces[object_id] = nil
+   end
 end
 
 function TownPatrol:_on_player_id_changed(object)

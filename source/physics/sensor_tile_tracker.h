@@ -5,6 +5,7 @@
 #include "csg/cube.h"
 #include "om/om.h"
 #include <boost/container/flat_map.hpp>
+#include "core/object_counter.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
@@ -14,7 +15,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  * Tracks which entities overlap the sensor for a particular NavGridTile, and
  * communicates that back to the SensorTracker for updating the sensor contents.
  */
-class SensorTileTracker {
+class SensorTileTracker : public core::ObjectCounter<SensorTileTracker> {
 public:
    SensorTileTracker(SensorTracker& sensorTracker, csg::Point3 const& index, int flags);
    virtual ~SensorTileTracker();
