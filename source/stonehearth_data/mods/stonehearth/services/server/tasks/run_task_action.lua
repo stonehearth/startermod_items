@@ -122,7 +122,6 @@ end
 
 function RunTaskAction:destroy()
    self._task:__action_destroyed(self)
-   self._task:destroy()
    self._task = nil
    self._activity = nil
    if self._execution_frame then

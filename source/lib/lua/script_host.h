@@ -149,8 +149,6 @@ private:
    std::unordered_map<dm::ObjectType, ObjectToLuaFn>  object_cast_table_;
 
    AllocDataStoreFn     _allocDs;
-
-   lua_State*           _curLuaState;
 };
 
 END_RADIANT_LUA_NAMESPACE
