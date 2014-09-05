@@ -23,7 +23,7 @@
          }
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(trapper_knife_talisman.json)"
+         "iconic_form" : "file(trapper_knife_iconic.json)"
       },
 
       "stonehearth:equipment_piece" : {

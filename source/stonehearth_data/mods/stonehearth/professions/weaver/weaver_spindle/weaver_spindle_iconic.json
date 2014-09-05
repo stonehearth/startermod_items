@@ -10,20 +10,17 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(weaver_spindle.qb)"
+               "file(weaver_spindle_iconic.qb)"
             ]
          }
       },
-      "stonehearth:entity_forms" : {
-         "iconic_form" : "file(weaver_spindle_iconic.json)"
-      },
-      "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
-         "render_type" : "attach_to_bone",
-         "postures" : [ "stonehearth:combat" ]
-      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },      
       "render_info" : {
          "scale": 0.14
       }
+   },
+   "entity_data" : {
    }
 }

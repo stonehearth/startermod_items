@@ -76,7 +76,7 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession, talisman)
+function MicroWorld:place_citizen(x, z, profession)
    local pop = stonehearth.population:get_population('player_1')
    local citizen = pop:create_new_citizen()
    profession = profession or 'stonehearth:professions:worker'
@@ -86,7 +86,7 @@ function MicroWorld:place_citizen(x, z, profession, talisman)
       -- there if they didn't put it there to begin with
       profession = 'stonehearth:professions:' .. profession
    end
-   citizen:add_component('stonehearth:profession'):promote_to(profession, talisman)
+   citizen:add_component('stonehearth:profession'):promote_to(profession)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
