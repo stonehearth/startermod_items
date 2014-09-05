@@ -9,13 +9,14 @@
          }
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
       },
       "unit_info": {
          "name": "Mining Pick", 
-         "description": "..."
+         "description": "...",
+         "icon" : "file(mining_pick.png)"
       }
    },
    "entity_data" : {

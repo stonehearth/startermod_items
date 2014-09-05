@@ -5,9 +5,7 @@
       "unit_info" : {
          "name" :  "Trapper's Knife",
          "description" : "A trapper's knife",
-         "icon" : "file(/entities/generic/default_object/default_object.png)",
-         "portrait": "file(trapper_knife.png)",
-         "character_sheet_info" : "file(trapper_knife_character_sheet_info.json)"
+         "icon" : "file(trapper_knife.png)"
       },
       "item" : {
          "stacks" : 1
@@ -27,7 +25,7 @@
       },
 
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
       }     

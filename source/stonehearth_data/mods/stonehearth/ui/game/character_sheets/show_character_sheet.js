@@ -1,10 +1,11 @@
 $(document).ready(function(){
+   /* keep this around for now in case we want to bring it back
    $(top).on('show_character_sheet.stonehearth', function (_, e) {
+      console.error('trigger of o')
 
       var trace = new RadiantTrace()
       var viewName = 'StonehearthSimpleCharacterSheetView';
 
-      /*
       trace.traceUri(e.entity, { unit_info: {} })
          .progress(function(o) {
             if (trace) {
@@ -27,12 +28,12 @@ $(document).ready(function(){
             trace.destroy();
             trace = null;
          });
-      */
       
       if (App.stonehearthCharacterSheet != null) {
          App.stonehearthCharacterSheet.destroy();
          App.stonehearthCharacterSheet = null;
       }
       App.stonehearthCharacterSheet = App.gameView.addView(App.StonehearthCitizenCharacterSheetView, { uri: e.entity });
-   });
+      */
 });
+

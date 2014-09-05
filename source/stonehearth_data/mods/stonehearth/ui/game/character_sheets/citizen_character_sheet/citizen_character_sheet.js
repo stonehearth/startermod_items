@@ -11,12 +11,20 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       },
       'stonehearth:equipment' : {
          'equipped_items' : {
-
+            '*' : {
+               'unit_info' : {}   
+            }
          }
       },
       'stonehearth:attributes' : {},
       'stonehearth:personality' : {},
       'stonehearth:score' : {}
+   },
+
+
+   init: function() {
+      this._super();
+      this.set('equipment', {});
    },
 
    _setFirstJournalEntry: function() {
@@ -35,7 +43,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          } else {
             this.set('context.firstJournalEntryScore', false);
          }
-
       } else {
          this.set('context.firstJournalEntry', { title: "no entries" });
          this.set('context.firstJournalEntryTitle', 'no entries');
@@ -43,13 +50,13 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    }.observes('context.stonehearth:personality'),
 
-   buffs: function() {
+   _buildBuffsArray: function() {
         var vals = [];
-        var attributeMap = this.get('context.stonehearth:buffs.buffs');
+        var map = this.get('context.stonehearth:buffs.buffs');
         
-        if (attributeMap) {
-           $.each(attributeMap, function(k ,v) {
-              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
+        if (map) {
+           $.each(map, function(k ,v) {
+              if(k != "__self" && map.hasOwnProperty(k)) {
                  vals.push(v);
               }
            });
@@ -57,6 +64,30 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
         this.set('context.buffs', vals);
     }.observes('context.stonehearth:buffs'),
+
+   _grabEquipment: function() {
+      var self = this;
+      var slots = ['torso', 'mainhand', 'offhand'];
+      var equipment = self.get('context.stonehearth:equipment.equipped_items');
+      $.each(slots, function(i, slot) {
+         var equipmentPiece = equipment[slot];
+         /*
+         var slotDiv = self.$('#' + slot + 'Slot');
+
+         if (slotDiv.length == 0) {
+            return;
+         }
+
+         if (equipmentPiece) {
+            slotDiv.html(equipmentPiece.unit_info.name);
+         } else {
+            slotDiv.html('');
+         }*/
+
+         self.set('equipment.' + slot, equipmentPiece);
+      });
+
+    }.observes('context.stonehearth:equipment.equipped_items'),
 
    _setAttributeData: function() {
       this._updateAttributes();
@@ -207,6 +238,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
            }
          });
 
+      this.$('.slot img').tooltipster();
+      
       if (p) {
          $('#personality').html($.t(p.personality));   
       }

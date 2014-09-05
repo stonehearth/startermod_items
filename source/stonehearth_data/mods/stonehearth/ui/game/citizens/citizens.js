@@ -57,10 +57,7 @@ App.StonehearthCitizensView = App.View.extend({
          // focus the camera to the selected citizen
          var citizen = self._rowToCitizen(row);
          if (citizen) {
-
-            $(top).trigger('show_character_sheet.stonehearth', {
-               entity: citizen.__self
-            });
+            App.stonehearthClient.showCharacterSheet(citizen.__self);
          }
          event.stopPropagation();
       });

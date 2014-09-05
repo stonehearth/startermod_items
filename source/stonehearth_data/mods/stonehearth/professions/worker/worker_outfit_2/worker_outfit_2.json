@@ -24,7 +24,7 @@
          "iconic_form" : "file(worker_outfit_2_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "outfit",
+         "slot" : "torso",
          "render_type" : "merge_with_model",
          "roles" : "worker_profession",
          "ilevel" : 2,

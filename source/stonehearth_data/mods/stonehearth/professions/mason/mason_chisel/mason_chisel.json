@@ -5,7 +5,7 @@
       "unit_info" : {
          "name" :  "Mason's Chisel",
          "description" : "Tools of the trade for a mason.",
-         "portrait": "file(mason_chisel.png)"
+         "icon": "file(mason_chisel.png)"
       },
       "item" : {
          "stacks" : 1
@@ -24,7 +24,7 @@
          "iconic_form" : "file(mason_chisel_talisman.json)"
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
       }
