@@ -28,14 +28,6 @@ App.StonehearthUnitFrameView = App.View.extend({
       var self = this;
    },
 
-   actions: {
-      showCharacterSheet: function() {
-         $(top).trigger('show_character_sheet.stonehearth', {
-            entity: this.get('uri') 
-         });
-      }
-   },
-
    _updateVisibility: function() {
       var self = this;
       var selectedEntity = this.get('uri');
@@ -95,9 +87,16 @@ App.StonehearthUnitFrameView = App.View.extend({
         });
 
       
-      this.$('.name').click(function(e) {
+      this.$('.name').click(function() {
           radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
         });
+
+      this.$('.name').click(function() {
+         var entity = self.get('uri');
+         if (entity) {
+            //App.stonehearthClient.showCharacterSheet(entity); 
+         }
+      });
 
       this._updateCommandButtons();      
       this._updateBackpack();

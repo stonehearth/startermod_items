@@ -10,8 +10,8 @@
 
   "equipment" : {
     "abilities" : "file(farmer_abilities)",
-    "outfit" : "file(farmer_outfit)",
-    "mainhand_weapon" : "stonehearth:farmer:hoe"
+    "torso" : "file(farmer_outfit)",
+    "mainhand" : "stonehearth:farmer:hoe"
   },
   "roles" : "farmer_profession",
 

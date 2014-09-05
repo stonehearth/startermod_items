@@ -5,8 +5,7 @@
       "unit_info" : {
          "name" :  "Farmer's Hoe",
          "description" : "Used to till fields.",
-         "portrait": "file(portrait.png)",
-         "character_sheet_info" : "file(farmer_hoe_character_sheet_info.json)"
+         "icon": "file(farmer_hoe.png)"
       },
       "item" : {
          "stacks" : 1
@@ -25,7 +24,7 @@
          "iconic_form" : "file(farmer_hoe_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
       }

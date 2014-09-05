@@ -9,13 +9,14 @@
          }
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
       },
       "unit_info": {
-         "name": "Hammer", 
-         "description": "..."
+         "name": "Worker's Hammer", 
+         "description": "...",
+         "icon" : "file(worker_hammer.png)"
       }
    },
    "entity_data" : {

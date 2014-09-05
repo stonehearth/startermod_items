@@ -8,8 +8,8 @@
 
    "equipment" : {
       "abilities" : "file(footman_abilities)",
-      "outfit" : "file(footman_outfit)",
-      "mainhand_weapon" : "stonehearth:weapons:wooden_sword"
+      "torso" : "file(footman_outfit)",
+      "mainhand" : "stonehearth:weapons:wooden_sword"
    },
 
    "roles" : "footman_profession combat",

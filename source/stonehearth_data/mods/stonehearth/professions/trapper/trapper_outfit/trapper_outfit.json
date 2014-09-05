@@ -3,6 +3,8 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
+         "name" :  "Trapper Oufit",
+         "icon": "file(trapper_outfit.png)"
       },
       "render_info" : {
       },
@@ -22,7 +24,7 @@
       },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
-         "slot" : "outfit"
+         "slot" : "torso"
       }
    }
 }

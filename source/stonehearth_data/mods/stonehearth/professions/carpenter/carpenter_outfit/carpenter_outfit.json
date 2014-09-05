@@ -3,6 +3,9 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
+         "name" :  "Carpenter Overalls",
+         "description" : "Uniform for all carpenters",
+         "icon" : "file(carpenter_outfit.png)"         
       },
       "render_info" : {
       },
@@ -21,7 +24,7 @@
          }
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "outfit",
+         "slot" : "torso",
          "render_type" : "merge_with_model"
       }
    }
