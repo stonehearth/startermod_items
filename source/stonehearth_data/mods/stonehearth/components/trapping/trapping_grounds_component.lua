@@ -466,18 +466,14 @@ function TrappingGroundsComponent:_create_critter(uri)
       end
    end
 
-   trapped_listener = radiant.events.listen(critter, 'stonehearth:trapped',
-      function()
+   trapped_listener = radiant.events.listen(critter, 'stonehearth:trapped', function()
          despawn_ai:destroy()
          destroy_listeners()
-      end
-   )
+      end)
 
-   destroy_listener = radiant.events.listen(critter, 'stonehearth:pre-destroy',
-      function()
+   destroy_listener = radiant.events.listen(critter, 'radiant:entity:pre_destroy', function()
          destroy_listeners()
-      end
-   )
+      end)
 
    return critter
 end

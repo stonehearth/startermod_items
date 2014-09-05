@@ -26,7 +26,7 @@ function FollowPath:__init(entity, speed, path)
 
    -- our convention is to have the starting point as the first point in the path
    if self._mob:get_world_grid_location() ~= self._points[1] then
-      log:error('mob location %s does not match path start location %s', self._mob:get_world_grid_location(), self._points[1])
+      log:info('mob location %s does not match path start location %s', self._mob:get_world_grid_location(), self._points[1])
       -- this can happen when we ai:execute a goto_location/entity from inside a run of a larger compound action
       -- e.g. see place_item_action
       -- TODO: decide how to handle cases when entities are bumped from their path
@@ -164,7 +164,7 @@ function FollowPath:_is_valid_move(from, to)
       end
       
       current_point = next_point
-      log:debug('%s has skipped points on the contiguous path', self._entity)
+      log:info('%s has skipped points on the contiguous path', self._entity)
    end
 
    return true

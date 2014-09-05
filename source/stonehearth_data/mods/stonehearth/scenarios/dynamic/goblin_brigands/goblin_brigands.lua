@@ -135,12 +135,6 @@ function GoblinBrigands:_on_spawn()
    local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
       self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
 
-   if spawn_points[1] then
-      --make sure the spawn point is actually on valid ground
-      spawn_points[1] = radiant.terrain.find_placement_point(spawn_points[1], 1, 20)
-   end
-
-
    if not spawn_points then
       -- Couldn't find a spawn point, so reschedule to try again later.
       self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
