@@ -4,7 +4,8 @@
    "components" : {
       "unit_info" : {
          "name" :  "Upgraded Worker Outfit",
-         "description" : "Reinforced construction improves worker efficiency!"
+         "description" : "Reinforced construction improves worker efficiency!",
+         "icon" : "file(worker_outfit_2.png)"
       },
       "model_variants": {
          "default": {
