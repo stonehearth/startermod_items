@@ -126,8 +126,6 @@ function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
 
    --If the show journal command is not yet enabled, enable it
    if self._first_entry then
-      local entity_commands = self._entity:get_component('stonehearth:commands')
-      entity_commands:enable_command('show_journal', true)
       self._first_entry = false
    end
 
