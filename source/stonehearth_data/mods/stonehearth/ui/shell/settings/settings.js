@@ -1,6 +1,7 @@
 App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
-   modal: true,
+   classNames: ['flex', 'fullScreen'],
+   closeOnEsc: true,
 
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
@@ -43,47 +44,39 @@ App.StonehearthSettingsView = App.View.extend({
       this.applyConfig(false);
    },
 
-   anySettingDidChange : function() {
-      $('#applyButton').prop('disabled', false);
-   },
-
-   volumeChange: function() {
-      var newVolumeConfig = {
-         "bgm_volume" : $( "#bgmMusicSlider" ).slider( "value" ) / 100,
-         "efx_volume" : $( "#effectsSlider" ).slider( "value" ) / 100
-      };
-      $('#bgmMusicSliderDescription').html( $("#bgmMusicSlider" ).slider( "value" ) + '%');
-      $('#efxSliderDescription').html( $("#effectsSlider" ).slider( "value" ) + '%');
-
-      radiant.call('radiant:set_audio_config', newVolumeConfig);
-      this.anySettingDidChange();
-   },
-
    didInsertElement : function() {
       var self = this;
 
-      this.$('#settings').position({
+      self.$('#settings').position({
             my: 'center center',
             at: 'center center',
             of: '#modalOverlay'
          });
 
+      self.$('.tab').click(function() {
+         var tabPage = $(this).attr('tabPage');
+
+         self.$('.tabPage').hide();
+         self.$('.tab').removeClass('active');
+         $(this).addClass('active');
+
+         self.$('#' + tabPage).show();
+      });
+
       var reloadableCallback = function() {
          self.reloadableSettingDidChange();
       };
-      var anythingChangedCallback = function() {
-         self.anySettingDidChange();
-      };
 
-      $('#opt_numSamples').change(anythingChangedCallback);
-      $('#opt_enableVsync').change(anythingChangedCallback);
-      $('#opt_enableFullscreen').change(anythingChangedCallback);
-      $('#opt_useFastHilite').change(anythingChangedCallback);
-      $('#opt_shadowRes').change(anythingChangedCallback);
-      $('#opt_enableSsao').change(anythingChangedCallback);
+      self.$('#opt_numSamples').change(reloadableCallback);
+      self.$('#opt_shadowRes').change(reloadableCallback);
 
-      $('#opt_numSamples').change(reloadableCallback);
-      $('#opt_shadowRes').change(reloadableCallback);
+      self.$('#applyButton').click(function() {
+         self.applySettings();
+      });
+
+      self.$('#cancelButton').click(function() {
+         self.cancel();
+      })
 
       radiant.call('radiant:get_audio_config')
          .done(function(o) {
@@ -94,7 +87,7 @@ App.StonehearthSettingsView = App.View.extend({
                max: 100,
                step: 10,
                change: function(event, ui) {
-                  self.volumeChange();
+                  self.$('#bgmMusicSliderDescription').html( self.$("#bgmMusicSlider" ).slider( "value" ) + '%');
                }
             });
             $('#bgmMusicSliderDescription').html( $("#bgmMusicSlider" ).slider( "value" ) + '%');
@@ -106,7 +99,7 @@ App.StonehearthSettingsView = App.View.extend({
                max: 100,
                step: 10,
                change: function(event, ui) {
-                  self.volumeChange();
+                  self.$('#efxSliderDescription').html( self.$("#effectsSlider" ).slider( "value" ) + '%');
                }
             });
             $('#efxSliderDescription').html( $("#effectsSlider" ).slider( "value" ) + '%');
@@ -165,7 +158,6 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                disabled: self.get('context.msaa_forbidden'),
                slide: function( event, ui ) {
-                  anythingChangedCallback();
                   $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
                }
             }); 
@@ -178,7 +170,6 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                disabled: self.get('context.shadows_forbidden'),
                slide: function( event, ui ) {
-                  anythingChangedCallback();
                   $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + ui.value));
                }
             });
@@ -190,7 +181,6 @@ App.StonehearthSettingsView = App.View.extend({
                max: 1000,
                step: 10,
                slide: function( event, ui ) {
-                  anythingChangedCallback();
                   $('#drawDistDescription').html(ui.value);
                }
             });
@@ -200,7 +190,7 @@ App.StonehearthSettingsView = App.View.extend({
 
    },
 
-   getUiConfig: function(persistConfig) {
+   getGraphicsConfig: function(persistConfig) {
       var newConfig = {
          "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
@@ -215,30 +205,35 @@ App.StonehearthSettingsView = App.View.extend({
       return newConfig;
    },
 
+   getAudioConfig: function() {
+      var newVolumeConfig = {
+         "bgm_volume" : this.$( "#bgmMusicSlider" ).slider( "value" ) / 100,
+         "efx_volume" : this.$( "#effectsSlider" ).slider( "value" ) / 100
+      };
+
+      return newVolumeConfig;
+   },
+
    applyConfig: function(persistConfig) {
-      var newConfig = this.getUiConfig(persistConfig);
+      var newConfig = this.getGraphicsConfig(persistConfig);
       radiant.call('radiant:set_config_options', newConfig);
+
+      var audioConfig = this.getAudioConfig();
+      radiant.call('radiant:set_audio_config', audioConfig);
    },
 
    dismiss: function() {
       radiant.call('radiant:set_config_options', this.oldConfig);
    },
 
-   actions: {
-      applySettings: function() {
-         this.applyConfig(true);
-         this.destroy();
-      },
+   applySettings: function() {
+      this.applyConfig(true);
+      this.destroy();
+   },
 
-      close: function() {
-         this.dismiss();
-         this.destroy();
-      },
-
-      cancel: function() {
-         this.dismiss();
-         this.destroy();
-      }
+   cancel: function() {
+      this.dismiss();
+      this.destroy();
    },
 
 });

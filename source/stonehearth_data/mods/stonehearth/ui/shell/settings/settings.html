@@ -1,70 +1,80 @@
 <script type="text/x-handlebars" data-template-name="settings">
    <div id="settings" class="settings gui">
       <div class="window">
-         <div class="title">{{i18n stonehearth:settings_title}}, </div>
+         <div class="title">{{i18n stonehearth:settings_title}} </div>
          
-         <h2>{{i18n stonehearth:settings_graphics_subtitle}}</h2>
+         <div id="graphicsTab" class="tabPage">
+            <h2>{{i18n stonehearth:settings_graphics}}</h2>
 
-         <div class="setting">
-            <label>{{i18n stonehearth:settings_card}}</label>
-            <span id="gfxCardString"></span>
+            <div class="setting">
+               <label>{{i18n stonehearth:settings_card}}</label>
+               <span id="gfxCardString"></span>
+            </div>
+
+            <div class="setting">
+               <input type="checkbox" id="opt_enableVsync" {{bind-attr checked="vsync_enabled"}}>
+               <label for="opt_enableVsync">{{i18n stonehearth:settings_gfx_enable_vsync}}</label>
+            </div>
+
+            <div class="setting">
+               <input type="checkbox" id="opt_enableFullscreen" {{bind-attr checked="fullscreen_enabled"}}>
+               <label for="opt_enableFullscreen">{{i18n stonehearth:settings_gfx_enable_fullscreen}}</label>
+            </div>
+
+            <div class="setting">
+               {{i18n stonehearth:settings_gfx_msaa}}
+               <div id="aaNumSlider"></div>
+               <div id="aaNumDescription" class="sliderDescription"></div>
+            </div>
+
+            <div class="setting">
+               {{i18n stonehearth:settings_gfx_shadows}}
+               <div id="shadowResSlider"></div>
+               <div id="shadowResDescription" class="sliderDescription"></div>
+            </div>
+
+            <div class="setting">
+               {{i18n stonehearth:settings_gfx_drawdistance}}
+               <div id="drawDistSlider"></div>
+               <div id="drawDistDescription" class="sliderDescription"></div>               
+            </div>
+
+            <div class="setting">
+               <input type="checkbox" id="opt_useFastHilite" {{bind-attr checked="use_fast_hilite"}}>
+               <label class="chkSetting" for="opt_useFastHilite">{{i18n stonehearth:settings_gfx_fasthilite}}</label>
+            </div>
+         
+            <div class="setting">
+               <input type="checkbox" id="opt_enableSsao" {{bind-attr checked="enable_ssao"}} {{bind-attr disabled="ssao_forbidden"}}>
+               <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
+            </div>
          </div>
 
-         <div class="setting">
-            <input type="checkbox" id="opt_enableVsync" {{bind-attr checked="vsync_enabled"}}>
-            <label for="opt_enableVsync">{{i18n stonehearth:settings_gfx_enable_vsync}}</label>
-         </div>
+         <div id="soundTab" class="tabPage">
 
-         <div class="setting">
-            <input type="checkbox" id="opt_enableFullscreen" {{bind-attr checked="fullscreen_enabled"}}>
-            <label for="opt_enableFullscreen">{{i18n stonehearth:settings_gfx_enable_fullscreen}}</label>
-         </div>
-
-         <div class="setting">
-            {{i18n stonehearth:settings_gfx_msaa}}
-            <div id="aaNumSlider"></div>
-            <div id="aaNumDescription" class="sliderDescription"></div>
-         </div>
-
-         <div class="setting">
-            {{i18n stonehearth:settings_gfx_shadows}}
-            <div id="shadowResSlider"></div>
-            <div id="shadowResDescription" class="sliderDescription"></div>
-         </div>
-
-         <div class="setting">
-            {{i18n stonehearth:settings_gfx_drawdistance}}
-            <div id="drawDistSlider"></div>
-            <div id="drawDistDescription" class="sliderDescription"></div>               
-         </div>
-
-         <div class="setting">
-            <input type="checkbox" id="opt_useFastHilite" {{bind-attr checked="use_fast_hilite"}}>
-            <label class="chkSetting" for="opt_useFastHilite">{{i18n stonehearth:settings_gfx_fasthilite}}</label>
-         </div>
-      
-         <div class="setting">
-            <input type="checkbox" id="opt_enableSsao" {{bind-attr checked="enable_ssao"}} {{bind-attr disabled="ssao_forbidden"}}>
-            <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
-         </div>
-
-         <h2>{{i18n stonehearth:settings_sound_subtitle}}</h2>
-
-         <div class="setting">
-            {{i18n stonehearth:settings_background_music_volume}}
-            <div id="bgmMusicSlider"></div>
-            <div id="bgmMusicSliderDescription" class="sliderDescription"></div>     
-         </div>
-         <div class="setting">
-            {{i18n stonehearth:settings_effects_volume}}
-            <div id="effectsSlider"></div>
-            <div id="efxSliderDescription" class="sliderDescription"></div>     
+            <h2>{{i18n stonehearth:settings_sound}}</h2>
+               <br><br>
+               <div class="setting">
+                  {{i18n stonehearth:settings_background_music_volume}}
+                  <div id="bgmMusicSlider"></div>
+                  <div id="bgmMusicSliderDescription" class="sliderDescription"></div>     
+               </div>
+               <div class="setting">
+                  {{i18n stonehearth:settings_effects_volume}}
+                  <div id="effectsSlider"></div>
+                  <div id="efxSliderDescription" class="sliderDescription"></div>     
+               </div>
          </div>
 
          <div id=buttons>
-            <button id="applyButton" disabled {{action applySettings target=view}}>{{i18n stonehearth:ok}}</button>
-            <button {{action cancel target=view}}>{{i18n stonehearth:cancel}}</button>
+            <button id="applyButton">{{i18n stonehearth:ok}}</button>
+            <button id="cancelButton">{{i18n stonehearth:cancel}}</button>
          </div>
+
+         <div id="tabs">
+            <div class="tab active" tabPage="graphicsTab">{{i18n stonehearth:settings_graphics}}</div>
+            <div class="tab" tabPage="soundTab">{{i18n stonehearth:settings_sound}}</div>
+         </div>         
       </div>
    </div>
 </script>
