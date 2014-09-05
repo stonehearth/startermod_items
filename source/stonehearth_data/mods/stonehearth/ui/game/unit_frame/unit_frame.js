@@ -94,7 +94,7 @@ App.StonehearthUnitFrameView = App.View.extend({
       this.$('.name').click(function() {
          var entity = self.get('uri');
          if (entity) {
-            App.stonehearthClient.showCharacterSheet(entity); 
+            //App.stonehearthClient.showCharacterSheet(entity); 
          }
       });
 
