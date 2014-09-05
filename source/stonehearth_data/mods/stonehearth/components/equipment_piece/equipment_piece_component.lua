@@ -7,6 +7,10 @@ function EquipmentPieceComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._roles = self:_get_roles()
    
+   self._slot_to_bone_map = {
+      mainhand = 'mainHand',
+   }
+
    if not self._sv._injected_commands then
    	self._sv._injected_commands = {}
 	end
@@ -178,9 +182,16 @@ function EquipmentPieceComponent:_value_is_in_array(value, array)
    return false
 end
 
+-- this exists because the equipment slot will not always be the same string as the name of 
+-- the bone to attch to. For instance, the 'ring' slot will map to 'rightFinger12' bone
+function EquipmentPieceComponent:_get_bone_for_slot(slot)
+   return self._slot_to_bone_map[slot]
+end
+
+
 function EquipmentPieceComponent:_attach_to_bone()
    local entity_container = self._sv.owner:add_component('entity_container')
-   local bone_name = self:get_slot()
+   local bone_name = self:_get_bone_for_slot(self:get_slot())
    log:debug('%s attaching %s to bone %s', self._sv.owner, self._entity, bone_name)
    entity_container:add_child_to_bone(self._entity, bone_name)
 end
