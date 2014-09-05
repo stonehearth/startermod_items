@@ -18,6 +18,6 @@ return ai:create_compound_action(DeathAction)
       attribute = 'health',
       value = 1
    })
-   :execute('stonehearth:drop_carrying_now')
+   :execute('stonehearth:drop_carrying_now', {drop_always = true})
    :execute('stonehearth:die')
    :execute('stonehearth:destroy_entity')
