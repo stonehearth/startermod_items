@@ -26,6 +26,8 @@ T trunc( const T& value )
    return static_cast<T>((value < 0.0) ? -result : result);
 }
 
+void GetAxisAngleNormalized(Quaternion const& q, Point3f& axis, float& angle);
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif // _RADIANT_CSG_CSG_H

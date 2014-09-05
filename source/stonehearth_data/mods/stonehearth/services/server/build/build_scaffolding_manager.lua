@@ -1,6 +1,7 @@
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 
+local log = radiant.log.create_logger('build_scaffolding_mgr')
 local BuildScaffoldingManager = class()
 
 function BuildScaffoldingManager:initialize()
@@ -47,17 +48,31 @@ end
 
 function BuildScaffoldingManager:_should_build_rung(pt)
    local function is_empty_enough(entity)
+      if entity:get_id() == 1 then
+         log:spam(' %s is terrain.  no.', entity)
+         return false
+      end
       if entity:get_uri() == 'stonehearth:scaffolding' then
+         log:spam(' %s is scaffolding.  yes.', entity)
          return true
       end
       if entity:get_component('stonehearth:fabricator') then
+         log:spam(' %s is fabricator.  yes.', entity)
          return true
       end
+      local rcs = entity:get_component('region_collision_shape')
+      if not rcs or rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
+         log:spam(' %s is non-opaque.  yes.', entity)
+         return true
+      end
+      log:spam(' %s is who knows what.  no.', entity)
       return false
    end
    
+   log:spam(' testing point %s', pt)
    -- if the space isn't blocked, definitely build one.
    if not radiant.terrain.is_blocked(pt) then
+      log:spam(' not blocked.  yes.')
       return true
    end
 

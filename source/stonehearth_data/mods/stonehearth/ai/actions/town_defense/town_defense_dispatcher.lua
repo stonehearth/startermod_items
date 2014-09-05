@@ -9,6 +9,6 @@ TownDefenseDispatcher.priority = constants.priorities.urgent_actions.TOWN_DEFENS
 
 local ai = stonehearth.ai
 return ai:create_compound_action(TownDefenseDispatcher)
-         :execute('stonehearth:drop_carrying_now', {drop_always = true})
+         :execute('stonehearth:drop_carrying_now')
          :execute('stonehearth:set_posture', { posture = 'stonehearth:combat' })
          :execute('stonehearth:town_defense')

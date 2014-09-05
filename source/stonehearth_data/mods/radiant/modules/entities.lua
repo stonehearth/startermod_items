@@ -306,6 +306,10 @@ function entities.turn_to(entity, degrees)
    entity:add_component('mob'):turn_to(degrees)
 end
 
+function entities.get_facing(entity)
+   return entity:add_component('mob'):get_facing()
+end
+
 function entities.turn_to_face(entity, arg2)
    local location
    if radiant.util.is_a(arg2, Entity) then

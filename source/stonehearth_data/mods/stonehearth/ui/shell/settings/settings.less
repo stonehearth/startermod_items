@@ -1,18 +1,15 @@
 
-.settings {
-   position: absolute;
-   max-width: 600px;
-
-   #gfxCardString {
-      
+#settings {
+   margin: auto;
+   .window {
+      position: relative;
+      margin: auto;
+      width: 600px;
+      height: 700px;
    }
 
    .setting {
       padding-bottom: 16px;
-   }
-
-   #buttons {
-      text-align: right;
    }
 
    button {
@@ -66,5 +63,35 @@
       margin-top: 4px;
    }
 
+   .tabPage {
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      right: 10px;
+      bottom: 40px;
+      padding: 10px;
+      overflow-y: auto;
+      overflow-x: hidden;
+   }
+
+   #graphicsTab {
+      
+   }
+
+   #soundTab {
+      display: none;
+   }
+
+   #buttons {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+   }
+
+   #tabs {
+      position: absolute;
+      bottom: -70px;
+      left: 10px;
+   }
 
 }

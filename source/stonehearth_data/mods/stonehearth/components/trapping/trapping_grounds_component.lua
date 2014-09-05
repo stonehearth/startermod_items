@@ -225,9 +225,7 @@ function TrappingGroundsComponent:_is_empty_location(location, radius)
    local cube = getXZCubeAroundPoint(location, radius)
    local entities = radiant.terrain.get_entities_in_cube(cube,
       function (entity)
-         if has_ai(entity) then
-            return false
-         end
+         return not has_ai(entity)
       end
    )
 

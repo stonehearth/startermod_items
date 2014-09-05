@@ -16,7 +16,7 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(GrabTalismanAction)
-            :execute('stonehearth:drop_carrying_now', {drop_always = true})
+            :execute('stonehearth:drop_carrying_now')
             :execute('stonehearth:reserve_entity', { entity = ai.ARGS.talisman })
             :execute('stonehearth:goto_entity', { entity = ai.ARGS.talisman  })
             :execute('stonehearth:turn_to_face_entity', { entity = ai.ARGS.talisman  })            

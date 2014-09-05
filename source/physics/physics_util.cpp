@@ -32,7 +32,7 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
 
    csg::Point3f axis;
    float radAngle;
-   orientation.get_axis_angle(axis, radAngle);
+   csg::GetAxisAngleNormalized(orientation, axis, radAngle);
 
    // Assumes rotation about the Y axis.
    float degrees = radAngle * 180 / csg::k_pi;
