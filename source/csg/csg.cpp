@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "csg.h"
+#include "point.h"
+#include "quaternion.h"
 
 using namespace ::radiant;
 
@@ -67,4 +69,22 @@ float csg::InvSqrt(float value)
 #else
    return 1.0f/sqrtf(value);
 #endif
+}
+
+// returns the axis and angle in a normalized orientation
+// normalized means:
+//    1) the axis points up (in the positive y direction)
+//    2) the angle is between 0 and 2*pi radians
+void csg::GetAxisAngleNormalized(csg::Quaternion const& q, csg::Point3f& axis, float& angle)
+{
+   q.get_axis_angle(axis, angle);
+
+   if (axis.y < 0) {
+      axis *= -1.0f;
+      angle *= -1.0f;
+   }
+
+   if (angle < 0) {
+      angle += 2*k_pi;
+   }
 }

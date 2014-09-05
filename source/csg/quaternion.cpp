@@ -194,8 +194,8 @@ void
 Quaternion::set(const Point3f& axis, float angle)
 {
     // if axis of rotation is zero vector, just set to identity quat
-    float length = axis.LengthSquared();
-    if (csg::IsZero(length))
+    float lengthSquared = axis.LengthSquared();
+    if (csg::IsZero(lengthSquared))
     {
         SetIdentity();
         return;
@@ -207,7 +207,7 @@ Quaternion::set(const Point3f& axis, float angle)
     float sintheta, costheta;
     csg::SinCos(angle, sintheta, costheta);
 
-    float scaleFactor = sintheta/sqrt(length);
+    float scaleFactor = sintheta/sqrt(lengthSquared);
 
     w = costheta;
     x = scaleFactor * axis.x;

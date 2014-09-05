@@ -217,8 +217,22 @@ function Terrain.get_direct_path_end_point(from, to, entity, reversible)
 end
 
 -- only finds points at the same elevation as location
-function Terrain.find_closest_standable_point_to(location, max_radius, entity)
-   if Terrain._is_standable_and_unblocked(location) then
+function Terrain.find_closest_standable_point_to(location, max_radius, entity, require_unoccupied)
+   if require_unoccupied == nil then
+      require_unoccupied = true
+   end
+
+   local filter_fn = function(point)
+         if _physics:is_standable(point) then
+            if require_unoccupied then
+               return not _physics:is_occupied(point)
+            else
+               return true
+            end
+         end
+      end
+
+   if filter_fn(location) then
       return location, true
    end
 
@@ -237,7 +251,7 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
          for x = -rx, rx, sx do
             point.x = location.x + x
             point.z = location.z + z
-            if Terrain._is_standable_and_unblocked(point) then
+            if filter_fn(point) then
                return point, true
             end
          end
@@ -248,7 +262,7 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
          for x = -rx, rx, 2*rx do
             point.x = location.x + x
             point.z = location.z + z
-            if Terrain._is_standable_and_unblocked(point) then
+            if filter_fn(point) then
                return point, true
             end
          end
@@ -257,11 +271,6 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
 
    -- return the origin and a flag indicating failure
    return location, false
-end
-
-function Terrain._is_standable_and_unblocked(pt)
-   local result = _physics:is_standable(pt) and not _physics:is_occupied(pt)
-   return result
 end
 
 return Terrain

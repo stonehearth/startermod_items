@@ -69,7 +69,7 @@ float Mob::GetFacing() const
    csg::Point3f axis;
    float radians;
 
-   (*transform_).orientation.get_axis_angle(axis, radians);
+   csg::GetAxisAngleNormalized((*transform_).orientation, axis, radians);
 
    // this method currently only makes sense for rotations about the y axis
    ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
