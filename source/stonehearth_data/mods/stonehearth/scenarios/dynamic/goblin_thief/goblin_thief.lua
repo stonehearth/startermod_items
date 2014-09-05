@@ -97,11 +97,6 @@ function GoblinThief:_on_spawn_jerk()
 
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
-   if spawn_point then
-      --make sure the spawn point is actually on valid ground
-      spawn_point = radiant.terrain.find_placement_point(spawn_point, 1, 20)
-   end
-
    if not spawn_point then
       -- Couldn't find a spawn point, so reschedule to try again later.
       radiant.entities.destroy_entity(self._sv._goblin)
