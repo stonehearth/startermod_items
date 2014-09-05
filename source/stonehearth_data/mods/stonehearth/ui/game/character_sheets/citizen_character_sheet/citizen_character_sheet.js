@@ -3,13 +3,18 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    closeOnEsc: true,
 
    components: {
-      "unit_info": {},
-      "stonehearth:buffs" : {
-         "buffs" : {
-            "*" : {}
+      'unit_info': {},
+      'stonehearth:buffs' : {
+         'buffs' : {
+            '*' : {}
          }
       },
-      "stonehearth:attributes" : {},
+      'stonehearth:equipment' : {
+         'equipped_items' : {
+
+         }
+      },
+      'stonehearth:attributes' : {},
       'stonehearth:personality' : {},
       'stonehearth:score' : {}
    },
@@ -76,8 +81,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var healthPercent = Math.floor(self.get('context.stonehearth:attributes.attributes.health.effective_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.effective_value'))
       var moralePercent = Math.floor(self.get('context.stonehearth:score.scores.happiness.score'));
       //self.$('.healthBar').width(healthPercent + '%');
-      self.$('.healthBar').width('50px');
-      self.$('.moraleBar').width(50);
+      self.$('.healthBar').width(healthPercent + '%');
+      self.$('.moraleBar').width(moralePercent + '%');
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
