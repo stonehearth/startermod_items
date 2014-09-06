@@ -156,7 +156,7 @@ function CombatService:get_cooldown_end_time(entity, action_name)
 end
 
 function CombatService:get_melee_weapon(entity)
-   return radiant.entities.get_equipped_item(entity, 'mainHand')
+   return radiant.entities.get_equipped_item(entity, 'mainhand')
 end
 
 function CombatService:get_melee_range(attacker, weapon_data, target)

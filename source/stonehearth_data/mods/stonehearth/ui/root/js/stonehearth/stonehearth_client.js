@@ -143,6 +143,17 @@ var StonehearthClient;
          });
       },
 
+      _characterSheet: null,
+      showCharacterSheet: function(entity) {
+         if (this._characterSheet != null && !this._characterSheet.isDestroyed) {
+            this._characterSheet.set('uri', entity);
+            //this._characterSheet.destroy();
+            //this._characterSheet = null;
+         } else {
+            this._characterSheet = App.gameView.addView(App.StonehearthCitizenCharacterSheetView, { uri: entity });   
+         }
+      },
+
       // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
       placeItem: function(item, o) {
          var self = this;

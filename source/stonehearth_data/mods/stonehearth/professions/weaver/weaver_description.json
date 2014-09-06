@@ -8,8 +8,8 @@
 
    "equipment" : {
       "abilities" : "file(weaver_abilities)",
-      "outfit" : "file(weaver_outfit)",
-      "mainhand_weapon" : "stonehearth:weaver:spindle"
+      "torso" : "file(weaver_outfit)",
+      "mainhand" : "stonehearth:weaver:spindle"
    },
 
    "roles" : "weaver_profession crafter", 

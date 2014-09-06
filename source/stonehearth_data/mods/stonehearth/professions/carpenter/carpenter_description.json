@@ -6,8 +6,8 @@
    "script": "file(carpenter.lua)",
    "equipment" : {
       "abilities" : "file(carpenter_abilities)",
-      "outfit" : "file(carpenter_outfit)",
-      "mainhand_weapon" : "stonehearth:carpenter:saw"
+      "torso" : "file(carpenter_outfit)",
+      "mainhand" : "stonehearth:carpenter:saw"
    },
 
    "roles" : "carpenter_profession crafter",

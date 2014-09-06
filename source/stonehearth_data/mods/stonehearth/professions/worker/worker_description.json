@@ -4,8 +4,8 @@
   "script" : "file(worker.lua)",
   "equipment" : {
     "abilities" : "file(worker_abilities)",
-    "outfit" : "file(worker_outfit)",
-    "mainhand_weapon" : [
+    "torso" : "file(worker_outfit)",
+    "mainhand" : [
       "stonehearth:mining_pick", 
       "stonehearth:worker_hammer"
     ]

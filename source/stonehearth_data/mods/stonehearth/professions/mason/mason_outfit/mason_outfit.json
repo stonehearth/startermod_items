@@ -21,7 +21,7 @@
          }
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "outfit",
+         "slot" : "torso",
          "render_type" : "merge_with_model"
       }
    }

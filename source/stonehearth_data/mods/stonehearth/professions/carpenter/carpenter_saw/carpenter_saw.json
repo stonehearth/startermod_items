@@ -5,8 +5,7 @@
       "unit_info" : {
          "name" :  "Carpenter's Saw",
          "description" : "Tools of the trade for a Carpenter.",
-         "portrait": "file(carpenter_saw.png)",
-         "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
+         "icon": "file(carpenter_saw.png)"
       },
       "item" : {
          "stacks" : 1
@@ -25,7 +24,7 @@
          "iconic_form" : "file(carpenter_saw_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "mainHand",
+         "slot" : "mainhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat" ]
       }

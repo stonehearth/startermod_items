@@ -51,19 +51,21 @@ function EquipmentComponent:equip_item(item)
    local ep = item:get_component('stonehearth:equipment_piece')
    assert(ep, 'item is not an equipment piece')
 
-   local unequipped_item = nil
+   
    local slot = ep:get_slot()
+   
    if not slot then
-      -- no slot, just add to the array
-      table.insert(self._sv.equipped_items, item)
-   else
-      -- unequip previous item in slot first, then assign the item to the slot
-      unequipped_item = self._sv.equipped_items[slot]
-      if unequipped_item then
-         self:unequip_item(unequipped_item)
-      end
-      self._sv.equipped_items[slot] = item
-   end   
+      -- no slot specified, make up a magic slot name
+      slot = 'no_slot_' .. #self._sv.equipped_items
+   end
+
+   -- unequip previous item in slot first, then assign the item to the slot
+   local unequipped_item = self._sv.equipped_items[slot]
+   if unequipped_item then
+      self:unequip_item(unequipped_item)
+   end
+   self._sv.equipped_items[slot] = item
+   
 
    ep:equip(self._entity)
    self.__saved_variables:mark_changed()
@@ -86,13 +88,8 @@ function EquipmentComponent:unequip_item(equipped_item)
       local item_uri = item:get_uri()
 
       if item_uri == uri then
-         if type(key) == 'number' then
-            -- remove from the array
-            table.remove(self._sv.equipped_items, key)
-         else
-            -- remove the item from the slot
-            self._sv.equipped_items[key] = nil
-         end
+         -- remove the item from the slot
+         self._sv.equipped_items[key] = nil
 
          item:get_component('stonehearth:equipment_piece'):unequip();
          self.__saved_variables:mark_changed()

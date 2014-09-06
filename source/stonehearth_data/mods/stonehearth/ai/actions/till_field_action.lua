@@ -13,6 +13,7 @@ TillField.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(TillField)
+         :execute('stonehearth:drop_carrying_now')
          :execute('stonehearth:goto_entity', { entity = ai.ARGS.field_spacer})
          :execute('stonehearth:run_effect', { effect = 'work', facing_entity = ai.ARGS.field_spacer  })
          :execute('stonehearth:call_method', {

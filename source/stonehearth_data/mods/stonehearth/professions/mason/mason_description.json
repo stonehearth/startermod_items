@@ -6,8 +6,8 @@
    "script": "file(mason.lua)",
    "equipment" : {
       "abilities" : "file(mason_abilities)",
-      "outfit" : "file(mason_outfit)",
-      "mainhand_weapon" : "stonehearth:mason:chisel"
+      "torso" : "file(mason_outfit)",
+      "mainhand" : "stonehearth:mason:chisel"
    },
 
    "roles" : "mason_profession crafter",

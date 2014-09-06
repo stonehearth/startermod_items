@@ -4,7 +4,8 @@
    "components" : {
       "unit_info" : {
          "name" :  "Worker Outfit",
-         "description" : "Uniform for all workers"
+         "description" : "Uniform for all workers",
+         "icon" : "file(worker_outfit.png)"         
       },
       "render_info" : {
       },
@@ -26,7 +27,7 @@
          "tags" : "cloth"
       },
       "stonehearth:equipment_piece" : {
-         "slot" : "outfit",
+         "slot" : "torso",
          "render_type" : "merge_with_model"
       }
    }
