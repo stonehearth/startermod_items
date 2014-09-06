@@ -72,12 +72,7 @@ float Mob::GetFacing() const
    csg::GetAxisAngleNormalized((*transform_).orientation, axis, radians);
 
    // this method currently only makes sense for rotations about the y axis
-   //ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
-   // disabling the assert for the build
-   // TODO: look into why the constructor doesn't normalize property
-   if (axis != csg::Point3f::zero && std::abs(std::abs(axis.y) - 1.0f) > csg::k_epsilon) {
-      M_LOG(1) << "orientation quaternion is poorly normalized, axis: " << axis << ", radians:" << radians;
-   }
+   ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
 
    return radians / csg::k_pi * 180.0f;
 }
@@ -85,6 +80,7 @@ float Mob::GetFacing() const
 void Mob::TurnTo(float angle)
 {
    csg::Quaternion q(csg::Point3f::unitY, angle / 180.0f * csg::k_pi);
+   ASSERT(q.is_unit());
    transform_.Modify([&](csg::Transform& t) {
       t.orientation = q;
    });
