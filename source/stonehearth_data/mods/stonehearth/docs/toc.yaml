@@ -33,4 +33,10 @@ sections:
                   -  slug: drop_carrying_now
                      display_name: drop_carrying_now
                      filename: ../ai/actions/drop_carrying_now_action.lua
+                  -  slug: drop_carrying_adjacent
+                     display_name: drop_carrying_adjacent
+                     filename: ../ai/actions/drop_carrying_adjacent_action.lua
+                  -  slug: drop_carrying_at
+                     display_name: drop_carrying_at
+                     filename: ../ai/actions/drop_carrying_at_action.lua
 

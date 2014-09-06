@@ -1,6 +1,25 @@
+-- @title stonehearth:drop_carrying_adjacent
+-- @book reference
+-- @section activities
+
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
 local DropCarryingAdjacent = class()
+
+--[[ @markdown
+Use stonehearth:drop\_carrying\_adjacent when the entity must
+
+a.) put what it is carrying down at a specific location in the world and
+
+b.) when the entity is already standing beside that location. 
+
+This action is usually used as part of a compound action, and prefaced with an action requring the entity to move to a location beside the target drop location. 
+
+For example,  _move\_item\_to\_available\_stockpile_ and _restock\_items\_in\_backpack_ call ai:execute('stonehearth:drop\_carrying\_adjacent') after various go\_to\_location calls. 
+
+stonehearth:drop\_carrying\_adjacent is only implemented by the drop\_carrying\_adjacent\_action.lua file: 
+]]--
+
 
 DropCarryingAdjacent.name = 'drop carrying adjacent'
 DropCarryingAdjacent.does = 'stonehearth:drop_carrying_adjacent'
@@ -13,6 +32,7 @@ DropCarryingAdjacent.think_output = {
 DropCarryingAdjacent.version = 2
 DropCarryingAdjacent.priority = 1
 
+-- Only set think output if we are actually carrying something
 function DropCarryingAdjacent:start_thinking(ai, entity, args)
    if ai.CURRENT.carrying ~= nil then
       -- todo: ASSERT we're adjacent!
@@ -22,6 +42,7 @@ function DropCarryingAdjacent:start_thinking(ai, entity, args)
    end
 end
 
+-- Double check that we are carrying and adjacent to the target location before dropping the item
 function DropCarryingAdjacent:run(ai, entity, args)
    local location = args.location
 

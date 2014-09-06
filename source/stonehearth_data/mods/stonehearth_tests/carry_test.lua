@@ -28,7 +28,7 @@ function CarryTest:__init()
          for i, obj in ipairs(movable_items) do
             local target = Point3(-11 , 1, y)
             ai:execute('stonehearth:pickup_item', obj)
-            ai:execute('stonehearth:drop_carrying', target)
+            ai:execute('stonehearth:drop_carrying_at', target)
             y = y + 1
          end
       end)

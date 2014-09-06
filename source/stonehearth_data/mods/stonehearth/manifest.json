@@ -290,7 +290,7 @@
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
-      "actions:drop_carrying_action" : "file(ai/actions/drop_carrying_action.lua)",
+      "actions:drop_carrying_at_action" : "file(ai/actions/drop_carrying_at_action.lua)",
       "actions:drop_carrying_adjacent" : "file(ai/actions/drop_carrying_adjacent_action.lua)",
       "actions:drop_carrying_now" : "file(ai/actions/drop_carrying_now_action.lua)",
       "actions:drop_carrying_when_idle" : "file(ai/actions/drop_carrying_when_idle_action.lua)",
