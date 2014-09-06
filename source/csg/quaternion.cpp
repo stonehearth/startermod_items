@@ -193,26 +193,26 @@ Quaternion::is_identity() const
 void
 Quaternion::set(const Point3f& axis, float angle)
 {
-    // if axis of rotation is zero vector, just set to identity quat
-    float lengthSquared = axis.LengthSquared();
-    if (csg::IsZero(lengthSquared))
-    {
-        SetIdentity();
-        return;
-    }
+   // if axis of rotation is zero vector, just set to identity quat
+   float lengthSquared = axis.LengthSquared();
+   if (csg::IsZero(lengthSquared)) {
+      SetIdentity();
+      return;
+   }
 
-    // take half-angle
-    angle *= 0.5f;
+   // recall the rotation angle = 2*theta
+   float theta = angle * 0.5f;
 
-    float sintheta, costheta;
-    csg::SinCos(angle, sintheta, costheta);
+   float sinTheta, cosTheta;
+   csg::SinCos(theta, sinTheta, cosTheta);
 
-    float scaleFactor = sintheta/sqrt(lengthSquared);
+   // divide by the length in case the axis is not a unit vector
+   float k = sinTheta / std::sqrt(lengthSquared);
 
-    w = costheta;
-    x = scaleFactor * axis.x;
-    y = scaleFactor * axis.y;
-    z = scaleFactor * axis.z;
+   w = cosTheta;
+   x = k * axis.x;
+   y = k * axis.y;
+   z = k * axis.z;
 }
 
 void
@@ -334,16 +334,26 @@ Quaternion::set(float z_rotation, float y_rotation, float x_rotation)
 void
 Quaternion::get_axis_angle(Point3f& axis, float& angle) const
 {
-    angle = 2.0f*acosf(w);
-    float length = sqrt(1.0f - w*w);
-    if (csg::IsZero(length))
-        axis.SetZero();
-    else
-    {
-        length = 1.0f/length;
-        axis = Point3f(x*length, y*length, z*length);
-    }
+   // recall the rotation angle = 2*theta
+   angle = 2.0f * std::acos(w);
 
+   // Don't do this:
+   // float length = sqrt(1.0f - w*w);
+
+   // This is far more accurate:
+   float length = std::sqrt(x*x + y*y + z*z);
+
+   // For small angles, w is close to 1 and has poor precision because we spend all of our mantissa bits storing 9's
+   // e.g. if w^2 = 0.999999, 1 - w^2 = 0.0000001?????
+   // e.g. x^2 + y^2 + z^2 = 0.000000123123 has far more precision because the 6 leading 0's are omitted from the mantissa and stored in the exponent
+   // (recall that a unit quaternion has 1 = w^2 + x^2 + y^2 + z^2)
+
+   if (csg::IsZero(length)) {
+      axis.SetZero();
+   } else {
+      float k = 1.0f / length;
+      axis = Point3f(x*k, y*k, z*k);
+   }
 }
 
 void
