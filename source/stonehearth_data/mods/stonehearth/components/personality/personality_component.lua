@@ -12,7 +12,6 @@ end
 
 function Personality:initialize(entity, json)
    self._entity = entity
-   self._first_entry = true
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.log then
@@ -123,11 +122,6 @@ function Personality:_add_log_entry(entry_title, entry_text, score_metadata)
 
    --Let the journal UI know to update itself, if visible
    self.__saved_variables:mark_changed()
-
-   --If the show journal command is not yet enabled, enable it
-   if self._first_entry then
-      self._first_entry = false
-   end
 
    return entry
 end
