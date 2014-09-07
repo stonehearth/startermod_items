@@ -84,7 +84,7 @@ function DefendMelee:_on_assault(assault_context)
 end
 
 function DefendMelee:_schedule_defense(assault_context, defend_info)
-   local buffer_time = 100
+   local buffer_time = 200
    local defend_start_time = assault_context.impact_time - defend_info.time_to_impact
    local defend_start_delay = defend_start_time - radiant.gamestate.now()
 
