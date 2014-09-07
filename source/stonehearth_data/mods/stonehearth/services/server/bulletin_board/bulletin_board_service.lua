@@ -45,6 +45,12 @@ end
 
 function BulletinBoardService:remove_bulletin(bulletin_id)
    local player_id = self._sv.bulletin_to_player_map[bulletin_id]
+
+   if not player_id then
+      -- already removed, nothing to do
+      return
+   end
+
    local datastore = self:get_datastore(player_id)
    local bulletins = datastore:get_data().bulletins
 
