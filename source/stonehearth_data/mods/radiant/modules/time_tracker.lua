@@ -22,6 +22,11 @@ end
 function Timer:fire()
    if self._repeating then
       self._expire_time = self._expire_time + self._duration
+      -- If a repeating timer has an interval that is less than the gameloop interval,
+      -- then we cannot trigger the timer fast enough. We could make the next trigger time
+      -- based on the current time instead of the last expired time, but this may not be
+      -- the intent of the consumer, and it may cause their code to drift. An assert in
+      -- TimeTracker:set_elapsed_time() will check for this condition.
    else
       self._active = false
    end
@@ -68,6 +73,9 @@ function TimeTracker:set_elapsed_time(now)
             timer:fire()
          end
          if timer:is_active() then
+            -- Make sure a repeating timer triggers in the future.
+            -- See notes in Timer:fire().
+            assert(timer:get_expire_time() > elapsed)
             table.insert(self._next_timers, timer)
          end
       end
