@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "clock.ridl.h"
 
 using namespace ::radiant;

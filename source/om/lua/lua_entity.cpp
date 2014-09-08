@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "lib/lua/register.h"
 #include "lib/lua/dm/trace_wrapper.h"
 #include "lua_entity.h"

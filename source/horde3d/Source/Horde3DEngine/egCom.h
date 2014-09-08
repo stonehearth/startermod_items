@@ -49,7 +49,8 @@ struct EngineOptions
 		DumpFailedShaders,
 		GatherTimeStats,
       EnableShadows,
-      EnableStatsLogging
+      EnableStatsLogging,
+      DisablePinnedMemory
 	};
 };
 
@@ -82,6 +83,7 @@ public:
    bool  enableShadows;
    float overlayAspect;
    bool  enableStatsLogging;
+   bool  disablePinnedMemory;
    std::set<std::string> shaderFlags;
 };
 

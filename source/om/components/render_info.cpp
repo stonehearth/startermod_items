@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "mob.ridl.h"
 #include "render_info.ridl.h"
 #include "entity_container.ridl.h"

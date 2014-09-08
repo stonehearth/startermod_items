@@ -87,8 +87,8 @@ function StockpileComponent:initialize(entity, json)
       self._sv.item_locations = {}
       self._sv._filter_key = 'stockpile nofilter'
       self._destination = entity:add_component('destination')
-      self._destination:set_region(_radiant.sim.alloc_region())
-                       :set_reserved(_radiant.sim.alloc_region())
+      self._destination:set_region(_radiant.sim.alloc_region3())
+                       :set_reserved(_radiant.sim.alloc_region3())
                        :set_auto_update_adjacent(true)
 
       if json.size then
@@ -104,7 +104,7 @@ function StockpileComponent:initialize(entity, json)
    else
       -- loading...
       self._destination = entity:get_component('destination')
-      self._destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
+      self._destination:set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
       self:_create_worker_tasks()   
 
       --Don't start listening on created items until after we load

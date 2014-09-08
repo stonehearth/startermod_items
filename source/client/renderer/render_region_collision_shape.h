@@ -18,7 +18,7 @@ class RenderRegionCollisionShape : public RenderComponent {
    private:
       RenderEntity const&           entity_;
       om::RegionCollisionShapeRef   collision_shape_;
-      om::DeepRegionGuardPtr        trace_;
+      om::DeepRegion3GuardPtr       trace_;
       H3DNodeUnique                 shape_;
       core::Guard                   renderer_guard_;
 };

@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "lib/json/macros.h"
 #include "lib/lua/register.h"
 #include "lib/lua/dm/trace_wrapper.h"

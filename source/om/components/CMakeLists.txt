@@ -65,7 +65,6 @@ add_library(om_generated_headers
 
 add_library(om_components STATIC
             ${RIDL_LUA_COMPONENTS}
-            pch.cpp
             clock.cpp
             component.cpp
             data_store.cpp
@@ -89,8 +88,3 @@ add_library(om_components STATIC
 
 add_dependencies(om_components
                  om_generated_headers)
-
-if (MSVC)
-   set_target_properties(om_components PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)

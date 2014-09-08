@@ -831,9 +831,9 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
    i = node.find("volume");
    volume_ = PLAY_SOUND_EFFECT_MIN_VOLUME;
    if (i != node.end()) {
-      volume_ = std::min(std::max(i->as_float(), 0.0), 100.0);
+      volume_ = (float)std::min(std::max(i->as_float(), 0.0), 100.0);
       float player_volume = audio::AudioManager::GetInstance().GetPlayerEfxVolume();
-      sound_->setVolume(static_cast<float>(volume_) * player_volume );
+      sound_->setVolume(volume_ * player_volume );
    }
 
    i = node.find("pitch");

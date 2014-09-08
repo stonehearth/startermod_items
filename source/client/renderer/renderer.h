@@ -79,6 +79,8 @@ struct RendererConfig {
    RendererConfigEntry<bool> enable_debug_keys;
 
    RendererConfigEntry<bool> minimized;
+   
+   RendererConfigEntry<bool> disable_pinned_memory;
 };
 
 struct SystemStats {

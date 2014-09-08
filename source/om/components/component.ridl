@@ -84,10 +84,10 @@ public:
    }
 
    % elif boxed.trace == 'deep_region':
-   DeepRegionGuardPtr
+   DeepRegion3GuardPtr
    Trace${name | env.upper}(const char* reason, dm::TraceCategories category) const
    {
-      return DeepTraceRegion(${name}_, reason, category);
+      return om::DeepTraceRegion<Region3BoxedPtrBoxed>(${name}_, reason, category);
    }
 
    % endif %
