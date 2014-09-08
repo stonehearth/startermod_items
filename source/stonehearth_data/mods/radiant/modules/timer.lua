@@ -3,7 +3,7 @@ radiant.lib.TimeTracker = require 'modules.time_tracker'
 local time_tracker = radiant.lib.TimeTracker(_host:get_realtime())
 
 radiant.events.listen(radiant, 'stonehearth:gameloop', function()
-      time_tracker:set_elapsed_time(_host:get_realtime())
+      time_tracker:set_now(_host:get_realtime())
    end)
 
 function radiant.get_realtime()
