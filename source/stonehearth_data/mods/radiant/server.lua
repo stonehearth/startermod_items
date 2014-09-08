@@ -28,7 +28,7 @@ function radiant.create_controller(...)
    local datastore = radiant.create_datastore()
    local controller = datastore:create_controller('controllers', name)
    if controller and controller.initialize then
-      controller:initialize(unpack(args))
+      controller:initialize(unpack(args, 1, table.maxn(args)))
    end
    return controller
 end
