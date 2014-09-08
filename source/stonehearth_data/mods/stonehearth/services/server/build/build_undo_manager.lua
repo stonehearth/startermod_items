@@ -289,6 +289,13 @@ function BuildUndoManager:clear()
    for eid, _ in pairs(self._entity_traces) do
       self:_untrace_entity(eid)
    end
+   self._changed_objects = {}
+   self._object_traces = {}
+   self._entity_traces = {}
+   self._undo_stack = {}
+   self._save_states = {}
+   self._unlinked_entities = {}
+   self._stack_offset = 0
 end
 
 function BuildUndoManager:_untrace_entity(id)  

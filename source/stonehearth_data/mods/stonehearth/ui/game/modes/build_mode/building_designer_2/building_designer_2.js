@@ -219,7 +219,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // undo/redoo tool
       this.$('#undoTool').click(function() {
-         App.stonehearthClient.undo();
+         if (self.get('building')) {
+            App.stonehearthClient.undo();
+         }
       });
 
       var activateElement = function(elPath) {
