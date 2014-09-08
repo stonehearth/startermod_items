@@ -5,6 +5,8 @@
          "injected_ai" : {
             "actions" : [
                "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower",
+
                "stonehearth:actions:town_defense:town_defense_dispatcher",
                "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
                "stonehearth:actions:town_defense:town_defense_idle_ready",
@@ -23,6 +25,10 @@
                "stonehearth:actions:build_ladder_adjacent",
                "stonehearth:actions:teardown_ladder",
                "stonehearth:actions:teardown_ladder_adjacent"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic",
+               "stonehearth:observers:avoid_threatening_entities"
             ]
          },
          "injected_commands" : [

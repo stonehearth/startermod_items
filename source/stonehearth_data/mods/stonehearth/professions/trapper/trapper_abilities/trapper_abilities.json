@@ -4,6 +4,9 @@
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower",
+
                "stonehearth:actions:trapping_dispatcher",
                "stonehearth:actions:trapping:survey_trapping_grounds",
                "stonehearth:actions:trapping:set_bait_trap",
@@ -19,6 +22,10 @@
                "stonehearth:actions:trapping:unload_backpack",
                "stonehearth:actions:find_stockpile_for_backpack_item",
                "stonehearth:actions:pickup_item_type_from_backpack"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic",
+               "stonehearth:observers:avoid_threatening_entities"
             ]
          }
       }
