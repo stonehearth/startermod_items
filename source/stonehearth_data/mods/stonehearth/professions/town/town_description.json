@@ -1,0 +1,17 @@
+{
+   "script": "file(town_profession.lua)",
+   "levels" : [
+      {
+         "title" : "Settlement",
+         "total_level_exp" : 100
+      },
+      {
+         "title" : "Hamlet",
+         "total_level_exp" : 200
+      },
+      {
+         "title" : "Hamlet",
+         "total_level_exp" : 400
+      }
+   ]
+}

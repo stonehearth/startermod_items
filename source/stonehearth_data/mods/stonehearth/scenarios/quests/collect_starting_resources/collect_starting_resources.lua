@@ -23,6 +23,7 @@ function CollectStartingResourcesScenario:start()
    self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
      :set_ui_view('StonehearthQuestBulletinDialog')
      :set_callback_instance(self)
+     :set_type('quest')
      :set_close_on_handle(false)
      :set_data({
          title = self._scenario_data.title,
@@ -57,13 +58,13 @@ function CollectStartingResourcesScenario:_update_quest_progress()
       progress = self:_get_progress(),
    })
 
-   if self._sv.item_count >= 20 then
+   if self._sv.item_count >= self._scenario_data.num_items_required then
      self:_complete_quest()
    end
 end
 
 function CollectStartingResourcesScenario:_get_progress()
-   return 'Wooden logs stored: ' .. self._sv.item_count .. '/20'
+   return 'Wooden logs stored: ' .. self._sv.item_count .. '/' .. self._scenario_data.num_items_required
 end
 
 function CollectStartingResourcesScenario:_on_accepted()
@@ -71,18 +72,25 @@ function CollectStartingResourcesScenario:_on_accepted()
 end
 
 function CollectStartingResourcesScenario:_complete_quest()
+   self:_remove_listeners()
+
    -- notify the UI somehow
 
    -- add town exp
    local town = stonehearth.town:get_town(self._sv.player_id)
-   town:add_exp(self._scenario_data.rewards.exp.value)
+   local profession_component = town:get_entity():get_component('stonehearth:profession')
+   profession_component:add_exp(self._scenario_data.rewards.exp.value)
+
+   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')
+
+   self:destroy();
 end
 
 function CollectStartingResourcesScenario:_on_declined()
   self:destroy()
 end
 
-function CollectStartingResourcesScenario:destroy()
+function CollectStartingResourcesScenario:_remove_listeners()
    if self._item_added_listener then
       self._item_added_listener:destroy()
     self._item_added_listener = nil
@@ -92,7 +100,9 @@ function CollectStartingResourcesScenario:destroy()
       self._item_removed_listener:destroy()
       self._item_removed_listener = nil
    end
+end
 
+function CollectStartingResourcesScenario:destroy()
    local bulletin_id = self._sv.bulletin:get_id()
    stonehearth.bulletin_board:remove_bulletin(bulletin_id)
    self._sv.bulletin = nil

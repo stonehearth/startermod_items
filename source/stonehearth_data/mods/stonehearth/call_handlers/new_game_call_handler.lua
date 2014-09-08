@@ -232,6 +232,7 @@ function NewGameCallHandler:place_item(pop, uri, x, z, options)
    return entity
 end
 
+-- xxx, change this whole town name business to a unit_info component on the town entity (created in town.lua)
 function NewGameCallHandler:get_town_name(session, response)
    local town = stonehearth.town:get_town(session.player_id)
    if town then
@@ -241,9 +242,10 @@ function NewGameCallHandler:get_town_name(session, response)
    end
 end
 
-function NewGameCallHandler:get_town(session, response)
+function NewGameCallHandler:get_town_entity(session, response)
    local town = stonehearth.town:get_town(session.player_id)
-   return { town = town }
+   local entity = town:get_entity()
+   return { town = entity }
 end
 
 function NewGameCallHandler:set_town_name(session, response, town_name)

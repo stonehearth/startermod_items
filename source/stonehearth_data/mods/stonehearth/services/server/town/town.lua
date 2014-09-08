@@ -16,8 +16,9 @@ function Town:initialize(session)
    self._sv.worker_combat_enabled = false
    self._sv.rally_to_battle_standard = false
    
-   self._sv.level = 1
-   self._sv.current_level_exp = 0
+   self._sv.entity = radiant.entities.create_entity()
+   local profession_component = self._sv.entity:add_component('stonehearth:profession')
+   profession_component:promote_to('stonehearth:professions:town')
    
    self.__saved_variables:mark_changed()
 
@@ -99,6 +100,10 @@ function Town:_restore_saved_calls()
    end
 end
 
+function Town:get_entity()
+   return self._sv.entity
+end
+
 function Town:get_scheduler()
    return self._scheduler
 end
@@ -170,22 +175,6 @@ function Town:leave_task_group(entity, name)
    assert(task_group, string.format('unknown task group "%s"', name))
    task_group:remove_worker(entity:get_id())
    return self
-end
-
-function Town:add_exp(value)
-   self._sv.current_level_exp = self._sv.current_level_exp + value
-
-   -- xxx, all levels are 100 exp. Change this to use some defined constants
-   local next_level_exp = 100
-
-   while self._sv.current_level_exp > next_level_exp do
-      self._sv.level = self._sv.level + 1
-      self.current_level_exp = self.current_level_exp - next_level_exp
-      radiant.events.trigger_async(self, 'stonehearth:town_level_up', {
-         town = self,
-         level = self._sv.level
-      })
-   end
 end
 
 -- does not tame the pet, just adds it to the town
