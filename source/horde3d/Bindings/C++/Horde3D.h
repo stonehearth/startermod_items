@@ -118,7 +118,8 @@ struct H3DOptions
 		DumpFailedShaders,
 		GatherTimeStats,
       EnableShadows,
-      EnableStatsLogging
+      EnableStatsLogging,
+      DisablePinnedMemory
 	};
 };
 

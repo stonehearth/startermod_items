@@ -567,6 +567,8 @@ void Renderer::GetConfigOptions()
    config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
 
    config_.minimized.value = config.Get("renderer.minimized", false);
+
+   config_.disable_pinned_memory.value = config.Get("renderer.disable_pinned_memory", false);
    
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
@@ -631,6 +633,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
    h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
+   h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
 
    /* Unused, until we can reload the window without bringing everything down.
    if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
