@@ -18,7 +18,9 @@ function BuildCallHandler:set_building_active(session, request, building, enable
 end
 
 function BuildCallHandler:set_building_teardown(session, request, building, enabled)
-   stonehearth.build:set_teardown(building, enabled)
+   if radiant.check.is_entity(building) then
+      stonehearth.build:set_teardown(building, enabled)
+   end
    return { success = true }
 end
 
