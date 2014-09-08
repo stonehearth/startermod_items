@@ -84,8 +84,6 @@ function TimeTracker:set_interval(duration, fn)
 end
 
 function TimeTracker:set_timer(duration, fn, repeating)
-   assert(duration >= 0.05, 'Timers cannot possibly fire faster than 50ms!')
-
    local timer = Timer(self:get_now(), duration, fn, repeating)
 
    -- if we're currently firing timers, the _next_timers variable will contain the timers
