@@ -7,7 +7,7 @@ local WORLD_SIZE = 64
 local DEFAULT_FACTION = 'civ'
 
 function create_world(environment) 
-   local region3 = _radiant.sim.alloc_region()
+   local region3 = _radiant.sim.alloc_region3()
    region3:modify(function(r3)
       r3:add_cube(Cube3(Point3(0, -16, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.SOIL_STRATA))
       r3:add_cube(Cube3(Point3(0,   0, 0), Point3(WORLD_SIZE, 1, WORLD_SIZE), Terrain.GRASS))

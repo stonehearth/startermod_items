@@ -53,7 +53,7 @@ function TrappingService:_add_region_components(entity, size)
 end
 
 function TrappingService:_set_region_component(entity, component_name, region)
-   local region_boxed = _radiant.sim.alloc_region()
+   local region_boxed = _radiant.sim.alloc_region3()
 
    region_boxed:modify(
       function (region3)

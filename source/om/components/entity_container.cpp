@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
 #include "entity_container.ridl.h"
 #include "mob.ridl.h"
 #include "om/entity.h"

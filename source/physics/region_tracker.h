@@ -24,7 +24,7 @@ public:
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
    bool Intersects(csg::Cube3 const& worldBounds) const override;
 
-   void SetRegionTrace(om::DeepRegionGuardPtr trace);
+   void SetRegionTrace(om::DeepRegion3GuardPtr trace);
 
 protected:
    virtual om::Region3BoxedPtr GetRegion() const = 0;
@@ -34,7 +34,7 @@ private:
    NO_COPY_CONSTRUCTOR(RegionTracker)
 
 private:
-   om::DeepRegionGuardPtr        trace_;
+   om::DeepRegion3GuardPtr       trace_;
    csg::Cube3                    last_bounds_;
 };
 

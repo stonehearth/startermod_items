@@ -2,6 +2,7 @@ local Point3 = _radiant.csg.Point3
 
 local combat_tests = {}
 
+
 function combat_tests.battle_royale(autotest)
    local footmen = {
       autotest.env:create_person(-15, -15, { profession = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
@@ -99,21 +100,24 @@ function combat_tests.worker_defense(autotest)
    autotest:fail('woker defense failed to complete on time')
 end
 
-function combat_tests.talsman_drop(autotest)
-   autotest.env:create_person(-15, -15, { profession = 'footman' })
-   autotest.env:create_person( -7, -15, { profession = 'carpenter'})
-   autotest.env:create_person(  1, -15, { profession = 'farmer'})
-   autotest.env:create_person(  9, -15, { profession = 'trapper'})
-   autotest.env:create_person(  9, -15, { profession = 'weaver'})
 
-   autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 13, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 13, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 10, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 10, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 8, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
-   autotest.env:create_person( -1, 8, { player_id = 'enemy', weapon = 'stonehearth:weapons:jagged_cleaver' })
+function combat_tests.talsman_drop(autotest)
+   autotest.env:create_person(-9, -2, { profession = 'footman', attributes = { mind = 0, body = 1, spirit = 0 } })
+   autotest.env:create_person( -5, -2, { profession = 'carpenter', attributes = { mind = 0, body = 1, spirit = 0 } })
+   autotest.env:create_person(  1, -2, { profession = 'farmer', attributes = { mind = 0, body = 1, spirit = 0 } })
+   autotest.env:create_person(  3, -2, { profession = 'trapper', attributes = { mind = 0, body = 1, spirit = 0 } })
+   autotest.env:create_person(  5, -2, { profession = 'weaver', attributes = { mind = 0, body = 1, spirit = 0 } })
+
+   autotest.env:create_person( -9, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( -5, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 1, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( 3, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 5, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( -12, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 6, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( 0, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+
+
 
    local num_talismans = 0
 

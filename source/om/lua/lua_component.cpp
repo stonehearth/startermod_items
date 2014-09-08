@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "lib/lua/register.h"
 #include "om/lua/lua_component.h"
 #include "om/components/component.h"

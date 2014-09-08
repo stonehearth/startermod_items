@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "lib/lua/bind.h"
 #include "mod_list.ridl.h"
 

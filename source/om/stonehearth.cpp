@@ -1,12 +1,14 @@
-#include "pch.h"
+#include "radiant.h"
 #include <regex>
 #include "stonehearth.h"
 #include "entity.h"
+#include "components/component.h"
 #include "lib/json/node.h"
 #include "lib/lua/bind.h"
 #include "resources/res_manager.h"
 #include "resources/exceptions.h"
 #include "lib/lua/script_host.h"
+#include "om/components/data_store.ridl.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;

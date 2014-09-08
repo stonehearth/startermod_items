@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "vertical_pathing_region.ridl.h"
 
 using namespace ::radiant;

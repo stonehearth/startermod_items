@@ -14,7 +14,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
  *
  * The encapsulated class must implement (this should probably be declared as an interface):
  *    Region3BoxedPtr const& GetRegion();
- *    DeepRegionGuardPtr TraceRegion(const char* reason, int category);
+ *    DeepRegion3GuardPtr TraceRegion(const char* reason, int category);
  *
  * See collision_tracker.h for more details.
  */

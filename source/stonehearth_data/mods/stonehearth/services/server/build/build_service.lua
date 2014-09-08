@@ -243,7 +243,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
             :set_faction(radiant.entities.get_faction(building))
 
    blueprint:add_component('destination')
-               :set_region(_radiant.sim.alloc_region())
+               :set_region(_radiant.sim.alloc_region3())
 
    -- add the blueprint to the building's entity container and wire up the
    -- building entity pointer in the construction_progress component.

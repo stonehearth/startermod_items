@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "lua_om.h"
 #include "lua_component.h"
 #include "lua_entity.h"
 #include "lua_region.h"
@@ -21,10 +22,23 @@ using namespace ::radiant::om;
 
 DEFINE_INVALID_JSON_CONVERSION(Region2BoxedPtrBoxed)
 DEFINE_INVALID_JSON_CONVERSION(Region3BoxedPtrBoxed)
-DEFINE_INVALID_JSON_CONVERSION(DeepRegionGuard)
+DEFINE_INVALID_JSON_CONVERSION(Region2fBoxedPtrBoxed)
+DEFINE_INVALID_JSON_CONVERSION(Region3fBoxedPtrBoxed)
+
+DEFINE_INVALID_JSON_CONVERSION(DeepRegion2Guard)
+DEFINE_INVALID_JSON_CONVERSION(DeepRegion3Guard)
+DEFINE_INVALID_JSON_CONVERSION(DeepRegion2fGuard)
+DEFINE_INVALID_JSON_CONVERSION(DeepRegion3fGuard)
+
 IMPLEMENT_TRIVIAL_TOSTRING(Region2Boxed)
 IMPLEMENT_TRIVIAL_TOSTRING(Region3Boxed)
-IMPLEMENT_TRIVIAL_TOSTRING(DeepRegionGuard)
+IMPLEMENT_TRIVIAL_TOSTRING(Region2fBoxed)
+IMPLEMENT_TRIVIAL_TOSTRING(Region3fBoxed)
+
+IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion2Guard)
+IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion3Guard)
+IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion2fGuard)
+IMPLEMENT_TRIVIAL_TOSTRING(DeepRegion3fGuard)
 
 template <typename Boxed>
 static void ModifyBoxed(Boxed& boxed, luabind::object cb)
@@ -72,10 +86,10 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
             ,
-            luabind::class_<LuaDeepRegionGuard, std::shared_ptr<LuaDeepRegionGuard>>("LuaDeepRegionGuard")
-               .def("on_changed",         &LuaDeepRegionGuard::OnChanged)
-               .def("push_object_state",  &LuaDeepRegionGuard::PushObjectState)
-               .def("destroy",            &LuaDeepRegionGuard::Destroy)
+            luabind::class_<LuaDeepRegion3Guard, LuaDeepRegion3GuardPtr>("LuaDeepRegionGuard")
+               .def("on_changed",         &LuaDeepRegion3Guard::OnChanged)
+               .def("push_object_state",  &LuaDeepRegion3Guard::PushObjectState)
+               .def("destroy",            &LuaDeepRegion3Guard::Destroy)
          ]
       ]
    ];

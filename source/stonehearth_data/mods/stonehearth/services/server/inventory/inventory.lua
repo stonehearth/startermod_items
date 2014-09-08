@@ -72,7 +72,7 @@ end
 
 function Inventory:_add_collision_region(entity, size)
    local collision_component = entity:add_component('region_collision_shape')
-   local collision_region_boxed = _radiant.sim.alloc_region()
+   local collision_region_boxed = _radiant.sim.alloc_region3()
 
    collision_region_boxed:modify(
       function (region3)

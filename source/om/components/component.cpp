@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "component.h"
 
 using namespace ::radiant;

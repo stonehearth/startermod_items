@@ -46,7 +46,7 @@ function CombatPanicObserver:_get_panic_threshold()
    end
 
    -- return the default if none found
-   return radiant.util.get_config('default_panic_threshold', 0.50)
+   return radiant.util.get_config('default_panic_threshold', 0.25)
 end
 
 return CombatPanicObserver

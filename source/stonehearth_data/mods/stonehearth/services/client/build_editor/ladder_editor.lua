@@ -21,7 +21,7 @@ function LadderEditor:go(session, response)
    self._cursor_render_entity = _radiant.client.create_render_entity(1, self._cursor)
    self._cursor_mob = self._cursor:add_component('mob')
    self._cursor_vpr = self._cursor:add_component('vertical_pathing_region')
-   self._cursor_vpr:set_region(_radiant.client.alloc_region())
+   self._cursor_vpr:set_region(_radiant.client.alloc_region3())
    self._cursor_ladder = self._cursor:add_component('stonehearth:ladder')
 
    stonehearth.selection:select_location()

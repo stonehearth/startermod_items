@@ -21,7 +21,7 @@ function WorkerSchedulerPriorityTest:__init()
    
    --- A tasty wall, fairly far away from everything else
    local wall = radiant.entities.create_entity('stonehearth:wooden_wall')
-   local rgn = _radiant.sim.alloc_region()
+   local rgn = _radiant.sim.alloc_region3()
    rgn:modify(function(cursor)
       cursor::add_cube(Cube3(Point3(0, 0, 0), Point3(1, 4, 2)))
    end)
