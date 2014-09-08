@@ -5,6 +5,7 @@
 #include "dm/dm.h"
 #include "csg/region.h"
 #include "lib/json/node.h"
+#include "lib/lua/bind.h"
 
 // This file clearly does not belong in the om.
 

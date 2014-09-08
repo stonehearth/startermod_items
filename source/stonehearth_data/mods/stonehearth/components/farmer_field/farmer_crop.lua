@@ -21,13 +21,13 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
    self._sv.plantable_region_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(self._sv.plantable_region_entity, location)
    local d = self._sv.plantable_region_entity:add_component('destination')
-   d:set_region(_radiant.sim.alloc_region())
+   d:set_region(_radiant.sim.alloc_region3())
      :set_auto_update_adjacent(true)
 
    self._sv.harvestable_region_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(self._sv.harvestable_region_entity, location)
    d = self._sv.harvestable_region_entity:add_component('destination')
-   d:set_region(_radiant.sim.alloc_region())
+   d:set_region(_radiant.sim.alloc_region3())
      :set_auto_update_adjacent(true)
    
    self._sv.farm_tilled_region = tilled_region
@@ -46,10 +46,10 @@ function FarmerCrop:restore()
    -- Always clear out the reserved region on load (entities will simply re-reserve
    -- when they run.)
    local d = self._sv.plantable_region_entity:get_component('destination')
-   d:set_reserved(_radiant.sim.alloc_region())
+   d:set_reserved(_radiant.sim.alloc_region3())
 
    d = self._sv.harvestable_region_entity:get_component('destination')
-   d:set_reserved(_radiant.sim.alloc_region())
+   d:set_reserved(_radiant.sim.alloc_region3())
 
    self._plot_listeners = {}
    -- We have to re-listen to each dirt plot on load, to figure out when harvesting

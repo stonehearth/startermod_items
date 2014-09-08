@@ -25,7 +25,7 @@ RenderDestination::RenderDestination(const RenderEntity& entity, om::Destination
    });
 }
 
-void RenderDestination::RenderDestinationRegion(int i, om::DeepRegionGuardPtr trace, csg::Color4 const& color)
+void RenderDestination::RenderDestinationRegion(int i, om::DeepRegion3GuardPtr trace, csg::Color4 const& color)
 {
    region_trace_[i] = trace;
    CreateRegionDebugShape(entity_->GetEntity(), regionDebugShape_[i], region_trace_[i], color);

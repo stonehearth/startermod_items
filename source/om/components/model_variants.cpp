@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
 #include "render_info.ridl.h"
 #include "model_layer.ridl.h"
 #include "model_variants.ridl.h"

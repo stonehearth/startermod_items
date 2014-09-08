@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "item.ridl.h"
 #include "mob.ridl.h"
 

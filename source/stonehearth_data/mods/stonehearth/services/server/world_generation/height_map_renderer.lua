@@ -47,7 +47,7 @@ function HeightMapRenderer:__init(terrain_info)
 end
 
 function HeightMapRenderer:create_new_region()
-   return _radiant.sim.alloc_region() -- returns a C++ Region3Boxed
+   return _radiant.sim.alloc_region3() -- returns a C++ Region3Boxed
 end
 
 function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
@@ -246,7 +246,7 @@ end
 
 function HeightMapRenderer.tesselator_test()
    local terrain = radiant._root_entity:add_component('terrain')
-   local region3_boxed = _radiant.sim.alloc_region()
+   local region3_boxed = _radiant.sim.alloc_region3()
    local height = 10
 
    region3_boxed:modify(function(region3)

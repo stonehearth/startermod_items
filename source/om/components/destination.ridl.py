@@ -27,6 +27,6 @@ class Destination(Component):
    csg::Point3 GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const;
 
 private:
-   DeepRegionGuardPtr      region_trace_;
-   DeepRegionGuardPtr      reserved_trace_;
+   DeepRegion3GuardPtr      region_trace_;
+   DeepRegion3GuardPtr      reserved_trace_;
    """

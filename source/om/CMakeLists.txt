@@ -13,21 +13,14 @@ add_subdirectory(error_browser)
 add_subdirectory(lua)
 
 add_library(om STATIC
-            pch.cpp
             entity.cpp
             om_alloc.cpp
-            region.cpp
             selection.cpp
             stonehearth.cpp
             )
 
 add_dependencies(om
                  protobuf_generated_headers)
-
-if (MSVC)
-   set_target_properties(om PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)
 
 
 target_link_libraries(om

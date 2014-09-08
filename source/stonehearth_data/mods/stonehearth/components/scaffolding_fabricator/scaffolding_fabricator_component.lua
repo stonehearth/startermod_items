@@ -52,7 +52,7 @@ function ScaffoldingFabricator:support_project(project, blueprint, normal)
 
    self._entity_dst = self._entity:add_component('destination')
    self._entity_ladder = self._entity:add_component('vertical_pathing_region')
-   self._entity_ladder:set_region(_radiant.sim.alloc_region())
+   self._entity_ladder:set_region(_radiant.sim.alloc_region3())
                       :set_normal(normal)
    self.__saved_variables:mark_changed()
    self:_start()

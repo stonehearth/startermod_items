@@ -32,7 +32,7 @@ end
 -- begin editing the column pointed to by `other_column`.  basically just
 -- copy the shape and important variables in the save state
 function Column:begin_editing(entity)
-   self._editing_region = _radiant.client.alloc_region()
+   self._editing_region = _radiant.client.alloc_region3()
    self._editing_region:modify(function(cursor)
          cursor:copy_region(self:_compute_column_shape())
       end)

@@ -21,7 +21,7 @@ function region_tests.trace_fire_count(autotest)
 
 	autotest:log('verify that the trace only fires once when setting a new region')
 	count = 0
-	rgn = _radiant.sim.alloc_region()
+	rgn = _radiant.sim.alloc_region3()
 	dst:set_region(rgn)
 	autotest.util:assert(count == 1, 'trace count %d != 1 after set_region', count)
 

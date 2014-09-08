@@ -97,7 +97,7 @@ function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
    if not use_default_adjacent_region then
       -- cache the origin region since we use this a lot
       if entities.origin_region == nil then
-         entities.origin_region = _radiant.sim.alloc_region()
+         entities.origin_region = _radiant.sim.alloc_region3()
          entities.origin_region:modify(
             function(region3)
                region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))

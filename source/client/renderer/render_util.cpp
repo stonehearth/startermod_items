@@ -11,7 +11,7 @@ static void UpdateShape(csg::Region3 const& region, H3DNode shape, csg::Color4 c
 
 void client::CreateRegionDebugShape(om::EntityRef entityRef,
                                     H3DNodeUnique& shape,
-                                    om::DeepRegionGuardPtr trace,
+                                    om::DeepRegion3GuardPtr trace,
                                     csg::Color4 const& color)
 {
    // offset of the local coordinates from their terrain aligned world coordiantes

@@ -1,4 +1,3 @@
-#include "pch.h"
 <%
 if C._no_lua:
    return
@@ -282,17 +281,17 @@ ${method.result.name} ${class_upper}_${method_name | env.upper}(${formal_params}
 % for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):
    % if obj.trace:
       % if obj.trace == 'deep_region':
-static LuaDeepRegionGuardPtr
+static LuaDeepRegion3GuardPtr
 ${class_upper}_Trace${name | env.upper}(${class_formal_parameter}, const char* reason, dm::TraceCategories category)
 {
    ${class_to_pointer} 
    if (instance)  {
-      DeepRegionGuardPtr trace = instance->Trace${name | env.upper}(reason, category);
-      return std::make_shared<LuaDeepRegionGuard>(trace);
+      DeepRegion3GuardPtr trace = instance->Trace${name | env.upper}(reason, category);
+      return std::make_shared<LuaDeepRegion3Guard>(trace);
    }
    throw std::invalid_argument("invalid reference in native ${class_lower}::trace_${name}");
 }
-static LuaDeepRegionGuardPtr
+static LuaDeepRegion3GuardPtr
 ${class_upper}_AsyncTrace${name | env.upper}(${class_formal_parameter}, const char* reason)
 {
    ${class_to_pointer}

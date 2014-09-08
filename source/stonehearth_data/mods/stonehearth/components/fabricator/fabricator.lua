@@ -124,11 +124,11 @@ function Fabricator:_create_new_project()
    -- adjacent region of the destination so we can build the project
    -- in layers.  this helps prevent the worker from getting stuck
    -- and just looks cooler
-   self._fabricator_dst:set_region(_radiant.sim.alloc_region())
-            :set_reserved(_radiant.sim.alloc_region())
-            :set_adjacent(_radiant.sim.alloc_region())
+   self._fabricator_dst:set_region(_radiant.sim.alloc_region3())
+            :set_reserved(_radiant.sim.alloc_region3())
+            :set_adjacent(_radiant.sim.alloc_region3())
 
-   self._fabricator_rcs:set_region(_radiant.sim.alloc_region())
+   self._fabricator_rcs:set_region(_radiant.sim.alloc_region3())
                        :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 
        
@@ -136,7 +136,7 @@ function Fabricator:_create_new_project()
    -- projects are stored in as children to the fabricator, so there's
    -- no need to update their transform.
    local blueprint = self._blueprint
-   local rgn = _radiant.sim.alloc_region()
+   local rgn = _radiant.sim.alloc_region3()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project_dst = self._project:add_component('destination')
 
@@ -162,7 +162,7 @@ function Fabricator:_create_new_project()
    -- we'll replicate the ladder into the project as it gets built up.
    if self._blueprint_ladder then
       self._project_ladder = self._project:add_component('vertical_pathing_region')
-      self._project_ladder:set_region(_radiant.sim.alloc_region())
+      self._project_ladder:set_region(_radiant.sim.alloc_region3())
    end   
 end
 

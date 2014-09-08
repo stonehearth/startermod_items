@@ -262,7 +262,7 @@ function Wall:layout()
    else
       -- client side...
       if not self._editing_region then
-         self._editing_region = _radiant.client.alloc_region()
+         self._editing_region = _radiant.client.alloc_region3()
          self._editing_region:modify(function(cursor)
                cursor:copy_region(compute_collision_shape())
             end)
