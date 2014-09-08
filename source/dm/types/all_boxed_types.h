@@ -29,6 +29,10 @@
    CREATE_BOXED(om::Region3Boxed) \
    CREATE_BOXED(om::Region2BoxedPtrBoxed) \
    CREATE_BOXED(om::Region3BoxedPtrBoxed) \
+   CREATE_BOXED(om::Region2fBoxed) \
+   CREATE_BOXED(om::Region3fBoxed) \
+   CREATE_BOXED(om::Region2fBoxedPtrBoxed) \
+   CREATE_BOXED(om::Region3fBoxedPtrBoxed) \
    BOXED(csg::Region3) \
    BOXED(csg::Region2) \
    BOXED(csg::Point3) \

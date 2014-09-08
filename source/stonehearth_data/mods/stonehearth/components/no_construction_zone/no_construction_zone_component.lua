@@ -25,7 +25,7 @@ function NoConstructionZoneComponent:initialize(entity, json)
       self._sv.structures = {}
       self._sv.overlapping = {}
       self.__saved_variables:mark_changed()
-      self._region = _radiant.sim.alloc_region()
+      self._region = _radiant.sim.alloc_region3()
       entity:add_component('region_collision_shape')
                   :set_region(self._region)
                   :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)

@@ -1,4 +1,5 @@
-#include "pch.h"
+#include "radiant.h"
+#include "radiant_stdutil.h"
 #include "effect.ridl.h"
 #include "effect_list.ridl.h"
 #include "om/entity.h"

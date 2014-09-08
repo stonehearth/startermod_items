@@ -14,13 +14,7 @@ add_library(om_lua STATIC
             lua_om.cpp
             lua_data_store.cpp
             lua_region.cpp
-            pch.cpp
             )
 
 add_dependencies(om_lua
                  om_generated_headers)
-
-if (MSVC)
-   set_target_properties(om_components PROPERTIES COMPILE_FLAGS "/Yupch.h")
-   set_source_files_properties(pch.cpp PROPERTIES COMPILE_FLAGS "/Ycpch.h")
-endif(MSVC)

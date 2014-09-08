@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "radiant.h"
 #include "effect.ridl.h"
 #include "om/entity.h"
 #include "om/selection.h"

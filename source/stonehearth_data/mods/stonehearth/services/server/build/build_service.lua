@@ -79,6 +79,9 @@ function BuildService:set_active(entity, enabled)
 end
 
 function BuildService:set_teardown(entity, enabled)
+   if enabled then
+      self._undo:clear()
+   end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
          if c then
@@ -240,7 +243,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
             :set_faction(radiant.entities.get_faction(building))
 
    blueprint:add_component('destination')
-               :set_region(_radiant.sim.alloc_region())
+               :set_region(_radiant.sim.alloc_region3())
 
    -- add the blueprint to the building's entity container and wire up the
    -- building entity pointer in the construction_progress component.

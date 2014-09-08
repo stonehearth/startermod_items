@@ -92,12 +92,16 @@ end
 
 function ConstructionProgress:unlink()
    for id, blueprint in pairs(self._sv.inverse_dependencies) do
-      blueprint:add_component('stonehearth:construction_progress')
-                     :remove_dependency(self._entity)
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if cp then
+         cp:remove_dependency(self._entity)
+      end
    end
    for id, blueprint in pairs(self._sv.dependencies) do
-      blueprint:add_component('stonehearth:construction_progress')
-                     :_remove_inverse_dependency(self._entity)
+      local cp = blueprint:get_component('stonehearth:construction_progress')
+      if cp then
+         cp:_remove_inverse_dependency(self._entity)
+      end
    end
 end
 

@@ -558,8 +558,8 @@ void GridSpatialGraph::updateNode(SceneNode const& sceneNode)
             GridElement newGridElement;
             int gX, gY;
             unhashGridHash(newGridE, &gX, &gY);
-            newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE, sceneBox.min().y, gY * GRIDSIZE));
-            newGridElement.bounds.addPoint(Vec3f(gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, gY * GRIDSIZE + GRIDSIZE));
+            newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE, sceneBox.min().y, (float)gY * GRIDSIZE));
+            newGridElement.bounds.addPoint(Vec3f((float)gX * GRIDSIZE + GRIDSIZE, sceneBox.max().y, (float)gY * GRIDSIZE + GRIDSIZE));
             
             std::pair<uint32, GridElement> p(newGridE, newGridElement);
             gei = _gridElements.insert(gei, p);
@@ -1326,9 +1326,9 @@ void SceneManager::fastCastRayInternal(int userFlags)
 				}
 			}
 
-         if (_castRayResults.size() > _rayNum) {
+         if ((int)_castRayResults.size() > _rayNum) {
             _castRayResults.pop_back();
-         } else if( !inserted && _castRayResults.size() < _rayNum) {
+         } else if( !inserted && (int)_castRayResults.size() < _rayNum) {
 				_castRayResults.push_back( crr );
 			}
       }

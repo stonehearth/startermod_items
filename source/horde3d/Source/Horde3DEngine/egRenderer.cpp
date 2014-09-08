@@ -1272,7 +1272,7 @@ void Renderer::setupShadowMap( bool noShadows )
 }
 
 
-Matrix4f Renderer::calcCropMatrix( const Frustum &frustSlice, const Vec3f const& lightPos, const Matrix4f &lightViewProjMat )
+Matrix4f Renderer::calcCropMatrix(Frustum const& frustSlice, Vec3f const& lightPos, Matrix4f const& lightViewProjMat)
 {
 	float frustMinX =  Math::MaxFloat, bbMinX =  Math::MaxFloat;
 	float frustMinY =  Math::MaxFloat, bbMinY =  Math::MaxFloat;

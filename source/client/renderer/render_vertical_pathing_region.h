@@ -22,7 +22,7 @@ class RenderVerticalPathingRegion : public RenderComponent {
       om::VerticalPathingRegionPtr  vertical_pathing_region_;
       RenderEntity const&           entity_;
       H3DNodeUnique                 regionDebugShape_;
-      om::DeepRegionGuardPtr        region_trace_;
+      om::DeepRegion3GuardPtr       region_trace_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

@@ -38,7 +38,7 @@ function MicroWorld:create_world()
    assert(self._size % 2 == 0)
    local half_size = self._size / 2
 
-   local region3 = _radiant.sim.alloc_region()
+   local region3 = _radiant.sim.alloc_region3()
    region3:modify(function(r3)
       r3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL_STRATA))
       r3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.GRASS))

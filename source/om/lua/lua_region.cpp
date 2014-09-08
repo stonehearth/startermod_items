@@ -1,16 +1,18 @@
-#include "pch.h"
+#include "radiant.h"
 #include "om/lua/lua_region.h"
 #include "lib/lua/script_host.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-LuaDeepRegionGuard::LuaDeepRegionGuard(DeepRegionGuardPtr trace) :
+template <typename OuterBox>
+LuaDeepRegionGuard<OuterBox>::LuaDeepRegionGuard(RegionTracePtr trace) :
    trace_(trace)
 {
 }
 
-std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::object unsafe_changed_cb)
+template <typename OuterBox>
+std::shared_ptr<LuaDeepRegionGuard<OuterBox>> LuaDeepRegionGuard<OuterBox>::OnChanged(luabind::object unsafe_changed_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_changed on invalid trace");
@@ -18,7 +20,8 @@ std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::objec
    lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
    luabind::object changed_cb(cb_thread, unsafe_changed_cb);
 
-   trace_->OnChanged([this, changed_cb](csg::Region3 const& value) {
+   typedef OuterBox::Value::element_type::Value Region;
+   trace_->OnChanged([this, changed_cb](Region const& value) {
       try {
          luabind::call_function<void>(changed_cb, value);
       } catch (std::exception const& e) {
@@ -28,7 +31,8 @@ std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::OnChanged(luabind::objec
    return shared_from_this();
 }
 
-std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::PushObjectState()
+template <typename OuterBox>
+std::shared_ptr<LuaDeepRegionGuard<OuterBox>> LuaDeepRegionGuard<OuterBox>::PushObjectState()
 {
    if (!trace_) {
       throw std::logic_error("called push_object_state on invalid trace");
@@ -37,7 +41,19 @@ std::shared_ptr<LuaDeepRegionGuard> LuaDeepRegionGuard::PushObjectState()
    return shared_from_this();
 }
 
-void LuaDeepRegionGuard::Destroy()
+template <typename OuterBox>
+void LuaDeepRegionGuard<OuterBox>::Destroy()
 {
    trace_ = nullptr;
 }
+
+#define MAKE_CLS(Cls) \
+   template Cls::LuaDeepRegionGuard(RegionTracePtr trace); \
+   template std::shared_ptr<Cls> Cls::OnChanged(luabind::object unsafe_changed_cb); \
+   template std::shared_ptr<Cls> Cls::PushObjectState(); \
+   template void Cls::Destroy(); \
+
+MAKE_CLS(LuaDeepRegion2Guard);
+MAKE_CLS(LuaDeepRegion3Guard);
+MAKE_CLS(LuaDeepRegion2fGuard);
+MAKE_CLS(LuaDeepRegion3fGuard);

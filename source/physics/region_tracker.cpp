@@ -39,7 +39,7 @@ RegionTracker::~RegionTracker()
  *
  * Put a trace on the Region to notify the NavGrid whenever it's shape changes.
  */
-void RegionTracker::SetRegionTrace(om::DeepRegionGuardPtr trace)
+void RegionTracker::SetRegionTrace(om::DeepRegion3GuardPtr trace)
 {
    CollisionTracker::Initialize();
    trace_ = trace->OnModified([this]() {

@@ -1,4 +1,3 @@
-CalendarTimer = require 'services.server.calendar.calendar_timer'
 CalendarService = class()
 
 
@@ -149,7 +148,7 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    self._sv.date.date = self:format_date()
 
-   self._time_tracker:set_elapsed_time(self:get_elapsed_time())
+   self._time_tracker:set_now(self:get_elapsed_time())
    self.__saved_variables:mark_changed()
 
    radiant.set_performance_counter('game time', self:get_elapsed_time())

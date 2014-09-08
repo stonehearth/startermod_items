@@ -1627,7 +1627,7 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
       Renderer::GetInstance().SetLoading(true);
 
       load_progress_deferred_->Progress([this] (JSONNode const& n) {
-         float progress = n.as_float();
+         float progress = (float)n.as_float();
          Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
       });
    }

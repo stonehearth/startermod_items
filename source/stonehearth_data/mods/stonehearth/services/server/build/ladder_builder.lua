@@ -25,7 +25,7 @@ function LadderBuilder:initialize(manager, base, normal, removeable)
                                        :set_base(base)
 
    self._vpr_component = ladder:add_component('vertical_pathing_region')
-   self._vpr_component:set_region(_radiant.sim.alloc_region())
+   self._vpr_component:set_region(_radiant.sim.alloc_region3())
    
    self:_install_traces()  
 end

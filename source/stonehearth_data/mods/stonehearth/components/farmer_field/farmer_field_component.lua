@@ -23,7 +23,7 @@ function FarmerFieldComponent:initialize(entity, json)
       self._sv.crops = {}
 
       self._sv.soil_layer = radiant.entities.create_entity()
-      self._sv.tilled_soil_region = _radiant.sim.alloc_region()
+      self._sv.tilled_soil_region = _radiant.sim.alloc_region3()
 
       self._sv._initialized = true
       self._sv.size = Point2(0, 0)
@@ -40,13 +40,13 @@ function FarmerFieldComponent:initialize(entity, json)
       self._sv.auto_replant = true
 
       self.destination = self._sv.soil_layer:add_component('destination')
-      self.destination:set_region(_radiant.sim.alloc_region())
-                       :set_reserved(_radiant.sim.alloc_region())
+      self.destination:set_region(_radiant.sim.alloc_region3())
+                       :set_reserved(_radiant.sim.alloc_region3())
                        :set_auto_update_adjacent(true)
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
          self.destination = self._sv.soil_layer:get_component('destination')
-         self.destination:set_reserved(_radiant.sim.alloc_region()) -- xxx: clear the existing one from cpp land!
+         self.destination:set_reserved(_radiant.sim.alloc_region3()) -- xxx: clear the existing one from cpp land!
          if #self._sv.contents > 0 then
             self:_create_till_task()
          end
