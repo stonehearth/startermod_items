@@ -35,6 +35,6 @@
       }
    },
    "entity_data" : {
-      "stonehearth:panic_threshold" : 1.00
+      "stonehearth:panic_threshold" : 0.75
    }
 }
