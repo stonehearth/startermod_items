@@ -21,13 +21,13 @@ end
 
 function PetOrchestrator:run(town, args)
    self._pet = args.entity
-   self._task_group = self._pet:get_component('stonehearth:ai')
+   self._task_group = self._pet:add_component('stonehearth:ai')
                                     :get_task_group('stonehearth:ambient_pet_behavior')
    local pet = self._pet
    local faction = town:get_faction()
    local activity_fn
 
-   while pet:get_component('unit_info'):get_faction() == faction do
+   while pet:add_component('unit_info'):get_faction() == faction do
       activity_fn = self:_choose_activity()
       activity_fn(self, pet, town)
    end
