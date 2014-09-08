@@ -1,0 +1,12 @@
+{
+   "scenario_data" : {
+      "title" : "Town Advisory: We need wood!",
+      "message" : "If we're going to get this town off the ground, we'll need wood, and lots of it! Chop down some nearby trees and make a stockpile to store their logs.",
+      "rewards" : {
+         "exp" : {
+            "type" : "exp",
+            "value" : 10
+         }
+      }
+   }
+}

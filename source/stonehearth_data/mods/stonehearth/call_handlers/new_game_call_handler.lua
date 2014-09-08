@@ -241,6 +241,11 @@ function NewGameCallHandler:get_town_name(session, response)
    end
 end
 
+function NewGameCallHandler:get_town(session, response)
+   local town = stonehearth.town:get_town(session.player_id)
+   return { town = town }
+end
+
 function NewGameCallHandler:set_town_name(session, response, town_name)
    local town = stonehearth.town:get_town(session.player_id)
    town:set_town_name(town_name)

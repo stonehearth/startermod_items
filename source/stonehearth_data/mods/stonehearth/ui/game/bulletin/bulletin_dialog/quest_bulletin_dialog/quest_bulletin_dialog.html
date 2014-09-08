@@ -1,0 +1,31 @@
+<script type="text/x-handlebars" data-template-name="questBulletinDialog">
+<div id="questBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      <div id="scroll" class="parchment">
+         <div id="content">
+            <div id="title">{{{ data.title }}}</div>
+            <div>{{{ data.progress }}}</div>
+            <h2>Description</h2>
+            <div>{{{ data.message }}}</div>
+            <h2>Rewards</h2>
+            <div>
+               {{#each data.rewardsArray}}
+                  {{this.label}}
+               {{/each}}
+            </div>
+         </div>
+      </div>
+
+      {{#if data.ok_callback }}
+         <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+      {{/if}}
+      {{#if data.accepted_callback }}
+         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+      {{/if}}
+      {{#if data.declined_callback }}
+         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+      {{/if}}
+   </div>
+</div>
+</script>

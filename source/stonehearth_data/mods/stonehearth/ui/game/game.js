@@ -1,3 +1,11 @@
+$(document).ready(function(){
+      $(top).bind('keyup', function(e){
+         if (e.keyCode == 9)  { // tab
+            App.gameView.$().toggle();
+            App.debugView.$().toggle();
+         }
+      });
+});
 
 App.StonehearthGameUiView = App.ContainerView.extend({
    init: function() {
