@@ -170,7 +170,7 @@ bool MaterialResource::load( const char *data, int size )
 
 		   sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle( texMap );
       } else {
-         sampler.animationRate = atoi(node1.getAttribute("frameRate", "24"));
+         sampler.animationRate = (float)atoi(node1.getAttribute("frameRate", "24"));
          int numFrames = atoi(node1.getAttribute("numAnimationFrames", "0"));
          // Animated maps will be of the form "animXYZ.foo", so look for them in that order.
          std::stringstream ss(node1.getAttribute("map"));
@@ -461,7 +461,7 @@ void MaterialResource::setElemParamF( int elem, int elemIdx, int param, int comp
 
 void MaterialResource::updateSamplerAnimation(int samplerNum, float animTime) 
 {
-   if (samplerNum >= _samplers.size()) {
+   if (samplerNum >= (int)_samplers.size()) {
       return;
    }
    if (_samplers[samplerNum].animatedTextures.size() == 0) {
