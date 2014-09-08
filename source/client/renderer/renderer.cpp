@@ -655,6 +655,26 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    }
 }
 
+GLFWmonitor* getMonitorAt(int x, int y)
+{
+   int numMonitors;
+   GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
+   for (int i = 0; i < numMonitors; i++) 
+   {
+      int monitorX, monitorY;
+      glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
+      const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
+      
+      if ((x >= monitorX && y >= monitorY) && 
+         (x < monitorX + m->width && y < monitorY + m->height)) 
+      {
+         return monitors[i];
+      }
+   }
+
+   return nullptr;
+}
+
 void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
 {
    *windowX = config_.last_window_x.value;
@@ -665,44 +685,27 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
 
    if (!fullscreen) {
       // If we're not fullscreen, then just ensure the size of the window <= the res of the monitor.
-      *monitor = glfwGetPrimaryMonitor();
+      *monitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
+
+      if (*monitor == NULL) {
+         // Couldn't find a monitor to contain the window; put us on the first monitor.
+         *monitor = glfwGetPrimaryMonitor();
+         *windowX = 0;
+         *windowY = 0;
+      }
       const GLFWvidmode* m = glfwGetVideoMode(*monitor);
       *width = std::max(320, std::min(last_res_width, m->width));
       *height = std::max(240, std::min(last_res_height, m->height));
    } else {
       // In fullscreen, try to find the monitor that contains the window's upper-left coordinate.
-      int lastX = config_.last_screen_x.value;
-      int lastY = config_.last_screen_y.value;
-      int numMonitors;
-      int monitorWidth;
-      int monitorHeight;
-      GLFWmonitor** monitors = glfwGetMonitors(&numMonitors);
-      GLFWmonitor *desiredMonitor = NULL;
-      for (int i = 0; i < numMonitors; i++) 
-      {
-         int monitorX, monitorY;
-         glfwGetMonitorPos(monitors[i], &monitorX, &monitorY);
-         const GLFWvidmode* m = glfwGetVideoMode(monitors[i]);
-      
-         if ((lastX >= monitorX && lastY >= monitorY) && 
-            (lastX < monitorX + m->width && lastY < monitorY + m->height)) 
-         {
-            desiredMonitor = monitors[i];
-            monitorWidth = m->width;
-            monitorHeight = m->height;
-            break;
-         }
-      }
-
+      GLFWmonitor *desiredMonitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
       if (desiredMonitor == NULL) {
          desiredMonitor = glfwGetPrimaryMonitor();
-         const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
-         monitorWidth = m->width;
-         monitorHeight = m->height;
       }
+      const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
       *monitor = desiredMonitor;
-      *width = monitorWidth;
-      *height = monitorHeight;
+      *width = m->width;
+      *height = m->height;
    }
 }
 
