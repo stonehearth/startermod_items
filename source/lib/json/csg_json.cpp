@@ -83,7 +83,7 @@ static T decode_point(Node const& node) {
       if (!node.has(c)) {
          throw std::invalid_argument("malformated Point in json");
       }
-      value[i] = node.get<typename T::Scalar>(c);
+      value[i] = node.get<typename T::ScalarType>(c);
    }
    return value;
 }

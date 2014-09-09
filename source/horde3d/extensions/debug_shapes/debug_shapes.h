@@ -41,8 +41,8 @@ public:
    void clear();
    void createBuffers();
    void add_aabb(const csg::Cube3f& aabb, const csg::Color4& color);
-   void add_region(const csg::Region3& rgn, const csg::Color4& color, csg::Point3f const& offset);
-	void add_quad_xz(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &color);
+   void add_region(const csg::Region3f& rgn, const csg::Color4& color, csg::Point3f const& offset);
+   void add_quad_xz(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &color);
    void add_line(const csg::Point3f &p0, const csg::Point3f &p1, const csg::Color4 &c);
    void add_triangle(const csg::Point3f points[3], const csg::Color4 &c);
    void add_quad(const csg::Point3f points[4], const csg::Color4 &c);

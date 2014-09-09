@@ -82,14 +82,37 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("get",       &Region2Boxed::Get)
                .def("modify",    &ModifyBoxed<Region2Boxed>)
             ,
+            lua::RegisterStrongGameObject<Region2fBoxed>(L, "Region2fBoxed")
+               .def("get",       &Region2fBoxed::Get)
+               .def("modify",    &ModifyBoxed<Region2fBoxed>)
+            ,
             lua::RegisterStrongGameObject<Region3Boxed>(L, "Region3Boxed")
                .def("get",       &Region3Boxed::Get)
                .def("modify",    &ModifyBoxed<Region3Boxed>)
             ,
-            luabind::class_<LuaDeepRegion3Guard, LuaDeepRegion3GuardPtr>("LuaDeepRegionGuard")
+            lua::RegisterStrongGameObject<Region3fBoxed>(L, "Region3fBoxed")
+               .def("get",       &Region3fBoxed::Get)
+               .def("modify",    &ModifyBoxed<Region3fBoxed>)
+            ,
+            luabind::class_<LuaDeepRegion2Guard, LuaDeepRegion2GuardPtr>("LuaDeepRegion2Guard")
+               .def("on_changed",         &LuaDeepRegion2Guard::OnChanged)
+               .def("push_object_state",  &LuaDeepRegion2Guard::PushObjectState)
+               .def("destroy",            &LuaDeepRegion2Guard::Destroy)
+            ,
+            luabind::class_<LuaDeepRegion2fGuard, LuaDeepRegion2fGuardPtr>("LuaDeepRegion2fGuard")
+               .def("on_changed",         &LuaDeepRegion2fGuard::OnChanged)
+               .def("push_object_state",  &LuaDeepRegion2fGuard::PushObjectState)
+               .def("destroy",            &LuaDeepRegion2fGuard::Destroy)
+            ,
+            luabind::class_<LuaDeepRegion3Guard, LuaDeepRegion3GuardPtr>("LuaDeepRegion3Guard")
                .def("on_changed",         &LuaDeepRegion3Guard::OnChanged)
                .def("push_object_state",  &LuaDeepRegion3Guard::PushObjectState)
                .def("destroy",            &LuaDeepRegion3Guard::Destroy)
+            ,
+            luabind::class_<LuaDeepRegion3fGuard, LuaDeepRegion3fGuardPtr>("LuaDeepRegion3fGuard")
+               .def("on_changed",         &LuaDeepRegion3fGuard::OnChanged)
+               .def("push_object_state",  &LuaDeepRegion3fGuard::PushObjectState)
+               .def("destroy",            &LuaDeepRegion3fGuard::Destroy)
          ]
       ]
    ];

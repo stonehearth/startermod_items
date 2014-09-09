@@ -64,6 +64,22 @@ Region2 ProjectOntoXZPlane(Region3 const& region)
    return r2;
 }
 
+// The csg version of these functions are optimized for use in templated code.  They
+// avoid copies for nop conversions by returning a const& to the input parameter.
+// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+
+template <typename S, int C>
+csg::Region<int, C> Region_ToInt(csg::Region<S, C> const& r)
+{
+   return csg::ToInt(r);
+}
+
+template <typename S, int C>
+csg::Region<float, C> Region_ToFloat(csg::Region<S, C> const& r)
+{
+   return csg::ToFloat(r);
+}
+
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -74,6 +90,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def(constructor<typename T::Cube const&>())
          .def(const_self - other<T const&>())
          .def(const_self - other<T::Cube const&>())
+         .def("to_int",             &Region_ToInt<T::ScalarType, T::Dimension>)
+         .def("to_float",           &Region_ToFloat<T::ScalarType, T::Dimension>)
          .def("load",               &LoadRegion<T>)
          .def("copy_region",        &CopyRegion<T>)
          .def("duplicate",          &Duplicate<T>)

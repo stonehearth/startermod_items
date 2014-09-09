@@ -9,9 +9,10 @@ static void UpdateShape(csg::Region3 const& region, H3DNode shape, csg::Color4 c
 {
 }
 
+template <typename BoxedRegion>
 void client::CreateRegionDebugShape(om::EntityRef entityRef,
                                     H3DNodeUnique& shape,
-                                    om::DeepRegion3GuardPtr trace,
+                                    std::shared_ptr<om::DeepRegionGuard<dm::Boxed<std::shared_ptr<BoxedRegion>>>> trace,
                                     csg::Color4 const& color)
 {
    // offset of the local coordinates from their terrain aligned world coordiantes
@@ -23,15 +24,26 @@ void client::CreateRegionDebugShape(om::EntityRef entityRef,
    H3DNode s = h3dRadiantAddDebugShapes(1, name.c_str());
    shape = H3DNodeUnique(s);
 
-   trace->OnChanged([s, color, entityRef](csg::Region3 const& localRegion) {
+   trace->OnChanged([s, color, entityRef](BoxedRegion::Value const& localRegion) {
          om::EntityPtr entity = entityRef.lock();
          if (entity) {
-            csg::Region3 worldRegion = phys::LocalToWorld(localRegion, entity);
+            BoxedRegion::Value worldRegion = phys::LocalToWorld(localRegion, entity);
             h3dRadiantClearDebugShape(s);
             // h3dRadiantAddDebugRegion will subtract the offset from the region coordinates
-            h3dRadiantAddDebugRegion(s, worldRegion, offset, color);
+            h3dRadiantAddDebugRegion(s, csg::ToFloat(worldRegion), offset, color);
             h3dRadiantCommitDebugShape(s);
          }
       })
       ->PushObjectState();
 }
+
+template void client::CreateRegionDebugShape(om::EntityRef entityRef,
+                                             H3DNodeUnique& shape,
+                                             om::DeepRegion3GuardPtr trace,
+                                             csg::Color4 const& color);
+
+
+template void client::CreateRegionDebugShape(om::EntityRef entityRef,
+                                             H3DNodeUnique& shape,
+                                             om::DeepRegion3fGuardPtr trace,
+                                             csg::Color4 const& color);

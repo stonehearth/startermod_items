@@ -267,7 +267,7 @@ void DebugShapesNode::decode_box(const protocol::box &box)
 
 void DebugShapesNode::decode_region(const protocol::region3i &region)
 {
-   csg::Region3 rgn(region);
+   csg::Region3f rgn(region);
    csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (region.has_color()) {
       color.LoadValue(region.color());
@@ -330,14 +330,14 @@ void DebugShapesNode::add_aabb(const csg::Cube3f& aabb, const csg::Color4& color
 #endif
 }
 
-void DebugShapesNode::add_region(const csg::Region3& rgn, const csg::Color4& color, csg::Point3f const& offset)
+void DebugShapesNode::add_region(const csg::Region3f& rgn, const csg::Color4& color, csg::Point3f const& offset)
 {
    for (const auto &c : rgn) {
       // xxx: this is in no way thread safe! (see SH-8)
       csg::Point3f min, max;
       for (int i = 0; i < 3; i++) {
-         min[i] = (float)c.GetMin()[i] - offset[i];
-         max[i] = (float)c.GetMax()[i] - offset[i];
+         min[i] = c.GetMin()[i] - offset[i];
+         max[i] = c.GetMax()[i] - offset[i];
       }
       add_aabb(csg::Cube3f(min, max), color);
    }

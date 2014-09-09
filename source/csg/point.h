@@ -15,8 +15,8 @@ class PointBase
 public:
    PointBase() { }
 
-   typedef S Scalar;
-   static const int Dimension;
+   typedef S ScalarType;
+   enum { Dimension = C };
 
    S& operator[](int offset) { return static_cast<Derived*>(this)->Coord(offset); }
    S operator[](int offset) const { return static_cast<const Derived*>(this)->Coord(offset);  }

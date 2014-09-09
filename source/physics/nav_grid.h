@@ -10,17 +10,10 @@
 #include "dm/trace_categories.h"
 #include "csg/namespace.h"
 #include "nav_grid_tile.h"
-#include "derived_region_tracker.h"
 #include "om/components/region_collision_shape.ridl.h"
 #include "core/slot.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
-
-// trackers used by the NavGrid
-typedef DerivedRegionTracker<om::RegionCollisionShape, TrackerType::COLLISION> RegionCollisionShapeTracker;
-typedef DerivedRegionTracker<om::RegionCollisionShape, TrackerType::NON_COLLISION> RegionNonCollisionShapeTracker;
-typedef DerivedRegionTracker<om::Destination, TrackerType::DESTINATION> DestinationRegionTracker;
-typedef DerivedRegionTracker<om::VerticalPathingRegion, TrackerType::LADDER> VerticalPathingRegionTracker;
 
 /*
  * -- NavGrid 
@@ -67,8 +60,8 @@ class NavGrid {
       // Queries.  
       bool IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds);
       bool ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb const& cb);
-      bool ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb const& cb);
-      bool ForEachEntityInRegion(csg::Region3 const& worldRegion, ForEachEntityCb const& cb);
+      bool ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const& cb);
+      bool ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEachEntityCb const& cb);
 
       // Misc
       void RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& r);
@@ -85,34 +78,24 @@ class NavGrid {
       bool IsMarked(int bit, csg::Cube3 const& worldCube);
       bool IsMarked(int bit, csg::Region3 const& worldRegion);
 
-   private: // methods for internal helper classes
-      friend CollisionTracker;
-      friend RegionTracker;
-      friend TerrainTracker;
-      friend TerrainTileTracker;
-      friend RegionCollisionShapeTracker;
-      friend RegionNonCollisionShapeTracker;
-      friend VerticalPathingRegionTracker;
-      friend DestinationRegionTracker;
-      friend MobTracker;
-      friend SensorTracker;
-      friend SensorTileTracker;
+   public: // methods for internal helper classes
+      dm::TraceCategories GetTraceCategory();
+      void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
+      void OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::CollisionBox const& bounds, CollisionTrackerPtr tracker);
+      void OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId entityId, TrackerType type);
 
+private:
       typedef std::function<bool(CollisionTrackerPtr)> ForEachTrackerCb;
       typedef std::function<bool(csg::Point3 const& index, NavGridTile&)> ForEachTileCb;
       typedef std::function<bool(csg::Point3 const& index)> ForEachPointCb;
 
-      dm::TraceCategories GetTraceCategory();
-      void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
-      void OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker);
-      void OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type);
-      bool ForEachTileInBounds(csg::Cube3 const& bounds, ForEachTileCb const& cb);
-      bool ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const& cb);
-      bool ForEachTrackerInRegion(csg::Region3 const& worldRegion, ForEachTrackerCb const& cb);
+      bool ForEachTileInBox(csg::CollisionBox const& worldBox, ForEachTileCb const& cb);
+      bool ForEachTileInShape(csg::CollisionShape const& worldShape, ForEachTileCb const& cb);
+      bool ForEachTrackerInShape(csg::CollisionShape const& worldShape, ForEachTrackerCb const& cb);
       bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb);
       csg::Region3 GetEntityCollisionShape(dm::ObjectId entityId);
-      bool IsBlocked(om::EntityPtr entity, csg::Region3 const& region);
-      bool IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& collisionShape);
+      bool IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region);
+      bool IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::CollisionShape const& collisionShape);
       bool RegionIsSupported(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& r);
       bool RegionIsSupported(csg::Region3 const& r);
       bool RegionIsSupportedForTitan(csg::Region3 const& r);
@@ -122,7 +105,7 @@ class NavGrid {
       friend OctTree;
       void TrackComponent(om::ComponentPtr component);
 
-   private: // helper methods
+   public: // helper methods
       friend NavGridTile;
       void SignalTileDirty(csg::Point3 const& index);
 
@@ -131,7 +114,7 @@ class NavGrid {
       NavGridTile& GridTile(csg::Point3 const& pt, bool make_resident);
 
    private: // private types
-      typedef std::unordered_map<csg::Point3, NavGridTile, csg::Point3::Hash> NavGridTileMap;
+      typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3::Hash> NavGridTileMap;
       typedef std::vector<std::pair<csg::Point3, bool>> ResidentTileList;
       typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
       typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;

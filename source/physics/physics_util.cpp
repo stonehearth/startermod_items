@@ -50,12 +50,12 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
       // If there's no rotation at all, we can just translate the shape to
       // the accumulated position.  Not calling csg::Rotated() here saves
       // a copy (which is important for regions!).
-      return shape.Translated(position);
+      return shape.Translated(csg::ConvertTo<Shape::ScalarType, 3>(position));
    }
 
    // Rotate the shape to the correct orientation and move it to the
    // world position.
-   return csg::Rotated(shape, angle).Translated(position);
+   return csg::Rotated(shape, angle).Translated(csg::ConvertTo<Shape::ScalarType, 3>(position));
 }
 
 
@@ -102,5 +102,8 @@ float phys::GetTerrainAlignmentOffset(float modelOrigin)
 template csg::Cube3 phys::LocalToWorld(csg::Cube3 const&, om::EntityPtr);
 template csg::Point3 phys::LocalToWorld(csg::Point3 const&, om::EntityPtr);
 template csg::Region3 phys::LocalToWorld(csg::Region3 const&, om::EntityPtr);
+template csg::Cube3f phys::LocalToWorld(csg::Cube3f const&, om::EntityPtr);
+template csg::Point3f phys::LocalToWorld(csg::Point3f const&, om::EntityPtr);
+template csg::Region3f phys::LocalToWorld(csg::Region3f const&, om::EntityPtr);
 
 template csg::Point3 phys::WorldToLocal(csg::Point3 const&, om::EntityPtr);

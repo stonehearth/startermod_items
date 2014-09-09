@@ -56,7 +56,7 @@ function PatrollableObject:get_waypoints(distance, entity)
 
    if collision_component ~= nil then
       local object_region = collision_component:get_region():get()
-      local bounds = object_region:get_bounds():translated(location)
+      local bounds = object_region:get_bounds():to_int():translated(location)
       local clockwise = rng:get_int(0, 1) == 1
       local waypoints = self:_get_waypoints(bounds, distance, clockwise, entity)
       return waypoints
