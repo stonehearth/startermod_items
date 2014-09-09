@@ -7,13 +7,6 @@ function effects.__init()
    singleton._all_effects = {}
 end
 
-function effects._on_event_loop(_, e)
-   local now = e.now
-   for id, mgr in pairs(singleton._all_effects) do
-      mgr:on_event_loop(e)
-   end
-end
-
 function effects.run_effect(entity, effect_name, ...)
    radiant.check.is_entity(entity)
    radiant.check.is_string(effect_name)
@@ -28,7 +21,6 @@ function effects.run_effect(entity, effect_name, ...)
    return effect_mgr:start_effect(effect_name, ...)
 end
 
-radiant.events.listen(radiant, 'stonehearth:gameloop', effects, effects._on_event_loop)
 radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
    local em = singleton._all_effects[e.entity_id]
    if em then
