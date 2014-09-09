@@ -8,9 +8,10 @@
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
+template <typename BoxedRegion>
 void CreateRegionDebugShape(om::EntityRef entityRef,
                             H3DNodeUnique& shape,
-                            om::DeepRegion3GuardPtr trace,
+                            std::shared_ptr<om::DeepRegionGuard<dm::Boxed<std::shared_ptr<BoxedRegion>>>> trace,
                             csg::Color4 const& color);
 
 END_RADIANT_CLIENT_NAMESPACE

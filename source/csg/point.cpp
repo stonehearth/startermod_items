@@ -6,13 +6,6 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-const int PointBase<int, 3, Point3>::Dimension = 3;
-const int PointBase<int, 2, Point2>::Dimension = 2;
-const int PointBase<int, 1, Point1>::Dimension = 1;
-const int PointBase<float, 3, Point3f>::Dimension = 3;
-const int PointBase<float, 2, Point2f>::Dimension = 2;
-const int PointBase<float, 1, Point1f>::Dimension = 1;
-
 const Point3f Point3f::zero(0, 0, 0);
 const Point3f Point3f::one(1, 1, 1);
 const Point3f Point3f::unitX(1, 0, 0);
@@ -106,6 +99,11 @@ template float csg::Interpolate(float const&, float const&, float);
    template Point<int, C> csg::ToClosestInt(Point<float, C> const&); \
    template Point<float, C> csg::Interpolate(Point<float, C> const&, Point<float, C> const&, float); \
    template float csg::Interpolate(float const&, float const&, float);
+
+template <> Point3 csg::ConvertTo(Point3 const& pt) { return pt; }
+template <> Point3f csg::ConvertTo(Point3f const& pt) { return pt; }
+template <> Point3f csg::ConvertTo(Point3 const& pt) { return ToFloat(pt); }
+template <> Point3 csg::ConvertTo(Point3f const& pt) { return ToInt(pt); }
 
 DEFINE_POINT_CONVERSIONS(1)
 DEFINE_POINT_CONVERSIONS(2)

@@ -94,7 +94,7 @@ function ScaffoldingRenderer:_update_shape(mode)
    -- current render view of the scaffolding (i.e. those that are in our collision
    -- shape, but not yet rendered).  'extra' contains the opposite: stuff we need
    -- to get rid of.
-   local solid_region = self._collsion_shape:get_region():get()
+   local solid_region = self._collsion_shape:get_region():get():to_int()
    if solid_region then
       missing = solid_region - self._segment_region
       extra = self._segment_region - solid_region
@@ -105,14 +105,14 @@ function ScaffoldingRenderer:_update_shape(mode)
       -- the draw region (set by the render_tracker)
       if mode == 'rpg' then
          if self._draw_region then
-            show_region = self._draw_region:get():intersected(solid_region)
+            show_region = self._draw_region:get():to_int():intersected(solid_region)
             hide_region = solid_region - show_region
          else
             hide_region = solid_region
          end
       else
          if self._draw_region then
-            show_region = self._draw_region:get()
+            show_region = self._draw_region:get():to_int()
          end
       end
    else

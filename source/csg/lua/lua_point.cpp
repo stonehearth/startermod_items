@@ -13,7 +13,7 @@ using namespace ::radiant::csg;
 template <typename T>
 bool Point_IsAdjacentTo(T const& a, T const& b)
 {
-   typename T::Scalar sum = 0;
+   typename T::ScalarType sum = 0;
    for (int i = 0; i < T::Dimension; i++) {
       if (a[i] < b[i]) {
          sum += (b[i] - a[i]);
@@ -116,7 +116,7 @@ template <typename T>
 static luabind::class_<T> Register1(struct lua_State* L, const char* name)
 {
    return RegisterCommon<T>(L, name)
-         .def(constructor<T::Scalar>())
+         .def(constructor<T::ScalarType>())
          .def_readwrite("x", &T::x);
 }
 
@@ -124,7 +124,7 @@ template <typename T>
 static luabind::class_<T> Register2(struct lua_State* L, const char* name)
 {
    return RegisterCommon<T>(L, name)
-         .def(constructor<T::Scalar, T::Scalar>())
+         .def(constructor<T::ScalarType, T::ScalarType>())
          .def_readwrite("x", &T::x)
          .def_readwrite("y", &T::y);
 }
@@ -133,7 +133,7 @@ template <typename T>
 static luabind::class_<T> Register3(struct lua_State* L, const char* name)
 {
    return RegisterCommon<T>(L, name)
-         .def(constructor<T::Scalar, T::Scalar, T::Scalar>())
+         .def(constructor<T::ScalarType, T::ScalarType, T::ScalarType>())
          .def_readwrite("x", &T::x)
          .def_readwrite("y", &T::y)
          .def_readwrite("z", &T::z);

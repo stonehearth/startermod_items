@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "open.h"
+#include "csg/util.h"
 #include "om/entity.h"
 #include "physics/octtree.h"
 #include "physics/nav_grid.h"
@@ -63,12 +64,13 @@ csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::Entity
    return octTree.GetNavGrid().GetStandablePoint(entity, location);
 }
 
-luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, csg::Cube3 const& cube)
+template <typename Cube>
+luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, Cube const& cube)
 {
    NavGrid& navGrid = octTree.GetNavGrid();
 
    luabind::object result = luabind::newtable(L);
-   navGrid.ForEachEntityInBounds(cube, [L, &result](om::EntityPtr entity) {
+   navGrid.ForEachEntityInBox(csg::ToFloat(cube), [L, &result](om::EntityPtr entity) {
       ASSERT(entity);
       result[entity->GetObjectId()] = luabind::object(L, om::EntityRef(entity));
       return false; // keep iterating...
@@ -114,7 +116,8 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("get_standable_point",  &Physics_GetStandablePoint)
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube),
+               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3>)
+               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Cube3>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Region3>),

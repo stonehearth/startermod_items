@@ -1,5 +1,7 @@
 local Cube3 = _radiant.csg.Cube3
+local Cube3f = _radiant.csg.Cube3f
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 
 local Inventory = class()
 
@@ -71,23 +73,13 @@ function Inventory:remove_storage(storage_entity)
 end
 
 function Inventory:_add_collision_region(entity, size)
-   local collision_component = entity:add_component('region_collision_shape')
-   local collision_region_boxed = _radiant.sim.alloc_region3()
-
-   collision_region_boxed:modify(
-      function (region3)
-         region3:add_unique_cube(
-            Cube3(
-               -- recall that region_collision_shape is in local coordiantes
-               Point3(0, 0, 0),
-               Point3(size.x, 1, size.y)
-            )
-         )
-      end
-   )
-
-   collision_component:set_region(collision_region_boxed)
-   collision_component:set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+   entity:add_component('region_collision_shape')
+               :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+               :set_region(_radiant.sim.alloc_region3f())
+               :get_region():modify(function (cursor)
+                     cursor:add_unique_cube(Cube3f(Point3f.zero, Point3f(size.x, 1, size.y)))
+                  end)
+  
 end
 
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item

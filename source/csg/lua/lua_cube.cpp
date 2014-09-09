@@ -51,11 +51,6 @@ static void EachPoint(lua_State *L, T const& cube)
    object(L, 1).push(L);                                   // var (ignored)
 }
 
-Cube3f ToCube3f(const Cube3& r) {
-   return ToFloat(r);
-}
-
-
 IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Cube3>);
 IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Rect2>);
 DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Cube3>);
@@ -87,6 +82,23 @@ void LoadCube(lua_State* L, T& region, object obj)
    region = json::Node(lua::ScriptHost::LuaToJson(L, obj)).as<T>();
 }
 
+
+// The csg version of these functions are optimized for use in templated code.  They
+// avoid copies for nop conversions by returning a const& to the input parameter.
+// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+
+template <typename S, int C>
+csg::Cube<int, C> Cube_ToInt(csg::Cube<S, C> const& c)
+{
+   return csg::ToInt(c);
+}
+
+template <typename S, int C>
+csg::Cube<float, C> Cube_ToFloat(csg::Cube<S, C> const& c)
+{
+   return csg::ToFloat(c);
+}
+
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -99,6 +111,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def_readwrite("min", &T::min)
          .def_readwrite("max", &T::max)
          .property("tag",     &T::GetTag, &T::SetTag)
+         .def("to_int",       &Cube_ToInt<T::ScalarType, T::Dimension>)
+         .def("to_float",     &Cube_ToFloat<T::ScalarType, T::Dimension>)
          .def("load",         &LoadCube<T>)
          .def("get_area",     &T::GetArea)
          .def("get_size",     &T::GetSize)
@@ -124,7 +138,6 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       def("intersect_cube2", IntersectCube<Rect2>),
       Register<Cube3>(L,  "Cube3")
          .def("rotated",      &(Cube3 (*)(Cube3 const&, int))&csg::Rotated)
-         .def("to_float",     &ToCube3f)
          .def("each_point",   &EachPoint<Cube3>)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
       Register<Cube3f>(L, "Cube3f"),

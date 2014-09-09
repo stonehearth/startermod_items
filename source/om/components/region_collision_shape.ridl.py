@@ -9,7 +9,7 @@ class RegionCollisionShape(Component):
       SOLID = 1
    )
    region_collision_type = dm.Boxed(region_collision_types)
-   region = dm.Boxed(Region3BoxedPtr(), trace='deep_region')
+   region = dm.Boxed(Region3fBoxedPtr(), trace='deep_region')
 
    _generate_construct_object = True
 

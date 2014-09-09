@@ -53,17 +53,6 @@ void TerrainTracker::MarkChanged()
 }
 
 /*
- * -- TerrainTracker::GetLocalRegion
- *
- * Regions are tracked by tiles, so just don't do anything
- *
- */
-csg::Region3 const& TerrainTracker::GetLocalRegion() const
-{
-   return csg::Region3::empty;
-}
-
-/*
  * -- TerrainTracker::GetOverlappingRegion
  *
  * The Terrain doesn't have a collision shape, so there's nothing to do.
@@ -80,7 +69,7 @@ csg::Region3 TerrainTracker::GetOverlappingRegion(csg::Cube3 const& bounds) cons
  * Leave it to the terrain tiles...
  *
  */
-bool TerrainTracker::Intersects(csg::Cube3 const& worldBounds) const
+bool TerrainTracker::Intersects(csg::CollisionBox const& worldBounds) const
 {
    return false;
 }
