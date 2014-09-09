@@ -12,8 +12,8 @@ function EquipmentPieceComponent:initialize(entity, json)
    }
 
    if not self._sv._injected_commands then
-   	self._sv._injected_commands = {}
-	end
+      self._sv._injected_commands = {}
+   end
 
    if not self._sv._injected_buffs then
       self._sv._injected_buffs = {}
@@ -21,19 +21,20 @@ function EquipmentPieceComponent:initialize(entity, json)
 
    local owner = self._sv.owner
    if owner and owner:is_valid() then
-   	-- we can't be sure what gets loaded first: us or our owner.  if we get
-   	-- loaded first, it's way too early to inject the ai.  if the owner got loaded
-   	-- first, the 'radiant:entities:post_create' event has already been fired.
-   	-- so just load up once the whole game is loaded.
+      -- we can't be sure what gets loaded first: us or our owner.  if we get
+      -- loaded first, it's way too early to inject the ai.  if the owner got loaded
+      -- first, the 'radiant:entities:post_create' event has already been fired.
+      -- so just load up once the whole game is loaded.
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
             self:_inject_ai()
             self:_inject_buffs()
+            self:_setup_item_rendering()
          end)
    end
 end
 
 function EquipmentPieceComponent:destroy()
-	self:unequip()
+   self:unequip()
    if self._posture_changed_listener then
       self._posture_changed_listener:destroy()
       self._posture_changed_listener = nil
@@ -72,25 +73,25 @@ function EquipmentPieceComponent:suitable_for_roles(profession_roles)
 end
 
 function EquipmentPieceComponent:equip(entity)
-	self:unequip()
+   self:unequip()
 
-	self._sv.owner = entity
-	self:_inject_ai()
+   self._sv.owner = entity
+   self:_inject_ai()
    self:_inject_buffs()
-	self:_inject_commands()	
-	self:_setup_item_rendering()
-	self.__saved_variables:mark_changed()
+   self:_inject_commands()   
+   self:_setup_item_rendering()
+   self.__saved_variables:mark_changed()
 end
 
 function EquipmentPieceComponent:unequip()
-	if self._sv.owner and self._sv.owner:is_valid() then
-		self:_remove_ai()
+   if self._sv.owner and self._sv.owner:is_valid() then
+      self:_remove_ai()
       self:_remove_buffs()
-		self:_remove_commands()
-		self:_remove_item_rendering()
-		self._sv.owner = nil
-		self.__saved_variables:mark_changed()
-	end
+      self:_remove_commands()
+      self:_remove_item_rendering()
+      self._sv.owner = nil
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function EquipmentPieceComponent:is_upgrade_for(unit)
@@ -129,7 +130,7 @@ function EquipmentPieceComponent:is_upgrade_for(unit)
 end
 
 function EquipmentPieceComponent:_setup_item_rendering()
-	local render_type = self._json.render_type
+   local render_type = self._json.render_type
 
    if render_type == 'merge_with_model' then
       local render_info = self._sv.owner:add_component('render_info')
@@ -241,24 +242,24 @@ function EquipmentPieceComponent:_inject_commands()
    assert(#self._sv._injected_commands == 0)
 
    if self._json.injected_commands then
-	   local command_component = self._sv.owner:add_component('stonehearth:commands')
-	   for _, uri in ipairs(self._json.injected_commands) do
-	      local command = command_component:add_command(uri)
-			table.insert(self._sv._injected_commands, command.name)
-	   end
-	end
+      local command_component = self._sv.owner:add_component('stonehearth:commands')
+      for _, uri in ipairs(self._json.injected_commands) do
+         local command = command_component:add_command(uri)
+         table.insert(self._sv._injected_commands, command.name)
+      end
+   end
 end
 
 function EquipmentPieceComponent:_remove_commands()
-	assert(self._sv.owner and self._sv.owner:is_valid())
+   assert(self._sv.owner and self._sv.owner:is_valid())
 
    if #self._sv._injected_commands > 0 then
-	   local command_component = self._sv.owner:add_component('stonehearth:commands')
-	   for _, command_name in ipairs(self._sv._injected_commands) do
-	      command_component:remove_command(command_name)
-	   end
-		self._sv._injected_commands = {}
-	end
+      local command_component = self._sv.owner:add_component('stonehearth:commands')
+      for _, command_name in ipairs(self._sv._injected_commands) do
+         command_component:remove_command(command_name)
+      end
+      self._sv._injected_commands = {}
+   end
 end
 
 return EquipmentPieceComponent
