@@ -32,23 +32,6 @@ function Timer:get_expire_time()
    return self._expire_time
 end
 
---Returns the remaining time based ont he period passed in 'm' for minute, 'h' for hour, 'd' for day, 
---otherwise, returns period in seconds
-function Timer:get_remaining_time(period)
-   local seconds_remaining = self:get_expire_time() - stonehearth.calendar:get_elapsed_time()
-   if period then
-      if period == 'm' then
-         return seconds_remaining / 60
-      elseif period == 'h' then
-         return (seconds_remaining / 60) / 60
-      elseif period == 'd' then
-         return ((seconds_remaining / 60) / 60) / 24
-      end
-   end
-   return seconds_remaining 
-end
-
-
 -- TimeTracker
 
 function TimeTracker:__init(start_time)
