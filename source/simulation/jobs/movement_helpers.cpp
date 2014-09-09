@@ -37,50 +37,62 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point
 csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
 {
    phys::OctTree& octTree = sim.GetOctTree();
-   csg::Region3 region;
 
    if (!dstEntity || !srcEntity) {
       MH_LOG(5) << "invalid entity ptr.  returning empty region";
-      return region;
+      return csg::Region3();
    }
 
    om::MobPtr const mob = dstEntity->GetComponent<om::Mob>();
    if (!mob) {
       MH_LOG(5) << *dstEntity <<  " has no mob component.  returning empty region";
-      return region;
+      return csg::Region3();
    }
 
    if (!mob->GetBone().empty()) {
       MH_LOG(5) << *dstEntity <<  " is attached to \"" << mob->GetBone() << "\" bone.  returning empty region";
-      return region;
+      return csg::Region3();
    }
 
    csg::Point3 const origin = mob->GetWorldGridLocation();
    MH_LOG(9) << *dstEntity << " location: " << origin;
 
-   om::Region3BoxedPtr adjacent;
-   om::DestinationPtr const destination = dstEntity->GetComponent<om::Destination>();
+   // If we have a destination component and there's some adjacent information in there, use that.
+   om::DestinationPtr destination = dstEntity->GetComponent<om::Destination>();
    if (destination) {
-      adjacent = destination->GetAdjacent();
-   }
-   if (adjacent) {      
-      MH_LOG(9) << "adjacent local region bounds: " << adjacent->Get().GetBounds();
-      region = phys::LocalToWorld(adjacent->Get(), dstEntity);
-   } else {
-      MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
-      static csg::Point3 defaultAdjacentPoints[] = {
-         csg::Point3(-1, 0,  0),
-         csg::Point3( 1, 0,  0),
-         csg::Point3( 0, 0, -1),
-         csg::Point3( 0, 0,  1)
-      };
-      for (csg::Point3 const& point : defaultAdjacentPoints) {
-         csg::Point3 location = origin + point;
-         region.AddUnique(csg::Cube3(location));
+      om::Region3BoxedPtr adjacent = destination->GetAdjacent();
+      if (adjacent) {
+         csg::Region3 region = phys::LocalToWorld(adjacent->Get(), dstEntity);
+         MH_LOG(9) << "adjacent region world bounds: " << region.GetBounds();
+         return region;
       }
    }
 
-   MH_LOG(7) << "returning adjacent region of size " << region.GetArea() << " for " << *dstEntity;
+   // If we have a solid region collision shape, try that one, too!
+   om::RegionCollisionShapePtr rcs = dstEntity->GetComponent<om::RegionCollisionShape>();
+   if (rcs && rcs->GetRegionCollisionType() == om::RegionCollisionShape::SOLID) {
+      om::Region3fBoxedPtr shape = rcs->GetRegion();
+      if (shape) {
+         csg::Region3 region = phys::LocalToWorld(csg::GetAdjacent(csg::ToInt(shape->Get()), false), dstEntity);
+         MH_LOG(9) << "computed rcs adjacent world region bounds: " << region.GetBounds();
+         return region;
+      }
+   }
+
+   // Otherwise, just compute it based on the entity location
+   MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
+   static csg::Point3 defaultAdjacentPoints[] = {
+      csg::Point3(-1, 0,  0),
+      csg::Point3( 1, 0,  0),
+      csg::Point3( 0, 0, -1),
+      csg::Point3( 0, 0,  1)
+   };
+
+   csg::Region3 region;
+   for (csg::Point3 const& point : defaultAdjacentPoints) {
+      csg::Point3 location = origin + point;
+      region.AddUnique(csg::Cube3(location));
+   }
    return region;
 }
 

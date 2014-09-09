@@ -737,9 +737,11 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 
 template <int C>
 Region<float, C> csg::ToFloat(Region<int, C> const& region) {
+   // xxx: how about a fast path that looks for cubes?  T(2n) usually
+
    Region<float, C> result;
    for (Cube<int, C> const& cube : region) {
-      result.AddUnique(ToFloat(cube));
+      result.Add(ToFloat(cube));    // make no be unique due to rounding!  see csg::ToInt(Cube)
    }
    return result;
 }

@@ -17,7 +17,6 @@ public:
    csg::Point3 GetPointOfInterest(csg::Point3 const& adjacentPoint, om::EntityPtr const& entity) const;
    bool GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end, std::vector<csg::Point3> &result) const;
    std::vector<csg::Point3> PruneCollinearPathPoints(std::vector<csg::Point3> const& points) const;
-
    bool TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,
                           csg::Point3 const& fromLocation, int dx, int dz, csg::Point3& resolvedLocation) const;
 
@@ -34,6 +33,8 @@ private:
    bool CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart, csg::Point3 const& previous, csg::Point3 const& current, Axis axis) const;
    void GetSlopeBounds(csg::Point3 const& delta, Axis axis, float& maxSlope, float& minSlope, float& centerSlope) const;
    void TransposeDiagonalSlope(csg::Point3 const& delta, float& maxSlope, float& minSlope) const;
+
+private:
    int      _logLevel;
 };
 

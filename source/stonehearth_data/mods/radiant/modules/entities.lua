@@ -125,10 +125,13 @@ function entities.add_child(parent, child, location)
 
    local component = parent:add_component('entity_container')
 
-   component:add_child(child)
+   -- it's a significant performance gain to move the entity before adding it
+   -- to the new container when putting things on the terrain.  it would probably
+   -- be a good idea to remove it from its old parent before moving it, too.
    if location then
       entities.move_to(child, location)
    end
+   component:add_child(child)
 end
 
 function entities.remove_child(parent, child)

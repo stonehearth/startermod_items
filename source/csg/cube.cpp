@@ -353,7 +353,12 @@ Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
 
 template <int C>
 Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
-   return Cube<int, C>(csg::ToInt(cube.min), csg::ToInt(cube.max), cube.GetTag());
+   Point<int, C> min, max;
+   for (int i = 0; i < C; i++) {
+      min[i] = static_cast<int>(std::floor(cube.min[i])); // round toward negative infinity
+      max[i] = static_cast<int>(std::ceil(cube.max[i]));  // round toward positive infinity
+   }
+   return Cube<int, C>(min, max, cube.GetTag());
 }
 
 template <int C>

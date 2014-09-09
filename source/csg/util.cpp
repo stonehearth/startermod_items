@@ -232,7 +232,7 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
 }
 
 
-Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y)
+Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals)
 {
    Region3 adjacent;
 
