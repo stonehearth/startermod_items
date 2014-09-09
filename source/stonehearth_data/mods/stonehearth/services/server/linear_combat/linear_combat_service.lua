@@ -10,84 +10,94 @@ local spawn_interval = '24h'
 
 function LinearCombatService:initialize()
    self._sv = self.__saved_variables:get_data()
-   self._num_escorts = 1
 
-   if not self._sv._init then
-      self._sv._init = true
-      self._timer = stonehearth.calendar:set_timer(time_till_first_spawn, function()
-          self:_first_spawn() end)
-      self._sv.expire_time = self._timer:get_expire_time()
-      self._sv.first_spawn = false
+   if not self._sv.initialized then
+      self._sv.initialized = true
+      self._sv.num_escorts = 1
       self._sv.num_killed = 0
+      self._sv.enabled = false
+      self.__saved_variables:mark_changed()
    else
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         self:_create_load_timer()
-         return radiant.events.UNLISTEN
-      end)
+      if self._sv.enabled == true then
+         radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
+               self:_restore_spawn_timer()
+            end)
+      end
    end
 
    radiant.events.listen(self, 'stonehearth:goblin_killed', function() 
-      self._sv.num_killed = self._sv.num_killed + 1 
-   end)
-end
-
-function LinearCombatService:_create_load_timer()
-   if self._sv.expire_time then
-      --We're still growing
-      local duration = self._sv.expire_time - stonehearth.calendar:get_elapsed_time()
-      self._timer = stonehearth.calendar:set_timer(duration, function()
-         if not self._sv.first_spawn then
-            --We want to call _first_spawn because it hasn't been called yet
-            self:_first_spawn()
-         else
-            --We were loaded during a spawn interval
-            self:_subsequent_spawn()
-            self._timer = stonehearth.calendar:set_interval(spawn_interval, self._subsequent_spawn)
-            self._sv.expire_time = self._timer:get_expire_time()
-         end
+         self._sv.num_killed = self._sv.num_killed + 1 
       end)
-   end
 end
 
 function LinearCombatService:enable(enable)
+   if enable == self._sv.enabled then
+      return
+   end
+
    self._sv.enabled = enable
+   self.__saved_variables:mark_changed()
+
+   if self._sv.enabled then
+      self:_start_spawn_timer(time_till_first_spawn)
+   else
+      self:_stop_spawn_timer()
+   end
+end
+
+function LinearCombatService:_restore_spawn_timer()
+   local duration = self._sv.next_spawn_time and stonehearth.calendar:get_seconds_until(self._sv.next_spawn_time)
+
+   if not duration or duration <= 0 then
+      duration = spawn_interval
+   end
+
+   self:_start_spawn_timer(duration)
+end
+
+function LinearCombatService:_start_spawn_timer(duration)
+   self:_stop_spawn_timer()
+
+   self._spawn_timer = stonehearth.calendar:set_timer(duration, function()
+         self:_stop_spawn_timer()
+         self:_spawn()
+      end
+   )
+
+   self._sv.next_spawn_time = self._spawn_timer:get_expire_time()
    self.__saved_variables:mark_changed()
 end
 
-function LinearCombatService:_first_spawn()
-   if self._sv.enabled ~= nil and not self._sv.enabled then
-      return
+function LinearCombatService:_stop_spawn_timer()
+   if self._spawn_timer then
+      self._spawn_timer:destroy()
+      self._spawn_timer = nil
    end
 
-   self._sv.first_spawn = true
-
-   --After the first spawn, spawn something every interval mentioned above
-   self._timer = stonehearth.calendar:set_interval(spawn_interval, function() self:_subsequent_spawn() end)
-   self._sv.expire_time = self._timer:get_expire_time()
-
-   stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
+   self._sv.next_spawn_time = nil
+   self.__saved_variables:mark_changed()
 end
 
-function LinearCombatService:_subsequent_spawn()
+function LinearCombatService:_spawn()
    if self._sv.enabled ~= nil and not self._sv.enabled then
       return
    end
 
-   if self._timer then
-      self._sv.expire_time = self._timer:get_expire_time()
-   end
+   -- Start the next spawn timer first in case the scenario throws an exception.
+   self:_start_spawn_timer(spawn_interval)
 
-   --If no goblin has been killed yet, spawn a thief. 
+   -- If no goblin has been killed yet, spawn a thief. 
    if self._sv.num_killed < 1 then
       stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
    else 
-      --Otherwise, spawn a brigand
-      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = self._num_escorts })
-      if self._num_escorts < 3 then
-         self._num_escorts = self._num_escorts + 1
+      -- Otherwise, spawn a brigand
+      -- Note: num_escorts is currently ignored by the goblin_brigands scneario.
+      stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = self._sv.num_escorts })
+      if self._sv.num_escorts < 3 then
+         self._sv.num_escorts = self._sv.num_escorts + 1
+         self.__saved_variables:mark_changed()
       end
    end
 end
-
 
 return LinearCombatService
