@@ -1,7 +1,22 @@
+-- @title stonehearth:combat_panic_observer
+-- @book reference
+-- @section observer
+
 local log = radiant.log.create_logger('combat')
+
+--[[ @markdown
+The CombatPanicObserver is declared in the outfits of all non-combat classes. It determines when people should panic in combat. 
+Whenever that person gets hit, the observer checks to see if their hitpoints are below their panic threshold. 
+The panic threshold is set either in their eqipment, or defaults to 0.5, or 50%. 
+If their health/max_health is <= threshold, the stonehearth.combat service will record that the entity is panicking from the person who lowered their HP to below the threshhold. 
+If a person has a "panicking from" value that is not nil, they will run the panic action. 
+The panic action usually involves either running from the entity or cowering, if there is nowhere to run to. 
+]]--
+
 
 local CombatPanicObserver = class()
 
+-- On initialize the panic threshold from equipment, and listen to the combat:battery event
 function CombatPanicObserver:initialize(entity)
    self._entity = entity
    self._panic_threshold = self:_get_panic_threshold()
@@ -9,12 +24,14 @@ function CombatPanicObserver:initialize(entity)
    self._battery_listener = radiant.events.listen(self._entity, 'stonehearth:combat:battery', self, self._on_battery)
 end
 
+-- On destroy, remove the combat:battery listener 
 function CombatPanicObserver:destroy()
    self._battery_listener:destroy()
    self._battery_listener = nil
 end
 
--- just using health right now, but this could depend on other attributes as well
+-- Whenever this entity is attacked, compare health/max_health to the panic threshold. 
+-- This equation just uses health right now, but this could depend on other attributes as well
 function CombatPanicObserver:_on_battery(context)
    local health = radiant.entities.get_attribute(self._entity, 'health')
    local max_health = radiant.entities.get_attribute(self._entity, 'max_health')
@@ -24,6 +41,7 @@ function CombatPanicObserver:_on_battery(context)
    end
 end
 
+-- Get the panic threshold from the equipment the entity is holding. If nothing, set the default to 0.25
 function CombatPanicObserver:_get_panic_threshold()
    local equipment_component = self._entity:get_component('stonehearth:equipment')
    local data
@@ -46,7 +64,7 @@ function CombatPanicObserver:_get_panic_threshold()
    end
 
    -- return the default if none found
-   return radiant.util.get_config('default_panic_threshold', 0.50)
+   return radiant.util.get_config('default_panic_threshold', 0.25)
 end
 
 return CombatPanicObserver

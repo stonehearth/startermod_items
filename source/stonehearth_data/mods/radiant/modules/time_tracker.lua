@@ -19,14 +19,9 @@ function Timer:is_active()
 end
 
 --This way you can get the new expire time during the callback, if so desired
-function Timer:fire()
+function Timer:fire(now)
    if self._repeating then
-      self._expire_time = self._expire_time + self._duration
-      -- If a repeating timer has an interval that is less than the gameloop interval,
-      -- then we cannot trigger the timer fast enough. We could make the next trigger time
-      -- based on the current time instead of the last expired time, but this may not be
-      -- the intent of the consumer, and it may cause their code to drift. An assert in
-      -- TimeTracker:set_elapsed_time() will check for this condition.
+      self._expire_time = now + self._duration
    else
       self._active = false
    end
@@ -37,23 +32,6 @@ function Timer:get_expire_time()
    return self._expire_time
 end
 
---Returns the remaining time based ont he period passed in 'm' for minute, 'h' for hour, 'd' for day, 
---otherwise, returns period in seconds
-function Timer:get_remaining_time(period)
-   local seconds_remaining = self:get_expire_time() - stonehearth.calendar:get_elapsed_time()
-   if period then
-      if period == 'm' then
-         return seconds_remaining / 60
-      elseif period == 'h' then
-         return (seconds_remaining / 60) / 60
-      elseif period == 'd' then
-         return ((seconds_remaining / 60) / 60) / 24
-      end
-   end
-   return seconds_remaining 
-end
-
-
 -- TimeTracker
 
 function TimeTracker:__init(start_time)
@@ -62,20 +40,16 @@ function TimeTracker:__init(start_time)
    self._now = start_time
 end
 
-function TimeTracker:set_elapsed_time(now)
+function TimeTracker:set_now(now)
    self._now = now
 
    self._next_timers = {}
-   local elapsed = self:get_elapsed_time()
    for i, timer in ipairs(self._timers) do
       if timer:is_active() then
-         if timer:get_expire_time() <= elapsed then
-            timer:fire()
+         if timer:get_expire_time() <= now then
+            timer:fire(now)
          end
          if timer:is_active() then
-            -- Make sure a repeating timer triggers in the future.
-            -- See notes in Timer:fire().
-            assert(timer:get_expire_time() > elapsed)
             table.insert(self._next_timers, timer)
          end
       end
@@ -84,7 +58,7 @@ function TimeTracker:set_elapsed_time(now)
    self._next_timers = nil
 end
 
-function TimeTracker:get_elapsed_time()
+function TimeTracker:get_now()
    return self._now
 end
 
@@ -93,7 +67,7 @@ function TimeTracker:set_interval(duration, fn)
 end
 
 function TimeTracker:set_timer(duration, fn, repeating)
-   local timer = Timer(self:get_elapsed_time(), duration, fn, repeating)
+   local timer = Timer(self:get_now(), duration, fn, repeating)
 
    -- if we're currently firing timers, the _next_timers variable will contain the timers
    -- we'll check next gameloop. stick the timer in there instead of the timers array.  this

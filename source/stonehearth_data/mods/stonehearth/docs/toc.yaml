@@ -39,4 +39,13 @@ sections:
                   -  slug: drop_carrying_at
                      display_name: drop_carrying_at
                      filename: ../ai/actions/drop_carrying_at_action.lua
-
+         -  slug: observers
+            display_name: Observers
+            filename: reference/ai/observer.markdown
+            sections:
+                  -  slug: combat_panic_observer
+                     display_name: combat_panic_observer
+                     filename: ../ai/observers/combat_panic_observer.lua
+         - slug: events
+           display_name: Events
+           filename: reference/ai/event.markdown

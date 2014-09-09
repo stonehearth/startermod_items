@@ -79,6 +79,9 @@ function BuildService:set_active(entity, enabled)
 end
 
 function BuildService:set_teardown(entity, enabled)
+   if enabled then
+      self._undo:clear()
+   end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
          if c then

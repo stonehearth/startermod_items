@@ -26,7 +26,7 @@ Compound Actions are composed of Simple Actions using the AI System's "create\_c
 
 ### No Complex Logic
 
-Actions are run synchronously from start to finish, and an Entity can only be doing one Action at any given time.  Do not try to implement complex logic in an Action!  It will only bring you grief and misery.   To implement complex behavior, you should use Threads and Tasks (see below).
+Actions are run synchronously from start to finish, and an Entity can only be doing one Action at any given time.  Do not try to implement complex logic in an Action!  It will only bring you grief and misery.   To implement complex behavior, you should use Orchestrators and Tasks (see below).
 
 ## Tasks and Task Groups
 
@@ -62,7 +62,7 @@ The Task and Task Group provide an easy, flexible way to coordinate this behavio
 
 In many cases, running Actions simply isn't sufficient for implementing Entity behavior.  Only one Action can be running at a time.  Furthermore, once an Action has begun running, it is not allowed to block to do significant computation (e.g. additional pathfinding).  Finally, there is no way for an Action to suspend itself to let another Action run and resume later to pick up where it left off.
 
-To handle all these situations, you need to create a new Thread of execution to manage the complicated scenario, and use Tasks and TaskGroups to request Actions get run to carry out the details.
+To handle all these situations, you need to create a new thread of execution (an orchestrator) to manage the complicated scenario, and use Tasks and TaskGroups to request Actions get run to carry out the details.
 
 For example, consider a crafter who needs to process his order list.  There are many, many cases where the crafter may need to do different actions based on any number of events.  Consider, for example, what should happen when the crafter is instructed to build a chair that takes 2 pieces of wood.  If we implemented this as a CompoundAction, we would need to precompute a complicated path to take the crafter from his current position, to each piece of wood, and back to the bench.  Furthermore, the Action would take a really long time to complete, during which either the wood the crafter needs would either be unavailable for other uses (which might look weird) or it might mysteriously disappear, forcing our Action to abort.
 
@@ -77,5 +77,5 @@ Instead of using a CompoundAction, we would like to write code that looks like
 
 Where "gather\_next\_ingredient" is a blocking function which grabs exactly one ingredient from the recipe.  One implementation would be to create a taskgroup for the crafter, add a task which does an action to gather just that one ingredient, then wait for it to finish.  In this way, the crafter can do any number of Actions betweeen calls to gather\_next\_ingredient().  We can also look at the result from the Task wait() function to see if the Action actually completed to decide what we should do next.
 
-The process of creating Threads, TaskGroups, and Tasks to implement these scenariors is **greatly** simplified by the Town orchestrator functionality.  See the Town reference for details.
+The process of creating Orchestrators, TaskGroups, and Tasks to implement these scenariors is **greatly** simplified by the Town orchestrator functionality.  See the Town reference for details.
   
