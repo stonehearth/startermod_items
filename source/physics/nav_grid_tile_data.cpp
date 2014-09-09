@@ -125,7 +125,9 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
                      int offset = Offset(x, y, z);
 
-                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     DEBUG_ONLY(
+                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     )
                      marked_type.set(offset);
                      marked_collision.set(offset);
                   }
@@ -140,7 +142,9 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
                      int offset = Offset(x, y, z);
 
-                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     DEBUG_ONLY(
+                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     )
                      marked_type.set(offset);
                   }
                }
