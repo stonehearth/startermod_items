@@ -736,7 +736,8 @@ function entities.is_adjacent_to(subject, target)
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
          local region = rcs:get_region()
          if region then
-            local adjacent = region:get():to_int():get_adjacent(false)
+            local world_space_region = entities.local_to_world(region:get():to_int(), target)
+            local adjacent = world_space_region:get_adjacent(false)
             return adjacent:contains(subject)
          end
       end
