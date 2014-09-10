@@ -634,9 +634,6 @@ function Fabricator:_trace_blueprint_and_project()
       self:_update_fabricator_region()
    end
    
-   local dtrace = self._blueprint:trace_object('destination')
-                                       :on_destroyed(update_fabricator_region)
-         
    local btrace = self._blueprint_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
                                      :on_changed(update_fabricator_region)
 
@@ -648,8 +645,7 @@ function Fabricator:_trace_blueprint_and_project()
                                              end)
                                           update_fabricator_region()
                                        end)
-                                       
-   table.insert(self._traces, dtrace)
+
    table.insert(self._traces, btrace)
    table.insert(self._traces, ptrace)
    

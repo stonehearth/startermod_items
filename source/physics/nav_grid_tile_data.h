@@ -32,7 +32,7 @@ public:
 
 private:
    bool IsMarked(TrackerType type, int bit_index);
-   int Offset(csg::Point3 const& pt);
+   inline int Offset(int x, int y, int z);
    void UpdateCollisionTracker(CollisionTracker const& tracker, csg::Cube3 const& world_bounds);
    void UpdateCanStand(NavGrid& ng, csg::Cube3 const& world_bounds);
 
