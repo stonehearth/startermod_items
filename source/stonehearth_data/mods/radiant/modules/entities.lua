@@ -732,6 +732,14 @@ function entities.is_adjacent_to(subject, target)
       if destination then
          return entities.point_in_destination_adjacent(target, subject)
       end
+      local rcs = target:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         local region = rcs:get_region()
+         if region then
+            local adjacent = region:get():to_int():get_adjacent(false)
+            return adjacent:contains(subject)
+         end
+      end
       target = entities.get_world_grid_location(target)
    end
    radiant.check.is_a(subject, Point3)
