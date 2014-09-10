@@ -10,7 +10,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#pragma optimize( "", "off")
+#pragma optimize( "", off)
 
 /* 
  * -- RegionTracker::RegionTracker

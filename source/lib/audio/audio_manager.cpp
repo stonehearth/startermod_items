@@ -23,7 +23,6 @@ DEFINE_SINGLETON(AudioManager);
 const float DEFAULT_PLAYER_BGM_VOL = 1.0f;
 const float DEFAULT_PLAYER_EFX_VOL = 1.0f;
 
-//#pragma optimize("", off)
 
 //TODO: get the default volumes not from contstants, but from user-set saved files
 AudioManager::AudioManager()
@@ -37,7 +36,6 @@ AudioManager::AudioManager()
    bgm_channel_.SetPlayerVolume(player_bgm_volume_);
    ambient_channel_.SetPlayerVolume(player_efx_volume_);
 }
-//#pragma optimize("", on)
 
 //Iterate through the map and list, cleaning memory
 AudioManager::~AudioManager()
