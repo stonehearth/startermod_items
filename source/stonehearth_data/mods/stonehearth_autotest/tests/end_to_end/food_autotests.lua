@@ -118,7 +118,7 @@ function food_tests.group_eat_till_full(autotest)
 end
 
 function food_tests.eat_food_in_chair(autotest)
-   autotest.env:create_entity(6, 6, 'stonehearth:arch_backed_chair')
+   autotest.env:create_entity(6, 6, 'stonehearth:arch_backed_chair', { force_iconic = false })
 
    local food = autotest.env:create_entity(-2, -2, 'stonehearth:rabbit_jerky')
    local p = autotest.env:create_person(2, 2, {

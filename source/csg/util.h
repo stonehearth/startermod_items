@@ -61,7 +61,7 @@ template <int S> void GetChunkIndex(Point3 const& value, Point3& index, Point3& 
 template <int S> Cube3 GetChunkIndex(Cube3 const& value);
 template <int S> bool PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
-Region3 GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y);
+Region3 GetAdjacent(Region3 const& r, bool allow_diagonals);
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
@@ -93,6 +93,9 @@ template <int C> Region<int, C> const& ToInt(Region<int, C> const& region);
 template <int C> Cube<int, C> ToInt(Cube<float, C> const& cube);
 template <int C> Region<int, C> ToInt(Region<float, C> const& pt);
 template <typename S> S Interpolate(S const& p0, S const& p1, float alpha);
+
+template <typename T, int C, typename F> Point<T, C> ConvertTo(Point<F, C> const& pt);
+template <typename T, int C, typename F> Cube<T, C> ConvertTo(Cube<F, C> const& cube);
 
 template <typename S> static inline bool IsGreaterEqual(S a, S b);
 template <typename S> static inline bool IsBetween(S a, S b, S c);

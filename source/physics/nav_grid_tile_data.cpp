@@ -32,9 +32,9 @@ NavGridTileData::~NavGridTileData()
  *
  * Checks to see if the point for the specified tracker is set.
  */
-bool NavGridTileData::IsMarked(TrackerType type, csg::Point3 const& offest)
+bool NavGridTileData::IsMarked(TrackerType type, csg::Point3 const& offset)
 {
-   return IsMarked(type, Offset(offest));
+   return IsMarked(type, Offset(offset.x, offset.y, offset.z));
 }
 
 /*
@@ -54,11 +54,13 @@ bool NavGridTileData::IsMarked(TrackerType type, int bit_index)
  *
  * Converts a point address inside the tile to an offset to the bit.
  */
-int NavGridTileData::Offset(csg::Point3 const& pt)
+inline int NavGridTileData::Offset(int x, int y, int z)
 {
-   ASSERT(pt.x >= 0 && pt.y >= 0 && pt.z >= 0);
-   ASSERT(pt.x < TILE_SIZE && pt.y < TILE_SIZE && pt.z < TILE_SIZE);
-   return TILE_SIZE * (pt.z + (TILE_SIZE * pt.y)) + pt.x;
+   DEBUG_ONLY(
+      ASSERT(x >= 0 && y >= 0 && z >= 0);
+      ASSERT(x < TILE_SIZE && y < TILE_SIZE && z < TILE_SIZE);
+      )
+   return TILE_SIZE * (y + (TILE_SIZE * x)) + z;
 }
 
 /*
@@ -109,20 +111,45 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
    if (type < NUM_BIT_VECTOR_TRACKERS) {
       csg::Region3 overlap = tracker.GetOverlappingRegion(world_bounds).Translated(-world_bounds.min);
 
-      // Now just loop through all the points and set the bit.  There's certainly a more
-      // efficient implementation which sets contiguous bits in one go, but this already
-      // doesn't appear on the profile (like < 0.1% of the total game time)
       int count = 0;
-      for (csg::Cube3 const& cube : overlap) {
-         for (csg::Point3 const& pt : cube) {
-            int offset = Offset(pt);
 
-            NG_LOG(9) << "marking " << pt << " in vector " << type;
-            marked_[type][offset] = true;
-            if (type == TERRAIN) {
-               marked_[COLLISION][offset] = true;
+      auto& marked_type = marked_[type];
+
+      // This code is on the critical path when pathing during construction; so, we avoid using Point3
+      // iterators, and duplicate the loops in order to avoid an interior branch.
+      if (type == TERRAIN) {
+         auto& marked_collision = marked_[COLLISION];
+         for (csg::Cube3 const& cube : overlap) {
+            for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
+               for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
+                  for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
+                     int offset = Offset(x, y, z);
+
+                     DEBUG_ONLY(
+                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     )
+                     marked_type.set(offset);
+                     marked_collision.set(offset);
+                  }
+               }
             }
-            count++;
+            count += cube.GetArea();
+         }
+      } else {
+         for (csg::Cube3 const& cube : overlap) {
+            for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
+               for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
+                  for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
+                     int offset = Offset(x, y, z);
+
+                     DEBUG_ONLY(
+                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     )
+                     marked_type.set(offset);
+                  }
+               }
+            }
+            count += cube.GetArea();
          }
       }
       NG_LOG(5) << "marked " << count << " bits in vector " << type;

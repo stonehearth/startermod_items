@@ -217,7 +217,7 @@ void Client::OneTimeIninitializtion()
          perf_hud_shown_ = !perf_hud_shown_;
          renderer.ShowPerfHud(perf_hud_shown_);
       };
-      _commands[GLFW_KEY_F12] = [&renderer]() {
+      _commands[GLFW_KEY_F11] = [&renderer]() {
          // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
          renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
       };

@@ -27,25 +27,6 @@ NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
 {
 }
 
-/* 
- * -- NavGridTile::NavGridTile
- *
- * Construct a new NavGridTile.  This is a fake move constructor so we can put
- * these things in a std::unordered_map<> by value.  ASSERT() that we're not
- * trying to move an actual, live tile.
- *
- */
-NavGridTile::NavGridTile(NavGridTile &&other) :
-   _ng(other._ng),
-   _index(other._index),
-   _residentTileIndex(-1),
-   changed_slot_("tile changes")
-{
-   ASSERT(other.data_ == nullptr);
-   ASSERT(other.trackers_.empty());
-   ASSERT(other.changed_slot_.IsEmpty());
-}
-
 /*
  * -- NavGridTile::RemoveCollisionTracker
  *

@@ -859,6 +859,7 @@ function ExecutionFrame:_destroy_from_starting()
       unit:_stop_thinking()
       unit:_destroy()
    end
+   self._execution_filters = {}
    self._execution_units = {}
    self:_set_state(DEAD)
    self:_do_destroy()
@@ -870,6 +871,7 @@ function ExecutionFrame:_destroy_from_stopped()
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end
+   self._execution_filters = {}
    self._execution_units = {}
    self:_set_state(DEAD)
    self:_do_destroy()
@@ -882,6 +884,7 @@ function ExecutionFrame:_destroy_from_running()
    for _, unit in pairs(self._execution_units) do
       unit:_destroy()
    end
+   self._execution_filters = {}
    self._execution_units = {}
    self:_set_state(DEAD)
    self:_do_destroy()
@@ -1055,6 +1058,18 @@ function ExecutionFrame:_remove_execution_unit(unit)
          return
       end
    end
+
+   -- Review Comment: Hey Tony, We need to remove the execution filters, too, right? 
+   -- Is there a reason they are stored in 2 different structures? (--sdee, chris)
+   for key, u in pairs(self._execution_filters) do
+      if unit == u then
+         self._log:debug('removing execution unit "%s"', unit:get_name())
+         unit:_destroy()
+         self._execution_filters[key] = nil
+         self._saved_think_output[u] = nil
+         return
+      end
+   end
 end
 
 function ExecutionFrame:on_action_index_changed(add_remove, key, entry)
@@ -1073,6 +1088,9 @@ function ExecutionFrame:on_action_index_changed(add_remove, key, entry)
          end
          if self:get_state() ~= DEAD then
             local unit = self._execution_units[key]
+            if not unit then 
+               unit = self._execution_filters[key]
+            end
             if add_remove == 'add' then
                if not unit then         
                   self:_add_action(key, entry)

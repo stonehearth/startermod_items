@@ -4,6 +4,7 @@
 #include "namespace.h"
 #include "csg/cube.h"
 #include "om/om.h"
+#include "dm/dm.h"
 #include "core/object_counter.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
@@ -23,13 +24,12 @@ public:
    virtual ~CollisionTracker() { }
 
    virtual void Initialize();
-   virtual csg::Region3 const& GetLocalRegion() const = 0;
    virtual csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const = 0;
-   virtual bool Intersects(csg::Cube3 const& worldBounds) const = 0;
+   virtual bool Intersects(csg::CollisionBox const& worldBounds) const = 0;
 
    bool Intersects(csg::Point3 const& pt) const;
-   bool Intersects(csg::Region3 const& region) const;
-   bool Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const;
+   bool Intersects(csg::CollisionShape const& region) const;
+   bool Intersects(csg::CollisionShape const& region, csg::CollisionBox const& regionBounds) const;
 
    TrackerType GetType() const;
    om::EntityPtr GetEntity() const;

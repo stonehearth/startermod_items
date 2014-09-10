@@ -127,7 +127,7 @@ void Destination::UpdateDerivedValues()
 void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
 {
    ASSERT(*adjacent_);
-   (*adjacent_)->Set(csg::GetAdjacent(r, allow_diagonal_adjacency_, 0, 0));
+   (*adjacent_)->Set(csg::GetAdjacent(r, allow_diagonal_adjacency_));
 }
 
 Destination& Destination::SetAdjacent(Region3BoxedPtr r)

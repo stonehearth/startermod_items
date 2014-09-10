@@ -26,7 +26,6 @@ class TerrainTileTracker;
 class MobTracker;
 class SensorTracker;
 class SensorTileTracker;
-class RegionTracker;
 
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)

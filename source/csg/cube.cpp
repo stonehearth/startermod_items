@@ -353,7 +353,12 @@ Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
 
 template <int C>
 Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
-   return Cube<int, C>(csg::ToInt(cube.min), csg::ToInt(cube.max), cube.GetTag());
+   Point<int, C> min, max;
+   for (int i = 0; i < C; i++) {
+      min[i] = static_cast<int>(std::floor(cube.min[i])); // round toward negative infinity
+      max[i] = static_cast<int>(std::ceil(cube.max[i]));  // round toward positive infinity
+   }
+   return Cube<int, C>(min, max, cube.GetTag());
 }
 
 template <int C>
@@ -420,9 +425,17 @@ MAKE_CUBE(Line1f)
    template Cube<int, C> const& csg::ToInt(Cube<int, C> const&); \
    template Cube<int, C> csg::ToInt(Cube<float, C> const&);
 
+DEFINE_CUBE_CONVERSIONS(1)
 DEFINE_CUBE_CONVERSIONS(2)
 DEFINE_CUBE_CONVERSIONS(3)
+
+template <> Cube3 csg::ConvertTo(Cube3 const& cube) { return cube; }
+template <> Cube3f csg::ConvertTo(Cube3f const& cube) { return cube; }
+template <> Cube3f csg::ConvertTo(Cube3 const& cube) { return ToFloat(cube); }
+template <> Cube3 csg::ConvertTo(Cube3f const& cube) { return ToInt(cube); }
 
 // define centroid methods
 template Point2f csg::GetCentroid(Rect2 const& rect);
 template Point3f csg::GetCentroid(Cube3 const& cube);
+template Point2f csg::GetCentroid(Rect2f const& rect);
+template Point3f csg::GetCentroid(Cube3f const& cube);

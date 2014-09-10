@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "nav_grid.h"
 #include "collision_tracker.h"
+#include "csg/util.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 
@@ -81,7 +82,7 @@ dm::ObjectId CollisionTracker::GetEntityId() const
  */
 bool CollisionTracker::Intersects(csg::Point3 const& pt) const
 {
-   return Intersects(csg::Cube3(pt, pt + csg::Point3::one));
+   return Intersects(csg::ToFloat(csg::Cube3(pt, pt + csg::Point3::one)));
 }
 
 /* 
@@ -92,7 +93,7 @@ bool CollisionTracker::Intersects(csg::Point3 const& pt) const
  * world coodrinates.
  *
  */
-bool CollisionTracker::Intersects(csg::Region3 const& region) const
+bool CollisionTracker::Intersects(csg::CollisionShape const& region) const
 {
    return Intersects(region, region.GetBounds());
 }
@@ -109,10 +110,10 @@ bool CollisionTracker::Intersects(csg::Region3 const& region) const
  * same region on many Trackers.
  *
  */
-bool CollisionTracker::Intersects(csg::Region3 const& region, csg::Cube3 const& regionBounds) const
+bool CollisionTracker::Intersects(csg::CollisionShape const& region, csg::CollisionBox const& regionBounds) const
 {
    if (Intersects(regionBounds)) {
-      for (csg::Cube3 const& cube : region) {
+      for (csg::Cube3f const& cube : region) {
          if (Intersects(cube)) {
             return true;
          }

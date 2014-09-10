@@ -123,6 +123,12 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $SFML_EXTLIB_ROOT/openal32.dll $OUTPUT_DIR
    cp -u $SFML_EXTLIB_ROOT/libsndfile-1.dll $OUTPUT_DIR
 
+   echo Copying tbb
+   if [ $BUILD_TYPE == Debug ]; then
+      TBB_ROOT=$STONEHEARTH_ROOT/modules/tbb
+      cp -u $TBB_ROOT/package/build/vsproject/ia32/Debug-MT/tbb_debug.dll $OUTPUT_DIR
+   fi
+
    echo Copying crash reporter
    CRASH_REPORTER_ROOT=$STONEHEARTH_ROOT/build/source/lib/crash_reporter
    cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR

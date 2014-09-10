@@ -422,6 +422,7 @@ function Town:worker_combat_enabled()
    return self._sv.worker_combat_enabled
 end
 
+-- Cause all defense-capable classes to go into red alert mode
 function Town:enable_worker_combat()
    local citizens = self:get_citizens()
    
@@ -446,13 +447,15 @@ function Town:enable_worker_combat()
    self.__saved_variables:mark_changed()
 end
 
+-- Tell all defense-capable classes to come out of red alert mode
 function Town:disable_worker_combat()
    for id, task in pairs(self._worker_combat_tasks) do
       task:destroy()
 
       local citizen = radiant.entities.get_entity(id)
       if citizen then
-         stonehearth.combat:set_stance(citizen, 'passive')
+         local profession_component = citizen:get_component('stonehearth:profession')
+         profession_component:reset_to_default_comabat_stance()
          radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
          radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
       end

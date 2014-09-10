@@ -77,7 +77,10 @@ symbols:
 	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.sym
 
 .PHONY: ide
-ide: configure
+ide: configure ide-only
+
+.PHONY: ide-only
+ide-only:
 	start build/Stonehearth.sln
 
 .PHONY: run-autotest

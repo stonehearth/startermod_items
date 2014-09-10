@@ -1,6 +1,5 @@
 CalendarService = class()
 
-
 local TIME_UNITS = {
    'second',
    'minute',
@@ -54,6 +53,23 @@ function CalendarService:initialize()
       self._sv._fired_sunset_today = false
       self._sv._fired_midnight_today = false
    end
+end
+
+--Returns the remaining time based ont he period passed in 'm' for minute, 'h' for hour, 'd' for day, 
+--otherwise, returns period in seconds
+--
+function CalendarService:get_remaining_time(timer, period)
+   local seconds_remaining = timer:get_expire_time() - self:get_elapsed_time()
+   if period then
+      if period == 'm' then
+         return seconds_remaining / 60
+      elseif period == 'h' then
+         return (seconds_remaining / 60) / 60
+      elseif period == 'd' then
+         return ((seconds_remaining / 60) / 60) / 24
+      end
+   end
+   return seconds_remaining 
 end
 
 -- returns the number of game seconds that have passed

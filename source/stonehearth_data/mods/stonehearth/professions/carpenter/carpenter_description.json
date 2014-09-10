@@ -12,6 +12,7 @@
 
    "roles" : "carpenter_profession crafter",
    "talisman_uri" : "stonehearth:carpenter:saw_talisman",
+   "default_stance" : "passive",
    
    "buttonIcon" : "file(images/jobButton.png)",
    "bannerIcon" : "file(images/banner.png)",

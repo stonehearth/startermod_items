@@ -10,8 +10,6 @@ function carpenter_class.promote(entity, json)
             command.event_data.profession_info = '/stonehearth/professions/carpenter/carpenter_description.json'
          end)
    end
-
-   stonehearth.combat:set_stance(entity, 'passive')
 end
 
 function carpenter_class.demote(entity)

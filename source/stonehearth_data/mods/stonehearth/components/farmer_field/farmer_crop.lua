@@ -156,7 +156,9 @@ end
 
 
 function FarmerCrop:_create_planting_task()
-   self.planting_task = stonehearth.farming:plant_crop(self._sv.player_id, self)
+   if self._sv.crop_type then
+      self.planting_task = stonehearth.farming:plant_crop(self._sv.player_id, self)
+   end
 end
 
 

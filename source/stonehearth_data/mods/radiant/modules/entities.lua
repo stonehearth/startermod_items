@@ -125,10 +125,13 @@ function entities.add_child(parent, child, location)
 
    local component = parent:add_component('entity_container')
 
-   component:add_child(child)
+   -- it's a significant performance gain to move the entity before adding it
+   -- to the new container when putting things on the terrain.  it would probably
+   -- be a good idea to remove it from its old parent before moving it, too.
    if location then
       entities.move_to(child, location)
    end
+   component:add_child(child)
 end
 
 function entities.remove_child(parent, child)
@@ -222,6 +225,13 @@ function entities.set_player_id(entity, player_id)
    return entity:add_component('unit_info'):set_player_id(player_id)
 end
 
+function entities.get_location_aligned(entity)
+   radiant.check.is_entity(entity)
+   if entity then
+      return entity:add_component('mob'):get_grid_location()
+   end
+end
+
 function entities.get_world_location(entity)
    local mob = entity:get_component('mob')
    if not mob then
@@ -230,21 +240,12 @@ function entities.get_world_location(entity)
    return mob:get_world_location()
 end
 
--- prefer radiant.terrain.find_placement_point
-function entities.pick_nearby_location(entity, radius)
-   local target_location = entities.get_world_grid_location(entity)
-   local dx = rng:get_int(-radius, radius)
-   local dz = rng:get_int(-radius, radius)
-   if dx == 0 then
-      dx = dx + 1
+function entities.get_world_grid_location(entity)
+   radiant.check.is_entity(entity)
+   local mob = entity:get_component('mob')
+   if mob then
+      return mob:get_world_grid_location()
    end
-   if dz == 0 then
-      dz = dz + 1
-   end
-   local destination = Point3(target_location)
-   destination.x = destination.x + dx
-   destination.z = destination.z + dz
-   return destination
 end
 
 -- uris are key, value pairs of uri, quantity
@@ -335,21 +336,6 @@ function entities.unthink(entity, uri)
    radiant.check.is_entity(entity)
    if entity and entity:is_valid() then
       entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
-   end
-end
-
-function entities.get_location_aligned(entity)
-   radiant.check.is_entity(entity)
-   if entity then
-      return entity:add_component('mob'):get_grid_location()
-   end
-end
-
-function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
-   local mob = entity:get_component('mob')
-   if mob then
-      return mob:get_world_grid_location()
    end
 end
 
@@ -728,6 +714,15 @@ function entities.is_adjacent_to(subject, target)
       local destination = target:get_component('destination')
       if destination then
          return entities.point_in_destination_adjacent(target, subject)
+      end
+      local rcs = target:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         local region = rcs:get_region()
+         if region then
+            local world_space_region = entities.local_to_world(region:get():to_int(), target)
+            local adjacent = world_space_region:get_adjacent(false)
+            return adjacent:contains(subject)
+         end
       end
       target = entities.get_world_grid_location(target)
    end

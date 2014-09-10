@@ -1,9 +1,9 @@
 #include "radiant.h"
-#include "om/components/region_collision_shape.ridl.h"
+#include "dm/boxed_trace.h"
 #include "csg/point.h"
 #include "nav_grid.h"
-#include "dm/boxed_trace.h"
 #include "region_collision_shape_tracker.h"
+#include "om/components/region_collision_shape.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -11,26 +11,33 @@ using namespace radiant::phys;
 /*
  * RegionCollisionShapeTracker::RegionCollisionShapeTracker
  *
- * Track the RegionCollisionShape for an Entity.
+ * Track the shape of the region of an entity for the NavGrid.
+ *
  */
-RegionCollisionShapeTracker::RegionCollisionShapeTracker(NavGrid& ng, om::EntityPtr entity, om::RegionCollisionShapePtr rcs) :
-   RegionTracker(ng, entity),
+
+RegionCollisionShapeTracker::RegionCollisionShapeTracker(NavGrid& ng, TrackerType t, om::EntityPtr entity, om::RegionCollisionShapePtr rcs) :
+   RegionTracker(ng, t, entity),
    rcs_(rcs)
+{
+}
+
+RegionCollisionShapeTracker::~RegionCollisionShapeTracker()
 {
 }
 
 /*
  * RegionCollisionShapeTracker::Initialize
  *
- * Put a trace on the region for the RegionCollisionShape to notify the NavGrid
- * whenever the collision shape changes.
+ * Put a trace on the region to notify the NavGrid whenever it changes.
+ *
  */
+
 void RegionCollisionShapeTracker::Initialize()
 {
-   CollisionTracker::Initialize();
+   RegionTracker::Initialize();
 
    om::RegionCollisionShapePtr rcs = rcs_.lock();
-   if (rcs) { 
+   if (rcs) {
       SetRegionTrace(rcs->TraceRegion("nav grid", GetNavGrid().GetTraceCategory()));
    }
 }
@@ -38,18 +45,14 @@ void RegionCollisionShapeTracker::Initialize()
 /*
  * RegionCollisionShapeTracker::GetRegion
  *
- * Helper method to get the current collision shape region.
+ * Helper method to get the region from the encapsulated instance.
  */
-om::Region3BoxedPtr RegionCollisionShapeTracker::GetRegion() const
+
+om::Region3fBoxedPtr RegionCollisionShapeTracker::GetRegion() const
 {
    om::RegionCollisionShapePtr rcs = rcs_.lock();
    if (rcs) {
       return rcs->GetRegion();
    }
    return nullptr;
-}
-
-TrackerType RegionCollisionShapeTracker::GetType() const
-{
-   return COLLISION;
 }

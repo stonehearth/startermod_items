@@ -180,6 +180,7 @@ void SensorTracker::CheckEntity(dm::ObjectId entityId, om::EntityRef e)
       bool intersects = false;
       om::EntityPtr entity = e.lock();
       if (entity) {
+         ST_LOG(7) << "checking entity " << entityId << " against sensor bounds " << bounds_;
          intersects = navgrid_.IsEntityInCube(entity, bounds_);
       }
       if (intersects) {

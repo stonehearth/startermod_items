@@ -123,8 +123,10 @@ function EscortSquad:_attach_listeners()
     self:_add_escort_task(escort, self._sv._escorted)
   end
 
-  radiant.events.listen_once(self._sv._escorted, 'radiant:entity:pre_destroy', self, self._escorted_destroyed)
-  self._escort_listener = radiant.events.listen(self._sv._escorted, 'stonehearth:combat:engage', self, self._on_escorted_attacked)
+  if self._sv._escorted then
+    radiant.events.listen_once(self._sv._escorted, 'radiant:entity:pre_destroy', self, self._escorted_destroyed)
+    self._escort_listener = radiant.events.listen(self._sv._escorted, 'stonehearth:combat:engage', self, self._on_escorted_attacked)
+  end
 
   for _, escort in pairs(self._sv._escorts) do
     radiant.events.listen_once(escort, 'radiant:entity:pre_destroy', self, self._escort_destroyed)

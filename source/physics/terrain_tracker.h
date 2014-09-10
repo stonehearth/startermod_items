@@ -3,6 +3,7 @@
 
 #include "collision_tracker.h"
 #include "om/om.h"
+#include "dm/dm.h"
 #include "csg/point.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
@@ -23,9 +24,8 @@ public:
    TerrainTracker(NavGrid& ng, om::EntityPtr entity, om::TerrainPtr terrain);
 
    void Initialize() override;
-   csg::Region3 const& GetLocalRegion() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   bool Intersects(csg::Cube3 const& worldBounds) const override;
+   bool Intersects(csg::CollisionBox const& worldBounds) const override;
 
 protected:
    void MarkChanged() override;

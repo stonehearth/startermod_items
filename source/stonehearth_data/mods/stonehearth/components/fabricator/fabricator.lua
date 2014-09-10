@@ -128,7 +128,7 @@ function Fabricator:_create_new_project()
             :set_reserved(_radiant.sim.alloc_region3())
             :set_adjacent(_radiant.sim.alloc_region3())
 
-   self._fabricator_rcs:set_region(_radiant.sim.alloc_region3())
+   self._fabricator_rcs:set_region(_radiant.sim.alloc_region3f())
                        :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 
        
@@ -145,7 +145,7 @@ function Fabricator:_create_new_project()
 
    self._project_dst:set_region(rgn)                    
    self._project:add_component('region_collision_shape')
-                     :set_region(rgn)
+                     :set_region(_radiant.sim.alloc_region3f()) -- kept in sync by the dst trace
 
    local mob = self._entity:get_component('mob')
    local parent = mob:get_parent()
@@ -434,7 +434,7 @@ function Fabricator:_stop_project()
 end
 
 function Fabricator:_update_dst_region()
-   local rcs_rgn = self._fabricator_rcs:get_region():get()
+   local rcs_rgn = self._fabricator_rcs:get_region():get():to_int()
    local reserved_rgn = self._fabricator_dst:get_reserved():get()
    
    -- build in layers.  stencil out all but the bottom layer of the 
@@ -492,7 +492,7 @@ function Fabricator:_update_dst_adjacent()
    local available = dst_rgn - reserved_rgn
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
-   local adjacent = available:get_adjacent(allow_diagonals, 0, 0)
+   local adjacent = available:get_adjacent(allow_diagonals)
 
 
    -- if there's a normal, stencil off the adjacent blocks pointing in
@@ -599,14 +599,15 @@ function Fabricator:_update_fabricator_region()
          -- now add all those points to the region
          cursor:clear()        
          for _, pt in ipairs(points_to_add) do
-            cursor:add_unique_point(pt)
+            cursor:add_unique_point(pt:to_float())
          end
          self._finished = cursor:empty()
       end)
    else
       self._log:debug('updating build region')     
       self._fabricator_rcs:get_region():modify(function(cursor)                             
-         cursor:copy_region(br - pr)
+         local rgn = br - pr
+         cursor:copy_region(rgn:to_float())
          self._finished = cursor:empty()
       end)
    end
@@ -633,16 +634,18 @@ function Fabricator:_trace_blueprint_and_project()
       self:_update_fabricator_region()
    end
    
-   local dtrace = self._blueprint:trace_object('destination')
-                                       :on_destroyed(update_fabricator_region)
-         
    local btrace = self._blueprint_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
                                      :on_changed(update_fabricator_region)
 
    local ptrace  = self._project_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
-                                    :on_changed(update_fabricator_region)                                       
-                                       
-   table.insert(self._traces, dtrace)
+                                    :on_changed(function(project_region)
+                                          local r = self._project:get_component('region_collision_shape'):get_region()
+                                          r:modify(function (cursor)
+                                                cursor:copy_region(project_region:to_float())
+                                             end)
+                                          update_fabricator_region()
+                                       end)
+
    table.insert(self._traces, btrace)
    table.insert(self._traces, ptrace)
    

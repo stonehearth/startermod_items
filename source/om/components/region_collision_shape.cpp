@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "om/region.h"
+#include "csg/util.h"
 #include "region_collision_shape.ridl.h"
 #include "lib/voxel/qubicle_file.h"
 #include "lib/voxel/qubicle_brush.h"
@@ -36,10 +37,10 @@ static void InitRegionCollisionTypesMap()
 void RegionCollisionShape::LoadFromJson(json::Node const& obj)
 {
    if (obj.has("region")) {
-      region_ = GetStore().AllocObject<Region3Boxed>();
-      (*region_)->Set(obj.get("region", csg::Region3()));
+      region_ = GetStore().AllocObject<Region3fBoxed>();
+      (*region_)->Set(obj.get("region", csg::Region3f()));
    } else if (obj.has("region_from_model")) {
-      csg::Region3 shape;
+      csg::Region3f shape;
 
       json::Node regionFromModel = obj.get_node("region_from_model");
       std::string qubicleFile = regionFromModel.get<std::string>("model", "");
@@ -59,10 +60,10 @@ void RegionCollisionShape::LoadFromJson(json::Node const& obj)
                // Convert left to right handed without messing up facing by sliding
                // the model over rather than flipping the coords
                int xOffset = pos.x * 2 + size.x;
-               shape += model.Translated(csg::Point3(-xOffset, 0, 0));
+               shape += csg::ToFloat(model.Translated(csg::Point3(-xOffset, 0, 0)));
             }
          };
-         region_ = GetStore().AllocObject<Region3Boxed>();
+         region_ = GetStore().AllocObject<Region3fBoxed>();
          json::Node matrices = regionFromModel.get_node("matrices");
          if (matrices.begin() != matrices.end()) {
             for (json::Node child : matrices) {
@@ -91,7 +92,7 @@ void RegionCollisionShape::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
 
-   om::Region3BoxedPtr region = GetRegion();
+   om::Region3fBoxedPtr region = GetRegion();
    if (region) {
       node.set("region", region->Get());
    }

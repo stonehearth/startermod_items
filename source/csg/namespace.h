@@ -46,6 +46,9 @@ typedef Cube<float, 1> Line1f;
 typedef Cube<float, 2> Rect2f;
 typedef Cube<float, 3> Cube3f;
 
+typedef csg::Region3f      CollisionShape;
+typedef csg::Cube3f        CollisionBox;
+
 class Color3;
 class Color4;
 
