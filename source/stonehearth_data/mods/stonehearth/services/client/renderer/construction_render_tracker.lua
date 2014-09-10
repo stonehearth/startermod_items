@@ -139,7 +139,7 @@ function ConstructionRenderTracker:_compute_rpg_render_region()
       local clipper = Cube3(Point3(-INFINITE, 0, -INFINITE),
                             Point3( INFINITE, RPG_REGION_HEIGHT,  INFINITE))
       self._rpg_region:modify(function(cursor)
-            cursor:copy_region(self._region:get():clipped(clipper))
+            cursor:copy_region(self._region:get():to_int():clipped(clipper))
          end)
       self._rpg_region_dirty = false
    end
