@@ -180,10 +180,18 @@ function SimpleCaravan:_select_desired_item()
    local random_want_index = rng:get_int(1, #self._trade_item_table)
    for i=1, #self._trade_item_table do
       local item_id = self._trade_item_table[random_want_index]
+
+      --if we picked an item that has an iconic form, we actually want to check for that
+      local item_real_uri = item_id
+      local data = radiant.entities.get_component_data(item_id, 'stonehearth:entity_forms')
+      if data then
+         item_real_uri = data.iconic_form
+      end 
+
       local num_desired = rng:get_int(self._all_trades[item_id].min, self._all_trades[item_id].max)
 
       --TODO: add this function to the inventory tracker
-      local inventory_data_for_item = inventory:get_items_of_type(item_id)
+      local inventory_data_for_item = inventory:get_items_of_type(item_real_uri)
       if inventory_data_for_item and inventory_data_for_item.count > 0 then
          if inventory_data_for_item.count < num_desired then
             num_desired = inventory_data_for_item.count
