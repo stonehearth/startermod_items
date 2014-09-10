@@ -20,25 +20,21 @@ public:
    ~MobTracker();
 
    void Initialize() override;
-   csg::Region3 const& GetLocalRegion() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   bool Intersects(csg::Cube3 const& worldBounds) const override;
+   bool Intersects(csg::CollisionBox const& worldBounds) const override;
 
-   csg::Cube3 const& GetBounds() const;
-
+   csg::CollisionShape const& GetWorldShape() const { return worldShape_; }
 protected:
    void MarkChanged() override;
-
-private:
-   csg::Cube3 ComputeWorldBounds() const;
 
 private:
    NO_COPY_CONSTRUCTOR(MobTracker)
 
 private:
-   om::MobRef        mob_;
-   csg::Cube3        bounds_;
-   csg::Cube3        last_bounds_;
+   om::MobRef           mob_;
+   csg::CollisionBox    bounds_;
+   csg::CollisionBox    last_bounds_;
+   csg::CollisionShape  worldShape_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

@@ -2,7 +2,7 @@
 #define _RADIANT_PHYSICS_TERRIN_TILE_TRACKER_H
 
 #include "collision_tracker.h"
-#include "om/om.h"
+#include "om/region.h"
 #include "csg/point.h"
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
@@ -19,9 +19,8 @@ public:
    TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& pt, om::Region3BoxedPtr tile);
 
    void Initialize() override;
-   csg::Region3 const& GetLocalRegion() const override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
-   bool Intersects(csg::Cube3 const& worldBounds) const override;
+   bool Intersects(csg::CollisionBox const& worldBounds) const override;
 
 protected:
    void MarkChanged() override;
@@ -33,8 +32,8 @@ private:
    om::Region3BoxedRef  region_;
    csg::Point3          offset_;
    dm::TracePtr         trace_;
-   csg::Cube3           last_bounds_;
-   csg::Region3         localRegion_;
+   csg::CollisionBox    last_bounds_;
+   csg::CollisionShape  shape_;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

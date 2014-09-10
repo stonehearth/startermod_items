@@ -22,6 +22,7 @@ public:
 #else
    typedef eastl::fixed_vector<Cube, INITIAL_CUBE_SPACE, true> CubeVector;
 #endif
+   enum { Dimension = C };
    typedef S ScalarType;
 
 public:

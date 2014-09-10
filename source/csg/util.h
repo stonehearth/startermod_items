@@ -94,6 +94,9 @@ template <int C> Cube<int, C> ToInt(Cube<float, C> const& cube);
 template <int C> Region<int, C> ToInt(Region<float, C> const& pt);
 template <typename S> S Interpolate(S const& p0, S const& p1, float alpha);
 
+template <typename T, int C, typename F> Point<T, C> ConvertTo(Point<F, C> const& pt);
+template <typename T, int C, typename F> Cube<T, C> ConvertTo(Cube<F, C> const& cube);
+
 template <typename S> static inline bool IsGreaterEqual(S a, S b);
 template <typename S> static inline bool IsBetween(S a, S b, S c);
 

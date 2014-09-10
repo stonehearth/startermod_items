@@ -17,7 +17,9 @@
 #include "mob_tracker.h"
 #include "terrain_tracker.h"
 #include "terrain_tile_tracker.h"
-#include "derived_region_tracker.h"
+#include "destination_tracker.h"
+#include "vertical_pathing_region_tracker.h"
+#include "region_collision_shape_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
 #include <EASTL/fixed_set.h>
@@ -31,14 +33,14 @@ static const int SMALL_ITEM_MAX_WIDTH = 4;
 
 #define NG_LOG(level)              LOG(physics.navgrid, level)
 
-static csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location);
+static csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Point3 const& location);
 
 static bool IsSmallObject(om::EntityPtr entity)
 {
    if (entity) {
       if (entity->GetObjectId() != 1) {
-         csg::Region3 region = GetEntityWorldCollisionRegion(entity, csg::Point3::zero);
-         csg::Point3 size = region.GetBounds().GetSize();
+         csg::CollisionShape region = GetEntityWorldCollisionShape(entity, csg::Point3::zero);
+         csg::Point3f size = region.GetBounds().GetSize();
          return size.x <= SMALL_ITEM_MAX_WIDTH && size.y <= SMALL_ITEM_MAX_HEIGHT && size.z <= SMALL_ITEM_MAX_WIDTH;
       }
    }
@@ -85,6 +87,10 @@ NavGrid::~NavGrid()
    collision_tracker_dtors_.clear();
    collision_type_traces_.clear();
    terrain_tile_collision_trackers_.clear();
+   for (auto& entry : tiles_) {
+      delete entry.second;
+   }
+   tiles_.clear();
 }
 
 /*
@@ -126,7 +132,7 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
       case om::DestinationObjectType: {
          NG_LOG(7) << "creating DestinationRegionTracker for " << *entity;
          auto dst = std::static_pointer_cast<om::Destination>(component);
-         tracker = std::make_shared<DestinationRegionTracker>(*this, entity, dst);
+         tracker = std::make_shared<DestinationTracker>(*this, entity, dst);
          break;
       }
       case om::VerticalPathingRegionObjectType: {
@@ -191,12 +197,12 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
    switch (regionCollisionType) {
       case om::RegionCollisionShape::RegionCollisionTypes::SOLID:
          NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
-         return std::make_shared<RegionCollisionShapeTracker>(*this, entity, regionCollisionShapePtr);
+         return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
          break;
       default:
          ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
          NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
-         return std::make_shared<RegionNonCollisionShapeTracker>(*this, entity, regionCollisionShapePtr);
+         return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
    }
 }
 
@@ -306,11 +312,12 @@ dm::TraceCategories NavGrid::GetTraceCategory()
  * about them and adds them to trackers which do.  This happens when regions are created,
  * moved around in the world, or when they grow or shrink.
  */
-void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 const& bounds, CollisionTrackerPtr tracker)
+void NavGrid::OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::CollisionBox const& bounds, CollisionTrackerPtr tracker)
 {
    NG_LOG(3) << "collision tracker bounds " << bounds << " changed (last_bounds: " << last_bounds << ")";
-   csg::Cube3 current_chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
-   csg::Cube3 previous_chunks = csg::GetChunkIndex<TILE_SIZE>(last_bounds);
+
+   csg::Cube3 current_chunks = csg::GetChunkIndex<TILE_SIZE>(csg::ToInt(bounds));
+   csg::Cube3 previous_chunks = csg::GetChunkIndex<TILE_SIZE>(csg::ToInt(last_bounds));
 
    csg::Point3 chunkBoundsMin = current_chunks.min.Scaled(TILE_SIZE);
    csg::Point3 chunkBoundsMax = current_chunks.max.Scaled(TILE_SIZE);
@@ -340,11 +347,11 @@ void NavGrid::OnTrackerBoundsChanged(csg::Cube3 const& last_bounds, csg::Cube3 c
  * Used to mark all the tiles overlapping bounds as dirty.  Useful for when a collision
  * tracker goes away.
  */
-void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId, TrackerType type)
+void NavGrid::OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId entityId, TrackerType type)
 {
    NG_LOG(3) << "tracker for entity " << entityId << " covering " << bounds << " destroyed";
 
-   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(bounds);
+   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(csg::ToInt(bounds));
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
@@ -353,7 +360,7 @@ void NavGrid::OnTrackerDestroyed(csg::Cube3 const& bounds, dm::ObjectId entityId
    }
 
    // Signal the top tile, too.
-   SignalTileDirty(csg::GetChunkIndex<TILE_SIZE>(bounds.max + csg::Point3::unitY));
+   SignalTileDirty(csg::GetChunkIndex<TILE_SIZE>(csg::ToInt(bounds.max) + csg::Point3::unitY));
 }
 
 /*
@@ -393,9 +400,9 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
    NavGridTileMap::iterator i = tiles_.find(index);
    if (i == tiles_.end()) {
       NG_LOG(5) << "constructing new grid tile at " << index;
-      i = tiles_.emplace(std::make_pair(index, NavGridTile(*this, index))).first;
+      i = tiles_.emplace(std::make_pair(index, new NavGridTile(*this, index))).first;
    }
-   NavGridTile& tile = i->second;
+   NavGridTile& tile = *i->second;
 
    if (make_resident) {
       int cacheIndex = tile.GetResidentTileIndex();
@@ -470,7 +477,7 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
          CollisionTrackerPtr tracker = entry.second;
          if (tracker->GetType() == MOB) {
             MobTrackerPtr mob = std::static_pointer_cast<MobTracker>(tracker);
-            csg::Cube3f bounds = csg::ToFloat(mob->GetBounds()).Translated(-csg::Point3f(0.5f, 0, 0.5f));
+            csg::Cube3f bounds = mob->GetWorldShape().GetBounds().Translated(-csg::Point3f(0.5f, 0, 0.5f));
             protocol::box* box = msg->add_box();
             bounds.min.SaveValue(box->mutable_minimum());
             bounds.max.SaveValue(box->mutable_maximum());
@@ -539,7 +546,7 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb con
 }
 
 /*
- * -- NavGrid::ForEachEntityInBounds
+ * -- NavGrid::ForEachEntityInBox
  *
  * Get entities with shapes that intersect the specified world space cube.  As with 
  * ForEachEntityAtIndex, entities may be returned more than once!
@@ -548,13 +555,13 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb con
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntityCb const &cb)
+bool NavGrid::ForEachEntityInBox(csg::CollisionBox const& worldBox, ForEachEntityCb const &cb)
 {
    bool stopped;
-   stopped = ForEachTileInBounds(worldBounds, [&worldBounds, cb](csg::Point3 const& index, NavGridTile &tile) {
-      return tile.ForEachTracker([&worldBounds, cb](CollisionTrackerPtr tracker) {
+   stopped = ForEachTileInBox(worldBox, [&worldBox, cb](csg::Point3 const& index, NavGridTile &tile) {
+      return tile.ForEachTracker([&worldBox, cb](CollisionTrackerPtr tracker) {
          bool stop = false;
-         if (tracker->Intersects(worldBounds)) {
+         if (tracker->Intersects(worldBox)) {
             stop = cb(tracker->GetEntity());
          }
          return stop;
@@ -565,7 +572,7 @@ bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
 
 
 /*
- * -- NavGrid::ForEachEntityInRegion
+ * -- NavGrid::ForEachEntityInShape
  *
  * Iterate over every Entity in the region.  Guarantees to visit an entity no more
  * than once.
@@ -574,12 +581,12 @@ bool NavGrid::ForEachEntityInBounds(csg::Cube3 const& worldBounds, ForEachEntity
  * was stopped early.
  *
  */
-bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb const &cb)
+bool NavGrid::ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEachEntityCb const &cb)
 {
    bool stopped;
    eastl::fixed_set<dm::ObjectId, 64> visited;
 
-   stopped = ForEachTrackerInRegion(region, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
+   stopped = ForEachTrackerInShape(worldShape, [&visited, cb](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
       om::EntityPtr entity = tracker->GetEntity();
       if (entity) {
@@ -594,9 +601,9 @@ bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb 
 
 
 /*
- * -- NavGrid::ForEachTileInBounds
+ * -- NavGrid::ForEachTileInBox
  *
- * Iterate over every tile which intersects the specified `worldBounds`.  This tile is
+ * Iterate over every tile which intersects the specified `worldBox`.  This tile is
  * not resident, so you may get an error if you try to check the nav grid tile data in
  * any way.  The index is passed along with the tile to the callback so you can call
  * ::GetTileResident(index) if you'd rather have a resident tile.
@@ -605,10 +612,10 @@ bool NavGrid::ForEachEntityInRegion(csg::Region3 const& region, ForEachEntityCb 
  * was stopped early.
  *
  */
-bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb const& cb)
+bool NavGrid::ForEachTileInBox(csg::CollisionBox const& worldBox, ForEachTileCb const& cb)
 {
    bool stopped = false;
-   csg::Cube3 clippedWorldBounds = worldBounds.Intersection(bounds_);
+   csg::Cube3 clippedWorldBounds = csg::ToInt(worldBox).Intersection(bounds_);
    csg::Cube3 indexBounds = csg::GetChunkIndex<TILE_SIZE>(clippedWorldBounds);
 
    auto i = indexBounds.begin(), end = indexBounds.end();
@@ -622,9 +629,9 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
 
 
 /*
- * -- NavGrid::ForEachTileInRegion
+ * -- NavGrid::ForEachTileInShape
  *
- * Iterate over every tile which intersects the specified `region`, in world coordinates.
+ * Iterate over every tile which intersects the specified `worldShape`, in world coordinates.
  * This tile is not resident, so you may get an error if you try to check the nav grid tile
  * data in any way.  The index is passed along with the tile to the callback so you can call
  * ::GetTileResident(index) if you'd rather have a resident tile.
@@ -634,15 +641,15 @@ bool NavGrid::ForEachTileInBounds(csg::Cube3 const& worldBounds, ForEachTileCb c
  *
  */
 
-bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb const &cb)
+bool NavGrid::ForEachTileInShape(csg::CollisionShape const& worldShape, ForEachTileCb const &cb)
 {
    bool stopped = false;
    eastl::fixed_set<csg::Point3, 8> visited;
 
-   auto i = region.begin(), end = region.end();
+   auto i = worldShape.begin(), end = worldShape.end();
    while (!stopped && i != end) {
-      csg::Cube3 const& cube = *i++;
-      stopped = ForEachTileInBounds(cube, [&region, &visited, cb](csg::Point3 const& index, NavGridTile &tile) {
+      csg::CollisionBox worldBox = *i++;
+      stopped = ForEachTileInBox(worldBox, [&visited, cb](csg::Point3 const& index, NavGridTile &tile) {
          bool stop = false;
          if (visited.insert(index).second) {
             stop = cb(index, tile);
@@ -655,7 +662,7 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cons
 
 
 /*
- * -- NavGrid::ForEachTrackerInRegion
+ * -- NavGrid::ForEachTrackerInShape
  *
  * Iterate over every tracker which intersects the specified `region`, in world coordinates.
  * Each tracker is guaranteed to be passed to `cb` only once, regardless of how many tiles
@@ -666,17 +673,17 @@ bool NavGrid::ForEachTileInRegion(csg::Region3 const& region, ForEachTileCb cons
  *
  */
 
-bool NavGrid::ForEachTrackerInRegion(csg::Region3 const& region, ForEachTrackerCb const &cb)
+bool NavGrid::ForEachTrackerInShape(csg::CollisionShape const& worldShape, ForEachTrackerCb const &cb)
 {
    bool stopped;
    eastl::fixed_set<CollisionTracker*, 16> visited;
-   csg::Cube3 regionBounds = region.GetBounds();
+   csg::CollisionBox worldBox = worldShape.GetBounds();
 
-   stopped = ForEachTileInRegion(region, [&region, &regionBounds, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
-      return tile.ForEachTracker([&region, &regionBounds, &visited, index, cb](CollisionTrackerPtr tracker) {
+   stopped = ForEachTileInShape(worldShape, [&worldShape, &worldBox, &visited, cb](csg::Point3 const& index, NavGridTile& tile) {
+      return tile.ForEachTracker([&worldShape, &worldBox, &visited, index, cb](CollisionTrackerPtr tracker) {
          bool stop = false;
          if (visited.insert(tracker.get()).second) {
-            if (tracker->Intersects(region, regionBounds)) {
+            if (tracker->Intersects(worldShape, worldBox)) {
                stop = cb(tracker);
             }
          }
@@ -723,8 +730,9 @@ bool NavGrid::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb co
 bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds)
 {
    bool stopped;
-   stopped = ForEachTrackerForEntity(entity->GetObjectId(), [worldBounds](CollisionTrackerPtr tracker) {
-      bool stop = tracker->Intersects(worldBounds);
+   csg::CollisionBox worldBox = csg::ToFloat(worldBounds);
+   stopped = ForEachTrackerForEntity(entity->GetObjectId(), [&worldBox](CollisionTrackerPtr tracker) {
+      bool stop = tracker->Intersects(worldBox);
       return stop;
    });
    return stopped;   // if we had to stop early, we must have found an overlap!
@@ -743,11 +751,11 @@ bool NavGrid::IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds
 
 bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
 {
-   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
+   csg::CollisionShape region = GetEntityWorldCollisionShape(entity, location);
    if (!UseFastCollisionDetection(entity)) {
       return IsBlocked(entity, region);
    }
-   return IsBlocked(region);
+   return IsBlocked(csg::ToInt(region));
 }
 
 
@@ -761,11 +769,11 @@ bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Point3 const& location)
  *
  */
 
-bool NavGrid::IsBlocked(om::EntityPtr entity, csg::Region3 const& region)
+bool NavGrid::IsBlocked(om::EntityPtr entity, csg::CollisionShape const& region)
 {
    bool ignoreSmallObjects = GetMobCollisionType(entity) == om::Mob::TITAN;
 
-   bool stopped = ForEachTrackerInRegion(region, [this, ignoreSmallObjects, &entity](CollisionTrackerPtr tracker) -> bool {
+   bool stopped = ForEachTrackerInShape(region, [this, ignoreSmallObjects, &entity](CollisionTrackerPtr tracker) -> bool {
       bool stop = false;
       
       // Ignore the trackers for the entity we're asking about.
@@ -1034,12 +1042,12 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
+   csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);
    if (!UseFastCollisionDetection(entity)) {
-      return IsStandable(entity, location, region);
+      return IsStandable(entity, location, shape);
    }
-   if (!region.IsEmpty()) {
-      return IsStandable(region);
+   if (!shape.IsEmpty()) {
+      return IsStandable(csg::ToInt(shape));
    }
    return IsStandable(location);
 }
@@ -1055,12 +1063,12 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
  *
  */
 
-bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::Region3 const& collisionShape)
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg::CollisionShape const& worldShape)
 {
-   if (IsBlocked(entity, collisionShape)) {
+   if (IsBlocked(entity, worldShape)) {
       return false;
    }
-   return RegionIsSupported(entity, location, collisionShape);
+   return RegionIsSupported(entity, location, csg::ToInt(worldShape));
 }
 
 
@@ -1081,25 +1089,25 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
 {
    csg::Point3 location = bounds_.GetClosestPoint(pt);
 
-   csg::Region3 region = GetEntityWorldCollisionRegion(entity, location);
-   if (region.IsEmpty()) {
-      region.AddUnique(location);
+   csg::CollisionShape collisionShape = GetEntityWorldCollisionShape(entity, location);
+   if (collisionShape.IsEmpty()) {
+      collisionShape.AddUnique(csg::ToFloat(location));
    }
 
-   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << region.GetBounds() << " in ::GetStandablePoint.";
+   NG_LOG(7) << "collision region for " << *entity << " at " << location << " is " << collisionShape.GetBounds() << " in ::GetStandablePoint.";
    
-   csg::Point3 direction(0, IsBlocked(entity, region) ? 1 : -1, 0);
+   csg::Point3 direction(0, IsBlocked(entity, collisionShape) ? 1 : -1, 0);
 
    NG_LOG(7) << "::GetStandablePoint search direction is " << direction;
 
    while (bounds_.Contains(location)) {
       NG_LOG(7) << "::GetStandablePoint checking location " << location;
-      if (IsStandable(entity, location, region)) {
+      if (IsStandable(entity, location, collisionShape)) {
          NG_LOG(7) << "Found it!  Breaking";
          break;
       }
       NG_LOG(7) << "Still not standable.  Searching...";
-      region.Translate(direction);
+      collisionShape.Translate(csg::ToFloat(direction));
       location += direction;
    }
    return location;
@@ -1163,14 +1171,14 @@ bool NavGrid::UseFastCollisionDetection(om::EntityPtr entity) const
 }
 
 /*
- * -- GetEntityWorldCollisionRegion
+ * -- GetEntityWorldCollisionShape
  *
  * Get a region representing the collision shape of the `entity` at world location
  * `location`.  This shape is useful ONLY for doing queries about the world (e.g.
  * can an entity of this shape fit here?). 
  *
  */
-csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 const& location)
+csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Point3 const& location)
 {
    csg::Point3 pos(csg::Point3::zero);
 
@@ -1179,25 +1187,27 @@ csg::Region3 GetEntityWorldCollisionRegion(om::EntityPtr entity, csg::Point3 con
       if (mob) {
          pos = mob->GetWorldGridLocation();
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
-            return mob->GetMobCollisionRegion().Translated(location);
+            return csg::ToFloat(mob->GetMobCollisionRegion().Translated(location));
          }
       }
 
       om::RegionCollisionShapePtr rcs = entity->GetComponent<om::RegionCollisionShape>();
       if (rcs) {
-         om::Region3BoxedPtr shape = rcs->GetRegion();
+         om::Region3fBoxedPtr shape = rcs->GetRegion();
          if (shape) {
             switch (rcs->GetRegionCollisionType()) {
-            case om::RegionCollisionShape::SOLID:
-               csg::Region3 region = shape->Get();
-               region = LocalToWorld(region, entity);
-               region.Translate(location - pos);
+            case om::RegionCollisionShape::SOLID: {
+               csg::Region3f region = LocalToWorld(shape->Get(), entity);
+               region.Translate(csg::ToFloat(location - pos));
                return region;
+            }
+            default:
+               break;
             }
          }
       }
    }
-   return csg::Region3();
+   return csg::CollisionShape();
 }
 
 /*

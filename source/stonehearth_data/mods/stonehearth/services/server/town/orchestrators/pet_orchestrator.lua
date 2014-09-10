@@ -27,7 +27,7 @@ function PetOrchestrator:run(town, args)
    local faction = town:get_faction()
    local activity_fn
 
-   while pet:add_component('unit_info'):get_faction() == faction do
+   while pet:is_valid() and pet:add_component('unit_info'):get_faction() == faction do
       activity_fn = self:_choose_activity()
       activity_fn(self, pet, town)
    end

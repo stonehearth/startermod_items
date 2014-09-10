@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "om/components/mob.ridl.h"
+#include "csg/util.h"
 #include "csg/point.h"
 #include "nav_grid.h"
 #include "dm/boxed_trace.h"
@@ -17,7 +18,7 @@ using namespace radiant::phys;
  */
 MobTracker::MobTracker(NavGrid& ng, om::EntityPtr entity, om::MobPtr mob) :
    CollisionTracker(ng, MOB, entity),
-   last_bounds_(csg::Point3::zero, csg::Point3::zero),
+   last_bounds_(csg::CollisionBox::zero),
    mob_(mob)
 {
 }
@@ -59,8 +60,10 @@ void MobTracker::Initialize()
 void MobTracker::MarkChanged()
 {
    om::EntityPtr entity = GetEntity();
-   if (entity) {
-      bounds_ = ComputeWorldBounds();
+   om::MobPtr mob = mob_.lock();
+   if (entity && mob) {
+      worldShape_ = csg::ToFloat(mob->GetMobCollisionRegion().Translated(mob->GetWorldGridLocation()));
+      bounds_ = worldShape_.GetBounds();
       if (bounds_ != last_bounds_) {
          NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";
          GetNavGrid().OnTrackerBoundsChanged(last_bounds_, bounds_, shared_from_this());
@@ -80,33 +83,7 @@ void MobTracker::MarkChanged()
  */
 csg::Region3 MobTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   return ComputeWorldBounds() & bounds;
-}
-
-/*
- * -- MobTracker::GetLocalRegion
- *
- * Return region tracked by this CollisionTracker in the coordinate system of the
- * owning entity.
- *
- */
-csg::Region3 const& MobTracker::GetLocalRegion() const
-{
-   om::MobPtr mob = mob_.lock();
-   if (mob) {
-      return mob->GetMobCollisionRegion();
-   }
-   return csg::Region3::empty;
-}
-
-/*
- * -- MobTracker::GetBounds
- *
- * Return the bounds of the mob in this tracker, in world coordinates
- */
-csg::Cube3 const& MobTracker::GetBounds() const
-{
-   return bounds_;
+   return csg::ToInt(worldShape_) & bounds;
 }
 
 /*
@@ -114,21 +91,11 @@ csg::Cube3 const& MobTracker::GetBounds() const
  *
  * Return whether or not the specified `worldBounds` overlaps with this entity.
  */
-bool MobTracker::Intersects(csg::Cube3 const& worldBounds) const
-{
-   return worldBounds.Intersects(bounds_);
-}
-
-/*
- * -- MobTracker::ComputeWorldBounds
- *
- * Compute the bounds of the entity based on its location and collision type.
- */
-csg::Cube3 MobTracker::ComputeWorldBounds() const
+bool MobTracker::Intersects(csg::CollisionBox const& worldBounds) const
 {
    om::MobPtr mob = mob_.lock();
    if (!mob) {
-      return csg::Cube3::zero;
+      return false;
    }
-   return mob->GetMobCollisionRegion().GetBounds() + mob->GetWorldGridLocation();
+   return worldShape_.Intersects(worldBounds);
 }

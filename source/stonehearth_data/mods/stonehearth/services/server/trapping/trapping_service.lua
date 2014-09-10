@@ -38,33 +38,21 @@ function TrappingService:designate_trapping_grounds(player_id, faction, location
 end
 
 function TrappingService:_add_region_components(entity, size)
-   local region = Region3(
-      Cube3(
-         Point3(0, 0, 0),
-         Point3(size.x, 1, size.z)
-      )
-   )
+   local shape = Cube3(Point3.zero, Point3(size.x, 1, size.z))
 
-   self:_set_region_component(entity, 'region_collision_shape', region)
-      :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+   entity:add_component('region_collision_shape')
+            :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+            :set_region(_radiant.sim.alloc_region3f())
+            :get_region():modify(function(cursor)
+                  cursor:add_unique_cube(shape:to_float())
+               end)
 
-   self:_set_region_component(entity, 'destination', region)
-      :set_auto_update_adjacent(true)
-end
-
-function TrappingService:_set_region_component(entity, component_name, region)
-   local region_boxed = _radiant.sim.alloc_region3()
-
-   region_boxed:modify(
-      function (region3)
-         region3:add_region(region)
-      end
-   )
-
-   local component = entity:add_component(component_name)
-   component:set_region(region_boxed)
-
-   return component
+   entity:add_component('destination')
+            :set_auto_update_adjacent(true)
+            :set_region(_radiant.sim.alloc_region3())
+            :get_region():modify(function(cursor)
+                  cursor:add_unique_cube(shape)
+               end)
 end
 
 return TrappingService

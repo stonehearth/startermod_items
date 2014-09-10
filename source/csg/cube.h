@@ -126,6 +126,7 @@ class Cube
 {
 public:
    typedef S ScalarType;
+   enum { Dimension = C };
    typedef Point<S, C> Point;
    typedef Region<S, C> Region;
    typedef PointIterator<S, C> PointIterator;

@@ -851,9 +851,12 @@ MAKE_REGION(Region1f)
    template Region<int, C> const& csg::ToInt(Region<int, C> const&); \
    template Region<int, C> csg::ToInt(Region<float, C> const&); \
 
+DEFINE_REGION_CONVERSIONS(1)
 DEFINE_REGION_CONVERSIONS(2)
 DEFINE_REGION_CONVERSIONS(3)
 
 // define centroid methods
 template Point2f csg::GetCentroid(Region2 const& region);
 template Point3f csg::GetCentroid(Region3 const& region);
+template Point2f csg::GetCentroid(Region2f const& region);
+template Point3f csg::GetCentroid(Region3f const& region);

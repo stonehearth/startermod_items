@@ -73,6 +73,8 @@ using namespace radiant;
    OBJECT_TYPE(om::ErrorBrowserPtr,          om::ErrorBrowser::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region2BoxedPtr,          om::Region2Boxed::DmType,              RegisterGameObjectType) \
    OBJECT_TYPE(om::Region3BoxedPtr,          om::Region3Boxed::DmType,              RegisterGameObjectType) \
+   OBJECT_TYPE(om::Region2fBoxedPtr,         om::Region2fBoxed::DmType,             RegisterGameObjectType) \
+   OBJECT_TYPE(om::Region3fBoxedPtr,         om::Region3fBoxed::DmType,             RegisterGameObjectType) \
    OBJECT_TYPE(om::Selection,                200,                                   RegisterValueTypeLegacy) \
    \
    OBJECT_TYPE(lua::DataObjectPtr,           301,                                   RegisterNotImplementedType) \

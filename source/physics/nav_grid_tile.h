@@ -31,7 +31,6 @@ DECLARE_SHARED_POINTER_TYPES(NavGridTile)
 class NavGridTile : public std::enable_shared_from_this<NavGridTile> {
 public:
    NavGridTile(NavGrid& ng, csg::Point3 const& index);
-   NavGridTile(NavGridTile &&other);
 
    typedef std::function<bool(CollisionTrackerPtr)> ForEachTrackerCb;
 

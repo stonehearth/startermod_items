@@ -1,6 +1,7 @@
 local voxel_brush_util = {}
 local Point3 = _radiant.csg.Point3
 local Point3f = _radiant.csg.Point3f
+local Region3f = _radiant.csg.Region3f
 local Region2 = _radiant.csg.Region2
 local NineGridBrush = _radiant.voxel.NineGridBrush
 
@@ -95,6 +96,9 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       local model
       local stencil = region:get()
       if stencil then
+         if radiant.util.is_a(stencil, Region3f) then
+            stencil = stencil:to_int()
+         end
          local render_info = entity:get_component('render_info')
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
 

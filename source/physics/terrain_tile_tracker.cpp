@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "om/region.h"
 #include "csg/point.h"
+#include "csg/util.h"
 #include "nav_grid.h"
 #include "dm/boxed_trace.h"
 #include "terrain_tile_tracker.h"
@@ -12,7 +13,7 @@ TerrainTileTracker::TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::P
    CollisionTracker(ng, TERRAIN, entity),
    offset_(offset),
    region_(region),
-   last_bounds_(csg::Cube3::zero)
+   last_bounds_(csg::CollisionBox::zero)
 {
 }
 
@@ -34,8 +35,8 @@ void TerrainTileTracker::MarkChanged()
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      localRegion_ = region->Get().Translated(offset_);
-      csg::Cube3 bounds = localRegion_.GetBounds();
+      shape_ = csg::ToFloat(region->Get().Translated(offset_));
+      csg::CollisionBox bounds = shape_.GetBounds();
 
       // xxx: we could just always pass in the bounding box of the terrain tile, but that's difficult
       // to complicate until the tile terrain branch gets pushed... (sigh)
@@ -48,39 +49,20 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      return localRegion_ & bounds;
+      // xxx: if the terrain tile granularity and offset were identical to the nav grid tile, 
+      // we could avoid this (potentially very expensive) math entirely and just return the shape!
+      return csg::ToInt(shape_) & bounds;
    }
    return csg::Region3::empty;
 }
 
-
-/*
- * -- TerrainTileTracker::GetLocalRegion
- *
- * Return region tracked by this CollisionTracker in the coordinate system of the
- * owning entity.
- *
- * xxx: This is quite annoying!  GetLocalRegion returns a reference to some region
- * for performance purposes.  It expects this region to be in the coordinate system
- * of the Entity.  Unfortunately, our region is in the coordinate system of the 
- * _tile_.  So we have to copy the region to localRegion_ every time it changes,
- * and move it over by offset_.  That's expensive.   To fix this, store the
- * terrain tile region in the coordinate system of the *parent*.
- *
- */
-
-csg::Region3 const& TerrainTileTracker::GetLocalRegion() const
-{
-   return localRegion_;
-}
-
-bool TerrainTileTracker::Intersects(csg::Cube3 const& worldBounds) const
+bool TerrainTileTracker::Intersects(csg::CollisionBox const& worldBounds) const
 {
    om::Region3BoxedPtr region = region_.lock();
    if (region) {
-      bool collision = localRegion_.Intersects(worldBounds);
+      bool collision = shape_.Intersects(worldBounds);
 
-      LOG(physics.navgrid, 8) << "checking collision of tile bounds " << localRegion_.GetBounds() << " against " << worldBounds << "(collide? " << std::boolalpha << collision << ")";
+      LOG(physics.navgrid, 8) << "checking collision of tile bounds " << shape_.GetBounds() << " against " << worldBounds << "(collide? " << std::boolalpha << collision << ")";
       return collision;
    }
    return false;
