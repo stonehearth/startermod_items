@@ -41,7 +41,8 @@ function PetTest:__init()
    -- tame the critters
    for _, critter in pairs(critters) do
       local equipment = critter:add_component('stonehearth:equipment')
-      equipment:equip_item('stonehearth:pet_collar')
+      local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
+      equipment:equip_item(pet_collar)
       town:add_pet(critter)
    end
 

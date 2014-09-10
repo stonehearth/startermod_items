@@ -32,20 +32,12 @@ end
 function CheckOutRandomFriend:run(ai, entity, args)
    local roll = rng:get_int(1, self._num_friends)
    local target = self._friends[roll]
-   local location
+   local target_location = radiant.entities.get_world_grid_location(target)
 
    for i=1, 8 do
-      location = self:_pick_nearby_location(target, 4)
-      -- go_toward_location yields in between steps
-      ai:execute('stonehearth:go_toward_location', { destination = location })
+      local destination = radiant.terrain.find_placement_point(target_location, 1, 4)
+      ai:execute('stonehearth:go_toward_location', { destination = destination })
    end
-end
-
-function CheckOutRandomFriend:_pick_nearby_location(target, radius)
-   local target_location = target:add_component('mob'):get_world_grid_location()
-   local dx, dz = rng:get_int(-radius, radius), rng:get_int(-radius, radius)
-   local nearby_location = target_location + Point3(dx, 0, dz)
-   return nearby_location
 end
 
 return CheckOutRandomFriend
