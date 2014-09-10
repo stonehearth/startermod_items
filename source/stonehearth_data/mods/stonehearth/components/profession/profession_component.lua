@@ -65,8 +65,11 @@ function ProfessionComponent:promote_to(profession_uri)
       self:_load_profession_script(self._profession_json)
       self:_set_unit_info(self._profession_json)
       self:_equip_outfit(self._profession_json)
-      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
+      self._sv._default_stance = self._profession_json.default_stance
+      self:reset_to_default_comabat_stance()
 
+      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
+      
       if self._profession_json.task_groups then
          self:_add_to_task_groups(self._profession_json.task_groups)
       end
@@ -79,6 +82,9 @@ end
 function ProfessionComponent:demote()
    self:_remove_outfit()
    self:_call_profession_script('demote')
+
+   self._sv._default_stance = 'passive'
+   self:reset_to_default_comabat_stance()
 
    if self._profession_json and self._profession_json.task_groups then
       self:_remove_from_task_groups(self._profession_json.task_groups)
@@ -95,6 +101,12 @@ function ProfessionComponent:_add_to_task_groups(task_groups)
    for i, task_group_name in ipairs(task_groups) do
       town:join_task_group(self._entity, task_group_name)
    end
+end
+
+-- Reset this person to their class's default combat stance
+-- The stance is set at promotion
+function ProfessionComponent:reset_to_default_comabat_stance()
+   stonehearth.combat:set_stance(self._entity, self._sv._default_stance)
 end
 
 -- Remove this person from a set of task groups
