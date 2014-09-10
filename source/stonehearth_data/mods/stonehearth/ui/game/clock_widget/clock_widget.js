@@ -57,7 +57,8 @@ App.StonehearthCalendarView = App.View.extend({
                      ]
                   }, 
                'channel': 'bgm',
-               'fade': 4000  
+               'fade': 4000 ,
+               'volume' : 40
             });              
 
          this._sunrise_sounds_played = true;
@@ -89,7 +90,8 @@ App.StonehearthCalendarView = App.View.extend({
                      ]
                   }, 
                'channel': 'bgm',
-               'fade': 4000 
+               'fade': 4000,
+               'volume' : 40 
             });                 
 
          this._sunset_sounds_played = true;

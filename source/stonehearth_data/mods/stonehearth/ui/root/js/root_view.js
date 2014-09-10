@@ -69,7 +69,8 @@ App.RootView = Ember.ContainerView.extend({
                      ]
                   }, 
                'channel': 'bgm',
-               'fade': 1400  
+               'fade': 1400,
+               'volume' : 40 
          });         
          
       radiant.call('radiant:play_music', {
