@@ -8,7 +8,6 @@
 #include "simulation.h"
 #include "jobs/bfs_path_finder.h"
 #include "jobs/a_star_path_finder.h"
-#include "jobs/follow_path.h"
 #include "jobs/apply_free_movement.h"
 #include "jobs/entity_job_scheduler.h"
 #include "resources/res_manager.h"

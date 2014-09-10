@@ -1,3 +1,4 @@
+local FollowPath = require 'ai.lib.follow_path'
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
@@ -221,24 +222,29 @@ function ChaseEntity:run(ai, entity, args)
       end
 
       -- we want to ai:execute('stonehearth:follow_path'), but need the ability to terminate the move early
-      self._mover = _radiant.sim.create_follow_path(entity, speed, self._path, stop_distance,
-         function ()
-            if is_partial_path then
-               -- we only recalculate the path if the target moves.
-               -- if it stopped when there was no direct path, try one last time to reach it.
-               local found_path = self:_try_recalculate_path()
-               -- we're done if no path could be found. let start_thinking find an a_star path or new target.
-               finished = not found_path
-            else
-               -- path was complete and mover finished. yay!
-               finished = true
-            end
+      self._mover = FollowPath(entity, speed, self._path)
+         :set_stop_distance(stop_distance)
+         :set_arrived_cb(function()
+               if is_partial_path then
+                  -- we only recalculate the path if the target moves.
+                  -- if it stopped when there was no direct path, try one last time to reach it.
+                  local found_path = self:_try_recalculate_path()
+                  -- we're done if no path could be found. let start_thinking find an a_star path or new target.
+                  finished = not found_path
+               else
+                  -- path was complete and mover finished. yay!
+                  finished = true
+               end
+               ai:resume('mover stopped')
+            end)
+         :set_aborted_cb(function()
+               log:detail('mover aborted (path may no longer be traversable)')
+               ai:abort('mover aborted')
+            end)
 
-            ai:resume('Mover finished')
-         end
-      )
-
-      ai:suspend('Waiting for mover to finish')
+      log:debug('starting mover');
+      self._mover:start()
+      ai:suspend('waiting for mover to stop')
    end
 end
 
