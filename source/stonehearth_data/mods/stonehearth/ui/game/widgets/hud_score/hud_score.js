@@ -5,13 +5,19 @@ App.StonehearthHudScoreWidget = App.View.extend({
       var self = this;
       this._super();
 
+      radiant.call('stonehearth:get_town')
+         .done(function(response) {
+            self.townTrace = new StonehearthDataTrace(response.town, {});
+            self.townTrace.progress(function(eobj) {
+                  console.log(eobj);
+                  self.set('context.town', eobj);
+               });
+         });
+
       radiant.call('stonehearth:get_score')
          .done(function(response){
-            var uri = response.score;
-            
-            self.radiantTrace  = new RadiantTrace()
-            self.trace = self.radiantTrace.traceUri(uri, {});
-            self.trace.progress(function(eobj) {
+            self.scoreTrace = new StonehearthDataTrace(response.score, {});
+            self.scoreTrace.progress(function(eobj) {
                   self.set('context.score_data', eobj.score_data);
                   self._convertHappiness(eobj.score_data.happiness);
                });
@@ -25,8 +31,12 @@ App.StonehearthHudScoreWidget = App.View.extend({
    },
 
    destroy: function() {
-      if (this.radiantTrace != undefined) {
-         this.radiantTrace.destroy();
+      if (this.townTrace) {
+         this.townTrace.destroy();
+
+      }
+      if (this.scoreTrace) {
+         this.scoreTrace.destroy();
       }
       this._super();
    },

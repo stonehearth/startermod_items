@@ -642,9 +642,12 @@
       "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
+      "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.json)", 
+
       "score_category_data" : "file(data/score/score_category_data.json)",
 
       "professions:index" : "file(professions/index.json)",
+      "professions:town" : "file(professions/town/town_description.json)",
       "professions:worker" : "file(professions/worker/worker_description.json)",
       "professions:farmer" : "file(professions/farmer/farmer_description.json)",
       "professions:carpenter" : "file(professions/carpenter/carpenter_description.json)",
@@ -681,6 +684,10 @@
          "endpoint" : "server"
       },
       "get_overview_map": {
+         "controller" : "file(call_handlers/new_game_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "get_town_entity" : {
          "controller" : "file(call_handlers/new_game_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -999,6 +1006,8 @@
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
+      "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.lua)", 
+
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
@@ -1137,6 +1146,7 @@
          "file(ui/game/widgets/building_vision/building_vision.html)",
          "file(ui/game/widgets/red_alert/red_alert.html)",
          "file(ui/game/widgets/hud_score/hud_score.html)",
+         "file(ui/game/widgets/exp_bar/exp_bar.html)",
          "file(ui/game/people_picker/people_picker.html)",
          "file(ui/game/modes/build_mode/place_item/place_item.html)",
          "file(ui/game/unit_frame/unit_frame.html)",
@@ -1147,7 +1157,8 @@
          "file(ui/game/promotion_wizard/promotion_wizard.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
-         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)",
          "file(ui/game/build/build.html)"
@@ -1198,6 +1209,7 @@
          "file(ui/game/widgets/building_vision/building_vision.js)",
          "file(ui/game/widgets/red_alert/red_alert.js)",
          "file(ui/game/widgets/hud_score/hud_score.js)",
+         "file(ui/game/widgets/exp_bar/exp_bar.js)",
          "file(ui/game/people_picker/people_picker.js)",
          "file(ui/game/modes/build_mode/place_item/place_item.js)",
          "file(ui/game/unit_frame/unit_frame.js)",
@@ -1211,7 +1223,8 @@
          "file(ui/game/bulletin/bulletin_board.js)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.js)",         
          "file(ui/game/bulletin/bulletin_dialog/base_bulletin_dialog.js)",
-         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1256,6 +1269,7 @@
          "file(ui/game/widgets/building_vision/building_vision.less)",
          "file(ui/game/widgets/red_alert/red_alert.less)",
          "file(ui/game/widgets/hud_score/hud_score.less)",
+         "file(ui/game/widgets/exp_bar/exp_bar.less)",
          "file(ui/game/people_picker/people_picker.less)",
          "file(ui/game/unit_frame/unit_frame.less)",
          "file(ui/game/modes/build_mode/place_item/place_item.less)",
@@ -1267,7 +1281,8 @@
          "file(ui/game/promotion_wizard/promotion_wizard.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
-         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/event_log/event_log.less)",
          "file(ui/game/build/build.less)"
