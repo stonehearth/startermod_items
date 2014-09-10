@@ -162,7 +162,7 @@
       "corn_basket" : "file(entities/plants/corn/corn_basket)",
       "amazing_corn_basket" : "file(entities/plants/corn/amazing_corn_basket)",
       "corn_serving"    : "file(entities/plants/corn/corn_serving)",
-      "amazing_corn_serving"    : "file(entities/plants/corn/amazing_corn_serving)",
+      "amazing_corn_cob"    : "file(entities/plants/corn/amazing_corn_cob)",
       "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
       "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",

@@ -28,7 +28,7 @@
    "entity_data" : {
       "stonehearth:food_container" : {
          "effect": "fiddle",
-         "food": "stonehearth:amazing_corn_serving",
+         "food": "stonehearth:amazing_corn_cob",
          "stacks_per_serving": 1
       }
    }
