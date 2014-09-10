@@ -3,7 +3,6 @@
 #include "csg/util.h"
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
-#include "simulation/jobs/follow_path.h"
 #include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/bfs_path_finder.h"
@@ -96,15 +95,6 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
       entity = nullptr;
       GetSim(L).DestroyEntity(id);
    }
-}
-
-std::shared_ptr<FollowPath> Sim_CreateFollowPath(lua_State *L, om::EntityRef entity, float speed, PathPtr path, float stop_distance, object arrived_cb)
-{
-   Simulation &sim = GetSim(L);
-   object cb(lua::ScriptHost::GetCallbackThread(L), arrived_cb);
-   std::shared_ptr<FollowPath> fp(new FollowPath(sim, entity, speed, path, stop_distance, cb));
-   sim.AddTask(fp);
-   return fp;
 }
 
 std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef entity, csg::Point3f const& vector)
@@ -349,7 +339,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),
-            def("create_follow_path",        &Sim_CreateFollowPath),
             def("create_bump_location",      &Sim_CreateBumpLocation),
             def("create_job",                &Sim_CreateJob),
             def("create_save_state",         &Sim_CreateSaveState),
@@ -404,12 +393,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             luabind::class_<TracerBufferedWrapper, std::shared_ptr<TracerBufferedWrapper>>("TracerBuffered")
                .def("flush",              &TracerBufferedWrapper::Flush)
                .def_readonly("category",  &TracerBufferedWrapper::category)
-            ,
-            lua::RegisterTypePtr_NoTypeInfo<FollowPath>("FollowPath")
-               .def("set_speed", &FollowPath::SetSpeed)
-               .def("get_name",  &FollowPath::GetName)
-               .def("arrived",   &FollowPath::Arrived)
-               .def("stop",      &FollowPath::Stop)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
