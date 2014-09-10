@@ -879,7 +879,6 @@ PlaySoundEffectTrack::~PlaySoundEffectTrack()
    }
 }
 
-//#pragma optimize("", off)
 
 /* PlaySoundEffectTrack::Update
  * Update location of sound.
@@ -947,5 +946,4 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
    }
 }
 
-//#pragma optimize("", on)
 

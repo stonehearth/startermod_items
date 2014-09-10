@@ -61,7 +61,7 @@ template <int S> void GetChunkIndex(Point3 const& value, Point3& index, Point3& 
 template <int S> Cube3 GetChunkIndex(Cube3 const& value);
 template <int S> bool PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
-Region3 GetAdjacent(Region3 const& r, bool allow_diagonals, int min_y, int max_y);
+Region3 GetAdjacent(Region3 const& r, bool allow_diagonals);
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);

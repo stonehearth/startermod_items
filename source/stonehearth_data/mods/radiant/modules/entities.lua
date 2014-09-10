@@ -125,10 +125,13 @@ function entities.add_child(parent, child, location)
 
    local component = parent:add_component('entity_container')
 
-   component:add_child(child)
+   -- it's a significant performance gain to move the entity before adding it
+   -- to the new container when putting things on the terrain.  it would probably
+   -- be a good idea to remove it from its old parent before moving it, too.
    if location then
       entities.move_to(child, location)
    end
+   component:add_child(child)
 end
 
 function entities.remove_child(parent, child)
@@ -728,6 +731,15 @@ function entities.is_adjacent_to(subject, target)
       local destination = target:get_component('destination')
       if destination then
          return entities.point_in_destination_adjacent(target, subject)
+      end
+      local rcs = target:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         local region = rcs:get_region()
+         if region then
+            local world_space_region = entities.local_to_world(region:get():to_int(), target)
+            local adjacent = world_space_region:get_adjacent(false)
+            return adjacent:contains(subject)
+         end
       end
       target = entities.get_world_grid_location(target)
    end

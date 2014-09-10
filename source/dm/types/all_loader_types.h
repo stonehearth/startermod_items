@@ -9,6 +9,7 @@
 #include "om/selection.h"
 #include "protocols/store.pb.h"
 #include "dm/store.h"
+#include "dm/map_util.h"
 #include "lib/marshall/convert.h"
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
@@ -43,14 +44,16 @@ IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
 template<>
 struct ::radiant::dm::SaveImpl<const char *>
 {
+   static std::unordered_map<std::string, std::string> persistentStrings_;
+
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const char* value) {
       msg->SetExtension(Protocol::string, value);
    }
    static void LoadValue(Store const& store, SerializationType r, Protocol::Value const& msg, const char *& value) {
-      // This is potentially dangerous!  The returned const char* will be valid only as long as the msg extension
-      // is around (and doesn't reallocate)!  Luckily, our usage of the string is as a temporary in ::LoadObject
-      // for Maps, but if we run into suspicious crashing or corruption problems, consider looking here first!
-      value = msg.GetExtension(Protocol::string).c_str();
+      // The returned const char* will be valid only as long as the msg extension is around (and doesn't reallocate).
+      // Convert the temporary string into a durable string using the CStringKeyTransform function operator.
+      std::string tempString = msg.GetExtension(Protocol::string);
+      value = radiant::dm::CStringKeyTransform<0>()(tempString.c_str());
    }
    static void GetDbgInfo(const char *obj, DbgInfo &info) {
       info.os << obj;

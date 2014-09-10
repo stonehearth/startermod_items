@@ -492,7 +492,7 @@ function Fabricator:_update_dst_adjacent()
    local available = dst_rgn - reserved_rgn
    
    local allow_diagonals = self._blueprint_construction_data:get_allow_diagonal_adjacency()
-   local adjacent = available:get_adjacent(allow_diagonals, 0, 0)
+   local adjacent = available:get_adjacent(allow_diagonals)
 
 
    -- if there's a normal, stencil off the adjacent blocks pointing in
