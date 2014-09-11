@@ -184,9 +184,8 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
       -- return whether or not there are most items we could potentially place
       response:resolve({ more_items = acceptable_item_count > 1 })
    else 
-      response:fail({error = 'no more placeable items'})
+      response:reject({error = 'no more placeable items'})
    end
-
 end
 
 
