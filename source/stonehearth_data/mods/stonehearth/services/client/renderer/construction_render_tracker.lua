@@ -13,10 +13,15 @@ function ConstructionRenderTracker:__init(entity)
    self._entity = entity
    self._build_mode_visible = false
    self._ui_mode_visible = true
+   self._mode = nil
    
    self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
    self._vision_mode_listener = radiant.events.listen(radiant, 'stonehearth:building_vision_mode_changed', self, self._on_building_visions_mode_changed)
+end
+
+function ConstructionRenderTracker:start()
    self:_on_building_visions_mode_changed()
+   return self
 end
 
 -- destroy the construction render tracker.  
