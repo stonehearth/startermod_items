@@ -23,7 +23,7 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthBuildingVisionWidget",
             "StonehearthBulletinListWidget",
             "StonehearthHudScoreWidget",
-            "StonehearthExpBarWidget",
+            //"StonehearthExpBarWidget",
             "StonehearthUnitFrameView"
          ]
       };
