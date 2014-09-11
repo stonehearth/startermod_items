@@ -17,6 +17,9 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
    self._sv.location = location
    self._sv.total_region = Region3()
    self._sv.total_region:copy_region(region)
+
+   --Save the town so it's sure to be restored by the time we start to plant things
+   self._sv.town = stonehearth.town:get_town(player_id)
    
    self._sv.plantable_region_entity = radiant.entities.create_entity()
    radiant.terrain.place_entity(self._sv.plantable_region_entity, location)
@@ -60,7 +63,6 @@ function FarmerCrop:restore()
          table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
       end
    end
-
    self:_update_plantable_region()
    self:_create_planting_task()
 end
@@ -157,7 +159,7 @@ end
 
 function FarmerCrop:_create_planting_task()
    if self._sv.crop_type then
-      self.planting_task = stonehearth.farming:plant_crop(self._sv.player_id, self)
+      self.planting_task = self._sv.town:plant_crop(self)
    end
 end
 

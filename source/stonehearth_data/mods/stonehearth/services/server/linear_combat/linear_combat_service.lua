@@ -91,7 +91,6 @@ function LinearCombatService:_spawn()
       stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_thief')
    else 
       -- Otherwise, spawn a brigand
-      -- Note: num_escorts is currently ignored by the goblin_brigands scneario.
       stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = self._sv.num_escorts })
       if self._sv.num_escorts < 3 then
          self._sv.num_escorts = self._sv.num_escorts + 1
