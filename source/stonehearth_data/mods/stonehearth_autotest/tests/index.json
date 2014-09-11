@@ -59,6 +59,13 @@
                ]
             },
 
+           "longrunning" : {
+               "name" : "too long to put into autotest, but necessary nonetheless",
+               "scripts" : [
+                  "file(longrunning/build_longrunning_test.lua)",
+               ]
+            },
+
             "blackbox" : {
                "name" : "blackbox tests",
                "scripts" : [
