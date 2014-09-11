@@ -36,6 +36,14 @@ App.RootView = Ember.ContainerView.extend({
       App.setGameMode = function(mode) {
          self._game_mode_manager.setGameMode(mode);
       }
+
+      App.setVisionMode = function(mode) {
+         self._game_mode_manager.setVisionMode(mode);
+      }
+
+      App.getVisionMode = function() {
+         return self._game_mode_manager.getVisionMode();
+      }
    },
 
    didInsertElement: function() {
