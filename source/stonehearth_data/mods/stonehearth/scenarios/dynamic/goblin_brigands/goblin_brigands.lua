@@ -13,9 +13,15 @@ Goblin Brigands
 function GoblinBrigands:__init(saved_variables)
 end
 
-function GoblinBrigands:initialize()
+-- Optional param: num_escorts will override the # of thugs that come with the thief. 
+-- If not passed in, this will be derived from town wealth
+function GoblinBrigands:initialize(params)
    --ID of the player who the goblin is attacking, not the player ID of the DM
    self._sv.player_id = 'player_1'
+   
+   if params then
+      self._sv.num_escorts = params.num_escorts
+   end
 end
 
 function GoblinBrigands:restore()
@@ -109,25 +115,30 @@ function GoblinBrigands:_on_spawn()
       local weapon = radiant.entities.create_entity('stonehearth:weapons:jagged_cleaver')
       radiant.entities.equip_item(self._sv._thief, weapon)
 
-      --Pick how many escorts
-      local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
-      local num_escorts = 1
-      if score_data.net_worth and score_data.net_worth.total_score then
-         local proposed_escorts = score_data.net_worth.total_score / 1000
-         if proposed_escorts > num_escorts then
-            num_escorts = proposed_escorts
+      --If we haven't passed in the num of escorts, then pick escorts based on town wealth. 
+      if not self._sv.num_escorts then
+
+         --Pick how many escorts
+         local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
+         local num_escorts = 1
+         if score_data.net_worth and score_data.net_worth.total_score then
+            local proposed_escorts = score_data.net_worth.total_score / 1000
+            if proposed_escorts > num_escorts then
+               num_escorts = proposed_escorts
+            end
          end
+
+         --Throttle the max # of escorts
+         local scenario_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
+         local max_escorts = scenario_data.max_squad
+
+         if num_escorts > max_escorts then
+            num_escorts = max_escorts
+         end
+         self._sv.num_escorts = num_escorts
       end
 
-      --Throttle the max # of escorts
-      local scenario_data = radiant.resources.load_json('stonehearth:scenarios:goblin_brigands').scenario_data
-      local max_escorts = scenario_data.max_squad
-
-      if num_escorts > max_escorts then
-         num_escorts = max_escorts
-      end
-
-      for i = 1, num_escorts do 
+      for i = 1, self._sv.num_escorts do 
          self._sv._squad:add_escort('stonehearth:goblin:brigand', 'stonehearth:weapons:jagged_cleaver')
       end
    end
