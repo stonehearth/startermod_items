@@ -58,7 +58,7 @@ target_link_libraries(stonehearth
 add_custom_command(TARGET stonehearth
                    POST_BUILD
                    COMMAND cd ${STONEHEARTH_ROOT} &&
-                           ${RADIANT_ROOT}/build-environment/scripts/x86/run.cmd                            
+                           ${RADIANT_ROOT}/build-environment/scripts/x86/runvs2012.cmd                            
                            ./scripts/stage/stage_stonehearth.sh 
                            -t $<CONFIGURATION> 
                            -o build/source/stonehearth/$<CONFIGURATION>

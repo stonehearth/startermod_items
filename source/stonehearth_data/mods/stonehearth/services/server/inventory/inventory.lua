@@ -88,14 +88,13 @@ function Inventory:add_item(storage, item)
    assert(self._sv.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(storage))
 
    self._sv.items[item:get_id()] = item
-   self.__saved_variables:mark_changed()
-
    --Tell all the trackers for this player about this item
    for name, tracker in pairs(self._sv.trackers) do
       tracker:add_item(item)
    end
-
    radiant.events.trigger(self, 'stonehearth:item_added', { item = item })
+   self.__saved_variables:mark_changed()
+
 end
 
 --- Call whenever a stockpile wants to tell the inventory that we're removing an item
@@ -105,17 +104,19 @@ function Inventory:remove_item(storage, item_id)
 
    if self._sv.items[item_id] then
       self._sv.items[item_id] = nil
+      
+      --Tell all the trackers for this player about this item
+      for name, tracker in pairs(self._sv.trackers) do
+         tracker:remove_item(item_id)
+      end
+      radiant.events.trigger(self, 'stonehearth:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
 
-   --Tell all the trackers for this player about this item
-   for name, tracker in pairs(self._sv.trackers) do
-      tracker:remove_item(item_id)
-   end
-      radiant.events.trigger(self, 'stonehearth:item_removed', { item_id = item_id })
    end
 end
 
 --- Call this function to track a subset of things in this inventory
+--  If no such tracker exists, make a new one. If one exists, use it. 
 --  See the documentation for InventoryTracker for the function specifics
 function Inventory:add_item_tracker(controller_name)
    local tracker = self._sv.trackers[controller_name]

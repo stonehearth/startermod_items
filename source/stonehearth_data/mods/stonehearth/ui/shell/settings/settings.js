@@ -47,11 +47,14 @@ App.StonehearthSettingsView = App.View.extend({
    didInsertElement : function() {
       var self = this;
 
-      self.$('#settings').position({
-            my: 'center center',
-            at: 'center center',
-            of: '#modalOverlay'
-         });
+      // Check to see if we're part of a modal dialog; if so, center us in it!
+      if (self.$('#modalOverlay').length > 0) {
+         self.$('#settings').position({
+               my: 'center center',
+               at: 'center center',
+               of: '#modalOverlay'
+            });
+      }
 
       self.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');

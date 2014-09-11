@@ -22,6 +22,7 @@ $(document).ready(function() {
 
       _currentMode: null,
       _currentView: null,
+      _currentVisionMode: 'normal',
 
       init: function() {
          var self = this;
@@ -41,6 +42,16 @@ $(document).ready(function() {
 
          App.gameView.addView(this.views[this.modes.ZONES]);
          App.gameView.addView(this.views[this.modes.BUILD]);
+      },
+
+      setVisionMode: function(mode) {
+         this._currentVisionMode = mode;
+         radiant.call('stonehearth:set_building_vision_mode', this._currentVisionMode);
+         $(document).trigger('stonehearthVisionModeChange', mode);
+      },
+
+      getVisionMode: function() {
+         return this._currentVisionMode;
       },
 
       getGameMode: function() {

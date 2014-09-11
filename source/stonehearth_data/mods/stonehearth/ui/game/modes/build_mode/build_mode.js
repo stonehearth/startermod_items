@@ -48,18 +48,20 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _showBuildingDesigner: function(uri) {
-      App.setGameMode('build');
+      if (!this._buildDesignerTools || !this._buildDesignerTools.isVisible) {
+         App.setGameMode('build');
+         App.setVisionMode('normal');
 
-      // hide all other views
-      this._hideDesignerViews();
+         // hide all other views
+         this._hideDesignerViews();
 
-      // show the building designer
-      if (this._buildDesignerTools && this._buildDesignerTools.$()) {
-         this._buildDesignerTools.$().show();
-      } else {      
-         this._buildDesignerTools = App.gameView.addView(App.StonehearthBuildingDesignerTools);
+         // show the building designer
+         if (this._buildDesignerTools && this._buildDesignerTools.$()) {
+            this._buildDesignerTools.$().show();
+         } else {      
+            this._buildDesignerTools = App.gameView.addView(App.StonehearthBuildingDesignerTools);
+         }
       }
-
       this._buildDesignerTools.set('uri', uri);
    },
 

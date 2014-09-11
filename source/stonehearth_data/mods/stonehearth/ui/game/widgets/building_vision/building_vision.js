@@ -1,37 +1,40 @@
 App.StonehearthBuildingVisionWidget = App.View.extend({
    templateName: 'stoneheartBuildingVision',
 
+   modeChangeClickHandler: function() {
+      var self = this;
+      return function() {
+         var currentMode = App.getVisionMode();
+
+         if (currentMode == 'normal') {
+            currentMode = 'xray';
+         } else if (currentMode == 'xray') {
+            currentMode = 'rpg';
+         } else {
+            currentMode = 'normal';
+         }
+         App.setVisionMode(currentMode);
+      };
+   },
+
+   modeChangeHandler: function() {
+      var self = this;
+      return function(e, newMode) {
+         self.$('#visionButton').attr('class', newMode);
+      };
+   },
+
    didInsertElement: function() {
       this._super();
 
-      var self = this;
-      var palette = this.$('#palette');
-      var currentMode = 'normal';
+      this.$(document).on('stonehearthVisionModeChange', this.modeChangeHandler());
 
-      var setCurrentMode = function(mode) {
-        currentMode = mode;
-        radiant.call('stonehearth:set_building_vision_mode', currentMode);
-      }
-
-      this.$('#visionButton').click(function() {
-         self.$('#visionButton').removeClass(currentMode);
-
-         if (currentMode == 'normal') {
-            setCurrentMode('xray');
-         } else if (currentMode == 'xray') {
-            setCurrentMode('rpg');
-         } else {
-            setCurrentMode('normal');
-         }
-
-         self.$('#visionButton').addClass(currentMode);
-      });
+      this.$('#visionButton').click(this.modeChangeClickHandler());
 
       this.$('#visionButton').tooltipster({
          content: $('<div class=title>' + i18n.t('stonehearth:building_vision') + '</div>' + 
                     '<div class=description>' + i18n.t('stonehearth:building_vision_description') + '</div>' + 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + self.$('#visionButton').attr('hotkey')  + '</span></div>')
+                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + this.$('#visionButton').attr('hotkey')  + '</span></div>')
       });
-
    }
 });
