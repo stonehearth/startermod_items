@@ -16,16 +16,10 @@ end
 
 
 function DynamicScenarioService:force_spawn_scenario(scenario_uri, params)
-   for _, scenario_sets in pairs(self._sv._scenarios) do
-      for _, scenario in pairs(scenario_sets) do
-         if scenario.uri == scenario_uri then
-            local new_scenario = self:_create_scenario(scenario, params)
-            new_scenario:start()
-            table.insert(self._sv.running_scenarios, new_scenario)
-            return new_scenario
-         end
-      end
-   end
+   local new_scenario = self:_create_scenario(scenario_uri, params)
+   new_scenario:start()
+   table.insert(self._sv.running_scenarios, new_scenario)
+   return new_scenario
 end
 
 
@@ -154,9 +148,16 @@ function DynamicScenarioService:_parse_scenario_index()
    end
 end
 
-
 function DynamicScenarioService:_create_scenario(scenario, params)
-   local actual_scenario = radiant.create_controller(scenario.uri, params)
+   local scenario_uri
+   
+   if type(scenario) == 'string' then
+      scenario_uri = scenario
+   else
+      scenario_uri = scenario.uri
+   end
+
+   local actual_scenario = radiant.create_controller(scenario_uri, params)
    local dyn_scenario = radiant.create_controller('stonehearth:dynamic_scenario', actual_scenario)
 
    return dyn_scenario

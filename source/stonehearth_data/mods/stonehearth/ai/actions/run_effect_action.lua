@@ -53,17 +53,17 @@ function RunEffectAction:run(ai, entity, args)
       log:debug('starting new effect "%s"', effect_name)
       self._effect = radiant.effects.run_effect(entity, effect_name, args.delay, nil, args.args)
       self._effect:set_trigger_cb(args.trigger_fn)
+      self._effect:set_cleanup_on_finish(false)
       self._effect:set_finished_cb(function()
          if self._effect then
             log:debug('stopped effect "%s" and resuming', effect_name)
-            self:_destroy_effect()
             ai:resume('effect %s finished', effect_name)
          end
       end)
 
       ai:suspend()
+      self:_destroy_effect()
    end   
-   self:_destroy_effect()
 end
 
 function RunEffectAction:_destroy_effect()

@@ -15,6 +15,11 @@ function Town:initialize(session)
    self._sv._next_saved_call_id = 1
    self._sv.worker_combat_enabled = false
    self._sv.rally_to_battle_standard = false
+   
+   self._sv.entity = radiant.entities.create_entity()
+   local profession_component = self._sv.entity:add_component('stonehearth:profession')
+   profession_component:promote_to('stonehearth:professions:town')
+   
    self.__saved_variables:mark_changed()
 
    self:restore()
@@ -93,6 +98,10 @@ function Town:_restore_saved_calls()
    for _, saved_call in pairs(saved_calls) do
       self[saved_call.fn_name](self, unpack(saved_call.args))
    end
+end
+
+function Town:get_entity()
+   return self._sv.entity
 end
 
 function Town:get_scheduler()

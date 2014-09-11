@@ -18,6 +18,7 @@ function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
                                  self._ui_mode_visible = visible
                                  self:_update_render_state()
                               end)
+                           :start()
 
    local entity = self._render_entity:get_entity()
    local parent = entity:get_component('mob'):get_parent()

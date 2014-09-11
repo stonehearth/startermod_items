@@ -134,4 +134,20 @@
       this._setRootTrace(trace);
    }.observes('uri'),
 
+   _mapToArray: function(mapPath, arrayPath) {
+      var vals = [];
+      var map = this.get(mapPath);
+     
+      if (map) {
+         $.each(map, function(k ,v) {
+            if(k != "__self" && map.hasOwnProperty(k)) {
+               vals.push(v);
+            }
+         });
+      }
+
+      this.set(arrayPath, vals);
+   }
+
+
 });
