@@ -7,7 +7,6 @@ Thread.KILL = { name = "KILL" }
 
 Thread.all_threads = {}
 Thread.scheduled = {}
-Thread.is_scheduled = {}
 Thread.waiting_for = {}
 
 function Thread.new()
@@ -15,11 +14,11 @@ function Thread.new()
 end
 
 function Thread.loop()
-   while #Thread.scheduled > 0 do
+   while next(Thread.scheduled) do
       log:spam('starting thread loop')
       local scheduled = Thread.scheduled
-      Thread.scheduled, Thread.is_scheduled = {}, {}
-      for _, thread in ipairs(scheduled) do
+      Thread.scheduled = {}
+      for _, thread in pairs(scheduled) do
          Thread.resume_thread(thread)
       end
       log:spam('finished thread loop')
@@ -36,10 +35,9 @@ end
 
 function Thread.schedule_thread(thread)
    assert(not thread._finished)
-   if not Thread.is_scheduled[thread] then
+   if not Thread.scheduled[thread] then
       thread._log:detail('adding thread to scheduled list')
-      Thread.is_scheduled[thread] = true
-      table.insert(Thread.scheduled, thread)
+      Thread.scheduled[thread._id] = thread
    end
 end
 
@@ -82,6 +80,7 @@ function Thread.wait_thread(thread)
       waiters[current_thread._id] = current_thread
       current_thread:suspend(string.format('%d waiting for thread %d to finish', current_thread._id, thread._id))
    end
+   log:detail('thread %d finished.  exiting wait')
 end
 
 function Thread.terminate_thread(thread, err)
