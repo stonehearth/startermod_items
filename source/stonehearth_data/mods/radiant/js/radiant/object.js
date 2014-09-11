@@ -115,7 +115,6 @@
 
    var Object = SimpleClass.extend({      
       init: function () {
-         this._start_poll();
          this._pendingCalls = {};
 
          var self = this;
@@ -136,6 +135,7 @@
             $(top).on("radiant_call_progress", foward_fn);
             $(top).on("radiant_call_done", foward_fn);
             $(top).on("radiant_call_fail", foward_fn);
+            self._start_poll();
          });
       },
 
