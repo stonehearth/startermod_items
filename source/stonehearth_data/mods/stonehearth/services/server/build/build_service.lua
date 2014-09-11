@@ -107,7 +107,7 @@ end
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
    local floor
    local success = self:do_command('add_floor', response, function()
-         floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
+         floor = self:add_floor(session, floor_uri, ToCube3(box), brush_shape)
       end)
 
    if success then
@@ -142,7 +142,7 @@ function BuildService:add_wall_command(session, response, columns_uri, walls_uri
    end
 end
 
-function BuildService:_add_floor(session, floor_uri, box, brush_shape)
+function BuildService:add_floor(session, floor_uri, box, brush_shape)
    local floor
    local floor_region = Region3(box)
    local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
@@ -177,7 +177,7 @@ function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    return floor   
 end
 
-function BuildService:_erase_floor(session, box)
+function BuildService:erase_floor(session, box)
    local floor
 
    -- look for floor that we can merge into.
@@ -193,7 +193,7 @@ end
 
 function BuildService:erase_floor_command(session, response, box)
    local success = self:do_command('erase_floor', response, function()
-         self:_erase_floor(session, ToCube3(box))
+         self:erase_floor(session, ToCube3(box))
       end)
 
    return success or nil

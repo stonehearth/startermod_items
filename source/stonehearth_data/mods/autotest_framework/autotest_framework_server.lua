@@ -42,9 +42,17 @@ local function _run_script(script, function_name)
    local obj = radiant.mods.load_script(script)
    assert(obj, string.format('failed to load test script "%s"', script))
 
+   -- convert the pattern to a regexp.  this allows us to glob function names
+   -- e.g. 'regression_*' to run all regression tests.
+   --
+   local function glob_match(name, pattern)
+      local regexp = '^' .. pattern:gsub('*', '.*') .. '$'
+      return name:match(regexp)
+   end
+   
    local tests = {}
    for name, fn in pairs(obj) do
-      local matches = not function_name or name == function_name
+      local matches = not function_name or glob_match(name, function_name)
       if type(fn) == 'function' and matches then
          table.insert(tests, { name = name, fn = fn })
       end
