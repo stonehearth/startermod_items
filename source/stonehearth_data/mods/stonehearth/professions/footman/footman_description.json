@@ -5,6 +5,7 @@
    "description": "A melee fighter",
    "script": "file(footman.lua)",
    "talisman_uri" : "stonehearth:weapons:wooden_sword_talisman",
+   "default_stance": "aggressive",
 
    "equipment" : {
       "abilities" : "file(footman_abilities)",

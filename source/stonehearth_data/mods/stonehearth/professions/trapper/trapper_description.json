@@ -5,6 +5,7 @@
    "description": "Traps stuff, yay.",
    "script": "file(/professions/trapper/trapper.lua)",
    "talisman_uri" : "stonehearth:trapper:knife_talisman",
+   "default_stance" : "defensive",
 
    "equipment" : {
       "abilities" : "file(trapper_abilities)",

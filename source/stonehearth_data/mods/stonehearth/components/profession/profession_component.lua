@@ -8,9 +8,11 @@ local ProfessionComponent = class()
 function ProfessionComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
+
    if self._sv.profession_uri then
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
             self._profession_json = radiant.resources.load_json(self._sv.profession_uri, true)
+
             if self._profession_json then
                self:_load_profession_script(self._profession_json)
                self:_call_profession_script('restore', self._profession_json)
@@ -62,11 +64,24 @@ function ProfessionComponent:promote_to(profession_uri)
       self:demote()
       self._sv.profession_uri = profession_uri
       self._sv.talisman_uri = self._profession_json.talisman_uri
+      
+      self._sv.level = 1
+      self._sv.current_level_exp = 0
+      
+      if self._profession_json.levels ~= nil then
+         self._sv.total_level_exp = self._profession_json.levels[1].total_level_exp
+      else 
+         self._sv.total_level_exp = -1
+      end
+      
       self:_load_profession_script(self._profession_json)
       self:_set_unit_info(self._profession_json)
       self:_equip_outfit(self._profession_json)
-      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
+      self._sv._default_stance = self._profession_json.default_stance
+      self:reset_to_default_comabat_stance()
 
+      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
+      
       if self._profession_json.task_groups then
          self:_add_to_task_groups(self._profession_json.task_groups)
       end
@@ -80,12 +95,35 @@ function ProfessionComponent:demote()
    self:_remove_outfit()
    self:_call_profession_script('demote')
 
+   self._sv._default_stance = 'passive'
+   self:reset_to_default_comabat_stance()
+
    if self._profession_json and self._profession_json.task_groups then
       self:_remove_from_task_groups(self._profession_json.task_groups)
    end
 
    self._sv.profession_id = nil
    self.__saved_variables:mark_changed()
+end
+
+function ProfessionComponent:add_exp(value)
+   self._sv.current_level_exp = self._sv.current_level_exp + value
+
+   while self._sv.current_level_exp > self._sv.total_level_exp do
+      self._sv.level = self._sv.level + 1
+      self._sv.current_level_exp = self._sv.current_level_exp - self._sv.total_level_exp
+
+      self:_call_profession_script('level_up')
+
+      -- we've leveled up, increment the exp to next level
+      self._sv.total_level_exp = self._profession_json.levels[self._sv.level].total_level_exp
+   end
+
+   self.__saved_variables:mark_changed()   
+end
+
+function ProfessionComponent:level_up()
+
 end
 
 --- Adds this person to a set of task groups
@@ -95,6 +133,12 @@ function ProfessionComponent:_add_to_task_groups(task_groups)
    for i, task_group_name in ipairs(task_groups) do
       town:join_task_group(self._entity, task_group_name)
    end
+end
+
+-- Reset this person to their class's default combat stance
+-- The stance is set at promotion
+function ProfessionComponent:reset_to_default_comabat_stance()
+   stonehearth.combat:set_stance(self._entity, self._sv._default_stance)
 end
 
 -- Remove this person from a set of task groups

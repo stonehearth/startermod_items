@@ -183,7 +183,7 @@ function ReturningTrader:_make_message(message_composite)
 
    local hours_remaing = 0
    if self._timer then
-      hours_remaing = stonehearth.calendar:get_time_remaining(self._timer, 'h')
+      hours_remaing = stonehearth.calendar:get_remaining_time(self._timer, 'h')
       hours_remaing = math.floor(hours_remaing)
       message_composite = string.gsub(message_composite, '__hour_counter__',  hours_remaing)
    end
@@ -287,7 +287,15 @@ end
 function ReturningTrader:_make_return_trip()
    local town_has_goods = false
    local inventory = stonehearth.inventory:get_inventory(self._sv._player_id)   
-   local inventory_data_for_item = inventory:get_items_of_type(self._sv._trade_data.want_uri)
+   
+   --Want the iconic form, if you have it. 
+   local want_item_real_uri = self._sv._trade_data.want_uri
+   local data = radiant.entities.get_component_data(self._sv._trade_data.want_uri, 'stonehearth:entity_forms')
+   if data then
+      want_item_real_uri = data.iconic_form
+   end
+
+   local inventory_data_for_item = inventory:get_items_of_type(want_item_real_uri)
    if inventory_data_for_item and inventory_data_for_item.count >= self._sv._trade_data.want_count then
       --We have the items desired. Reserve them all/as many as possible
       town_has_goods = self:_reserve_items(inventory_data_for_item, self._sv._trade_data.want_count)

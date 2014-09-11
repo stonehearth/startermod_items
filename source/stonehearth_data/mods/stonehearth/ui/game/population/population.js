@@ -47,7 +47,15 @@ var StonehearthPopulation;
 
    StonehearthDataTrace = SimpleClass.extend({
 
-      init: function() {
+      init: function(uri, components) {
+         if (uri) {
+            this._uri = uri;   
+         }
+
+         if (components) {
+            this._components = components;   
+         }
+
          this._radiantTrace = new RadiantTrace();
          this._deferred = this._radiantTrace.traceUri(this._uri, this._components);
       },

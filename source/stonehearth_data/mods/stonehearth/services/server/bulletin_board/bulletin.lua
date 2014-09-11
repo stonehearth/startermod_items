@@ -48,6 +48,17 @@ function Bulletin:set_data(data)
    return self
 end
 
+function Bulletin:modify_data(data)
+   for k,v in pairs(data) do 
+      self._sv.data[k] = v 
+   end
+   
+   stonehearth.bulletin_board:update(self._sv.id)
+   self.__saved_variables:mark_changed()
+
+   return self
+end
+
 function Bulletin:set_close_on_handle(close_on_handle)
    self._sv.close_on_handle = close_on_handle
    self.__saved_variables:mark_changed()

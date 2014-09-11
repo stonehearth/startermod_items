@@ -44,8 +44,6 @@ IMPLEMENT_DM_EXTENSION(om::Selection, Protocol::Selection::extension)
 template<>
 struct ::radiant::dm::SaveImpl<const char *>
 {
-   static std::unordered_map<std::string, std::string> persistentStrings_;
-
    static void SaveValue(Store const& store, SerializationType r, Protocol::Value* msg, const char* value) {
       msg->SetExtension(Protocol::string, value);
    }

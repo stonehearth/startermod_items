@@ -5,7 +5,8 @@
    "description" : "The weaver makes thread, fabrics and hangings from fiber and dye.", 
    "script": "file(/professions/weaver/weaver.lua)",
    "talisman_uri" : "stonehearth:weaver:spindle_talisman", 
-
+   "default_stance" : "passive",
+   
    "equipment" : {
       "abilities" : "file(weaver_abilities)",
       "torso" : "file(weaver_outfit)",

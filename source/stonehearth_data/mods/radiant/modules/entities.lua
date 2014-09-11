@@ -225,6 +225,13 @@ function entities.set_player_id(entity, player_id)
    return entity:add_component('unit_info'):set_player_id(player_id)
 end
 
+function entities.get_location_aligned(entity)
+   radiant.check.is_entity(entity)
+   if entity then
+      return entity:add_component('mob'):get_grid_location()
+   end
+end
+
 function entities.get_world_location(entity)
    local mob = entity:get_component('mob')
    if not mob then
@@ -233,21 +240,12 @@ function entities.get_world_location(entity)
    return mob:get_world_location()
 end
 
--- prefer radiant.terrain.find_placement_point
-function entities.pick_nearby_location(entity, radius)
-   local target_location = entities.get_world_grid_location(entity)
-   local dx = rng:get_int(-radius, radius)
-   local dz = rng:get_int(-radius, radius)
-   if dx == 0 then
-      dx = dx + 1
+function entities.get_world_grid_location(entity)
+   radiant.check.is_entity(entity)
+   local mob = entity:get_component('mob')
+   if mob then
+      return mob:get_world_grid_location()
    end
-   if dz == 0 then
-      dz = dz + 1
-   end
-   local destination = Point3(target_location)
-   destination.x = destination.x + dx
-   destination.z = destination.z + dz
-   return destination
 end
 
 -- uris are key, value pairs of uri, quantity
@@ -338,21 +336,6 @@ function entities.unthink(entity, uri)
    radiant.check.is_entity(entity)
    if entity and entity:is_valid() then
       entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
-   end
-end
-
-function entities.get_location_aligned(entity)
-   radiant.check.is_entity(entity)
-   if entity then
-      return entity:add_component('mob'):get_grid_location()
-   end
-end
-
-function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
-   local mob = entity:get_component('mob')
-   if mob then
-      return mob:get_world_grid_location()
    end
 end
 

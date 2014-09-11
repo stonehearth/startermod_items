@@ -10,8 +10,6 @@ function weaver_class.promote(entity, json)
             command.event_data.profession_info = '/stonehearth/professions/weaver/weaver_description.json'
          end)
    end
-
-   stonehearth.combat:set_stance(entity, 'passive')
 end
 
 function weaver_class.demote(entity)
