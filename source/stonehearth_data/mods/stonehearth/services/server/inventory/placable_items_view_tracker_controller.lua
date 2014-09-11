@@ -13,7 +13,7 @@ end
 
 function PlaceableItemsView:initialize()
    self._sv._entity_id_to_uri = {}
-   -- nothing to do
+   self._sv._iconic_id_to_root_id = {}
 end
 
 function PlaceableItemsView:restore()
@@ -57,6 +57,7 @@ function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_
    local entity = get_root_entity(iconic_entity)
    local id = entity:get_id()
    local uri = entity:get_uri()
+   self._sv._iconic_id_to_root_id[iconic_entity:get_id()] = id
 
    if not tracking_data[uri] then
       local unit_info = entity:add_component('unit_info')      
@@ -84,15 +85,17 @@ end
 --    @param tracking_data - the tracking data for all entities of the same type
 --
 function PlaceableItemsView:remove_entity_from_tracking_data(entity_id, tracking_data)
-   local uri = self._sv._entity_id_to_uri[entity_id]
-   if uri then
-      self._sv._entity_id_to_uri = nil
-      self.__saved_variables:mark_changed()
+   local root_id = self._sv._iconic_id_to_root_id[entity_id]
+   local uri = self._sv._entity_id_to_uri[root_id]
+   if uri then 
+      self._sv._entity_id_to_uri[root_id] = nil
       
-      tracking_data[uri].items[id] = nil
+      tracking_data[uri].items[root_id] = nil
       if not next(tracking_data[uri]) then
          tracking_data[uri] = nil
       end
+
+      self.__saved_variables:mark_changed()
    end
    return tracking_data
 end
