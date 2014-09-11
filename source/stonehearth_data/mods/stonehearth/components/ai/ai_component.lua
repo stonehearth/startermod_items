@@ -109,6 +109,7 @@ end
 
 function AIComponent:_add_action_script(uri, injecting_entity)
    local ctor = radiant.mods.load_script(uri)
+   assert(ctor, string.format('could not load action script at %s', tostring(uri)))
    self:_add_action(uri, ctor, injecting_entity)
 end
 
