@@ -78,7 +78,8 @@ void SensorTracker::OnSensorMoved()
    om::MobPtr mob = mob_.lock();
    om::SensorPtr sensor = sensor_.lock();
    if (sensor && mob) {
-      csg::Point3 location = mob->GetWorldGridLocation();
+      om::EntityRef entityRoot;
+      csg::Point3 location = mob->GetWorldGridLocation(entityRoot);
       bounds_ = sensor->GetCube().Translated(location);
 
       ST_LOG(3) << "sensor moved to " << location << ".  bounds are now " << bounds_ << "(last bounds: " << last_bounds_ << ")";

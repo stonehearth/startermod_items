@@ -409,11 +409,10 @@ function ReturningTrader:_accept_trade()
    --Add the new items to the space near the banner
    local town = stonehearth.town:get_town(self._sv._player_id)
    local banner = town:get_banner()
-   if not banner then
-      -- occurs mostly in testing. should we drop somewhere else?
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
       return
    end
-   local drop_origin = radiant.entities.get_world_grid_location(banner)
 
    --If the reward type was an object, make the new objects
    if self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'object' then

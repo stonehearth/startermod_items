@@ -917,7 +917,8 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 
    om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
-      csg::Point3f loc = mobP -> GetWorldLocation();
+      om::EntityRef entityRoot;
+      csg::Point3f loc = mobP -> GetWorldLocation(entityRoot);
       sound_->setPosition(loc.x, loc.y, loc.z);
    }
 

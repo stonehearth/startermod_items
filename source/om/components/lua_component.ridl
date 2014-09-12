@@ -250,6 +250,8 @@ static int ${class_upper}_Num${name | env.upper}(${class_formal_parameter})
 ## - Methods -----------------------------------------------------------------------------------
 % for method_name, method in env.properties(C, ridl.Method):
 <% 
+   if method.no_lua_impl:
+      continue
    formal_params = class_formal_parameter
    additional_params = method.formal_params
    if len(additional_params) > 0:
@@ -276,6 +278,10 @@ ${method.result.name} ${class_upper}_${method_name | env.upper}(${formal_params}
 }
 %   endif
 % endfor
+
+% if C._lua_impl:
+${C._lua_impl}
+% endif
 
 ## - All Traces-----------------------------------------------------------------------------------
 % for name, obj in env.properties(C, [dm.Boxed, dm.Set, dm.Array, dm.Map]):

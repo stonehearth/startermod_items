@@ -16,10 +16,11 @@ class Type(object):
    ref = property(_add_reference)
 
 class Method(object):
-   def __init__(self, result, *args):
+   def __init__(self, result, *args, **options):
       self.result = result
       self.args = args
       self.postsig = ''
+      self.no_lua_impl = options.get('no_lua_impl', False)
 
    def _add_const(self):
       self.postsig += ' const'
@@ -52,6 +53,7 @@ class Class(Type):
    _no_lua = False
    _lua_weak_ref = False
    _lua_includes = []
+   _lua_impl = None
 
 class Enum(Type):
    def __init__(self, clsname, name, **kwargs):

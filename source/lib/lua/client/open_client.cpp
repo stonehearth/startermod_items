@@ -50,6 +50,17 @@ luabind::object Client_GetObject(lua_State* L, object id)
    return lua_obj;
 }
 
+luabind::object Client_GetAuthoringRootEntity(lua_State* L)
+{
+   Client &client = Client::GetInstance();
+   dm::ObjectPtr obj = client.GetAuthoringStore().FetchObject<dm::Object>(1);
+   ASSERT(obj);
+
+   lua::ScriptHost* host = lua::ScriptHost::GetScriptHost(L);
+   luabind::object lua_obj = host->CastObjectToLua(obj);
+   return lua_obj;
+}
+
 void Client_SelectEntity(lua_State* L, luabind::object o)
 {
    om::EntityPtr entity;
@@ -444,6 +455,7 @@ void lua::client::open(lua_State* L)
             def("get_object",                      &Client_GetObject),
             def("select_entity",                   &Client_SelectEntity),
             def("hilight_entity",                  &Client_HilightEntity),
+            def("get_authoring_root_entity",       &Client_GetAuthoringRootEntity),
             def("create_authoring_entity",         &Client_CreateAuthoringEntity),
             def("destroy_authoring_entity",        &Client_DestroyAuthoringEntity),
             def("create_render_entity",            &Client_CreateRenderEntity),
