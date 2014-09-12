@@ -36,17 +36,6 @@ static const csg::Point3 _adjacent[] = {
    //csg::Point3( 0,  1,  1),
 };
 
-template <class T>
-T WorldToLocal(const T& coord, const om::Entity& entity)
-{
-   csg::Point3f origin(0, 0, 0);
-   auto mob = entity.GetComponent<om::Mob>();
-   if (mob) {
-      origin = mob->GetWorldLocation();
-   }
-   return coord - origin;
-}
-
 OctTree::OctTree(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
    navgrid_(trace_category),

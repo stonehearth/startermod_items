@@ -72,7 +72,8 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
       if (type != om::Mob::NONE) {
          // If the position where the entity is located is not standable,
          // do something about it!
-         csg::Point3 current = mob->GetWorldGridLocation();
+         om::EntityRef entityRoot;
+         csg::Point3 current = mob->GetWorldGridLocation(entityRoot);
          csg::Point3 valid = _ng.GetStandablePoint(mob->GetEntityPtr(), current);
 
          if (current != valid) {

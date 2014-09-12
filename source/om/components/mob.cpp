@@ -46,7 +46,7 @@ void Mob::ConstructObject()
 
 void Mob::MoveTo(const csg::Point3f& location)
 {
-   M_LOG(5) << GetEntity() << " moving to " << location;
+   M_LOG(7) << GetEntity() << " moving to " << location;
    transform_.Modify([&](csg::Transform& t) {
       t.position = location;
    });
@@ -88,7 +88,8 @@ void Mob::TurnTo(float angle)
 
 void Mob::TurnToFacePoint(csg::Point3f const& location)
 {
-   csg::Point3f position = GetWorldLocation();
+   om::EntityRef entityRoot;
+   csg::Point3f position = GetWorldLocation(entityRoot);
    csg::Point3f v = location - position;
    csg::Point3f forward(0, 0, -1);
 
@@ -102,7 +103,7 @@ void Mob::TurnToFacePoint(csg::Point3f const& location)
       angle += 2 * csg::k_pi;
    }
 
-   M_LOG(5) << "turning entity " << GetEntity().GetObjectId() << " to face " << location;
+   M_LOG(7) << "turning entity " << GetEntity().GetObjectId() << " to face " << location;
 
    csg::Quaternion q(csg::Point3f::unitY, angle);
    ASSERT(q.is_unit());
@@ -116,25 +117,30 @@ csg::Point3f Mob::GetLocation() const
    return (*transform_).position;
 }
 
-csg::Point3f Mob::GetWorldLocation() const
+csg::Point3f Mob::GetWorldLocation(om::EntityRef& entityRoot) const
 {
-   return GetWorldTransform().position;
+   csg::Point3f location = GetWorldTransform(entityRoot).position;
+   if (!IsRootEntity(entityRoot)) {
+      M_LOG(8) << GetEntity() << " is not in the world";
+   }
+   return location;
 }
 
-csg::Transform Mob::GetWorldTransform() const
+csg::Transform Mob::GetWorldTransform(om::EntityRef& entityRoot) const
 {
    EntityPtr parent = (*parent_).lock();
    MobPtr mob;
    
    if (parent) {
       mob = parent->GetComponent<om::Mob>();
+      entityRoot = parent;
    }
    if (!mob) {
       return GetTransform();
    }
 
    const csg::Transform& local = GetTransform();
-   csg::Transform world = mob->GetWorldTransform();
+   csg::Transform world = mob->GetWorldTransform(entityRoot);
 
    world.position += world.orientation.rotate(csg::Point3f(local.position));
    world.orientation *= local.orientation;
@@ -142,9 +148,9 @@ csg::Transform Mob::GetWorldTransform() const
    return world;
 }
 
-csg::Point3 Mob::GetWorldGridLocation() const
+csg::Point3 Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
 {
-   return csg::ToClosestInt(GetWorldLocation());
+   return csg::ToClosestInt(GetWorldLocation(entityRoot));
 }
 
 csg::Quaternion Mob::GetRotation() const

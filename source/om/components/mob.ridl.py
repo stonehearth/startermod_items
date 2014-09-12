@@ -1,6 +1,7 @@
 from ridl.om_types import *
 import ridl.c_types as c
 import ridl.dm_types as dm
+import ridl.om_types as om
 import ridl.std_types as std
 import ridl.csg_types as csg
 import ridl.ridl as ridl
@@ -43,9 +44,9 @@ class Mob(Component):
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const
    get_grid_location = ridl.Method(csg.Point3()).const
-   get_world_location = ridl.Method(csg.Point3f()).const
-   get_world_grid_location = ridl.Method(csg.Point3()).const
-   get_world_transform = ridl.Method(csg.Transform()).const
+   get_world_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
+   get_world_grid_location = ridl.Method(csg.Point3(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
+   get_world_transform = ridl.Method(csg.Transform(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_location_in_front = ridl.Method(csg.Point3f()).const
    set_location_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
 
@@ -59,6 +60,66 @@ class Mob(Component):
 
    _public = """
       csg::Region3 const& GetMobCollisionRegion() const;
+   """
+
+   _lua_impl = """
+static bool IsWorldRoot(om::EntityRef entityRef)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (entity) {
+      return entity->GetObjectId() == 1;
+   } else {
+      return false;
+   }
+}
+
+// returns nil if the entity is not in the world
+luabind::object Mob_GetWorldTransform(lua_State *L, std::weak_ptr<Mob> o)
+{
+   auto instance = o.lock();
+   if (instance) {
+      om::EntityRef entityRoot;
+      csg::Transform transform = instance->GetWorldTransform(entityRoot);
+      if (om::IsRootEntity(entityRoot)) {
+         return luabind::object(L, transform);
+      } else {
+         return luabind::object();
+      }
+   }
+   throw std::invalid_argument("invalid reference in mob::get_world_transform");
+}
+
+// returns nil if the entity is not in the world
+luabind::object Mob_GetWorldLocation(lua_State *L, std::weak_ptr<Mob> o)
+{
+   auto instance = o.lock();
+   if (instance) {
+      om::EntityRef entityRoot;
+      csg::Point3f location = instance->GetWorldLocation(entityRoot);
+      if (om::IsRootEntity(entityRoot)) {
+         return luabind::object(L, location);
+      } else {
+         return luabind::object();
+      }
+   }
+   throw std::invalid_argument("invalid reference in mob::get_world_location");
+}
+
+// returns nil if the entity is not in the world
+luabind::object Mob_GetWorldGridLocation(lua_State *L, std::weak_ptr<Mob> o)
+{
+   auto instance = o.lock();
+   if (instance) {
+      om::EntityRef entityRoot;
+      csg::Point3 location = instance->GetWorldGridLocation(entityRoot);
+      if (om::IsRootEntity(entityRoot)) {
+         return luabind::object(L, location);
+      } else {
+         return luabind::object();
+      }
+   }
+   throw std::invalid_argument("invalid reference in mob::get_world_grid_location");
+}
    """
    
    _global_post = \

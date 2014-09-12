@@ -5,6 +5,7 @@ local log = radiant.log.create_logger('build_editor')
 
 function StructureEditor:__init()
    self._building_container = radiant.entities.create_entity('stonehearth:entities:building')
+   radiant.entities.add_child(radiant._authoring_root_entity, self._building_container)
    self._render_entity = _radiant.client.create_render_entity(1, self._building_container)
 end
 

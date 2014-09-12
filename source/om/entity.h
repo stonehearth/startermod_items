@@ -102,6 +102,11 @@ private:
 };
 std::ostream& operator<<(std::ostream& os, const Entity& o);
 
+bool IsRootEntity(EntityRef entityRef);
+bool IsRootEntity(EntityPtr entityPtr);
+EntityPtr GetEntityRoot(EntityPtr entityPtr);
+bool IsInWorld(EntityPtr entityPtr);
+
 END_RADIANT_OM_NAMESPACE
 
 #endif //  _RADIANT_OM_ENTITY_H
