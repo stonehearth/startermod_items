@@ -1,12 +1,10 @@
 App = Ember.Application.createWithMixins({
-	//rootElement: '#main',
     LOG_TRANSITIONS: true,
 
   	init: function() {
       this._super();
       var self = this;
 
-      radiant.events.poll();
       this._getOptions();
 
       this.deferReadiness();
