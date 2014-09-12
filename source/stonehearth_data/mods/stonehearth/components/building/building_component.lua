@@ -121,7 +121,10 @@ function Building:add_structure(entity)
       if structure then
          self._sv.structures[structure_type][id] = {
             entity = entity,
-            structure = structure
+            structure = structure,            
+            cp_listener = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
+                  self:_on_child_finished()
+               end)
          }
 
          if structure_type == ROOF then
@@ -149,6 +152,10 @@ function Building:remove_structure(entity)
       local structure = entity:get_component(structure_type)
 
       if structure then
+         local entry = self._sv.structures[structure_type][id]
+         if entry then
+            entry.cp_listener:destroy()
+         end
          self._sv.structures[structure_type][id] = nil
          self.__saved_variables:mark_changed()
          break
@@ -510,6 +517,39 @@ function Building:_recommend_patch_wall_material(origin, shape)
       end
    end
    return recommended
+end
+
+
+-- fires when a child finishes construction.  building's cannot use the dependenc/inverse_dependncy
+-- system to figure out when they're finished.  regardless of whether we're building up or tearing
+-- down, the entire building isn't finished until all of the children inside the building are
+-- finished.  manually crawl our entire entity tree to compute that, then update our contruction
+-- progress component
+--
+function Building:_on_child_finished(changed)
+   local function children_finished(entity)
+      if entity and entity:is_valid() then
+         if entity ~= self._entity then
+            local cp = entity:get_component('stonehearth:construction_progress')
+            if cp and not cp:get_finished() then
+               return false
+            end
+         end
+         
+         local ec = entity:get_component('entity_container')  
+         if ec then
+            for id, child in ec:each_child() do
+               if not children_finished(child) then
+                  return false
+               end
+            end
+         end
+      end
+      return true
+   end
+   local finished = children_finished(self._entity)
+   self._entity:get_component('stonehearth:construction_progress')
+                     :set_finished(finished)
 end
 
 return Building
