@@ -8,7 +8,7 @@ function BaitTrapComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
-      self._sv.is_armed = false
+      self._sv.is_armed = true
       self._sv.range = json.range or 16
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
