@@ -226,7 +226,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       var activateElement = function(elPath) {
          return function() {
-            self.$(elPath).addClass('active');
+            if (self.$(elPath)) {
+               self.$(elPath).addClass('active');   
+            }
          }
       };
 
