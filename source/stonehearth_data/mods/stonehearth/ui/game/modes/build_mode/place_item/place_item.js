@@ -48,7 +48,7 @@ App.StonehearthPlaceItemView = App.View.extend({
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
 
          var itemType = $(this).attr('uri');
-         App.stonehearthClient.placeItem(itemType);
+         App.stonehearthClient.placeItemType(itemType);
       });
 
       self.$('.item').tooltipster();
