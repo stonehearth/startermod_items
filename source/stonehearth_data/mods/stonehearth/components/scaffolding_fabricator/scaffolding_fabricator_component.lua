@@ -136,21 +136,12 @@ function ScaffoldingFabricator:_update_scaffolding_size()
       end
    else
       self:_cover_project_region()
-      -- now strip off the top row...
-      self._entity_dst:get_region():modify(function(cursor) 
-         local bounds = cursor:get_bounds()
-         if cursor:get_area() > 0 then
-            local top_row = Cube3(Point3(-COORD_MAX, bounds.max.y - 1, -COORD_MAX),
-                                  Point3( COORD_MAX, bounds.max.y,  COORD_MAX))
-            cursor:subtract_cube(top_row)
-         end
-      end)
-
    end
    self:_update_ladder_region()
 end
 
 function ScaffoldingFabricator:_cover_project_region(max_height)
+   local teardown = self._blueprint_cp:get_teardown()
    local project_rgn = self._project_dst:get_region():get()
    local blueprint_rgn = self._blueprint_dst:get_region():get()
    
@@ -190,20 +181,30 @@ function ScaffoldingFabricator:_cover_project_region(max_height)
             end
          end
 
-         -- if the top row isn't finished, lower the height by 1.  the top
-         -- row is finished if the project - the blueprint is empty
-         local clipper = Cube3(Point3(-COORD_MAX, project_bounds.min.y, -COORD_MAX),
-                               Point3( COORD_MAX, project_bounds.max.y,  COORD_MAX))
-                               
-         if not (blueprint_rgn:clipped(clipper) - project_rgn):empty() then
+         local subtract_top_row = false
+         if teardown then
+            -- if we're tearing down, always build 1 below the top row
+            subtract_top_row = true
+         else
+            -- if the top row isn't finished, lower the height by 1.  the top
+            -- row is finished if the project - the blueprint is empty
+            local clipper = Cube3(Point3(-COORD_MAX, project_bounds.min.y, -COORD_MAX),
+                                  Point3( COORD_MAX, project_bounds.max.y,  COORD_MAX))
+
+            if not (blueprint_rgn:clipped(clipper) - project_rgn):empty() then
+               subtract_top_row = true
+            end
+         end
+
+         if subtract_top_row then
             project_bounds.max = project_bounds.max - Point3.unit_y
          end
+
          if max_height then
             max_height = math.min(max_height, project_bounds.max.y)
          else
             max_height = project_bounds.max.y
          end
-
    
          -- add a piece of scaffolding for every xz column in `bounds`.  the
          -- height of the scaffolding will be the min of the max height and the
@@ -281,7 +282,7 @@ function ScaffoldingFabricator:_update_ladder_region()
    if not self._entity_ladder:get_region():get():empty() then
       log:debug('grew the ladder!')
    end
-   log:debug('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._sv.project, region, tostring(ladder:get_bounds()))
+   log:debug('(%s) updating scaffolding supporting %s -> %s (ladder:%s)', tostring(self._entity), self._sv.project, region:get_bounds(), tostring(ladder:get_bounds()))
 end
 
 function ScaffoldingFabricator:_clear_destination_region()

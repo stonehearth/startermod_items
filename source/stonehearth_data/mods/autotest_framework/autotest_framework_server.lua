@@ -49,7 +49,7 @@ local function _run_script(script, function_name)
       local regexp = '^' .. pattern:gsub('*', '.*') .. '$'
       return name:match(regexp)
    end
-   
+
    local tests = {}
    for name, fn in pairs(obj) do
       local matches = not function_name or glob_match(name, function_name)
@@ -57,6 +57,7 @@ local function _run_script(script, function_name)
          table.insert(tests, { name = name, fn = fn })
       end
    end
+   table.sort(tests, function(a, b) return a.name < b.name end)
 
    autotest_framework.log:write(0, 'running script %s', script)
    local total = #tests

@@ -1,13 +1,8 @@
-
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
-local all_tester_scripts = {
-   'simple_floor',
-   'simple_floor_erase',
-}
-
-local build_longrunning_tests = {}
+local lrbt = {}
+local lrbt_cases = require 'tests.longrunning.build.lrbt_cases'
 
 -- get the area of the blueprint for the given structure
 --
@@ -16,13 +11,13 @@ local function get_blueprint_area(structure)
 end
 
 local function create_workers(autotest)
-   autotest.env:create_person(-8,   8, { profession = 'worker' })   
-   autotest.env:create_person(-8,  10, { profession = 'worker' })   
-   autotest.env:create_person(-10,  8, { profession = 'worker' })   
-   autotest.env:create_person(-10, 10, { profession = 'worker' })   
+   autotest.env:create_person(-8,   8, { profession = 'worker' })
+   autotest.env:create_person(-8,  10, { profession = 'worker' })
+   autotest.env:create_person(-10,  8, { profession = 'worker' })
+   autotest.env:create_person(-10, 10, { profession = 'worker' })
 end
 
-local function create_buildings(autotest, tester)
+local function create_buildings(autotest, cb)
    local buildings = {}
    local building_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
@@ -33,7 +28,7 @@ local function create_buildings(autotest, tester)
 
    -- now run `cd` to create all the building structures.
    local session = autotest.env:get_player_session()
-   local steps = tester:get_build_steps(autotest, session)
+   local steps = cb(autotest, session)
    for i, step_cb in ipairs(steps) do
       stonehearth.build:do_command('step ' .. tostring(i), nil, function()
             step_cb()
@@ -77,12 +72,12 @@ end
 
 -- run a build test
 --
-local function do_build(autotest, tester)
+local function do_build(autotest, cb)
    -- setup the environment for the build
    create_workers(autotest)
    autotest.env:create_entity_cluster(8, 8, 8, 8, 'stonehearth:oak_log')
 
-   local buildings = create_buildings(autotest, tester)
+   local buildings = create_buildings(autotest, cb)
 
    mark_buildings_active(autotest, buildings)
    succeed_when_buildings_finished(autotest, buildings)
@@ -93,12 +88,13 @@ end
 
 -- run a teardown test
 --
-local function do_teardown(autotest, tester)
+local function do_teardown(autotest, cb)
    -- setup the environment for the build
    create_workers(autotest)
    autotest.env:create_stockpile(-8, 8,  { size = { x = 6, y = 6 }})
+   autotest.env:create_entity_cluster(8, 8, 8, 8, 'stonehearth:oak_log')
 
-   local buildings = create_buildings(autotest, tester)
+   local buildings = create_buildings(autotest, cb)
    for _, building in pairs(buildings) do
       stonehearth.build:instabuild(building)
       stonehearth.build:set_teardown(building, true)
@@ -114,14 +110,13 @@ end
 -- create all the long running build tests.  this is the cross product of the structurE_to_test
 -- with all the different types of tests to run (build, teardown, etc.)
 --
-for _, script in pairs(all_tester_scripts) do   
-   local cls = require('tests/longrunning/' .. script)
-   build_longrunning_tests['build_' .. script] = function(autotest)
-      do_build(autotest, cls())
+for name, cb in pairs(lrbt_cases) do   
+   lrbt['build_' .. name] = function(autotest)
+      do_build(autotest, cb)
    end
-   build_longrunning_tests['teardown_' .. script] = function(autotest)
-      do_teardown(autotest, cls())
+   lrbt['teardown_' .. name] = function(autotest)
+      do_teardown(autotest, cb)
    end
 end
 
-return build_longrunning_tests
+return lrbt
