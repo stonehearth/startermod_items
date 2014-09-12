@@ -67,11 +67,8 @@ local function do_teardown(autotest, cb)
    stonehearth.build:set_active(building, true)
 
    -- signal success when the building is completed.
-   radiant.events.listen(building, 'stonehearth:construction:finished_changed', function()
-         if building:get_component('stonehearth:construction_progress'):get_finished() then
-            autotest:success()
-            return radiant.events.UNLISTEN
-         end
+   radiant.events.listen_once(building, 'radiant:entity:pre_destroy', function()
+         autotest:success()
       end)
       
    autotest:sleep(60000)

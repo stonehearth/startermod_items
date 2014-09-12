@@ -250,12 +250,6 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    blueprint:add_component('stonehearth:construction_progress')
                :set_building_entity(building)
 
-   -- make sure the building depends on the child we're adding to it.  this
-   -- will guarantee the building won't be flagged as finished until all the
-   -- children are finished
-   building:add_component('stonehearth:construction_progress')
-               :add_dependency(blueprint)
-
    radiant.entities.add_child(building, blueprint, offset)
 
    -- initialize...
