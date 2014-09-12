@@ -36,6 +36,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                  :set_visible_changed_cb(function(visible)
                                        self._render_entity:set_visible_override(visible)
                                     end)
+                                 :start()
 
       self._construction_data_trace = self._blueprint_cd:trace_data('render')
                                           :on_changed(function()

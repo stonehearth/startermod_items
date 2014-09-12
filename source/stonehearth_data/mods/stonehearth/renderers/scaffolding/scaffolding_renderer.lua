@@ -56,6 +56,7 @@ function ScaffoldingRenderer:__init(render_entity, ed)
                                  :set_visible_changed_cb(function(visible)
                                        h3dSetNodeFlags(self._node, visible and 0 or H3DNodeFlags.Inactive, false)
                                     end)
+                                 :start()
 
       -- push the collision shape of the scaffolding into the render tracker
       -- whenever it changes

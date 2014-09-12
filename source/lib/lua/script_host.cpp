@@ -178,7 +178,7 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
    using namespace luabind;
 
    for (const auto& fn : to_lua_converters_) {
-      object o = fn(L_, json);
+      object o = fn(cb_thread_, json);
       if (o.is_valid()) {
          return o;
       }
@@ -187,13 +187,13 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
    if (json.type() == JSON_NODE) {
       object table = newtable(L_);
       for (auto const& entry : json) {
-         table[entry.name()] = JsonToLua(L_, entry);
+         table[entry.name()] = JsonToLua(entry);
       }
       return table;
    } else if (json.type() == JSON_ARRAY) {
       object table = newtable(L_);
       for (unsigned int i = 0; i < json.size(); i++) {
-         table[i + 1] = JsonToLua(L_, json[i]);
+         table[i + 1] = JsonToLua(json[i]);
       }
       return table;
    } else if (json.type() == JSON_STRING) {

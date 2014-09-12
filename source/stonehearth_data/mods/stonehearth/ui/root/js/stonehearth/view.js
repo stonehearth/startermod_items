@@ -97,11 +97,17 @@
       this._rootTrace = trace;
 
       if (this._rootTrace) {
+         var firstUpdate = true;
          this._rootTrace.progress(function(eobj) {
                console.log("setting view context for " + self.elementId + " to...", eobj);
 
                var modelProperty = self.uriProperty ? self.uriProperty : 'context';
-               self.set(modelProperty, eobj)
+               self.set(modelProperty, eobj);
+
+               if (firstUpdate && self.onRenderedUri) {
+                  firstUpdate = false;
+                  Ember.run.scheduleOnce('afterRender', self, self.onRenderedUri);
+               }
             });
       } else {
          self.set('context', {});

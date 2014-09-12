@@ -30,44 +30,28 @@ App.StonehearthPromotionWizard = App.View.extend({
       }
    },
 
-   init: function() {
-      var self = this;
+   // Making this override 'init' will cause the 'set' method to misbehave, and the trace will not be 
+   // observed (from what I can gather, this is because the view is still being constructed and Ember's 
+   // manual proto records aren't ready.  Look at 'propertyDidChange' in ember.js, which returns
+   // if proto == obj, which will be true during 'init', but not after.)
+   //
+   // I think Ember might be too complicated.
+   onInit: function() {
+      this.set('uri', 'stonehearth:professions:index');
+
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_up'} );
-      this._super();
-
-      // XXX, Don't know why I have to manually set the trace below
-      //this.set('uri', 'stonehearth:professions:index');
-
-      var r  = new RadiantTrace()
-      var trace = r.traceUri('stonehearth:professions:index', this.components);
-      trace.progress(function(eobj) {
-               self.set('context', eobj);
-            });
-
-      $(top).on("radiant_selection_changed.promote_view", function (_, data) {
-         var selected = data.selected_entity;
-         App.population.getTrace().done(function(pop) {
-            $.each(pop.citizens, function(k, citizen) {
-               var uri = citizen['__self']
-               if (uri && uri == data.selected_entity) {
-                  var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
-
-                  if (profession = 'stonehearth:professions:worker') {
-                     self.set('citizen', citizen);
-                     self.showApproveStamper();                  
-                  }
-               }
-            });            
-         });
-      });
-
-   },
+   }.on('init'),
 
    destroy: function() {
       $(top).off("radiant_selection_changed.promote_view");
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'} );
       this._super();
-   },   
+   },
+
+   // Called once, when our uri trace first fires, and AFTER our DOM is ready.
+   onRenderedUri: function() {
+      this.initWizardState();
+   },
 
    didInsertElement: function() {
       var self = this;
@@ -136,7 +120,22 @@ App.StonehearthPromotionWizard = App.View.extend({
          self.approve();
       });
 
-      self.initWizardState();
+      $(top).on("radiant_selection_changed.promote_view", function (_, data) {
+         var selected = data.selected_entity;
+         App.population.getTrace().done(function(pop) {
+            $.each(pop.citizens, function(k, citizen) {
+               var uri = citizen['__self']
+               if (uri && uri == data.selected_entity) {
+                  var profession = citizen['stonehearth:profession']['profession_uri']['alias'];
+
+                  if (profession = 'stonehearth:professions:worker') {
+                     self.set('citizen', citizen);
+                     self.showApproveStamper();                  
+                  }
+               }
+            });            
+         });
+      });
    },
 
    initWizardState: function() {
@@ -145,10 +144,10 @@ App.StonehearthPromotionWizard = App.View.extend({
       // if the talisman is specified
       var talisman = this.get('talisman');
       if (talisman) {
-         this.set('profession', self.getProfessionInfo(talisman['stonehearth:promotion_talisman'].profession) );
-         self.$('#jobsPage').hide();
-         self.$('#finishPage').show();
-         self.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));
+         this.set('profession', this.getProfessionInfo(talisman['stonehearth:promotion_talisman'].profession) );
+         this.$('#jobsPage').hide();
+         this.$('#finishPage').show();
+         this.$('#finishPage #backButton').html( i18n.t('stonehearth:cancel'));
       } else {
          radiant.call('stonehearth:get_talismans_in_explored_region')
             .done(function(e) {

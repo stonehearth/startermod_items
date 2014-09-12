@@ -28,6 +28,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
                                  :set_visible_changed_cb(function(visible)
                                        self._render_entity:set_visible_override(visible)
                                     end)
+                                 :start()
 
       self._construction_data_trace = construction_data:trace_data('render')
                                           :on_changed(function()

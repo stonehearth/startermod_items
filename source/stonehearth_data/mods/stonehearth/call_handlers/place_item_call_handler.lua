@@ -187,9 +187,8 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
             item_uri = entity_uri
          })
    else 
-      response:fail({error = 'no more placeable items'})
+      response:reject({error = 'no more placeable items'})
    end
-
 end
 
 

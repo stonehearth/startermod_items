@@ -243,16 +243,9 @@ function Wall:layout()
    
    local function compute_collision_shape()
       local stencil = self:_compute_wall_shape()
-      local foo = self._entity:get_component('stonehearth:construction_data')
+      return self._entity:get_component('stonehearth:construction_data')
                                :create_voxel_brush()
                                :paint_through_stencil(stencil)
-      if foo:get_bounds():get_area() ~= stencil:get_bounds():get_area() then
-         -- oops!
-         foo = self._entity:get_component('stonehearth:construction_data')
-                               :create_voxel_brush()
-                               :paint_through_stencil(stencil)
-      end
-      return foo
    end
 
    local collision_shape

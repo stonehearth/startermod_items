@@ -38,6 +38,10 @@ function RenewableResourceNodeComponent:_restore()
    end
 end
 
+function RenewableResourceNodeComponent:destroy()
+   self:_stop_renew_timer()
+end
+
 function RenewableResourceNodeComponent:is_harvestable()
    return self._sv.harvestable
 end
@@ -93,7 +97,7 @@ function RenewableResourceNodeComponent:_reset_model()
    end
 end
 
-function RenewableResourceNodeComponent:renew(location)
+function RenewableResourceNodeComponent:renew()
    --If we have a renew effect associated, run it. If not, just swap the model.
    if self._renew_effect_name then
       assert(not self._renew_effect)
