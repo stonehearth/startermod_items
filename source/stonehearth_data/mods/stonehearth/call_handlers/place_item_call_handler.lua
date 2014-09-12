@@ -182,7 +182,10 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
       self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
    
       -- return whether or not there are most items we could potentially place
-      response:resolve({ more_items = acceptable_item_count > 1 })
+      response:resolve({ 
+            more_items = acceptable_item_count > 1,
+            item_uri = entity_uri
+         })
    else 
       response:fail({error = 'no more placeable items'})
    end

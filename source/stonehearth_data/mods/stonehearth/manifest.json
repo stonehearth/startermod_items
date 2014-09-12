@@ -972,7 +972,7 @@
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       },
-      "force_spawn_scenario": {
+      "spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
          "endpoint" : "server"
       }
@@ -1135,7 +1135,7 @@
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
-         "file(ui/game/help_basics/element_highlight.html)",
+         "file(ui/game/tutorial/element_highlight.html)",
          "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
@@ -1196,8 +1196,8 @@
          "file(ui/game/save_view/save_view.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
-         "file(ui/game/help_basics/help_basics.js)",
-         "file(ui/game/help_basics/element_highlight.js)",
+         "file(ui/game/tutorial/tutorial_manager.js)",
+         "file(ui/game/tutorial/element_highlight.js)",
          "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
@@ -1258,7 +1258,7 @@
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
-         "file(ui/game/help_basics/element_highlight.less)",
+         "file(ui/game/tutorial/element_highlight.less)",
          "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",

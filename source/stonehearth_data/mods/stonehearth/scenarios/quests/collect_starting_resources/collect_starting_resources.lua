@@ -19,20 +19,38 @@ function CollectStartingResourcesScenario:start()
    self._item_added_listener = radiant.events.listen(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
    self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_inventory_item_removed)
 
+   self:_post_bulletin()
+end
+
+function CollectStartingResourcesScenario:_post_bulletin(e)
    --Send the notice to the bulletin service.
-   self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-     :set_ui_view('StonehearthQuestBulletinDialog')
-     :set_callback_instance(self)
-     :set_type('quest')
-     :set_close_on_handle(false)
-     :set_data({
+   local title = self._scenario_data.title
+   
+   local bulletin_data = {
          title = self._scenario_data.title,
          progress = self:_get_progress(),
          message = self._scenario_data.message,
          rewards = self._scenario_data.rewards,
-         accepted_callback = "_on_accepted",
-         declined_callback = "_on_declined",
-     })
+         ui = '_'
+     }
+   
+   if not self._sv.quest_completed then
+      bulletin_data.accepted_callback = "_on_accepted"
+      bulletin_data.declined_callback = "_on_declined"
+   else 
+      bulletin_data.title = 'Completed: ' .. bulletin_data.title
+      bulletin_data.ok_callback = '_on_complete_accepted'
+   end
+
+   self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+     :set_ui_view('StonehearthQuestBulletinDialog')
+     :set_callback_instance(self)
+     :set_type('quest')
+     :set_sticky(true)
+     :set_close_on_handle(self._sv.quest_completed)
+     :set_data(bulletin_data)
+
+   self.__saved_variables:mark_changed()
 end
 
 function CollectStartingResourcesScenario:_on_inventory_item_added(e)
@@ -54,10 +72,16 @@ function CollectStartingResourcesScenario:_on_inventory_item_removed(e)
 end
 
 function CollectStartingResourcesScenario:_update_quest_progress()
-   self._sv.bulletin:modify_data({
-      progress = self:_get_progress(),
-   })
-
+   if self._sv.quest_completed then
+      return
+   end
+   
+   if self._sv.bulletin ~= nil then
+      self._sv.bulletin:modify_data({
+         progress = self:_get_progress(),
+      })
+   end
+   
    if self._sv.item_count >= self._scenario_data.num_items_required then
      self:_complete_quest()
    end
@@ -68,22 +92,44 @@ function CollectStartingResourcesScenario:_get_progress()
 end
 
 function CollectStartingResourcesScenario:_on_accepted()
-  -- do nothing
+   if self._sv.bulletin ~= nil then
+      self._sv.bulletin:modify_data({
+         ui = self._scenario_data.ui
+      })
+   end
+
+end
+
+function CollectStartingResourcesScenario:_on_complete_accepted()
+  self:destroy();
 end
 
 function CollectStartingResourcesScenario:_complete_quest()
    self:_remove_listeners()
 
-   -- notify the UI somehow
+   -- notify the UI by posting a new bulletin
+   self:_destroy_bulletin()
 
-   -- add town exp
+   self._sv.quest_completed = true
+   self:_post_bulletin()
+
+   -- add the quest rewards
+   --[[
    local town = stonehearth.town:get_town(self._sv.player_id)
    local profession_component = town:get_entity():get_component('stonehearth:profession')
    profession_component:add_exp(self._scenario_data.rewards.exp.value)
 
    stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')
+   ]]
 
-   self:destroy();
+end
+
+function CollectStartingResourcesScenario:_destroy_bulletin()
+   if self._sv.bulletin ~= nil then
+      local bulletin_id = self._sv.bulletin:get_id()
+      stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+      self._sv.bulletin = nil
+   end
 end
 
 function CollectStartingResourcesScenario:_on_declined()
@@ -93,7 +139,7 @@ end
 function CollectStartingResourcesScenario:_remove_listeners()
    if self._item_added_listener then
       self._item_added_listener:destroy()
-    self._item_added_listener = nil
+      self._item_added_listener = nil
    end
 
    if self._item_removed_listener then
@@ -103,9 +149,9 @@ function CollectStartingResourcesScenario:_remove_listeners()
 end
 
 function CollectStartingResourcesScenario:destroy()
-   local bulletin_id = self._sv.bulletin:get_id()
-   stonehearth.bulletin_board:remove_bulletin(bulletin_id)
-   self._sv.bulletin = nil
+   self:_remove_listeners()
+   self:_destroy_bulletin()
 end
 
 return CollectStartingResourcesScenario
+

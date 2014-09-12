@@ -3,8 +3,14 @@ var stonehearthTipData = {};
 $(document).ready(function(){
 
    $(top).on('radiant_show_tip', function (_, data) {
-      destroyCurrentTip();
-      stonehearthTipData.currentTip = App.gameView.addView(App.StonehearthTipPopup, data);
+      var currentTip = stonehearthTipData.currentTip
+      if (currentTip && currentTip.title == data.title && currentTip.description == data.description) {
+         // do nothing         
+      } else {
+         destroyCurrentTip();   
+         stonehearthTipData.currentTip = App.gameView.addView(App.StonehearthTipPopup, data);
+      }
+      
    });
 
    $(top).on('radiant_hide_tip', function (_, e) {
@@ -40,7 +46,8 @@ App.StonehearthTipPopup = App.View.extend({
 
       console.log(this.element);
       console.log($('#tipPopup'));
-      $('#tipPopup').pulse();
+      //$('#tipPopup').pulse();
+      $('#tipPopup').fadeIn();
    }
 });
 

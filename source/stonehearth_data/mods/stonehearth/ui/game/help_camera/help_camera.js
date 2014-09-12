@@ -96,13 +96,15 @@ App.StonehearthHelpCameraView = App.View.extend({
          $("#zoomHint").fadeIn();
       }
 
+      /*
       radiant.call('radiant:set_config', 'hide_help.camera', 
          {
             pan : this._cameraVars.pan, 
             orbit : this._cameraVars.orbit,
             zoom : this._cameraVars.zoom
          });
-
+      */
+      
       /*
       radiant.call('stonehearth:save_browser_object', 'stonehearth:help_camera', 
          {

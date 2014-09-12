@@ -51,7 +51,6 @@ App.RootView = Ember.ContainerView.extend({
    },
 
    gotoGame: function() {
-
       radiant.call('radiant:set_draw_world', {
             'draw_world': true
          });
@@ -77,9 +76,14 @@ App.RootView = Ember.ContainerView.extend({
             'track': 'stonehearth:ambient:summer_day',
             'channel': 'ambient', 
             'volume' : 60
-         });  
+         });
 
-      //this._help = new StonehearthHelpBasics();
+      // kick off the tutorials
+      setTimeout(function() {
+         App.stonehearthTutorials = new StonehearthTutorialManager();
+         //App.stonehearthTutorials.start();
+      }, 1000);
+
    },
 
    gotoShell: function() {

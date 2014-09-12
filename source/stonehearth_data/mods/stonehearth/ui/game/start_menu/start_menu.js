@@ -35,9 +35,6 @@ App.StonehearthStartMenuView = App.View.extend({
       build_ladder: function () {
          $(top).trigger('stonehearth_build_ladder');
       },
-      build_simple_room: function () {
-         App.stonehearthClient.buildRoom();
-      },
       town_menu: function() {
          App.stonehearthClient.showTownMenu();
       },
