@@ -8,15 +8,6 @@
             "type" : "exp",
             "value" : 10
          }
-      },
-      "ui" : {
-         "trigger_event" : {
-            "event_name" : "stonehearth_tutorial_step_finished",
-            "event_data" : {
-               "tutorial" : "starting",
-               "step" : "spawnScenario"
-            }
-         }
       }
    }
 }

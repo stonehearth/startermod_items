@@ -27,13 +27,6 @@ function Bulletin:set_type(type)
    return self
 end
 
--- sticky bulletin notifications stay up in the UI until the user addresses them
-function Bulletin:set_sticky(sticky)
-   self._sv.sticky = sticky
-   self.__saved_variables:mark_changed()
-   return self
-end
-
 function Bulletin:get_ui_view()
    return self._sv.ui_view
 end

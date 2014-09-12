@@ -233,32 +233,47 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       };
 
       // draw floor tool
-      var doDrawFloor = function() {
+      var doDrawFloor = function(showTip) {
          var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
-         App.stonehearthClient.buildFloor(brush, activateElement('#drawFloorTool'))
-            .fail(self._deactivateTool('#drawFloorTool'));
+         App.stonehearthClient.buildFloor(brush, { hideTip: !showTip },
+            activateElement('#drawFloorTool'))
+            .fail(self._deactivateTool('#drawFloorTool'))
+            .done(function() {
+               doDrawFloor(false);
+            });
       };
 
-      var doEraseFloor = function() {
-         App.stonehearthClient.eraseFloor(activateElement('#eraseFloorTool'))
-            .fail(self._deactivateTool('#eraseFloorTool'));
+      var doEraseFloor = function(showTip) {
+         App.stonehearthClient.eraseFloor({ hideTip: !showTip }, 
+            activateElement('#eraseFloorTool'))
+            .fail(self._deactivateTool('#eraseFloorTool'))
+            .done(function() {
+               doEraseFloor(false);
+            });
       };
 
       // wall tool tab
 
       // draw wall tool
-      var doDrawWall = function() {
+      var doDrawWall = function(showTip) {
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri,
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, { hideTip: !showTip },
             activateElement('#drawWallTool'))
-            .fail(self._deactivateTool('#drawWallTool'));
+            .fail(self._deactivateTool('#drawWallTool'))
+            .done(function() {
+               doDrawWall(false);
+            });
       };
 
 
       var doGrowWalls = function() {
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri, activateElement('#growWallsTool'))
-            .fail(self._deactivateTool('#growWallsTool'));
+         App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri,
+            activateElement('#growWallsTool'))
+            .fail(self._deactivateTool('#growWallsTool'))
+            .done(function() {
+               doGrowWalls();
+            });
       };
 
 
@@ -267,7 +282,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var roofUri = self.$('#roofToolTab .roofMaterial.selected').attr('brush');
          App.stonehearthClient.growRoof(roofUri,
             activateElement('#growRoofTool'))
-            .fail(self._deactivateTool('#growRoofTool'));
+            .fail(self._deactivateTool('#growRoofTool'))
+            .done(function() {
+               doGrowRoof();
+            });
       };
 
       // draw doodad tool
@@ -275,19 +293,22 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
          App.stonehearthClient.addDoodad(uri,
             activateElement('#drawDoodadTool'))
-            .fail(self._deactivateTool('#drawDoodadTool'));
+            .fail(self._deactivateTool('#drawDoodadTool'))
+            .done(function() {
+               doAddDoodad();
+            });
       }
 
       this.$('#drawFloorTool').click(function() {
-         doDrawFloor();
+         doDrawFloor(true);
       });
 
       this.$('#eraseFloorTool').click(function() {
-         doEraseFloor();
+         doEraseFloor(true);
       });
 
       this.$('#drawWallTool').click(function() {
-         doDrawWall();
+         doDrawWall(true);
       });
 
       // grow walls tool
@@ -312,7 +333,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self._saveState();
 
          // Re/activate the floor tool with the new material
-         doDrawFloor();
+         doDrawFloor(true);
       })      
 
       // wall materials
@@ -337,7 +358,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (self.$('#growWallsTool').hasClass('active')) {
             doGrowWalls();
          } else if (self.$('#drawWallTool').hasClass('active')) {
-            doDrawWall();               
+            doDrawWall(true);               
          }
       });
 

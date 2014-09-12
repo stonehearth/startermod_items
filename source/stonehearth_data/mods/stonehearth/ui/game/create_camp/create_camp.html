@@ -1,9 +1,65 @@
 <script type="text/x-handlebars" data-template-name="createCamp">
    <div id="createCamp">
+      <div id="scroll3" class="scroll">
+         <div id="content">
+            <center>
+               <div class="subtitle">{{i18n stonehearth:new_game_setup_finished}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_setup_finished_help}}
+            </div>
+
+            <br><br>
+            <a href="#" {{action finish target="view"}}>
+               <center>
+                  <div id="finishButton">{{i18n stonehearth:new_game_setup_finished_button}}</div>
+               </center>
+            </a>
+         </div>
+      </div>
+
+<!--
+      <div id="scroll2" class="scroll">
+         <div id="content">
+            <center>
+               <div class="subtitle">{{i18n stonehearth:new_game_setup_base_camp}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_setup_base_camp_help}}
+            </div>
+         </div>
+      </div>
+-->
+
+      <div id="scroll1" class="scroll">
+         <div id="content">
+            <center>
+               <div class="subtitle">{{i18n stonehearth:new_game_founding_charter}}</div>
+            </center>
+            <div class="help">
+               {{i18n stonehearth:new_game_founding_charter_help}}
+            </div>
+         </div>
+      </div>
+
       <div id="banner">
          <div>{{i18n stonehearth:new_game_place_banner}}</div>
       </div>
-   </div>      
+      
+      <a href="#" {{action placeBanner target="view"}}>
+         <div class="coverLink"  id="bannerCoverLink"></div>
+      </a>
+
+      <!--
+      <div id="crate">
+         <div>{{i18n stonehearth:new_game_place_stockpile}}</div>
+      </div>
+      -->
+      
+      <a href="#" {{action placeStockpile target="view"}}>
+         <div class="coverLink"  id="crateCoverLink"></div>
+      </a>
+   </div>
 </script>
 
 <script type="text/x-handlebars" data-template-name="nameCamp">
