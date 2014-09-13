@@ -4,12 +4,15 @@
 #include "protocols/store.pb.h"
 #include "lib/lua/bind.h"
 #include "lib/typeinfo/dispatcher.h"
+#include <EASTL/fixed_vector.h>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "lib/lua/script_host.h"
 
 using namespace radiant;
 using namespace radiant::marshall;
+
+#define CONVERT_LOG(level)    LOG(convert, level)
 
 Convert::Convert(dm::Store const& store, int flags) :
    store_(store),
@@ -20,8 +23,11 @@ Convert::Convert(dm::Store const& store, int flags) :
 void Convert::ToProtobuf(luabind::object const& from, Protocol::Value* to) {
    std::vector<luabind::object> tables;
 
+   CONVERT_LOG(9) << " converting to protobuf" << lua::ScriptHost::LuaToJson(from.interpreter(), from).write_formatted();
+
    Protocol::LuaObject* msg = to->MutableExtension(Protocol::LuaObject::extension);
    LuaToProtobuf(from, msg, msg, tables);
+
 }
 
 void Convert::ToLua(Protocol::Value const& from, luabind::object &to)
@@ -35,8 +41,20 @@ static luabind::object GetObjectSavedVariables(luabind::object const& obj)
 {
    luabind::object saved_variables = obj;
 
+   eastl::fixed_vector<luabind::object, 8, true> visited;
+
    int t = luabind::type(saved_variables);
    while (t == LUA_TTABLE) {
+      for (auto const& i : visited) {
+         if (i == saved_variables) {
+            CONVERT_LOG(1) << "breaking infinite loop in __saved_variables definition for object.";
+            CONVERT_LOG(1) << lua::ScriptHost::LuaToJson(obj.interpreter(), obj).write_formatted();
+            ASSERT(false); // ASSERT immediately so we find the bug.  Will be removed in release builds
+            return luabind::object(); // Return LUA_TNIL if we pass the ASSERT
+         }
+      }
+      visited.push_back(saved_variables);
+
       luabind::object o = saved_variables["__saved_variables"];
       if (!o) {
          break;
