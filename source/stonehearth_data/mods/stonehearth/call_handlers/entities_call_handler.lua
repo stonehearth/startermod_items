@@ -15,4 +15,11 @@ function EntityCallHandler:destroy_entity(session, response, entity)
    return true
 end
 
+function EntityCallHandler:kill_entity(session, response, entity)
+   assert(entity)
+   
+   radiant.entities.kill_entity(entity)
+   return true
+end
+
 return EntityCallHandler
