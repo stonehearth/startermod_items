@@ -265,12 +265,11 @@ function SimpleCaravan:_accept_trade()
    --Add the new items to the space near the banner
    local town = stonehearth.town:get_town(self._sv.player_id)
    local banner = town:get_banner()
-   if not banner then
-      -- occurs mostly in testing. should we drop somewhere else?
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
       return
    end
 
-   local drop_origin = radiant.entities.get_world_grid_location(banner)
    local uris = {}
    uris[self._sv.trade_data.caravan_has] = self._sv.trade_data.caravan_quantity
 

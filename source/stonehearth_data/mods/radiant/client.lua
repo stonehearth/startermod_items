@@ -57,4 +57,8 @@ function radiant.update()
    radiant.events._update()
 end
 
+radiant.events.listen(radiant, 'radiant:init', function(args)
+      radiant._authoring_root_entity = _radiant.client.get_authoring_root_entity()
+   end)
+
 return radiant

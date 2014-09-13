@@ -73,6 +73,10 @@ function Building:_get_structures(type)
    return self._sv.structures[type]
 end
 
+function Building:get_all_structures()
+   return self._sv.structures
+end
+
 function Building:calculate_floor_region()
    local floor_region = Region2()
    for _, entry in pairs(self._sv.structures[FLOOR]) do

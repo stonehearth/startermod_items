@@ -57,7 +57,11 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
             PF_LOG(0) << "source entity has no om::Mob component in pathfinder!";
             return;
          }
-         start = mob->GetWorldGridLocation();
+         om::EntityRef entityRoot;
+         start = mob->GetWorldGridLocation(entityRoot);
+         if (!om::IsRootEntity(entityRoot)) {
+            PF_LOG(0) << "source entity is not in the world";
+         }
       }
    }
    open.push_back(start);
@@ -87,7 +91,11 @@ void PathFinderSrc::Start(std::vector<PathFinderNode>& open)
       if (entity) {
          auto mob = entity->GetComponent<om::Mob>();
          if (mob) {
-            source_location_ = mob->GetWorldGridLocation();
+            om::EntityRef entityRoot;
+            source_location_ = mob->GetWorldGridLocation(entityRoot);
+            if (!om::IsRootEntity(entityRoot)) {
+               throw core::Exception("source entity is not in the world"); 
+            }
          }
       }
    }

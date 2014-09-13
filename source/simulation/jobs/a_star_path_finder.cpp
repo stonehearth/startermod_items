@@ -198,12 +198,16 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
    auto dstEntity = e.lock();
    if (dstEntity) {
-      auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
-         OnPathFinderDstChanged(dst, reason);
-      };
-      PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
-      destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(dst);
-      OnPathFinderDstChanged(*dst, "added destination");
+      if (om::IsInWorld(dstEntity)) {
+         auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
+            OnPathFinderDstChanged(dst, reason);
+         };
+         PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
+         destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(dst);
+         OnPathFinderDstChanged(*dst, "added destination");
+      } else {
+         PF_LOG(3) << "cannot add " << dstEntity << " to pathfinder because it is not in the world.";
+      }
    }
    return shared_from_this();
 }

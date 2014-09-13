@@ -495,12 +495,12 @@ end
 --
 function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
    local success = self:do_command('grow_walls', response, function()
-         self:_grow_walls(building, columns_uri, walls_uri)
+         self:grow_walls(building, columns_uri, walls_uri)
       end)
    return success or nil
 end
 
-function BuildService:_grow_walls(building, columns_uri, walls_uri)
+function BuildService:grow_walls(building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
    local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()

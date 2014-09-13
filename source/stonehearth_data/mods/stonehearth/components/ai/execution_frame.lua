@@ -1168,7 +1168,7 @@ function ExecutionFrame:_clone_entity_state(name)
    assert(self._current_entity_state)
    local s = self._current_entity_state
    local cloned = {
-      location = Point3(s.location.x, s.location.y, s.location.z),
+      location = s.location and Point3(s.location.x, s.location.y, s.location.z),
       carrying = s.carrying,
    }
    self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))

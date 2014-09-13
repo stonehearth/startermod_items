@@ -1185,10 +1185,11 @@ csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Poin
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         pos = mob->GetWorldGridLocation();
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
             return csg::ToFloat(mob->GetMobCollisionRegion().Translated(location));
          }
+         om::EntityRef entityRoot;
+         pos = mob->GetWorldGridLocation(entityRoot);
       }
 
       om::RegionCollisionShapePtr rcs = entity->GetComponent<om::RegionCollisionShape>();

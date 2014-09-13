@@ -72,6 +72,9 @@ function DefendMelee:_on_assault(assault_context)
       log:error('assault_listener should have been destroyed in stop_thinking')
       return
    end
+   if self._defense_scheduled == true then
+      return
+   end
    if assault_context.attack_method ~= 'melee' then
       return
    end

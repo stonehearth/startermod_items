@@ -211,14 +211,12 @@ function StaticScenarioService:_reveal_around_entities()
    local reveal_distance = self._reveal_distance
    local citizens = self._faction:get_citizens()
    local region = Region2()
-   local mob, pt, rect
+   local pt, rect
 
    for _, entity in pairs(citizens) do
-      mob = entity:get_component('mob')
+      pt = radiant.entities.get_world_grid_location(entity)
 
-      if mob then
-         pt = mob:get_world_grid_location()
-
+      if pt then
          -- remember +1 on max
          rect = Rect2(
             Point2(pt.x-reveal_distance,   pt.z-reveal_distance),
