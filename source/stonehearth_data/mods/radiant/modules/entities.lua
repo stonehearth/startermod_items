@@ -73,6 +73,15 @@ function entities.kill_entity(entity)
       --Trigger an event synchronously, so we don't delete the item till all listeners have done their thing
       radiant.events.trigger(entity, 'stonehearth:kill_event')
 
+      --Trigger a more general event, for non-affiliated components
+      radiant.events.trigger_async(radiant.entities, 'stonehearth:entity_killed', {
+         entity = entity,
+         id = entity:get_id(),
+         name = radiant.entities.get_display_name(entity),
+         faction = radiant.entities.get_faction(entity), 
+         player_id = radiant.entities.get_player_id(entity)
+      })
+
       --For now, just call regular destroy on the entity
       --Review Question: Will it ever be the case that calling destroy is insufficient?
       --for example, if we also need to recursively kill child entities? Are we ever

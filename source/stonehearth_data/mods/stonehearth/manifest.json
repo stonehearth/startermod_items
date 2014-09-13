@@ -480,6 +480,7 @@
       "observers:nutrition_score" : "file(ai/observers/nutrition_score_observer.lua)",
       "observers:shelter_score" : "file(ai/observers/shelter_score_observer.lua)",
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
+      "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -495,6 +496,7 @@
       "personal_logs:no_food_all_day" : "file(data/personality/no_food_all_day.json)",
       "personal_logs:eat_once_daily" : "file(data/personality/eat_once_per_day.json)",
       "personal_logs:flavor_fatigue" : "file(data/personality/eating_similar_foods.json)",
+      "personal_logs:combat" : "file(data/personality/combat.json)", 
 
       "sounds:ui:action_hover" : "file(data/sounds/ui/action/action_hover.wav)",
       "sounds:ui:action_click" : "file(data/sounds/ui/action/action_click.wav)",

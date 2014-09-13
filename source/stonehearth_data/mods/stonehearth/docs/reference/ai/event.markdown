@@ -48,4 +48,59 @@ Destroying an event, given that it was saved to a function, as above:
 
 All events listed below are prefaced in code by stonehearth:, because they are all part of the stonehearth mod. TODO: make each of these their own page?
 
-- combat:battery - triggered whenever a person is hit in combat. Triggered by _combat\_service.lua_: radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
+##Time
+
+   - **hourly** - triggered every in-game hour by the calendar service. Passes args: {now = self._sv.date}
+      - Key: stonehearth.calendar 
+      - Name: stonehearth:midnight/sunrise/noon/sunset
+      - Args: {now = current date}
+
+   - **midnight** - triggers at midnight
+   - **sunrise** - triggers at sunrise
+   - **noon** - triggers at noon
+   - **sunset** - triggers at sunset
+
+For all the above events: 
+   
+   - Key: stonehearth.calendar 
+   - Name: stonehearth:midnight/sunrise/noon/sunset
+   - Args: none
+
+Note: times of day (midnight, sunrise, noon, sunset are defined in calendar constants)
+      "event_times" : {
+         "midnight" : 0,
+         "sunrise" : 6,
+         "midday" : 14,
+         "sunset_start" : 20,
+         "sunset" : 22
+      }
+
+##Combat
+   
+   - **combat:battery** - triggered whenever a person is hit in combat. Triggered by _combat\_service.lua_: radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
+      - Key: entity that was targeted
+      - Name: stonehearth:combat:battery  
+      - Args: context - some data about the nature of the attack
+   - **kill_event** - triggered whenever a significant entity is killed and needs to inform its components etc that it is being destroyed. Only use if you are a component or an object related to that eneity, and must clean yourself up before the entity is destroyed. 
+      - Key: entity that was killed
+      - Name: stonehearth:kill_event
+      - Args: none
+      - Note: this is a synchronous event, so don't do anything crazy in the event handlers listening to it. On the flip side, you know the entity still exists. Please only use if you are a component on the entity and need to clean up after yourself. Otherwise, really complicated things can happen when a sync event goes off. 
+   - **entity_killed** - triggered when an entity of significance (a villager, an enemy) dies
+      - Key: radiant.entities 
+      - Name: stonehearth:combat:entity_killed
+      - Args: entity - the name, id, faction, and player_id of the entity that died
+      - Note: this is async, so don't assume that the entity still exists. 
+
+
+##Everyday Tasks
+   
+   - **sleep\_in\_bed** - triggered whenever we get up from sleeping in a bed, passes in entity that was sleeping
+      - Key: entity that was sleeping
+      - Name: stonehearth:sleep_in_bed
+      - Args: none
+
+   - **sleep\_on\_ground** - triggered when we get up from sleeping on the ground
+      - Key: entity that was sleeping
+      - Name: stonehearth:sleep_on_ground
+      - Args: none
