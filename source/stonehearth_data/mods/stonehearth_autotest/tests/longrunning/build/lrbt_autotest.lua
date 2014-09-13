@@ -40,6 +40,22 @@ local function create_buildings(autotest, cb)
    end
 
    building_listener:destroy()
+
+   -- the act of running through all the steps may have deleted some of these objects.
+   -- remove them from the arrays
+   stonehearth.build:clear_undo_stack()
+   
+   local function prune_dead_entities(t)
+      for id, entity in pairs(t) do
+         if not entity:is_valid() then
+            t[id] = nil
+         end
+      end
+   end
+   
+   prune_dead_entities(buildings)
+   prune_dead_entities(scaffolding)
+
    return buildings, scaffolding
 end
 
@@ -50,29 +66,34 @@ local function mark_buildings_active(autotest, buildings)
 end
 
 local function succeed_when_buildings_finished(autotest, buildings, scaffoldings)
+   local succeeded = false
    local function succeed_if_finished()
-      for _, building in pairs(buildings) do
-         if not building:get_component('stonehearth:construction_progress'):get_finished() then
-            return
+      if not succeeded then
+         for _, building in pairs(buildings) do
+            if not building:get_component('stonehearth:construction_progress'):get_finished() then
+               return
+            end
          end
-      end
-      for _, scaffolding in pairs(scaffoldings) do
-         if not scaffolding:get_component('destination'):get_region():get():empty() then
-            return
+         for _, scaffolding in pairs(scaffoldings) do
+            if not scaffolding:get_component('destination'):get_region():get():empty() then
+               return
+            end
          end
+         succeeded = true
+         autotest:success()
       end
-      autotest:success()
    end
-   for _, building in pairs(buildings) do
-      radiant.events.listen(building, 'stonehearth:construction:finished_changed', function()
-            succeed_if_finished();
-         end)
+   
+   local function install_listeners(t)
+      for _, entity in pairs(t) do
+         radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
+               succeed_if_finished();
+            end)
+      end
    end
-   for _, scaffolding in pairs(scaffoldings) do
-      radiant.events.listen(scaffolding, 'stonehearth:construction:finished_changed', function()
-            succeed_if_finished();
-         end)
-   end
+   
+   install_listeners(buildings)
+   install_listeners(scaffoldings)
 end
 
 local function succeed_when_buildings_destroyed(autotest, buildings)

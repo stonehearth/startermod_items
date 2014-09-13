@@ -62,9 +62,13 @@ function BuildService:_call_all_children(entity, cb)
    cb(entity)
 end
 
+function BuildService:clear_undo_stack()
+   self._undo:clear()
+end
+
 function BuildService:set_active(entity, enabled)
    if enabled then
-      self._undo:clear()  -- can't undo once building starts!
+      self:clear_undo_stack() -- can't undo once building starts!
       local bc = entity:get_component('stonehearth:building')
       if bc then 
          bc:clear_no_construction_zone_traces()

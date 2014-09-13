@@ -109,10 +109,12 @@ function Terrain.get_entities_in_cube(cube, filter_fn)
 end
 
 function Terrain.get_entities_in_region(region, filter_fn)
-   local entities = {}
-   for cube in region:each_cube() do
-      for id, entity in pairs(Terrain.get_entities_in_cube(cube,filter_fn)) do
-         entities[id] = entity
+   local entities = _physics:get_entities_in_region(region)
+   if filter_fn then
+      for id, entity in pairs(entities) do
+         if not filter_fn(entity) then
+            entities[id] = nil
+         end
       end
    end
    return entities

@@ -48,6 +48,27 @@ function lrbt_cases.simple_floor_merge(autotest, session)
    }
 end
 
+function lrbt_cases.three_way_floor_merge(autotest, session)
+   local floor1, floor2
+   -- make a U by connecting two parallel floors with a 3rd.  this test case was added because the merge
+   -- will cause two buildings to become unlinked, which puts more stress on the ncz overlap computation path.
+   -- it's a correctness and regression test.
+   return {
+      function()
+         floor1 = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(2, 2, 6)))
+         autotest.util:fail_if(lrbt_util.get_area(floor1) ~= 12, 'failed to create 2x6 floor blueprint')
+      end,
+      function()
+         floor2 = lrbt_util.create_wooden_floor(session, Cube3(Point3(4, 1, 0), Point3(6, 2, 6)))
+         autotest.util:fail_if(lrbt_util.get_area(floor2) ~= 12, 'failed to create 2x6 floor blueprint')
+      end,
+      function()
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(6, 2, 2)))
+         autotest.util:fail_if(lrbt_util.get_area(floor1) ~= 28, 'failed to merge floors')
+      end,
+   }
+end
+
 function lrbt_cases.simple_wall(autotest, session)
    return {
       function()

@@ -148,12 +148,17 @@ end
 
 function NoConstructionZoneComponent:_update_no_construction_shape()
    local origin = radiant.entities.get_world_grid_location(self._sv.building_entity)
-
+   
    -- set our region_collision_shape to the envelope encompassing all the space
    -- which must remain "empty" to build the building
-   local max_height = 0
    self._region:modify(function(cursor)
          cursor:clear()
+         if not origin then
+            -- if get_world_grid_location returns nil, we must not be a descendant of the root.
+            -- this routinely happens when the building is unlinked due to a merge or undo
+            -- step.  no biggie, just bail.
+            return
+         end
          for id, entry in pairs(self._sv.structures) do
             local structure, structure_type = entry.structure, entry.structure_type
             local position = radiant.entities.get_world_grid_location(entry.structure)
@@ -161,37 +166,39 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
             
             for cube in entry.region:get():each_cube() do
                cube:translate(offset)
-               max_height = math.max(max_height, cube.max.y)
                self:_add_slice_for_cube(structure, structure_type, cube, cursor)
             end
          end
       end)
 
-   self:_update_overlapping_structures(origin)
+   self:_update_overlapping_structures()
 end
 
-function NoConstructionZoneComponent:_update_overlapping_structures(origin)   
-   -- compoute how much stuff our envelope overlaps
-   local bounds = self._region:get():get_bounds()
-   bounds:translate(origin:to_float())
-
+function NoConstructionZoneComponent:_update_overlapping_structures()
    local current_overlap = {}
-   local potenial_overlaps = radiant.terrain.get_entities_in_cube(bounds)
-   for id, candidate in pairs(potenial_overlaps) do
-      -- buildings whose ncz may overlap ours
-      local candidate_ncz = candidate:get_component('stonehearth:no_construction_zone')
-      if candidate_ncz then
-         local building = candidate_ncz:get_building_entity()
-         if building ~= self._sv.building_entity then
-            current_overlap[id] = candidate
+
+   if not self._region:get():empty() then
+      local world_region = radiant.entities.local_to_world(self._region:get(), self._entity)
+
+      local potenial_overlaps = radiant.terrain.get_entities_in_region(world_region)
+      for id, candidate in pairs(potenial_overlaps) do
+         -- buildings whose ncz may overlap ours
+         local candidate_ncz = candidate:get_component('stonehearth:no_construction_zone')
+         if candidate_ncz then
+            local building = candidate_ncz:get_building_entity()
+            if building ~= self._sv.building_entity then
+               current_overlap[id] = candidate
+            end
          end
-      end
-      -- ignore structures...
-      if not candidate:get_component('stonehearth:construction_data') then
-         -- big solid blocks of something (trees, cliffs, etc.)
-         local rcs = candidate:get_component('region_collision_shape')
-         if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-            current_overlap[id] = candidate
+
+         -- ignore structures.  we've already accounted from them with the no-construction-zone
+         -- test, above.
+         if not candidate:get_component('stonehearth:construction_data') then
+            -- big solid blocks of something (trees, cliffs, etc.)
+            local rcs = candidate:get_component('region_collision_shape')
+            if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+               current_overlap[id] = candidate
+            end
          end
       end
    end
