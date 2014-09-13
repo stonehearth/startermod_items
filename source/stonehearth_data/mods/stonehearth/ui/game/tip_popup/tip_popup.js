@@ -40,7 +40,9 @@ App.StonehearthTipPopup = App.View.extend({
 
       console.log(this.element);
       console.log($('#tipPopup'));
-      $('#tipPopup').pulse();
+
+      //$('#tipPopup').pulse();
+      //$('#tipPopup').fadeIn();
    }
 });
 

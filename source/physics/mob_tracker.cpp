@@ -62,7 +62,8 @@ void MobTracker::MarkChanged()
    om::EntityPtr entity = GetEntity();
    om::MobPtr mob = mob_.lock();
    if (entity && mob) {
-      worldShape_ = csg::ToFloat(mob->GetMobCollisionRegion().Translated(mob->GetWorldGridLocation()));
+      om::EntityRef entityRoot;
+      worldShape_ = csg::ToFloat(mob->GetMobCollisionRegion().Translated(mob->GetWorldGridLocation(entityRoot)));
       bounds_ = worldShape_.GetBounds();
       if (bounds_ != last_bounds_) {
          NG_LOG(9) << "MobTracker for " << *entity << " changed (bounds:" << bounds_ << " last bounds:" << last_bounds_ << ")";

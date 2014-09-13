@@ -107,11 +107,9 @@ function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
       -- cache the origin region since we use this a lot
       if entities.origin_region == nil then
          entities.origin_region = _radiant.sim.alloc_region3()
-         entities.origin_region:modify(
-            function(region3)
+         entities.origin_region:modify(function(region3)
                region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
-            end
-         )
+            end)
       end
 
       -- make the adjacent the same as the entity location, so that we actually go to the entity location
@@ -125,7 +123,7 @@ end
 
 function entities.get_parent(entity)
    local mob = entity:get_component('mob')
-   return mob and mob:get_parent() or nil
+   return mob and mob:get_parent()
 end
 
 function entities.add_child(parent, child, location)
@@ -241,20 +239,18 @@ function entities.get_location_aligned(entity)
    end
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_location(entity)
    local mob = entity:get_component('mob')
-   if not mob then
-      error(tostring(entity) .. ' has no mob component')
-   end
-   return mob:get_world_location()
+   local location = mob and mob:get_world_location()
+   return location
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
    local mob = entity:get_component('mob')
-   if mob then
-      return mob:get_world_grid_location()
-   end
+   local location = mob and mob:get_world_grid_location()
+   return location
 end
 
 -- uris are key, value pairs of uri, quantity
@@ -293,6 +289,11 @@ function entities.distance_between(object_a, object_b)
       assert(mob)
       object_b = mob:get_world_location()
    end
+
+   if not object_a or not object_b then
+      return nil
+   end
+
    -- convert Point3 to Point3f... Point3f ignores :to_float()!
    object_a = object_a:to_float()
    object_b = object_b:to_float()

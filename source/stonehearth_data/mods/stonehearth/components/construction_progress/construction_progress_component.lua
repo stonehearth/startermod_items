@@ -268,14 +268,12 @@ function ConstructionProgress:set_teardown(teardown)
       radiant.events.trigger_async(self._entity, 'stonehearth:construction:teardown_changed', { 
          entity = self._entity
       })
-      
+
+      -- if we don't have a fabricator, some external agent is responsible for tweaking our
+      -- finished bits (e.g. the stonehearth:building component)
       if self._sv.fabricator_entity then
-         self:get_fabricator_component():set_teardown(teardown)
-         -- tearing down the fabricator might destroy the blueprint!  make sure
-         -- that didn't happen before checking out dependencies
-         if self._entity:is_valid() then
-            self:check_dependencies()
-         end
+         self:get_fabricator_component()
+                     :set_teardown(teardown)
       end
    end
 end

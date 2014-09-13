@@ -32,6 +32,8 @@ function PickupPlacedItemAdjacent:start_thinking(ai, entity, args)
    ai:set_think_output()
 end
 
+-- consider writing this as a compound action
+-- goto_entity can invoke the pathfinder which may freeze the entity if the path becomes blocked
 function PickupPlacedItemAdjacent:run(ai, entity, args)
    local item = args.item
    

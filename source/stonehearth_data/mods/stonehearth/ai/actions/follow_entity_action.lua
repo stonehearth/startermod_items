@@ -31,7 +31,7 @@ function FollowEntity:start_thinking(ai, entity, args)
 
    local check_distance = function()
       local distance = radiant.entities.distance_between(entity, target)
-      if distance > args.follow_distance then 
+      if distance and distance > args.follow_distance then 
          -- TODO: ensure that placement point is topologically close to target (not down a cliff or across a long fence)
          local origin = radiant.entities.get_world_grid_location(target)
          local location = radiant.terrain.find_placement_point(origin, 1, settle_distance)
@@ -44,6 +44,7 @@ function FollowEntity:start_thinking(ai, entity, args)
          return true
       else
          log:detail('too close to follow %s (distance:%.2f). monitoring.', target, distance)
+         return false
       end
    end
 

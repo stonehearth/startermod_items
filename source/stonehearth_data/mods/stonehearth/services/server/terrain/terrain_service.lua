@@ -48,8 +48,11 @@ function TerrainService:_update_convex_hull()
    for player_id, pop in pairs(friendly_pops) do
       local citizens = pop:get_citizens()
       for _, entity in pairs(citizens) do
-         if entity:is_valid() and entity:get_component('mob') ~= nil then
-            table.insert(new_points, entity:get_component('mob'):get_world_grid_location())
+         if entity:is_valid() then
+            local location = radiant.entities.get_world_grid_location(entity)
+            if location then
+               table.insert(new_points, location)
+            end
          end
       end
    end
@@ -231,17 +234,15 @@ function TerrainService:_get_entity_visible_region(entity)
    local y_min = quantize(0)
    local y_max = quantize(200)
    local region = Region2()
-   local semi_major_axis, semi_minor_axis, mob, pt, rect
+   local semi_major_axis, semi_minor_axis, pt, rect
 
    semi_major_axis = self._sight_radius
    -- quantize delta to make sure the major and minor axes reveal at the same time
    semi_minor_axis = semi_major_axis - quantize(semi_major_axis * 0.4)
 
-   mob = entity:get_component('mob')
+   pt = radiant.entities.get_world_grid_location(entity)
       
-   if mob then
-      pt = mob:get_world_grid_location()
-
+   if pt then
       -- remember +1 on max
       rect = Rect2(
          Point2(quantize(pt.x-semi_major_axis),   quantize(pt.z-semi_minor_axis)),

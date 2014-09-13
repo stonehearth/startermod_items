@@ -107,7 +107,7 @@ end
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
    local floor
    local success = self:do_command('add_floor', response, function()
-         floor = self:_add_floor(session, floor_uri, ToCube3(box), brush_shape)
+         floor = self:add_floor(session, floor_uri, ToCube3(box), brush_shape)
       end)
 
    if success then
@@ -142,7 +142,7 @@ function BuildService:add_wall_command(session, response, columns_uri, walls_uri
    end
 end
 
-function BuildService:_add_floor(session, floor_uri, box, brush_shape)
+function BuildService:add_floor(session, floor_uri, box, brush_shape)
    local floor
    local floor_region = Region3(box)
    local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
@@ -177,7 +177,7 @@ function BuildService:_add_floor(session, floor_uri, box, brush_shape)
    return floor   
 end
 
-function BuildService:_erase_floor(session, box)
+function BuildService:erase_floor(session, box)
    local floor
 
    -- look for floor that we can merge into.
@@ -193,7 +193,7 @@ end
 
 function BuildService:erase_floor_command(session, response, box)
    local success = self:do_command('erase_floor', response, function()
-         self:_erase_floor(session, ToCube3(box))
+         self:erase_floor(session, ToCube3(box))
       end)
 
    return success or nil
@@ -249,12 +249,6 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    -- building entity pointer in the construction_progress component.
    blueprint:add_component('stonehearth:construction_progress')
                :set_building_entity(building)
-
-   -- make sure the building depends on the child we're adding to it.  this
-   -- will guarantee the building won't be flagged as finished until all the
-   -- children are finished
-   building:add_component('stonehearth:construction_progress')
-               :add_dependency(blueprint)
 
    radiant.entities.add_child(building, blueprint, offset)
 
@@ -501,12 +495,12 @@ end
 --
 function BuildService:grow_walls_command(session, response, building, columns_uri, walls_uri)
    local success = self:do_command('grow_walls', response, function()
-         self:_grow_walls(building, columns_uri, walls_uri)
+         self:grow_walls(building, columns_uri, walls_uri)
       end)
    return success or nil
 end
 
-function BuildService:_grow_walls(building, columns_uri, walls_uri)
+function BuildService:grow_walls(building, columns_uri, walls_uri)
    -- accumulate all the floor tiles in the building into a single, opaque region
    local floor_region = building:add_component('stonehearth:building')
                                     :calculate_floor_region()
