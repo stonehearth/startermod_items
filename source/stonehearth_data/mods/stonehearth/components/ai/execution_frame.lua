@@ -490,7 +490,7 @@ function ExecutionFrame:run(args)
       
       if self:in_state(STOPPED) then
          assert(args, "run from stopped state must pass in arguments!")
-         self:_start_thinking(args)
+         self:start_thinking(args)
          self:wait_until(READY)
       end
       if self:in_state(READY) then
