@@ -76,6 +76,14 @@ function AutotestUtil:fail_if_expired(timeout, format, ...)
    end
 end
 
+function AutotestUtil:fail_if_table_mismatch(expected, actual, format, ...)
+   local success, error = self:check_table(expected, actual)
+   if not success then
+      self._autotest:log('%s', error)
+      self._autotest:fail(format, ...);
+   end
+end
+
 function AutotestUtil:fail_if(v, ...)
    if v then
       self._autotest:fail(...)
