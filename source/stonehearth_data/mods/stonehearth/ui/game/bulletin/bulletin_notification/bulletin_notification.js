@@ -1,6 +1,10 @@
 App.StonehearthBulletinNotification = App.View.extend({
 	templateName: 'bulletinNotification',
 
+   init: function() {
+      this._super();
+   },
+   
    didInsertElement: function() {
       // TODO: read these contsants from config
       var bulletinNotificationDuration = 4000;
