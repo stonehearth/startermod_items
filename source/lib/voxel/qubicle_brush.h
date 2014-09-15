@@ -21,7 +21,7 @@ public:
    };
 
    QubicleBrush();
-   QubicleBrush(std::istream& in);
+   QubicleBrush(QubicleFile const*);
    QubicleBrush(QubicleMatrix const*);
    QubicleBrush(QubicleMatrix const*, int);
 
@@ -47,7 +47,6 @@ private:
    csg::Point3           normal_;
    csg::Point3           origin_;
    QubicleMatrix const*  qubicle_matrix_;
-   QubicleFile           qubicle_file_;
    bool                  clip_whitespace_;
 };
 

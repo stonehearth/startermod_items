@@ -25,24 +25,21 @@ QubicleBrush::QubicleBrush() :
    qubicle_matrix_(nullptr),
    paint_mode_(Color),
    offset_mode_(Matrix),
-   qubicle_file_(""),
    clip_whitespace_(false),
    lod_level_(0),
    origin_(csg::Point3::zero)
 {
 }
 
-QubicleBrush::QubicleBrush(std::istream& in) :
+QubicleBrush::QubicleBrush(QubicleFile const* qubicle_file) :
    normal_(0, 0, -1),
    paint_mode_(Color),
    offset_mode_(Matrix),
-   qubicle_file_(""),
    clip_whitespace_(false),
    lod_level_(0),
    origin_(csg::Point3::zero)
 {
-   in >> qubicle_file_;
-   qubicle_matrix_ = &qubicle_file_.begin()->second;
+   qubicle_matrix_ = &qubicle_file->begin()->second;
 }
 
 QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
@@ -50,7 +47,6 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m) :
    qubicle_matrix_(m),
    paint_mode_(Color),
    offset_mode_(Matrix),
-   qubicle_file_(""),
    clip_whitespace_(false),
    lod_level_(0),
    origin_(csg::Point3::zero)
@@ -62,7 +58,6 @@ QubicleBrush::QubicleBrush(QubicleMatrix const* m, int lod_level) :
    qubicle_matrix_(m),
    paint_mode_(Color),
    offset_mode_(Matrix),
-   qubicle_file_(""),
    clip_whitespace_(false),
    lod_level_(lod_level),
    origin_(csg::Point3::zero)
