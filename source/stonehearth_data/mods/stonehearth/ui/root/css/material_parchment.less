@@ -4,13 +4,30 @@
    color: #000;
    font-size: 16px;
    font-family: @baseFontFamily;
+   background: red;
 
    h1, h2, h3, h4 {
       .noOutline;
       color: #000;
+      margin-bottom: 4px;
    }
 
    h2 {
       font-size: 24px;
    }
+
+   button {
+      .control;
+      .button;
+      .outlined(#9da8b0);
+      color: #000;
+      background: #7e8994;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-width: 9px 9px 13px 9px;
+      border-image: url(images/gui/button.png) 9 9 13 9 repeat;
+      padding: 10px;
+      margin: 0px;
+   }
+
 }
