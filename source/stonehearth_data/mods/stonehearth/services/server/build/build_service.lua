@@ -35,6 +35,7 @@ function BuildService:initialize()
 
    self.__saved_variables:set_controller(self)
 
+   self._log = radiant.log.create_logger('build.service')
    self._sv = self.__saved_variables:get_data()
    if not self._sv.next_building_id then
       self._sv.next_building_id = 1 -- used to number newly created buildings
@@ -61,9 +62,13 @@ function BuildService:_call_all_children(entity, cb)
    cb(entity)
 end
 
+function BuildService:clear_undo_stack()
+   self._undo:clear()
+end
+
 function BuildService:set_active(entity, enabled)
    if enabled then
-      self._undo:clear()  -- can't undo once building starts!
+      self:clear_undo_stack() -- can't undo once building starts!
       local bc = entity:get_component('stonehearth:building')
       if bc then 
          bc:clear_no_construction_zone_traces()
@@ -501,8 +506,17 @@ function BuildService:grow_walls_command(session, response, building, columns_ur
 end
 
 function BuildService:grow_walls(building, columns_uri, walls_uri)
+   -- until we are smarter about the way we build walls, refuse to grow anything
+   -- if any wall exists.  this prevents many stacking wall issues.
+   local structures = building:get_component('stonehearth:building')
+                              :get_all_structures()
+   if next(structures['stonehearth:wall']) then
+      self._log:info('already have walls in building %s.  not growing.', building)
+      return
+   end
+
    -- accumulate all the floor tiles in the building into a single, opaque region
-   local floor_region = building:add_component('stonehearth:building')
+   local floor_region = building:get_component('stonehearth:building')
                                     :calculate_floor_region()
 
    -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
@@ -904,7 +918,7 @@ function BuildService:instabuild(building)
          if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
             local fabricator = cp:get_fabricator_component()
             if fabricator then
-               radiant.log.write('', 0, '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
+               self._log:info( '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
                fabricator:instabuild()
             end
          end

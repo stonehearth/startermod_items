@@ -46,6 +46,7 @@ target_link_libraries(unittests_csg
                       csg
                       perfmon
                       core
+                      platform
                       lib_json
                      )
 if (MSVC)

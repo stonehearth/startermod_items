@@ -137,13 +137,13 @@ end
 function events._unlisten(object, key, event, self, fn)
    local senders = events._senders[key]
    if not senders then
-      log:debug('unlisten %s on unknown sender: %s', event, tostring(object))
+      log:info('unlisten %s on unknown sender: %s', event, tostring(object))
       return
    end
 
    local listeners = senders[event]
    if not listeners then
-      log:debug('unlisten unknown event: %s on sender %s', event, tostring(object))
+      log:info('unlisten unknown event: %s on sender %s', event, tostring(object))
       return
    end
 

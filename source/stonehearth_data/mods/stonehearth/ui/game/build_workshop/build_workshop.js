@@ -37,10 +37,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       radiant.call('radiant:play_sound', {'track': 'stonehearth:sounds:ui:start_menu:page_up'});
       var self = this;
       // xxx, localize
-      $(top).trigger('radiant_show_tip', {
-         title : 'Place your workshop',
-         description : 'Click in the spot where you want to put this new workshop!'
-      });
+      App.stonehearthClient.showTip('Click to place your workshop');
 
       // kick off a request to the client to show the cursor for placing
       // the workshop. The UI is out of the 'create workshop' process after
@@ -51,7 +48,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       var crafter = self.get('context');
       radiant.call('stonehearth:choose_workbench_location', workbenchType, crafter = crafter.__self)
          .done(function(o){
-            $(top).trigger('radiant_hide_tip');
+            App.stonehearthClient.hideTip();
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
          })
          .always(function() {
@@ -63,7 +60,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    },
 
    _finish : function() {
-      $(top).trigger('radiant_hide_tip');
+      App.stonehearthClient.hideTip();
       this.invokeDestroy();      
    },
 });

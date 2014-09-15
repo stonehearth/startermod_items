@@ -8,7 +8,11 @@ using namespace ::radiant::rpc;
 std::string Function::desc() const
 {
    std::ostringstream os;
-   os << "[function " << call_id << " " << route << "]";
+   if (object.empty()) {
+      os << "[function fn:" << call_id << " route:" << route << "]";
+   } else {
+      os << "[method obj:" << object << " fn:" << call_id << " route:" << route << "]";
+   }
    return os.str();
 }
 

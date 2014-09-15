@@ -609,20 +609,13 @@ function ExecutionUnitV2:__execute(activity_name, args)
    self._current_execution_frame = self._execution_frames[activity_name]
    if not self._current_execution_frame then
       self._current_execution_frame = self._ai_component:create_execution_frame(activity_name, self._debug_route, self._trace_route)
-      --ExecutionFrame(self._thread, self._debug_route, self._entity, activity_name, self._action_index)
       self._execution_frames[activity_name] = self._current_execution_frame
    end
 
    assert(self._current_execution_frame)
    assert(self._current_execution_frame:get_state() == STOPPED)
 
-   local think_output = self._current_execution_frame:start_thinking(args or {})
-   if not think_output then
-      -- disable this for now (see PickupPlacedItemAdjacent:run.. sigh) - tony
-      -- error(string.format('execution of %s did not start immediately.', activity_name))
-   end
-   self._current_execution_frame:wait_until(READY)
-   self._current_execution_frame:run()
+   self._current_execution_frame:run(args or {})
    self._current_execution_frame:stop()
    self._current_execution_frame = nil
 end 

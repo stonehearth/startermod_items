@@ -10,16 +10,20 @@ App.StonehearthBulletinNotification = App.View.extend({
 
       self.$('#bulletinNotification').pulse();
 
-      setTimeout(function() {
-         var element = self.$('#bulletinNotification');
+      var bulletin = this.get('context');
 
-         // make sure element still exists
-         if (element) {
-            element.fadeOut(bulletinNotificationFadeTime, function() {
-               self.destroy();
-            });
-         }
-      }, bulletinNotificationDuration);
+      if (!bulletin.sticky) {
+         setTimeout(function() {
+            var element = self.$('#bulletinNotification');
+
+            // make sure element still exists
+            if (element) {
+               element.fadeOut(bulletinNotificationFadeTime, function() {
+                  self.destroy();
+               });
+            }
+         }, bulletinNotificationDuration);
+      }
 
       self.$('#popup').click(function() {
          var bulletin = self.get('context');

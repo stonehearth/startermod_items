@@ -233,9 +233,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       };
 
       // draw floor tool
-      var doDrawFloor = function(showTip) {
+      var doDrawFloor = function() {
          var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
-         App.stonehearthClient.buildFloor(brush, { hideTip: !showTip },
+         App.stonehearthClient.buildFloor(brush, 
             activateElement('#drawFloorTool'))
             .fail(self._deactivateTool('#drawFloorTool'))
             .done(function() {
@@ -243,8 +243,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       };
 
-      var doEraseFloor = function(showTip) {
-         App.stonehearthClient.eraseFloor({ hideTip: !showTip }, 
+      var doEraseFloor = function() {
+         App.stonehearthClient.eraseFloor(
             activateElement('#eraseFloorTool'))
             .fail(self._deactivateTool('#eraseFloorTool'))
             .done(function() {
@@ -255,9 +255,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // wall tool tab
 
       // draw wall tool
-      var doDrawWall = function(showTip) {
+      var doDrawWall = function() {
          var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, { hideTip: !showTip },
+         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, 
             activateElement('#drawWallTool'))
             .fail(self._deactivateTool('#drawWallTool'))
             .done(function() {

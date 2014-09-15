@@ -7,6 +7,10 @@
                "stonehearth:actions:combat:flee",
                "stonehearth:actions:combat:cower",
 
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+
                "stonehearth:actions:trapping_dispatcher",
                "stonehearth:actions:trapping:survey_trapping_grounds",
                "stonehearth:actions:trapping:set_bait_trap",

@@ -1,0 +1,16 @@
+{
+   "scenario_data" : {
+      "title" : "Town Advisory: Carpentry 101",
+      "message" : "To advance our town, we're going to need a Carpenter. Fortunately, we've brought a saw along with us. We just need someone for the job.",
+      "progress" : "Promote a citizen to a Carpenter",
+      "on_accept" : {
+         "trigger_event" : {
+            "event_name" : "stonehearth_tutorial_step_finished",
+            "event_data" : {
+               "tutorial" : "promoteCarpenter",
+               "step" : "spawnScenario"
+            }
+         }
+      }
+   }
+}

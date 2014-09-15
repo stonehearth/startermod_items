@@ -5,6 +5,7 @@
 -- only a single "destroy" method.
 --
 local Destructor = class()
+Destructor.__classname = 'radiant.Destructor'
 
 -- create a new destructor. `destroy_cb` will be called the first time the user
 -- calls :destroy() on this object
