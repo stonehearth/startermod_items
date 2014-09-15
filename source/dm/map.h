@@ -16,7 +16,7 @@ public:
    typedef V Value;
    typedef std::pair<K, V> Entry;
    typedef std::unordered_map<K, V, Hash> ContainerType;
-   typedef MapIterator<Map> Iterator;
+   typedef MapIterator<Map> Iterator;   
    
    Map() : Object() { }
    DEFINE_DM_OBJECT_TYPE(Map, map);

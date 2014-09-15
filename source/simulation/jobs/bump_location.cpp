@@ -31,21 +31,18 @@ bool BumpLocation::Work(platform::timer const& timer)
    auto mob = entity->AddComponent<om::Mob>();
 
    csg::Point3f const currentLocation = mob->GetWorldLocation();
-   csg::Point3 const currentGridLocation = csg::ToClosestInt(currentLocation);
-
    csg::Point3f const proposedLocation = currentLocation + vector_;
-   csg::Point3 const proposedGridLocation = csg::ToClosestInt(proposedLocation);
 
-   std::vector<csg::Point3> points;
-   MovementHelper().GetPathPoints(GetSim(), entity, true, currentGridLocation, proposedGridLocation, points);
+   std::vector<csg::Point3f> points;
+   MovementHelper().GetPathPoints(GetSim(), entity, true, currentLocation, proposedLocation, points);
 
    if (points.empty()) {
       // could perform a subgrid move
       return false;
    }
 
-   csg::Point3 lastPoint = points.back();
-   if (lastPoint == proposedGridLocation) {
+   csg::Point3f lastPoint = points.back();
+   if (lastPoint == proposedLocation) {
       // move to the proposed floating point location
       mob->MoveTo(proposedLocation);
    } else {

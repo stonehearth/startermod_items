@@ -145,7 +145,7 @@ BfsPathFinder::~BfsPathFinder()
  *
  */
 
-BfsPathFinderPtr BfsPathFinder::SetSource(csg::Point3 const& location)
+BfsPathFinderPtr BfsPathFinder::SetSource(csg::Point3f const& location)
 {
    pathfinder_->SetSource(location);
    return shared_from_this();
@@ -367,8 +367,8 @@ void BfsPathFinder::ConsiderAddedEntity(om::EntityPtr entity)
 
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
-         csg::Point3 src = pathfinder_->GetSourceLocation();
-         csg::Point3 dst = mob->GetWorldGridLocation();
+         csg::Point3f src = pathfinder_->GetSourceLocation();
+         csg::Point3f dst = mob->GetWorldGridLocation();
          if (src.DistanceTo(dst) <= explored_distance_) {
             BFS_LOG(7) << "considering " << *entity << " newly added to root object";
             ConsiderEntity(entity);
@@ -449,8 +449,8 @@ void BfsPathFinder::ExploreNextNode(csg::Point3 const& src_index)
 
 void BfsPathFinder::ExpandSearch(platform::timer const &timer)
 {
-   csg::Point3 src = pathfinder_->GetSourceLocation();
-   csg::Point3 src_index = src / phys::TILE_SIZE;
+   csg::Point3f src = pathfinder_->GetSourceLocation();
+   csg::Point3 src_index = csg::ToClosestInt(src) / phys::TILE_SIZE;
    float max_explored_distanced = GetMaxExploredDistance();
 
    // Work once to kick the pathfinder

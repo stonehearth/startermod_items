@@ -17,9 +17,9 @@ MovementHelper::MovementHelper(int logLevel) :
 {
 }
 
-bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3 const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3& closestPoint) const
+bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3f const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3f& closestPoint) const
 {
-   csg::Region3 region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
+   csg::Region3f region = MovementHelper::GetRegionAdjacentToEntity(sim, srcEntity, dstEntity);
 
    phys::OctTree& octTree = sim.GetOctTree();
    octTree.GetNavGrid().RemoveNonStandableRegion(srcEntity, region);
@@ -34,35 +34,35 @@ bool MovementHelper::GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point
    return true;
 }
 
-csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
+csg::Region3f MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const
 {
    phys::OctTree& octTree = sim.GetOctTree();
 
    if (!dstEntity || !srcEntity) {
       MH_LOG(5) << "invalid entity ptr.  returning empty region";
-      return csg::Region3();
+      return csg::Region3f();
    }
 
    om::MobPtr const mob = dstEntity->GetComponent<om::Mob>();
    if (!mob) {
       MH_LOG(5) << *dstEntity <<  " has no mob component.  returning empty region";
-      return csg::Region3();
+      return csg::Region3f();
    }
 
    if (!mob->GetBone().empty()) {
       MH_LOG(5) << *dstEntity <<  " is attached to \"" << mob->GetBone() << "\" bone.  returning empty region";
-      return csg::Region3();
+      return csg::Region3f();
    }
 
-   csg::Point3 const origin = mob->GetWorldGridLocation();
+   csg::Point3f const origin = mob->GetWorldGridLocation();
    MH_LOG(9) << *dstEntity << " location: " << origin;
 
    // If we have a destination component and there's some adjacent information in there, use that.
    om::DestinationPtr destination = dstEntity->GetComponent<om::Destination>();
    if (destination) {
-      om::Region3BoxedPtr adjacent = destination->GetAdjacent();
+      om::Region3fBoxedPtr adjacent = destination->GetAdjacent();
       if (adjacent) {
-         csg::Region3 region = phys::LocalToWorld(adjacent->Get(), dstEntity);
+         csg::Region3f region = phys::LocalToWorld(adjacent->Get(), dstEntity);
          MH_LOG(9) << "adjacent region world bounds: " << region.GetBounds();
          return region;
       }
@@ -73,7 +73,7 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
    if (rcs && rcs->GetRegionCollisionType() == om::RegionCollisionShape::SOLID) {
       om::Region3fBoxedPtr shape = rcs->GetRegion();
       if (shape) {
-         csg::Region3 region = phys::LocalToWorld(csg::GetAdjacent(csg::ToInt(shape->Get()), false), dstEntity);
+         csg::Region3f region = phys::LocalToWorld(csg::GetAdjacent(shape->Get(), false), dstEntity);
          MH_LOG(9) << "computed rcs adjacent world region bounds: " << region.GetBounds();
          return region;
       }
@@ -81,44 +81,44 @@ csg::Region3 MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Enti
 
    // Otherwise, just compute it based on the entity location
    MH_LOG(7) << *dstEntity << " has no destination.  iterating through points adjacent to item";
-   static csg::Point3 defaultAdjacentPoints[] = {
-      csg::Point3(-1, 0,  0),
-      csg::Point3( 1, 0,  0),
-      csg::Point3( 0, 0, -1),
-      csg::Point3( 0, 0,  1)
+   static csg::Point3f defaultAdjacentPoints[] = {
+      csg::Point3f(-1, 0,  0),
+      csg::Point3f( 1, 0,  0),
+      csg::Point3f( 0, 0, -1),
+      csg::Point3f( 0, 0,  1)
    };
 
-   csg::Region3 region;
-   for (csg::Point3 const& point : defaultAdjacentPoints) {
-      csg::Point3 location = origin + point;
-      region.AddUnique(csg::Cube3(location));
+   csg::Region3f region;
+   for (csg::Point3f const& point : defaultAdjacentPoints) {
+      csg::Point3f location = origin + point;
+      region.AddUnique(csg::Cube3f(location));
    }
    return region;
 }
 
-csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPointWorld, om::EntityPtr const& entity) const
+csg::Point3f MovementHelper::GetPointOfInterest(csg::Point3f const& adjacentPointWorld, om::EntityPtr const& entity) const
 {
-   csg::Point3 adjacentPointLocal = phys::WorldToLocal(adjacentPointWorld, entity);
-   csg::Point3 poiLocal(0, 0, 0);
-   csg::Point3 poiWorld;
+   csg::Point3f adjacentPointLocal = phys::WorldToLocal(adjacentPointWorld, entity);
+   csg::Point3f poiLocal(0, 0, 0);
+   csg::Point3f poiWorld;
 
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
 
    if (dst) {
       DEBUG_ONLY(
-         csg::Region3 rgn = **dst->GetRegion();
+         csg::Region3f rgn = **dst->GetRegion();
          if (dst->GetReserved()) {
             rgn -= **dst->GetReserved();
          }
 
          if (dst->GetAutoUpdateAdjacent()) {
-            csg::Region3 const& adjacent = **dst->GetAdjacent();
+            csg::Region3f const& adjacent = **dst->GetAdjacent();
 
             //ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
             for (const auto& cube : adjacent) {
                for (const auto& pt : cube) {
-                  csg::Point3 closest = rgn.GetClosestPoint(pt);
-                  csg::Point3 d = closest - pt;
+                  csg::Point3f closest = rgn.GetClosestPoint(pt);
+                  csg::Point3f d = closest - pt;
                   // cubes adjacent to one rect in the region might actually be contained
                   // in another rect in the region!  therefore, just ensure that the distance
                   // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
@@ -132,8 +132,8 @@ csg::Point3 MovementHelper::GetPointOfInterest(csg::Point3 const& adjacentPointW
 
    poiWorld = phys::LocalToWorld(poiLocal, entity);
 
-   if ((csg::Point2(adjacentPointWorld.x, adjacentPointWorld.z) - 
-        csg::Point2(poiWorld.x, poiWorld.z)).LengthSquared() != 1) {
+   if ((csg::Point2f(adjacentPointWorld.x, adjacentPointWorld.z) - 
+        csg::Point2f(poiWorld.x, poiWorld.z)).LengthSquared() != 1) {
       MH_LOG(5) << "warning: distance from adjacentPoint " << adjacentPointWorld << " to " << poiWorld << " is not 1.";
    }
 
@@ -168,6 +168,7 @@ bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, boo
 
    phys::NavGrid& ng = octTree.GetNavGrid();
 
+
    for (csg::Point3 const& offset : GetElevationOffsets(entity, reversible)) {
       csg::Point3 toCandidate(base + offset);
       if (ng.IsStandable(entity, toCandidate)) {
@@ -183,19 +184,19 @@ bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, boo
 // returns the points on the direct line path from start to end
 // if end is not reachable, returns as far as it could go
 // uses the version of Bresenham's line algorithm from Wikipedia
-bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3 const& start, csg::Point3 const& end, std::vector<csg::Point3> &result) const
+bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3f const& start, csg::Point3f const& end, std::vector<csg::Point3f> &result) const
 {
-   int const x0 = start.x;
-   int const z0 = start.z;
-   int const x1 = end.x;
-   int const z1 = end.z;
+   int const x0 = csg::ToClosestInt(start.x);
+   int const z0 = csg::ToClosestInt(start.z);
+   int const x1 = csg::ToClosestInt(end.x);
+   int const z1 = csg::ToClosestInt(end.z);
    int const dx = std::abs(x1 - x0);
    int const dz = std::abs(z1 - z0);
    int const sx = x0 < x1 ? 1 : -1;
    int const sz = z0 < z1 ? 1 : -1;
    int error = dx - dz;
    int error2;
-   csg::Point3 current(start);
+   csg::Point3 current(csg::ToClosestInt(start));
    csg::Point3 next;
    bool passable;
    bool hasXZMovement = (dx != 0 || dz != 0);
@@ -232,7 +233,7 @@ bool MovementHelper::GetPathPoints(Simulation& sim, om::EntityPtr const& entity,
             break;
          }
 
-         result.push_back(next);
+         result.push_back(csg::ToFloat(next));
 
          if (next.x == x1 && next.z == z1) {
             break;
@@ -254,7 +255,7 @@ MovementHelper::Axis MovementHelper::GetMajorAxis(csg::Point3 const& delta) cons
    }
 }
 
-bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart, csg::Point3 const& previous, csg::Point3 const& current, Axis axis) const
+bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3f const& segmentStart, csg::Point3f const& previous, csg::Point3f const& current, Axis axis) const
 {
    int d;
 
@@ -270,8 +271,8 @@ bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3 const& segmentStart
          return false;
    }
 
-   int currentOffset = std::abs(current[d] - segmentStart[d]);
-   int previousOffset = std::abs(previous[d] - segmentStart[d]);
+   float currentOffset = std::abs(current[d] - segmentStart[d]);
+   float previousOffset = std::abs(previous[d] - segmentStart[d]);
    return currentOffset > previousOffset;
 }
 
@@ -370,16 +371,16 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
 //
 // Notes: This method assumes points are of the same elevation and duplicates have been removed.
 // It is called by PruneCollinearPathPoints which performs the pre-processing.
-std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vector<csg::Point3> const& points) const
+std::vector<csg::Point3f> MovementHelper::PruneCollinearPathPointsPlanar(std::vector<csg::Point3f> const& points) const
 {
-   std::vector<csg::Point3> result;
+   std::vector<csg::Point3f> result;
    int numPoints = points.size();
    if (numPoints <= 2) {
       result = points; // Two points define a line - nothing to prune.
       return result;
    }
 
-   csg::Point3 segmentStart = points[0];
+   csg::Point3f segmentStart = points[0];
    int segmentEndIndex = 0;
 
    // The normalized slope must be between -1.5 and 1.5. (i.e. The normalized center slope is betweeen -1 and 1).
@@ -393,9 +394,9 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPointsPlanar(std::vec
    result.push_back(segmentStart);
 
    for (int i = 1; i < numPoints; i++) {
-      csg::Point3 previousPoint = points[i-1];
-      csg::Point3 currentPoint = points[i];
-      csg::Point3 delta = currentPoint - segmentStart;
+      csg::Point3f previousPoint = points[i-1];
+      csg::Point3f currentPoint = points[i];
+      csg::Point3 delta = csg::ToInt(currentPoint - segmentStart);
       Axis pointMajorAxis = GetMajorAxis(delta);
 
       if (currentPoint == previousPoint) {
@@ -470,11 +471,11 @@ static void AppendVector(std::vector<T>& x, std::vector<T> const& y)
 }
 
 // Chops the points into XZ planar subsets and calls PruneCollinearPathPointsPlanar on each subset and concatenates the results.
-std::vector<csg::Point3> MovementHelper::PruneCollinearPathPoints(std::vector<csg::Point3> const& points) const
+std::vector<csg::Point3f> MovementHelper::PruneCollinearPathPoints(std::vector<csg::Point3f> const& points) const
 {
-   std::vector<csg::Point3> subsetPoints;
-   std::vector<csg::Point3> subsetResult;
-   std::vector<csg::Point3> result;
+   std::vector<csg::Point3f> subsetPoints;
+   std::vector<csg::Point3f> subsetResult;
+   std::vector<csg::Point3f> result;
 
    int numPoints = points.size();
    if (numPoints <= 1) {
@@ -485,8 +486,8 @@ std::vector<csg::Point3> MovementHelper::PruneCollinearPathPoints(std::vector<cs
    subsetPoints.push_back(points[0]);
 
    for (int i = 1; i < numPoints; i++) {
-      csg::Point3 previousPoint = points[i-1];
-      csg::Point3 currentPoint = points[i];
+      csg::Point3f previousPoint = points[i-1];
+      csg::Point3f currentPoint = points[i];
 
       // Elevation change, close the subset and process.
       if (currentPoint.y != previousPoint.y) {

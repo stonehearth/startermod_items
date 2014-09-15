@@ -14,20 +14,20 @@ public:
    DirectPathFinder(Simulation &sim, om::EntityRef entityRef);
 
 public:
-   std::shared_ptr<DirectPathFinder> SetStartLocation(csg::Point3 const& startLocation);
-   std::shared_ptr<DirectPathFinder> SetEndLocation(csg::Point3 const& endLocation);
+   std::shared_ptr<DirectPathFinder> SetStartLocation(csg::Point3f const& startLocation);
+   std::shared_ptr<DirectPathFinder> SetEndLocation(csg::Point3f const& endLocation);
    std::shared_ptr<DirectPathFinder> SetDestinationEntity(om::EntityRef destinationRef);
    std::shared_ptr<DirectPathFinder> SetAllowIncompletePath(bool allowIncompletePath);
    std::shared_ptr<DirectPathFinder> SetReversiblePath(bool reversiblePath);
    PathPtr GetPath();
 
 private:
-   bool GetEndPoints(csg::Point3& start, csg::Point3& endLocation) const;
-   csg::Point3 GetPointOfInterest(csg::Point3 const& end) const;
+   bool GetEndPoints(csg::Point3f& start, csg::Point3f& endLocation) const;
+   csg::Point3f GetPointOfInterest(csg::Point3f const& end) const;
 
    Simulation& sim_;
-   csg::Point3 startLocation_;
-   csg::Point3 endLocation_;
+   csg::Point3f startLocation_;
+   csg::Point3f endLocation_;
    om::EntityRef entityRef_;
    om::EntityRef destinationRef_;
    bool useEntityForStartPoint_;

@@ -48,7 +48,7 @@ void VerticalPathingRegionTracker::Initialize()
  * Helper method to get the region from the encapsulated instance.
  */
 
-om::Region3BoxedPtr VerticalPathingRegionTracker::GetRegion() const
+om::Region3fBoxedPtr VerticalPathingRegionTracker::GetRegion() const
 {
    om::VerticalPathingRegionPtr vpr = vpr_.lock();
    if (vpr) {

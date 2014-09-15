@@ -255,13 +255,13 @@ void NavGrid::OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> reg
  * Terrain tile trackers are added differently than the other trackers.
  * This will be called once for every terrain tile.
  */
-void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, om::Region3BoxedPtr tile)
+void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3f const& offset, om::Region3fBoxedPtr tile)
 {
    NG_LOG(3) << "tracking terrain tile at " << offset;
    om::EntityPtr entity = e.lock();
    if (entity) {
       CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, offset, tile);
-      terrain_tile_collision_trackers_[offset] = tracker;
+      terrain_tile_collision_trackers_[csg::ToClosestInt(offset)] = tracker;
       tracker->Initialize();
    }
 }
@@ -278,13 +278,13 @@ void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, 
  * haven't considered all cases of when the region might be rotated!
  *
  */
-void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3& region)
+void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3f& region)
 {
-   csg::Region3 nonStandable;
+   csg::Region3f nonStandable;
 
-   for (csg::Cube3 const& cube : region) {
-      for (csg::Point3 const& pt : cube) {
-         if (!IsStandable(pt)) {
+   for (csg::Cube3f const& cube : region) {
+      for (csg::Point3f const& pt : cube) {
+         if (!IsStandable(csg::ToInt(pt))) {
             nonStandable.AddUnique(pt);
          }
       }
@@ -1087,7 +1087,7 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, csg
 
 csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt)
 {
-   csg::Point3 location = bounds_.GetClosestPoint(pt);
+   csg::Point3 location = bounds_.GetClosestPoint(csg::ToClosestInt(pt));
 
    csg::CollisionShape collisionShape = GetEntityWorldCollisionShape(entity, location);
    if (collisionShape.IsEmpty()) {
@@ -1180,14 +1180,14 @@ bool NavGrid::UseFastCollisionDetection(om::EntityPtr entity) const
  */
 csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Point3 const& location)
 {
-   csg::Point3 pos(csg::Point3::zero);
+   csg::Point3f pos(csg::Point3f::zero);
 
    if (entity) {
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
          pos = mob->GetWorldGridLocation();
          if (mob->GetMobCollisionType() != om::Mob::NONE) {
-            return csg::ToFloat(mob->GetMobCollisionRegion().Translated(location));
+            return mob->GetMobCollisionRegion().Translated(csg::ToFloat(location));
          }
       }
 
@@ -1198,7 +1198,7 @@ csg::CollisionShape GetEntityWorldCollisionShape(om::EntityPtr entity, csg::Poin
             switch (rcs->GetRegionCollisionType()) {
             case om::RegionCollisionShape::SOLID: {
                csg::Region3f region = LocalToWorld(shape->Get(), entity);
-               region.Translate(csg::ToFloat(location - pos));
+               region.Translate(csg::ToFloat(location) - pos);
                return region;
             }
             default:

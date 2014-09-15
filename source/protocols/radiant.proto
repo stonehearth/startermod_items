@@ -182,7 +182,7 @@ message shapelist {
    repeated quad           quad = 3;
    repeated box            box = 4;
    repeated coord          coords = 5;
-   repeated region3i       region = 6;
+   repeated region3f       region = 6;
 }
 
 message cursor_description {

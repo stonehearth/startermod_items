@@ -41,7 +41,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       typedef std::function<void()> ExhaustedCb;
       typedef std::function<bool(om::EntityPtr)> FilterFn;
 
-      BfsPathFinderPtr SetSource(csg::Point3 const& source);
+      BfsPathFinderPtr SetSource(csg::Point3f const& source);
       BfsPathFinderPtr SetSolvedCb(SolvedCb const& solved_cb);
       BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted_cb);
       BfsPathFinderPtr SetFilterFn(FilterFn const& filter_fn);

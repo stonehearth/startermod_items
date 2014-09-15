@@ -590,7 +590,7 @@ RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::Ef
 
       om::MobPtr mob = item->GetComponent<om::Mob>();
       if (mob) {
-         mob->SetLocationGridAligned(csg::Point3::zero);
+         mob->SetLocationGridAligned(csg::Point3f::zero);
       }
 
       H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);

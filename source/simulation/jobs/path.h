@@ -9,31 +9,31 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi);
+      Path(const std::vector<csg::Point3f>& points, om::EntityRef source, om::EntityRef destination, csg::Point3f const& poi);
 
-      std::vector<csg::Point3> const& GetPoints() const {
+      std::vector<csg::Point3f> const& GetPoints() const {
          return points_;
       }
 
-      std::vector<csg::Point3> const& GetPrunedPoints();
+      std::vector<csg::Point3f> const& GetPrunedPoints();
 
       bool IsEmpty() const { return points_.size() == 0; }
       float GetDistance() const;
       om::EntityRef GetDestination() const { return destination_; }
       om::EntityRef GetSource() const { return source_; }
-      csg::Point3 GetStartPoint() const;
-      csg::Point3 GetFinishPoint() const;
-      csg::Point3 GetDestinationPointOfInterest() const { return poi_; }
+      csg::Point3f GetStartPoint() const;
+      csg::Point3f GetFinishPoint() const;
+      csg::Point3f GetDestinationPointOfInterest() const { return poi_; }
       std::ostream& Format(std::ostream& os) const;
 
    private:
-      csg::Point3 GetSourceLocation() const;
+      csg::Point3f GetSourceLocation() const;
 
    private:
       int                       id_;
-      std::vector<csg::Point3>  points_;
-      std::vector<csg::Point3>  prunedPoints_;
-      csg::Point3               poi_;
+      std::vector<csg::Point3f> points_;
+      std::vector<csg::Point3f> prunedPoints_;
+      csg::Point3f              poi_;
       om::EntityRef             source_;
       om::EntityRef             destination_;
 };

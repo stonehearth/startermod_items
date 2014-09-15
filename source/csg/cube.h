@@ -59,7 +59,7 @@ struct PointIterator<S, 3> {
    }
 
 public:
-   static   Point3 end;
+   static   Point end;
 
 private:
    Point    min;

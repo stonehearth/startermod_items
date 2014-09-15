@@ -48,7 +48,7 @@ private:
    class RenderTile {
    public:
       csg::Point3                location;
-      om::Region3BoxedRef        region;
+      om::Region3fBoxedRef       region;
       dm::TracePtr               trace;
 
       RenderTile() { }
@@ -80,7 +80,7 @@ private:
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
-   std::map<csg::Point3, std::shared_ptr<RenderTile>>   tiles_;
+   std::unordered_map<csg::Point3, std::shared_ptr<RenderTile>, csg::Point3::Hash>   tiles_;
    std::vector<RenderTileRef> dirty_tiles_;
    core::Guard          renderer_frame_trace_;
 };

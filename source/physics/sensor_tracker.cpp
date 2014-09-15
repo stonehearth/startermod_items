@@ -37,8 +37,8 @@ SensorTracker::SensorTracker(NavGrid& navgrid, om::EntityPtr entity, om::SensorP
    navgrid_(navgrid),
    entity_(entity),
    sensor_(sensor),
-   bounds_(csg::Point3::zero, csg::Point3::zero),
-   last_bounds_(csg::Point3::zero, csg::Point3::zero)
+   bounds_(csg::Cube3::zero),
+   last_bounds_(csg::Cube3::zero)
 {
 }
 
@@ -78,8 +78,8 @@ void SensorTracker::OnSensorMoved()
    om::MobPtr mob = mob_.lock();
    om::SensorPtr sensor = sensor_.lock();
    if (sensor && mob) {
-      csg::Point3 location = mob->GetWorldGridLocation();
-      bounds_ = sensor->GetCube().Translated(location);
+      csg::Point3f location = mob->GetWorldGridLocation();
+      bounds_ = sensor->GetCube().Translated(csg::ToClosestInt(location));
 
       ST_LOG(3) << "sensor moved to " << location << ".  bounds are now " << bounds_ << "(last bounds: " << last_bounds_ << ")";
       if (bounds_ != last_bounds_) {

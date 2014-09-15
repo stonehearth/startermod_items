@@ -49,41 +49,20 @@ std::string Point_KeyValue(T const& a)
 // For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
 
 template <int C>
-csg::Point<int, C> Point_ToInt(csg::Point<int, C> const& p)
+csg::Point<float, C> Pointf_ToInt(csg::Point<float, C> const& p)
 {
-   return p;
+   return csg::ToFloat(csg::ToInt(p));
 }
 
+// This looks weird, right?  It's the Lua call to "convert this possibly floating point number
+// to a grid address, which is an integer whole number".  To do this, we use ToClosestInt.  Then,
+// to push it back into Lua, we have to convert it back into a float!  Crazy!!
+//
 template <int C>
-csg::Point<float, C> Pointf_ToFloat(csg::Point<float, C> const& p)
+csg::Point<float, C> Pointf_ToClosestInt(csg::Point<float, C> const& p)
 {
-   return p;
+   return csg::ToFloat(csg::ToClosestInt(p));
 }
-
-template <int C>
-csg::Point<float, C> Point_ToFloat(csg::Point<int, C> const& p)
-{
-   return csg::ToFloat(p);
-}
-
-template <int C>
-csg::Point<int, C> Pointf_ToInt(csg::Point<float, C> const& p)
-{
-   return csg::ToInt(p);
-}
-
-template <int C>
-csg::Point<int, C> Point_ToClosestInt(csg::Point<int, C> const& p)
-{
-   return csg::ToClosestInt(p);
-}
-
-template <int C>
-csg::Point<int, C> Pointf_ToClosestInt(csg::Point<float, C> const& p)
-{
-   return csg::ToClosestInt(p);
-}
-
 
 template <typename T>
 static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
@@ -143,32 +122,17 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
 {
 
    return
-      Register1<Point1 >(L, "Point1")
-         .def("to_int",             &Point_ToInt<1>)
-         .def("to_closest_int",     &Point_ToClosestInt<1>)
-         .def("to_float",           &Point_ToFloat<1>),
-      Register1<Point1f>(L, "Point1f")
+      Register1<Point1f>(L, "Point1")
          .def("to_int",             &Pointf_ToInt<1>)
-         .def("to_closest_int",     &Pointf_ToClosestInt<1>)
-         .def("to_float",           &Pointf_ToFloat<1>),
-      Register2<Point2 >(L, "Point2")
-         .def("to_int",             &Point_ToInt<2>)
-         .def("to_closest_int",     &Point_ToClosestInt<2>)
-         .def("to_float",           &Point_ToFloat<2>),
-      Register2<Point2f>(L, "Point2f")
+         .def("to_closest_int",     &Pointf_ToClosestInt<1>),
+      Register2<Point2f>(L, "Point2")
          .def("to_int",             &Pointf_ToInt<2>)
          .def("to_closest_int",     &Pointf_ToClosestInt<2>)
-         .def("to_float",           &Pointf_ToFloat<2>)
          .def(const_self * float())
          .def(const_self / float()),
-      Register3<Point3 >(L, "Point3")
-         .def("to_int",             &Point_ToInt<3>)
-         .def("to_closest_int",     &Point_ToClosestInt<3>)
-         .def("to_float",           &Point_ToFloat<3>),
-      Register3<Point3f>(L, "Point3f")
+      Register3<Point3f>(L, "Point3")
          .def("to_int",             &Pointf_ToInt<3>)
          .def("to_closest_int",     &Pointf_ToClosestInt<3>)
-         .def("to_float",           &Pointf_ToFloat<3>)
          .def(const_self * float())
          .def(const_self / float())
          .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),

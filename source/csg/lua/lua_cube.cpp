@@ -51,12 +51,12 @@ static void EachPoint(lua_State *L, T const& cube)
    object(L, 1).push(L);                                   // var (ignored)
 }
 
-IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Cube3>);
-IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Rect2>);
-DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Cube3>);
-DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Rect2>);
-DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Cube3>);
-DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Rect2>);
+IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Cube3f>);
+IMPLEMENT_TRIVIAL_TOSTRING(LuaPointIterator<Rect2f>);
+DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Cube3f>);
+DEFINE_INVALID_LUA_CONVERSION(LuaPointIterator<Rect2f>);
+DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Cube3f>);
+DEFINE_INVALID_JSON_CONVERSION(LuaPointIterator<Rect2f>);
 
 template <typename T>
 T IntersectCube(T const& lhs, T const& rhs)
@@ -64,11 +64,11 @@ T IntersectCube(T const& lhs, T const& rhs)
    return lhs & rhs;
 }
 
-Rect2 ProjectOntoXZPlane(Cube3 const& cube)
+Rect2f ProjectOntoXZPlane(Cube3f const& cube)
 {
-   Rect2 projection(
-      Point2(cube.min.x, cube.min.z),
-      Point2(cube.max.x, cube.max.z),
+   Rect2f projection(
+      Point2f(cube.min.x, cube.min.z),
+      Point2f(cube.max.x, cube.max.z),
       cube.GetTag()
    );
    return projection;
@@ -93,12 +93,6 @@ csg::Cube<int, C> Cube_ToInt(csg::Cube<S, C> const& c)
    return csg::ToInt(c);
 }
 
-template <typename S, int C>
-csg::Cube<float, C> Cube_ToFloat(csg::Cube<S, C> const& c)
-{
-   return csg::ToFloat(c);
-}
-
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -112,7 +106,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def_readwrite("max", &T::max)
          .property("tag",     &T::GetTag, &T::SetTag)
          .def("to_int",       &Cube_ToInt<T::ScalarType, T::Dimension>)
-         .def("to_float",     &Cube_ToFloat<T::ScalarType, T::Dimension>)
          .def("load",         &LoadCube<T>)
          .def("get_area",     &T::GetArea)
          .def("get_size",     &T::GetSize)
@@ -136,15 +129,14 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
       def("construct_cube3", &Cube3::Construct),
       def("intersect_cube3", IntersectCube<Cube3>),
       def("intersect_cube2", IntersectCube<Rect2>),
-      Register<Cube3>(L,  "Cube3")
-         .def("rotated",      &(Cube3 (*)(Cube3 const&, int))&csg::Rotated)
-         .def("each_point",   &EachPoint<Cube3>)
+      Register<Cube3f>(L, "Cube3")
+         .def("rotated",      &(Cube3f (*)(Cube3f const&, int))&csg::Rotated)
+         .def("each_point",   &EachPoint<Cube3f>)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
-      Register<Cube3f>(L, "Cube3f"),
-      Register<Rect2>(L,  "Rect2")
-         .def("each_point",   &EachPoint<Rect2>),
-      Register<Line1>(L,  "Line1"),
-      lua::RegisterType_NoTypeInfo<LuaPointIterator<Cube3>>("Cube3Iterator"),
-      lua::RegisterType_NoTypeInfo<LuaPointIterator<Rect2>>("Rect2Iterator")
+      Register<Rect2f>(L,  "Rect2")
+         .def("each_point",   &EachPoint<Rect2f>),
+      Register<Line1f>(L,  "Line1"),
+      lua::RegisterType_NoTypeInfo<LuaPointIterator<Cube3f>>("Cube3Iterator"),
+      lua::RegisterType_NoTypeInfo<LuaPointIterator<Rect2f>>("Rect2Iterator")
    ;
 }

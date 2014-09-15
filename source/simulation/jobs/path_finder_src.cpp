@@ -6,6 +6,7 @@
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
+#include "csg/util.h"
 #include "csg/color.h"
 
 using namespace ::radiant;
@@ -37,7 +38,7 @@ PathFinderSrc::~PathFinderSrc()
 {
 }
 
-void PathFinderSrc::SetSourceOverride(csg::Point3 const& location)
+void PathFinderSrc::SetSourceOverride(csg::Point3f const& location)
 {
    source_override_ = location;
    use_source_override_ = true;
@@ -48,7 +49,7 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
 {
    csg::Point3 start;
    if (use_source_override_) {
-      start = source_override_;
+      start = csg::ToClosestInt(source_override_);
    } else {
       auto entity = entity_.lock();
       if (entity) {
@@ -57,7 +58,7 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
             PF_LOG(0) << "source entity has no om::Mob component in pathfinder!";
             return;
          }
-         start = mob->GetWorldGridLocation();
+         start = csg::ToClosestInt(mob->GetWorldGridLocation());
       }
    }
    open.push_back(start);
@@ -73,7 +74,7 @@ void PathFinderSrc::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 {
 }
 
-csg::Point3 PathFinderSrc::GetSourceLocation() const
+csg::Point3f PathFinderSrc::GetSourceLocation() const
 {
    return source_location_;
 }
