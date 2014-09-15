@@ -10,22 +10,20 @@ function BuildUndoManager:__init()
    self._undo_stack = {}
    self._save_states = {}
    self._unlinked_entities = {}
+   self._added_entities = {}
    self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
-
-   self._stack_offset = 0
 end
 
 function BuildUndoManager:begin_transaction(desc)
    log:detail('begin_transaction for "%s" (stack size:%d)', desc, #self._undo_stack)
 
+   assert(not self._in_transaction)
+   assert(not next(self._changed_objects))
+   assert(not next(self._added_entities))
+   assert(not next(self._unlinked_entities))
+
    self._in_transaction = true
-   self._changed_objects = {}
-   self._added_entities = {}
-   self._unlinked_entities = {}
-   for i = #self._undo_stack, self._stack_offset+1, -1 do
-      table.remove(self._undo_stack, i)
-   end
 end
 
 function BuildUndoManager:end_transaction(desc)
@@ -33,9 +31,9 @@ function BuildUndoManager:end_transaction(desc)
 
    self._tracer:flush()
 
-   assert(self._stack_offset == #self._undo_stack)
-
-   self._stack_offset = self._stack_offset + 1
+   -- compute the stack offset of the entry we're about to push onto
+   -- the stack
+   local stack_top = #self._undo_stack + 1
    
    for id, obj in pairs(self._changed_objects) do
       local entries = self._save_states[id]
@@ -47,7 +45,7 @@ function BuildUndoManager:end_transaction(desc)
       local entry = {
          id = id,
          obj = obj,
-         stack_offset = self._stack_offset,            
+         stack_offset = stack_top,            
          save_state = _radiant.sim.save_object(id),
       }
       table.insert(entries, entry)
@@ -58,38 +56,40 @@ function BuildUndoManager:end_transaction(desc)
          added_entities = self._added_entities,
          unlinked_entities = self._unlinked_entities,
       })
-      
-   assert(self._stack_offset == #self._undo_stack)
-   
+        
    self._in_transaction = false
+   self._changed_objects = {}
+   self._added_entities = {}
+   self._unlinked_entities = {}
 end
 
 function BuildUndoManager:undo()
-   log:detail('undo (stack size: %d)', self._stack_offset)
-   local datastores = {}
-   
+   local stack_top = #self._undo_stack
+   log:detail('undo (stack size: %d)', stack_top)
+
+   local datastores = {}  
    self._ignore_traces = true
 
-   if self._stack_offset > 0 then
-      local entry = self._undo_stack[self._stack_offset]
-      table.remove(self._undo_stack, self._stack_offset)
+   if stack_top > 0 then
+      local entry = self._undo_stack[stack_top]
+      table.remove(self._undo_stack, stack_top)
+      stack_top = stack_top - 1
 
       -- load the state of the previous frame, if one exists.
-      local last_offset = self._stack_offset - 1
-      if last_offset > 0 then
+      if stack_top > 0 then
          for id, _ in pairs(entry.changed_objects) do
             local entries = self._save_states[id]
             assert(entries)
             
             local o
             for i=#entries,1,-1 do
-               if entries[i].stack_offset <= last_offset then
+               if entries[i].stack_offset <= stack_top then
                   o = entries[i]
                   break
                end
             end
             if o then
-               assert(o.stack_offset <= last_offset)
+               assert(o.stack_offset <= stack_top)
                _radiant.sim.load_object(o.save_state)
                log:detail("loading saved object %d", o.id)
 
@@ -121,8 +121,6 @@ function BuildUndoManager:undo()
       for _, o in pairs(entry.added_entities) do         
          radiant.entities.destroy_entity(o.entity)
       end
-
-      self._stack_offset = self._stack_offset - 1
    end
 end
 
@@ -289,13 +287,34 @@ function BuildUndoManager:clear()
    for eid, _ in pairs(self._entity_traces) do
       self:_untrace_entity(eid)
    end
+   self:_clear_undo_stack()
    self._changed_objects = {}
    self._object_traces = {}
    self._entity_traces = {}
-   self._undo_stack = {}
    self._save_states = {}
    self._unlinked_entities = {}
-   self._stack_offset = 0
+end
+
+-- clear the undo stack.  each step in the undo stack includes a list of entities
+-- which were removed from the world.  go through and delete all those entities if
+-- they're still removed, since there will be no way to recover them when the undo
+-- stack is nuked
+--
+function BuildUndoManager:_clear_undo_stack()
+   for _, stack_entry in pairs(self._undo_stack) do
+      for _, unlink_entry in pairs(stack_entry.unlinked_entities) do
+         local entity = unlink_entry.entity
+         if entity:is_valid() then
+            -- we know the entity is unreachable if get_world_location returns
+            -- nil
+            if not radiant.entities.get_world_location(entity) then
+               log:detail('destroying unlinked entity %s in clear()', entity)
+               radiant.entities.destroy_entity(entity)
+            end
+         end
+      end
+   end
+   self._undo_stack = {}
 end
 
 function BuildUndoManager:_untrace_entity(id)  

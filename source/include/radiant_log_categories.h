@@ -11,6 +11,7 @@
    ADD_CATEGORY(analytics) \
    ADD_CATEGORY(audio) \
    ADD_CATEGORY(rpc) \
+   ADD_CATEGORY(convert) \
    \
    BEGIN_GROUP(lua) \
       ADD_CATEGORY(code) \

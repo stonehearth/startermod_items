@@ -59,6 +59,7 @@ function Building:initialize(entity, json)
    end
    self:_trace_entity_container()
    self._traces = {}
+   self._cp_listeners = {}
 end
 
 function Building:destroy()
@@ -125,10 +126,7 @@ function Building:add_structure(entity)
       if structure then
          self._sv.structures[structure_type][id] = {
             entity = entity,
-            structure = structure,            
-            cp_listener = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
-                  self:_on_child_finished()
-               end)
+            structure = structure,
          }
 
          if structure_type == ROOF then
@@ -156,10 +154,6 @@ function Building:remove_structure(entity)
       local structure = entity:get_component(structure_type)
 
       if structure then
-         local entry = self._sv.structures[structure_type][id]
-         if entry then
-            entry.cp_listener:destroy()
-         end
          self._sv.structures[structure_type][id] = nil
          self.__saved_variables:mark_changed()
          break
@@ -226,8 +220,14 @@ function Building:clear_no_construction_zone_traces()
 end
 
 function Building:_trace_entity(entity)
+   local id = entity:get_id()
+
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
          self:remove_structure(entity)
+      end)
+
+   self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
+         self:_on_child_finished()
       end)
 
    if entity:get_component('stonehearth:roof') then
@@ -250,6 +250,11 @@ function Building:_untrace_entity(id)
       for _, trace in ipairs(traces) do
          trace:destroy()
       end
+   end
+   local listener = self._cp_listeners[id]
+   if listener then
+      listener:destroy()
+      self._cp_listeners[id] = nil
    end
 
    if self._sv.envelope_entity:is_valid() then
