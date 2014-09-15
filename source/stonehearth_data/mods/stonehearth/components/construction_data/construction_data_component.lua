@@ -19,8 +19,6 @@ function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
-   self.__saved_variables:set_controller(self)
-
    if not self._sv.initialized then
       self._sv = json
       self._sv.initialized = true

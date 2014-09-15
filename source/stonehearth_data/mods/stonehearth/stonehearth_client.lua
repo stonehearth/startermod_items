@@ -25,6 +25,7 @@ local function create_service(name)
       stonehearth._sv[name] = saved_variables
    end
    service.__saved_variables = saved_variables
+   saved_variables:set_controller(service)
    service:initialize()
    stonehearth[name] = service
 end

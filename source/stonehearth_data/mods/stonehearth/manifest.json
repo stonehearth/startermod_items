@@ -643,6 +643,7 @@
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.json)", 
+      "quests:promote_carpenter" : "file(scenarios/quests/promote_carpenter/promote_carpenter.json)", 
 
       "score_category_data" : "file(data/score/score_category_data.json)",
 
@@ -976,7 +977,7 @@
          "controller" : "file(call_handlers/worker_defense_call_handler.lua)",
          "endpoint" : "server"
       },
-      "force_spawn_scenario": {
+      "spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
          "endpoint" : "server"
       }
@@ -1011,6 +1012,7 @@
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.lua)", 
+      "quests:promote_carpenter" : "file(scenarios/quests/promote_carpenter/promote_carpenter.lua)", 
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
@@ -1139,7 +1141,8 @@
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
          "file(ui/game/create_camp/create_camp.html)",
-         "file(ui/game/help_basics/element_highlight.html)",
+         "file(ui/game/tutorial/element_highlight.html)",
+         "file(ui/game/congrats_popup/congrats_popup.html)",
          "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
@@ -1164,8 +1167,7 @@
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
-         "file(ui/game/event_log/event_log.html)",
-         "file(ui/game/build/build.html)"
+         "file(ui/game/event_log/event_log.html)"
       ],
       "js" : [
          "file(ui/common/gui/gui.js)",
@@ -1200,8 +1202,9 @@
          "file(ui/game/save_view/save_view.js)",
          "file(ui/game/task_manager/task_manager.js)",   
          "file(ui/game/create_camp/create_camp.js)",
-         "file(ui/game/help_basics/help_basics.js)",
-         "file(ui/game/help_basics/element_highlight.js)",
+         "file(ui/game/tutorial/tutorial_manager.js)",
+         "file(ui/game/tutorial/element_highlight.js)",
+         "file(ui/game/congrats_popup/congrats_popup.js)",
          "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
@@ -1262,7 +1265,8 @@
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   
          "file(ui/game/create_camp/create_camp.less)",
-         "file(ui/game/help_basics/element_highlight.less)",
+         "file(ui/game/tutorial/element_highlight.less)",
+         "file(ui/game/congrats_popup/congrats_popup.less)",
          "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
@@ -1288,8 +1292,7 @@
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
-         "file(ui/game/event_log/event_log.less)",
-         "file(ui/game/build/build.less)"
+         "file(ui/game/event_log/event_log.less)"
       ]
    }
 }

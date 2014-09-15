@@ -87,7 +87,10 @@ App.RootView = Ember.ContainerView.extend({
             'volume' : 60
          });  
 
-      //this._help = new StonehearthHelpBasics();
+      setTimeout(function() {
+         //App.stonehearthTutorials = new StonehearthTutorialManager();
+         //App.stonehearthTutorials.start();
+      }, 1000);
    },
 
    gotoShell: function() {

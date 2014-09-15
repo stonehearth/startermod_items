@@ -1,7 +1,10 @@
 App.StonehearthCreateCampView = App.View.extend({
 	templateName: 'createCamp',
+   classNames: ['flex', 'fullScreen'],
 
    didInsertElement: function() {
+      var self = this;
+
       this._super();
       if (!this.first) {
          this.first = true;
@@ -9,61 +12,39 @@ App.StonehearthCreateCampView = App.View.extend({
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:loading_screen_success'} );      
 
          this._bounceBanner();
-         $("#crateCoverLink").hide();
       }
+
+      this.$('#banner').click(function() {
+         self._placeBanner();
+      })
    },
 
-   actions : {
-      placeBanner: function () {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_grab'});
-         var self = this;
-         this._hideBanner();
-         radiant.call('stonehearth:choose_camp_location')
-            .done(function(o) {
-               if (o.result) {
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_plant'} );
-                     // prompt the player for their settlement's name
-                     App.gameView.addView(App.StonehearthNameCampView, { 
-                           position: {
-                              my : 'center bottom',
-                              at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 100),
-                              of : $(document),
-                              collision : 'fit'
-                           }, 
-                           townName : o.townName
-                        });
+   _placeBanner: function () {
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_grab'});
+      var self = this;
+      this._hideBanner();
+      radiant.call('stonehearth:choose_camp_location')
+         .done(function(o) {
+            if (o.result) {
+               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_plant'} );
+                  // prompt the player for their settlement's name
+                  App.gameView.addView(App.StonehearthNameCampView, { 
+                        position: {
+                           my : 'center bottom',
+                           at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 100),
+                           of : $(document),
+                           collision : 'fit'
+                        }, 
+                        townName : o.townName
+                     });
 
-                     self.destroy();
-               }
-            })
-            .fail(function() {
-               self._showBanner();
-               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_bounce'} );
-            });
-      },
-
-      placeStockpile: function () {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:box_grab'} );
-         var self = this;
-         self._hideCrate();
-         App.stonehearthClient.createStockpile()
-            .always(function(response) {
-               if(response.result) {
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  setTimeout( function() {
-                     self._gotoFinishStep();
-                  }, 1000);
-               } else {
-                  self._showCrate();
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:box_bounce'} );
-               }               
-            });
-      },
-
-      finish: function () {
-         this._finish();
-      }
+                  self.destroy();
+            }
+         })
+         .fail(function() {
+            self._showBanner();
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_bounce'} );
+         });
    },
 
    _gotoStockpileStep: function() {
@@ -83,6 +64,7 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _bounceBanner: function() {
+      return;
       var self = this
       if (!this._bannerPlaced) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_bounce'} )
@@ -117,13 +99,11 @@ App.StonehearthCreateCampView = App.View.extend({
    _showBanner: function() {
       this._bannerPlaced = false
       $('#banner').animate({ 'bottom' : -22 }, 100);
-      $("#bannerCoverLink").show();
    },
 
    _hideBanner: function() {
       this._bannerPlaced = true
-      $('#banner').animate({ 'bottom' : -300 }, 100);
-      $("#bannerCoverLink").hide();
+      this.$('#banner').animate({ 'bottom' : -300 }, 100);
    },
 
    _hideScroll: function(id, callback) {
@@ -192,6 +172,10 @@ App.StonehearthNameCampView = App.View.extend({
          radiant.call('stonehearth:set_town_name', townName);
          App.gameView._addViews(App.gameView.views.complete);
          self.destroy();
+
+         // kick off the tutorials
+         //App.stonehearthTutorial = new StonehearthTutorialManager();
+         //App.stonehearthTutorial.start();
       }),
 
       this.$('#nameCamp').pulse();

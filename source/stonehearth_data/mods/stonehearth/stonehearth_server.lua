@@ -30,7 +30,8 @@ local service_creation_order = {
    'bulletin_board',
    'linear_combat',
    'farming',
-   'trapping'
+   'trapping',
+   'tutorial',
 }
 
 local function create_service(name)
@@ -43,6 +44,7 @@ local function create_service(name)
       stonehearth._sv[name] = saved_variables
    end
    service.__saved_variables = saved_variables
+   saved_variables:set_controller(service)
    service:initialize()
    stonehearth[name] = service
 end
