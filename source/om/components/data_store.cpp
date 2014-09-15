@@ -34,7 +34,7 @@ void DataStore::SetData(luabind::object o)
 
 void DataStore::MarkDataChanged()
 {
-   DS_LOG(1) << "marking data object id:" << data_object_.GetObjectId() << " changed";
+   DS_LOG(9) << "marking data object id:" << data_object_.GetObjectId() << " changed";
    data_object_.Modify([](lua::DataObject& obj) {
       obj.MarkDirty();
    });
