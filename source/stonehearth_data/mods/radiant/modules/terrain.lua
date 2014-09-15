@@ -64,6 +64,8 @@ function Terrain.get_point_on_terrain(pt)
 end
 
 -- returns whether an entity can stand on the Point3 location
+-- @param arg0 - the entity in question
+-- @param arg1 - the location
 function Terrain.is_standable(arg0, arg1)
    if arg1 == nil then
       local location = arg0

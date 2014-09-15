@@ -23,6 +23,11 @@ function MemorializeDeathAction:run(ai, entity, args)
    radiant.entities.set_name(tombstone, title)
    radiant.entities.set_description(tombstone, description)
 
+   --If the dead person's location is occupied, find another location
+   if not radiant.terrain.is_standable(tombstone, self._location) then
+      self._location = radiant.terrain.find_placement_point(self._location, 1, 5)
+   end
+
    radiant.terrain.place_entity(tombstone, self._location, { force_iconic = false })
 
    -- TODO: why don't we just run the effect on the tombstone? -tony (see commented code, below)
