@@ -14,6 +14,8 @@ App.StonehearthCreateCampView = App.View.extend({
          this._bounceBanner();
       }
 
+      App.stonehearthClient.showTip('Click the banner to choose your settlement\'s location');
+
       this.$('#banner').click(function() {
          self._placeBanner();
       })
@@ -21,10 +23,12 @@ App.StonehearthCreateCampView = App.View.extend({
 
    _placeBanner: function () {
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_grab'});
+      App.stonehearthClient.showTip('Now click somewhere in the world');
       var self = this;
       this._hideBanner();
       radiant.call('stonehearth:choose_camp_location')
          .done(function(o) {
+            App.stonehearthClient.hideTip();
             if (o.result) {
                radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_plant'} );
                   // prompt the player for their settlement's name
@@ -64,7 +68,7 @@ App.StonehearthCreateCampView = App.View.extend({
    },
 
    _bounceBanner: function() {
-      return;
+      //return;
       var self = this
       if (!this._bannerPlaced) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:banner_bounce'} )
@@ -171,11 +175,14 @@ App.StonehearthNameCampView = App.View.extend({
          App.stonehearthClient.settlementName(townName);
          radiant.call('stonehearth:set_town_name', townName);
          App.gameView._addViews(App.gameView.views.complete);
-         self.destroy();
 
          // kick off the tutorials
-         //App.stonehearthTutorial = new StonehearthTutorialManager();
-         //App.stonehearthTutorial.start();
+         setTimeout(function() {
+            App.stonehearthTutorials.start();
+         }, 1000);
+
+         self.destroy();
+
       }),
 
       this.$('#nameCamp').pulse();
