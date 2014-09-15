@@ -84,11 +84,12 @@
       ADD_CATEGORY(boxed) \
       ADD_CATEGORY(set) \
       ADD_CATEGORY(map) \
-      ADD_CATEGORY(buffered) \
+      ADD_CATEGORY(record) \
       BEGIN_GROUP(trace) \
          ADD_CATEGORY(boxed) \
          ADD_CATEGORY(set) \
          ADD_CATEGORY(map) \
+         ADD_CATEGORY(record) \
          ADD_CATEGORY(buffered) \
       END_GROUP(trace) \
    END_GROUP(dm) \

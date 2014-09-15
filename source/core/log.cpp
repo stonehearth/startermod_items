@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "core/config.h"
+#include "platform/thread.h"
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
@@ -19,6 +20,7 @@ namespace attrs = boost::log::attributes;
 radiant::log::LogCategories log_levels_;
 uint32 default_log_level_;
 std::unordered_map<std::string, radiant::log::LogLevel> log_level_names_;
+std::unordered_map<platform::ThreadId, std::string> log_thread_names_;
 
 static uint32 console_log_severity_;
 static const uint32 DEFAULT_LOG_LEVEL = 2;
@@ -167,4 +169,21 @@ void radiant::log::InitLogLevels()
 void radiant::log::Exit()
 {
    LOG_(0) << "logger shutting down";
+}
+
+const char* radiant::log::GetCurrentThreadName()
+{
+   platform::ThreadId id = platform::GetCurrentThreadId();
+   auto i = log_thread_names_.find(id);
+   if (i != log_thread_names_.end()) {
+      return i->second.c_str();
+   }
+   SetCurrentThreadName(BUILD_STRING("thread" << id));
+   return GetCurrentThreadName();
+}
+
+void radiant::log::SetCurrentThreadName(std::string const& name)
+{
+   platform::ThreadId id = platform::GetCurrentThreadId();
+   log_thread_names_[id] = name;
 }

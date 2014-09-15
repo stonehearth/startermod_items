@@ -5,7 +5,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-#define DS_LOG(level)      LOG(om.data_store, level)
+#define DS_LOG(level)      LOG(om.data_store, level) << "[datastore id:" << GetObjectId() << "] "
 
 std::ostream& operator<<(std::ostream& os, DataStore const& o)
 {
@@ -34,6 +34,7 @@ void DataStore::SetData(luabind::object o)
 
 void DataStore::MarkDataChanged()
 {
+   DS_LOG(1) << "marking data object id:" << data_object_.GetObjectId() << " changed";
    data_object_.Modify([](lua::DataObject& obj) {
       obj.MarkDirty();
    });
