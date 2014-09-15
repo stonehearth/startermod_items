@@ -1,6 +1,9 @@
 #include "radiant.h"
 #include "profiler.h"
+
+#if defined(VTUNE_PATH)
 #include "ittnotify.h"
+#endif
 
 using namespace ::radiant;
 using namespace ::radiant::core;
