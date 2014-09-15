@@ -136,7 +136,7 @@ App.StonehearthTitleScreenView = App.View.extend({
                   y = Math.floor(Math.random() * map.length);
                } while (map[y][x].terrain_code.indexOf('plains') != 0);
 
-               radiant.call('stonehearth:generate_start_location', x, y);
+               radiant.call('stonehearth:generate_start_location', x, y, e.map_info);
                radiant.call('stonehearth:get_world_generation_progress')
                   .done(function(o) {
                      self.trace = radiant.trace(o.tracker)
