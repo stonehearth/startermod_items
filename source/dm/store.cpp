@@ -630,8 +630,10 @@ void Store::OnBoxedChanged(T& boxed, typename T::Value const& value)
 
 void Store::OnRecordFieldChanged(Record const& record)
 {
-   ForEachTrace<RecordTrace<Record>>(record.GetObjectId(), [&](RecordTrace<Record>& trace) {
-      trace.NotifyRecordChanged();
+   // Simply signal that all the records have changed.
+   dm::ObjectId id = record.GetObjectId();
+   stdutil::ForEachPrune<StoreTrace>(store_traces_, [id](StoreTracePtr trace) {
+      trace->SignalModified(id);
    });
 }
 
