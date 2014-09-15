@@ -126,7 +126,7 @@ void Streamer::OnRegistered(Object const* obj)
 {
    ObjectId id = obj->GetObjectId();
    STREAMER_LOG(5) << "adding object " << id << " to unsaved object set.";
-   unsaved_objects_[id] = obj;
+   unsaved_objects_.insert(std::make_pair(id, obj));
 
    auto trace = obj->TraceObjectChanges("streamer", category_);
    TraceBufferedPtr trace_buffered = std::dynamic_pointer_cast<TraceBuffered>(trace);
@@ -134,7 +134,7 @@ void Streamer::OnRegistered(Object const* obj)
    trace->OnModified_([this, t, obj]() {
       OnModified(t, obj);
    });
-   traces_[id] = trace_buffered;
+   traces_.insert(std::make_pair(id, trace_buffered));
 }
 
 void Streamer::OnDestroyed(ObjectId id, bool dynamic)

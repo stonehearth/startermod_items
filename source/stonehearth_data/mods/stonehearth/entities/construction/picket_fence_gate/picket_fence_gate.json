@@ -4,12 +4,13 @@
 
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(picket_fence_gate_iconic.json)",
-         "ghost_form" : "file(picket_fence_gate_ghost.json)"
+         "ghost_form" : "file(picket_fence_gate_ghost.json)",
+         "placeable_on_ground" : true
       },
 
       "sensor_list": {
          "sensors": {
-            "door_sensor": {
+         "door_sensor": {
                "type": "sensor",
                "radius": 4
             }

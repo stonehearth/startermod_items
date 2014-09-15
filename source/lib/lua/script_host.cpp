@@ -3,6 +3,7 @@
 #include "lauxlib.h"
 #include "radiant_file.h"
 #include "core/config.h"
+#include "core/profiler.h"
 #include "script_host.h"
 #include "lua_supplemental.h"
 #include "client/renderer/render_entity.h"
@@ -233,6 +234,7 @@ luabind::object ScriptHost::GetConfig(std::string const& flag)
 
 IMPLEMENT_TRIVIAL_TOSTRING(ScriptHost);
 
+
 ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs) :
    site_(site),
    error_count(0),
@@ -276,6 +278,9 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
 
    module(L_) [
       namespace_("_radiant") [
+         def("set_profiler_enabled",   &core::SetProfilerEnabled),
+         def("is_profiler_enabled",    &core::IsProfilerEnabled),
+         def("is_profiler_available",  &core::IsProfilerAvailable),
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
                .def("log",              &ScriptHost::Log)

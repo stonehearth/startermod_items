@@ -42,6 +42,23 @@ function AutotestInstance:_check_running(fn_name)
    end
 end
 
+function AutotestInstance:profile(cb)
+   if _radiant.is_profiler_enabled() then
+      autotest:fail("attempting to turn on the profiler while it's already on")
+   end
+
+   _radiant.set_profiler_enabled(true)
+   if _radiant.is_profiler_enabled() then
+      self:log('profiler on.')
+      cb()
+      _radiant.set_profiler_enabled(false)
+      self:log('profiler off.')
+   else 
+      autotest:log('failed to turn profiler on.  did you set VTUNE_PATH in your local.mk?')
+      cb()
+   end
+end
+
 function AutotestInstance:log(format, ...) 
    self:_check_running('log')
    self._log:info(format, ...)

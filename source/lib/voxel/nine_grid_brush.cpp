@@ -7,17 +7,16 @@ using namespace ::radiant::voxel;
 #define PACK16(x, y)    ((x << 16) | y)
 #define UNPACK16(n)     std::tie((n >> 16) & 0xffff, n & 0xffff)
 
-NineGridBrush::NineGridBrush(std::istream& in) :
+NineGridBrush::NineGridBrush(QubicleFile const* qubicle_file) :
    normal_(0, 0, -1),
    paint_mode_(Color),
-   qubicle_file_(""),
+   qubicle_file_(qubicle_file),
    clip_whitespace_(false),
    y_offset_(0),
    maxHeight_(INT_MAX),
    gradiant_(0),
    slope_(1)
 {
-   in >> qubicle_file_;
 }
 
 NineGridBrush& NineGridBrush::SetNormal(csg::Point3 const& normal)
@@ -90,7 +89,7 @@ csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelSten
    };
 
    for (int i = 1; i <= 9; i++) {
-      nine_grid_[i] = QubicleBrush(qubicle_file_.GetMatrix(BUILD_STRING(i)))
+      nine_grid_[i] = QubicleBrush(qubicle_file_->GetMatrix(BUILD_STRING(i)))
                           .SetPaintMode((QubicleBrush::PaintMode)paint_mode_)
                           .SetOffsetMode(QubicleBrush::Matrix)
                           .SetNormal(normal_)
