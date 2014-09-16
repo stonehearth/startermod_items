@@ -217,8 +217,11 @@ function PlayerCameraController:_calculate_mouse_dead_zone(e)
 end
 
 function PlayerCameraController:_calculate_zoom(e)
-  if e.wheel == 0 then
-    return
+  local zoomInKeyDown = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SEMICOLON)
+  local zoomOutKeyDown = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_EQUAL)
+
+  if not zoomInKeyDown and not zoomOutKeyDown and e.wheel == 0 then
+     return
   end
 
   local query = _radiant.renderer.scene.cast_screen_ray(e.x, e.y)
@@ -231,8 +234,8 @@ function PlayerCameraController:_calculate_zoom(e)
 
   local distance_to_target = pos:distance_to(target)
 
-  if (e.wheel > 0 and distance_to_target <= self._min_zoom) or
-     (e.wheel < 0 and distance_to_target >= self._max_zoom) then
+  if ((e.wheel > 0 or zoomInKeyDown) and distance_to_target <= self._min_zoom) or
+     ((e.wheel < 0 or zoomOutKeyDown) and distance_to_target >= self._max_zoom) then
     return
   end
 
@@ -249,7 +252,7 @@ function PlayerCameraController:_calculate_zoom(e)
 
   local distance_to_cover = distance_to_target * factor * math.abs(e.wheel)
 
-  if e.wheel > 0 then
+  if e.wheel > 0 or zoomInKeyDown then
     -- Moving towards the target.
     if distance_to_target - distance_to_cover < self._min_zoom then
       distance_to_cover = distance_to_target - self._min_zoom
@@ -262,7 +265,7 @@ function PlayerCameraController:_calculate_zoom(e)
   end
 
   local sign = 1
-  if e.wheel > 0 then
+  if e.wheel > 0 or zoomInKeyDown then
     sign = -1
   end
 
