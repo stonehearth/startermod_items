@@ -5,7 +5,7 @@ local Point2f = _radiant.csg.Point2f
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3
+local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('visibility')
@@ -101,10 +101,10 @@ function TerrainService:_closer_colinear(start_point, end_point, test_point)
    local line_dir_i = end_point - start_point
    local test_dir_i = test_point - end_point
 
-   local line_dir = Point3f(line_dir_i.x, line_dir_i.y, line_dir_i.z)
+   local line_dir = Point3(line_dir_i.x, line_dir_i.y, line_dir_i.z)
    line_dir:normalize()
 
-   local test_dir = Point3f(test_dir_i.x, test_dir_i.y, test_dir_i.z)
+   local test_dir = Point3(test_dir_i.x, test_dir_i.y, test_dir_i.z)
    test_dir:normalize()
 
    return line_dir:dot(test_dir) > 0.99

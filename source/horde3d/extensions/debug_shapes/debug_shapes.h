@@ -79,7 +79,7 @@ private:
    void decode_line(const protocol::line &line);
    void decode_quad(const protocol::quad &quad);
    void decode_box(const protocol::box &box);
-   void decode_region(const protocol::region3i &region);
+   void decode_region(const protocol::region3f &region);
    void decode_coord(const protocol::coord &coord);
    void onFinishedUpdate() override;
    

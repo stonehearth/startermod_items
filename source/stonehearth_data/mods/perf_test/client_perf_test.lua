@@ -1,6 +1,6 @@
 -- xxx, this sucks. force a load of the client side serivces like the camera
 
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 local ClientPerfTest = class()
 
 function ClientPerfTest:__init()

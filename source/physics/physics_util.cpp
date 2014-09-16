@@ -81,7 +81,7 @@ Shape phys::WorldToLocal(Shape const& shape, om::EntityPtr entity)
 
    auto fShape = csg::ToFloat(shape);
    auto result = xform.affine_inverse().transform(fShape);
-   return csg::ToInt(result);
+   return csg::ConvertTo<Shape::ScalarType, 3>(result);
 }
 
 bool phys::IsTerrainAligned(float modelOrigin)
@@ -109,3 +109,4 @@ template csg::Point3f phys::LocalToWorld(csg::Point3f const&, om::EntityPtr);
 template csg::Region3f phys::LocalToWorld(csg::Region3f const&, om::EntityPtr);
 
 template csg::Point3 phys::WorldToLocal(csg::Point3 const&, om::EntityPtr);
+template csg::Point3f phys::WorldToLocal(csg::Point3f const&, om::EntityPtr);

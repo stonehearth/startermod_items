@@ -48,7 +48,7 @@ void DestinationTracker::Initialize()
  * Helper method to get the region from the encapsulated instance.
  */
 
-om::Region3BoxedPtr DestinationTracker::GetRegion() const
+om::Region3fBoxedPtr DestinationTracker::GetRegion() const
 {
    om::DestinationPtr dst = dst_.lock();
    if (dst) {

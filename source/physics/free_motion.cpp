@@ -3,6 +3,7 @@
 #include "free_motion.h"
 #include "nav_grid.h"
 #include "physics_util.h"
+#include "csg/util.h"
 #include "om/components/mob.ridl.h"
 #include "simulation/simulation.h"
 
@@ -73,7 +74,7 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
          // If the position where the entity is located is not standable,
          // do something about it!
          om::EntityRef entityRoot;
-         csg::Point3 current = mob->GetWorldGridLocation(entityRoot);
+         csg::Point3 current = csg::ToClosestInt(mob->GetWorldGridLocation(entityRoot));
          csg::Point3 valid = _ng.GetStandablePoint(mob->GetEntityPtr(), current);
 
          if (current != valid) {

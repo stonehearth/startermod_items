@@ -1,5 +1,5 @@
 local SkyRenderer = class()
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 
 --[[
    Expose so other classes can do things at certain times of the day. Makes

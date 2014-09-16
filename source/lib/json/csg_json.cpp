@@ -149,11 +149,13 @@ DECLARE_TYPE(point, csg::Point1f)
 DECLARE_TYPE(point, csg::Point2f)
 DECLARE_TYPE(point, csg::Point3f)
 DECLARE_TYPE(cube,  csg::Line1)
+DECLARE_TYPE(cube,  csg::Line1f)
 DECLARE_TYPE(cube, csg::Rect2)
 DECLARE_TYPE(cube, csg::Rect2f)
 DECLARE_TYPE(cube, csg::Cube3)
 DECLARE_TYPE(cube, csg::Cube3f)
 DECLARE_TYPE(region, csg::Region1);
+DECLARE_TYPE(region, csg::Region1f);
 DECLARE_TYPE(region, csg::Region2);
 DECLARE_TYPE(region, csg::Region2f);
 DECLARE_TYPE(region, csg::Region3);

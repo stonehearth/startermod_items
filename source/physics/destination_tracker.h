@@ -5,7 +5,7 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
-class DestinationTracker : public RegionTracker<om::Region3Boxed>
+class DestinationTracker : public RegionTracker<om::Region3fBoxed>
 {
 public:
    DestinationTracker(NavGrid& ng, om::EntityPtr entity, om::DestinationPtr dst);
@@ -14,7 +14,7 @@ public:
    void Initialize() override;   
 
 protected: // RegionTracker implementation
-   om::Region3BoxedPtr GetRegion() const override;
+   om::Region3fBoxedPtr GetRegion() const override;
 
 private:
    om::DestinationRef      dst_;

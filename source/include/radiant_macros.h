@@ -20,7 +20,7 @@
 #  define ASSERT(x) \
       do { \
          if (!(x)) { \
-            radiant::HandleAssert(#x); \
+         radiant::HandleAssert(BUILD_STRING("Assertion Failed: " #x  "(" __FILE__ ":" << __LINE__ << ")")); \
          } \
       } while(false)
 #endif

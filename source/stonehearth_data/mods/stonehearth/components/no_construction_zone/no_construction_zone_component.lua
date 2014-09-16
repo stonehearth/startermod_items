@@ -25,7 +25,7 @@ function NoConstructionZoneComponent:initialize(entity, json)
       self._sv.structures = {}
       self._sv.overlapping = {}
       self.__saved_variables:mark_changed()
-      self._region = _radiant.sim.alloc_region3f()
+      self._region = _radiant.sim.alloc_region3()
       entity:add_component('region_collision_shape')
                   :set_region(self._region)
                   :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
@@ -234,19 +234,19 @@ end
 
 function NoConstructionZoneComponent:_add_slice_for_cube(structure, structure_type, cube, region)
    if structure_type == FLOOR then
-      region:add_cube(cube:to_float())
+      region:add_cube(cube)
    elseif structure_type == COLUMN then
       -- ug.  need to know the walls that the column is connected to and inflate in the
       -- direction of their normals, too.
-      region:add_cube(cube:to_float())
+      region:add_cube(cube)
    elseif structure_type == WALL then
       local normal = structure:get_component('stonehearth:construction_data')
                                  :get_normal()
                                  :scaled(2)
       if normal.x < 0 or normal.z < 0 then
-         region:add_cube(Cube3(cube.min + normal, cube.max):to_float())
+         region:add_cube(Cube3(cube.min + normal, cube.max))
       else
-         region:add_cube(Cube3(cube.min, cube.max + normal):to_float())
+         region:add_cube(Cube3(cube.min, cube.max + normal))
       end
    end
 end

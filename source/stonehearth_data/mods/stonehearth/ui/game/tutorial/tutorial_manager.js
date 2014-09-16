@@ -170,6 +170,7 @@ var StonehearthTutorialManager;
                                  App.stonehearthTutorials.finishStep('starting', 'createStockpile');
                                  App.stonehearthTutorials._highlightElement('#harvest_menu', 'Harvest some more trees so we can start building');
 
+                                 radiant.call('radiant:set_config', 'tutorial', { hideStartingTutorial: true});
                                  //App.stonehearthTutorials.start('promoteCarpenter');
                               });
                         });

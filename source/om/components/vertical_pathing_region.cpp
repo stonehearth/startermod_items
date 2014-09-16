@@ -18,7 +18,7 @@ void VerticalPathingRegion::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
 
-   om::Region3BoxedPtr region = GetRegion();
+   om::Region3fBoxedPtr region = GetRegion();
    if (region) {
       node.set("region", region->Get());
    }

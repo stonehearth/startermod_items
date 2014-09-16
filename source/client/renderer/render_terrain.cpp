@@ -163,7 +163,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    }
    ASSERT(terrain);
 
-   auto on_add_tile = [this](csg::Point3 location, om::Region3BoxedPtr const& region) {
+   auto on_add_tile = [this](csg::Point3f key, om::Region3fBoxedPtr const& region) {
+      csg::Point3 location  = csg::ToClosestInt(key);
       RenderTilePtr render_tile;
       if (region) {
          auto i = tiles_.find(location);
@@ -186,14 +187,12 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       }
    };
 
-   auto on_remove_tile = [this](csg::Point3 const& location) {
-      tiles_.erase(location);
-   };
+   auto on_remove_tile = 
 
    tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
                               ->OnAdded(on_add_tile)
-                              ->OnRemoved([=](csg::Point3 const&) {
-                                 NOT_YET_IMPLEMENTED();
+                              ->OnRemoved([this](csg::Point3f const& location) {
+                                 tiles_.erase(csg::ToClosestInt(location));
                               })
                               ->PushObjectState();
 }
@@ -217,11 +216,11 @@ void RenderTerrain::AddDirtyTile(RenderTileRef tile)
 
 void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
 {
-   om::Region3BoxedPtr region_ptr = render_tile->region.lock();
+   om::Region3fBoxedPtr region_ptr = render_tile->region.lock();
 
    if (region_ptr) {
       ASSERT(render_tile);
-      csg::Region3 const& region = region_ptr->Get();
+      csg::Region3 region = csg::ToInt(region_ptr->Get());
       csg::Region3 tesselatedRegion;
 
       TesselateTerrain(region, tesselatedRegion);

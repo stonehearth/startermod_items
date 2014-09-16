@@ -33,7 +33,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr AddDestination(om::EntityRef dst);
       AStarPathFinderPtr RemoveDestination(dm::ObjectId id);
 
-      AStarPathFinderPtr SetSource(csg::Point3 const& source);
+      AStarPathFinderPtr SetSource(csg::Point3f const& source);
       AStarPathFinderPtr SetSolvedCb(SolvedCb const& solved);
       AStarPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted);
       AStarPathFinderPtr RestartSearch(const char* reason);
@@ -44,7 +44,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool IsSearchExhausted() const;
 
       PathPtr GetSolution() const;
-      csg::Point3 GetSourceLocation() const;
+      csg::Point3f GetSourceLocation() const;
       float GetTravelDistance();
 
       float EstimateCostToSolution();
@@ -64,20 +64,20 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       friend PathFinderDst;
       void Restart();
       void WatchWorldPoint(csg::Point3 const& point);
-      void WatchWorldRegion(csg::Region3 const& region);
+      void WatchWorldRegion(csg::Region3f const& region);
 
    private:
       void WatchTile(csg::Point3 const& index);
-      void RecommendBestPath(std::vector<csg::Point3> &points) const;
+      void RecommendBestPath(std::vector<csg::Point3f> &points) const;
       float EstimateCostToDestination(const csg::Point3 &pt) const;
       float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
 
       PathFinderNode PopClosestOpenNode();
-      void ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const;
+      void ReconstructPath(std::vector<csg::Point3f> &solution, const csg::Point3 &dst) const;
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
-      void SolveSearch(std::vector<csg::Point3>& solution, PathFinderDst& dst);
+      void SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst);
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
@@ -108,7 +108,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       std::set<csg::Point3>         closed_;
       std::set<csg::Point3>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
-      std::vector<csg::Point3>      _directPathCandiate;
+      std::vector<csg::Point3f>     _directPathCandiate;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;

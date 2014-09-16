@@ -5,7 +5,7 @@ local linear_combat_service =  stonehearth.linear_combat
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
@@ -71,7 +71,7 @@ function NewGameCallHandler:_get_overview_map(tile_margin)
    local inset_height = height - 2*macro_block_margin
    local inset_map = Array2D(inset_width, inset_height)
 
-   Array2D.copy_block(inset_map, map, 1, 1, macro_block_margin, macro_block_margin, inset_width, inset_height)
+   Array2D.copy_block(inset_map, map, 1, 1, 1+macro_block_margin, 1+macro_block_margin, inset_width, inset_height)
 
    local js_map = inset_map:clone_to_nested_arrays()
 
@@ -145,8 +145,8 @@ function NewGameCallHandler:embark_client(session, response)
          local target_distance = 70
          local camera_service = stonehearth.camera
 
-         local target = Point3f(o.x, o.y, o.z)
-         local camera_location = Point3f(target.x, target.y + camera_height, target.z + target_distance)
+         local target = Point3(o.x, o.y, o.z)
+         local camera_location = Point3(target.x, target.y + camera_height, target.z + target_distance)
 
          camera_service:set_position(camera_location)
          camera_service:look_at(target)

@@ -128,7 +128,7 @@ function Fabricator:_create_new_project()
             :set_reserved(_radiant.sim.alloc_region3())
             :set_adjacent(_radiant.sim.alloc_region3())
 
-   self._fabricator_rcs:set_region(_radiant.sim.alloc_region3f())
+   self._fabricator_rcs:set_region(_radiant.sim.alloc_region3())
                        :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
 
        
@@ -143,9 +143,9 @@ function Fabricator:_create_new_project()
    radiant.entities.set_faction(self._project, blueprint)
    radiant.entities.set_player_id(self._project, blueprint)
 
-   self._project_dst:set_region(rgn)                    
+   self._project_dst:set_region(rgn)
    self._project:add_component('region_collision_shape')
-                     :set_region(_radiant.sim.alloc_region3f()) -- kept in sync by the dst trace
+                     :set_region(rgn)
 
    local mob = self._entity:get_component('mob')
    local parent = mob:get_parent()
@@ -603,15 +603,15 @@ function Fabricator:_update_fabricator_region()
          -- now add all those points to the region
          cursor:clear()        
          for _, pt in ipairs(points_to_add) do
-            cursor:add_unique_point(pt:to_float())
+            cursor:add_unique_point(pt)
          end
          self._finished = cursor:empty()
       end)
    else
       self._log:debug('updating build region')     
-      self._fabricator_rcs:get_region():modify(function(cursor)                             
+      self._fabricator_rcs:get_region():modify(function(cursor)
          local rgn = br - pr
-         cursor:copy_region(rgn:to_float())
+         cursor:copy_region(rgn)
          self._finished = cursor:empty()
       end)
    end
@@ -642,13 +642,7 @@ function Fabricator:_trace_blueprint_and_project()
                                      :on_changed(update_fabricator_region)
 
    local ptrace  = self._project_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
-                                    :on_changed(function(project_region)
-                                          local r = self._project:get_component('region_collision_shape'):get_region()
-                                          r:modify(function (cursor)
-                                                cursor:copy_region(project_region:to_float())
-                                             end)
-                                          update_fabricator_region()
-                                       end)
+                                     :on_changed(update_fabricator_region)
 
    table.insert(self._traces, btrace)
    table.insert(self._traces, ptrace)

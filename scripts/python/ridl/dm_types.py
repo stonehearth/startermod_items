@@ -56,7 +56,15 @@ class Map(object):
       self.iterate = kwargs.get('iterate', None)
       self.singular_name = kwargs.get('singular_name', None)
       self.accessor_value = kwargs.get('accessor_value', self.value)
-      if hasattr(self.key, 'hash') and self.key.hash:
+
+      key_hash = hasattr(self.key, 'hash') and self.key.hash or False
+      key_transform = hasattr(self.key, 'key_transform') and self.key.key_transform or False
+
+      if key_transform:
+         if not key_hash:      
+            key_hash = 'std::unordered_map<%s, %s>::hasher' % (self.key.name, self.value.name)
+         self.name = "dm::Map<%s, %s, %s, %s>" % (self.key.name, self.value.name, key_hash, key_transform)
+      elif key_hash:
          self.name = "dm::Map<%s, %s, %s>" % (self.key.name, self.value.name, self.key.hash)
       else:
          self.name = "dm::Map<%s, %s>" % (self.key.name, self.value.name)

@@ -1,4 +1,4 @@
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local sleep_tests = {}
 

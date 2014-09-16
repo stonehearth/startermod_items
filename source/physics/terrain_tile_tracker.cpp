@@ -9,7 +9,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-TerrainTileTracker::TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& offset, om::Region3BoxedPtr region) :
+TerrainTileTracker::TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3f const& offset, om::Region3fBoxedPtr region) :
    CollisionTracker(ng, TERRAIN, entity),
    offset_(offset),
    region_(region),
@@ -21,7 +21,7 @@ void TerrainTileTracker::Initialize()
 {
    CollisionTracker::Initialize();
 
-   om::Region3BoxedPtr region = region_.lock();
+   om::Region3fBoxedPtr region = region_.lock();
    if (region) {
       trace_ = region->TraceChanges("nav grid", GetNavGrid().GetTraceCategory())
          ->OnModified([this]() {
@@ -33,9 +33,9 @@ void TerrainTileTracker::Initialize()
 
 void TerrainTileTracker::MarkChanged()
 {
-   om::Region3BoxedPtr region = region_.lock();
+   om::Region3fBoxedPtr region = region_.lock();
    if (region) {
-      shape_ = csg::ToFloat(region->Get().Translated(offset_));
+      shape_ = region->Get().Translated(offset_);
       csg::CollisionBox bounds = shape_.GetBounds();
 
       // xxx: we could just always pass in the bounding box of the terrain tile, but that's difficult
@@ -47,7 +47,7 @@ void TerrainTileTracker::MarkChanged()
 
 csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   om::Region3BoxedPtr region = region_.lock();
+   om::Region3fBoxedPtr region = region_.lock();
    if (region) {
       // xxx: if the terrain tile granularity and offset were identical to the nav grid tile, 
       // we could avoid this (potentially very expensive) math entirely and just return the shape!
@@ -58,7 +58,7 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
 
 bool TerrainTileTracker::Intersects(csg::CollisionBox const& worldBounds) const
 {
-   om::Region3BoxedPtr region = region_.lock();
+   om::Region3fBoxedPtr region = region_.lock();
    if (region) {
       bool collision = shape_.Intersects(worldBounds);
 

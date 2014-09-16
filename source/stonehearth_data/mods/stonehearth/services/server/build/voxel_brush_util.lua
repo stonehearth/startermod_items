@@ -1,12 +1,11 @@
 local voxel_brush_util = {}
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
-local Region3f = _radiant.csg.Region3f
+local Region3 = _radiant.csg.Region3
 local Region2 = _radiant.csg.Region2
 local NineGridBrush = _radiant.voxel.NineGridBrush
 
 
-local MODEL_OFFSET = Point3f(0, 0, 0)
+local MODEL_OFFSET = Point3(0, 0, 0)
 
 -- A lookup table to convert a normal in the xz-plane to a rotation
 -- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
@@ -96,9 +95,6 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       local model
       local stencil = region:get()
       if stencil then
-         if radiant.util.is_a(stencil, Region3f) then
-            stencil = stencil:to_int()
-         end
          local render_info = entity:get_component('render_info')
          local material = render_info and render_info:get_material() or 'materials/voxel.material.xml'
 

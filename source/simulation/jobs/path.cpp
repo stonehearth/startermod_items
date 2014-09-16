@@ -11,7 +11,7 @@ static int next_path_id_ = 1;
 
 #define PF_LOG(level)   LOG(simulation.pathfinder.astar, level)
 
-Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::EntityRef destination, csg::Point3 const& poi) :
+Path::Path(const std::vector<csg::Point3f>& points, om::EntityRef source, om::EntityRef destination, csg::Point3f const& poi) :
    points_(points),
    source_(source),
    destination_(destination),
@@ -21,7 +21,7 @@ Path::Path(const std::vector<csg::Point3>& points, om::EntityRef source, om::Ent
    ASSERT(!points.empty());
 }
 
-std::vector<csg::Point3> const& Path::GetPrunedPoints()
+std::vector<csg::Point3f> const& Path::GetPrunedPoints()
 {
    if (prunedPoints_.size() == 0 && points_.size() > 0) {
       prunedPoints_ = MovementHelper().PruneCollinearPathPoints(points_);
@@ -58,28 +58,28 @@ std::ostream& simulation::operator<<(std::ostream& os, const Path& in)
    return in.Format(os);
 } 
 
-csg::Point3 Path::GetStartPoint() const
+csg::Point3f Path::GetStartPoint() const
 {
    return points_.front();
 }
 
-csg::Point3 Path::GetFinishPoint() const
+csg::Point3f Path::GetFinishPoint() const
 {
    return points_.back();
 }
 
-csg::Point3 Path::GetSourceLocation() const
+csg::Point3f Path::GetSourceLocation() const
 {
    om::EntityPtr source = source_.lock();
    if (source) {
       om::EntityRef entityRoot;
-      csg::Point3 location = source->GetComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      csg::Point3f location = source->GetComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
       if (!om::IsRootEntity(entityRoot)) {
          PF_LOG(1) << source << " is not in the world";
       }
       return location;
    }
-   return csg::Point3(0, 0, 0);
+   return csg::Point3f::zero;
 }
 
 PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
@@ -90,10 +90,10 @@ PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
 
    PathPtr firstPath = paths.front();
    PathPtr lastPath = paths.back();
-   std::vector<csg::Point3> combinedPoints;
+   std::vector<csg::Point3f> combinedPoints;
 
    for (PathPtr const& path : paths) {
-      std::vector<csg::Point3> const& points = path->GetPoints();
+      std::vector<csg::Point3f> const& points = path->GetPoints();
 
       if (!combinedPoints.empty()) {
          // really want to assert using OctTree::ValidMove(), but we don't have access to the simulation from here

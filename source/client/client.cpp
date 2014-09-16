@@ -1368,7 +1368,7 @@ void Client::UpdateDebugCursor()
       if (cast.GetNumResults() > 0) {
          RaycastResult::Result r = cast.GetResult(0);
          json::Node args;
-         csg::Point3 pt = r.brick + csg::ToInt(r.normal);
+         csg::Point3 pt = csg::ToInt(r.brick) + csg::ToInt(r.normal);
          om::EntityPtr selectedEntity = selectedEntity_.lock();
          args.set("enabled", true);
          args.set("cursor", pt);

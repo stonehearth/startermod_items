@@ -127,9 +127,9 @@ function FarmingService:_add_region_components(entity, size)
 
    entity:add_component('region_collision_shape')
             :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
-            :set_region(_radiant.sim.alloc_region3f())
+            :set_region(_radiant.sim.alloc_region3())
             :get_region():modify(function(cursor)
-                  cursor:add_unique_cube(shape:to_float())
+                  cursor:add_unique_cube(shape)
                end)
 
    entity:add_component('destination')

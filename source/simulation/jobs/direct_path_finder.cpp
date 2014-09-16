@@ -16,8 +16,8 @@ DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef) :
    sim_(sim),
    entityRef_(entityRef),
    destinationRef_(),
-   startLocation_(csg::Point3::zero),
-   endLocation_(csg::Point3::zero),
+   startLocation_(csg::Point3f::zero),
+   endLocation_(csg::Point3f::zero),
    useEntityForStartPoint_(true),
    useEntityForEndPoint_(true),
    allowIncompletePath_(false),
@@ -26,7 +26,7 @@ DirectPathFinder::DirectPathFinder(Simulation &sim, om::EntityRef entityRef) :
    logLevel_ = log_levels_.simulation.pathfinder.direct;
 }
 
-std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3 const& startLocation)
+std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3f const& startLocation)
 {
    DPF_LOG(5) << "setting start location to " << startLocation;
    startLocation_ = startLocation;
@@ -34,7 +34,7 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetStartLocation(csg::Point3
    return shared_from_this();
 }
 
-std::shared_ptr<DirectPathFinder> DirectPathFinder::SetEndLocation(csg::Point3 const& endLocation)
+std::shared_ptr<DirectPathFinder> DirectPathFinder::SetEndLocation(csg::Point3f const& endLocation)
 {
    DPF_LOG(5) << "setting end location to " << endLocation;
    endLocation_ = endLocation;
@@ -64,7 +64,7 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool rever
    return shared_from_this();
 }
 
-bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
+bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) const
 {
    om::EntityRef entityRoot;
    om::EntityPtr sourceEntity = entityRef_.lock();
@@ -91,7 +91,7 @@ bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
          return false;
       }
 
-      csg::Point3 destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      csg::Point3f destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
       if (!om::IsRootEntity(entityRoot)) {
          DPF_LOG(3) << "destination entity is not in the world.";
          return false;
@@ -123,9 +123,9 @@ bool DirectPathFinder::GetEndPoints(csg::Point3& start, csg::Point3& end) const
    }
 }
 
-csg::Point3 DirectPathFinder::GetPointOfInterest(csg::Point3 const& end) const
+csg::Point3f DirectPathFinder::GetPointOfInterest(csg::Point3f const& end) const
 {
-   csg::Point3 poi = end;
+   csg::Point3f poi = end;
 
    if (useEntityForEndPoint_) {
       om::EntityPtr destinationEntity = destinationRef_.lock();
@@ -139,7 +139,7 @@ csg::Point3 DirectPathFinder::GetPointOfInterest(csg::Point3 const& end) const
 
 PathPtr DirectPathFinder::GetPath()
 {
-   csg::Point3 start, end;
+   csg::Point3f start, end;
    om::EntityPtr entity = entityRef_.lock();
 
    if (!entity) {
@@ -155,7 +155,7 @@ PathPtr DirectPathFinder::GetPath()
 
    // Walk the path from start to end and see how far we get.
    // GetPathPoints should always return at least the starting point, but check if empty in case this ever changes.
-   std::vector<csg::Point3> points;
+   std::vector<csg::Point3f> points;
    bool reachedEndPoint = MovementHelper(logLevel_).GetPathPoints(sim_, entity, reversiblePath_, start, end, points);
 
    // If we didn't reach the endpoint and we don't allow incomplete paths, bail.
@@ -171,7 +171,7 @@ PathPtr DirectPathFinder::GetPath()
    }
 
    // We have an acceptable path!  Compute the POI.
-   csg::Point3 poi = GetPointOfInterest(end);
+   csg::Point3f poi = GetPointOfInterest(end);
 
    // Create the path object and return
    // destinationRef will be invalid if using a point as the destination

@@ -33,23 +33,25 @@ using namespace radiant;
    OBJECT_TYPE(csg::Rect2,                   102,                                   RegisterValueTypeLegacy) \
    OBJECT_TYPE(csg::Rect2f,                  103,                                   RegisterValueTypeLegacy) \
    OBJECT_TYPE(csg::Line1,                   104,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Region3,                 105,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Region3f,                106,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Region2,                 107,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Region2f,                108,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Region1,                 109,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point1,                  110,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point1f,                 111,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point2,                  112,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point2f,                 113,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point3,                  114,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Point3f,                 115,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Transform,               116,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Quaternion,              117,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Ray3,                    118,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Color3,                  119,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::Color4,                  120,                                   RegisterValueTypeLegacy) \
-   OBJECT_TYPE(csg::RandomNumberGenerator,   121,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Line1f,                  105,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region3,                 106,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region3f,                107,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region2,                 108,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region2f,                109,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region1,                 110,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Region1f,                111,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point1,                  112,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point1f,                 113,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point2,                  114,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point2f,                 115,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point3,                  116,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Point3f,                 117,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Transform,               118,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Quaternion,              119,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Ray3,                    120,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Color3,                  121,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::Color4,                  122,                                   RegisterValueTypeLegacy) \
+   OBJECT_TYPE(csg::RandomNumberGenerator,   123,                                   RegisterValueTypeLegacy) \
    \
    OBJECT_TYPE(om::ClockRef,                 om::Clock::DmType,                     RegisterGameObjectType)  \
    OBJECT_TYPE(om::EntityContainerRef,       om::EntityContainer::DmType,           RegisterGameObjectType) \

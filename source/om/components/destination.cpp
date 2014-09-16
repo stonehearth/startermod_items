@@ -33,12 +33,12 @@ void Destination::ConstructObject()
 void Destination::LoadFromJson(json::Node const& obj)
 {
    if (obj.has("region")) {
-      region_ = GetStore().AllocObject<Region3Boxed>();
-      (*region_)->Set(obj.get("region", csg::Region3()));
+      region_ = GetStore().AllocObject<Region3fBoxed>();
+      (*region_)->Set(obj.get("region", csg::Region3f()));
    }
    if (obj.has("adjacent")) {
-      adjacent_ = GetStore().AllocObject<Region3Boxed>();
-      (*adjacent_)->Set(obj.get("adjacent", csg::Region3()));
+      adjacent_ = GetStore().AllocObject<Region3fBoxed>();
+      (*adjacent_)->Set(obj.get("adjacent", csg::Region3f()));
    }
    bool dflt = *region_ != nullptr && *adjacent_ == nullptr;
    auto_update_adjacent_ =  obj.get<bool>("auto_update_adjacent", dflt);
@@ -52,11 +52,11 @@ void Destination::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
 
-   om::Region3BoxedPtr region = GetRegion();
+   om::Region3fBoxedPtr region = GetRegion();
    if (region) {
       node.set("region", region->Get());
    }
-   om::Region3BoxedPtr adjacent = GetAdjacent();
+   om::Region3fBoxedPtr adjacent = GetAdjacent();
    if (adjacent) {
       node.set("adjacent", adjacent->Get());
    }
@@ -77,12 +77,12 @@ void Destination::OnAutoUpdateAdjacentChanged()
       if (!region_trace_) {
          dm::ObjectId component_id = GetObjectId();
          region_trace_ = TraceRegion("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-            ->OnChanged([this](csg::Region3 const& r) {
+            ->OnChanged([this](csg::Region3f const& r) {
                UpdateDerivedValues();
             });
 
          reserved_trace_ = TraceReserved("auto_update_adjacent", dm::OBJECT_MODEL_TRACES)
-            ->OnChanged([this](csg::Region3 const& r) {
+            ->OnChanged([this](csg::Region3f const& r) {
                UpdateDerivedValues();
             });
 
@@ -108,13 +108,13 @@ Destination& Destination::SetAllowDiagonalAdjacency(bool value)
 void Destination::UpdateDerivedValues()
 {
    if (auto_update_adjacent_ && !*adjacent_) {
-      adjacent_ = GetStore().AllocObject<Region3Boxed>();
+      adjacent_ = GetStore().AllocObject<Region3fBoxed>();
    }
 
    if (*region_ && *adjacent_) {
-      csg::Region3 const& region = ***region_;
+      csg::Region3f const& region = ***region_;
       if (*reserved_) {
-         csg::Region3 const& reserved = ***reserved_;
+         csg::Region3f const& reserved = ***reserved_;
          if (!reserved.IsEmpty()) {
             ComputeAdjacentRegion(region - reserved);
             return;
@@ -124,13 +124,13 @@ void Destination::UpdateDerivedValues()
    }
 }
 
-void Destination::ComputeAdjacentRegion(csg::Region3 const& r)
+void Destination::ComputeAdjacentRegion(csg::Region3f const& r)
 {
    ASSERT(*adjacent_);
    (*adjacent_)->Set(csg::GetAdjacent(r, allow_diagonal_adjacency_));
 }
 
-Destination& Destination::SetAdjacent(Region3BoxedPtr r)
+Destination& Destination::SetAdjacent(Region3fBoxedPtr r)
 {
    adjacent_ = r;
 
@@ -144,21 +144,21 @@ void Destination::Initialize()
    OnAutoUpdateAdjacentChanged();
 }
 
-csg::Point3 Destination::GetBestPointOfInterest(csg::Region3 const& r, csg::Point3 const& pt) const
+csg::Point3f Destination::GetBestPointOfInterest(csg::Region3f const& r, csg::Point3f const& pt) const
 {
-   csg::Point3 poi = r.GetClosestPoint(pt);
+   csg::Point3f poi = r.GetClosestPoint(pt);
 
    // The point of interest should not be the same as the requested point.  If
    // possible, find another one in the region which is adjacent to this point
    if (poi == pt) {
-      static const csg::Point3 adjacent[] = {
-         csg::Point3(-1, 0,  0),
-         csg::Point3( 1, 0,  0),
-         csg::Point3( 0, 0, -1),
-         csg::Point3( 0, 0, -1),
+      static const csg::Point3f adjacent[] = {
+         csg::Point3f(-1, 0,  0),
+         csg::Point3f( 1, 0,  0),
+         csg::Point3f( 0, 0, -1),
+         csg::Point3f( 0, 0, -1),
       };
-      for (csg::Point3 const& delta : adjacent) {
-         csg::Point3 candidate = poi + delta;
+      for (csg::Point3f const& delta : adjacent) {
+         csg::Point3f candidate = poi + delta;
          if (r.Contains(candidate)) {
             return candidate;
          }
@@ -168,26 +168,26 @@ csg::Point3 Destination::GetBestPointOfInterest(csg::Region3 const& r, csg::Poin
    return poi;
 }
 
-csg::Point3 Destination::GetPointOfInterest(csg::Point3 const& pt) const
+csg::Point3f Destination::GetPointOfInterest(csg::Point3f const& pt) const
 {
    if (!*region_) {
       throw std::logic_error("destination has no region in GetPointOfInterest");
    }
-   csg::Region3 const& rgn = ***region_;
+   csg::Region3f const& rgn = ***region_;
    if (*reserved_) {
-      csg::Region3 const& reserved = ***reserved_;
+      csg::Region3f const& reserved = ***reserved_;
       if (!reserved.IsEmpty()) {
-         csg::Region3 r = (rgn - reserved);
+         csg::Region3f r = (rgn - reserved);
          if (r.IsEmpty()) {
             D_LOG(1) << "region is empty in get point of interest!";
-            return csg::Point3(0, 0, 0);
+            return csg::Point3f(0, 0, 0);
          }
          return GetBestPointOfInterest(r, pt);
       }
    }
    if (rgn.IsEmpty()) {
       D_LOG(1) << "region is empty in get point of interest!";
-      return csg::Point3(0, 0, 0);
+      return csg::Point3f(0, 0, 0);
    }
    return GetBestPointOfInterest(rgn, pt);
 }

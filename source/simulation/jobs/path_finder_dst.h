@@ -26,16 +26,16 @@ public:
    
    bool IsIdle() const;
    dm::ObjectId GetEntityId() const;
-   csg::Point3 GetPointOfInterest(csg::Point3 const& adjacent) const;
-   float EstimateMovementCost(const csg::Point3& start) const;
+   csg::Point3f GetPointOfInterest(csg::Point3f const& adjacent) const;
+   float EstimateMovementCost(const csg::Point3f& start) const;
    void EncodeDebugShapes(protocol::shapelist *msg, csg::Color4 const& debug_color) const;
    void Start();
-   csg::Region3 const& GetWorldSpaceAdjacentRegion() const;
+   csg::Region3f const& GetWorldSpaceAdjacentRegion() const;
 
 private:
    void DestroyTraces();
    void ClipAdjacentToTerrain();
-   float EstimateMovementCost(csg::Point3 const& start, csg::Point3 const& end) const;
+   float EstimateMovementCost(csg::Point3f const& start, csg::Point3f const& end) const;
 
 public:
    Simulation&                sim_;
@@ -45,8 +45,8 @@ public:
    om::EntityRef              srcEntity_;
    om::EntityRef              dstEntity_;
    ChangedCb                  changed_cb_;
-   om::DeepRegion3GuardPtr    region_guard_;
-   csg::Region3               world_space_adjacent_region_;
+   om::DeepRegion3fGuardPtr   region_guard_;
+   csg::Region3f              world_space_adjacent_region_;
    dm::TracePtr               moving_trace_;
    dm::TracePtr               transform_trace_;
 };

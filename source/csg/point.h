@@ -74,7 +74,7 @@ public:
    struct Hash { 
    private:
       template <typename S> inline std::size_t hash(S val, int i) const {
-         return std::hash<S>(val) << i;
+         return std::hash<S>()(val) << i;
       }
 
       // std::hash<int> on Windows is expensive.  we're cheap!

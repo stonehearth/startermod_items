@@ -180,7 +180,7 @@ void LuaRenderer::RegisterType(lua_State* L)
                lua::RegisterType_NoTypeInfo<RaycastResult::Result>("RaycastResultEntry")
                   .def_readwrite("intersection", &RaycastResult::Result::intersection)
                   .def_readwrite("normal", &RaycastResult::Result::normal)
-                  .def_readwrite("brick", &RaycastResult::Result::brick)
+                  .def_readwrite("brick",  &RaycastResult::Result::brick)
                   .def_readwrite("entity", &RaycastResult::Result::entity)
                ,
                lua::RegisterType_NoTypeInfo<RaycastResult>("RaycastResult")

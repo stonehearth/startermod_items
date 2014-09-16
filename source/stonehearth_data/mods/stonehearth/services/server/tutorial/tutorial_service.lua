@@ -11,12 +11,17 @@ end
 --
 function TutorialService:get_first_wood_harvest(session, response)
    local world_entity_trace
+   local count = 0
+
    world_entity_trace = radiant.terrain.trace_world_entities('terrain service', 
       function (id, entity)
          local entity_uri = entity:get_uri()
          if radiant.entities.is_material(entity, 'wood resource') then
-            response:resolve({ entity = entity })
-            world_entity_trace:destroy()
+            count = count + 1
+            if count > 3 then
+               response:resolve({ entity = entity })
+               world_entity_trace:destroy()
+            end
          end
       end
    )   

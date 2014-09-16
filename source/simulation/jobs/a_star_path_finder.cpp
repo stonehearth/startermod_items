@@ -94,14 +94,14 @@ AStarPathFinder::~AStarPathFinder()
    PF_LOG(3) << "destroying pathfinder";
 }
 
-AStarPathFinderPtr AStarPathFinder::SetSource(csg::Point3 const& location)
+AStarPathFinderPtr AStarPathFinder::SetSource(csg::Point3f const& location)
 {
    source_->SetSourceOverride(location);
    RestartSearch("source location changed");
    return shared_from_this();
 }
 
-csg::Point3 AStarPathFinder::GetSourceLocation() const
+csg::Point3f AStarPathFinder::GetSourceLocation() const
 {
    return source_->GetSourceLocation();
 }
@@ -337,7 +337,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
          // destinations).
          ASSERT(closest);
 
-         std::vector<csg::Point3> solution;
+         std::vector<csg::Point3f> solution;
          ReconstructPath(solution, current.pt);
          SolveSearch(solution, *closest);
          return;
@@ -470,7 +470,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
       }
       ++i;
 
-      float h = dst->EstimateMovementCost(from);
+      float h = dst->EstimateMovementCost(csg::ToFloat(from));
       if (h < hMin) {
          closest = dst;
          closestId = entityId;
@@ -506,13 +506,13 @@ PathFinderNode AStarPathFinder::PopClosestOpenNode()
    return result;
 }
 
-void AStarPathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const csg::Point3 &dst) const
+void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const csg::Point3 &dst) const
 {
-   solution.push_back(dst);
+   solution.push_back(csg::ToFloat(dst));
 
    auto i = cameFrom_.find(dst);
    while (i != cameFrom_.end()) {
-      solution.push_back(i->second);
+      solution.push_back(csg::ToFloat(i->second));
       i = cameFrom_.find(i->second);
    }
    // following convention, we include the origin point in the path
@@ -520,7 +520,7 @@ void AStarPathFinder::ReconstructPath(std::vector<csg::Point3> &solution, const 
    std::reverse(solution.begin(), solution.end());
 }
 
-void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3> &points) const
+void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3f> &points) const
 {
    points.clear();
    if (!open_.empty()) {
@@ -569,12 +569,12 @@ void AStarPathFinder::SetSearchExhausted()
    }
 }
 
-void AStarPathFinder::SolveSearch(std::vector<csg::Point3>& solution, PathFinderDst& dst)
+void AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst)
 {
    if (solution.empty()) {
       solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3 dst_point_of_interest = dst.GetPointOfInterest(solution.back());
+   csg::Point3f dst_point_of_interest = dst.GetPointOfInterest(solution.back());
    PF_LOG(5) << "found solution to destination " << dst.GetEntityId() << " (last point is " << solution.back() << ")";
    solution_ = std::make_shared<Path>(solution, entity_.lock(), dst.GetEntity(), dst_point_of_interest);
    if (solved_cb_) {
@@ -648,10 +648,10 @@ std::string AStarPathFinder::DescribeProgress()
    return progress.str();
 }
 
-void AStarPathFinder::WatchWorldRegion(csg::Region3 const& region)
+void AStarPathFinder::WatchWorldRegion(csg::Region3f const& region)
 {
    if (!navgrid_guard_.Empty()) {
-      csg::Cube3 bounds = region.GetBounds();
+      csg::Cube3 bounds = csg::ToInt(region.GetBounds());
       csg::Cube3 chunks = csg::GetChunkIndex<phys::TILE_SIZE>(bounds);
       for (csg::Point3 const& cursor : chunks) {
          WatchTile(cursor);
@@ -696,7 +696,7 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
    }
 }
 
-bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst)
+bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst &dst)
 {   
    if (direct_path_search_cooldown_ > 0) {
       return false;
@@ -706,15 +706,16 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& from, PathF
    MovementHelper mh(LOG_LEVEL(simulation.pathfinder.astar));
    om::EntityPtr entity = entity_.lock();
 
-   csg::Region3 const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
-   csg::Point3 to = dstRegion.GetClosestPoint(from);
+   csg::Point3f from = csg::ToFloat(start);
+   csg::Region3f const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
+   csg::Point3f to = dstRegion.GetClosestPoint(from);
 
    if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {
       return false;
    }
 
-   std::vector<csg::Point3> solution;
-   ReconstructPath(solution, from);
+   std::vector<csg::Point3f> solution;
+   ReconstructPath(solution, start);
    solution.insert(solution.end(), _directPathCandiate.begin(), _directPathCandiate.end());
    SolveSearch(solution, dst);
    return true;
