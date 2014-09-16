@@ -71,7 +71,7 @@ function NewGameCallHandler:_get_overview_map(tile_margin)
    local inset_height = height - 2*macro_block_margin
    local inset_map = Array2D(inset_width, inset_height)
 
-   Array2D.copy_block(inset_map, map, 1, 1, macro_block_margin, macro_block_margin, inset_width, inset_height)
+   Array2D.copy_block(inset_map, map, 1, 1, 1+macro_block_margin, 1+macro_block_margin, inset_width, inset_height)
 
    local js_map = inset_map:clone_to_nested_arrays()
 
