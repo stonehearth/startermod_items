@@ -2,8 +2,7 @@
 #define _RADIANT_DM_STREAMER_H
 
 #include "dm.h"
-#include "protocols/store.pb.h"
-#include "protocols/tesseract.pb.h"
+#include "protocols/forward_defines.h"
 #include "protocol.h"
 #include <unordered_map>
 
@@ -13,14 +12,18 @@ class Streamer
 {
 public:
    Streamer(Store& store, int category, protocol::SendQueue* queue);
+   ~Streamer();
 
    void Flush();
 
-private:
+public: // Streamer Object Interafce 
+   template <typename T> void TraceObject(T const* obj);
    void OnAlloced(ObjectPtr object);
-   void OnRegistered(Object const* obj);
+   void OnModified(Object const* obj);
    void OnDestroyed(ObjectId obj, bool dynamic);
-   void OnModified(TraceBufferedRef t, Object const* obj);
+
+private:
+   void SaveDeltaState(TraceBufferedRef t, Object const* obj);
 
    void QueueAllocated();
    void QueueUnsavedObjects();
@@ -35,13 +38,14 @@ private:
    void QueueUpdateInfo();
 
 private:
+   void AddUnsavedObject(Object const* obj);
+
    typedef std::vector<tesseract::protocol::Update> UpdateList;
 
 private:
-   Store const&            store_;
+   Store&                  store_;
    protocol::SendQueue*    queue_;
    TracerBufferedPtr       tracer_;
-   StoreTracePtr           store_trace_;
    std::unordered_map<ObjectId, TraceBufferedPtr> traces_;
    int                     category_;
 

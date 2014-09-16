@@ -2,9 +2,11 @@
 #include "store.h"
 #include "map.h"
 #include "map_trace.h"
+#include "streamer.h"
 #include "dbg_indenter.h"
 #include "dm_save_impl.h"
 #include "protocols/store.pb.h"
+#include "streamer.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -175,6 +177,14 @@ template <class K, class V, class H, class MH>
 typename Map<K, V, H, MH>::ContainerType::const_iterator const& Map<K, V, H, MH>::GetLastErasedIterator() const
 {
    return lastErasedIterator_;
+}
+
+template <class K, class V, class H, class MH>
+void Map<K, V, H, MH>::RegisterWithStreamer(Streamer* streamer) const
+{
+   // Ask the streamer to install a trace on us for object remoting.  See
+   // Streamer::TraceObject for more details.
+   streamer->TraceObject<Map<K, V, H, MH>>(this);
 }
 
 #define CREATE_MAP(M)    template M;
