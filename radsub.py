@@ -52,11 +52,11 @@ def produce_log_results(log_path):
    for line in f:
       split_line = line.split('|')
 
-      if len(split_line) < 4:
+      if len(split_line) < 5:
          continue
 
       current_time = get_log_time(split_line[0])
-      actual_log = split_line[3]
+      actual_log = split_line[4]
       
       r = script_re.match(actual_log)
       if r:
