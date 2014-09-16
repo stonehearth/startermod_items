@@ -1,8 +1,10 @@
 #include "radiant.h"
 #include "store.h"
 #include "boxed.h"
+#include "streamer.h"
 #include "lib/json/node.h"
 #include "dbg_indenter.h"
+#include "streamer.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -62,6 +64,14 @@ template <class T, int OT>
 void Boxed<T, OT>::Modify(std::function<void(T& value)> cb) {
    cb(value_);
    GetStore().OnBoxedChanged(*this, value_);
+}
+
+template <class T, int OT>
+void Boxed<T, OT>::RegisterWithStreamer(Streamer* streamer) const
+{
+   // Boxes only support full object encoding of their value, so just request the
+   // first update here.
+   streamer->OnModified(this);
 }
 
 #define CREATE_BOXED(B)           template B;

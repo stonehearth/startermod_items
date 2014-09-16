@@ -74,3 +74,11 @@ void Array<T, C>::Set(uint i, T const& value) {
    items_[i] = value;
    GetStore().OnArrayChanged(*this, i, items_[i]);
 }
+
+template <class T, int C>
+void Array<T, C>::RegisterWithStreamer(Streamer* streamer) const
+{
+   // Ask the streamer to install a trace on us for object remoting.  See
+   // Streamer::TraceObject for more details.
+   streamer->TraceObject<Array<T, C>>(this);
+}

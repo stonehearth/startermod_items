@@ -42,6 +42,9 @@ public:
    void Modify(std::function<void(T& value)> cb);
 
 private:
+   void RegisterWithStreamer(Streamer *streamer) const override;
+
+private:
    Boxed(Boxed<T, OT> const&); // opeartor= is ok, though.
 
 private:

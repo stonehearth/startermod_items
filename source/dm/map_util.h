@@ -69,6 +69,11 @@ private:
    static std::unordered_set<std::string, StringHash> __strtab;
 };
 
+// A global instance that everyone can share if you don't really care about how big
+// the table gets.
+//
+typedef CStringKeyTransform<-1> SafeCStringTable;
+
 END_RADIANT_DM_NAMESPACE
 
 #endif // _RADIANT_DM_MAP_UTIL_H_

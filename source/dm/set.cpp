@@ -6,6 +6,7 @@
 #include "dbg_info.h"
 #include "dbg_indenter.h"
 #include "protocols/store.pb.h"
+#include "streamer.h"
 
 using namespace radiant;
 using namespace radiant::dm;
@@ -117,6 +118,14 @@ template <class T>
 typename Set<T>::ContainerType const& Set<T>::GetContainer() const
 {
    return items_;
+}
+
+template <class T>
+void Set<T>::RegisterWithStreamer(Streamer* streamer) const
+{
+   // Ask the streamer to install a trace on us for object remoting.  See
+   // Streamer::TraceObject for more details.
+   streamer->TraceObject<Set<T>>(this);
 }
 
 #define CREATE_SET(S)      template S;

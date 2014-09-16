@@ -5,6 +5,7 @@
 #include "protocols/store.pb.h"
 #include "dbg_info.h"
 #include "dbg_indenter.h"
+#include "streamer.h"
 
 using namespace ::radiant;
 using namespace ::radiant::dm;
@@ -113,4 +114,12 @@ void Record::GetDbgInfo(DbgInfo &info) const
       }
       info.os << "}";
    }
+}
+
+
+void Record::RegisterWithStreamer(Streamer* streamer) const
+{
+   // Records are cheap to encode.  Just ask the Streamer to send our state down
+   // to the client once using the OnModified call.
+   streamer->OnModified(this);
 }
