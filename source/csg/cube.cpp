@@ -146,30 +146,30 @@ static bool IntersectsSpecialization(Cube<S, C> const& l, Cube<S, C> const& r);
 template <typename S>
 static inline bool IntersectsSpecialization(Cube<S, 3> const& l, Cube<S, 3> const& r)
 {
-   bool no = csg::IsGreaterEqual(l.min.x, r.max.x) ||
-             csg::IsGreaterEqual(r.min.x, l.max.x) ||
-             csg::IsGreaterEqual(l.min.z, r.max.z) ||
-             csg::IsGreaterEqual(r.min.z, l.max.z) ||
-             csg::IsGreaterEqual(l.min.y, r.max.y) ||
-             csg::IsGreaterEqual(r.min.y, l.max.y);
+   bool no = l.min.x >= r.max.x ||
+             r.min.x >= l.max.x ||
+             l.min.z >= r.max.z ||
+             r.min.z >= l.max.z ||
+             l.min.y >= r.max.y ||
+             r.min.y >= l.max.y;
    return !no;
 }
 
 template <typename S>
 static inline bool IntersectsSpecialization(Cube<S, 2> const& l, Cube<S, 2> const& r)
 {
-   bool no = csg::IsGreaterEqual(l.min.x, r.max.x) ||
-             csg::IsGreaterEqual(r.min.x, l.max.x) ||
-             csg::IsGreaterEqual(l.min.y, r.max.y) ||
-             csg::IsGreaterEqual(r.min.y, l.max.y);
+   bool no = l.min.x >= r.max.x ||
+             r.min.x >= l.max.x ||
+             l.min.y >= r.max.y ||
+             r.min.y >= l.max.y;
    return !no;
 }
 
 template <typename S>
 static inline bool IntersectsSpecialization(Cube<S, 1> const& l, Cube<S, 1> const& r)
 {
-   bool no = csg::IsGreaterEqual(l.min.x, r.max.x) ||
-             csg::IsGreaterEqual(r.min.x, l.max.x);
+   bool no = l.min.x >= r.max.x ||
+             r.min.x >= l.max.x;
    return !no;
 }
 

@@ -74,8 +74,7 @@ csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::Entit
    return csg::ToFloat(standable);
 }
 
-template <typename Cube>
-luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, Cube const& cube)
+luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, csg::Cube3f const& cube)
 {
    NavGrid& navGrid = octTree.GetNavGrid();
 
@@ -88,8 +87,7 @@ luabind::object Physics_GetEntitiesInCube(lua_State *L, OctTree &octTree, Cube c
    return result;
 }
 
-template <typename Region>
-luabind::object Physics_GetEntitiesInRegion(lua_State *L, OctTree &octTree, Region const& region)
+luabind::object Physics_GetEntitiesInRegion(lua_State *L, OctTree &octTree, csg::Region3f const& region)
 {
    NavGrid& navGrid = octTree.GetNavGrid();
 
@@ -141,8 +139,9 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("is_occupied",          &Physics_IsOccupiedPoint)
                .def("get_standable_point",  &Physics_GetStandablePoint)
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>),
-               .def("get_entities_in_region", &Physics_GetEntitiesInRegion<csg::Region3f>)
+               .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
+               .def("get_entities_in_region", &Physics_GetEntitiesInRegion)
+            ,
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Region3f>),

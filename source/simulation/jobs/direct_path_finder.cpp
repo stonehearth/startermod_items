@@ -91,7 +91,7 @@ bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) cons
          return false;
       }
 
-      csg::Point3 destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      csg::Point3f destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
       if (!om::IsRootEntity(entityRoot)) {
          DPF_LOG(3) << "destination entity is not in the world.";
          return false;

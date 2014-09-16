@@ -111,7 +111,7 @@ luabind::object Mob_GetWorldGridLocation(lua_State *L, std::weak_ptr<Mob> o)
    auto instance = o.lock();
    if (instance) {
       om::EntityRef entityRoot;
-      csg::Point3 location = instance->GetWorldGridLocation(entityRoot);
+      csg::Point3f location = instance->GetWorldGridLocation(entityRoot);
       if (om::IsRootEntity(entityRoot)) {
          return luabind::object(L, location);
       } else {

@@ -73,13 +73,13 @@ csg::Point3f Path::GetSourceLocation() const
    om::EntityPtr source = source_.lock();
    if (source) {
       om::EntityRef entityRoot;
-      csg::Point3 location = source->GetComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      csg::Point3f location = source->GetComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
       if (!om::IsRootEntity(entityRoot)) {
          PF_LOG(1) << source << " is not in the world";
       }
       return location;
    }
-   return csg::Point3f(0, 0, 0);
+   return csg::Point3f::zero;
 }
 
 PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
