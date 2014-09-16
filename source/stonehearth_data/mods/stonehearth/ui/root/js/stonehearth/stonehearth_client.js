@@ -99,6 +99,7 @@ var StonehearthClient;
          var self = this;
          return radiant.call('stonehearth:deactivate_all_tools')
             .always(function() {
+               App.stonehearthClient.hideTip();
                self._activeTool = null;
             });
       },
@@ -242,7 +243,7 @@ var StonehearthClient;
       buildLadder: function() {
          var self = this;
 
-         self.showTip('stonehearth:build_ladder_title', 'stonehearth:build_ladder_description',
+         var tip = self.showTip('stonehearth:build_ladder_title', 'stonehearth:build_ladder_description',
             {i18n: true});
 
          App.setGameMode('build');
@@ -253,7 +254,7 @@ var StonehearthClient;
                   self.buildLadder();
                })
                .fail(function(response) {
-                  self.hideTip();
+                  self.hideTip(tip);
                });
          });
       },
@@ -284,7 +285,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         tip = self.showTip('stonehearth:stockpile_tip_title', 'stonehearth:stockpile_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:stockpile_tip_title', 'stonehearth:stockpile_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
@@ -305,7 +306,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         self.showTip('stonehearth:field_tip_title', 'stonehearth:field_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:field_tip_title', 'stonehearth:field_tip_description', { i18n: true });
 
          return this._callTool(function(){
             return radiant.call('stonehearth:choose_new_field_location')
@@ -315,7 +316,7 @@ var StonehearthClient;
                self.createFarm();
             })
             .fail(function(response) {
-               self.hideTip();
+               self.hideTip(tip);
                console.log('new field created!');
             });
          });
@@ -325,7 +326,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         self.showTip('stonehearth:trapper_zone_tip_title', 'stonehearth:trapper_zone_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:trapper_zone_tip_title', 'stonehearth:trapper_zone_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_trapping_grounds_location')
@@ -335,7 +336,7 @@ var StonehearthClient;
                   self.createTrappingGrounds();
                })
                .fail(function(response) {
-                  self.hideTip();
+                  self.hideTip(tip);
                });
          });
       },
@@ -347,7 +348,7 @@ var StonehearthClient;
       buildWall: function(column, wall, precall) {
          var self = this;
 
-         self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
@@ -355,7 +356,7 @@ var StonehearthClient;
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
-                  self.hideTip();
+                  self.hideTip(tip);
                });
          }, precall);
       },
@@ -363,7 +364,7 @@ var StonehearthClient;
       buildFloor: function(floorBrush, precall) {
          var self = this;
 
-         self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
@@ -371,7 +372,7 @@ var StonehearthClient;
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
-                  self.hideTip();
+                  self.hideTip(tip);
                });
          }, precall);
       },
@@ -380,7 +381,7 @@ var StonehearthClient;
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'erase_floor')
@@ -388,7 +389,7 @@ var StonehearthClient;
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
-                  self.hideTip();
+                  self.hideTip(tip);
                });
          }, precall);
       },
@@ -396,7 +397,7 @@ var StonehearthClient;
       growRoof: function(roof, precall) {
          var self = this;
 
-         self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_roof', roof)
@@ -421,7 +422,7 @@ var StonehearthClient;
       growWalls: function(column, wall, precall) {
          var self = this;
 
-         self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
+         var tip = self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
@@ -448,7 +449,7 @@ var StonehearthClient;
          var self = this;
 
          // xxx localize
-         self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
