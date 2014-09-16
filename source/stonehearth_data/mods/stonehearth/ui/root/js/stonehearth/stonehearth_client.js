@@ -143,7 +143,7 @@ var StonehearthClient;
 
          if (o.i18n) {
             title = i18n.t(title);
-            description = i18n.t(title);
+            description = i18n.t(description);
          }
 
          if (self._currentTip && self._currentTip.title == title && self._currentTip.description == description) {
@@ -266,7 +266,7 @@ var StonehearthClient;
       boxHarvestResources: function() {
          var self = this;
 
-         var tip = self.showTip('Click and drag to harvest resources', 'Right click to exit this mode');
+         var tip = self.showTip('stonehearth:harvest_resource_tip_title', 'stonehearth:harvest_resource_tip_description', {i18n : true});
 
          return this._callTool(function() {
             return radiant.call('stonehearth:box_harvest_resources')
@@ -284,7 +284,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         tip = self.showTip('Click and drag to create your stockpile', 'Right click to exit this mode');
+         tip = self.showTip('stonehearth:stockpile_tip_title', 'stonehearth:stockpile_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_stockpile_location')
@@ -305,7 +305,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         self.showTip('Click and drag to designate a new field.', 'Farmers will break ground and plant crops here');
+         self.showTip('stonehearth:field_tip_title', 'stonehearth:field_tip_description', { i18n: true });
 
          return this._callTool(function(){
             return radiant.call('stonehearth:choose_new_field_location')
@@ -325,7 +325,7 @@ var StonehearthClient;
          var self = this;
 
          App.setGameMode('zones');
-         self.showTip('Click and drag to create trapping grounds.', 'Trappers catch critters for food and resources in this zone.');
+         self.showTip('stonehearth:trapper_zone_tip_title', 'stonehearth:trapper_zone_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:choose_trapping_grounds_location')
@@ -347,7 +347,7 @@ var StonehearthClient;
       buildWall: function(column, wall, precall) {
          var self = this;
 
-         self.showTip('Click to place wall segments', 'Hold down SHIFT while clicking to draw connected walls');
+         self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
@@ -363,7 +363,7 @@ var StonehearthClient;
       buildFloor: function(floorBrush, precall) {
          var self = this;
 
-         self.showTip('Click and drag to build floor', 'Right click to exit.');
+         self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
@@ -380,7 +380,7 @@ var StonehearthClient;
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         self.showTip('Click and drag to erase floor', 'Right click to exit');
+         self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'erase_floor')
@@ -395,6 +395,8 @@ var StonehearthClient;
 
       growRoof: function(roof, precall) {
          var self = this;
+
+         self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_roof', roof)
@@ -418,6 +420,9 @@ var StonehearthClient;
 
       growWalls: function(column, wall, precall) {
          var self = this;
+
+         self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
+
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
                .done(function(response) {
@@ -443,7 +448,7 @@ var StonehearthClient;
          var self = this;
 
          // xxx localize
-         self.showTip('Click a wall to place the door or window');
+         self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
