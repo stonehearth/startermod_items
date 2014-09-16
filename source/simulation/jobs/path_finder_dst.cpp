@@ -8,6 +8,7 @@
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
 #include "om/region.h"
+#include "csg/util.h"
 #include "a_star_path_finder.h"
 #include "csg/color.h"
 
@@ -69,7 +70,7 @@ void PathFinderDst::Start()
       auto dst = dstEntity->GetComponent<om::Destination>();
       if (dst) {
          region_guard_ = dst->TraceAdjacent("pf dst", dm::PATHFINDER_TRACES)
-                                 ->OnChanged([this, destination_may_have_changed](csg::Region3 const&) {
+                                 ->OnChanged([this, destination_may_have_changed](csg::Region3f const&) {
                                     PF_LOG(7) << "adjacent region changed";
                                     destination_may_have_changed("adjacent region changed");
                                  });
@@ -95,18 +96,18 @@ void PathFinderDst::ClipAdjacentToTerrain()
    }
 }
 
-float PathFinderDst::EstimateMovementCost(csg::Point3 const& start) const
+float PathFinderDst::EstimateMovementCost(csg::Point3f const& start) const
 {
    if (world_space_adjacent_region_.IsEmpty()) {
       return FLT_MAX;
    }
-   csg::Point3 end = world_space_adjacent_region_.GetClosestPoint(start);
-   return sim_.GetOctTree().GetSquaredMovementCost(start, end);
+   csg::Point3f end = world_space_adjacent_region_.GetClosestPoint(start);
+   return sim_.GetOctTree().GetSquaredMovementCost(csg::ToClosestInt(start), csg::ToClosestInt(end));
 }
 
-csg::Point3 PathFinderDst::GetPointOfInterest(csg::Point3 const& adjacent_pt) const
+csg::Point3f PathFinderDst::GetPointOfInterest(csg::Point3f const& adjacent_pt) const
 {
-   return MovementHelper().GetPointOfInterest(adjacent_pt, GetEntity());
+   return MovementHelper().GetPointOfInterest(csg::ToFloat(adjacent_pt), GetEntity());
 }
 
 void PathFinderDst::DestroyTraces()
@@ -142,7 +143,7 @@ om::EntityPtr PathFinderDst::GetEntity() const
    return dstEntity_.lock();
 }
 
-csg::Region3 const& PathFinderDst::GetWorldSpaceAdjacentRegion() const
+csg::Region3f const& PathFinderDst::GetWorldSpaceAdjacentRegion() const
 {
    return world_space_adjacent_region_;
 }

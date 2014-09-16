@@ -3,6 +3,7 @@ import ridl
 class Point3f(ridl.Type):
    name = "csg::Point3f"
    hash = "csg::Point3f::Hash"
+   key_transform = "csg::ToClosestIntTransform<3>"
 
 class Point3(ridl.Type):
    name = "csg::Point3"
@@ -11,6 +12,7 @@ class Point3(ridl.Type):
 class Point2f(ridl.Type):
    name = "csg::Point2f"
    hash = "csg::Point2::Hash"
+   key_transform = "csg::ToClosestIntTransform<2>"
 
 class Point2(ridl.Type):
    name = "csg::Point2"

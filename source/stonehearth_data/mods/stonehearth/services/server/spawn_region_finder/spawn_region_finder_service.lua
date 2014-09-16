@@ -1,7 +1,7 @@
 local SpawnRegionFinderService = class()
 local rng = _radiant.csg.get_default_rng()
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('spawn_svc')
 
 function SpawnRegionFinderService:initialize()
@@ -61,7 +61,7 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(en
       local rand_perimeter_point = player_perimeter[rng:get_int(1, #player_perimeter)]
 
       local spawn_dir_i = rand_perimeter_point - center
-      local spawn_dir = Point3f(spawn_dir_i.x, spawn_dir_i.y, spawn_dir_i.z)
+      local spawn_dir = Point3(spawn_dir_i.x, spawn_dir_i.y, spawn_dir_i.z)
       spawn_dir:normalize()
       spawn_dir:scale(distance)
       local scaled_spawn_dir = Point3(spawn_dir.x, spawn_dir.y, spawn_dir.z)

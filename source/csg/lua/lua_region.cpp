@@ -52,11 +52,11 @@ T IntersectRegion(T const& lhs, T const& rhs)
    return lhs & rhs;
 }
 
-Region2 ProjectOntoXZPlane(Region3 const& region)
+Region2f ProjectOntoXZPlane(Region3f const& region)
 {
-   Region2 r2;
-   for (Cube3 cube : region) {
-      Rect2 rect(Point2(cube.min.x, cube.min.z), Point2(cube.max.x, cube.max.z), cube.GetTag());
+   Region2f r2;
+   for (Cube3f const& cube : region) {
+      Rect2f rect(Point2f(cube.min.x, cube.min.z), Point2f(cube.max.x, cube.max.z), cube.GetTag());
       if (rect.GetArea() > 0) {
          r2.Add(rect);
       }
@@ -69,15 +69,9 @@ Region2 ProjectOntoXZPlane(Region3 const& region)
 // For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Region<int, C> Region_ToInt(csg::Region<S, C> const& r)
+csg::Region<float, C> Region_ToInt(csg::Region<S, C> const& r)
 {
-   return csg::ToInt(r);
-}
-
-template <typename S, int C>
-csg::Region<float, C> Region_ToFloat(csg::Region<S, C> const& r)
-{
-   return csg::ToFloat(r);
+   return csg::ToFloat(csg::ToInt(r));
 }
 
 template <typename T>
@@ -91,7 +85,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def(const_self - other<T const&>())
          .def(const_self - other<T::Cube const&>())
          .def("to_int",             &Region_ToInt<T::ScalarType, T::Dimension>)
-         .def("to_float",           &Region_ToFloat<T::ScalarType, T::Dimension>)
          .def("load",               &LoadRegion<T>)
          .def("copy_region",        &CopyRegion<T>)
          .def("duplicate",          &Duplicate<T>)
@@ -128,19 +121,16 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("intersect_region2", IntersectRegion<Region2>),
-      def("intersect_region3", IntersectRegion<Region3>),
-      Register<Region3>(L,  "Region3")
-         .def("get_adjacent",             &GetAdjacent)
+      def("intersect_region2", IntersectRegion<Region2f>),
+      def("intersect_region3", IntersectRegion<Region3f>),
+      Register<Region3f>(L,  "Region3")
+         .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
-         .def("get_edge_list",            &RegionGetEdgeList<int, 3>)
-         .def("rotated",                  (Region3 (*)(Region3 const&, int))&csg::Rotated)
-      ,
-      Register<Region3f>(L, "Region3f")
          .def("get_edge_list",            &RegionGetEdgeList<float, 3>)
+         .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
-      Register<Region2>(L,  "Region2")
-         .def("get_edge_list",            &RegionGetEdgeList<int, 2>)
+      Register<Region2f>(L,  "Region2")
+         .def("get_edge_list",            &RegionGetEdgeList<float, 2>)
       ,
-      Register<Region1>(L,  "Region1");
+      Register<Region1f>(L,  "Region1");
 }

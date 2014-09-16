@@ -1,10 +1,10 @@
 local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
-local MODEL_OFFSET = Point3f(-0.5, 0, -0.5)
+local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 
 local LadderEditor = class()
 

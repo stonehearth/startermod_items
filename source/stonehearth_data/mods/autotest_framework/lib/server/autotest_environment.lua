@@ -1,5 +1,4 @@
 local Point3  = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
 
 local DEFAULT_FACTION = 'civ'
 
@@ -62,8 +61,8 @@ function env.clear()
    _all_entities = {}
    
    -- move the camera to a decent spot
-   local CAMERA_POSITION = Point3f(11, 16, 39)
-   local CAMERA_LOOK_AT = Point3f(3.5, 1, 12.5)
+   local CAMERA_POSITION = Point3(11, 16, 39)
+   local CAMERA_LOOK_AT = Point3(3.5, 1, 12.5)
    autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
 end
 

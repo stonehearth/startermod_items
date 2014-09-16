@@ -1,7 +1,7 @@
 local FearFire = class()
 
 local Point3 = _radiant.csg.Point3
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 
 FearFire.name = 'fear fire'
 FearFire.does = 'stonehearth:top'

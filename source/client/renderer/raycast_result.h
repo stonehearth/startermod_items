@@ -16,7 +16,7 @@ class RaycastResult
       public:
          csg::Point3f         intersection;
          csg::Point3f         normal;
-         csg::Point3          brick;
+         csg::Point3f         brick;
          om::EntityRef        entity;
       };
 

@@ -1,4 +1,4 @@
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Quaternion = _radiant.csg.Quaternion
 
 -- naming this 'RadiantMath' to have more explicit differentiation from lua's 'math' table.
@@ -64,7 +64,7 @@ end
 
 function RadiantMath.rotate_about_y_axis(point, degrees)
    local radians = degrees / 180 * math.pi
-   local q = Quaternion(Point3f.unit_y, radians)
+   local q = Quaternion(Point3.unit_y, radians)
    return q:rotate(point)
 end
 
@@ -72,7 +72,7 @@ function RadiantMath.random_xz_unit_vector(rng)
    rng = rng or _radiant.csg.get_default_rng()
 
    local angle = rng:get_real(0, 360)
-   return RadiantMath.rotate_about_y_axis(Point3f.unit_x, angle)
+   return RadiantMath.rotate_about_y_axis(Point3.unit_x, angle)
 end
 
 return RadiantMath

@@ -1,6 +1,6 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local TraceCategories = _radiant.dm.TraceCategories
@@ -13,9 +13,9 @@ function ScaffoldingRenderer:__init(render_entity, ed)
    self._lattice = ed.lattice
    self._scale = ed.scale and ed.scale or 0.1
    if ed.origin then
-      self._origin = Point3f(ed.origin.x, ed.origin.y, ed.origin.z)
+      self._origin = Point3(ed.origin.x, ed.origin.y, ed.origin.z)
    else
-      self._origin = Point3f(0, 0, 0)
+      self._origin = Point3(0, 0, 0)
    end
 
    self._entity_node = render_entity:get_node()
@@ -207,7 +207,7 @@ function ScaffoldingRenderer:_create_segment_node(pt)
 end
 
 function ScaffoldingRenderer:_move_node(node, pt) 
-   local offset = self._origin:scaled(.1) + pt:to_float()
+   local offset = self._origin:scaled(.1) + pt
    h3dSetNodeTransform(node:get_node(), offset.x, offset.y, offset.z, 0, self._rotation, 0, self._scale, self._scale, self._scale)
    --h3dSetNodeFlags(node:get_node(), h3dGetNodeFlags(self._entity_node), true);
 end

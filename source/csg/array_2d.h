@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include "point.h"
+#include "util.h"
 #include <stdlib.h>
 #include <vector>
 #include <list>
@@ -32,18 +33,18 @@ public:
    {
    }
 
-   Array2D(int width, int height, csg::Point2 const& origin) :
+   Array2D(int width, int height, csg::Point2f const& origin) :
       width_(width),
       height_(height),
-      origin_(origin),
+      origin_(csg::ToClosestInt(origin)),
       data_(width_ * height_)
    {
    }
 
-   Array2D(int width, int height, csg::Point2 const& origin, S initial) :
+   Array2D(int width, int height, csg::Point2f const& origin, S initial) :
       width_(width),
       height_(height),
-      origin_(origin),
+      origin_(csg::ToClosestInt(origin)),
       data_(width_ * height_, initial)
    {
    }

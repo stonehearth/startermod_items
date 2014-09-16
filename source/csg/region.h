@@ -29,7 +29,6 @@ public:
    Region();
    Region(Cube const& cube);
    Region(Region const&& r);
-   Region(protocol::region3i const& msg) { LoadValue(msg); }
 
    static const Region empty;
   

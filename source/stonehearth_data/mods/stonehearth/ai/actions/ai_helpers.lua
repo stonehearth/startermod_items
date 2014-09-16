@@ -1,4 +1,4 @@
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local AiHelpers = class()
 
@@ -12,7 +12,7 @@ function AiHelpers.calculate_bump_vector(bumper, bumpee, desired_distance)
    local bump_distance = desired_distance - initial_distance
 
    if bump_distance <= 0 then
-      return Point3f.zero
+      return Point3.zero
    end
 
    if initial_distance ~= 0 then

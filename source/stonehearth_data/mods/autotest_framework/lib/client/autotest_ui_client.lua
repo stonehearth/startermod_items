@@ -1,5 +1,4 @@
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
 
 local commands = require 'lib.common.autotest_ui_commands'
 local ResponseQueue = require 'lib.common.response_queue'
@@ -48,8 +47,8 @@ _server.on[commands.SET_SELECT_XZ_REGION] = function(p0, p1)
 end
 
 _server.on[commands.MOVE_CAMERA] = function(position, look_at)
-   stonehearth.camera:set_position(Point3f(position.x, position.y, position.z), true)
-   stonehearth.camera:look_at(Point3f(look_at.x, look_at.y, look_at.z))
+   stonehearth.camera:set_position(Point3(position.x, position.y, position.z), true)
+   stonehearth.camera:look_at(Point3(look_at.x, look_at.y, look_at.z))
 end
 
 _server.on[commands.SET_CAMERA_PATH_TYPE] = function(path_type, path_args)
@@ -71,8 +70,8 @@ function ui_client.connect()
    _mouse_capture.hook()
    
    -- pick a better start point...
-   local CAMERA_POSITION = Point3f(10.44, 16.90, 39.23)
-   local CAMERA_LOOK_AT = Point3f(3.5, 1, 12.5)
+   local CAMERA_POSITION = Point3(10.44, 16.90, 39.23)
+   local CAMERA_LOOK_AT = Point3(3.5, 1, 12.5)
    stonehearth.camera:set_position(CAMERA_POSITION, true)
    stonehearth.camera:look_at(CAMERA_LOOK_AT)
 

@@ -17,7 +17,7 @@ class RenderDestination : public RenderComponent {
       ~RenderDestination();
 
    private:
-      void RenderDestinationRegion(int i, om::DeepRegion3GuardPtr trace, csg::Color4 const& color);
+      void RenderDestinationRegion(int i, om::DeepRegion3fGuardPtr trace, csg::Color4 const& color);
       void RemoveDestinationRegion(int i);
 
    private:
@@ -29,11 +29,11 @@ class RenderDestination : public RenderComponent {
       };
 
    private:
-      const RenderEntity*     entity_;
-      om::DestinationPtr      destination_;
-      H3DNodeUnique           regionDebugShape_[COUNT];
-      om::DeepRegion3GuardPtr region_trace_[COUNT];
-      core::Guard             renderer_guard_;
+      const RenderEntity*      entity_;
+      om::DestinationPtr       destination_;
+      H3DNodeUnique            regionDebugShape_[COUNT];
+      om::DeepRegion3fGuardPtr region_trace_[COUNT];
+      core::Guard              renderer_guard_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

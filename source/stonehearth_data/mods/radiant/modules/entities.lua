@@ -2,7 +2,6 @@ local FilteredTrace = require 'modules.filtered_trace'
 
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
@@ -293,10 +292,6 @@ function entities.distance_between(object_a, object_b)
    if not object_a or not object_b then
       return nil
    end
-
-   -- convert Point3 to Point3f... Point3f ignores :to_float()!
-   object_a = object_a:to_float()
-   object_b = object_b:to_float()
    
    -- xxx: verify a and b are both Point3fs...
    return object_a:distance_to(object_b)
@@ -326,8 +321,6 @@ function entities.turn_to_face(entity, arg2)
    if radiant.util.is_a(arg2, Entity) then
       location = entities.get_world_location(arg2)
    elseif radiant.util.is_a(arg2, Point3) then
-      location = arg2:to_float()
-   elseif radiant.util.is_a(arg2, Point3f) then
       location = arg2
    end
 
@@ -729,7 +722,7 @@ function entities.is_adjacent_to(subject, target)
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
          local region = rcs:get_region()
          if region then
-            local world_space_region = entities.local_to_world(region:get():to_int(), target)
+            local world_space_region = entities.local_to_world(region:get(), target)
             local adjacent = world_space_region:get_adjacent(false)
             return adjacent:contains(subject)
          end

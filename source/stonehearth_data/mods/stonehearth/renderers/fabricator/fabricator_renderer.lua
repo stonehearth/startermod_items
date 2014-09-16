@@ -1,12 +1,12 @@
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local TraceCategories = _radiant.dm.TraceCategories
 
 local FabricatorRenderer = class()
 
-local MODEL_OFFSET = Point3f(0.5, 0, 0.5)
+local MODEL_OFFSET = Point3(0.5, 0, 0.5)
 
 function FabricatorRenderer:initialize(render_entity, fabricator)
    self._entity = render_entity:get_entity()

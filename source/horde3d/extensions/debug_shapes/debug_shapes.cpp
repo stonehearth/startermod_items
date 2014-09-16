@@ -265,9 +265,11 @@ void DebugShapesNode::decode_box(const protocol::box &box)
    add_aabb(aabb, color);
 }
 
-void DebugShapesNode::decode_region(const protocol::region3i &region)
+void DebugShapesNode::decode_region(const protocol::region3f &region)
 {
-   csg::Region3f rgn(region);
+   csg::Region3f rgn;
+   rgn.LoadValue(region);
+
    csg::Color4 color(0xff, 0xff, 0, 0xff);
    if (region.has_color()) {
       color.LoadValue(region.color());

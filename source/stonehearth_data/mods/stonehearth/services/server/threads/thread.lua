@@ -80,7 +80,7 @@ function Thread.wait_thread(thread)
       waiters[current_thread._id] = current_thread
       current_thread:suspend(string.format('%d waiting for thread %d to finish', current_thread._id, thread._id))
    end
-   log:detail('thread %d finished.  exiting wait')
+   log:detail('thread %d finished.  exiting wait', thread._id)
 end
 
 function Thread.terminate_thread(thread, err)

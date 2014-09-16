@@ -281,7 +281,7 @@ void Renderer::SetupGlfwHandlers()
    });
 }
 
-void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
+void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
 {
    if (region.GetCubeCount() >= 1000) {
       return;
@@ -305,9 +305,9 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2& region)
    }
 
    h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
-   const auto& bounds = region.GetBounds();
-   h3dUpdateBoundingBox(node, (float)bounds.min.x, -ySize/2.0f, (float)bounds.min.y, 
-      (float)bounds.max.x, ySize/2.0f, (float)bounds.max.y);   
+   csg::Rect2f bounds = region.GetBounds();
+   h3dUpdateBoundingBox(node, bounds.min.x, -ySize/2.0f, bounds.min.y, 
+                        bounds.max.x, ySize/2.0f, bounds.max.y);   
 }
 
 void Renderer::RenderFogOfWarRT()
@@ -839,8 +839,8 @@ void Renderer::Initialize()
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 
-   csg::Region2 r;
-   r.Add(csg::Rect2(csg::Region2::Point(-1000, -1000), csg::Region2::Point(1000, 1000)));
+   csg::Region2f r;
+   r.Add(csg::Rect2f(csg::Point2f(-1000, -1000), csg::Point2f(1000, 1000)));
    UpdateFoW(fowExploredNode_, r);
 
    // Add camera   
@@ -930,12 +930,12 @@ HWND Renderer::GetWindowHandle() const
 bool Renderer::SetVisibleRegion(std::string const& visible_region_uri)
 {
    dm::Store const& store = Client::GetInstance().GetStore();
-   om::Region2BoxedPtr visibleRegionBoxed = store.FetchObject<om::Region2Boxed>(visible_region_uri);
+   om::Region2fBoxedPtr visibleRegionBoxed = store.FetchObject<om::Region2fBoxed>(visible_region_uri);
 
    if (visibleRegionBoxed) {
       visibilityTrace_ = visibleRegionBoxed->TraceChanges("render visible region", dm::RENDER_TRACES)
                             ->OnModified([=](){
-                               csg::Region2 visibleRegion = visibleRegionBoxed->Get();
+                               csg::Region2f visibleRegion = visibleRegionBoxed->Get();
                                // TODO: give visibleRegion to horde
                                //int num_cubes = visibleRegion.GetCubeCount();
                                //R_LOG(3) << "Client visibility cubes: " << num_cubes;
@@ -950,12 +950,12 @@ bool Renderer::SetVisibleRegion(std::string const& visible_region_uri)
 bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
 {
    dm::Store const& store = Client::GetInstance().GetStore();
-   om::Region2BoxedPtr exploredRegionBoxed = store.FetchObject<om::Region2Boxed>(explored_region_uri);
+   om::Region2fBoxedPtr exploredRegionBoxed = store.FetchObject<om::Region2fBoxed>(explored_region_uri);
 
    if (exploredRegionBoxed) {
       exploredTrace_ = exploredRegionBoxed->TraceChanges("render explored region", dm::RENDER_TRACES)
                             ->OnModified([=](){
-                               csg::Region2 exploredRegion = exploredRegionBoxed->Get();
+                               csg::Region2f exploredRegion = exploredRegionBoxed->Get();
 
                                Renderer::GetInstance().UpdateFoW(Renderer::GetInstance().fowExploredNode_, exploredRegion);
                                //int num_cubes = exploredRegion.GetCubeCount();

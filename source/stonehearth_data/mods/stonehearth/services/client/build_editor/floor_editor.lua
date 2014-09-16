@@ -1,10 +1,10 @@
 local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
-local MODEL_OFFSET = Point3f(-0.5, 0, -0.5)
+local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 
 local FloorEditor = class()
 
@@ -22,7 +22,7 @@ function FloorEditor:go(response, brush_shape)
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
             local model = brush:paint_through_stencil(Region3(box))
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3f.zero)
+            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3.zero)
             node:set_position(MODEL_OFFSET)
             return node
          end)

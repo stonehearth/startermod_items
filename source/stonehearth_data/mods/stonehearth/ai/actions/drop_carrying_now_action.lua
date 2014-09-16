@@ -3,7 +3,7 @@
 -- @section activities
 
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 --[[ @markdown
 Use stonehearth:drop\_carrying\_now when an entity should drop whatever they are carrying immediately. 
@@ -77,7 +77,7 @@ function DropCarryingNow:_get_front_grid_location(location, facing)
    facing = radiant.math.round(facing / 90) * 90
 
    -- 0 degress is along the negative z axis
-   local offset = radiant.math.rotate_about_y_axis(-Point3f.unit_z, facing):to_closest_int()
+   local offset = radiant.math.rotate_about_y_axis(-Point3.unit_z, facing):to_closest_int()
    local front = location + offset
    return front
 end

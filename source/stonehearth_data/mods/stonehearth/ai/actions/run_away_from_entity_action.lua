@@ -1,7 +1,7 @@
 local AiHelpers = require 'ai.actions.ai_helpers'
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Quaternion = _radiant.csg.Quaternion
 local rng = _radiant.csg.get_default_rng()
 
@@ -42,7 +42,7 @@ function RunAwayFromEntity:_choose_destination(entity, threat, distance)
    local entity_grid_location = self._entity_grid_location
    local threat_grid_location = threat:add_component('mob'):get_world_grid_location()
 
-   local opposite_direction = (entity_grid_location - threat_grid_location):to_float()
+   local opposite_direction = entity_grid_location - threat_grid_location
    opposite_direction.y = 0
 
    if opposite_direction:length() ~= 0 then
@@ -53,10 +53,9 @@ function RunAwayFromEntity:_choose_destination(entity, threat, distance)
 
    local sign = rng:get_int(0, 1)*2 - 1
    local angles = { 0, sign*90, -sign*90 }
-   local entity_grid_location_as_float = entity_grid_location:to_float()
 
    for _, angle in ipairs(angles) do
-      local destination = self:_calculate_location(entity_grid_location_as_float, opposite_direction, angle, distance)
+      local destination = self:_calculate_location(entity_grid_location, opposite_direction, angle, distance)
       -- could also find the longest path, instead of just the first path > 1
       if self:_get_path_length(entity, entity_grid_location, destination) > 1.5 then
          return destination

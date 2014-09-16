@@ -5,7 +5,7 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
-class VerticalPathingRegionTracker : public RegionTracker<om::Region3Boxed>
+class VerticalPathingRegionTracker : public RegionTracker<om::Region3fBoxed>
 {
 public:
    VerticalPathingRegionTracker(NavGrid& ng, om::EntityPtr entity, om::VerticalPathingRegionPtr dst);
@@ -14,7 +14,7 @@ public:
    void Initialize() override;   
 
 protected: // RegionTracker implementation
-   om::Region3BoxedPtr GetRegion() const override;
+   om::Region3fBoxedPtr GetRegion() const override;
 
 private:
    om::VerticalPathingRegionRef      vpr_;

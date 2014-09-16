@@ -36,19 +36,19 @@ class Mob(Component):
    mob_collision_type = dm.Boxed(mob_collision_types)
 
    move_to = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
-   move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
+   move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    turn_to = ridl.Method(c.void(), ('degrees', c.float()))
    turn_to_face_point = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    get_facing = ridl.Method(c.float()).const
    set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const
-   get_grid_location = ridl.Method(csg.Point3()).const
+   get_grid_location = ridl.Method(csg.Point3f()).const
    get_world_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
-   get_world_grid_location = ridl.Method(csg.Point3(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
+   get_world_grid_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_world_transform = ridl.Method(csg.Transform(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_location_in_front = ridl.Method(csg.Point3f()).const
-   set_location_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3().const.ref))
+   set_location_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
 
    _generate_construct_object = True
    _includes = [
@@ -59,7 +59,7 @@ class Mob(Component):
    ]
 
    _public = """
-      csg::Region3 const& GetMobCollisionRegion() const;
+      csg::Region3f const& GetMobCollisionRegion() const;
    """
 
    _lua_impl = """
@@ -111,7 +111,7 @@ luabind::object Mob_GetWorldGridLocation(lua_State *L, std::weak_ptr<Mob> o)
    auto instance = o.lock();
    if (instance) {
       om::EntityRef entityRoot;
-      csg::Point3 location = instance->GetWorldGridLocation(entityRoot);
+      csg::Point3f location = instance->GetWorldGridLocation(entityRoot);
       if (om::IsRootEntity(entityRoot)) {
          return luabind::object(L, location);
       } else {

@@ -9,19 +9,19 @@ using namespace ::radiant::om;
 
 #define M_LOG(level)    LOG(om.mob, level)
 
-static csg::Region3 NoCollisionShape;
-static csg::Region3 TitanCollisionShape;
-static csg::Region3 TrivialCollisionShape;
-static csg::Region3 HumanoidCollisionShape;
+static csg::Region3f NoCollisionShape;
+static csg::Region3f TitanCollisionShape;
+static csg::Region3f TrivialCollisionShape;
+static csg::Region3f HumanoidCollisionShape;
 
 
 class ConstructRegions {
 public:
    ConstructRegions() {
-      TrivialCollisionShape.Add(csg::Cube3::one);
-      HumanoidCollisionShape.Add(csg::Cube3(csg::Point3::zero, csg::Point3(1, 3, 1)));
-      TitanCollisionShape.Add(csg::Cube3(csg::Point3(-3, 1, -3), csg::Point3(4, 7, 4)));
-      TitanCollisionShape.Add(csg::Cube3(csg::Point3(-2, 0, -2), csg::Point3(3, 8, 3)));
+      TrivialCollisionShape.Add(csg::Cube3f::one);
+      HumanoidCollisionShape.Add(csg::Cube3f(csg::Point3f::zero, csg::Point3f(1, 3, 1)));
+      TitanCollisionShape.Add(csg::Cube3f(csg::Point3f(-3, 1, -3), csg::Point3f(4, 7, 4)));
+      TitanCollisionShape.Add(csg::Cube3f(csg::Point3f(-2, 0, -2), csg::Point3f(3, 8, 3)));
    }
 };
 static ConstructRegions constructRegions;
@@ -52,9 +52,9 @@ void Mob::MoveTo(const csg::Point3f& location)
    });
 }
 
-void Mob::MoveToGridAligned(const csg::Point3& location)
+void Mob::MoveToGridAligned(const csg::Point3f& location)
 {
-   MoveTo(csg::ToFloat(location));
+   MoveTo(csg::ToFloat(csg::ToClosestInt(location)));
 }
 
 void Mob::SetRotation(csg::Quaternion const& orientation)
@@ -148,9 +148,9 @@ csg::Transform Mob::GetWorldTransform(om::EntityRef& entityRoot) const
    return world;
 }
 
-csg::Point3 Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
+csg::Point3f Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
 {
-   return csg::ToClosestInt(GetWorldLocation(entityRoot));
+   return csg::ToFloat(csg::ToClosestInt(GetWorldLocation(entityRoot)));
 }
 
 csg::Quaternion Mob::GetRotation() const
@@ -168,9 +168,9 @@ csg::Point3f Mob::GetLocationInFront() const
 }
 
 
-csg::Point3 Mob::GetGridLocation() const
+csg::Point3f Mob::GetGridLocation() const
 {
-   return csg::ToClosestInt(GetLocation());
+   return csg::ToFloat(csg::ToClosestInt(GetLocation()));
 }
 
 static std::unordered_map<std::string, Mob::MobCollisionTypes> __str_to_type; // xxx -- would LOVE initializer here..
@@ -251,9 +251,9 @@ void Mob::SerializeToJson(json::Node& node) const
    }
 }
 
-void Mob::SetLocationGridAligned(csg::Point3 const& location)
+void Mob::SetLocationGridAligned(csg::Point3f const& location)
 {
-   MoveTo(csg::ToFloat(location));
+   MoveTo(csg::ToFloat(csg::ToClosestInt(location)));
 }
 
 /*
@@ -263,7 +263,7 @@ void Mob::SetLocationGridAligned(csg::Point3 const& location)
  * given its mob collision type value.
  *
  */
-csg::Region3 const& Mob::GetMobCollisionRegion() const
+csg::Region3f const& Mob::GetMobCollisionRegion() const
 {
    switch (*mob_collision_type_) {
    case Mob::NONE:

@@ -16,7 +16,7 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 class TerrainTileTracker : public CollisionTracker
 {
 public:
-   TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3 const& pt, om::Region3BoxedPtr tile);
+   TerrainTileTracker(NavGrid& ng, om::EntityPtr entity, csg::Point3f const& pt, om::Region3fBoxedPtr tile);
 
    void Initialize() override;
    csg::Region3 GetOverlappingRegion(csg::Cube3 const& bounds) const override;
@@ -29,8 +29,8 @@ private:
    NO_COPY_CONSTRUCTOR(TerrainTileTracker)
 
 private:
-   om::Region3BoxedRef  region_;
-   csg::Point3          offset_;
+   om::Region3fBoxedRef region_;
+   csg::Point3f         offset_;
    dm::TracePtr         trace_;
    csg::CollisionBox    last_bounds_;
    csg::CollisionShape  shape_;

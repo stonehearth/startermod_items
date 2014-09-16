@@ -232,23 +232,24 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
 }
 
 
-Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals)
+template <typename Region>
+Region csg::GetAdjacent(Region const& r, bool allow_diagonals)
 {
-   Region3 adjacent;
+   Region adjacent;
 
-   for (const csg::Cube3& c : r) {
-      csg::Point3 p0 = c.GetMin();
-      csg::Point3 p1 = c.GetMax();
+   for (const Region::Cube& c : r) {
+      Region::Point p0 = c.GetMin();
+      Region::Point p1 = c.GetMax();
       if (allow_diagonals) {
-         adjacent.Add(csg::Cube3(p0 + csg::Point3(-1, 0, -1), p1 + csg::Point3(1, 0, 1)));
+         adjacent.Add(Region::Cube(p0 + Region::Point(-1, 0, -1), p1 + Region::Point(1, 0, 1)));
       } else {
-         csg::Point3 delta = p1 - p0;
-         int x = delta.x, y = delta.y, z = delta.z;
+         Region::Point delta = p1 - p0;
+         Region::ScalarType x = delta.x, y = delta.y, z = delta.z;
 
-         adjacent.Add(csg::Cube3(p0 - csg::Point3(0, 0, 1), p0 + csg::Point3(x, y, 0)));     // top
-         adjacent.Add(csg::Cube3(p0 - csg::Point3(1, 0, 0), p0 + csg::Point3(0, y, z)));     // left
-         adjacent.Add(csg::Cube3(p0 + csg::Point3(0, 0, z), p0 + csg::Point3(x, y, z + 1))); // bottom
-         adjacent.Add(csg::Cube3(p0 + csg::Point3(x, 0, 0), p0 + csg::Point3(x + 1, y, z))); // right
+         adjacent.Add(Region::Cube(p0 - Region::Point(0, 0, 1), p0 + Region::Point(x, y, 0)));     // top
+         adjacent.Add(Region::Cube(p0 - Region::Point(1, 0, 0), p0 + Region::Point(0, y, z)));     // left
+         adjacent.Add(Region::Cube(p0 + Region::Point(0, 0, z), p0 + Region::Point(x, y, z + 1))); // bottom
+         adjacent.Add(Region::Cube(p0 + Region::Point(x, 0, 0), p0 + Region::Point(x + 1, y, z))); // right
       }
    }
 
@@ -256,7 +257,7 @@ Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals)
    return adjacent;
 }
 
-void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
+void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
 {
    HeightMap<int> n(h);
    int size = n.get_size();
@@ -292,10 +293,10 @@ void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
          y1++;
       }
 
-      // yay! add the rect
-      r.AddUnique(Rect2(Point2(x0 * scale, y0 * scale),
-                        Point2(x1 * scale, y1 * scale),
-                        search_value));
+      // yay! add the rect, rounding to the nearest whole number
+      r.AddUnique(Rect2f(csg::ToFloat(csg::ToInt(Point2f(x0 * scale, y0 * scale))),
+                         csg::ToFloat(csg::ToInt(Point2f(x1 * scale, y1 * scale))),
+                         search_value));
 
       // clear the rect
       for (int y = y0; y < y1; y++) {
@@ -608,3 +609,7 @@ template<> int csg::GetChunkIndex<16>(int value)
    template bool csg::PartitionCubeIntoChunks<N>(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
 MAKE_CHUNK_TEMPLATES(16)
+
+template Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals);
+template Region3f csg::GetAdjacent(Region3f const& r, bool allow_diagonals);
+

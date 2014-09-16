@@ -1,7 +1,7 @@
 local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local FloorEraser = class()
@@ -16,7 +16,7 @@ function FloorEraser:go(response)
    stonehearth.selection:select_xz_region()
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
-            return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.xml', Point3f(0.5, 0, 0.5))
+            return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.xml', Point3(0.5, 0, 0.5))
          end)
       :done(function(selector, box)
             self:_erase_floor(response, selector, box)

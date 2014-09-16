@@ -1,5 +1,6 @@
 #include "../pch.h"
 #include "open.h"
+#include "csg/util.h"
 #include "resources/res_manager.h"
 #include "lib/voxel/qubicle_brush.h"
 #include "lib/voxel/nine_grid_brush.h"
@@ -30,6 +31,28 @@ NineGridBrushPtr Voxel_CreateNineGridBrush(std::string const& filename)
    return std::make_shared<NineGridBrush>(q);
 }
 
+QubicleBrush& QubicleBrush_SetOrigin(QubicleBrush &brush, csg::Point3f const& offset)
+{
+   brush.SetOrigin(csg::ToClosestInt(offset));
+   return brush;
+}
+
+QubicleBrush& QubicleBrush_SetNormal(QubicleBrush &brush, csg::Point3f const& normal)
+{
+   brush.SetNormal(csg::ToClosestInt(normal));
+   return brush;
+}
+
+csg::Region3f QubicleBrush_PaintOnce(QubicleBrush &brush)
+{
+   return csg::ToFloat(brush.PaintOnce());
+}
+
+csg::Region3f QubicleBrush_PaintThroughStencil(QubicleBrush &brush, csg::Region3f const& stencil)
+{
+   return csg::ToFloat(brush.PaintThroughStencil(csg::ToInt(stencil)));
+}
+
 DEFINE_INVALID_JSON_CONVERSION(QubicleBrush);
 DEFINE_INVALID_JSON_CONVERSION(NineGridBrush);
 
@@ -45,12 +68,12 @@ void lua::voxel::open(lua_State* L)
                   value("Color",    QubicleBrush::Color),
                   value("Opaque",   QubicleBrush::Opaque)
                ]
-               .def("set_normal",             &QubicleBrush::SetNormal)
-               .def("set_origin",             &QubicleBrush::SetOrigin)
+               .def("set_normal",             &QubicleBrush_SetNormal)
+               .def("set_origin",             &QubicleBrush_SetOrigin)
                .def("set_paint_mode",         &QubicleBrush::SetPaintMode)
                .def("set_clip_whitespace",    &QubicleBrush::SetClipWhitespace)
-               .def("paint_once",             &QubicleBrush::PaintOnce)
-               .def("paint_through_stencil",  &QubicleBrush::PaintThroughStencil)
+               .def("paint_once",             &QubicleBrush_PaintOnce)
+               .def("paint_through_stencil",  &QubicleBrush_PaintThroughStencil)
             ,
             lua::RegisterTypePtr_NoTypeInfo<NineGridBrush>("NineGridBrush")
                .enum_("constants") [

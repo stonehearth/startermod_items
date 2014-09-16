@@ -63,14 +63,13 @@ DECLARE_TYPE(cube, Rect2)
 DECLARE_TYPE(cube, Rect2f)
 DECLARE_TYPE(cube, Cube3)
 DECLARE_TYPE(cube, Cube3f)
-DEFINE_INVALID_LUA_CONVERSION(csg::Region1)
-DEFINE_INVALID_LUA_CONVERSION(csg::Region2)
+
+DEFINE_INVALID_LUA_CONVERSION(csg::Region1f)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region2f)
-DEFINE_INVALID_LUA_CONVERSION(csg::Region3)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region3f)
 DEFINE_INVALID_LUA_CONVERSION(csg::Color3)
 DEFINE_INVALID_LUA_CONVERSION(csg::Color4)
-DEFINE_INVALID_LUA_CONVERSION(csg::Cube3::PointIterator)
+DEFINE_INVALID_LUA_CONVERSION(csg::Cube3f::PointIterator)
 DEFINE_INVALID_LUA_CONVERSION(csg::Transform)
 DEFINE_INVALID_LUA_CONVERSION(csg::Quaternion)
 DEFINE_INVALID_LUA_CONVERSION(csg::Ray3)
@@ -89,30 +88,20 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaQuaternion::RegisterLuaTypes(L),
             LuaRay::RegisterLuaTypes(L),
             LuaRandomNumberGenerator::RegisterLuaTypes(L),
-            def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2 const&)) &csg::GetCentroid<int, 2>),
-            def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3 const&)) &csg::GetCentroid<int, 3>),
-            def("get_region_centroid", (csg::Point2f(*)(csg::Region2 const&)) &csg::GetCentroid<int, 2>),
-            def("get_region_centroid", (csg::Point3f(*)(csg::Region3 const&)) &csg::GetCentroid<int, 3>),
+            def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2f const&)) &csg::GetCentroid<float, 2>),
+            def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3f const&)) &csg::GetCentroid<float, 3>),
+            def("get_region_centroid", (csg::Point2f(*)(csg::Region2f const&)) &csg::GetCentroid<float, 2>),
             def("get_region_centroid", (csg::Point3f(*)(csg::Region3f const&)) &csg::GetCentroid<float, 3>)
          ]
       ]
    ];
-   object Point3 = globals(L)["_radiant"]["csg"]["Point3"];
-   object Point3f = globals(L)["_radiant"]["csg"]["Point3f"];
-   object Point2 = globals(L)["_radiant"]["csg"]["Point2"];
-   object Point2f = globals(L)["_radiant"]["csg"]["Point2f"];
-   Point3["zero"] = csg::Point3::zero;
-   Point3["one"] = csg::Point3::one;
-   Point3["unit_x"] = csg::Point3::unitX;
-   Point3["unit_y"] = csg::Point3::unitY;
-   Point3["unit_z"] = csg::Point3::unitZ;
+   object Point3f = globals(L)["_radiant"]["csg"]["Point3"];
+   object Point2f = globals(L)["_radiant"]["csg"]["Point2"];
    Point3f["zero"] = csg::Point3f::zero;
    Point3f["one"] = csg::Point3f::one;
    Point3f["unit_x"] = csg::Point3f::unitX;
    Point3f["unit_y"] = csg::Point3f::unitY;
    Point3f["unit_z"] = csg::Point3f::unitZ;
-   Point2["zero"] = csg::Point2::zero;
-   Point2["one"] = csg::Point2::one;
    Point2f["zero"] = csg::Point2f::zero;
    Point2f["one"] = csg::Point2f::one;
 }

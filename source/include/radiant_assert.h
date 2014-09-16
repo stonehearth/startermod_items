@@ -2,7 +2,7 @@
 #define _RADIANT_ASSERT_H
 
 namespace radiant {
-   void HandleAssert(const char* assertMsg);
+   void HandleAssert(std::string const& msg);
 };
 
 #endif // _RADIANT_ASSERT_H

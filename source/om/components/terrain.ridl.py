@@ -23,30 +23,31 @@ class Terrain(Component):
       RockLayer6    = 16
     )
 
-   tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
-   tile_size = dm.Boxed(c.int())
+   tiles = dm.Map(csg.Point3f(), Region3fBoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
+   tile_size = dm.Boxed(c.float())
 
-   cached_bounds = dm.Boxed(csg.Cube3())
+   cached_bounds = dm.Boxed(csg.Cube3f())
    cached_bounds_is_valid = dm.Boxed(c.bool())
 
-   in_bounds = ridl.Method(c.bool(), ('location', csg.Point3().const.ref)).const
-   get_bounds = ridl.Method(csg.Cube3()).const
+   in_bounds = ridl.Method(c.bool(), ('location', csg.Point3f().const.ref)).const
+   get_bounds = ridl.Method(csg.Cube3f()).const
    add_tile = ridl.Method(c.void(),
-                          ('tile_offset', csg.Point3().const.ref),
-                          ('region3', Region3BoxedPtr()))
-   get_point_on_terrain =  ridl.Method(csg.Point3(), ('pt', csg.Point3().const.ref)).const
+                          ('tile_offset', csg.Point3f().const.ref),
+                          ('region3', Region3fBoxedPtr()))
+   get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
    _includes = [
       "om/region.h",
+      "csg/util.h",
       "csg/point.h"
    ]
 
    _public = \
    """
-   Region3BoxedPtr GetTile(csg::Point3 const& location, csg::Point3& tile_offset) const;
+   Region3fBoxedPtr GetTile(csg::Point3f const& location, csg::Point3f& tile_offset) const;
    """
 
    _private = \
    """
-   csg::Cube3 CalculateBounds() const;
+   csg::Cube3f CalculateBounds() const;
    """

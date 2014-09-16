@@ -1,7 +1,7 @@
 local Entity = _radiant.om.Entity
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('combat')
@@ -115,7 +115,7 @@ function CombatIdleShuffle:_calculate_destination(entity, start_location, direct
    vector:scale(distance)
 
    local proposed_destination = start_location + vector
-   local actual_destination = radiant.terrain.get_standable_point(entity, proposed_destination:to_int())
+   local actual_destination = radiant.terrain.get_standable_point(entity, proposed_destination)
    return actual_destination
 end
 

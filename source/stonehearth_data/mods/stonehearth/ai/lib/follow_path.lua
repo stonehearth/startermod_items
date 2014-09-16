@@ -81,11 +81,11 @@ function FollowPath:arrived()
       local location = self._mob:get_location()
 
       if self._stop_distance > 0 then
-         local distance = location:distance_to(self._poi:to_float())
+         local distance = location:distance_to(self._poi)
          return distance <= self._stop_distance
       else
          local goal = self._points[self._stop_index]
-         return location == goal:to_float()
+         return location == goal
       end
    end
 
@@ -111,7 +111,7 @@ function FollowPath:_move_one_gameloop()
 
       local current_location = self._mob:get_location()
       local new_location
-      local goal = self._points[self._pursuing]:to_float()
+      local goal = self._points[self._pursuing]
       local goal_vector = goal - current_location
       local goal_distance = goal_vector:length()
 
@@ -153,7 +153,7 @@ function FollowPath:_is_valid_move(from, to)
    -- iterate until we're moving towards the next contiguous point
    -- this better handles cases where the entity's start location does not match the path start location
    -- or when the entity is bumped off the path
-   while self:_moving_away_from_point(from, to, current_point:to_float()) do
+   while self:_moving_away_from_point(from, to, current_point) do
       -- validate the move from the current point to the next point
       self._contiguous_index = self._contiguous_index + 1
       local next_point = self._contiguous_points[self._contiguous_index]
@@ -215,7 +215,7 @@ function FollowPath:_calculate_stop_index()
    -- if the entire travelled path is still less than stop_distance, we don't need to move at all
    if index == 1 then
       local start_location = radiant.entities.get_world_location(self._entity)
-      if startLocation:distance_to(self._poi:to_float()) <= self._stop_distance then
+      if startLocation:distance_to(self._poi) <= self._stop_distance then
          index = 0; -- yes, the index before the first point
       end
    end
