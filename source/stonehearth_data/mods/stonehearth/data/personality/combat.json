@@ -1,0 +1,181 @@
+{
+   "activities" : {
+      "peaceful_day" : {
+         "id" : "peaceful_day", 
+         "trigger_policy" : [
+            {
+               "trigger_id" : "peaceful_day",
+               "probability" : 100
+            }
+         ], 
+         "text" : "On Tranquility", 
+         "type" : "random", 
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+                  "Feels good to be alive!",
+                  "Another awesome day in town.", 
+                  "Peaceful!",
+                  "This seems like a pretty sheltered spot.",
+                  "I was amazingly productive today!",
+                  "Nothing much to do today but enjoy life!",
+                  "Nature sure is beautiful!",
+                  "It's great being here with friends and family.",
+                  "Settling here was a great idea.",
+                  "Feeling happy with a good day's work!",
+                  "This really feels like a spot where we can build something great.",
+                  "Uninterrupted bliss! I love days like this.",
+                  "24 hours of pure tranquility.",
+                  "A whole day without a single extential threat! Amazing!"
+               ]
+            }
+         }
+      },
+      "hurt_badly" : {
+         "id" : "hurt_badly", 
+         "trigger_policy" : [
+            {
+               "trigger_id" : "hurt_badly",
+               "probability" : 100
+            }
+         ], 
+         "text" : "On Serious Injury:", 
+         "type" : "random", 
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+                  "Ow! That really hurt!",
+                  "I'm in danger!",
+                  "Pain!",
+                  "Hurts! Must... keep going!",
+                  "Things are looking bad!", 
+                  "Can't take much more of this!",
+                  "My life's starting to flash before my eyes.",
+                  "Should I be worried?",
+                  "I should have written my mom more letters.", 
+                  "If I get out of this alive, I'm going to write Grandma and tell her I love her.", 
+                  "I could use some help here!", 
+                  "Need to keep going!!!", 
+                  "Raagh, take that!", 
+                  "If I'm going down you're coming with me!", 
+                  "For my friends! For my village!",
+                  "I make my last stand here!"
+               ]
+            }
+         }
+      },
+      "villager_death" : {
+         "id" : "villager_death", 
+         "trigger_policy" : [
+            {
+               "trigger_id" : "villager_death",
+               "probability" : 100
+            }
+         ], 
+         "text" : "On Mortality:", 
+         "type" : "random", 
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+                  "__dead_friend__? __dead_friend__!!!", 
+                  "__teacher__ keep you safe, __dead_friend__.", 
+                  "__dead_friend__? Nothing will ever be the same without you.",
+                  "__dead_friend__!!! Nooooooo!!!", 
+                  "Goodbye, __dead_friend__. I hope we meet again someday.", 
+                  "__dead_friend__? But... what will I tell your dad, when I next write home?", 
+                  "We can't let __dead_friend__'s death be in vain, people!", 
+                  "Goodbye, __dead_friend__. We'll miss you.", 
+                  "Don't worry, __dead_friend__. We'll avenge you!", 
+                  "I can't believe __dead_friend__ is really gone.",
+                  "__dead_friend__? Gone? Suddenly this whole thing seems like it wasn't worth it, somehow.",
+                  "Gee, now I really wish I hadn't talked __dead_friend__ into this adventure.", 
+                  "__dead_friend__!!"
+               ]
+            }
+         }
+      },
+      "generic_panic" : {
+         "id" : "generic_panic", 
+         "trigger_policy" : [
+            {
+               "trigger_id" : "generic_panic", 
+               "probability" : 100
+            }
+         ], 
+         "text" : "",
+         "type" : "random", 
+         "logs_by_personality" : {
+            "generic" : {
+               "logs" : [
+                  "Scared out of my gourd now!!!", 
+                  "Aauuugh!!!", 
+                  "Nightmare things!!!",
+                  "Must run awaaaaaayyyy!!!!",
+                  "::cries in terror::"
+               ]
+            }, 
+            "belaguered_leader" : {
+               "logs" : [
+                  "Tactical retreat! Tactical retreat!!!",
+                  "Everyone make for the hills!", 
+                  "Drop everything and move, people!!!", 
+                  "They're too strong for us! Scatter, everyone!!", 
+                  "Run purposefully towards the exits!!!"
+               ]
+            }, 
+            "hopeless_optimist" : {
+               "logs" : [
+                  "Aaagh! It looks so mean!!!!",
+                  "I can't see you!! I can't see you!!!", 
+                  "Monsters!!!!!", 
+                  "Auugh! Can't we just be friends??", 
+                  "Running away so tomorrow can be another daaaaaayyy!!!", 
+                  "Run, run, run away from the scary monsters!!!",
+                  "I don't think it wants to be frieeendss!!!"
+               ]
+            }, 
+            "lovable_rogue" : {
+               "logs" : [
+                  "Grab the goods and head for the hills!", 
+                  "Please, I don't want to die!", 
+                  "I have so many more things I need to do!!!!", 
+                  "I can't die here!!!", 
+                  "Must... escape!!!", 
+                  "Every villager for themselves!!!"
+               ]
+            },
+            "psychopathic_misanthrope" : {
+               "logs" : [
+                  "RRAAAAGGGHH!!", 
+                  "NEAAARRRRGHHH!", 
+                  "GAAAAAAAGHHH!!", 
+                  "AIEEEEE!!!"
+               ]
+            }, 
+            "insufferable_academic" : {
+               "logs" : [
+                  "Expeditious Retreat! Expeditious Retreat!!!", 
+                  "When in doubt, PANIC!!!",
+                  "Keep Calm and AIEEEEE!", 
+                  "::wails silently::", 
+                  "Fiends of nightmare stay away!", 
+                  "Terror bad for blood pressure!!!", 
+                  "Cardiac arrest incoming!!!", 
+                  "Brain... paralyzed...!"
+                  "Help! Heeeeeelllpp!!!"
+               ]
+            }, 
+            "diligent_sweetheart" : {
+               "logs" : [
+                  "Oh no! Monsters!", 
+                  "Everyone, save yourselves!", 
+                  "AAAGH! MONSTERS!!!", 
+                  "AAAA! Please don't hurt us!!!", 
+                  "__teacher__ SAVE US!!!", 
+                  "If I can't see it, maybe it can't see me?", 
+               ]
+            }
+         }
+      }
+   }
+}

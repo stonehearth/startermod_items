@@ -32,6 +32,9 @@ protected:
    void AddRecordField(std::string const& name, Object& field);
    
 private:
+   void RegisterWithStreamer(Streamer *streamer) const override;
+
+private:
    NO_COPY_CONSTRUCTOR(Record);
    friend ObjectDumper;
 

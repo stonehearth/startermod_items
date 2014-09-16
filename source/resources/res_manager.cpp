@@ -638,7 +638,7 @@ std::string ResourceManager2::FindScript(std::string const& script) const
    return canonical_path;
 }
 
-voxel::QubicleFile const* ResourceManager2::OpenQubicleFile(std::string const& uri)
+voxel::QubicleFile const* ResourceManager2::LookupQubicleFile(std::string const& uri)
 {   
    std::lock_guard<std::recursive_mutex> lock(mutex_);
 

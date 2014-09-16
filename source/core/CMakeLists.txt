@@ -3,6 +3,7 @@ FIND_PACKAGE(Libjson REQUIRED)
 
 include_directories(${Poco_INCLUDE_DIRS})
 include_directories(${Libjson_INCLUDE_DIRS})
+include_directories(${VTune_INCLUDE_DIRS})
 
 add_library(core STATIC 
             assert.cpp
@@ -11,6 +12,7 @@ add_library(core STATIC
             log_win32.cpp
             deferred.cpp
             guard.cpp
+            profiler.cpp
             process.cpp
             system.cpp
             object_counter.cpp
@@ -20,4 +22,5 @@ target_link_libraries(core
                       rpcrt4
                       ${Poco_LIBRARIES}
                       ${Libjson_LIBRARIES}
+                      ${VTune_LIBRARIES}
                       )

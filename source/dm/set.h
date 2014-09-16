@@ -40,6 +40,9 @@ public:
    ContainerType const& GetContainer() const;
 
 private:
+   void RegisterWithStreamer(Streamer *streamer) const override;
+
+private:
    NO_COPY_CONSTRUCTOR(Set<T>);
 
 private:

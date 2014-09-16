@@ -3,6 +3,7 @@
    - raise it to a cap of 5 when we sleep in a bed
    - lower it whenever we sleep on the ground
    - TODO: raise score when the bed is a comfy bed
+   - TODO: raise score when we fall asleep indoors
 ]]
 
 local ShelterScoreObserver = class()

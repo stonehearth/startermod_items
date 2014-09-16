@@ -44,7 +44,7 @@ void RegionCollisionShape::LoadFromJson(json::Node const& obj)
 
       json::Node regionFromModel = obj.get_node("region_from_model");
       std::string qubicleFile = regionFromModel.get<std::string>("model", "");
-      voxel::QubicleFile const* qubicle = res::ResourceManager2::GetInstance().OpenQubicleFile(qubicleFile);
+      voxel::QubicleFile const* qubicle = res::ResourceManager2::GetInstance().LookupQubicleFile(qubicleFile);
 
       if (qubicle) {
          auto addMatrix = [&shape](voxel::QubicleMatrix const* matrix) {

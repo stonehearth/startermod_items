@@ -1,3 +1,4 @@
+local Array2D = require 'services.server.world_generation.array_2D'
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
 local linear_combat_service =  stonehearth.linear_combat
@@ -9,6 +10,7 @@ local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
 local log = radiant.log.create_logger('world_generation')
+local GENERATION_RADIUS = 2
 
 local NewGameCallHandler = class()
 
@@ -33,6 +35,7 @@ end
 function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
    local wgs = stonehearth.world_generation
    local blueprint
+   local tile_margin
 
    wgs:create_new_game(seed, true)
 
@@ -40,43 +43,64 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
 
    -- Temporary merge code. The javascript client may eventually hold state about the original dimensions.
    if generation_method == 'tiny' then
+      tile_margin = 0
       blueprint = wgs.blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
-      --blueprint = wgs.blueprint_generator:get_static_blueprint()
    else
+      -- generate extra tiles along the edge of the map so that we still have a full N x N set of tiles if we embark on the edge
+      tile_margin = GENERATION_RADIUS
+      num_tiles_x = num_tiles_x + 2*tile_margin
+      num_tiles_y = num_tiles_y + 2*tile_margin
       blueprint = wgs.blueprint_generator:generate_blueprint(num_tiles_x, num_tiles_y, seed)
    end
 
    wgs:set_blueprint(blueprint)
 
-   return NewGameCallHandler:get_overview_map(session, response)
+   return NewGameCallHandler:_get_overview_map(tile_margin)
 end
 
-function NewGameCallHandler:get_overview_map(session, response)
+function NewGameCallHandler:_get_overview_map(tile_margin)
    local wgs = stonehearth.world_generation
+   local terrain_info = wgs:get_terrain_info()
    local width, height = wgs.overview_map:get_dimensions()
-   local map = wgs.overview_map:get_map():clone_to_nested_arrays()
+   local map = wgs.overview_map:get_map()
+
+   -- create an inset map so that embarking on the edge of the map will still get a full N x N set of terrain tiles
+   local macro_blocks_per_tile = terrain_info.tile_size / terrain_info.macro_block_size
+   local macro_block_margin = tile_margin*macro_blocks_per_tile
+   local inset_width = width - 2*macro_block_margin
+   local inset_height = height - 2*macro_block_margin
+   local inset_map = Array2D(inset_width, inset_height)
+
+   Array2D.copy_block(inset_map, map, 1, 1, 1+macro_block_margin, 1+macro_block_margin, inset_width, inset_height)
+
+   local js_map = inset_map:clone_to_nested_arrays()
 
    local result = {
-      width = width,
-      height = height,
-      map = map
+      map = js_map,
+      map_info = {
+         width = inset_width,
+         height = inset_height,
+         macro_block_margin = macro_block_margin
+      }
    }
    return result
 end
 
 -- feature_cell_x and feature_cell_y are base 0
-function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y)
-   -- +1 to convert to base 1
-   feature_cell_x = feature_cell_x + 1
-   feature_cell_y = feature_cell_y + 1
-
+function NewGameCallHandler:generate_start_location(session, response, feature_cell_x, feature_cell_y, map_info)
    local wgs = stonehearth.world_generation
+
+   -- +1 to convert to base 1
+   -- +macro_block_margin to convert from inset coordinates to full coordinates
+   feature_cell_x = feature_cell_x + 1 + map_info.macro_block_margin
+   feature_cell_y = feature_cell_y + 1 + map_info.macro_block_margin
+
    local x, z = wgs.overview_map:get_coords_of_cell_center(feature_cell_x, feature_cell_y)
 
    -- better place to store this?
    wgs.generation_location = Point3(x, 0, z)
 
-   local radius = 2
+   local radius = GENERATION_RADIUS
    local blueprint = wgs:get_blueprint()
    local i, j = wgs:get_tile_index(x, z)
 

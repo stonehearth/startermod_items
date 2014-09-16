@@ -39,6 +39,9 @@ sections:
                   -  slug: drop_carrying_at
                      display_name: drop_carrying_at
                      filename: ../ai/actions/drop_carrying_at_action.lua
+                  -  slug: trigger_event
+                     display_name: trigger_event
+                     filename: ../ai/actions/trigger_event.lua
          -  slug: observers
             display_name: Observers
             filename: reference/ai/observer.markdown

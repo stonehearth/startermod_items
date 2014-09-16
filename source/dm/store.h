@@ -25,6 +25,8 @@ public:
 
    int GetStoreId() const { return storeId_; }
    
+   void AddStreamer(Streamer* streamer);
+   void RemoveStreamer(Streamer* streamer);
    void SetInterpreter(lua_State* L) { L_ = L; }
    lua_State* GetInterpreter() const { return L_; }
               
@@ -94,7 +96,7 @@ public:
    GenerationId GetCurrentGenerationId();
    ObjectId GetNextObjectId();
 
-   std::unordered_map<const char*, int> DumpTraceReasons();
+   std::unordered_map<const char*, int> GetTraceReasons();
 
 private:
    typedef std::vector<TraceRef> TraceList;
@@ -170,6 +172,7 @@ private:
    TraceMap       traces_;
    TracerMap      tracers_;
    bool           saving_;
+   std::vector<Streamer*> streamers_;
    StoreTraces    store_traces_;
 };
 

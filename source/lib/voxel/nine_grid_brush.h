@@ -26,7 +26,7 @@ public:
       POSITIVE_Z = (1 << 3),
    };
 
-   NineGridBrush(std::istream& in);
+   NineGridBrush(QubicleFile const* qubicle_file);
 
    NineGridBrush& SetNormal(csg::Point3 const& normal);
    NineGridBrush& SetPaintMode(PaintMode mode);
@@ -88,7 +88,7 @@ private:
    csg::Point3           normal_;
    csg::Region2          shape_region2_;
    csg::Rect2            shapeBounds_;
-   QubicleFile           qubicle_file_;
+   QubicleFile const*   qubicle_file_;
    csg::Region3          nine_grid_[10];
    csg::Point2           brush_sizes_[10];
    bool                  clip_whitespace_;

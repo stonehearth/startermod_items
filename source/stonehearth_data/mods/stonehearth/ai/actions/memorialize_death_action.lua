@@ -23,6 +23,7 @@ function MemorializeDeathAction:run(ai, entity, args)
    radiant.entities.set_name(tombstone, title)
    radiant.entities.set_description(tombstone, description)
 
+   self._location = radiant.terrain.find_closest_standable_point_to(self._location, 5, tombstone)
    radiant.terrain.place_entity(tombstone, self._location, { force_iconic = false })
 
    -- TODO: why don't we just run the effect on the tombstone? -tony (see commented code, below)

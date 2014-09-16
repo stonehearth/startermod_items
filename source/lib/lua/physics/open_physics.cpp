@@ -50,9 +50,18 @@ bool Physics_IsTerrain(lua_State *L, OctTree &octTree, csg::Point3 const& locati
    return octTree.GetNavGrid().IsTerrain(location);
 }
 
-bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsOccupiedPoint(lua_State *L, OctTree &octTree, csg::Point3 const& location)
 {
    return octTree.GetNavGrid().IsOccupied(location);
+}
+
+bool Physics_IsOccupied(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (!entity) {
+      return false;
+   }
+   return octTree.GetNavGrid().IsOccupied(entity, location);
 }
 
 csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
@@ -129,6 +138,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_supported",         &Physics_IsSupported)
                .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
+               .def("is_occupied",          &Physics_IsOccupiedPoint)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3>)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>)

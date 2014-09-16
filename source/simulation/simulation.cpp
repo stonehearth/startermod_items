@@ -840,9 +840,14 @@ void Simulation::Idle()
       });
 
       SIM_LOG(0) << "-- Traces -----------------------------------";
-      for (auto const& kv : store_->DumpTraceReasons()) {
-         SIM_LOG(0) << kv.first << " :: " << kv.second;
+      int total = 0;
+      for (auto const& entry : store_->GetTraceReasons()) {
+         const char* reason = entry.first;
+         int count = entry.second;
+         SIM_LOG(0) << "     " << std::setw(10) << count << " : "  << reason;
+         total += count;
       }
+      SIM_LOG(0) << "     " << std::setw(10) << total << " : "  << "TOTAL";
       nextAuditTime = now + 5000;
    }
 #endif

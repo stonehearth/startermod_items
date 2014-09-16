@@ -87,7 +87,7 @@ void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr lay
       for (std::string const& model : layer->EachModel()) {
          voxel::QubicleFile const* qubicle;
          try {
-            qubicle = res::ResourceManager2::GetInstance().OpenQubicleFile(model);
+            qubicle = res::ResourceManager2::GetInstance().LookupQubicleFile(model);
          } catch (res::Exception& e) {
             RI_LOG(1) << "could not load qubicle file: " << e.what();
             return;

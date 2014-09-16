@@ -3,10 +3,13 @@
 #include "record_trace.h"
 #include "store.h"
 #include "dm_save_impl.h"
+#include "map_util.h" // xxx: for CStringKeyTransform, which should move to core or something!
 #include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
+
+static SafeCStringTable safeCStrings;
 
 #define TRACE_LOG(level) LOG(dm.trace.record, level) << "[record trace '" << GetReason() << "' id:" << record_.GetObjectId() << "] "
 
@@ -18,11 +21,12 @@ RecordTrace<R>::RecordTrace(const char* reason, Record const& r, Tracer& tracer)
    TRACE_LOG(7) << "installing record trace";
 
    for (const auto& field : r.GetFields()) {
-      const char* fieldName = field.first.c_str();
+      const char* name = field.first.c_str();
+      const char* freason = safeCStrings(BUILD_STRING(reason << "(tracing field " << name << ")").c_str());
 
-      auto t = r.GetStore().FetchStaticObject(field.second)->TraceObjectChanges(reason, &tracer);
-      t->OnModified_([this, fieldName]() {
-         TRACE_LOG(9) << "field " << fieldName << " changed.  notifying record changed, too!";
+      auto t = r.GetStore().FetchStaticObject(field.second)->TraceObjectChanges(freason, &tracer);
+      t->OnModified_([this, name]() {
+         TRACE_LOG(9) << "field " << name << " changed.  notifying record changed, too!";
 
          // First, signal that the record itself has actually change, too.  This will add all existing
          // buffered record traces to their respective tracers.
