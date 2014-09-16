@@ -174,15 +174,7 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
    self:_update_overlapping_structures()
 end
 
-<<<<<<< HEAD
-function NoConstructionZoneComponent:_update_overlapping_structures(origin)   
-   -- compoute how much stuff our envelope overlaps
-   local bounds = self._region:get():get_bounds()
-   bounds:translate(origin)
-
-=======
 function NoConstructionZoneComponent:_update_overlapping_structures()
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    local current_overlap = {}
 
    if not self._region:get():empty() then

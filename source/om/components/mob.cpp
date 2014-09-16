@@ -148,15 +148,9 @@ csg::Transform Mob::GetWorldTransform(om::EntityRef& entityRoot) const
    return world;
 }
 
-<<<<<<< HEAD
-csg::Point3f Mob::GetWorldGridLocation() const
+csg::Point3f Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
 {
-   return csg::ToFloat(csg::ToClosestInt(GetWorldLocation()));
-=======
-csg::Point3 Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
-{
-   return csg::ToClosestInt(GetWorldLocation(entityRoot));
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
+   return csg::ToFloat(csg::ToClosestInt(GetWorldLocation(entityRoot)));
 }
 
 csg::Quaternion Mob::GetRotation() const

@@ -288,17 +288,10 @@ function entities.distance_between(object_a, object_b)
       assert(mob)
       object_b = mob:get_world_location()
    end
-<<<<<<< HEAD
-=======
 
    if not object_a or not object_b then
       return nil
    end
-
-   -- convert Point3 to Point3f... Point3f ignores :to_float()!
-   object_a = object_a:to_float()
-   object_b = object_b:to_float()
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    
    -- xxx: verify a and b are both Point3fs...
    return object_a:distance_to(object_b)

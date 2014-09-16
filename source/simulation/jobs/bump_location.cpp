@@ -30,14 +30,8 @@ bool BumpLocation::Work(platform::timer const& timer)
 
    auto mob = entity->AddComponent<om::Mob>();
 
-<<<<<<< HEAD
-   csg::Point3f const currentLocation = mob->GetWorldLocation();
-=======
    om::EntityRef entityRoot;
    csg::Point3f const currentLocation = mob->GetWorldLocation(entityRoot);
-   csg::Point3 const currentGridLocation = csg::ToClosestInt(currentLocation);
-
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    csg::Point3f const proposedLocation = currentLocation + vector_;
 
    std::vector<csg::Point3f> points;

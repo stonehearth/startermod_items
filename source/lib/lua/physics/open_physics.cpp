@@ -50,29 +50,21 @@ bool Physics_IsTerrain(lua_State *L, OctTree &octTree, csg::Point3f const& locat
    return octTree.GetNavGrid().IsTerrain(csg::ToClosestInt(location));
 }
 
-<<<<<<< HEAD
-bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3f const& location)
-=======
-bool Physics_IsOccupiedPoint(lua_State *L, OctTree &octTree, csg::Point3 const& location)
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
+bool Physics_IsOccupiedPoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
    return octTree.GetNavGrid().IsOccupied(csg::ToClosestInt(location));
 }
 
-<<<<<<< HEAD
-csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
-=======
-bool Physics_IsOccupied(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+bool Physics_IsOccupied(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       return false;
    }
-   return octTree.GetNavGrid().IsOccupied(entity, location);
+   return octTree.GetNavGrid().IsOccupied(entity, csg::ToClosestInt(location));
 }
 
-csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
+csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
@@ -149,26 +141,12 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("is_occupied",          &Physics_IsOccupiedPoint)
                .def("get_standable_point",  &Physics_GetStandablePoint)
-<<<<<<< HEAD
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>),
+               .def("get_entities_in_region", &Physics_GetEntitiesInRegion<csg::Region3f>)
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Region3f>),
             def("world_to_local",              &Physics_WorldToLocal<csg::Point3f>)
-=======
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3>)
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>)
-               .def("get_entities_in_region", &Physics_GetEntitiesInRegion<csg::Region3>)
-               .def("get_entities_in_region", &Physics_GetEntitiesInRegion<csg::Region3f>)
-            ,
-            def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Cube3>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Region3>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Region3f>),
-            def("world_to_local",              &Physics_WorldToLocal<csg::Point3>)
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
          ]
       ]
    ];

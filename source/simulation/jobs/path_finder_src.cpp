@@ -58,15 +58,11 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode>& open)
             PF_LOG(0) << "source entity has no om::Mob component in pathfinder!";
             return;
          }
-<<<<<<< HEAD
-         start = csg::ToClosestInt(mob->GetWorldGridLocation());
-=======
          om::EntityRef entityRoot;
-         start = mob->GetWorldGridLocation(entityRoot);
+         start = csg::ToClosestInt(mob->GetWorldGridLocation(entityRoot));
          if (!om::IsRootEntity(entityRoot)) {
             PF_LOG(0) << "source entity is not in the world";
          }
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
       }
    }
    open.push_back(start);

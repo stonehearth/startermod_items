@@ -43,17 +43,10 @@ class Mob(Component):
    set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const
-<<<<<<< HEAD
    get_grid_location = ridl.Method(csg.Point3f()).const
-   get_world_location = ridl.Method(csg.Point3f()).const
-   get_world_grid_location = ridl.Method(csg.Point3f()).const
-   get_world_transform = ridl.Method(csg.Transform()).const
-=======
-   get_grid_location = ridl.Method(csg.Point3()).const
    get_world_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
-   get_world_grid_location = ridl.Method(csg.Point3(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
+   get_world_grid_location = ridl.Method(csg.Point3f(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
    get_world_transform = ridl.Method(csg.Transform(), ('rootEntity', om.EntityRef().ref), no_lua_impl = True).const
->>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    get_location_in_front = ridl.Method(csg.Point3f()).const
    set_location_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
 
