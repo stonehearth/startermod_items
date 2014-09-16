@@ -22,5 +22,6 @@
    ],
 
    "buttonIcon" : "file(images/jobButton.png)",
-   "bannerIcon" : "file(images/banner.png)"
+   "bannerIcon" : "file(images/banner.png)",
+   "parent_profression" : "stonehearth:profressions:worker"
 }

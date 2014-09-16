@@ -35,5 +35,6 @@
       "ingredients": [
          { "material" : "wood resource", "count" : 1 }
       ]
-   }
+   },
+   "parent_profression" : "stonehearth:profressions:worker"
 }

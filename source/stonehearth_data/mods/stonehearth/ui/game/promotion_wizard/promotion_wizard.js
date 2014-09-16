@@ -5,7 +5,7 @@ $(document).ready(function(){
             'unit_info' : {},
             'stonehearth:promotion_talisman' : {} 
          };
-
+      return;
       // grab the properties from the talisman and pass them along to the promotion wizard
       r.traceUri(e.entity, components)
          .progress(function(eobj) {
