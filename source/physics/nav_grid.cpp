@@ -903,7 +903,6 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    return !IsBlocked(worldPoint) && IsSupported(worldPoint);
 }
 
-
 /*
  * -- NavGrid::IsOccupied
  *
@@ -924,6 +923,28 @@ bool NavGrid::IsOccupied(csg::Point3 const& worldPoint)
          return stop;
       });
    }
+   return stopped;
+}
+
+/*
+ * -- NavGrid::IsOccupied
+ *
+ * Returns whether or not the space occupied by `entity` would have any other entities
+ * if the entity were placed at worldPoint.  This completely ignores the
+ * current position of the entity so it can be used for speculative queries.
+ *
+ */
+
+bool NavGrid::IsOccupied(om::EntityPtr entity, csg::Point3 const& worldPoint)
+{
+   csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, worldPoint);
+
+   bool stopped = ForEachTrackerInShape(shape, [&entity](CollisionTrackerPtr tracker) -> bool {
+      // Ignore the trackers for the entity we're asking about.
+      bool stop = entity != tracker->GetEntity();
+      return stop;
+   });
+
    return stopped;
 }
 
