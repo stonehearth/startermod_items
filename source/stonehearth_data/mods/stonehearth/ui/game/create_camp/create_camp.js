@@ -39,7 +39,8 @@ App.StonehearthCreateCampView = App.View.extend({
                            of : $(document),
                            collision : 'fit'
                         }, 
-                        townName : o.townName
+                        townName : o.townName,
+                        hideStartingTutorial : self.hideStartingTutorial
                      });
 
                   self.destroy();
@@ -177,9 +178,11 @@ App.StonehearthNameCampView = App.View.extend({
          App.gameView._addViews(App.gameView.views.complete);
 
          // kick off the tutorials
-         setTimeout(function() {
-            App.stonehearthTutorials.start();
-         }, 1000);
+         if (!self.hideStartingTutorial) {
+            setTimeout(function() {
+               App.stonehearthTutorials.start();
+            }, 1000);            
+         }
 
          self.destroy();
 
