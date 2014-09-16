@@ -1,5 +1,5 @@
 local AiHelpers = require 'ai.actions.ai_helpers'
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 
 local BumpAgainstEntity = class()
@@ -23,7 +23,7 @@ function BumpAgainstEntity:run(ai, entity, args)
 
    local vector = AiHelpers.calculate_bump_vector(bumper, bumpee, distance)
 
-   if vector ~= Point3f.zero then
+   if vector ~= Point3.zero then
       ai:execute('stonehearth:bump_entity', {
          vector = vector
       })

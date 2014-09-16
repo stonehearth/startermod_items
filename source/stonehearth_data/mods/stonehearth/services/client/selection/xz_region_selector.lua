@@ -258,7 +258,7 @@ function XZRegionSelector:_notify_progress(box)
       local region = Region2(Rect2(Point2(0, 0), 
                                    Point2(box.max.x - box.min.x, box.max.z - box.min.z)))
       self._render_node = self._create_node_fn(1, region, self._box_color, self._line_color)
-                                    :set_position(box.min:to_float())
+                                    :set_position(box.min)
    end
    self._render_node:set_can_query(false)
    if self._progress_cb then

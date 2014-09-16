@@ -169,13 +169,13 @@ float Sim_GetBaseWalkSpeed(lua_State* L)
    return GetSim(L).GetBaseWalkSpeed();
 }
 
-bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg::Point3 const& from, csg::Point3 const& to)
+bool Sim_IsValidMove(lua_State *L, om::EntityRef entityRef, bool reversible, csg::Point3f const& from, csg::Point3f const& to)
 {
    om::EntityPtr entity = entityRef.lock();
    if (entity) {
       Simulation &sim = GetSim(L);
       phys::OctTree& octTree = sim.GetOctTree();
-      bool valid = octTree.ValidMove(entity, reversible, from, to);
+      bool valid = octTree.ValidMove(entity, reversible, csg::ToClosestInt(from), csg::ToClosestInt(to));
       return valid;
    } else {
       return false;
@@ -330,10 +330,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("get_object",                &Sim_GetObject),
             def("destroy_entity",            &Sim_DestroyEntity),
             def("alloc_number_map",          &Sim_AllocObject<dm::NumberMap>),
-            def("alloc_region3",             &Sim_AllocObject<om::Region3Boxed>),
-            def("alloc_region2",             &Sim_AllocObject<om::Region2Boxed>),
-            def("alloc_region3f",            &Sim_AllocObject<om::Region3fBoxed>),
-            def("alloc_region2f",            &Sim_AllocObject<om::Region2fBoxed>),
+            def("alloc_region3",             &Sim_AllocObject<om::Region3fBoxed>),
+            def("alloc_region2",             &Sim_AllocObject<om::Region2fBoxed>),
             def("create_datastore",          &Sim_AllocDataStore),
             def("destroy_datastore",         &Sim_DestroyDatastore),
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),

@@ -10,58 +10,59 @@ using namespace ::radiant;
 using namespace ::radiant::phys;
 using namespace luabind;
 
-bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+bool Physics_IsStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       return false;
    }
-   return octTree.GetNavGrid().IsStandable(entity, location);
+   return octTree.GetNavGrid().IsStandable(entity, csg::ToClosestInt(location));
 }
 
-bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsStandablePoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().IsStandable(location);
+   return octTree.GetNavGrid().IsStandable(csg::ToClosestInt(location));
 }
 
-bool Physics_IsBlocked(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+bool Physics_IsBlocked(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       return false;
    }
-   return octTree.GetNavGrid().IsBlocked(entity, location);
+   return octTree.GetNavGrid().IsBlocked(entity, csg::ToClosestInt(location));
 }
 
-bool Physics_IsBlockedPoint(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsBlockedPoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().IsBlocked(location);
+   return octTree.GetNavGrid().IsBlocked(csg::ToClosestInt(location));
 }
 
 
-bool Physics_IsSupported(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsSupported(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().IsSupported(location);
+   return octTree.GetNavGrid().IsSupported(csg::ToClosestInt(location));
 }
 
 
-bool Physics_IsTerrain(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsTerrain(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().IsTerrain(location);
+   return octTree.GetNavGrid().IsTerrain(csg::ToClosestInt(location));
 }
 
-bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3 const& location)
+bool Physics_IsOccupied(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().IsOccupied(location);
+   return octTree.GetNavGrid().IsOccupied(csg::ToClosestInt(location));
 }
 
-csg::Point3 Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3 const& location)
+csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       throw std::logic_error("invalid entity reference in get_standable_point");
    }
-   return octTree.GetNavGrid().GetStandablePoint(entity, location);
+   csg::Point3 standable = octTree.GetNavGrid().GetStandablePoint(entity, csg::ToClosestInt(location));
+   return csg::ToFloat(standable);
 }
 
 template <typename Cube>
@@ -116,12 +117,11 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("get_standable_point",  &Physics_GetStandablePoint)
-               .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3>)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube<csg::Cube3f>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Point3>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Cube3>),
-            def("local_to_world",              &Physics_LocalToWorld<csg::Region3>),
-            def("world_to_local",              &Physics_WorldToLocal<csg::Point3>)
+            def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
+            def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),
+            def("local_to_world",              &Physics_LocalToWorld<csg::Region3f>),
+            def("world_to_local",              &Physics_WorldToLocal<csg::Point3f>)
          ]
       ]
    ];

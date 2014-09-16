@@ -1,4 +1,4 @@
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 local log = radiant.log.create_logger('camera')
@@ -310,7 +310,7 @@ function PlayerCameraController:_calculate_drag(e)
 
     local root = radiant.entities.get_entity(1)
     local terrain_comp = root:get_component('terrain')
-    local bounds = terrain_comp:get_bounds():to_float()
+    local bounds = terrain_comp:get_bounds()
     if not bounds:contains(self._drag_start) then
       self._dragging = false
     end

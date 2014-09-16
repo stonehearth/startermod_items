@@ -1,10 +1,10 @@
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local mob_of_mobs = {}
 
 function mob_of_mobs.mob(autotest)
 
-   local orbit_point = Point3f(0, 0, 0)
+   local orbit_point = Point3(0, 0, 0)
 
    for x=-10,10,2 do
       for z=-10,10,2 do

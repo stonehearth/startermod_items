@@ -257,7 +257,7 @@ Region csg::GetAdjacent(Region const& r, bool allow_diagonals)
    return adjacent;
 }
 
-void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
+void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
 {
    HeightMap<int> n(h);
    int size = n.get_size();
@@ -293,10 +293,10 @@ void csg::HeightmapToRegion2(HeightMap<double> const& h, Region2& r)
          y1++;
       }
 
-      // yay! add the rect
-      r.AddUnique(Rect2(Point2(x0 * scale, y0 * scale),
-                        Point2(x1 * scale, y1 * scale),
-                        search_value));
+      // yay! add the rect, rounding to the nearest whole number
+      r.AddUnique(Rect2f(csg::ToFloat(csg::ToInt(Point2f(x0 * scale, y0 * scale))),
+                         csg::ToFloat(csg::ToInt(Point2f(x1 * scale, y1 * scale))),
+                         search_value));
 
       // clear the rect
       for (int y = y0; y < y1; y++) {

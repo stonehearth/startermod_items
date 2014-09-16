@@ -1,4 +1,4 @@
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 local Quat = _radiant.csg.Quaternion
 local Ray = _radiant.csg.Ray3
 local log = radiant.log.create_logger('camera')

@@ -88,9 +88,9 @@ void LoadCube(lua_State* L, T& region, object obj)
 // For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Cube<int, C> Cube_ToInt(csg::Cube<S, C> const& c)
+csg::Cube<float, C> Cube_ToInt(csg::Cube<S, C> const& c)
 {
-   return csg::ToInt(c);
+   return csg::ToFloat(csg::ToInt(c));
 }
 
 template <typename T>
@@ -126,9 +126,9 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("construct_cube3", &Cube3::Construct),
-      def("intersect_cube3", IntersectCube<Cube3>),
-      def("intersect_cube2", IntersectCube<Rect2>),
+      def("construct_cube3", &Cube3f::Construct),
+      def("intersect_cube3", IntersectCube<Cube3f>),
+      def("intersect_cube2", IntersectCube<Rect2f>),
       Register<Cube3f>(L, "Cube3")
          .def("rotated",      &(Cube3f (*)(Cube3f const&, int))&csg::Rotated)
          .def("each_point",   &EachPoint<Cube3f>)

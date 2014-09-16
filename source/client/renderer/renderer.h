@@ -207,7 +207,7 @@ class Renderer
       float DistFunc(float dist, int wheel, float minDist, float maxDist) const;
       MouseInput WindowToBrowser(const MouseInput& mouse);
       void CallMouseInputCallbacks();
-      void UpdateFoW(H3DNode node, const csg::Region2& region);
+      void UpdateFoW(H3DNode node, const csg::Region2f& region);
       void CastRay(const csg::Point3f& origin, const csg::Point3f& direction, int userFlags, RayCastHitCb const& cb);
 
       void ResizeViewport();

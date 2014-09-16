@@ -1,10 +1,10 @@
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local BumpEntity = class()
 BumpEntity.name = 'bump entity'
 BumpEntity.does = 'stonehearth:bump_entity'
 BumpEntity.args = {
-   vector = Point3f   -- distance and direction to bump
+   vector = Point3   -- distance and direction to bump
 }
 BumpEntity.version = 2
 BumpEntity.priority = 1

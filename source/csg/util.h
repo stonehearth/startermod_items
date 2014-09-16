@@ -64,7 +64,7 @@ template <int S> bool PartitionCubeIntoChunks(Cube3 const& cube, std::function<b
 template <typename Region> Region GetAdjacent(Region const& r, bool allow_diagonals);
 
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
-void HeightmapToRegion2(HeightMap<double> const& h, Region2& r);
+void HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r);
 EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
 csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
 int RoundTowardNegativeInfinity(int i, int tile_size);
@@ -98,28 +98,14 @@ template <typename S> S Interpolate(S const& p0, S const& p1, float alpha);
 template <typename T, int C, typename F> Point<T, C> ConvertTo(Point<F, C> const& pt);
 template <typename T, int C, typename F> Cube<T, C> ConvertTo(Cube<F, C> const& cube);
 
-template <typename S> static inline bool IsGreaterEqual(S a, S b);
-template <typename S> static inline bool IsBetween(S a, S b, S c);
-
-template<> static inline bool IsGreaterEqual(int a, int b) { 
-   return a >= b;
-}
-template<> static inline bool IsBetween(int a, int b, int c) { 
+template <typename S> static inline bool IsBetween(S a, S b, S c)
+{
    return a <= b && b < c;
-}
-
-template<> static inline bool IsGreaterEqual(float a, float b) { 
-   return (a + k_epsilon) >= b;
-}
-
-template<> static inline bool IsBetween(float a, float b, float c) {
-   return a <= (b + k_epsilon) && b < (c + k_epsilon);
 }
 
 std::ostream& operator<<(std::ostream& os, EdgePointX const& f);
 std::ostream& operator<<(std::ostream& os, EdgeX const& f);
 std::ostream& operator<<(std::ostream& os, EdgeList const& f);
-
 
 template <int C>
 struct ToClosestIntTransform {

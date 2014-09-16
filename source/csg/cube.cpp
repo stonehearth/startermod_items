@@ -127,8 +127,7 @@ template <typename S, int C>
 bool Cube<S, C>::Intersects(Cube const& other) const
 {
    for (int i = 0; i < C; i++) {
-      if (csg::IsGreaterEqual(min[i], other.max[i]) ||
-          csg::IsGreaterEqual(other.min[i], max[i])) {
+      if (min[i] >= other.max[i] || other.min[i] >= max[i]) {
          return false;
       }
    }

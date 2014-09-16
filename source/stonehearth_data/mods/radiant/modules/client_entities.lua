@@ -1,10 +1,10 @@
+local Point3 = _radiant.csg.Point3
+ 
 local client_entities = {}
 local singleton = {}
 local log = radiant.log.create_logger('client')
 
 -- xxx: could use some factoring with the server entities...
-
-local Point3 = _radiant.csg.Point3
 
 function client_entities.__init()
    singleton._entity_dtors = {}

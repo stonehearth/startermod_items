@@ -20,17 +20,14 @@ struct PointIterator<S, 3> {
       max(c.GetMax()),
       axis_(0)
    {
-      if (c.GetArea() <= 0) {
+      if (iter == end) {
+         iter_ = iter;
+      } else if (c.GetArea() == 0) {
          iter_ = end;
-         return;
+      } else {
+         ASSERT(c.Contains(iter));
+         iter_ = iter;
       }
-
-      ASSERT(iter == end || c.Contains(iter));
-      if (!c.Contains(iter)) {
-         iter_ = end;
-         return;
-      }
-      iter_ = iter;
    }
 
    const Point operator*() const {

@@ -72,12 +72,12 @@ void Client_HilightEntity(lua_State* L, luabind::object o)
 
 RenderNodePtr Client_CreateVoxelNode(lua_State* L, 
                                      H3DNode parent,
-                                     csg::Region3 const& model,
+                                     csg::Region3f const& model,
                                      std::string const& material_path,
                                      csg::Point3f const& origin)
 {
    csg::mesh_tools::mesh mesh;
-   csg::RegionToMesh(model, mesh, -origin, false);
+   csg::RegionToMesh(csg::ToInt(model), mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
                            ->SetMaterial(material_path);
@@ -112,8 +112,8 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
          // xxx: can we create a shared mesh without lod levels?
          auto create_mesh = [&matrix, &origin](csg::mesh_tools::mesh &mesh, int lodLevel) {
             csg::Region3 model = voxel::QubicleBrush(matrix)
-               .SetOffsetMode(voxel::QubicleBrush::Matrix)
-               .PaintOnce();
+                                          .SetOffsetMode(voxel::QubicleBrush::Matrix)
+                                          .PaintOnce();
             csg::RegionToMesh(model, mesh, -origin, true);
          };
          node = RenderNode::CreateSharedCsgMeshNode(parent, key, create_mesh);
@@ -124,29 +124,29 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
 
 RenderNodePtr Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
-                                     csg::Region2 const& model,
+                                     csg::Region2f const& model,
                                      csg::Color4 const& outline,
                                      csg::Color4 const& stripes)
 {
-   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes);
+   return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes);
 }
 
 RenderNodePtr Client_CreateSelectionNode(lua_State* L, 
                                   H3DNode parent,
-                                  csg::Region2 const& model,
+                                  csg::Region2f const& model,
                                   csg::Color4 const& interior_color,
                                   csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color);
+   return Pipeline::GetInstance().CreateSelectionNode(parent, csg::ToInt(model), interior_color, border_color);
 }
 
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
-                                   csg::Region2 const& model,
+                                   csg::Region2f const& model,
                                    csg::Color4 const& interior_color,
                                    csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color);
+   return Pipeline::GetInstance().CreateStockpileNode(parent, csg::ToInt(model), interior_color, border_color);
 }
 
 om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
@@ -361,9 +361,9 @@ void Client_DestroyDataStore(lua_State* L, om::DataStoreRef ds)
    }
 }
 
-bool Client_IsValidStandingRegion(lua_State* L, csg::Region3 const& r)
+bool Client_IsValidStandingRegion(lua_State* L, csg::Region3f const& r)
 {
-   return Client::GetInstance().GetOctTree().GetNavGrid().IsStandable(r);
+   return Client::GetInstance().GetOctTree().GetNavGrid().IsStandable(csg::ToInt(r));
 }
 
 CaptureInputPromisePtr Client_CaptureInput(lua_State* L)
@@ -424,9 +424,9 @@ static bool Client_IsMouseButtonDown(int button)
    return glfwGetMouseButton(glfwGetCurrentContext(), button) == GLFW_PRESS;
 }
 
-static csg::Point2 Client_GetMousePosition()
+static csg::Point2f Client_GetMousePosition()
 {
-   return Client::GetInstance().GetMousePosition();
+   return csg::ToFloat(Client::GetInstance().GetMousePosition());
 }
 
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
@@ -459,10 +459,8 @@ void lua::client::open(lua_State* L)
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("create_selection_node",           &Client_CreateSelectionNode),
             def("create_stockpile_node",           &Client_CreateStockpileNode),
-            def("alloc_region3",                   &Client_AllocObject<om::Region3Boxed>),
-            def("alloc_region2",                   &Client_AllocObject<om::Region2Boxed>),
-            def("alloc_region3f",                  &Client_AllocObject<om::Region3fBoxed>),
-            def("alloc_region2f",                  &Client_AllocObject<om::Region2fBoxed>),
+            def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
+            def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),
             def("create_datastore",                &Client_CreateDataStore),
             def("destroy_datastore",               &Client_DestroyDataStore),
             def("is_valid_standing_region",        &Client_IsValidStandingRegion),

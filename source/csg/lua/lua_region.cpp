@@ -69,9 +69,9 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
 // For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Region<int, C> Region_ToInt(csg::Region<S, C> const& r)
+csg::Region<float, C> Region_ToInt(csg::Region<S, C> const& r)
 {
-   return csg::ToInt(r);
+   return csg::ToFloat(csg::ToInt(r));
 }
 
 template <typename T>
@@ -121,8 +121,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("intersect_region2", IntersectRegion<Region2>),
-      def("intersect_region3", IntersectRegion<Region3>),
+      def("intersect_region2", IntersectRegion<Region2f>),
+      def("intersect_region3", IntersectRegion<Region3f>),
       Register<Region3f>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)

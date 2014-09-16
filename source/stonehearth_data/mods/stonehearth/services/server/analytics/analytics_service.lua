@@ -1,4 +1,4 @@
-local Vec3 = _radiant.csg.Point3f
+local Vec3 = _radiant.csg.Point3
 
 local AnalyticsService = class()
 local population_service = stonehearth.population

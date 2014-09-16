@@ -46,7 +46,7 @@ void RaycastResult::AddResult(csg::Point3f const &intersection, csg::Point3f con
    Result r;
    r.intersection = intersection;
    r.normal = normal;
-   r.brick = brick;
+   r.brick = csg::ToFloat(brick);
    r.entity = entity;
    _results.emplace_back(r);
 }

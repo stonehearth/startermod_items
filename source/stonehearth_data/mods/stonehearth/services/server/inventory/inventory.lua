@@ -1,7 +1,6 @@
 local Cube3 = _radiant.csg.Cube3
-local Cube3f = _radiant.csg.Cube3f
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
+local Point3 = _radiant.csg.Point3
 
 local Inventory = class()
 
@@ -75,9 +74,9 @@ end
 function Inventory:_add_collision_region(entity, size)
    entity:add_component('region_collision_shape')
                :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
-               :set_region(_radiant.sim.alloc_region3f())
+               :set_region(_radiant.sim.alloc_region3())
                :get_region():modify(function (cursor)
-                     cursor:add_unique_cube(Cube3f(Point3f.zero, Point3f(size.x, 1, size.y)))
+                     cursor:add_unique_cube(Cube3(Point3.zero, Point3(size.x, 1, size.y)))
                   end)
   
 end
