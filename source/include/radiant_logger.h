@@ -56,6 +56,8 @@ namespace radiant {
       void Flush();
       void Exit();
       int GetDefaultLogLevel();
+      const char* GetCurrentThreadName();
+      void SetCurrentThreadName(std::string const& name);
       int GetLogLevel(std::string const& key, int deflt);
 
       struct LogCategories {
@@ -89,7 +91,7 @@ namespace radiant {
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!
 #define LOG_CATEGORY_(level, prefix) \
-   LOG_(level) << " | " << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
+   LOG_(level) << " | " << radiant::log::GetCurrentThreadName() << " | " << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
 
 // Check to see if the specified log level is enabled
 #define LOG_IS_ENABLED(category, level)   (LOG_LEVEL(category) >= level)

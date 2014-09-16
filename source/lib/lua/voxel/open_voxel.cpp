@@ -15,16 +15,20 @@ IMPLEMENT_TRIVIAL_TOSTRING(NineGridBrush)
 
 QubicleBrushPtr Voxel_CreateBrush(std::string const& filename)
 {
-   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
-
-   return std::make_shared<QubicleBrush>(*is);
+   voxel::QubicleFile const* q = res::ResourceManager2::GetInstance().LookupQubicleFile(filename);
+   if (!q) {
+      throw std::logic_error(BUILD_STRING("could not find qubicle file "  << filename));
+   }
+   return std::make_shared<QubicleBrush>(q);
 }
 
 NineGridBrushPtr Voxel_CreateNineGridBrush(std::string const& filename)
 {
-   std::shared_ptr<std::istream> is = res::ResourceManager2::GetInstance().OpenResource(filename);
-
-   return std::make_shared<NineGridBrush>(*is);
+   voxel::QubicleFile const* q = res::ResourceManager2::GetInstance().LookupQubicleFile(filename);
+   if (!q) {
+      throw std::logic_error(BUILD_STRING("could not find qubicle file "  << filename));
+   }
+   return std::make_shared<NineGridBrush>(q);
 }
 
 QubicleBrush& QubicleBrush_SetOrigin(QubicleBrush &brush, csg::Point3f const& offset)

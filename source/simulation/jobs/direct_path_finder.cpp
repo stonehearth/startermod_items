@@ -66,13 +66,19 @@ std::shared_ptr<DirectPathFinder> DirectPathFinder::SetReversiblePath(bool rever
 
 bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) const
 {
+   om::EntityRef entityRoot;
    om::EntityPtr sourceEntity = entityRef_.lock();
    if (!sourceEntity) {
+      DPF_LOG(3) << "source entity is invalid.";
       return false;
    }
 
    if (useEntityForStartPoint_) {
-      start = sourceEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
+      start = sourceEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      if (!om::IsRootEntity(entityRoot)) {
+         DPF_LOG(3) << "source entity is not in the world.";
+         return false;
+      }
    } else {
       start = startLocation_;
    }
@@ -85,7 +91,13 @@ bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) cons
          return false;
       }
 
-      // Find the point closest to the start in the destination entity's adjacent region.
+      csg::Point3 destinationLocation = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation(entityRoot);
+      if (!om::IsRootEntity(entityRoot)) {
+         DPF_LOG(3) << "destination entity is not in the world.";
+         return false;
+      }
+
+      // Find the point closest to the start in the destination entity's adjacent region. Assign that point to end.
       bool haveEndPoint = MovementHelper(logLevel_).GetClosestPointAdjacentToEntity(sim_, start, sourceEntity, destinationEntity, end);
 
       if (haveEndPoint) {
@@ -96,7 +108,7 @@ bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) cons
          // a point to run toward.  Just use the destination entity's location for that.
          if (allowIncompletePath_) {
             DPF_LOG(5) << "could not find end point in destination entity, using destination location";
-            end = destinationEntity->AddComponent<om::Mob>()->GetWorldGridLocation();
+            end = destinationLocation;
             return true;
          } else {
             // If there's no way to get there, there's just no way to get there.  Bail.

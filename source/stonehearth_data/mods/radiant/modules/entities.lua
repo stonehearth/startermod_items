@@ -72,6 +72,15 @@ function entities.kill_entity(entity)
       --Trigger an event synchronously, so we don't delete the item till all listeners have done their thing
       radiant.events.trigger(entity, 'stonehearth:kill_event')
 
+      --Trigger a more general event, for non-affiliated components
+      radiant.events.trigger_async(radiant.entities, 'stonehearth:entity_killed', {
+         entity = entity,
+         id = entity:get_id(),
+         name = radiant.entities.get_display_name(entity),
+         faction = radiant.entities.get_faction(entity), 
+         player_id = radiant.entities.get_player_id(entity)
+      })
+
       --For now, just call regular destroy on the entity
       --Review Question: Will it ever be the case that calling destroy is insufficient?
       --for example, if we also need to recursively kill child entities? Are we ever
@@ -97,11 +106,9 @@ function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
       -- cache the origin region since we use this a lot
       if entities.origin_region == nil then
          entities.origin_region = _radiant.sim.alloc_region3()
-         entities.origin_region:modify(
-            function(region3)
+         entities.origin_region:modify(function(region3)
                region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
-            end
-         )
+            end)
       end
 
       -- make the adjacent the same as the entity location, so that we actually go to the entity location
@@ -115,7 +122,7 @@ end
 
 function entities.get_parent(entity)
    local mob = entity:get_component('mob')
-   return mob and mob:get_parent() or nil
+   return mob and mob:get_parent()
 end
 
 function entities.add_child(parent, child, location)
@@ -231,20 +238,18 @@ function entities.get_location_aligned(entity)
    end
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_location(entity)
    local mob = entity:get_component('mob')
-   if not mob then
-      error(tostring(entity) .. ' has no mob component')
-   end
-   return mob:get_world_location()
+   local location = mob and mob:get_world_location()
+   return location
 end
 
+-- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
-   radiant.check.is_entity(entity)
    local mob = entity:get_component('mob')
-   if mob then
-      return mob:get_world_grid_location()
-   end
+   local location = mob and mob:get_world_grid_location()
+   return location
 end
 
 -- uris are key, value pairs of uri, quantity
@@ -283,6 +288,17 @@ function entities.distance_between(object_a, object_b)
       assert(mob)
       object_b = mob:get_world_location()
    end
+<<<<<<< HEAD
+=======
+
+   if not object_a or not object_b then
+      return nil
+   end
+
+   -- convert Point3 to Point3f... Point3f ignores :to_float()!
+   object_a = object_a:to_float()
+   object_b = object_b:to_float()
+>>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    
    -- xxx: verify a and b are both Point3fs...
    return object_a:distance_to(object_b)

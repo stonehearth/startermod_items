@@ -213,6 +213,13 @@ local constants = {
          SLEEP_ON_GROUND = -10,  -- sleeping on the ground penalty
          SLEEP_IN_BED = 10,      -- sleeping in bed bonus
          BED_SCORE_CAP = 50,     -- up to a score of 50
+      }, 
+      safety = {
+         PANIC_PENALTY = -10,
+         PEACEFUL_DAY_BONUS = 5, 
+         NEAR_DEATH_PENALTY = -10,
+         FOOTMAN_BONUS = 5,        --this is per-footman
+         TOWN_DEATH = -20,
       }
    },
 }

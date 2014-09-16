@@ -62,7 +62,7 @@
            "longrunning" : {
                "name" : "too long to put into autotest, but necessary nonetheless",
                "scripts" : [
-                  "file(longrunning/build_longrunning_test.lua)",
+                  "file(longrunning/build/lrbt_autotest.lua)",
                ]
             },
 

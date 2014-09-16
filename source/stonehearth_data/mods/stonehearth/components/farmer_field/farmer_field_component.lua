@@ -14,7 +14,6 @@ local rng = _radiant.csg.get_default_rng()
 function FarmerFieldComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()   
-   self.__saved_variables:set_controller(self)
 
    self._till_task = nil
 

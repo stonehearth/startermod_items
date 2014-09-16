@@ -14,7 +14,6 @@ local log = radiant.log.create_logger('build_editor')
 
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
-   self.__saved_variables:set_controller(self)
    self._sv = self.__saved_variables:get_data()
    self._sv.selected_sub_part = nil
 
@@ -178,11 +177,6 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
          end)
       :go()   
 end
-
-function BuildEditorService:create_room(session, response)
-   response:fail({ error = 'remove me!'})
-end
-
 
 function BuildEditorService:get_fbp_for(entity)
    if entity and entity:is_valid() then

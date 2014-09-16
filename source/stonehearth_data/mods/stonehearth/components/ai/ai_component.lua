@@ -84,13 +84,13 @@ end
 
 function AIComponent:destroy()
    self._dead = true
-   self:_terminate_thread()
 
    for uri, _ in pairs(self._observer_instances) do
       self:remove_observer(uri)
    end
    
    self._action_index = {}
+   self:_terminate_thread()
 end
 
 function AIComponent:set_status_text(text)

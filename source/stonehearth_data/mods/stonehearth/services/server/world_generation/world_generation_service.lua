@@ -52,6 +52,10 @@ function WorldGenerationService:create_new_game(seed, async)
    self._starting_location = nil
 end
 
+function WorldGenerationService:get_terrain_info()
+   return self._terrain_info
+end
+
 function WorldGenerationService:set_seed(seed)
    log:info('WorldGenerationService using seed %d', seed)
    self._seed = seed

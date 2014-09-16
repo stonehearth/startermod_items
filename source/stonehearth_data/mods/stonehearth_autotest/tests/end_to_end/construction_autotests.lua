@@ -3,15 +3,17 @@ local Point3 = _radiant.csg.Point3
 local construction_tests = {}
 
 function construction_tests.simple_build(autotest)
-   local worker = autotest.env:create_person(-10, 4, { profession = 'worker' })
-   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   autotest.env:create_person(-6, 8, { profession = 'worker' })
+   autotest.env:create_person(-4, 3, { profession = 'carpenter' })
+   autotest.env:create_person(-10, 4, { profession = 'worker' })
+   autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
    local construction_complete = false
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          if e.entity:get_uri() == 'stonehearth:entities:building' then
-            local blueprint = e.entity
-            radiant.events.listen(blueprint, 'stonehearth:construction:finished_changed', function ()
-                  local finished = blueprint:get_component('stonehearth:construction_progress'):get_finished()
+            local building = e.entity
+            radiant.events.listen(building, 'stonehearth:construction:finished_changed', function ()
+                  local finished = building:get_component('stonehearth:construction_progress'):get_finished()
                   if finished then
                      construction_complete = true
                      -- unlisten from notifications about the blueprint.  The listen code above

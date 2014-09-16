@@ -28,13 +28,13 @@ public:
 
 
    AnimationPtr LookupAnimation(std::string const& path) const;
+   voxel::QubicleFile const* LookupQubicleFile(std::string const& name);
 
    std::string ConvertToCanonicalPath(std::string const& path, const char* search_ext) const;
    std::string FindScript(std::string const& script) const;
 
    std::string GetAliasUri(std::string const& mod_name, std::string const& alias_name) const;
    std::shared_ptr<std::istream> OpenResource(std::string const& stream) const;
-   voxel::QubicleFile const* OpenQubicleFile(std::string const& name);
 
 private:
    enum MixinMode {
@@ -78,6 +78,7 @@ private:
    QubicleMap                                      qubicle_files_;
    mutable std::recursive_mutex                    mutex_;
    mutable std::unordered_map<std::string, AnimationPtr> animations_;
+
    mutable std::unordered_map<std::string, std::shared_ptr<JSONNode>>     jsons_;
    mutable std::unordered_map<std::string, std::string>    _canonicalPaths;
 };

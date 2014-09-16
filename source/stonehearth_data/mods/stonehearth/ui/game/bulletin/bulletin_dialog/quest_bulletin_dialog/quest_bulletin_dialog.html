@@ -8,12 +8,14 @@
             <div>{{{ data.progress }}}</div>
             <h2>Description</h2>
             <div>{{{ data.message }}}</div>
-            <h2>Rewards</h2>
-            <div>
-               {{#each data.rewardsArray}}
-                  {{this.label}}
-               {{/each}}
-            </div>
+            {{#if data.rewards}}
+               <h2>Rewards</h2>
+               <div>
+                  {{#each data.rewardsArray}}
+                     {{this.label}}
+                  {{/each}}
+               </div>
+            {{/if}}
          </div>
       </div>
 

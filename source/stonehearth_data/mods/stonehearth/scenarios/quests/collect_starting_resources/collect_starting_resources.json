@@ -2,11 +2,14 @@
    "scenario_data" : {
       "title" : "Town Advisory: Initial Supplies",
       "message" : "If we're going to get this town off the ground, we'll need wood, and lots of it! Chop down some nearby trees and make a stockpile to store their logs.",
-      "num_items_required" : 2,
-      "rewards" : {
-         "exp" : {
-            "type" : "exp",
-            "value" : 10
+      "num_items_required" : 8,
+      "on_accept" : {
+         "trigger_event" : {
+            "event_name" : "stonehearth_tutorial_step_finished",
+            "event_data" : {
+               "tutorial" : "starting",
+               "step" : "spawnScenario"
+            }
          }
       }
    }

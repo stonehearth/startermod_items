@@ -25,7 +25,8 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
       return shape;
    }
 
-   csg::Transform t = mob->GetWorldTransform();
+   om::EntityRef entityRoot;
+   csg::Transform t = mob->GetWorldTransform(entityRoot);
    csg::Point3f regionOrigin = mob->GetRegionOrigin();
    csg::Point3 position = csg::ToClosestInt(t.position);
    csg::Quaternion const& orientation = t.orientation;
@@ -74,7 +75,8 @@ Shape phys::WorldToLocal(Shape const& shape, om::EntityPtr entity)
       return shape;
    }
 
-   csg::Transform t = mob->GetWorldTransform();
+   om::EntityRef entityRoot;
+   csg::Transform t = mob->GetWorldTransform(entityRoot);
    csg::Matrix4 xform = t.GetMatrix();
 
    auto fShape = csg::ToFloat(shape);

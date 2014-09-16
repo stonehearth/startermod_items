@@ -6,7 +6,6 @@ end
 --On first init of game, get the game speed from the user settings/C++ defaults
 --On subsequent loads of saved games, SET the game speed from the user's choices
 function GameSpeedService:initialize()
-   self.__saved_variables:set_controller(self)
    self._sv = self.__saved_variables:get_data()
    if not self._sv._initialized then
       self._sv._initialized = true

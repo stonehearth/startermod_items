@@ -5,7 +5,6 @@ App.StonehearthConfirmView = App.View.extend({
    classNames: ['flex', 'fullScreen'],
    modal: true,
 
-
    didInsertElement: function() {
       var self = this;
 
@@ -35,5 +34,13 @@ App.StonehearthConfirmView = App.View.extend({
 
          buttonContainer.append(element);
       });
+   },
+
+   destroy: function() {
+      if (this.onDestroy) {
+         this.onDestroy();
+      }
+
+      this._super();
    }
 });

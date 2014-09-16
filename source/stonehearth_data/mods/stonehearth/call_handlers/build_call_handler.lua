@@ -31,7 +31,7 @@ function BuildCallHandler:get_service(session, request, name)
       -- address and *not* automatically convert it back!
       return stonehearth[name].__saved_variables
    end
-   request:fail('no such service')
+   request:reject('no such service')
 end
 
 function BuildCallHandler:get_client_service(session, request, name)
@@ -41,7 +41,7 @@ function BuildCallHandler:get_client_service(session, request, name)
       -- address and *not* automatically convert it back!
       return stonehearth[name].__saved_variables
    end
-   request:fail('no such service')
+   request:reject('no such service')
 end
 
 return BuildCallHandler

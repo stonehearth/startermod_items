@@ -44,6 +44,10 @@ void PathFinderDst::Start()
 {
    auto dstEntity = dstEntity_.lock();
    if (dstEntity) {
+      if (!om::IsInWorld(dstEntity)) {
+         throw core::Exception("destination entity is not in the world"); 
+      }
+
       PF_LOG(7) << "starting path finder dst for " << *dstEntity;
 
       auto destination_may_have_changed = [this](const char* reason) {

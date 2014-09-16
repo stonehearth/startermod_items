@@ -48,6 +48,9 @@ function FindTargetObserver:_unsubscribe_from_events()
    self._assault_listener:destroy()
    self._assault_listener = nil
 
+   -- This unlisten may log 'unlisten stonehearth:target_table_changed on unknown sender'
+   -- when the target table component is destroyed before this observer, thus forcing an unpublish
+   -- before we can unlisten. This is ok.
    self._table_change_listener:destroy()
    self._table_change_listener = nil
 

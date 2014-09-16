@@ -163,7 +163,6 @@ void Entity::RemoveComponent(const char* name)
    }
 }
 
-
 void Entity::OnLoadObject(dm::SerializationType r)
 {
    CacheComponent<Mob>(std::static_pointer_cast<Mob>(components_.Get(Mob::GetClassNameLower(), ComponentPtr())));
@@ -174,5 +173,48 @@ void Entity::OnLoadObject(dm::SerializationType r)
    template std::shared_ptr<Clas> Entity::AddComponent<Clas>();
 OM_ALL_COMPONENTS
 #undef OM_OBJECT
+
+bool radiant::om::IsRootEntity(EntityRef entityRef)
+{
+   om::EntityPtr entity = entityRef.lock();
+   if (entity) {
+      return IsRootEntity(entity);
+   } else {
+      return false;
+   }
+}
+
+bool radiant::om::IsRootEntity(EntityPtr entity)
+{
+   if (entity->IsValid()) {
+      return entity->GetObjectId() == 1;
+   } else {
+      return false;
+   }
+}
+
+EntityPtr radiant::om::GetEntityRoot(EntityPtr entity)
+{
+   EntityPtr parent;
+   MobPtr mob;
+
+   while (true) {
+      parent = nullptr;
+      mob = entity->GetComponent<Mob>();
+      if (mob) {
+         parent = mob->GetParent().lock();
+      }
+      if (!parent) {
+         return entity;
+      }
+      entity = parent;
+   }
+}
+
+bool radiant::om::IsInWorld(EntityPtr entity)
+{
+   EntityPtr entityRoot = GetEntityRoot(entity);
+   return IsRootEntity(entityRoot);
+}
 
 

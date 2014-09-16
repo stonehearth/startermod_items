@@ -24,7 +24,12 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       var instance = bulletin.callback_instance;
       var method = bulletin.data[callback_key];
 
-      radiant.call_obj(instance, method);
+      radiant.call_obj(instance, method)
+         .done(function(response) {
+            if (response.trigger_event) {
+               $(top).trigger(response.trigger_event.event_name, response.trigger_event.event_data);
+            }
+         });
       App.bulletinBoard.markBulletinHandled(bulletin);
       self.destroy();
    },

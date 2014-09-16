@@ -2,7 +2,7 @@ local Entity = _radiant.om.Entity
 
 local Cower = class()
 Cower.name = 'combat cower'
-Cower.status_text = 'cowering'
+Cower.status_text = 'Cowering!'
 Cower.does = 'stonehearth:combat:panic'
 Cower.args = {
    threat = Entity,

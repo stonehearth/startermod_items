@@ -48,10 +48,6 @@ end
 function FirepitComponent:destroy()
    --When the firepit is destroyed, destroy its seat entities too
    self:_shutdown()
-   if self._promise then
-      self._promise:destroy()
-      self._promise = nil
-   end
 end
 
 function FirepitComponent:get_entity()

@@ -264,6 +264,10 @@ function Fabricator:find_another_block(carrying, location)
 end
 
 function Fabricator:remove_block(location)
+   if not self._entity:is_valid() then
+      return false
+   end
+   
    -- location is in world coordinates.  transform it to the local coordinate space
    -- before building
    local origin = radiant.entities.get_world_grid_location(self._entity)

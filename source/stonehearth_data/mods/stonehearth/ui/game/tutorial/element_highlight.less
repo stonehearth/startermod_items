@@ -1,0 +1,27 @@
+.elementHighlight {
+   position: absolute;
+   width: 200px;
+   height: 200px;
+   border: 8px solid #ffc000;
+   pointer-events: none !important;
+   z-index: 99999;
+}
+
+.highlightColorCycle { 
+   -webkit-animation-name: highlightCycle; 
+   -webkit-animation-duration:0.8s; 
+   -webkit-animation-direction:alternate; 
+   -webkit-animation-iteration-count:infinite; 
+}   
+
+@-webkit-keyframes highlightCycle 
+{ 
+   0% { 
+      background-color: rgba(255, 192, 0, 0.0); 
+      border-color: rgba(255, 192, 0, 0.3); 
+   }
+   100% { 
+      background-color: rgba(255, 192, 0, 0.4); 
+      border-color: rgba(255, 192, 0, 1.0); 
+   }
+}

@@ -101,6 +101,7 @@ boost::asio::ip::tcp::acceptor* Application::FindServerPort()
 void Application::ClientThreadMain(int server_port)
 {
    crash_reporter::client::CrashReporterClient::RunWithExceptionWrapper([=]() {
+      radiant::log::SetCurrentThreadName("client");
       radiant::client::Client::GetInstance().run(server_port);
    });
 }
@@ -140,6 +141,8 @@ int Application::Run(int argc, const char** argv)
       }
       radiant::log::Init(core::System::GetInstance().GetTempDirectory() / LOG_FILENAME);
       radiant::log::InitLogLevels();
+      radiant::log::SetCurrentThreadName("server");
+
       google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, std::string const& message) {
          LOG(protobuf, 0) << " " << message;
       });

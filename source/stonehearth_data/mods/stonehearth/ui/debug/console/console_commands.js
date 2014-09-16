@@ -21,6 +21,20 @@ $(document).ready(function(){
       },
    });
 
+   radiant.console.register('destroy_entity', {
+      call: function(cmdobjs, fn, args) {
+         var entity = 'object://game/' + args[0]
+         return radiant.call('stonehearth:destroy_entity', entity);
+      }
+   });
+
+   radiant.console.register('kill_entity', {
+      call: function(cmdobjs, fn, args) {
+         var entity = 'object://game/' + args[0]
+         return radiant.call('stonehearth:kill_entity', entity);
+      }
+   });
+
    // Usage: select 12345  # enity id
    radiant.console.register('select', {
       call: function(cmdobj, fn, args) {

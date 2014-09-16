@@ -367,8 +367,14 @@ void BfsPathFinder::ConsiderAddedEntity(om::EntityPtr entity)
 
       om::MobPtr mob = entity->GetComponent<om::Mob>();
       if (mob) {
+<<<<<<< HEAD
          csg::Point3f src = pathfinder_->GetSourceLocation();
          csg::Point3f dst = mob->GetWorldGridLocation();
+=======
+         om::EntityRef entityRoot;
+         csg::Point3 src = pathfinder_->GetSourceLocation();
+         csg::Point3 dst = mob->GetWorldGridLocation(entityRoot);
+>>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
          if (src.DistanceTo(dst) <= explored_distance_) {
             BFS_LOG(7) << "considering " << *entity << " newly added to root object";
             ConsiderEntity(entity);

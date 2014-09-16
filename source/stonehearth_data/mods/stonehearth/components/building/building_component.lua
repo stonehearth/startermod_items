@@ -59,6 +59,7 @@ function Building:initialize(entity, json)
    end
    self:_trace_entity_container()
    self._traces = {}
+   self._cp_listeners = {}
 end
 
 function Building:destroy()
@@ -71,6 +72,10 @@ end
 
 function Building:_get_structures(type)
    return self._sv.structures[type]
+end
+
+function Building:get_all_structures()
+   return self._sv.structures
 end
 
 function Building:calculate_floor_region()
@@ -121,7 +126,7 @@ function Building:add_structure(entity)
       if structure then
          self._sv.structures[structure_type][id] = {
             entity = entity,
-            structure = structure
+            structure = structure,
          }
 
          if structure_type == ROOF then
@@ -215,8 +220,14 @@ function Building:clear_no_construction_zone_traces()
 end
 
 function Building:_trace_entity(entity)
+   local id = entity:get_id()
+
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
          self:remove_structure(entity)
+      end)
+
+   self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
+         self:_on_child_finished()
       end)
 
    if entity:get_component('stonehearth:roof') then
@@ -239,6 +250,11 @@ function Building:_untrace_entity(id)
       for _, trace in ipairs(traces) do
          trace:destroy()
       end
+   end
+   local listener = self._cp_listeners[id]
+   if listener then
+      listener:destroy()
+      self._cp_listeners[id] = nil
    end
 
    if self._sv.envelope_entity:is_valid() then
@@ -510,6 +526,39 @@ function Building:_recommend_patch_wall_material(origin, shape)
       end
    end
    return recommended
+end
+
+
+-- fires when a child finishes construction.  building's cannot use the dependenc/inverse_dependncy
+-- system to figure out when they're finished.  regardless of whether we're building up or tearing
+-- down, the entire building isn't finished until all of the children inside the building are
+-- finished.  manually crawl our entire entity tree to compute that, then update our contruction
+-- progress component
+--
+function Building:_on_child_finished(changed)
+   local function children_finished(entity)
+      if entity and entity:is_valid() then
+         if entity ~= self._entity then
+            local cp = entity:get_component('stonehearth:construction_progress')
+            if cp and not cp:get_finished() then
+               return false
+            end
+         end
+         
+         local ec = entity:get_component('entity_container')  
+         if ec then
+            for id, child in ec:each_child() do
+               if not children_finished(child) then
+                  return false
+               end
+            end
+         end
+      end
+      return true
+   end
+   local finished = children_finished(self._entity)
+   self._entity:get_component('stonehearth:construction_progress')
+                     :set_finished(finished)
 end
 
 return Building

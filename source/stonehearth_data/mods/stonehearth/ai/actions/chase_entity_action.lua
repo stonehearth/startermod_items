@@ -58,6 +58,9 @@ function ChaseEntity:_trace_target_location()
 
    local on_target_moved = function()
       local target_location = target_mob:get_world_grid_location()
+      if not target_location then
+         return
+      end
 
       -- include target_location in target_location_history before recalculating path
       table.insert(self._target_location_history, target_location)

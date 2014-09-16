@@ -24,7 +24,16 @@ end
 
 function radiant.create_controller(...)
    local args = { ... }
-   local name = table.remove(args, 1)
+
+   local name = args[1]
+   args[1] = nil
+   local i = 2
+   while i <= table.maxn(args) do
+      args[i - 1] = args[i]
+      args[i] = nil
+      i = i + 1
+   end
+
    local datastore = radiant.create_datastore()
    local controller = datastore:create_controller('controllers', name)
    if controller and controller.initialize then

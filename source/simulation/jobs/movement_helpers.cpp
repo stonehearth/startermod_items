@@ -54,7 +54,12 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Ent
       return csg::Region3f();
    }
 
+<<<<<<< HEAD
    csg::Point3f const origin = mob->GetWorldGridLocation();
+=======
+   om::EntityRef entityRoot;
+   csg::Point3 const origin = mob->GetWorldGridLocation(entityRoot);
+>>>>>>> ca14fdc5827f8f55cdeb7a34035d5765223ad08a
    MH_LOG(9) << *dstEntity << " location: " << origin;
 
    // If we have a destination component and there's some adjacent information in there, use that.

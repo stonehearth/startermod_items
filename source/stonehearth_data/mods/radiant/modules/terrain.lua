@@ -64,6 +64,8 @@ function Terrain.get_point_on_terrain(pt)
 end
 
 -- returns whether an entity can stand on the Point3 location
+-- @param arg0 - the entity in question
+-- @param arg1 - the location
 function Terrain.is_standable(arg0, arg1)
    if arg1 == nil then
       local location = arg0
@@ -109,10 +111,12 @@ function Terrain.get_entities_in_cube(cube, filter_fn)
 end
 
 function Terrain.get_entities_in_region(region, filter_fn)
-   local entities = {}
-   for cube in region:each_cube() do
-      for id, entity in pairs(Terrain.get_entities_in_cube(cube,filter_fn)) do
-         entities[id] = entity
+   local entities = _physics:get_entities_in_region(region)
+   if filter_fn then
+      for id, entity in pairs(entities) do
+         if not filter_fn(entity) then
+            entities[id] = nil
+         end
       end
    end
    return entities
@@ -139,6 +143,7 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
                         :on_removed(removed_cb)
 end
 
+-- only finds points at the same elevation as origin
 function Terrain.find_placement_point(origin, min_radius, max_radius)
    -- pick a random start location
    local x = rng:get_int(-max_radius, max_radius)
@@ -173,16 +178,29 @@ function Terrain.find_placement_point(origin, min_radius, max_radius)
    local pt
    local found = false
    local diameter = 2*max_radius + 1 -- add 1 to include origin square
+   local fallback_point = nil
 
    for i=1, diameter*diameter do
       if valid(x, z) then
          pt = origin + Point3(x, 0, z)
-         if _physics:is_standable(pt) and not _physics:is_occupied(pt) then
-            found = true
-            break
+
+         if _physics:is_standable(pt) then
+            if not _physics:is_occupied(pt) then
+               found = true
+               break
+            else
+               if not fallback_point then
+                  fallback_point = pt
+               end
+            end
          end
       end
       x, z = inc(x, z)
+   end
+
+   if not found then
+      -- fallback to a standable point, but still indicate not found
+      pt = fallback_point or origin
    end
 
    return pt, found
@@ -217,22 +235,22 @@ function Terrain.get_direct_path_end_point(from, to, entity, reversible)
 end
 
 -- only finds points at the same elevation as location
-function Terrain.find_closest_standable_point_to(location, max_radius, entity, require_unoccupied)
-   if require_unoccupied == nil then
-      require_unoccupied = true
-   end
+function Terrain.find_closest_standable_point_to(location, max_radius, entity)
+   local fallback_point = nil
 
-   local filter_fn = function(point)
-         if _physics:is_standable(point) then
-            if require_unoccupied then
-               return not _physics:is_occupied(point)
-            else
+   local check_point = function(point)
+         if _physics:is_standable(entity, point) then
+            if not _physics:is_occupied(entity, point) then
                return true
+            else
+               if not fallback_point then
+                  fallback_point = location
+               end
             end
          end
       end
 
-   if filter_fn(location) then
+   if check_point(location) then
       return location, true
    end
 
@@ -251,7 +269,7 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity, r
          for x = -rx, rx, sx do
             point.x = location.x + x
             point.z = location.z + z
-            if filter_fn(point) then
+            if check_point(point) then
                return point, true
             end
          end
@@ -262,15 +280,17 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity, r
          for x = -rx, rx, 2*rx do
             point.x = location.x + x
             point.z = location.z + z
-            if filter_fn(point) then
+            if check_point(point) then
                return point, true
             end
          end
       end
    end
 
-   -- return the origin and a flag indicating failure
-   return location, false
+   fallback_point = fallback_point or location
+
+   -- return the fallback_point and a flag indicating failure
+   return fallback_point, false
 end
 
 return Terrain
