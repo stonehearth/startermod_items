@@ -16,11 +16,15 @@ function ScenarioModderServices:place_entity(uri, x, y, randomize_facing)
 
    x, y = self:_bounds_check(x, y)
 
-   local entity = radiant.entities.create_entity(uri)
-
    -- switch from lua height_map base 1 coordinates to c++ base 0 coordinates
    -- swtich from scenario coordinates to world coordinates
-   radiant.terrain.place_entity(entity, Point3(x-1 + self._offset_x, 1, y-1 + self._offset_y))
+   local world_x = x-1 + self._offset_x
+   local world_y = y-1 + self._offset_y
+
+   local entity = radiant.entities.create_entity(uri)
+   local desired_location = radiant.terrain.get_point_on_terrain(Point3(world_x, 0, world_y))
+   local actual_location = radiant.terrain.find_closest_standable_point_to(desired_location, 16, entity)
+   radiant.terrain.place_entity(entity, actual_location)
 
    if randomize_facing then
       self:_set_random_facing(entity)

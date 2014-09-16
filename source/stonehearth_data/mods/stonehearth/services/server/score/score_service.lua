@@ -181,7 +181,7 @@ function ScoreService:_calculate_category_level(score_category, score_data)
    end
 
    --We must be beyond the biggest category, so set to the biggest category
-   if not score_data.level and total_score > last_lvl_threshold then
+   if not score_data.level and score_data.total_score > last_lvl_threshold then
       local num_levels = #self._score_category_data[score_category].ordered_levels
       local last_level = self._score_category_data[score_category].ordered_levels[num_levels][1]
       score_data.percentage = 100
