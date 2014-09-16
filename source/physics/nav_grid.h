@@ -56,6 +56,7 @@ class NavGrid {
 
       // Occupied Queries.  Is any entity of any kind here?
       bool IsOccupied(csg::Point3 const& worldPoint);
+      bool IsOccupied(om::EntityPtr entity, csg::Point3 const& worldPoint);
 
       // Queries.  
       bool IsEntityInCube(om::EntityPtr entity, csg::Cube3 const& worldBounds);

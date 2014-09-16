@@ -50,8 +50,11 @@ public:
 
    bool IsValid() const;
 
-protected:
+private:
    friend Store;
+   virtual void RegisterWithStreamer(Streamer *streamer) const = 0;
+
+protected:
    bool WriteDbgInfoHeader(DbgInfo &info) const;
 
 private:

@@ -32,6 +32,9 @@ public:
    typename T* end() { return items_ + C + 1; }
 
 private:
+   void RegisterWithStreamer(Streamer *streamer) const override;
+
+private:
    NO_COPY_CONSTRUCTOR(Array);
 
 private:

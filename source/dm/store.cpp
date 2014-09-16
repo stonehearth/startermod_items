@@ -13,6 +13,7 @@
 #include "object.h"
 #include "protocol.h"
 #include "lua_types.h"
+#include "streamer.h"
 
 #if defined GetMessage
 #  undef GetMessage
@@ -59,7 +60,45 @@ Store::~Store(void)
 {
 }
 
-std::unordered_map<const char*, int> Store::DumpTraceReasons()
+//
+// -- Store::AddStreamer
+//
+// Add a streamer to the store.
+//
+void Store::AddStreamer(Streamer* streamer)
+{
+   streamers_.push_back(streamer);
+
+   // Notify the new guy of the current state of the store.
+   for (const auto& entry : dynamicObjects_) {
+      ObjectPtr obj = entry.second.lock();
+      if (obj) {
+         streamer->OnAlloced(obj);
+      }
+   }
+
+   // Give all the objects a chance to register with the streamer.  We do this
+   // via a virtual function dispatch in case the object needs to invoke
+   // Streamer::TraceObject(), which requires the base type as a template
+   // parameter.
+   for (const auto& entry : objects_) {
+      entry.second->RegisterWithStreamer(streamer);
+   }
+
+}
+
+//
+// -- Store::RemoveStreamer
+//
+// Remove a streamer from the store.
+//
+void Store::RemoveStreamer(Streamer* streamer)
+{
+   stdutil::UniqueRemove(streamers_, streamer);
+}
+
+
+std::unordered_map<const char*, int> Store::GetTraceReasons()
 {
    std::unordered_map<const char*, int> reasonMap;
    for (auto const& tracelist : traces_) {
@@ -152,7 +191,7 @@ void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos, std::vecto
 
       msg.Clear();
       obj->SaveObject(PERSISTANCE, &msg);
-
+ 
       uint32 size = msg.ByteSize();
       STORE_LOG(8) << "writing object " << id << " size " << size;
       cos.WriteLittleEndian32(size);
@@ -379,6 +418,7 @@ void Store::RegisterObject(Object& obj)
    // registered or unregistered.
    ASSERT(!saving_);
    ASSERT(obj.IsValid());
+
    if (objects_.find(obj.GetObjectId()) != objects_.end()) {
       throw std::logic_error(BUILD_STRING("data mode object " << obj.GetObjectId() << "being registered twice."));
    }
@@ -387,6 +427,12 @@ void Store::RegisterObject(Object& obj)
    Object* pobj = &obj;
    objects_[id] = pobj;
 
+   // Give the obj an opportunity to register with all our streamers.
+   for (Streamer* s : streamers_) {
+      obj.RegisterWithStreamer(s);
+   }
+
+   // Fire the OnRegistered cb on all our store traces.
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalRegistered(pobj);
    });
@@ -417,6 +463,12 @@ void Store::UnregisterObject(const Object& obj)
       traces_.erase(i);
    }
 
+   // Let all the streamers know the object has been nuked.
+   for (Streamer* s : streamers_) {
+      s->OnDestroyed(id, dynamic);
+   }
+
+   // Fire all the OnDestroyed() cbs on our store traces.
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalDestroyed(id, dynamic);
    });
@@ -454,6 +506,12 @@ void Store::OnAllocObject(std::shared_ptr<Object> obj)
    ObjectId id = obj->GetObjectId();
    dynamicObjects_[id] = obj;
 
+   // Notify all the streamers that there's a new dynamic object.
+   for (Streamer* s : streamers_) {
+      s->OnAlloced(obj);
+   }
+
+   // Fire the OnAlloced callback on all our store traces.
    stdutil::ForEachPrune<StoreTrace>(store_traces_, [=](StoreTracePtr trace) {
       trace->SignalAllocated(obj);
    });
@@ -582,6 +640,7 @@ void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> 
 {
    ObjectId id = obj.GetObjectId();
    obj.MarkChanged();
+
    ForEachTrace<TraceType>(id, cb);
 }
 
@@ -626,6 +685,11 @@ void Store::OnBoxedChanged(T& boxed, typename T::Value const& value)
    MarkChangedAndFire<T, BoxedTrace<T>>(boxed, [&](BoxedTrace<T>& trace) {
       trace.NotifyChanged(value);
    });
+
+   // Signal all the streamers that the box has been modified.
+   for (Streamer* s : streamers_) {
+      s->OnModified(&boxed);
+   }
 }
 
 void Store::OnRecordFieldChanged(Record const& record)

@@ -50,6 +50,9 @@ private:
    typename ContainerType::const_iterator const& GetLastErasedIterator() const;
 
 private:
+   void RegisterWithStreamer(Streamer *streamer) const override;
+
+private:
    NO_COPY_CONSTRUCTOR(Map);
 
 private:
