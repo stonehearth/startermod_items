@@ -8,19 +8,20 @@ from ridl.om_types import *
 class Terrain(Component):
    block_types = ridl.Enum('Terrain', 'BlockTypes',
       Null          = 0,
-      Soil          = 1,
-      SoilStrata    = 2,
-      Dirt          = 4,
-      Grass         = 5,
-      DarkGrass     = 6,
-      Wood          = 9,
-      Boulder       = 10,
-      RockLayer1    = 11,
-      RockLayer2    = 12,
-      RockLayer3    = 13,
-      RockLayer4    = 14,
-      RockLayer5    = 15,
-      RockLayer6    = 16
+      Bedrock       = 1,
+      RockLayer1    = 100,
+      RockLayer2    = 101,
+      RockLayer3    = 102,
+      RockLayer4    = 103,
+      RockLayer5    = 104,
+      RockLayer6    = 105,
+      SoilLight     = 200,
+      SoilDark      = 201,
+      Grass         = 300,
+      GrassEdge1    = 301,
+      GrassEdge2    = 302,
+      Dirt          = 400,
+      DirtEdge1     = 401,
     )
 
    tiles = dm.Map(csg.Point3f(), Region3fBoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
@@ -33,10 +34,11 @@ class Terrain(Component):
    get_bounds = ridl.Method(csg.Cube3f()).const
    add_tile = ridl.Method(c.void(),
                           ('tile_offset', csg.Point3f().const.ref),
-                          ('region3', Region3fBoxedPtr()))
+                          ('region', csg.Region3f().const.ref))
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
    _includes = [
+      "om/components/terrain_tesselator.h",
       "om/region.h",
       "csg/util.h",
       "csg/point.h"
@@ -49,5 +51,6 @@ class Terrain(Component):
 
    _private = \
    """
+   TerrainTesselator terrainTesselator_;
    csg::Cube3f CalculateBounds() const;
    """
