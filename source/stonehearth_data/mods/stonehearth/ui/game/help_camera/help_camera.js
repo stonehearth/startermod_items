@@ -65,10 +65,7 @@ App.StonehearthHelpCameraView = App.View.extend({
          // hide the zoom hint after a few seconds if it's not already gone
          setTimeout(function() {
             if (!self._zoomDone) {
-               $("#zoomHint").fadeOut(250, function() {
-                  self._createCamp();
-               });
-               
+               self._updateHints({ zoom: true});
             }
          }, 3000);
       }
@@ -80,7 +77,10 @@ App.StonehearthHelpCameraView = App.View.extend({
    },
 
    _createCamp: function() {
-      App.gameView.addView(App.StonehearthCreateCampView)
+      if (!this._campCreated) {
+         App.gameView.addView(App.StonehearthCreateCampView)
+         this._campCreated = true;        
+      }
       this.destroy();      
    }
 
