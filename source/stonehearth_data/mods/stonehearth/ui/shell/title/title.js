@@ -74,22 +74,60 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       $(document).click(function(e) {
          $('#titlescreen').show();
+         self._showAlphaScreen();
       });
 
       $('#radiant').fadeIn(800);
       
       setTimeout(function() {
          $('#titlescreen').fadeIn(800, function() {
-
+            self._showAlphaScreen();
+            /*
             radiant.call('radiant:get_collection_status')
                .done(function(o) {
                   if (!o.has_expressed_preference) {
                      self.get('parentView').addView(App.StonehearthAnalyticsOptView)
                   }
                }); 
+            */
 
          });
       }, 3000)
+   },
+
+   _showAlphaScreen: function() {
+      if (this._alphaScreenShown) {
+         return;
+      }
+
+      this._alphaScreenShown = true;
+      radiant.call('radiant:get_config', 'alpha_welcome')
+         .done(function(o) {
+            if (!o.hide) {
+               App.shellView.addView(App.StonehearthConfirmView, 
+                  { 
+                     title : "Welcome to Stonehearth Alpha 5",
+                     message : "Warning: this is Alpha quality software. It's missing many features, and you can expect to encounter bugs as you play.<br><br>You can help by automatically sending us crash reports for your game. Would you like to do this?",
+                     buttons : [
+                        { 
+                           label: "Yes, send crash reports",
+                           click: function () {
+                              radiant.call('radiant:set_collection_status', true)
+                              radiant.call('radiant:set_config', 'alpha_welcome', { hide: true});
+                           }
+                        },
+                        { 
+                           label: "Nope",
+                           click: function () {
+                              radiant.call('radiant:set_collection_status', false)
+                              radiant.call('radiant:set_config', 'alpha_welcome', { hide: true});
+                           }
+                        }                              
+                     ] 
+                  });
+            }
+         })
+
    },
 
    actions: {
