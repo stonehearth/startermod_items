@@ -8,6 +8,7 @@ local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
+local TraceCategories = _radiant.dm.TraceCategories
 
 local INFINITE = 10000000
 
@@ -231,7 +232,7 @@ function Building:_trace_entity(entity)
       end)
 
    if entity:get_component('stonehearth:roof') then
-      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof')
+      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
                               :on_changed(function()
                                     self:layout_roof(entity)
                                  end)
@@ -321,6 +322,8 @@ function Building:unlink_entity(entity)
 end
 
 function Building:layout_roof(roof)
+   assert(stonehearth.build:in_transaction())
+
    -- first, layout the roof
    if roof then
       roof:get_component(ROOF)
