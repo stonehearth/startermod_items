@@ -1,6 +1,7 @@
 local ConstructionRenderTracker = class()
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local INFINITE = 100000000
 local RPG_REGION_HEIGHT = 2
 
@@ -78,7 +79,9 @@ end
 --    @param normal - Your normal as a Point3
 --
 function ConstructionRenderTracker:set_normal(normal)
-   self._normal = normal
+   if normal then
+      self._normal = Point3f(normal.x, normal.y, normal.z)
+   end
    return self   
 end
 
@@ -235,28 +238,20 @@ end
 -- we should be rendered in xray mode.  updates the visibilty state appropriately.
 --
 function ConstructionRenderTracker:_update_camera()
-   local function dot_product(p0, p1)
-      return (p0.x * p1.x) + (p0.y * p1.y) + (p0.z * p1.z)
-   end
-
-   local function sign(n)
-      return n > 0 and 1 or -1   
-   end
-
    self._build_mode_visible = true
    local mode = stonehearth.renderer:get_building_vision_mode()
    if mode == 'xray' then
       if self._normal then
-         -- move the camera relative to the mob
-         local x0 = stonehearth.camera:get_position() - self._entity:get_component('mob'):get_world_location()
+         local mob_location = self._entity:get_component('mob'):get_world_location()
 
-         -- thank you, mr. wolfram.   http://mathworld.wolfram.com/HessianNormalForm.html
-         -- The point-plane distance from a point x_0 to a plane (6) is given by the simple equation:
-         --
-         --    D = n dot x0 + p
-         --
-         -- p is zero, since we translated x0 into object space.
-         self._build_mode_visible = dot_product(self._normal, x0) < 0
+         -- It could be the case that we get a callback while we're being removed from the world.
+         if mob_location then
+            -- move the camera relative to the mob
+            local x0 = stonehearth.camera:get_position() - mob_location
+
+            -- Are we in front of, or behind, the object's plane?
+            self._build_mode_visible = self._normal:dot(x0) < 0
+         end
       end
    end
    self:_update_visible()
