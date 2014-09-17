@@ -10,7 +10,7 @@ using namespace ::radiant::csg;
 #define MT_LOG(level)      LOG(csg.meshtools, level)
 
 mesh_tools::mesh_tools() :
-   tesselators_(nullptr),
+   colorMap_(nullptr),
    offset_(-0.5f, 0.0f, -0.5f)
 {
 }
@@ -21,9 +21,9 @@ mesh_tools& mesh_tools::SetOffset(Point3f const& offset)
    return *this;
 }
 
-mesh_tools& mesh_tools::SetTesselator(tesselator_map const& t)
+mesh_tools& mesh_tools::SetColorMap(std::unordered_map<int, Point4f> const& colorMap)
 {
-   tesselators_ = &t;
+   colorMap_ = &colorMap;
    return *this;
 }
 
@@ -175,14 +175,14 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
       // this is super gross.  instead of passing in a tess map, we should parameterize the 
       // mesh_tools object with a function that we can call...  or better yet, dump this
       // thing and do tesselation on the server!
-      if (!tesselators_) {         
+      if (!colorMap_) {         
          Color3 c= Color3::FromInteger(tag);
          Point4f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 1.0f);
          m.add_face(points, normal, color);
       } else {
-         auto i = tesselators_->find(tag);
-         if (i != tesselators_->end()) {
-            i->second(tag, points, normal, m);
+         auto i = colorMap_->find(tag);
+         if (i != colorMap_->end()) {
+            m.add_face(points, normal, i->second);
          } else {
             // xxx: get the winding right...
             Color3 c = Color3::FromInteger(tag);

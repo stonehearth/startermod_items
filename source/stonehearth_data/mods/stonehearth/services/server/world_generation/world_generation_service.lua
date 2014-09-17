@@ -13,6 +13,7 @@ local OverviewMap = require 'services.server.world_generation.overview_map'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point3 = _radiant.csg.Point3
+local Region3 = _radiant.csg.Region3
 
 local WorldGenerationService = class()
 local log = radiant.log.create_logger('world_generation')
@@ -274,14 +275,13 @@ end
 function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_map, offset_x, offset_y)
    local offset = Point3(offset_x, 0, offset_y)
    local renderer = self._height_map_renderer
-   local region3_boxed
+   local region3 = Region3()
 
    local seconds = Timer.measure(
       function()
-         region3_boxed = renderer:create_new_region()
-         renderer:render_height_map_to_region(region3_boxed, tile_map)
-         --self._landscaper:place_boulders(region3_boxed, tile_map, feature_map)
-         renderer:add_region_to_terrain(region3_boxed, offset)
+         renderer:render_height_map_to_region(region3, tile_map)
+         --self._landscaper:place_boulders(region3, tile_map, feature_map)
+         renderer:add_region_to_terrain(region3, offset)
       end
    )
 

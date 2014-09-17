@@ -1,6 +1,7 @@
 #include "radiant.h"
 #include "mob.ridl.h"
 #include "terrain.ridl.h"
+#include "terrain_tesselator.h"
 #include "om/entity.h"
 #include "om/region.h"
 
@@ -24,10 +25,18 @@ void Terrain::SerializeToJson(json::Node& node) const
    Component::SerializeToJson(node);
 }
 
-void Terrain::AddTile(csg::Point3f const& tile_offset, Region3fBoxedPtr region3)
+void Terrain::AddTile(csg::Point3f const& tile_offset, csg::Region3f const& region)
 {
+   Region3fBoxedPtr boxedTesselatedRegion = GetStore().AllocObject<Region3fBoxed>();
+
+   boxedTesselatedRegion->Modify([this, &region](csg::Region3f& tesselatedRegion) {
+         csg::Region3 temp;
+         terrainTesselator_.TesselateTerrain(csg::ToInt(region), temp);
+         tesselatedRegion = csg::ToFloat(temp);
+      });
+
    // tiles are stored using the location of their 0, 0 coordinate in the world
-   tiles_.Add(tile_offset, region3);
+   tiles_.Add(tile_offset, boxedTesselatedRegion);
 
    cached_bounds_ = CalculateBounds();
 }
