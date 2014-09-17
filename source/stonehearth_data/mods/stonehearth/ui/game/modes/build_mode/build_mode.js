@@ -69,6 +69,7 @@ App.StonehearthBuildModeView = App.View.extend({
       if (this._buildDesignerTools) {
          this._buildDesignerTools.invokeDestroy();
          this._buildDesignerTools = null;
+         App.stonehearthClient.hideTip();
       }
    },
 
