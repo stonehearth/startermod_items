@@ -112,9 +112,8 @@ end
 
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
    local floor
-   local curb
-   local success = self:do_command('add_road', response, function()
-         floor, curb = self:add_road(session, floor_uri, ToCube3(box), brush_shape, nil, nil)
+   local success = self:do_command('add_floor', response, function()
+         floor = self:add_floor(session, floor_uri, ToCube3(box), brush_shape)
       end)
 
    if success then
@@ -127,6 +126,26 @@ function BuildService:add_floor_command(session, response, floor_uri, box, brush
          })
       else
          response:reject({ error = 'could not create floor' })
+      end
+   end
+end
+
+function BuildService:add_road_command(session, response, road_uri, box, brush_shape)
+   local road
+   local success = self:do_command('add_road', response, function()
+         road = self:add_road(session, road_uri, ToCube3(box), brush_shape)
+      end)
+
+   if success then
+      -- if we managed to create some road, return the fabricator to the client as the
+      -- new selected entity.  otherwise, return an error.
+      if road then
+         local road_fab = road:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+         response:resolve({
+            new_selection = road_fab
+         })
+      else
+         response:reject({ error = 'could not create road' })
       end
    end
 end

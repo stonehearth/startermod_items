@@ -120,6 +120,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.$('#wallToolTab').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
             self.$('.roofMaterialsContainer').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
             self.$('#doodadToolTab').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
+            self.$('#roadToolTab').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'roadMaterial'));
 
             self._addEventHandlers();
             self._restoreUiState();
@@ -299,6 +300,21 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       }
 
+      // roads tab
+      var doDrawRoad = function() {
+         var brush = self.$('#roadToolTab .roadMaterial.selected').attr('brush');
+         App.stonehearthClient.buildRoad(brush, 
+            activateElement('#drawRoadTool'))
+            .fail(self._deactivateTool('#drawRoadTool'))
+            .done(function() {
+               doDrawRoad(false);
+            });
+      };
+
+      this.$('#drawRoadTool').click(function() {
+         doDrawRoad(true);
+      });
+
       this.$('#drawFloorTool').click(function() {
          doDrawFloor(true);
       });
@@ -334,7 +350,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          // Re/activate the floor tool with the new material
          doDrawFloor(true);
-      })      
+      });
+
+      // floor materials
+      this.$('.roadMaterial').click(function() {
+         self.$('.roadMaterial').removeClass('selected');
+         $(this).addClass('selected');
+
+         self._state.roadMaterial = $(this).attr('index');
+         self._saveState();
+
+         // Re/activate the floor tool with the new material
+         doDrawRoad(true);
+      });
 
       // wall materials
       this.$('#wallToolTab .wallMaterial').click(function() {
@@ -486,6 +514,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.floorMaterial) {
                self._state.floorMaterial = 0;
             }
+            if (!self._state.roadMaterial) {
+               self._state.roadMaterial = 0;
+            }
             if (!self._state.wallMaterial) {
                self._state.wallMaterial = 0;
             }
@@ -528,6 +559,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          $(self.$('#wallToolTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
          $(self.$('#roofToolTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
          $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
+         $(self.$('#roadToolTab .roadMaterial')[self._state.roadMaterial]).addClass('selected');
 
          // most recently selected tab
          self.$("[tab='" + self._state.activeTabId + "']").click();

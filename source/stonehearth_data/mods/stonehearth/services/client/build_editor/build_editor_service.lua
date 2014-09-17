@@ -2,6 +2,7 @@ local BuildEditorService = class()
 -- xxx: move all the proxy stuff to the client! - tony
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
+local RoadEditor = require 'services.client.build_editor.road_editor'
 local FloorEraser = require 'services.client.build_editor.floor_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
@@ -101,6 +102,11 @@ end
 function BuildEditorService:erase_floor(session, response, brush_shape)
    FloorEraser(self._build_service)
          :go(response)
+end
+
+function BuildEditorService:place_new_road(session, response, brush_shape)
+   RoadEditor(self._build_service)
+         :go(response, brush_shape)
 end
 
 function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri)

@@ -394,6 +394,22 @@ var StonehearthClient;
          }, precall);
       },
 
+      buildRoad: function(roadBrush, precall) {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:build_road_tip_title', 'stonehearth:build_road_tip_description', { i18n: true });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'place_new_road', roadBrush)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         }, precall);
+      },
+
       growRoof: function(roof, precall) {
          var self = this;
 

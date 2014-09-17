@@ -7,6 +7,7 @@
          <div hotkey="g" id="wallToolButton" class="tabButton wallToolButton" tab="wallToolTab" buildingType="wall"><div class="icon" /><div class="label">{{i18n stonehearth:building_designer_fill_wall_tool}}</div></div>
          <div hotkey="r" id="roofToolButton" class="tabButton roofToolButton" tab="roofToolTab" buildingType="roof"><div class="icon" /><div class="label">{{i18n stonehearth:building_designer_roof_tool}}</div></div>
          <div hotkey="n" id="doodadToolButton" class="tabButton doodadToolButton" tab="doodadToolTab" buildingType="doodad"><div class="icon" /><div class="label">{{i18n stonehearth:building_designer_door_tool}}</div></div>
+         <div hotkey="o" id="roadToolButton" class="tabButton roadToolButton" tab="roadToolTab" buildingType="road"><div class="icon" /><div class="label">{{i18n stonehearth:building_designer_road_tool}}</div></div>
          <div class="tabButton" id="undoTool"><div class="icon" /><div class="label">{{i18n stonehearth:building_designer_undo}}</div></div>
       </div>
 
@@ -16,7 +17,7 @@
 
          <h2>Tools</h2>
          <div class="section toolPalette">
-         <div id="drawFloorTool" class="toolButton"></div>
+            <div id="drawFloorTool" class="toolButton"></div>
             <div id="eraseFloorTool" class="toolButton"></div>
          </div>
 
@@ -64,6 +65,19 @@
 
          <!-- Material palette built dynamically and inserted here -->
          
+      </div>
+
+      <div class="tabPage" id="roadToolTab">
+         <h2>{{i18n stonehearth:building_designer_draw_roads}}</h2>
+         {{i18n stonehearth:building_designer_draw_roads_help}}
+
+         <h2>Tools</h2>
+         <div class="section toolPalette">
+            <div id="drawRoadTool" class="toolButton"></div>
+         </div>
+
+         <!-- Material palette built dynamically and inserted here -->
+
       </div>
 
    </div>
