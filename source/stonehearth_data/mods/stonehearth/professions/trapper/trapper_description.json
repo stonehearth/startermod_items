@@ -2,8 +2,8 @@
    "profession_id": "trapper",
    "alias": "stonehearth:professions:trapper",
    "name": "Trapper",   
-   "description": "Traps stuff, yay.",
-   "script": "file(/professions/trapper/trapper.lua)",
+   "description": "Turns small critters into food and pets",
+   "controller" : "stonehearth:class:trapper", 
    "talisman_uri" : "stonehearth:trapper:knife_talisman",
    "default_stance" : "defensive",
 

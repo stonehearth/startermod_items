@@ -1,10 +1,14 @@
-local trapper_class = {}
+local TrapperClass = class() 
 
-function trapper_class.promote(entity, json, talisman_uri)
-   stonehearth.combat:set_stance(entity, 'defensive')
+function TrapperClass:initialize(entity)
+   self._sv._entity = entity
+   self._sv.last_gained_lv = 0
 end
 
-function trapper_class.demote(entity)
+function TrapperClass:promote(json)
 end
 
-return trapper_class
+function TrapperClass:demote()
+end
+
+return TrapperClass

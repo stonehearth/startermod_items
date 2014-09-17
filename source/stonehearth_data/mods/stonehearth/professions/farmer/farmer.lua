@@ -1,12 +1,17 @@
-local farmer_class = {}
+local FarmerClass = class()
 
-function farmer_class.promote(entity)
+function FarmerClass:initialize(entity)
+   self._sv.entity = entity
+   self._sv.last_gained_lv = 0
 end
 
-function farmer_class.restore(entity)
+function FarmerClass:promote()
 end
 
-function farmer_class.demote(entity)
+function FarmerClass:restore()
 end
 
-return farmer_class
+function FarmerClass:demote()
+end
+
+return FarmerClass

@@ -3,9 +3,9 @@
    "alias": "stonehearth:professions:farmer",
 
    "name": "Farmer",
-   "description": "Farmer", 
+   "description": "Grows food and other useful crops", 
+   "controller" : "stonehearth:class:farmer", 
 
-   "script": "file(farmer.lua)",
    "talisman_uri" : "stonehearth:farmer:hoe_talisman",
    "default_stance" : "passive",
 

@@ -3,7 +3,7 @@
    "alias" : "stonehearth:professions:weaver",
    "name": "Weaver",      
    "description" : "The weaver makes thread, fabrics and hangings from fiber and dye.", 
-   "script": "file(/professions/weaver/weaver.lua)",
+   "controller" : "stonehearth:class:weaver", 
    "talisman_uri" : "stonehearth:weaver:spindle_talisman", 
    "default_stance" : "passive",
    

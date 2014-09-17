@@ -9,14 +9,20 @@ function ProfessionComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.total_level = 1
+      self._sv.profession_controllers = {}
+      if json and json.total_lv then
+         self._sv.total_level = json.total_level
+      end
+   end
+
    if self._sv.profession_uri then
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
             self._profession_json = radiant.resources.load_json(self._sv.profession_uri, true)
 
             if self._profession_json then
-               self:_load_profession_script(self._profession_json)
-               self:_call_profession_script('restore', self._profession_json)
-
                --Add self back to the right task groups
                if self._profession_json.task_groups then
                   self:_add_to_task_groups(self._profession_json.task_groups)
@@ -45,11 +51,6 @@ function ProfessionComponent:_on_kill_event()
    end
 end
 
--- xxx, I think this might be dead code, -Tom
-function ProfessionComponent:get_profession_id()
-   return self._sv.profession_id
-end
-
 function ProfessionComponent:get_profession_uri()
    return self._sv.profession_uri
 end
@@ -65,7 +66,7 @@ function ProfessionComponent:promote_to(profession_uri)
       self._sv.profession_uri = profession_uri
       self._sv.talisman_uri = self._profession_json.talisman_uri
       
-      self._sv.level = 1
+      --Whenever you get a new job, dump all the xp that you've accured so far to your next level
       self._sv.current_level_exp = 0
       
       if self._profession_json.levels ~= nil then
@@ -74,13 +75,19 @@ function ProfessionComponent:promote_to(profession_uri)
          self._sv.total_level_exp = -1
       end
       
-      self:_load_profession_script(self._profession_json)
       self:_set_unit_info(self._profession_json)
       self:_equip_outfit(self._profession_json)
       self._sv._default_stance = self._profession_json.default_stance
       self:reset_to_default_comabat_stance()
 
-      self:_call_profession_script('promote', self._profession_json, self._sv.talisman_uri)
+      --Create the profession controller, if we don't yet have one
+      if not self._sv.profession_controllers[self._sv.profession_uri] then
+         --create the controller
+         self._sv.profession_controllers[self._sv.profession_uri] = 
+            radiant.create_controller(self._profession_json.controller, self._entity)
+      end
+      self._sv._curr_profession_controller = self._sv.profession_controllers[self._sv.profession_uri]
+      self._sv._curr_profession_controller:promote(self._profession_json, self._sv.talisman_uri)
       
       if self._profession_json.task_groups then
          self:_add_to_task_groups(self._profession_json.task_groups)
@@ -93,7 +100,11 @@ end
 
 function ProfessionComponent:demote()
    self:_remove_outfit()
-   self:_call_profession_script('demote')
+
+   if self._sv._curr_profession_controller then
+      self._sv._curr_profession_controller:demote()
+      self._sv._curr_profession_controller = nil
+   end
 
    self._sv._default_stance = 'passive'
    self:reset_to_default_comabat_stance()
@@ -102,15 +113,21 @@ function ProfessionComponent:demote()
       self:_remove_from_task_groups(self._profession_json.task_groups)
    end
 
-   self._sv.profession_id = nil
    self.__saved_variables:mark_changed()
 end
 
+--TODO: Call this from the profession scripts
+-- sanitize level up 
+-- add level xp req. to the professions
+-- is XP per level really a class thing? Really, shouldn't it be harder to level up as you get higher level?
+-- do like D&D if you want to limit class switching, do like Bravely Default if you want to encourage it
 function ProfessionComponent:add_exp(value)
    self._sv.current_level_exp = self._sv.current_level_exp + value
 
    while self._sv.current_level_exp > self._sv.total_level_exp do
-      self._sv.level = self._sv.level + 1
+      self._sv.level = self._sv.current_level_exp + 1
+      self._sv.total_level = self._sv.total_level + 1
+
       self._sv.current_level_exp = self._sv.current_level_exp - self._sv.total_level_exp
 
       self:_call_profession_script('level_up')
@@ -122,6 +139,7 @@ function ProfessionComponent:add_exp(value)
    self.__saved_variables:mark_changed()   
 end
 
+--TODO: nobody is calling this right now
 function ProfessionComponent:level_up()
 
 end

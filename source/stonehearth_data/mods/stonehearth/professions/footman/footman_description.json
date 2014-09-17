@@ -2,8 +2,8 @@
    "profession_id": "footman",
    "alias": "stonehearth:professions:footman",
    "name": "Footman",      
+   "controller" : "stonehearth:class:footman", 
    "description": "A melee fighter",
-   "script": "file(footman.lua)",
    "talisman_uri" : "stonehearth:weapons:wooden_sword_talisman",
    "default_stance": "aggressive",
 

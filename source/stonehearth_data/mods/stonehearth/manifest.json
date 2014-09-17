@@ -989,6 +989,13 @@
       "bulletin" : "file(services/server/bulletin_board/bulletin.lua)",
       "town" : "file(services/server/town/town.lua)",
 
+      "class:worker" : "file(professions/worker/worker.lua)", 
+      "class:carpenter" : "file(professions/carpenter/carpenter.lua)", 
+      "class:footman" : "file(professions/footman/footman.lua)", 
+      "class:farmer" : "file(professions/farmer/farmer.lua)", 
+      "class:trapper" : "file(professions/trapper/trapper.lua)", 
+      "class:weaver" : "file(professions/weaver/weaver.lua)",
+
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",

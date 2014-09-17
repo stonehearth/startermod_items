@@ -1,10 +1,18 @@
-local carpenter_class = {}
+local CarpenterClass = class()
 
-function carpenter_class.promote(entity, json)
-   entity:add_component("stonehearth:crafter", json.crafter)
+function CarpenterClass:initialize(entity)
+   self._sv._entity = entity
+   self._sv.last_gained_lv = 0
+end
+
+function CarpenterClass:restore()
+end
+
+function CarpenterClass:promote(json)
+   self._sv._entity:add_component("stonehearth:crafter", json.crafter)
 
    --Make sure that the build workshop command has a reference to this file
-   local command_component = entity:get_component('stonehearth:commands')
+   local command_component = self._sv._entity:get_component('stonehearth:commands')
    if command_component then
       command_component:modify_command('build_workshop', function(command) 
             command.event_data.profession_info = '/stonehearth/professions/carpenter/carpenter_description.json'
@@ -12,9 +20,9 @@ function carpenter_class.promote(entity, json)
    end
 end
 
-function carpenter_class.demote(entity)
+function CarpenterClass:demote()
    --TODO: Fix! Currently, there is no entity:remove_component!
-   entity:remove_component("stonehearth:crafter")
+   self._sv._entity:remove_component("stonehearth:crafter")
 end
 
-return carpenter_class
+return CarpenterClass

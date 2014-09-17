@@ -1,9 +1,9 @@
 {
    "profession_id": "carpenter",
    "alias": "stonehearth:professions:carpenter",
-   "name": "Carpenter",      
+   "name": "Carpenter",   
+   "controller" : "stonehearth:class:carpenter",   
    "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",
-   "script": "file(carpenter.lua)",
    "equipment" : {
       "abilities" : "file(carpenter_abilities)",
       "torso" : "file(carpenter_outfit)",

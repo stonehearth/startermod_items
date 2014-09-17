@@ -1,24 +1,23 @@
 local Point3 = _radiant.csg.Point3
 
-local singleton = {
-   _schedulers = {}
-}
-local worker_class = {}
+local WorkerClass = class()
 
-function worker_class.promote(entity)
-   worker_class.restore(entity)
+--[[
+   A controller that manages all the relevant data about the worker class
+]]
 
-   stonehearth.combat:set_stance(entity, 'passive')
+function WorkerClass:initialize(entity)
+   self._sv.entity = entity
+   self._sv.last_gained_lv = 0
 end
 
-function worker_class.restore(entity)
-   --local town = stonehearth.town:get_town(entity)
-   --town:join_task_group(entity, 'workers')
+function WorkerClass:restore()
 end
 
-function worker_class.demote(entity)
-   --local town = stonehearth.town:get_town(entity)
-   --town:leave_task_group(entity, 'workers')
+function WorkerClass:promote()
 end
 
-return worker_class
+function WorkerClass:demote()
+end
+
+return WorkerClass

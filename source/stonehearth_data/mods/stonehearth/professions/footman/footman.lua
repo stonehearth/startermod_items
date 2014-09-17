@@ -1,11 +1,16 @@
-local footman_class = {}
+local FootmanClass = class()
 
-function footman_class.promote(entity, json, talisman_uri)
+function FootmanClass:initialize(entity)
+   self._sv._entity = entity
+   self._sv.last_gained_lv = 0
 end
 
-function footman_class.demote(entity)
+function FootmanClass:promote(json)
+end
+
+function FootmanClass:demote()
    -- TODO: unequip the weapon
    assert(false, 'not implemented')
 end
 
-return footman_class
+return FootmanClass

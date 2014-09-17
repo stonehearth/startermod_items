@@ -1,7 +1,7 @@
 {
    "alias": "stonehearth:professions:worker",
    "name": "Worker",
-   "script" : "file(worker.lua)",
+   "controller" : "stonehearth:class:worker",
    "default_stance" : "passive",
 
    "equipment" : {
