@@ -564,18 +564,30 @@ end
 function BuildService:grow_roof_command(session, response, building, roof_uri, options)
    local roof
    local success = self:do_command('grow_roof', response, function()
-         roof = self:_grow_roof(building, roof_uri, options)
+         roof = self:grow_roof(building, roof_uri, options)
       end)
 
    if success then
-      assert(roof)
-      response:resolve({
-         new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
-      })
+      if roof then     
+         response:resolve({
+            new_selection = roof:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+         })
+      else
+         response:reject({
+            error = 'failed to grow roof'
+         })
+      end
    end
 end
 
-function BuildService:_grow_roof(building, roof_uri, options)
+function BuildService:grow_roof(building, roof_uri, options)
+   local structures = building:get_component('stonehearth:building')
+                              :get_all_structures()
+   if next(structures['stonehearth:roof']) then
+      self._log:info('already have roof in building %s.  not growing.', building)
+      return
+   end
+
    -- compute the xz cross-section of the roof by growing the floor
    -- region by 2 voxels in every direction
    local region2 = building:get_component('stonehearth:building')
