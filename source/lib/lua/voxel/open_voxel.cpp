@@ -53,6 +53,26 @@ csg::Region3f QubicleBrush_PaintThroughStencil(QubicleBrush &brush, csg::Region3
    return csg::ToFloat(brush.PaintThroughStencil(csg::ToInt(stencil)));
 }
 
+NineGridBrush &NineGridBrush_SetGridShape(NineGridBrush &brush, csg::Region2f const& shape)
+{
+   return brush.SetGridShape(csg::ToInt(shape));
+}
+
+NineGridBrush &NineGridBrush_SetNormal(NineGridBrush &brush, csg::Point3f const& normal)
+{
+   return brush.SetNormal(csg::ToInt(normal));
+}
+
+csg::Region3f NineGridBrush_PaintThroughStencil(NineGridBrush &brush, csg::Region3f const& stencil)
+{
+   return csg::ToFloat(brush.PaintThroughStencil(csg::ToInt(stencil)));
+}
+
+csg::Region3f NineGridBrush_PaintOnce(NineGridBrush &brush)
+{
+   return csg::ToFloat(brush.PaintOnce());
+}
+
 DEFINE_INVALID_JSON_CONVERSION(QubicleBrush);
 DEFINE_INVALID_JSON_CONVERSION(NineGridBrush);
 
@@ -86,16 +106,16 @@ void lua::voxel::open(lua_State* L)
                   value("Back",     NineGridBrush::POSITIVE_Z),
                   value("Front",    NineGridBrush::NEGATIVE_Z)
                ]
-               .def("set_normal",             &NineGridBrush::SetNormal)
+               .def("set_normal",             &NineGridBrush_SetNormal)
                .def("set_y_offset",           &NineGridBrush::SetYOffset)
                .def("set_paint_mode",         &NineGridBrush::SetPaintMode)
-               .def("set_grid_shape",         &NineGridBrush::SetGridShape)
+               .def("set_grid_shape",         &NineGridBrush_SetGridShape)
                .def("set_clip_whitespace",    &NineGridBrush::SetClipWhitespace)
                .def("set_slope",              &NineGridBrush::SetSlope)
                .def("set_max_height",         &NineGridBrush::SetMaxHeight)
                .def("set_gradiant_flags",     &NineGridBrush::SetGradiantFlags)
-               .def("paint_once",             &NineGridBrush::PaintOnce)
-               .def("paint_through_stencil",  &NineGridBrush::PaintThroughStencil)
+               .def("paint_once",             &NineGridBrush_PaintOnce)
+               .def("paint_through_stencil",  &NineGridBrush_PaintThroughStencil)
          ]
       ]
    ];
