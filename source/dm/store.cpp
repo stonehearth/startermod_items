@@ -463,6 +463,8 @@ void Store::UnregisterObject(const Object& obj)
       traces_.erase(i);
    }
 
+   recordFieldMap_.erase(id);
+
    // Let all the streamers know the object has been nuked.
    for (Streamer* s : streamers_) {
       s->OnDestroyed(id, dynamic);
@@ -642,6 +644,13 @@ void Store::MarkChangedAndFire(T& obj, std::function<void(typename TraceType&)> 
    obj.MarkChanged();
 
    ForEachTrace<TraceType>(id, cb);
+
+   auto i = recordFieldMap_.find(id);
+   if (i != recordFieldMap_.end()) {
+      ForEachTrace<RecordTrace<Record>>(i->second, [](RecordTrace<Record>& trace) {
+         trace.NotifyRecordChanged();
+      });
+   }
 }
 
 template <typename T>
@@ -738,7 +747,6 @@ void Store::OnRecordFieldChanged(Record const& record)
       return trace; \
    } \
 
-TRACE_TYPE_METHOD(Record)
 TRACE_TYPE_METHOD(Boxed)
 TRACE_TYPE_METHOD(Set)
 TRACE_TYPE_METHOD(Array)
@@ -746,8 +754,30 @@ TRACE_TYPE_METHOD(Map)
 
 #undef TRACE_TYPE_METHOD
 
-template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, int);
-template std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char*, Record const&, Tracer*);
+template <> std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char* reason, Record const& o, int category)
+{
+   dm::ObjectId id = o.GetObjectId();
+   std::shared_ptr<RecordTrace<Record>> trace;
+   ADD_TRACE_TO_TRACKER_CATEGORY(trace, category, Record);
+   traces_[id].push_back(trace);
+   for (const auto& field : o.GetFields()) {
+      recordFieldMap_[field.second] = o.GetObjectId();
+   }
+   return trace;
+}
+
+template <> std::shared_ptr<RecordTrace<Record>> Store::TraceRecordChanges(const char* reason, Record const& o, Tracer*tracer)
+{
+   dm::ObjectId id = o.GetObjectId();
+   std::shared_ptr<RecordTrace<Record>> trace;
+   ADD_TRACE_TO_TRACER(trace, tracer, Record)
+   traces_[id].push_back(trace);
+   for (const auto& field : o.GetFields()) {
+      recordFieldMap_[field.second] = o.GetObjectId();
+   }
+   return trace;
+}
+
 
 #define CREATE_MAP(M)    template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, int); \
                          template std::shared_ptr<MapTrace<M>> Store::TraceMapChanges(const char*, M const&, Tracer*); \
