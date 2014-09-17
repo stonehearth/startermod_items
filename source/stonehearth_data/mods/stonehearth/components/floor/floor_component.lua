@@ -13,6 +13,10 @@ function Floor:initialize(entity, json)
    self._entity = entity
 end
 
+function Floor:get_region()
+   return self._entity:get_component('destination'):get_region()
+end
+
 -- adds the `region` in world coordinates to the floor
 --    @param region - the region to add to the floor, in world coordinates
 --

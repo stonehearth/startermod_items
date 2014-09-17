@@ -4,6 +4,7 @@ local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
+local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
@@ -111,8 +112,9 @@ end
 
 function BuildService:add_floor_command(session, response, floor_uri, box, brush_shape)
    local floor
-   local success = self:do_command('add_floor', response, function()
-         floor = self:add_floor(session, floor_uri, ToCube3(box), brush_shape)
+   local curb
+   local success = self:do_command('add_road', response, function()
+         floor, curb = self:add_road(session, floor_uri, ToCube3(box), brush_shape, nil, nil)
       end)
 
    if success then
@@ -145,6 +147,87 @@ function BuildService:add_wall_command(session, response, columns_uri, walls_uri
          response:reject({ error = 'could not create wall' })      
       end
    end
+end
+
+-- Given a Region2 total_region, convert that into a road region, return both the curb
+-- and the road.
+function BuildService:_region_to_road_regions(total_region, origin)
+   local edges = total_region:get_edge_list()
+   local curb_region = Region3()
+   local road_region = Region3()
+   for edge in edges:each_edge() do
+      local min = Point2(edge.min.location.x, edge.min.location.y)
+      local max = Point2(edge.max.location.x, edge.max.location.y)
+
+      if min.y == max.y then
+         if edge.min.accumulated_normals.y < 0 then
+            max.y = max.y + 1
+         elseif edge.min.accumulated_normals.y > 0 then
+            min.y = min.y - 1
+         end
+      elseif min.x == max.x then
+         if edge.min.accumulated_normals.x < 0 then
+            max.x = max.x + 1
+         elseif edge.min.accumulated_normals.x > 0 then
+            min.x = min.x - 1
+         end
+      end
+
+      local c = Cube3(Point3(min.x, origin.y, min.y), Point3(max.x, 2 + origin.y, max.y))
+      curb_region:add_cube(c)
+   end
+
+   local proj_curb_region = curb_region:project_onto_xz_plane()
+   local proj_road_region = total_region - proj_curb_region
+
+   for cube in proj_road_region:each_cube() do
+      local c = Cube3(Point3(cube.min.x, origin.y, cube.min.y),
+         Point3(cube.max.x, origin.y + 1, cube.max.y))
+      road_region:add_cube(c)
+   end
+
+   return curb_region, road_region
+end
+
+function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, curb_height)
+   local road = nil
+   local curb = nil
+   local origin = box.min
+   local total_region = Region3(box)
+   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
+                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
+
+   -- look for road that we can merge into.
+   local all_overlapping_road = radiant.terrain.get_entities_in_cube(overlap, function(entity)
+         if not self:is_blueprint(entity) then
+            return false
+         end
+         if self:_get_structure_type(entity) == 'floor' then
+            -- check to see if they are identical road kinds (curb and interior)
+            return true
+         end
+
+         local dst = entity:get_component('destination')
+         if dst then
+            total_region:subtract_region(dst:get_region():get())
+         end
+         return false
+      end)
+
+   local proj_total_region = total_region:project_onto_xz_plane()
+
+   if not next(all_overlapping_road) then
+      local building = self:_create_new_building(session, origin)
+      local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
+      curb = self:_add_new_floor_to_building(building, road_uri, curb_region, brush_shape)
+      road = self:_add_new_floor_to_building(building, road_uri, road_region, brush_shape)
+   else
+      -- we overlapped some pre-existing floor.  merge this box into that floor,
+      -- potentially merging multiple buildings together!
+      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, brush_shape, origin)
+      curb = nil
+   end
+   return road, curb
 end
 
 function BuildService:add_floor(session, floor_uri, box, brush_shape)
@@ -362,6 +445,58 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
     return floor
 end
 
+function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin)
+   local id, road = next(existing_roads)
+
+   road = nil
+   for id, f in pairs(existing_roads) do
+      if not road or id < road:get_id() then
+         road = f
+      end
+   end
+
+   -- now do the merge...
+   local buildings_to_merge = {}
+   local road_building = self:get_building_for(road)
+   for _, old_road in pairs(existing_roads) do
+      local building = self:get_building_for(old_road)
+      if building ~= road_building then
+         buildings_to_merge[building:get_id()] = building
+      end
+   end
+   self:_merge_buildings_into(road_building, buildings_to_merge)
+
+   for _, old_road in pairs(existing_roads) do
+
+      if old_road ~= road then
+         road:get_component('stonehearth:floor'):merge_with(old_road)
+      end
+   end
+
+
+   local curb_region, road_region = self:_region_to_road_regions(new_road_region, origin)
+   local extruded_road = Region3()
+   for cube in road_region:each_cube() do
+      local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
+      extruded_road:add_cube(c)
+   end
+
+   road:get_component('stonehearth:floor'):remove_region_from_floor(extruded_road)
+   road:get_component('stonehearth:floor'):add_region_to_floor(road_region, brush_shape)
+
+   -- The curb is the curb we generated, removing anything that overlaps with existing
+   -- road.
+   local extruded_road = Region3()
+   for cube in road:get_component('stonehearth:floor'):get_region():get():each_cube() do
+      local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 3, cube.max.z))
+      extruded_road:add_cube(c)
+   end
+   extruded_road:translate(radiant.entities.get_world_grid_location(road))
+   curb_region:subtract_region(extruded_road)
+   road:add_component('stonehearth:floor'):add_region_to_floor(curb_region, brush_shape)
+   return road
+end
+
 -- add `box` to the `floor` region.  the caller must ensure that the
 -- box *only* overlaps with this segement of floor.  see :add_floor()
 -- for more details.
@@ -467,6 +602,28 @@ function BuildService:_merge_building_into(merge_into, building)
    self:unlink_entity(building)
 end
 
+
+-- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
+-- 1-unit removed from where the floor is for each edge, so we add in the
+-- accumualted normal for both the min and the max, with one small wrinkle:
+-- the edges returned by :each_edge() live in the coordinate space of the
+-- grid tile *lines* not the grid tile.  a consequence of this is that points
+-- whose normals point in the positive direction end up getting pushed out
+-- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+-- accumulated normal in grid-tile space (as opposed to grid-line space) to
+-- prove this to yourself if you don't believe me.
+function BuildService:_edge_point_to_point(edge_point)
+   local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+   if edge_point.accumulated_normals.x <= 0 then
+      point.x = point.x + edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y <= 0 then
+      point.z = point.z + edge_point.accumulated_normals.y
+   end
+   return point
+end
+
+
 function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    -- look for floor that we can merge into.
    local c0 = self:_get_blueprint_at_point(p0)
@@ -519,25 +676,6 @@ function BuildService:grow_walls(building, columns_uri, walls_uri)
    local floor_region = building:get_component('stonehearth:building')
                                     :calculate_floor_region()
 
-   -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
-   -- 1-unit removed from where the floor is for each edge, so we add in the
-   -- accumualted normal for both the min and the max, with one small wrinkle:
-   -- the edges returned by :each_edge() live in the coordinate space of the
-   -- grid tile *lines* not the grid tile.  a consequence of this is that points
-   -- whose normals point in the positive direction end up getting pushed out
-   -- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
-   -- accumulated normal in grid-tile space (as opposed to grid-line space) to
-   -- prove this to yourself if you don't believe me.
-   local function edge_point_to_point(edge_point)
-      local point = Point3(edge_point.location.x, 0, edge_point.location.y)
-      if edge_point.accumulated_normals.x <= 0 then
-         point.x = point.x + edge_point.accumulated_normals.x
-      end
-      if edge_point.accumulated_normals.y <= 0 then
-         point.z = point.z + edge_point.accumulated_normals.y
-      end
-      return point
-   end
 
    local origin = radiant.entities.get_world_grid_location(building)
 
@@ -545,8 +683,8 @@ function BuildService:grow_walls(building, columns_uri, walls_uri)
    -- for each one.
    local edges = floor_region:get_edge_list()
    for edge in edges:each_edge() do
-      local min = edge_point_to_point(edge.min) + origin
-      local max = edge_point_to_point(edge.max) + origin
+      local min = self:_edge_point_to_point(edge.min) + origin
+      local max = self:_edge_point_to_point(edge.max) + origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
       self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)   
