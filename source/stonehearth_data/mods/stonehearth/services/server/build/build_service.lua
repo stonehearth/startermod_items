@@ -549,7 +549,9 @@ function BuildService:grow_walls(building, columns_uri, walls_uri)
       local max = edge_point_to_point(edge.max) + origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
-      self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)   
+      if min ~= max then
+         self:_add_wall_span(building, min, max, normal, columns_uri, walls_uri)
+      end
    end
 end
 
