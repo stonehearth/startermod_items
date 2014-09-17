@@ -152,32 +152,37 @@ end
 -- Given a Region2 total_region, convert that into a road region, return both the curb
 -- and the road.
 function BuildService:_region_to_road_regions(total_region, origin)
-   local edges = total_region:get_edge_list()
-   local curb_region = Region3()
+   local proj_curb_region = Region2()
    local road_region = Region3()
-   for edge in edges:each_edge() do
-      local min = Point2(edge.min.location.x, edge.min.location.y)
-      local max = Point2(edge.max.location.x, edge.max.location.y)
+   local curb_region = nil
+   if total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
+      local edges = total_region:get_edge_list()
+      curb_region = Region3()
+      for edge in edges:each_edge() do
+         local min = Point2(edge.min.location.x, edge.min.location.y)
+         local max = Point2(edge.max.location.x, edge.max.location.y)
 
-      if min.y == max.y then
-         if edge.min.accumulated_normals.y < 0 then
-            max.y = max.y + 1
-         elseif edge.min.accumulated_normals.y > 0 then
-            min.y = min.y - 1
+         if min.y == max.y then
+            if edge.min.accumulated_normals.y < 0 then
+               max.y = max.y + 1
+            elseif edge.min.accumulated_normals.y > 0 then
+               min.y = min.y - 1
+            end
+         elseif min.x == max.x then
+            if edge.min.accumulated_normals.x < 0 then
+               max.x = max.x + 1
+            elseif edge.min.accumulated_normals.x > 0 then
+               min.x = min.x - 1
+            end
          end
-      elseif min.x == max.x then
-         if edge.min.accumulated_normals.x < 0 then
-            max.x = max.x + 1
-         elseif edge.min.accumulated_normals.x > 0 then
-            min.x = min.x - 1
-         end
+
+         local c = Cube3(Point3(min.x, origin.y, min.y), Point3(max.x, 2 + origin.y, max.y))
+         curb_region:add_cube(c)
       end
 
-      local c = Cube3(Point3(min.x, origin.y, min.y), Point3(max.x, 2 + origin.y, max.y))
-      curb_region:add_cube(c)
+      proj_curb_region = curb_region:project_onto_xz_plane()
    end
 
-   local proj_curb_region = curb_region:project_onto_xz_plane()
    local proj_road_region = total_region - proj_curb_region
 
    for cube in proj_road_region:each_cube() do
@@ -191,7 +196,6 @@ end
 
 function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, curb_height)
    local road = nil
-   local curb = nil
    local origin = box.min
    local total_region = Region3(box)
    local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
@@ -203,7 +207,7 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
-            -- check to see if they are identical road kinds (curb and interior)
+            -- TODO material check (if there is one!) might go here?
             return true
          end
 
@@ -219,15 +223,18 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
    if not next(all_overlapping_road) then
       local building = self:_create_new_building(session, origin)
       local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
-      curb = self:_add_new_floor_to_building(building, road_uri, curb_region, brush_shape)
+
+      if curb_region then
+         -- We might not have a curb (road was too narrow!)
+         self:_add_new_floor_to_building(building, road_uri, curb_region, brush_shape)
+      end
       road = self:_add_new_floor_to_building(building, road_uri, road_region, brush_shape)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
       road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, brush_shape, origin)
-      curb = nil
    end
-   return road, curb
+   return road
 end
 
 function BuildService:add_floor(session, floor_uri, box, brush_shape)
@@ -446,16 +453,15 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
 end
 
 function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin)
-   local id, road = next(existing_roads)
-
-   road = nil
+   -- Select a road to merge into.
+   local road = nil
    for id, f in pairs(existing_roads) do
       if not road or id < road:get_id() then
          road = f
       end
    end
 
-   -- now do the merge...
+   -- Find and merge the buildings for those roads.
    local buildings_to_merge = {}
    local road_building = self:get_building_for(road)
    for _, old_road in pairs(existing_roads) do
@@ -466,34 +472,51 @@ function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_roa
    end
    self:_merge_buildings_into(road_building, buildings_to_merge)
 
+   -- Actually merge those roads.
    for _, old_road in pairs(existing_roads) do
-
       if old_road ~= road then
          road:get_component('stonehearth:floor'):merge_with(old_road)
       end
    end
 
-
+   -- Okay, finally the new guy.  Generate a road and curb region.
    local curb_region, road_region = self:_region_to_road_regions(new_road_region, origin)
+
+   -- Build a new region that is the road region, extruded up a bit (enough to encompass
+   -- any existing curb).
    local extruded_road = Region3()
    for cube in road_region:each_cube() do
       local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
       extruded_road:add_cube(c)
    end
 
+   -- Subtracting the extruded region removes all that area from the existing roads, thus
+   -- making room for the new road.
    road:get_component('stonehearth:floor'):remove_region_from_floor(extruded_road)
+
+   -- Add the road.
    road:get_component('stonehearth:floor'):add_region_to_floor(road_region, brush_shape)
 
-   -- The curb is the curb we generated, removing anything that overlaps with existing
-   -- road.
-   local extruded_road = Region3()
-   for cube in road:get_component('stonehearth:floor'):get_region():get():each_cube() do
-      local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 3, cube.max.z))
-      extruded_road:add_cube(c)
+   if curb_region then
+      -- The curb is the curb we generated, removing anything that overlaps with existing
+      -- road.
+      -- Again, make an extruded region, this time from all the existing roads, extruded up
+      -- a bit, so that we can eliminate any crossover with the new curb (new curb should NOT
+      -- be built on existing road!)
+      local extruded_road = Region3()
+      for cube in road:get_component('stonehearth:floor'):get_region():get():each_cube() do
+         local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
+         extruded_road:add_cube(c)
+      end
+      extruded_road:translate(radiant.entities.get_world_grid_location(road))
+
+      -- Eliminate those bits from the generated curb.
+      curb_region:subtract_region(extruded_road)
+
+      -- Add the curb.
+      road:add_component('stonehearth:floor'):add_region_to_floor(curb_region, brush_shape)
    end
-   extruded_road:translate(radiant.entities.get_world_grid_location(road))
-   curb_region:subtract_region(extruded_road)
-   road:add_component('stonehearth:floor'):add_region_to_floor(curb_region, brush_shape)
+
    return road
 end
 
