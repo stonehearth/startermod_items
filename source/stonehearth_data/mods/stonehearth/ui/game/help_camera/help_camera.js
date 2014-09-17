@@ -8,6 +8,16 @@ App.StonehearthHelpCameraView = App.View.extend({
       $("#panHint").show();
       $("#orbitHint").show();
 
+
+      // autohide the hints after a few seconds, in case the player refuses
+      // to follow them.
+      setTimeout(function() {
+         self._updateHints({
+            pan: true,
+            orbit: true
+         });
+      }, 10000);
+
       radiant.call('stonehearth:get_camera_tracker')
          .done(function(o) {
             self.cameraTrace = radiant.trace(o.camera_tracker)
