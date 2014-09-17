@@ -67,7 +67,7 @@ var StonehearthTutorialManager;
          var tutorial = self._tutorials[tutorialName];
 
          if (tutorial && $.inArray(step, tutorial.steps) != -1 && step != tutorial['_currentStep']) {
-            self._setCurrentStap(tutorialName, step)
+            self._setCurrentStep(tutorialName, step)
 
             if (self._tutorialSteps[tutorialName] && self._tutorialSteps[tutorialName][step]) {               
                self._tutorialSteps[tutorialName][step]();   
@@ -94,13 +94,13 @@ var StonehearthTutorialManager;
          var tutorial = self._tutorials[tutorialName];
 
          if (!tutorial._currentStep) {
-            this._setCurrentStap(tutorial.steps[0]);
+            this._setCurrentStep(tutorialName, tutorial.steps[0]);
          }
 
          return tutorial._currentStep;
       },
 
-      _setCurrentStap: function(tutorialName, step) {
+      _setCurrentStep: function(tutorialName, step) {
          var self = this;
          var tutorial = self._tutorials[tutorialName];
 

@@ -6,10 +6,10 @@ function CollectStartingResourcesScenario:initialize()
    self._sv.player_id = 'player_1'
    self._sv.item_count = 0
 
-   self:_load_data()
+   self:restore()
 end
 
-function CollectStartingResourcesScenario:_load_data()
+function CollectStartingResourcesScenario:restore()
   self._scenario_data = radiant.resources.load_json('stonehearth:quests:collect_starting_resources').scenario_data
 end
 
