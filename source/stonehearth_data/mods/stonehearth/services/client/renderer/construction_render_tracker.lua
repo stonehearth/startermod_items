@@ -1,7 +1,6 @@
 local ConstructionRenderTracker = class()
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
 local INFINITE = 100000000
 local RPG_REGION_HEIGHT = 2
 
@@ -80,7 +79,7 @@ end
 --
 function ConstructionRenderTracker:set_normal(normal)
    if normal then
-      self._normal = Point3f(normal.x, normal.y, normal.z)
+      self._normal = Point3(normal.x, normal.y, normal.z)
    end
    return self   
 end
