@@ -280,13 +280,11 @@ function entities.distance_between(object_a, object_b)
 
    if radiant.util.is_a(object_a, Entity) then
       mob = object_a:get_component('mob')
-      assert(mob)
-      object_a = mob:get_world_location()
+      object_a = mob and mob:get_world_location()
    end
    if radiant.util.is_a(object_b, Entity) then
       mob = object_b:get_component('mob')
-      assert(mob)
-      object_b = mob:get_world_location()
+      object_b = mob and mob:get_world_location()
    end
 
    if not object_a or not object_b then
