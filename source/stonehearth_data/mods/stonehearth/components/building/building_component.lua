@@ -8,6 +8,7 @@ local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Array2D = _radiant.csg.Array2D
+local TraceCategories = _radiant.dm.TraceCategories
 
 local INFINITE = 10000000
 
@@ -52,7 +53,7 @@ function Building:initialize(entity, json)
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             for _, structures in pairs(self._sv.structures) do
                for _, entry in pairs(structures) do
-                  self:_trace_entity(entry.entity)
+                  self:_trace_entity(entry.entity, true)
                end
             end
          end)      
@@ -219,7 +220,7 @@ function Building:clear_no_construction_zone_traces()
    self._sv.envelope_entity:get_component('stonehearth:no_construction_zone'):clear_traces()
 end
 
-function Building:_trace_entity(entity)
+function Building:_trace_entity(entity, loading)
    local id = entity:get_id()
 
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
@@ -231,12 +232,17 @@ function Building:_trace_entity(entity)
       end)
 
    if entity:get_component('stonehearth:roof') then
-      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof')
+      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
                               :on_changed(function()
                                     self:layout_roof(entity)
                                  end)
       self:_save_trace(entity, trace)
-      trace:push_object_state()
+
+      if not loading then
+         -- if we're loading, our shape is already perfect!  no need to push the state, just
+         -- put the trace back
+         trace:push_object_state()
+      end
    end
 
    self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
@@ -321,6 +327,8 @@ function Building:unlink_entity(entity)
 end
 
 function Building:layout_roof(roof)
+   assert(stonehearth.build:in_transaction())
+
    -- first, layout the roof
    if roof then
       roof:get_component(ROOF)

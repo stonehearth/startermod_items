@@ -889,6 +889,12 @@ PlaySoundEffectTrack::~PlaySoundEffectTrack()
 **/
 void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
+   if (sound_ == nullptr || sound_->getBuffer() == nullptr) {
+      EL_LOG(0) << "Unexpected destruction of the sound buffer";
+      finished = true;
+      return;
+   }
+
    int now = info.now - effectStartTime_;
 
    // How this is supposed to work:
@@ -908,7 +914,7 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
    }
 
    float player_volume = audio::AudioManager::GetInstance().GetPlayerEfxVolume();
-   if (sound_ != nullptr && sound_->getVolume() != volume_ * player_volume) {
+   if (sound_->getVolume() != volume_ * player_volume) {
       sound_->setVolume(volume_ * player_volume);
    }
 

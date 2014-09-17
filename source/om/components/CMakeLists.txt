@@ -81,6 +81,7 @@ add_library(om_components STATIC
             sensor.cpp
             sensor_list.cpp
             terrain.cpp
+            terrain_tesselator.cpp
             vertical_pathing_region.cpp
             item.cpp
             unit_info.cpp

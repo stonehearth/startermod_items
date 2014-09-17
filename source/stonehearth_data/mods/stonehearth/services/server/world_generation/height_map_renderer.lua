@@ -46,16 +46,12 @@ function HeightMapRenderer:__init(terrain_info)
    }
 end
 
-function HeightMapRenderer:create_new_region()
-   return _radiant.sim.alloc_region3() -- returns a C++ Region3Boxed
+function HeightMapRenderer:add_region_to_terrain(region3, offset)
+   offset = offset or Point3.zero
+   self._terrain:add_tile(offset, region3)
 end
 
-function HeightMapRenderer:add_region_to_terrain(region3_boxed, offset)
-   if offset == nil then offset = Point3(0, 0, 0) end
-   self._terrain:add_tile(offset, region3_boxed)
-end
-
-function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map)
+function HeightMapRenderer:render_height_map_to_region(region3, height_map)
    assert(height_map.width == self._tile_size)
    assert(height_map.height == self._tile_size)
 
@@ -64,20 +60,16 @@ function HeightMapRenderer:render_height_map_to_region(region3_boxed, height_map
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   region3_boxed:modify(
-      function (region3)
-         self:_add_bedrock_to_region(region3, height_map, 4)
+   self:_add_bedrock_to_region(region3, height_map, 4)
 
-         for rect in region2:each_cube() do
-            height = rect.tag
-            if height > 0 then
-               self:_add_land_to_region(region3, rect, height);
-            end
-         end
-
-         region3:optimize_by_merge()
+   for rect in region2:each_cube() do
+      height = rect.tag
+      if height > 0 then
+         self:_add_land_to_region(region3, rect, height);
       end
-   )
+   end
+
+   region3:optimize_by_merge()
 end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
@@ -101,13 +93,11 @@ function HeightMapRenderer:_copy_heightmap_to_CPP(height_map_cpp, height_map)
 end
 
 function HeightMapRenderer:_add_bedrock_to_region(region3, height_map, thickness)
-   region3:add_unique_cube(
-      Cube3(
+   region3:add_unique_cube(Cube3(
          Point3(0, -thickness, 0),
          Point3(height_map.width, 0, height_map.height),
-         Terrain.ROCK_LAYER_1
-      )
-   )
+         Terrain.BEDROCK
+      ))
 end
 
 function HeightMapRenderer:_add_land_to_region(region3, rect, height)
@@ -132,13 +122,11 @@ function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
          block_max = rock_layers[i].max_height
       end
 
-      region3:add_unique_cube(
-         Cube3(
+      region3:add_unique_cube(Cube3(
             Point3(rect.min.x, block_min, rect.min.y),
             Point3(rect.max.x, block_max, rect.max.y),
             rock_layers[i].terrain_tag
-         )
-      )
+         ))
 
       if stop then return end
       block_min = block_max
@@ -149,114 +137,60 @@ function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
    local foothills_step_size = self._terrain_info[TerrainType.foothills].step_size
    local plains_max_height = self._terrain_info[TerrainType.plains].max_height
 
-   region3:add_unique_cube(
-      Cube3(
-         Point3(rect.min.x, 0,                 rect.min.y),
-         Point3(rect.max.x, plains_max_height, rect.max.y),
-         Terrain.SOIL
-      )
-   )
+   local has_grass = height % foothills_step_size == 0
+   local soil_top = has_grass and height-1 or height
 
-   if height % foothills_step_size == 0 then
-      region3:add_unique_cube(
-         Cube3(
-            Point3(rect.min.x, plains_max_height, rect.min.y),
-            Point3(rect.max.x, height-1,          rect.max.y),
-            Terrain.SOIL_STRATA
-         )
-      )
+   self:_add_soil_strata_to_region(region3, Cube3(
+         Point3(rect.min.x, 0,        rect.min.y),
+         Point3(rect.max.x, soil_top, rect.max.y)
+      ))
 
-      region3:add_unique_cube(
-         Cube3(
-            Point3(rect.min.x, height-1,          rect.min.y),
-            Point3(rect.max.x, height,            rect.max.y),
+   if has_grass then
+      region3:add_unique_cube(Cube3(
+            Point3(rect.min.x, soil_top, rect.min.y),
+            Point3(rect.max.x, height,   rect.max.y),
             Terrain.GRASS
-         )
-      )
-   else
-      region3:add_unique_cube(
-         Cube3(
-            Point3(rect.min.x, plains_max_height, rect.min.y),
-            Point3(rect.max.x, height,            rect.max.y),
-            Terrain.SOIL_STRATA
-         )
-      )
+         ))
    end
 end
 
 function HeightMapRenderer:_add_plains_to_region(region3, rect, height)
    local plains_max_height = self._terrain_info[TerrainType.plains].max_height
-   local material
+   local material = height < plains_max_height and Terrain.DIRT or Terrain.GRASS
 
-   region3:add_unique_cube(
-      Cube3(
+   self:_add_soil_strata_to_region(region3, Cube3(
          Point3(rect.min.x, 0,        rect.min.y),
-         Point3(rect.max.x, height-1, rect.max.y),
-         Terrain.SOIL
-      )
-   )
+         Point3(rect.max.x, height-1, rect.max.y)
+      ))
 
-   if height < plains_max_height then
-      material = Terrain.DIRT
-   else 
-      material = Terrain.GRASS
-   end
-
-   region3:add_unique_cube(
-      Cube3(
+   region3:add_unique_cube(Cube3(
          Point3(rect.min.x, height-1, rect.min.y),
          Point3(rect.max.x, height,   rect.max.y),
          material
-      )
-   )
+      ))
 end
 
------
+local STRATA_HEIGHT = 2
+local NUM_STRATA = 2
+local STRATA_PERIOD = STRATA_HEIGHT * NUM_STRATA
 
-function HeightMapRenderer:visualize_height_map(height_map)
-   local region3_boxed = create_new_region()
-   local region2 = Region2()
-   local height
+function HeightMapRenderer:_add_soil_strata_to_region(region3, cube3)
+   local y_min = cube3.min.y
+   local y_max = cube3.max.y
+   local j_min = math.floor(cube3.min.y / STRATA_HEIGHT) * STRATA_HEIGHT
+   local j_max = cube3.max.y
 
-   self:_convert_height_map_to_region2(region2, height_map)
+   for j = j_min, j_max, STRATA_HEIGHT do
+      local lower = math.max(j, y_min)
+      local upper = math.min(j+STRATA_HEIGHT, y_max)
+      local block_type = j % STRATA_PERIOD == 0 and Terrain.SOIL_LIGHT or Terrain.SOIL_DARK
 
-   region3_boxed:modify(function(region3)
-      for rect in region2:each_cube() do
-         height = rect.tag
-         if height >= 1 then
-            region3:add_unique_cube(
-               Cube3(
-                  Point3(rect.min.x, -1,       rect.min.y),
-                  Point3(rect.max.x, height-1, rect.max.y),
-                  Terrain.ROCK_LAYER_1
-               )
-            )
-         end
-         region3:add_unique_cube(
-            Cube3(
-               Point3(rect.min.x, height-1, rect.min.y),
-               Point3(rect.max.x, height,   rect.max.y),
-               Terrain.ROCK_LAYER_1
-            )
-         )
-      end
-   end)
-   self.add_region_to_terrain(region3_boxed)
-end
-
-function HeightMapRenderer.tesselator_test()
-   local terrain = radiant._root_entity:add_component('terrain')
-   local region3_boxed = _radiant.sim.alloc_region3()
-   local height = 10
-
-   region3_boxed:modify(function(region3)
-      --region3:add_unique_cube(Cube3(Point3(0, height-1, 0), Point3(16, height, 16), Terrain.GRASS))
-      --region3:add_unique_cube(Cube3(Point3(16, height-1, 1), Point3(17, height, 15), Terrain.SOIL_STRATA))
-
-      region3:add_unique_cube(Cube3(Point3(0, height-1, 0), Point3(256, height, 256), Terrain.GRASS))
-      --region3:add_unique_cube(Cube3(Point3(256, height-1, 0), Point3(257, height, 256), Terrain.SOIL_STRATA))
-   end)
-   terrain:add_tile(Point3(0, 0, 0), region3_boxed)
+      region3:add_unique_cube(Cube3(
+            Point3(cube3.min.x, lower, cube3.min.z),
+            Point3(cube3.max.x, upper, cube3.max.z),
+            block_type
+         ))
+   end
 end
 
 return HeightMapRenderer

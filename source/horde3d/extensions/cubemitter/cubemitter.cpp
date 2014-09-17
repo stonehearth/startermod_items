@@ -269,6 +269,50 @@ CubemitterNode::~CubemitterNode()
 
    gRDI->destroyBuffer(_attributeBuf);
 	
+   for (uint32 i = 0; i < _maxCubes; i++) {
+      CubeData& c = _cubes[i];
+      
+      if (c.color_a) {
+         delete c.color_a;
+      }
+      if (c.color_r) {
+         delete c.color_r;
+      }
+      if (c.color_g) {
+         delete c.color_g;
+      }
+      if (c.color_b) {
+         delete c.color_b;
+      }
+
+      if (c.scale) {
+         delete c.scale;
+      }
+      if (c.speed) {
+         delete c.speed;
+      }
+
+      if (c.rotation_x) {
+         delete c.rotation_x;
+      }
+      if (c.rotation_y) {
+         delete c.rotation_y;
+      }
+      if (c.rotation_z) {
+         delete c.rotation_z;
+      }
+
+      if (c.velocity_x) {
+         delete c.velocity_x;
+      }
+      if (c.velocity_y) {
+         delete c.velocity_y;
+      }
+      if (c.velocity_z) {
+         delete c.velocity_z;
+      }
+   }
+
    delete[] _cubes;
    _cubes = nullptr;
    delete[] _attributesBuff;

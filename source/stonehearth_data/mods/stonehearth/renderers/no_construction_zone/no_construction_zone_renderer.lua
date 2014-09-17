@@ -49,6 +49,10 @@ function NoConstructionZoneRenderer:destroy()
       self._region_trace:destroy()
       self._region_trace = nil
    end
+   if self._datastore_trace then
+      self._datastore_trace:destroy()
+      self._datastore_trace = nil
+   end
    if self._zone_renderer then
       self._zone_renderer:destroy()
       self._zone_renderer = nil

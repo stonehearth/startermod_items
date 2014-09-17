@@ -8,6 +8,16 @@ App.StonehearthHelpCameraView = App.View.extend({
       $("#panHint").show();
       $("#orbitHint").show();
 
+
+      // autohide the hints after a few seconds, in case the player refuses
+      // to follow them.
+      setTimeout(function() {
+         self._updateHints({
+            pan: true,
+            orbit: true
+         });
+      }, 10000);
+
       radiant.call('stonehearth:get_camera_tracker')
          .done(function(o) {
             self.cameraTrace = radiant.trace(o.camera_tracker)
@@ -55,10 +65,7 @@ App.StonehearthHelpCameraView = App.View.extend({
          // hide the zoom hint after a few seconds if it's not already gone
          setTimeout(function() {
             if (!self._zoomDone) {
-               $("#zoomHint").fadeOut(250, function() {
-                  self._createCamp();
-               });
-               
+               self._updateHints({ zoom: true});
             }
          }, 3000);
       }
@@ -70,7 +77,10 @@ App.StonehearthHelpCameraView = App.View.extend({
    },
 
    _createCamp: function() {
-      App.gameView.addView(App.StonehearthCreateCampView)
+      if (!this._campCreated) {
+         App.gameView.addView(App.StonehearthCreateCampView)
+         this._campCreated = true;        
+      }
       this.destroy();      
    }
 

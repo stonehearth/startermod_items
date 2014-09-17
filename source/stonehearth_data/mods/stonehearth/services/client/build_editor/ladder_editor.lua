@@ -27,9 +27,17 @@ function LadderEditor:go(session, response)
    stonehearth.selection:select_location()
       :set_cursor('stonehearth:cursors:create_ladder')
       :set_filter_fn(function (result)
+            self._log:spam('testing: %s', result.entity)
             if result.entity == self._cursor then
                return stonehearth.selection.FILTER_IGNORE
-            end            
+            end
+
+            -- ignore transparent entities (e.g. the no construction zone at the base of buildings)
+            local rcs = result.entity:get_component('region_collision_shape')
+            if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+
             return self:_update_ladder_cursor(result.brick, result.normal:to_int())
          end)
       :progress(function(selector, location, rotation)
@@ -57,6 +65,7 @@ end
 
 function LadderEditor:_update_ladder_cursor(brick, normal)
    if normal.y ~= 0 then
+      self._log:spam('%s normal.y is not zero.  cannot build ladder here.', normal)
       -- have to mouse over the edge of the thing you want to get to
       return false
    end
@@ -79,9 +88,9 @@ function LadderEditor:_update_ladder_cursor(brick, normal)
    self._cursor_vpr:get_region():modify(function(r)
          r:clear()
          r:add_unique_cube(shape)
+         self._log:spam('set ghost ladder region to %s.', r:get_bounds())
       end)
 
-   
    return true
 end
 

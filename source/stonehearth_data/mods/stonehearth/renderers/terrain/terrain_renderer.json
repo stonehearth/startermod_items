@@ -1,30 +1,24 @@
 {
-   "rock": {
-      "layer_1_color": "#615e55",
-      "layer_2_color": "#76726b",
-      "layer_3_color": "#82807b",
-      "layer_4_color": "#918d86",
-      "layer_5_color": "#b3b0aa",
-      "layer_6_color": "#c1c0bb",
-      "boulder_color": "#72727a"
+   "bedrock" : "#514e45",
+   "rock" : {
+      "layer_1" : "#615e55",
+      "layer_2" : "#76726b",
+      "layer_3" : "#82807b",
+      "layer_4" : "#918d86",
+      "layer_5" : "#b3b0aa",
+      "layer_6" : "#c1c0bb"
    },
-   "soil": {
-      "dark_strata_color": "#807147",
-      "light_strata_color": "#918154",
-      "default_color" : "#807147",
-      "detail_color": "#A3905A"
+   "soil" : {
+      "light" : "#918154",
+      "dark" : "#807147"
    },
-   "dirt": {
-      "ring_0_color": "#918154",
-      "ring_1_color": "#807147"
+   "dirt" : {
+      "edge1" : "#918154",
+      "inner" : "#807147"
    },
-   "grass": {
-      "ring_0_color": "#99ce7c",
-      "ring_1_color": "#87c076",
-      "ring_2_color": "#75b370",
-      "dark_color": "#529864"
-   },
-   "wood": {
-      "dark_color": "#458957"
+   "grass" : {
+      "edge1" : "#99ce7c",
+      "edge2" : "#87c076",
+      "inner" : "#75b370"
    }
 }

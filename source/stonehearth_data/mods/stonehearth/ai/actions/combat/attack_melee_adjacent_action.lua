@@ -86,6 +86,10 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    self._timer = stonehearth.combat:set_timer(attack_info.time_to_impact,
       function ()
+         if not entity:is_valid() or not target:is_valid() then
+            return
+         end
+         
          local range = radiant.entities.distance_between(entity, target)
          local out_of_range = range > melee_range_max
 

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "util.h"
+#include "color.h"
 #include "region.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
@@ -43,14 +44,11 @@ public:
       Point3f         offset_;
    };
 
-   typedef std::function<void(int, Point3f const [], Point3f const&, mesh_tools::mesh&)> tesselator_fn;
-   typedef std::unordered_map<int, tesselator_fn> tesselator_map;
-
 public:
    mesh_tools();
 
    mesh_tools& SetOffset(Point3f const& offset);
-   mesh_tools& SetTesselator(tesselator_map const& t);
+   mesh_tools& SetColorMap(std::unordered_map<int, Point4f> const& colorMap);
    mesh ConvertRegionToMesh(Region3 const& region); // xxx: GET RID OF THIS BEFORE CHEKGIN IN!!
 
    enum {
@@ -97,7 +95,7 @@ private:
    void add_face(Point3f const points[], Point3f normal, mesh& m);
 
 private:
-   tesselator_map const*   tesselators_;
+   std::unordered_map<int, Point4f> const*   colorMap_;
    Point3f                 offset_;
 };
 
