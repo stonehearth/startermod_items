@@ -100,8 +100,11 @@ public:
 
 private:
    typedef std::vector<TraceRef> TraceList;
-   typedef std::vector<StoreTraceRef> StoreTraceList;
    typedef std::unordered_map<ObjectId, TraceList> TraceMap;
+
+   typedef std::unordered_map<ObjectId, ObjectId> RecordFieldMap;
+
+   typedef std::vector<StoreTraceRef> StoreTraceList;
    typedef std::vector<StoreTraceRef> StoreTraces;
 
    typedef std::unordered_map<int, TracerPtr> TracerMap;
@@ -170,6 +173,7 @@ private:
    mutable WeakObjectMap dynamicObjects_;
 
    TraceMap       traces_;
+   RecordFieldMap recordFieldMap_;
    TracerMap      tracers_;
    bool           saving_;
    std::vector<Streamer*> streamers_;

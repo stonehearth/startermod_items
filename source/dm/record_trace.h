@@ -24,7 +24,6 @@ protected:
 
 private:
    Record const&           record_;
-   std::vector<TracePtr>   field_traces_;
 };
 
 END_RADIANT_DM_NAMESPACE
