@@ -4,7 +4,7 @@ local stockpile_tests = {}
 
 -- make sure we can put 2 logs into the stockpile
 function stockpile_tests.restock_twice(autotest)
-   autotest.env:create_person(2, 2, { profession = 'worker' })
+   autotest.env:create_person(2, 2, { job = 'worker' })
    autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
    autotest.env:create_entity(4, 5, 'stonehearth:oak_log')
 
@@ -27,7 +27,7 @@ end
 -- This reproduces a nasty AI bug that we don't want showing up again.
 function stockpile_tests.abort_stockpile_creation(autotest)
    local carry_change_count = 0
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
    local stockpile = autotest.env:create_stockpile(4, 8)
 
@@ -55,7 +55,7 @@ end
 
 -- make sure we don't pickup items already stocked
 function stockpile_tests.dont_pickup_stocked_items(autotest)
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
    local stockpile = autotest.env:create_stockpile(3, 3, { size = { x = 3, y = 3 }})
 
    radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function()
@@ -72,7 +72,7 @@ end
 
 -- make sure we don't pickup items already stocked
 function stockpile_tests.restock_items_when_falling_out_of_filter(autotest)
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
    local stockpile_a = autotest.env:create_stockpile( 3, 3, { size = { x = 3, y = 3 }})
    local stockpile_b = autotest.env:create_stockpile(-3, 3, { size = { x = 3, y = 3 }})
 
@@ -96,7 +96,7 @@ end
 -- make sure we can find newly created items to stock, even after we've started
 -- looking for them.  this is mainly a test of the bfs pathfinder.
 function stockpile_tests.restock_newly_created_items(autotest)
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
    local stockpile = autotest.env:create_stockpile(-2, -2)
 
    -- wait a bit to give the pathfinder room to not find anything, then add

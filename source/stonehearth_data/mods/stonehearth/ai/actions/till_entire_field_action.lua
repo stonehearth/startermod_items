@@ -3,6 +3,7 @@ local Entity = _radiant.om.Entity
 
 local TillEntireField = class()
 TillEntireField.name = 'till entire field'
+TillEntireField.status_text = 'tilling field'
 TillEntireField.does = 'stonehearth:till_entire_field'
 TillEntireField.args = {
    field = FarmerFieldComponent

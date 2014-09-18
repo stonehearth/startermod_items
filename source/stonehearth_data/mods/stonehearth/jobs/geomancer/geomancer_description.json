@@ -1,0 +1,8 @@
+{
+   "alias": "stonehearth:jobs:geomancer",
+   "name" : "???",
+   "description" : "???",
+   "requirements" : "???",
+   "icon" : "file(../unknown/images/icon.png)",
+   "parent_job" : "stonehearth:jobs:mason"
+}

@@ -100,7 +100,7 @@
          "commands" : [            
          ]
       },
-      "stonehearth:profession" : {
+      "stonehearth:job" : {
          "total_lv" : 1,
          "hp_per_lv" : 10
       },

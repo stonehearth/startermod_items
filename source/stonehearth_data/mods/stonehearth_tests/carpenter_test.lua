@@ -72,7 +72,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth/professions/carpenter/recipes/wooden_buckler_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_buckler_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -86,7 +86,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 1
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth/professions/carpenter/recipes/wooden_sword_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)
@@ -100,7 +100,7 @@ function CarpenterTest:__init()
          local condition = {}
          condition.amount = 2
          local order = CraftOrder(radiant.resources.load_json(
-            '/stonehearth/professions/carpenter/recipes/wooden_sword_recipe.json'),
+            '/stonehearth/jobs/carpenter/recipes/wooden_sword_recipe.json'),
             true,  condition, workshop_component)
          local todo = workshop_component:ui_get_todo_list()
          todo:add_order(order)

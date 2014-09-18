@@ -13,7 +13,7 @@ local score_tests = {}
 -- End score should be 60
 function score_tests.eat_food_tests(autotest)
    local worker = autotest.env:create_person(2, 2, {
-            profession = 'worker',
+            job = 'worker',
             attributes = { calories = stonehearth.constants.food.MALNOURISHED }
          })
    local berry_basket = autotest.env:create_entity(-2, -2, 'stonehearth:berry_basket')
@@ -39,7 +39,7 @@ end
 --Score should start at 50 and go down to 40 when there is no food at midnight. 
 function score_tests.no_food_at_midnight(autotest)
    local worker = autotest.env:create_person(2, 2, {
-            profession = 'worker'
+            job = 'worker'
          })
    stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 58 })
    radiant.events.listen(worker, 'stonehearth:score_changed', function(e)
@@ -59,7 +59,7 @@ end
 --  Total score for the town should be 5
 function score_tests.town_score_test(autotest)
    local worker = autotest.env:create_person(2, 2, {
-            profession = 'farmer'
+            job = 'farmer'
          })
    local player_id = radiant.entities.get_player_id(worker)
    local chair = autotest.env:create_entity(0, 0, 'stonehearth:simple_wooden_chair', {

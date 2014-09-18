@@ -11,8 +11,8 @@ var StonehearthPopulation;
                   commands: []
                },
                "stonehearth:ai" : {},
-               "stonehearth:profession" : {
-                  "profession_uri" : {}
+               "stonehearth:job" : {
+                  "job_uri" : {}
                },
                "stonehearth:crafter" : {
                   "workshop" : {}

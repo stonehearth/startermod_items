@@ -12,10 +12,10 @@ local function get_blueprint_area(structure)
 end
 
 local function create_workers(autotest)
-   autotest.env:create_person(-8,   8, { profession = 'worker' })
-   autotest.env:create_person(-8,  10, { profession = 'worker' })
-   autotest.env:create_person(-10,  8, { profession = 'worker' })
-   autotest.env:create_person(-10, 10, { profession = 'worker' })
+   autotest.env:create_person(-8,   8, { job = 'worker' })
+   autotest.env:create_person(-8,  10, { job = 'worker' })
+   autotest.env:create_person(-10,  8, { job = 'worker' })
+   autotest.env:create_person(-10, 10, { job = 'worker' })
 end
 
 local function create_buildings(autotest, cb)

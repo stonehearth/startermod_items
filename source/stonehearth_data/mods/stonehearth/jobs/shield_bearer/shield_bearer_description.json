@@ -1,0 +1,8 @@
+{
+   "alias": "stonehearth:jobs:shield_bearer",
+   "name" : "???",
+   "description" : "???",
+   "requirements" : "???",
+   "icon" : "file(../unknown/images/icon.png)",
+   "parent_job" : "stonehearth:jobs:footman"
+}

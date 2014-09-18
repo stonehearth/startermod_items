@@ -29,7 +29,7 @@ function rotation_tests.rotate_2x2(autotest)
 end
 
 function rotation_tests.single_rotation(autotest)
-   local person = autotest.env:create_person(8, 8, { profession = 'farmer' })
+   local person = autotest.env:create_person(8, 8, { job = 'farmer' })
    local e = autotest.env:create_entity(0, 0, '/stonehearth_autotest/entities/dst_4_0_0/dst_4_0_0.json')
 
    local rotation

@@ -1,0 +1,28 @@
+{
+   "job_id": "farmer",
+   "alias": "stonehearth:jobs:farmer",
+
+   "name": "Farmer",
+   "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.", 
+   "requirements" : "Farmer's Hoe, crafted by the Carpenter.",
+   "controller" : "stonehearth:class:farmer", 
+
+   "talisman_uri" : "stonehearth:farmer:hoe_talisman",
+   "default_stance" : "passive",
+
+   "equipment" : {
+      "abilities" : "file(farmer_abilities)",
+      "torso" : "file(farmer_outfit)",
+      "mainhand" : "stonehearth:farmer:hoe"
+   },
+   "roles" : "farmer_job",
+
+   "icon" : "file(images/icon.png)",
+   "bannerIcon" : "file(images/banner.png)",   
+
+   "task_groups" : [
+      "stonehearth:task_group:restock",
+      "stonehearth:task_group:simple_farming"
+   ],
+   "parent_job" : "stonehearth:jobs:worker"
+}

@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Farmer's Hoe",
+   "description" : "Promotes a citizen into a Farmer.",
+   "flavor"      : "Hoedown time!!!!",
+   "portrait"    : "/stonehearth/jobs/farmer/farmer_hoe/farmer_hoe.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+        "item":"stonehearth:farmer:hoe_talisman"
+      }
+  ]
+}

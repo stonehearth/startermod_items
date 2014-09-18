@@ -3,9 +3,9 @@ local Point3 = _radiant.csg.Point3
 local construction_tests = {}
 
 function construction_tests.simple_build(autotest)
-   autotest.env:create_person(-6, 8, { profession = 'worker' })
-   autotest.env:create_person(-4, 3, { profession = 'carpenter' })
-   autotest.env:create_person(-10, 4, { profession = 'worker' })
+   autotest.env:create_person(-6, 8, { job = 'worker' })
+   autotest.env:create_person(-4, 3, { job = 'carpenter' })
+   autotest.env:create_person(-10, 4, { job = 'worker' })
    autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
    local construction_complete = false
 

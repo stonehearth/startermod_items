@@ -397,23 +397,23 @@ function Town:plant_crop(crop)
    return task
 end
 
-function Town:_is_in_profession_map(entity, profession_map)
-   local profession_component = entity:get_component('stonehearth:profession')
-   if not profession_component then
+function Town:_is_in_job_map(entity, job_map)
+   local job_component = entity:get_component('stonehearth:job')
+   if not job_component then
       return false
    end
 
-   local profession = profession_component:get_profession_uri()
-   return profession_map[profession] == true
+   local job = job_component:get_job_uri()
+   return job_map[job] == true
 end
 
 ----- Worker combat methods -----
 
-local worker_defense_professions = {
-   ['stonehearth:professions:worker'] = true,
-   ['stonehearth:professions:farmer'] = true,
-   ['stonehearth:professions:carpenter'] = true,
-   ['stonehearth:professions:trapper'] = true,
+local worker_defense_jobs = {
+   ['stonehearth:jobs:worker'] = true,
+   ['stonehearth:jobs:farmer'] = true,
+   ['stonehearth:jobs:carpenter'] = true,
+   ['stonehearth:jobs:trapper'] = true,
 }
 
 function Town:worker_combat_enabled()
@@ -425,7 +425,7 @@ function Town:enable_worker_combat()
    local citizens = self:get_citizens()
    
    for _, citizen in pairs(citizens) do
-      if self:_is_in_profession_map(citizen, worker_defense_professions) then
+      if self:_is_in_job_map(citizen, worker_defense_jobs) then
          stonehearth.combat:set_panicking_from(citizen, nil)
          stonehearth.combat:set_stance(citizen, 'aggressive')
          radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
@@ -452,8 +452,8 @@ function Town:disable_worker_combat()
 
       local citizen = radiant.entities.get_entity(id)
       if citizen then
-         local profession_component = citizen:get_component('stonehearth:profession')
-         profession_component:reset_to_default_comabat_stance()
+         local job_component = citizen:get_component('stonehearth:job')
+         job_component:reset_to_default_comabat_stance()
          radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
          radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
       end
@@ -465,17 +465,17 @@ end
 
 ----- Rally to battle standard methods -----
 
-local military_professions = {
-   ['stonehearth:professions:footman'] = true,
+local military_jobs = {
+   ['stonehearth:jobs:footman'] = true,
 }
 
--- TODO: listen for new citizens or citizens that are promoted to a military profession
+-- TODO: listen for new citizens or citizens that are promoted to a military job
 function Town:enable_rally_to_battle_standard()
    local battle_standard = self:get_battle_standard()
    local citizens = self:get_citizens()
 
    for _, citizen in pairs(citizens) do
-      if self:_is_in_profession_map(citizen, military_professions) then
+      if self:_is_in_job_map(citizen, military_jobs) then
          local task = citizen:add_component('stonehearth:ai')
             :get_task_group('stonehearth:urgent_actions')
             :create_task('stonehearth:follow_entity', {

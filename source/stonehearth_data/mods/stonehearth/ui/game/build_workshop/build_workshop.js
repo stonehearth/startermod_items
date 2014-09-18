@@ -14,8 +14,8 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
    intialized: false,
 
    components: {
-      "stonehearth:profession" : {
-         "profession_uri" : {
+      "stonehearth:job" : {
+         "job_uri" : {
          }
       },
    },
@@ -44,7 +44,7 @@ App.StonehearthCrafterBuildWorkshopView = App.View.extend({
       // this. All the work is done in the client and server
 
       var workbenchEntity = null;
-      var workbenchType = this.get('context.stonehearth:profession.profession_uri.workshop.workbench_type');
+      var workbenchType = this.get('context.stonehearth:job.job_uri.workshop.workbench_type');
       var crafter = self.get('context');
       radiant.call('stonehearth:choose_workbench_location', workbenchType, crafter = crafter.__self)
          .done(function(o){

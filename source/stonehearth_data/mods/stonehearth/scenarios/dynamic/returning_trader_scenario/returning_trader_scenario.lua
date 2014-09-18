@@ -33,9 +33,9 @@ function ReturningTrader:can_spawn()
    local pop = stonehearth.population:get_population(self._sv._player_id)
    local citizens = pop:get_citizens()
    for citizen_id, citizen_entity in pairs(citizens) do
-      local profession = citizen_entity:get_component('stonehearth:profession')
+      local job = citizen_entity:get_component('stonehearth:job')
       --TODO: test that this is how the URI actually looks
-      if profession and profession:get_profession_uri() == 'stonehearth:professions:carpenter' then
+      if job and job:get_job_uri() == 'stonehearth:jobs:carpenter' then
          return true
       end
    end

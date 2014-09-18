@@ -1,7 +1,7 @@
 --[[
    The WorkshopComponent.lua component implements all the functionality
    associated with the place a crafter goes to do the work a user
-   assigns to him. A profession's workplace.txt file (for example,
+   assigns to him. A job's workplace.txt file (for example,
    carpenter_workbench.json references this blob of code as a component.
 
 ]]
