@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "footman:wooden_sword_talisman"
+         "item" : "stonehearth:footman:wooden_sword_talisman"
       }
   ]
 }
