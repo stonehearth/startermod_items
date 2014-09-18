@@ -219,15 +219,28 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
    local total_region = Region3(box)
    local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
                          Point3(box.max.x + 1, box.max.y, box.max.z + 1))
+   local clip_against_curbs = Region3()
 
    -- look for road that we can merge into.
    local all_overlapping_road = radiant.terrain.get_entities_in_cube(overlap, function(entity)
+         if entity:get_component('stonehearth:portal') then
+            local rcs = entity:get_component('region_collision_shape')
+
+            if rcs then
+               local r = radiant.entities.local_to_world(rcs:get_region():get(), entity)
+               clip_against_curbs:add_region(r)
+            end
+            return false
+         end
          if not self:is_blueprint(entity) then
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
-            -- TODO material check (if there is one!) might go here?
-            return true
+            -- Only merge with roads
+            local fc = entity:get_component('stonehearth:floor')
+            if fc:is_road() then
+               return true
+            end
          end
 
          local dst = entity:get_component('destination')
@@ -244,14 +257,15 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
       local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
 
       if curb_region then
+         curb_region:subtract_region(clip_against_curbs)
          -- We might not have a curb (road was too narrow!)
-         self:_add_new_floor_to_building(building, road_uri, curb_region, brush_shape)
+         self:_add_new_road_to_building(building, road_uri, curb_region, brush_shape)
       end
-      road = self:_add_new_floor_to_building(building, road_uri, road_region, brush_shape)
+      road = self:_add_new_road_to_building(building, road_uri, road_region, brush_shape)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
-      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, brush_shape, origin)
+      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, brush_shape, origin, clip_against_curbs)
    end
    return road
 end
@@ -268,7 +282,11 @@ function BuildService:add_floor(session, floor_uri, box, brush_shape)
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
-            return true
+            -- Only merge with floors.
+            local fc = entity:get_component('stonehearth:floor')
+            if not fc:is_road() then
+               return true
+            end
          end
 
          local dst = entity:get_component('destination')
@@ -471,7 +489,7 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
     return floor
 end
 
-function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin)
+function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin, clip_against_curbs)
    -- Select a road to merge into.
    local road = nil
    for id, f in pairs(existing_roads) do
@@ -531,6 +549,7 @@ function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_roa
 
       -- Eliminate those bits from the generated curb.
       curb_region:subtract_region(extruded_road)
+      curb_region:subtract_region(clip_against_curbs)
 
       -- Add the curb.
       road:add_component('stonehearth:floor'):add_region_to_floor(curb_region, brush_shape)
@@ -564,6 +583,12 @@ function BuildService:_add_new_floor_to_building(building, floor_uri, floor_regi
    return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
          self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
       end)
+end
+
+function BuildService:_add_new_road_to_building(building, floor_uri, floor_region, brush_shape)
+   local bp = self:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
+   bp:get_component('stonehearth:floor'):set_is_road(true)
+   return bp
 end
 
 -- return the building the `blueprint` is contained in
