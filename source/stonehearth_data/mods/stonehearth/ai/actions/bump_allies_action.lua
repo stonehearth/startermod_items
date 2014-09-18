@@ -21,7 +21,7 @@ function BumpAllies:run(ai, entity, args)
    for _, other_entity in pairs(entities) do
       if self:_should_bump(other_entity) then
          local bump_vector = AiHelpers.calculate_bump_vector(entity, other_entity, args.distance)
-         _radiant.sim.create_bump_location(other_entity, bump_vector)
+         AiHelpers.bump_entity(other_entity, bump_vector)
       end
    end
 end

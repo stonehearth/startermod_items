@@ -67,11 +67,14 @@ void Terrain::AddTile(csg::Point3f const& tile_offset, csg::Region3f const& regi
 
 bool Terrain::InBounds(csg::Point3f const& location) const
 {
-   bool inBounds = GetBounds().Contains(location);
+   // must test using the grid location of the point
+   csg::Point3f grid_location = csg::ToFloat(csg::ToClosestInt(location));
+   bool inBounds = GetBounds().Contains(grid_location);
    return inBounds;
 }
 
 // if we start streaming in tiles, this will need to return a region instead of a cube
+// WARNING: when testing GetBounds().Contains() you must pass in a grid location
 csg::Cube3f Terrain::GetBounds() const
 {
    return cached_bounds_;
@@ -90,13 +93,15 @@ csg::Cube3f Terrain::CalculateBounds() const
 
 csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
 {
+   csg::Point3f grid_location = csg::ToFloat(csg::ToClosestInt(location));
    csg::Cube3f bounds = GetBounds();
    csg::Point3f pt;
 
-   if (bounds.Contains(location)) {
-      pt = location;
+   // must pass in a grid location to the contains test
+   if (bounds.Contains(grid_location)) {
+      pt = grid_location;
    } else {
-      pt = bounds.GetClosestPoint(location);
+      pt = bounds.GetClosestPoint(grid_location);
    }
 
    float max_y = FLT_MIN;

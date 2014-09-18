@@ -3,7 +3,6 @@
 #include "csg/util.h"
 #include "lib/lua/script_host.h"
 #include "simulation/simulation.h"
-#include "simulation/jobs/bump_location.h"
 #include "simulation/jobs/lua_job.h"
 #include "simulation/jobs/bfs_path_finder.h"
 #include "simulation/jobs/a_star_path_finder.h"
@@ -95,14 +94,6 @@ void Sim_DestroyEntity(lua_State* L, std::weak_ptr<om::Entity> e)
       entity = nullptr;
       GetSim(L).DestroyEntity(id);
    }
-}
-
-std::shared_ptr<BumpLocation> Sim_CreateBumpLocation(lua_State *L, om::EntityRef entity, csg::Point3f const& vector)
-{
-   Simulation &sim = GetSim(L);
-   std::shared_ptr<BumpLocation> fp(new BumpLocation(sim, entity, vector));
-   sim.AddTask(fp);
-   return fp;
 }
 
 DirectPathFinderPtr Sim_CreateDirectPathFinder(lua_State *L, om::EntityRef entityRef)
@@ -313,7 +304,6 @@ DEFINE_INVALID_JSON_CONVERSION(BfsPathFinder);
 DEFINE_INVALID_JSON_CONVERSION(AStarPathFinder);
 DEFINE_INVALID_JSON_CONVERSION(FollowPath);
 DEFINE_INVALID_JSON_CONVERSION(DirectPathFinder);
-DEFINE_INVALID_JSON_CONVERSION(BumpLocation);
 DEFINE_INVALID_JSON_CONVERSION(LuaJob);
 DEFINE_INVALID_JSON_CONVERSION(Simulation);
 DEFINE_INVALID_LUA_CONVERSION(Simulation)
@@ -337,7 +327,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             def("create_astar_path_finder",  &Sim_CreateAStarPathFinder),
             def("create_bfs_path_finder",    &Sim_CreateBfsPathFinder),
             def("create_direct_path_finder", &Sim_CreateDirectPathFinder),
-            def("create_bump_location",      &Sim_CreateBumpLocation),
             def("create_job",                &Sim_CreateJob),
             def("create_save_state",         &Sim_CreateSaveState),
             def("load_object",               &Sim_LoadObject),
@@ -391,8 +380,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             luabind::class_<TracerBufferedWrapper, std::shared_ptr<TracerBufferedWrapper>>("TracerBuffered")
                .def("flush",              &TracerBufferedWrapper::Flush)
                .def_readonly("category",  &TracerBufferedWrapper::category)
-            ,
-            lua::RegisterTypePtr_NoTypeInfo<BumpLocation>("BumpLocation")
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
             ,
