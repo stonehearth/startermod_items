@@ -4,6 +4,7 @@ local HarvestPlant = class()
 
 HarvestPlant.name = 'harvest plant'
 HarvestPlant.does = 'stonehearth:harvest_plant'
+HarvestPlant.status_text = 'harvesting...'
 HarvestPlant.args = {
    plant = Entity      -- the plant to chop
 }

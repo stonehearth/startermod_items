@@ -48,7 +48,7 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _showBuildingDesigner: function(uri) {
-      if (!this._buildDesignerTools || !this._buildDesignerTools.isVisible) {
+      if (!this._buildDesignerTools || !this._buildDesignerTools.get('isVisible')) {
          App.setGameMode('build');
          App.setVisionMode('normal');
 
@@ -94,7 +94,13 @@ App.StonehearthBuildModeView = App.View.extend({
    },
 
    _hideDesignerViews: function() {
+      //For some reason, this isn't setting the visiblity of the building designer to false
+      //so use ember to actually set it/get it
       $('.buildAndDesignTool').parent().hide();
+
+      if (this._buildDesignerTools) {
+         this._buildDesignerTools.set('isVisible', false); 
+      }
    },
 
    _destroyAllViews: function() {
