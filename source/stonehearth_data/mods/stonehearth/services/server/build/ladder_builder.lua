@@ -236,8 +236,7 @@ end
 function LadderBuilder:_check_if_valid()
    -- if no one wants the ladder around anymore, destroy it
    if self:is_empty() then
-      local ladder_top = self:_get_ladder_top()
-      if ladder_top.y == 0 then
+      if self:_get_completed_height() == 0 then
          self._sv.manager:_destroy_builder(self._sv.base, self)
       end
    end
