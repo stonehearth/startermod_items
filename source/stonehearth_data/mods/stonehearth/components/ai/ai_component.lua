@@ -32,22 +32,23 @@ function AIComponent:initialize(entity, json)
       -- observers and actions
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
             self:_initialize(json)
+
+            -- wait until the very next gameloop to start our thread.  this gives the
+            -- person creating the entity time to do some more post-creating initialization
+            -- (e.g. setting the player id!).  xxx: it's probably better to do this by
+            -- passing an init function to create_entity(). -tony
+            radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
+                  if not self._dead then
+                     self:start()
+                  end
+               end)
          end)
 
-      -- wait until the very next gameloop to start our thread.  this gives the
-      -- person creating the entity time to do some more post-creating initialization
-      -- (e.g. setting the player id!).  xxx: it's probably better to do this by
-      -- passing an init function to create_entity(). -tony
-      radiant.events.listen_once(radiant, 'stonehearth:gameloop', function()
-            if not self._dead then
-               self:_start()
-            end
-         end)
    else
       --we're loading so instead listen on game loaded
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             self:_initialize(json)
-            self:_start()
+            self:start()
          end)
    end
 end
@@ -309,7 +310,21 @@ function AIComponent:_initialize(json)
    self.__saved_variables:mark_changed()
 end
 
-function AIComponent:_start()
+function AIComponent:stop()
+   if self._thread then
+      -- The ai thread cannot be stopped via a call originating from its own thread.
+      assert(self._thread ~= self._thread.get_current_thread())
+      self._thread:terminate()
+      self._thread = nil
+
+      if self._execution_frame then
+         self._execution_frame:destroy()
+         self._execution_frame = nil
+      end
+   end
+end
+
+function AIComponent:start()
    assert(not self._dead)
    assert(not self._thread)
    
@@ -323,6 +338,13 @@ function AIComponent:_start()
    self._thread:set_thread_main(function()
       self._execution_frame = self:_create_top_execution_frame()
       while not self._dead do
+
+         while not radiant.entities.exists_in_world(self._entity) do
+            -- If we're not in the world yet, don't bother running!
+            self._log:debug('AI component is not yet a part of the world.')
+            self._thread:sleep_realtime(250)
+         end
+
          local start_tick = radiant.gamestate.now()
          self._aitrace:spam('@loop')
          self._log:debug('starting new execution frame run in ai loop')

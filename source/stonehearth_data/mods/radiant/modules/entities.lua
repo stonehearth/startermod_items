@@ -23,6 +23,20 @@ function entities.create_entity(ref)
    return entity
 end
 
+function entities.stop_thinking(entity)
+   if entity and entity:is_valid() then
+      local ai_c = entity:get_component('stonehearth:ai')
+
+      if ai_c then
+         ai_c:stop()
+      end
+   end
+end
+
+function entities.exists_in_world(entity)
+   return entities.get_world_location(entity) ~= nil
+end
+
 function entities.destroy_entity(entity)
    if entity and entity:is_valid() then
       log:debug('destroying entity %s', entity)
