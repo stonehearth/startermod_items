@@ -28,19 +28,6 @@
       
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-
-      "sensor_list": {
-         "sensors": {
-         "door_sensor": {
-               "type": "sensor",
-               "radius": 4
-            }
-         }
-      },
-      "stonehearth:door" : {
-         "sensor" : "door_sensor"
       }
-
    }
 }
