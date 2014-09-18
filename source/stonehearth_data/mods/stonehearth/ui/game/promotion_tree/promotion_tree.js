@@ -83,12 +83,14 @@ App.StonehearthPromotionTree = App.View.extend({
       $.each(self._edges, function(i, edge) {
          var line = document.createElementNS('http://www.w3.org/2000/svg','line');
 
+         //if (edge.from && edge.to) {
          line.setAttributeNS(null,'x1', self._layout[edge.from].x + buttonSize.width / 2);
          line.setAttributeNS(null,'y1', self._layout[edge.from].y + buttonSize.height / 2);
          line.setAttributeNS(null,'x2', self._layout[edge.to].x + buttonSize.width / 2);
          line.setAttributeNS(null,'y2', self._layout[edge.to].y + buttonSize.height / 2);
          line.setAttributeNS(null,'style','stroke:rgb(255,255,255);stroke-width:2');
          self._svg.append(line);         
+         //}
       })
 
       // draw the nodes
