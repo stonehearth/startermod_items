@@ -4,6 +4,7 @@
    "name": "Carpenter",   
    "controller" : "stonehearth:class:carpenter",   
    "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",
+   "requirements": "Carpenter's saw, crafted by the Blacksmith.",
    "equipment" : {
       "abilities" : "file(carpenter_abilities)",
       "torso" : "file(carpenter_outfit)",
@@ -14,7 +15,7 @@
    "talisman_uri" : "stonehearth:carpenter:saw_talisman",
    "default_stance" : "passive",
    
-   "buttonIcon" : "file(images/jobButton.png)",
+   "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
    
    "task_groups" : [
@@ -36,5 +37,6 @@
       "ingredients": [
          { "material" : "wood resource", "count" : 1 }
       ]
-   }
+   },
+   "parent_profression" : "stonehearth:profressions:worker"
 }

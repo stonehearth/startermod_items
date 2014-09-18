@@ -17,8 +17,6 @@ function Town:initialize(session)
    self._sv.rally_to_battle_standard = false
    
    self._sv.entity = radiant.entities.create_entity()
-   --local profession_component = self._sv.entity:add_component('stonehearth:profession')
-   --profession_component:promote_to('stonehearth:professions:town')
    
    self.__saved_variables:mark_changed()
 

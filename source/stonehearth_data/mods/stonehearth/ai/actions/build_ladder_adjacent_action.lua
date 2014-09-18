@@ -7,6 +7,10 @@ BuildLadderAdjacent.does = 'stonehearth:build_ladder_adjacent'
 BuildLadderAdjacent.args = {
    ladder = Entity,           -- the ladder to build
    builder = LadderBuilder,   -- the ladder builder class
+   direction = {
+      type = 'string',
+      default = 'up',
+   }
 }
 BuildLadderAdjacent.version = 2
 BuildLadderAdjacent.priority = 1
@@ -34,7 +38,7 @@ function BuildLadderAdjacent:run(ai, entity, args)
    while carrying and not builder:is_ladder_finished() do
       radiant.entities.turn_to_face(entity, ladder)
       ai:execute('stonehearth:run_effect', { effect = 'work' })
-      builder:grow_ladder()
+      builder:grow_ladder(args.direction)
       carrying = radiant.entities.consume_carrying(entity)
    end
 end

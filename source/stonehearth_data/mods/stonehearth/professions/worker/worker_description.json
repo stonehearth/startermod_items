@@ -2,6 +2,8 @@
    "alias": "stonehearth:professions:worker",
    "name": "Worker",
    "controller" : "stonehearth:class:worker",
+   "description": "Workers perform basic tasks like harvesting resources, hauling stuff around, and constructing buildings.",
+   "requirements": "None, just hard work and guts.",
    "default_stance" : "passive",
 
    "equipment" : {
@@ -13,7 +15,7 @@
       ]
    },
    "roles" : "worker_profession",
-   "buttonIcon" : "file(images/jobButton.png)",
+   "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
    "task_groups" : [
       "stonehearth:task_group:restock", 

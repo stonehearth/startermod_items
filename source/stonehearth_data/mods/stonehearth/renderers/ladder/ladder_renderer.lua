@@ -69,7 +69,10 @@ function LadderRenderer:_update_shape()
 
    -- update the ladder
    local ladder_bounds = ladder_region:get_bounds()   
-   assert(ladder_bounds.min == Point3.zero)
+   assert(ladder_bounds.min.x == 0)
+   assert(ladder_bounds.min.z == 0)
+   assert(ladder_bounds.max.x <= 1)
+   assert(ladder_bounds.max.z <= 1)
 
    local ladder_height = math.max(ladder_bounds.max.y, self._ladder:get_desired_height())
    local ladder_points, ghost_points = {}, {}

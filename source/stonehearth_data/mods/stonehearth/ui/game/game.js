@@ -17,14 +17,13 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             "StonehearthCalendarView"
             ],
          complete: [
-            "StonehearthStartMenuView",
-            "StonehearthTaskManagerView",
-            "StonehearthGameSpeedWidget",
-            "StonehearthBuildingVisionWidget",
-            "StonehearthBulletinListWidget",
-            "StonehearthHudScoreWidget",
-            //"StonehearthExpBarWidget",
-            "StonehearthUnitFrameView"
+            'StonehearthStartMenuView',
+            'StonehearthTaskManagerView',
+            'StonehearthGameSpeedWidget',
+            'StonehearthBuildingVisionWidget',
+            'StonehearthBulletinListWidget',
+            'StonehearthHudScoreWidget',
+            'StonehearthUnitFrameView',
          ]
       };
       

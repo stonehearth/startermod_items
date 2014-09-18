@@ -910,7 +910,8 @@ function BuildService:remove_ladder_command(session, response, ladder_entity)
    if radiant.util.is_a(ladder_entity, Entity) then
       local ladder = ladder_entity:get_component('stonehearth:ladder')
       if ladder then
-         self._sv.scaffolding_manager:remove_ladder(ladder:get_base())
+         local base = radiant.entities.get_world_grid_location(ladder_entity)
+         self._sv.scaffolding_manager:remove_ladder(base)
       end
    end
    return true

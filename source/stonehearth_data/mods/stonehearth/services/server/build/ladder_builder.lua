@@ -22,7 +22,6 @@ function LadderBuilder:initialize(manager, base, normal, removeable)
    radiant.terrain.place_entity_at_exact_location(ladder, base)
    self._ladder_component = ladder:add_component('stonehearth:ladder')
                                        :set_normal(normal)
-                                       :set_base(base)
 
    self._vpr_component = ladder:add_component('vertical_pathing_region')
    self._vpr_component:set_region(_radiant.sim.alloc_region3())
@@ -49,7 +48,7 @@ end
 
 function LadderBuilder:destroy()
    self:_stop_teardown_task()   
-   self:_stop_build_task()
+   self:_stop_build_tasks()
 
    if self._vpr_trace then
       self._vpr_trace:destroy()
@@ -101,29 +100,33 @@ function LadderBuilder:_get_climb_to()
    return top and top - origin or nil
 end
 
-function LadderBuilder:_get_ladder_top()
-   local bounds = self._vpr_component:get_region():get():get_bounds()
-   return Point3(0, bounds.max.y, 0)
+function LadderBuilder:_get_completed_height()
+   local region = self._vpr_component:get_region():get()
+   local completed = Point3(0, 0, 0)
+   while region:contains(completed) do
+      completed.y = completed.y + 1
+   end
+   return completed.y
 end
 
 function LadderBuilder:_update_ladder_tasks()
    local climb_to = self:_get_climb_to()
-   local ladder_top = self:_get_ladder_top()
+   local completed_height = self:_get_completed_height()
    
    --local desired_height = climb_to.y > 0 and climb_to.y + 1 or 0
    local desired_height = climb_to and climb_to.y + 1 or 0
    self._ladder_component:set_desired_height(desired_height)
 
-   local delta = desired_height - ladder_top.y
+   local delta = desired_height - completed_height
    if delta > 0 then
       self:_stop_teardown_task()
-      self:_start_build_task()
+      self:_start_build_tasks()
    elseif delta < 0 then
-      self:_stop_build_task()
+      self:_stop_build_tasks()
       self:_start_teardown_task()
    else
       self:_stop_teardown_task()
-      self:_stop_build_task()
+      self:_stop_build_tasks()
       self:_check_if_valid()
    end
 end
@@ -137,10 +140,25 @@ function LadderBuilder:is_ladder_finished()
    return height == self._ladder_component:get_desired_height()
 end
 
-function LadderBuilder:grow_ladder()
+function LadderBuilder:grow_ladder(direction)
    self._vpr_component:get_region():modify(function(r)
-         local bounds = r:get_bounds()
-         r:add_unique_point(Point3(bounds.min.x, bounds.max.y, bounds.min.z))
+         local rung
+         local top = self._ladder_component:get_desired_height()
+
+         -- look for the next empty point in the 'up' or 'down' direction
+         -- and add that point to our shape
+         if direction == 'up' then            
+            rung = Point3(0, 0, 0)
+            while rung.y < top and r:contains(rung) do
+               rung.y = rung.y + 1
+            end
+         else
+            rung = Point3(0, top - 1, 0)
+            while rung.y > 0 and r:contains(rung) do
+               rung.y = rung.y - 1
+            end
+         end
+         r:add_point(rung)
       end)
 end
 
@@ -151,10 +169,14 @@ function LadderBuilder:shrink_ladder()
       end)
 end
 
-function LadderBuilder:_stop_build_task()
-   if self._build_task then
-      self._build_task:destroy()
-      self._build_task = nil
+function LadderBuilder:_stop_build_tasks()
+   if self._build_up_task then
+      self._build_up_task:destroy()
+      self._build_up_task = nil
+   end
+   if self._build_down_task then
+      self._build_down_task:destroy()
+      self._build_down_task = nil
    end
 end
 
@@ -165,21 +187,31 @@ function LadderBuilder:_stop_teardown_task()
    end
 end
 
-function LadderBuilder:_start_build_task()
-   if not self._build_task then
-      local town = stonehearth.town:get_town('player_1') -- xxx: ug!  need 1 build service per player >_<
-      if town then
-         self._build_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:build_ladder', {
-                                                   ladder = self._sv.ladder,
-                                                   builder = self,
-                                                })
+function LadderBuilder:_start_build_tasks()
+   local town = stonehearth.town:get_town('player_1') -- xxx: ug!  need 1 build service per player >_<
+   if not self._build_up_task then
+      self._build_up_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:build_ladder', {
+                                                ladder = self._sv.ladder,
+                                                builder = self,
+                                             })
 
-         self._build_task:set_name('build ladder')
+      self._build_up_task:set_name('build ladder')
                          :set_source(self._sv.ladder)
                          :set_priority(priorities.BUILD_LADDER)
                          :set_max_workers(1)
                          :start()
       end
+   if not self._build_down_task then
+      self._build_down_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:build_ladder_down', {
+                                                ladder = self._sv.ladder,
+                                                builder = self,
+                                             })
+
+      self._build_down_task:set_name('build ladder')
+                           :set_source(self._sv.ladder)
+                           :set_priority(priorities.BUILD_LADDER)
+                           :set_max_workers(1)
+                           :start()
    end
 end
 
@@ -204,8 +236,7 @@ end
 function LadderBuilder:_check_if_valid()
    -- if no one wants the ladder around anymore, destroy it
    if self:is_empty() then
-      local ladder_top = self:_get_ladder_top()
-      if ladder_top.y == 0 then
+      if self:_get_completed_height() == 0 then
          self._sv.manager:_destroy_builder(self._sv.base, self)
       end
    end
