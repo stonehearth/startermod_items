@@ -1,0 +1,5 @@
+{
+   "alias": "stonehearth:professions:big_game_hunter",
+   "buttonIcon" : "file(../unknown/images/jobButton.png)",
+   "parent_profession" : "stonehearth:professions:hunter"
+}

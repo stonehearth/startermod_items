@@ -1,0 +1,5 @@
+{
+   "alias": "stonehearth:professions:cook",
+   "buttonIcon" : "file(../unknown/images/jobButton.png)",
+   "parent_profession" : "stonehearth:professions:farmer"
+}

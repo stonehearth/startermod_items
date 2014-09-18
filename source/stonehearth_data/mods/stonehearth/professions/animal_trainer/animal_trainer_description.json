@@ -1,0 +1,5 @@
+{
+   "alias": "stonehearth:professions:animal_trainer",
+   "buttonIcon" : "file(../unknown/images/jobButton.png)",
+   "parent_profession" : "stonehearth:professions:shepherd"
+}

@@ -1,0 +1,5 @@
+{
+   "alias": "stonehearth:professions:treasure_hunter",
+   "buttonIcon" : "file(../unknown/images/jobButton.png)",
+   "parent_profession" : "stonehearth:professions:miner"
+}
