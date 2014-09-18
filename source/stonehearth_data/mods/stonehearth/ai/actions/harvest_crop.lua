@@ -4,6 +4,7 @@ local HarvestCropAction = class()
 
 HarvestCropAction.name = 'harvest crop'
 HarvestCropAction.does = 'stonehearth:harvest_crop'
+HarvestCropAction.status_text = 'harvesting...'
 HarvestCropAction.args = {
    crop = Entity      -- the crop entity to harvest
 }
