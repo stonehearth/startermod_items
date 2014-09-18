@@ -2,7 +2,8 @@
    "profession_id": "trapper",
    "alias": "stonehearth:professions:trapper",
    "name": "Trapper",   
-   "description": "Traps stuff, yay.",
+   "description": "The Trapper's snares capture and (ahem) \"harvest\" small critters for a reliable source of food and supplies.",
+   "requirements": "Trapper's Knife, a bone knife hewn by the Mason",
    "script": "file(/professions/trapper/trapper.lua)",
    "talisman_uri" : "stonehearth:trapper:knife_talisman",
    "default_stance" : "defensive",
@@ -21,6 +22,7 @@
       "stonehearth:task_group:harvest"
    ],
 
-   "buttonIcon" : "file(images/jobButton.png)",
-   "bannerIcon" : "file(images/banner.png)"
+   "icon" : "file(images/icon.png)",
+   "bannerIcon" : "file(images/banner.png)",
+   "parent_profression" : "stonehearth:profressions:worker"
 }
