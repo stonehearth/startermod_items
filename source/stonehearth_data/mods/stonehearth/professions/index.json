@@ -1,13 +1,11 @@
 {
    "jobs" : [
-      "stonehearth:professions:worker",
       "stonehearth:professions:animal_trainer",
       "stonehearth:professions:archer",
       "stonehearth:professions:architect",
       "stonehearth:professions:armorsmith",
       "stonehearth:professions:big_game_hunter",
       "stonehearth:professions:blacksmith",
-      "stonehearth:professions:brewer",
       "stonehearth:professions:carpenter",
       "stonehearth:professions:cook",
       "stonehearth:professions:engineer",
@@ -23,6 +21,7 @@
       "stonehearth:professions:treasure_hunter",
       "stonehearth:professions:footman", 
       "stonehearth:professions:weaver",
-      "stonehearth:professions:weaponsmith"
+      "stonehearth:professions:weaponsmith",
+      "stonehearth:professions:worker"
    ]
 }

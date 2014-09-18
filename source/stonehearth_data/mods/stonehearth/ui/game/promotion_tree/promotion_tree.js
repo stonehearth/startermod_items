@@ -50,6 +50,7 @@ App.StonehearthPromotionTree = App.View.extend({
 
       var content = this.$('#content');
       var svg = this.$('svg');
+      var buttonSize = { width: 74, height: 79 };
 
       // xxx, eventually generate this from some graph layout library like graphvis, if we can
       // get satisfactory results
@@ -79,38 +80,40 @@ App.StonehearthPromotionTree = App.View.extend({
          'stonehearth:professions:treasure_hunter' : {x: 330, y: 457},
       }
 
-      var edgeData = self._buildEdgeData();
+      var edges = self._buildEdges();
 
+      // draw the edges
+      $.each(edges, function(i, edge) {
+         var line = document.createElementNS('http://www.w3.org/2000/svg','line');
+
+         line.setAttributeNS(null,'x1', layout[edge.from].x + buttonSize.width / 2);
+         line.setAttributeNS(null,'y1', layout[edge.from].y + buttonSize.height / 2);
+         line.setAttributeNS(null,'x2', layout[edge.to].x + buttonSize.width / 2);
+         line.setAttributeNS(null,'y2', layout[edge.to].y + buttonSize.height / 2);
+         line.setAttributeNS(null,'style','stroke:rgb(255,255,255);stroke-width:2');
+         svg.append(line);         
+      })
+
+      // draw the nodes
       $.each(self._jobs, function(i, job) {
          var l = layout[job.alias];
 
          var img = document.createElementNS('http://www.w3.org/2000/svg','image');
+
          img.setAttributeNS('http://www.w3.org/1999/xlink','href', job.buttonIcon);
          img.setAttributeNS(null,'x', l.x);
          img.setAttributeNS(null,'y', l.y);
-         img.setAttributeNS(null,'height','79');
-         img.setAttributeNS(null,'width','74');
+         img.setAttributeNS(null,'width', buttonSize.width);
+         img.setAttributeNS(null,'height', buttonSize.height);
          img.setAttributeNS(null,'class','jobButton');
          svg.append(img);         
-         
-         /*
-         var img = $('<image>')
-            .addClass('.jobButton')
-            .attr('xlink:href', job.buttonIcon)
-            .attr('x', l.x)
-            .attr('y', l.y)
-            .attr('width', '74px')
-            .attr('height', '79px');
-         */
-
-         //svg.append(image);
-         
+        
       });
 
       self._addTreeHandlers();
    },
 
-   _buildEdgeData: function() {
+   _buildEdges: function() {
       var edges = [];
 
       $.each(this._jobs, function(i, job) {
