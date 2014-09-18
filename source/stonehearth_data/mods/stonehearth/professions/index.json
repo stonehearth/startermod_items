@@ -1,9 +1,27 @@
 {
    "jobs" : [
+      "stonehearth:professions:animal_trainer",
+      "stonehearth:professions:archer",
+      "stonehearth:professions:architect",
+      "stonehearth:professions:armorsmith",
+      "stonehearth:professions:big_game_hunter",
+      "stonehearth:professions:blacksmith",
       "stonehearth:professions:carpenter",
-      "stonehearth:professions:trapper",
+      "stonehearth:professions:cook",
+      "stonehearth:professions:engineer",
       "stonehearth:professions:farmer",
+      "stonehearth:professions:footman",
+      "stonehearth:professions:geomancer",
+      "stonehearth:professions:hunter",
+      "stonehearth:professions:mason", 
+      "stonehearth:professions:miner",
+      "stonehearth:professions:shepherd",
+      "stonehearth:professions:shield_bearer",
+      "stonehearth:professions:trapper",
+      "stonehearth:professions:treasure_hunter",
       "stonehearth:professions:footman", 
-      "stonehearth:professions:weaver"
+      "stonehearth:professions:weaver",
+      "stonehearth:professions:weaponsmith",
+      "stonehearth:professions:worker"
    ]
 }
