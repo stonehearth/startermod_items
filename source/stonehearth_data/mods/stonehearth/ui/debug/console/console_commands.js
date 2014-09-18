@@ -59,4 +59,12 @@ $(document).ready(function(){
          return radiant.call('radiant:set_config', key, value);
       },
    });
+
+   radiant.console.register('instabuild', {
+      call: function(cmdobj, fn, args) {
+         var building = args[0];
+         App.stonehearthClient.instabuild(building);
+         return {};
+      },
+   });
 });

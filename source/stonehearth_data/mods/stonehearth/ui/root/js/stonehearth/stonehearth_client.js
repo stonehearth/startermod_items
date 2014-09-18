@@ -428,7 +428,7 @@ var StonehearthClient;
       },
 
       instabuild: function(building) {
-         return radiant.call_obj(this._build_service, 'instabuild_command', building.__self);
+         return radiant.call_obj(this._build_service, 'instabuild_command', building);
       },
 
       setGrowRoofOptions: function(options) {

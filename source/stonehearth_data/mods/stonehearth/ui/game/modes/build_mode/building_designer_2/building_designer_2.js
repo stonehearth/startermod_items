@@ -178,19 +178,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          self._state.activeTabId = tabId;
          self._saveState();
-
-         // intabuild. for debugging only
-         /*
-         $(top).bind('keyup', function(e){
-            if (e.keyCode == 88)  { // x
-               var building = self.get('building');
-
-               if (building) {
-                  App.stonehearthClient.instabuild(building);
-               }
-            }
-         });         
-         */
       });
 
       // tools
