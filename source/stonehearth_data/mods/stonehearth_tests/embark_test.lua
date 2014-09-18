@@ -57,7 +57,7 @@ function EmbarkTest:__init()
 
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:oak_log'))
-   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:oak_log'))
+   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:silkweed_bundle'))
    radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:weapons:wooden_sword_talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw_talisman'))
 
@@ -80,7 +80,7 @@ function EmbarkTest:__init()
    -- Introduce a new person
    
 
-   ---[[
+   --[[
    self:at(20000,  function()
          stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
