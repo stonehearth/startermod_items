@@ -5,6 +5,7 @@
    "name": "Farmer",
    "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.", 
    "requirements" : "Farmer's Hoe, crafted by the Carpenter.",
+   "controller" : "stonehearth:class:farmer", 
 
    "talisman_uri" : "stonehearth:farmer:hoe_talisman",
    "default_stance" : "passive",
