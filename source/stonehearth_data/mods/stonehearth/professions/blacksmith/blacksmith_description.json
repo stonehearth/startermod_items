@@ -1,4 +1,7 @@
 {
    "alias": "stonehearth:professions:blacksmith",
-   "buttonIcon" : "file(../unknown/images/jobButton.png)"
+   "name" : "???",
+   "description" : "???",
+   "requirements" : "???",
+   "icon" : "file(../unknown/images/icon.png)"
 }

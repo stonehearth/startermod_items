@@ -1,5 +1,8 @@
 {
    "alias": "stonehearth:professions:engineer",
-   "buttonIcon" : "file(../unknown/images/jobButton.png)",
+   "name" : "???",
+   "description" : "???",
+   "requirements" : "???",
+   "icon" : "file(../unknown/images/icon.png)",
    "parent_profession" : "stonehearth:professions:blacksmith"
 }

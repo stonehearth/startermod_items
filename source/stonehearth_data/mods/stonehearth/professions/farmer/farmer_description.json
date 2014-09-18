@@ -3,7 +3,8 @@
    "alias": "stonehearth:professions:farmer",
 
    "name": "Farmer",
-   "description": "Farmer", 
+   "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.", 
+   "requirements" : "Farmer's Hoe, crafted by the Carpenter.",
 
    "script": "file(farmer.lua)",
    "talisman_uri" : "stonehearth:farmer:hoe_talisman",
@@ -16,7 +17,7 @@
    },
    "roles" : "farmer_profession",
 
-   "buttonIcon" : "file(images/jobButton.png)",
+   "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
 
    "task_groups" : [

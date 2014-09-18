@@ -1,33 +1,19 @@
 $(document).ready(function(){
    $(top).on("radiant_promote_to_profession", function (_, e) {
-      var r  = new RadiantTrace()
-      var components = { 
-            'unit_info' : {},
-            'stonehearth:promotion_talisman' : {} 
-         };
 
-      // grab the properties from the talisman and pass them along to the promotion wizard
-      r.traceUri(e.entity, components)
-         .progress(function(eobj) {
-               // eobj could be either a talisman or the person to promote              
-               var talisman = eobj['stonehearth:promotion_talisman'] ? eobj : null;
-               var citizen = !eobj['stonehearth:promotion_talisman'] ? eobj : null;
-
-               App.gameView.addView(App.StonehearthPromotionTree, { 
-                  talisman: talisman,
-                  citizen: citizen
-               });
-               r.destroy();
-            });
+      App.gameView.addView(App.StonehearthPromotionTree, { 
+         citizen: e.entity
+      });
    });
 });
 
 App.StonehearthPromotionTree = App.View.extend({
 	templateName: 'promotionTree',
    classNames: ['flex', 'fullScreen'],
+   closeOnEsc: true,
+
    components: {
-      "jobs" : {
-      }
+      "jobs" : {}
    },
 
    didInsertElement: function() {
@@ -35,26 +21,37 @@ App.StonehearthPromotionTree = App.View.extend({
 
       var self = this;
 
+      self._jobButtons = {};
+
       self.jobsTrace = new StonehearthDataTrace('stonehearth:professions:index', self.components);
       self.jobsTrace.progress(function(eobj) {
             self._jobs = eobj.jobs;
-            self._buildTree();
+            self._initCitizen();
+            
          });
+   },
 
-      //this.set('uri', 'stonehearth:professions:index');
-
+   _initCitizen: function() {
+      var self = this;
+      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), { 'stonehearth:profession' : {} });
+      self._citizenTrace.progress(function(o) {
+            self._startingJob = o['stonehearth:profession'].profession_uri;
+            self._buildTree();
+            self._citizenTrace.destroy();
+         })
    },
 
    _buildTree: function() {
       var self = this;
 
       var content = this.$('#content');
-      var svg = this.$('svg');
       var buttonSize = { width: 74, height: 79 };
+
+      self._svg = this.$('svg');
 
       // xxx, eventually generate this from some graph layout library like graphvis, if we can
       // get satisfactory results
-      var layout = {
+      self._layout = {
          'stonehearth:professions:worker' : {x: 372 , y: 244},
          'stonehearth:professions:carpenter' : {x: 542 , y: 159},
          'stonehearth:professions:mason' : {x: 542 , y: 244},
@@ -80,37 +77,68 @@ App.StonehearthPromotionTree = App.View.extend({
          'stonehearth:professions:treasure_hunter' : {x: 330, y: 457},
       }
 
-      var edges = self._buildEdges();
+      self._edges = self._buildEdges();
 
       // draw the edges
-      $.each(edges, function(i, edge) {
+      $.each(self._edges, function(i, edge) {
          var line = document.createElementNS('http://www.w3.org/2000/svg','line');
 
-         line.setAttributeNS(null,'x1', layout[edge.from].x + buttonSize.width / 2);
-         line.setAttributeNS(null,'y1', layout[edge.from].y + buttonSize.height / 2);
-         line.setAttributeNS(null,'x2', layout[edge.to].x + buttonSize.width / 2);
-         line.setAttributeNS(null,'y2', layout[edge.to].y + buttonSize.height / 2);
+         line.setAttributeNS(null,'x1', self._layout[edge.from].x + buttonSize.width / 2);
+         line.setAttributeNS(null,'y1', self._layout[edge.from].y + buttonSize.height / 2);
+         line.setAttributeNS(null,'x2', self._layout[edge.to].x + buttonSize.width / 2);
+         line.setAttributeNS(null,'y2', self._layout[edge.to].y + buttonSize.height / 2);
          line.setAttributeNS(null,'style','stroke:rgb(255,255,255);stroke-width:2');
-         svg.append(line);         
+         self._svg.append(line);         
       })
 
       // draw the nodes
       $.each(self._jobs, function(i, job) {
-         var l = layout[job.alias];
+         var l = self._layout[job.alias];
 
-         var img = document.createElementNS('http://www.w3.org/2000/svg','image');
+         var button = $('<div>')
+            .addClass('jobButton')
+            .attr('id', job.alias)
+            .append('<img src=' + job.icon + '/>');
 
-         img.setAttributeNS('http://www.w3.org/1999/xlink','href', job.buttonIcon);
-         img.setAttributeNS(null,'x', l.x);
-         img.setAttributeNS(null,'y', l.y);
-         img.setAttributeNS(null,'width', buttonSize.width);
-         img.setAttributeNS(null,'height', buttonSize.height);
-         img.setAttributeNS(null,'class','jobButton');
-         svg.append(img);         
-        
+         self._jobButtons[job.alias] = button;
+      self._addDivToGraph(button, l.x, l.y, 74, 74);
       });
 
+      // unlock nodes based on talismans available in the world
+      radiant.call('stonehearth:get_talismans_in_explored_region')
+         .done(function(o) {
+            $.each(o.available_professions, function(key, profession) {
+               self._jobButtons[profession].addClass('available');
+            })
+         });  
+
+      self._jobButtons[self._startingJob].addClass('available');
+
+
+      var cursor = $("<div class='jobButtonCursor'></div>");
+      self._jobCursor = self._addDivToGraph(cursor, 0, 0, 84, 82);
       self._addTreeHandlers();
+      self._updateUi(this._startingJob);
+   },
+
+
+   // from: http://stackoverflow.com/questions/12462036/dynamically-insert-foreignobject-into-svg-with-jquery
+   _addDivToGraph: function(div, x, y, width, height) {
+      var self = this;
+      var foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject' );
+      var body = document.createElement( 'body' ); 
+      $(foreignObject)
+         .attr("x", x)
+         .attr("y", y)
+         .attr("width", width)
+         .attr("height", height).append(body);
+      
+      $(body)
+         .append(div);
+
+      self._svg.append(foreignObject);                  
+
+      return foreignObject;
    },
 
    _buildEdges: function() {
@@ -130,12 +158,14 @@ App.StonehearthPromotionTree = App.View.extend({
    _addTreeHandlers: function() {
       var self = this;
 
-      this.$('.jobButton').click(function() {
-         if(! $(this).hasClass('locked')) {
-            var profressionAlias = $(this).attr('id');
-            self._promote(profressionAlias);
-         }
-      })      
+      self.$('.jobButton').click(function() {
+         var jobAlias = $(this).attr('id');
+         self._updateUi(jobAlias);
+      });
+
+      self.$('#promoteButton').click(function() {
+         self._promote(self.get('selectedJob.alias'));
+      })
    },
 
    _getProfessionInfo: function(id) {
@@ -149,15 +179,40 @@ App.StonehearthPromotionTree = App.View.extend({
       return ret;
    },
 
-   _promote: function(professionAlias) {
+   _updateUi: function(jobAlias) {
+      var self = this;
+      var selectedJob;
+
+      $.each(self._jobs, function(i, job) {
+         if (job.alias == jobAlias) {
+            selectedJob = job;
+         }
+      })
+
+      // move the cursor
+      $(self._jobCursor)
+         .attr('x', self._layout[jobAlias].x - 5)
+         .attr('y', self._layout[jobAlias].y - 4);
+
+      // tell handlebars about changes
+      self.set('selectedJob', selectedJob);
+      self.set('promoteButtonText', 'Promote to ' + selectedJob.name); //xxx localize
+
+      var requirementsMet = self._jobButtons[jobAlias].hasClass('available') || selectedJob.alias == self._startingJob;
+      self.set('requirementsMet', requirementsMet);
+      self.set('promoteOk', selectedJob.alias != self._startingJob && requirementsMet);
+   },
+
+
+   _promote: function(jobAlias) {
       var self = this;
 
-      var professionInfo = self._getProfessionInfo(professionAlias);
+      var professionInfo = self._getProfessionInfo(jobAlias);
 
       var citizen = this.get('citizen');
       var talisman = professionInfo.talisman_uri;
 
-      radiant.call('stonehearth:grab_promotion_talisman', citizen.__self, talisman);
+      radiant.call('stonehearth:grab_promotion_talisman', citizen, talisman);
       this.destroy();
    },
 
@@ -165,6 +220,11 @@ App.StonehearthPromotionTree = App.View.extend({
       if (this.jobsTrace) {
          this.jobsTrace.destroy();
       }
+
+      if (this._citizenTrace) {
+         this._citizenTrace.destroy();
+      }
+
       this._super();
    },
 

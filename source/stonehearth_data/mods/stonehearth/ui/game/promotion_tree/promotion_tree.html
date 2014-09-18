@@ -1,11 +1,22 @@
 <script type="text/x-handlebars" data-template-name="promotionTree">
 <div id="promotionTree" class="gui">
-
    <div class="window">
-      <div class="title">Choose a Job</div>
+      <div class="title">Choose a Job <div class="closeButton"></div></div>
       <div id="content" class="downSection">
          <svg id="treeSvg"></svg>
       </div>
+      <div id="scroll"></div>
+      <div id="info">
+         <div class="block">
+            <h2 id="className">{{view.selectedJob.name}}</h2>
+            <div id="classDescription">{{view.selectedJob.description}}</div>
+         </div>
+         <div class="block">
+            <h2 id="requires">Requires</h2>
+            <div id="requirements" {{bind-attr class=view.requirementsMet:requirementsMet:requirementsUnmet}}>{{view.selectedJob.requirements}}</div>
+         </div>
+      </div>
+      <button class="goldTrim" id="promoteButton" {{bind-attr class=view.promoteOk:visible:hidden}}>{{view.promoteButtonText}}</button>
    </div>
 </div>
 </script>

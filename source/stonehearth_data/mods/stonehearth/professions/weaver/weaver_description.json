@@ -2,7 +2,8 @@
    "profession_id": "weaver",
    "alias" : "stonehearth:professions:weaver",
    "name": "Weaver",      
-   "description" : "The weaver makes thread, fabrics and hangings from fiber and dye.", 
+   "description" : "The Weaver makes thread, fabrics and hangings from fiber and dye.", 
+   "requirements": "Weaver's Spindle, crafted by the Carpenter.",
    "script": "file(/professions/weaver/weaver.lua)",
    "talisman_uri" : "stonehearth:weaver:spindle_talisman", 
    "default_stance" : "passive",
@@ -15,7 +16,7 @@
 
    "roles" : "weaver_profession crafter", 
 
-   "buttonIcon" : "file(images/jobButton.png)",
+   "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
 
    "task_groups" : [

@@ -3,6 +3,7 @@
    "alias": "stonehearth:professions:mason",
    "name": "Mason",      
    "description": "The Mason crafts building materials and decorative items from stone.",
+   "requirements": "Mason's Mallet and Chisel, crafted by the Carpenter.",
    "script": "file(mason.lua)",
    "equipment" : {
       "abilities" : "file(mason_abilities)",
@@ -13,7 +14,7 @@
    "roles" : "mason_profession crafter",
    "talisman_uri" : "stonehearth:mason:chisel_talisman",
    
-   "buttonIcon" : "file(images/jobButton.png)",
+   "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
    
    "task_groups" : [
