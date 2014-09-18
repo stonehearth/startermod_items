@@ -100,20 +100,24 @@ function LadderBuilder:_get_climb_to()
    return top and top - origin or nil
 end
 
-function LadderBuilder:_get_ladder_top()
-   local bounds = self._vpr_component:get_region():get():get_bounds()
-   return Point3(0, bounds.max.y, 0)
+function LadderBuilder:_get_completed_height()
+   local region = self._vpr_component:get_region():get()
+   local completed = Point3(0, 0, 0)
+   while region:contains(completed) do
+      completed.y = completed.y + 1
+   end
+   return completed.y
 end
 
 function LadderBuilder:_update_ladder_tasks()
    local climb_to = self:_get_climb_to()
-   local ladder_top = self:_get_ladder_top()
+   local completed_height = self:_get_completed_height()
    
    --local desired_height = climb_to.y > 0 and climb_to.y + 1 or 0
    local desired_height = climb_to and climb_to.y + 1 or 0
    self._ladder_component:set_desired_height(desired_height)
 
-   local delta = desired_height - ladder_top.y
+   local delta = desired_height - completed_height
    if delta > 0 then
       self:_stop_teardown_task()
       self:_start_build_tasks()
