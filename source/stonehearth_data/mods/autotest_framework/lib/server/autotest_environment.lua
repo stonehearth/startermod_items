@@ -15,6 +15,8 @@ function env.create_world(world_generator_script)
    stonehearth.town:add_town(env.session)
    stonehearth.inventory:add_inventory(env.session)
    stonehearth.population:add_population(env.session)
+   stonehearth.terrain:get_visible_region(env.session.faction) 
+   stonehearth.terrain:get_explored_region(env.session.faction)
 
    local create_world = radiant.mods.load_script(world_generator_script)
    create_world(env)
