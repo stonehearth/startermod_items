@@ -142,7 +142,7 @@ function combat_tests.talsman_drop(autotest)
          e.entity:get_uri() == 'stonehearth:weaver:spindle_talisman' or 
          e.entity:get_uri() == 'stonehearth:farmer:hoe_talisman' or
          e.entity:get_uri() == 'stonehearth:trapper:knife_talisman' or
-         e.entity:get_uri() == 'stonehearth:weapons:wooden_sword_talisman' then
+         e.entity:get_uri() == 'stonehearth:footman:wooden_sword_talisman' then
          num_talismans = num_talismans + 1
       end
       if num_talismans == 5 then
