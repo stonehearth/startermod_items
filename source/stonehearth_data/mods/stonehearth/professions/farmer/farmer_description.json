@@ -24,5 +24,5 @@
       "stonehearth:task_group:restock",
       "stonehearth:task_group:simple_farming"
    ],
-   "parent_profression" : "stonehearth:profressions:worker"
+   "parent_profression" : "stonehearth:profession:worker"
 }

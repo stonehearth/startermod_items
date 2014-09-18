@@ -5,7 +5,7 @@
    "description" : "The Foodman is a melee fighter. A good choice for the backbone of your town's defense.",
    "requirements" : "Wooden Practice Sword, crafted by the Carpenter.",
    "script": "file(footman.lua)",
-   "talisman_uri" : "stonehearth:weapons:wooden_sword_talisman",
+   "talisman_uri" : "stonehearth:footman:wooden_sword_talisman",
    "default_stance": "aggressive",
 
    "equipment" : {

@@ -21,11 +21,21 @@
          width: 74px;
          height: 74px;
          background-image: url(images/jobButtonUnavailable.png);   
+         
+         img {
+            -webkit-filter: ~"saturate(20%)"; 
+         }
+
       }
 
       .available {
          background-image: url(images/jobButton.png);
+
+         img {
+            -webkit-filter: none; 
+         }
       }
+
 
       body {
          padding: 0px;
