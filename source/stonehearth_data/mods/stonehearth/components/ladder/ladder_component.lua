@@ -24,18 +24,6 @@ function Ladder:set_normal(normal)
    return self
 end
 
-function Ladder:get_base()
-   return self._sv.base
-end
-
-function Ladder:set_base(base)
-   if base ~= self._sv.base then
-      self._sv.base = base
-      self.__saved_variables:mark_changed()
-   end
-   return self
-end
-
 function Ladder:get_desired_height()
    return self._sv.desired_height
 end

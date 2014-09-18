@@ -16,6 +16,7 @@
                "stonehearth:actions:wait_for_closest_stockpile_space",
 
                "stonehearth:actions:build_ladder",
+               "stonehearth:actions:build_ladder_down",
                "stonehearth:actions:build_ladder_adjacent",
                "stonehearth:actions:teardown_ladder",
                "stonehearth:actions:teardown_ladder_adjacent",
@@ -30,14 +31,7 @@
                "stonehearth:actions:place_item",
                "stonehearth:actions:place_item_on_wall",
                "stonehearth:actions:place_carrying_on_wall_adjacent",
-               "stonehearth:actions:replace_proxy_with_item",
-               "stonehearth:actions:build_ladder",
-               "stonehearth:actions:build_ladder_adjacent",
-               "stonehearth:actions:teardown_ladder",
-               "stonehearth:actions:teardown_ladder_adjacent"
-
-
-
+               "stonehearth:actions:replace_proxy_with_item"
             ],
             "observers" : [
                "stonehearth:observers:combat_panic"

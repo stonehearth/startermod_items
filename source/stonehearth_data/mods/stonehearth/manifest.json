@@ -405,6 +405,7 @@
       "actions:work_at_workshop" : "file(ai/actions/work_at_workshop_action.lua)",
       "actions:move_item_to_available_stockpile" : "file(ai/actions/move_item_to_available_stockpile.lua)",
       "actions:build_ladder" : "file(ai/actions/build_ladder_action.lua)",
+      "actions:build_ladder_down" : "file(ai/actions/build_ladder_down_action.lua)",
       "actions:build_ladder_adjacent" : "file(ai/actions/build_ladder_adjacent_action.lua)",
       "actions:teardown_ladder" : "file(ai/actions/teardown_ladder_action.lua)",
       "actions:teardown_ladder_adjacent" : "file(ai/actions/teardown_ladder_adjacent_action.lua)",
