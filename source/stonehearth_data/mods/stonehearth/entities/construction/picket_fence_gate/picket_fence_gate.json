@@ -13,10 +13,11 @@
          "door_sensor": {
                "type": "sensor",
                "radius": 4
+            }
          }
       },
       "stonehearth:door" : {
-         "sensor" : "door_sensor"               
+         "sensor" : "door_sensor"
       }
    }
 }
