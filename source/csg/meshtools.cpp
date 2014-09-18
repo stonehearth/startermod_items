@@ -21,7 +21,7 @@ mesh_tools& mesh_tools::SetOffset(Point3f const& offset)
    return *this;
 }
 
-mesh_tools& mesh_tools::SetColorMap(std::unordered_map<int, Point4f> const& colorMap)
+mesh_tools& mesh_tools::SetColorMap(TagToColorMap const& colorMap)
 {
    colorMap_ = &colorMap;
    return *this;
@@ -149,8 +149,8 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
    for (Rect2 const& r: region) {
       Point2 const& min = r.GetMin();
       Point2 const& max = r.GetMax();
-
       Point3f points[4];
+
       points[0][pi.x] = (float)min.x;
       points[0][pi.y] = (float)min.y;
       points[0][pi.i] = (float)pi.plane_value;
@@ -170,23 +170,23 @@ void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, me
       Point3f normal(0, 0, 0);
       normal[pi.i] = (float)pi.normal_dir;
 
+      if (normal.x < 0 || normal.y < 0 || normal.z > 0) {
+         // swap the diagonals to traverse in the opposite direction
+         std::swap(points[0], points[2]);
+      }
+
       int tag = r.GetTag();
 
-      // this is super gross.  instead of passing in a tess map, we should parameterize the 
-      // mesh_tools object with a function that we can call...  or better yet, dump this
-      // thing and do tesselation on the server!
       if (!colorMap_) {         
-         Color3 c= Color3::FromInteger(tag);
-         Point4f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 1.0f);
-         m.add_face(points, normal, color);
+         Color4 color = Color4::FromInteger(tag);
+         m.AddFace(points, normal, color);
       } else {
          auto i = colorMap_->find(tag);
          if (i != colorMap_->end()) {
-            m.add_face(points, normal, i->second);
+            m.AddFace(points, normal, i->second);
          } else {
-            // xxx: get the winding right...
-            Color3 c = Color3::FromInteger(tag);
-            m.add_face(points, normal, Point4f(c.r/255.0f, c.g/255.0f, c.b/255.0f, 1.0f));
+            Color4 color = Color4::FromInteger(tag);
+            m.AddFace(points, normal, color);
          }
       }
    }
@@ -220,40 +220,6 @@ void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Co
    indices.push_back(vlast + 0);  // second triangle...
    indices.push_back(vlast + 2);
    indices.push_back(vlast + 3);
-}
-
-void mesh_tools::mesh::add_face(Point3f const points[], Point3f const& normal, Point4f const& color)
-{
-   if (vertices.empty()) {
-      bounds.SetMin(points[0] + offset_);
-      bounds.SetMax(points[0] + offset_);
-   }
-   int vlast = vertices.size();
-   for (int i = 0; i < 4; i++) {
-      Point3f pt = points[i] + offset_;
-      vertices.emplace_back(vertex(pt, normal, color));
-      bounds.Grow(pt);
-   }
-   
-   // xxx: this is a super gross hack.  the client should know what they mean
-   // and we should do what they say!
-   if (normal.x < 0 || normal.y < 0 || normal.z > 0) {
-      indices.push_back(vlast + 2);  // first triangle...
-      indices.push_back(vlast + 1);
-      indices.push_back(vlast + 0);
-
-      indices.push_back(vlast + 3);  // second triangle...
-      indices.push_back(vlast + 2);
-      indices.push_back(vlast + 0);
-   } else {
-      indices.push_back(vlast + 0);  // first triangle...
-      indices.push_back(vlast + 1);
-      indices.push_back(vlast + 2);
-
-      indices.push_back(vlast + 0);  // second triangle...
-      indices.push_back(vlast + 2);
-      indices.push_back(vlast + 3);
-   }
 }
 
 template <typename S>
