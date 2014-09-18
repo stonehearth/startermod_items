@@ -1,3 +1,5 @@
+local Entity = _radiant.om.Entity
+
 local ExecutionUnitV2 = class()
 
 local THINKING = 'thinking'
@@ -13,6 +15,7 @@ local DEAD = 'dead'
 local CALL_NOT_IMPLEMENTED = {}
 
 local placeholders = require 'services.server.ai.placeholders'
+local ObjectMonitor = require 'components.ai.object_monitor'
 
 local ENTITY_STATE_FIELDS = {
    location = true,
@@ -191,13 +194,29 @@ end
 function ExecutionUnitV2:_start_thinking(args, entity_state)
    assert(args, '_start_thinking called with no args')
    assert(entity_state, '_start_thinking called with no entity_state')
+   assert(not self._object_monitor, '_start_thinking with existing object monitor!')
 
-  if not self:_verify_arguments('start_thinking', args, self._action.args) then      
+   -- verify the arguments are correct
+   if not self:_verify_arguments('start_thinking', args, self._action.args) then      
       self:_stop()
       return
    end
    self._args = args
-    
+
+   -- create an object monitor to keep track of all the entities required by
+   -- this action
+   self._object_monitor = self:_create_object_monitor(function()
+                              self._log:info('stopping thinking by request of object monitor!')
+                              self:_stop_thinking()
+                              self._object_monitor:destroy()
+                              self._object_monitor = nil
+                           end)
+   if not self._object_monitor then
+      self._log:detail('failed to monitor all entities in args.  bailing.')
+      self:_stop()
+      return
+   end
+
    if self:in_state(DEAD) then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
       return
@@ -290,6 +309,8 @@ function ExecutionUnitV2:_run()
 end
 
 function ExecutionUnitV2:_stop()
+   assert(not self._object_monitor)
+
    if self:in_state(DEAD) then
       self._log:detail('ignoring "stop" in state "%s"', self._state)
       return
@@ -318,6 +339,12 @@ end
 
 function ExecutionUnitV2:_destroy()
    self._log:detail('destroy')
+
+   if self._object_monitor then
+      self._object_monitor:destroy()
+      self._object_monitor = nil
+   end
+   
    if self:in_state('thinking', 'ready') then
       return self:_destroy_from_thinking()
    end
@@ -367,6 +394,10 @@ function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
    end
    self:_verify_arguments('set_think_output', think_output, self._think_output_types)
 
+   assert(self._object_monitor)
+   self._log:detail('pausing object monitor in _set_think_output_from_thinking')
+   self._object_monitor:pause()
+
    self:_set_state(READY)
    self._frame:_unit_ready(self, think_output)
 end
@@ -410,11 +441,18 @@ end
 
 function ExecutionUnitV2:_run_from_ready()
    assert(self._thinking)
+   assert(self._object_monitor)
+   assert(self._object_monitor:is_running())
 
    self:_do_start()
    self:_set_state(RUNNING)
    self:_do_stop_thinking()
+
    self:_call_run()
+
+   self._object_monitor:destroy()
+   self._object_monitor = nil
+
    self:_set_state(FINISHED)
 end
 
@@ -519,12 +557,23 @@ end
 
 function ExecutionUnitV2:_do_start()
    self._log:debug('_do_start (state:%s)', tostring(self._state))
+   assert(self._thread:is_running())
    assert(self._thinking)
    assert(not self._started)
-      
+   assert(self._object_monitor)
+   assert(not self._object_monitor:is_running())
+
    if self._action.status_text then
       self._ai_component:set_status_text(self._action.status_text)
    end
+
+   -- switch to the abort version
+   self._object_monitor:set_destroyed_cb(function(name)
+         self._object_monitor:destroy()
+         self._object_monitor = nil
+         self:__abort('%s was destroyed during run', name)
+      end)
+   self._object_monitor:resume()
 
    self:_set_state(STARTING)  
    self._started = true
@@ -548,16 +597,15 @@ function ExecutionUnitV2:_do_start_thinking(entity_state)
    assert(entity_state, '_do_start_thinking called with no entity_state')
    self._log:debug('_do_start_thinking (state:%s)', tostring(self._state))
    assert(not self._thinking)
+
+   self:_verify_entity_state(entity_state)
    
    self._cost = self._action.cost or 0
    self._thinking = true
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
-
    if self:_call_start_thinking() == CALL_NOT_IMPLEMENTED then
       self:_set_think_output(nil)
-   else
-      self:_verify_entity_state(self._ai_interface.CURRENT)
    end
 end
 
@@ -779,6 +827,27 @@ function ExecutionUnitV2:_spam_current_state(msg)
    else
       self._log:spam('  no CURRENT state!')
    end
+end
+
+function ExecutionUnitV2:_create_object_monitor(cb)
+   assert(self._args)
+
+   -- run through the arguments once looking for bad ones.
+   for _, obj in pairs(self._args) do
+      if radiant.util.is_a(obj, Entity) and not obj:is_valid() then
+         return nil
+      end
+   end
+
+   -- all good!  create the object monitor
+   local object_monitor = ObjectMonitor()
+   for _, obj in pairs(self._args) do
+      if radiant.util.is_a(obj, Entity) then
+         object_monitor:start_monitoring(obj)
+      end
+   end
+   object_monitor:set_destroyed_cb(cb)
+   return object_monitor
 end
 
 return ExecutionUnitV2
