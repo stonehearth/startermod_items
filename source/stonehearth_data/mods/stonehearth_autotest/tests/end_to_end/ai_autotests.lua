@@ -26,6 +26,7 @@ local function setup_object_monitor_test(autotest, action_script, args)
    return e, task
 end
 
+-- destroy the object while thiniking.
 function ai_autotests.destroy_during_thinking(autotest, test)   
    local script = '/stonehearth_autotest/ai/actions/test_object_monitor_start_thinking_action.lua'
    local monitor_entity = autotest.env:create_entity(1, 1)

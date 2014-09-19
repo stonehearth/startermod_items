@@ -25,22 +25,21 @@ function FindTrapInTrappingGrounds:start_thinking(ai, entity, args)
    local trapping_grounds_component = args.trapping_grounds:add_component('stonehearth:trapping_grounds')
    local traps = trapping_grounds_component:get_traps()
 
-   if next(traps) then
-      self._pathfinder = _radiant.sim.create_astar_path_finder(entity, 'find trap in trapping_grounds')
-
-      for id, trap in pairs(traps) do
-         self._pathfinder:add_destination(trap)
-      end
+   if not next(traps) then
+      return
    end
 
-   self._pathfinder:set_solved_cb(
-      function(path)
+   self._pathfinder = _radiant.sim.create_astar_path_finder(entity, 'find trap in trapping_grounds')
+   for id, trap in pairs(traps) do
+      self._pathfinder:add_destination(trap)
+   end
+
+   self._pathfinder:set_solved_cb(function(path)
          ai:set_think_output({
             path = path,
             trap = path:get_destination()
          })
-      end
-   )
+      end)
    self._pathfinder:start()
 end
 

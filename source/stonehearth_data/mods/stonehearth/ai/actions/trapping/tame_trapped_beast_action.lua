@@ -57,6 +57,7 @@ function TameTrappedBeast:run(ai, entity, args)
       trap_component:release()
    end
 
+   ai:unprotect_entity(args.trap)
    radiant.entities.destroy_entity(args.trap)
 end
 

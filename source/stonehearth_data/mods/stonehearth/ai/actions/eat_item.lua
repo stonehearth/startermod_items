@@ -53,6 +53,7 @@ function EatItem:stop(ai, entity, args)
       if new_calories_value >= stonehearth.constants.food.MAX_ENERGY then
          new_calories_value = stonehearth.constants.food.MAX_ENERGY 
       end
+      ai:unprotect_entity(args.trap)
       radiant.entities.destroy_entity(args.food)
 
       -- finally, adjust calories if necessary.  this might trigger callbacks which

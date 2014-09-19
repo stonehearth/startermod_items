@@ -6,7 +6,7 @@ function trapper_tests.basic(autotest)
    local trapping_grounds = autotest.env:create_trapping_grounds(-30, -30, { size = { x = 60, z = 30 }})
    local stockpile = autotest.env:create_stockpile(15, 15, { size = { x = 4, y = 4 }})
    local log = autotest.env:create_entity(7, 7, 'stonehearth:oak_log')
-   local trapper = autotest.env:create_person(5, 5, { profession = 'trapper', talisman = 'stonehearth:weapons:trapper_knife' })
+   local trapper = autotest.env:create_person(5, 5, { profession = 'trapper' })
    local count = 0
 
    local component = trapping_grounds:add_component('stonehearth:trapping_grounds')

@@ -2,7 +2,8 @@ local TraceCategories = _radiant.dm.TraceCategories
 
 local ObjectMonitor = class()
 
-function ObjectMonitor:__init()
+function ObjectMonitor:__init(log)
+   self._log = log
    self._traces = {}
 end
 
@@ -28,15 +29,27 @@ function ObjectMonitor:is_running()
    return not self._paused
 end
 
-function ObjectMonitor:start_monitoring(obj)
+function ObjectMonitor:protect_object(obj)
    assert(obj and obj:is_valid())
+   local id = obj:get_id()
 
    local name = tostring(obj)   
    local trace = obj:trace('object monitor', TraceCategories.SYNC_TRACE)
                         :on_destroyed(function()
                               self:_on_destroyed(name)
                            end)
-   table.insert(self._traces, trace)
+   self._traces[id] = trace
+end
+
+function ObjectMonitor:unprotect_object(obj)
+   assert(obj and obj:is_valid())
+   local id = obj:get_id()
+   local trace = self._traces[id]
+
+   if trace then
+      trace:destroy()
+      self._traces[id] = nil
+   end
 end
 
 function ObjectMonitor:set_destroyed_cb(cb)
@@ -49,6 +62,7 @@ function ObjectMonitor:_on_destroyed(name)
 
    if not self._paused then
       if self._destroyed_cb then
+         self._log:detail('object monitor calling destroyed cb (%s is no more!)',  name)
          self._destroyed_cb(name)
       end
    end

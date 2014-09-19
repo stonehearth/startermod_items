@@ -221,7 +221,11 @@ function Thread:report_thread_error(err)
    radiant.check.report_thread_error(self._co, 'thread error: ' .. err)   
 end
 
-function Thread:interrupt(fn)
+function Thread:unsafe_interrupt(fn)
+   self:interrupt(fn, false)
+end
+
+function Thread:interrupt(fn, safe_mode)
    if not self._finished then
       local current = Thread.get_current_thread()
       self._log:detail('thread %s is currently running in :interrupt', current and tostring(current:get_id()) or 'nil')
@@ -229,14 +233,19 @@ function Thread:interrupt(fn)
          -- if we're actually running now, ai:interrupt() will call fn() immediately.
          fn()
       else
-         self:send_msg('thread:call_interrupt', fn)
          if coroutine.status(self._co) == 'suspended' then
             -- if we're suspended (i.e. not actually running at all!), ai:interrupt() will
             -- schedule and run fn() immediately.
+            self:send_msg('thread:call_interrupt', fn)
             self._log:detail('switching to thread immediately to deliver interrupt.')
             Thread.resume_thread(self)
             self._log:detail('finished delivering interrupt.')
          else
+            if not safe_mode then
+               -- the caller says they're equipped to handle this bizarre situation.
+               -- best of luck!
+               return false
+            end
             -- if we're in a running state but NOT the current thread (e.g. the
             -- ai thread does something which triggers a cpp data trace (e.g. modifying a
             -- region).  cpp data traces are deliever in the special callback thread so they
@@ -253,6 +262,7 @@ function Thread:interrupt(fn)
          end
       end
    end
+   return true
 end
 
 function Thread:_call_interrupt(fn)
