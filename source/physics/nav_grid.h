@@ -126,6 +126,7 @@ private:
       void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
       void RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId);
       CollisionTrackerPtr CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
+      MovementModifierShapeTrackerPtr CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr);
       void CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       void OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef);
       int EvictNextUnvisitedTile(csg::Point3 const& pt);

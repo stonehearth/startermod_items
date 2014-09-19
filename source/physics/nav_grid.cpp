@@ -14,12 +14,14 @@
 #include "om/components/destination.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 #include "mob_tracker.h"
 #include "terrain_tracker.h"
 #include "terrain_tile_tracker.h"
 #include "destination_tracker.h"
 #include "vertical_pathing_region_tracker.h"
 #include "region_collision_shape_tracker.h"
+#include "movement_modifier_shape_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
 #include <EASTL/fixed_set.h>
@@ -129,6 +131,11 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
          CreateCollisionTypeTrace(rcs);
          break;
       }
+      case om::MovementModifierShapeObjectType: {
+         auto mms = std::static_pointer_cast<om::MovementModifierShape>(component);
+         tracker = CreateMovementModifierShapeTracker(mms);
+         break;
+      }
       case om::DestinationObjectType: {
          NG_LOG(7) << "creating DestinationRegionTracker for " << *entity;
          auto dst = std::static_pointer_cast<om::Destination>(component);
@@ -204,6 +211,19 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
          NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
    }
+}
+
+/*
+ * -- NavGrid::CreateMovementModifierShapeTracker
+ *
+ * Create a tracker for the MovementModifierShape.
+ */
+MovementModifierShapeTrackerPtr NavGrid::CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr)
+{
+   om::EntityPtr entity = movementModifierShapePtr->GetEntityPtr();
+
+   NG_LOG(7) << "creating MovementModifierShapeTracker for " << *entity;
+   return std::make_shared<MovementModifierShapeTracker>(*this, entity, movementModifierShapePtr);
 }
 
 /*
