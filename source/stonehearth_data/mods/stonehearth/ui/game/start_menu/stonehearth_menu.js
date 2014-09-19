@@ -1,7 +1,7 @@
 $.widget( "stonehearth.stonehearthMenu", {
    
    _dataToMenuItemMap: {},
-   _foundProfessions: {},
+   _foundjobs: {},
 
    options: {
       // callbacks

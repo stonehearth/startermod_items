@@ -33,6 +33,7 @@ function HarvestTrappedBeast:run(ai, entity, args)
       trapped_entity = nil
    end
 
+   ai:unprotect_entity(args.trap)
    radiant.entities.destroy_entity(args.trap)
 end
 

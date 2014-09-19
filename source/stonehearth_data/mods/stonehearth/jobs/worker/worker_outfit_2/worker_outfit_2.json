@@ -1,0 +1,39 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Upgraded Worker Outfit",
+         "description" : "Reinforced construction improves worker efficiency!",
+         "icon" : "file(worker_outfit_2.png)"
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(worker_outfit_2.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(worker_outfit_2_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(worker_outfit_2_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "torso",
+         "render_type" : "merge_with_model",
+         "roles" : "worker_job",
+         "ilevel" : 2,
+         "injected_buffs" : [ "stonehearth:buffs:devoted" ],
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   }
+}

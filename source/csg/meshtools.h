@@ -8,6 +8,8 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
+typedef std::unordered_map<int, Color4> TagToColorMap;
+
 class mesh_tools
 {
 public:
@@ -48,7 +50,7 @@ public:
    mesh_tools();
 
    mesh_tools& SetOffset(Point3f const& offset);
-   mesh_tools& SetColorMap(std::unordered_map<int, Point4f> const& colorMap);
+   mesh_tools& SetColorMap(TagToColorMap const& colorMap);
    mesh ConvertRegionToMesh(Region3 const& region); // xxx: GET RID OF THIS BEFORE CHEKGIN IN!!
 
    enum {
@@ -95,8 +97,8 @@ private:
    void add_face(Point3f const points[], Point3f normal, mesh& m);
 
 private:
-   std::unordered_map<int, Point4f> const*   colorMap_;
-   Point3f                 offset_;
+   TagToColorMap const* colorMap_;
+   Point3f              offset_;
 };
 
 void RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset, bool optimizePlanes);

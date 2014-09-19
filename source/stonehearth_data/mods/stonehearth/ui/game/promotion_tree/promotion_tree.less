@@ -1,0 +1,105 @@
+#promotionTree {
+   margin: auto;
+
+   .window {
+      position: relative;
+      margin: auto;
+      width: 1310px;
+      height: 870px;
+   }
+ 
+   #content {
+      position: absolute;
+      top: 70px;
+      left: 0px;
+      width: 815px;
+      height: 640px;
+
+      .jobButton {
+         //.button; 
+         .control;
+         width: 74px;
+         height: 74px;
+         background-image: url(images/jobButtonUnavailable.png);   
+         
+         img {
+            -webkit-filter: ~"saturate(20%)"; 
+         }
+
+      }
+
+      .available {
+         background-image: url(images/jobButton.png);
+
+         img {
+            -webkit-filter: none; 
+         }
+      }
+
+
+      body {
+         padding: 0px;
+         margin: 0px;
+      }
+      .jobButtonCursor {
+         background-image: url(images/jobButtonCursor.png);
+         width: 84px;
+         height: 82px;
+      }
+   }
+
+   #scroll {
+      position: absolute;
+      top: 74px;
+      right: 4px;
+      width: 480px;
+      height: 667px;
+      background: rgba(0,0,0,0.2);
+   }
+
+   #info {
+      position: absolute;
+      top: 740px;
+      left: 12px;
+
+      h2 {
+         font-size: 25px;
+      }
+
+      .block {
+         display: inline-block;
+         vertical-align: top;
+         width: 370px;
+         height: 100px;
+         margin-right: 60px;
+      }
+
+      .requirementsUnmet {
+         color: #ff0000;
+      }
+
+      .requirementsMet {
+         color: #00ff00;
+      }
+
+   }
+
+   #promoteButton {
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      width: 480px;
+      height: 130px;
+      font-size: 25px;
+      display: none;
+   }
+
+   #promoteButton.visible {
+      display: block;
+   }
+   
+   #promoteButton.hidden {
+      display: none;
+   }
+
+}

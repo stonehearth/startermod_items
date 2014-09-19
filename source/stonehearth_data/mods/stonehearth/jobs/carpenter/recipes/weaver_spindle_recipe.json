@@ -1,0 +1,24 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Weaver's Spindle",
+   "description" : "Promotes a citizen into a Weaver.",
+   "flavor"      : "From fiber, thread, from thread, fabric, from fabric, civilization.",
+   "portrait"    : "/stonehearth/jobs/weaver/weaver_spindle/weaver_spindle.png",
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }, 
+      {
+         "material" : "fiber resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item" : "stonehearth:weaver:spindle_talisman"
+      }
+  ]
+}

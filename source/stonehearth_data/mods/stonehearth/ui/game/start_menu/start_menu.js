@@ -5,13 +5,13 @@ App.StonehearthStartMenuView = App.View.extend({
    components: {
       "citizens" : {
          "*" : {
-            "stonehearth:profession" : {},
+            "stonehearth:job" : {},
             "unit_info": {},
          }
       }
    },
 
-   _foundProfessions : {},
+   _foundjobs : {},
 
    menuActions: {
       harvest_menu: function () {
@@ -113,18 +113,18 @@ App.StonehearthStartMenuView = App.View.extend({
       this.set('context.citizensArray', vals);
     }.observes('context.citizens.[]'),
 
-   _onCitizenProfessionChanged: function() {
+   _onCitizenjobChanged: function() {
       var self = this;
       var citizensArray = this.get('context.citizensArray');
 
-      self._foundProfessions = {}
+      self._foundjobs = {}
       $.each(citizensArray, function(i, citizen) {
-         var profession_uri = citizen['stonehearth:profession']['profession_uri'];
-         self._foundProfessions[profession_uri] = true;
+         var job_uri = citizen['stonehearth:job']['job_uri'];
+         self._foundjobs[job_uri] = true;
       });
 
       self._updateMenuLocks();
-   }.observes('context.citizensArray.@each.stonehearth:profession'),
+   }.observes('context.citizensArray.@each.stonehearth:job'),
 
    _updateMenuLocks: function() {
       var self = this;
@@ -133,9 +133,9 @@ App.StonehearthStartMenuView = App.View.extend({
          return;
       }
 
-      $.each(this._foundProfessions, function(profession, _) {
+      $.each(this._foundjobs, function(job, _) {
          $( ".selector" ).progressbar({ disabled: true });
-         self.$('#startMenu').stonehearthMenu('unlock', profession);
+         self.$('#startMenu').stonehearthMenu('unlock', job);
       });
    },
 

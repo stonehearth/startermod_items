@@ -23,11 +23,11 @@ App.StonehearthTownView = App.View.extend({
             $.each(pop.citizens, function(k, citizen) {
                console.log(citizen);
 
-               if (!citizen['stonehearth:profession']) {
+               if (!citizen['stonehearth:job']) {
                   return;
                }
 
-               var roles = citizen['stonehearth:profession']['profession_uri']['roles'];
+               var roles = citizen['stonehearth:job']['job_uri']['roles'];
 
                if (roles && roles.indexOf('crafter') > -1) {
                   numCrafters++;

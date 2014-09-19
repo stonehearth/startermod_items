@@ -17,18 +17,13 @@
       "stonehearth:material" : {
          "tags" : "wood melee_weapon crafted"
       },
-      "stonehearth:commands" : {
-         "commands" : [
-            "file(/data/commands/promote_to_profession)"
-         ]
-      },
       "effect_list" : {
          "effects" : [
             "stonehearth:effects:talisman_glow"
          ]
       },
       "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:footman"
+         "job": "stonehearth:jobs:footman"
       }      
    },
    "entity_data" : {

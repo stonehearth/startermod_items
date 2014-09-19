@@ -1,0 +1,7 @@
+{
+   "alias": "stonehearth:jobs:miner",
+   "name" : "Miner",
+   "description" : "The Miner is able to dig underground caverns and tunnels much faster than ordinary workers.",
+   "requirements" : "Miner's Pick, crafted by the Blacksmith",
+   "icon" : "file(images/icon.png)"
+}

@@ -1,3 +1,4 @@
+local AiHelpers = require 'ai.actions.ai_helpers'
 local Point3 = _radiant.csg.Point3
 
 local BumpEntity = class()
@@ -10,7 +11,7 @@ BumpEntity.version = 2
 BumpEntity.priority = 1
 
 function BumpEntity:run(ai, entity, args)
-   _radiant.sim.create_bump_location(entity, args.vector)
+   AiHelpers.bump_entity(entity, args.vector)
 end
 
 return BumpEntity

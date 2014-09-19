@@ -1,19 +1,6 @@
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
--- xxxxxxxxxxxxxxxxxxx 
-
 -- rename this thing ExecutionSequence, cause it's more  in the framework than not!
+
+local Entity = _radiant.om.Entity
 
 local placeholders = require 'services.server.ai.placeholders'
 local ExecutionUnitV2 = require 'components.ai.execution_unit_v2'
@@ -30,6 +17,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    self.weight = self._action.weight
    self.name = self._action.name
    self.args = self._action.args
+   self.unprotected_args = true
    self.think_output = self._action.think_output
 
    self._activities = activities
@@ -44,6 +32,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
    -- ai object we can use to forward the think output to the first execution frame
    -- in the compound action.
    if self._action.start_thinking or self._action.stop_thinking or self._action.start or self._action.stop then
+      self.unprotected_args = false
       self._action_ai = {
          get_log = function() return self._ai:get_log() end,
          set_status_text = function(_, ...)
@@ -93,7 +82,7 @@ end
 function CompoundAction:start_thinking(ai, entity, args)
    assert(not self._thinking)
    assert(#self._previous_think_output == 0)
-   
+
    self._ai = ai
    self._args = args
    self._log = ai:get_log()
@@ -234,7 +223,7 @@ function CompoundAction:_replace_placeholders(args)
    return replaced
 end
 
-function CompoundAction:start()
+function CompoundAction:start(ai, entity, args)
    self._log:detail('starting all compound action frames')
    
    if self._action.start then
@@ -243,8 +232,15 @@ function CompoundAction:start()
 
    for _, frame in ipairs(self._execution_frames) do
       frame:start() -- must be synchronous!
-   end
+   end   
    self._log:detail('finished starting all compound action frames')
+
+   for _, obj in pairs(self._args) do
+      if radiant.util.is_a(obj, Entity) and obj:is_valid() then
+         self._log:detail('unprotecting %s at the bottom of start', obj)
+         ai:unprotect_entity(obj)
+      end
+   end      
 end
 
 function CompoundAction:run(ai, entity, ...)
@@ -263,8 +259,14 @@ function CompoundAction:stop()
       self._action:stop(self._action_ai, self._entity, self._args)
    end
 
-   for _, frame in ipairs(self._execution_frames) do
-      frame:stop() -- must be asynchronous!
+   -- stop execution frames in the reverse order.  entities tend to be
+   -- created and passed downstream (e.g. create a proxy entity, then find
+   -- a path to it).  if we stopped actions in-order, the create proxy action
+   -- would destroy the entity before the pathfinder had an opportunity to kill
+   -- itself, resulting in an protected entity destroyed error.
+   local c = #self._execution_frames
+   for i =c,1,-1 do
+      self._execution_frames[i]:stop() -- must be asynchronous!
    end
    self._log:detail('finished stopping all compound action frames')
 end

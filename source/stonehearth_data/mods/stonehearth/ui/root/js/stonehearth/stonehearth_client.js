@@ -99,7 +99,6 @@ var StonehearthClient;
          var self = this;
          return radiant.call('stonehearth:deactivate_all_tools')
             .always(function() {
-               App.stonehearthClient.hideTip();
                self._activeTool = null;
             });
       },

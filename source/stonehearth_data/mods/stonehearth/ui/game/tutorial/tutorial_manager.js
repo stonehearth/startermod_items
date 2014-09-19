@@ -197,9 +197,9 @@ var StonehearthTutorialManager;
                   .done(function() {
                      App.stonehearthTutorials._highlightElement('.populationContainer table', 'Choose a citizen to promote', 'Use this pane to manage all your citizens')
                         .done(function() {
-                           App.stonehearthTutorials._highlightElement('#promote_to_profession button', 'Click the Promote button')
+                           App.stonehearthTutorials._highlightElement('#promote_to_job button', 'Click the Promote button')
                               .done(function() {
-                                 App.stonehearthTutorials._highlightElement('#stonehearth\\:professions\\:carpenter', 'Click the Carpenter button')
+                                 App.stonehearthTutorials._highlightElement('#stonehearth\\:jobs\\:carpenter', 'Click the Carpenter button')
                                     .done(function() {
                                        App.stonehearthTutorials._highlightElement('#approveStamper', 'Click the stamper to finish the job!')
                                           .done(function() {

@@ -61,10 +61,10 @@ function EquipmentPieceComponent:_get_roles()
    end
 end
 
-function EquipmentPieceComponent:suitable_for_roles(profession_roles)
-   for _, profession_role in ipairs(radiant.util.split_string(profession_roles)) do
+function EquipmentPieceComponent:suitable_for_roles(job_roles)
+   for _, job_role in ipairs(radiant.util.split_string(job_roles)) do
       for _, equipment_piece_role in ipairs(self._roles) do
-         if equipment_piece_role == profession_role then
+         if equipment_piece_role == job_role then
             return true
          end
       end
@@ -95,7 +95,7 @@ function EquipmentPieceComponent:unequip()
 end
 
 function EquipmentPieceComponent:is_upgrade_for(unit)
-   -- upgradable items have a slot.  if there's not slot (e.g. the profession outfits that
+   -- upgradable items have a slot.  if there's not slot (e.g. the job outfits that
    -- just contain abilities), there's no possibility for upgrade
    local slot = self:get_slot()
    if not slot then
@@ -105,14 +105,14 @@ function EquipmentPieceComponent:is_upgrade_for(unit)
    -- if the unit can't wear equipment, obviously not an upgrade!  similarly, if the
    -- unit has no job, we can't figure out if it can wear this
    local equipment_component = unit:get_component('stonehearth:equipment')
-   local profession_component = unit:get_component('stonehearth:profession')
-   if not equipment_component or not profession_component then
+   local job_component = unit:get_component('stonehearth:job')
+   if not equipment_component or not job_component then
       return false
    end
 
    -- if we're not suitable for the unit, bail.
-   local profession_roles = profession_component:get_roles()
-   if not self:suitable_for_roles(profession_roles) then
+   local job_roles = job_component:get_roles()
+   if not self:suitable_for_roles(job_roles) then
       return false
    end
 

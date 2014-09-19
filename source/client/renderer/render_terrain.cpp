@@ -14,32 +14,7 @@ using namespace ::radiant::client;
 
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
-static std::unordered_map<int, csg::Point4f> colorMap_;
-
-static int hex_to_decimal(char c)
-{
-   if (c >= 'A' && c <= 'F') {
-      return 10 + c - 'A';
-   }
-   if (c >= 'a' && c <= 'f') {
-      return 10 + c - 'a';
-   }
-   if (c >= '0' && c <= '9') {
-      return c - '0';
-   }
-   return 0;
-}
-
-static csg::Point4f parse_color(std::string const& str)
-{
-   csg::Point4f result(0, 0, 0, 1.0f);
-   if (str.size() == 7) {
-      for (int i = 0; i < 3; i++) {
-         result[i] = (float)(hex_to_decimal(str[i*2+1]) * 16 + hex_to_decimal(str[i*2+2])) / 255.0f;
-      }
-   }
-   return result;
-}
+static csg::TagToColorMap colorMap_;
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
@@ -94,20 +69,20 @@ void RenderTerrain::InitalizeColorMap()
 {
    std::string const unknownColor = "#ff00ff";
    json::Node config = Renderer::GetInstance().GetTerrainConfig();
-   colorMap_[om::Terrain::Bedrock]    = parse_color(config.get("bedrock", unknownColor));
-   colorMap_[om::Terrain::RockLayer1] = parse_color(config.get("rock.layer_1", unknownColor));
-   colorMap_[om::Terrain::RockLayer2] = parse_color(config.get("rock.layer_2", unknownColor));
-   colorMap_[om::Terrain::RockLayer3] = parse_color(config.get("rock.layer_3", unknownColor));
-   colorMap_[om::Terrain::RockLayer4] = parse_color(config.get("rock.layer_4", unknownColor));
-   colorMap_[om::Terrain::RockLayer5] = parse_color(config.get("rock.layer_5", unknownColor));
-   colorMap_[om::Terrain::RockLayer6] = parse_color(config.get("rock.layer_6", unknownColor));
-   colorMap_[om::Terrain::SoilLight]  = parse_color(config.get("soil.light", unknownColor));
-   colorMap_[om::Terrain::SoilDark]   = parse_color(config.get("soil.dark", unknownColor));
-   colorMap_[om::Terrain::GrassEdge1] = parse_color(config.get("grass.edge1", unknownColor));
-   colorMap_[om::Terrain::GrassEdge2] = parse_color(config.get("grass.edge2", unknownColor));
-   colorMap_[om::Terrain::Grass]      = parse_color(config.get("grass.inner", unknownColor));
-   colorMap_[om::Terrain::DirtEdge1]  = parse_color(config.get("dirt.edge1", unknownColor));
-   colorMap_[om::Terrain::Dirt]       = parse_color(config.get("dirt.inner", unknownColor));
+   colorMap_[om::Terrain::Bedrock]    = csg::Color4::FromString(config.get("bedrock", unknownColor));
+   colorMap_[om::Terrain::RockLayer1] = csg::Color4::FromString(config.get("rock.layer_1", unknownColor));
+   colorMap_[om::Terrain::RockLayer2] = csg::Color4::FromString(config.get("rock.layer_2", unknownColor));
+   colorMap_[om::Terrain::RockLayer3] = csg::Color4::FromString(config.get("rock.layer_3", unknownColor));
+   colorMap_[om::Terrain::RockLayer4] = csg::Color4::FromString(config.get("rock.layer_4", unknownColor));
+   colorMap_[om::Terrain::RockLayer5] = csg::Color4::FromString(config.get("rock.layer_5", unknownColor));
+   colorMap_[om::Terrain::RockLayer6] = csg::Color4::FromString(config.get("rock.layer_6", unknownColor));
+   colorMap_[om::Terrain::SoilLight]  = csg::Color4::FromString(config.get("soil.light", unknownColor));
+   colorMap_[om::Terrain::SoilDark]   = csg::Color4::FromString(config.get("soil.dark", unknownColor));
+   colorMap_[om::Terrain::GrassEdge1] = csg::Color4::FromString(config.get("grass.edge1", unknownColor));
+   colorMap_[om::Terrain::GrassEdge2] = csg::Color4::FromString(config.get("grass.edge2", unknownColor));
+   colorMap_[om::Terrain::Grass]      = csg::Color4::FromString(config.get("grass.inner", unknownColor));
+   colorMap_[om::Terrain::DirtEdge1]  = csg::Color4::FromString(config.get("dirt.edge1", unknownColor));
+   colorMap_[om::Terrain::Dirt]       = csg::Color4::FromString(config.get("dirt.inner", unknownColor));
 }
 
 void RenderTerrain::AddDirtyTile(RenderTileRef tile)

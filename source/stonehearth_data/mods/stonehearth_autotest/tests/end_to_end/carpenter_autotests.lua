@@ -4,7 +4,7 @@ local carpenter_tests = {}
 
 ---[[
 function carpenter_tests.place_workshop(autotest)
-   local carpenter = autotest.env:create_person(2, 2, { profession = 'carpenter' })
+   local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
 
    autotest:sleep(500)
@@ -45,10 +45,10 @@ end
 ---[[
 --Autotest for maintain
 function carpenter_tests.maintain_x(autotest)
-   autotest.env:create_person(2, 2, { profession = 'worker' })
+   autotest.env:create_person(2, 2, { job = 'worker' })
    local stockpile = autotest.env:create_stockpile(-10, -10, { size = { x = 5, y = 5 }})
 
-   local carpenter = autotest.env:create_person(2, 2, { profession = 'carpenter' })
+   local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
 
    autotest:sleep(500)
@@ -97,7 +97,7 @@ end
 
 --Autotest for move workshop
 function carpenter_tests.move_workshop(autotest)
-   local carpenter = autotest.env:create_person(2, 2, { profession = 'carpenter' })
+   local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
    local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
    autotest:sleep(500)
 

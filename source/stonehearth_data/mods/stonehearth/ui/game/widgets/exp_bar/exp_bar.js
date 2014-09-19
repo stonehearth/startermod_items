@@ -3,7 +3,7 @@ App.StonehearthExpBarWidget = App.View.extend({
    classNames: ['fullScreen', 'flex'],
 
    components: {
-      "stonehearth:profession" : {
+      "stonehearth:job" : {
       },
    },
 
@@ -34,13 +34,13 @@ App.StonehearthExpBarWidget = App.View.extend({
    _setExpBar: function() {
       var self = this;
 
-      var exp = self.get('context.town.stonehearth:profession.current_level_exp')
-      var totalLevelExp = self.get('context.town.stonehearth:profession.total_level_exp')
+      var exp = self.get('context.town.stonehearth:job.current_level_exp')
+      var totalLevelExp = self.get('context.town.stonehearth:job.total_level_exp')
       var expPercent = Math.floor(100 * exp / totalLevelExp);
 
       self.$('#expBarFull').width(expPercent + '%');
 
-   }.observes('context.town.stonehearth:profession.current_level_exp'),
+   }.observes('context.town.stonehearth:job.current_level_exp'),
 
    destroy: function() {
       if (this.townTrace) {

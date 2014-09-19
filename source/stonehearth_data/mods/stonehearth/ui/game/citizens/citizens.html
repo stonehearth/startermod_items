@@ -6,13 +6,13 @@
          <table class="list">
             <tbody>
             {{#each model.citizensArray}}
-               <tr class="row" {{bind-attr profession=this.stonehearth:profession.profession_uri.alias id=this.__id}}>
+               <tr class="row" {{bind-attr job=this.stonehearth:job.job_uri.alias id=this.__id}}>
                   <td>
                      <div class="name">
-                        <img class="banner button" {{bind-attr src=this.stonehearth:profession.profession_uri.bannerIcon}}/>
+                        <img class="banner button" {{bind-attr src=this.stonehearth:job.job_uri.bannerIcon}}/>
                         {{this.unit_info.name}}
                      </div>
-                     <div class="profession">{{this.stonehearth:profession.profession_uri.name}}</div>
+                     <div class="job">{{this.stonehearth:job.job_uri.name}}</div>
                      <div class="toolbar">
                         {{#each command in stonehearth:commands.commands}}
                            <a {{bind-attr id=command.name}} href="#" {{action doCommand command target="view"}} class='uisounds'>

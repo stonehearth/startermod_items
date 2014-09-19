@@ -65,17 +65,17 @@ function InventoryCallHandler:get_talismans_in_explored_region(session, response
    local entities = stonehearth.terrain:get_entities_in_explored_region(session.faction, talisman_filter_fn)
 
    -- build a map of uris
-   local available_professions = {}
+   local available_jobs = {}
 
    for id, entity in pairs(entities) do
       local talisman_component = entity:get_component('stonehearth:promotion_talisman')
-      local profession = talisman_component:get_profession()
-      available_professions[id] = profession
+      local job = talisman_component:get_job()
+      available_jobs[id] = job
    end
 
    return({ 
       entities = entities,
-      available_professions = available_professions
+      available_jobs = available_jobs
    })
 end
 

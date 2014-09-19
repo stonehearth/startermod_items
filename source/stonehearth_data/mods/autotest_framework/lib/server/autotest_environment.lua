@@ -14,6 +14,8 @@ function env.create_world(world_generator_script)
    stonehearth.town:add_town(env.session)
    stonehearth.inventory:add_inventory(env.session)
    stonehearth.population:add_population(env.session)
+   stonehearth.terrain:get_visible_region(env.session.faction) 
+   stonehearth.terrain:get_explored_region(env.session.faction)
 
    local create_world = radiant.mods.load_script(world_generator_script)
    create_world(env)
@@ -83,15 +85,15 @@ local function apply_options_to_entity(entity, options)
                   :set_attribute(name, value)
       end
    end
-   if options.profession then
-      local profession = options.profession
-      if not string.find(profession, ':') and not string.find(profession, '/') then
-         -- as a convenience for autotest writers, stick the stonehearth:profession on
+   if options.job then
+      local job = options.job
+      if not string.find(job, ':') and not string.find(job, '/') then
+         -- as a convenience for autotest writers, stick the stonehearth:job on
          -- there if they didn't put it there to begin with
-         profession = 'stonehearth:professions:' .. profession
+         job = 'stonehearth:jobs:' .. job
       end
-      entity:add_component('stonehearth:profession')
-               :promote_to(profession, options.talisman)
+      entity:add_component('stonehearth:job')
+               :promote_to(profession)
    end
    if options.weapon then
       env.equip_weapon(entity, options.weapon)
