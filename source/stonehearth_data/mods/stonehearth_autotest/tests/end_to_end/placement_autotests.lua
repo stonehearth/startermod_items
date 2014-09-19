@@ -6,8 +6,8 @@ local placement_autotests = {}
 -- Starting from a proxy, place it and then move it several times
 --
 function placement_autotests.two_place_multiple_times(autotest)
-   autotest.env:create_person(-8, 8, { profession = 'worker' })
-   autotest.env:create_person(20, -20, { profession = 'worker' })
+   autotest.env:create_person(-8, 8, { job = 'worker' })
+   autotest.env:create_person(20, -20, { job = 'worker' })
 
    local big_bed = autotest.env:create_entity(0, 0, 'stonehearth:comfy_bed')
    local bed_proxy = big_bed:get_component('stonehearth:entity_forms')
@@ -43,7 +43,7 @@ end
 -- make sure we can place items on walls
 --
 function placement_autotests.place_on_wall(autotest)
-   autotest.env:create_person(-8, 8, { profession = 'worker' })   
+   autotest.env:create_person(-8, 8, { job = 'worker' })   
    autotest.env:create_entity(5, 8, 'stonehearth:oak_log')
 
    local stockpile = autotest.env:create_stockpile(4, 8)

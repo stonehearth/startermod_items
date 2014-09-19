@@ -1,8 +1,0 @@
-{
-   "alias": "stonehearth:professions:treasure_hunter",
-   "name" : "???",
-   "description" : "???",
-   "requirements" : "???",
-   "icon" : "file(../unknown/images/icon.png)",
-   "parent_profession" : "stonehearth:professions:miner"
-}

@@ -1,0 +1,35 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Mason's Chisel",
+         "description" : "Promotes a citizen into a mason.",
+         "portrait": "file(mason_chisel.png)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(mason_chisel.qb)"
+            ]
+         }
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "job": "stonehearth:jobs:mason"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "promote_mason"
+   }
+}

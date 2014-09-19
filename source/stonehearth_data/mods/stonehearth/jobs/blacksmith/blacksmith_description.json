@@ -1,0 +1,7 @@
+{
+   "alias": "stonehearth:jobs:blacksmith",
+   "name" : "Blacksmith",
+   "description" : "The Blacksmith refines raw ore into metal bars, then uses those bars to craft weapons, armor, and building parts like gates.",
+   "requirements" : "Blacksmith's Hammer, crafted by the Mason",
+   "icon" : "file(images/icon.png)"
+}

@@ -23,7 +23,7 @@
          ]
       },
       "stonehearth:promotion_talisman": {
-         "profession": "stonehearth:professions:footman"
+         "job": "stonehearth:jobs:footman"
       }      
    },
    "entity_data" : {

@@ -1,5 +1,5 @@
 $(document).ready(function(){
-   $(top).on("radiant_promote_to_profession", function (_, e) {
+   $(top).on("radiant_promote_to_job", function (_, e) {
 
       App.gameView.addView(App.StonehearthPromotionTree, { 
          citizen: e.entity
@@ -23,7 +23,7 @@ App.StonehearthPromotionTree = App.View.extend({
 
       self._jobButtons = {};
 
-      self.jobsTrace = new StonehearthDataTrace('stonehearth:professions:index', self.components);
+      self.jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.components);
       self.jobsTrace.progress(function(eobj) {
             self._jobs = eobj.jobs;
             self._initCitizen();
@@ -33,9 +33,9 @@ App.StonehearthPromotionTree = App.View.extend({
 
    _initCitizen: function() {
       var self = this;
-      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), { 'stonehearth:profession' : {} });
+      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), { 'stonehearth:job' : {} });
       self._citizenTrace.progress(function(o) {
-            self._startingJob = o['stonehearth:profession'].profession_uri;
+            self._startingJob = o['stonehearth:job'].job_uri;
             self._buildTree();
             self._citizenTrace.destroy();
          })
@@ -52,29 +52,29 @@ App.StonehearthPromotionTree = App.View.extend({
       // xxx, eventually generate this from some graph layout library like graphvis, if we can
       // get satisfactory results
       self._layout = {
-         'stonehearth:professions:worker' : {x: 372 , y: 244},
-         'stonehearth:professions:carpenter' : {x: 542 , y: 159},
-         'stonehearth:professions:mason' : {x: 542 , y: 244},
-         'stonehearth:professions:blacksmith' : {x: 542 , y: 329},
-         'stonehearth:professions:weaponsmith' : {x: 542 , y: 414},
-         'stonehearth:professions:architect' : {x: 627 , y: 74},
-         'stonehearth:professions:geomancer' : {x: 712 , y: 159},
-         'stonehearth:professions:armorsmith' : {x: 627, y: 329},
-         'stonehearth:professions:engineer' : {x: 627 , y: 414 },
-         'stonehearth:professions:footman' : {x: 330 , y: 117},
-         'stonehearth:professions:archer' : {x: 415 , y: 117},
-         'stonehearth:professions:shield_bearer' : {x: 330, y: 32},
-         'stonehearth:professions:brewer' : {x: 202 , y: 74},
-         'stonehearth:professions:farmer' : {x: 202, y: 159},
-         'stonehearth:professions:cook' : {x: 117, y: 159},
-         'stonehearth:professions:trapper' : {x: 202 , y: 329},
-         'stonehearth:professions:shepherd' : {x: 117 , y: 287},
-         'stonehearth:professions:animal_trainer' : {x: 32 , y: 287},
-         'stonehearth:professions:hunter' : {x: 117, y: 372},
-         'stonehearth:professions:big_game_hunter' : {x: 32, y: 372},
-         'stonehearth:professions:miner' : {x: 330, y: 372},
-         'stonehearth:professions:weaver' : {x: 415, y: 372},
-         'stonehearth:professions:treasure_hunter' : {x: 330, y: 457},
+         'stonehearth:jobs:worker' : {x: 372 , y: 244},
+         'stonehearth:jobs:carpenter' : {x: 542 , y: 159},
+         'stonehearth:jobs:mason' : {x: 542 , y: 244},
+         'stonehearth:jobs:blacksmith' : {x: 542 , y: 329},
+         'stonehearth:jobs:weaponsmith' : {x: 542 , y: 414},
+         'stonehearth:jobs:architect' : {x: 627 , y: 74},
+         'stonehearth:jobs:geomancer' : {x: 712 , y: 159},
+         'stonehearth:jobs:armorsmith' : {x: 627, y: 329},
+         'stonehearth:jobs:engineer' : {x: 627 , y: 414 },
+         'stonehearth:jobs:footman' : {x: 330 , y: 117},
+         'stonehearth:jobs:archer' : {x: 415 , y: 117},
+         'stonehearth:jobs:shield_bearer' : {x: 330, y: 32},
+         'stonehearth:jobs:brewer' : {x: 202 , y: 74},
+         'stonehearth:jobs:farmer' : {x: 202, y: 159},
+         'stonehearth:jobs:cook' : {x: 117, y: 159},
+         'stonehearth:jobs:trapper' : {x: 202 , y: 329},
+         'stonehearth:jobs:shepherd' : {x: 117 , y: 287},
+         'stonehearth:jobs:animal_trainer' : {x: 32 , y: 287},
+         'stonehearth:jobs:hunter' : {x: 117, y: 372},
+         'stonehearth:jobs:big_game_hunter' : {x: 32, y: 372},
+         'stonehearth:jobs:miner' : {x: 330, y: 372},
+         'stonehearth:jobs:weaver' : {x: 415, y: 372},
+         'stonehearth:jobs:treasure_hunter' : {x: 330, y: 457},
       }
 
       self._edges = self._buildEdges();
@@ -83,12 +83,14 @@ App.StonehearthPromotionTree = App.View.extend({
       $.each(self._edges, function(i, edge) {
          var line = document.createElementNS('http://www.w3.org/2000/svg','line');
 
+         //if (edge.from && edge.to) {
          line.setAttributeNS(null,'x1', self._layout[edge.from].x + buttonSize.width / 2);
          line.setAttributeNS(null,'y1', self._layout[edge.from].y + buttonSize.height / 2);
          line.setAttributeNS(null,'x2', self._layout[edge.to].x + buttonSize.width / 2);
          line.setAttributeNS(null,'y2', self._layout[edge.to].y + buttonSize.height / 2);
          line.setAttributeNS(null,'style','stroke:rgb(255,255,255);stroke-width:2');
          self._svg.append(line);         
+         //}
       })
 
       // draw the nodes
@@ -107,8 +109,8 @@ App.StonehearthPromotionTree = App.View.extend({
       // unlock nodes based on talismans available in the world
       radiant.call('stonehearth:get_talismans_in_explored_region')
          .done(function(o) {
-            $.each(o.available_professions, function(key, profession) {
-               self._jobButtons[profession].addClass('available');
+            $.each(o.available_jobs, function(key, job) {
+               self._jobButtons[job].addClass('available');
             })
          });  
 
@@ -145,7 +147,7 @@ App.StonehearthPromotionTree = App.View.extend({
       var edges = [];
 
       $.each(this._jobs, function(i, job) {
-         var parent = job.parent_profession || 'stonehearth:professions:worker';
+         var parent = job.parent_job || 'stonehearth:jobs:worker';
          edges.push({
             from: job.alias,
             to: parent
@@ -168,7 +170,7 @@ App.StonehearthPromotionTree = App.View.extend({
       })
    },
 
-   _getProfessionInfo: function(id) {
+   _getjobInfo: function(id) {
       var ret;
       $.each(this._jobs, function(i, job) {
          if (job.alias == id) {
@@ -207,10 +209,10 @@ App.StonehearthPromotionTree = App.View.extend({
    _promote: function(jobAlias) {
       var self = this;
 
-      var professionInfo = self._getProfessionInfo(jobAlias);
+      var jobInfo = self._getjobInfo(jobAlias);
 
       var citizen = this.get('citizen');
-      var talisman = professionInfo.talisman_uri;
+      var talisman = jobInfo.talisman_uri;
 
       radiant.call('stonehearth:grab_promotion_talisman', citizen, talisman);
       this.destroy();

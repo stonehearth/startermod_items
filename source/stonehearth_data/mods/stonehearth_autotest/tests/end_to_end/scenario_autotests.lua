@@ -10,7 +10,7 @@ end
 function score_tests.immigration_failure(autotest)
    place_town_banner(autotest)
    local worker = autotest.env:create_person(2, 2, {
-         profession = 'worker'
+         job = 'worker'
       })
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
@@ -41,7 +41,7 @@ end
 -- Have a caravan come by and offer for the berry baskets in the stockpile
 function score_tests.simple_carvan(autotest)
    place_town_banner(autotest)
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local log = autotest.env:create_entity(3, 3, 'stonehearth:oak_log')
@@ -85,7 +85,7 @@ end
 -- Spawn an immigrant when the situation is correct
 function score_tests.immigrant(autotest)
    place_town_banner(autotest)
-   local worker = autotest.env:create_person(2, 2, { profession = 'worker' })
+   local worker = autotest.env:create_person(2, 2, { job = 'worker' })
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       autotest:success()

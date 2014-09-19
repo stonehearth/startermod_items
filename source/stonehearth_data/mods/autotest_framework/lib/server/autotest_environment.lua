@@ -85,14 +85,14 @@ local function apply_options_to_entity(entity, options)
                   :set_attribute(name, value)
       end
    end
-   if options.profession then
-      local profession = options.profession
-      if not string.find(profession, ':') and not string.find(profession, '/') then
-         -- as a convenience for autotest writers, stick the stonehearth:profession on
+   if options.job then
+      local job = options.job
+      if not string.find(job, ':') and not string.find(job, '/') then
+         -- as a convenience for autotest writers, stick the stonehearth:job on
          -- there if they didn't put it there to begin with
-         profession = 'stonehearth:professions:' .. profession
+         job = 'stonehearth:jobs:' .. job
       end
-      entity:add_component('stonehearth:profession')
+      entity:add_component('stonehearth:job')
                :promote_to(profession)
    end
    if options.weapon then

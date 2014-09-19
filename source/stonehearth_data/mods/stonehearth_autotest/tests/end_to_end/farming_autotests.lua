@@ -1,7 +1,7 @@
 local farming_tests = {}
 
 function farming_tests.grow_one_turnip(autotest)
-   local farmer = autotest.env:create_person(2, 2, { profession = 'farmer' })
+   local farmer = autotest.env:create_person(2, 2, { job = 'farmer' })
 
    --Add a fast-harvest test crop
    local session = {

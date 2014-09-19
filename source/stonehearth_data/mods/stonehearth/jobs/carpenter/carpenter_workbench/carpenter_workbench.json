@@ -1,0 +1,48 @@
+{
+   "mixins" : "file(carpenter_workbench_ghost.json)",
+   "components": {
+      "stonehearth:commands" : {
+         "commands" : [
+            "file(/data/commands/show_workshop)"
+         ]
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      },
+      "stonehearth:entity_forms" : {
+         "ghost_form" : "file(carpenter_workbench_ghost.json)", 
+         "iconic_form" : "file(carpenter_workbench_iconic.json)",
+         "placeable_on_ground" : true
+      },
+      "stonehearth:workshop": {
+         "job_name" : "Carpenter",
+         "skin_class" : "carpenter",
+         "ingredients" : [
+            {
+               "material" : "wood resource",
+               "count" : 1
+            }
+         ],
+         "build_sound_effect": "/stonehearth/data/effects/place_workshop/place_carpenter_workbench.json"
+      }, 
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 1, "z" : 1 }
+            }
+         ]
+      }
+   },
+   "entity_data" : {
+      "stonehearth:table" : {
+         "drop_effect" : "carry_putdown_on_table",
+         "drop_offset" : {"x" : 0, "y" : 1, "z" : 0 } 
+      }
+   }
+}

@@ -119,8 +119,8 @@ function CollectStartingResourcesScenario:_complete_quest()
    -- add the quest rewards
    --[[
    local town = stonehearth.town:get_town(self._sv.player_id)
-   local profession_component = town:get_entity():get_component('stonehearth:profession')
-   profession_component:add_exp(self._scenario_data.rewards.exp.value)
+   local job_component = town:get_entity():get_component('stonehearth:job')
+   job_component:add_exp(self._scenario_data.rewards.exp.value)
 
    stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')
    ]]

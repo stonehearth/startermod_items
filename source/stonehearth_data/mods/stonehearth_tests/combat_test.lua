@@ -29,11 +29,11 @@ end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:professions:footman'),
-      self:place_citizen( -7, -15, 'stonehearth:professions:carpenter'),
-      self:place_citizen(  1, -15, 'stonehearth:professions:weaver'),
-      self:place_citizen(  9, -15, 'stonehearth:professions:farmer'),
-      self:place_citizen(  11, -15, 'stonehearth:professions:trapper'),
+      self:place_citizen(-9, -15, 'stonehearth:jobs:footman'),
+      self:place_citizen( -7, -15, 'stonehearth:jobs:carpenter'),
+      self:place_citizen(  1, -15, 'stonehearth:jobs:weaver'),
+      self:place_citizen(  9, -15, 'stonehearth:jobs:farmer'),
+      self:place_citizen(  11, -15, 'stonehearth:jobs:trapper'),
    }
 
    self._enemies = {

@@ -19,7 +19,7 @@ function food_tests.eat_food_on_ground(autotest)
    local food = autotest.env:create_entity(-2, -2, 'stonehearth:rabbit_jerky')
 
    autotest.env:create_person(2, 2, {
-         profession = 'worker',
+         job = 'worker',
          attributes = { calories = 0 }
       })
 
@@ -32,7 +32,7 @@ function food_tests.eat_food_in_container(autotest)
    berry_basket:get_component('item'):set_stacks(2)
 
    autotest.env:create_person(2, 2, {
-         profession = 'worker',
+         job = 'worker',
          attributes = { calories = 0  }
       })
    autotest.util:succeed_when_destroyed(berry_basket)
@@ -46,7 +46,7 @@ function food_tests.group_eat_food(autotest)
    --Create n hungry people
    create_cluster(num_people, function(x, y)
          local p = autotest.env:create_person(x + 2, y + 2, {
-            profession = 'worker',
+            job = 'worker',
             attributes = { calories = 0 }
          })
       end)
@@ -86,7 +86,7 @@ function food_tests.group_eat_till_full(autotest)
    local worker_table = {}
    create_cluster(num_people, function(x, y)
          local p = autotest.env:create_person(x+5, y+5, {
-            profession = 'worker',
+            job = 'worker',
             attributes = { calories = 0 }
          })
          table.insert(worker_table, p)
@@ -122,7 +122,7 @@ function food_tests.eat_food_in_chair(autotest)
 
    local food = autotest.env:create_entity(-2, -2, 'stonehearth:rabbit_jerky')
    local p = autotest.env:create_person(2, 2, {
-         profession = 'worker',
+         job = 'worker',
          attributes = { calories = 0 }
       })
 

@@ -74,17 +74,17 @@ function MicroWorld:place_item_cluster(uri, x, z, w, h)
    end
 end
 
-function MicroWorld:place_citizen(x, z, profession)
+function MicroWorld:place_citizen(x, z, job)
    local pop = stonehearth.population:get_population('player_1')
    local citizen = pop:create_new_citizen()
-   profession = profession or 'stonehearth:professions:worker'
+   job = job or 'stonehearth:jobs:worker'
 
-   if not string.find(profession, ':') and not string.find(profession, '/') then
-      -- as a convenience for autotest writers, stick the stonehearth:profession on
+   if not string.find(job, ':') and not string.find(job, '/') then
+      -- as a convenience for autotest writers, stick the stonehearth:job on
       -- there if they didn't put it there to begin with
-      profession = 'stonehearth:professions:' .. profession
+      job = 'stonehearth:jobs:' .. job
    end
-   citizen:add_component('stonehearth:profession'):promote_to(profession)
+   citizen:add_component('stonehearth:job'):promote_to(job)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen
