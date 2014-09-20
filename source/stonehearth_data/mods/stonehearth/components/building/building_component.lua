@@ -327,7 +327,7 @@ function Building:unlink_entity(entity)
 end
 
 function Building:layout_roof(roof)
-   assert(stonehearth.build:in_transaction())
+   -- assert(stonehearth.build:in_transaction())
 
    -- first, layout the roof
    if roof then
