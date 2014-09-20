@@ -10,7 +10,7 @@
 #include "csg/color.h"
 #include "om/region.h"
 #include "path_finder_node.h"
-#include <set>
+#include <unordered_set>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -39,10 +39,12 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr RestartSearch(const char* reason);
       AStarPathFinderPtr Start();
       AStarPathFinderPtr Stop();
+      void Destroy();
 
       bool IsSolved() const;
       bool IsSearchExhausted() const;
 
+      om::EntityRef GetEntity() const;
       PathPtr GetSolution() const;
       csg::Point3f GetSourceLocation() const;
       float GetTravelDistance();
@@ -84,6 +86,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst);
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
+      bool CheckIfIdle() const;
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
@@ -105,10 +108,11 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
    
       core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode>   open_;
-      std::set<csg::Point3>         closed_;
-      std::set<csg::Point3>         watching_tiles_;
+      std::unordered_set<csg::Point3, csg::Point3::Hash>         closed_;
+      std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
       std::vector<csg::Point3f>     _directPathCandiate;
+      mutable const char*           _lastIdleCheckResult;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
