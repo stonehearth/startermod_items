@@ -1,6 +1,7 @@
 {
    "job_id": "footman",
    "alias" : "stonehearth:jobs:footman", 
+   "name" : "Footman",
    "description" : "The Footman is a melee fighter. A good choice for the backbone of your town's defense.",
    "requirements" : "Wooden Practice Sword, crafted by the Carpenter.",
    "controller" : "stonehearth:class:footman", 
