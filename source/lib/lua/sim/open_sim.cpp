@@ -189,10 +189,10 @@ AStarPathFinderPtr Sim_CreateAStarPathFinder(lua_State *L, om::EntityRef s, std:
 
 BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::string const& name, int range)
 {
+   Simulation &sim = GetSim(L);
    BfsPathFinderPtr pf;
    om::EntityPtr source = s.lock();
    if (source) {
-      Simulation &sim = GetSim(L);
       pf = BfsPathFinder::Create(sim, source, name, range);
       sim.AddJobForEntity(source, pf);
       return pf;
@@ -200,6 +200,15 @@ BfsPathFinderPtr Sim_CreateBfsPathFinder(lua_State *L, om::EntityRef s, std::str
    return pf;
 }
 
+template <typename T>
+void Pathfinder_Destroy(lua_State* L, std::shared_ptr<T> pf)
+{
+   if (pf) {
+      Simulation &sim = GetSim(L);
+      pf->Stop();
+      GetSim(L).RemoveJobForEntity(pf->GetEntity().lock(), pf); 
+   }
+}
 
 template <typename T>
 std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, luabind::object unsafe_solved_cb)
@@ -357,10 +366,13 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("is_idle",            &AStarPathFinder::IsIdle)
                .def("stop",               &AStarPathFinder::Stop)
                .def("start",              &AStarPathFinder::Start)
+               .def("destroy",            &Pathfinder_Destroy<AStarPathFinder>)
                .def("restart",            &AStarPathFinder::RestartSearch)
                .def("describe_progress",  &AStarPathFinder::DescribeProgress)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BfsPathFinder>("BfsPathFinder")
+               .def("get_id",             &BfsPathFinder::GetId)
+               .def("get_name",           &BfsPathFinder::GetName)
                .def("set_source",         &BfsPathFinder::SetSource)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb<BfsPathFinder>)
                .def("set_search_exhausted_cb", &PathFinder_SetExhaustedCb<BfsPathFinder>)
@@ -368,6 +380,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("reconsider_destination", &BfsPathFinder::ReconsiderDestination)
                .def("stop",               &BfsPathFinder::Stop)
                .def("start",              &BfsPathFinder::Start)
+               .def("destroy",            &Pathfinder_Destroy<BfsPathFinder>)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)

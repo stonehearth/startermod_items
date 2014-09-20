@@ -108,9 +108,11 @@ Cube<S, C>::Cube(Point const& min_value, Point const& max_value, int tag) :
    min(min_value),
    max(max_value)
 {
-   for (int i = 0; i < C; i++) {
-      ASSERT(min[i] <= max[i]);
-   }
+   DEBUG_ONLY(
+      for (int i = 0; i < C; i++) {
+         ASSERT(min[i] <= max[i]);
+      }
+   )
 }
 
 template <typename S, int C>
@@ -303,20 +305,48 @@ Region<S, C> Cube<S, C>::operator&(Region const& region) const
    return result;
 }
 
-template <typename S, int C>
-Cube<S, C> Cube<S, C>::operator+(Point const& offset) const
+
+template <typename S, int C> 
+inline Point<S, C> GetClosestPointFn(Cube<S, C> const& c, Point<S, C> const& other);
+
+template <typename S> 
+inline Point<S, 1> GetClosestPointFn(Cube<S, 1> const& c, Point<S, 1> const& other)
 {
-   return Cube(min + offset, max + offset, tag_);
+   return Point<S, 1>(
+         std::max(std::min(other.x, c.max.x - 1), c.min.x)
+      );
 }
+
+template <typename S> 
+inline Point<S, 2> GetClosestPointFn(Cube<S, 2> const& c, Point<S, 2> const& other)
+{
+   return Point<S, 2>(
+         std::max(std::min(other.x, c.max.x - 1), c.min.x),
+         std::max(std::min(other.y, c.max.y - 1), c.min.y)
+      );
+}
+
+template <typename S> 
+inline Point<S, 3> GetClosestPointFn(Cube<S, 3> const& c, Point<S, 3> const& other)
+{
+   return Point<S, 3>(
+         std::max(std::min(other.x, c.max.x - 1), c.min.x),
+         std::max(std::min(other.y, c.max.y - 1), c.min.y),
+         std::max(std::min(other.z, c.max.z - 1), c.min.z)
+      );
+}
+
 
 template <typename S, int C>
 Point<S, C> Cube<S, C>::GetClosestPoint(Point const& other) const
 {
-   Point result;
-   for (int i = 0; i < C; i++) {
-      result[i] = std::max(std::min(other[i], max[i] - 1), min[i]);
-   }
-   return result;
+   return GetClosestPointFn(*this, other);
+}
+
+template <typename S, int C>
+Cube<S, C> Cube<S, C>::operator+(Point const& offset) const
+{
+   return Cube(min + offset, max + offset, tag_);
 }
 
 template <typename S, int C>
@@ -364,12 +394,7 @@ inline float Cube<S, C>::SquaredDistanceTo(Cube const& other) const
 template <typename S, int C>
 bool Cube<S, C>::Contains(Point const& pt) const
 {
-   for (int i = 0; i < C; i++) {
-      if (!IsBetween(min[i], pt[i], max[i])) {
-         return false;
-      }
-   }
-   return true;
+   return IsBetween(min, pt, max);
 }
 
 template <class S, int C>

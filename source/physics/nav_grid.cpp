@@ -27,7 +27,9 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-static const int DEFAULT_WORKING_SET_SIZE = 128;
+static const int CALENDAR_TICKS_PER_SECOND = 9;
+static const int CALENDAR_TICKS_PER_HOUR = CALENDAR_TICKS_PER_SECOND * 60 * 60;
+static const float DEFAULT_TILE_EXPIRE_TIME = 24.0f;
 static const int SMALL_ITEM_MAX_HEIGHT = 2;
 static const int SMALL_ITEM_MAX_WIDTH = 4;
 
@@ -61,15 +63,15 @@ static om::Mob::MobCollisionTypes GetMobCollisionType(om::EntityPtr entity)
 NavGrid::NavGrid(dm::TraceCategories trace_category) :
    trace_category_(trace_category),
    bounds_(csg::Cube3::zero),
-   _dirtyTilesSlot("dirty tiles")
+   _dirtyTilesSlot("dirty tiles"),
+   tileExpireTime_(0),
+   cachedTile_(csg::Point3(INT_MIN, INT_MIN, INT_MAX), nullptr)
 {
-   last_evicted_ = 0;
-   max_resident_ = core::Config::GetInstance().Get<int>("nav_grid.working_set_size", DEFAULT_WORKING_SET_SIZE);
-   if (max_resident_ != DEFAULT_WORKING_SET_SIZE) {
-      NG_LOG(1) << "working set size is " << max_resident_;
+   float hours = core::Config::GetInstance().Get<float>("navgrid.tile_data_expire_time", DEFAULT_TILE_EXPIRE_TIME);
+   if (hours != DEFAULT_TILE_EXPIRE_TIME) {
+      NG_LOG(1) << "working set size is " << hours << " game hours.";
    }
-   resident_tiles_.reserve(max_resident_);
-   resident_tiles_.resize(0);
+   tileExpireTime_ = static_cast<int>(hours * CALENDAR_TICKS_PER_HOUR);
 }
 
 
@@ -87,6 +89,7 @@ NavGrid::~NavGrid()
    collision_tracker_dtors_.clear();
    collision_type_traces_.clear();
    terrain_tile_collision_trackers_.clear();
+   evictQueue_.clear();
    for (auto& entry : tiles_) {
       delete entry.second;
    }
@@ -397,34 +400,29 @@ NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
 
 NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
 {
-   NavGridTileMap::iterator i = tiles_.find(index);
-   if (i == tiles_.end()) {
-      NG_LOG(5) << "constructing new grid tile at " << index;
-      i = tiles_.emplace(std::make_pair(index, new NavGridTile(*this, index))).first;
+   NavGridTile* tile;
+   if (cachedTile_.first == index) {
+      tile = cachedTile_.second;
+   } else {
+      NavGridTileMap::iterator i = tiles_.find(index);
+      if (i == tiles_.end()) {
+         NG_LOG(5) << "constructing new grid tile at " << index;
+         NavGridTile* tile = new NavGridTile(*this, index);
+         i = tiles_.emplace(std::make_pair(index, tile)).first;
+      }
+      tile = i->second;
+      cachedTile_ = std::make_pair(index, tile);
    }
-   NavGridTile& tile = *i->second;
 
    if (make_resident) {
-      int cacheIndex = tile.GetResidentTileIndex();
-      if (cacheIndex < 0) {
-         NG_LOG(3) << "making nav grid tile " << index << " resident";
-         if (resident_tiles_.size() >= max_resident_) {
-            cacheIndex = EvictNextUnvisitedTile(index);
-         } else {
-            cacheIndex = resident_tiles_.size();
-            resident_tiles_.push_back(std::make_pair(index, true));
-         }
-         tile.SetDataResident(true, cacheIndex);
+      if (!tile->IsDataResident()) {
+         evictQueue_.push_back(tile);
       }
-      ASSERT(cacheIndex >= 0 && cacheIndex < (int)resident_tiles_.size());
-      ASSERT(cacheIndex == tile.GetResidentTileIndex());
-      ASSERT(resident_tiles_[cacheIndex].first == index);
-
-      resident_tiles_[cacheIndex].second = true;   // Mark resident in the vector
-      tile.FlushDirty(*this);
+      tile->SetDataResident(true, now_ + tileExpireTime_);
+      tile->FlushDirty(*this);
    }
 
-   return tile;
+   return *tile;
 }
 
 /*
@@ -462,9 +460,9 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
    // Draw a box around all the resident tiles.
    csg::Color4 border_color(0, 0, 128, 64);
    csg::Color4 mob_color(128, 0, 128, 64);
-   for (auto const& entry : resident_tiles_) {
+   for (NavGridTile* tile : evictQueue_) {
       protocol::box* box = msg->add_box();
-      csg::Point3f offset = csg::ToFloat(entry.first.Scaled(TILE_SIZE)) - csg::Point3f(0.5f, 0, 0.5f);
+      csg::Point3f offset = csg::ToFloat(tile->GetIndex().Scaled(TILE_SIZE)) - csg::Point3f(0.5f, 0, 0.5f);
       offset.SaveValue(box->mutable_minimum());
       (offset + csg::Point3f(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
       border_color.SaveValue(box->mutable_color());
@@ -488,35 +486,32 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
 }
 
 /*
- * -- NavGrid::EvictNextUnvisitedTile
+ * -- NavGrid::UpdateGameTime
  *
- * Evict the NavGridTileData for the tile we're least likely to need in the near
- * future.  The last_evicted_ iterator points to the tile immediately after
- * the last tile that got evicted the last time.  We approximate the LRU tile by
- * sweeping last_evicted_ through the resident_tiles_ map, clearing visited bits
- * along the way, until we reach a tile that has not yet been visited.  This
- * is a pretty good approximation.
- *
- * (see http://en.wikipedia.org/wiki/Page_replacement_algorithm#Clock)
  */ 
-int NavGrid::EvictNextUnvisitedTile(csg::Point3 const& pt)
+void NavGrid::UpdateGameTime(int now, int freq)
 {
-   while (true) {
-      if (last_evicted_ == resident_tiles_.size() - 1) {
-         last_evicted_ = 0;
+   now_ = now;
+
+   // We want to make sure we get through the entire list in about 5 realtime seconds
+   uint size = evictQueue_.size();
+   if (size > 0) {
+      uint toProcess = std::max((uint)1, (size / (1000 / freq) / 5));
+      for (uint i = 0; i < toProcess; i++) {
+         if (evictQueueIndex_ >= size) {
+            evictQueueIndex_ = 0;
+         }
+         NavGridTile* tile = evictQueue_[evictQueueIndex_];
+         if (tile->GetDataExpireTime() < now_) {
+            NG_LOG(5) << "evicting tile " << tile->GetIndex() << ".";
+            tile->SetDataResident(false, 0);
+            evictQueue_[evictQueueIndex_] = evictQueue_[--size];
+         } else {
+            evictQueueIndex_++;
+         }
       }
-      std::pair<csg::Point3, bool>& entry = resident_tiles_[last_evicted_];
-      bool visited = entry.second;
-      if (visited) {
-         entry.second = false;
-      } else {
-         NG_LOG(3) << "evicted nav grid tile " << entry.first;
-         GridTileNonResident(entry.first).SetDataResident(false);
-         entry.first = pt;
-         entry.second = true;
-         return last_evicted_++;
-      }
-      last_evicted_++;
+      NG_LOG(9) << "got " << size << " tiles resident";
+      evictQueue_.resize(size);
    }
 }
 
@@ -1063,6 +1058,19 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
+   
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
+   if (mob) {
+      // The super ultra fast path!
+      if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+         return IsStandable(location) &&
+                !IsBlocked(location + csg::Point3::one) &&
+                !IsBlocked(location + csg::Point3::one + csg::Point3::one);
+      } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
+         return IsStandable(location);
+      }
+   }
+
    csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);
    if (!UseFastCollisionDetection(entity)) {
       return IsStandable(entity, location, shape);
