@@ -1,8 +1,7 @@
-local log = radiant.log.create_logger('pathfinder')
-
 local OptimizedPathfinder = class()
 
-function OptimizedPathfinder:__init(entity, destination, success_cb, failure_cb)
+function OptimizedPathfinder:__init(log, entity, destination, success_cb, failure_cb)
+   self._log = log
    self._entity = entity
    self._destination = destination
    self._success_cb = success_cb
@@ -32,10 +31,10 @@ function OptimizedPathfinder:start()
    end
 
    if self._use_direct_pathfinder then
-      if log:is_enabled(radiant.log.DEBUG) then
+      if self._log:is_enabled(radiant.log.DEBUG) then
          local destination_location = radiant.entities.get_world_grid_location(self._destination)
-         log:debug('finding path from CURRENT.location %s to %s (@ %s)',
-                   tostring(self._start_location), tostring(self._destination), tostring(destination_location))
+         self._log:debug('finding path from CURRENT.location %s to %s (@ %s)',
+                          self._start_location, self._destination, destination_location)
       end
 
       local direct_path_finder = _radiant.sim.create_direct_path_finder(self._entity)
@@ -50,7 +49,7 @@ function OptimizedPathfinder:start()
       end
    end
 
-   log:detail('no direct path found.  starting a* pathfinder.')
+   self._log:detail('no direct path found.  starting a* pathfinder.')
    
    self._trace = radiant.entities.trace_grid_location(self._destination, 'OptimizedPathfinder')
       :on_changed(function()
@@ -64,37 +63,33 @@ function OptimizedPathfinder:start()
       self:_on_success('a* path found', path)
    end
 
-   local name = radiant.entities.get_display_name(self._destination)
-   if not name then
-      name = self._destination:get_debug_text()
-   end
-   if #name == 0 then
-      name = '-unnamed-'
-   end
-   local description = string.format('astar: find %s (%d)', name, self._destination:get_id())
-   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, description)
+   self._description = string.format('find %s', self._destination)
+   self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, self._description)
                          :set_source(self._start_location)
                          :add_destination(self._destination)
                          :set_solved_cb(solved)
                          :start()
 
+   self._log:error('creating astar pathfinder for %s @ %s', self._description, self._start_location)
+
    return self
 end
 
 function OptimizedPathfinder:_on_success(message, path)
-   log:debug('%s: %s', message, tostring(path))
+   self._log:debug('%s: %s', message, tostring(path))
    self._success_cb(path)
    self:stop()
 end
 
 function OptimizedPathfinder:_on_failure(message)
-   log:debug(message)
+   self._log:debug(message)
    self:stop()
 end
 
 function OptimizedPathfinder:stop()
    if self._pathfinder then
-      self._pathfinder:stop()
+      self._log:error('destroying astar pathfinder for %s @ %s', self._description, self._start_location)
+      self._pathfinder:destroy()
       self._pathfinder = nil
    end
    if self._trace then
