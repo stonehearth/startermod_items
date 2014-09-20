@@ -372,6 +372,10 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
 end
 
 function ExecutionUnitV2:_start_thinking_from_thinking(entity_state)
+   self._log:detail('_start_thinking_from_thinking (current:%s new:%s)',
+                     self._current_entity_state.location,
+                     entity_state.location)
+   
    assert(self._thinking)
    assert(self._object_monitor)
 
