@@ -93,7 +93,7 @@ local function apply_options_to_entity(entity, options)
          job = 'stonehearth:jobs:' .. job
       end
       entity:add_component('stonehearth:job')
-               :promote_to(profession)
+               :promote_to(job)
    end
    if options.weapon then
       env.equip_weapon(entity, options.weapon)
