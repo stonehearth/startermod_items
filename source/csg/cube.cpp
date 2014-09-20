@@ -306,6 +306,7 @@ Region<S, C> Cube<S, C>::operator&(Region const& region) const
 }
 
 
+// Specialize GetClosestPoint 3 times to avoid looping through C.
 template <typename S, int C> 
 inline Point<S, C> GetClosestPointFn(Cube<S, C> const& c, Point<S, C> const& other);
 

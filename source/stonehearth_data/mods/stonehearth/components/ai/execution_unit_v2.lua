@@ -490,7 +490,7 @@ end
 
 function ExecutionUnitV2:_stop_from_running()
    assert(not self._thinking)
-   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
+   --assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
 
    if self._current_execution_frame then
       self._current_execution_frame:stop(true)

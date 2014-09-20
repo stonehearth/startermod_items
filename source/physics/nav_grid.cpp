@@ -1064,8 +1064,8 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
       // The super ultra fast path!
       if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
          return IsStandable(location) &&
-                !IsBlocked(location + csg::Point3::one) &&
-                !IsBlocked(location + csg::Point3::one + csg::Point3::one);
+                !IsBlocked(location + csg::Point3::unitY) &&
+                !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
       } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
          return IsStandable(location);
       }

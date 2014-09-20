@@ -117,7 +117,7 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
 
    find_next_path = function (start, finish)
       radiant.entities.move_to(self._proxy_entity, finish)
-      self._pathfinder = OptimizedPathfinder(log(), self._entity, self._proxy_entity, on_success, on_failure)
+      self._pathfinder = OptimizedPathfinder(log, self._entity, self._proxy_entity, on_success, on_failure)
       self._pathfinder:set_start_location(start)
       self._pathfinder:start()
    end

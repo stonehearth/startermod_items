@@ -63,7 +63,7 @@ function OptimizedPathfinder:start()
       self:_on_success('a* path found', path)
    end
 
-   self._description = string.format('find %s', self._destination)
+   self._description = string.format('find %s', tostring(self._destination))
    self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, self._description)
                          :set_source(self._start_location)
                          :add_destination(self._destination)

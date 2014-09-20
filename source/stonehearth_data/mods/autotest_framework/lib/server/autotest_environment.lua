@@ -57,6 +57,15 @@ function env.create_enemy_kingdom()
 end
 
 function env.clear()
+   -- stop all the ais first so they don't freak out when we start destroying
+   -- things willy nilly
+   for id, entity in pairs(_all_entities) do
+      local ai = entity:get_component('stonehearth:ai')
+      if ai then
+         ai:stop()
+      end
+   end
+
    for id, entity in pairs(_all_entities) do
       radiant.entities.destroy_entity(entity)      
    end

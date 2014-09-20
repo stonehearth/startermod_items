@@ -115,6 +115,7 @@ function AutotestInstance:run()
    -- we create a new thread here so we can call :terminate() as soon
    -- as the test function calls :success() or :fail()
    self._thread = stonehearth.threads:create_thread()
+                     :set_thread_data('autotest_framework:is_autotest_thread', true)
                      :set_thread_main(function()
                            self._fn(self)
                         end)

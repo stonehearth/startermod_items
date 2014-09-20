@@ -43,13 +43,13 @@ private:
 };
 
 // Slow versions which resort to std::floor().  ew!
-inline int GetChunkAddressSlow(int value, int chunk_width);
-inline int GetChunkIndexSlow(int value, int chunk_width);
-inline void GetChunkIndexSlow(int value, int chunk_width, int& index, int& offset);
-inline Point3 GetChunkIndexSlow(Point3 const& value, int chunk_width);
-inline void GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset);
-inline Cube3 GetChunkIndexSlow(Cube3 const& value, int chunk_width);
-inline bool PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool(Point3 const& index, Cube3 const& cube)> const& cb);
+int GetChunkAddressSlow(int value, int chunk_width);
+int GetChunkIndexSlow(int value, int chunk_width);
+void GetChunkIndexSlow(int value, int chunk_width, int& index, int& offset);
+Point3 GetChunkIndexSlow(Point3 const& value, int chunk_width);
+void GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset);
+Cube3 GetChunkIndexSlow(Cube3 const& value, int chunk_width);
+bool PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool(Point3 const& index, Cube3 const& cube)> const& cb);
 
 // Fast versions which use templates.  Prefer these when the size is known at compile time, especially when using power of 2 
 // widths.
