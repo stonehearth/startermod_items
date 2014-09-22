@@ -1164,10 +1164,16 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
       }
 
       // Figure out the world voxel coordination of the intersection
+      // Recall that terrain aligned voxels go from -0.5 to +0.5 of the xz coordinate
+      // but go from 0 to 1 of the y coordiante
       csg::Point3 brick;
+      // For x,z the intersection is a face with a half-integer (0.5) coordinate
+      // So, nudge inside the voxel and round to the center
       brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01f));
       brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01f));
-      brick.y = csg::ToInt(intersection.y - (normal.y * 0.99f));
+      // For y, the intersection is a whole integer coordiante
+      // So, nudge inside the voxel and floor to the bottom face which defines the voxel coordinate
+      brick.y = std::floor(intersection.y - (normal.y * 0.01f));
       result.AddResult(intersection, normal, brick, entity);
    });
 
