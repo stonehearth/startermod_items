@@ -110,6 +110,7 @@ private:
    bool IsNumericTable(luabind::object tbl) const;
    void CreateModules(om::ModListPtr mods);
    luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
+   luabind::object GetModuleList() const;
 
 private:
    luabind::object LoadScript(std::string const& path);
