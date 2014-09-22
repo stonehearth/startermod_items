@@ -913,7 +913,7 @@ bool NavGrid::IsSupported(csg::Point3 const& worldPoint)
 bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
 {
    if (!bounds_.Contains(worldPoint)) {
-      return true;
+      return false;
    }
    return !IsBlocked(worldPoint) && IsSupported(worldPoint);
 }
