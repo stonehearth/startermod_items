@@ -288,6 +288,7 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
                .def("get_realtime",     &ScriptHost::GetRealTime)
                .def("get_log_level",    &ScriptHost::GetLogLevel)
                .def("get_config",       &ScriptHost::GetConfig)
+               .def("get_mod_list",     &ScriptHost::GetModuleList)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
@@ -964,6 +965,17 @@ void ScriptHost::CreateModules(om::ModListPtr mods)
    }
    Require("radiant.lualibs.strict");
    Trigger("radiant:modules_loaded");
+}
+
+luabind::object ScriptHost::GetModuleList() const
+{
+   int i = 1;
+   luabind::object result = luabind::newtable(L_);
+   JSONNode modules = res::ResourceManager2::GetInstance().GetModules();
+   for (auto const& entry : modules) {
+      result[i++] = luabind::object(L_, entry.name());
+   }
+   return result;
 }
 
 luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const& mod_name)

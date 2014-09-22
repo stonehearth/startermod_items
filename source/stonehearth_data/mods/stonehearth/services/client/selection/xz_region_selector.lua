@@ -166,7 +166,7 @@ end
 -- filter.
 --
 function XZRegionSelector:_get_hover_brick(x, y, check_containment_filter)
-   local brick = selector_util.get_selected_brick(x, y, function(result)
+   local brick = selector_util.get_selected_brick(x, y, true, function(result)
          return self._find_support_filter_fn(result, self)
       end)
    if brick and self:_is_valid_location(brick, check_containment_filter) then

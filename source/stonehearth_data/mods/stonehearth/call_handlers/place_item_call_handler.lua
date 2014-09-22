@@ -191,5 +191,15 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    end
 end
 
+function PlaceItemCallHandler:undeploy_item(session, response, item)
+   local efc = item:get_component('stonehearth:entity_forms')
+   if efc then
+      local current_value = efc:get_should_restock()
+      efc:set_should_restock(not current_value)
+   end   
+
+   return true;
+end
+
 
 return PlaceItemCallHandler
