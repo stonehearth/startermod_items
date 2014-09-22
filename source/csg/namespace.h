@@ -46,6 +46,11 @@ typedef Cube<float, 1> Line1f;
 typedef Cube<float, 2> Rect2f;
 typedef Cube<float, 3> Cube3f;
 
+template <typename S, int C> class PointIterator;
+
+typedef PointIterator<int, 3> PointIterator3;
+typedef PointIterator<float, 3> PointIterator3f;
+
 typedef csg::Region3f      CollisionShape;
 typedef csg::Cube3f        CollisionBox;
 

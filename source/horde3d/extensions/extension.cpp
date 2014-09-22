@@ -45,6 +45,9 @@ bool Extension::init()
    if (!DecalNode::InitExtension()) {
       return false;
    }
+   if (!ToastNode::InitExtension()) {
+      return false;
+   }
 
 	Modules::sceneMan().registerType(SNT_DebugShapesNode, "DebugShapes",
 		                              DebugShapesNode::parsingFunc,

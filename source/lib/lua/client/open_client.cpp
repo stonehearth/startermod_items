@@ -160,6 +160,27 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
    return Pipeline::GetInstance().CreateStockpileNode(parent, csg::ToInt(model), interior_color, border_color);
 }
 
+RenderNodePtr Client_CreateMeshNode(lua_State* L, 
+                                    H3DNode parent,
+                                    csg::mesh_tools::mesh const& m)
+{
+   return RenderNode::CreateCsgMeshNode(parent, m);
+}
+
+RenderNodePtr Client_CreateTextNode(lua_State* L, 
+                                    H3DNode parent,
+                                    const char* text)
+{
+   static int id = 1;
+   std::string name = BUILD_STRING("textnode" << id++);
+   RenderNodePtr node = RenderNode::CreateGroupNode(parent, name.c_str());
+   horde3d::ToastNode* toastNode = h3dRadiantCreateToastNode(node->GetNode(), name);
+   if (toastNode) {
+      toastNode->SetText(text);
+   }
+   return node;
+}
+
 om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
 {
    return Client::GetInstance().CreateAuthoringEntity(uri);
@@ -470,6 +491,8 @@ void lua::client::open(lua_State* L)
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("create_selection_node",           &Client_CreateSelectionNode),
+            def("create_mesh_node",                &Client_CreateMeshNode),
+            def("create_text_node",                &Client_CreateTextNode),
             def("create_stockpile_node",           &Client_CreateStockpileNode),
             def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),

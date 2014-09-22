@@ -50,7 +50,7 @@ function PlacementTest:__init()
    self:place_item('stonehearth:picket_fence', 3, 3)
    self:place_item('stonehearth:picket_fence', 4, 3)
    self:place_item('stonehearth:picket_fence', 5, 3)
-   self:place_item('stonehearth:picket_fence', 6, 3)
+   self:place_item('stonehearth:tombstone', 6, 3)
 
    self:place_item('stonehearth:firepit', 7, 3, player_id)
    self:place_item('stonehearth:firepit', 9, 3, player_id)
