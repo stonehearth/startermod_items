@@ -248,6 +248,8 @@
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
       "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
 
+      "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
+      "actions:turn_to_face_point" : "file(ai/actions/turn_to_face_point_action.lua)",
       "actions:find_path_to_entity" : "file(ai/actions/find_path_to_entity.lua)",
       "actions:find_path_to_entity_type" : "file(ai/actions/find_path_to_entity_type.lua)",
       "actions:find_direct_path_to_entity" : "file(ai/actions/find_direct_path_to_entity.lua)",
@@ -860,11 +862,11 @@
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "move_item_in_world" : {
+      "place_item_type_in_world" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_type_in_world" : {
+      "undeploy_item" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },

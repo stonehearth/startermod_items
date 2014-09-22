@@ -25,11 +25,6 @@ FindDirectPathToEntity.priority = 1
 function FindDirectPathToEntity:start_thinking(ai, entity, args)
    local destination = args.destination
    
-   if not destination or not destination:is_valid() then
-      ai:get_log():debug('invalid entity reference.  ignorning')
-      return
-   end
-
    local direct_path_finder = _radiant.sim.create_direct_path_finder(entity)
                                  :set_start_location(ai.CURRENT.location)
                                  :set_destination_entity(destination)

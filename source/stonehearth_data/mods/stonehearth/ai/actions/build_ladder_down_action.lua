@@ -13,9 +13,7 @@ BuildLadderDown.priority = 1
 
 function BuildLadderDown:start_thinking(ai, entity, args)
    local ladder = args.ladder
-   if not ladder and not ladder:is_valid() then
-      return
-   end
+
    local location = radiant.entities.get_world_grid_location(ladder)
    if not location then
       return

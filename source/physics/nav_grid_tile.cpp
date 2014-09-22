@@ -22,7 +22,7 @@ using namespace radiant::phys;
 NavGridTile::NavGridTile(NavGrid& ng, csg::Point3 const& index) :
    _ng(ng),
    _index(index),
-   _residentTileIndex(-1),
+   _expireTime(0),
    changed_slot_("tile changes")
 {
 }
@@ -215,20 +215,14 @@ void NavGridTile::FlushDirty(NavGrid& ng)
  * creates the Data object.  It will be updated lazily when required.
  *
  */
-void NavGridTile::SetDataResident(bool value, int index)
+void NavGridTile::SetDataResident(bool value, int expireTime)
 {
    if (value && !data_) {
       data_.reset(new NavGridTileData());
    } else if (!value && data_) {
       data_.reset(nullptr);
    }
-   _residentTileIndex = index;
-
-   if (data_.get()) {
-      ASSERT(_residentTileIndex >= 0);
-   } else {
-      ASSERT(_residentTileIndex < 0);
-   }
+   _expireTime = expireTime;
 }
  
 
@@ -378,14 +372,22 @@ core::Guard NavGridTile::RegisterChangeCb(ChangeCb const& cb)
 
 
 /*
- * -- NavGridTile::GetResidentTileIndex
+ * -- NavGridTile::GetDataExpireTime
  *
- * Returns the index in the nav_grid's resident tile array where this
- * tile is stored.  This is necessary to help support the O(1) update
- * of the cache array in NavGrid::GridTile.
+ * When the NavGridTile data is supposed to expire
  *
  */ 
-int NavGridTile::GetResidentTileIndex() const
+int NavGridTile::GetDataExpireTime() const
 {
-   return _residentTileIndex;
+   return _expireTime;
+}
+
+csg::Point3 NavGridTile::GetIndex() const
+{
+   return _index;
+}
+
+bool NavGridTile::IsDataResident() const
+{
+   return data_.get() != nullptr;
 }

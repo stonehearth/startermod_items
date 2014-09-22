@@ -19,12 +19,6 @@ RunAwayFromEntity.priority = 1
 function RunAwayFromEntity:start_thinking(ai, entity, args)
    local threat = args.threat
 
-   if not threat:is_valid() then
-      local log = ai:get_log()
-      log:info('Invalid entity')
-      return
-   end
-
    self._entity = entity
    self._entity_grid_location = ai.CURRENT.location
 

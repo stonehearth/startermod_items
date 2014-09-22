@@ -64,6 +64,7 @@ public:
    void AddTask(std::shared_ptr<Task> task);
    void AddJob(std::shared_ptr<Job> job);
    void AddJobForEntity(om::EntityPtr entity, PathFinderPtr job);
+   void RemoveJobForEntity(om::EntityPtr entity, PathFinderPtr job);
 
    bool ProcessMessage(std::shared_ptr<RemoteClient> c, const tesseract::protocol::Request& msg);
    void EncodeUpdates(protocol::SendQueuePtr queue);
@@ -131,6 +132,7 @@ private:
 
    void CreateGame();
    void CreateFreeMotionTrace(om::MobPtr mob);
+   void LogAllJobProgress();
 
 private:
    struct FreeMotionTaskMapEntry {
@@ -193,6 +195,8 @@ private:
    rpc::LuaObjectRouterPtr             luaObjectRouter_;
    rpc::TraceObjectRouterPtr           traceObjectRouter_;
    perfmon::Timeline                   perf_timeline_;
+   bool                                enable_job_logging_;
+   platform::timer                     log_jobs_timer_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
    om::ErrorBrowserPtr                 error_browser_;

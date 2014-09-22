@@ -372,6 +372,10 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
 end
 
 function ExecutionUnitV2:_start_thinking_from_thinking(entity_state)
+   self._log:detail('_start_thinking_from_thinking (current:%s new:%s)',
+                     self._current_entity_state.location,
+                     entity_state.location)
+   
    assert(self._thinking)
    assert(self._object_monitor)
 
@@ -486,7 +490,7 @@ end
 
 function ExecutionUnitV2:_stop_from_running()
    assert(not self._thinking)
-   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
+   --assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
 
    if self._current_execution_frame then
       self._current_execution_frame:stop(true)

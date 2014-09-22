@@ -53,13 +53,13 @@ bool PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<boo
 
 // Fast versions which use templates.  Prefer these when the size is known at compile time, especially when using power of 2 
 // widths.
-template <int S> int GetChunkAddress(int value);
-template <int S> int GetChunkIndex(int value);
-template <int S> void GetChunkIndex(int value, int& index, int& offset);
-template <int S> Point3 GetChunkIndex(Point3 const& value);
-template <int S> void GetChunkIndex(Point3 const& value, Point3& index, Point3& offset);
-template <int S> Cube3 GetChunkIndex(Cube3 const& value);
-template <int S> bool PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
+template <int S> inline int GetChunkAddress(int value);
+template <int S> inline int GetChunkIndex(int value);
+template <int S> inline void GetChunkIndex(int value, int& index, int& offset);
+template <int S> inline Point3 GetChunkIndex(Point3 const& value);
+template <int S> inline void GetChunkIndex(Point3 const& value, Point3& index, Point3& offset);
+template <int S> inline Cube3 GetChunkIndex(Cube3 const& value);
+template <int S> inline bool PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
 template <typename Region> Region GetAdjacent(Region const& r, bool allow_diagonals);
 
@@ -101,6 +101,26 @@ template <typename T, int C, typename F> Cube<T, C> ConvertTo(Cube<F, C> const& 
 template <typename S> static inline bool IsBetween(S a, S b, S c)
 {
    return a <= b && b < c;
+}
+
+template <typename S, int C> static inline bool IsBetween(Point<S, C> const& a, Point<S, C> const& b, Point<S, C> const& c);
+
+template <typename S> static inline bool IsBetween(Point<S, 1> const& a, Point<S, 1> const& b, Point<S, 1> const& c)
+{
+   return IsBetween(a.x, b.x, c.x);
+}
+
+template <typename S> static inline bool IsBetween(Point<S, 2> const& a, Point<S, 2> const& b, Point<S, 2> const& c)
+{
+   return IsBetween(a.x, b.x, c.x) &&
+          IsBetween(a.y, b.y, c.y);
+}
+
+template <typename S> static inline bool IsBetween(Point<S, 3> const& a, Point<S, 3> const& b, Point<S, 3> const& c)
+{
+   return IsBetween(a.x, b.x, c.x) &&
+          IsBetween(a.y, b.y, c.y) &&
+          IsBetween(a.z, b.z, c.z);
 }
 
 std::ostream& operator<<(std::ostream& os, EdgePointX const& f);

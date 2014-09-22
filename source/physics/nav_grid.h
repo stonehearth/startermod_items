@@ -72,6 +72,7 @@ class NavGrid {
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);
+      void UpdateGameTime(int now, int freq);
 
    private:
       bool IsMarked(int bit, om::EntityPtr entity, csg::Point3 const& pt);
@@ -116,33 +117,34 @@ private:
 
    private: // private types
       typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3::Hash> NavGridTileMap;
-      typedef std::vector<std::pair<csg::Point3, bool>> ResidentTileList;
       typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
       typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTrackerDtorMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisonTypeTraceMap;
       typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 
+   private:
       void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
       void RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId);
       CollisionTrackerPtr CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       MovementModifierShapeTrackerPtr CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr);
       void CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       void OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef);
-      int EvictNextUnvisitedTile(csg::Point3 const& pt);
 
    private: // instance variables
       om::EntityRef                    rootEntity_;
       dm::TraceCategories              trace_category_;
-      ResidentTileList                 resident_tiles_;
-      int                              last_evicted_;
+      std::pair<csg::Point3, NavGridTile*> cachedTile_;
       NavGridTileMap                   tiles_;
+      std::vector<NavGridTile*>        evictQueue_;
+      uint                             evictQueueIndex_;
+      int                              tileExpireTime_;
+      int                              now_;
       CollisionTrackerMap              collision_trackers_;
       CollisionTrackerDtorMap          collision_tracker_dtors_;
       CollisonTypeTraceMap             collision_type_traces_;
       TerrainTileCollisionTrackerMap   terrain_tile_collision_trackers_;
       csg::Cube3                       bounds_;
-      uint                             max_resident_;
       core::Slot<csg::Point3>          _dirtyTilesSlot;
 };
 

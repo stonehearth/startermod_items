@@ -36,7 +36,7 @@ function EntityFormsComponent:_post_create(json)
    self._sv.hide_placement_ui = json.hide_placement_ui
 
    local placeable = self:is_placeable()
-   local show_placement_uri = placeable and not self:should_hide_placement_ui()
+   local show_placement_ui = placeable and not self:should_hide_placement_ui()
 
    local iconic_entity, ghost_entity
    if json.iconic_form then
@@ -57,9 +57,10 @@ function EntityFormsComponent:_post_create(json)
       assert(iconic_entity, string.format('placeable entity %s missing an iconic entity form', uri))
       assert(ghost_entity,  string.format('placeable entity %s missing a ghost entity form', uri))
       
-      if radiant.is_server and show_placement_uri then
-         self._entity:add_component('stonehearth:commands')
-                        :add_command('/stonehearth/data/commands/move_item')
+      if radiant.is_server and show_placement_ui then
+         local commands_component = self._entity:add_component('stonehearth:commands')
+         commands_component:add_command('/stonehearth/data/commands/move_item')
+         commands_component:add_command('/stonehearth/data/commands/undeploy_item')
       end
    end
    
@@ -72,13 +73,13 @@ function EntityFormsComponent:_post_create(json)
 
    if iconic_entity then
       iconic_entity:add_component('stonehearth:iconic_form')
-                        :set_placeable(show_placement_uri)
+                        :set_placeable(show_placement_ui)
                         :set_root_entity(self._entity)
                         :set_ghost_entity(ghost_entity)
    end
    if ghost_entity then
       ghost_entity:add_component('stonehearth:ghost_form')
-                        :set_placeable(show_placement_uri)
+                        :set_placeable(show_placement_ui)
                         :set_root_entity(self._entity)
                         :set_iconic_entity(iconic_entity)
    end
@@ -86,6 +87,41 @@ end
 
 function EntityFormsComponent:destroy()
    self:_destroy_placement_task()
+end
+
+-- whether this item, if it is deployed, should be undeployed and stored in a stockpile
+function EntityFormsComponent:get_should_restock()
+   return self._sv.should_restock
+end
+
+-- call to toggle whether this deployed item should be undeployed and stored in a stockpile
+function EntityFormsComponent:set_should_restock(restock)
+   self._sv.should_restock = restock
+   
+   if restock then 
+      if not self._sv.overlay_effect then
+         self._sv.overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
+      end
+
+      -- trace the item's position. When it's position becomes nil, we know the item has changed
+      -- forms, so if necessary we'll clear the undeploy setting
+      self._position_trace = radiant.entities.trace_location(self._entity, 'entity forms component')
+                                             :on_changed(function()
+                                                self:_on_position_changed()
+                                             end)
+   else
+
+      if self._sv.overlay_effect then
+         self._sv.overlay_effect:stop()
+         self._sv.overlay_effect = nil
+      end
+
+      if self._position_trace then
+         self._position_trace:destroy()
+      end
+   end
+
+   self.__saved_variables:mark_changed()
 end
 
 function EntityFormsComponent:should_hide_placement_ui()
@@ -288,7 +324,15 @@ function EntityFormsComponent:_create_task(activity, args)
                               self._placement_task = nil
                               self:_destroy_placement_task()
                            end)
+                       :add_entity_effect(self._entity, '/stonehearth/data/effects/move_item_overlay_effect')
                        :start()
 end
+
+function EntityFormsComponent:_on_position_changed()
+   if radiant.entities.get_world_grid_location(self._entity) == nil then
+      self:set_should_restock(false)
+   end
+end
+
 
 return EntityFormsComponent

@@ -21,10 +21,6 @@ function CombatIdleShuffle:start_thinking(ai, entity, args)
    self._entity = entity
    local enemy = args.enemy
 
-   if enemy == nil or not enemy:is_valid() then
-      return
-   end
-
    self._destination = self:_choose_destination(entity, enemy)
    if self._destination then
       ai:set_think_output()
@@ -33,16 +29,7 @@ end
 
 function CombatIdleShuffle:run(ai, entity, args)
    local enemy = args.enemy
-   if not enemy:is_valid() then
-      ai:abort('enemy has been destroyed')
-   end
-
    ai:execute('stonehearth:go_toward_location', { destination = self._destination })
-
-   -- check again after moving
-   if not enemy:is_valid() then
-      ai:abort('enemy has been destroyed')
-   end
 
    local weapon = stonehearth.combat:get_melee_weapon(entity)
    if weapon ~= nil and weapon:is_valid() then

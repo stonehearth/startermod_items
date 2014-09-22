@@ -19,10 +19,12 @@ end
 -- Calls the registered `destroy_cb`
 --
 function Destructor:destroy()
+   local result
    if self._destroy_cb then
-      self._destroy_cb()
+      result = self._destroy_cb()
       self._destroy_cb = nil
    end
+   return result
 end
 
 return Destructor

@@ -53,6 +53,7 @@ function GhostFormComponent:set_placeable(placeable)
       -- add the command to place the item from the proxy
       self._entity:add_component('stonehearth:commands')
                      :add_command('/stonehearth/data/commands/move_item')
+
    end
    return self
 end

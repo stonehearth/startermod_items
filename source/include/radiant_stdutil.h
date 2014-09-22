@@ -276,7 +276,21 @@ namespace radiant {
       }
 
       template <class K, class V> void ForEachPrune(std::unordered_multimap<K, std::weak_ptr<V>> &container, std::function <void (K const&, std::shared_ptr<V>)> fn) {
-         for (auto i = container.begin(); i != container.end(); ) {
+         auto end = container.end();
+         for (auto i = container.begin(); i != end; ) {
+            std::shared_ptr<V> p = i->second.lock();
+            if (!p) {
+               i = container.erase(i);
+            } else {
+               fn(i->first, p);
+               ++i;
+            }
+         }
+      }
+
+      template <class K, class V> void ForEachPrune(std::unordered_map<K, std::weak_ptr<V>> &container, std::function <void (K const&, std::shared_ptr<V>)> fn) {
+         auto end = container.end();
+         for (auto i = container.begin(); i != end; ) {
             std::shared_ptr<V> p = i->second.lock();
             if (!p) {
                i = container.erase(i);

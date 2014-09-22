@@ -28,7 +28,8 @@ public:
 
 public:
    typedef std::function<void(std::string const&, int)> GetPathfinderTimesCb;
-   void RegisterPathfinder(PathFinderPtr pathfinder);
+   void AddPathfinder(PathFinderPtr pathfinder);
+   void RemovePathfinder(PathFinderPtr pathfinder);
    void GetPathfinderTimes(GetPathfinderTimesCb cb);
 
    typedef std::unordered_map<std::string, perfmon::CounterValueType> PathfinderTimeMap;
@@ -47,12 +48,13 @@ public: // Job Interface
 private:
    PathFinderPtr GetClosestPathfinder() const;
 
+   typedef std::unordered_map<int, PathFinderRef> PathFinderMap;
 private:
-   om::EntityRef                          entity_;
-   mutable std::vector<PathFinderRef>     pathfinders_;
-   mutable PathFinderRef                  closest_pathfinder_;
-   bool                                   _recordPathfinderTimes;
-   PathfinderTimeMap                      _pathfinderTimes;
+   om::EntityRef              entity_;
+   mutable PathFinderMap      pathfinders_;
+   mutable PathFinderRef      closest_pathfinder_;
+   bool                       _recordPathfinderTimes;
+   PathfinderTimeMap          _pathfinderTimes;
 };
 
 typedef std::weak_ptr<EntityJobScheduler> EntityJobSchedulerRef;
