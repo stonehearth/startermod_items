@@ -13,11 +13,6 @@ TriggerTrap.priority = 1
 function TriggerTrap:run(ai, entity, args)
    local trap = args.trap
 
-   if not trap:is_valid() then
-      ai:abort('trap is destroyed')
-      return
-   end
-
    local trap_component = trap:add_component('stonehearth:bait_trap')
 
    if not trap_component:is_armed() then

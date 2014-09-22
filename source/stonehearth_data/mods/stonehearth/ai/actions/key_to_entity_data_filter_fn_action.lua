@@ -32,7 +32,7 @@ function KeyToEntityDataFilter:start_thinking(ai, entity, args)
 
    ai:set_think_output({
          filter_fn = filter_fn,
-         description = string.format('has "%s" entity data', args.key),
+         description = string.format('"%s" ed', args.key),
       })
 end
 

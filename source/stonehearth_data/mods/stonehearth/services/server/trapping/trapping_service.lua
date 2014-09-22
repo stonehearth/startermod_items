@@ -30,8 +30,6 @@ function TrappingService:designate_trapping_grounds(player_id, faction, location
 
    radiant.terrain.place_entity(entity, location)
 
-   self.__saved_variables:mark_changed()
-
    trapping_grounds_component:start_tasks()
 
    return entity

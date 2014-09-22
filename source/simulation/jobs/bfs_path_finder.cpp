@@ -118,9 +118,10 @@ BfsPathFinder::BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string 
    entity_(entity),
    search_order_index_(-1),
    running_(false),
+   destinationCount_(0),
    max_travel_distance_(static_cast<float>(max_range))
 {
-   pathfinder_ = AStarPathFinder::Create(sim, BUILD_STRING(name << "(slave pathfinder)"), entity);
+   pathfinder_ = AStarPathFinder::Create(sim, BUILD_STRING(name << " (bfs)"), entity);
    BFS_LOG(3) << "creating bfs pathfinder";
 }
 
@@ -294,6 +295,7 @@ BfsPathFinderPtr BfsPathFinder::Stop()
 {
    BFS_LOG(5) << "stop requested";
    pathfinder_->Stop();
+   destinationCount_ = 0;
    running_ = false;
    entityAddedTrace_= nullptr;
    return shared_from_this();
@@ -343,6 +345,7 @@ void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
    if (filter_fn_(entity)) {
       BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
       pathfinder_->AddDestination(entity);
+      ++destinationCount_;
    } else {
       BFS_LOG(7) << *entity << " failed the filter!!";
    }
@@ -575,13 +578,21 @@ float BfsPathFinder::EstimateCostToSolution()
 
 std::string BfsPathFinder::GetProgress() const
 {
+   std::ostringstream progress;
    std::string ename;
    auto entity = entity_.lock();
    if (entity) {
       ename = BUILD_STRING(*entity);
    }
-   float percentExplored = search_order_index_ * 100.0f / SEARCH_ORDER_SIZE;
-   return BUILD_STRING(GetName() << "bfs (" << percentExplored << "%): " << pathfinder_->GetProgress());
+   int percentExplored = static_cast<int>(search_order_index_ * 100 / SEARCH_ORDER_SIZE);
+   progress << "bfs   " << std::left << std::setw(32) << GetName() << "("
+            << "explored:" << percentExplored << "%" << " "
+            << "dist:" << travel_distance_ << " "
+            << "items:" << destinationCount_ << " "
+            ")\n";
+   progress << pathfinder_->GetProgress();
+
+   return progress.str();
 }
 
 
@@ -631,4 +642,9 @@ float BfsPathFinder::GetMaxExploredDistance() const
 void BfsPathFinder::Log(uint level, std::string const& s)
 {
    BFS_LOG(level) << s;
+}
+
+om::EntityRef BfsPathFinder::GetEntity() const
+{
+   return entity_;
 }

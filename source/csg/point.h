@@ -18,33 +18,27 @@ public:
    typedef S ScalarType;
    enum { Dimension = C };
 
-   S& operator[](int offset) { return static_cast<Derived*>(this)->Coord(offset); }
-   S operator[](int offset) const { return static_cast<const Derived*>(this)->Coord(offset);  }
-
-   // manipulators
-   void Scale(float s) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] = static_cast<S>((*this)[i] * s);
-      }
+   S& operator[](int offset) {
+      ASSERT(offset >= 0 && offset < C);
+      Derived *obj = static_cast<Derived*>(this);
+      return reinterpret_cast<S*>(obj)[offset];
    }
 
+   S operator[](int offset) const {
+      ASSERT(offset >= 0 && offset < C);
+      Derived const *obj = static_cast<Derived const*>(this);
+      return reinterpret_cast<S const*>(obj)[offset];
+   }
+
+   // manipulators
    Derived Scaled(float s) const {
       Derived result(*static_cast<Derived const*>(this));
       result.Scale(s);
       return result;
    }
 
-   void Translate(const Derived& pt) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] += pt[i];
-      }
-   }
-
    Derived Translated(const Derived& pt) const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = (*this)[i];
-      }
+      Derived result(*static_cast<Derived const*>(this));
       result.Translate(pt);
       return result;
    }
@@ -94,48 +88,26 @@ public:
       }
    };
 
-   void SetZero() { 
-      for (int i = 0; i < C; i++) {
-         (*this)[i] = 0;
-      }
-   }
-
-   S Dot(Derived const& other) const {
-      S result = 0;
-      for (int i = 0; i < C; i++) {
-         result += (*this)[i] * other[i];
-      }
-      return result;
-   }
-
-   float LengthSquared() const {
-      float result = 0;
-      for (int i = 0; i < C; i++) {
-         result += (*this)[i] * (*this)[i];
-      }
-      return result;
-   }
-
    float Length() const {
-      return csg::Sqrt(LengthSquared());
+      return csg::Sqrt(static_cast<Derived const&>(*this).LengthSquared());
    }
 
    float DistanceTo(Derived const& other) const {
-      float l2 = ((*this) - other).LengthSquared();
+      float l2 = (static_cast<Derived const&>(*this) - other).LengthSquared();
       return csg::Sqrt(l2);
    }
 
    inline float SquaredDistanceTo(Derived const& other) const {
-      return ((*this) - other).LengthSquared();
+      return (static_cast<Derived const&>(*this) - other).LengthSquared();
    }
 
    void Normalize()
    {
-      float lengthsq = LengthSquared();
+      float lengthsq = static_cast<Derived const&>(*this).LengthSquared();
       if (IsZero(lengthsq)) {
-         SetZero();
+         static_cast<Derived&>(*this).SetZero();
       } else {
-         Scale(InvSqrt(lengthsq));
+         static_cast<Derived&>(*this).Scale(InvSqrt(lengthsq));
       }
    }
 
@@ -147,71 +119,8 @@ public:
       return result;
    }
 
-   // dot product
-   Derived operator*(Derived const& rhs) const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = (*this)[i] * rhs[i];
-      }
-      return result;
-   }
-
-   const Derived& operator*=(S scale) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] *= scale;
-      }
-      return static_cast<const Derived&>(*this);
-   }
-
-   const Derived& operator+=(const Derived& other) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] += other[i];
-      }
-      return static_cast<const Derived&>(*this);
-   }
-
-   const Derived& operator-=(const Derived& other) {
-      for (int i = 0; i < C; i++) {
-         (*this)[i] -= other[i];
-      }
-      return static_cast<const Derived&>(*this);
-   }
-
-   Derived operator+(const Derived& other) const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = (*this)[i] + other[i];
-      }
-      return result;
-   }
-
-   Derived operator-(const Derived& other) const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = (*this)[i] - other[i];
-      }
-      return result;
-   }
-
-   Derived operator-() const {
-      Derived result;
-      for (int i = 0; i < C; i++) {
-         result[i] = -(*this)[i];
-      }
-      return result;
-   }
-
-   bool operator==(const Derived& other) const {
-      for (int i = 0; i < C; i++) {
-         if ((*this)[i] != other[i]) {
-            return false;
-         }
-      }
-      return true;
-   }
-
    bool operator!=(const Derived& other) const {
-      return !((*this) == other);
+      return !(static_cast<Derived const&>(*this) == other);
    }
 
    bool operator<(const Derived& other) const {
@@ -228,7 +137,7 @@ public:
    }
 
    bool operator>(const Derived& other) const {
-      return other < (*this);
+      return other < (*this);u
    }
 };
 
@@ -247,9 +156,74 @@ public:
    static const Point zero;
    static const Point one;
 
-   S Coord(int i) const { return (&x)[i]; }
-   S& Coord(int i) { return (&x)[i]; }
+   Point operator/(S amount) const {
+      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      ASSERT(amount != 0);
+      return Point(x / amount);
+   }
 
+   Point operator*(S amount) const {
+      return Point(x * amount);
+   }
+
+   bool operator==(Point const& other) const {
+      return x == other.x;
+   }
+
+   const Point& operator*=(S scale) {
+      x *= scale;
+      return *this;
+   }
+
+   const Point& operator+=(const Point& other) {
+      x += other.x;
+      return *this;
+   }
+
+   const Point& operator-=(const Point& other) {
+      x -= other.x;
+      return *this;
+   }
+
+   Point operator*(const Point& other) const {
+      return Point(x * other.x);
+   }
+
+   Point operator+(const Point& other) const {
+      return Point(x + other.x);
+   }
+
+   Point operator-(const Point& other) const {
+      return Point(x - other.x);
+   }
+
+   Point operator-() const {
+      return Point(-x);
+   }
+
+   void SetZero() { 
+      x = 0;
+   }
+
+   float LengthSquared() const {
+      float result = 0;
+      result += x * x;
+      return result;
+   }
+
+   void Scale(float s) {
+      x = static_cast<S>(x * s);
+   }
+
+   void Translate(const Point& pt) {
+      x += pt.x;
+   }
+
+   S Dot(Point const& other) const {
+      S result = 0;
+      result += x * other.x;
+      return result;
+   }
 public:
    template <class T> void SaveValue(T* msg) const {
       msg->set_x(x);
@@ -273,13 +247,82 @@ public:
    static const Point zero;
    static const Point one;
 
-   S Coord(int i) const { return (&x)[i]; }
-   S& Coord(int i) { return (&x)[i]; }
 
    Point operator/(S amount) const {
       // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount, y / amount);
+   }
+
+   Point operator*(S amount) const {
+      return Point(x * amount, y * amount);
+   }
+
+   bool operator==(Point const& other) const {
+      return x == other.x && y == other.y;
+   }
+
+   const Point& operator*=(S scale) {
+      x *= scale;
+      y *= scale;
+      return *this;
+   }
+
+   const Point& operator+=(const Point& other) {
+      x += other.x;
+      y += other.y;
+      return *this;
+   }
+
+   const Point& operator-=(const Point& other) {
+      x -= other.x;
+      y -= other.y;
+      return *this;
+   }
+
+   Point operator*(const Point& other) const {
+      return Point(x * other.x, y * other.y);
+   }
+
+   Point operator+(const Point& other) const {
+      return Point(x + other.x, y + other.y);
+   }
+
+   Point operator-(const Point& other) const {
+      return Point(x - other.x, y - other.y);
+   }
+
+   Point operator-() const {
+      return Point(-x, -y);
+   }
+
+   void SetZero() { 
+      x = 0;
+      y = 0;
+   }
+
+   float LengthSquared() const {
+      float result = 0;
+      result += x * x;
+      result += y * y;
+      return result;
+   }
+
+   void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+   }
+
+   void Translate(const Point& pt) {
+      x += pt.x;
+      y += pt.y;
+   }
+
+   S Dot(Point const& other) const {
+      S result = 0;
+      result += x * other.x;
+      result += y * other.y;
+      return result;
    }
 
 public:
@@ -310,8 +353,91 @@ public:
    static const Point unitY;
    static const Point unitZ;
 
-   S Coord(int i) const { return (&x)[i]; }
-   S& Coord(int i) { return (&x)[i]; }
+   Point operator/(S amount) const {
+      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      ASSERT(amount != 0);
+      return Point(x / amount, y / amount, z  / amount);
+   }
+
+   Point operator*(S amount) const {
+      return Point(x * amount, y * amount, z * amount);
+   }
+
+   bool operator==(Point const& other) const {
+      return x == other.x && y == other.y && z == other.z;
+   }
+
+   const Point& operator*=(S scale) {
+      x *= scale;
+      y *= scale;
+      z *= scale;
+      return *this;
+   }
+
+   const Point& operator+=(const Point& other) {
+      x += other.x;
+      y += other.y;
+      z += other.z;
+      return *this;
+   }
+
+   const Point& operator-=(const Point& other) {
+      x -= other.x;
+      y -= other.y;
+      z -= other.z;
+      return *this;
+   }
+
+   Point operator*(const Point& other) const {
+      return Point(x * other.x, y * other.y, z * other.z);
+   }
+
+   Point operator+(const Point& other) const {
+      return Point(x + other.x, y + other.y, z + other.z);
+   }
+
+   Point operator-(const Point& other) const {
+      return Point(x - other.x, y - other.y, z - other.z);
+   }
+
+   Point operator-() const {
+      return Point(-x, -y, -z);
+   }
+
+   void SetZero() { 
+      x = 0;
+      y = 0;
+      z = 0;
+   }
+
+   float LengthSquared() const {
+      float result = 0;
+      result += x * x;
+      result += y * y;
+      result += z * z;
+      return result;
+   }
+
+   void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+   }
+
+   void Translate(const Point& pt) {
+      x += pt.x;
+      y += pt.y;
+      z += pt.z;
+   }
+
+   S Dot(Point const& other) const {
+      S result = 0;
+      result += x * other.x;
+      result += y * other.y;
+      result += z * other.z;
+      return result;
+   }
+
 
    Point Cross(Point const& other) const
    {
@@ -320,11 +446,6 @@ public:
                    x*other.y - y*other.x);
    }
 
-   Point operator/(S amount) const {
-      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
-      ASSERT(amount != 0);
-      return Point(x / amount, y / amount, z  / amount);
-   }
 
 public:
    template <class T> void SaveValue(T* msg) const {
@@ -352,14 +473,97 @@ public:
    static const Point zero;
    static const Point one;
 
-   S Coord(int i) const { return (&x)[i]; }
-   S& Coord(int i) { return (&x)[i]; }
-
-   // operators
    Point operator/(S amount) const {
       // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount, y / amount, z  / amount, w / amount);
+   }
+
+   Point operator*(S amount) const {
+      return Point(x * amount, y * amount, z * amount, w * amount);
+   }
+
+   bool operator==(Point const& other) const {
+      return x == other.x && y == other.y && z == other.z && w == other.w;
+   }
+
+   const Point& operator*=(S scale) {
+      x *= scale;
+      y *= scale;
+      z *= scale;
+      w *= scale;
+      return *this;
+   }
+
+   const Point& operator+=(const Point& other) {
+      x += other.x;
+      y += other.y;
+      z += other.z;
+      w += other.w;
+      return *this;
+   }
+
+   const Point& operator-=(const Point& other) {
+      x -= other.x;
+      y -= other.y;
+      z -= other.z;
+      w -= other.w;
+      return *this;
+   }
+
+   Point operator*(const Point& other) const {
+      return Point(x * other.x, y * other.y, z * other.z, w * other.w);
+   }
+
+   Point operator+(const Point& other) const {
+      return Point(x + other.x, y + other.y, z + other.z, w + other.w);
+   }
+
+   Point operator-(const Point& other) const {
+      return Point(x - other.x, y - other.y, z - other.z, w - other.w);
+   }
+
+   Point operator-() const {
+      return Point(-x, -y, -z, -w);
+   }
+
+   void SetZero() { 
+      x = 0;
+      y = 0;
+      z = 0;
+      w = 0;
+   }
+
+   float LengthSquared() const {
+      float result = 0;
+      result += x * x;
+      result += y * y;
+      result += z * z;
+      result += w * w;
+      return result;
+   }
+
+   void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+      w = static_cast<S>(w * s);
+   }
+
+   void Translate(const Point& pt) {
+      x += pt.x;
+      y += pt.y;
+      z += pt.z;
+      w += pt.w;
+   }
+
+   S Dot(Point const& other) const {
+      S result = 0;
+      result += x * other.x;
+      result += y * other.y;
+      result += z * other.z;
+      result += w * other.w;
+      return result;
    }
 
 public:

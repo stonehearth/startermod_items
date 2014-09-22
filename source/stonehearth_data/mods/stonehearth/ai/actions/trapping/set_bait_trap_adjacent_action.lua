@@ -31,10 +31,6 @@ end
 function SetBaitTrapAdjacent:run(ai, entity, args)
    local trapping_grounds = args.trapping_grounds
 
-   if not trapping_grounds:is_valid() then
-      ai:abort('cannot set trap because trapping grounds is destroyed')
-   end
-
    if not self._trap_added then
       self._trap = radiant.entities.create_entity(args.trap_uri)
       local picked_up = radiant.entities.pickup_item(entity, self._trap)

@@ -16,6 +16,7 @@ function AdmireFireAdjacent:run(ai, entity, args)
    self._ai = ai
    local firepit = self:_get_firepit_from_seat(seat)
    
+   ai:unprotect_entity(seat)
    self:_trace_seat(ai, seat)
 
    -- xxx: as currently written, there's no way to add admire firepit actions
