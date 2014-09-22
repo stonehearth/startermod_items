@@ -16,7 +16,7 @@ using namespace radiant::phys;
  */
 
 MovementModifierShapeTracker::MovementModifierShapeTracker(NavGrid& ng, om::EntityPtr entity, om::MovementModifierShapePtr mms) :
-   RegionTracker(ng, TrackerType::COLLISION, entity),
+   RegionTracker(ng, TrackerType::MOVEMENT_MODIFIER, entity),
    mms_(mms)
 {
 }

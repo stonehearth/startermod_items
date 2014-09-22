@@ -22,6 +22,8 @@ void MovementModifierShape::ConstructObject()
 
 void MovementModifierShape::LoadFromJson(json::Node const& obj)
 {
+   modifier_.Set(obj.get("modifier", 9.0f));
+
    if (obj.has("region")) {
       region_ = GetStore().AllocObject<Region3fBoxed>();
       (*region_)->Set(obj.get("region", csg::Region3f()));
@@ -74,4 +76,7 @@ void MovementModifierShape::SerializeToJson(json::Node& node) const
    if (region) {
       node.set("region", region->Get());
    }
+
+   float f = GetModifier();
+   node.set("modifier", f);
 }

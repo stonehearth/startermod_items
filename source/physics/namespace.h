@@ -65,6 +65,7 @@ enum TrackerType {
    MOB,
    DESTINATION,
    NON_COLLISION,
+   MOVEMENT_MODIFIER,
    MAX_TRACKER_TYPES,
 };
 

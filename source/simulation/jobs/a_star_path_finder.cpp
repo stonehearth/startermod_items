@@ -255,7 +255,7 @@ void AStarPathFinder::Restart()
    watching_tiles_.clear();
    EnableWorldWatcher(true);
 
-   max_cost_to_destination_ = GetSim().GetOctTree().GetMovementCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
+   max_cost_to_destination_ = GetSim().GetOctTree().GetDistanceCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
 
    source_->Start(open_);
    for (auto const& entry : destinations_) {

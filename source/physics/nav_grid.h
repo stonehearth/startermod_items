@@ -102,6 +102,7 @@ private:
       bool RegionIsSupported(csg::Region3 const& r);
       bool RegionIsSupportedForTitan(csg::Region3 const& r);
       bool UseFastCollisionDetection(om::EntityPtr entity) const;
+      float GetMovementCostAt(csg::Point3 const& point);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

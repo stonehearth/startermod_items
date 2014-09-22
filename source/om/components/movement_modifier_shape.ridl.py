@@ -5,6 +5,7 @@ import ridl.dm_types as dm
 
 class MovementModifierShape(Component):
    region = dm.Boxed(Region3fBoxedPtr(), trace='deep_region')
+   modifier = dm.Boxed(c.float())
 
    _generate_construct_object = True
 
