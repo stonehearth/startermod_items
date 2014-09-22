@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "undeploy_item",
+   "tooltip": "Undeploy",
+   "description" : "Undeploy this item and return it to a stockpile",
+   "icon": "file(undeploy_item.png)",
+
+   "action": "fire_event",
+   "event_name" : "radiant_undeploy_item",
+   "event_data" : {
+      "self": "{{self}}"
+   }
+}
