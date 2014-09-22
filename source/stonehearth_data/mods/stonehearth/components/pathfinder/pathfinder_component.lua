@@ -42,7 +42,7 @@ function PathFinder:find_path_to_item_type(location, filter_fn, description, sol
 
    pf:add_solved_cb(solved_cb)
    return radiant.lib.Destructor(function()
-         pf:remove_solved_cb(solved_cb)
+         return pf:remove_solved_cb(solved_cb)
       end)
 end
 

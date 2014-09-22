@@ -9,11 +9,9 @@ JobId Job::_nextJobId = 1;
 
 Job::Job(Simulation& sim, std::string const& name)  :
    _sim(sim),
-   _id(_nextJobId++)
+   _id(_nextJobId++),
+   _name(name)
 {
-   std::ostringstream s;
-   s << name << " (" << _id << ")";
-   _name = s.str();
 }
 
 JobId Job::GetId() const

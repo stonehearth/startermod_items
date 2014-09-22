@@ -25,10 +25,6 @@ function FollowEntity:start_thinking(ai, entity, args)
    local target = args.target
    local settle_distance = args.settle_distance
 
-   if not target:is_valid() then
-      return
-   end
-
    local check_distance = function()
       local distance = radiant.entities.distance_between(entity, target)
       if distance and distance > args.follow_distance then 

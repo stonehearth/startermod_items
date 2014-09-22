@@ -27,11 +27,13 @@ function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destro
                           :set_entity(self._entity)
    self._range = 512
    self._solved_cbs = {}
+   self._solved_cb_count = 0
 
    self._log:info("created")
 
    self._reconsider_listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
 end
+
 
 -- destroys the bfs pathfinder.   the pathfinder is destroyed when the last solution function
 -- has been un-registered (i.e. when no one else needs it)
@@ -69,6 +71,7 @@ function SharedBfsPathFinder:add_solved_cb(solved_cb)
       self:_start_pathfinder()
    end
    self._solved_cbs[solved_cb] = solved_cb
+   self._solved_cb_count = self._solved_cb_count + 1
    if self._solution_path then
       solved_cb(self._solution_path)
    end   
@@ -82,9 +85,11 @@ end
 function SharedBfsPathFinder:remove_solved_cb(solved_cb)
    self._log:info("removing solved cb")
    self._solved_cbs[solved_cb] = nil
+   self._solved_cb_count = self._solved_cb_count - 1
    if not next(self._solved_cbs) then
       self:_destroy()
    end
+   return self._solved_cb_count
 end
 
 -- starts the pathfinder.  the pathfinder gets started the first time a solved_cb is added
@@ -99,13 +104,18 @@ function SharedBfsPathFinder:_start_pathfinder()
    end
 
    self._log:info("starting pathfinder from %s", self._start_location)   
-   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, 'bfs: ' .. self._description, self._range)
+   self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, self._description, self._range)
                         :set_source(self._start_location)
                         :set_solved_cb(solved)
                         :set_filter_fn(function(target)
                               return self:_is_valid_destination(target)
                            end)
                         :start()
+                        
+   self._log:error('created bfs pathfinder id:%d name:%s for %s @ %s',
+                    self._pathfinder:get_id(), self._pathfinder:get_name(),
+                    self._entity, self._start_location)
+
 end
 
 -- stops the pathfinder.  the pathfinder is stopped during destruction, which happens right
@@ -114,7 +124,7 @@ end
 function SharedBfsPathFinder:_stop_pathfinder()
    if self._pathfinder then
       self._log:info("stopping pathfinder from %s", self._start_location)   
-      self._pathfinder:stop()
+      self._pathfinder:destroy()
       self._pathfinder = nil
    end
 end

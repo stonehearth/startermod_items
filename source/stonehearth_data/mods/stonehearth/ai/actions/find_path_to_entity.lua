@@ -22,10 +22,10 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    end
 
    local on_failure = function (message)
-      log:info('cannot find path to entity: %s', message)
+      ai:get_log():info('cannot find path to entity: %s', message)
    end
 
-   self._pathfinder = OptimizedPathfinder(entity, args.destination, on_success, on_failure)
+   self._pathfinder = OptimizedPathfinder(ai:get_log(), entity, args.destination, on_success, on_failure)
                         :set_start_location(ai.CURRENT.location)
                         :start()
 end

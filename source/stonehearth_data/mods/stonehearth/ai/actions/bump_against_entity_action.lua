@@ -17,10 +17,6 @@ function BumpAgainstEntity:run(ai, entity, args)
    local bumper = args.entity
    local bumpee = entity
 
-   if bumper == nil or not bumper:is_valid() then
-      return
-   end
-
    local vector = AiHelpers.calculate_bump_vector(bumper, bumpee, distance)
 
    if vector ~= Point3.zero then

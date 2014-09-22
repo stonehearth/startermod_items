@@ -121,20 +121,33 @@ bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::functio
 }
 
 
+// Specializations first!
+template<> inline int csg::GetChunkIndex<16>(int value)
+{
+   return value >> 4;
+}
+
+template<> inline void csg::GetChunkIndex<16>(int value, int& index, int& offset)
+{
+   index = value >> 4;
+   offset = value & 15;
+}
+
+// Now the rest...
 template <int S> 
-int csg::GetChunkAddress(int value)
+inline int csg::GetChunkAddress(int value)
 {
    return GetChunkIndex<S>(value) * S;
 }
 
 template <int S> 
-int csg::GetChunkIndex(int value)
+inline int csg::GetChunkIndex(int value)
 {
    return (int) std::floor((float)value / S);
 }
 
 template <int S> 
-void csg::GetChunkIndex(int value, int& index, int& offset)
+inline void csg::GetChunkIndex(int value, int& index, int& offset)
 {
    index = csg::GetChunkIndex<S>(value);
    offset = value - (index * S);
@@ -142,7 +155,7 @@ void csg::GetChunkIndex(int value, int& index, int& offset)
 }
 
 template <int S> 
-Point3 csg::GetChunkIndex(Point3 const& value)
+inline Point3 csg::GetChunkIndex(Point3 const& value)
 {
    return Point3(GetChunkIndex<S>(value.x),
                  GetChunkIndex<S>(value.y),
@@ -150,7 +163,7 @@ Point3 csg::GetChunkIndex(Point3 const& value)
 }
 
 template <int S> 
-void csg::GetChunkIndex(Point3 const& value, Point3& index, Point3& offset)
+inline void csg::GetChunkIndex(Point3 const& value, Point3& index, Point3& offset)
 {
    GetChunkIndex<S>(value.x, index.x, offset.x);
    GetChunkIndex<S>(value.y, index.y, offset.y);
@@ -158,7 +171,7 @@ void csg::GetChunkIndex(Point3 const& value, Point3& index, Point3& offset)
 }
 
 template <int S> 
-Cube3 csg::GetChunkIndex(Cube3 const& value)
+inline Cube3 csg::GetChunkIndex(Cube3 const& value)
 {
    Point3 ceil(S - 1, S - 1, S - 1);
    Cube3 index = Cube3(GetChunkIndex<S>(value.min),
@@ -595,18 +608,11 @@ void EdgeList::Fragment()
    *this = fragmented;
 }
 
-template<> int csg::GetChunkIndex<16>(int value)
-{
-   return value >> 4;
-}
-
 #define MAKE_CHUNK_TEMPLATES(N) \
-   template int csg::GetChunkAddress<N>(int value); \
-   template void csg::GetChunkIndex<N>(int value, int& index, int& offset); \
-   template Point3 csg::GetChunkIndex<N>(Point3 const& value); \
-   template void csg::GetChunkIndex<N>(Point3 const& value, Point3& index, Point3& offset); \
-   template Cube3 csg::GetChunkIndex<N>(Cube3 const& value); \
-   template bool csg::PartitionCubeIntoChunks<N>(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
+   template inline Point3 csg::GetChunkIndex<N>(Point3 const& value); \
+   template inline void csg::GetChunkIndex<N>(Point3 const& value, Point3& index, Point3& offset); \
+   template inline Cube3 csg::GetChunkIndex<N>(Cube3 const& value); \
+   template inline bool csg::PartitionCubeIntoChunks<N>(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
 MAKE_CHUNK_TEMPLATES(16)
 

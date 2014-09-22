@@ -40,13 +40,6 @@ end
 -- TODO: don't allow melee if vertical distance > 1
 function AttackMeleeAdjacent:run(ai, entity, args)
    local target = args.target
-
-   if not target:is_valid() then
-      log:info('Target has been destroyed')
-      ai:abort('Target has been destroyed')
-      return
-   end
-
    ai:set_status_text('attacking ' .. radiant.entities.get_name(target))
 
    local weapon = stonehearth.combat:get_melee_weapon(entity)
@@ -75,6 +68,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
 
    stonehearth.combat:start_cooldown(entity, attack_info)
 
+   -- the target might die when we attack them, so unprotect now!
+   ai:unprotect_entity(target)
+   
    local impact_time = radiant.gamestate.now() + attack_info.time_to_impact
    self._assault_context = AssaultContext('melee', entity, target, impact_time)
    stonehearth.combat:begin_assault(self._assault_context)
