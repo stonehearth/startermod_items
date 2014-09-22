@@ -89,4 +89,34 @@ function placement_autotests.place_on_wall(autotest)
    autotest:fail('worker failed to place sign and remove ladder')
 end
 
+function placement_autotests.undeploy_item(autotest)
+   autotest.env:create_person(-8, 8, { job = 'worker' })   
+   local big_bed = autotest.env:create_entity(8, 8, 'stonehearth:comfy_bed')
+   local efc = big_bed:get_component('stonehearth:entity_forms')
+   local iconic_bed = efc:get_iconic_entity()
+
+   local stockpile = autotest.env:create_stockpile(0, 0)
+
+   --If the big bed moves to the target location, we win!
+   local trace
+   trace = radiant.entities.trace_grid_location(iconic_bed, 'sh undeploy autotest')
+      :on_changed(function()
+            local location = radiant.entities.get_world_grid_location(iconic_bed)
+            -- Check to see if the mob has a parent, meaning we're in the world, and we're
+            -- in iconic form, meaning we've been dropped in a stockpile
+            if iconic_bed:get_component('mob'):get_parent() ~= nil then
+               if location.x < 2 and location.z < 2 then
+                  trace:destroy()
+                  autotest:success()
+                  return radiant.events.UNLISTEN
+               end
+            end
+         end)
+
+   autotest.ui:push_unitframe_command_button(big_bed, 'undeploy_item')
+
+   autotest:sleep(20 * 1000)
+   autotest:fail('worker failed to pickup bed and move it to a stockpile')
+end
+
 return placement_autotests

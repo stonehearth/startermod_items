@@ -190,13 +190,11 @@ var StonehearthClient;
       },
 
       // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
-      placeItem: function(item, o) {
+      placeItem: function(item) {
          var self = this;
 
-         if (!o || !o.hideTip) {
-            self.showTip('stonehearth:item_placement_title', 'stonehearth:item_placement_description',
-               { i18n: true });
-         }
+         self.showTip('stonehearth:item_placement_title', 'stonehearth:item_placement_description',
+            { i18n: true });
 
          App.setGameMode('build');
          return this._callTool(function() {
@@ -212,13 +210,11 @@ var StonehearthClient;
       },
 
       // item type is a uri, not an item entity
-      placeItemType: function(itemType, o) {
+      placeItemType: function(itemType) {
          var self = this;
 
-         if (!o || !o.hideTip) {
-            self.showTip('stonehearth:item_placement_title', 'stonehearth:item_placement_description',
-               {i18n: true});
-         }
+         self.showTip('stonehearth:item_placement_title', 'stonehearth:item_placement_description',
+            {i18n: true});
 
          App.setGameMode('build');
          return this._callTool(function() {
@@ -226,7 +222,7 @@ var StonehearthClient;
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
                   if (response.more_items) {
-                     self.placeItemType(itemType, { hideTip : true });
+                     self.placeItemType(itemType);
                   } else {
                      self.hideTip();
                   }
@@ -235,6 +231,15 @@ var StonehearthClient;
                   App.setGameMode('normal');
                   self.hideTip();
                });
+         });
+      },
+
+      // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
+      undeployItem: function(item) {
+         var self = this;
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:undeploy_item', item);
          });
       },
 
