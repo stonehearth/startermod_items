@@ -1,4 +1,5 @@
 local selector_util = require 'services.client.selection.selector_util'
+local RulerWidget = require 'services.client.selection.ruler_widget'
 local XZRegionSelector = class()
 local Color4 = _radiant.csg.Color4
 local Point2 = _radiant.csg.Point2
@@ -15,6 +16,7 @@ function XZRegionSelector:__init()
    self._mode = 'selection'
    self._require_supported = false
    self._require_unblocked = false
+   self._show_rulers = true
    self._find_support_filter_fn = function(result)
       return self:_default_find_support_filter(result)
    end
@@ -34,6 +36,11 @@ end
 
 function XZRegionSelector:set_find_support_filter(filter_fn)
    self._find_support_filter_fn = filter_fn
+   return self
+end
+
+function XZRegionSelector:set_show_rulers(value)
+   self._show_rulers = value
    return self
 end
 
@@ -108,6 +115,14 @@ function XZRegionSelector:destroy()
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
+   if self._x_ruler then
+      self._x_ruler:destroy()
+      self._x_ruler = nil
+   end   
+   if self._z_ruler then
+      self._z_ruler:destroy()
+      self._z_ruler = nil
+   end   
 end
 
 -- create the cube for the xz region given endpoints p0 and p1.
@@ -240,7 +255,28 @@ function XZRegionSelector:_on_mouse_event(event)
          end
          self:destroy()
       else
+         self:_update_rulers(self._p0, self._p1)
          self:_notify_progress(selected_cube)
+      end
+   end
+end
+
+function XZRegionSelector:_update_rulers(p0, p1)
+   if self._finished_p0 then
+      local p0, p1 = self._p0, self._p1
+      if self._x_ruler then
+         local normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
+         self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), p0.y, p1.z),
+                                  Point3(math.max(p0.x, p1.x), p0.y, p1.z),
+                                  normal,
+                                  string.format('%d\'', math.abs(p1.x - p0.x) + 1))
+      end
+      if self._z_ruler then
+         local normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
+         self._z_ruler:set_points(Point3(p1.x, p0.y, math.min(p0.z, p1.z)),
+                                  Point3(p1.x, p0.y, math.max(p0.z, p1.z)),
+                                  normal,
+                                  string.format('%d\'', math.abs(p1.z - p0.z) + 1))
       end
    end
 end
@@ -260,6 +296,7 @@ function XZRegionSelector:_notify_progress(box)
       self._render_node = self._create_node_fn(1, region, self._box_color, self._line_color)
                                     :set_position(box.min)
    end
+
    self._render_node:set_can_query(false)
    if self._progress_cb then
       self._progress_cb(self, box)
@@ -297,6 +334,10 @@ function XZRegionSelector:go()
 
    stonehearth.selection:register_tool(self, true)
 
+   if self._show_rulers then
+      self._x_ruler = RulerWidget()
+      self._z_ruler = RulerWidget()
+   end
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
                                  self:_on_mouse_event(e, e)
