@@ -144,6 +144,7 @@
          "Hedge",
          "Green",
          "Gold",
+         "White",
          "Black",
          "Red",
          "Hope",
@@ -174,7 +175,8 @@
          "Comfort",
          "Laugh",
          "Friend", 
-         "Mountain"
+         "Mountain", 
+         "Diadem"
       ], 
       "suffix" : [
          "dell",
@@ -190,7 +192,11 @@
          "song",
          "shire", 
          "ville", 
-         "side"
+         "side", 
+         "rock", 
+         " Valley", 
+         " Vale", 
+         " Crossing"
       ]
    },
    "task_groups" : {}
