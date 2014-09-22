@@ -69,6 +69,7 @@ class NavGrid {
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
       bool IsTerrain(csg::Point3 const& location);
+      float GetMovementCostAt(csg::Point3 const& point);
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);
@@ -102,7 +103,6 @@ private:
       bool RegionIsSupported(csg::Region3 const& r);
       bool RegionIsSupportedForTitan(csg::Region3 const& r);
       bool UseFastCollisionDetection(om::EntityPtr entity) const;
-      float GetMovementCostAt(csg::Point3 const& point);
 
    private: // methods exposed only to the OctTree
       friend OctTree;

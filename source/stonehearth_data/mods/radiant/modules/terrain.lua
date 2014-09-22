@@ -309,4 +309,8 @@ function Terrain.subtract_region(region3)
    radiant._root_entity:add_component('terrain'):subtract_region(region3)
 end
 
+function Terrain.get_movement_cost_at(point)
+   return _physics:get_movement_cost_at(point)
+end
+
 return Terrain
