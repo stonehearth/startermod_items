@@ -3,18 +3,18 @@
 
       <div id="shingle">
          <a id="closeButton" {{action hide target="view"}}></a>
-         <div id="title">{{show_workshop.unit_info.name}}</div>
+         <div id="title">{{data.unit_info.name}}</div>
          <div id="subtitle">
             {{i18n stonehearth:show_workshop_description}}
-            {{show_workshop.stonehearth:workshop.crafter.unit_info.name}}
+            {{data.stonehearth:workshop.crafter.unit_info.name}}
          </div>
       </div>
 
-      {{#if show_workshop.stonehearth:workshop.order_list.orders}}
+      {{#if data.stonehearth:workshop.order_list.orders}}
          <a {{action togglePause target="view"}} >
-            <div id="statusSign" {{bind-attr class=show_workshop.workshopIsPaused:closed:open}}>
+            <div id="statusSign" {{bind-attr class=data.workshopIsPaused:closed:open}}>
                <div id="message">
-                  {{#if show_workshop.workshopIsPaused}}
+                  {{#if data.workshopIsPaused}}
                      {{i18n stonehearth:workshop_closed}}
                   {{else}}
                      {{i18n stonehearth:workshop_open}}
@@ -46,7 +46,7 @@
       <input id="searchInput" placeholder="Type to search"/>
    </div>
    <div id="recipeItems">
-      {{#each show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
+      {{#each data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes}}
          <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
@@ -68,7 +68,7 @@
 <script type="text/x-handlebars" data-template-name="details">
    <div>
       <div id="title">
-         <h1>{{show_workshop.current.recipe_name}}</h1>
+         <h1>{{view.currentRecipe.recipe_name}}</h1>
       </div>
 
       <div id='portraitContainer'>
@@ -77,7 +77,7 @@
 
       <div id="description">
          <h2>{{i18n stonehearth:craft_ingredients}}</h2>
-         {{#each show_workshop.current.ingredients}}
+         {{#each view.currentRecipe.ingredients}}
             {{count}} {{material}}<br>
          {{/each}}
 
@@ -87,7 +87,7 @@
       </div>
       <div id="unlock_description">
          <h2>{{i18n stonehearth:unlock_text}}</h2> 
-         {{#each show_workshop.current.requirement.prerequisites}}
+         {{#each view.currentRecipe.requirement.prerequisites}}
             <div class="requirementBlock">
                <img {{bind-attr src="this.portrait"}}/> <br />
                <h2>{{made}} / {{required}}</h2>
@@ -111,7 +111,7 @@
       <label class="rightText" for="make" style='width:auto;'>{{i18n stonehearth:craft_number_right}}</label>
       </div>
 
-      {{#if show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.should_maintain}}
+      {{#if data.stonehearth:workshop.crafter.stonehearth:crafter.should_maintain}}
       <div id="maintainOrderOption" class="orderOptionControls">
       <input type="radio" name="conditionGroup" value="maintain" class="craftRadioButton" id="maintain">
       <label for="maintain" style='width:auto' clicksound="sounds:ui:carpenter_menu:add_remove">{{i18n stonehearth:craft_up_to_left}}</label>
@@ -137,7 +137,7 @@
    <div id="orderList">
 
       <div id="orders">
-      {{#each show_workshop.stonehearth:workshop.order_list.orders}}
+      {{#each data.stonehearth:workshop.order_list.orders}}
          {{#if is_crafting}}
             <div class="orderListItem inProgressOrder" {{bind-attr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>
