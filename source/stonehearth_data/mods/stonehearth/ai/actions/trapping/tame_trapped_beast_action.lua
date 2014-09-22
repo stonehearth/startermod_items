@@ -12,10 +12,6 @@ TameTrappedBeast.priority = 1
 TameTrappedBeast.weight = 1
 
 function TameTrappedBeast:start_thinking(ai, entity, args)
-   if not args.trap:is_valid() then
-      return
-   end
-
    -- not allowing entities to own more than one pet at a time
    if entity:add_component('stonehearth:pet_owner'):num_pets() > 0 then
       return
@@ -28,12 +24,6 @@ function TameTrappedBeast:start_thinking(ai, entity, args)
 end
 
 function TameTrappedBeast:run(ai, entity, args)
-   if not args.trap:is_valid() then
-      self:stop()
-      ai:abort('trap is destroyed')
-      return
-   end
-
    local trap_component = args.trap:add_component('stonehearth:bait_trap')
    local pet = trap_component:get_trapped_entity()
 
@@ -57,6 +47,7 @@ function TameTrappedBeast:run(ai, entity, args)
       trap_component:release()
    end
 
+   ai:unprotect_entity(args.trap)
    radiant.entities.destroy_entity(args.trap)
 end
 

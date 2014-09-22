@@ -77,6 +77,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    world_changed_(false),
    direct_path_search_cooldown_(0),
    debug_color_(255, 192, 0, 128),
+   _lastIdleCheckResult(nullptr),
    _rebuildOpenHeuristics(false)
 {
    PF_LOG(3) << "creating pathfinder";
@@ -131,28 +132,37 @@ AStarPathFinderPtr AStarPathFinder::SetSearchExhaustedCb(ExhaustedCb const& exha
 
 bool AStarPathFinder::IsIdle() const
 {
+   bool idle = CheckIfIdle();
+   if (_lastIdleCheckResult) {
+      PF_LOG(5) << _lastIdleCheckResult;
+   }
+   return idle;
+}
+
+bool AStarPathFinder::CheckIfIdle() const
+{
    if (!enabled_) {
-      PF_LOG(5) << "is_idle: yes.  not enabled";
+      _lastIdleCheckResult = "yes. not enabled";
       return true;
    }
 
    if (!source_ || source_->IsIdle()) {
-      PF_LOG(5) << "is_idle: yes.  no source, or source is idle";
+      _lastIdleCheckResult = "yes. no source, or source is idle";
       return true;
    }
 
    if (entity_.expired()) {
-      PF_LOG(5) << "is_idle: yes.  no source entity.";
+      _lastIdleCheckResult = "yes. no source entity.";
       return true;
    }
 
    if (restart_search_) {
-      PF_LOG(5) << "is_idle: no.  restart pending";
+      _lastIdleCheckResult = "no. restart pending";
       return false;
    }
 
    if (IsSearchExhausted()) {
-      PF_LOG(5) << "is_idle: yes. search exhausted.";
+      _lastIdleCheckResult = "yes. search exhausted.";
       return true;
    }
 
@@ -165,17 +175,17 @@ bool AStarPathFinder::IsIdle() const
       }
    }
    if (all_idle) {
-      PF_LOG(5) << "is_idle: yes. all destinations idle.";
+      _lastIdleCheckResult = "yes. all destinations idle.";
       return true;
    }
 
 
    if (solution_) {
-      PF_LOG(5) << "is_idle: yes. already solved!";
+      _lastIdleCheckResult = "yes. already solved!";
       return true;
    }
 
-   PF_LOG(5) << "is_idle: no.  still work to do! ( open:" << open_.size() << " closed:" << closed_.size() << ")";
+   _lastIdleCheckResult = "no. still work to do!";
    return false;
 }
 
@@ -349,7 +359,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       if (current.g + h > max_cost_to_destination_) {
-         PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded.  marking search as exhausted.";
+         PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
          SetSearchExhausted();
          return;
       }
@@ -392,7 +402,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
          float h = EstimateCostToDestination(next);
          float f = g + h;
 
-         // not found in the open list.  add a brand new node.
+         // not found in the open list. add a brand new node.
          PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
          cameFrom_[next] = current.pt;
          open_.push_back(PathFinderNode(next, f, g));
@@ -401,7 +411,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
          }
          VERIFY_HEAPINESS();
       } else {
-         // found.  should we update?
+         // found. should we update?
          if (g < open_[i].g) {
             PathFinderNode &node = open_[i];
 
@@ -501,7 +511,7 @@ PathFinderNode AStarPathFinder::PopClosestOpenNode()
    open_.pop_back();
    VERIFY_HEAPINESS();
 
-   PF_LOG(10) << " PopClosestOpenNode returning " << result.pt << ".  " << open_.size() << " points remain in open set";
+   PF_LOG(10) << " PopClosestOpenNode returning " << result.pt << ". " << open_.size() << " points remain in open set";
 
    return result;
 }
@@ -538,7 +548,14 @@ std::string AStarPathFinder::GetProgress() const
    if (entity) {
       ename = BUILD_STRING(*entity);
    }
-   return BUILD_STRING(GetName() << " " << ename << " (open: " << open_.size() << "  closed: " << closed_.size() << ")");
+   return BUILD_STRING("astar " << std::left << std::setw(40) << GetName() << "(" <<
+                       "entity:" << std::setw(32) << ename << " " << 
+                       "id:" << std::setw(3) << GetId() << " " << 
+                       "src:" << source_->GetSourceLocation() << " " << 
+                       "open:" << open_.size() << " " << 
+                       "closed:" << closed_.size() << " " <<
+                       "idle:\"" << std::setw(16) << (_lastIdleCheckResult ? _lastIdleCheckResult : "not checked") << "\" " <<
+                       ")");
 }
 
 void AStarPathFinder::RebuildHeap()
@@ -734,7 +751,7 @@ void AStarPathFinder::OnPathFinderDstChanged(PathFinderDst const& dst, const cha
 void AStarPathFinder::RebuildOpenHeuristics()
 {
    // The value of h for all search points has changed!  That doesn't
-   // affect g, though.  Go through the whole openset and re-compute
+   // affect g, though. Go through the whole openset and re-compute
    // f based on the existing g and the new h.
    for (PathFinderNode& node : open_) {
       float h = EstimateCostToDestination(node.pt);      
@@ -747,4 +764,7 @@ void AStarPathFinder::RebuildOpenHeuristics()
    rebuildHeap_ = true;
 }
 
-
+om::EntityRef AStarPathFinder::GetEntity() const
+{
+   return entity_;
+}

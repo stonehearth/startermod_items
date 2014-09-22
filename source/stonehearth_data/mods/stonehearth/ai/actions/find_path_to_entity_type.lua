@@ -20,13 +20,20 @@ FindPathToEntityType.version = 2
 FindPathToEntityType.priority = 1
 
 function FindPathToEntityType:start_thinking(ai, entity, args)
+   self._description = args.description
+   self._log = ai:get_log()
+
    local solved = function(path)
+      self:_destroy_pathfinder()
       ai:set_think_output({
             path = path,
             destination = path:get_destination(),
          })
    end
-   
+
+   self._location = ai.CURRENT.location
+   self._log:info('creating bfs pathfinder for %s @ %s', self._description, self._location)
+
    -- many actions in our dispatch tree may be asking to find paths to items of
    -- identical types.  for example, each structure in an all wooden building will
    -- be asking for 'wood resource' materials.  rather than start one bfs pathfinder
@@ -35,14 +42,19 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    self._pathfinder = entity:add_component('stonehearth:pathfinder')
                                  :find_path_to_item_type(ai.CURRENT.location, -- where to search from?
                                                          args.filter_fn,      -- the actual filter function
-                                                         args.description,    -- for those of us in meat space
+                                                         self._description,    -- for those of us in meat space
                                                          solved)              -- our solved callback
 end
 
-function FindPathToEntityType:stop_thinking()
+function FindPathToEntityType:stop_thinking(ai, entity, args)
+   self:_destroy_pathfinder()
+end
+
+function FindPathToEntityType:_destroy_pathfinder()
    if self._pathfinder then
-      self._pathfinder:destroy()
+      local count = self._pathfinder:destroy()
       self._pathfinder = nil
+      self._log:info('destroying bfs pathfinder for %s @ %s (%d remaining)', self._description, self._location, count)
    end
 end
 

@@ -14,12 +14,6 @@ HarvestTrappedBeast.weight = 20 -- TODO: determine probability of tame vs harves
 function HarvestTrappedBeast:run(ai, entity, args)
    self._entity = entity
 
-   if not args.trap:is_valid() then
-      self:stop()
-      ai:abort('trap is destroyed')
-      return
-   end
-
    local trap_component = args.trap:add_component('stonehearth:bait_trap')
    local trapped_entity = trap_component:get_trapped_entity()
 
@@ -33,6 +27,7 @@ function HarvestTrappedBeast:run(ai, entity, args)
       trapped_entity = nil
    end
 
+   ai:unprotect_entity(args.trap)
    radiant.entities.destroy_entity(args.trap)
 end
 

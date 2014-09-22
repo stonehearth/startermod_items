@@ -97,11 +97,15 @@ void EntityJobScheduler::Work(const platform::timer &timer)
  */
 std::string EntityJobScheduler::GetProgress() const
 {
-   PathFinderPtr p = closest_pathfinder_.lock();
-   if (p) {
-      return p->GetProgress();
+   std::ostringstream s;
+
+   for (auto const& entry : pathfinders_) {
+      PathFinderPtr pathfinder = entry.second.lock();
+      if (pathfinder) {
+         s << pathfinder->GetProgress() << "\n";
+      }
    }
-   return "no active pathfinder";
+   return s.str();
 }
 
 /*
@@ -111,16 +115,12 @@ std::string EntityJobScheduler::GetProgress() const
  */
 void EntityJobScheduler::EncodeDebugShapes(protocol::shapelist *msg) const
 {
-   uint i, c = pathfinders_.size();
-   for (i = 0; i < c; i++) {
-      PathFinderPtr p = pathfinders_[i].lock();
+   for (auto const& entry : pathfinders_) {
+      PathFinderPtr p = entry.second.lock();
       if (p) {
          p->EncodeDebugShapes(msg);
-      } else {
-         pathfinders_[i] = pathfinders_[--c];
       }
    }
-   pathfinders_.resize(c);
 }
 
 /*
@@ -133,34 +133,35 @@ PathFinderPtr EntityJobScheduler::GetClosestPathfinder() const
 {
    PathFinderPtr best;
    float best_distance = FLT_MAX;
-   uint i, c = pathfinders_.size();
-   for (i = 0; i < c; i++) {
-      PathFinderPtr p = pathfinders_[i].lock();
-      if (p) {
-         if (!p->IsIdle()) {
-            float distance = p->EstimateCostToSolution();
-            if (distance < best_distance) {
-               best_distance = distance;
-               best = p;
-            }
-         }
-      } else {
-         pathfinders_[i] = pathfinders_[--c];
-      }
-   }
-   pathfinders_.resize(c);
 
+   stdutil::ForEachPrune<int, PathFinder>(pathfinders_, [this, &best, &best_distance] (const int& id, PathFinderPtr p) {
+      if (!p->IsIdle()) {
+         float distance = p->EstimateCostToSolution();
+         if (distance < best_distance) {
+            best_distance = distance;
+            best = p;
+         }
+      }
+   });
    return best;
 }
 
 /*
- * EntityJobScheduler::GetClosestPathfinder
+ * EntityJobScheduler::AddPathfinder
  *
  * Associate the PathFinder with its entity so we can schedule it.
  */
-void EntityJobScheduler::RegisterPathfinder(PathFinderPtr p)
+void EntityJobScheduler::AddPathfinder(PathFinderPtr p)
 {
-   pathfinders_.emplace_back(p);
+   pathfinders_[p->GetId()] = p;
+}
+
+void EntityJobScheduler::RemovePathfinder(PathFinderPtr p)
+{
+   pathfinders_.erase(p->GetId());
+   if (closest_pathfinder_.lock() == p) {
+      closest_pathfinder_.reset();
+   }
 }
 
 void EntityJobScheduler::SetRecordPathfinderTimes(bool enabled)

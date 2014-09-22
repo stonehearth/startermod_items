@@ -54,8 +54,10 @@ public:
    void FlushDirty(NavGrid& ng);
 
    bool IsDataResident() const;
-   void SetDataResident(bool value, int index = -1);
-   int GetResidentTileIndex() const;
+   void SetDataResident(bool enable, int time);
+   int GetDataExpireTime() const;
+
+   csg::Point3 GetIndex() const;
 
    bool ForEachTracker(ForEachTrackerCb const& cb);
    bool ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerCb const& cb);
@@ -115,7 +117,7 @@ private:
    std::unique_ptr<NavGridTileData>          data_;
    core::Slot<ChangeNotification>            changed_slot_;
    std::vector<CollisionTrackerRef>          tempTrackers_;
-   int                                       _residentTileIndex;
+   int                                       _expireTime;
 };
 
 END_RADIANT_PHYSICS_NAMESPACE

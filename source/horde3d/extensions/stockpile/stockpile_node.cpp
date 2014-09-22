@@ -1,3 +1,5 @@
+#include "radiant.h"
+#include "radiant_stdutil.h"
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
@@ -5,13 +7,6 @@
 #include "egCamera.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
-
-#if defined(ASSERT)
-#  undef ASSERT
-#endif
-
-#include "radiant.h"
-#include "radiant_stdutil.h"
 #include "decal_node.h"
 #include "stockpile_node.h"
 #include "Horde3DRadiant.h"

@@ -4,10 +4,10 @@ local combat_tests = {}
 
 function combat_tests.battle_royale(autotest)
    local footmen = {
-      autotest.env:create_person(-15, -15, { job = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person( -7, -15, { job = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person(  1, -15, { job = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person(  9, -15, { job = 'footman', talisman = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person(-15, -15, { job = 'footman' }),
+      autotest.env:create_person( -7, -15, { job = 'footman' }),
+      autotest.env:create_person(  1, -15, { job = 'footman' }),
+      autotest.env:create_person(  9, -15, { job = 'footman' }),
    }
 
    local enemies = {
@@ -41,7 +41,7 @@ end
 function combat_tests.patrol(autotest)
    local stockpile1 = autotest.env:create_stockpile(-5, -5, { size = { x = 2, y = 2 }})
    local stockpile2 = autotest.env:create_stockpile(0, 0, { size = { x = 2, y = 2 }})
-   local footman = autotest.env:create_person(5, 5, { job = 'footman', talisman = 'stonehearth:weapons:wooden_sword' })
+   local footman = autotest.env:create_person(5, 5, { job = 'footman' })
    local patrol_point = radiant.entities.get_world_grid_location(stockpile1) - Point3(2, 0, 2)
 
    local trace
@@ -56,7 +56,7 @@ function combat_tests.patrol(autotest)
          end
       )
 
-   autotest:sleep(12000)
+   autotest:sleep(45000)
    trace:destroy()
    autotest:fail('patrol failed to complete on time')
 end
@@ -64,9 +64,9 @@ end
 function combat_tests.worker_defense(autotest)
    local workers = {
       autotest.env:create_person(-15, -15, { job = 'worker' }),
-      autotest.env:create_person( -7, -15, { job = 'carpenter', talisman = 'stonehearth:carpenter:saw' }),
-      autotest.env:create_person(  1, -15, { job = 'farmer', talisman = 'stonehearth:farmer:hoe' }),
-      autotest.env:create_person(  9, -15, { job = 'trapper', talisman = 'stonehearth:trapper:knife' }),
+      autotest.env:create_person( -7, -15, { job = 'carpenter' }),
+      autotest.env:create_person(  1, -15, { job = 'farmer' }),
+      autotest.env:create_person(  9, -15, { job = 'trapper' }),
    }
 
    local enemies = {

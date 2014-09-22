@@ -46,8 +46,12 @@
 #include "lib/rpc/trace_object_router.h"
 #include "lib/rpc/lua_module_router.h"
 #include "lib/rpc/lua_object_router.h"
+#include "core/profiler.h"
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
+
+// Uncomment this to only profile the pathfinding path in VTune
+// #define PROFILE_ONLY_PATHFINDING 1
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -95,6 +99,7 @@ void Simulation::OneTimeIninitializtion()
    protobuf_reactor_ = std::make_shared<rpc::ProtobufReactor>(*core_reactor_, [this](proto::PostCommandReply const& r) {
       SendReply(r);
    });
+   enable_job_logging_ = config.Get<bool>("enable_job_logging", false);
 
    // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
@@ -447,7 +452,6 @@ void Simulation::StepPathFinding()
    radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
       if (!p->IsFinished() && !p->IsIdle()) {
          p->Work(t);
-         SIM_LOG(0) << p->GetProgress();
       }
    });
 }
@@ -587,6 +591,17 @@ void Simulation::AddJob(std::shared_ptr<Job> job)
    jobs_.push_back(job);
 }
 
+void Simulation::RemoveJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
+{
+   if (entity) {
+      dm::ObjectId id = entity->GetObjectId();
+      auto i = entity_jobs_schedulers_.find(id);
+      if (i != entity_jobs_schedulers_.end()) {
+         i->second->RemovePathfinder(pf);
+      }
+   }
+}
+
 void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
 {
    if (entity) {
@@ -597,7 +612,7 @@ void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
          i = entity_jobs_schedulers_.insert(make_pair(id, ejs)).first;
          jobs_.push_back(ejs);
       }
-      i->second->RegisterPathfinder(pf);
+      i->second->AddPathfinder(pf);
    }
 }
 
@@ -652,6 +667,10 @@ void Simulation::ProcessJobList()
    }
    SIM_LOG_GAMELOOP(7) << "processing job list";
 
+#if defined(PROFILE_ONLY_PATHFINDING)
+   core::SetProfilerEnabled(true);
+#endif
+
    int idleCountdown = jobs_.size();
    while (!game_loop_timer_.expired() && !jobs_.empty() && idleCountdown) {
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
@@ -669,6 +688,11 @@ void Simulation::ProcessJobList()
       }
       idleCountdown--;
    }
+
+#if defined(PROFILE_ONLY_PATHFINDING)
+   core::SetProfilerEnabled(false);
+#endif
+
    SIM_LOG_GAMELOOP(7) << "done processing job list";
 }
 
@@ -778,6 +802,7 @@ void Simulation::Mainloop()
       ProcessTaskList();
       ProcessJobList();
       FireLuaTraces();
+      octtree_->GetNavGrid().UpdateGameTime(now_, game_tick_interval_);
 
       scriptHost_->Trigger("radiant:gameloop:end");
    }
@@ -786,6 +811,11 @@ void Simulation::Mainloop()
       PushPerformanceCounters();
       next_counter_push_.set(500);
    }
+   if (enable_job_logging_ && log_jobs_timer_.expired()) {
+      LogAllJobProgress();
+      log_jobs_timer_.set(1000);
+   }
+
    // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
    static const bool disable_net_send_timer = true;
    if (disable_net_send_timer || net_send_timer_.expired()) {
@@ -1057,4 +1087,19 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
          freeMotionTasks_.erase(id);
       })
       ->PushObjectState();
+}
+
+void Simulation::LogAllJobProgress()
+{
+   SIM_LOG(1) << "--------- Job Progress ------------------";
+   radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
+      std::string progress = p->GetProgress();
+
+      std::vector<std::string> lines;
+      boost::split(lines, progress, boost::is_any_of("\n"));
+
+      for (std::string const& line : lines) {
+         SIM_LOG(1) << line;
+      }
+   });
 }

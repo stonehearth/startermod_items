@@ -1,3 +1,4 @@
+#include "radiant.h"
 #include "Horde3D.h"
 #include "egModules.h"
 #include "egCom.h"
@@ -5,11 +6,6 @@
 #include "egMaterial.h"
 #include "egCamera.h"
 
-#if defined(ASSERT)
-#  undef ASSERT
-#endif
-
-#include "radiant.h"
 #include "debug_shapes.h"
 
 using namespace ::radiant;

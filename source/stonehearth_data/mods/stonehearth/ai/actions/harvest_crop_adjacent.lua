@@ -12,13 +12,11 @@ HarvestCropAdjacent.priority = 1
 
 
 function HarvestCropAdjacent:run(ai, entity, args)
-   local crop = args.crop
-
-   radiant.entities.turn_to_face(entity, crop)
+   radiant.entities.turn_to_face(entity, args.crop)
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
    if not radiant.entities.increment_carrying(entity) then
-      local crop_component = crop:get_component('stonehearth:crop')
+      local crop_component = args.crop:get_component('stonehearth:crop')
       local product_uri = crop_component:get_product()
       
       if product_uri ~= nil then
@@ -29,8 +27,8 @@ function HarvestCropAdjacent:run(ai, entity, args)
       end
    end
 
-   radiant.entities.destroy_entity(crop)
-
+   ai:unprotect_entity(args.crop)
+   radiant.entities.destroy_entity(args.crop)
 end
 
 return HarvestCropAdjacent

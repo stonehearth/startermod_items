@@ -11,10 +11,6 @@ WaitForGlobalAttackCooldown.priority = 1
 local epsilon = 0.000001
 
 function WaitForGlobalAttackCooldown:start_thinking(ai, entity, args)
-   if not entity:is_valid() then
-      return
-   end
-   
    local state = stonehearth.combat:get_combat_state(entity)
 
    if not state:in_cooldown('global_attack_recovery') then

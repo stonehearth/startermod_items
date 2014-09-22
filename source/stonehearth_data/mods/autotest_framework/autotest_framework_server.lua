@@ -91,6 +91,7 @@ local function _run_thread(fn)
    -- xxx: move threads into radiant?
    assert(not _main_thread)
    _main_thread = stonehearth.threads:create_thread()
+         :set_thread_data('autotest_framework:is_autotest_thread', true)
          :set_thread_main(function()
                fn()
                _finish_cb(0)

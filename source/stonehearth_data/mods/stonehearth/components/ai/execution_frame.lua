@@ -824,7 +824,7 @@ function ExecutionFrame:_stop_from_running()
    -- this can occur when an entity is destroyed from a C callback into the
    -- game engine.  if we were running at the time, we'll take the standard
    -- unwind pcall path where we simply get destroyed
-   assert(self._thread:is_running() or stonehearth.threads:get_current_thread() == nil)
+   assert(self:_no_other_thread_is_running())
    assert(self._active_unit)
 
    -- move into the stopping state, so we can take extra special care when stopping.
@@ -1432,7 +1432,17 @@ function ExecutionFrame:_cleanup_protected_call_exit(sentinel)
 end
 
 function ExecutionFrame:_no_other_thread_is_running()
-   return self._thread:is_running() or stonehearth.threads:get_current_thread() == nil
+   if self._thread:is_running() then
+      return true
+   end
+   local current = stonehearth.threads:get_current_thread()
+   if not current then
+      return true
+   end
+   if current:get_thread_data('autotest_framework:is_autotest_thread') then
+      return true
+   end
+   return false
 end
 
 function ExecutionFrame:_trace_state_change(old_state, new_state)
