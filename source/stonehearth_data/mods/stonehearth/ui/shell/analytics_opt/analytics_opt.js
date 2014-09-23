@@ -3,14 +3,6 @@ App.StonehearthAnalyticsOptView = App.View.extend({
 
    init: function() {
       this._super();
-      var self = this;
-
-      radiant.call('radiant:get_collection_status')
-         .done(function(o) {
-            if (o.collection_status) {
-               radiant.call('radiant:send_performance_stats');
-            }
-         });  
    },
 
    actions: {
@@ -31,9 +23,5 @@ App.StonehearthAnalyticsOptView = App.View.extend({
 
    _doOpt: function(optIn) {
       radiant.call('radiant:set_collection_status', optIn)
-      if (optIn) {
-         radiant.call('radiant:send_design_event', 'probe9:opt_in');
-         radiant.call('radiant:send_performance_stats');
-      }
    }
 });

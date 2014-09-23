@@ -145,8 +145,6 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       --Tell the crafter to update its recipe requirements
       local crafter_component = self._crafter:get_component('stonehearth:crafter')
       crafter_component:update_locked_recipes(item:get_uri())
-
-      stonehearth.analytics:send_design_event('game:craft', self._workshop, item)
    end
 end
 
