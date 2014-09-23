@@ -461,6 +461,52 @@ Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
    return centroid;
 }
 
+
+template <typename S>
+PointIterator<S, 3>::PointIterator(Cube const& c, Point const& iter) :
+   bounds_(ToInt(c)),
+   axis_(0)
+{
+   if (iter == end) {
+      iter_ = iter;
+   } else if (c.GetArea() == 0) {
+      iter_ = end;
+   } else {
+      ASSERT(c.Contains(iter));
+      iter_ = iter;
+   }
+}
+
+
+template <typename S>
+typename PointIterator<S, 3>::Point PointIterator<S, 3>::operator*() const {
+   return iter_;
+}
+
+template <typename S>
+void PointIterator<S, 3>::operator++() {
+   if (iter_ != end) {
+      iter_.z++;
+      if (iter_.z >= bounds_.max.z) {
+         iter_.z = static_cast<S>(bounds_.min.z);
+         iter_.x++;
+         if (iter_.x >= bounds_.max.x) {
+            iter_.z = static_cast<S>(bounds_.min.z);
+            iter_.x = static_cast<S>(bounds_.min.x);
+            iter_.y++;
+            if (iter_.y >= bounds_.max.y) {
+               iter_ = end;
+            }
+         }
+      }
+   }
+}
+
+template <typename S>
+bool PointIterator<S, 3>::operator!=(const PointIterator& rhs) const {
+   return iter_ != rhs.iter_;
+}
+
 #define MAKE_CUBE(Cls) \
    template Cls::Cube(); \
    template Cls::Cube(const Cls::Point&, int); \
@@ -485,12 +531,23 @@ Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \
 
+
+#define MAKE_POINT_ITERATOR(Cls) \
+   template Cls::PointIterator(Cube const& c, Point const& iter); \
+   template Cls::Point Cls::operator*() const; \
+   template void Cls::operator++(); \
+   template bool Cls::operator!=(Cls const& rhs) const; \
+
+
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
 MAKE_CUBE(Rect2)
 MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
 MAKE_CUBE(Line1f)
+
+MAKE_POINT_ITERATOR(PointIterator3)
+MAKE_POINT_ITERATOR(PointIterator3f)
 
 #define DEFINE_CUBE_CONVERSIONS(C) \
    template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \

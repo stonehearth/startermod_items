@@ -18,6 +18,12 @@ local function _can_stock_entity(entity, filter)
       return false
    end
 
+   local efc = entity:get_component('stonehearth:entity_forms')
+   if efc and efc:get_should_restock() then
+      local iconic = efc:get_iconic_entity()
+      return _can_stock_entity(iconic, filter) 
+   end
+
    if not entity:get_component('item') then
       log:spam('%s is not an item material.  cannot be stocked.', entity)
       return false

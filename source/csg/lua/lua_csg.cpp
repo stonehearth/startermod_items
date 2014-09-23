@@ -7,6 +7,7 @@
 #include "lua_edgelist.h"
 #include "lua_quaternion.h"
 #include "lua_ray.h"
+#include "lua_mesh.h"
 #include "lua_random_number_generator.h"
 #include "csg/region.h"
 #include "csg/random_number_generator.h"
@@ -88,6 +89,7 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaQuaternion::RegisterLuaTypes(L),
             LuaRay::RegisterLuaTypes(L),
             LuaRandomNumberGenerator::RegisterLuaTypes(L),
+            LuaMesh::RegisterLuaTypes(L),
             def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2f const&)) &csg::GetCentroid<float, 2>),
             def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3f const&)) &csg::GetCentroid<float, 3>),
             def("get_region_centroid", (csg::Point2f(*)(csg::Region2f const&)) &csg::GetCentroid<float, 2>),

@@ -25,9 +25,7 @@ $(document).ready(function(){
 // component
 App.StonehearthCrafterView = App.View.extend({
    templateName: 'stonehearthCrafter',
-
-   uriProperty: 'context.show_workshop',
-
+   uriProperty: 'context.data',
    components: {
       "unit_info": {},
       "stonehearth:workshop": {
@@ -52,17 +50,14 @@ App.StonehearthCrafterView = App.View.extend({
 
    //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
    recipes: null,
-
    initialized: false,
-
    currentRecipe: null,
-
    isPaused: false,
 
    //alias because the colon messes up bindAttr
    skinClass: function() {
-      this.set('context.skinClass', this.get('context.show_workshop.stonehearth:workshop.skin_class'));
-   }.observes('context.show_workshop.stonehearth:workshop.skin_class'),
+      this.set('context.skinClass', this.get('context.data.stonehearth:workshop.skin_class'));
+   }.observes('context.data.stonehearth:workshop.skin_class'),
 
    destroy: function() {
       radiant.keyboard.setFocus(null);
@@ -71,7 +66,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    getWorkshop: function() {
-      return this.get('context.show_workshop.stonehearth:workshop').__self;
+      return this.get('context.data.stonehearth:workshop').__self;
    },
 
    getCurrentRecipe: function() {
@@ -92,13 +87,17 @@ App.StonehearthCrafterView = App.View.extend({
       self.destroy();
    },
 
+   _formatRecipeIngredients: function() {
+
+   }.observes('view.currentRecipe'),
+
    actions: {
 
       select: function(object, remaining, maintainNumber) {
-         this.currentRecipe = object;
+         this.set('currentRecipe', object);
          if (this.currentRecipe) {
             //You'd think that when the object updated, the variable would update, but noooooo
-            this.set('context.show_workshop.current', this.currentRecipe);
+            this.set('context.data.current', this.currentRecipe);
             this._setRadioButtons(remaining, maintainNumber);
             //TODO: make the selected item visually distinct
             this.preview();
@@ -131,7 +130,7 @@ App.StonehearthCrafterView = App.View.extend({
       togglePause: function(){
          var workshop = this.getWorkshop();
 
-         if (this.get('context.show_workshop.stonehearth:workshop.is_paused')) {
+         if (this.get('context.data.stonehearth:workshop.is_paused')) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:open'} );
          } else {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:closed'} );
@@ -156,22 +155,8 @@ App.StonehearthCrafterView = App.View.extend({
    // Fires whenever the workshop changes, but the first update is all we really
    // care about.
    _contentChanged: function() {
-      if (this.get('context.show_workshop.stonehearth:workshop') == undefined) {
-         return;
-      }
-
-      // A new context.show_workshop completely clobbers the old one, so don't forget
-      // to set the current recipe.  There has to be a better way of doing this....
-      if (this.currentRecipe) {
-         this.set('context.show_workshop.current', this.currentRecipe);
-      }
-
-      if (this.initialized) {
-         return
-      }
-      this.initialized = true;
-      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_helper');
-    }.observes('context.show_workshop'),
+      Ember.run.scheduleOnce('afterRender', this, '_build_workshop_ui');
+    }.observes('context.data'),
 
     
     _orderCompleted:function() {
@@ -180,37 +165,39 @@ App.StonehearthCrafterView = App.View.extend({
          //Arrr!! If you try to assign the context at selection, it won't update
          //when the data updates. So when the data updates, check if we should update the context
          //If anyone knows how to do this better with Ember's actual data binding, kill this code!
-         var catArr = this.get('context.show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
+         var catArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
          var catLen = catArr.length;
          for (var i = 0; i < catLen; i++) {
             var recipeArr = catArr[i].recipes;
             var recipeLen = recipeArr.length;
             for (var j=0; j<recipeLen; j++) {
                if (recipeArr[j].recipe_name == this.currentRecipe.recipe_name) {
-                  this.currentRecipe = recipeArr[j];
+                  this.set('currentRecipe', recipeArr[j]);
                   break;
                }
             }
          }
          
-         this.set('context.show_workshop.current', this.currentRecipe);
+         this.set('context.data.current', this.currentRecipe);
          this.preview();
       }
-    }.observes('context.show_workshop.stonehearth:workshop.order_list'),
+    }.observes('context.data.stonehearth:workshop.order_list'),
 
    //Called once when the model is loaded
-   _build_workshop_helper: function() {
-      if (this.get('context.show_workshop.stonehearth:workshop') == undefined) {
+   _build_workshop_ui: function() {
+      var self = this;
+
+      if (this.get('context.data.stonehearth:workshop') == undefined) {
          return;
       }
 
-      this._buildRecipeList();
-      this._buildOrderList();
+      self._buildRecipeList();
+      self._buildOrderList();
 
-      this.$("#craftWindow")
+      self.$("#craftWindow")
          .animate({ top: 0 }, {duration: 500, easing: 'easeOutBounce'});
 
-      this.$("#craftButton").hover(function() {
+      self.$("#craftButton").hover(function() {
             $(this).find('#craftButtonLabel').fadeIn();
          }, function () {
             $(this).find('#craftButtonLabel').fadeOut();
@@ -262,7 +249,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    _workshopPausedChange: function() {
-      var isPaused = !!(this.get('context.show_workshop.stonehearth:workshop.is_paused'));
+      var isPaused = !!(this.get('context.data.stonehearth:workshop.is_paused'));
 
       // We need to check this because if/when the root object changes, all children are 
       // marked as changed--even if the values don't differ.
@@ -271,7 +258,7 @@ App.StonehearthCrafterView = App.View.extend({
       }
       this.isPaused = isPaused;
 
-      this.set('context.show_workshop.workshopIsPaused', isPaused)
+      this.set('context.data.workshopIsPaused', isPaused)
 
       var r = isPaused ? 4 : -4;
 
@@ -302,7 +289,7 @@ App.StonehearthCrafterView = App.View.extend({
          });
       }
 
-   }.observes('context.show_workshop.stonehearth:workshop.is_paused'),
+   }.observes('context.data.stonehearth:workshop.is_paused'),
 
    _buildRecipeList: function() {
       var self = this;
@@ -340,7 +327,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    findAndSelectRecipe: function() {
       var userInput = this.$("#searchInput").val().toLowerCase(),
-          currRecipe = this.get('context.show_workshop.current.recipe_name');
+          currRecipe = this.get('context.data.current.recipe_name');
       if ( !currRecipe || (currRecipe && (currRecipe.toLowerCase() != userInput)) ) {
          //Look to see if we have a recipe named similar to the contents
          var numRecipes = allRecipes.length;
@@ -361,7 +348,7 @@ App.StonehearthCrafterView = App.View.extend({
 
    _buildRecipeArray: function() {
       allRecipes = new Array();
-      var craftableRecipeArr = this.get('context.show_workshop.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
+      var craftableRecipeArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
       var numCategories = craftableRecipeArr.length;
       for (var i = 0; i < numCategories; i++) {
          var recipes = craftableRecipeArr[i].recipes;
@@ -463,10 +450,10 @@ App.StonehearthCrafterView = App.View.extend({
 
    _orderListObserver: function() {
       this._enableDisableTrash();
-   }.observes('context.show_workshop.stonehearth:workshop.order_list.orders'),
+   }.observes('context.data.stonehearth:workshop.order_list.orders'),
 
    _enableDisableTrash: function() {
-      var list = this.get('context.show_workshop.stonehearth:workshop.order_list.orders');
+      var list = this.get('context.data.stonehearth:workshop.order_list.orders');
 
       if (this.$('#garbageButton')) {
          if (list && list.length > 0) {

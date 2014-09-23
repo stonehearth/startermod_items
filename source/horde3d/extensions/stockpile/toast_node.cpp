@@ -1,3 +1,6 @@
+#include "radiant.h"
+#include "resources/res_manager.h"
+#include "client/renderer/renderer.h"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
@@ -9,14 +12,6 @@
 #include "egCamera.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
-
-#if defined(ASSERT)
-#  undef ASSERT
-#endif
-
-#include "radiant.h"
-#include "resources/res_manager.h"
-#include "client/renderer/renderer.h"
 #include "toast_node.h"
 
 using namespace ::radiant;
@@ -64,6 +59,7 @@ bool ToastNode::InitExtension()
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
    }
+   client::Renderer::GetInstance().LoadResources();
 
    H3DRes texture = h3dGetResParamI(mat, MaterialResData::SamplerElem, 0, MaterialResData::SampTexResI);
    if (texture > 0) {

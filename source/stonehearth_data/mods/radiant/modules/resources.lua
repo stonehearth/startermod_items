@@ -9,6 +9,10 @@ function resources.load_animation(uri)
    return _radiant.res.load_animation(uri)
 end
 
+function resources.get_mod_list()
+   return _host:get_mod_list();
+end
+
 function resources.load_json(uri, cached)
    local json
    if cached then

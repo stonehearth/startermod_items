@@ -1,10 +1,16 @@
 $(document).ready(function(){
-   //Fires when someone clicks the place button on an iconic item in the world
    $(top).on("radiant_place_item", function (_, e) {
       var item = e.event_data.self
 
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
       App.stonehearthClient.placeItem(e.event_data.self);
+   });
+
+   $(top).on("radiant_undeploy_item", function (_, e) {
+      var item = e.event_data.self
+
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
+      App.stonehearthClient.undeployItem(e.event_data.self);
    });
 });
 

@@ -862,11 +862,11 @@
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "move_item_in_world" : {
+      "place_item_type_in_world" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_type_in_world" : {
+      "undeploy_item" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
