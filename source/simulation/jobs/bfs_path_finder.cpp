@@ -2,6 +2,7 @@
 #include "path.h"
 #include "a_star_path_finder.h"
 #include "bfs_path_finder.h"
+#include "filter_result_cache.h"
 #include "simulation/simulation.h"
 #include "lib/lua/script_host.h"
 #include "physics/octtree.h"
@@ -184,17 +185,17 @@ BfsPathFinderPtr BfsPathFinder::SetSearchExhaustedCb(ExhaustedCb const& exhauste
 
 
 /*
- * -- BfsPathFinder::SetFilterFn
+ * -- BfsPathFinder::SetFilterResultCache
  *
- * Register a function to be called to determine if an Entity is a valid
- * destination for the search.  The BfsPathFinder will call `filter_fn` exactly
- * once for each entity it bumps into while expanding.
+ * `filterResultCache` contains the function which validates entities which can be found
+ * by the pathfinder.  We'll use it in ConsiderEntity to see if we should add it to the
+ * a* pathfinder.  See the header for FilterResultCache for more information.
  *
  */
 
-BfsPathFinderPtr BfsPathFinder::SetFilterFn(FilterFn const& filter_fn)
+BfsPathFinderPtr BfsPathFinder::SetFilterResultCache(FilterResultCachePtr filterResultCache)
 {
-   filter_fn_ = filter_fn;
+   filterResultCache_ = filterResultCache;
    return shared_from_this();
 }
 
@@ -261,6 +262,8 @@ bool BfsPathFinder::IsIdle() const
 
 BfsPathFinderPtr BfsPathFinder::Start()
 {
+   ASSERT(filterResultCache_);
+
    BFS_LOG(5) << "start requested";
    pathfinder_->Start();
    running_ = true;
@@ -317,12 +320,14 @@ BfsPathFinderPtr BfsPathFinder::ReconsiderDestination(om::EntityRef e)
       if (entity) {
          dm::ObjectId id = entity->GetObjectId();
 
-         // we can only *RE*-consider something if it's already been considered.  Otherwise,
-         // wait for the BFS to find it organically.
-         if (visited_ids_.find(id) != visited_ids_.end()) {
-            BFS_LOG(3) << "reconsidering visited destination " << *entity;
-            ConsiderEntity(e.lock());
-         }
+         // It's ok to Consider the entity right away, even if we haven't techincally reached
+         // this block in the bfs.  If it's reallly far away, the a* pathfinder won't reach
+         // it until we *have* paged in that block, since we page them in a the a* pathfinder
+         // goes farther.
+
+         BFS_LOG(3) << "reconsidering visited destination " << *entity;
+         filterResultCache_->ClearCacheEntry(entity->GetObjectId());
+         ConsiderEntity(entity);
       }
    }
    return shared_from_this();
@@ -340,9 +345,8 @@ BfsPathFinderPtr BfsPathFinder::ReconsiderDestination(om::EntityRef e)
 void BfsPathFinder::ConsiderEntity(om::EntityPtr entity)
 {
    dm::ObjectId id = entity->GetObjectId();
-   visited_ids_.insert(id);
 
-   if (filter_fn_(entity)) {
+   if (filterResultCache_->ConsiderEntity(entity)) {
       BFS_LOG(7) << *entity << " passed the filter!  adding to slave pathfinder.";
       pathfinder_->AddDestination(entity);
       ++destinationCount_;
@@ -528,13 +532,10 @@ void BfsPathFinder::AddTileToSearch(csg::Point3 const& index)
    phys::NavGrid& ng = GetSim().GetOctTree().GetNavGrid();
    ng.ForEachEntityAtIndex(index, [this](om::EntityPtr entity) {
       dm::ObjectId id = entity->GetObjectId();
-      if (visited_ids_.find(id) == visited_ids_.end()) {
-         ConsiderEntity(entity);
-      } else {
-         BFS_LOG(5) << "already visited entity " << *entity << ".  ignoring.";
-      }
+      ConsiderEntity(entity);
       return false;  // keep iterating...
    });
+   BFS_LOG(9) << "finished considering entities on tile " << index << ".";
 }
 
 
@@ -648,3 +649,4 @@ om::EntityRef BfsPathFinder::GetEntity() const
 {
    return entity_;
 }
+

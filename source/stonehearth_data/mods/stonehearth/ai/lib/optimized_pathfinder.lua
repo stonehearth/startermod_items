@@ -61,6 +61,7 @@ function OptimizedPathfinder:start()
 
    local solved = function(path)
       self:_on_success('a* path found', path)
+      return true
    end
 
    self._description = string.format('find %s', tostring(self._destination))

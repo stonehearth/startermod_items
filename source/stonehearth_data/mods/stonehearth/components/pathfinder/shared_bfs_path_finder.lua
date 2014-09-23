@@ -10,17 +10,17 @@ local SharedBfsPathFinder = class()
 --
 --    @param entity - the source entity
 --    @param start_location - the location where `entity` is starting from
---    @param filter_fn - the filter to determine which items qualify as destinations
+--    @param filter_result_cache - the filter to determine which items qualify as destinations
 --    @param on_destroy_cb - the callback to call when the last solved cb has been removed
 --
-function SharedBfsPathFinder:__init(entity, start_location, filter_fn, on_destroy_cb)
+function SharedBfsPathFinder:__init(entity, start_location, filter_result_cache, on_destroy_cb)
    NEXT_ID = NEXT_ID + 1
    self._root_entity = radiant.entities.get_root_entity()
 
    self._id = NEXT_ID
    self._entity = entity
    self._start_location = start_location
-   self._filter_fn = filter_fn
+   self._filter_result_cache = filter_result_cache
    self._on_destroy_cb = on_destroy_cb
    self._log = radiant.log.create_logger('bfs_path_finder')
                           :set_prefix(self._description)
@@ -96,20 +96,30 @@ end
 -- via :add_solved_cb
 --
 function SharedBfsPathFinder:_start_pathfinder()
-   local solved = function(path)
+   local function solved(path)
+      assert(not self._solution_path)
+      local dst = path:get_destination()
+
+      -- whoa, not so fast!  before we can pass this destination off to the pathfinders,
+      -- make sure it's actually kosker.  "why isn't this done by the filter function?",
+      -- you ask.  the filter function result for each entity is *heavily cached* by the
+      -- FilterCacheResult object.  `_is_valid_destination` will check against certain
+      -- transient conditions (e.g. can we get the ai lease?) which are inappropriate to
+      -- cache
+      if not self:_is_valid_destination(dst) then
+         return false
+      end
       self._solution_path = path
-      self._solution_entity_id = path:get_destination():get_id()
       self._log:debug('solved!')
       self:_call_solved_cbs(path)
+      return true
    end
 
    self._log:info("starting pathfinder from %s", self._start_location)   
    self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, self._description, self._range)
                         :set_source(self._start_location)
                         :set_solved_cb(solved)
-                        :set_filter_fn(function(target)
-                              return self:_is_valid_destination(target)
-                           end)
+                        :set_filter_result_cache(self._filter_result_cache)
                         :start()
                         
    self._log:error('created bfs pathfinder id:%d name:%s for %s @ %s',
@@ -148,23 +158,21 @@ function SharedBfsPathFinder:_is_valid_destination(target)
       -- hmm.  we already have a solution.  what if this object can provide a better one?
       -- do we really want to invalidate our current solution on the *chance* that it
       -- could be?  let's not.  let's just go with what we've got!
-      return false
-   end
-
-   if not self._filter_fn(target, self._entity) then
+      self._log:info('%s not a valid destination.  already have solution path!', target)
       return false
    end
 
    if not self:_entity_visible_to_pathfinder(target) then
+      self._log:info('%s not a valid destination.  made invisible to pathfinders.', target)
       return false
    end
 
    if not stonehearth.ai:can_acquire_ai_lease(target, self._entity) then
-      self._log:debug('ignoring %s (cannot acquire ai lease)', target)
+      self._log:info('%s not a valid destination.  could not acquire ai lease.', target)
       return false
    end
 
-   self._log:detail('entity %s is ok!', target)
+   self._log:spam('%s is a valid destination!', target)
    return true
 end
 

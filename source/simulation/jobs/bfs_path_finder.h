@@ -37,15 +37,14 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       BfsPathFinder(Simulation& sim, om::EntityPtr entity, std::string const& name, int range);
 
    public:
-      typedef std::function<void(PathPtr)> SolvedCb;
+      typedef std::function<bool(PathPtr)> SolvedCb;
       typedef std::function<void()> ExhaustedCb;
-      typedef std::function<bool(om::EntityPtr)> FilterFn;
 
       om::EntityRef GetEntity() const;
       BfsPathFinderPtr SetSource(csg::Point3f const& source);
       BfsPathFinderPtr SetSolvedCb(SolvedCb const& solved_cb);
       BfsPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted_cb);
-      BfsPathFinderPtr SetFilterFn(FilterFn const& filter_fn);
+      BfsPathFinderPtr SetFilterResultCache(FilterResultCachePtr filterResultCache);
       BfsPathFinderPtr Start();
       BfsPathFinderPtr Stop();
       BfsPathFinderPtr ReconsiderDestination(om::EntityRef e);
@@ -74,7 +73,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       om::EntityRef        entity_;
       AStarPathFinderPtr   pathfinder_;
       ExhaustedCb          exhausted_cb_;
-      FilterFn             filter_fn_;
+      FilterResultCachePtr filterResultCache_;
       int                  destinationCount_;
       int                  search_order_index_;
       float                explored_distance_;
@@ -82,7 +81,6 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       float                max_travel_distance_;
       bool                 running_;
       dm::TracePtr         entityAddedTrace_;
-      std::unordered_set<dm::ObjectId> visited_ids_;
 };
 
 std::ostream& operator<<(std::ostream& o, const BfsPathFinder& pf);

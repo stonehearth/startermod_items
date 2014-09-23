@@ -62,12 +62,11 @@ function get_stockpile_containing_entity(entity)
    local location = radiant.entities.get_world_grid_location(entity)
    if location then
       for id, stockpile in pairs(all_stockpiles) do
-         log:spam('checking %s pos:%s inside a stockpile', entity, location)
-         if not stockpile then
-            log:spam('  nil stockpile!  nope!')
-         else
+         if stockpile then
             local name = tostring(stockpile:get_entity())
             local bounds = stockpile:get_bounds();
+
+            log:spam('checking to see if %s (pos:%s) is inside a %s', entity, location, name)
             if not bounds:contains(location) then
                log:spam('  %s -> nope! wrong bounds, %s', name, bounds)
             elseif not stockpile:can_stock_entity(entity) then
@@ -181,12 +180,12 @@ function StockpileComponent:get_filter()
       -- *ALL* stockpiles with the same filter key, which is why this is
       -- implemented in terms of global functions, parameters to the filter
       -- function, and captured local variables.
-      filter_fn = function(item, worker)
+      filter_fn = function(item)
          local containing_component = get_stockpile_containing_entity(item)
          local containing_entity = containing_component and containing_component:get_entity()
 
          if containing_entity then
-            local already_stocked = not radiant.entities.is_hostile(worker, containing_entity)
+            local already_stocked = not radiant.entities.is_hostile(self._entity, containing_entity)
             if already_stocked then
                return false
             end

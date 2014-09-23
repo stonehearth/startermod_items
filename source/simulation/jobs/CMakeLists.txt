@@ -5,6 +5,7 @@ add_library(simulation_jobs STATIC
             job.cpp
             task.cpp
             path.cpp
+            filter_result_cache.cpp
             bfs_path_finder.cpp
             a_star_path_finder.cpp
             direct_path_finder.cpp

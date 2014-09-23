@@ -1,15 +1,18 @@
 local SharedBfsPathFinder = require 'components.pathfinder.shared_bfs_path_finder'
+local FilterResultCache = _radiant.sim.FilterResultCache
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local PathFinder = class()
+local FILTER_RESULT_CACHES = {}
 
 -- called to initialize the component on creation and loading.
 --
 function PathFinder:initialize(entity, json)
    self._entity = entity
    self._pathfinders = {}
+   self._filter_caches = {}
 end
 
 -- find a path from `location` to any item which matches the `filter_fn`.  All callers
@@ -27,11 +30,24 @@ end
 --    @param on_destroy_cb - the callback to call when the last solved cb has been removed
 --
 function PathFinder:find_path_to_item_type(location, filter_fn, description, solved_cb)
+   -- create a filter cache base on the filter function.  multiple pathfinders from different
+   -- entity sources and different locations and *all* share the same filter cache!!!
+   local filter_result_cache = FILTER_RESULT_CACHES[filter_fn]
+   if not filter_result_cache then
+      filter_result_cache = FilterResultCache()
+      filter_result_cache:set_filter_fn(filter_fn)
+      FILTER_RESULT_CACHES[filter_fn] = filter_result_cache
+      -- xxx: these currently don't get reaped.  we could do it on a timer...  i think that's
+      -- probably really easy, but requires more thought (what if there's a pathfinder currently
+      -- using it?  that's *probably* ok, since it's a shared_ptr... hrm) -tony
+   end
+
+   -- now find a shared pathfinder which wants to search from this location using this
+   -- filter function and add the `solved_cb` to it.
    local pfkey = string.format('%s : %s', tostring(location), tostring(filter_fn))
    local pf = self._pathfinders[pfkey]
-
    if not pf then
-      pf = SharedBfsPathFinder(self._entity, location, filter_fn, function()
+      pf = SharedBfsPathFinder(self._entity, location, filter_result_cache, function()
             self._pathfinders[pfkey] = nil
          end)
       pf:set_description(description)      

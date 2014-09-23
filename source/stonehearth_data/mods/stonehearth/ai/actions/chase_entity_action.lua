@@ -157,6 +157,7 @@ function ChaseEntity:_get_astar_path(entity, destination, start_location_overrid
 
    local on_solved = function (path)
       self:_set_think_output(path)
+      return true
    end
 
    self._path_finder = _radiant.sim.create_astar_path_finder(entity, 'chase entity')

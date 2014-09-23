@@ -7,6 +7,7 @@
 #include "simulation/jobs/bfs_path_finder.h"
 #include "simulation/jobs/a_star_path_finder.h"
 #include "simulation/jobs/direct_path_finder.h"
+#include "simulation/jobs/filter_result_cache.h"
 #include "om/entity.h"
 #include "om/stonehearth.h"
 #include "om/components/data_store.ridl.h"
@@ -19,6 +20,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 using namespace luabind;
+
+IMPLEMENT_TRIVIAL_TOSTRING(FilterResultCache);
 
 std::ostream& operator<<(std::ostream& os, Simulation const&s)
 {
@@ -219,10 +222,14 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
  
       pf->SetSolvedCb([solved_cb, cb_thread] (PathPtr path) mutable {
          try {
-            solved_cb(luabind::object(cb_thread, path));
+            luabind::object result = solved_cb(luabind::object(cb_thread, path));
+            if (luabind::type(result) == LUA_TBOOLEAN) {
+               return luabind::object_cast<bool>(result);
+            }
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
+         return false;
       });
    }
    return pf;
@@ -246,21 +253,15 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
    return pf;
 }
 
-BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object unsafe_filter_fn)
+FilterResultCachePtr FilterResultCache_SetFilterFn(FilterResultCachePtr frc, luabind::object unsafe_filter_fn)
 {
-   if (pf) {
-      BfsPathFinderRef p = pf;
+   if (frc) {
       lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_filter_fn.interpreter());  
       luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
 
-      pf->SetFilterFn([p, filter_fn, cb_thread](om::EntityPtr e) -> bool {
+      frc->SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) -> bool {
          try {
-            if (LOG_IS_ENABLED(simulation.pathfinder.bfs, 5)) {
-               BfsPathFinderPtr pathfinder = p.lock();
-               if (pathfinder) {
-                  pathfinder->Log(5, BUILD_STRING("calling filter function on " << *e));
-               }
-            }
+            LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
             return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
@@ -268,7 +269,7 @@ BfsPathFinderPtr BfsPathFinder_SetFilterFn(BfsPathFinderPtr pf, luabind::object 
          return false;
       });
    }
-   return pf;
+   return frc;
 }
 
 template <typename T>
@@ -376,11 +377,16 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("set_source",         &BfsPathFinder::SetSource)
                .def("set_solved_cb",      &PathFinder_SetSolvedCb<BfsPathFinder>)
                .def("set_search_exhausted_cb", &PathFinder_SetExhaustedCb<BfsPathFinder>)
-               .def("set_filter_fn",      &BfsPathFinder_SetFilterFn)
+               .def("set_filter_result_cache",  &BfsPathFinder::SetFilterResultCache)
                .def("reconsider_destination", &BfsPathFinder::ReconsiderDestination)
                .def("stop",               &BfsPathFinder::Stop)
                .def("start",              &BfsPathFinder::Start)
                .def("destroy",            &Pathfinder_Destroy<BfsPathFinder>)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<FilterResultCache>("FilterResultCache")
+               .def(constructor<>())
+               .def("clear_cache_entry",  &FilterResultCache::ClearCacheEntry)     
+               .def("set_filter_fn",      &FilterResultCache_SetFilterFn)
             ,
             lua::RegisterTypePtr_NoTypeInfo<DirectPathFinder>("DirectPathFinder")
                .def("set_start_location",        &DirectPathFinder::SetStartLocation)

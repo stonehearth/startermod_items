@@ -98,7 +98,7 @@ function MicroWorld:place_stockpile_cmd(player_id, x, z, w, h)
    local size = Point2( w, h )
 
    local inventory = stonehearth.inventory:get_inventory(player_id)
-   inventory:create_stockpile(location, size)
+   return inventory:create_stockpile(location, size)
 end
 
 return MicroWorld

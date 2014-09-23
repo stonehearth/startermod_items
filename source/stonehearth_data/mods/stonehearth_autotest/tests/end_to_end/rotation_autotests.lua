@@ -72,10 +72,11 @@ function rotation_tests.single_rotation(autotest)
          local pf
          pf = _radiant.sim.create_astar_path_finder(person, 'find path to entity')
                         :add_destination(e)
-                        :set_solved_cb(function (p)                             
+                        :set_solved_cb(function (p)
                               autotest:log('solved')
                               path = p
                               autotest:resume()
+                              return true
                            end)
                         :start()
          autotest:log('suspending')

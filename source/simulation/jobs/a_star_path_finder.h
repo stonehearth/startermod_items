@@ -26,7 +26,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinder(Simulation& sim, std::string const& name, om::EntityPtr source);
 
    public:
-      typedef std::function<void(PathPtr)> SolvedCb;
+      typedef std::function<bool(PathPtr)> SolvedCb;
       typedef std::function<void()> ExhaustedCb;
       typedef std::function<bool(om::EntityPtr)> FilterFn;
 
@@ -79,7 +79,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
-      void SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst);
+      bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst);
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
