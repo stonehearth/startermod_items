@@ -296,12 +296,20 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
    return fallback_point, false
 end
 
+function Terrain.add_point(point, tag)
+   Terrain.add_cube(Cube3(point, Point3(point.x+1, point.y+1, point.z+1), tag))
+end
+
 function Terrain.add_cube(cube)
    Terrain._get_terrain_component():add_cube(cube)
 end
 
 function Terrain.add_region(region)
    Terrain._get_terrain_component():add_region(region)
+end
+
+function Terrain.subtract_point(point)
+   Terrain.subtract_cube(Cube3(point, Point3(point.x+1, point.y+1, point.z+1)))
 end
 
 function Terrain.subtract_cube(cube)
@@ -322,6 +330,6 @@ end
 
 function Terrain._get_terrain_component()
    return radiant._root_entity:add_component('terrain')
-end   
+end
 
 return Terrain
