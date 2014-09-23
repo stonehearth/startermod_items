@@ -27,10 +27,10 @@
    "parent_job" : "stonehearth:jobs:worker", 
 
    "xp_rewards" : {
-      "befriend_pet" : 150, 
-      "unsuccessful_trap" : 50, 
-      "successful_trap" : 100, 
-      "unload_backpack" : 100
+      "befriend_pet" : 75, 
+      "unsuccessful_trap" : 20, 
+      "successful_trap" : 50, 
+      "unload_backpack" : 50
    },
 
    "level_data" : {
