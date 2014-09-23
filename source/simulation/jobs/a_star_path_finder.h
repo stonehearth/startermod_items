@@ -79,11 +79,11 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
-      bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst);
+      bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst);
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
-      bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst);
+      bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst*& dst);
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
       bool CheckIfIdle() const;

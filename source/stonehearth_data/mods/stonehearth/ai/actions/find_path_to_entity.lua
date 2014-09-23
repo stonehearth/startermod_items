@@ -1,4 +1,3 @@
-local OptimizedPathfinder = require 'ai.lib.optimized_pathfinder'
 local Path = _radiant.sim.Path
 local Entity = _radiant.om.Entity
 local log = radiant.log.create_logger('pathfinder')
@@ -18,21 +17,17 @@ FindPathToEntity.priority = 1
 
 function FindPathToEntity:start_thinking(ai, entity, args)
    local on_success = function (path)
+      ai:get_log():info('found solution: %s', path)
       ai:set_think_output({ path = path })
    end
 
-   local on_failure = function (message)
-      ai:get_log():info('cannot find path to entity: %s', message)
-   end
-
-   self._pathfinder = OptimizedPathfinder(ai:get_log(), entity, args.destination, on_success, on_failure)
-                        :set_start_location(ai.CURRENT.location)
-                        :start()
+   self._pathfinder = entity:add_component('stonehearth:pathfinder')
+                                 :find_path_to_entity(ai.CURRENT.location, args.destination, on_success)
 end
 
 function FindPathToEntity:stop_thinking(ai, entity, args)
    if self._pathfinder then
-      self._pathfinder:stop()
+      self._pathfinder:destroy()
       self._pathfinder = nil
    end
 end

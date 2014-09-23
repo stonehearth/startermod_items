@@ -166,7 +166,6 @@ bool AStarPathFinder::CheckIfIdle() const
       return true;
    }
 
-   // xxx: this is redundant with the multi path finder...
    bool all_idle = true;
    for (const auto& entry : destinations_) {
       if (!entry.second->IsIdle()) {
@@ -209,21 +208,22 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
    auto dstEntity = e.lock();
    if (!dstEntity) {
-      PF_LOG(3) << "cannot add " << dstEntity << " to pathfinder.  invalid entity.";
+      PF_LOG(3) << "cannot add destination to pathfinder.  invalid entity.";
       return shared_from_this();
    }
    
    if (!om::IsInWorld(dstEntity)) {
-      PF_LOG(3) << "cannot add " << dstEntity << " to pathfinder.  not in the world.";
+      PF_LOG(3) << "cannot add " << *dstEntity << " to pathfinder.  not in the world.";
       return shared_from_this();
    }
 
    dm::ObjectId id = dstEntity->GetObjectId();
    if (stdutil::contains(destinations_, id)) {
-      PF_LOG(3) << "" << dstEntity << " destination is already in pathfinder.  ignoring add request.";
+      PF_LOG(3) << *dstEntity << " destination is already in pathfinder.  ignoring add request.";
       return shared_from_this();
    }
 
+   PF_LOG(3) << "adding destination " << *dstEntity << ".";
    auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
       OnPathFinderDstChanged(dst, reason);
    };
@@ -236,6 +236,7 @@ AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 
 AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
 {
+   PF_LOG(3) << "removing destination " << id << ".";
    auto i = destinations_.find(id);
    if (i != destinations_.end()) {
       destinations_.erase(i);
@@ -364,17 +365,14 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
          std::vector<csg::Point3f> solution;
          ReconstructPath(solution, current.pt);
-         SolveSearch(solution, *closest); // may or may not have actually solved the search...
+         SolveSearch(solution, closest); // may or may not have actually solved the search...
          return;
       } 
 
-      if (closest && FindDirectPathToDestination(current.pt, *closest)) {
+      if (closest && FindDirectPathToDestination(current.pt, closest)) {
          // Found a solution!  Bail.
          return;
       }
-      // At this point, closest may have been removed by SolveSearch in FindDirectPathToDestination.
-      // The pointer cannot be relied on, so null it!
-      closest = nullptr;
 
       if (current.g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
@@ -465,7 +463,7 @@ float AStarPathFinder::EstimateCostToSolution()
       RebuildOpenHeuristics();
    }
 
-   if (IsIdle()) {
+   if (CheckIfIdle()) {
       return FLT_MAX;
    }
    return open_.front().f;
@@ -604,14 +602,16 @@ void AStarPathFinder::SetSearchExhausted()
    }
 }
 
-bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst)
+bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst)
 {
+   int dstId = dst->GetEntityId();
+
    if (solution.empty()) {
       solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3f dst_point_of_interest = dst.GetPointOfInterest(solution.back());
-   PF_LOG(5) << "found solution to destination " << dst.GetEntityId() << " (last point is " << solution.back() << ")";
-   PathPtr path = std::make_shared<Path>(solution, entity_.lock(), dst.GetEntity(), dst_point_of_interest);
+   csg::Point3f dst_point_of_interest = dst->GetPointOfInterest(solution.back());
+   PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
+   PathPtr path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
 
    PF_LOG(5) << "calling lua solved callback";
    bool solved = solved_cb_(path);
@@ -621,7 +621,8 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
       solution_  = path;
    } else {
       PF_LOG(5) << "solved cb said no bueno.  removing destination and continuing search.";
-      RemoveDestination(dst.GetEntityId());
+      RemoveDestination(dstId);
+      dst = nullptr;
    }
 
    VERIFY_HEAPINESS();
@@ -739,8 +740,10 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
    }
 }
 
-bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst &dst)
+bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst*& dst)
 {   
+   ASSERT(dst);
+
    if (direct_path_search_cooldown_ > 0) {
       return false;
    }
@@ -750,7 +753,7 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, Path
    om::EntityPtr entity = entity_.lock();
 
    csg::Point3f from = csg::ToFloat(start);
-   csg::Region3f const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
+   csg::Region3f const& dstRegion = dst->GetWorldSpaceAdjacentRegion();
    csg::Point3f to = dstRegion.GetClosestPoint(from);
 
    if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {

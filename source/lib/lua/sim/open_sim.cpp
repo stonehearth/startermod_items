@@ -357,6 +357,7 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<AStarPathFinder>("AStarPathFinder")
                .def("get_id",             &AStarPathFinder::GetId)
+               .def("get_name",           &AStarPathFinder::GetName)
                .def("set_source",         &AStarPathFinder::SetSource)
                .def("add_destination",    &AStarPathFinder::AddDestination)
                .def("remove_destination", &AStarPathFinder::RemoveDestination)

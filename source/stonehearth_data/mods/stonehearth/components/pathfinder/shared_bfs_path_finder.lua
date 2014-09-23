@@ -23,7 +23,6 @@ function SharedBfsPathFinder:__init(entity, start_location, filter_result_cache,
    self._filter_result_cache = filter_result_cache
    self._on_destroy_cb = on_destroy_cb
    self._log = radiant.log.create_logger('bfs_path_finder')
-                          :set_prefix(self._description)
                           :set_entity(self._entity)
    self._range = 512
    self._solved_cbs = {}
@@ -51,6 +50,7 @@ end
 --
 function SharedBfsPathFinder:set_description(description)
    self._description = description
+   self._log:set_prefix(self._description)
 end
 
 -- get the description of what we're searching for
@@ -115,16 +115,16 @@ function SharedBfsPathFinder:_start_pathfinder()
       return true
    end
 
-   self._log:info("starting pathfinder from %s", self._start_location)   
+   self._log:info("starting bfs pathfinder from %s", self._start_location)   
    self._pathfinder = _radiant.sim.create_bfs_path_finder(self._entity, self._description, self._range)
                         :set_source(self._start_location)
                         :set_solved_cb(solved)
                         :set_filter_result_cache(self._filter_result_cache)
                         :start()
                         
-   self._log:error('created bfs pathfinder id:%d name:%s for %s @ %s',
-                    self._pathfinder:get_id(), self._pathfinder:get_name(),
-                    self._entity, self._start_location)
+   self._log:info('created bfs pathfinder id:%d name:%s for %s @ %s',
+                  self._pathfinder:get_id(), self._pathfinder:get_name(),
+                  self._entity, self._start_location)
 
 end
 

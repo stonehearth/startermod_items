@@ -32,12 +32,29 @@ const Point1f Point1f::one(1);
 
 
 template <int C>
+Point<float, C> ToFloatFn(Point<int, C> const& pt);
+
+template <>
+Point<float, 1> ToFloatFn(Point<int, 1> const& pt) {
+   return Point<float, 1>(static_cast<float>(pt.x));
+}
+
+template <>
+Point<float, 2> ToFloatFn(Point<int, 2> const& pt) {
+   return Point<float, 2>(static_cast<float>(pt.x),
+                          static_cast<float>(pt.y));
+}
+
+template <>
+Point<float, 3> ToFloatFn(Point<int, 3> const& pt) {
+   return Point<float, 3>(static_cast<float>(pt.x),
+                          static_cast<float>(pt.y),
+                          static_cast<float>(pt.z));
+}
+
+template <int C>
 Point<float, C> csg::ToFloat(Point<int, C> const& pt) {
-   Point<float, C> result;
-   for (int i = 0; i < C; i++) {
-      result[i] = static_cast<float>(pt[i]);
-   }
-   return result;
+   return ToFloatFn(pt);
 }
 
 template <int C>
@@ -46,14 +63,31 @@ Point<float, C> const& csg::ToFloat(Point<float, C> const& pt) {
 }
 
 template <int C>
-Point<int, C> csg::ToInt(Point<float, C> const& pt)
+Point<int, C> ToIntFn(Point<float, C> const& pt);
+
+template <>
+Point<int, 1> ToIntFn(Point<float, 1> const& pt)
 {
-   Point<int, C> result;
-   for (int i = 0; i < C; i++) {
-      float s = pt[i];
-      result[i] = static_cast<int>(trunc(s + (s > 0 ? k_epsilon : -k_epsilon)));
-   }
-   return result;
+   return Point<int, 1>(ToInt(pt.x));
+}
+
+template <>
+Point<int, 2> ToIntFn(Point<float, 2> const& pt)
+{
+   return Point<int, 2>(ToInt(pt.x),
+                        ToInt(pt.y));
+}
+template <>
+Point<int, 3> ToIntFn(Point<float, 3> const& pt)
+{
+   return Point<int, 3>(ToInt(pt.x),
+                        ToInt(pt.y),
+                        ToInt(pt.z));
+}
+
+template <int C>
+Point<int, C> csg::ToInt(Point<float, C> const& pt) {
+   return ToIntFn(pt);
 }
 
 template <int C>
@@ -62,13 +96,31 @@ Point<int, C> const& csg::ToInt(Point<int, C> const& pt) {
 }
 
 template <int C>
-Point<int, C> csg::ToClosestInt(Point<float, C> const& pt)
+Point<int, C> ToClosestIntFn(Point<float, C> const& pt);
+
+template <>
+Point<int, 1> ToClosestIntFn(Point<float, 1> const& pt)
 {
-   Point<int, C> result;
-   for (int i = 0; i < C; i++) {
-      result[i] = ToClosestInt(pt[i]);
-   }
-   return result;
+   return Point<int, 1>(ToClosestInt(pt.x));
+}
+
+template <>
+Point<int, 2> ToClosestIntFn(Point<float, 2> const& pt)
+{
+   return Point<int, 2>(ToClosestInt(pt.x),
+                        ToClosestInt(pt.y));
+}
+template <>
+Point<int, 3> ToClosestIntFn(Point<float, 3> const& pt)
+{
+   return Point<int, 3>(ToClosestInt(pt.x),
+                        ToClosestInt(pt.y),
+                        ToClosestInt(pt.z));
+}
+
+template <int C>
+Point<int, C> csg::ToClosestInt(Point<float, C> const& pt) {
+   return ToClosestIntFn(pt);
 }
 
 template <int C>
