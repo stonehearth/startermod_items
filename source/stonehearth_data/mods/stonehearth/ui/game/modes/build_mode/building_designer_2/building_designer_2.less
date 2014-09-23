@@ -82,27 +82,24 @@
    }
 
    .brushPalette {
-      img.selected {
-         border-color: #ffc000;            
-      }
 
-      img {
+      .brush {
          .button;
-         width: 48px;
-         height: 48px;
-         border: 2px solid #000;
-         background-color: rgba(0,0,0,0.8);
+         position: relative;
+         width: 72px;
+         height: 72px;
+         display: inline-block;
          margin-right: 4px;
+
+         .selectBox {
+            display: none;
+         }
       }
 
-      img.small {
-         width: 36px;
-         height: 36px;
-      }
-
-      img.noBorder {
-         border: 2px solid rgba(0,0,0,0);
-         background-color: rgba(0,0,0,0.0);
+      .brush.selected {
+         .selectBox {
+            display: block;
+         }
       }
    }
 
