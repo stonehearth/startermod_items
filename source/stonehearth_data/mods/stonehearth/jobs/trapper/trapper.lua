@@ -99,6 +99,7 @@ function TrapperClass:_call_function(fn_name, file, args)
       --args.entity = self._sv._entity
       self[fn_name](self._sv._entity, args)
    end
+   --TODO: if file is not 'default' then load the file and call the fn from the file
 end
 
 --These dynamically generated functions!
