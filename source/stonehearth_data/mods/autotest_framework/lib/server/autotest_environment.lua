@@ -111,7 +111,7 @@ end
 
 function env.create_entity(x, z, uri, options)
    local location
-   if type(x == Point3) then
+   if radiant.util.is_a(x, Point3) then
       location, uri, options = x, z, uri -- shift options down...
    else
       location = Point3(x, 1, z)
@@ -142,7 +142,7 @@ end
 
 function env.create_person(x, z, options)
    local location
-   if type(x == Point3) then
+   if radiant.util.is_a(x, Point3) then
       location, options = x, z -- shift options down...
    else
       location = Point3(x, 1, z)
@@ -161,7 +161,7 @@ end
 
 function env.create_stockpile(x, z, options)
    local location
-   if type(x == Point3) then
+   if radiant.util.is_a(x, Point3) then
       location, options = x, z -- shift options down...
    else
       location = Point3(x, 1, z)
