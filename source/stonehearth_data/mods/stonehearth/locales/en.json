@@ -317,7 +317,6 @@
    "building_designer_roof_tool" : "roof",
    "building_designer_door_tool" : "doodads",
    "building_designer_edit_tool" : "edit",
-   "building_designer_draw_floorplan" : "Draw Floorplan",
    "building_designer_draw_floorplan_help" : "Pick the draw tool and a material. Then, drag out boxes to define your building's floorplan.",
    "building_designer_erect_walls" : "Erect Walls",
    "building_designer_erect_walls_help" : "Raise walls around an existing floorplan or draw freestanding walls.",

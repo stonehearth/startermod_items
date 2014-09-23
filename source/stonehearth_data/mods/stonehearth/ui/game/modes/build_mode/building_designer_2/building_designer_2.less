@@ -1,21 +1,9 @@
 #buildingDesignerTools {
-   position: absolute;
-   left: 10px;
-   top: 10px;
+   margin-left: 10px;
+   margin-top: 10px;
    
    width: 424px;
    //height: 420px;
-
-   .toolWizard {
-      display: none;
-      position: absolute;
-      left: 60px;
-      top: 178px;
-      width: 380px;
-      height: 450px;
-      max-height: 500px;
-
-   }
 
    #buildActiveCoverSheet {
       position: absolute;
@@ -28,99 +16,9 @@
 
    }
 
-   #toolbar {
+   #tools {
       margin-bottom: 10px;
 
-      .tabButton.active {
-         background-color: #6e6346;
-         border-color: #000;
-
-         .label {
-            color: #ffc000;
-         }
-      }
-
-      .tabButton {
-         .control;
-         .button;
-         position: relative;
-         width: 54px;
-         height: 60px;
-         display: inline-block;
-         text-align: center;
-         color: #87764f;
-         margin-right: 8px;
-         margin-top: 12px;
-         border: 2px solid rgba(0,0,0,0);
-
-         &:hover {
-            color: #ffc000;
-         }
-
-         .label {
-            position: absolute;
-            bottom: -5px;
-            font-size: 13px;
-            text-align: center;
-            width: 54px;
-         }
-
-         .icon {
-            position: absolute;
-            width: 54px;
-            height: 60px;
-         }
-      }
-
-      .disabled {
-         opacity: 0.15;
-      }
-
-      .floorToolButton {
-         .icon {
-            background-image: url(images/build_floor.png);   
-         }
-         
-      }
-
-      .wallToolButton {
-         .icon {
-            background-image: url(images/build_walls.png);   
-         }
-      }
-
-      .roofToolButton {
-         .icon {
-            background-image: url(images/build_roof.png);   
-         }
-      }
-
-      .doodadToolButton {
-         .icon {
-            background-image: url(images/build_portal.png);   
-         }
-         
-      }
-      .editToolButton {
-         .icon {
-            background-image: url(images/edit.png);   
-         }
-      }
-   }
-
-   .tabPage {       
-      display: none;
-      width: 384px;
-      height: 480px;
-      padding: 0 16px 8px 16px;
-      margin-bottom: 8px;
-      font-size: 12px;
-
-      border: 2px solid #000;
-      background-color: #443f33;
-   }
-
-   .toolPalette {
       .toolButton {
          .button;
          display: inline-block;
@@ -136,6 +34,51 @@
       .toolButton.active {
          border-color: #ffc000;
       }      
+
+      #drawFloorTool {
+         background-image: url(images/add_floor_tool.png);
+      }
+
+      #eraseFloorTool {
+         background-image: url(images/remove_floor_tool.png);
+      }
+
+      #drawWallTool {
+         background-image: url(images/add_wall_tool.png);
+      }
+
+      #growWallsTool {
+         background-image: url(images/grow_walls_tool.png);
+      }
+
+      #growRoofTool {
+         background-image: url(images/grow_roof_tool.png);
+      }
+
+      #drawDoodadTool {
+         background-image: url(images/add_doodad_tool.png);
+      }
+
+      #removeDoodadTool {
+         background-image: url(images/remove_doodad_tool.png);
+      }
+
+      .disabled {
+         opacity: 0.15;
+      }
+   }
+
+   .tabPage {
+      display: none;
+      width: 394px;
+   }
+
+   .downSection {
+      width: 100%;
+   }
+
+   #floorMaterialTab {
+      display: block;
    }
 
    .brushPalette {
@@ -166,34 +109,6 @@
    .doodadPalette {
       overflow-y: auto;
       max-height: 450px;
-   }
-
-   #drawFloorTool {
-      background-image: url(images/add_floor_tool.png);
-   }
-
-   #eraseFloorTool {
-      background-image: url(images/remove_floor_tool.png);
-   }
-
-   #drawWallTool {
-      background-image: url(images/add_wall_tool.png);
-   }
-
-   #growWallsTool {
-      background-image: url(images/grow_walls_tool.png);
-   }
-
-   #growRoofTool {
-      background-image: url(images/grow_roof_tool.png);
-   }
-
-   #drawDoodadTool {
-      background-image: url(images/add_doodad_tool.png);
-   }
-
-   #removeDoodadTool {
-      background-image: url(images/remove_doodad_tool.png);
    }
 
    .roofShape {
@@ -278,9 +193,12 @@
 }
 
 #selectedBuildingWindow {
-   position: absolute;
-   left: 10px;
-   top: 680px;
-   width: 420px;
+   margin-left: 10px;
+   margin-top: 10px;
+   width: 424px;
    display: none;
+
+   #buttons {
+      padding-top: 10px;
+   }
 }
