@@ -59,8 +59,11 @@ end
 
 -- returns the Point3 of the highest terrain voxel at (x, z)
 function Terrain.get_point_on_terrain(pt)
-   return radiant._root_entity:add_component('terrain')
-                                 :get_point_on_terrain(pt)
+   return Terrain._get_terrain_component():get_point_on_terrain(pt)
+end
+
+function Terrain.in_bounds(pt)
+   return Terrain._get_terrain_component():in_bounds(pt)
 end
 
 -- returns whether an entity can stand on the Point3 location
@@ -293,20 +296,32 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
    return fallback_point, false
 end
 
-function Terrain.add_cube(cube3)
-   radiant._root_entity:add_component('terrain'):add_cube(cube3)
+function Terrain.add_cube(cube)
+   Terrain._get_terrain_component():add_cube(cube)
 end
 
-function Terrain.subtract_cube(cube3)
-   radiant._root_entity:add_component('terrain'):subtract_cube(cube3)
+function Terrain.add_region(region)
+   Terrain._get_terrain_component():add_region(region)
 end
 
-function Terrain.add_region(region3)
-   radiant._root_entity:add_component('terrain'):add_region(region3)
+function Terrain.subtract_cube(cube)
+   Terrain._get_terrain_component():subtract_cube(cube)
 end
 
-function Terrain.subtract_region(region3)
-   radiant._root_entity:add_component('terrain'):subtract_region(region3)
+function Terrain.subtract_region(region)
+   Terrain._get_terrain_component():subtract_region(region)
 end
+
+function Terrain.intersect_cube(cube)
+   return Terrain._get_terrain_component():intersect_cube(cube)
+end
+
+function Terrain.intersect_region(region)
+   return Terrain._get_terrain_component():intersect_region(region)
+end
+
+function Terrain._get_terrain_component()
+   return radiant._root_entity:add_component('terrain')
+end   
 
 return Terrain
