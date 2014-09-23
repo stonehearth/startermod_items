@@ -14,7 +14,6 @@ function Promote:run(town, args)
          elseif info.event == "remove_talisman" then
             -- xx for now destroy the talisman. Eventually store it in the talisman component so we can bring it back when the civ is demoted
             radiant.entities.remove_carrying(person)
-            ai:unprotect_entity(args.talisman)
             radiant.entities.destroy_entity(args.talisman)
          end
       end
