@@ -37,9 +37,11 @@ class Terrain(Component):
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
    add_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
-   subtract_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
    add_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
+   subtract_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
    subtract_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
+   intersect_cube = ridl.Method(csg.Region3f(), ('cube', csg.Cube3f().const.ref))
+   intersect_region = ridl.Method(csg.Region3f(), ('region', csg.Region3f().const.ref))
 
    _includes = [
       "om/components/terrain_tesselator.h",
@@ -55,7 +57,7 @@ class Terrain(Component):
 
    _private = \
    """
-   typedef std::function<void(csg::Region3f& tile, csg::Region3f& intersection)> ApplyRegionToTileCb;
+   typedef std::function<void(csg::Point3f tile_offset, csg::Region3f& tile_region, csg::Region3f& chopped_region)> ApplyRegionToTileCb;
    TerrainTesselator terrainTesselator_;
    csg::Cube3f CalculateBounds() const;
    csg::Cube3f GetTileBounds(csg::Point3f const& tile_offset) const;

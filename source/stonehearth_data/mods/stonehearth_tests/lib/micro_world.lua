@@ -39,8 +39,9 @@ function MicroWorld:create_world()
    local half_size = self._size / 2
 
    local region3 = Region3()
-   region3:add_cube(Cube3(Point3(0, -16, 0), Point3(self._size, 0, self._size), Terrain.SOIL_LIGHT))
-   region3:add_cube(Cube3(Point3(0,   0, 0), Point3(self._size, 1, self._size), Terrain.GRASS))
+   region3:add_cube(Cube3(Point3(0, -2, 0), Point3(self._size, 0, self._size), Terrain.BEDROCK))
+   region3:add_cube(Cube3(Point3(0, 0, 0), Point3(self._size, 9, self._size), Terrain.SOIL_DARK))
+   region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), Terrain.GRASS))
 
    local terrain = radiant._root_entity:add_component('terrain')
    terrain:set_tile_size(self._size)
@@ -98,7 +99,7 @@ function MicroWorld:place_stockpile_cmd(player_id, x, z, w, h)
    local size = Point2( w, h )
 
    local inventory = stonehearth.inventory:get_inventory(player_id)
-   inventory:create_stockpile(location, size)
+   return inventory:create_stockpile(location, size)
 end
 
 return MicroWorld

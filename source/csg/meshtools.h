@@ -19,6 +19,8 @@ public:
       Point3f   normal;
       Point4f   color;
       vertex(Point3f const& p, Point3f const& n, Point4f const& c) : location(p), normal(n), color(c) { }
+      vertex(Point3f const& p, Point3f const& n, Color3 const& c) : location(p), normal(n), color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 1.0f) { }
+      vertex(Point3f const& p, Point3f const& n, Color4 const& c) : location(p), normal(n), color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f) { }
    };
 
    struct mesh {

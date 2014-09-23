@@ -6,61 +6,23 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-template <typename S, int C> class Cube;
-template <typename S, int C> class Point;
-template <typename S, int C> struct PointIterator;
-
 template <typename S>
-struct PointIterator<S, 3> {
+class PointIterator<S, 3> {
+public:
    typedef Cube<S, 3> Cube;
    typedef Point<S, 3> Point;
 
-   PointIterator(Cube const& c, Point const& iter) :
-      min(c.GetMin()),
-      max(c.GetMax()),
-      axis_(0)
-   {
-      if (iter == end) {
-         iter_ = iter;
-      } else if (c.GetArea() == 0) {
-         iter_ = end;
-      } else {
-         ASSERT(c.Contains(iter));
-         iter_ = iter;
-      }
-   }
+   PointIterator(Cube const& c, Point const& iter);
 
-   const Point operator*() const {
-      return iter_;
-   }
-
-   const void operator++() {
-      if (iter_ != end) {
-         iter_.z++;
-         if (iter_.z == max.z) {
-            iter_.z = min.z;
-            iter_.x++;
-            if (iter_.x == max.x) {
-               iter_.z = min.z;
-               iter_.x = min.x;
-               iter_.y++;
-               if (iter_.y == max.y) {
-                  iter_ = end;
-               }
-            }
-         }
-      }
-   }
-   bool operator!=(const PointIterator& rhs) {
-      return iter_ != rhs.iter_;
-   }
+   Point operator*() const;
+   void operator++();
+   bool operator!=(const PointIterator& rhs) const;
 
 public:
    static   Point end;
 
 private:
-   Point    min;
-   Point    max;
+   Cube3    bounds_;
    Point    iter_;
    int      axis_;
 };

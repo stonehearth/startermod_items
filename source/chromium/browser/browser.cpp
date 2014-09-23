@@ -44,7 +44,9 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    _neededToDraw = 0;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
-   if (!CefExecuteProcess(main_args, _app)) {
+   int exitCode = CefExecuteProcess(main_args, _app);
+   if (exitCode >= 0) {
+      BROWSER_LOG(1) << "Error starting cef process: " << exitCode;
       ASSERT(false);
    }
 
@@ -57,6 +59,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefInitialize(main_args, settings, _app.get());
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
+   BROWSER_LOG(1) << "cef started.";
 }
 
 void Browser::Work()

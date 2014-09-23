@@ -10,6 +10,10 @@
          "region" : [
          ]
       },
+      "region_collision_shape" : {
+         "region_collision_type" : "platform"
+      },
+      "stonehearth:scaffolding_top" : {},
       "stonehearth:construction_data" : {
          "project_adjacent_to_base" : true,
          "allow_diagonal_adjacency" : true,

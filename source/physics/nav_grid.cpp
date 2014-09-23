@@ -197,16 +197,16 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
    om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
    auto regionCollisionType = regionCollisionShapePtr->GetRegionCollisionType();
 
+   NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
    switch (regionCollisionType) {
       case om::RegionCollisionShape::RegionCollisionTypes::SOLID:
-         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
          return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
-         break;
-      default:
-         ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
-         NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
+      case om::RegionCollisionShape::RegionCollisionTypes::NONE:
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
+      case om::RegionCollisionShape::RegionCollisionTypes::PLATFORM:
+         return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
+   return nullptr;
 }
 
 /*
@@ -867,7 +867,8 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
-   return GridTileResident(index).IsSupport(offset);
+   bool isSupport = GridTileResident(index).IsSupport(offset);
+   return isSupport;
 }
 
 /*
@@ -893,9 +894,12 @@ bool NavGrid::IsSupported(csg::Point3 const& worldPoint)
 bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
 {
    if (!bounds_.Contains(worldPoint)) {
-      return true;
+      return false;
    }
-   return !IsBlocked(worldPoint) && IsSupported(worldPoint);
+   // allow debug builds to inspect variables before returning
+   bool blocked = IsBlocked(worldPoint);
+   bool supported = IsSupported(worldPoint);
+   return !blocked && supported;
 }
 
 /*

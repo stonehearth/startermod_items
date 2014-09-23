@@ -22,6 +22,7 @@
       "stonehearth:task_group:build", 
       "stonehearth:task_group:placement", 
       "stonehearth:task_group:maintenance", 
+      "stonehearth:task_group:mining",
       "stonehearth:task_group:harvest"
    ]
 }

@@ -24,6 +24,7 @@ local service_creation_order = {
    'analytics',
    'tasks',
    'terrain',
+   'mining',
    'threads',
    'town',
    'town_patrol',

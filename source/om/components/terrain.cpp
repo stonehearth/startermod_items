@@ -154,23 +154,41 @@ void Terrain::AddCube(csg::Cube3f const& cube)
    AddRegion(cube);
 }
 
+void Terrain::AddRegion(csg::Region3f const& region)
+{
+   ApplyRegionToTiles(region, [](csg::Point3f const& tile_offset, csg::Region3f& tile_region, csg::Region3f& bounded_region) {
+         tile_region += bounded_region;
+      });
+}
+
 void Terrain::SubtractCube(csg::Cube3f const& cube)
 {
    SubtractRegion(cube);
 }
 
-void Terrain::AddRegion(csg::Region3f const& region)
+void Terrain::SubtractRegion(csg::Region3f const& region)
 {
-   ApplyRegionToTiles(region, [](csg::Region3f& tile, csg::Region3f& intersection) {
-         tile += intersection;
+   ApplyRegionToTiles(region, [](csg::Point3f const& tile_offset, csg::Region3f& tile_region, csg::Region3f& bounded_region) {
+         tile_region -= bounded_region;
       });
 }
 
-void Terrain::SubtractRegion(csg::Region3f const& region)
+csg::Region3f Terrain::IntersectCube(csg::Cube3f const& cube)
 {
-   ApplyRegionToTiles(region, [](csg::Region3f& tile, csg::Region3f& intersection) {
-         tile -= intersection;
+   return IntersectRegion(cube);
+}
+
+csg::Region3f Terrain::IntersectRegion(csg::Region3f const& region)
+{
+   csg::Region3f result;
+
+   ApplyRegionToTiles(region, [&result](csg::Point3f const& tile_offset, csg::Region3f& tile_region, csg::Region3f& bounded_region) {
+         csg::Region3f intersection = tile_region & bounded_region;
+         intersection.Translate(tile_offset); // move to world coordinates
+         result += intersection; // accumulate intersections over all the tiles
       });
+
+   return result;
 }
 
 void Terrain::ApplyRegionToTiles(csg::Region3f const& region, ApplyRegionToTileCb const& operation)
@@ -193,17 +211,17 @@ void Terrain::ApplyRegionToTiles(csg::Region3f const& region, ApplyRegionToTileC
 
       // get the portion of the remaining region that lies within this tile
       // the tag of the remaining_region is used for the intersection
-      csg::Region3f intersection = remaining_region & tile_bounds;
+      csg::Region3f bounded_region = remaining_region & tile_bounds;
 
-      // remove the intersection from the remaining region
-      remaining_region -= intersection;
+      // remove the bounded region from the remaining region
+      remaining_region -= bounded_region;
 
-      // translate the intersection into local coordinates of the tile
-      intersection.Translate(-tile_offset);
+      // translate the bounded region into local coordinates of the tile
+      bounded_region.Translate(-tile_offset);
 
-      // apply the intersection to the terrain tile
-      tile_region_boxed->Modify([&intersection, &operation](csg::Region3f& tile_region) {
-            operation(tile_region, intersection);
+      // apply the bounded region to the terrain tile
+      tile_region_boxed->Modify([&tile_offset, &bounded_region, &operation](csg::Region3f& tile_region) {
+            operation(tile_offset, tile_region, bounded_region);
          });
    }
 }

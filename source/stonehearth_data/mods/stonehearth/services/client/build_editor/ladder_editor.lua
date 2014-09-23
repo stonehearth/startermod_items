@@ -72,11 +72,22 @@ function LadderEditor:_update_ladder_cursor(brick, normal)
    self._climb_to = brick
    local base = Point3(brick.x, brick.y, brick.z)
 
+   if radiant.terrain.is_blocked(base) or not radiant.terrain.in_bounds(base) then
+      -- blocked can occur when a ladder is built, but the selected location hasn't changed for the next ladder
+      -- also, don't build on the edge of the world
+      return false
+   end
+
    -- keep looking down until we find stable ground
    self._ladder_height = 0
    while not radiant.terrain.is_standable(base) do
       base.y = base.y - 1
       self._ladder_height = self._ladder_height + 1
+
+      -- don't search for ground past the bottom of the world
+      if not radiant.terrain.in_bounds(base) then
+         return false
+      end
    end
    self._normal = normal
    

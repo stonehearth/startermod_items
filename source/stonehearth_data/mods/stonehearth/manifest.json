@@ -96,6 +96,8 @@
       "weaver:spindle" : "file(jobs/weaver/weaver_spindle)",
       "weaver:spindle_talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
 
+      "mining_zone" : "file(entities/terrain/mining_zone.json)",
+
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
 
@@ -339,7 +341,6 @@
       "actions:trapping:unload_backpack_dispatcher" : "file(ai/actions/trapping/unload_backpack_dispatcher.lua)",
       "actions:trapping:unload_backpack" : "file(ai/actions/trapping/unload_backpack_action.lua)",
 
-      "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:complete_workshop_construction" : "file(ai/actions/complete_workshop_construction.lua)",
       "actions:call_function" : "file(ai/actions/call_function.lua)",
@@ -474,6 +475,10 @@
 
       "actions:stockpile_arson" : "file(ai/actions/stockpile_arson_action.lua)",
       "actions:set_posture" : "file(ai/actions/set_posture_action.lua)",
+
+      "actions:mining_dispatcher" : "file(ai/actions/mining/mining_dispatcher.lua)",
+      "actions:mining:mine" : "file(ai/actions/mining/mine_action.lua)",
+      "actions:mining:mine_adjacent" : "file(ai/actions/mining/mine_adjacent_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
@@ -1066,6 +1071,7 @@
       "resource_node" : "file(components/resource_node/resource_node_component.lua)",
       "renewable_resource_node" : "file(components/renewable_resource_node/renewable_resource_node_component.lua)",
       "stockpile" : "file(components/stockpile/stockpile_component.lua)",
+      "mining_zone" : "file(components/mining_zone/mining_zone_component.lua)",
       "trapping_grounds" : "file(components/trapping/trapping_grounds_component.lua)",
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
       "pet" : "file(components/pet/pet_component.lua)",
@@ -1137,6 +1143,7 @@
       "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
+      "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
       "ladder" : "file(renderers/ladder/ladder_renderer.lua)"

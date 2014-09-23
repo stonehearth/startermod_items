@@ -6,7 +6,8 @@ import ridl.dm_types as dm
 class RegionCollisionShape(Component):
    region_collision_types = ridl.Enum('RegionCollisionShape', 'RegionCollisionTypes',
       NONE = 0,
-      SOLID = 1
+      SOLID = 1,
+      PLATFORM = 2
    )
    region_collision_type = dm.Boxed(region_collision_types)
    region = dm.Boxed(Region3fBoxedPtr(), trace='deep_region')

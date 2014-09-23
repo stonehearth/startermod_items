@@ -110,6 +110,13 @@ local function apply_options_to_entity(entity, options)
 end
 
 function env.create_entity(x, z, uri, options)
+   local location
+   if radiant.util.is_a(x, Point3) then
+      location, uri, options = x, z, uri -- shift options down...
+   else
+      location = Point3(x, 1, z)
+   end
+   
    local entity = radiant.entities.create_entity(uri)
    apply_options_to_entity(entity, options or {})
    
@@ -119,7 +126,6 @@ function env.create_entity(x, z, uri, options)
       place_options.force_iconic = options.force_iconic
    end
 
-   local location = Point3(x, 1, z)
    radiant.terrain.place_entity(entity, location, place_options)
    return entity
 end
@@ -135,6 +141,13 @@ function env.create_entity_cluster(x, y, w, h, uri, options)
 end
 
 function env.create_person(x, z, options)
+   local location
+   if radiant.util.is_a(x, Point3) then
+      location, options = x, z -- shift options down...
+   else
+      location = Point3(x, 1, z)
+   end
+
    options = options or {}
    local player_id = options.player_id or 'player_1'
 
@@ -142,18 +155,23 @@ function env.create_person(x, z, options)
    local person = pop:create_new_citizen()
    apply_options_to_entity(person, options)
 
-   local location = Point3(x, 1, z)
    radiant.terrain.place_entity(person, location)
    return person
 end
 
 function env.create_stockpile(x, z, options)
+   local location
+   if radiant.util.is_a(x, Point3) then
+      location, options = x, z -- shift options down...
+   else
+      location = Point3(x, 1, z)
+   end
+
    options = options or {}
    
    local faction = options.faction or DEFAULT_FACTION
    local size = options.size or { x = 2, y = 2}
 
-   local location = Point3(x, 1, z)
    local inventory = stonehearth.inventory:get_inventory(env.session.player_id)
 
    return inventory:create_stockpile(location, size)

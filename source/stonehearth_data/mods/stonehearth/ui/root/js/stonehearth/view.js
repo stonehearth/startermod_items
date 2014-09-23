@@ -19,8 +19,8 @@
 
       //Note: some views have no template, ignore
       if (this.templateName != null) {
-         radiant.call('radiant:send_design_event', 
-                      'ui:hide_ui:' + this.templateName);
+         // radiant.call('radiant:send_design_event', 
+         //             'ui:hide_ui:' + this.templateName);
       }
       
       // if there's an input on the view, unconditionally re-enable

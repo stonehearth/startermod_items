@@ -79,9 +79,7 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, workshop
    local crafter_component = crafter:get_component('stonehearth:crafter')
    assert(crafter_component, 'crafter has no crafter component while building workshop!')
    crafter_component:set_workshop(workshop_component)
-   workshop_component:set_crafter(crafter)
-   
-   stonehearth.analytics:send_design_event('game:place_workshop', workshop_entity)
+   workshop_component:set_crafter(crafter)   
 end
 
 return CreateWorkshop
