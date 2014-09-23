@@ -12,7 +12,7 @@ function calendar_tests.check_constants(autotest)
       start = {
          minute = 0,
          hour = 8,
-         day = 1,
+         day = 0,
          month = 1,
          year = 1000,
       },
