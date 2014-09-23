@@ -50,9 +50,9 @@ int csg::ToClosestInt(int i)
 
 int csg::ToClosestInt(float s) {
    if (s > 0) {
-      return ToInt(s + 0.5f);
+      return static_cast<int>(s + 0.5f + csg::k_epsilon);
    }
-   return ToInt(s - 0.5f);
+   return static_cast<int>(s - 0.5f - csg::k_epsilon);
 }
 
 int csg::GetChunkAddressSlow(int value, int width)
