@@ -312,7 +312,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
    int last_reported_percent = 0;
    for (i = 0; i < total_objects; i++) {
       if (!cis.ReadLittleEndian32(&size)) {
-         error = BUILD_STRING("could not read object " << i << " or " << total_objects);
+         error = BUILD_STRING("could not read object " << i << " (total objects: " << total_objects << ")");
          return false;
       }
       int percent = i * 100 / total_objects;
