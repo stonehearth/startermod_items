@@ -202,11 +202,16 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
          NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
          return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
          break;
-      default:
+      case om::RegionCollisionShape::RegionCollisionTypes::NONE:
          ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
          NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
+      case om::RegionCollisionShape::RegionCollisionTypes::PLATFORM:
+         ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
+         NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
+         return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
+   return nullptr;
 }
 
 /*

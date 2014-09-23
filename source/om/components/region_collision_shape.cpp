@@ -28,6 +28,7 @@ static void InitRegionCollisionTypesMap()
    if (regionCollisonTypesToString.empty()) {
       regionCollisonTypesToString[RegionCollisionShape::RegionCollisionTypes::NONE] = "none";
       regionCollisonTypesToString[RegionCollisionShape::RegionCollisionTypes::SOLID] = "solid";
+      regionCollisonTypesToString[RegionCollisionShape::RegionCollisionTypes::PLATFORM] = "platform";
       for (auto const& i : regionCollisonTypesToString) {
          regionCollisonTypesToEnum[i.second] = i.first;
       }
