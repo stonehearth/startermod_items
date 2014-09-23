@@ -370,7 +370,6 @@ void lua::sim::open(lua_State* L, Simulation* sim)
                .def("start",              &AStarPathFinder::Start)
                .def("destroy",            &Pathfinder_Destroy<AStarPathFinder>)
                .def("restart",            &AStarPathFinder::RestartSearch)
-               .def("describe_progress",  &AStarPathFinder::DescribeProgress)
             ,
             lua::RegisterTypePtr_NoTypeInfo<BfsPathFinder>("BfsPathFinder")
                .def("get_id",             &BfsPathFinder::GetId)

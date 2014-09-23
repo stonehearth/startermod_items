@@ -19,6 +19,7 @@ function FindPathToEntity:start_thinking(ai, entity, args)
    local on_success = function (path)
       ai:get_log():info('found solution: %s', path)
       ai:set_think_output({ path = path })
+      return true
    end
 
    self._pathfinder = entity:add_component('stonehearth:pathfinder')

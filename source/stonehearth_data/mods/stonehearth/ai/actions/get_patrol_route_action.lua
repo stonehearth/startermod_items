@@ -114,7 +114,6 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
       radiant.entities.move_to(self._proxy_entity, finish)
       self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
                                           :find_path_to_entity(start, self._proxy_entity, on_success)
-      self._pathfinder:start()
    end
 
    -- find the first path segment in the chain

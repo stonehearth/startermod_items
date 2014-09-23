@@ -1,4 +1,3 @@
-local PatrolHelpers = require 'ai.lib.optimized_pathfinder'
 local Point3 = _radiant.csg.Point3
 
 local PatrolHelpers = class()

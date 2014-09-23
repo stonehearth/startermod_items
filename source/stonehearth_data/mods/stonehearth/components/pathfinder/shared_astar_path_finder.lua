@@ -84,10 +84,10 @@ end
 function SharedAStarPathFinder:_start_pathfinder()
    if not self._pathfinder then
       self._log:info("starting astar pathfinder from %s", self._start_location)   
-      self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, 'shared astar')
+      self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, string.format('shared astar from %s', self._start_location))
                            :set_source(self._start_location)
                            :set_solved_cb(function(path)
-                                 self:_on_solved(path)
+                                 return self:_on_solved(path)
                               end)
                            :start()
                            
@@ -113,7 +113,7 @@ function SharedAStarPathFinder:_on_solved(path)
       if solved_cbs[cb] then
          local finished = cb(path)
          if finished then
-            self:remove_destination(dst, cb)
+            self:remove_destination(id, cb)
          end
       end
    end

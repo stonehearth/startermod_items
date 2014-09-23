@@ -52,7 +52,6 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       float EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
-      std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;
@@ -108,6 +107,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
    
       core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode>   open_;
+      csg::Cube3                    closedBounds_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         closed_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
