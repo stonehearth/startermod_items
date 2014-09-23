@@ -101,8 +101,14 @@
          ]
       },
       "stonehearth:job" : {
-         "total_lv" : 1,
-         "hp_per_lv" : 10
+         "starting_level" : 0,
+         "starting_level_title" : "Apprentice ",
+         "xp_equation_for_next_level" : "next_level ^ 2 * 100", 
+         "levels_between_attribute_increase" : 10, 
+         "level_data" : {
+            "general_description_desc" : "Max HP increased!",
+            "attribute_up_desc" : "All attributes increased!" 
+         }
       },
       "stonehearth:attributes" : {
          "mind": {
@@ -216,7 +222,7 @@
          },
          "max_health": {
             "type" : "derived", 
-            "equation" : "stamina + willpower + diligence"
+            "equation" : "total_level * 10 + stamina + willpower + diligence"
          },
 		   "health": {
             "type" : "variable", 
@@ -230,6 +236,10 @@
             "type" : "random_range", 
             "base" :  4,
             "max"  :  8
+         }, 
+         "total_level" : {
+            "type" : "basic", 
+            "value" : 0
          }
       },
       "stonehearth:material" : {

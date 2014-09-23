@@ -7,15 +7,22 @@ local JobComponent = class()
 
 function JobComponent:initialize(entity, json)
    self._entity = entity
+   self._attributes_component = entity:add_component('stonehearth:attributes')
+
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
       self._sv._initialized = true
-      self._sv.total_level = 1
       self._sv.job_controllers = {}
-      if json and json.total_lv then
-         self._sv.total_level = json.total_level
+      if json and json.starting_level then
+         self._attributes_component:set_attribute('total_level', json.starting_level)
       end
+      if json and json.xp_equation_for_next_level then
+         self._sv.xp_equation = json.xp_equation_for_next_level
+      end
+
+      --@ start and whenever you level up, calculate the XP you need to next level
+      self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    end
 
    if self._sv.job_uri then
@@ -64,17 +71,12 @@ function JobComponent:promote_to(job_uri)
    if self._job_json then
       self:demote()
       self._sv.job_uri = job_uri
+      self._sv.curr_job_name = self._job_json.name
       self._sv.talisman_uri = self._job_json.talisman_uri
       
       --Whenever you get a new job, dump all the xp that you've accured so far to your next level
       self._sv.current_level_exp = 0
-      
-      if self._job_json.levels ~= nil then
-         self._sv.total_level_exp = self._job_json.levels[1].total_level_exp
-      else 
-         self._sv.total_level_exp = -1
-      end
-      
+
       self:_set_unit_info(self._job_json)
       self:_equip_outfit(self._job_json)
       self._sv._default_stance = self._job_json.default_stance
@@ -89,6 +91,7 @@ function JobComponent:promote_to(job_uri)
       self._sv._curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
       self._sv._curr_job_controller:promote(self._job_json, self._sv.talisman_uri)
       
+      --Add self to task groups
       if self._job_json.task_groups then
          self:_add_to_task_groups(self._job_json.task_groups)
       end
@@ -116,32 +119,52 @@ function JobComponent:demote()
    self.__saved_variables:mark_changed()
 end
 
---TODO: Call this from the job scripts
--- sanitize level up 
--- add level xp req. to the jobs
--- is XP per level really a class thing? Really, shouldn't it be harder to level up as you get higher level?
--- do like D&D if you want to limit class switching, do like Bravely Default if you want to encourage it
+-- Called from the job scripts
+-- When XP exceeds XP to next level, call level up
+-- If you gain a TON of XP, call level up an appropriate # of times
+-- If there is leftover XP after the level(s), that should be the new amount of XP
+-- that is stored in self._sv.current_level_exp
 function JobComponent:add_exp(value)
-   self._sv.current_level_exp = self._sv.current_level_exp + value
+    self._sv.current_level_exp = self._sv.current_level_exp + value
+   local original_level = self._attributes_component:get_attribute('total_level')
 
-   while self._sv.current_level_exp > self._sv.total_level_exp do
-      self._sv.level = self._sv.current_level_exp + 1
-      self._sv.total_level = self._sv.total_level + 1
-
-      self._sv.current_level_exp = self._sv.current_level_exp - self._sv.total_level_exp
-
-      self:_call_job_script('level_up')
-
-      -- we've leveled up, increment the exp to next level
-      self._sv.total_level_exp = self._job_json.levels[self._sv.level].total_level_exp
+   while self._sv.current_level_exp >= self._sv.xp_to_next_lv do
+      self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
+      self:_level_up()
    end
 
    self.__saved_variables:mark_changed()   
 end
 
---TODO: nobody is calling this right now
-function JobComponent:level_up()
+-- Called by add_exp. Calls the profession-specific job controller to tell it to level up
+function JobComponent:_level_up()
+   --Change all the attributes to the new level
+   --Should the general HP increase (class independent) be reflected as a permanent buff or a quiet stat increase?
+   local curr_level = self._attributes_component:get_attribute('total_level')
+   self._attributes_component:set_attribute('total_level', curr_level + 1)
+   
+   --Add all the universal level dependent buffs/bonuses, etc
 
+   self._sv._curr_job_controller:level_up()
+
+   --TODO: localize, decide how we want to announce this
+   --TODO: update UI/char sheet, etc
+   --TODO: have this affect happiness!
+   radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
+   local name = radiant.entities.get_display_name(self._entity)
+   stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')
+
+
+   self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
+   self.__saved_variables:mark_changed()   
+end
+
+-- Calculate the exp requried to get to the level after this one. 
+function JobComponent:_calculate_xp_to_next_lv()
+   local next_level = self._attributes_component:get_attribute('total_level') + 1
+   local equation = string.gsub(self._sv.xp_equation, 'next_level', next_level)
+   local fn = loadstring('return ' .. equation)
+   return fn()
 end
 
 --- Adds this person to a set of task groups

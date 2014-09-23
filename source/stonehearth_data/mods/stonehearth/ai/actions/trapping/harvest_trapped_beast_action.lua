@@ -16,11 +16,13 @@ function HarvestTrappedBeast:run(ai, entity, args)
 
    local trap_component = args.trap:add_component('stonehearth:bait_trap')
    local trapped_entity = trap_component:get_trapped_entity()
+   local trapped_entity_id = nil
 
    ai:execute('stonehearth:turn_to_face_entity', { entity = args.trap })
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
    if trapped_entity and trapped_entity:is_valid() then
+      trapped_entity_id = trapped_entity:get_id()
       self:_gib_target(trapped_entity)
       self:_spawn_loot(trapped_entity)
       radiant.entities.destroy_entity(trapped_entity)
@@ -29,6 +31,8 @@ function HarvestTrappedBeast:run(ai, entity, args)
 
    ai:unprotect_entity(args.trap)
    radiant.entities.destroy_entity(args.trap)
+
+   radiant.events.trigger_async(entity, 'stonehearth:clear_trap', {trapped_entity_id = trapped_entity_id})
 end
 
 function HarvestTrappedBeast:_gib_target(target)

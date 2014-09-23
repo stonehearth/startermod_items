@@ -86,7 +86,7 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Name: stonehearth:kill_event
       - Args: none
       - Note: this is a synchronous event, so don't do anything crazy in the event handlers listening to it. On the flip side, you know the entity still exists. Please only use if you are a component on the entity and need to clean up after yourself. Otherwise, really complicated things can happen when a sync event goes off. 
-   - **entity_killed** - triggered when an entity of significance (a villager, an enemy) dies
+   - **entity_killed** - triggered when an entity of significance (a villager, an enemy) dies due to in-game causes. Like kill_event but is async, and should be used in preference to kill_event UNLESS you are a component or object related to the entity that must clean yourself up on its removal from the game. 
       - Key: radiant.entities 
       - Name: stonehearth:combat:entity_killed
       - Args: entity - the name, id, faction, and player_id of the entity that died
@@ -97,10 +97,21 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
    
    - **sleep\_in\_bed** - triggered whenever we get up from sleeping in a bed, passes in entity that was sleeping
       - Key: entity that was sleeping
-      - Name: stonehearth:sleep_in_bed
+      - Name: stonehearth:sleep\_in\_bed
       - Args: none
 
    - **sleep\_on\_ground** - triggered when we get up from sleeping on the ground
       - Key: entity that was sleeping
-      - Name: stonehearth:sleep_on_ground
+      - Name: stonehearth:sleep\_on\_ground
       - Args: none
+
+##Gathering
+
+   - **clear\_trap** - triggered whenever a trapper clears a set trap, passes in id of trapped entity
+      - Key: The trapper
+      - Name: stonehearth:clear\_trap
+      - Args: trapped_entity_id - the id of the entity that was trapped, nil if none
+   - **befriend\_pet** - triggered whenever a trapper makes a pet friend
+      - Key: The trapper
+      - Name: stonehearth:befriend\_pet
+      - Args: pet_id - the id of the pet, nil if none
