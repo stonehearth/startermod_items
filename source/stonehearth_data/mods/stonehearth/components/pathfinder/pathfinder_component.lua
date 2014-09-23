@@ -1,4 +1,5 @@
 local SharedBfsPathFinder = require 'components.pathfinder.shared_bfs_path_finder'
+local SharedAStarPathFinder = require 'components.pathfinder.shared_astar_path_finder'
 local FilterResultCache = _radiant.sim.FilterResultCache
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -11,8 +12,28 @@ local FILTER_RESULT_CACHES = {}
 --
 function PathFinder:initialize(entity, json)
    self._entity = entity
-   self._pathfinders = {}
+   self._bfs_pathfinders = {}
+   self._astar_pathfinders = {}
    self._filter_caches = {}
+end
+
+-- find a path from `location` to `item`, calling `solved_cb` when finished.
+--
+function PathFinder:find_path_to_entity(location, item, solved_cb)
+   local pfkey = string.format('%s', tostring(location))
+   local pf = self._astar_pathfinders[pfkey]
+   if not pf then
+      pf = SharedAStarPathFinder(self._entity, location, function()
+               self._astar_pathfinders[pfkey] = nil
+            end)
+      self._astar_pathfinders[pfkey] = pf
+   end
+
+   local id = item:get_id()
+   pf:add_destination(item, solved_cb)
+   return radiant.lib.Destructor(function()
+         return pf:remove_destination(id, solved_cb)
+      end)
 end
 
 -- find a path from `location` to any item which matches the `filter_fn`.  All callers
@@ -29,7 +50,7 @@ end
 --    @param filter_fn - the filter to determine which items qualify as destinations
 --    @param on_destroy_cb - the callback to call when the last solved cb has been removed
 --
-function PathFinder:find_path_to_item_type(location, filter_fn, description, solved_cb)
+function PathFinder:find_path_to_entity_type(location, filter_fn, description, solved_cb)
    -- create a filter cache base on the filter function.  multiple pathfinders from different
    -- entity sources and different locations and *all* share the same filter cache!!!
    local filter_result_cache = FILTER_RESULT_CACHES[filter_fn]
@@ -45,16 +66,15 @@ function PathFinder:find_path_to_item_type(location, filter_fn, description, sol
    -- now find a shared pathfinder which wants to search from this location using this
    -- filter function and add the `solved_cb` to it.
    local pfkey = string.format('%s : %s', tostring(location), tostring(filter_fn))
-   local pf = self._pathfinders[pfkey]
+   local pf = self._bfs_pathfinders[pfkey]
    if not pf then
       pf = SharedBfsPathFinder(self._entity, location, filter_result_cache, function()
-            self._pathfinders[pfkey] = nil
-         end)
+               self._bfs_pathfinders[pfkey] = nil
+            end)
       pf:set_description(description)      
-      self._pathfinders[pfkey] = pf
+      self._bfs_pathfinders[pfkey] = pf
    end
    assert(pf:get_description() == description)
-   self.__saved_variables:mark_changed()
 
    pf:add_solved_cb(solved_cb)
    return radiant.lib.Destructor(function()

@@ -40,10 +40,10 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    -- for each action in the tree, they'll all share the one managed by the
    -- 'stonehearth:pathfinder' component.  this is a massive performance boost.
    self._pathfinder = entity:add_component('stonehearth:pathfinder')
-                                 :find_path_to_item_type(ai.CURRENT.location, -- where to search from?
-                                                         args.filter_fn,      -- the actual filter function
-                                                         self._description,    -- for those of us in meat space
-                                                         solved)              -- our solved callback
+                                 :find_path_to_entity_type(ai.CURRENT.location, -- where to search from?
+                                                           args.filter_fn,      -- the actual filter function
+                                                           self._description,    -- for those of us in meat space
+                                                           solved)              -- our solved callback
 end
 
 function FindPathToEntityType:stop_thinking(ai, entity, args)

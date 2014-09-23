@@ -853,7 +853,7 @@ function ExecutionUnitV2:_create_object_monitor()
    assert(self._state == THINKING)
 
    if self._action.unprotected_args then
-      self._log:info('by protecting entities on action\'s request')
+      self._log:info('not protecting entities on action\'s request')
       return ObjectMonitor(self._log)
    end
    

@@ -39,6 +39,7 @@ function MicroWorld:create_world()
    local half_size = self._size / 2
 
    local region3 = Region3()
+   region3:add_cube(Cube3(Point3(0, -2, 0), Point3(self._size, 0, self._size), Terrain.BEDROCK))
    region3:add_cube(Cube3(Point3(0, 0, 0), Point3(self._size, 9, self._size), Terrain.SOIL_DARK))
    region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), Terrain.GRASS))
 

@@ -1,5 +1,4 @@
 local PatrolHelpers = require 'ai.actions.patrol_helpers'
-local OptimizedPathfinder = require 'ai.lib.optimized_pathfinder'
 local Point3 = _radiant.csg.Point3
 local Path = _radiant.sim.Path
 local log = radiant.log.create_logger('town_patrol')
@@ -39,7 +38,7 @@ function GetPatrolPoint:stop_thinking(ai, entity, args)
    end
 
    if self._pathfinder then
-      self._pathfinder:stop()
+      self._pathfinder:destroy()
       self._pathfinder = nil
    end
 
@@ -94,10 +93,6 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    -- doesn't matter where it we place it, we'll move it later
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)
 
-   local on_failure = function (message)
-      log:info(message)
-   end
-
    local on_success = function (path)
       -- record the solved path segment
       table.insert(paths, path)
@@ -117,9 +112,8 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
 
    find_next_path = function (start, finish)
       radiant.entities.move_to(self._proxy_entity, finish)
-      self._pathfinder = OptimizedPathfinder(log, self._entity, self._proxy_entity, on_success, on_failure)
-      self._pathfinder:set_start_location(start)
-      self._pathfinder:start()
+      self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
+                                          :find_path_to_entity(start, self._proxy_entity, on_success)
    end
 
    -- find the first path segment in the chain
