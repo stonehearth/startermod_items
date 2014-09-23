@@ -867,7 +867,8 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
-   return GridTileResident(index).IsSupport(offset);
+   bool isSupport = GridTileResident(index).IsSupport(offset);
+   return isSupport;
 }
 
 /*
@@ -895,7 +896,10 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    if (!bounds_.Contains(worldPoint)) {
       return false;
    }
-   return !IsBlocked(worldPoint) && IsSupported(worldPoint);
+   // allow debug builds to inspect variables before returning
+   bool blocked = IsBlocked(worldPoint);
+   bool supported = IsSupported(worldPoint);
+   return !blocked && supported;
 }
 
 /*
