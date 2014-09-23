@@ -53,7 +53,7 @@ void SendQueue::Push(google::protobuf::MessageLite const& msg)
          buffer = _freelist.top();
          _freelist.pop();
       } else {
-         NETWORK_LOG(7) << _endpoint << " allocating new send buffer";
+         NETWORK_LOG(2) << _endpoint << " allocating new send buffer (total: " << _queue.size() << ")";
          buffer = std::make_shared<Buffer>();
       }
       buffer->size = 0;
