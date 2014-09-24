@@ -6,42 +6,6 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-struct EdgePointX;
-struct EdgeX;
-struct EdgeList;
-typedef std::shared_ptr<EdgePointX> EdgePointPtr;
-typedef std::shared_ptr<EdgeX> EdgePtr;
-typedef std::shared_ptr<EdgeList> EdgeListPtr;
-
-// A point at the endge of an edge.  Shared by all edges in the edge list.
-struct EdgePointX : public csg::Point2 {
-   EdgePointX() { }
-   EdgePointX(int x, int y, csg::Point2 const& n) : csg::Point2(x, y), normals(n) { }
-
-   csg::Point2 normals;  // the accumulated normals of all edges
-};
-
-struct EdgeX {
-   EdgePointPtr   start;
-   EdgePointPtr   end;
-   csg::Point2    normal;
-
-   EdgeX(EdgePointPtr s, EdgePointPtr e, csg::Point2 const& n);
-};
-
-struct EdgeList {
-   std::vector<EdgePointPtr>  points;
-   std::vector<EdgePtr>       edges;
-
-   void Inset(int dist);
-   void Grow(int dist);
-   void Fragment();
-   void AddEdge(csg::Point2 const& start, csg::Point2 const& end, csg::Point2 const& normal);
-
-private:
-   EdgePointPtr GetPoint(csg::Point2 const& pt, csg::Point2 const& normal);
-};
-
 // Slow versions which resort to std::floor().  ew!
 int GetChunkAddressSlow(int value, int chunk_width);
 int GetChunkIndexSlow(int value, int chunk_width);
@@ -50,6 +14,7 @@ Point3 GetChunkIndexSlow(Point3 const& value, int chunk_width);
 void GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset);
 Cube3 GetChunkIndexSlow(Cube3 const& value, int chunk_width);
 bool PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool(Point3 const& index, Cube3 const& cube)> const& cb);
+bool PartitionRegionIntoChunksSlow(Region3 const& region, int width, std::function<bool(Point3 const& index, Region3 const& r)> cb);
 
 // Fast versions which use templates.  Prefer these when the size is known at compile time, especially when using power of 2 
 // widths.
@@ -65,8 +30,6 @@ template <typename Region> Region GetAdjacent(Region const& r, bool allow_diagon
 
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
 void HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r);
-EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
-csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
 int RoundTowardNegativeInfinity(int i, int tile_size);
 int GetTileOffset(int position, int tile_size);
 bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
@@ -122,10 +85,6 @@ template <typename S> static inline bool IsBetween(Point<S, 3> const& a, Point<S
           IsBetween(a.y, b.y, c.y) &&
           IsBetween(a.z, b.z, c.z);
 }
-
-std::ostream& operator<<(std::ostream& os, EdgePointX const& f);
-std::ostream& operator<<(std::ostream& os, EdgeX const& f);
-std::ostream& operator<<(std::ostream& os, EdgeList const& f);
 
 template <int C>
 struct ToClosestIntTransform {

@@ -42,10 +42,10 @@ function MicroWorld:create_world()
    region3:add_cube(Cube3(Point3(0, -2, 0), Point3(self._size, 0, self._size), Terrain.BEDROCK))
    region3:add_cube(Cube3(Point3(0, 0, 0), Point3(self._size, 9, self._size), Terrain.SOIL_DARK))
    region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), Terrain.GRASS))
+   region3 = region3:translated(Point3(-half_size, 0, -half_size))
 
-   local terrain = radiant._root_entity:add_component('terrain')
-   terrain:set_tile_size(self._size)
-   terrain:add_tile(Point3(-half_size, 0, -half_size), region3)
+   radiant._root_entity:add_component('terrain')
+                           :add_tile(region3)
 end
 
 function MicroWorld:at(time, fn)

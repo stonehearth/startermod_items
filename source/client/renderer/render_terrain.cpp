@@ -27,7 +27,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       InitalizeColorMap();
    }
 
-   auto on_add_tile = [this](csg::Point3f key, om::Region3fBoxedPtr const& region) {
+   auto on_add_tile = [this](csg::Point3 key, om::Region3BoxedPtr const& region) {
       csg::Point3 location  = csg::ToClosestInt(key);
       RenderTilePtr render_tile;
       if (region) {
@@ -55,8 +55,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
    tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
                               ->OnAdded(on_add_tile)
-                              ->OnRemoved([this](csg::Point3f const& location) {
-                                 tiles_.erase(csg::ToClosestInt(location));
+                              ->OnRemoved([this](csg::Point3 const& location) {
+                                 tiles_.erase(location);
                               })
                               ->PushObjectState();
 }
@@ -99,19 +99,18 @@ void RenderTerrain::AddDirtyTile(RenderTileRef tile)
 
 void RenderTerrain::UpdateRenderRegion(RenderTilePtr render_tile)
 {
-   om::Region3fBoxedPtr region_ptr = render_tile->region.lock();
+   om::Region3BoxedPtr region_ptr = render_tile->region.lock();
 
    if (region_ptr) {
       ASSERT(render_tile);
-      csg::Region3 region = csg::ToInt(region_ptr->Get());
+      csg::Region3 const& region = region_ptr->Get();
       csg::mesh_tools::mesh mesh;
       mesh = csg::mesh_tools().SetColorMap(colorMap_)
                               .ConvertRegionToMesh(region);
    
       RenderNodePtr node = RenderNode::CreateCsgMeshNode(terrain_root_node_.get(), mesh)
                               ->SetMaterial("materials/terrain.material.xml")
-                              ->SetUserFlags(UserFlags::Terrain)
-                              ->SetTransform(csg::ToFloat(render_tile->location), csg::Point3f::zero, csg::Point3f::one);
+                              ->SetUserFlags(UserFlags::Terrain);
 
       render_tile->SetNode(node);
    }

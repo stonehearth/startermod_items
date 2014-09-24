@@ -20,6 +20,7 @@ template <typename S, int C>
 class Edge
 {
 public:
+   Edge() : min(nullptr), max(nullptr), normal(Point<S, C>::zero) { }
    Edge(EdgePoint<S, C> const* a, EdgePoint<S, C> const* b, Point<S, C> const& n) : min(a), max(b), normal(n) { }
 
 public:
@@ -126,8 +127,10 @@ public:
       }
    }
 
-   typename std::vector<Edge<S, C>>::const_iterator begin() { return edges.begin(); }
-   typename std::vector<Edge<S, C>>::const_iterator end() { return edges.end(); }
+   typename std::vector<Edge<S, C>>::iterator begin() { return edges.begin(); }
+   typename std::vector<Edge<S, C>>::iterator end() { return edges.end(); }
+   typename std::vector<Edge<S, C>>::const_iterator begin() const { return edges.begin(); }
+   typename std::vector<Edge<S, C>>::const_iterator end() const { return edges.end(); }
 
    bool FindEdgePoint(Point<S, C> const& pt, EdgePoint<S, C>** edge_point) {
       for (EdgePoint<S, C>* ep : points) {
@@ -160,6 +163,10 @@ public:
 
    std::vector<Edge<S, C>> const& GetEdges() const { return edges; }
    std::vector<EdgePoint<S, C>*> const& GetPoints() const { return points; }
+
+   // Non-const versions.  Better know what you're doing!!
+   std::vector<Edge<S, C>>& GetEdges() { return edges; }
+   std::vector<EdgePoint<S, C>*>& GetPoints() { return points; }
 
 private:
    EdgePoint<S, C>* AddPoint(Point<S, C> const& p, Point<S, C> const& normal) {
