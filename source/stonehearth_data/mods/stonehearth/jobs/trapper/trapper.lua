@@ -4,6 +4,7 @@ function TrapperClass:initialize(entity)
    self._sv._entity = entity
    self._sv.last_gained_lv = 0
    self._sv.is_current_class = false
+   self._sv.job_data = nil
 
    self:restore()
 end
@@ -16,19 +17,40 @@ function TrapperClass:restore()
    if self._sv.is_current_class then
       self:_create_xp_listeners()
    end
+
+   self.__saved_variables:mark_changed()
 end
 
 function TrapperClass:promote(json)
    self._sv.is_current_class = true
+   self._sv.job_data = json
+   self._sv.job_name = json.name
 
-   if json and json.xp_rewards then
+   if json.xp_rewards then
       self._sv.xp_rewards = json.xp_rewards
    end
-   if json and json.level_data then
+   if json.level_data then
       self._sv.level_data = json.level_data
    end
 
    self:_create_xp_listeners()
+   self.__saved_variables:mark_changed()
+end
+
+-- If there is a job title for this level, return it. 
+function TrapperClass:get_job_title()
+   local lv_data = self._sv.level_data[tostring(self._sv.last_gained_lv)]
+   if not lv_data then return nil end
+
+   if lv_data and lv_data.title then
+      return lv_data.title
+   end
+
+   return nil
+end
+
+function TrapperClass:get_job_level()
+   return self._sv.last_gained_lv
 end
 
 function TrapperClass:_create_xp_listeners()
@@ -76,8 +98,6 @@ function TrapperClass:level_up()
       return
    end
 
-   --TODO: Change the title if there is a new title
-
    --Apply each perk (there probably is only one)
    local perk_descriptions = {}
    for i, perk_data in ipairs(job_updates_for_level.perks) do
@@ -91,11 +111,13 @@ function TrapperClass:level_up()
 
    local level_data = {
       new_level = self._sv.last_gained_lv, 
+      job_name = self._sv.job_name,
       descriptions = perk_descriptions
    }
 
+   self.__saved_variables:mark_changed()
+   
    return level_data
-
 end
 
 -- Add the buff described in the buff_name
@@ -112,6 +134,8 @@ end
 function TrapperClass:demote()
    self:_remove_xp_listeners()
    self._sv.is_current_class = false
+
+   self.__saved_variables:mark_changed()
 end
 
 return TrapperClass

@@ -14,14 +14,27 @@ function JobComponent:initialize(entity, json)
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv.job_controllers = {}
-      if json and json.starting_level then
-         self._attributes_component:set_attribute('total_level', json.starting_level)
+      local starting_level = 0
+      if json.starting_level then
+         starting_level = json.starting_level
       end
-      if json and json.xp_equation_for_next_level then
+      self._attributes_component:set_attribute('total_level', starting_level)
+
+      if json.xp_equation_for_next_level then
          self._sv.xp_equation = json.xp_equation_for_next_level
+      end
+      if json.default_level_announcement then
+         self._sv._default_level_announcement = json.default_level_announcement
+      end
+      if json.starting_level_title then
+         self._sv._starting_level_title = json.starting_level_title
+      end
+      if json.default_level_title then
+         self._sv._default_level_title = json.default_level_title
       end
 
       --@ start and whenever you level up, calculate the XP you need to next level
+      self._sv.current_level_exp = 0
       self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    end
 
@@ -66,14 +79,43 @@ function JobComponent:get_roles()
    return self._job_json.roles or ''
 end
 
+-- Figure out the job title for the current job (level + job name)
+function JobComponent:_get_current_job_title(job_json)
+   local new_title = nil
+   if self._sv.curr_job_controller.get_job_title then
+      new_title = self._sv.curr_job_controller:get_job_title()
+   end
+   if not new_title then
+      new_title = self:_compose_default_job_name(
+         job_json,
+         self._sv.curr_job_controller:get_job_level(), 
+         job_json.name)
+   end
+   return new_title
+end
+
+-- Composes the detailed job title if none is provided by the class. 
+function JobComponent:_compose_default_job_name(job_json, level, job_name)
+   if level == 0 then
+      local apprentice_string = self._sv._starting_level_title
+      apprentice_string = string.gsub(apprentice_string, '__job_name__', job_name)
+      return apprentice_string
+   else
+      local full_name_string = self._sv._default_level_title
+      full_name_string = string.gsub(full_name_string, '__level_number__', level)
+      full_name_string = string.gsub(full_name_string, '__job_name__', job_name)
+      return full_name_string
+   end
+end
+
 function JobComponent:promote_to(job_uri)
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
       self:demote()
       self._sv.job_uri = job_uri
-      self._sv.curr_job_name = self._job_json.name
       self._sv.talisman_uri = self._job_json.talisman_uri
-      
+      self._sv.class_icon = self._job_json.icon
+
       --Whenever you get a new job, dump all the xp that you've accured so far to your next level
       self._sv.current_level_exp = 0
 
@@ -88,9 +130,10 @@ function JobComponent:promote_to(job_uri)
          self._sv.job_controllers[self._sv.job_uri] = 
             radiant.create_controller(self._job_json.controller, self._entity)
       end
-      self._sv._curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
-      self._sv._curr_job_controller:promote(self._job_json, self._sv.talisman_uri)
-      
+      self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
+      self._sv.curr_job_controller:promote(self._job_json, self._sv.talisman_uri)
+      self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
+
       --Add self to task groups
       if self._job_json.task_groups then
          self:_add_to_task_groups(self._job_json.task_groups)
@@ -104,9 +147,9 @@ end
 function JobComponent:demote()
    self:_remove_outfit()
 
-   if self._sv._curr_job_controller then
-      self._sv._curr_job_controller:demote()
-      self._sv._curr_job_controller = nil
+   if self._sv.curr_job_controller then
+      self._sv.curr_job_controller:demote()
+      self._sv.curr_job_controller = nil
    end
 
    self._sv._default_stance = 'passive'
@@ -145,12 +188,17 @@ function JobComponent:_level_up()
    
    --Add all the universal level dependent buffs/bonuses, etc
 
-   local optional_description = self._sv._curr_job_controller:level_up()
+   local optional_description = self._sv.curr_job_controller:level_up()
+   self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
+
 
    if optional_description then
       local player_id = radiant.entities.get_player_id(self._entity)
       local name = radiant.entities.get_display_name(self._entity)
-      local title = name .. ' has Achieved ' .. self._sv.curr_job_name .. ' Level ' .. optional_description.new_level .. '!'
+      local title = self._sv._default_level_announcement
+      title = string.gsub(title, '__name__', name)
+      title = string.gsub(title, '__job_name__', optional_description.job_name)
+      title = string.gsub(title, '__level_number__', optional_description.new_level)
       
       stonehearth.bulletin_board:post_bulletin(player_id)
          :set_callback_instance(self)
@@ -169,7 +217,6 @@ function JobComponent:_level_up()
    --TODO: localize, decide how we want to announce this
    --TODO: update UI/char sheet, etc
    --TODO: have this affect happiness!
-   --TODO: change to congrats popup -> notification
    --radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
    --local name = radiant.entities.get_display_name(self._entity)
    --stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')

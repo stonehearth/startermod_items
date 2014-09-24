@@ -36,6 +36,7 @@
    "level_data" : {
       "1" : {
          "title" : "Journeyman Trapper",
+         "icon" : "file(images/trapperLevel1.png)", 
          "perks" : [
             {
                "type" : "apply_buff", 
@@ -46,6 +47,7 @@
          ]
       },
       "2" : {
+         "icon" : "file(images/trapperLevel2.png)", 
          "perks" : [
             {
                "type" : "increase_backpack_size",

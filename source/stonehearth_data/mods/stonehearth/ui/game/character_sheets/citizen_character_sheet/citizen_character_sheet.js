@@ -18,14 +18,26 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       },
       'stonehearth:attributes' : {},
       'stonehearth:personality' : {},
-      'stonehearth:score' : {}
+      'stonehearth:score' : {}, 
+      'stonehearth:job' : {
+         'curr_job_controller' : {},
+         'job_controllers' : {
+            '*' : {}
+         }
+      }
    },
 
+   //currJobIcon: '', // /stonehearth/jobs/trapper/images/icon.png',
 
    init: function() {
       this._super();
       this.set('equipment', {});
    },
+
+   _updateJobData : function() {
+      this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
+      this._updateAttributes();
+   }.observes('context.stonehearth:job'),
 
    _setFirstJournalEntry: function() {
       var log = this.get('context.stonehearth:personality.log');
@@ -90,7 +102,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
     }.observes('context.stonehearth:equipment.equipped_items'),
 
    _setAttributeData: function() {
-      this._updateAttributes();
+      //this._updateAttributes();
+      Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
    }.observes('context.stonehearth:attributes, context.stonehearth:buffs'),
 
    _updateAttributes: function() {
@@ -98,6 +111,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var buffsByAttribute = this._sortBuffsByAttribute();
 
       if (!self.$()) {
+         //Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
          return;
       }
 
@@ -111,9 +125,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       var healthPercent = Math.floor(self.get('context.stonehearth:attributes.attributes.health.effective_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.effective_value'))
       var moralePercent = Math.floor(self.get('context.stonehearth:score.scores.happiness.score'));
+      var expPercent = Math.floor(self.get('context.stonehearth:job.current_level_exp') * 100 / self.get('context.stonehearth:job.xp_to_next_lv'))
       //self.$('.healthBar').width(healthPercent + '%');
       self.$('.healthBar').width(healthPercent + '%');
       self.$('.moraleBar').width(moralePercent + '%');
+      self.$('.expBar').width(expPercent + '%');
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute

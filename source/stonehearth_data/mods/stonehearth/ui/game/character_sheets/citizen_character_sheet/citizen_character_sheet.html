@@ -8,7 +8,12 @@
 
          <div id="header">
             <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} />
-            <div id="description">{{unit_info.description}}</div>
+            <div id="description"> 
+               <img class = "classIconImg" {{bind-attr src=view.currJobIcon}}/>
+               <span class = "classNameLvlDesc">
+                  {{stonehearth:job.curr_job_name}}
+               </span>
+            </div>
 
             <div id="stats">
 
@@ -35,7 +40,7 @@
                   <div class="label">experience</div>
                   <div class="bar">
                      <div class="expBar" />
-                     <div class="value">100 / 100</div>
+                     <div class="value">{{stonehearth:job.current_level_exp}} / {{stonehearth:job.xp_to_next_lv}}</div>
                   </div>
                </div>
             </div>
