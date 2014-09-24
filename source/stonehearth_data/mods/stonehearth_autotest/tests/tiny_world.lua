@@ -13,7 +13,7 @@ function create_world(environment)
 
    local terrain = radiant._root_entity:add_component('terrain')
    local offset = Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2)
-   terrain:add_tile(region3:transalted(offset))
+   terrain:add_tile(region3:translated(offset))
 end
 
 return create_world
