@@ -20,6 +20,7 @@ template <typename S, int C>
 class Edge
 {
 public:
+   Edge() : min(nullptr), max(nullptr), normal(Point<S, C>::zero) { }
    Edge(EdgePoint<S, C> const* a, EdgePoint<S, C> const* b, Point<S, C> const& n) : min(a), max(b), normal(n) { }
 
 public:

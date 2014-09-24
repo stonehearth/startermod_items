@@ -148,6 +148,17 @@ template<> inline void csg::GetChunkIndex<64>(int value, int& index, int& offset
    offset = value & 63;
 }
 
+template<> inline int csg::GetChunkIndex<128>(int value)
+{
+   return value >> 7;
+}
+
+template<> inline void csg::GetChunkIndex<128>(int value, int& index, int& offset)
+{
+   index = value >> 7;
+   offset = value & 127;
+}
+
 // Now the rest...
 template <int S> 
 inline int csg::GetChunkAddress(int value)
@@ -361,6 +372,7 @@ bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& d
 MAKE_CHUNK_TEMPLATES(16)
 MAKE_CHUNK_TEMPLATES(32)
 MAKE_CHUNK_TEMPLATES(64)
+MAKE_CHUNK_TEMPLATES(128)
 
 template Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals);
 template Region3f csg::GetAdjacent(Region3f const& r, bool allow_diagonals);

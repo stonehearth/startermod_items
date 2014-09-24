@@ -16,7 +16,6 @@ function HeightMapRenderer:__init(terrain_info)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
    self._terrain = radiant._root_entity:add_component('terrain')
-   self._terrain:set_tile_size(self._tile_size)
 
    -- rock layers
    local mountains_info = self._terrain_info[TerrainType.mountains]
