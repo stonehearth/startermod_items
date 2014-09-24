@@ -1,6 +1,7 @@
 #include "crash_reporter_client.h"
 #include "radiant_macros.h"
 #include "core/process.h"
+#include "platform/sysinfo.h"
 #include "build_number.h"
 #include "poco/UUIDGenerator.h"
 #include <sstream>
@@ -38,14 +39,24 @@ void CrashReporterClient::InitializeExceptionHandlingEnvironment(std::string con
 
    // This API is inconsistent, but trying to avoid too many changes to Breakpad's sample code in case it versions
    exception_handler_.reset(new google_breakpad::ExceptionHandler(
-                                                 std::wstring(),                   // local dump path (ignored since we are out of process)
-                                                 nullptr,                          // filter callback 
-                                                 nullptr,                          // minidump callback
-                                                 nullptr,                          // context for the callbacks
+                                                 std::wstring(),                    // local dump path (ignored since we are out of process)
+                                                 &CrashReporterClient::OnException, // filter callback 
+                                                 nullptr,                           // minidump callback
+                                                 nullptr,                           // context for the callbacks
                                                  google_breakpad::ExceptionHandler::HANDLER_ALL, // exceptions to trap
-                                                 MiniDumpNormal,                   // type of minidump
-                                                 pipe_name_wstring.data(),         // name of pipe for out of process dump
-                                                 nullptr));                        // CustomClientInfo
+                                                 MiniDumpNormal,                    // type of minidump
+                                                 pipe_name_wstring.data(),          // name of pipe for out of process dump
+                                                 nullptr));                         // CustomClientInfo
+}
+
+bool CrashReporterClient::OnException(void* context, EXCEPTION_POINTERS* exinfo, MDRawAssertionInfo* assertion)
+{
+   // We're dying, so let's log anything useful here.  It would have been nice to have the exception message,
+   // but I'm not sure if there's any way to retrieve that.
+   LOG_CRITICAL() << " Fatal Exception.";
+   LOG_CRITICAL() << " Total System Memory: " << platform::SysInfo::GetTotalSystemMemory();
+   LOG_CRITICAL() << " Current memory usage: " << platform::SysInfo::GetCurrentMemoryUsage();
+   return true;
 }
 
 void CrashReporterClient::Start(std::string const& crash_dump_path, std::string const& crash_dump_uri, std::string const& userid)
