@@ -20,29 +20,13 @@ public:
    RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain);
    ~RenderTerrain();
 
-private:
-   class RenderTile {
-   public:
-      csg::Point3                location;
-      om::Region3BoxedRef        region;
-      dm::TracePtr               trace;
-
-      RenderTile() { }
-
-      void SetNode(RenderNodePtr n) {
-         _node = n;
-      }
-
-   private:
-      RenderNodePtr _node;
-   };
-   DECLARE_SHARED_POINTER_TYPES(RenderTile)
+   csg::TagToColorMap const& GetColorMap() const;
+   H3DNode GetGroupNode() const;
+   void MarkDirty(RenderTerrainTileRef tile);
 
 private:
    void InitalizeColorMap();
    void Update();
-   void UpdateRenderRegion(RenderTilePtr render_tile);
-   void AddDirtyTile(RenderTileRef tile);
 
 private:
    const RenderEntity&  entity_;
@@ -50,9 +34,10 @@ private:
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
-   std::unordered_map<csg::Point3, std::shared_ptr<RenderTile>, csg::Point3::Hash> tiles_;
-   std::vector<RenderTileRef> dirty_tiles_;
+   std::unordered_map<csg::Point3, RenderTerrainTilePtr, csg::Point3::Hash> tiles_;
+   std::vector<RenderTerrainTileRef> dirty_tiles_;
    core::Guard          renderer_frame_trace_;
+   csg::TagToColorMap   _colorMap;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
