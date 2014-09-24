@@ -129,7 +129,7 @@ function JobComponent:add_exp(value)
    local original_level = self._attributes_component:get_attribute('total_level')
 
    while self._sv.current_level_exp >= self._sv.xp_to_next_lv do
-      self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
+   self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
       self:_level_up()
    end
 
@@ -145,15 +145,34 @@ function JobComponent:_level_up()
    
    --Add all the universal level dependent buffs/bonuses, etc
 
-   self._sv._curr_job_controller:level_up()
+   local optional_description = self._sv._curr_job_controller:level_up()
+
+   if optional_description then
+      local player_id = radiant.entities.get_player_id(self._entity)
+      local name = radiant.entities.get_display_name(self._entity)
+      local title = name .. ' has Achieved ' .. self._sv.curr_job_name .. ' Level ' .. optional_description.new_level .. '!'
+      
+      stonehearth.bulletin_board:post_bulletin(player_id)
+         :set_callback_instance(self)
+         :set_data({
+            title = title, 
+            zoom_to_entity = self._entity
+         })
+
+      --Trigger an event so people can extend the class system
+      radiant.events.trigger_async(self._entity, 'stonehearth:level_up', {
+         level = optional_description.new_level, 
+         job_uri = self._sv.job_uri, 
+         job_name = self._sv.curr_job_name })
+   end
 
    --TODO: localize, decide how we want to announce this
    --TODO: update UI/char sheet, etc
    --TODO: have this affect happiness!
-   radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
-   local name = radiant.entities.get_display_name(self._entity)
-   stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')
-
+   --TODO: change to congrats popup -> notification
+   --radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
+   --local name = radiant.entities.get_display_name(self._entity)
+   --stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')
 
    self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    self.__saved_variables:mark_changed()   
