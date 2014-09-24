@@ -12,8 +12,11 @@ class PerfHud;
 class RenderContext;
 class Clock;
 class RenderNode;
+class RenderTerrain;
+class RenderTerrainTile;
 
 DECLARE_SHARED_POINTER_TYPES(RenderNode)
+DECLARE_SHARED_POINTER_TYPES(RenderTerrainTile)
 
 
 #define CLIENT_LOG(level)     LOG(client, level)

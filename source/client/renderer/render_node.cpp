@@ -78,7 +78,7 @@ RenderNodePtr RenderNode::CreateObjNode(H3DNode parent, std::string const& uri)
    return CreateMeshNode(parent, geo);
 }
 
-RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m)
+RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
 {
    GeometryInfo geo;
 
@@ -98,7 +98,7 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
 
       RN_LOG(7) << "creating new geometry for " << key.GetDescription();
 
-      csg::mesh_tools::mesh m;
+      csg::Mesh m;
       for (int i = 0; i < MAX_LOD_LEVELS; i++) {
          create_mesh_fn(m, i);
          geo.vertexIndices[i + 1] = m.vertices.size();

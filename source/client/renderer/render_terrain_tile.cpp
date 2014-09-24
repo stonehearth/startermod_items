@@ -3,7 +3,7 @@
 #include "renderer.h"
 #include "render_terrain.h"
 #include "render_terrain_tile.h"
-#include "csg/meshtools.h"
+#include "csg/region_tools.h"
 #include "om/region.h"
 #include "Horde3D.h"
 
@@ -32,10 +32,13 @@ void RenderTerrainTile::UpdateRenderRegion()
    if (region_ptr) {
       ASSERT(render_tile);
       csg::Region3 const& region = region_ptr->Get();
-      csg::mesh_tools::mesh mesh;
-      mesh = csg::mesh_tools().SetColorMap(_terrain.GetColorMap())
-                              .ConvertRegionToMesh(region);
-   
+      csg::Mesh mesh;
+
+      mesh.SetColorMap(&_terrain.GetColorMap());
+      csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+         mesh.AddRegion(plane, pi);
+      });
+
       _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
                               ->SetMaterial("materials/terrain.material.xml")
                               ->SetUserFlags(UserFlags::Terrain);
