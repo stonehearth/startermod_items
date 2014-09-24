@@ -184,7 +184,7 @@ function lrbt.grow_walls_twice(autotest)
 end
 
 
-function lrbt.expensive_building(autotest)
+function lrbt.grow_walls_perf_test(autotest)
    local session = autotest.env:get_player_session()
    local building
 
@@ -212,6 +212,52 @@ function lrbt.expensive_building(autotest)
 
    autotest:log('growing walls finished! (elapsed: %.2f seconds)', elapsed)
    autotest:sleep(2000)
+   autotest:success()
+end
+
+function lrbt.expensive_building(autotest)
+   local session = autotest.env:get_player_session()
+   local building
+
+   local function create_endless_entity(x, y, uri)
+      local trace
+      local log = autotest.env:create_entity(x, y, uri)
+      trace = log:trace('make more logs')
+                     :on_destroyed(function()
+                           trace:destroy()
+                           create_endless_entity(x, y, uri)
+                        end)
+   end
+   for i = 0,8 do
+      create_endless_entity(8 + i % 4, 16 + i / 4, 'stonehearth:oak_log')
+      create_endless_entity(-8 + i % 4, 16 + i / 4, 'stonehearth:berry_basket')
+   end
+   create_workers(autotest)
+
+   autotest.ui:click_dom_element('#startMenu #build_menu')
+
+   stonehearth.build:do_command('create floor', nil, function()
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-20, 1, -20), Point3(18, 2, 10)))
+         building = stonehearth.build:get_building_for(floor)
+      end)
+
+   local w=18
+   for i=-w,w-1, 6 do
+      stonehearth.build:do_command('create floor', nil, function()
+            lrbt_util.create_wooden_floor(session, Cube3(Point3(i, 1, -22), Point3(i+3, 2, -20)))
+            lrbt_util.create_wooden_floor(session, Cube3(Point3(i, 1, 10), Point3(i+3, 2, 12)))
+         end)
+   end
+   stonehearth.build:do_command('grow wall', nil, function()
+         lrbt_util.grow_wooden_walls(session, building)
+      end)
+   stonehearth.build:do_command('grow roof', nil, function()
+         lrbt_util.grow_wooden_roof(session, building)
+      end)
+
+   stonehearth.build:set_active(building, true)
+
+   autotest:sleep(200000000)
    autotest:success()
 end
 
