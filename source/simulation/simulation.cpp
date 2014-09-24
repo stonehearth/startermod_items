@@ -319,10 +319,6 @@ void Simulation::InitializeGameObjects()
 
 void Simulation::ShutdownGameObjects()
 {
-   clock_ = nullptr;
-   root_entity_ = nullptr;
-   modList_ = nullptr;
-
    freeMotion_.reset();
    octtree_.reset();
 
@@ -331,6 +327,10 @@ void Simulation::ShutdownGameObjects()
    tasks_.clear();
    entityMap_.clear();
    datastoreMap_.clear();
+
+   clock_ = nullptr;
+   root_entity_ = nullptr;
+   modList_ = nullptr;
 
    task_manager_deferred_ = nullptr;
    perf_counter_deferred_ = nullptr;
