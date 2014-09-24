@@ -66,6 +66,7 @@ end
 -- Increment our levels in this class by 1
 -- Given the number of the new level, see if there are any perks that should be applied
 -- TODO: Is there ever a case where perks are taken away?
+-- returns: info about the new level 
 function TrapperClass:level_up()
    self._sv.last_gained_lv = self._sv.last_gained_lv + 1
    local job_updates_for_level = self._sv.level_data[tostring(self._sv.last_gained_lv)]
@@ -78,33 +79,33 @@ function TrapperClass:level_up()
    --TODO: Change the title if there is a new title
 
    --Apply each perk (there probably is only one)
+   local perk_descriptions = {}
    for i, perk_data in ipairs(job_updates_for_level.perks) do
-      if perk_data.type == 'buff' then
-         self:_apply_buff(perk_data.buff_name)
-      elseif perk_data.type == 'function' then
-         self:_call_function(perk_data.fn_name, perk_data.file, perk_data.args)
-      end
+
+      self[perk_data.type](self, perk_data)
+
+      --Collect text about the perk
+      local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
+      table.insert(perk_descriptions, perk_info)
    end
 
+   local level_data = {
+      new_level = self._sv.last_gained_lv, 
+      descriptions = perk_descriptions
+   }
+
+   return level_data
+
 end
 
-function TrapperClass:_apply_buff(buff_name)
-   radiant.entities.add_buff(self._sv._entity, buff_name)   
+-- Add the buff described in the buff_name
+function TrapperClass:apply_buff(args)
+   radiant.entities.add_buff(self._sv._entity, args.buff_name)   
 end
 
--- Call the function named in the arguments
--- @param file: name of the file that contains the fn. If the name is 'default' it means this file
-function TrapperClass:_call_function(fn_name, file, args)
-   if file == 'default' then
-      --args.entity = self._sv._entity
-      self[fn_name](self._sv._entity, args)
-   end
-   --TODO: if file is not 'default' then load the file and call the fn from the file
-end
-
---These dynamically generated functions!
-function TrapperClass.increase_backpack_size(entity, args)
-   local backpack_component = entity:add_component('stonehearth:backpack')
+--Increase the size of the backpack
+function TrapperClass:increase_backpack_size(args)
+   local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
    backpack_component:change_max_capacity(args.backpack_size_increase)
 end
 

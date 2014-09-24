@@ -99,18 +99,21 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: entity that was sleeping
       - Name: stonehearth:sleep\_in\_bed
       - Args: none
-
    - **sleep\_on\_ground** - triggered when we get up from sleeping on the ground
       - Key: entity that was sleeping
       - Name: stonehearth:sleep\_on\_ground
       - Args: none
+   - **level\_up** - triggered whenever a civilian levels up
+      - Key: entity that is leveling up
+      - Name: stonehearth:level_up
+      - Args: level - level, job\_uri, job\_name
 
 ##Gathering
 
    - **clear\_trap** - triggered whenever a trapper clears a set trap, passes in id of trapped entity
       - Key: The trapper
       - Name: stonehearth:clear\_trap
-      - Args: trapped_entity_id - the id of the entity that was trapped, nil if none
+      - Args: trapped\_entity\_id - the id of the entity that was trapped, nil if none
    - **befriend\_pet** - triggered whenever a trapper makes a pet friend
       - Key: The trapper
       - Name: stonehearth:befriend\_pet
