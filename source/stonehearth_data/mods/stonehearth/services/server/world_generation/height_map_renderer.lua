@@ -2,6 +2,8 @@ local Array2D = require 'services.server.world_generation.array_2D'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 
 local Terrain = _radiant.om.Terrain
+local Rect2 = _radiant.csg.Rect2
+local Point2 = _radiant.csg.Point2
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region2 = _radiant.csg.Region2
@@ -46,9 +48,13 @@ function HeightMapRenderer:__init(terrain_info)
    }
 end
 
-function HeightMapRenderer:add_region_to_terrain(region3, offset)
-   offset = offset or Point3.zero
-   self._terrain:add_tile(offset, region3)
+function HeightMapRenderer:add_region_to_terrain(region3, offset_x, offset_y)
+   local clipper = Rect2(
+      Point2(offset_x, offset_y),
+      Point2(offset_x + self._tile_size, offset_y + self._tile_size)
+   )
+   region3:translate(Point3(offset_x, 0, offset_y))
+   self._terrain:add_tile_clipped(region3, clipper)
 end
 
 function HeightMapRenderer:render_height_map_to_region(region3, height_map)

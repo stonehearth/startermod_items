@@ -116,13 +116,30 @@ Cube<S, C>::Cube(Point const& min_value, Point const& max_value, int tag) :
 }
 
 template <typename S, int C>
+S GetAreaFn(Cube<S, C> const&);
+
+template <typename S>
+S GetAreaFn(Cube<S, 1> const& cube)
+{
+   return (cube.max.x - cube.min.x);
+}
+
+template <typename S>
+S GetAreaFn(Cube<S, 2> const& cube)
+{
+   return (cube.max.x - cube.min.x) * (cube.max.y - cube.min.y);
+}
+
+template <typename S>
+S GetAreaFn(Cube<S, 3> const& cube)
+{
+   return (cube.max.x - cube.min.x) * (cube.max.y - cube.min.y) * (cube.max.z - cube.min.z);
+}
+
+template <typename S, int C>
 S Cube<S, C>::GetArea() const
 {
-   S area = 1;
-   for (int i = 0; i < C; i++) {
-      area *= (max[i] - min[i]);
-   }
-   return area;
+   return GetAreaFn(*this);
 }
 
 /*
@@ -399,12 +416,39 @@ bool Cube<S, C>::Contains(Point const& pt) const
 }
 
 template <class S, int C>
+void GrowFn(Cube<S, C>& cube, Point<S, C> const& pt);
+
+template <class S>
+void GrowFn(Cube<S, 1>& cube, Point<S, 1> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+}
+
+template <class S>
+void GrowFn(Cube<S, 2>& cube, Point<S, 2> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+   cube.min.y = std::min(cube.min.y, pt.y);
+   cube.max.y = std::max(cube.max.y, pt.y);
+}
+
+template <class S>
+void GrowFn(Cube<S, 3>& cube, Point<S, 3> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+   cube.min.y = std::min(cube.min.y, pt.y);
+   cube.max.y = std::max(cube.max.y, pt.y);
+   cube.min.z = std::min(cube.min.z, pt.z);
+   cube.max.z = std::max(cube.max.z, pt.z);
+}
+
+template <class S, int C>
 void Cube<S, C>::Grow(Point const& pt)
 {
-   for (int i = 0; i < C; i++) {
-      min[i] = std::min(min[i], pt[i]);
-      max[i] = std::max(max[i], pt[i]);
-   }
+   GrowFn(*this, pt);
 }
 
 template <class S, int C>
@@ -425,13 +469,44 @@ Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
 }
 
 template <int C>
+Cube<int, C> ToIntFn(Cube<float, C> const& cube);
+ 
+template <>
+Cube<int, 1> ToIntFn(Cube<float, 1> const& cube) {
+   Cube<int, 1> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   return result;
+}
+
+template <>
+Cube<int, 2> ToIntFn(Cube<float, 2> const& cube) {
+   Cube<int, 2> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.min.y = static_cast<int>(std::floor(cube.min.y));
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   result.max.y = static_cast<int>(std::ceil(cube.max.y));
+   return result;
+}
+
+template <>
+Cube<int, 3> ToIntFn(Cube<float, 3> const& cube) {
+   Cube<int, 3> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.min.y = static_cast<int>(std::floor(cube.min.y));
+   result.min.z = static_cast<int>(std::floor(cube.min.z));
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   result.max.y = static_cast<int>(std::ceil(cube.max.y));
+   result.max.z = static_cast<int>(std::ceil(cube.max.z));
+   return result;
+}
+
+template <int C>
 Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
-   Point<int, C> min, max;
-   for (int i = 0; i < C; i++) {
-      min[i] = static_cast<int>(std::floor(cube.min[i])); // round toward negative infinity
-      max[i] = static_cast<int>(std::ceil(cube.max[i]));  // round toward positive infinity
-   }
-   return Cube<int, C>(min, max, cube.GetTag());
+   return ToIntFn(cube);
 }
 
 template <int C>

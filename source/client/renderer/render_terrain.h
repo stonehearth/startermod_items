@@ -24,7 +24,7 @@ private:
    class RenderTile {
    public:
       csg::Point3                location;
-      om::Region3fBoxedRef       region;
+      om::Region3BoxedRef        region;
       dm::TracePtr               trace;
 
       RenderTile() { }

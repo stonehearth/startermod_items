@@ -21,6 +21,7 @@
    MAP(std::string, om::SensorPtr) \
    MAP(std::string, om::DataStorePtr) \
    MAP(std::string, om::ModelLayerPtr) \
+   MAP3(csg::Point3, om::Region3BoxedPtr, csg::Point3::Hash) \
    MAP4(csg::Point3f, om::Region3fBoxedPtr, csg::Point3f::Hash, csg::ToClosestIntTransform<3>) \
    MAP4(dm::CString, om::ComponentPtr, dm::SharedCStringHash, dm::CStringKeyTransform<0>) \
    MAP4(dm::CString, om::DataStorePtr, dm::SharedCStringHash, dm::CStringKeyTransform<0>)

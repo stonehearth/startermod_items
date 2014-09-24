@@ -258,13 +258,13 @@ void NavGrid::OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> reg
  * Terrain tile trackers are added differently than the other trackers.
  * This will be called once for every terrain tile.
  */
-void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3f const& offset, om::Region3fBoxedPtr tile)
+void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, om::Region3BoxedPtr tile)
 {
    NG_LOG(3) << "tracking terrain tile at " << offset;
    om::EntityPtr entity = e.lock();
    if (entity) {
-      CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, offset, tile);
-      terrain_tile_collision_trackers_[csg::ToClosestInt(offset)] = tracker;
+      CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, tile);
+      terrain_tile_collision_trackers_[offset] = tracker;
       tracker->Initialize();
    }
 }

@@ -82,7 +82,7 @@ class NavGrid {
 
    public: // methods for internal helper classes
       dm::TraceCategories GetTraceCategory();
-      void AddTerrainTileTracker(om::EntityRef entity, csg::Point3f const& offset, om::Region3fBoxedPtr tile);
+      void AddTerrainTileTracker(om::EntityRef entity, csg::Point3 const& offset, om::Region3BoxedPtr tile);
       void OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::CollisionBox const& bounds, CollisionTrackerPtr tracker);
       void OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId entityId, TrackerType type);
 

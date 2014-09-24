@@ -89,7 +89,6 @@ public:
 private:
    typedef std::unordered_map<int, Region1> SegmentMap;
    typedef std::unordered_map<int, Region2> PlaneMap;
-   typedef std::unordered_map<int, EdgeList> EdgeListMap;
 
    void ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb const& cb);
    void ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb const& cb);
