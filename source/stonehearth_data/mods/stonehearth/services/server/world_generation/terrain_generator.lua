@@ -108,7 +108,7 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
          local rounded_value = radiant.math.round(value)
          local diff = quantized_value - rounded_value
 
-         if diff == step_size*0.5 then
+         if diff == radiant.math.round(step_size*0.5) then
             return rounded_value
          else
             return quantized_value
