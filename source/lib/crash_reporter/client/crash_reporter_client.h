@@ -5,6 +5,7 @@
 #include "namespace.h"
 #include "core/singleton.h"
 #include "core/process.h"
+#include "client/windows/handler/exception_handler.h"
 
 namespace google_breakpad {
    class ExceptionHandler;
@@ -27,6 +28,7 @@ public:
    // Thread-safe function that wraps either Breakpad or Windows exception handling around your function
    static void CrashReporterClient::RunWithExceptionWrapper(std::function<void()> const& fn, bool const terminate_on_error = false);
    static void TerminateApplicationWithMessage(std::string const& error_message);
+   static bool OnException(void* context, EXCEPTION_POINTERS* exinfo, MDRawAssertionInfo* assertion);
 
 private:
    std::string GeneratePipeName() const;

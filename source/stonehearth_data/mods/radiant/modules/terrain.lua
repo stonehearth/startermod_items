@@ -100,6 +100,11 @@ function Terrain.is_blocked(arg0, arg1)
    return _physics:is_blocked(entity, location)
 end
 
+function Terrain.is_terrain(location)
+   assert(radiant.util.is_a(location, Point3))
+   return _physics:is_terrain(location)
+end
+
 -- returns all entities whose locations of collision shapes intersect the cube
 function Terrain.get_entities_in_cube(cube, filter_fn)
    local entities = _physics:get_entities_in_cube(cube)

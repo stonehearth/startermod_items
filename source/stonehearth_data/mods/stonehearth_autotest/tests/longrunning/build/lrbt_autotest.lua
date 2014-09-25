@@ -168,7 +168,7 @@ function lrbt.grow_walls_twice(autotest)
    
 
    stonehearth.build:do_command('create floor', nil, function()
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(4, 2, 1)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 1)))
          building = stonehearth.build:get_building_for(floor)
       end)
 
@@ -193,10 +193,10 @@ function lrbt.grow_walls_perf_test(autotest)
    local w=25
    for i=-w,w, 5 do
       stonehearth.build:do_command('create floor', nil, function()
-            local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(i, 1, -w), Point3(i+2, 2, w+2)))
+            local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(i, 10, -w), Point3(i+2, 11, w+2)))
          end)
       stonehearth.build:do_command('create floor', nil, function()
-            local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-w, 1, i), Point3(w, 2, i+2)))
+            local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-w, 10, i), Point3(w, 11, i+2)))
             building = stonehearth.build:get_building_for(floor)
          end)
    end

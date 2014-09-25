@@ -205,6 +205,10 @@ public:
       x = 0;
    }
 
+   void Set(S x_in) {
+      x = x_in;
+   }
+
    float LengthSquared() const {
       float result = 0;
       result += x * x;
@@ -300,6 +304,12 @@ public:
       x = 0;
       y = 0;
    }
+
+   void Set(S x_in, S y_in) {
+      x = x_in;
+      y = y_in;
+   }
+
 
    float LengthSquared() const {
       float result = 0;
@@ -408,6 +418,12 @@ public:
       x = 0;
       y = 0;
       z = 0;
+   }
+
+   void Set(S x_in, S y_in, S z_in) {
+      x = x_in;
+      y = y_in;
+      z = z_in;
    }
 
    float LengthSquared() const {
@@ -532,6 +548,13 @@ public:
       y = 0;
       z = 0;
       w = 0;
+   }
+
+   void Set(S x_in, S y_in, S z_in, S w_in) {
+      x = x_in;
+      y = y_in;
+      z = z_in;
+      w = w_in;
    }
 
    float LengthSquared() const {
