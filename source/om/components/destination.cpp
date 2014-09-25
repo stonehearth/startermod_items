@@ -179,7 +179,7 @@ csg::Point3f Destination::GetPointOfInterest(csg::Point3f const& pt) const
       if (!reserved.IsEmpty()) {
          csg::Region3f r = (rgn - reserved);
          if (r.IsEmpty()) {
-            D_LOG(1) << "region is empty in get point of interest!";
+            D_LOG(5) << "region - reserved is empty in get point of interest!";
             return csg::Point3f(0, 0, 0);
          }
          return GetBestPointOfInterest(r, pt);
