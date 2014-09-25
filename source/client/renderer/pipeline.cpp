@@ -82,7 +82,7 @@ Pipeline::~Pipeline()
 
 H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region)
 {
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       mesh.AddRegion(plane, pi);
    });
@@ -92,7 +92,7 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
-void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
+void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
 {   
    float y = 0;
    for (csg::Rect2 const& c: panels) {      
@@ -110,7 +110,7 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
             csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
+         m.AddFace(points, csg::Point3f::unitY);
       }
       for (float i = 0; i < size.x; i ++) {
          // xxx: why do we have to use a clockwise winding here?
@@ -126,12 +126,12 @@ void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 cons
             csg::Point3f(cube.min.x + x2, y, cube.max.y + y2),
             csg::Point3f(cube.min.x + x3, y, cube.max.y + y3),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
+         m.AddFace(points, csg::Point3f::unitY);
       }
    }
 }
 
-void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap)
+void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
 {
    float thickness = 0.25f;
    csg::PlaneInfo3f pi;
@@ -185,8 +185,8 @@ Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Color4 const& outline_color,
                                 csg::Color4 const& stripes_color)
 {
-   csg::mesh_tools::mesh outline_mesh;
-   csg::mesh_tools::mesh stripes_mesh;
+   csg::Mesh outline_mesh;
+   csg::Mesh stripes_mesh;
 
    // flip the normal, since this is the bottom face
    outline_mesh.SetColor(outline_color);
@@ -246,7 +246,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
 {
    csg::RegionTools2 tools;
 
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
 
    //interior_mesh.SetColor(interior_color);
    //border_mesh.SetColor(border_color);
@@ -267,7 +267,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
    return group;
 }
 
-void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, 
+void Pipeline::CreateXZBoxNodeGeometry(csg::Mesh& mesh, 
                                        csg::Region2 const& region, 
                                        csg::Color4 const& interior_color, 
                                        csg::Color4 const& border_color, 

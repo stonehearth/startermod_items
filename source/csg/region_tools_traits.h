@@ -12,6 +12,7 @@ struct PlaneInfoBase
    S      normal_dir;
    S      reduced_value;
    int    reduced_coord;
+   int    which;
 
    Point<S, C> GetNormal() const {
       Point<S, C> normal(Point<S, C>::zero);

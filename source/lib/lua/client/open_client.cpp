@@ -87,7 +87,7 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
                                      std::string const& material_path,
                                      csg::Point3f const& origin)
 {
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
    csg::RegionToMesh(csg::ToInt(model), mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
@@ -121,7 +121,7 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
          key.AddElement("matrix", matrix);
 
          // xxx: can we create a shared mesh without lod levels?
-         auto create_mesh = [&matrix, &origin](csg::mesh_tools::mesh &mesh, int lodLevel) {
+         auto create_mesh = [&matrix, &origin](csg::Mesh &mesh, int lodLevel) {
             csg::Region3 model = voxel::QubicleBrush(matrix)
                                           .SetOffsetMode(voxel::QubicleBrush::Matrix)
                                           .PaintOnce();
@@ -162,7 +162,7 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
 
 RenderNodePtr Client_CreateMeshNode(lua_State* L, 
                                     H3DNode parent,
-                                    csg::mesh_tools::mesh const& m)
+                                    csg::Mesh const& m)
 {
    return RenderNode::CreateCsgMeshNode(parent, m);
 }

@@ -38,14 +38,14 @@ struct GeometryInfo {
 
 class RenderNode : public  std::enable_shared_from_this<RenderNode> {
 public:  
-   typedef std::function<void(csg::mesh_tools::mesh &, int lodLevel)> CreateMeshLodLevelFn;
+   typedef std::function<void(csg::Mesh &, int lodLevel)> CreateMeshLodLevelFn;
 
    static RenderNodePtr CreateGroupNode(H3DNode parent, std::string const& name);
    static RenderNodePtr CreateMeshNode(H3DNode parent, GeometryInfo const& geo);
    static RenderNodePtr CreateVoxelNode(H3DNode parent, GeometryInfo const& geo);
 
    static RenderNodePtr CreateObjNode(H3DNode parent, std::string const& uri);
-   static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::mesh_tools::mesh const& m);
+   static RenderNodePtr CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m);
    static RenderNodePtr CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheKey const& key, CreateMeshLodLevelFn const& cb);
 
    static void Initialize();

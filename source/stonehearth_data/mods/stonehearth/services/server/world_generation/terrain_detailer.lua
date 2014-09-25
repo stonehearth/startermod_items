@@ -267,6 +267,7 @@ end
 function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
    local mountains_step_size = self._terrain_info[TerrainType.mountains].step_size
    local macro_block_size = self._terrain_info.macro_block_size
+   local slice_size = self._terrain_info.slice_size
    local height, adj_height
    local macro_block_x, macro_block_y, chunk_x, chunk_y
    local chunk_length, chunk_offset, chunk_depth
@@ -287,7 +288,8 @@ function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
    macro_block_y = (y-1)*macro_block_size+1
 
    chunk_length, chunk_offset = self:_generate_chunk_length_and_offset(macro_block_size)
-   chunk_depth = mountains_step_size * 0.5
+   -- align the chunk_depth to the terrain slices   
+   chunk_depth = math.floor(mountains_step_size * 0.5 / slice_size) * slice_size
 
    if dy == -1 then
       -- left, (dx, dy) == (-1, 0)

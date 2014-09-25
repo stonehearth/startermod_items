@@ -532,7 +532,7 @@ bool Cube<S, C>::CombineWith(Cube const& cube)
 template <typename S, int C>
 Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
 {
-   Point<float, C> centroid = ToFloat(cube.min + cube.max).Scaled(0.5);
+   Point<float, C> centroid = ToFloat(cube.min + cube.max).Scaled(0.5f);
    return centroid;
 }
 
