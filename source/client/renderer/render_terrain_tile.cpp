@@ -7,8 +7,6 @@
 #include "om/region.h"
 #include "Horde3D.h"
 
-#pragma optimize( "", off )
-
 using namespace ::radiant;
 using namespace ::radiant::client;
 
@@ -54,6 +52,11 @@ RenderTerrainTile::RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& 
                                        _terrain.MarkDirty(_location);
                                     });
    }
+}
+
+RenderTerrainTile::~RenderTerrainTile()
+{
+   T_LOG(5) << "destroying tile";
 }
 
 csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi)

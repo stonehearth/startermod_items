@@ -46,7 +46,7 @@ private:
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
-   std::unordered_map<csg::Point3, RenderTerrainTile, csg::Point3::Hash> tiles_;
+   std::unordered_map<csg::Point3, RenderTerrainTile*, csg::Point3::Hash> tiles_;
    DirtySet             _dirtyGeometry;
    DirtySet             _dirtyClipPlanes;
    DirtySet             _dirtyNeighbors;

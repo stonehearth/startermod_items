@@ -34,7 +34,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       ASSERT(region);
       ASSERT(!stdutil::contains(tiles_, location));
 
-      tiles_.insert(std::make_pair(location, RenderTerrainTile(*this, location, region)));
+      tiles_.insert(std::make_pair(location, new RenderTerrainTile(*this, location, region)));
       _dirtyNeighbors.insert(location);
       MarkDirty(location);
    };
@@ -51,6 +51,9 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
 
 RenderTerrain::~RenderTerrain()
 {
+   for (auto const& entry : tiles_) {
+      delete entry.second;
+   }
 }
 
 void RenderTerrain::InitalizeColorMap()
@@ -136,7 +139,7 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
    auto i = tiles_.find(GetNeighborAddress(location, direction));
    if (i != tiles_.end()) {
-      RenderTerrainTile& second = i->second;
+      RenderTerrainTile& second = *i->second;
       first.SetClipPlane(direction, second.GetClipPlane(GetNeighbor(direction)));
       second.SetClipPlane(GetNeighbor(direction), first.GetClipPlane(direction));
    }
@@ -147,7 +150,7 @@ void RenderTerrain::UpdateNeighbors()
    for (csg::Point3 const& location : _dirtyNeighbors) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         RenderTerrainTile& tile = i->second;
+         RenderTerrainTile& tile = *i->second;
          for (int d = 0; d < NUM_NEIGHBORS; d++) {
             Neighbor direction = static_cast<Neighbor>(d);
             ConnectNeighbors(location, tile, direction);
@@ -162,7 +165,7 @@ void RenderTerrain::UpdateClipPlanes()
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second.UpdateClipPlanes();
+         int planesChanged = i->second->UpdateClipPlanes();
          for (int d = 0; d < NUM_NEIGHBORS; d++) {
             Neighbor direction = static_cast<Neighbor>(d);
             if (planesChanged & (1 << d)) {
@@ -180,7 +183,7 @@ void RenderTerrain::UpdateGeometry()
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second.UpdateGeometry();
+         i->second->UpdateGeometry();
       }
    }
    _dirtyGeometry.clear();

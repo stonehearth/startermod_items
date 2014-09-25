@@ -13,6 +13,8 @@ class RenderTerrainTile
 {
 public:
    RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& location, om::Region3BoxedRef region);
+   ~RenderTerrainTile();
+
    int UpdateClipPlanes();
    void UpdateGeometry();
 
@@ -20,6 +22,7 @@ public:
    csg::Region2 const* GetClipPlane(Neighbor direction);
 
 private:
+   NO_COPY_CONSTRUCTOR(RenderTerrainTile);
    csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi);
 
 private:
