@@ -57,6 +57,7 @@ void Terrain::AddTileWorker(csg::Region3f const& region, csg::Rect2 const* clipp
       Region3BoxedPtr tile = GetTile(index);
       tile->Modify([&region](csg::Region3& cursor) {
          cursor += region;
+         cursor.OptimizeByMerge();
       });
       bounds_.Modify([&index](csg::Cube3& cube) {
          cube.Grow(index.Scaled(TILE_SIZE));
@@ -178,4 +179,9 @@ Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)
       tiles_.Add(index, tile);
    }
    return tile;
+}
+
+int Terrain::GetTileSize() const
+{
+   return TILE_SIZE;
 }

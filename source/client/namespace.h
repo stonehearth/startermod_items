@@ -16,8 +16,16 @@ class RenderTerrain;
 class RenderTerrainTile;
 
 DECLARE_SHARED_POINTER_TYPES(RenderNode)
-DECLARE_SHARED_POINTER_TYPES(RenderTerrainTile)
 
+enum Neighbor {
+   FRONT = 0,
+   BACK,
+   LEFT,
+   RIGHT,
+   TOP,
+   BOTTOM,
+   NUM_NEIGHBORS
+};
 
 #define CLIENT_LOG(level)     LOG(client, level)
 

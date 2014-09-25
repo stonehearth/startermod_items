@@ -86,6 +86,13 @@ template <typename S> static inline bool IsBetween(Point<S, 3> const& a, Point<S
           IsBetween(a.z, b.z, c.z);
 }
 
+template <typename S> Point<S, 2> ProjectOntoXY(Point<S, 3> const& pt);
+template <typename S> Point<S, 2> ProjectOntoXZ(Point<S, 3> const& pt);
+template <typename S> Point<S, 2> ProjectOntoYZ(Point<S, 3> const& pt);
+template <typename S> Cube<S, 2> ProjectOntoXY(Cube<S, 3> const& cube);
+template <typename S> Cube<S, 2> ProjectOntoXZ(Cube<S, 3> const& cube);
+template <typename S> Cube<S, 2> ProjectOntoYZ(Cube<S, 3> const& cube);
+
 template <int C>
 struct ToClosestIntTransform {
    Point<float, C> operator()(Point<float, C> const& key) const {

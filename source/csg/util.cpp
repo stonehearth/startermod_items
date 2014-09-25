@@ -363,6 +363,37 @@ bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& d
    return false;
 }
 
+template <typename S> Point<S, 2> csg::ProjectOntoXY(Point<S, 3> const& pt)
+{
+   return Point<S, 2>(pt.x, pt.y);
+}
+
+template <typename S> Point<S, 2> csg::ProjectOntoXZ(Point<S, 3> const& pt)
+{
+   return Point<S, 2>(pt.x, pt.z);
+}
+
+template <typename S> Point<S, 2> csg::ProjectOntoYZ(Point<S, 3> const& pt)
+{
+   return Point<S, 2>(pt.z, pt.y);
+}
+
+template <typename S> Cube<S, 2> csg::ProjectOntoXY(Cube<S, 3> const& cube)
+{
+   return Cube<S, 2>(ProjectOntoXY(cube.min), ProjectOntoXY(cube.max));
+}
+
+template <typename S> Cube<S, 2> csg::ProjectOntoXZ(Cube<S, 3> const& cube)
+{
+   return Cube<S, 2>(ProjectOntoXZ(cube.min), ProjectOntoXZ(cube.max));
+}
+
+template <typename S> Cube<S, 2> csg::ProjectOntoYZ(Cube<S, 3> const& cube)
+{
+   return Cube<S, 2>(ProjectOntoYZ(cube.min), ProjectOntoYZ(cube.max));
+}
+
+
 #define MAKE_CHUNK_TEMPLATES(N) \
    template inline Point3 csg::GetChunkIndex<N>(Point3 const& value); \
    template inline void csg::GetChunkIndex<N>(Point3 const& value, Point3& index, Point3& offset); \
@@ -376,4 +407,9 @@ MAKE_CHUNK_TEMPLATES(128)
 
 template Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals);
 template Region3f csg::GetAdjacent(Region3f const& r, bool allow_diagonals);
-
+template Point2 csg::ProjectOntoXY(Point3 const&);
+template Point2 csg::ProjectOntoXZ(Point3 const&);
+template Point2 csg::ProjectOntoYZ(Point3 const&);
+template Rect2 csg::ProjectOntoXY(Cube3 const&);
+template Rect2 csg::ProjectOntoXZ(Cube3 const&);
+template Rect2 csg::ProjectOntoYZ(Cube3 const&);

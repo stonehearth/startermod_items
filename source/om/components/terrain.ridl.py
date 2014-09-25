@@ -42,6 +42,7 @@ class Terrain(Component):
    subtract_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
    intersect_cube = ridl.Method(csg.Region3f(), ('cube', csg.Cube3f().const.ref))
    intersect_region = ridl.Method(csg.Region3f(), ('region', csg.Region3f().const.ref))
+   get_tile_size = ridl.Method(c.int()).const
 
    _includes = [
       "om/components/terrain_tesselator.h",
