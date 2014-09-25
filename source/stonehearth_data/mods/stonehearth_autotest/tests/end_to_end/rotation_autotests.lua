@@ -35,10 +35,10 @@ function rotation_tests.single_rotation(autotest)
    local rotation
    local function check_destination(rotation)
       local expected_dst = {  -- these are in world coordinates...
-         [0]   = Point3( 4,  1,  0),
-         [90]  = Point3( 0,  1, -4),
-         [180] = Point3(-4,  1,  0),
-         [270] = Point3( 0,  1,  4),
+         [0]   = Point3( 4,  10,  0),
+         [90]  = Point3( 0,  10, -4),
+         [180] = Point3(-4,  10,  0),
+         [270] = Point3( 0,  10,  4),
       }
       local local_dst
       for cube in e:get_component('destination'):get_region():get():each_cube() do
@@ -52,10 +52,10 @@ function rotation_tests.single_rotation(autotest)
    local function check_pathfinder(rotation, method)
       -- expected adjacent points where the path finder should finish, in world coordinates.
       local expected_finish = {
-         [0]   = Point3( 5,  1,  0),
-         [90]  = Point3( 0,  1, -6),
-         [180] = Point3(-6,  1, -1),
-         [270] = Point3(-1,  1,  5),
+         [0]   = Point3( 5,  10,  0),
+         [90]  = Point3( 0,  10, -6),
+         [180] = Point3(-6,  10, -1),
+         [270] = Point3(-1,  10,  5),
       }
       local local_adjacent
       for cube in e:get_component('destination'):get_adjacent():get():each_cube() do

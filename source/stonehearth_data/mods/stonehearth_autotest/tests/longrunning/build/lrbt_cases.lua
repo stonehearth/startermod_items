@@ -14,7 +14,7 @@ local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 function lrbt_cases.simple_floor(autotest, session)
    return {
       function()
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(4, 2, 4)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end
    }
@@ -24,11 +24,11 @@ function lrbt_cases.simple_floor_erase(autotest, session)
    local floor
    return {
       function()
-         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(4, 2, 4)))
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end,
       function()
-         lrbt_util.erase_floor(session, Cube3(Point3(1, 1, 1), Point3(3, 2, 3)))
+         lrbt_util.erase_floor(session, Cube3(Point3(1, 10, 1), Point3(3, 11, 3)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 12, 'erase failed to remove center of floor blueprint')
       end,
    }
@@ -38,11 +38,11 @@ function lrbt_cases.simple_floor_merge(autotest, session)
    local floor
    return {
       function()
-         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(8, 2, 4)))
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(8, 11, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 32, 'failed to create 4x4 floor blueprint')
       end,
       function()
-         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(4, 2, 8)))
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 8)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 48, 'erase failed to remove center of floor blueprint')
       end,
    }
@@ -55,15 +55,15 @@ function lrbt_cases.three_way_floor_merge(autotest, session)
    -- it's a correctness and regression test.
    return {
       function()
-         floor1 = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(2, 2, 6)))
+         floor1 = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(2, 11, 6)))
          autotest.util:fail_if(lrbt_util.get_area(floor1) ~= 12, 'failed to create 2x6 floor blueprint')
       end,
       function()
-         floor2 = lrbt_util.create_wooden_floor(session, Cube3(Point3(4, 1, 0), Point3(6, 2, 6)))
+         floor2 = lrbt_util.create_wooden_floor(session, Cube3(Point3(4, 10, 0), Point3(6, 11, 6)))
          autotest.util:fail_if(lrbt_util.get_area(floor2) ~= 12, 'failed to create 2x6 floor blueprint')
       end,
       function()
-         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(6, 2, 2)))
+         lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(6, 11, 2)))
          autotest.util:fail_if(lrbt_util.get_area(floor1) ~= 28, 'failed to merge floors')
       end,
    }
@@ -72,7 +72,7 @@ end
 function lrbt_cases.simple_wall(autotest, session)
    return {
       function()
-         local wall = lrbt_util.create_wooden_wall(session, Point3(0, 1, 0), Point3(4, 1, 0))
+         local wall = lrbt_util.create_wooden_wall(session, Point3(0, 10, 0), Point3(4, 10, 0))
          autotest.util:fail_if(lrbt_util.get_area(wall) ~= (3 * STOREY_HEIGHT), 'failed to create 4x4 floor blueprint')
       end,
    }
@@ -82,7 +82,7 @@ function lrbt_cases.grow_walls(autotest, session)
    local floor
    return {
       function()
-         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 1, 0), Point3(4, 2, 4)))
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 4)))
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end,
       function()

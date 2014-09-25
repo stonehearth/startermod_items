@@ -19,6 +19,7 @@ function env.create_world(world_generator_script)
 
    local create_world = radiant.mods.load_script(world_generator_script)
    create_world(env)
+   env._reset_camera()
 
    -- listen for every entity creation event so we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
@@ -70,11 +71,8 @@ function env.clear()
       radiant.entities.destroy_entity(entity)      
    end
    _all_entities = {}
-   
-   -- move the camera to a decent spot
-   local CAMERA_POSITION = Point3(11, 16, 39)
-   local CAMERA_LOOK_AT = Point3(3.5, 1, 12.5)
-   autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
+
+   env._reset_camera()   
 end
 
 function env.get_town()
@@ -191,6 +189,12 @@ end
 function env.equip_weapon(entity, weapon_uri)
    local weapon = radiant.entities.create_entity(weapon_uri)
    radiant.entities.equip_item(entity, weapon)
+end
+
+function env._reset_camera()
+   local CAMERA_POSITION = Point3(11, 30, 39)
+   local CAMERA_LOOK_AT = Point3(3.5, 10, 12.5)
+   autotest_framework.ui.move_camera(CAMERA_POSITION, CAMERA_LOOK_AT)
 end
 
 return env
