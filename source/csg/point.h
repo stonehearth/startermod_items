@@ -31,7 +31,7 @@ public:
    }
 
    // manipulators
-   Derived Scaled(float s) const {
+   template <typename T> Derived Scaled(T s) const {
       Derived result(*static_cast<Derived const*>(this));
       result.Scale(s);
       return result;
@@ -219,6 +219,10 @@ public:
       x = static_cast<S>(x * s);
    }
 
+   void Scale(int s) {
+      x = static_cast<S>(x * s);
+   }
+
    void Translate(const Point& pt) {
       x += pt.x;
    }
@@ -319,6 +323,11 @@ public:
    }
 
    void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+   }
+
+   void Scale(int s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
    }
@@ -435,6 +444,12 @@ public:
    }
 
    void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+   }
+
+   void Scale(int s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
       z = static_cast<S>(z * s);
@@ -567,6 +582,13 @@ public:
    }
 
    void Scale(float s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+      w = static_cast<S>(w * s);
+   }
+
+   void Scale(int s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
       z = static_cast<S>(z * s);
