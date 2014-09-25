@@ -53,11 +53,25 @@ Point3 csg::GetChunkIndexSlow(Point3 const& value, int chunk_width)
                  GetChunkIndexSlow(value.z, chunk_width));
 }
 
+Point3 csg::GetChunkIndexSlow(Point3 const& value, Point3 const& chunk)
+{
+   return Point3(GetChunkIndexSlow(value.x, chunk.x),
+                 GetChunkIndexSlow(value.y, chunk.y),
+                 GetChunkIndexSlow(value.z, chunk.z));
+}
+
 void csg::GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset)
 {
    GetChunkIndexSlow(value.x, chunk_width, index.x, offset.x);
    GetChunkIndexSlow(value.y, chunk_width, index.y, offset.y);
    GetChunkIndexSlow(value.z, chunk_width, index.z, offset.z);
+}
+
+void csg::GetChunkIndexSlow(Point3 const& value, Point3 const& chunk, Point3& index, Point3& offset)
+{
+   GetChunkIndexSlow(value.x, chunk.x, index.x, offset.x);
+   GetChunkIndexSlow(value.y, chunk.y, index.y, offset.y);
+   GetChunkIndexSlow(value.z, chunk.z, index.z, offset.z);
 }
 
 Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
@@ -69,17 +83,31 @@ Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
    return index;
 }
 
+Cube3 csg::GetChunkIndexSlow(Cube3 const& value, Point3 const& chunk)
+{
+   Point3 ceil(chunk.x - 1, chunk.y - 1, chunk.z - 1);
+   Cube3 index = Cube3(GetChunkIndexSlow(value.min, chunk),
+                       GetChunkIndexSlow(value.max + ceil, chunk),
+                       value.GetTag());
+   return index;
+}
+
 bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> const& cb)
+{
+   return PartitionCubeIntoChunksSlow(cube, Point3(width, width, width), cb);
+}
+
+bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, Point3 const& chunk, std::function<bool (Point3 const& index, Cube3 const& cube)> const& cb)
 {
    Point3 const& cmin = cube.GetMin();
    Point3 const& cmax = cube.GetMax();
-   Cube3 chunks = GetChunkIndexSlow(cube, width);
+   Cube3 chunks = GetChunkIndexSlow(cube, chunk);
 
    for (Point3 const& cursor : chunks) {
       Cube3 c;
       for (int i = 0; i < 3; i++) {
-         c.min[i] = std::max(cmin[i], cursor[i] * width);
-         c.max[i] = std::min(cmax[i], (cursor[i] + 1) * width);
+         c.min[i] = std::max(cmin[i], cursor[i] * chunk[i]);
+         c.max[i] = std::min(cmax[i], (cursor[i] + 1) * chunk[i]);
       }
       c.SetTag(cube.GetTag());
 
@@ -96,9 +124,14 @@ bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::functio
 
 bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, int width, std::function<bool(Point3 const& index, Region3 const& r)> cb)
 {
+   return PartitionRegionIntoChunksSlow(region, Point3(width, width, width), cb);
+}
+
+bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, Point3 const& chunk, std::function<bool(Point3 const& index, Region3 const& r)> cb)
+{
    std::unordered_map<Point3, Region3, Point3::Hash> regions;
    for (Cube3 const& cube : region) {
-      PartitionCubeIntoChunksSlow(cube, width, [&regions](Point3 const& index, Cube3 const& cube) mutable {
+      PartitionCubeIntoChunksSlow(cube, chunk, [&regions](Point3 const& index, Cube3 const& cube) mutable {
          regions[index].AddUnique(cube);
          return false;
       });
@@ -237,18 +270,18 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
    Region3 result;   
    int cos_theta, sin_theta, tx = 0, tz = 0;
 
-   if (forward == csg::Point3(0, 0, -1)) { // 0...
+   if (forward == Point3(0, 0, -1)) { // 0...
       return rgn;
-   } else if (forward == csg::Point3(1, 0, 0)) { // 90...
+   } else if (forward == Point3(1, 0, 0)) { // 90...
       cos_theta = 0;
       sin_theta = 1;
       tx = 1;
-   } else if (forward == csg::Point3(0, 0, 1)) { // 180...
+   } else if (forward == Point3(0, 0, 1)) { // 180...
       cos_theta = -1; 
       sin_theta = 0;
       tx = 1;
       tz = 1;
-   } else if (forward == csg::Point3(-1, 0, 0)) { // 270...
+   } else if (forward == Point3(-1, 0, 0)) { // 270...
       cos_theta = 0; 
       sin_theta = -1;
       tz = 1;
@@ -257,8 +290,8 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
    }
 
    for (const auto& cube : rgn) {
-      csg::Point3 const& min = cube.GetMin();
-      csg::Point3 const& max = cube.GetMax();
+      Point3 const& min = cube.GetMin();
+      Point3 const& max = cube.GetMax();
       result.AddUnique(Cube3::Construct(Point3(min.x * cos_theta - min.z * sin_theta + tx,
                                                min.y,
                                                min.x * sin_theta + min.z * cos_theta + tz),
@@ -333,8 +366,8 @@ void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
       }
 
       // yay! add the rect, rounding to the nearest whole number
-      r.AddUnique(Rect2f(csg::ToFloat(csg::ToInt(Point2f(x0 * scale, y0 * scale))),
-                         csg::ToFloat(csg::ToInt(Point2f(x1 * scale, y1 * scale))),
+      r.AddUnique(Rect2f(csg::ToFloat(Point2(x0 * scale, y0 * scale)),
+                         csg::ToFloat(Point2(x1 * scale, y1 * scale)),
                          search_value));
 
       // clear the rect

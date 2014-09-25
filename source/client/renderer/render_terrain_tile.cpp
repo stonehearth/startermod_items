@@ -64,7 +64,7 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
    static csg::Region2 zero;
 
    int plane = -1;
-   int tileSize = _terrain.GetTileSize();
+   csg::Point3 tileSize = _terrain.GetTileSize();
 
    switch (pi.which) {
    case csg::RegionTools3::LEFT_PLANE:
@@ -73,7 +73,7 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
       }
       break;
    case csg::RegionTools3::RIGHT_PLANE:
-      if (pi.reduced_value == _location.x + tileSize) {
+      if (pi.reduced_value == _location.x + tileSize.x) {
          plane = RIGHT;
       }
       break;
@@ -83,7 +83,7 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
       };
       break;
    case csg::RegionTools3::TOP_PLANE:
-      if (pi.reduced_value == _location.y + tileSize) {
+      if (pi.reduced_value == _location.y + tileSize.y) {
          plane = TOP;
       }
       break;
@@ -93,7 +93,7 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
       }
       break;
    case csg::RegionTools3::BACK_PLANE:
-      if (pi.reduced_value == _location.z + tileSize) {
+      if (pi.reduced_value == _location.z + tileSize.z) {
          plane = BACK;
       }
       break;
@@ -105,7 +105,7 @@ int RenderTerrainTile::UpdateClipPlanes()
 {
    om::Region3BoxedPtr region = _region.lock();
    if (region) {
-      int tileSize = _terrain.GetTileSize();
+      csg::Point3 tileSize = _terrain.GetTileSize();
       csg::Region3 const& rgn = region->Get();
 
       for (int d = 0; d < NUM_NEIGHBORS; d++) {
@@ -116,7 +116,7 @@ int RenderTerrainTile::UpdateClipPlanes()
             T_LOG(9) << "adding plane to FRONT clip plane " << cube << " -> xy -> " << csg::ProjectOntoXY(cube);
             _clipPlanes[FRONT].AddUnique(csg::ProjectOntoXY(cube));
          }
-         if (cube.max.z == _location.z + tileSize) {
+         if (cube.max.z == _location.z + tileSize.z) {
             T_LOG(9) << "adding plane to BACK clip plane " << cube << " -> xy -> " << csg::ProjectOntoXY(cube);
             _clipPlanes[BACK].AddUnique(csg::ProjectOntoXY(cube));
          }
@@ -124,7 +124,7 @@ int RenderTerrainTile::UpdateClipPlanes()
             T_LOG(9) << "adding plane to LEFT clip plane " << cube << " -> yz -> " << csg::ProjectOntoYZ(cube);
             _clipPlanes[LEFT].AddUnique(csg::ProjectOntoYZ(cube));
          }
-         if (cube.max.x == _location.x + tileSize) {
+         if (cube.max.x == _location.x + tileSize.x) {
             T_LOG(9) << "adding plane to RIGHT clip plane " << cube << " -> yz -> " << csg::ProjectOntoYZ(cube);
             _clipPlanes[RIGHT].AddUnique(csg::ProjectOntoYZ(cube));
          }
@@ -132,7 +132,7 @@ int RenderTerrainTile::UpdateClipPlanes()
             T_LOG(9) << "adding plane to BOTTOM clip plane " << cube << " -> xz -> " << csg::ProjectOntoXZ(cube);
             _clipPlanes[BOTTOM].AddUnique(csg::ProjectOntoXZ(cube));
          }
-         if (cube.max.y == _location.y + tileSize) {
+         if (cube.max.y == _location.y + tileSize.y) {
             T_LOG(9) << "adding plane to TOP clip plane " << cube << " -> xz -> " << csg::ProjectOntoXZ(cube);
             _clipPlanes[TOP].AddUnique(csg::ProjectOntoXZ(cube));
          }
@@ -146,7 +146,6 @@ void RenderTerrainTile::UpdateGeometry()
    om::Region3BoxedPtr region = _region.lock();
 
    if (region) {
-      ASSERT(render_tile);
       csg::Region3 const& rgn = region->Get();
       csg::Mesh mesh;
 
@@ -155,9 +154,6 @@ void RenderTerrainTile::UpdateGeometry()
          csg::Region2 const* clipper = GetClipPlaneFor(pi);
          if (clipper) {
             T_LOG(9) << "adding clipped " << PlaneToString(pi) << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
-            if ((plane - *clipper).GetArea() > 0) {
-               T_LOG(9) << "OOPS!";
-            }
             mesh.AddRegion(plane - *clipper, pi);
          } else {
             T_LOG(9) << "adding unclipped " << PlaneToString(pi) << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";

@@ -223,6 +223,10 @@ public:
       x = static_cast<S>(x * s);
    }
 
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+   }
+
    void Translate(const Point& pt) {
       x += pt.x;
    }
@@ -332,6 +336,11 @@ public:
       y = static_cast<S>(y * s);
    }
 
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;
@@ -455,6 +464,12 @@ public:
       z = static_cast<S>(z * s);
    }
 
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+      z = static_cast<S>(z * other.z);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;
@@ -595,6 +610,13 @@ public:
       w = static_cast<S>(w * s);
    }
 
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+      z = static_cast<S>(z * other.z);
+      w = static_cast<S>(w * other.w);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;

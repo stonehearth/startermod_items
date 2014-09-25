@@ -8,7 +8,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-static const int TILE_SIZE = 128;
+static const csg::Point3 TILE_SIZE(128, 5, 128);
 
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
 
@@ -96,7 +96,7 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
       }
 
       csg::Point3 index, offset;
-      csg::GetChunkIndex<TILE_SIZE>(pt, index, offset);
+      csg::GetChunkIndexSlow(pt, TILE_SIZE, index, offset);
       auto i = tiles_.find(index);
       if (i != tiles_.end()) {
          csg::Region3 const& region = i->second->Get();
@@ -154,7 +154,7 @@ csg::Region3f Terrain::IntersectRegion(csg::Region3f const& r)
 {
    csg::Region3 region = csg::ToInt(r);   // we expect r to be simple relative to the terrain tiles
    csg::Region3f result;
-   csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(csg::ToInt(region.GetBounds()));
+   csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region.GetBounds()), TILE_SIZE);
 
    for (csg::Point3 const& index : chunks) {
       auto i = tiles_.find(index);
@@ -181,7 +181,7 @@ Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)
    return tile;
 }
 
-int Terrain::GetTileSize() const
+csg::Point3 const& Terrain::GetTileSize() const
 {
    return TILE_SIZE;
 }

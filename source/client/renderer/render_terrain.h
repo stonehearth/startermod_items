@@ -24,7 +24,7 @@ public:
    csg::TagToColorMap const& GetColorMap() const;
    H3DNode GetGroupNode() const;
    void MarkDirty(csg::Point3 const& location);
-   int GetTileSize();
+   csg::Point3 GetTileSize();
 
 private:
    void InitalizeColorMap();
@@ -41,7 +41,7 @@ private:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
 private:
    const RenderEntity&  entity_;
-   int                  _tileSize;
+   csg::Point3          _tileSize;
    dm::TracePtr         tiles_trace_;
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;

@@ -95,17 +95,17 @@ csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, Neigh
 
    switch (direction) {
    case FRONT:
-      return location + csg::Point3(0, 0, -_tileSize);
+      return location + csg::Point3(0, 0, -_tileSize.z);
    case BACK:
-      return location + csg::Point3(0, 0, _tileSize);
+      return location + csg::Point3(0, 0, _tileSize.z);
    case LEFT:
-      return location + csg::Point3(-_tileSize, 0, 0);
+      return location + csg::Point3(-_tileSize.x, 0, 0);
    case RIGHT:
-      return location + csg::Point3(_tileSize, 0, 0);
+      return location + csg::Point3(_tileSize.x, 0, 0);
    case TOP:
-      return location + csg::Point3(0, _tileSize, 0);
+      return location + csg::Point3(0, _tileSize.y, 0);
    case BOTTOM:
-      return location + csg::Point3(0, -_tileSize, 0);
+      return location + csg::Point3(0, -_tileSize.y, 0);
    }
    NOT_REACHED();
    return csg::Point3::zero;
@@ -207,7 +207,7 @@ H3DNode RenderTerrain::GetGroupNode() const
    return terrain_root_node_.get();
 }
 
-int RenderTerrain::GetTileSize()
+csg::Point3 RenderTerrain::GetTileSize()
 {
    return _tileSize;
 }
