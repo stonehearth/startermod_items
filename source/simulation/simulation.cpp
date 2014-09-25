@@ -230,8 +230,8 @@ void Simulation::Initialize()
 void Simulation::Shutdown()
 {
    ShutdownLuaObjects();
-   ShutdownGameObjects();
    ShutdownDataObjectTraces();
+   ShutdownGameObjects();
    ShutdownDataObjects();
 }
 
@@ -243,6 +243,7 @@ void Simulation::InitializeDataObjects()
 
 void Simulation::ShutdownDataObjects()
 {
+   SIM_LOG(1) << "Shutting down data objects.";
    store_.reset();
 }
 
@@ -277,6 +278,7 @@ om::DataStoreRef Simulation::AllocDatastore()
 
 void Simulation::ShutdownDataObjectTraces()
 {
+   SIM_LOG(1) << "Shutting down traces.";
    object_model_traces_.reset();
    pathfinder_traces_.reset();
    lua_traces_.reset();
@@ -319,9 +321,7 @@ void Simulation::InitializeGameObjects()
 
 void Simulation::ShutdownGameObjects()
 {
-   freeMotion_.reset();
-   octtree_.reset();
-
+   SIM_LOG(1) << "Shutting down game objects.";
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
@@ -346,6 +346,9 @@ void Simulation::ShutdownGameObjects()
    scriptHost_->SetNotifyErrorCb(nullptr);
    error_browser_.reset();
    scriptHost_.reset();
+
+   freeMotion_.reset();
+   octtree_.reset();
 }
 
 void Simulation::ShutdownLuaObjects()
@@ -949,15 +952,15 @@ void Simulation::Save(boost::filesystem::path const& saveid)
 {
    ASSERT(store_);
 
-   SIM_LOG(0) << "starting save.";
+   SIM_LOG(0) << "Starting save.";
    scriptHost_->FullGC();
 
    std::string error;
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / saveid / "server_state.bin").string();
    if (!store_->Save(filename, error)) {
-      SIM_LOG(0) << "failed to save: " << error;
+      SIM_LOG(0) << "Failed to save: " << error;
    }
-   SIM_LOG(0) << "saved.";
+   SIM_LOG(0) << "Saved.";
 }
 
 rpc::ReactorDeferredPtr Simulation::BeginLoad(boost::filesystem::path const& saveid) {
@@ -969,7 +972,7 @@ rpc::ReactorDeferredPtr Simulation::BeginLoad(boost::filesystem::path const& sav
 
 void Simulation::Load()
 {
-   SIM_LOG(0) << "starting loadin...";
+   SIM_LOG(0) << "Starting load.";
    // delete all the streamers before shutting down so we don't spam them with delete requests,
    // then create new streamers. 
    for (std::shared_ptr<RemoteClient> client : _clients) {
@@ -1003,7 +1006,7 @@ void Simulation::Load()
    });
    
    if (!didLoad) {
-      SIM_LOG(0) << "failed to load: " << error;
+      SIM_LOG(0) << "Failed to load: " << error;
    }
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
@@ -1049,7 +1052,7 @@ void Simulation::Load()
       EncodeUpdates(c);
       protocol::SendQueue::Flush(c->send_queue);
    }
-   SIM_LOG(0) << "done loadin...";
+   SIM_LOG(0) << "Done loading.";
 }
 
 void Simulation::Reset()
