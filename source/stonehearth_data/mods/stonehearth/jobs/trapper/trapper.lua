@@ -25,6 +25,11 @@ function TrapperClass:promote(json)
    self._sv.is_current_class = true
    self._sv.job_data = json
    self._sv.job_name = json.name
+   self._sv.max_level = json.max_level
+
+   if not self._sv.is_max_level then
+      self._sv.is_max_level = false
+   end
 
    if json.xp_rewards then
       self._sv.xp_rewards = json.xp_rewards
@@ -37,20 +42,15 @@ function TrapperClass:promote(json)
    self.__saved_variables:mark_changed()
 end
 
--- If there is a job title for this level, return it. 
-function TrapperClass:get_job_title()
-   local lv_data = self._sv.level_data[tostring(self._sv.last_gained_lv)]
-   if not lv_data then return nil end
-
-   if lv_data and lv_data.title then
-      return lv_data.title
-   end
-
-   return nil
-end
-
+-- Returns the level the character has in this class
 function TrapperClass:get_job_level()
    return self._sv.last_gained_lv
+end
+
+-- Returns whether we're at max level.
+-- NOTE: If max level is nto declared, always false
+function TrapperClass:is_max_level()
+   return self._sv.is_max_level 
 end
 
 function TrapperClass:_create_xp_listeners()
@@ -115,10 +115,16 @@ function TrapperClass:level_up()
       descriptions = perk_descriptions
    }
 
+   if self._sv.last_gained_lv == self._sv.max_level then
+      self._sv.is_max_level = true
+   end
+
    self.__saved_variables:mark_changed()
    
    return level_data
 end
+
+-- Functions for level up
 
 -- Add the buff described in the buff_name
 function TrapperClass:apply_buff(args)

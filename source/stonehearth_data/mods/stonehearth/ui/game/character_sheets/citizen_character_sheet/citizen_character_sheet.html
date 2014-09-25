@@ -38,9 +38,13 @@
                <!-- experience -->
                <div class="stat" id="experienceStat">
                   <div class="label">experience</div>
-                  <div class="bar">
+                  {{#if stonehearth:job.curr_job_controller.is_max_level}}
+                     <div class = "maxLevelNotice">MAX LEVEL!!!</>
+                  {{else}}
+                     <div class="bar">
                      <div class="expBar" />
                      <div class="value">{{stonehearth:job.current_level_exp}} / {{stonehearth:job.xp_to_next_lv}}</div>
+                  {{/if}}
                   </div>
                </div>
             </div>

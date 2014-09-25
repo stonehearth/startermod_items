@@ -101,7 +101,6 @@
          ]
       },
       "stonehearth:job" : {
-         "starting_level" : 0,
          "starting_level_title" : "Apprentice __job_name__ ",
          "default_level_title" : "Level __level_number__ __job_name__", 
          "default_level_announcement" : "__name__ has Achieved __job_name__ Level __level_number__!", 

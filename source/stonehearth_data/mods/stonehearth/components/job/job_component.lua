@@ -7,19 +7,12 @@ local JobComponent = class()
 
 function JobComponent:initialize(entity, json)
    self._entity = entity
-   self._attributes_component = entity:add_component('stonehearth:attributes')
 
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
       self._sv._initialized = true
       self._sv.job_controllers = {}
-      local starting_level = 0
-      if json.starting_level then
-         starting_level = json.starting_level
-      end
-      self._attributes_component:set_attribute('total_level', starting_level)
-
       if json.xp_equation_for_next_level then
          self._sv.xp_equation = json.xp_equation_for_next_level
       end
@@ -32,10 +25,6 @@ function JobComponent:initialize(entity, json)
       if json.default_level_title then
          self._sv._default_level_title = json.default_level_title
       end
-
-      --@ start and whenever you level up, calculate the XP you need to next level
-      self._sv.current_level_exp = 0
-      self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    end
 
    if self._sv.job_uri then
@@ -80,11 +69,10 @@ function JobComponent:get_roles()
 end
 
 -- Figure out the job title for the current job (level + job name)
+-- First try to get it from the job data
+-- If that doesn't work, compose it from the default
 function JobComponent:_get_current_job_title(job_json)
-   local new_title = nil
-   if self._sv.curr_job_controller.get_job_title then
-      new_title = self._sv.curr_job_controller:get_job_title()
-   end
+   local new_title = self:_get_title_for_level(job_json)
    if not new_title then
       new_title = self:_compose_default_job_name(
          job_json,
@@ -92,6 +80,22 @@ function JobComponent:_get_current_job_title(job_json)
          job_json.name)
    end
    return new_title
+end
+
+-- Look up the level of the character in this job and
+-- see if there is a specific title for that level
+-- if so, return it, if not, return nil. 
+function JobComponent:_get_title_for_level(job_json)
+   local curr_level = self._sv.curr_job_controller:get_job_level()
+
+   local lv_data = job_json.level_data[tostring(curr_level)]
+   if not lv_data then return nil end
+
+   if lv_data and lv_data.title then
+      return lv_data.title
+   end
+
+   return nil
 end
 
 -- Composes the detailed job title if none is provided by the class. 
@@ -116,8 +120,14 @@ function JobComponent:promote_to(job_uri)
       self._sv.talisman_uri = self._job_json.talisman_uri
       self._sv.class_icon = self._job_json.icon
 
+      --Strangely, doesn't exist yet when this is called in init, creates duplicate component!
+      if not self._sv.attributes_component then
+         self._sv.attributes_component = self._entity:get_component('stonehearth:attributes')
+      end
+
       --Whenever you get a new job, dump all the xp that you've accured so far to your next level
       self._sv.current_level_exp = 0
+      self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
 
       self:_set_unit_info(self._job_json)
       self:_equip_outfit(self._job_json)
@@ -168,11 +178,15 @@ end
 -- If there is leftover XP after the level(s), that should be the new amount of XP
 -- that is stored in self._sv.current_level_exp
 function JobComponent:add_exp(value)
-    self._sv.current_level_exp = self._sv.current_level_exp + value
-   local original_level = self._attributes_component:get_attribute('total_level')
+   if self._sv.curr_job_controller:is_max_level() then
+      return
+   end
+
+   self._sv.current_level_exp = self._sv.current_level_exp + value
+   local original_level = self._sv.attributes_component:get_attribute('total_level')
 
    while self._sv.current_level_exp >= self._sv.xp_to_next_lv do
-   self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
+      self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
       self:_level_up()
    end
 
@@ -183,8 +197,8 @@ end
 function JobComponent:_level_up()
    --Change all the attributes to the new level
    --Should the general HP increase (class independent) be reflected as a permanent buff or a quiet stat increase?
-   local curr_level = self._attributes_component:get_attribute('total_level')
-   self._attributes_component:set_attribute('total_level', curr_level + 1)
+   local curr_level = self._sv.attributes_component:get_attribute('total_level')
+   self._sv.attributes_component:set_attribute('total_level', curr_level + 1)
    
    --Add all the universal level dependent buffs/bonuses, etc
 
@@ -214,20 +228,20 @@ function JobComponent:_level_up()
          job_name = self._sv.curr_job_name })
    end
 
+   radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
+   
    --TODO: localize, decide how we want to announce this
    --TODO: update UI/char sheet, etc
    --TODO: have this affect happiness!
-   --radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
    --local name = radiant.entities.get_display_name(self._entity)
    --stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')
-
    self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    self.__saved_variables:mark_changed()   
 end
 
 -- Calculate the exp requried to get to the level after this one. 
 function JobComponent:_calculate_xp_to_next_lv()
-   local next_level = self._attributes_component:get_attribute('total_level') + 1
+   local next_level = self._sv.attributes_component:get_attribute('total_level') + 1
    local equation = string.gsub(self._sv.xp_equation, 'next_level', next_level)
    local fn = loadstring('return ' .. equation)
    return fn()

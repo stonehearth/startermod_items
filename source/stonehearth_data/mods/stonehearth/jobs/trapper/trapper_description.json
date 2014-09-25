@@ -33,6 +33,8 @@
       "unload_backpack" : 50
    },
 
+   "max_level" : 6,
+
    "level_data" : {
       "1" : {
          "title" : "Journeyman Trapper",
