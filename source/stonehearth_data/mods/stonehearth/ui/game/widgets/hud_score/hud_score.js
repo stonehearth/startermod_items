@@ -5,14 +5,14 @@ App.StonehearthHudScoreWidget = App.View.extend({
       var self = this;
       this._super();
 
-      radiant.call('stonehearth:get_town')
+      /*radiant.call('stonehearth:get_town')
          .done(function(response) {
             self.townTrace = new StonehearthDataTrace(response.town, {});
             self.townTrace.progress(function(eobj) {
                   console.log(eobj);
                   self.set('context.town', eobj);
                });
-         });
+         });*/
 
       radiant.call('stonehearth:get_score')
          .done(function(response){
