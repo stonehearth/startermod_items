@@ -575,10 +575,11 @@ DLLEXP void h3dRemoveNode( NodeHandle node )
 {
 	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
 
-	APIFUNC_VALIDATE_NODE( sn, "h3dRemoveNode", APIFUNC_RET_VOID );
-
-	//Modules::log().writeInfo( "Removing node %i", node );
-	Modules::sceneMan().removeNode( *sn );
+   // We end up trying to remove dead nodes a _lot_; at this point, this is
+   // no longer 'bad' API usage (I'm defining it thus), so just be silent.
+   if (sn) {
+	   Modules::sceneMan().removeNode( *sn );
+   }
 }
 
 

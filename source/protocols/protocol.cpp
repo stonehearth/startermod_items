@@ -110,6 +110,9 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
+   if (e) {
+      NETWORK_LOG(1) << BUILD_STRING("Error during HandleRead: " << e);
+   }
    ASSERT(!e);
 
 
