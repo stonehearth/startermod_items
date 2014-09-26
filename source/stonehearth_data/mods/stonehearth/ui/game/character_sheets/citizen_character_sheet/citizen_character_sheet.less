@@ -229,6 +229,52 @@
       #attributesTab {
          display: none;
       }
+
+      #abilitiesTab {
+         display: none;
+         overflow-y: auto;
+
+         .jobData {
+            margin-top: 5px;
+            color: #ffe850;
+
+            .levelText {
+               color: #ff5a00;
+            }
+
+            .classNameHeader {
+               font-family: @headerFontFamily;
+               font-size: 26px;
+            }
+
+            .perkDiv {
+               float: left;
+               margin-right: 10px;
+
+               img {
+                  float: left;
+               }
+               .perkImgLocked {
+                  -webkit-filter: grayscale(75%);
+               }
+               .perkImgUnlocked {
+                  -webkit-filter: grayscale(0%);
+               }
+               .lvLabel {
+                  position: absolute;
+                  width: 80px;
+                  padding-top: 60px;
+                  display: block;
+
+                  text-align: center;
+                  font-size: 14;
+                  font-family: @headerFontFamily;
+               }
+            }
+         }
+         
+         
+      }
    }
 
    #infoTable {

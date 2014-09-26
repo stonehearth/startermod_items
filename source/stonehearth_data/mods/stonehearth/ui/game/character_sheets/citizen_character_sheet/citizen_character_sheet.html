@@ -115,6 +115,23 @@
                   <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id="compassion" class="value">{{stonehearth:attributes.attributes.compassion.effective_value}}</div>
                </table>
             </div>
+            <div id="abilitiesTab" class = "tabPage">
+               {{#each view.all_job_data}}
+                  <div class="jobData">
+                     <div class="classNameHeader">{{this.job_name}} (Level <span class="levelText">{{this.last_gained_lv}}</span>)</div>
+                     <div class="jobPerks">
+                        {{#each this.level_data}}
+                           {{#each this.perks}}
+                           <div class="perkDiv">
+                           <img {{bind-attr class="unlocked:perkImgUnlocked:perkImgLocked" src=this.icon}}/>
+                           <span class="lvLabel">Lvl <span class="levelText">{{../level}}</span></span>
+                           </div>
+                           {{/each}}
+                        {{/each}}
+                     </div>
+                  </div>
+               {{/each}}
+            </div>
             <div id="moraleTab" class="tabPage">
                <div id="persona" class="column">
                   <h2>{{i18n stonehearth:happiness}}</h2>
@@ -159,6 +176,7 @@
 
          <div id="tabs">
             <div class="tab active" tabPage="equipmentTab">{{i18n stonehearth:equipment}}</div>
+            <div class="tab" tabPage="abilitiesTab">{{i18n stonehearth:abilities}}</div>
             <div class="tab" tabPage="attributesTab">{{i18n stonehearth:attributes}}</div>
             <div class="tab" tabPage="moraleTab">{{i18n stonehearth:happiness}}</div>
          </div>

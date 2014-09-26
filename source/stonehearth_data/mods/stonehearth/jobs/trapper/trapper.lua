@@ -103,6 +103,7 @@ function TrapperClass:level_up()
    for i, perk_data in ipairs(job_updates_for_level.perks) do
 
       self[perk_data.type](self, perk_data)
+      perk_data.unlocked = true
 
       --Collect text about the perk
       local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}

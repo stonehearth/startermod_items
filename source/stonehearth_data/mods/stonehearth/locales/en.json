@@ -156,6 +156,7 @@
    "journal" : "Journal",
    "attributes" : "Attributes",
    "equipment" : "Equipment",
+   "abilities" : "Job Abilities",
 
    "happiness" : "Morale",
    "overall_happiness" : "Overall Morale",

@@ -27,17 +27,78 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       }
    },
 
-   //currJobIcon: '', // /stonehearth/jobs/trapper/images/icon.png',
-
    init: function() {
       this._super();
       this.set('equipment', {});
    },
 
+   all_job_data: null, 
+   first_init: true, 
+   curr_class: "", 
+   curr_level: null, 
+
+   //Every time the job updates, check if it's either the first time
+   //or a signficiant change (new class, new job).
+   //If any of these cases are true, rebuild the class structure 
+   //(Arr, would rather reuse the existing model, but Ember!)
    _updateJobData : function() {
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
+      var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
+      var new_class = this.get('context.stonehearth:job.job_uri')
+      if (this.first_init || 
+          this.curr_level != new_level || 
+          this.curr_class != new_class) {
+         
+         this._build_job_data();
+         this.set('first_init', false);
+         this.set('curr_level', new_level);
+         this.set('curr_class', new_class);
+      }
+      //this._sanitize_job_level_data();
       this._updateAttributes();
    }.observes('context.stonehearth:job'),
+
+   _build_job_data : function () {
+      var self = this;
+      var job_data_array = [];
+      
+      //copy the data into a javascript variable
+      var job_controller_map = self.get('context.stonehearth:job.job_controllers');
+      $.each(job_controller_map, function(k ,v) {
+         if(k != "__self" && job_controller_map.hasOwnProperty(k)) {
+            var job_data = {
+               job_name : v.job_name, 
+               is_max_lv : v.is_max_lv, 
+               last_gained_lv : v.last_gained_lv,
+               level_data : []
+            };
+
+            //Go through the levels and put them into an array
+            $.each(v.level_data, function(kl, level_value) {
+               if( kl != "__self" && v.level_data.hasOwnProperty(kl)) {
+                  var each_lv = {
+                     level:level_value.level, 
+                     perks : []
+                  };
+
+                  //Go through the perks and copy them over
+                  for (var i=0; i<level_value.perks.length; i++) {
+                     var perk = {
+                        name : level_value.perks[i].perk_name, 
+                        icon : level_value.perks[i].icon, 
+                        description: level_value.perks[i].description,
+                        unlocked: level_value.level <= v.last_gained_lv 
+                     }
+                     each_lv.perks.push(perk);
+                  }
+                  job_data.level_data.push(each_lv);                  
+               }
+            });
+            job_data_array.push(job_data);
+         }
+      });
+      this.set('all_job_data', job_data_array)
+   },
 
    _setFirstJournalEntry: function() {
       var log = this.get('context.stonehearth:personality.log');
@@ -104,6 +165,13 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    _setAttributeData: function() {
       //this._updateAttributes();
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
+
+      var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
+      if (this.curr_level != null && this.curr_level != new_level) {         
+         this._build_job_data();
+         this.set('curr_level', new_level);
+      }
+
    }.observes('context.stonehearth:attributes, context.stonehearth:buffs'),
 
    _updateAttributes: function() {

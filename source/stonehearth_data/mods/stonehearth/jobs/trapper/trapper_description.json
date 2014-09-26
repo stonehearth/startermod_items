@@ -38,22 +38,24 @@
    "level_data" : {
       "1" : {
          "title" : "Journeyman Trapper",
-         "icon" : "file(images/trapperLevel1.png)", 
+         "level" : 1, 
          "perks" : [
             {
                "type" : "apply_buff", 
                "perk_name" : "Speed ^10%", 
+               "icon" : "file(images/trapperLevel1.png)",
                "buff_name" : "stonehearth:buffs:trapper:speed_1",
                "description" : "Long walks have increased the trapper's foot speed."
             }
          ]
       },
       "2" : {
-         "icon" : "file(images/trapperLevel2.png)", 
+         "level" : 2, 
          "perks" : [
             {
                "type" : "increase_backpack_size",
                "perk_name" : "Backpack Size +2", 
+               "icon" : "file(images/trapperLevel2.png)", 
                "backpack_size_increase" : "2",
                "description" : "The trapper has become more efficient at packing in the loot."
             }
