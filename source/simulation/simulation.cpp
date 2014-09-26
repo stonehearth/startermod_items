@@ -325,7 +325,16 @@ void Simulation::ShutdownGameObjects()
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
-   entityMap_.clear();
+
+   // Remove the entityMap datastructure before destroying the entities; this is because entity
+   // destruction will cause other entities to be accessed/destroyed, but we'd need a valid
+   // map for that.  This ensures that the map will be empty when those entities are cleared,
+   // and so those lookups will fail (but without invalidating the map).
+   {
+      std::unordered_map<dm::ObjectId, om::EntityPtr> keepAlive = entityMap_;
+      entityMap_.clear();
+   }
+
    datastoreMap_.clear();
 
    clock_ = nullptr;
