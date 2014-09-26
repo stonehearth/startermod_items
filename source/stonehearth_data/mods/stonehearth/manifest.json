@@ -233,7 +233,7 @@
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
-      "loot:gold_chest" : "file(entities/loot/gold_chest)",
+      "loot:gold" : "file(entities/loot/gold)",
       
       "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
       "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",

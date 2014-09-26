@@ -5,6 +5,7 @@ end
 
 function Shop:initialize(session)   
    self._sv = self.__saved_variables:get_data()
+   self._session = session
    if not self._sv.initialized then
       self._sv.level_range = { min = -1, max = -1}
       self.__saved_variables:mark_changed()
@@ -71,10 +72,12 @@ function Shop:stock_shop()
       -- xxx, for now do them all.
       for uri, shop_item in pairs(entities) do
          -- Add it to the shop inventory
+         local item_cost = radiant.entities.get_entity_data(shop_item, 'stonehearth:net_worth').value_in_gold
          self._sv.inventory[uri] = {
             uri = uri,
             item = shop_item,
-            num = 99
+            cost = item_cost,
+            num = 99,
          }
       end
 
@@ -85,12 +88,45 @@ function Shop:stock_shop()
 end
 
 function Shop:buy_item(uri)
+   -- do we have enough gold?
+   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   local gold = inventory:get_gold_count()
+   local item_cost = self._sv.inventory[uri].cost
+   
+   if false and gold < item_cost then
+      return
+   end
+
+   -- remove one from my inventory
    self._sv.inventory[uri].num = self._sv.inventory[uri].num - 1
    self.__saved_variables:mark_changed()
+
+   -- deduct gold from the player
+   inventory:subtract_gold(item_cost)
+
+   -- spawn the item on the ground
+   self:_spawn_items(uri, 1)
 end
 
 function Shop:buy_item_command(session, response, uri)
    self:buy_item(uri)
+   return true
+end
+
+function Shop:_spawn_items(uri, quantity)
+   --Add the new items to the space near the banner
+   local town = stonehearth.town:get_town(self._session.player_id)
+   local banner = town:get_banner()
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
+      return false
+   end
+
+   local items = {}
+   items[uri] = quantity
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._session.player_id)
+
+   return true
 end
 
 function Shop:_add_entity_to_sellable_items(uri, entity)
@@ -107,4 +143,7 @@ function Shop:_add_entity_to_sellable_items(uri, entity)
    self.sellable_items[rarity][uri] = entity
 end
 
+function Shop:_get_item_cost(entity)
+   return radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold
+end
 return Shop

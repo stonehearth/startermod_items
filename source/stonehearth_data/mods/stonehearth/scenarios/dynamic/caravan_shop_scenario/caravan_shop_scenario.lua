@@ -17,7 +17,7 @@ function CaravanShopScenario:restore()
 end
 
 function CaravanShopScenario:start()
-   self._sv.shop = stonehearth.shop.create_shop(self.session)
+   self._sv.shop = stonehearth.shop:create_shop(self.session)
    self:_post_bulletin()
 end
 

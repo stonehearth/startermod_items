@@ -3,17 +3,17 @@
    "type": "entity",
    "components": {
       "item": {
-         "stacks": 0
+         "stacks": 200
       },
       "unit_info": {
          "name": "Chest of Gold Coins",
          "description": "It's money!",
-         "icon" : "file(gold_chest.png)"
+         "icon" : "file(gold.png)"
       },     
       "model_variants": {
          "default": {
             "models": [
-               "file(gold_chest_3.qb)"
+               "file(gold_3.qb)"
             ]
          }
       },

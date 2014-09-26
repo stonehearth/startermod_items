@@ -1,6 +1,24 @@
 App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 	templateName: 'shopBulletinDialog',
 
+   init: function() {
+      this._super();
+      var self = this;
+      return radiant.call('stonehearth:get_inventory')
+         .done(function(response) {
+            self._inventoryUri = response.inventory;
+            self._getGold();
+         })
+   },
+
+   _getGold: function() {
+      var self = this;
+      radiant.call_obj(self._inventoryUri, 'get_gold_count_command')
+         .done(function(response) {
+            self.set('playerGold', response.gold);
+         })
+   },
+
    _expandInventory: function() {
       var self = this
 
@@ -16,9 +34,9 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          };
 
       var shopUri = this.get('context.data.shop');
-      self.inventoryTrace = new StonehearthDataTrace(shopUri, components);
+      self.shopTrace = new StonehearthDataTrace(shopUri, components);
 
-      self.inventoryTrace.progress(function(eobj) {
+      self.shopTrace.progress(function(eobj) {
             //if (!self.get('inventoryArray')) {
                var array = self._getInventoryArray(eobj.inventory);
                self.set('inventoryArray', array);
@@ -46,7 +64,10 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self.$('#buy1Button').click(function() {
          var shop = self.get('context.data.shop');
          var item = self.$('.row.selected').attr('uri')
-         radiant.call_obj(shop, 'buy_item_command', item);
+         radiant.call_obj(shop, 'buy_item_command', item)
+            .done(function() {
+               self._getGold();
+            })
       })
 
       if (self._selectedUri) {
@@ -65,8 +86,8 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    },
 
    destroy: function() {
-      if (this.inventoryTrace) {
-         this.inventoryTrace.destroy();
+      if (this.shopTrace) {
+         this.shopTrace.destroy();
       }
 
       this._super();
