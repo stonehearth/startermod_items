@@ -34,13 +34,15 @@
       {
          "category" : "Doors",
          "items" : [
-            { "name": "Wooden door", "portrait": "/stonehearth/entities/construction/wooden_door/wooden_door.png", "brush": "stonehearth:wooden_door" }
+            { "name": "Wooden door", "portrait": "/stonehearth/entities/construction/wooden_door/wooden_door.png", "brush": "stonehearth:wooden_door" },
+            { "name": "Reinforced wooden door", "portrait": "/stonehearth/entities/construction/wooden_door_2/wooden_door_2.png", "brush": "stonehearth:wooden_door_2" }
          ]
       },
       {
          "category" : "Windows",
          "items" : [
-            { "name": "Wooden window", "portrait": "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png", "brush":"stonehearth:wooden_window_frame" }
+            { "name": "Wooden window", "portrait": "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png", "brush":"stonehearth:wooden_window_frame" },
+            { "name": "Wooden diamond window", "portrait": "/stonehearth/entities/construction/wooden_diamond_window/wooden_diamond_window.png", "brush":"stonehearth:wooden_diamond_window" }
          ]
       }
    ]

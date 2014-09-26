@@ -135,6 +135,7 @@
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
+      "effects:treasure_glow" : "file(data/effects/treasure_glow)",
 
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
       "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
@@ -232,12 +233,15 @@
       "table_for_one" : "file(entities/furniture/table_for_one)",
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
+      "loot:gold_chest" : "file(entities/loot/gold_chest)",
       
       "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
       "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "wooden_door" : "file(entities/construction/wooden_door)",
+      "wooden_door_2" : "file(entities/construction/wooden_door_2)",
       "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
+      "wooden_diamond_window" : "file(entities/construction/wooden_diamond_window)",
       "ball" : "file(entities/toys/ball)",
 
       "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
@@ -647,6 +651,7 @@
       
       "scenarios:scenario_index" : "file(scenarios/index.json)",
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
+      "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.json)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.json)",
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.json)",
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
@@ -922,7 +927,7 @@
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "client"
       },
-      "designate_trapping_grounds": {
+      "create_trapping_grounds": {
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -1026,6 +1031,7 @@
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
+      "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
@@ -1045,6 +1051,7 @@
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.lua)",
+      "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.lua)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.lua)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.lua)", 
@@ -1052,6 +1059,8 @@
 
       "target_table" : "file(components/target_tables/target_table.lua)",
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
+
+      "shop" : "file(services/server/shop/shop.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
@@ -1204,6 +1213,7 @@
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.html)",
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
       ],
@@ -1270,6 +1280,7 @@
          "file(ui/game/bulletin/bulletin_dialog/base_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1329,6 +1340,7 @@
          "file(ui/game/bulletin/bulletin_notification/bulletin_notification.less)",
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/event_log/event_log.less)"
       ]

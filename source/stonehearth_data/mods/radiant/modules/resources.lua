@@ -34,5 +34,9 @@ function resources.load_manifest(uri)
    return _radiant.res.load_manifest(uri)
 end
 
+function resources.convert_to_canonical_path(uri)
+   return _radiant.res.convert_to_canonical_path(uri)
+end
+
 resources.__init()
 return resources

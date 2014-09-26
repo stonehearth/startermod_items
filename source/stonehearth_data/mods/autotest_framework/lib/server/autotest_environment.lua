@@ -183,7 +183,7 @@ function env.create_trapping_grounds(x, z, options)
    local size = options.size or { x = 16, z = 16 }
 
    local location = Point3(x, 1, z)
-   return stonehearth.trapping:designate_trapping_grounds(player_id, faction, location, size)
+   return stonehearth.trapping:create_trapping_grounds(player_id, faction, location, size)
 end
 
 function env.equip_weapon(entity, weapon_uri)

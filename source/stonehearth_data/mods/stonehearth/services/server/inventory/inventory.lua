@@ -21,6 +21,7 @@ function Inventory:initialize(session)
    self.__saved_variables:mark_changed()
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
+   self:add_item_tracker('stonehearth:gold_tracker')
 end
 
 function Inventory:restore()
@@ -204,6 +205,24 @@ function Inventory:find_closest_unused_placable_item(uri, location)
       end
    end
    return best_item, acceptable_item_count
+end
+
+function Inventory:get_gold_count()
+   local tracker = self._inventory:add_item_tracker('stonehearth:gold_tracker')
+   local total_gold = 0
+   for id, gold_item in pairs(tracker:get_tracking_data()) do
+      -- get stac
+      local item_component = gold_item:add_component('item')
+      local stacks = item_component:get_stacks()
+
+      total_gold = total_gold + stacks
+   end
+
+   return total_gold
+end
+
+function Inventory:remove_gold(amount)
+
 end
 
 return Inventory
