@@ -922,7 +922,7 @@
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "client"
       },
-      "designate_trapping_grounds": {
+      "create_trapping_grounds": {
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "server"
       },

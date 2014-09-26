@@ -152,10 +152,6 @@ function MiningZoneComponent:_update_destination()
             -- TODO: optimize this as the region (and adjacent) will have a lot of cubes
             cursor:add_region(terrain_region)
          end
-
-         if cursor:empty() then
-            log:error('Foo')
-         end
       end)
 
    self:_update_adjacent()
