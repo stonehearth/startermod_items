@@ -23,11 +23,8 @@ Convert::Convert(dm::Store const& store, int flags) :
 void Convert::ToProtobuf(luabind::object const& from, Protocol::Value* to) {
    std::vector<luabind::object> tables;
 
-   CONVERT_LOG(9) << " converting to protobuf" << lua::ScriptHost::LuaToJson(from.interpreter(), from).write_formatted();
-
    Protocol::LuaObject* msg = to->MutableExtension(Protocol::LuaObject::extension);
    LuaToProtobuf(from, msg, msg, tables);
-
 }
 
 void Convert::ToLua(Protocol::Value const& from, luabind::object &to)

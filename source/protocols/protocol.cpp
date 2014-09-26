@@ -25,6 +25,7 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
          queue.pop_front();
 
          auto writeFinished = [sendQueue, buffer](const boost::system::error_code& error, size_t bytes_transferred) {
+            ASSERT(bytes_transferred == buffer->size);
             sendQueue->_bufferedBytes -= buffer->size;
             NETWORK_LOG(3) << sendQueue->_endpoint << " finished sending buffer of size " << buffer->size << "(bytes pending: " << sendQueue->_bufferedBytes << ")";
             ASSERT(!error);
@@ -110,6 +111,9 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
+   if (e) {
+      NETWORK_LOG(1) << BUILD_STRING("Error during HandleRead: " << e);
+   }
    ASSERT(!e);
 
 

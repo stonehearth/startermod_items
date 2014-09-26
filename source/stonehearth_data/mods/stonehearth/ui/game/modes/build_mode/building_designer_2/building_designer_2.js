@@ -160,7 +160,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          self._selectActiveMaterial(tab);
 
          // intabuild. for debugging only
-         /*
          $(top).bind('keyup', function(e){
             if (e.keyCode == 88)  { // x
                var building = self.get('building');
@@ -170,7 +169,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                }
             }
          });         
-         */
       });
 
       // undo/redoo tool

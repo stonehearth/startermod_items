@@ -319,8 +319,12 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
 
 ScriptHost::~ScriptHost()
 {
+   LUA_LOG(1) << "Shutting down script host.";
+   FullGC();
    required_.clear();
    lua_close(L_);
+   ASSERT(this->bytes_allocated_ == 0);
+   LUA_LOG(1) << "Script host destroyed.";
 }
 
 int ScriptHost::GetErrorCount() const
@@ -865,7 +869,7 @@ luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::st
                   return true;
                }
             }
-         } catch (std::exception& e) {
+         } catch (std::exception const& e) {
             LUA_LOG(1) << "call to " << format << " failed: " << e.what();
             ReportCStackThreadException(L_, e);
          }

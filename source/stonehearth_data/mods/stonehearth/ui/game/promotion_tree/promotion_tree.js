@@ -26,8 +26,7 @@ App.StonehearthPromotionTree = App.View.extend({
       self.jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.components);
       self.jobsTrace.progress(function(eobj) {
             self._jobs = eobj.jobs;
-            self._initCitizen();
-            
+            self._initCitizen();            
          });
    },
 
