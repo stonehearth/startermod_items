@@ -17,7 +17,7 @@ end
 function TrappingService:destroy()
 end
 
-function TrappingService:designate_trapping_grounds(player_id, faction, location, size)
+function TrappingService:create_trapping_grounds(player_id, faction, location, size)
    local entity = radiant.entities.create_entity('stonehearth:trapper:trapping_grounds')
 
    entity:get_component('unit_info'):set_player_id(player_id)
