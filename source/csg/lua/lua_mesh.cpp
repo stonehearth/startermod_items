@@ -7,9 +7,6 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-typedef mesh_tools::mesh Mesh;
-typedef mesh_tools::vertex Vertex;
-
 IMPLEMENT_TRIVIAL_TOSTRING(Mesh);
 IMPLEMENT_TRIVIAL_TOSTRING(Vertex);
 
@@ -61,8 +58,8 @@ scope LuaMesh::RegisterLuaTypes(lua_State* L)
          .def(constructor<Point3f const&, Point3f const&, Point4f const&>())
          .def(constructor<Point3f const&, Point3f const&, Color3 const&>())
          .def(constructor<Point3f const&, Point3f const&, Color4 const&>())
-         .def_readwrite("location", &mesh_tools::vertex::location)
-         .def_readwrite("normal", &mesh_tools::vertex::normal)
-         .def_readwrite("color", &mesh_tools::vertex::color)
+         .def_readwrite("location", &Vertex::location)
+         .def_readwrite("normal", &Vertex::normal)
+         .def_readwrite("color", &Vertex::color)
       ;
 }

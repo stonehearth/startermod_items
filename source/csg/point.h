@@ -31,7 +31,7 @@ public:
    }
 
    // manipulators
-   Derived Scaled(float s) const {
+   template <typename T> Derived Scaled(T s) const {
       Derived result(*static_cast<Derived const*>(this));
       result.Scale(s);
       return result;
@@ -205,6 +205,10 @@ public:
       x = 0;
    }
 
+   void Set(S x_in) {
+      x = x_in;
+   }
+
    float LengthSquared() const {
       float result = 0;
       result += x * x;
@@ -213,6 +217,14 @@ public:
 
    void Scale(float s) {
       x = static_cast<S>(x * s);
+   }
+
+   void Scale(int s) {
+      x = static_cast<S>(x * s);
+   }
+
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
    }
 
    void Translate(const Point& pt) {
@@ -301,6 +313,12 @@ public:
       y = 0;
    }
 
+   void Set(S x_in, S y_in) {
+      x = x_in;
+      y = y_in;
+   }
+
+
    float LengthSquared() const {
       float result = 0;
       result += x * x;
@@ -313,6 +331,16 @@ public:
       y = static_cast<S>(y * s);
    }
 
+   void Scale(int s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+   }
+
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;
@@ -410,6 +438,12 @@ public:
       z = 0;
    }
 
+   void Set(S x_in, S y_in, S z_in) {
+      x = x_in;
+      y = y_in;
+      z = z_in;
+   }
+
    float LengthSquared() const {
       float result = 0;
       result += x * x;
@@ -424,6 +458,18 @@ public:
       z = static_cast<S>(z * s);
    }
 
+   void Scale(int s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+   }
+
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+      z = static_cast<S>(z * other.z);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;
@@ -534,6 +580,13 @@ public:
       w = 0;
    }
 
+   void Set(S x_in, S y_in, S z_in, S w_in) {
+      x = x_in;
+      y = y_in;
+      z = z_in;
+      w = w_in;
+   }
+
    float LengthSquared() const {
       float result = 0;
       result += x * x;
@@ -550,6 +603,20 @@ public:
       w = static_cast<S>(w * s);
    }
 
+   void Scale(int s) {
+      x = static_cast<S>(x * s);
+      y = static_cast<S>(y * s);
+      z = static_cast<S>(z * s);
+      w = static_cast<S>(w * s);
+   }
+
+   void Scale(Point const& other) {
+      x = static_cast<S>(x * other.x);
+      y = static_cast<S>(y * other.y);
+      z = static_cast<S>(z * other.z);
+      w = static_cast<S>(w * other.w);
+   }
+   
    void Translate(const Point& pt) {
       x += pt.x;
       y += pt.y;

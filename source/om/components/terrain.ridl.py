@@ -50,6 +50,11 @@ class Terrain(Component):
       "csg/point.h"
    ]
 
+   _public = \
+   """
+   csg::Point3 const& GetTileSize() const;
+   """
+
    _private = \
    """
    Region3BoxedPtr GetTile(csg::Point3 const& index);

@@ -7,6 +7,7 @@ local WOODEN_COLUMN = 'stonehearth:wooden_column'
 local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
 local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
+local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 function lrbt_util.get_area(structure)
@@ -54,6 +55,13 @@ end
 
 function lrbt_util.grow_wooden_walls(session, building)
    return stonehearth.build:grow_walls(building, WOODEN_COLUMN, WOODEN_WALL)
+end
+
+function lrbt_util.grow_wooden_roof(session, building)
+   return stonehearth.build:grow_roof(building, WOODEN_ROOF, {
+         nine_grid_gradiant = { 'left', 'right' },
+         nine_grid_max_height = 10,
+      })
 end
 
 return lrbt_util

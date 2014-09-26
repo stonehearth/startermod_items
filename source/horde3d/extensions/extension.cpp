@@ -213,8 +213,6 @@ bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateToastNode", nullptr);
 	
-	Modules::log().writeInfo( "Adding Toast node '%s'", name.c_str() );
-	
 	ToastNode* sn = (ToastNode*)Modules::sceneMan().findType(SNT_ToastNode)->factoryFunc(ToastTpl(name));
 	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
 

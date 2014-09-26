@@ -87,10 +87,13 @@ public:
             }
 
             if ((iter_planes_ & current_front_plane) != 0) {
+               plane.which = current_front_plane;
                plane.normal_dir = -1;
                ForEachPlane(front, back, plane, cb);
             }
+
             if ((iter_planes_ & current_back_plane) != 0) {
+               plane.which = current_back_plane;
                plane.normal_dir =  1;
                ForEachPlane(back, front, plane, cb);
             }
