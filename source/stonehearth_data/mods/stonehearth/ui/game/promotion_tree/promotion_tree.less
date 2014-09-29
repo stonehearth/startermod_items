@@ -49,12 +49,96 @@
    }
 
    #scroll {
+      .parchment;
       position: absolute;
       top: 74px;
       right: 4px;
       width: 480px;
       height: 667px;
-      background: rgba(0,0,0,0.2);
+      background: url(images/scroll.png);
+      display: none;
+
+      #inner {
+         padding: 20px;
+         padding-top: 40px;
+      }
+
+      #title {
+         font-family: @controlFontFamily;
+         text-align: center;
+         font-size: 36px;
+         padding-bottom: 10px;
+      }
+
+      #approveStamp {
+         .controlFont;
+         position: absolute;
+         bottom: 24px;
+         right: 24px;
+         width: 160px;
+         border: 5px solid rgba(0,0,0,0.4);
+         padding: 8px;
+         text-align: center;
+         font-size: 26px;
+         color: rgba(0,0,0,0.4);
+         text-shadow: none;
+      }
+
+      #approvedStamp {
+         .controlFont;
+         position: absolute;
+         bottom: 20px;
+         right: 20px;
+         width: 192px;
+         height: 54px;
+         text-align: center;
+         vertical-align: middle;
+         font-size: 28px;
+         color: #af9664;
+         text-shadow: none;
+         padding-top: 20px;
+         background: url(images/approved_stamp.png);
+         display: none;
+      }
+
+      #deniedStamp {
+         .controlFont;
+         position: absolute;
+         top: 300px;
+         left: 60px;
+         text-align: center;
+         vertical-align: middle;
+         font-size: 28px;
+         color: #c3b288;
+         padding: 30px;
+         width: 300px;
+         text-shadow: none;
+         background: url(images/approved_stamp.png);
+         background-size: cover;
+         opacity: 0.8;
+         -webkit-transform: rotate(-12deg);
+         display: none;
+      }
+
+      #approveStamper {
+         .button;
+         position: absolute;
+         bottom: 100px;
+         right: 20px;
+         width: 199px;
+         height: 193px;
+         background: url(images/approve_stamper.png);
+         display: none;
+      }
+
+      #citizenName {
+         text-align: center;
+         padding-top: 20px;
+         padding-bottom: 20px;
+         font-size: 28px;
+         font-style: italic;
+      }
+
    }
 
    #info {
