@@ -64,7 +64,7 @@ void Mob::SetRotation(csg::Quaternion const& orientation)
    });
 }
 
-float Mob::GetFacing() const
+double Mob::GetFacing() const
 {
    csg::Point3f axis;
    double radians;

@@ -39,7 +39,7 @@ class Mob(Component):
    move_to_grid_aligned = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
    turn_to = ridl.Method(c.void(), ('degrees', c.float()))
    turn_to_face_point = ridl.Method(c.void(), ('location', csg.Point3f().const.ref))
-   get_facing = ridl.Method(c.float()).const
+   get_facing = ridl.Method(c.double()).const
    set_rotation = ridl.Method(c.void(), ('q', csg.Quaternion().const.ref))
    get_rotation = ridl.Method(csg.Quaternion()).const
    get_location = ridl.Method(csg.Point3f()).const

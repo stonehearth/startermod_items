@@ -8,7 +8,6 @@
 #include "cubemitter/cubemitter.h"
 #include "debug_shapes/debug_shapes.h"
 #include "stockpile/decal_node.h"
-#include "stockpile/stockpile_node.h"
 #include "stockpile/toast_node.h"
 #include "Horde3D.h"
 #include "Horde3DUtils.h"
@@ -39,9 +38,6 @@ const char *Extension::getName()
 
 bool Extension::init()
 {
-   if (!StockpileNode::InitExtension()) {
-      return false;
-   }
    if (!DecalNode::InitExtension()) {
       return false;
    }
@@ -181,31 +177,6 @@ void Extension::release()
    gRDI->destroyBuffer( _cubeIdxBuf );
 
    // xxx: nuke the material
-}
-
-H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, std::string const& name)
-{
-	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
-	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantCreateStockpileNode", 0);
-	
-	Modules::log().writeInfo( "Adding Stockpile node '%s'", name.c_str() );
-	
-	StockpileNode* sn = (StockpileNode*)Modules::sceneMan().findType(SNT_StockpileNode)->factoryFunc(StockpileTpl(name));
-	H3DNode node = Modules::sceneMan().addNode(sn, *parentNode);
-
-   return node;
-}
-
-bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height)
-{
-	SceneNode *sceneNode = Modules::sceneMan().resolveNodeHandle( node );
-	APIFUNC_VALIDATE_NODE(sceneNode, "h3dRadiantResizeStockpileNode", false);
-
-   APIFUNC_VALIDATE_NODE_TYPE(sceneNode, SNT_StockpileNode, "h3dRadiantResizeStockpileNode", false );
-
-   csg::Cube3 bounds(csg::Point3::zero, csg::Point3(width, 0, height));
-   ((StockpileNode*)sceneNode)->UpdateShape(bounds);
-   return true;
 }
 
 ::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string const& name)

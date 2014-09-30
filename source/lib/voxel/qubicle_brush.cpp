@@ -131,9 +131,9 @@ float colorDistance(int colorA, int colorB)
    const csg::Point3f hslA = cA.ToHsl();
    const csg::Point3f hslB = cB.ToHsl();
 
-   float dH = hslA.x - hslB.x;
-   float dS = hslA.y - hslB.y;
-   float dL = hslA.z - hslB.z;
+   double dH = hslA.x - hslB.x;
+   double dS = hslA.y - hslB.y;
+   double dL = hslA.z - hslB.z;
 
    // TODO: This is incredibly wrong, but works!  Still, fix this soon-ish....
    // HSL distance, but we bias against lightness (valuing hue/saturation more.)
