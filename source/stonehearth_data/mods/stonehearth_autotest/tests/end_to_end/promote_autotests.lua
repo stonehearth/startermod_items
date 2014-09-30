@@ -5,7 +5,7 @@ local promote_tests = {}
 local function promote(autotest, worker, talisman, cb)
    autotest.ui:push_unitframe_command_button(worker, 'promote_to_job')
    autotest.ui:click_dom_element('#stonehearth\\:jobs\\:carpenter')
-   autotest.ui:click_dom_element('#promoteButton')
+   autotest.ui:click_dom_element('#approveStamper')
    radiant.events.listen(worker, 'stonehearth:job_changed', function (e)
          cb(e)
          return radiant.events.UNLISTEN

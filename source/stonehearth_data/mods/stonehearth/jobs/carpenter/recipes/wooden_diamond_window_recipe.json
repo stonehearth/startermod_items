@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Wooden Diamond Window",
+   "description" : "A more stylish window.",
+   "flavor"      : "The 45 degree turn adds sophistication.",
+   "portrait"    : "/stonehearth/entities/construction/wooden_diamond_window/wooden_diamond_window.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+   ],
+  "produces": [
+      {
+         "item":"stonehearth:wooden_diamond_window"
+      }
+  ]
+}

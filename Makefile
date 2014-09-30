@@ -108,7 +108,7 @@ run-all-perf-tests-remote:
 .PHONY: run-perf-exp
 run-perf-exp:
 	scripts/test/run_remote_autotest.py -p -s performance/$(SCRIPT) -f $(FUNC) -c $(CONFIG)
-	curl -F results=@build/combined_results.shperf.json http://10.1.10.51:8087/_experiment?description=$(DESC)
+	curl -F results=@build/combined_results.shperf.json http://build-win-01:8087/_experiment?description=$(DESC)
 
 .PHONY: perf-exp
 perf-exp: test-stage test-package run-perf-exp

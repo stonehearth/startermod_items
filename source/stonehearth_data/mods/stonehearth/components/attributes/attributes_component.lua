@@ -184,6 +184,7 @@ function AttributesComponent:set_attribute(name, value)
       attribute_data.effective_value = nil
       self:_recalculate(name)
    end
+   self.__saved_variables:mark_changed()
 end
 
 function AttributesComponent:modify_attribute(attribute)

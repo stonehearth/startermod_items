@@ -65,7 +65,19 @@
       #description {
          color: #ffe850;
          font-size: 26px;
-      }
+         height: 74px;
+         margin-left: -20px;
+         margin-top: -10px;
+
+         .classIconImg {
+            float: left;
+         }
+
+         .classNameLvlDesc {
+            padding-top: 20px;
+            display: block;
+         }
+       }
 
       #stats {
          .baseFont;
@@ -101,6 +113,16 @@
                }
             }
 
+            .maxLevelNotice {
+               position: relative;
+               display: inline-block;
+               width: 200px;
+               font-family: @headerFontFamily;
+               font-size: 20px;
+               color: #ffe850;
+
+            }
+
             .healthBar {
                background: #b13b2e;
                height: 100%;
@@ -122,7 +144,7 @@
 
    #buffs {
       position: absolute;
-      top: 330px;
+      top: 340px;
       left: 10px;
       right: 10px;
       height: 70px;
@@ -206,6 +228,52 @@
 
       #attributesTab {
          display: none;
+      }
+
+      #abilitiesTab {
+         display: none;
+         overflow-y: auto;
+
+         .jobData {
+            margin-top: 5px;
+            color: #ffe850;
+
+            .levelText {
+               color: #ff5a00;
+            }
+
+            .classNameHeader {
+               font-family: @headerFontFamily;
+               font-size: 26px;
+            }
+
+            .perkDiv {
+               float: left;
+               margin-right: 10px;
+
+               img {
+                  float: left;
+               }
+               .perkImgLocked {
+                  -webkit-filter: grayscale(75%);
+               }
+               .perkImgUnlocked {
+                  -webkit-filter: grayscale(0%);
+               }
+               .lvLabel {
+                  position: absolute;
+                  width: 80px;
+                  padding-top: 60px;
+                  display: block;
+
+                  text-align: center;
+                  font-size: 14;
+                  font-family: @headerFontFamily;
+               }
+            }
+         }
+         
+         
       }
    }
 

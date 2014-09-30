@@ -8,31 +8,36 @@ function TerrainInfo:__init()
    self.tile_size = 256
    self.macro_block_size = 32
    self.feature_size = 16
+   self.slice_size = 5
    assert(self.tile_size % self.macro_block_size == 0)
    assert(self.macro_block_size / self.feature_size == 2)
 
    -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
-   plains_info.mean_height = 16
+   plains_info.mean_height = 20
    plains_info.std_dev = 6
-   plains_info.max_height = 16
+   plains_info.max_height = 20
    self[TerrainType.plains] = plains_info
 
    local foothills_info = {}
-   foothills_info.step_size = 8
-   foothills_info.mean_height = 29
-   foothills_info.std_dev = 10
-   foothills_info.max_height = 32
+   foothills_info.step_size = 10
+   foothills_info.mean_height = 36
+   foothills_info.std_dev = 12
+   foothills_info.max_height = 40
    self[TerrainType.foothills] = foothills_info
 
    local mountains_info = {}
-   mountains_info.step_size = 16
-   mountains_info.mean_height = 80
+   mountains_info.step_size = 15
+   mountains_info.mean_height = 85
    mountains_info.std_dev = 80
    self[TerrainType.mountains] = mountains_info
 
-   assert((foothills_info.max_height - plains_info.max_height) % foothills_info.step_size == 0)
+   assert(plains_info.max_height % self.slice_size == 0)
+   assert(foothills_info.max_height % self.slice_size == 0)
+
+   assert(foothills_info.step_size % self.slice_size == 0)
+   assert(mountains_info.step_size % self.slice_size == 0)
 
    -- don't place means on quantization ("rounding") boundaries
    -- do these asserts still make sense?
@@ -40,12 +45,8 @@ function TerrainInfo:__init()
    assert(foothills_info.mean_height % foothills_info.step_size ~= foothills_info.step_size/2)
    assert(mountains_info.mean_height % mountains_info.step_size ~= mountains_info.step_size/2)
 
-   -- fancy mode quantization needs to be modified if step size is not even
-   assert(foothills_info.step_size % 2 == 0)
-   assert(mountains_info.step_size % 2 == 0)
-
    plains_info.valley_height = plains_info.max_height - plains_info.step_size
-   plains_info.base_height = plains_info.valley_height - plains_info.step_size -- essentially the water level
+   plains_info.base_height = plains_info.valley_height - plains_info.step_size
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
    self.min_height = plains_info.valley_height
