@@ -84,20 +84,20 @@ Shape phys::WorldToLocal(Shape const& shape, om::EntityPtr entity)
    return csg::ConvertTo<Shape::ScalarType, 3>(result);
 }
 
-bool phys::IsTerrainAligned(float modelOrigin)
+bool phys::IsTerrainAligned(double modelOrigin)
 {
-   float unused;
+   double unused;
    bool aligned = std::abs(std::modf(modelOrigin, &unused)) == 0.5f;
    return aligned;
 }
 
 // returns the translation needed to align the model boundaries to the terrain grid
-float phys::GetTerrainAlignmentOffset(float modelOrigin)
+double phys::GetTerrainAlignmentOffset(double modelOrigin)
 {
    if (phys::IsTerrainAligned(modelOrigin)) {
-      return 0.0f;
+      return 0.0;
    } else {
-      return -0.5f;
+      return -0.5;
    }
 }
 

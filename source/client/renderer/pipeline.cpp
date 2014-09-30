@@ -171,7 +171,7 @@ void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
          max_t -= 1.0;
       }
       // Range...
-      for (float v = min_t; v < max_t; v++) {
+      for (double v = min_t; v < max_t; v++) {
          dash.min[t] = v + 0.25;
          dash.max[t] = v + 0.75;
          m.AddRect(dash, ToFloat(pi));

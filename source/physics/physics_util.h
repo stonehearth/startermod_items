@@ -9,9 +9,9 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 template <typename Shape> Shape LocalToWorld(Shape const& shape, om::EntityPtr entity);
 template <typename Shape> Shape WorldToLocal(Shape const& shape, om::EntityPtr entity);
 
-bool IsTerrainAligned(float modelOrigin);
+bool IsTerrainAligned(double modelOrigin);
 
-float GetTerrainAlignmentOffset(float modelOrigin);
+double GetTerrainAlignmentOffset(double modelOrigin);
 
 END_RADIANT_PHYSICS_NAMESPACE
 

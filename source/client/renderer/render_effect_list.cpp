@@ -365,7 +365,10 @@ void CubemitterEffectTrack::Update(FrameStartInfo const& info, bool& finished)
          H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
 
-         h3dSetNodeTransform(cubemitterNode_.get(), pos_.x, pos_.y, pos_.z, rot_.x, rot_.y, rot_.z, 1, 1, 1);
+         h3dSetNodeTransform(cubemitterNode_.get(),
+                             (float)pos_.x, (float)pos_.y, (float)pos_.z,
+                             (float)rot_.x, (float)rot_.y, (float)rot_.z,
+                             1, 1, 1);
          finished = false;
          return;
       }
@@ -924,8 +927,8 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
    om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
       om::EntityRef entityRoot;
-      csg::Point3f loc = mobP -> GetWorldLocation(entityRoot);
-      sound_->setPosition(loc.x, loc.y, loc.z);
+      csg::Point3f loc = mobP->GetWorldLocation(entityRoot);
+      sound_->setPosition((float)loc.x, (float)loc.y, (float)loc.z);
    }
 
    // if not end time was specified in the JSON, compute the end time based on the
