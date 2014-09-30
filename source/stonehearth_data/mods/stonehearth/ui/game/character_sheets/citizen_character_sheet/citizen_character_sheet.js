@@ -43,6 +43,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    //(Arr, would rather reuse the existing model, but Ember!)
    _updateJobData : function() {
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
+      /*
       var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
       var new_class = this.get('context.stonehearth:job.job_uri')
       if (this.first_init || 
@@ -55,8 +56,13 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          this.set('curr_class', new_class);
       }
       //this._sanitize_job_level_data();
+      */
       this._updateAttributes();
    }.observes('context.stonehearth:job'),
+
+   _updateJobDataDetails : function() {
+      this._build_job_data();
+   }.observes('context.stonehearth:job.curr_job_controller'),
 
    _build_job_data : function () {
       var self = this;
@@ -168,7 +174,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
       if (this.curr_level != null && this.curr_level != new_level) {         
-         this._build_job_data();
+         //this._build_job_data();
          this.set('curr_level', new_level);
       }
 
