@@ -33,9 +33,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    all_job_data: null, 
-   first_init: true, 
-   curr_class: "", 
-   curr_level: null, 
+
+   //Keep this code till we verify that updateJobDataDetails works with the new classes
+   //first_init: true, 
+   //curr_class: "", 
+   //curr_level: null, 
 
    //Every time the job updates, check if it's either the first time
    //or a signficiant change (new class, new job).
@@ -44,6 +46,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    _updateJobData : function() {
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
       /*
+      //Keep this code till we verify that the update job details function works with multiple classes
       var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
       var new_class = this.get('context.stonehearth:job.job_uri')
       if (this.first_init || 
@@ -169,14 +172,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
     }.observes('context.stonehearth:equipment.equipped_items'),
 
    _setAttributeData: function() {
-      //this._updateAttributes();
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
-
-      var new_level = this.get('context.stonehearth:attributes.attributes.total_level.effective_value');
-      if (this.curr_level != null && this.curr_level != new_level) {         
-         //this._build_job_data();
-         this.set('curr_level', new_level);
-      }
 
    }.observes('context.stonehearth:attributes, context.stonehearth:buffs'),
 
