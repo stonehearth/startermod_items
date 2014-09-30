@@ -273,7 +273,6 @@ function WorldGenerationService:_generate_tile_impl(i, j)
 end
 
 function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_map, offset_x, offset_y)
-   local offset = Point3(offset_x, 0, offset_y)
    local renderer = self._height_map_renderer
    local region3 = Region3()
 
@@ -281,7 +280,7 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, feature_m
       function()
          renderer:render_height_map_to_region(region3, tile_map)
          --self._landscaper:place_boulders(region3, tile_map, feature_map)
-         renderer:add_region_to_terrain(region3, offset)
+         renderer:add_region_to_terrain(region3, offset_x, offset_y)
       end
    )
 

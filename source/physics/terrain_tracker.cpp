@@ -32,7 +32,7 @@ void TerrainTracker::Initialize()
    om::TerrainPtr terrain = terrain_.lock();
    if (terrain) {
       trace_ = terrain->TraceTiles("nav grid", GetNavGrid().GetTraceCategory())
-            ->OnAdded([this](om::Terrain::TileKey const& offset, om::Terrain::TileValue const& region) {
+            ->OnAdded([this](csg::Point3 const& offset, om::Region3BoxedPtr const& region) {
                GetNavGrid().AddTerrainTileTracker(GetEntity(), offset, region);
             })
             ->OnRemoved([this](om::Terrain::TileKey const& removed) {

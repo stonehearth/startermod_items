@@ -60,15 +60,15 @@ function placement_autotests.place_on_wall(autotest)
          wall = stonehearth.build:add_wall(session,
                                            'stonehearth:wooden_column',
                                            'stonehearth:wooden_wall',
-                                           Point3(-2, 1, 2),
-                                           Point3( 2, 1, 2),
+                                           Point3(-2, 10, 2),
+                                           Point3( 2, 10, 2),
                                            normal)
          local building = stonehearth.build:get_building_for(wall)
          stonehearth.build:instabuild(building)         
       end)
    
    -- place the signe on the wall
-   local placement_location = Point3(1, 6, 3)
+   local placement_location = Point3(1, 15, 3)
    sign:get_component('stonehearth:entity_forms')
                :place_item_on_wall(placement_location, wall, normal)
 

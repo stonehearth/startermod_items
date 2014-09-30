@@ -263,7 +263,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       key.AddElement("matrix", matrix);
    }
 
-   auto generate_matrix = [&matrices, origin, useSkeletonOrigin](csg::mesh_tools::mesh &mesh, int lodLevel) {
+   auto generate_matrix = [&matrices, origin, useSkeletonOrigin](csg::Mesh &mesh, int lodLevel) {
       if (!matrices.empty()) {
          csg::Region3 all_models;
 

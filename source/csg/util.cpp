@@ -4,32 +4,6 @@
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-// Most of this code is slated to be eliminated once tessellations moves to the
-// server and we use region_tools for edging
-#define EDGE_LOG(level)
-
-#define CLIP_ZONE_BOUNDARIES
-
-std::ostream& csg::operator<<(std::ostream& os, EdgePointX const& f)
-{
-   return os << "[EdgePointX (" << f.x << ", " << f.y << ")  facing: " << f.normals << "]";
-}
-
-std::ostream& csg::operator<<(std::ostream& os, EdgeX const& f)
-{
-   if (!f.start || !f.end) {
-      return os << "[EdgeX with invalid start or end points]";
-   }
-   return os << "[EdgeX (" << f.start->x << ", " << f.start->y << ") to "
-                          << f.end->x << ", " << f.end->y << ")  facing: "
-                          << f.normal << "]";
-}
-
-std::ostream& csg::operator<<(std::ostream& os, EdgeList const& f)
-{
-   return os << "[EdgeList of " << f.points.size() << " points]";
-}
-
 int csg::ToInt(int i)
 {
    return i;
@@ -79,11 +53,25 @@ Point3 csg::GetChunkIndexSlow(Point3 const& value, int chunk_width)
                  GetChunkIndexSlow(value.z, chunk_width));
 }
 
+Point3 csg::GetChunkIndexSlow(Point3 const& value, Point3 const& chunk)
+{
+   return Point3(GetChunkIndexSlow(value.x, chunk.x),
+                 GetChunkIndexSlow(value.y, chunk.y),
+                 GetChunkIndexSlow(value.z, chunk.z));
+}
+
 void csg::GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset)
 {
    GetChunkIndexSlow(value.x, chunk_width, index.x, offset.x);
    GetChunkIndexSlow(value.y, chunk_width, index.y, offset.y);
    GetChunkIndexSlow(value.z, chunk_width, index.z, offset.z);
+}
+
+void csg::GetChunkIndexSlow(Point3 const& value, Point3 const& chunk, Point3& index, Point3& offset)
+{
+   GetChunkIndexSlow(value.x, chunk.x, index.x, offset.x);
+   GetChunkIndexSlow(value.y, chunk.y, index.y, offset.y);
+   GetChunkIndexSlow(value.z, chunk.z, index.z, offset.z);
 }
 
 Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
@@ -95,17 +83,31 @@ Cube3 csg::GetChunkIndexSlow(Cube3 const& value, int chunk_width)
    return index;
 }
 
+Cube3 csg::GetChunkIndexSlow(Cube3 const& value, Point3 const& chunk)
+{
+   Point3 ceil(chunk.x - 1, chunk.y - 1, chunk.z - 1);
+   Cube3 index = Cube3(GetChunkIndexSlow(value.min, chunk),
+                       GetChunkIndexSlow(value.max + ceil, chunk),
+                       value.GetTag());
+   return index;
+}
+
 bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool (Point3 const& index, Cube3 const& cube)> const& cb)
+{
+   return PartitionCubeIntoChunksSlow(cube, Point3(width, width, width), cb);
+}
+
+bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, Point3 const& chunk, std::function<bool (Point3 const& index, Cube3 const& cube)> const& cb)
 {
    Point3 const& cmin = cube.GetMin();
    Point3 const& cmax = cube.GetMax();
-   Cube3 chunks = GetChunkIndexSlow(cube, width);
+   Cube3 chunks = GetChunkIndexSlow(cube, chunk);
 
    for (Point3 const& cursor : chunks) {
       Cube3 c;
       for (int i = 0; i < 3; i++) {
-         c.min[i] = std::max(cmin[i] - cursor[i] * width, 0);
-         c.max[i] = std::min(cmax[i] - cursor[i] * width, width);
+         c.min[i] = std::max(cmin[i], cursor[i] * chunk[i]);
+         c.max[i] = std::min(cmax[i], (cursor[i] + 1) * chunk[i]);
       }
       c.SetTag(cube.GetTag());
 
@@ -120,6 +122,30 @@ bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::functio
    return false;
 }
 
+bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, int width, std::function<bool(Point3 const& index, Region3 const& r)> cb)
+{
+   return PartitionRegionIntoChunksSlow(region, Point3(width, width, width), cb);
+}
+
+bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, Point3 const& chunk, std::function<bool(Point3 const& index, Region3 const& r)> cb)
+{
+   std::unordered_map<Point3, Region3, Point3::Hash> regions;
+   for (Cube3 const& cube : region) {
+      PartitionCubeIntoChunksSlow(cube, chunk, [&regions](Point3 const& index, Cube3 const& cube) mutable {
+         regions[index].AddUnique(cube);
+         return false;
+      });
+   }
+   bool stopped = false;
+   for (auto const& entry : regions) {
+      stopped = cb(entry.first, entry.second);
+      if (stopped) {
+         break;
+      }
+   }
+   return stopped;
+}
+
 
 // Specializations first!
 template<> inline int csg::GetChunkIndex<16>(int value)
@@ -131,6 +157,39 @@ template<> inline void csg::GetChunkIndex<16>(int value, int& index, int& offset
 {
    index = value >> 4;
    offset = value & 15;
+}
+
+template<> inline int csg::GetChunkIndex<32>(int value)
+{
+   return value >> 5;
+}
+
+template<> inline void csg::GetChunkIndex<32>(int value, int& index, int& offset)
+{
+   index = value >> 5;
+   offset = value & 31;
+}
+
+template<> inline int csg::GetChunkIndex<64>(int value)
+{
+   return value >> 6;
+}
+
+template<> inline void csg::GetChunkIndex<64>(int value, int& index, int& offset)
+{
+   index = value >> 6;
+   offset = value & 63;
+}
+
+template<> inline int csg::GetChunkIndex<128>(int value)
+{
+   return value >> 7;
+}
+
+template<> inline void csg::GetChunkIndex<128>(int value, int& index, int& offset)
+{
+   index = value >> 7;
+   offset = value & 127;
 }
 
 // Now the rest...
@@ -211,18 +270,18 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
    Region3 result;   
    int cos_theta, sin_theta, tx = 0, tz = 0;
 
-   if (forward == csg::Point3(0, 0, -1)) { // 0...
+   if (forward == Point3(0, 0, -1)) { // 0...
       return rgn;
-   } else if (forward == csg::Point3(1, 0, 0)) { // 90...
+   } else if (forward == Point3(1, 0, 0)) { // 90...
       cos_theta = 0;
       sin_theta = 1;
       tx = 1;
-   } else if (forward == csg::Point3(0, 0, 1)) { // 180...
+   } else if (forward == Point3(0, 0, 1)) { // 180...
       cos_theta = -1; 
       sin_theta = 0;
       tx = 1;
       tz = 1;
-   } else if (forward == csg::Point3(-1, 0, 0)) { // 270...
+   } else if (forward == Point3(-1, 0, 0)) { // 270...
       cos_theta = 0; 
       sin_theta = -1;
       tz = 1;
@@ -231,8 +290,8 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
    }
 
    for (const auto& cube : rgn) {
-      csg::Point3 const& min = cube.GetMin();
-      csg::Point3 const& max = cube.GetMax();
+      Point3 const& min = cube.GetMin();
+      Point3 const& max = cube.GetMax();
       result.AddUnique(Cube3::Construct(Point3(min.x * cos_theta - min.z * sin_theta + tx,
                                                min.y,
                                                min.x * sin_theta + min.z * cos_theta + tz),
@@ -307,8 +366,8 @@ void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
       }
 
       // yay! add the rect, rounding to the nearest whole number
-      r.AddUnique(Rect2f(csg::ToFloat(csg::ToInt(Point2f(x0 * scale, y0 * scale))),
-                         csg::ToFloat(csg::ToInt(Point2f(x1 * scale, y1 * scale))),
+      r.AddUnique(Rect2f(csg::ToFloat(Point2(x0 * scale, y0 * scale)),
+                         csg::ToFloat(Point2(x1 * scale, y1 * scale)),
                          search_value));
 
       // clear the rect
@@ -337,276 +396,36 @@ bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& d
    return false;
 }
 
-
-EdgeListPtr csg::Region2ToEdgeList(Region2 const& rgn, int height, Region3 const& clipper)
+template <typename S> Point<S, 2> csg::ProjectOntoXY(Point<S, 3> const& pt)
 {
-   EdgeListPtr edges = std::make_shared<EdgeList>();
-   typedef std::unordered_map<int, Region1> edge_map; 
-   
-   auto add_region = [&](Region1 const& region, int plane_value, int plane, int normal_dir)
-   {
-      Point2 normal(0, 0);
-      int coord = (plane == 0) ? 1 : 0;
-      normal[plane] = normal_dir;
-
-      Region1::CubeVector lines = region.GetContents();
-
-      // Join adjacent: xxx - why not just region.Optimize()?
-      int i = 0, c = lines.size();
-      for (i = 0; i < c; i++) {
-         Line1& lhs = lines[i];
-         int j = i + 1;
-         while (j < c) {
-            Line1 const& rhs = lines[j];
-            if (lhs.GetMax().x == rhs.GetMin().x) {
-               lhs.SetMax(rhs.GetMax());
-               lines[j] = lines[--c];
-               j = i + 1;
-               continue;
-            }
-            if (lhs.GetMin().x == rhs.GetMax().x) {
-               lhs.SetMin(rhs.GetMin());
-               lines[j] = lines[--c];
-               j = i + 1;
-               continue;
-            }
-            j++;
-         }
-      }
-      lines.resize(c);
-
-      // add optimized list
-      for (Line1 const& r: lines) {
-         Point2 p0, p1;
-         p0[coord] = r.GetMin().x;
-         p1[coord] = r.GetMax().x;
-         p0[plane] = plane_value;
-         p1[plane] = plane_value;
-         edges->AddEdge(p0, p1, normal);
-      }
-   };
-
-   auto add_edges = [&](edge_map const& edges, edge_map const& occluders, edge_map const& occluders2, int plane, int normal_dir) {
-      for (auto const& entry : edges) {
-         auto i = occluders.find(entry.first);
-         auto j = occluders2.find(entry.first);
-         if (i == occluders.end()) {
-            if (j == occluders2.end()) {
-               add_region(entry.second, entry.first, plane, normal_dir);
-            } else {
-               add_region(entry.second - j->second, entry.first, plane, normal_dir);
-            }
-         } else {
-            if (j == occluders2.end()) {
-               add_region(entry.second - i->second, entry.first, plane, normal_dir);
-            } else {
-               add_region(entry.second - i->second - j->second, entry.first, plane, normal_dir);
-            }
-         }
-      } 
-   };
-
-   for (int plane = 0; plane < 2; plane++) {
-      edge_map front, back, clipper_front, clipper_back;
-     
-      for (Cube3 const& c : clipper) {
-         csg::Point3 const& min = c.GetMin();
-         csg::Point3 const& max = c.GetMax();
-         int coord3d = (plane == 0 ? 2 : 0);
-         int plane3d = (plane == 0 ? 0 : 2);
-
-         // line below was:
-         //    if (min.y <= height && max.y >= height) {
-         // height of this layer was defined by height = Cube.GetMax().y-1
-         // therefore to intersect this layer, max.y-1 >= height or max.y > height
-         if (min.y <= height && max.y > height) {
-            Point1 p0(min[coord3d]);
-            Point1 p1(max[coord3d]);
-            Line1 segment(p0, p1);
-
-            clipper_front[min[plane3d]] += segment;
-            clipper_back[max[plane3d]] += segment;            
-         }
-      }
-
-#ifdef CLIP_ZONE_BOUNDARIES
-      // define additional clippers along the zone boundaries
-      int zone_size = 256;
-      Line1 zone_edge(Point1(0), Point1(zone_size));
-      clipper_front[zone_size] += zone_edge;
-      clipper_back[0] += zone_edge;
-#endif
-
-      for (Rect2 const& r : rgn) {
-         Point2 const& min = r.GetMin();
-         Point2 const& max = r.GetMax();
-         int coord = (plane == 0 ? 1 : 0);
-
-         Point1 p0(min[coord]);
-         Point1 p1(max[coord]);
-         Line1 segment(p0, p1);
-
-         front[min[plane]] += segment;
-         back[max[plane]] += segment;
-      }
-
-      add_edges(front, back, clipper_back,  plane, -1);
-      add_edges(back, front, clipper_front, plane,  1);
-   }
-
-#if defined(LOG_EDGES)
-   EDGE_LOG(5) << "Post-join";
-   for (uint i = 0; i < edges->edges.size(); i++) {
-      EdgePtr segment = edges->edges[i];
-      EDGE_LOG(5) << "segment " << i << " " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
-   }
-#endif
-
-   return edges;
+   return Point<S, 2>(pt.x, pt.y);
 }
 
-
-csg::Region2 csg::EdgeListToRegion2(EdgeListPtr edges, int width, csg::Region2 const* clipper)
+template <typename S> Point<S, 2> csg::ProjectOntoXZ(Point<S, 3> const& pt)
 {
-   csg::Region2 result;
-
-#if defined(LOG_EDGES)
-   EDGE_LOG(5) <<  "Converting segment list to region..." << width;
-#endif
-
-   for (EdgePtr segment : edges->edges) {
-      if (segment->start->x <= segment->end->x && segment->start->y <= segment->end->y) {
-         csg::Point2 p0, p1;
-         csg::Rect2 rect;
-         //csg::Point2 p0 = *segment->start;
-         //csg::Point2 p1 = *segment->end;
-
-         // draw a picture here...
-         if (segment->normal.y == -1) {
-            p0 = *segment->start;
-            p1 = *segment->end - (segment->end->normals * width);
-            //rect = csg::Rect2(p0, p1);
-            rect = csg::Rect2::Construct(p0, p1);
-         } else if (segment->normal.y == 1) {
-            p0 = *segment->start - (segment->start->normals * width);
-            p1 = *segment->end;
-            //rect = csg::Rect2(p0, p1);
-            rect = csg::Rect2::Construct(p0, p1);
-         } else if (segment->normal.x == -1) {
-            p0 = *segment->start - (segment->start->normals * width);
-            p1 = *segment->end;
-            rect = csg::Rect2::Construct(p0, p1);
-         } else {
-            p0 = *segment->start;
-            p1 = *segment->end - (segment->end->normals * width);
-            rect = csg::Rect2::Construct(p0, p1);
-         }
-#if defined(LOG_EDGES)
-         EDGE_LOG(5) << "segment " << *segment->start << " to " << *segment->end << ".  normal " << segment->normal;
-         EDGE_LOG(5) << "    start normal " << segment->end->normals;
-         EDGE_LOG(5) << "    end normal   " << segment->end->normals;
-         EDGE_LOG(5) << "    result       " << rect;
-#endif
-         result += rect;
-      }
-   }
-   if (clipper) {
-      result &= *clipper;
-   }
-   return result;
+   return Point<S, 2>(pt.x, pt.z);
 }
 
-EdgeX::EdgeX(EdgePointPtr s, EdgePointPtr e, csg::Point2 const& norm) :
-   start(s),
-   end(e),
-   normal(norm)
+template <typename S> Point<S, 2> csg::ProjectOntoYZ(Point<S, 3> const& pt)
 {
-   int n = normal.x ? 0 : 1;
-   ASSERT((*start)[n] == (*end)[n]);
+   return Point<S, 2>(pt.z, pt.y);
 }
 
-void EdgeList::AddEdge(csg::Point2 const& start, csg::Point2 const& end, csg::Point2 const& normal)
+template <typename S> Cube<S, 2> csg::ProjectOntoXY(Cube<S, 3> const& cube)
 {
-   EdgePointPtr s = GetPoint(start, normal);
-   EdgePointPtr e = GetPoint(end, normal);
-
-   if (s->x > e->x || s->y > e->y) {
-      std::swap(s, e);
-   }
-   ASSERT(s->x <= e->x && s->y <= e->y);
-   EdgePtr segment = std::make_shared<EdgeX>(s, e, normal);
-
-   //segment->start->edges.push_back(segment);
-   //segment->end->edges.push_back(segment);
-   //s->normals += normal;
-   //e->normals += normal;
-   edges.push_back(segment);
+   return Cube<S, 2>(ProjectOntoXY(cube.min), ProjectOntoXY(cube.max));
 }
 
-EdgePointPtr EdgeList::GetPoint(csg::Point2 const& pt, csg::Point2 const& normal)
+template <typename S> Cube<S, 2> csg::ProjectOntoXZ(Cube<S, 3> const& cube)
 {
-   for (EdgePointPtr p : points) {
-      if (p->x == pt.x && p->y == pt.y) {
-         // Don't merge points with normals that point in opposite directions!
-         if (normal.x > 0 && p->normals.x < 0 ||
-             normal.y > 0 && p->normals.y < 0 ||
-             normal.x < 0 && p->normals.x > 0 ||
-             normal.y < 0 && p->normals.y > 0) {
-            continue;
-         }
-         p->normals += normal;
-         return p;
-      }
-   }
-   EdgePointPtr p = std::make_shared<EdgePointX>(pt.x, pt.y, normal);
-   points.push_back(p);
-   return p;
+   return Cube<S, 2>(ProjectOntoXZ(cube.min), ProjectOntoXZ(cube.max));
 }
 
-void EdgeList::Inset(int distance)
+template <typename S> Cube<S, 2> csg::ProjectOntoYZ(Cube<S, 3> const& cube)
 {
-   for (EdgePtr s : edges) {
-      // only process edges that have not yet been moved
-      csg::Point2 tweak = s->normal * distance;
-      *s->end -= tweak;
-      *s->start -= tweak;
-   }
+   return Cube<S, 2>(ProjectOntoYZ(cube.min), ProjectOntoYZ(cube.max));
 }
 
-void EdgeList::Grow(int distance)
-{
-   Inset(-distance);
-}
-
-void EdgeList::Fragment()
-{
-   EdgeList fragmented;
-
-
-   for (EdgePtr s : edges) {
-      int t = s->normal.x ? 1 : 0;
-      int n = s->normal.x ? 0 : 1;
-
-      ASSERT((*s->start)[n] == (*s->end)[n]);
-
-      int start = (*s->start)[t];
-      int end = (*s->end)[t];
-      if (start > end) {
-         std::swap(start, end);
-      }
-      if (start < end) {
-         csg::Point2 new_start, new_end;
-         new_start[t] = (rand() % (end - start)) + start;
-         new_end[t]   = (rand() % (end - start)) + start;
-
-         if (new_start < new_end) {
-            new_start[n] = new_end[n] = (*s->start)[n];
-            fragmented.AddEdge(new_start, new_end, s->normal);
-         }
-      }
-   }
-   *this = fragmented;
-}
 
 #define MAKE_CHUNK_TEMPLATES(N) \
    template inline Point3 csg::GetChunkIndex<N>(Point3 const& value); \
@@ -615,7 +434,15 @@ void EdgeList::Fragment()
    template inline bool csg::PartitionCubeIntoChunks<N>(Cube3 const& cube, std::function<bool(Point3 const& index, Cube3 const& cube)> cb);
 
 MAKE_CHUNK_TEMPLATES(16)
+MAKE_CHUNK_TEMPLATES(32)
+MAKE_CHUNK_TEMPLATES(64)
+MAKE_CHUNK_TEMPLATES(128)
 
 template Region3 csg::GetAdjacent(Region3 const& r, bool allow_diagonals);
 template Region3f csg::GetAdjacent(Region3f const& r, bool allow_diagonals);
-
+template Point2 csg::ProjectOntoXY(Point3 const&);
+template Point2 csg::ProjectOntoXZ(Point3 const&);
+template Point2 csg::ProjectOntoYZ(Point3 const&);
+template Rect2 csg::ProjectOntoXY(Cube3 const&);
+template Rect2 csg::ProjectOntoXZ(Cube3 const&);
+template Rect2 csg::ProjectOntoYZ(Cube3 const&);

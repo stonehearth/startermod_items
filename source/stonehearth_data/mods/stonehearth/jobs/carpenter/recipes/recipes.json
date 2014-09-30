@@ -15,8 +15,14 @@
          "wooden_door" : {
             "uri" : "file(wooden_door_recipe.json)"
          }, 
+         "wooden_door_2" : {
+            "uri" : "file(wooden_door_2_recipe.json)"
+         }, 
          "wooden_window_frame" : {
             "uri" : "file(wooden_window_frame_recipe.json)"
+         }, 
+         "wooden_diamond_window" : {
+            "uri" : "file(wooden_diamond_window_recipe.json)"
          }, 
          "wooden_wall_lantern" : {
             "uri" : "file(wooden_wall_lantern_recipe.json)"

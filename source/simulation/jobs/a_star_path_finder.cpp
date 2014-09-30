@@ -389,12 +389,22 @@ void AStarPathFinder::Work(const platform::timer &timer)
          if (SolveSearch(solution, closest)) {
             return;
          }
+         if (restart_search_) {
+            PF_LOG(3) << "restarting search after failed attempt to dispatch solution!";
+            Restart();
+         }
       } 
+      ASSERT(!restart_search_);
 
       if (closest && FindDirectPathToDestination(current.pt, closest)) {
          // Found a solution!  Bail.
          return;
       }
+      if (restart_search_) {
+         PF_LOG(3) << "restarting search after failed attempt to dispatch direct path solution!";
+         Restart();
+      }
+      ASSERT(!restart_search_);
 
       if (current.g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";

@@ -9,7 +9,6 @@
 // Named after the classic signal/slot pattern...
 // The client must assure that the owner of the slot out-lives all
 // the clients!
-
 BEGIN_RADIANT_CORE_NAMESPACE
 
 // a better implementation with variadic templates would be nice..
@@ -20,6 +19,13 @@ public:
    typedef std::function<void(A0 const&)> Fn;
 
    Slot(std::string const& name) : name_(std::string("signal ") + name), firing_(false) { }
+
+   ~Slot() {
+      ASSERT(firing_ == false);
+      ASSERT(added_callbacks_.size() == 0);
+      ASSERT(removed_callbacks_.size() == 0);
+      ASSERT(callbacks_.size() == 0);
+   }
 
    core::Guard Register(Fn fn) {
       int id = next_id_++;

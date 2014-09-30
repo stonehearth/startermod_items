@@ -1,0 +1,28 @@
+<script type="text/x-handlebars" data-template-name="shopBulletinDialog">
+<div id="shopBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      Monies: {{view.playerGold}}
+      <div id="inventory" class="downSection">
+         <div id="content">            
+            <table class="list">
+               <tbody>
+               {{#each view.inventoryArray}}
+                  <tr class="row" {{bind-attr uri=this.uri}}>
+                     <td class="itemName">{{this.item.unit_info.name}}</td>
+                     <td>{{this.num}}</td>
+                  </tr>
+               {{/each}}
+               </tbody>
+            </table>
+         </div>
+      </div>
+
+      <div id="shopButtons">
+         <button class="green disabled" id="buy1Button">Buy 1</button>
+         <button class="green disabled" id="buy10Button">Buy 10</button>
+      </div>
+
+   </div>
+</div>
+</script>
