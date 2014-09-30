@@ -88,11 +88,13 @@ end
 function JobComponent:_get_title_for_level(job_json)
    local curr_level = self._sv.curr_job_controller:get_job_level()
 
-   local lv_data = job_json.level_data[tostring(curr_level)]
-   if not lv_data then return nil end
+   if job_json.level_data then
+      local lv_data = job_json.level_data[tostring(curr_level)]
+      if not lv_data then return nil end
 
-   if lv_data and lv_data.title then
-      return lv_data.title
+      if lv_data and lv_data.title then
+         return lv_data.title
+      end
    end
 
    return nil
