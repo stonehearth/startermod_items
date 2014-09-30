@@ -4,7 +4,6 @@ function TrapperClass:initialize(entity)
    self._sv._entity = entity
    self._sv.last_gained_lv = 0
    self._sv.is_current_class = false
-   self._sv.job_data = nil
 
    self:restore()
 end
@@ -23,7 +22,6 @@ end
 
 function TrapperClass:promote(json)
    self._sv.is_current_class = true
-   self._sv.job_data = json
    self._sv.job_name = json.name
    self._sv.max_level = json.max_level
 

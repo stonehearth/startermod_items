@@ -83,26 +83,30 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             };
 
             //Go through the levels and put them into an array
-            $.each(v.level_data, function(kl, level_value) {
-               if( kl != "__self" && v.level_data.hasOwnProperty(kl)) {
-                  var each_lv = {
-                     level:level_value.level, 
-                     perks : []
-                  };
+            if (v.level_data != undefined) {
+               $.each(v.level_data, function(kl, level_value) {
+                  if( kl != "__self" && v.level_data.hasOwnProperty(kl)) {
+                     var each_lv = {
+                        level:level_value.level, 
+                        perks : []
+                     };
 
-                  //Go through the perks and copy them over
-                  for (var i=0; i<level_value.perks.length; i++) {
-                     var perk = {
-                        name : level_value.perks[i].perk_name, 
-                        icon : level_value.perks[i].icon, 
-                        description: level_value.perks[i].description,
-                        unlocked: level_value.level <= v.last_gained_lv 
+                     //Go through the perks and copy them over
+                     if (level_value.perks != undefined ) {
+                        for (var i=0; i<level_value.perks.length; i++) {
+                           var perk = {
+                              name : level_value.perks[i].perk_name, 
+                              icon : level_value.perks[i].icon, 
+                              description: level_value.perks[i].description,
+                              unlocked: level_value.level <= v.last_gained_lv 
+                           }
+                           each_lv.perks.push(perk);
+                        }
                      }
-                     each_lv.perks.push(perk);
+                     job_data.level_data.push(each_lv);                  
                   }
-                  job_data.level_data.push(each_lv);                  
-               }
-            });
+               });
+            }
             job_data_array.push(job_data);
          }
       });

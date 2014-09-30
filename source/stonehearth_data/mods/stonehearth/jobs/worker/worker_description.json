@@ -24,5 +24,11 @@
       "stonehearth:task_group:maintenance", 
       "stonehearth:task_group:mining",
       "stonehearth:task_group:harvest"
-   ]
+   ], 
+
+   "level_data" : {
+      "0" : {
+         "title" : "Worker"
+      }
+   }
 }

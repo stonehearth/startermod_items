@@ -129,7 +129,6 @@ function JobComponent:promote_to(job_uri)
       self._sv.current_level_exp = 0
       self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
 
-      self:_set_unit_info(self._job_json)
       self:_equip_outfit(self._job_json)
       self._sv._default_stance = self._job_json.default_stance
       self:reset_to_default_comabat_stance()
@@ -143,7 +142,8 @@ function JobComponent:promote_to(job_uri)
       self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
       self._sv.curr_job_controller:promote(self._job_json, self._sv.talisman_uri)
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
-
+      self:_set_unit_info(self._sv.curr_job_name)
+      
       --Add self to task groups
       if self._job_json.task_groups then
          self:_add_to_task_groups(self._job_json.task_groups)
@@ -204,7 +204,7 @@ function JobComponent:_level_up()
 
    local optional_description = self._sv.curr_job_controller:level_up()
    self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
-
+   self:_set_unit_info(self._sv.curr_job_name)   
 
    if optional_description then
       local player_id = radiant.entities.get_player_id(self._entity)
@@ -271,10 +271,8 @@ function JobComponent:_remove_from_task_groups(task_groups)
    end
 end
 
-function JobComponent:_set_unit_info(json)
-   if json and json.name then
-      self._entity:add_component('unit_info'):set_description(json.name)
-   end
+function JobComponent:_set_unit_info(name)
+   self._entity:add_component('unit_info'):set_description(name)
 end
 
 function JobComponent:_equip_outfit(json)
