@@ -765,7 +765,7 @@ Matrix3::get_axis_angle(Point3f& axis, float& angle)
         axis = Point3f::unitX;
     }
     // standard case
-    else if (angle < k_pi-k_epsilon)
+    else if (angle < k_pi-FLT_EPSILON)
     {
         axis = Point3f(v[5]-v[7], v[6]-v[2], v[1]-v[3]);
         axis.Normalize();

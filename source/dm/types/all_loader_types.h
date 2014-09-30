@@ -14,7 +14,8 @@
 
 IMPLEMENT_DM_BASIC_TYPE(int,  Protocol::integer);
 IMPLEMENT_DM_BASIC_TYPE(bool, Protocol::boolean);
-IMPLEMENT_DM_BASIC_TYPE(float, Protocol::floatingpoint);
+IMPLEMENT_DM_BASIC_TYPE(float, Protocol::singleprecision);
+IMPLEMENT_DM_BASIC_TYPE(double, Protocol::doubleprecision);
 IMPLEMENT_DM_BASIC_TYPE(std::string, Protocol::string);
 IMPLEMENT_DM_EXTENSION(csg::Color3, Protocol::color)
 IMPLEMENT_DM_EXTENSION(csg::Color4, Protocol::color)

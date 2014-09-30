@@ -47,6 +47,12 @@ void csg::SinCos(float value, float& sina, float& cosa)
    cosa = ::cosf(value);
 }
 
+void csg::SinCos(double value, double& sina, double& cosa)
+{
+   sina = ::sin(value);
+   cosa = ::cos(value);
+}
+
 float csg::Sin(float value)
 {
    return ::sin(value);
@@ -75,7 +81,7 @@ float csg::InvSqrt(float value)
 // normalized means:
 //    1) the axis points up (in the positive y direction)
 //    2) the angle is between 0 and 2*pi radians
-void csg::GetAxisAngleNormalized(csg::Quaternion const& q, csg::Point3f& axis, float& angle)
+void csg::GetAxisAngleNormalized(csg::Quaternion const& q, csg::Point3f& axis, double& angle)
 {
    q.get_axis_angle(axis, angle);
 

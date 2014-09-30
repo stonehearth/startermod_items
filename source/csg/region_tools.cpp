@@ -7,8 +7,8 @@ using namespace ::radiant::csg;
 
 std::vector<PlaneInfo<int, 2>> RegionToolsTraitsBase<int, 2, RegionToolsTraits<int, 2>>::planes;
 std::vector<PlaneInfo<int, 3>> RegionToolsTraitsBase<int, 3, RegionToolsTraits<int, 3>>::planes;
-std::vector<PlaneInfo<float, 2>> RegionToolsTraitsBase<float, 2, RegionToolsTraits<float, 2>>::planes;
-std::vector<PlaneInfo<float, 3>> RegionToolsTraitsBase<float, 3, RegionToolsTraits<float, 3>>::planes;
+std::vector<PlaneInfo<double, 2>> RegionToolsTraitsBase<double, 2, RegionToolsTraits<double, 2>>::planes;
+std::vector<PlaneInfo<double, 3>> RegionToolsTraitsBase<double, 3, RegionToolsTraits<double, 3>>::planes;
 
 // works around the fact that visual studio does not yet support
 // C++11 container type initializers

@@ -128,7 +128,7 @@ static void WaitFor(int ms)
    if (sleep_time > 0) {
       Sleep(sleep_time);   // sleep for most of the interval...
    }
-   while (get_elapsed() < ms) {
+   while (get_elapsed() < (uint)ms) {
       continue;            // spin for the rest
    }
 }

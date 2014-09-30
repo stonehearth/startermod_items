@@ -16,7 +16,7 @@ class Camera
       Camera(H3DNode parent, const char* name);
       virtual ~Camera();
 
-      void OrbitPointBy(const csg::Point3f &point, float xRot, float yRot, float maxX, float minX);
+      void OrbitPointBy(const csg::Point3f &point, double xRot, double yRot, double maxX, double minX);
       void LookAt(const csg::Point3f &point);
 
       H3DNode GetNode() const;

@@ -138,7 +138,7 @@ public:
    }
 
    Cube Inflated(Point const& amount) const;
-   Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
+   Cube Scaled(double factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
    Cube Intersection(Cube const& other) const;
    Region GetBorder() const;
@@ -147,10 +147,10 @@ public:
    bool Contains(Point const& pt) const;
    Point GetClosestPoint(Point const& other) const;
    Point GetSize() const { return GetMax() - GetMin(); }
-   inline float SquaredDistanceTo(Point const& other) const;
-   inline float SquaredDistanceTo(Cube const& other) const;
-   float DistanceTo(Point const& other) const;
-   float DistanceTo(Cube const& other) const;
+   inline double SquaredDistanceTo(Point const& other) const;
+   inline double SquaredDistanceTo(Cube const& other) const;
+   double DistanceTo(Point const& other) const;
+   double DistanceTo(Cube const& other) const;
 
    // optimizing...
    bool operator==(Cube const& other) const;
@@ -194,7 +194,7 @@ private:
 };
 
 template <typename S, int C>
-Point<float, C> GetCentroid(Cube<S, C> const& cube);
+Point<double, C> GetCentroid(Cube<S, C> const& cube);
 
 template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Cube<S, C> const& in)

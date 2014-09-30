@@ -272,8 +272,8 @@ bool MovementHelper::CoordinateAdvancedAlongAxis(csg::Point3f const& segmentStar
          return false;
    }
 
-   float currentOffset = std::abs(current[d] - segmentStart[d]);
-   float previousOffset = std::abs(previous[d] - segmentStart[d]);
+   double currentOffset = std::abs(current[d] - segmentStart[d]);
+   double previousOffset = std::abs(previous[d] - segmentStart[d]);
    return currentOffset > previousOffset;
 }
 

@@ -164,7 +164,7 @@ void StockpileNode::UpdateShape(const csg::Cube3& bounds)
 
 bool StockpileNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
-   float d;
+   double d;
    csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);
    csg::Point3f dir(rayDir.x, rayDir.y, rayDir.z);
    dir.Normalize();

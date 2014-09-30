@@ -18,14 +18,14 @@ Camera::Camera(H3DNode parent, const char* name) :
 // Orbit the specified point, first by 'yDeg' along the world-space y-axis, and then 'xDeg' along
 // the camera's x-axis (the axis point orthogonally to both 'forward' and 'up').  The angle of
 // movement around the x-axis is bound between minX and maxX.
-void Camera::OrbitPointBy(const csg::Point3f &point, float xDeg, float yDeg, float minX, float maxX) 
+void Camera::OrbitPointBy(const csg::Point3f &point, double xDeg, double yDeg, double minX, double maxX) 
 {
-   float degToRad = csg::k_pi / 180.0f;
+   double degToRad = csg::k_pi / 180.0;
 
    csg::Point3f originVec = GetPosition() - point;
    csg::Point3f newPosition = originVec;
    originVec.Normalize();
-   float xAng = acos(originVec.y) / degToRad;
+   double xAng = acos(originVec.y) / degToRad;
 
    if (xAng + xDeg > maxX) {
       xDeg = maxX - xAng;
@@ -133,8 +133,8 @@ Camera::~Camera()
 
 csg::Point2f Camera::WorldToScreen(csg::Point3f const& world)
 {
-   csg::Point2f screen;
-   h3dWorldToScreenPos(node_.get(), world.x, world.y, world.z, &screen.x, &screen.y, NULL, NULL);
-   return screen;   
+   float x, y;
+   h3dWorldToScreenPos(node_.get(), (float)world.x, (float)world.y, (float)world.z, &x, &y, NULL, NULL);
+   return csg::Point2f(x, y);   
 }
 

@@ -12,12 +12,21 @@ typedef std::unordered_map<int, Color4> TagToColorMap;
 
 // xxx: must match definition of VoxelGeometryVertex, exactly
 struct Vertex {
-   Point3f   location; // must be at offset 0
-   Point3f   normal;
-   Point4f   color;
-   Vertex(Point3f const& p, Point3f const& n, Point4f const& c) : location(p), normal(n), color(c) { }
-   Vertex(Point3f const& p, Point3f const& n, Color3 const& c) : location(p), normal(n), color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, 1.0f) { }
-   Vertex(Point3f const& p, Point3f const& n, Color4 const& c) : location(p), normal(n), color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f) { }
+   float     location[3];
+   float     normal[3];
+   float     color[4];
+
+   Vertex(Point3f const& p, Point3f const& n, Point4f const& c);
+   Vertex(Point3f const& p, Point3f const& n, Color3 const& c);
+   Vertex(Point3f const& p, Point3f const& n, Color4 const& c);
+
+   void SetLocation(Point3f const& p);
+   void SetNormal(Point3f const& n);
+   void SetColor(Color4 const& c);
+
+   csg::Point3f GetLocation() const;
+   csg::Point3f GetNormal() const;
+   csg::Color4 GetColor() const;
 };
 
 struct Mesh {
@@ -27,10 +36,13 @@ struct Mesh {
 
    Mesh();
 
+   Mesh& Clear();
    Mesh& SetOffset(csg::Point3f const& offset);
    Mesh& SetColor(csg::Color4 const& color);
    Mesh& SetColorMap(TagToColorMap const* colorMap);
    Mesh& FlipFaces();
+   Mesh& AddVertices(Mesh const& other);
+
    // This is the one, true add face.  move over to it...
    template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi);
    template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi);

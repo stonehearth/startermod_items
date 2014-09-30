@@ -34,7 +34,7 @@ public:
 
 public:
    enum Flags {
-      INCLUDE_HIDDEN_FACES    = (1 << 1)
+      INCLUDE_HIDDEN_FACES    = (1 << 0)
    };
 
    // The ordering here is very, very specific.  The "front" plane must equal
@@ -43,12 +43,12 @@ public:
    // etc.  Failing to do so will break the logic which allows the client to
    // skip planes.
    enum Planes {
-      BOTTOM_PLANE = (1 << 1),
-      TOP_PLANE    = (1 << 2),
-      LEFT_PLANE   = (1 << 3),
-      RIGHT_PLANE  = (1 << 4),
-      FRONT_PLANE  = (1 << 5),
-      BACK_PLANE  =  (1 << 6),
+      BOTTOM_PLANE = (1 << 0),
+      TOP_PLANE    = (1 << 1),
+      LEFT_PLANE   = (1 << 2),
+      RIGHT_PLANE  = (1 << 3),
+      FRONT_PLANE  = (1 << 4),
+      BACK_PLANE  =  (1 << 5),
    };
 
    RegionTools() :
@@ -130,38 +130,38 @@ public:
       return std::move(edgemap);
    }
 
-   Region<float, C> GetInnerBorder(Region<S, C> const& region, float d) {
+   Region<double, C> GetInnerBorder(Region<S, C> const& region, double d) {
       EdgeMap<S, C> edgemap;
       ForEachEdge(region, [&](EdgeInfo<S, C> const& info) {
          edgemap.AddEdge(info.min, info.max, info.normal);
       });
       edgemap.FixNormals();
 
-      Region<float, C> result;
+      Region<double, C> result;
       for (Edge<S, C> const& edge : edgemap) {
-         Point<float, C> min = ToFloat(edge.min->location);
-         Point<float, C> max = ToFloat(edge.max->location);
+         Point<double, C> min = ToFloat(edge.min->location);
+         Point<double, C> max = ToFloat(edge.max->location);
 
          for (int i = 0; i < C; i++) {
             S n = edge.normal[i];
 
             // move in the opposite direction of the normal
             if (n < 0) {
-               max[i] += static_cast<float>(-n) * d;
+               max[i] += static_cast<double>(-n) * d;
             } else if (n > 0) {
-               min[i] += static_cast<float>(-n) * d;
+               min[i] += static_cast<double>(-n) * d;
             } else {
                // if the edges agree in the translation in the tangent if it makes
                // the resultant cube bigger.
                if (edge.min->accumulated_normals[i] > 0) {
-                  min[i] += static_cast<float>(-edge.min->accumulated_normals[i]) * d;
+                  min[i] += static_cast<double>(-edge.min->accumulated_normals[i]) * d;
                }
                if (edge.max ->accumulated_normals[i] < 0) {
-                  max[i] += static_cast<float>(-edge.max->accumulated_normals[i]) * d;
+                  max[i] += static_cast<double>(-edge.max->accumulated_normals[i]) * d;
                }
             }
          }
-         result.Add(Cube<float, C>(min, max));
+         result.Add(Cube<double, C>(min, max));
       }
       return result;
    }

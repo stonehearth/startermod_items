@@ -88,27 +88,34 @@ public:
       }
    };
 
-   float Length() const {
-      return csg::Sqrt(static_cast<Derived const&>(*this).LengthSquared());
+   double Length() const {
+      return std::sqrt(static_cast<Derived const&>(*this).LengthSquared());
    }
 
-   float DistanceTo(Derived const& other) const {
-      float l2 = (static_cast<Derived const&>(*this) - other).LengthSquared();
-      return csg::Sqrt(l2);
+   double DistanceTo(Derived const& other) const {
+      double l2 = (static_cast<Derived const&>(*this) - other).LengthSquared();
+      return std::sqrt(l2);
    }
 
-   inline float SquaredDistanceTo(Derived const& other) const {
+   inline double SquaredDistanceTo(Derived const& other) const {
       return (static_cast<Derived const&>(*this) - other).LengthSquared();
    }
 
    void Normalize()
    {
-      float lengthsq = static_cast<Derived const&>(*this).LengthSquared();
+      double lengthsq = static_cast<Derived const&>(*this).LengthSquared();
       if (IsZero(lengthsq)) {
          static_cast<Derived&>(*this).SetZero();
       } else {
-         static_cast<Derived&>(*this).Scale(InvSqrt(lengthsq));
+         static_cast<Derived&>(*this).Scale(1 / std::sqrt(lengthsq));
       }
+   }
+
+   Derived Normalized()
+   {
+      Derived result(*static_cast<Derived const*>(this));
+      result.Normalize();
+      return result;
    }
 
    Derived operator*(S amount) const {
@@ -157,7 +164,7 @@ public:
    static const Point one;
 
    Point operator/(S amount) const {
-      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount);
    }
@@ -209,13 +216,13 @@ public:
       x = x_in;
    }
 
-   float LengthSquared() const {
-      float result = 0;
+   double LengthSquared() const {
+      double result = 0;
       result += x * x;
       return result;
    }
 
-   void Scale(float s) {
+   void Scale(double s) {
       x = static_cast<S>(x * s);
    }
 
@@ -261,7 +268,7 @@ public:
 
 
    Point operator/(S amount) const {
-      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount, y / amount);
    }
@@ -319,14 +326,14 @@ public:
    }
 
 
-   float LengthSquared() const {
-      float result = 0;
+   double LengthSquared() const {
+      double result = 0;
       result += x * x;
       result += y * y;
       return result;
    }
 
-   void Scale(float s) {
+   void Scale(double s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
    }
@@ -382,7 +389,7 @@ public:
    static const Point unitZ;
 
    Point operator/(S amount) const {
-      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount, y / amount, z  / amount);
    }
@@ -444,15 +451,15 @@ public:
       z = z_in;
    }
 
-   float LengthSquared() const {
-      float result = 0;
+   double LengthSquared() const {
+      double result = 0;
       result += x * x;
       result += y * y;
       result += z * z;
       return result;
    }
 
-   void Scale(float s) {
+   void Scale(double s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
       z = static_cast<S>(z * s);
@@ -520,7 +527,7 @@ public:
    static const Point one;
 
    Point operator/(S amount) const {
-      // floating point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
+      // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
       return Point(x / amount, y / amount, z  / amount, w / amount);
    }
@@ -587,8 +594,8 @@ public:
       w = w_in;
    }
 
-   float LengthSquared() const {
-      float result = 0;
+   double LengthSquared() const {
+      double result = 0;
       result += x * x;
       result += y * y;
       result += z * z;
@@ -596,7 +603,7 @@ public:
       return result;
    }
 
-   void Scale(float s) {
+   void Scale(double s) {
       x = static_cast<S>(x * s);
       y = static_cast<S>(y * s);
       z = static_cast<S>(z * s);

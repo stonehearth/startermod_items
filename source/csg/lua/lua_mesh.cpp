@@ -3,6 +3,8 @@
 #include "lua_mesh.h"
 #include "csg/meshtools.h"
 
+#pragma optimize ( "", off )
+
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -58,8 +60,8 @@ scope LuaMesh::RegisterLuaTypes(lua_State* L)
          .def(constructor<Point3f const&, Point3f const&, Point4f const&>())
          .def(constructor<Point3f const&, Point3f const&, Color3 const&>())
          .def(constructor<Point3f const&, Point3f const&, Color4 const&>())
-         .def_readwrite("location", &Vertex::location)
-         .def_readwrite("normal", &Vertex::normal)
-         .def_readwrite("color", &Vertex::color)
+         .property("location", &Vertex::GetLocation, &Vertex::SetLocation)
+         .property("normal", &Vertex::GetNormal, &Vertex::SetNormal)
+         .property("color", &Vertex::GetColor, &Vertex::SetColor)
       ;
 }

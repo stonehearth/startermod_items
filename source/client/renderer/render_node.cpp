@@ -187,31 +187,36 @@ RenderNodePtr RenderNode::SetMaterial(SharedMaterial material)
 
 RenderNodePtr RenderNode::SetPosition(csg::Point3f const& pos)
 {
-   csg::Point3f _, rot, scale;
-   h3dGetNodeTransform(_node, &_.x, &_.y, &_.z, &rot.x, &rot.y, &rot.z, &scale.x, &scale.y, &scale.z);
-   SetTransform(pos, rot, scale);
+   float rx, ry, rz, sx, sy, sz;
+
+   h3dGetNodeTransform(_node, NULL, NULL, NULL, &rx, &ry, &rz, &sx, &sy, &sz);
+   h3dSetNodeTransform(_node, (float)pos.x, (float)pos.y, (float)pos.z, rx, ry, rz, sx, sy, sz);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetRotation(csg::Point3f const& rot)
 {
-   csg::Point3f pos, _, scale;
-   h3dGetNodeTransform(_node, &pos.x, &pos.y, &pos.z, &_.x, &_.y, &_.z, &scale.x, &scale.y, &scale.z);
-   SetTransform(pos, rot, scale);
+   float x, y, z, sx, sy, sz;
+
+   h3dGetNodeTransform(_node, &x, &y, &z, NULL, NULL, NULL, &sx, &sy, &sz);
+   h3dSetNodeTransform(_node, x, y, z, (float)rot.x, (float)rot.y, (float)rot.z, sx, sy, sz);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetScale(csg::Point3f const& scale)
 {
-   csg::Point3f pos, rot, _;
-   h3dGetNodeTransform(_node, &pos.x, &pos.y, &pos.z, &rot.x, &rot.y, &rot.z, &_.x, &_.y, &_.z);
-   SetTransform(pos, rot, scale);
+   float x, y, z, rx, ry, rz;
+
+   h3dGetNodeTransform(_node, &x, &y, &z, &rx, &ry, &rz, NULL, NULL, NULL);
+   h3dSetNodeTransform(_node, x, y, z, rx, ry, rz, (float)scale.x, (float)scale.y, (float)scale.z);
    return shared_from_this();
 }
 
 RenderNodePtr RenderNode::SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale)
 {
-   h3dSetNodeTransform(_node, pos.x, pos.y, pos.z, rot.x, rot.y, rot.z, scale.x, scale.y, scale.z);
+   h3dSetNodeTransform(_node, (float)pos.x, (float)pos.y, (float)pos.z,
+                              (float)rot.x, (float)rot.y, (float)rot.z,
+                              (float)scale.x, (float)scale.y, (float)scale.z);
    return shared_from_this();
 }
 
@@ -306,9 +311,10 @@ void RenderNode::ConvertVoxelDataToGeometry(VoxelGeometryVertex *vertices, uint 
 
 void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &geo)
 {
-   csg::Point3f pt;
-   std::vector<csg::Point3f> obj_verts;
-   std::vector<csg::Point3f> obj_norms;
+   struct Point { float x, y, z; };
+   Point pt;
+   std::vector<Point> obj_verts;
+   std::vector<Point> obj_norms;
    std::unordered_map<std::pair<int, int>, int, PairHash<int, int>> vertex_map;
    std::vector<float> vertices;
    std::vector<unsigned int> indices;
@@ -329,8 +335,8 @@ void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &ge
          indices.push_back(i->second);
       } else {
          // create a new point
-         csg::Point3f const& v = obj_verts[vi];
-         csg::Point3f const& n = obj_norms[ni];
+         Point const& v = obj_verts[vi];
+         Point const& n = obj_norms[ni];
 
          vertices.push_back(v.x);
          vertices.push_back(v.y);

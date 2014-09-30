@@ -45,7 +45,7 @@ std::ostream& Path::Format(std::ostream& os) const
    return os;
 }
 
-float Path::GetDistance() const
+double Path::GetDistance() const
 {
    if (points_.size() > 1) {
       return points_.front().DistanceTo(points_.back());
@@ -97,7 +97,7 @@ PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
 
       if (!combinedPoints.empty()) {
          // really want to assert using OctTree::ValidMove(), but we don't have access to the simulation from here
-         float distance = (points.front() - combinedPoints.back()).Length();
+         double distance = (points.front() - combinedPoints.back()).Length();
          if (distance >= 2) {
             PF_LOG(3) << "Combined paths are not adjacent. Distance between paths = " << distance <<
                ". This is an unusual or impossible move.";

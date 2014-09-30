@@ -21,7 +21,7 @@ bool Point_IsAdjacentTo(T const& a, T const& b)
          sum += (a[i] - b[i]);
       }
    }
-   return csg::IsZero(static_cast<float>(sum - 1));
+   return csg::IsZero(static_cast<double>(sum - 1));
 }
 
 /*
@@ -46,20 +46,20 @@ std::string Point_KeyValue(T const& a)
 
 // The csg version of these functions are optimized for use in templated code.  They
 // avoid copies for nop conversions by returning a const& to the input parameter.
-// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+// For lua's "to_int" and "to_double", we always want to return a copy to avoid confusion.
 
 template <int C>
-csg::Point<float, C> Pointf_ToInt(csg::Point<float, C> const& p)
+csg::Point<double, C> Pointf_ToInt(csg::Point<double, C> const& p)
 {
    return csg::ToFloat(csg::ToInt(p));
 }
 
-// This looks weird, right?  It's the Lua call to "convert this possibly floating point number
+// This looks weird, right?  It's the Lua call to "convert this possibly doubleing point number
 // to a grid address, which is an integer whole number".  To do this, we use ToClosestInt.  Then,
-// to push it back into Lua, we have to convert it back into a float!  Crazy!!
+// to push it back into Lua, we have to convert it back into a double!  Crazy!!
 //
 template <int C>
-csg::Point<float, C> Pointf_ToClosestInt(csg::Point<float, C> const& p)
+csg::Point<double, C> Pointf_ToClosestInt(csg::Point<double, C> const& p)
 {
    return csg::ToFloat(csg::ToClosestInt(p));
 }
@@ -81,11 +81,11 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
          .def("distance_squared",   &T::LengthSquared)
          .def("distance_to",        &T::DistanceTo)
          .def("is_adjacent_to",     &Point_IsAdjacentTo<T>)
-         .def("scale",              static_cast<void (T::*)(float)>(&T::Scale))
+         .def("scale",              static_cast<void (T::*)(double)>(&T::Scale))
          .def("normalize",          &T::Normalize)
          .def("translate",          &T::Translate)
          .def("dot",                &T::Dot)
-         .def("scaled",             static_cast<T (T::*)(float) const>(&T::Scaled))
+         .def("scaled",             static_cast<T (T::*)(double) const>(&T::Scaled))
          .def("translated",         &T::Translated)
          .def("key_value",          &Point_KeyValue<T>)
          ;
@@ -129,16 +129,16 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register2<Point2f>(L, "Point2")
          .def("to_int",             &Pointf_ToInt<2>)
          .def("to_closest_int",     &Pointf_ToClosestInt<2>)
-         .def(const_self * float())
-         .def(const_self / float()),
+         .def(const_self * double())
+         .def(const_self / double()),
       Register3<Point3f>(L, "Point3")
          .def("to_int",             &Pointf_ToInt<3>)
          .def("to_closest_int",     &Pointf_ToClosestInt<3>)
-         .def(const_self * float())
-         .def(const_self / float())
-         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, float alpha))&csg::Interpolate),
+         .def(const_self * double())
+         .def(const_self / double())
+         .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, double alpha))&csg::Interpolate),
       lua::RegisterType<Transform>("Transform")
-         .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, float alpha))&csg::Interpolate),
+         .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, double alpha))&csg::Interpolate),
       lua::RegisterType<Color3>("Color3")
          .def(constructor<int, int, int>())
          .def_readwrite("r", &Color3::r)

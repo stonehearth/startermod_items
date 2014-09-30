@@ -17,7 +17,7 @@ class Sphere
 public:
       // constructor/destructor
       inline Sphere() : _center(0.0f, 0.0f, 0.0f), _radius(1.0f) { }
-      inline Sphere(const Point3f& _center, float _radius) : _center(_center), _radius(_radius){ }
+      inline Sphere(const Point3f& _center, double _radius) : _center(_center), _radius(_radius){ }
       inline ~Sphere() { }
 
       void SaveValue(protocol::sphere3f* msg) const;
@@ -29,7 +29,7 @@ public:
 
       // accessors
       inline const Point3f& get_center() const { return _center; }
-      inline float get_radius() const { return _radius; }
+      inline double get_radius() const { return _radius; }
 
       // comparison
       bool operator==(const Sphere& other) const;
@@ -37,13 +37,13 @@ public:
 
       // manipulators
       inline void set_center(const Point3f& center)  { _center = center; }
-      inline void set_radius(float radius)  { _radius = radius; }
+      inline void set_radius(double radius)  { _radius = radius; }
       void set(const Point3f* points, unsigned int num_points);
       // void add_point(const Point3f& point);
 
       // transform!
-      Sphere transform(float scale, const Quaternion& _rotation, const Point3f& translation) const;
-      Sphere transform(float scale, const Matrix3& rotation, const Point3f& translation) const;
+      Sphere transform(double scale, const Quaternion& _rotation, const Point3f& translation) const;
+      Sphere transform(double scale, const Matrix3& rotation, const Point3f& translation) const;
 
       // intersection
       bool intersect(const Sphere& other) const;
@@ -53,11 +53,11 @@ public:
       bool compute_collision(const Sphere& other, 
                            Point3f& collision_normal, 
                            Point3f& collision_point, 
-                           float& penetration) const;
+                           double& penetration) const;
 
 protected:
       Point3f        _center;
-      float          _radius;
+      double         _radius;
 };
 std::ostream& operator<<(std::ostream& out, const Sphere& source);
 void merge(Sphere& result, const Sphere& s0, const Sphere& s1);

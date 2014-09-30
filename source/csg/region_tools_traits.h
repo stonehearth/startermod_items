@@ -36,26 +36,26 @@ struct PlaneInfo<S, 3> : public PlaneInfoBase<S, 3>
    int    y;
 };
 
-template <typename S, int C> PlaneInfo<float, C> ToFloat(PlaneInfo<S, C> const& p);
+template <typename S, int C> PlaneInfo<double, C> ToFloat(PlaneInfo<S, C> const& p);
 
-template <typename S, int C> void ToFloat(PlaneInfoBase<float, C> &lhs, PlaneInfoBase<S, C> const& rhs)
+template <typename S, int C> void ToFloat(PlaneInfoBase<double, C> &lhs, PlaneInfoBase<S, C> const& rhs)
 {
-   lhs.normal_dir = static_cast<float>(rhs.normal_dir);
-   lhs.reduced_value = static_cast<float>(rhs.reduced_value);
+   lhs.normal_dir = static_cast<double>(rhs.normal_dir);
+   lhs.reduced_value = static_cast<double>(rhs.reduced_value);
    lhs.reduced_coord = rhs.reduced_coord;
 }
 
-template <typename S> PlaneInfo<float, 2> ToFloat(PlaneInfo<S, 2> const& p)
+template <typename S> PlaneInfo<double, 2> ToFloat(PlaneInfo<S, 2> const& p)
 {
-   PlaneInfo<float, 2> result;
+   PlaneInfo<double, 2> result;
    ToFloat(result, p);
    result.x = p.x;
    return result;
 }
 
-template <typename S> PlaneInfo<float, 3> ToFloat(PlaneInfo<S, 3> const& p)
+template <typename S> PlaneInfo<double, 3> ToFloat(PlaneInfo<S, 3> const& p)
 {
-   PlaneInfo<float, 3> result;
+   PlaneInfo<double, 3> result;
    ToFloat(result, p);
    result.x = p.x;
    result.y = p.y;
@@ -140,8 +140,8 @@ struct RegionToolsTraits<S, 1> : public RegionToolsTraitsBase<S, 1, RegionToolsT
 
 typedef RegionToolsTraits<int, 2>      RegionToolsTraits2;
 typedef RegionToolsTraits<int, 3>      RegionToolsTraits3;
-typedef RegionToolsTraits<float, 2>    RegionToolsTraits2f;
-typedef RegionToolsTraits<float, 3>    RegionToolsTraits3f;
+typedef RegionToolsTraits<double, 2>    RegionToolsTraits2f;
+typedef RegionToolsTraits<double, 3>    RegionToolsTraits3f;
 
 END_RADIANT_CSG_NAMESPACE
 

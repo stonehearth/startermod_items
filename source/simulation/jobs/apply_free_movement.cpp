@@ -37,7 +37,7 @@ bool ApplyFreeMotionTask::Work(platform::timer const& timer)
          // to make it really easy to figure out where the thing lands.
          csg::Transform velocity = mob->GetVelocity();
          velocity.position.y -= acceleration;
-         velocity.position.y = std::max(velocity.position.y, -1.0f);
+         velocity.position.y = std::max(velocity.position.y, -1.0);
 
          // Update position
          bool finished = false;

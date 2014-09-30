@@ -18,7 +18,7 @@ class Path {
       std::vector<csg::Point3f> const& GetPrunedPoints();
 
       bool IsEmpty() const { return points_.size() == 0; }
-      float GetDistance() const;
+      double GetDistance() const;
       om::EntityRef GetDestination() const { return destination_; }
       om::EntityRef GetSource() const { return source_; }
       csg::Point3f GetStartPoint() const;

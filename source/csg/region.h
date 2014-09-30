@@ -111,7 +111,7 @@ private:
 };
 
 template <typename S, int C>
-Point<float, C> GetCentroid(Region<S, C> const& region);
+Point<double, C> GetCentroid(Region<S, C> const& region);
 
 template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)

@@ -10,10 +10,10 @@ message point4i {
 }
 
 message point4f {
-   required float             x = 1;
-   required float             y = 2;
-   required float             z = 3;
-   required float             w = 4;
+   required double             x = 1;
+   required double             y = 2;
+   required double             z = 3;
+   required double             w = 4;
 }
 
 message point3i {
@@ -23,9 +23,9 @@ message point3i {
 }
 
 message point3f {
-   required float             x = 1;
-   required float             y = 2;
-   required float             z = 3;
+   required double             x = 1;
+   required double             y = 2;
+   required double             z = 3;
 }
 
 message point2i {
@@ -34,8 +34,8 @@ message point2i {
 }
 
 message point2f {
-   required float             x = 1;
-   required float             y = 2;
+   required double             x = 1;
+   required double             y = 2;
 }
 
 message point1i {
@@ -43,7 +43,7 @@ message point1i {
 }
 
 message point1f {
-   required float             x = 1;
+   required double             x = 1;
 }
 
 message cube3i {

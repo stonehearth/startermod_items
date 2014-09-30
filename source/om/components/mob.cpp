@@ -67,12 +67,12 @@ void Mob::SetRotation(csg::Quaternion const& orientation)
 float Mob::GetFacing() const
 {
    csg::Point3f axis;
-   float radians;
+   double radians;
 
    csg::GetAxisAngleNormalized((*transform_).orientation, axis, radians);
 
    // this method currently only makes sense for rotations about the y axis
-   ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
+   ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < FLT_EPSILON);
 
    return radians / csg::k_pi * 180.0f;
 }

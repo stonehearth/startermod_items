@@ -32,11 +32,11 @@ Shape phys::LocalToWorld(Shape const& shape, om::EntityPtr entity)
    csg::Quaternion const& orientation = t.orientation;
 
    csg::Point3f axis;
-   float radAngle;
+   double radAngle;
    csg::GetAxisAngleNormalized(orientation, axis, radAngle);
 
    // Assumes rotation about the Y axis.
-   float degrees = radAngle * 180 / csg::k_pi;
+   double degrees = radAngle * 180 / csg::k_pi;
    int angle = (csg::ToClosestInt(degrees / 90) * 90) % 360;
 
    if (regionOrigin != csg::Point3f::zero) {

@@ -30,7 +30,7 @@ public:
 
    static Transform zero;
 };
-Transform Interpolate(const Transform &t0, const Transform &t1, float alpha);
+Transform Interpolate(const Transform &t0, const Transform &t1, double alpha);
 std::ostream& operator<<(std::ostream& out, const Transform& source);
 
 END_RADIANT_CSG_NAMESPACE

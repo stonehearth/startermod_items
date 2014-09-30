@@ -87,7 +87,7 @@ void RenderMob::Move()
    ASSERT(_current.orientation.is_unit());
 
    // Move the local origin of the render entity to the exact position of the mob.
-   h3dSetNodeTransform(entity_.GetOriginNode(), _current.position.x, _current.position.y, _current.position.z, 0, 0, 0, 1, 1, 1);
+   h3dSetNodeTransform(entity_.GetOriginNode(), (float)_current.position.x, (float)_current.position.y, (float)_current.position.z, 0, 0, 0, 1, 1, 1);
 
    // Offset the node for the entity (which contains all the renderables) by the local
    // origin, the render offset, and the current rotation.

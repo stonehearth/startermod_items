@@ -98,28 +98,28 @@ void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
    for (csg::Rect2 const& c: panels) {      
       csg::Rect2f cube = ToFloat(c);
       csg::Point2f size = cube.GetSize();
-      for (float i = 0; i < size.y; i ++) {
+      for (double i = 0; i < size.y; i ++) {
          // xxx: why do we have to use a clockwise winding here?
-         float x1 = std::min(i + 1.0f, size.x);
-         float x2 = std::min(i + 0.5f, size.x);
-         float y1 = std::max(i + 1.0f - size.x, 0.0f);
-         float y2 = std::max(i + 0.5f - size.x, 0.0f);
+         double x1 = std::min(i + 1.0, size.x);
+         double x2 = std::min(i + 0.5, size.x);
+         double y1 = std::max(i + 1.0 - size.x, 0.0);
+         double y2 = std::max(i + 0.5 - size.x, 0.0);
          csg::Point3f points[] = {
-            csg::Point3f(cube.min.x, y, cube.min.y + i + 1.0f),
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 1.0),
             csg::Point3f(cube.min.x + x1, y, cube.min.y + y1),
             csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
-            csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5),
          };
          m.AddFace(points, csg::Point3f::unitY);
       }
-      for (float i = 0; i < size.x; i ++) {
+      for (double i = 0; i < size.x; i ++) {
          // xxx: why do we have to use a clockwise winding here?
-         float x0 = i + 0.5f;
-         float x1 = i + 1.0f;
-         float x2 = std::min(x1 + size.y, size.x);
-         float x3 = std::min(x0 + size.y, size.x);
-         float y2 = -std::min(x2 - x1, size.y);
-         float y3 = -std::min(x3 - x0, size.y);
+         double x0 = i + 0.5;
+         double x1 = i + 1.0;
+         double x2 = std::min(x1 + size.y, size.x);
+         double x3 = std::min(x0 + size.y, size.x);
+         double y2 = -std::min(x2 - x1, size.y);
+         double y3 = -std::min(x3 - x0, size.y);
          csg::Point3f points[] = {
             csg::Point3f(cube.min.x + x0, y, cube.max.y),
             csg::Point3f(cube.min.x + x1, y, cube.max.y),
@@ -153,27 +153,27 @@ void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
       max -= ToFloat(edge.normal) * thickness;
 
       csg::Rect2f dash = csg::Rect2f::Construct(min, max);
-      float min_t = dash.min[t];
-      float max_t = dash.max[t];
+      double min_t = dash.min[t];
+      double max_t = dash.max[t];
 
       // Min corner...
       if (edge.min->accumulated_normals.Length() > 1) {
          dash.min[t] = min_t;
          dash.max[t] = dash.min[t] + 0.75f;
          m.AddRect(dash, ToFloat(pi));
-         min_t += 1.0f;
+         min_t += 1.0;
       }
       // Max corner...
       if (edge.max->accumulated_normals.Length() > 1) {
          dash.max[t] = max_t;
-         dash.min[t] = dash.max[t] - 0.75f;
+         dash.min[t] = dash.max[t] - 0.75;
          m.AddRect(dash, ToFloat(pi));
-         max_t -= 1.0f;
+         max_t -= 1.0;
       }
       // Range...
       for (float v = min_t; v < max_t; v++) {
-         dash.min[t] = v + 0.25f;
-         dash.max[t] = v + 0.75f;
+         dash.min[t] = v + 0.25;
+         dash.max[t] = v + 0.75;
          m.AddRect(dash, ToFloat(pi));
       }
    }

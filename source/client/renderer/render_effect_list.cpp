@@ -58,9 +58,9 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
 {
    csg::Matrix4 m(t.orientation);
    
-   m[12] = t.position.x * scale;
-   m[13] = t.position.y * scale;
-   m[14] = t.position.z * scale;
+   m[12] = (float)t.position.x * scale;
+   m[13] = (float)t.position.y * scale;
+   m[14] = (float)t.position.z * scale;
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {

@@ -113,11 +113,11 @@ Sphere::set(const Point3f* points, unsigned int num_points)
             max_p.z = points[i].z;
     }
     // compute _center and _radius
-    _center = (min_p + max_p) * 0.5f;
-    float maxDistance = (_center - points[0]).LengthSquared();
+    _center = (min_p + max_p) * 0.5;
+    double maxDistance = (_center - points[0]).LengthSquared();
     for (i = 1; i < num_points; ++i)
     {
-        float dist = (_center - points[i]).LengthSquared();
+        double dist = (_center - points[i]).LengthSquared();
         if (dist > maxDistance)
             maxDistance = dist;
     }
@@ -131,7 +131,7 @@ Sphere::set(const Point3f* points, unsigned int num_points)
 // Transforms sphere into new space
 //-----------------------------------------------------------------------------
 Sphere    
-Sphere::transform(float scale, const Quaternion& rotate, 
+Sphere::transform(double scale, const Quaternion& rotate, 
     const Point3f& translate) const
 {
     return Sphere(rotate.rotate(_center) + translate, _radius*scale);
@@ -145,7 +145,7 @@ Sphere::transform(float scale, const Quaternion& rotate,
 // Transforms sphere into new space
 //-----------------------------------------------------------------------------
 Sphere    
-Sphere::transform(float scale, const Matrix3& rotate, 
+Sphere::transform(double scale, const Matrix3& rotate, 
     const Point3f& translate) const
 {
     return Sphere(rotate*_center + translate, _radius*scale);
@@ -162,9 +162,9 @@ bool
 Sphere::intersect(const Sphere& other) const
 {
     // do sphere check
-    float radius_sum = _radius + other._radius;
+    double radius_sum = _radius + other._radius;
     Point3f center_diff = Point3f(other._center - _center); 
-    float distance_sq = center_diff.LengthSquared();
+    double distance_sq = center_diff.LengthSquared();
 
     // if distance squared < sum of radii squared, collision!
     return (distance_sq <= radius_sum*radius_sum);
@@ -180,14 +180,14 @@ Sphere::intersect(const Ray3& ray) const
 {
     // compute intermediate values
     Point3f w = Point3f(_center - ray.origin);
-    float wsq = w.Dot(w);
-    float proj = w.Dot(ray.direction);
-    float rsq = _radius*_radius;
+    double wsq = w.Dot(w);
+    double proj = w.Dot(ray.direction);
+    double rsq = _radius*_radius;
 
     // if sphere behind ray, no intersection
     if (proj < 0.0f && wsq > rsq)
         return false;
-    float vsq = ray.direction.Dot(ray.direction);
+    double vsq = ray.direction.Dot(ray.direction);
 
     // test length of difference vs. _radius
     return (vsq*wsq - proj*proj <= vsq*rsq);
@@ -205,8 +205,8 @@ csg::merge(Sphere& result,
 {
     // get differences between them
     Point3f diff = Point3f(s1.get_center() - s0.get_center());
-    float distsq = diff.Dot(diff);
-    float radiusdiff = s1.get_radius() - s0.get_radius();
+    double distsq = diff.Dot(diff);
+    double radiusdiff = s1.get_radius() - s0.get_radius();
 
     // if one sphere inside other
     if (distsq <= radiusdiff*radiusdiff)
@@ -219,8 +219,8 @@ csg::merge(Sphere& result,
     }
 
     // build new sphere
-    float dist = ::csg::Sqrt(distsq);
-    float radius = 0.5f*(s0.get_radius() + s1.get_radius() + dist);
+    double dist = ::csg::Sqrt(distsq);
+    double radius = 0.5*(s0.get_radius() + s1.get_radius() + dist);
     Point3f center = s0.get_center();
     if (!csg::IsZero(dist))
         center += diff * ((radius-s0.get_radius())/dist);
@@ -238,25 +238,25 @@ csg::merge(Sphere& result,
 //-----------------------------------------------------------------------------
 bool 
 Sphere::compute_collision(const Sphere& other, Point3f& collision_normal, 
-                                   Point3f& collision_point, float& penetration) const
+                                   Point3f& collision_point, double& penetration) const
 {
     // do sphere check
-    float radius_sum = _radius + other._radius;
+    double radius_sum = _radius + other._radius;
     collision_normal = Point3f(other._center - _center);
-    float distance_sq = collision_normal.LengthSquared();
+    double distance_sq = collision_normal.LengthSquared();
     // if distance squared < sum of radii squared, collision!
     if (distance_sq <= radius_sum*radius_sum)
     {
         // handle collision
 
         // penetration is distance - radii
-        float distance = ::csg::Sqrt(distance_sq);
+        double distance = ::csg::Sqrt(distance_sq);
         penetration = radius_sum - distance;
         collision_normal.Normalize();
 
         // collision point is average of penetration
-        collision_point = (_center + collision_normal * _radius) * 0.5f
-                        + (other._center - collision_normal * other._radius) * 0.5f;
+        collision_point = (_center + collision_normal * _radius) * 0.5
+                        + (other._center - collision_normal * other._radius) * 0.5;
 
         return true;
     }

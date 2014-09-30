@@ -9,6 +9,74 @@ using namespace ::radiant::csg;
 
 #define MT_LOG(level)      LOG(csg.meshtools, level)
 
+Vertex::Vertex(Point3f const& p, Point3f const& n, Point4f const& c)
+{
+   SetLocation(p);
+   SetNormal(n);
+   color[0] = (float)c[0];
+   color[1] = (float)c[1];
+   color[2] = (float)c[2];
+   color[3] = (float)c[3];
+}
+
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color3 const& c)
+{
+   SetLocation(p);
+   SetNormal(n);
+   color[1] = (float)(c.r / 255.0);
+   color[2] = (float)(c.g / 255.0);
+   color[3] = (float)(c.b / 255.0);
+   color[4] = 1;
+}
+
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color4 const& c)
+{
+   SetLocation(p);
+   SetNormal(n);
+   SetColor(c);
+}
+
+void Vertex::SetLocation(Point3f const& p)
+{
+   location[0] = (float)p.x;
+   location[1] = (float)p.y;
+   location[2] = (float)p.z;
+}
+
+void Vertex::SetNormal(Point3f const& n)
+{
+   normal[0] = (float)n.x;
+   normal[1] = (float)n.y;
+   normal[2] = (float)n.z;
+}
+
+void Vertex::SetColor(Color4 const& c)
+{
+   color[0] = (float)(c.r / 255.0);
+   color[1] = (float)(c.g / 255.0);
+   color[2] = (float)(c.b / 255.0);
+   color[3] = (float)(c.a / 255.0);
+}
+
+csg::Point3f Vertex::GetLocation() const
+{
+   return csg::Point3f(location[0], location[1], location[2]);
+}
+
+csg::Point3f Vertex::GetNormal() const
+{
+   return csg::Point3f(normal[0], normal[1], normal[2]);
+}
+
+csg::Color4 Vertex::GetColor() const
+{
+   return csg::Color4((unsigned char)(color[0] * 255.0), 
+      (unsigned char)(color[1] * 255.0),
+      (unsigned char)(color[2] * 255.0),
+      (unsigned char)(color[3] * 255.0));
+}
+
+
 void Mesh::AddFace(Point3f const points[], Point3f const& normal)
 {
    AddFace(points, normal, color_);
@@ -50,7 +118,7 @@ void Mesh::AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& p)
 template <class S>
 void Mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
 {
-   PlaneInfo<float, 3> pi = ToFloat(p);
+   PlaneInfo3f pi = ToFloat(p);
    Point3f normal = pi.GetNormal();
 
    if (flip_) {
@@ -130,6 +198,32 @@ Mesh& Mesh::FlipFaces()
    return *this;
 }
 
+Mesh& Mesh::AddVertices(Mesh const& other)
+{   
+   int offset = vertices.size();
+
+   if (offset == 0) {
+      vertices = other.vertices;
+      indices = other.indices;
+      bounds = other.bounds;
+   } else {
+      vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+      for (int32 i : other.indices) {
+         indices.push_back(i + offset);
+      }
+      bounds.Grow(other.bounds);
+   }
+   return *this;
+}
+
+Mesh& Mesh::Clear()
+{
+   vertices.clear();
+   indices.clear();
+   bounds = Cube3f::zero;
+   return *this;
+}
+
 void csg::RegionToMesh(csg::Region3 const& region, Mesh &mesh, csg::Point3f const& offset, bool optimizePlanes)
 {
    mesh.SetOffset(offset);
@@ -144,7 +238,7 @@ void csg::RegionToMesh(csg::Region3 const& region, Mesh &mesh, csg::Point3f cons
    });
 }
 
-template void Mesh::AddRegion(Region<float, 2> const& region, PlaneInfo<float, 3> const& p);
+template void Mesh::AddRegion(Region<double, 2> const& region, PlaneInfo<double, 3> const& p);
 template void Mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p);
-template void Mesh::AddRect(Cube<float, 2> const& region, PlaneInfo<float, 3> const& p);
+template void Mesh::AddRect(Cube<double, 2> const& region, PlaneInfo<double, 3> const& p);
 template void Mesh::AddRect(Cube<int, 2> const& region, PlaneInfo<int, 3> const& p);

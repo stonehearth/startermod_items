@@ -55,9 +55,9 @@ static scope Register(struct lua_State* L, const char* suffix)
 scope LuaEdgeList::RegisterLuaTypes(lua_State* L)
 {
    return
-      Register<float, 3>(L, "3f"),
-      Register<float, 2>(L, "2f"),
-      Register<float, 1>(L, "1f"),
+      Register<double, 3>(L, "3f"),
+      Register<double, 2>(L, "2f"),
+      Register<double, 1>(L, "1f"),
       Register<int, 3>(L, "3"),
       Register<int, 2>(L, "2"),
       Register<int, 1>(L, "1"),

@@ -97,7 +97,7 @@ extend Value {
    required int32 integer = 100;
    required string string = 101;
    required bool boolean = 102;
-   required float floatingpoint = 103;
+   required float singleprecision = 103;
    required radiant.protocol.transform transform = 104;
    required radiant.protocol.point1i point1i = 105;
    required radiant.protocol.point1f point1f = 106;
@@ -121,6 +121,7 @@ extend Value {
    required radiant.protocol.color color = 125;
    required radiant.protocol.quaternion quaternion = 126;
    required radiant.protocol.ray3f ray3f = 127;
+   required double doubleprecision = 128;
 };
 
 message Animation {

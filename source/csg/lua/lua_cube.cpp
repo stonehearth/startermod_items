@@ -85,10 +85,10 @@ void LoadCube(lua_State* L, T& region, object obj)
 
 // The csg version of these functions are optimized for use in templated code.  They
 // avoid copies for nop conversions by returning a const& to the input parameter.
-// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+// For lua's "to_int" and "to_double", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Cube<float, C> Cube_ToInt(csg::Cube<S, C> const& c)
+csg::Cube<double, C> Cube_ToInt(csg::Cube<S, C> const& c)
 {
    return csg::ToFloat(csg::ToInt(c));
 }
@@ -117,8 +117,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("inflated",     &T::Inflated)
          .def("intersects",   &T::Intersects)
          .def("get_border",   &T::GetBorder)
-         .def("distance_to",  (float (T::*)(T const&) const)&T::DistanceTo)
-         .def("distance_to",  (float (T::*)(typename T::Point const&) const)&T::DistanceTo)
+         .def("distance_to",  (double (T::*)(T const&) const)&T::DistanceTo)
+         .def("distance_to",  (double (T::*)(typename T::Point const&) const)&T::DistanceTo)
          .def("scaled",       &T::Scaled)
       ;
 }

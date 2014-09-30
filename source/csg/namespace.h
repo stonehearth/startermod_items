@@ -13,11 +13,11 @@ class Quaternion;
 template <class S, int C> class Region;
 
 typedef Region<int, 1>   Region1;
-typedef Region<float, 1> Region1f;
+typedef Region<double, 1> Region1f;
 typedef Region<int, 2>   Region2;
-typedef Region<float, 2> Region2f;
+typedef Region<double, 2> Region2f;
 typedef Region<int, 3>   Region3;
-typedef Region<float, 3> Region3f;
+typedef Region<double, 3> Region3f;
 
 DECLARE_SHARED_POINTER_TYPES(Region1);
 DECLARE_SHARED_POINTER_TYPES(Region1f);
@@ -32,24 +32,24 @@ typedef Point<int, 1>      Point1;
 typedef Point<int, 2>      Point2;
 typedef Point<int, 3>      Point3;
 typedef Point<int, 4>      Point4;
-typedef Point<float, 1>    Point1f;
-typedef Point<float, 2>    Point2f;
-typedef Point<float, 3>    Point3f;
-typedef Point<float, 4>    Point4f;
+typedef Point<double, 1>    Point1f;
+typedef Point<double, 2>    Point2f;
+typedef Point<double, 3>    Point3f;
+typedef Point<double, 4>    Point4f;
 
 template <typename S, int C> class Cube;
 
 typedef Cube<int, 1> Line1;
 typedef Cube<int, 2> Rect2;
 typedef Cube<int, 3> Cube3;
-typedef Cube<float, 1> Line1f;
-typedef Cube<float, 2> Rect2f;
-typedef Cube<float, 3> Cube3f;
+typedef Cube<double, 1> Line1f;
+typedef Cube<double, 2> Rect2f;
+typedef Cube<double, 3> Cube3f;
 
 template <typename S, int C> class PointIterator;
 
 typedef PointIterator<int, 3> PointIterator3;
-typedef PointIterator<float, 3> PointIterator3f;
+typedef PointIterator<double, 3> PointIterator3f;
 
 typedef csg::Region3f      CollisionShape;
 typedef csg::Cube3f        CollisionBox;
@@ -61,35 +61,35 @@ template <typename S, int C> class RegionTools;
 
 typedef RegionTools<int, 2> RegionTools2;
 typedef RegionTools<int, 3> RegionTools3;
-typedef RegionTools<float, 2> RegionTools2f;
-typedef RegionTools<float, 3> RegionTools3f;
+typedef RegionTools<double, 2> RegionTools2f;
+typedef RegionTools<double, 3> RegionTools3f;
 
 template <typename S, int C> struct PlaneInfo;
 
 typedef PlaneInfo<int, 2>      PlaneInfo2;
 typedef PlaneInfo<int, 3>      PlaneInfo3;
-typedef PlaneInfo<float, 2>    PlaneInfo2f;
-typedef PlaneInfo<float, 3>    PlaneInfo3f;
+typedef PlaneInfo<double, 2>    PlaneInfo2f;
+typedef PlaneInfo<double, 3>    PlaneInfo3f;
 
 template <typename S, int C> class EdgeMap;
 template <typename S, int C> class EdgePoint;
 template <typename S, int C> class Edge;
 
-typedef Edge<float, 3> Edge3f;
-typedef EdgePoint<float, 3> EdgePoint3f;
-typedef EdgeMap<float, 3> EdgeMap3f;
+typedef Edge<double, 3> Edge3f;
+typedef EdgePoint<double, 3> EdgePoint3f;
+typedef EdgeMap<double, 3> EdgeMap3f;
 typedef Edge<int, 3> Edge3;
 typedef EdgePoint<int, 3> EdgePoint3;
 typedef EdgeMap<int, 3> EdgeMap3;
-typedef Edge<float, 2> Edge2f;
-typedef EdgePoint<float, 2> EdgePoint2f;
-typedef EdgeMap<float, 2> EdgeMap2f;
+typedef Edge<double, 2> Edge2f;
+typedef EdgePoint<double, 2> EdgePoint2f;
+typedef EdgeMap<double, 2> EdgeMap2f;
 typedef Edge<int, 2> Edge2;
 typedef EdgePoint<int, 2> EdgePoint2;
 typedef EdgeMap<int, 2> EdgeMap2;
-typedef Edge<float, 1> Edge1f;
-typedef EdgePoint<float, 1> EdgePoint1f;
-typedef EdgeMap<float, 1> EdgeMap1f;
+typedef Edge<double, 1> Edge1f;
+typedef EdgePoint<double, 1> EdgePoint1f;
+typedef EdgeMap<double, 1> EdgeMap1f;
 typedef Edge<int, 1> Edge1;
 typedef EdgePoint<int, 1> EdgePoint1;
 typedef EdgeMap<int, 1> EdgeMap1;
@@ -98,8 +98,8 @@ template <typename S, int C> struct EdgeInfo;
 
 typedef EdgeInfo<int, 2> EdgeInfo2;
 typedef EdgeInfo<int, 3> EdgeInfo3;
-typedef EdgeInfo<float, 2> EdgeInfo2f;
-typedef EdgeInfo<float, 3> EdgeInfo3f;
+typedef EdgeInfo<double, 2> EdgeInfo2f;
+typedef EdgeInfo<double, 3> EdgeInfo3f;
 
 END_RADIANT_CSG_NAMESPACE
 

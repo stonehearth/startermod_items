@@ -66,10 +66,10 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
 
 // The csg version of these functions are optimized for use in templated code.  They
 // avoid copies for nop conversions by returning a const& to the input parameter.
-// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+// For lua's "to_int" and "to_double", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Region<float, C> Region_ToInt(csg::Region<S, C> const& r)
+csg::Region<double, C> Region_ToInt(csg::Region<S, C> const& r)
 {
    return csg::ToFloat(csg::ToInt(r));
 }
@@ -126,11 +126,11 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
       Register<Region3f>(L,  "Region3")
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
-         .def("get_edge_list",            &RegionGetEdgeList<float, 3>)
+         .def("get_edge_list",            &RegionGetEdgeList<double, 3>)
          .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
       Register<Region2f>(L,  "Region2")
-         .def("get_edge_list",            &RegionGetEdgeList<float, 2>)
+         .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
       ,
       Register<Region1f>(L,  "Region1");
 }

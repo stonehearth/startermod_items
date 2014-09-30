@@ -9,12 +9,12 @@ int csg::ToInt(int i)
    return i;
 }
 
-int csg::ToInt(float s)
+int csg::ToInt(double s)
 {
    if (s > 0) {
-      return static_cast<int>(s + csg::k_epsilon);
+      return static_cast<int>(s + DBL_EPSILON);
    }
-   return static_cast<int>(s - csg::k_epsilon);
+   return static_cast<int>(s - DBL_EPSILON);
 }
 
 int csg::ToClosestInt(int i)
@@ -22,11 +22,11 @@ int csg::ToClosestInt(int i)
    return i;
 }
 
-int csg::ToClosestInt(float s) {
+int csg::ToClosestInt(double s) {
    if (s > 0) {
-      return static_cast<int>(s + 0.5f + csg::k_epsilon);
+      return static_cast<int>(s + 0.5f + DBL_EPSILON);
    }
-   return static_cast<int>(s - 0.5f - csg::k_epsilon);
+   return static_cast<int>(s - 0.5f - DBL_EPSILON);
 }
 
 int csg::GetChunkAddressSlow(int value, int width)
@@ -36,7 +36,7 @@ int csg::GetChunkAddressSlow(int value, int width)
 
 int csg::GetChunkIndexSlow(int value, int width)
 {
-   return (int) std::floor((float)value / width);
+   return (int) std::floor((double)value / width);
 }
 
 void csg::GetChunkIndexSlow(int value, int chunk_width, int& index, int& offset)
@@ -202,7 +202,7 @@ inline int csg::GetChunkAddress(int value)
 template <int S> 
 inline int csg::GetChunkIndex(int value)
 {
-   return (int) std::floor((float)value / S);
+   return (int) std::floor((double)value / S);
 }
 
 template <int S> 
@@ -380,11 +380,11 @@ void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
    }
 }
 
-bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance)
+bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, double& distance)
 {
-   float best = FLT_MAX;
+   double best = FLT_MAX;
    for (const auto &r : rgn) { 
-      float candidate;
+      double candidate;
       if (Cube3Intersects(r, ray, candidate) && candidate < best) {
          best = candidate;
       }

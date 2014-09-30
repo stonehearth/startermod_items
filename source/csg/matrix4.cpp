@@ -846,7 +846,7 @@ void
       axis = Point3f::unitX;
    }
    // standard case
-   else if (angle < k_pi-k_epsilon)
+   else if (angle < k_pi-FLT_EPSILON)
    {
       axis = Point3f(v[6]-v[9], v[8]-v[2], v[1]-v[4]);
       axis.Normalize();
