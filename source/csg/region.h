@@ -6,7 +6,8 @@
 #include <EASTL/fixed_vector.h>
 #include "cube.h"
 
-#define EASTL_REGIONS
+// Not compatible with luabind and regions of doubles for some reason!
+//#define EASTL_REGIONS
 #define INITIAL_CUBE_SPACE    64
 
 BEGIN_RADIANT_CSG_NAMESPACE
