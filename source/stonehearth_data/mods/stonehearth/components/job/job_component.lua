@@ -28,6 +28,7 @@ function JobComponent:initialize(entity, json)
    end
 
    if self._sv.job_uri then
+      self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
             self._job_json = radiant.resources.load_json(self._sv.job_uri, true)
 

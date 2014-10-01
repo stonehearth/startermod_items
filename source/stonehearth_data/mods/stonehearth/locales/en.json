@@ -159,6 +159,7 @@
    "experience" : "experience", 
    "max_level" : "Max Level!!!", 
    "level_abbreviation" : "Lvl",
+   "locked_status" : " (Locked)",
 
    "journal" : "Journal",
    "attributes" : "Attributes",

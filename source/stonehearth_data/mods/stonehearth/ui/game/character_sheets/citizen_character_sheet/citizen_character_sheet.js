@@ -33,6 +33,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    all_job_data: null, 
+   job_tooltip_table: {}, 
 
    //Keep this code till we verify that updateJobDataDetails works with the new classes
    //first_init: true, 
@@ -65,11 +66,31 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    _updateJobDataDetails : function() {
       this._build_job_data();
+      Ember.run.scheduleOnce('afterRender', this, '_updateJobTooltips');
    }.observes('context.stonehearth:job.curr_job_controller'),
+
+   _updateJobTooltips : function() {
+      var self = this;
+      $('.tooltip').tooltipster();
+      $('.perkDiv').each(function(index){
+         var perkDivId = $(this).attr('id');
+         var perkData = self.job_tooltip_table[perkDivId];
+         var tooltipString = '<div class="perkTooltip"> <h2>' + perkData.name;
+
+         if (!perkData.unlocked) {
+            tooltipString = tooltipString + '<span class="lockedTooltipLabel">' + i18n.t('stonehearth:locked_status') + '</span>';
+         }
+
+         tooltipString = tooltipString + '</h2>'+ perkData.description + '</div>';
+         $(this).tooltipster('content', $(tooltipString));
+      });
+ 
+   },
 
    _build_job_data : function () {
       var self = this;
       var job_data_array = [];
+      var tooltip_data_map = {};
       
       //copy the data into a javascript variable
       var job_controller_map = self.get('context.stonehearth:job.job_controllers');
@@ -94,13 +115,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
                      //Go through the perks and copy them over
                      if (level_value.perks != undefined ) {
                         for (var i=0; i<level_value.perks.length; i++) {
+                           var perk_id = level_value.perks[i].perk_id;
                            var perk = {
-                              name : level_value.perks[i].perk_name, 
+                              name : level_value.perks[i].perk_name,
+                              id: perk_id, 
                               icon : level_value.perks[i].icon, 
                               description: level_value.perks[i].description,
                               unlocked: level_value.level <= v.last_gained_lv 
                            }
                            each_lv.perks.push(perk);
+                           tooltip_data_map[perk_id] = {};
+                           tooltip_data_map[perk_id].name =  level_value.perks[i].perk_name;
+                           tooltip_data_map[perk_id].description =  level_value.perks[i].description;
+                           tooltip_data_map[perk_id].unlocked = level_value.level <= v.last_gained_lv;
                         }
                      }
                      job_data.level_data.push(each_lv);                  
@@ -110,7 +137,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             job_data_array.push(job_data);
          }
       });
-      this.set('all_job_data', job_data_array)
+      this.set('all_job_data', job_data_array);
+      this.set('job_tooltip_table', tooltip_data_map);
    },
 
    _setFirstJournalEntry: function() {

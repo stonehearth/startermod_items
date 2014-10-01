@@ -126,7 +126,7 @@
                      <div class="jobPerks">
                         {{#each this.level_data}}
                            {{#each this.perks}}
-                           <div class="perkDiv">
+                           <div class="perkDiv tooltip" {{bind-attr id=this.id}}>
                               <img {{bind-attr class="unlocked:perkImgUnlocked:perkImgLocked" src=this.icon}}/>
                               <span {{bind-attr class="unlocked:lvLabelUnlocked:lvLabelLocked"}}>{{i18n stonehearth:level_abbreviation}} <span class="levelText">{{../level}}</span></span>
                            </div>
