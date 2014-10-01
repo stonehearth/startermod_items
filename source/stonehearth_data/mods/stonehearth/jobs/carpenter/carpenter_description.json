@@ -17,7 +17,8 @@
    
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
-   
+   "promotion_activity_name" : "promote_carpenter",
+
    "task_groups" : [
       "stonehearth:task_group:restock", 
       "stonehearth:task_group:placement",

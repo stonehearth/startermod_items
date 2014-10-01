@@ -51,6 +51,10 @@ end
 
 --When we've been killed, dump our talisman on the ground
 function JobComponent:_on_kill_event()
+   self:_drop_talisman()
+end
+
+function JobComponent:_drop_talisman()
    if self._sv.talisman_uri then
       local location = radiant.entities.get_world_grid_location(self._entity)
       local player_id = radiant.entities.get_player_id(self._entity)
@@ -115,6 +119,8 @@ function JobComponent:_compose_default_job_name(job_json, level, job_name)
    end
 end
 
+-- Promotes a citizen to a new job. Calls demote on existing job. 
+-- Called in the moment that the animation converts the citizen to their new job. 
 function JobComponent:promote_to(job_uri)
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
@@ -151,6 +157,14 @@ function JobComponent:promote_to(job_uri)
       if self._job_json.task_groups then
          self:_add_to_task_groups(self._job_json.task_groups)
       end
+
+      --Log in journal, if possible
+      local activity_name = self._job_json.promotion_activity_name
+      if activity_name then
+         radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
+                             {entity = self._entity, description = activity_name})
+      end
+
       -- so good!  keep this one, lose the top one.  too much "collusion" between components =)
       radiant.events.trigger(self._entity, 'stonehearth:job_changed', { entity = self._entity })
       self.__saved_variables:mark_changed()
@@ -301,15 +315,27 @@ function JobComponent:_equip_outfit(json)
    end
 end
 
+-- Drop all the equipment and the talisman, if relevant
 function JobComponent:_remove_outfit()
    if self._sv.equipment then
       local equipment_component = self._entity:add_component('stonehearth:equipment')
+      equipment_component:drop_equipment()
+      --[[
       for _, equipment in ipairs(self._sv.equipment) do
          equipment_component:unequip_item(equipment)
+
+         --TODO: we shouldn't destroy iLevel 2 items, though
+         --Call the kill equipment function?
          radiant.entities.destroy_entity(equipment)
       end
+      ]]
       self._sv.equipment = nil
    end
+   --If we have a talisman to drop, drop it. 
+   self:_drop_talisman()
+
+   --TODO: what to do about backpack? Should this be called or triggered via an event?
+   --or should this be handled by the demote operation on the specific job controller?
 end
 
 function JobComponent:_load_job_script(json)

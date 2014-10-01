@@ -98,6 +98,7 @@
       },
       "stonehearth:commands" : {
          "commands" : [            
+            "file(/data/commands/promote_to_job)"
          ]
       },
       "stonehearth:job" : {

@@ -13,6 +13,8 @@
 
    "roles" : "mason_job crafter",
    "talisman_uri" : "stonehearth:mason:chisel_talisman",
+   "promotion_activity_name" : "promote_mason",
+
    
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",

@@ -117,6 +117,9 @@ App.StonehearthPromotionTree = App.View.extend({
             $.each(o.available_jobs, function(key, job) {
                self._jobButtons[job].addClass('available');
             })
+
+            //The worker job is always available
+            self._jobButtons['stonehearth:jobs:worker'].addClass('available');
          });  
 
       self._jobButtons[self._startingJob].addClass('available');
