@@ -2,7 +2,7 @@
    <div class="gui">
       <div class="window" id="citizenCharacterSheet">
          <div class="title">
-            Character Info
+            {{i18n stonehearth:character_sheet_title}}
             <div class="closeButton"></div>
          </div>
 
@@ -19,7 +19,7 @@
 
                <!-- health -->
                <div class="stat">
-                  <div class="label">health</div>
+                  <div class="label">{{i18n stonehearth:health}}</div>
                   <div class="bar">
                      <div class="healthBar" />
                      <div class="value">{{stonehearth:attributes.attributes.health.effective_value}} / {{stonehearth:attributes.attributes.max_health.effective_value}}</div>
@@ -28,7 +28,7 @@
 
                <!-- morale -->
                <div class="stat">
-                  <div class="label">morale</div>
+                  <div class="label">{{i18n stonehearth:morale}}</div>
                   <div class="bar">
                      <div class="moraleBar" />
                      <div class="value">{{stonehearth:score.scores.happiness.score}} / 100</div>
@@ -37,15 +37,19 @@
 
                <!-- experience -->
                <div class="stat" id="experienceStat">
-                  <div class="label">experience</div>
-                  {{#if stonehearth:job.curr_job_controller.is_max_level}}
-                     <div class = "maxLevelNotice">MAX LEVEL!!!</>
+                  {{#if stonehearth:job.curr_job_controller.no_levels}}
                   {{else}}
-                     <div class="bar">
-                     <div class="expBar" />
-                     <div class="value">{{stonehearth:job.current_level_exp}} / {{stonehearth:job.xp_to_next_lv}}</div>
+                     <div class="label">{{i18n stonehearth:experience}}</div>
+                     {{#if stonehearth:job.curr_job_controller.is_max_level}}
+                        <div class = "maxLevelNotice">{{i18n stonehearth:max_level}}</>
+                     {{else}}
+                        <div class="bar">
+                        <div class="expBar" />
+                        <div class="value">{{stonehearth:job.current_level_exp}} / {{stonehearth:job.xp_to_next_lv}}</div>
+                     {{/if}}
+                     </div>
                   {{/if}}
-                  </div>
+
                </div>
             </div>
          </div>
@@ -123,8 +127,8 @@
                         {{#each this.level_data}}
                            {{#each this.perks}}
                            <div class="perkDiv">
-                           <img {{bind-attr class="unlocked:perkImgUnlocked:perkImgLocked" src=this.icon}}/>
-                           <span class="lvLabel">Lvl <span class="levelText">{{../level}}</span></span>
+                              <img {{bind-attr class="unlocked:perkImgUnlocked:perkImgLocked" src=this.icon}}/>
+                              <span {{bind-attr class="unlocked:lvLabelUnlocked:lvLabelLocked"}}>{{i18n stonehearth:level_abbreviation}} <span class="levelText">{{../level}}</span></span>
                            </div>
                            {{/each}}
                         {{/each}}

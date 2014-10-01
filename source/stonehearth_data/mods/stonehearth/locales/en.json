@@ -153,6 +153,13 @@
    "hint_camera_zoom_title": "To zoom in and out",
    "hint_camera_zoom": "Use the mouse scroll wheel",
 
+   "character_sheet_title" : "Character Info", 
+   "health" : "health",
+   "morale" : "morale",
+   "experience" : "experience", 
+   "max_level" : "Max Level!!!", 
+   "level_abbreviation" : "Lvl",
+
    "journal" : "Journal",
    "attributes" : "Attributes",
    "equipment" : "Equipment",

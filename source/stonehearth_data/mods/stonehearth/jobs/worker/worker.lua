@@ -11,7 +11,7 @@ function WorkerClass:initialize(entity)
    self._sv.entity = entity
    self._sv.last_gained_lv = 0
    self._sv.is_current_class = false
-   self._sv.is_max_level = true
+   self._sv.no_levels = true
 end
 
 function WorkerClass:restore()
@@ -33,7 +33,7 @@ function WorkerClass:get_job_level()
 end
 
 -- Returns whether we're at max level.
--- NOTE: If max level is nto declared, always false
+-- NOTE: If max level is nto declared, returns false
 function WorkerClass:is_max_level()
    return self._sv.is_max_level 
 end
