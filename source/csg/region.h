@@ -8,7 +8,15 @@
 
 // Not compatible with luabind and regions of doubles for some reason!
 //#define EASTL_REGIONS
-#define INITIAL_CUBE_SPACE    64
+
+//
+// Emperical evidence suggests that without prior knowledge of how big a region
+// is going to be, reserving capacity does not actually improve CPU performance.
+// Dropping this value from 64 to 0 reduces the commited memory from ~370MB to
+// ~120MB in my testing of starting random worlds.  Perhaps this will change when
+// we more efficiently share regions, but for now lets go with it.
+//
+#define INITIAL_CUBE_SPACE    0
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
