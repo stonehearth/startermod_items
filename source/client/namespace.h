@@ -14,18 +14,9 @@ class Clock;
 class RenderNode;
 class RenderTerrain;
 class RenderTerrainTile;
+class RenderTerrainLayer;
 
 DECLARE_SHARED_POINTER_TYPES(RenderNode)
-
-enum Neighbor {
-   FRONT = 0,
-   BACK,
-   LEFT,
-   RIGHT,
-   TOP,
-   BOTTOM,
-   NUM_NEIGHBORS
-};
 
 #define CLIENT_LOG(level)     LOG(client, level)
 

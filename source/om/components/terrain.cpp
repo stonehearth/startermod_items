@@ -8,7 +8,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-static const csg::Point3 TILE_SIZE(128, 5, 128);
+static const csg::Point3 TILE_SIZE(32, 5, 32);
 
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
 

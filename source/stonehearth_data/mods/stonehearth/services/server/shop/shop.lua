@@ -84,33 +84,54 @@ function Shop:stock_shop()
       -- Repeat until the total combined cost of all the items exceeds the Shops max inventory net worth
    end
 
+   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   self._sv.player_inventory = inventory:add_item_tracker('stonehearth:shop:sellable_item_tracker')
+
    self.__saved_variables:mark_changed()
 end
 
-function Shop:buy_item(uri)
+function Shop:buy_item(uri, quantity)
+   local buy_quantity = quantity or 1
+
    -- do we have enough gold?
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
    local gold = inventory:get_gold_count()
    local item_cost = self._sv.inventory[uri].cost
-   
-   if false and gold < item_cost then
+
+   -- can't buy more than what's in the shop
+   if buy_quantity > self._sv.inventory[uri].num then
+      buy_quantity = self._sv.inventory[uri].num
+   end
+
+   -- if we can't afford as many as we want, buy fewer
+   buy_quantity = math.min(buy_quantity, math.floor(gold / item_cost))
+
+   -- if we can't afford it, bail
+   if buy_quantity == 0 then
       return
    end
 
-   -- remove one from my inventory
-   self._sv.inventory[uri].num = self._sv.inventory[uri].num - 1
+   local total_cost = item_cost * buy_quantity
+
+   -- remove the items from my inventory
+   self._sv.inventory[uri].num = self._sv.inventory[uri].num - buy_quantity
    self.__saved_variables:mark_changed()
 
    -- deduct gold from the player
-   inventory:subtract_gold(item_cost)
+   inventory:subtract_gold(total_cost)
 
    -- spawn the item on the ground
-   self:_spawn_items(uri, 1)
+   self:_spawn_items(uri, buy_quantity)
+   return true
 end
 
-function Shop:buy_item_command(session, response, uri)
-   self:buy_item(uri)
-   return true
+function Shop:buy_item_command(session, response, uri, quantity)
+   local success = self:buy_item(uri, quantity)
+   if success then
+      response:resolve({})
+   else 
+      response:reject({})
+   end
 end
 
 function Shop:_spawn_items(uri, quantity)

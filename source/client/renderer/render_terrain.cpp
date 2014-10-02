@@ -4,6 +4,7 @@
 #include "renderer.h"
 #include "render_terrain.h"
 #include "render_terrain_tile.h"
+#include "render_terrain_layer.h"
 #include "dm/map_trace.h"
 #include "om/components/terrain.ridl.h"
 #include "csg/meshtools.h"
@@ -15,6 +16,9 @@ using namespace ::radiant;
 using namespace ::radiant::client;
 
 #define T_LOG(level)      LOG(renderer.terrain, level)
+
+static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
+
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
@@ -76,11 +80,29 @@ void RenderTerrain::InitalizeColorMap()
    _colorMap[om::Terrain::Dirt]       = csg::Color4::FromString(config.get("dirt.inner", unknownColor));
 }
 
+csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
+{
+   return csg::GetChunkIndexSlow(location, TERRAIN_LAYER_SIZE).Scaled(TERRAIN_LAYER_SIZE);
+}
+
 void RenderTerrain::MarkDirty(csg::Point3 const& location)
 {
+   // The geometry and contents of the clip planes at this location clearly need to be
+   // regenerated, which means adding the location to those 3 sets.
    _dirtyGeometry.insert(location);
    _dirtyClipPlanes.insert(location);
-   
+   _dirtyLayers.insert(GetLayerAddressForLocation(location));
+
+   // Also, though it's shape hasn't changed, we may need to generate (or remove) geometry from
+   // all tiles adjacent to this one, so stick those in dirty geometry and layer buckets, too.
+   for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
+      csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
+      csg::Point3 neighbor = GetNeighborAddress(location, direction);
+      _dirtyGeometry.insert(neighbor);
+      _dirtyLayers.insert(GetLayerAddressForLocation(neighbor));
+   }
+
+   // If we haven't yet done so, schedule a callback to regenerate everything
    if (renderer_frame_trace_.Empty()) {
       renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
          Update();
@@ -89,59 +111,30 @@ void RenderTerrain::MarkDirty(csg::Point3 const& location)
    }
 }
 
-csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, Neighbor direction)
+csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction)
 {
-   ASSERT(direction >= 0 && direction < NUM_NEIGHBORS);
-
-   switch (direction) {
-   case FRONT:
-      return location + csg::Point3(0, 0, -_tileSize.z);
-   case BACK:
-      return location + csg::Point3(0, 0, _tileSize.z);
-   case LEFT:
-      return location + csg::Point3(-_tileSize.x, 0, 0);
-   case RIGHT:
-      return location + csg::Point3(_tileSize.x, 0, 0);
-   case TOP:
-      return location + csg::Point3(0, _tileSize.y, 0);
-   case BOTTOM:
-      return location + csg::Point3(0, -_tileSize.y, 0);
-   }
-   NOT_REACHED();
-   return csg::Point3::zero;
+   ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
+   static csg::Point3 offsets[] = {
+      csg::Point3(0, -_tileSize.y, 0),    // BOTTOM_PLANE
+      csg::Point3(0, _tileSize.y, 0),     // TOP_PLANE
+      csg::Point3(-_tileSize.x, 0, 0),    // LEFT_PLANE
+      csg::Point3(_tileSize.x, 0, 0),     // RIGHT_PLANE
+      csg::Point3(0, 0, -_tileSize.z),    // FRONT_PLANE
+      csg::Point3(0, 0, _tileSize.z),     // BACK_PLANE
+   };
+   return location + offsets[direction];
 }
 
-Neighbor RenderTerrain::GetNeighbor(Neighbor direction)
+void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& first, csg::RegionTools3::Plane direction)
 {
-   ASSERT(direction >= 0 && direction < NUM_NEIGHBORS);
-
-   switch (direction) {
-   case FRONT:
-      return BACK;
-   case BACK:
-      return FRONT;
-   case LEFT:
-      return RIGHT;
-   case RIGHT:
-      return LEFT;
-   case TOP:
-      return BOTTOM;
-   case BOTTOM:
-      return TOP;
-   }
-   NOT_REACHED();
-   return FRONT;
-}
-
-void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& first, Neighbor direction)
-{
-   ASSERT(direction >= 0 && direction < NUM_NEIGHBORS);
+   ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
 
    auto i = tiles_.find(GetNeighborAddress(location, direction));
    if (i != tiles_.end()) {
       RenderTerrainTile& second = *i->second;
-      first.SetClipPlane(direction, second.GetClipPlane(GetNeighbor(direction)));
-      second.SetClipPlane(GetNeighbor(direction), first.GetClipPlane(direction));
+      csg::RegionTools3::Plane neighbor = csg::RegionTools3::GetNeighbor(direction);
+      first.SetClipPlane(direction, second.GetClipPlane(neighbor));
+      second.SetClipPlane(neighbor, first.GetClipPlane(direction));
    }
 }
 
@@ -151,8 +144,8 @@ void RenderTerrain::UpdateNeighbors()
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
          RenderTerrainTile& tile = *i->second;
-         for (int d = 0; d < NUM_NEIGHBORS; d++) {
-            Neighbor direction = static_cast<Neighbor>(d);
+         for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
+            csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             ConnectNeighbors(location, tile, direction);
          }
       }
@@ -166,8 +159,8 @@ void RenderTerrain::UpdateClipPlanes()
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
          int planesChanged = i->second->UpdateClipPlanes();
-         for (int d = 0; d < NUM_NEIGHBORS; d++) {
-            Neighbor direction = static_cast<Neighbor>(d);
+         for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
+            csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
                _dirtyGeometry.insert(GetNeighborAddress(location, direction));
             }
@@ -189,11 +182,46 @@ void RenderTerrain::UpdateGeometry()
    _dirtyGeometry.clear();
 }
 
+void RenderTerrain::UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location)
+{
+   csg::Point3 index;
+   csg::Point3 end = location + TERRAIN_LAYER_SIZE;
+
+   layer.BeginUpdate();
+
+   // Run through every tile in the layer and throw it's geometry into the mesh
+   for (index.y = location.y; index.y < end.y; index.y += _tileSize.y) {
+      for (index.x = location.x; index.x < end.x; index.x += _tileSize.x) {
+         for (index.z = location.z; index.z < end.z; index.z += _tileSize.z) {
+            auto i = tiles_.find(index);
+            if (i != tiles_.end()) {
+               RenderTerrainTile& tile = *i->second;
+               for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
+                  csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
+                  layer.AddGeometry(direction, tile.GetGeometry(direction));
+               }
+            }            
+         }
+      }
+   }
+   layer.EndUpdate();
+}
+
+void RenderTerrain::UpdateLayers()
+{
+   for (csg::Point3 const& location : _dirtyLayers) {
+      RenderTerrainLayer &layer = GetLayer(location);
+      UpdateLayer(layer, location);
+   }
+   _dirtyLayers.clear();
+}
+
 void RenderTerrain::Update()
 {
    UpdateClipPlanes();
    UpdateNeighbors();
    UpdateGeometry();
+   UpdateLayers();
    renderer_frame_trace_.Clear();
 }
 
@@ -210,4 +238,14 @@ H3DNode RenderTerrain::GetGroupNode() const
 csg::Point3 RenderTerrain::GetTileSize()
 {
    return _tileSize;
+}
+
+RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
+{
+   auto i = layers_.find(location);
+   if (i != layers_.end()) {
+      return *i->second;
+   }
+   auto j = layers_.insert(std::make_pair(location, new RenderTerrainLayer(*this, location)));
+   return *j.first->second;
 }

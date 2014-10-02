@@ -28,17 +28,23 @@ public:
 
 private:
    void InitalizeColorMap();
-   void ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& tile, Neighbor direction);
-   Neighbor GetNeighbor(Neighbor n);
+   void ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& tile, csg::RegionTools3::Plane direction);
 
    void UpdateNeighbors();
    void UpdateClipPlanes();
    void UpdateGeometry();
+   void UpdateLayers();
+   void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
-   csg::Point3 GetNeighborAddress(csg::Point3 const& location, Neighbor direction);
+
+   RenderTerrainLayer& GetLayer(csg::Point3 const& location);
+
+   csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
+   csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
 
 private:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
+
 private:
    const RenderEntity&  entity_;
    csg::Point3          _tileSize;
@@ -47,9 +53,11 @@ private:
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
    std::unordered_map<csg::Point3, RenderTerrainTile*, csg::Point3::Hash> tiles_;
+   std::unordered_map<csg::Point3, RenderTerrainLayer*, csg::Point3::Hash> layers_;
    DirtySet             _dirtyGeometry;
    DirtySet             _dirtyClipPlanes;
    DirtySet             _dirtyNeighbors;
+   DirtySet             _dirtyLayers;
    core::Guard          renderer_frame_trace_;
    csg::TagToColorMap   _colorMap;
 };

@@ -42,25 +42,40 @@ public:
    // 1D objects only have top/bottom, 2D objects have top/bottom and left/right,
    // etc.  Failing to do so will break the logic which allows the client to
    // skip planes.
-   enum Planes {
-      BOTTOM_PLANE = (1 << 0),
-      TOP_PLANE    = (1 << 1),
-      LEFT_PLANE   = (1 << 2),
-      RIGHT_PLANE  = (1 << 3),
-      FRONT_PLANE  = (1 << 4),
-      BACK_PLANE  =  (1 << 5),
+   enum Plane {
+      BOTTOM_PLANE = 0,
+      TOP_PLANE    = 1,
+      LEFT_PLANE   = 2,
+      RIGHT_PLANE  = 3,
+      FRONT_PLANE  = 4,
+      BACK_PLANE   = 5,
+      NUM_PLANES   = 6,
    };
+
+   static Plane GetNeighbor(Plane direction)
+   {
+      static const Plane neighbors[] = {
+         TOP_PLANE,
+         BOTTOM_PLANE,
+         RIGHT_PLANE,
+         LEFT_PLANE,
+         BACK_PLANE,
+         FRONT_PLANE
+      };
+      ASSERT(direction >= 0 && direction < NUM_PLANES);
+      return neighbors[direction];
+   }
 
    RegionTools() :
       flags_(0),
       iter_planes_(-1) { }
 
-   void IgnorePlanes(int planes) {
-      iter_planes_ &= ~planes;
+   void IgnorePlane(int plane) {
+      iter_planes_ &= ~(1 << plane);
    }
 
-   void IncludePlanes(int planes) {
-      iter_planes_ |= planes;
+   void IncludePlane(int plane) {
+      iter_planes_ |= (1 << plane);
    }
 
    // Iterate through every "face" of the region.  The faces are the extenal edges
@@ -76,7 +91,7 @@ public:
       for (PlaneInfo plane : Traits::planes) {
          // process 2 sets of planes at a time.  If neither bit is set, we can skip
          // these entirely!
-         if ((iter_planes_ & (current_front_plane | current_back_plane)) != 0) {
+         if ((iter_planes_ & (1 << (current_front_plane | current_back_plane))) != 0) {
             Traits::PlaneMap front, back;
 
             for (Cube<S, C> const& cube : region) {
@@ -86,20 +101,20 @@ public:
                back[cube.max[plane.reduced_coord]].AddUnique(rect);
             }
 
-            if ((iter_planes_ & current_front_plane) != 0) {
+            if ((iter_planes_ & (1 << current_front_plane)) != 0) {
                plane.which = current_front_plane;
                plane.normal_dir = -1;
                ForEachPlane(front, back, plane, cb);
             }
 
-            if ((iter_planes_ & current_back_plane) != 0) {
+            if ((iter_planes_ & (1 << current_back_plane)) != 0) {
                plane.which = current_back_plane;
                plane.normal_dir =  1;
                ForEachPlane(back, front, plane, cb);
             }
          }
-         current_front_plane <<= 2;
-         current_back_plane <<= 2;
+         current_front_plane += 2;
+         current_back_plane += 2;
       }
    }
 

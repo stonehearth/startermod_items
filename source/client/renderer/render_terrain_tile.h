@@ -12,14 +12,18 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 class RenderTerrainTile
 {
 public:
+   typedef std::unordered_map<int, csg::Region2> Geometry;
+
+public:
    RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& location, om::Region3BoxedRef region);
    ~RenderTerrainTile();
 
    int UpdateClipPlanes();
    void UpdateGeometry();
 
-   void SetClipPlane(Neighbor direction, csg::Region2 const* clipPlane);
-   csg::Region2 const* GetClipPlane(Neighbor direction);
+   void SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane);
+   csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction);
+   Geometry const& GetGeometry(csg::RegionTools3::Plane direction);
 
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
@@ -27,12 +31,12 @@ private:
 
 private:
    RenderTerrain&          _terrain;
-   RenderNodePtr           _node;
    csg::Point3             _location;
    om::Region3BoxedRef     _region;
    csg::Region3            _renderRegion;
-   csg::Region2            _clipPlanes[NUM_NEIGHBORS];
-   csg::Region2 const*     _neighborClipPlanes[NUM_NEIGHBORS];
+   csg::Region2            _clipPlanes[csg::RegionTools3::NUM_PLANES];
+   csg::Region2 const*     _neighborClipPlanes[csg::RegionTools3::NUM_PLANES];
+   Geometry                _geometry[csg::RegionTools3::NUM_PLANES];
    dm::TracePtr            _trace;
    csg::RegionTools3       _regionTools;
 };
