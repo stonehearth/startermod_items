@@ -392,7 +392,7 @@ double Cube<S, C>::DistanceTo(Cube const& other) const
          d += (other.max[i] - min[i]) * (other.max[i] - min[i]);
       }
    }
-   return csg::Sqrt(d);
+   return std::sqrt(d);
 }
 
 template <typename S, int C>
