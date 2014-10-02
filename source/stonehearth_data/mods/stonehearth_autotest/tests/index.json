@@ -52,6 +52,14 @@
                ]
             },
 
+            "not_ready_for_prime_time" : {
+               "name" : "end to end tests",
+
+               "scripts" : [
+                  "file(end_to_end/mining_autotests.lua)"
+               ]
+            },
+
             "broken_end_to_end" : {
                "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
                "scripts" : [
@@ -63,7 +71,7 @@
            "longrunning" : {
                "name" : "too long to put into autotest, but necessary nonetheless",
                "scripts" : [
-                  "file(longrunning/build/lrbt_autotest.lua)",
+                  "file(longrunning/build/lrbt_autotest.lua)"
                ]
             },
 
