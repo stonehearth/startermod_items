@@ -207,6 +207,7 @@ function CrafterComponent:_create_workshop_orchestrator(ghost_workshop)
    self.__saved_variables:mark_changed()
 end
 
+-- Let the crafter know which workshop component is his
 function CrafterComponent:set_workshop(workshop_component)
    self._sv._create_workshop_args = nil
    self.__saved_variables:mark_changed()
@@ -220,6 +221,11 @@ function CrafterComponent:set_workshop(workshop_component)
             workshop = self._sv.workshop,
          })
    end
+end
+
+--Returns the workshop component associated with this crafter
+function CrafterComponent:get_workshop()
+   return self._sv.workshop
 end
 
 return CrafterComponent

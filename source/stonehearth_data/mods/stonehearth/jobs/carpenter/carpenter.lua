@@ -44,8 +44,14 @@ end
 
 
 function CarpenterClass:demote()
-   --TODO: Fix! Currently, there is no entity:remove_component!
+   local workshop_component = self._sv._entity:get_component('stonehearth:crafter'):get_workshop()
+   if workshop_component then
+      workshop_component:set_crafter(nil)
+   end
+
    self._sv._entity:remove_component("stonehearth:crafter")
+   
+   --remove workshop orchestrator? Task lists, etc?
 
    self._sv.is_current_class = false
    self.__saved_variables:mark_changed()
