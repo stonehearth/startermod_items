@@ -18,7 +18,7 @@ class Slot
 public:
    typedef std::function<void(A0 const&)> Fn;
 
-   Slot(std::string const& name) : name_(std::string("signal ") + name), firing_(false) { }
+   Slot(const char* name) : name_(name), firing_(false) { }
 
    ~Slot() {
       ASSERT(firing_ == false);
@@ -87,7 +87,7 @@ private:
    NO_COPY_CONSTRUCTOR(Slot);
 
 private:
-   std::string                         name_;
+   const char*                         name_;
    bool                                firing_;
    int                                 next_id_;
    boost::container::flat_map<int,Fn>  callbacks_;
