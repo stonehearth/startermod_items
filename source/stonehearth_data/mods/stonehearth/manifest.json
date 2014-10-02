@@ -1061,6 +1061,7 @@
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
+      "shop:sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
@@ -1130,7 +1131,8 @@
       "wall" : "file(components/wall/wall_component.lua)",
       "roof" : "file(components/roof/roof_component.lua)",
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
-      "ladder" : "file(components/ladder/ladder_component.lua)"
+      "ladder" : "file(components/ladder/ladder_component.lua)",
+      "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)"
    },
    "client_components" : {
       "wall" : "file(components/wall/wall_component.lua)",
