@@ -10,28 +10,17 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
+#pragma optimize("", off)
+
 static const char* coords[] = { "x", "y", "z" };
-static const char* neighbors[] = {
-   "FRONT",
-   "BACK",
+static const char* planes[] = {
+   "BOTTOM",
+   "TOP",
    "LEFT",
    "RIGHT",
-   "TOP",
-   "BOTTOM"
+   "FRONT",
+   "BACK"
 };
-
-static const char* PlaneToString(csg::PlaneInfo3 const& pi)
-{
-   switch (pi.which) {
-   case csg::RegionTools3::BOTTOM_PLANE:  return "BOTTOM";
-   case csg::RegionTools3::TOP_PLANE:     return "TOP";
-   case csg::RegionTools3::LEFT_PLANE:    return "LEFT";
-   case csg::RegionTools3::RIGHT_PLANE:   return "RIGHT";
-   case csg::RegionTools3::FRONT_PLANE:   return "FRONT";
-   case csg::RegionTools3::BACK_PLANE:    return "BACK";
-   }
-   return "";
-}
 
 #define T_LOG(level)      LOG(renderer.terrain, level) << "(tile @ " << _location << ") "
 
@@ -62,43 +51,30 @@ RenderTerrainTile::~RenderTerrainTile()
 csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi)
 {
    static csg::Region2 zero;
-
-   int plane = -1;
+   bool atEdge = false;
    csg::Point3 tileSize = _terrain.GetTileSize();
 
    switch (pi.which) {
    case csg::RegionTools3::LEFT_PLANE:
-      if (pi.reduced_value == _location.x) {
-         plane = LEFT;
-      }
+      atEdge = (pi.reduced_value == _location.x);
       break;
    case csg::RegionTools3::RIGHT_PLANE:
-      if (pi.reduced_value == _location.x + tileSize.x) {
-         plane = RIGHT;
-      }
+      atEdge = (pi.reduced_value == _location.x + tileSize.x);
       break;
    case csg::RegionTools3::BOTTOM_PLANE:
-      if (pi.reduced_value == _location.y) {
-         plane = BOTTOM;
-      };
+      atEdge = (pi.reduced_value == _location.y);
       break;
    case csg::RegionTools3::TOP_PLANE:
-      if (pi.reduced_value == _location.y + tileSize.y) {
-         plane = TOP;
-      }
+      atEdge = (pi.reduced_value == _location.y + tileSize.y);
       break;
    case csg::RegionTools3::FRONT_PLANE:
-      if (pi.reduced_value == _location.z) {
-         plane = FRONT;
-      }
+      atEdge = (pi.reduced_value == _location.z);
       break;
    case csg::RegionTools3::BACK_PLANE:
-      if (pi.reduced_value == _location.z + tileSize.z) {
-         plane = BACK;
-      }
+      atEdge = (pi.reduced_value == _location.z + tileSize.z);
       break;
    }
-   return plane >= 0 ? _neighborClipPlanes[plane] : nullptr;
+   return atEdge ? _neighborClipPlanes[pi.which] : nullptr;
 }
 
 int RenderTerrainTile::UpdateClipPlanes()
@@ -108,33 +84,33 @@ int RenderTerrainTile::UpdateClipPlanes()
       csg::Point3 tileSize = _terrain.GetTileSize();
       csg::Region3 const& rgn = region->Get();
 
-      for (int d = 0; d < NUM_NEIGHBORS; d++) {
+      for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
          _clipPlanes[d].Clear();
       }
       for (csg::Cube3 const & cube : rgn) {
          if (cube.min.z == _location.z) {
             T_LOG(9) << "adding plane to FRONT clip plane " << cube << " -> xy -> " << csg::ProjectOntoXY(cube);
-            _clipPlanes[FRONT].AddUnique(csg::ProjectOntoXY(cube));
+            _clipPlanes[csg::RegionTools3::FRONT_PLANE].AddUnique(csg::ProjectOntoXY(cube));
          }
          if (cube.max.z == _location.z + tileSize.z) {
             T_LOG(9) << "adding plane to BACK clip plane " << cube << " -> xy -> " << csg::ProjectOntoXY(cube);
-            _clipPlanes[BACK].AddUnique(csg::ProjectOntoXY(cube));
+            _clipPlanes[csg::RegionTools3::BACK_PLANE].AddUnique(csg::ProjectOntoXY(cube));
          }
          if (cube.min.x == _location.x) {
             T_LOG(9) << "adding plane to LEFT clip plane " << cube << " -> yz -> " << csg::ProjectOntoYZ(cube);
-            _clipPlanes[LEFT].AddUnique(csg::ProjectOntoYZ(cube));
+            _clipPlanes[csg::RegionTools3::LEFT_PLANE].AddUnique(csg::ProjectOntoYZ(cube));
          }
          if (cube.max.x == _location.x + tileSize.x) {
             T_LOG(9) << "adding plane to RIGHT clip plane " << cube << " -> yz -> " << csg::ProjectOntoYZ(cube);
-            _clipPlanes[RIGHT].AddUnique(csg::ProjectOntoYZ(cube));
+            _clipPlanes[csg::RegionTools3::RIGHT_PLANE].AddUnique(csg::ProjectOntoYZ(cube));
          }
          if (cube.min.y == _location.y) {
             T_LOG(9) << "adding plane to BOTTOM clip plane " << cube << " -> xz -> " << csg::ProjectOntoXZ(cube);
-            _clipPlanes[BOTTOM].AddUnique(csg::ProjectOntoXZ(cube));
+            _clipPlanes[csg::RegionTools3::BOTTOM_PLANE].AddUnique(csg::ProjectOntoXZ(cube));
          }
          if (cube.max.y == _location.y + tileSize.y) {
             T_LOG(9) << "adding plane to TOP clip plane " << cube << " -> xz -> " << csg::ProjectOntoXZ(cube);
-            _clipPlanes[TOP].AddUnique(csg::ProjectOntoXZ(cube));
+            _clipPlanes[csg::RegionTools3::TOP_PLANE].AddUnique(csg::ProjectOntoXZ(cube));
          }
       }
    }
@@ -145,39 +121,45 @@ void RenderTerrainTile::UpdateGeometry()
 {
    om::Region3BoxedPtr region = _region.lock();
 
+   for (int i = 0; i < csg::RegionTools3::NUM_PLANES; i++) {
+      _geometry[i].clear();
+   }
+
    if (region) {
       csg::Region3 const& rgn = region->Get();
-      csg::Mesh mesh;
 
-      mesh.SetColorMap(&_terrain.GetColorMap());
       _regionTools.ForEachPlane(rgn, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+         Geometry& g = _geometry[pi.which];
          csg::Region2 const* clipper = GetClipPlaneFor(pi);
+
          if (clipper) {
-            T_LOG(9) << "adding clipped " << PlaneToString(pi) << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
-            mesh.AddRegion(plane - *clipper, pi);
+            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
+            g[pi.reduced_value].AddUnique(plane - *clipper);
          } else {
-            T_LOG(9) << "adding unclipped " << PlaneToString(pi) << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
-            mesh.AddRegion(plane, pi);
+            T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
+            g[pi.reduced_value].AddUnique(plane);
          }
       });
-
-      _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
-                              ->SetMaterial("materials/terrain.material.xml")
-                              ->SetUserFlags(UserFlags::Terrain);
    }
 }
 
-void RenderTerrainTile::SetClipPlane(Neighbor direction, csg::Region2 const* clipPlane)
+void RenderTerrainTile::SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane)
 {
-   ASSERT(direction >= 0 && direction < NUM_NEIGHBORS);
-   T_LOG(9) << "setting neighbor plane " << neighbors[direction] << " to " << clipPlane->GetBounds();
+   ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
+   T_LOG(9) << "setting neighbor plane " << planes[direction] << " to " << clipPlane->GetBounds();
    _neighborClipPlanes[direction] = clipPlane;
 }
 
-csg::Region2 const* RenderTerrainTile::GetClipPlane(Neighbor direction)
+csg::Region2 const* RenderTerrainTile::GetClipPlane(csg::RegionTools3::Plane direction)
 {
-   ASSERT(direction >= 0 && direction < NUM_NEIGHBORS);
+   ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
 
    return &_clipPlanes[direction];
 }
 
+RenderTerrainTile::Geometry const& RenderTerrainTile::GetGeometry(csg::RegionTools3::Plane direction)
+{
+   ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
+
+   return _geometry[direction];
+}
