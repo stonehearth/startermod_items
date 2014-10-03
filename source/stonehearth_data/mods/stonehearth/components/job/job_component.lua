@@ -54,6 +54,8 @@ function JobComponent:_on_kill_event()
    self:_drop_talisman()
 end
 
+-- Drops the talisman near the location of the entity, returns the talisman entity
+-- If the class has something to say about the talisman before it goes, do that first
 function JobComponent:_drop_talisman()
    if self._sv.talisman_uri then
       local location = radiant.entities.get_world_grid_location(self._entity)
@@ -61,7 +63,18 @@ function JobComponent:_drop_talisman()
       local output_table = {}
       output_table[self._sv.talisman_uri] = 1
       --TODO: is it possible that this gets dumped onto an inaccessible location?
-      radiant.entities.spawn_items(output_table, location, 1, 2, player_id)
+      local items = radiant.entities.spawn_items(output_table, location, 1, 2, player_id)
+
+      for id, obj in pairs(items) do
+         if obj:get_component('stonehearth:promotion_talisman') then
+            if self._sv.curr_job_controller and
+               self._sv.curr_job_controller.associate_entities_to_talisman then
+               
+               self._sv.curr_job_controller:associate_entities_to_talisman(obj)
+            end
+            return obj
+         end
+      end
    end
 end
 
@@ -121,7 +134,9 @@ end
 
 -- Promotes a citizen to a new job. Calls demote on existing job. 
 -- Called in the moment that the animation converts the citizen to their new job. 
-function JobComponent:promote_to(job_uri)
+-- @job_uri - uri of the job we're promoting to
+-- @talisman_entity - specific talisman associated with this job, optional
+function JobComponent:promote_to(job_uri, talisman_entity)
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
       self:demote()
@@ -149,7 +164,7 @@ function JobComponent:promote_to(job_uri)
             radiant.create_controller(self._job_json.controller, self._entity)
       end
       self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
-      self._sv.curr_job_controller:promote(self._job_json, self._sv.talisman_uri)
+      self._sv.curr_job_controller:promote(self._job_json, talisman_entity)
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
       self:_set_unit_info(self._sv.curr_job_name)
       
@@ -173,6 +188,10 @@ end
 
 function JobComponent:demote()
    self:_remove_outfit()
+
+   --If we have a talisman to drop, drop it. 
+   local talisman = self:_drop_talisman()
+
 
    if self._sv.curr_job_controller then
       self._sv.curr_job_controller:demote()
@@ -331,8 +350,6 @@ function JobComponent:_remove_outfit()
       ]]
       self._sv.equipment = nil
    end
-   --If we have a talisman to drop, drop it. 
-   self:_drop_talisman()
 
    --TODO: what to do about backpack? Should this be called or triggered via an event?
    --or should this be handled by the demote operation on the specific job controller?
