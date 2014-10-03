@@ -397,6 +397,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                //xxx hack! The server should do this for us
                self.set('building.active', true);
             }
+            App.setGameMode('normal');
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
