@@ -14,6 +14,11 @@
          "harvester_effect" : "chop",
          "description" : "chop_tree"
       }   
-	}
+	},
+   "entity_data" : {
+      "on_destroy" : {
+         "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
+      }      
+   }   
 }
 

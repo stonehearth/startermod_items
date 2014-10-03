@@ -72,6 +72,23 @@ function entities.destroy_entity(entity)
          return 
       end
 
+      --If the entity has specified to run an effect, run it.
+      local on_destroy = radiant.entities.get_entity_data(entity, 'on_destroy')
+      if on_destroy ~= nil and on_destroy.effect ~= nil then
+      
+         local proxy_entity = radiant.entities.create_proxy_entity('death effect')
+         local location = radiant.entities.get_location_aligned(entity)
+         radiant.terrain.place_entity_at_exact_location(proxy_entity, location)
+
+         local effect = radiant.effects.run_effect(proxy_entity, on_destroy.effect)
+         effect:set_finished_cb(
+            function()
+               radiant.entities.destroy_entity(proxy_entity)
+            end
+         )
+
+      end
+
       _radiant.sim.destroy_entity(entity)
    end
 end
