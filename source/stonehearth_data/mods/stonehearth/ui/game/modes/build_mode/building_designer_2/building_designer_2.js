@@ -397,11 +397,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                //xxx hack! The server should do this for us
                self.set('building.active', true);
             }
+            App.setGameMode('normal');
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
             { 
-               title : "Really Start Building?",
+               title : "Really start building?",
                message : "Once you begin building this structure it cannot be edited. Are you sure you want to build now?",
                buttons : [
                   { 
@@ -417,12 +418,30 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       this.$('#removeBuilding').click(function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
-         var building_entity = self.get('building');
-         if (building_entity) {
-            radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
-            self.set('context.selection', null);
+         var doRemoveBuilding = function() {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
+            var building_entity = self.get('building');
+            if (building_entity) {
+               radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
+               self.set('context.selection', null);
+            }            
          }
+
+         App.gameView.addView(App.StonehearthConfirmView, 
+            { 
+               title : "Really remove this building",
+               message : "Are you sure you want to remove this entire building?",
+               buttons : [
+                  { 
+                     id: 'confirmRemove',
+                     label: "Keep this building"
+                  },
+                  {
+                     label: "Remove this building",
+                     click: doRemoveBuilding
+                  }
+               ] 
+            });         
       });
 
    },

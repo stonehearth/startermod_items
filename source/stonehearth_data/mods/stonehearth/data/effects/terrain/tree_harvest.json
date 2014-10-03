@@ -1,0 +1,19 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "dust": {
+         "type": "cubemitter",
+         "start_time" : 0,
+         "end_time" : 700,
+         "cubemitter": "particles/terrain/tree_harvest.cubemitter.json",
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      }      
+   }
+}
