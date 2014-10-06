@@ -9,6 +9,7 @@
 
    "talisman_uri" : "stonehearth:farmer:hoe_talisman",
    "default_stance" : "passive",
+   "promotion_activity_name" : "promote_farmer",
 
    "equipment" : {
       "abilities" : "file(farmer_abilities)",

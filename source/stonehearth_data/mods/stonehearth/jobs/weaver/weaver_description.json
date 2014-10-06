@@ -7,6 +7,8 @@
    "requirements": "Weaver's Spindle, crafted by the Carpenter.",
    "talisman_uri" : "stonehearth:weaver:spindle_talisman", 
    "default_stance" : "passive",
+   "promotion_activity_name" : "promote_weaver",
+
    
    "equipment" : {
       "abilities" : "file(weaver_abilities)",

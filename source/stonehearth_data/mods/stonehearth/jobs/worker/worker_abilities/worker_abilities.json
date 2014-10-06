@@ -34,7 +34,6 @@
             ]
          },
          "injected_commands" : [
-            "file(/data/commands/promote_to_job)"
          ]         
       }
    },

@@ -7,18 +7,13 @@ function WeaverClass:initialize(entity)
    self._sv.is_max_level = false
 end
 
-function WeaverClass:promote(json)
+function WeaverClass:promote(json, talisman_entity)
    self._sv.is_current_class = true
    self._sv.job_name = json.name
 
-   self._sv._entity:add_component("stonehearth:crafter", json.crafter)
-
-   --Make sure that the build workshop command has a reference to this file
-   local command_component = self._sv._entity:get_component('stonehearth:commands')
-   if command_component then
-      command_component:modify_command('build_workshop', function(command) 
-            command.event_data.job_info = '/stonehearth/jobs/weaver/weaver_description.json'
-         end)
+   local crafter_component = self._sv._entity:add_component("stonehearth:crafter", json.crafter)
+   if talisman_entity then
+      crafter_component:setup_with_existing_workshop(talisman_entity)
    end
 
    self.__saved_variables:mark_changed()
@@ -35,9 +30,15 @@ function WeaverClass:is_max_level()
    return self._sv.is_max_level 
 end
 
+-- If the weaver has a workshop, associate it with the given talisman
+-- Usually called when the talisman is spawned because the carpenter has died or been demoted
+function WeaverClass:associate_entities_to_talisman(talisman_entity)
+   self._sv._entity:get_component('stonehearth:crafter'):associate_talisman_with_workshop(talisman_entity)
+end
+
 function WeaverClass:demote()
-   --TODO: not implemented
-   entity:remove_component("stonehearth:crafter")
+   self._sv._entity:get_component('stonehearth:crafter'):demote()
+   self._sv._entity:remove_component("stonehearth:crafter")
 
    self._sv.is_current_class = false
    self.__saved_variables:mark_changed()
