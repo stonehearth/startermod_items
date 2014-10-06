@@ -6,6 +6,23 @@
 #include <windows.h>
 #include <psapi.h>
 
+HMODULE psapiDll;
+
+// See http://msdn.microsoft.com/en-us/library/windows/desktop/ms683219%28v=vs.85%29.aspx for why
+// we have to do this to avoid crashing on Vista. =( - tony
+typedef BOOL (*GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+static GetProcessMemoryInfoFn GetProcessMemoryInfof;
+
+struct LoadGetProcessMemoryInfo {
+   LoadGetProcessMemoryInfo() {
+      psapiDll = LoadLibrary("psapi.dll");
+      if (psapiDll) {
+         GetProcessMemoryInfof = (GetProcessMemoryInfoFn)GetProcAddress(psapiDll, "GetProcessMemoryInfo");
+      }
+   }
+};
+static LoadGetProcessMemoryInfo loadGetProcessMemoryInfo;
+
 #elif defined(__unix__) || defined(__unix) || defined(unix) || (defined(__APPLE__) && defined(__MACH__))
 #include <unistd.h>
 #include <sys/resource.h>
@@ -58,9 +75,14 @@ uint32 SysInfo::GetCurrentMemoryUsage()
 {
 #if defined(_WIN32)
 	/* Windows -------------------------------------------------- */
-	PROCESS_MEMORY_COUNTERS info;
-	GetProcessMemoryInfo( GetCurrentProcess( ), &info, sizeof(info) );
-	return (size_t)info.WorkingSetSize;
+
+   if (GetProcessMemoryInfo) {
+      PROCESS_MEMORY_COUNTERS info = { 0 };
+      if (GetProcessMemoryInfof(GetCurrentProcess( ), &info, sizeof(info))) {
+         return (size_t)info.WorkingSetSize;
+      }
+   }
+	return (size_t)0;
 
 #elif defined(__APPLE__) && defined(__MACH__)
 	/* OSX ------------------------------------------------------ */

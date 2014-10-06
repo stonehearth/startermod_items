@@ -24,4 +24,8 @@ function ConstructionProgressClient:begin_editing(building, fabricator)
       end)
 end
 
+function ConstructionProgressClient:load_from_template(template, options, entity_map)
+end
+
+
 return ConstructionProgressClient

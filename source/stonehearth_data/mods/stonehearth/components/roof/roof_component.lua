@@ -41,4 +41,12 @@ function Roof:cover_region2(region2)
    return self
 end
 
+function Roof:save_to_template()
+   return {}
+end
+
+function Roof:load_from_template(data, options, entity_map)
+   -- nothing to do!   
+end
+
 return Roof

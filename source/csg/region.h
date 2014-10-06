@@ -3,20 +3,22 @@
 
 #include <vector>
 #include <map>
-#include <EASTL/fixed_vector.h>
+#include <EASTL/vector.h>
 #include "cube.h"
 
-// Not compatible with luabind and regions of doubles for some reason!
-//#define EASTL_REGIONS
+// eastl vectors behave just like std::vector, but they don't allocate until
+// used.  this is a big win!
+#define EASTL_REGIONS
 
 //
+// (note: used only in the non-EASTL_REGIONS case.)
 // Emperical evidence suggests that without prior knowledge of how big a region
 // is going to be, reserving capacity does not actually improve CPU performance.
 // Dropping this value from 64 to 0 reduces the commited memory from ~370MB to
 // ~120MB in my testing of starting random worlds.  Perhaps this will change when
 // we more efficiently share regions, but for now lets go with it.
 //
-#define INITIAL_CUBE_SPACE    0
+#define INITIAL_CUBE_SPACE    2
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -29,7 +31,7 @@ public:
 #if !defined(EASTL_REGIONS)
    typedef std::vector<Cube> CubeVector;
 #else
-   typedef eastl::fixed_vector<Cube, INITIAL_CUBE_SPACE, true> CubeVector;
+   typedef eastl::vector<Cube> CubeVector;
 #endif
    enum { Dimension = C };
    typedef S ScalarType;

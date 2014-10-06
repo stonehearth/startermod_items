@@ -1,4 +1,5 @@
 local constants = require('constants').construction
+local build_util = require 'lib.build_util'
 local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
@@ -272,6 +273,22 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    return blueprint, fabricator
 end
 
+function BuildService:_initialize_template_blueprint(blueprint, building)
+   -- make the owner of the blueprint the same as the owner as of the building
+   blueprint:add_component('unit_info')
+            :set_player_id(radiant.entities.get_player_id(building))
+            :set_faction(radiant.entities.get_faction(building))
+
+   -- if the blueprint does not yet have a fabricator, go ahead and create one
+   -- now.
+   self:_add_fabricator(blueprint)
+
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   building:get_component('stonehearth:building')
+               :add_structure(blueprint)
+end
+
 -- creates a new building for the owner of `sesssion` located at `origin` in
 -- the world
 --
@@ -405,6 +422,10 @@ end
 --
 function BuildService:is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
+function BuildService:is_building(entity)
+   return entity:get_component('stonehearth:building') ~= nil
 end
 
 -- return the building the specified buildprint is attached to, assuming it
@@ -601,7 +622,7 @@ function BuildService:grow_roof(building, roof_uri, options)
    local roof_location = Point3(0, height - 1, 0)
    local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof_entity)
          roof_entity:add_component('stonehearth:construction_data')
-                        :apply_options(options)
+                        :apply_nine_grid_options(options)
          roof_entity:add_component('stonehearth:roof')
                         :cover_region2(region2)
       end)
@@ -846,16 +867,16 @@ end
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
    local success = self:do_command('apply_options', response, function()
-         self:_apply_options(blueprint, options)
+         self:_apply_nine_grid_options(blueprint, options)
       end)
    return success or nil
 end
 
-function BuildService:_apply_options(blueprint, options)
+function BuildService:_apply_nine_grid_options(blueprint, options)
    local cd = blueprint:get_component('stonehearth:construction_data')
    if cd then
       -- apply the new options to the blueprint      
-      cd:apply_options(options)
+      cd:apply_nine_grid_options(options)
 
       -- copy the options to the project.  this probably shouldn't be necessary. 
       -- project's don't need a construction data component, do they? (the only
@@ -964,6 +985,26 @@ end
 
 function BuildService:at_end_of_transaction(fn)
    table.insert(self._at_end_of_transaction_cbs, fn)
+end
+
+function BuildService:build_template_command(session, response, template_name, location, rotation)
+   local building
+   self:do_command('build_template', response, function()
+         building  = self:build_template(session, template_name, ToPoint3(location), rotation)
+         radiant.terrain.place_entity(building, location)
+      end)
+   return { building = building }
+end
+
+function BuildService:build_template(session, template_name, location, rotation)
+   local building = self:_create_new_building(session, location)
+   build_util.restore_template(building, template_name)
+   self:_call_all_children(building, function(entity)
+         if entity ~= building and self:is_blueprint(entity) then
+            self:_initialize_template_blueprint(entity, building)
+         end
+      end)
+   return building
 end
 
 return BuildService

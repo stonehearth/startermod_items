@@ -41,7 +41,7 @@ public:
    }
 
    void Signal(A0 const& arg) {
-      perfmon::TimelineCounterGuard tcg(name_.c_str());
+      perfmon::TimelineCounterGuard tcg(name_);
 
       firing_ = true;
       for (auto const& entry : callbacks_) {

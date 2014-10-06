@@ -92,5 +92,12 @@ function Floor:clone_from(entity)
    return self
 end
 
+function Floor:save_to_template()
+   return {}
+end
+
+function Floor:load_from_template(data, options, entity_map)
+   -- nothing to do!   
+end
 
 return Floor

@@ -64,6 +64,35 @@ function ConstructionProgress:clone_from(other)
    return self
 end
 
+
+function ConstructionProgress:save_to_template()
+   return {
+      dependencies = radiant.keys(self._sv.dependencies),
+      inverse_dependencies = radiant.keys(self._sv.inverse_dependencies),
+      building_entity = self._sv.building_entity and self._sv.building_entity:get_id() or nil,
+   }
+end
+
+function ConstructionProgress:load_from_template(data, options, entity_map)
+   assert(not next(self._sv.dependencies))
+   assert(not next(self._sv.inverse_dependencies))
+   
+   for _, id in pairs(data.dependencies) do
+      local e = entity_map[id]
+      self._sv.dependencies[e:get_id()] = e
+      self:_listen_for_changes(e)
+   end
+   for _, id in pairs(data.inverse_dependencies) do
+      local e = entity_map[id]
+      self._sv.inverse_dependencies[e:get_id()] = e
+      self:_listen_for_changes(e)
+   end
+   if data.building_entity then
+      self._sv.building_entity = entity_map[data.building_entity]
+   end
+   self.__saved_variables:mark_changed()
+end
+
 function ConstructionProgress:_listen_for_changes(blueprint)
    self._blueprint_listeners[blueprint] = radiant.events.listen(blueprint, 'radiant:entity:pre_destroy', self, self.check_dependencies)
    self._teardown_listeners[blueprint] = radiant.events.listen(blueprint, 'stonehearth:construction:teardown_changed', self, self.check_dependencies)

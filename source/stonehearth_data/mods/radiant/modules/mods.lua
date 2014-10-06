@@ -11,24 +11,23 @@ function mods.load_script(s)
    return _host:require_script(s)
 end
 
-function mods.create_object(arg1, arg2)
-   local ctor = mods.require(arg1, arg2)
-   return ctor()
+function mods.enum_objects(path)
+   -- The stack offset for the helper functions is 3...
+   --    1: __get_current_module_name
+   --    2: mods.enum_objects
+   --    3: --> some module whose name we want! <-- 
+   local modname = __get_current_module_name(3)
+   return _host:enum_objects(modname, path)
 end
 
-function mods.get_all_entities()
-   local mods = radiant.resources.get_mod_list()
-
-   for i, mod in ipairs(mods) do
-      local manifest = radiant.resources.load_manifest(mod)
-      if manifest.aliases then
-         for alias, path in manifest.aliases do
-            --rehydrate the mod
-            mods._all_entities[alias] = alias
-         end
-      end
-   end
+function mods.read_object(path)
+   local modname = __get_current_module_name(3)
+   return _host:read_object(modname, path)
 end
 
-mods.__init()
+function mods.write_object(path, obj)
+   local modname = __get_current_module_name(3)
+   return _host:write_object(modname, path, obj)
+end
+
 return mods

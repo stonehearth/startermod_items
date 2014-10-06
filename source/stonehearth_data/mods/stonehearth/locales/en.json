@@ -368,5 +368,9 @@
    "bulletin_dialog_title" : "New Message",
 
    "red_alert": "Red Alert!",
-   "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers."
+   "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
+
+   "start_building" : "Start Building",
+   "pause_building" : "Pause Building",
+   "save_building_template" : "Save Template"
 }

@@ -65,4 +65,13 @@ function Column:_compute_column_shape()
                      :grow_local_box_to_roof(self._entity, box)
 end
 
+
+function Column:save_to_template()
+   return {}
+end
+
+function Column:load_from_template(data, options, entity_map)
+   -- nothing to do!   
+end
+
 return Column

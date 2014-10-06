@@ -214,10 +214,6 @@ void Mob::LoadFromJson(json::Node const& obj)
       __str_to_type["titan"]  = TITAN;
    }
 
-   if (obj.has("parent")) {
-      parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
-   }
-
    std::string t = obj.get<std::string>("mob_collision_type", "");
    if (!t.empty()) {
       auto i = __str_to_type.find(t);

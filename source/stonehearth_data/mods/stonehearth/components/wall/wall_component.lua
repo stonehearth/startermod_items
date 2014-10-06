@@ -382,4 +382,24 @@ function Wall:_compute_wall_shape()
                      :grow_local_box_to_roof(self._entity, box)
 end
 
+
+function Wall:save_to_template()
+   return self._sv
+end
+
+function Wall:load_from_template(data, options, entity_map)
+   for name, value in pairs(data) do
+      if name == 'normal' or name == 'start_pt' or name == 'end_pt' then
+         self._sv[name] = Point3(value.x, value.y, value.z)
+      elseif name == 'patch_wall_region' then
+         local region = Region2()
+         region:load(value)
+         self._sv[name] = region
+      else
+         self._sv[name] = value
+      end
+   end
+   self.__saved_variables:mark_changed()
+end
+
 return Wall
