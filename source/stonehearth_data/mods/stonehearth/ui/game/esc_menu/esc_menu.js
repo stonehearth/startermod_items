@@ -48,8 +48,11 @@ App.StonehearthEscMenuView = App.View.extend({
 
       load: function() {
          App.gameView.addView(App.StonehearthLoadView);
-      }
+      },
 
+      postBug: function() {
+         App.gameView.addView(App.StonehearthPostBugView);
+      },
    }
 
 });
