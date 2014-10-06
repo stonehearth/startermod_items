@@ -118,7 +118,10 @@ private:
    luabind::object GetManifest(std::string const& mod_name);
    luabind::object GetJson(std::string const& mod_name);
    void SetPerformanceCounter(const char* name, double value, const char* kind);
-   
+   bool WriteObject(const char* modname, const char* objectName, luabind::object o);
+   luabind::object ReadObject(const char* modname, const char* objectName);
+   luabind::object EnumObjects(const char* modname, const char* path);
+
 private:
    lua_State*           L_;
    lua_State*           cb_thread_;

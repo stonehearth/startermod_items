@@ -943,6 +943,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "save_building_template": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_service" : {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
@@ -1135,6 +1139,7 @@
       "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)"
    },
    "client_components" : {
+      "building" : "file(components/building/building_client_component.lua)",
       "wall" : "file(components/wall/wall_component.lua)",
       "column" : "file(components/column/column_component.lua)",
       "portal" : "file(components/portal/portal_component.lua)",

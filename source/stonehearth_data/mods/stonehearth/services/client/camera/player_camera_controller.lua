@@ -304,7 +304,19 @@ function PlayerCameraController:_calculate_drag(e)
     self._drag_origin = screen_ray.origin
 
     if r:get_result_count() > 0  then
-      self._drag_start = r:get_result(0).intersection
+      -- avoid the "stuck in trees" issue for now by stabbing through to the terrain.
+      -- it might be more correct to stab through to the first front-face instead,
+      -- but we don't have the infractrsture for that just yet.
+      for result in r:each_result() do
+         if result.entity:get_id() == 1 then
+            self._drag_start = result.intersection
+            break
+         end
+      end
+      -- still nothing?  use the first result and hope for the best!
+      if not self._drag_start then
+         self._drag_start = r:get_result(0).intersection
+      end
     else
       local d = -self._drag_origin.y / screen_ray.direction.y
       screen_ray.direction:scale(d)

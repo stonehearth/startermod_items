@@ -349,6 +349,24 @@ var StonehearthClient;
          radiant.call_obj(this._build_service, 'undo_command')
       },
 
+      // Note: this fuction is COMPLETELY bogus.  The tool tip is wrong.  It's harcoded to load the
+      // "blah" template, etc.
+      drawTemplate: function(precall) {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
+
+         return this._callTool(function() {
+            return radiant.call_obj(self._build_editor, 'place_template', 'blah')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         }, precall);
+      },
+
       buildWall: function(column, wall, precall) {
          var self = this;
 

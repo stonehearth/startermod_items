@@ -30,13 +30,15 @@ public:
    void UpdateMusic(int currTime);
 
 private:
+   struct Track;
+
+private:
    void SetAndPlayMusic(std::string const& track, double target_volume);
 
-   std::unordered_map<std::string, std::string>      music_buffers_;
+   std::unique_ptr<Track>     currentTrack_;
+   std::unique_ptr<Track>     outgoingTrack_;
 
-   std::unique_ptr<sf::Music>     music_;
-   std::unique_ptr<sf::Music>     outgoing_music_;
-   std::string    music_name_;
+   std::string    currentTrackName_;
    bool           loop_;
    bool           crossfade_;
    int            fade_;

@@ -3,6 +3,7 @@
 #include "lauxlib.h"
 #include "radiant_file.h"
 #include "core/config.h"
+#include "core/system.h"
 #include "core/profiler.h"
 #include "script_host.h"
 #include "lua_supplemental.h"
@@ -19,6 +20,8 @@
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::lua;
+
+namespace fs = ::boost::filesystem;
 
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
@@ -283,12 +286,15 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
          def("is_profiler_available",  &core::IsProfilerAvailable),
          namespace_("lua") [
             lua::RegisterType_NoTypeInfo<ScriptHost>("ScriptHost")
-               .def("log",              &ScriptHost::Log)
-               .def("exit",             &ScriptHost::Exit)
-               .def("get_realtime",     &ScriptHost::GetRealTime)
-               .def("get_log_level",    &ScriptHost::GetLogLevel)
-               .def("get_config",       &ScriptHost::GetConfig)
-               .def("get_mod_list",     &ScriptHost::GetModuleList)
+               .def("log",             &ScriptHost::Log)
+               .def("exit",            &ScriptHost::Exit)
+               .def("get_realtime",    &ScriptHost::GetRealTime)
+               .def("get_log_level",   &ScriptHost::GetLogLevel)
+               .def("get_config",      &ScriptHost::GetConfig)
+               .def("get_mod_list",    &ScriptHost::GetModuleList)
+               .def("read_object",     &ScriptHost::ReadObject)
+               .def("write_object",    &ScriptHost::WriteObject)
+               .def("enum_objects",    &ScriptHost::EnumObjects)
                .def("set_performance_counter", &ScriptHost::SetPerformanceCounter)
                .def("report_error",    (void (ScriptHost::*)(std::string const& error, std::string const& traceback))&ScriptHost::ReportLuaStackException)
                .def("require",         (luabind::object (ScriptHost::*)(std::string const& name))&ScriptHost::Require)
@@ -981,6 +987,75 @@ luabind::object ScriptHost::GetModuleList() const
    }
    return result;
 }
+
+bool ScriptHost::WriteObject(const char* modname, const char* objectName, luabind::object o)
+{
+   fs::path path = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / (std::string(objectName) + ".json");
+
+   try {
+      fs::path parent = path.parent_path();
+      if (!fs::is_directory(parent)) {
+         fs::create_directories(parent);
+      }
+      std::ofstream os(path.string());
+      os << LuaToJson(o).write_formatted();
+      os.close();
+   } catch (std::exception const& e) {
+      LUA_LOG(1) << "failed to create " << path << ": " << e.what();
+      return false;
+   }
+   return true;
+}
+
+
+luabind::object ScriptHost::ReadObject(const char* modname, const char* objectName)
+{
+   luabind::object obj;
+
+   fs::path path = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / (std::string(objectName) + ".json");
+
+   try {
+      if (fs::is_regular_file(path)) {
+         std::ifstream is(path.string());
+         std::string jsonfile = io::read_contents(is);
+         is.close();
+
+         obj = JsonToLua(libjson::parse(jsonfile));
+      }
+   } catch (std::exception const& e) {
+      LUA_LOG(1) << "failed to read " << path.string() << ": " << e.what();
+   }
+   return obj;
+}
+
+luabind::object ScriptHost::EnumObjects(const char* modname, const char* path)
+{
+   luabind::object objects = luabind::newtable(L_);
+
+   fs::path modpath = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / std::string(path);
+
+   try {
+      if (fs::is_directory(modpath)) {
+         int start = modpath.string().size() + 1;
+
+         int count = 1;
+         fs::directory_iterator const end;
+         for (fs::directory_iterator i(modpath); i != end; i++) {
+            fs::path const path = i->path();
+            if (fs::is_regular_file(path) && path.filename().extension() == ".json") {
+               std::string pathstr = path.string();
+               std::string name = pathstr.substr(start, pathstr.size() - start - 5 );
+               objects[count++] = name;
+            }
+         }
+      }
+   } catch (std::exception const& e) {
+      LUA_LOG(1) << "failed to enum objects at " << modpath.string() << ": " << e.what();
+   }
+
+   return objects;
+}
+
 
 luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const& mod_name)
 {

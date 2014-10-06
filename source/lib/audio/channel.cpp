@@ -28,9 +28,27 @@ using namespace ::radiant::audio;
 
 #define PLAYER_DEF_VOL 1.0 //The volume % set by the user, between 0 and 1
 
+
+struct audio::Channel::Track {
+   audio::InputStream   stream;
+   sf::Music            music;
+
+   Track(std::string const& trackName);
+   ~Track();
+};
+
+Channel::Track::Track(std::string const& trackName)
+   : stream(trackName)
+{
+}
+
+Channel::Track::~Track()
+{
+   music.stop();
+}
+
+
 Channel::Channel() :
-   music_(nullptr),
-   outgoing_music_(nullptr),
    rising_tweener_(nullptr),
    fading_tweener_(nullptr),
    fade_(DEF_MUSIC_FADE),
@@ -78,44 +96,35 @@ void Channel::SetNextMusicCrossfade(bool crossfade)
 
 void Channel::PlayMusic(std::string const& track)
 {
-   //If this track is already playing, then just return
-   if(track.compare(music_name_) == 0) {
+   // If this track is already playing, then just return
+   if (track == currentTrackName_) {
       return;
    }
 
-   //If there is already music playing, note next track for update
-   if (music_ != nullptr && music_->getStatus() == sf::Music::Playing) {
+   if (currentTrack_ && currentTrack_->music.getStatus() == sf::Music::Playing) {
+      // If there is already music playing, note next track for update
      nextTrack_ = track;
    } else {
-      //If there is no music, immediately start music
-      if (music_ == nullptr) {
-         music_.reset(new sf::Music());
-      }
-      music_->stop();
+      // If there is no music, immediately start music
       SetAndPlayMusic(track, volume_);
    }
 }
 
 //Pass in the name of the track to play and the game's desired volume for the music
 //Note: the player's desired volume is added right before the music is played
-void Channel::SetAndPlayMusic(std::string const& track, double target_volume)
+void Channel::SetAndPlayMusic(std::string const& trackName, double target_volume)
 {
-   auto i = music_buffers_.find(track);
-   if (i == music_buffers_.end()) {
-      auto stream = res::ResourceManager2::GetInstance().OpenResource(track);
-      std::stringstream reader;
-      reader << stream->rdbuf();
-      music_buffers_[track] = reader.str();
-   } 
+   currentTrack_.reset(new Track(trackName));
 
-   if (music_->openFromMemory(music_buffers_[track].c_str(), music_buffers_[track].size())) {
-      music_->setLoop(loop_);
+   sf::Music* music = &currentTrack_->music;
+   if (music->openFromStream(currentTrack_->stream)) {
+      music->setLoop(loop_);
       //Change to reflect that music's user-set and dynamically-set value can change
-      music_->setVolume((float)target_volume * player_volume_);
-      music_->play();
-      music_name_ = track;
+      music->setVolume((float)target_volume * player_volume_);
+      music->play();
+      currentTrackName_ = trackName;
    } else { 
-      A_LOG(1) << "Can't find Music! " << track;
+      A_LOG(1) << "Can't find Music! " << trackName;
    }
 }
 
@@ -125,58 +134,56 @@ void Channel::UpdateMusic(int currTime)
    double dt = lastUpdated_ ? (currTime - lastUpdated_) : 0.0;
    lastUpdated_ = currTime;
 
-   //If there is another track to play after this one
-   if (nextTrack_ != "" && !fading_tweener_.get()) {
+   // If there is another track to play after this one
+   if (!nextTrack_.empty() && !fading_tweener_.get()) {
       int fade = fade_;
       fading_volume_ = volume_;
-      outgoing_music_.reset(music_.release());
+      outgoingTrack_.reset(currentTrack_.release());
       fading_tweener_.reset(new claw::tween::single_tweener(fading_volume_, 0, fade, claw::tween::easing_linear::ease_out));
 
-      //If crossfade option is true, then also create a rising tweener and set the new music to playing
+      // If crossfade option is true, then also create a rising tweener and set the new music to playing
       if (crossfade_ && !rising_tweener_.get()) {
          rising_volume_ = 0;
          rising_tweener_.reset(new claw::tween::single_tweener(rising_volume_, volume_, fade, claw::tween::easing_linear::ease_in));
 
-         music_.reset(new sf::Music());
          SetAndPlayMusic(nextTrack_, rising_volume_);
          nextTrack_ = "";
       }
    } 
 
-   //If we are in the middle of fading out (and potentially fading in)
-   if (outgoing_music_ != nullptr) {
+   // If we are in the middle of fading out (and potentially fading in)
+   if (outgoingTrack_ != nullptr) {
       if (fading_tweener_->is_finished()) {
-         //and if the fade tweener is finished, stop the outgoing music and reset the tweener. 
+         // and if the fade tweener is finished, stop the outgoing music and reset the tweener. 
          fading_tweener_.reset(nullptr);
-         outgoing_music_->stop();
-         outgoing_music_.reset(nullptr);
+         outgoingTrack_.reset(nullptr);
             
-         //If we are not crossfading, then start the next track. 
+         // If we are not crossfading, then start the next track. 
          if (!crossfade_) {
             SetAndPlayMusic(nextTrack_, volume_);
             nextTrack_ = "";
          }
       } else {
-         //If the tweener is not finished, soften the volume
+         // If the tweener is not finished, soften the volume
          fading_tweener_->update(dt);
-         outgoing_music_->setVolume((float)fading_volume_ * player_volume_);
+         outgoingTrack_->music.setVolume((float)fading_volume_ * player_volume_);
 
-         //If crossfade is on, raise that volume
+         // If crossfade is on, raise that volume
          if (crossfade_) {
             rising_tweener_->update(dt);
-            music_->setVolume((float)rising_volume_ * player_volume_);
+            currentTrack_->music.setVolume((float)rising_volume_ * player_volume_);
          }
       }
    } else {
-      //If nobody is fading out (or fading in) then just one piece of music is playing
-      //adjust that music by player volume
-      //TODO: this might cause audio weirdness if the player is adjusting the volume during a fade
-      if (music_ != nullptr && music_->getVolume() != volume_ * player_volume_) {
-         music_->setVolume(volume_ * player_volume_);
+      // If nobody is fading out (or fading in) then just one piece of music is playing
+      // adjust that music by player volume
+      // TODO: this might cause audio weirdness if the player is adjusting the volume during a fade
+      if (currentTrack_ && currentTrack_->music.getVolume() != volume_ * player_volume_) {
+         currentTrack_->music.setVolume(static_cast<float>(volume_ * player_volume_));
       }
    }
    
-   //If we have a rising tweener that is finished, then set it to null.
+   // If we have a rising tweener that is finished, then set it to null.
    if (rising_tweener_.get() && rising_tweener_->is_finished()) {
       rising_tweener_.reset(nullptr);
    }

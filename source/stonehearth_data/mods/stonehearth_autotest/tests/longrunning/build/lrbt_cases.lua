@@ -100,5 +100,21 @@ function lrbt_cases.grow_walls(autotest, session)
    }
 end
 
+function lrbt_cases.peaked_roof(autotest, session)
+   local floor, building
+   return {
+      function()
+         floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(5, 11, 5)))
+      end,
+      function()
+         building = stonehearth.build:get_building_for(floor)
+         lrbt_util.grow_wooden_walls(session, building)
+      end,
+      function()
+         lrbt_util.grow_wooden_roof(session, building)
+      end,
+   }
+end
+
 
 return lrbt_cases

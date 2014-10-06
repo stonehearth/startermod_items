@@ -7,6 +7,7 @@ local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
 local DoodadPlacer = require 'services.client.build_editor.doodad_placer'
 local LadderEditor = require 'services.client.build_editor.ladder_editor'
+local TemplateEditor = require 'services.client.build_editor.template_editor'
 local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
@@ -101,6 +102,11 @@ end
 function BuildEditorService:erase_floor(session, response, brush_shape)
    FloorEraser(self._build_service)
          :go(response)
+end
+
+function BuildEditorService:place_template(session, response, template_name)
+   TemplateEditor(self._build_service)
+         :go(response, template_name)
 end
 
 function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri)

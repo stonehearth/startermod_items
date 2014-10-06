@@ -103,6 +103,7 @@ static T decode_cube(Node const& node) {
    T value;
    value.min = node.get<typename T::Point>("min");
    value.max = node.get<typename T::Point>("max");
+   value.SetTag(node.get<int>("tag", 0));
    return value;
 }
 
@@ -111,6 +112,9 @@ static Node encode_cube(T const& value) {
    Node node;
    node.set("min", value.min);
    node.set("max", value.max);
+   if (value.GetTag() != 0) {
+      node.set("tag", value.GetTag());
+   }
    return node;
 }
 

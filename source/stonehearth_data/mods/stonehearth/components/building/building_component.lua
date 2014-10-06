@@ -569,4 +569,13 @@ function Building:_on_child_finished(changed)
                      :set_finished(finished)
 end
 
+function Building:save_to_template()
+   return {}
+end
+
+function Building:load_from_template(template, options, entity_map)
+   -- do nothing.  the build service will re-add everything when all the structures
+   -- have been loaded
+end
+
 return Building

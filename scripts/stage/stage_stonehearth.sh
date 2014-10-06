@@ -161,7 +161,7 @@ function compile_lua_and_package_module
      OUTFILE=${infile}c
      # $LUAJIT_BIN_ROOT/luajit.exe -b $infile $OUTFILE
      echo "Compiling $infile ..."
-     $LUA_BIN_ROOT/lua.exe $STONEHEARTH_ROOT/scripts/stage/LuaSrcDiet-0.12.1/bin/LuaSrcDiet.lua $infile --quiet --maximum -o $OUTFILE
+     $LUA_BIN_ROOT/lua.exe $STONEHEARTH_ROOT/scripts/stage/LuaSrcDiet-0.12.1/bin/LuaSrcDiet.lua $infile --quiet --none --opt-comments --opt-whitespace --opt-emptylines --opt-eols -o $OUTFILE
      if [ $? -ne 0 ]; then
        echo "failed to compile $infile"
        exit 1
