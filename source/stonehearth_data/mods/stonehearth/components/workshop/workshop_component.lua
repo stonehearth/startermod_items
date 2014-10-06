@@ -139,25 +139,39 @@ function WorkshopComponent:set_crafter(crafter)
       self._sv.crafter = crafter
       self.__saved_variables:mark_changed()
 
+      --If there is an orchestrator, nuke it first
+      if self._orchestrator then
+         self._orchestrator:destroy()
+         self._orchestrator = nil
+      end
+
       local commandComponent = self._entity:get_component('stonehearth:commands')
       if crafter then
          commandComponent:enable_command('show_workshop', true)
+
+         local show_workshop_command = crafter:add_component('stonehearth:commands')
+                                              :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
+         show_workshop_command.event_data = {
+            workshop = self._entity
+         }
+         crafter:add_component('stonehearth:commands'):remove_command('build_workshop')
+         
+         -- xxx, localize                                            
+         local crafter_name = radiant.entities.get_name(crafter)
+         radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
+
+         self:_create_workshop_orchestrator()
       else
          commandComponent:enable_command('show_workshop', false);
-      end
 
-      local show_workshop_command = crafter:add_component('stonehearth:commands')
-                                           :add_command('/stonehearth/data/commands/show_workshop_from_crafter')
-      show_workshop_command.event_data = {
-         workshop = self._entity
-      }
-      crafter:add_component('stonehearth:commands'):remove_command('build_workshop')
+         --if there was a current crafter, then remove the command from them
+         if current then
+            current:add_component('stonehearth:commands')
+                   :remove_command('show_workshop_from_crafter')
+         end
 
-      -- xxx, localize                                          
-      local crafter_name = radiant.entities.get_name(crafter)
-      radiant.entities.set_description(self._entity, 'owned by ' .. crafter_name)
-
-      self:_create_workshop_orchestrator()
+         radiant.entities.set_description(self._entity, 'unclaimed')
+      end     
    end
 end
 

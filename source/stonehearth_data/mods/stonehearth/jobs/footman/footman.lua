@@ -27,10 +27,6 @@ end
 
 
 function FootmanClass:demote()
-
-   -- TODO: unequip the weapon
-   assert(false, 'not implemented')
-
    self._sv.is_current_class = false
    self.__saved_variables:mark_changed()
 end

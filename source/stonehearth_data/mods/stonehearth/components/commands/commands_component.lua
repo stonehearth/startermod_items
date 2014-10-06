@@ -30,7 +30,7 @@ function CommandsComponent:remove_command(name)
       if command.name == name then
          table.remove(self._sv.commands, i)
          self.__saved_variables:mark_changed()
-         break;
+         break
       end
    end
 end

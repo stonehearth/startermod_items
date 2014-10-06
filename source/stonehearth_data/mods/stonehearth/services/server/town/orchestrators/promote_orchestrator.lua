@@ -9,7 +9,9 @@ function Promote:run(town, args)
    local args = {
       trigger_fn = function(info, args)
          if info.event == "change_outfit" then
-            self:_change_job(person, args.talisman)
+            local promotion_talisman_component = args.talisman:get_component('stonehearth:promotion_talisman')
+            local job_uri = promotion_talisman_component:get_job()
+            self:_change_job(person, job_uri, args.talisman)
             radiant.effects.run_effect(person, '/stonehearth/data/effects/level_up')
          elseif info.event == "remove_talisman" then
             -- xx for now destroy the talisman. Eventually store it in the talisman component so we can bring it back when the civ is demoted
@@ -32,7 +34,15 @@ function Promote:run(town, args)
 
       --TODO: how to handle the case where the talisman has disappeared (and there will never be another?)
 
-   else
+   elseif not talisman then
+      --There is no talisman; we must be demoting back to worker. 
+      --TODO: is there a different animation for demotion? If not just run effect
+      self:_change_job(person, 'stonehearth:jobs:worker')
+
+      --Find a decent cubemitter effect for demotion
+      radiant.effects.run_effect(person, '/stonehearth/data/effects/level_up')
+      return true
+   else 
       -- talisman is an entity
       args.talisman = talisman
 
@@ -42,9 +52,7 @@ function Promote:run(town, args)
                            :wait()
 
       --TODO: what happens when a wildfire destroys the bench? See the clear_workshop orchestrator
-      --TODO: also, this crashes in the c++ effect layer before it even gets here. Take another look. 
    end
-
 
    if not result then
       return false
@@ -53,17 +61,9 @@ function Promote:run(town, args)
    return true
 end
 
-function Promote:_change_job(person, talisman)
+function Promote:_change_job(person, job_uri, talisman_entity)
    --Add the new class
-   local promotion_talisman_component = talisman:get_component('stonehearth:promotion_talisman')
-   person:add_component('stonehearth:job'):promote_to(promotion_talisman_component:get_job(), talisman:get_uri())
-
-   --Log in personal event log
-   local activity_name = radiant.entities.get_entity_data(talisman, 'stonehearth:activity_name')
-   if activity_name then
-      radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
-                             {entity = person, description = activity_name})
-   end
+   person:add_component('stonehearth:job'):promote_to(job_uri, talisman_entity)
 end
 
 return Promote
