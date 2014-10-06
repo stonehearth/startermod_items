@@ -171,7 +171,8 @@ App.StonehearthPromotionTree = App.View.extend({
       });
 
       self.$('#approveStamper').click(function() {
-         self._animateStamper(self.get('selectedJob.alias')); 
+         self._animateStamper(); 
+         self._promote(self.get('selectedJob.alias'));
       })
    },
 
@@ -241,7 +242,7 @@ App.StonehearthPromotionTree = App.View.extend({
       radiant.call('stonehearth:grab_promotion_talisman', citizen.__self, talisman);
    },
 
-   _animateStamper: function(jobAlias) {
+   _animateStamper: function() {
       var self = this;
 
       radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp');
@@ -255,7 +256,6 @@ App.StonehearthPromotionTree = App.View.extend({
             .animate({ bottom: 200 }, 150, function () {
                // close the wizard after a short delay
                setTimeout(function() {
-                  self._promote(jobAlias);
                   self.invokeDestroy();
                }, 1500);
             });
