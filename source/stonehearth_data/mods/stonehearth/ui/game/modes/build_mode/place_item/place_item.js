@@ -58,6 +58,7 @@ App.StonehearthPlaceItemView = App.View.extend({
       });
 
       self.$('.item').tooltipster();
+      this.hide();
    },
 
    _mapToArray : function(map, convert_fn) {
@@ -81,39 +82,41 @@ App.StonehearthPlaceItemView = App.View.extend({
       var self = this;
 
       var map = this.get('context.tracking_data');
-      if (map) {
-         arr = this._mapToArray(map, function(category, entityMap) {
-            var category = {
-               'name' : category,
-               'items' : self._mapToArray(entityMap, function(uri, info) {
-                  var count = 0;
-                  $.each(info.items, function(id, item){
-                     if (info.items.hasOwnProperty(id)) {
-                        var ef = item['stonehearth:entity_forms']
-                        if (!ef) {
-                           console.log('wtf');
-                        }
-                        if (ef && !ef.placing_at) {
-                           count += 1;
-                        }
-                     }
-                  });
-                  if (count == 0) {
-                     return undefined;
-                  }
-                  info.uri = uri;
-                  info.count = count;
-                  return info;
-               })
-            }
+      if (!map) {
+         return
+      }
 
-            category.items.sort(function(a, b) {
-              return a.display_name.localeCompare(b.display_name);
-            });
-            
-            return category
+      arr = this._mapToArray(map, function(category, entityMap) {
+         var category = {
+            'name' : category,
+            'items' : self._mapToArray(entityMap, function(uri, info) {
+               var count = 0;
+               $.each(info.items, function(id, item){
+                  if (info.items.hasOwnProperty(id)) {
+                     var ef = item['stonehearth:entity_forms']
+                     if (!ef) {
+                        console.log('wtf');
+                     }
+                     if (ef && !ef.placing_at) {
+                        count += 1;
+                     }
+                  }
+               });
+               if (count == 0) {
+                  return undefined;
+               }
+               info.uri = uri;
+               info.count = count;
+               return info;
+            })
+         }
+
+         category.items.sort(function(a, b) {
+           return a.display_name.localeCompare(b.display_name);
          });
-      }      
+         
+         return category
+      });
 
       arr.sort(function(a, b) {
          return a.name.localeCompare(b.name);

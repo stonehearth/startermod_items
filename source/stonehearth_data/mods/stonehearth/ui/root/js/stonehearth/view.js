@@ -52,6 +52,18 @@
       }
    },
 
+   show: function() {
+      if (this.$()) {
+         this.$().show();   
+      }
+   },
+
+   hide: function() {
+      if (this.$()) {
+         this.$().hide();   
+      }
+   },
+
    invokeDestroy: function() {
       if (this.state == 'preRender') {
          Ember.run.scheduleOnce('afterRender', this, this.destroy);

@@ -26,14 +26,14 @@ App.StonehearthStartMenuView = App.View.extend({
       create_trapping_grounds : function () {
          App.stonehearthClient.createTrappingGrounds();
       },
-      design_building: function () {
-         $(top).trigger('stonehearth_design_building');
+      building_plans: function () {
+         $(top).trigger('stonehearth_building_plans');
       },
       place_item: function () {
          $(top).trigger('stonehearth_place_item');
       },
       build_ladder: function () {
-         $(top).trigger('stonehearth_build_ladder');
+         App.stonehearthClient.buildLadder();
       },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
