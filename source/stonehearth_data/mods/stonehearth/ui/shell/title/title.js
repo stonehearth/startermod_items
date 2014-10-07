@@ -103,7 +103,7 @@ App.StonehearthTitleScreenView = App.View.extend({
       this._alphaScreenShown = true;
       radiant.call('radiant:get_config', 'alpha_welcome')
          .done(function(o) {
-            if (!o.hide) {
+            if (!o.alpha_welcome || !o.alpha_welcome.hide) {
                App.shellView.addView(App.StonehearthConfirmView, 
                   { 
                      title : "Welcome to Stonehearth Alpha 5",
