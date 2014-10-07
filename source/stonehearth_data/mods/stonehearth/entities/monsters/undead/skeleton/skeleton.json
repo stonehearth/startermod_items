@@ -1,0 +1,67 @@
+{
+   "type": "entity", 
+   "mixins" : "stonehearth:mixins:monster",
+   "components": {
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/humans/skeletons/male.json)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(skeleton.qb)"
+            ]
+         }
+      },
+      "unit_info" : {
+         "name": "A Skeleton",
+         "faction": "undead",
+         "description": "It yearns for flesh"
+      },
+      "stonehearth:attributes": {
+          "max_health": {
+            "type" : "basic", 
+            "value" : 20
+         },
+         "health": {
+            "type" : "variable", 
+            "equation" :  "max_health"
+         },
+         "speed": {
+            "type" : "basic",
+            "value" : 50
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 70
+         },
+         "courage": {
+            "type" : "basic",
+            "value" : 20
+         }
+      },
+      "stonehearth:carry_block": {
+      },
+      "stonehearth:posture": [
+      ]
+   },
+   "entity_data" : {
+      "stonehearth:entity_radius" : 0.75,
+      "stonehearth:entity_reach" : 1.0,
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand_spin",
+            "active_frame" : 21,
+            "cooldown" : 8000,
+            "priority" : 1
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_dodge",
+            "active_frame" : 8,
+            "cooldown" : 12000,
+            "priority" : 1
+         }
+      ]
+   }
+}
