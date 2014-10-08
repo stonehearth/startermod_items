@@ -12,27 +12,6 @@ local MiningCallHandler = class()
 local XZ_ALIGN = 4
 local Y_ALIGN = 5
 
--- test code, to be removed
-function add_quad(mesh, x, z, w, h, color)
-   x = x - 0.5
-   z = z - 0.5
-   local y = 0.01
-   local normal = Point3(0, 1, 0)
-   local ioffset = mesh:get_vertex_count()
-   
-   mesh:add_vertex(Vertex(Point3(x,   y, z  ), normal, color))
-   mesh:add_vertex(Vertex(Point3(x,   y, z+h), normal, color))
-   mesh:add_vertex(Vertex(Point3(x+w, y, z+h), normal, color))
-   mesh:add_vertex(Vertex(Point3(x+w, y, z  ), normal, color))
-
-   mesh:add_index(ioffset)      -- first triangle
-   mesh:add_index(ioffset + 1)
-   mesh:add_index(ioffset + 2)
-   mesh:add_index(ioffset)      -- second triangle
-   mesh:add_index(ioffset + 2)
-   mesh:add_index(ioffset + 3)
-end
-
 -- test code
 function MiningCallHandler:designate_mining_zone(session, response)
    local enable_mining = radiant.util.get_config('enable_mining', false)
@@ -103,30 +82,22 @@ function MiningCallHandler:designate_mining_zone(session, response)
    end
 
    stonehearth.selection:select_designation_region()
-      :require_unblocked(true)
-      :use_designation_marquee(Color4(128, 128, 128, 0))
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :set_can_contain_entity_filter(function(entity)
             -- TODO
             return true
          end)
-      :set_cursor('stonehearth:cursors:zone_trapping_grounds')
+      :set_cursor('stonehearth:cursors:harvest')
       :use_manual_marquee(function(selector, box)
-            local color = Color4(0, 255, 0, 128)
-            local mesh = Mesh()
-            local size = box:get_size()
-
-            -- test code, to be removed
-            add_quad(mesh, 0, 0, size.x, size.z, color)
-
-            local render_node = _radiant.client.create_mesh_node(1, mesh)
-               :set_position(box.min)
-               :set_can_query(false)
-               :set_material('materials/transparent.material.xml')
-
+            -- test code
+            local ground_box = box:translated(Point3(0, -1, 0))
+            ground_box.min.y = ground_box.max.y - Y_ALIGN
+            local region = Region3(ground_box)
+            local render_node = _radiant.client.create_region_outline_node(1, region, Color4(255, 255, 255, 0))
             return render_node
          end)
       :done(function(selector, box)
+            -- test code
             local ground_box = box:translated(Point3(0, -1, 0))
             local region = Region3(ground_box)
 
