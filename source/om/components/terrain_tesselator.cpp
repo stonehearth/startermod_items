@@ -1,5 +1,6 @@
 #include "radiant.h"
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "csg/region_tools.h"
 #include "terrain.ridl.h"
 #include "terrain_tesselator.h"
@@ -26,7 +27,7 @@ csg::Region3 TerrainTesselator::TesselateTerrain(csg::Region3 const& terrain, cs
    csg::Region3 grass, dirt;
 
    TERRAIN_LOG(7) << "Tesselating Terrain...";
-   for (csg::Cube3 const& cube : terrain) {
+   for (csg::Cube3 const& cube : csg::EachCube(terrain)) {
       switch (cube.GetTag()) {
       case om::Terrain::Grass:
          grass.AddUnique(cube);
@@ -50,7 +51,7 @@ void TerrainTesselator::AddTerrainTypeToTesselation(csg::Region3 const& region, 
 {
    std::unordered_map<int, csg::Region2> layers;
 
-   for (csg::Cube3 const& cube : region) {
+   for (csg::Cube3 const& cube : csg::EachCube(region)) {
       csg::Point3 const& min = cube.GetMin();
       csg::Point3 const& max = cube.GetMax();
       ASSERT(min.y == max.y - 1); // 1 block thin, pizza box
@@ -100,7 +101,7 @@ void TerrainTesselator::TesselateLayer(csg::Region2 const& layer, int height, cs
    for (auto const& layer : ringInfo.rings) {
       TERRAIN_LOG(7) << " Building terrain ring " << height << " " << layer.width;
       csg::Region2 edge = CreateRing(edgeMap, layer.width, &inner);      
-      for (csg::Rect2 const& rect : edge) {
+      for (csg::Rect2 const& rect : csg::EachCube(edge)) {
          csg::Point2 const& min = rect.GetMin();
          csg::Point2 const& max = rect.GetMax();
          csg::Point3 p0(min.x, height, min.y);
@@ -114,7 +115,7 @@ void TerrainTesselator::TesselateLayer(csg::Region2 const& layer, int height, cs
          pt->location += pt->accumulated_normals * (-layer.width);
       }
    }
-   for (csg::Rect2 const& rect : inner) {
+   for (csg::Rect2 const& rect : csg::EachCube(inner)) {
       csg::Point2 const& min = rect.GetMin();
       csg::Point2 const& max = rect.GetMax();
       tess.AddUnique(csg::Cube3(

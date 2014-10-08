@@ -1,6 +1,7 @@
 #include "pch.h"
 #include <bitset>
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "qubicle_file.h"
 #include "qubicle_brush.h"
 #include <unordered_set>
@@ -123,7 +124,7 @@ csg::Region3 QubicleBrush::PreparePaintBrush()
    return brush;
 }
 
-float colorDistance(int colorA, int colorB)
+double colorDistance(int colorA, int colorB)
 {
    const csg::Color4 cA = csg::Color4::FromInteger(colorA);
    const csg::Color4 cB = csg::Color4::FromInteger(colorB);
@@ -189,7 +190,7 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
    // produce...interesting...results.
    std::vector<int> finalPalette;
    for (const auto& colorFreq : colorVec) {
-      const float MinDist = 0.15f;
+      const double MinDist = 0.15;
       bool tooSimilar = false;
       for (const auto& paletteColor : finalPalette) {
          if (colorDistance(colorFreq.first, paletteColor) < MinDist) {
@@ -214,7 +215,7 @@ QubicleMatrix QubicleBrush::Lod(const QubicleMatrix& m, int lod_level)
       uint32 mostSimilarIdx = 0;
 
       for (uint32 j = 0; j < finalPalette.size(); j++) {
-         float d = colorDistance(colorFreq.first, finalPalette[j]);
+         float d = (float)colorDistance(colorFreq.first, finalPalette[j]);
          if (d < minDist) {
             mostSimilarIdx = j;
             minDist = d;
@@ -279,7 +280,7 @@ csg::Region3 QubicleBrush::IterateThroughStencil(csg::Region3 const& brush,
    }
 
    // Now iterate and draw the brush
-   for (csg::Point3 i : csg::Cube3(min, max)) {
+   for (csg::Point3 i : csg::EachPoint(csg::Cube3(min, max))) {
       csg::Point3 offset = i * brush_size;
       csg::Region3 stamped = brush.Translated(offset - brush_min) & (*stencil);
       model.AddUnique(stamped.Translated(-origin_));

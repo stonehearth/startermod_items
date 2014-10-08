@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "util.h"
+#include "csg/iterators.h"
 
 using namespace ::radiant;
 using namespace ::radiant::csg;
@@ -103,7 +104,7 @@ bool csg::PartitionCubeIntoChunksSlow(Cube3 const& cube, Point3 const& chunk, st
    Point3 const& cmax = cube.GetMax();
    Cube3 chunks = GetChunkIndexSlow(cube, chunk);
 
-   for (Point3 const& cursor : chunks) {
+   for (Point3 const& cursor : EachPoint(chunks)) {
       Cube3 c;
       for (int i = 0; i < 3; i++) {
          c.min[i] = std::max(cmin[i], cursor[i] * chunk[i]);
@@ -130,7 +131,7 @@ bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, int width, std::f
 bool csg::PartitionRegionIntoChunksSlow(Region3 const& region, Point3 const& chunk, std::function<bool(Point3 const& index, Region3 const& r)> cb)
 {
    std::unordered_map<Point3, Region3, Point3::Hash> regions;
-   for (Cube3 const& cube : region) {
+   for (Cube3 const& cube : EachCube(region)) {
       PartitionCubeIntoChunksSlow(cube, chunk, [&regions](Point3 const& index, Cube3 const& cube) mutable {
          regions[index].AddUnique(cube);
          return false;
@@ -246,7 +247,7 @@ bool csg::PartitionCubeIntoChunks(Cube3 const& cube, std::function<bool (Point3 
    Point3 const& cmax = cube.GetMax();
    Cube3 chunks = GetChunkIndex<S>(cube);
 
-   for (Point3 const& cursor : chunks) {
+   for (Point3 const& cursor : EachPoint(chunks)) {
       Cube3 c;
       for (int i = 0; i < 3; i++) {
          c.min[i] = std::max(cmin[i] - cursor[i] * S, 0);
@@ -289,7 +290,7 @@ Region3 csg::Reface(Region3 const& rgn, Point3 const& forward)
       throw std::invalid_argument(BUILD_STRING("vector is not a valid normal refacing region: " << forward));
    }
 
-   for (const auto& cube : rgn) {
+   for (const auto& cube : EachCube(rgn)) {
       Point3 const& min = cube.GetMin();
       Point3 const& max = cube.GetMax();
       result.AddUnique(Cube3::Construct(Point3(min.x * cos_theta - min.z * sin_theta + tx,
@@ -309,7 +310,7 @@ Region csg::GetAdjacent(Region const& r, bool allow_diagonals)
 {
    Region adjacent;
 
-   for (const Region::Cube& c : r) {
+   for (const Region::Cube& c : EachCube(r)) {
       Region::Point p0 = c.GetMin();
       Region::Point p1 = c.GetMax();
       if (allow_diagonals) {
@@ -383,7 +384,7 @@ void csg::HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r)
 bool ::csg::Region3Intersects(const Region3& rgn, const csg::Ray3& ray, double& distance)
 {
    double best = FLT_MAX;
-   for (const auto &r : rgn) { 
+   for (const auto &r : EachCube(rgn)) { 
       double candidate;
       if (Cube3Intersects(r, ray, candidate) && candidate < best) {
          best = candidate;

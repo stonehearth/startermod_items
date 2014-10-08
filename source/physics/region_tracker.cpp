@@ -89,7 +89,7 @@ csg::Region3 RegionTracker<BoxedRegion>::GetOverlappingRegion(csg::Cube3 const& 
 
       return LocalToWorld(r, GetEntity()) & bounds;
    }
-   return csg::Region3::empty;
+   return csg::Region3::zero;
 }
 
 /*

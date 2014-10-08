@@ -3,8 +3,6 @@
 #include "lua_mesh.h"
 #include "csg/meshtools.h"
 
-#pragma optimize ( "", off )
-
 using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;

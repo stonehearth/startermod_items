@@ -121,7 +121,7 @@ Sphere::set(const Point3f* points, unsigned int num_points)
         if (dist > maxDistance)
             maxDistance = dist;
     }
-    _radius = ::csg::Sqrt(maxDistance);
+    _radius = std::sqrt(maxDistance);
 }
 
 
@@ -219,7 +219,7 @@ csg::merge(Sphere& result,
     }
 
     // build new sphere
-    double dist = ::csg::Sqrt(distsq);
+    double dist = std::sqrt(distsq);
     double radius = 0.5*(s0.get_radius() + s1.get_radius() + dist);
     Point3f center = s0.get_center();
     if (!csg::IsZero(dist))
@@ -250,7 +250,7 @@ Sphere::compute_collision(const Sphere& other, Point3f& collision_normal,
         // handle collision
 
         // penetration is distance - radii
-        double distance = ::csg::Sqrt(distance_sq);
+        double distance = std::sqrt(distance_sq);
         penetration = radius_sum - distance;
         collision_normal.Normalize();
 

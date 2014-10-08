@@ -114,7 +114,7 @@ message region1f {
 
 message sphere3f {
    required point3f  center = 1;
-   required float    radius = 2;
+   required double   radius = 2;
 }
 
 message ray3f {
@@ -123,10 +123,10 @@ message ray3f {
 }
 
 message quaternion {
-   required float    x = 1;
-   required float    y = 2;
-   required float    z = 3;
-   required float    w = 4;
+   required double    x = 1;
+   required double    y = 2;
+   required double    z = 3;
+   required double    w = 4;
 }
 
 message transform {

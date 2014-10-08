@@ -22,6 +22,7 @@ add_library(csg STATIC
             transform.cpp
             heightmap.cpp
             util.cpp
+            iterators.cpp
             random_number_generator.cpp
             pch.cpp
             )

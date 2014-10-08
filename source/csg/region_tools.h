@@ -15,7 +15,7 @@ class RegionTools<S, 1>
 {
 public:
    void ForEachEdge(Region<S, 1> const& region, typename RegionToolsTraits<S, 1>::ForEachEdgeCb cb) {
-      for (Cube<S, 1> const &cube : region) {
+      for (Cube<S, 1> const &cube : EachCube(region)) {
          EdgeInfo<S, 1> edge_info;
          edge_info.normal = Point<S, 1>::zero;
          edge_info.min = cube.min;
@@ -94,7 +94,7 @@ public:
          if ((iter_planes_ & (1 << (current_front_plane | current_back_plane))) != 0) {
             Traits::PlaneMap front, back;
 
-            for (Cube<S, C> const& cube : region) {
+            for (Cube<S, C> const& cube : EachCube(region)) {
                Cube<S, C-1> rect = Traits::ReduceCube(cube, plane);
 
                front[cube.min[plane.reduced_coord]].AddUnique(rect);

@@ -231,33 +231,33 @@ Quaternion::lookAt(const Point3f& from, const Point3f& target)
    double trace = right.x + up.y + forward.z;
 
    if (trace > 0) {
-      double s = sqrtf(trace + 1.0f) * 2.0f;
-      double s_recip = 1.0f / s;
-	   w = 0.25f * s;
+      double s = sqrt(trace + 1.0) * 2.0;
+      double s_recip = 1.0 / s;
+	   w = 0.25 * s;
 	   x = (up.z - forward.y) * s_recip;
 	   y = (forward.x - right.z) * s_recip;
 	   z = (right.y - up.x) * s_recip;
    } else if (right.x > up.y && right.x > forward.z) {
-      double s = sqrtf(1.0f + right.x - up.y - forward.z) * 2.0f;
-      double s_recip = 1.0f / s;
+      double s = sqrt(1.0 + right.x - up.y - forward.z) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (up.z - forward.y) * s_recip;
-	   x = 0.25f * s;
+	   x = 0.25 * s;
 	   y = (up.x + right.y) * s_recip;
 	   z = (forward.x + right.z) * s_recip;
    } else if (up.y > forward.z) {
-      double s = sqrtf(1.0f + up.y - right.x - forward.z) * 2.0f;
-      double s_recip = 1.0f / s;
+      double s = sqrt(1.0 + up.y - right.x - forward.z) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (forward.x - right.z) * s_recip;
 	   x = (up.x + right.y) * s_recip;
-	   y = 0.25f * s;
+	   y = 0.25 * s;
 	   z = (forward.y + up.z) * s_recip;
    } else {
-      double s = sqrtf(1.0f + forward.z - right.x - up.y) * 2.0f;
-      double s_recip = 1.0f / s;
+      double s = sqrt(1.0 + forward.z - right.x - up.y) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (right.y - up.x) * s_recip;
 	   x = (forward.x + right.z) * s_recip;
 	   y = (forward.y + up.z) * s_recip;
-	   z = 0.25f * s;
+	   z = 0.25 * s;
    }
 }
 
@@ -381,7 +381,7 @@ Quaternion::Normalize()
     }
     else
     {
-        double factor = csg::InvSqrt(lengthsq);
+        double factor = 1 / std::sqrt(lengthsq);
         w *= factor;
         x *= factor;
         y *= factor;
@@ -649,10 +649,10 @@ csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, d
       {
          // use standard slerp
          double theta = acos(cosTheta);
-         double recipSinTheta = 1.0f/csg::Sin(theta);
+         double recipSinTheta = 1.0f/std::sin(theta);
 
-         startInterp = csg::Sin((1.0f - t)*theta)*recipSinTheta;
-         endInterp = csg::Sin(t*theta)*recipSinTheta;
+         startInterp = std::sin((1.0f - t)*theta)*recipSinTheta;
+         endInterp = std::sin(t*theta)*recipSinTheta;
       }
       // angle is close to zero
       else
@@ -670,10 +670,10 @@ csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, d
       {
          // use slerp w/negation of start Quaternion
          double theta = acos(-cosTheta);
-         double recipSinTheta = 1.0f/csg::Sin(theta);
+         double recipSinTheta = 1.0f/std::sin(theta);
 
-         startInterp = csg::Sin((t-1.0f)*theta)*recipSinTheta;
-         endInterp = csg::Sin(t*theta)*recipSinTheta;
+         startInterp = std::sin((t-1.0f)*theta)*recipSinTheta;
+         endInterp = std::sin(t*theta)*recipSinTheta;
       }
       // angle is close to 180 degrees
       else

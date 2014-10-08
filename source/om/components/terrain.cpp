@@ -4,6 +4,7 @@
 #include "terrain_tesselator.h"
 #include "om/entity.h"
 #include "om/region.h"
+#include "csg/iterators.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -156,7 +157,7 @@ csg::Region3f Terrain::IntersectRegion(csg::Region3f const& r)
    csg::Region3f result;
    csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region.GetBounds()), TILE_SIZE);
 
-   for (csg::Point3 const& index : chunks) {
+   for (csg::Point3 const& index : csg::EachPoint(chunks)) {
       auto i = tiles_.find(index);
       if (i != tiles_.end()) {
          Region3BoxedPtr tile = i->second;

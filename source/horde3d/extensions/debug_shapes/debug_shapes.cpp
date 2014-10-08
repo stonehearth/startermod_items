@@ -5,6 +5,7 @@
 #include "egRenderer.h"
 #include "egMaterial.h"
 #include "egCamera.h"
+#include "csg/iterators.h"
 
 #include "debug_shapes.h"
 
@@ -330,7 +331,7 @@ void DebugShapesNode::add_aabb(const csg::Cube3f& aabb, const csg::Color4& color
 
 void DebugShapesNode::add_region(const csg::Region3f& rgn, const csg::Color4& color, csg::Point3f const& offset)
 {
-   for (const auto &c : rgn) {
+   for (const auto &c : csg::EachCube(rgn)) {
       // xxx: this is in no way thread safe! (see SH-8)
       csg::Point3f min, max;
       for (int i = 0; i < 3; i++) {

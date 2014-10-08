@@ -60,7 +60,7 @@ void TerrainTracker::MarkChanged()
  */
 csg::Region3 TerrainTracker::GetOverlappingRegion(csg::Cube3 const& bounds) const
 {
-   return csg::Region3::empty;
+   return csg::Region3::zero;
 }
 
 /*
