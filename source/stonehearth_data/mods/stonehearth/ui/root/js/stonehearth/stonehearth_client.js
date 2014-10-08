@@ -345,6 +345,25 @@ var StonehearthClient;
          });
       },
 
+      createMiningZone: function() {
+         var self = this;
+
+         App.setGameMode('zones');
+         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:designate_mining_zone')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  self.createMiningZone();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       undo: function () {
          radiant.call_obj(this._build_service, 'undo_command')
       },

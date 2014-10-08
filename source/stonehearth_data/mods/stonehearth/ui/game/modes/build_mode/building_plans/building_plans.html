@@ -1,0 +1,21 @@
+<script type="text/x-handlebars" data-template-name="buildingPlans">
+   <div id="buildingPlans" class="window buildAndDesignTool">
+      <div class="title">Building Plans</div>
+
+      <div class="downSection" id="plansList">
+         <table id="planList" class="list">
+            <tbody>
+            {{#each view.plans}}
+               <tr class="row" {{bind-attr uri=this.uri}}>
+                  <td class="name">
+                     <div>{{{this.name}}}</div>
+                  </td>
+               </tr>
+            {{/each}}
+            </tbody>
+         </table>
+      </div>
+
+      <button id="customBuildingButton">Design Custom Building</button>
+   </div>
+</script>

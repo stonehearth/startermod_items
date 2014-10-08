@@ -237,6 +237,31 @@ Pipeline::CreateSelectionNode(H3DNode parent,
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2f);
 }
 
+RenderNodePtr
+Pipeline::CreateRegionOutlineNode(H3DNode parent,
+                                  csg::Region3 const& region,
+                                  csg::Color4 const& color)
+{
+   csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
+   H3DNode node = h3dRadiantAddDebugShapes(parent, "RegionOutlineNode");
+   csg::RegionTools3 tools;
+   std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash> edges;
+
+   tools.ForEachEdge(region, [&edges, &node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
+      auto iterator = edges.find(edge_info.min);
+      if (iterator != edges.end() && iterator->second == edge_info.max) {
+         // discard edges with the same endpoints (we don't care that their normals are different)
+         return;
+      }
+
+      edges[edge_info.min] = edge_info.max;
+      h3dRadiantAddDebugLine(node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, color);
+   });
+
+   h3dRadiantCommitDebugShape(node);
+
+   return std::make_shared<RenderNode>(node);
+}
 
 RenderNodePtr
 Pipeline::CreateXZBoxNode(H3DNode parent,

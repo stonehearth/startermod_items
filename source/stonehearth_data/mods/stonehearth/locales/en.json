@@ -258,6 +258,8 @@
    "field_tip_description" : "Farmers will break ground and plant crops here", 
    "trapper_zone_tip_title" : "Click and drag to create trapping grounds", 
    "trapper_zone_tip_description" : "Trappers catch critters for food and resources in this zone", 
+   "mining_zone_tip_title" : "Click and drag to create a mining zone", 
+   "mining_zone_tip_description" : "Right click to exit", 
    "wall_segment_tip_title" : "Click to place freestanding wall segments", 
    "wall_segment_tip_description" : "Hold down SHIFT while clicking to draw connected walls", 
    "build_floor_tip_title" : "Click and drag to build floor", 

@@ -52,7 +52,7 @@ scope LuaMesh::RegisterLuaTypes(lua_State* L)
          .def("add_vertex",            &Mesh_AddVertex)
          .def("get_vertex_count",      &Mesh_GetVertexCount)
          .def("add_index",             &Mesh_AddIndex)
-         .def("get_index_count",       &Mesh_GetVertexCount)
+         .def("get_index_count",       &Mesh_GetIndexCount)
       ,
       lua::RegisterType_NoTypeInfo<Vertex>("Vertex")
          .def(constructor<Point3f const&, Point3f const&, Point4f const&>())

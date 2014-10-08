@@ -1,0 +1,89 @@
+{
+   "kingdom_name" : "The Dead",
+   "kingdom_id" : "undead",
+   "male_entities" : [
+      "stonehearth:monsters:undead:skeleton"
+   ],
+   "female_entities" : [
+      "stonehearth:monsters:undead:skeleton"
+   ],
+   "surnames" : [
+      "the Dead"
+   ],
+   "given_names" : {
+      "male" : [
+         "Alton",
+         "Edwyne",
+         "Fostan",
+         "Geoff",
+         "Stefan",
+         "Heath",
+         "Jeren",
+         "Kaven",
+         "Lorn", 
+         "Mard",
+         "Navin",
+         "Ollen",
+         "Payten",
+         "Roake",
+         "Selvan",
+         "Treston",
+         "Campton",
+         "Brom",
+         "Illowyn",
+         "Sean",
+         "Gareth",
+         "Nol",
+         "Zedd",
+         "Pantor",
+         "Daff",
+         "Willad",
+         "Irving",
+         "Chopper"
+      ],
+      "female" : [
+         "Alton",
+         "Edwyne",
+         "Fostan",
+         "Geoff",
+         "Stefan",
+         "Heath",
+         "Jeren",
+         "Kaven",
+         "Lorn", 
+         "Mard",
+         "Navin",
+         "Ollen",
+         "Payten",
+         "Roake",
+         "Selvan",
+         "Treston",
+         "Campton",
+         "Brom",
+         "Illowyn",
+         "Sean",
+         "Gareth",
+         "Nol",
+         "Zedd",
+         "Pantor",
+         "Daff",
+         "Willad",
+         "Irving",
+         "Chopper"
+      ]
+   }, 
+   "town_pieces" : {
+      "optional_prefix" : [
+         "Ay"
+      ], 
+      "town_name" : [
+         "Pohk"
+      ], 
+      "suffix" : [
+         "yu"
+      ]
+   }, 
+   "task_groups" : {
+      "stonehearth:task_group:restock" : "stonehearth:simple_labor"
+   }
+}
