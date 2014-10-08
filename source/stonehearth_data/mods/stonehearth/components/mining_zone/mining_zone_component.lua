@@ -8,12 +8,6 @@ local MiningZoneComponent = class()
 local MAX_REACH_DOWN = 1
 local MAX_REACH_UP = 3
 
-function clear_tags(region)
-   for cube in region:each_cube() do
-      cube.tag = 0
-   end
-end
-
 function MiningZoneComponent:__init()
 end
 
@@ -139,7 +133,7 @@ function MiningZoneComponent:_update_destination()
 
          local world_space_region = self._sv.region:get():translated(location)
          local terrain_region = radiant.terrain.intersect_region(world_space_region)
-         clear_tags(terrain_region)
+         terrain_region:set_tag(0)
          terrain_region:optimize_by_merge()
          terrain_region:translate(-location)
 
