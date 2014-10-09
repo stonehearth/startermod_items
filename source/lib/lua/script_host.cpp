@@ -26,6 +26,8 @@ namespace fs = ::boost::filesystem;
 DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
+#define SH_LOG(level)    LOG(script_host, level)
+
 static std::string GetLuaTraceback(lua_State* L)
 {
    lua_getfield(L, LUA_GLOBALSINDEX, "debug");
@@ -924,9 +926,23 @@ bool ScriptHost::IsNumericTable(luabind::object tbl) const
 
 void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, om::EntityPtr>& em, std::vector<om::DataStorePtr>& datastores)
 {
+   // Two passes: First create all the controllers for the datastores we just
+   // created.
+
+   SH_LOG(7) << "restoring datastores controllers";
    for (om::DataStorePtr datastore : datastores) {
       datastore->RestoreController(datastore);
    }
+   SH_LOG(7) << "finished restoring datastores controllers";
+
+   // Now run through all the tables on those datastores and convert the
+   // pointers-to-datastore to pointers-to-controllers
+   SH_LOG(7) << "restoring datastores controller data";
+   std::vector<luabind::object> visitedTables;
+   for (om::DataStorePtr datastore : datastores) {
+      datastore->RestoreControllerData(visitedTables);
+   }
+   SH_LOG(7) << "finished restoring datastores controller data";
 
    CreateModules(mods);
 
@@ -944,10 +960,13 @@ void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, 
       }
    }
 
+   SH_LOG(7) << "restoring lua components";
    for (auto const& entry : em) {
       om::EntityPtr entity = entry.second;
       om::Stonehearth::RestoreLuaComponents(this, entity);
    }
+   SH_LOG(7) << "finished restoring lua components";
+
    Trigger("radiant:game_loaded");
 }
 
