@@ -48,7 +48,8 @@
                "icon" : "file(images/trapperLevel1.png)",
                "buff_name" : "stonehearth:buffs:trapper:speed_1",
                "description" : "Long walks have increased the trapper's foot speed.",
-               "level" : 1
+               "level" : 1, 
+               "demote_fn" : "remove_buff"
             }
          ]
       },
@@ -61,7 +62,8 @@
                "icon" : "file(images/trapperLevel2.png)", 
                "backpack_size_increase" : "2",
                "level" : 2, 
-               "description" : "The trapper has become more efficient at packing in the loot."
+               "description" : "The trapper has become more efficient at packing in the loot.", 
+               "demote_fn" : "decrease_backpack_size"
             }
          ]
       }

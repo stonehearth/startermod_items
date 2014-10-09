@@ -112,7 +112,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       if (target_level == 0) {
          $(target_div).find('.lvlTitle').text('(' + i18n.t('stonehearth:apprentice') + ')');
       } else {
-         $(target_div).find('.levelText').text(target_level);
+         $(target_div).find('.actualLevelTxt').text(target_level);
       }
    },
 

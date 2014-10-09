@@ -122,7 +122,7 @@
             <div id="abilitiesTab" class = "tabPage">
                {{#each view.all_job_data}}
                   <div class="jobData" {{bind-attr uri=this.alias}}>
-                     <div class="className retiredClassNameHeader">{{this.name}} <span class="lvlTitle">(Level <span class="levelText">???</span>)</span></div>
+                     <div class="className retiredClassNameHeader">{{this.name}} <span class="lvlTitle">(Level <span class="actualLevelTxt">???</span>)</span></div>
                      <div class="jobPerks">
                         {{#each this.levelArray}}
                            {{#each this.perks}}

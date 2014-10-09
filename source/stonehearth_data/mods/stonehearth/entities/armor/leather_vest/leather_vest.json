@@ -4,7 +4,7 @@
    "components" : {
       "unit_info" : {
          "name": "Thick Leather Vest",
-         "description": "Hardened leather provides study protection.",
+         "description": "Hardened leather provides sturdy protection.",
          "icon" : "file(leather_vest.png)"         
       },
       "model_variants": {
