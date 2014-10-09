@@ -11,6 +11,8 @@ Cube3PointIterator::Cube3PointIterator() :
 {
 }
 
+// XXX: Is there a way to ENFORCE that this must be kept alive for
+// the duration of the loop?  Hmmmm.  I'd hate to have to copy it...
 Cube3PointIterator::Cube3PointIterator(csg::Cube3 const& cube) :
    _cube(&cube),
    _current(cube.min)
