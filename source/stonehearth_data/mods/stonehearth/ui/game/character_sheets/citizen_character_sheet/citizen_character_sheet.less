@@ -236,14 +236,27 @@
          .jobData {
             margin-top: 5px;
             color: #ffe850;
+            width: 690px;
+            display: none;
 
             .levelText {
                color: #ff5a00;
             }
 
-            .classNameHeader {
+            .activeClassNameHeader {
                font-family: @headerFontFamily;
                font-size: 26px;
+               color: #ffe850;
+            }
+
+            .retiredClassNameHeader {
+               font-family: @headerFontFamily;
+               font-size: 16px;
+               color: gray;               
+            }
+
+            .jobPerks {
+               min-height: 90px;
             }
 
             .perkDiv {

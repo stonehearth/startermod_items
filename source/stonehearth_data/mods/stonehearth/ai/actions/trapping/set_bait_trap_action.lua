@@ -33,3 +33,8 @@ return ai:create_compound_action(SetBaitTrap)
       trap_uri = ai.ARGS.trap_uri,
       trapping_grounds = ai.ARGS.trapping_grounds
    })
+   :execute('stonehearth:trigger_event', {
+      source = ai.ENTITY, 
+      event_name = 'stonehearth:set_trap', 
+      event_args = {}
+   })

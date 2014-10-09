@@ -19,6 +19,8 @@ end
 
 function WorkerClass:promote(json)
    self._sv.is_current_class = true
+   self._sv.job_name = json.name
+
 
    if json.level_data then
       self._sv.level_data = json.level_data

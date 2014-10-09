@@ -54,6 +54,9 @@ end
 function TrapperClass:_create_xp_listeners()
    self._clear_trap_listener = radiant.events.listen(self._sv._entity, 'stonehearth:clear_trap', self, self._on_clear_trap)
    self._befriend_pet_listener = radiant.events.listen(self._sv._entity, 'stonehearth:befriend_pet', self, self._on_pet_befriended)
+
+   --Move into another function that is activated by a test
+   self._set_trap_listener = radiant.events.listen(self._sv._entity, 'stonehearth:set_trap', self, self._on_set_trap)
 end
 
 function TrapperClass:_remove_xp_listeners()
@@ -62,6 +65,9 @@ function TrapperClass:_remove_xp_listeners()
 
    self._befriend_pet_listener:destroy()
    self._befriend_pet_listener = nil
+   
+   self._set_trap_listener:destroy()
+   self._set_trap_listener = nil
 end
 
 -- Called if the trapper is harvesting a trap for food. 
@@ -80,6 +86,12 @@ function TrapperClass:_on_pet_befriended(args)
    if args.pet_id then
       self._job_component:add_exp(self._sv.xp_rewards['befriend_pet'])
    end
+end
+
+-- We actually want the XP to be gained on harvesting; this is mostly for testing purposes.
+function TrapperClass:_on_set_trap(args)
+   --Comment in for testing, or write activation fn for autotests
+   --self._job_component:add_exp(90)
 end
 
 -- Called by the job component to do job-specific level up

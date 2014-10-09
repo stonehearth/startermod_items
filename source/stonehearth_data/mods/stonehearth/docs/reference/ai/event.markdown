@@ -118,3 +118,7 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: The trapper
       - Name: stonehearth:befriend\_pet
       - Args: pet_id - the id of the pet, nil if none
+   - **set\_trap** - triggered whenever a trapper sets a trap
+      - Key: The trapper
+      - Name: stonehearth:set\_trap
+      - Args: none

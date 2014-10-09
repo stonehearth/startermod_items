@@ -11,8 +11,10 @@ function JobComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
+      
       self._sv._initialized = true
       self._sv.job_controllers = {}
+
       if json.xp_equation_for_next_level then
          self._sv.xp_equation = json.xp_equation_for_next_level
       end
@@ -147,6 +149,7 @@ function JobComponent:promote_to(job_uri, talisman_entity)
       --Strangely, doesn't exist yet when this is called in init, creates duplicate component!
       if not self._sv.attributes_component then
          self._sv.attributes_component = self._entity:get_component('stonehearth:attributes')
+         self._sv.total_level = self._sv.attributes_component:get_attribute('total_level')
       end
 
       --Whenever you get a new job, dump all the xp that you've accured so far to your next level
@@ -219,7 +222,6 @@ function JobComponent:add_exp(value)
    end
 
    self._sv.current_level_exp = self._sv.current_level_exp + value
-   local original_level = self._sv.attributes_component:get_attribute('total_level')
 
    while self._sv.current_level_exp >= self._sv.xp_to_next_lv do
       self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
@@ -234,8 +236,9 @@ function JobComponent:_level_up()
    --Change all the attributes to the new level
    --Should the general HP increase (class independent) be reflected as a permanent buff or a quiet stat increase?
    local curr_level = self._sv.attributes_component:get_attribute('total_level')
-   self._sv.attributes_component:set_attribute('total_level', curr_level + 1)
-   
+   self._sv.total_level = curr_level + 1
+   self._sv.attributes_component:set_attribute('total_level', self._sv.total_level)
+
    --Add all the universal level dependent buffs/bonuses, etc
 
    local optional_description = self._sv.curr_job_controller:level_up()
