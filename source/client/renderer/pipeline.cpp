@@ -10,7 +10,7 @@
 #include "resources/res_manager.h"
 #include "csg/region_tools.h"
 #include <fstream>
-#include <unordered_map>
+#include <unordered_set>
 
 #define P_LOG(level)   LOG(renderer.pipeline, level)
 
@@ -236,6 +236,21 @@ Pipeline::CreateSelectionNode(H3DNode parent,
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2f);
 }
 
+typedef std::pair<csg::Point3, csg::Point3> LineSegment;
+
+// template specialization for the hash of a LineSegment
+namespace std {
+   template <>
+   class std::hash<LineSegment>
+   {
+   public:
+      size_t operator()(LineSegment const& segment) const {
+         // use boost::hash_combine if you want something better
+         return 51 * csg::Point3::Hash()(segment.first) + csg::Point3::Hash()(segment.second);
+      }
+   };
+}
+
 RenderNodePtr
 Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3 const& region,
@@ -244,17 +259,18 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    H3DNode node = h3dRadiantAddDebugShapes(parent, "RegionOutlineNode");
    csg::RegionTools3 tools;
-   std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash> edges;
+   std::unordered_set<LineSegment> edges;
 
    tools.ForEachEdge(region, [&edges, &node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
-      auto iterator = edges.find(edge_info.min);
-      if (iterator != edges.end() && iterator->second == edge_info.max) {
+      LineSegment edge(edge_info.min, edge_info.max);
+      auto iterator = edges.find(edge);
+      if (iterator != edges.end()) {
          // discard edges with the same endpoints (we don't care that their normals are different)
          return;
       }
 
-      edges[edge_info.min] = edge_info.max;
-      h3dRadiantAddDebugLine(node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, color);
+      edges.insert(edge);
+      h3dRadiantAddDebugLine(node, csg::ToFloat(edge.first) + offset, csg::ToFloat(edge.second) + offset, color);
    });
 
    h3dRadiantCommitDebugShape(node);
