@@ -121,20 +121,21 @@
             </div>
             <div id="abilitiesTab" class = "tabPage">
                {{#each view.all_job_data}}
-                  <div class="jobData">
-                     <div class="classNameHeader">{{this.job_name}} (Level <span class="levelText">{{this.last_gained_lv}}</span>)</div>
+                  <div class="jobData" {{bind-attr uri=this.alias}}>
+                     <div class="className retiredClassNameHeader">{{this.name}} <span class="lvlTitle">(Level <span class="actualLevelTxt">???</span>)</span></div>
                      <div class="jobPerks">
-                        {{#each this.level_data}}
+                        {{#each this.levelArray}}
                            {{#each this.perks}}
-                           <div class="perkDiv tooltip" {{bind-attr id=this.id}}>
-                              <img {{bind-attr class="unlocked:perkImgUnlocked:perkImgLocked" src=this.icon}}/>
-                              <span {{bind-attr class="unlocked:lvLabelUnlocked:lvLabelLocked"}}>{{i18n stonehearth:level_abbreviation}} <span class="levelText">{{../level}}</span></span>
+                           <div class="perkDiv tooltip" locked="true" {{bind-attr name=this.perk_name description=this.description divLevel=this.level}}>
+                              <img {{bind-attr src=this.icon imgLevel=this.level}}/>
+                              <span class="levelLabel" {{bind-attr lbLevel=this.level}}>{{i18n stonehearth:level_abbreviation}} <span class="levelText">{{this.level}}</span></span>
                            </div>
                            {{/each}}
                         {{/each}}
                      </div>
                   </div>
                {{/each}}
+
             </div>
             <div id="moraleTab" class="tabPage">
                <div id="persona" class="column">

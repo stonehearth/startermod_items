@@ -36,6 +36,9 @@ function TrapperClass:promote(json)
       self._sv.level_data = json.level_data
    end
 
+   --If we're not at level 0, apply existing perks
+   --self:_apply_existing_perks()
+
    self:_create_xp_listeners()
    self.__saved_variables:mark_changed()
 end
@@ -51,9 +54,16 @@ function TrapperClass:is_max_level()
    return self._sv.is_max_level 
 end
 
+function TrapperClass:get_level_data()
+   return self._sv.level_data
+end
+
 function TrapperClass:_create_xp_listeners()
    self._clear_trap_listener = radiant.events.listen(self._sv._entity, 'stonehearth:clear_trap', self, self._on_clear_trap)
    self._befriend_pet_listener = radiant.events.listen(self._sv._entity, 'stonehearth:befriend_pet', self, self._on_pet_befriended)
+
+   --Move into another function that is activated by a test
+   self._set_trap_listener = radiant.events.listen(self._sv._entity, 'stonehearth:set_trap', self, self._on_set_trap)
 end
 
 function TrapperClass:_remove_xp_listeners()
@@ -62,6 +72,9 @@ function TrapperClass:_remove_xp_listeners()
 
    self._befriend_pet_listener:destroy()
    self._befriend_pet_listener = nil
+   
+   self._set_trap_listener:destroy()
+   self._set_trap_listener = nil
 end
 
 -- Called if the trapper is harvesting a trap for food. 
@@ -82,45 +95,22 @@ function TrapperClass:_on_pet_befriended(args)
    end
 end
 
+-- We actually want the XP to be gained on harvesting; this is mostly for testing purposes.
+function TrapperClass:_on_set_trap(args)
+   --Comment in for testing, or write activation fn for autotests
+   --self._job_component:add_exp(90)
+end
+
 -- Called by the job component to do job-specific level up
 -- Increment our levels in this class by 1
--- Given the number of the new level, see if there are any perks that should be applied
--- TODO: Is there ever a case where perks are taken away?
--- returns: info about the new level 
 function TrapperClass:level_up()
    self._sv.last_gained_lv = self._sv.last_gained_lv + 1
-   local job_updates_for_level = self._sv.level_data[tostring(self._sv.last_gained_lv)]
-
-   --If there is NO data for the class at this level, everything stays the same
-   if not job_updates_for_level then
-      return
-   end
-
-   --Apply each perk (there probably is only one)
-   local perk_descriptions = {}
-   for i, perk_data in ipairs(job_updates_for_level.perks) do
-
-      self[perk_data.type](self, perk_data)
-      perk_data.unlocked = true
-
-      --Collect text about the perk
-      local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
-      table.insert(perk_descriptions, perk_info)
-   end
-
-   local level_data = {
-      new_level = self._sv.last_gained_lv, 
-      job_name = self._sv.job_name,
-      descriptions = perk_descriptions
-   }
 
    if self._sv.last_gained_lv == self._sv.max_level then
       self._sv.is_max_level = true
    end
 
    self.__saved_variables:mark_changed()
-   
-   return level_data
 end
 
 -- Functions for level up
@@ -136,6 +126,20 @@ function TrapperClass:increase_backpack_size(args)
    backpack_component:change_max_capacity(args.backpack_size_increase)
 end
 
+-- Functions for demote
+
+--Remove any buffs added
+function TrapperClass:remove_buff(args)
+   radiant.entities.remove_buff(self._sv._entity, args.buff_name)
+end
+
+--Make the backpack size smaller
+function TrapperClass:decrease_backpack_size(args)
+   local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
+   backpack_component:change_max_capacity(args.backpack_size_increase * -1)
+end
+
+--Call when it's time to demote
 function TrapperClass:demote()
    self:_remove_xp_listeners()
    self._sv.is_current_class = false

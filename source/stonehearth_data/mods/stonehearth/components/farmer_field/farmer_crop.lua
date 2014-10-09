@@ -57,11 +57,9 @@ function FarmerCrop:restore()
    self._plot_listeners = {}
    -- We have to re-listen to each dirt plot on load, to figure out when harvesting
    -- has been completed.
-   for cube in self:get_harvestable_region():get():each_cube() do
-      for pt in cube:each_point() do
-         local plot = self:get_field_spacer(pt + self._sv.location)
-         table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
-      end
+   for pt in self:get_harvestable_region():get():each_point() do
+      local plot = self:get_field_spacer(pt + self._sv.location)
+      table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
    end
    self:_update_plantable_region()
    self:_create_planting_task()

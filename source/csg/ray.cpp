@@ -144,9 +144,9 @@ Ray3::transform(float scale, const Quaternion& rotate, const Point3f& translate)
     ray.direction = transform.transform(direction);
     ray.direction.Normalize();
 
-    transform(0,3) = translate.x;
-    transform(1,3) = translate.y;
-    transform(2,3) = translate.z;
+    transform(0,3) = (float)translate.x;
+    transform(1,3) = (float)translate.y;
+    transform(2,3) = (float)translate.z;
 
     ray.origin = transform.transform(origin);
 
@@ -167,11 +167,11 @@ distance_squared(const Ray3& ray0, const Ray3& ray1,
 {
     // compute intermediate parameters
     Point3f w0 = Point3f(ray0.origin - ray1.origin);
-    float a = ray0.direction.Dot(ray0.direction);
-    float b = ray0.direction.Dot(ray1.direction);
-    float c = ray1.direction.Dot(ray1.direction);
-    float d = ray0.direction.Dot(w0);
-    float e = ray1.direction.Dot(w0);
+    float a = (float)ray0.direction.Dot(ray0.direction);
+    float b = (float)ray0.direction.Dot(ray1.direction);
+    float c = (float)ray1.direction.Dot(ray1.direction);
+    float d = (float)ray0.direction.Dot(w0);
+    float e = (float)ray1.direction.Dot(w0);
 
     float denom = a*c - b*b;
     // parameters to compute s_c, t_c
@@ -224,7 +224,7 @@ distance_squared(const Ray3& ray0, const Ray3& ray1,
 
     // compute difference vector and distance squared
     Point3f wc = w0 + ray0.direction*s_c - ray1.direction*t_c;
-    return wc.Dot(wc);
+    return (float)wc.Dot(wc);
 
 }   // End of ::distance_squared()
 
@@ -462,13 +462,13 @@ Point3f
 Ray3::closest_point(const Point3f& point) const
 {
     Point3f w = Point3f(point - origin);
-    float proj = w.Dot(direction);
+    float proj = (float)w.Dot(direction);
     // endpoint 0 is closest point
     if (proj <= 0.0f)
         return origin;
     else
     {
-        float vsq = direction.Dot(direction);
+        float vsq = (float)direction.Dot(direction);
         // else somewhere else in ray
         return origin + direction*(proj/vsq);
     }

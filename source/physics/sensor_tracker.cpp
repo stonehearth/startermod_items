@@ -5,6 +5,7 @@
 #include "sensor_tracker.h"
 #include "sensor_tile_tracker.h"
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "om/entity.h"
 #include "om/components/sensor.ridl.h"
 #include "om/components/mob.ridl.h"
@@ -117,7 +118,7 @@ void SensorTracker::TraceNavGridTiles()
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
-   for (csg::Point3 const& cursor : previous) {
+   for (csg::Point3 const& cursor : csg::EachPoint(previous)) {
       if (!current.Contains(cursor)) {
          _sensorTileTrackers.erase(cursor);
          navgrid_.ForEachEntityAtIndex(cursor, [this](om::EntityPtr entity) {
@@ -137,7 +138,7 @@ void SensorTracker::TraceNavGridTiles()
    csg::Cube3 inner = csg::Cube3::Construct(current.min + csg::Point3(1, 1, 1),
                                             current.max - csg::Point3(1, 1, 1));
 
-   for (csg::Point3 const& cursor : current) {
+   for (csg::Point3 const& cursor : csg::EachPoint(current)) {
       int flags = NavGridTile::ENTITY_ADDED | NavGridTile::ENTITY_REMOVED;
       if (!inner.Contains(cursor)) {
          // We're on the fringe.  Need to subscribe to move events.

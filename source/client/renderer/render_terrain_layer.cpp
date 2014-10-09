@@ -7,8 +7,6 @@
 #include "om/region.h"
 #include "Horde3D.h"
 
-#pragma optimize ( "", off )
-
 using namespace ::radiant;
 using namespace ::radiant::client;
 

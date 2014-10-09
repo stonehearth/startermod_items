@@ -51,7 +51,7 @@ csg::Region3 TerrainTileTracker::GetOverlappingRegion(csg::Cube3 const& bounds) 
       // we could avoid this (potentially very expensive) math entirely and just return the shape!
       return region->Get() & bounds;
    }
-   return csg::Region3::empty;
+   return csg::Region3::zero;
 }
 
 bool TerrainTileTracker::Intersects(csg::CollisionBox const& worldBounds) const

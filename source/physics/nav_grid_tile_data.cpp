@@ -120,7 +120,7 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
       if (type == TERRAIN) {
          auto& marked_terrain = marked_[TERRAIN];
          auto& marked_collision = marked_[COLLISION];
-         for (csg::Cube3 const& cube : overlap) {
+         for (csg::Cube3 const& cube : EachCube(overlap)) {
             for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
                for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
@@ -137,7 +137,7 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
          }
       } else {
          auto& marked_type = marked_[type];
-         for (csg::Cube3 const& cube : overlap) {
+         for (csg::Cube3 const& cube : EachCube(overlap)) {
             for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
                for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {

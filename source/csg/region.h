@@ -41,18 +41,15 @@ public:
    Region(Cube const& cube);
    Region(Region const&& r);
 
-   static const Region empty;
-  
+   static const Region zero; 
    const CubeVector& GetContents() const { return cubes_; }
-   typename CubeVector::const_iterator begin() const { return cubes_.begin(); }
-   typename CubeVector::const_iterator end() const { return cubes_.end(); }
 
 public:
    S GetArea() const;
    bool IsEmpty() const;
    bool Intersects(Cube const& cube) const;
    bool Contains(Point const& pt) const;
-   
+
    Point GetClosestPoint(Point const& src) const;
    Cube GetBounds() const;
    Point GetCentroid() const;
@@ -130,6 +127,32 @@ std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)
    os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
    return os;
 }
+
+
+#define DECLARE_CUBE_ITERATOR(T) \
+class T ## CubeRange \
+{ \
+public: \
+   T ## CubeRange(T const& container) : _container(container) { } \
+ \
+   T::CubeVector::const_iterator begin() const { return _container.GetContents().begin(); } \
+   T::CubeVector::const_iterator end() const { return _container.GetContents().end(); } \
+ \
+private: \
+   T const& _container; \
+}; \
+ \
+static inline T ## CubeRange EachCube(T const& cube) \
+{ \
+   return T ## CubeRange(cube); \
+} \
+
+DECLARE_CUBE_ITERATOR(Region1)
+DECLARE_CUBE_ITERATOR(Region1f)
+DECLARE_CUBE_ITERATOR(Region2)
+DECLARE_CUBE_ITERATOR(Region2f)
+DECLARE_CUBE_ITERATOR(Region3)
+DECLARE_CUBE_ITERATOR(Region3f)
 
 END_RADIANT_CSG_NAMESPACE
 

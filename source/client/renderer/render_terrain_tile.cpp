@@ -10,8 +10,6 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-#pragma optimize("", off)
-
 static const char* coords[] = { "x", "y", "z" };
 static const char* planes[] = {
    "BOTTOM",
@@ -87,7 +85,7 @@ int RenderTerrainTile::UpdateClipPlanes()
       for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
          _clipPlanes[d].Clear();
       }
-      for (csg::Cube3 const & cube : rgn) {
+      for (csg::Cube3 const & cube : csg::EachCube(rgn)) {
          if (cube.min.z == _location.z) {
             T_LOG(9) << "adding plane to FRONT clip plane " << cube << " -> xy -> " << csg::ProjectOntoXY(cube);
             _clipPlanes[csg::RegionTools3::FRONT_PLANE].AddUnique(csg::ProjectOntoXY(cube));

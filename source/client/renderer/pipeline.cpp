@@ -8,6 +8,7 @@
 #include "renderer.h"
 #include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
+#include "csg/iterators.h"
 #include "csg/region_tools.h"
 #include <fstream>
 #include <unordered_set>
@@ -95,7 +96,7 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
 void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
 {   
    float y = 0;
-   for (csg::Rect2 const& c: panels) {      
+   for (csg::Rect2 const& c: csg::EachCube(panels)) {      
       csg::Rect2f cube = ToFloat(c);
       csg::Point2f size = cube.GetSize();
       for (double i = 0; i < size.y; i ++) {

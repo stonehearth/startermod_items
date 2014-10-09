@@ -160,6 +160,7 @@
    "max_level" : "Max Level!!!", 
    "level_abbreviation" : "Lvl",
    "locked_status" : " (Locked)",
+   "apprentice" : "Apprentice",
 
    "journal" : "Journal",
    "attributes" : "Attributes",

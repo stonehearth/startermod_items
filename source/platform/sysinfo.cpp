@@ -76,7 +76,7 @@ uint32 SysInfo::GetCurrentMemoryUsage()
 #if defined(_WIN32)
 	/* Windows -------------------------------------------------- */
 
-   if (GetProcessMemoryInfo) {
+   if (GetProcessMemoryInfof) {
       PROCESS_MEMORY_COUNTERS info = { 0 };
       if (GetProcessMemoryInfof(GetCurrentProcess( ), &info, sizeof(info))) {
          return (size_t)info.WorkingSetSize;

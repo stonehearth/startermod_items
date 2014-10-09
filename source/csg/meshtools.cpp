@@ -110,7 +110,7 @@ void Mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& 
 template <typename S>
 void Mesh::AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& p)
 {
-   for (Cube<S, 2> const& rect : region) {
+   for (Cube<S, 2> const& rect : EachCube(region)) {
       AddRect(rect, p);
    }
 }

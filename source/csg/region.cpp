@@ -79,7 +79,7 @@ void Region<S, C>::Clear()
 template <class S, int C>
 void Region<S, C>::Add(Region const& region)
 {
-   for (Cube const& c : region) {
+   for (Cube const& c : EachCube(region)) {
       Add(c);
    }
 }
@@ -140,7 +140,7 @@ void Region<S, C>::AddUnique(Region const& region)
 {
    Validate();
    region.Validate();
-   for (Cube const& cube : region) {
+   for (Cube const& cube : EachCube(region)) {
 #if REGION_PARANOIA_LEVEL > 0
       ASSERT(!Intersects(cube));
 #endif
@@ -176,7 +176,7 @@ void Region<S, C>::Subtract(Cube const& cube)
             size--;
          } else {
             cubes_[i] = replacement[0];
-            added.insert(added.end(), replacement.begin() + 1, replacement.end());
+            added.insert(added.end(), replacement.cubes_.begin() + 1, replacement.cubes_.end());
             i++;
          }
       }
@@ -199,7 +199,7 @@ template <class S, int C>
 Region<S, C> Region<S, C>::operator-(Region const& r) const
 {
    Region result(*this);
-   for (const auto& c : r) {
+   for (const auto& c : EachCube(r)) {
       result -= c;
    }
    return result;
@@ -291,7 +291,7 @@ Region<S, C> const& Region<S, C>::operator-=(Region const& r)
 template <class S, int C>
 void Region<S, C>::Subtract(Region const& r)
 {
-   for (const auto &rc : r) {
+   for (const auto &rc : EachCube(r)) {
       Subtract(rc);
    }
 }
@@ -299,7 +299,7 @@ void Region<S, C>::Subtract(Region const& r)
 template <class S, int C>
 Region<S, C> const& Region<S, C>::operator+=(Region const& r)
 {
-   for (const auto &rc : r) {
+   for (const auto &rc : EachCube(r)) {
       Add(rc);
    }
    return *this;
@@ -308,7 +308,7 @@ Region<S, C> const& Region<S, C>::operator+=(Region const& r)
 template <class S, int C>
 bool Region<S, C>::Intersects(Cube const& cube) const
 {
-   for (Cube const& c : *this) {
+   for (Cube const& c : cubes_) {
       if (cube.Intersects(c)) {
          return true;
       }
@@ -740,7 +740,7 @@ Region<double, C> csg::ToFloat(Region<int, C> const& region) {
    // xxx: how about a fast path that looks for cubes?  T(2n) usually
 
    Region<double, C> result;
-   for (Cube<int, C> const& cube : region) {
+   for (Cube<int, C> const& cube : EachCube(region)) {
       result.Add(ToFloat(cube));    // make no be unique due to rounding!  see csg::ToInt(Cube)
    }
    return result;
@@ -754,7 +754,7 @@ Region<double, C> const& csg::ToFloat(Region<double, C> const& region) {
 template <int C>
 Region<int, C> csg::ToInt(Region<double, C> const& region) {
    Region<int, C> result;
-   for (Cube<double, C> const& cube : region) {
+   for (Cube<double, C> const& cube : EachCube(region)) {
       result.Add(ToInt(cube)); // so expensive!
    }
    return result;
@@ -793,7 +793,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    Point<double, C> weightedSum = Point<double, C>::zero;
    double totalWeight = 0;
 
-   for (Cube<S, C> const& cube : region) {
+   for (Cube<S, C> const& cube : EachCube(region)) {
       Point<double, C> cubeCentroid = GetCentroid(cube);
       double cubeArea = (double)cube.GetArea();
       weightedSum += cubeCentroid.Scaled(cubeArea);
@@ -805,7 +805,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
 }
 
 #define MAKE_REGION(Cls) \
-   const Cls Cls::empty; \
+   const Cls Cls::zero; \
    template Cls::Region(); \
    template Cls::Region(const Cls::Cube&); \
    template Cls::ScalarType Cls::GetArea() const; \

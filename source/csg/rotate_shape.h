@@ -2,6 +2,7 @@
 #define _RADIANT_CSG_ROTATE_SHAPE_H
 
 #include "region.h"
+#include "iterators.h"
 
 BEGIN_RADIANT_CSG_NAMESPACE
    
@@ -58,7 +59,7 @@ struct RotateRegion
 {
    Region<S, C> operator()(Region<S, C> const& region) {
       Region<S, C> result;
-      for (Cube<S, C> c : region) {
+      for (Cube<S, C> c : EachCube(region)) {
          result.AddUnique(RotateCube<S, C, D>()(c));
       }
       return std::move(result);

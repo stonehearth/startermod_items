@@ -11,8 +11,10 @@ function JobComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv._initialized then
+      
       self._sv._initialized = true
       self._sv.job_controllers = {}
+
       if json.xp_equation_for_next_level then
          self._sv.xp_equation = json.xp_equation_for_next_level
       end
@@ -147,6 +149,7 @@ function JobComponent:promote_to(job_uri, talisman_entity)
       --Strangely, doesn't exist yet when this is called in init, creates duplicate component!
       if not self._sv.attributes_component then
          self._sv.attributes_component = self._entity:get_component('stonehearth:attributes')
+         self._sv.total_level = self._sv.attributes_component:get_attribute('total_level')
       end
 
       --Whenever you get a new job, dump all the xp that you've accured so far to your next level
@@ -167,6 +170,9 @@ function JobComponent:promote_to(job_uri, talisman_entity)
       self._sv.curr_job_controller:promote(self._job_json, talisman_entity)
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
       self:_set_unit_info(self._sv.curr_job_name)
+
+      --Add all existing perks, if any
+      self:_apply_existing_perks()
       
       --Add self to task groups
       if self._job_json.task_groups then
@@ -186,8 +192,61 @@ function JobComponent:promote_to(job_uri, talisman_entity)
    end
 end
 
+--If we've been this class before, re-apply any perks we've gained
+function JobComponent:_apply_existing_perks()
+   local last_gained_lv = self._sv.curr_job_controller:get_job_level()
+   if last_gained_lv == 0 then 
+      return
+   end
+
+   for i=1, last_gained_lv do
+      self:_apply_perk_for_level(i)
+   end 
+end
+
+-- Given a level, apply all perks relevant to that job
+-- Uses the current job controller's functions to do this. 
+-- Factoring out of individual controllers for code-reuse purposes.
+function JobComponent:_apply_perk_for_level(target_level)
+   local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(target_level)]
+   local perk_descriptions = {}
+   if job_updates_for_level then
+      for i, perk_data in ipairs(job_updates_for_level.perks) do
+
+         self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
+         
+         --Collect text about the perk
+         local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
+         table.insert(perk_descriptions, perk_info)
+      end
+   end
+   return perk_descriptions
+end
+
+--Itereate through each perk we have and call its remove function
+function JobComponent:_remove_all_perks()
+   if not self._sv.curr_job_controller then
+      return
+   end
+   local last_gained_lv = self._sv.curr_job_controller:get_job_level()
+   if last_gained_lv == 0 then
+      return
+   end
+
+   for i=1, last_gained_lv do
+      local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(i)]
+      if job_updates_for_level then
+         for i, perk_data in ipairs(job_updates_for_level.perks) do
+             self._sv.curr_job_controller[perk_data.demote_fn]( self._sv.curr_job_controller, perk_data)
+         end
+      end
+   end 
+end
+
+--Call when we no longer want the job we have
 function JobComponent:demote()
    self:_remove_outfit()
+   self:_remove_all_perks()
 
    --If we have a talisman to drop, drop it. 
    local talisman = self:_drop_talisman()
@@ -219,7 +278,6 @@ function JobComponent:add_exp(value)
    end
 
    self._sv.current_level_exp = self._sv.current_level_exp + value
-   local original_level = self._sv.attributes_component:get_attribute('total_level')
 
    while self._sv.current_level_exp >= self._sv.xp_to_next_lv do
       self._sv.current_level_exp = self._sv.current_level_exp - self._sv.xp_to_next_lv
@@ -234,35 +292,37 @@ function JobComponent:_level_up()
    --Change all the attributes to the new level
    --Should the general HP increase (class independent) be reflected as a permanent buff or a quiet stat increase?
    local curr_level = self._sv.attributes_component:get_attribute('total_level')
-   self._sv.attributes_component:set_attribute('total_level', curr_level + 1)
-   
+   self._sv.total_level = curr_level + 1
+   self._sv.attributes_component:set_attribute('total_level', self._sv.total_level)
+
    --Add all the universal level dependent buffs/bonuses, etc
 
-   local optional_description = self._sv.curr_job_controller:level_up()
+   self._sv.curr_job_controller:level_up()
    self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
    self:_set_unit_info(self._sv.curr_job_name)   
+   local new_level = self._sv.curr_job_controller:get_job_level()
+   local job_name = self._job_json.name
+   local perk_descriptions = self:_apply_perk_for_level(new_level)
 
-   if optional_description then
-      local player_id = radiant.entities.get_player_id(self._entity)
-      local name = radiant.entities.get_display_name(self._entity)
-      local title = self._sv._default_level_announcement
-      title = string.gsub(title, '__name__', name)
-      title = string.gsub(title, '__job_name__', optional_description.job_name)
-      title = string.gsub(title, '__level_number__', optional_description.new_level)
-      
-      stonehearth.bulletin_board:post_bulletin(player_id)
-         :set_callback_instance(self)
-         :set_data({
-            title = title, 
-            zoom_to_entity = self._entity
-         })
+   local player_id = radiant.entities.get_player_id(self._entity)
+   local name = radiant.entities.get_display_name(self._entity)
+   local title = self._sv._default_level_announcement
+   title = string.gsub(title, '__name__', name)
+   title = string.gsub(title, '__job_name__', job_name)
+   title = string.gsub(title, '__level_number__', new_level)
+   
+   stonehearth.bulletin_board:post_bulletin(player_id)
+      :set_callback_instance(self)
+      :set_data({
+         title = title, 
+         zoom_to_entity = self._entity
+      })
 
-      --Trigger an event so people can extend the class system
-      radiant.events.trigger_async(self._entity, 'stonehearth:level_up', {
-         level = optional_description.new_level, 
-         job_uri = self._sv.job_uri, 
-         job_name = self._sv.curr_job_name })
-   end
+   --Trigger an event so people can extend the class system
+   radiant.events.trigger_async(self._entity, 'stonehearth:level_up', {
+      level = new_level, 
+      job_uri = self._sv.job_uri, 
+      job_name = self._sv.curr_job_name })
 
    radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/level_up')
    
@@ -355,6 +415,7 @@ function JobComponent:_remove_outfit()
    --or should this be handled by the demote operation on the specific job controller?
 end
 
+--[[
 function JobComponent:_load_job_script(json)
    self._job_script = nil
    if json.script then
@@ -368,5 +429,6 @@ function JobComponent:_call_job_script(fn, ...)
       script[fn](self._entity, ...)
    end
 end
+]]
 
 return JobComponent
