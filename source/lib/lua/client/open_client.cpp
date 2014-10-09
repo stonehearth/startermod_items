@@ -151,6 +151,14 @@ RenderNodePtr Client_CreateSelectionNode(lua_State* L,
    return Pipeline::GetInstance().CreateSelectionNode(parent, csg::ToInt(model), interior_color, border_color);
 }
 
+RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L, 
+                                  H3DNode parent,
+                                  csg::Region3f const& region,
+                                  csg::Color4 const& color)
+{
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, csg::ToInt(region), color);
+}
+
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
                                    csg::Region2f const& model,
@@ -491,6 +499,7 @@ void lua::client::open(lua_State* L)
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
             def("create_selection_node",           &Client_CreateSelectionNode),
+            def("create_region_outline_node",      &Client_CreateRegionOutlineNode),
             def("create_mesh_node",                &Client_CreateMeshNode),
             def("create_text_node",                &Client_CreateTextNode),
             def("create_stockpile_node",           &Client_CreateStockpileNode),

@@ -35,6 +35,7 @@
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
+      "mixins:monster" : "file(mixins/monster)",
       "mixins:critter" : "file(mixins/critter)",
       "mixins:base_human" : "file(mixins/base_human)",
       "mixins:crafter_workbench" : "file(mixins/crafter_workbench)",
@@ -52,6 +53,7 @@
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
       "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
+      "kingdoms:undead" : "file(services/server/population/data/undead_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -133,6 +135,8 @@
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
+
+      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -657,6 +661,7 @@
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
       "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
+      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.json)", 
@@ -931,6 +936,14 @@
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "server"
       },
+      "designate_mining_zone": {
+         "controller" : "file(call_handlers/mining_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_mining_zone": {
+         "controller" : "file(call_handlers/mining_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_build_editor": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "client"
@@ -1051,6 +1064,8 @@
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
       "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.lua)",
+
+      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)",
 
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 
@@ -1190,7 +1205,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.html)",
-         "file(ui/game/modes/build_mode/build_mode.html)",
+         "file(ui/game/modes/build_mode/building_plans/building_plans.html)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
@@ -1253,6 +1268,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
+         "file(ui/game/modes/build_mode/building_plans/building_plans.js)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
@@ -1318,7 +1334,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.less)",
-         "file(ui/game/modes/build_mode/build_mode.less)",
+         "file(ui/game/modes/build_mode/building_plans/building_plans.less)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",

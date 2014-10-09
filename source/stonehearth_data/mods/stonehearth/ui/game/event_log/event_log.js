@@ -5,6 +5,7 @@ App.StonehearthEventLogView = App.View.extend({
       this._super();
 
       var self = this;
+
       radiant.call('stonehearth:get_event_tracker')
          .done(function(response) {
             self.trace = radiant.trace(response.tracker)

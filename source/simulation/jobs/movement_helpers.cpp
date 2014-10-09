@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "movement_helpers.h"
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "om/entity.h"
 #include "om/components/mob.ridl.h"
 #include "om/components/destination.ridl.h"
@@ -116,15 +117,14 @@ csg::Point3f MovementHelper::GetPointOfInterest(csg::Point3f const& adjacentPoin
             csg::Region3f const& adjacent = **dst->GetAdjacent();
 
             //ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
-            for (const auto& cube : adjacent) {
-               for (const auto& pt : cube) {
-                  csg::Point3f closest = rgn.GetClosestPoint(pt);
-                  csg::Point3f d = closest - pt;
-                  // cubes adjacent to one rect in the region might actually be contained
-                  // in another rect in the region!  therefore, just ensure that the distance
-                  // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
-                  ASSERT(d.LengthSquared() <= 1);
-               }
+            for (csg::Point3 const& p : EachPoint(adjacent)) {
+               csg::Point3f pt = csg::ToFloat(p);
+               csg::Point3f closest = rgn.GetClosestPoint(pt);
+               csg::Point3f d = closest - pt;
+               // cubes adjacent to one rect in the region might actually be contained
+               // in another rect in the region!  therefore, just ensure that the distance
+               // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
+               ASSERT(d.LengthSquared() <= 1);
             }
          }
       )

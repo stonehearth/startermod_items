@@ -11,6 +11,7 @@
 #include "csg/util.h"
 #include "a_star_path_finder.h"
 #include "csg/color.h"
+#include "csg/iterators.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -127,7 +128,7 @@ void PathFinderDst::EncodeDebugShapes(radiant::protocol::shapelist *msg, csg::Co
    if (LOG_IS_ENABLED(simulation.pathfinder.astar, 7)) {
       auto region = msg->add_region();
       debug_color.SaveValue(region->mutable_color());
-      for (auto const& cube : world_space_adjacent_region_) {
+      for (auto const& cube : csg::EachCube(world_space_adjacent_region_)) {
          cube.SaveValue(region->add_cubes());
       }
    }

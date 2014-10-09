@@ -1,7 +1,9 @@
 #include "radiant.h"
 #include <functional>
+#include <unordered_set>
 #include <gtest/gtest.h>
 #include "region.h"
+#include "iterators.h"
 #include "platform/utils.h"
 #include "lib/perfmon/perfmon.h"
 #include "lib/perfmon/frame.h"
@@ -13,6 +15,213 @@ using namespace ::radiant;
 using namespace ::radiant::csg;
 
 static const int PERF_TEST_DURATION_SECONDS = 2;
+
+typedef std::unordered_set<csg::Point3, csg::Point3::Hash> Point3Set;
+
+template <typename T>
+void CheckIteratorPoints(T const& r, std::function<Point3Set()> pointGenerator)
+{
+   auto points = pointGenerator();
+   auto range = csg::EachPoint(r);
+   auto begin = range.begin(), end = range.end();
+
+   while (begin != end) {
+      auto i = points.find(*begin);
+      EXPECT_NE(i, points.end()) << "could not find point " << *begin << " in expected points";
+      points.erase(*begin);
+      ++begin;
+   }
+   EXPECT_EQ(points.empty(), true) << "iterator stopped early";
+}
+
+template <typename T>
+void AddCubePointsToSet(T const& c, Point3Set& s)
+{
+   auto cube = csg::ToInt(c);
+   for (int x = cube.min.x; x < cube.max.x; x++) { 
+      for (int y = cube.min.y; y < cube.max.y; y++) {
+         for (int z = cube.min.z; z < cube.max.z; z++) {
+            s.insert(csg::Point3(x, y, z));
+         }
+      }
+   }
+}
+
+TEST(CubeIterator, Empty) {
+   auto generator = []() -> Point3Set {
+      return Point3Set();
+   };
+   CheckIteratorPoints(csg::Cube3::zero, generator);
+   CheckIteratorPoints(csg::Cube3f::zero, generator);
+}
+
+TEST(CubeIterator, ZeroArea) {
+   csg::Cube3 empty(csg::Point3::zero, csg::Point3(0, 10, 0), 0);
+   auto generator = []() -> Point3Set {
+      return Point3Set();
+   };
+   CheckIteratorPoints(empty, generator);
+   CheckIteratorPoints(csg::ToFloat(empty), generator);
+}
+
+TEST(CubeIterator, Trivial) {
+   csg::Cube3 cube(csg::Point3::zero, csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cube, points);
+      return points;
+   };
+   CheckIteratorPoints(cube, generator);
+   CheckIteratorPoints(csg::ToFloat(cube), generator);
+}
+
+TEST(CubeIterator, FloatingPoint) {
+   csg::Cube3f cube(csg::Point3f::one.Scaled(-1.5), csg::Point3f::one.Scaled(1.5), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(csg::ToInt(cube), points);
+      return points;
+   };
+
+   CheckIteratorPoints(csg::ToInt(cube), generator);
+   CheckIteratorPoints(cube, generator);
+}
+
+TEST(RegionIterator, Empty) {
+   auto generator = []() -> Point3Set {
+      return Point3Set();
+   };
+   CheckIteratorPoints(csg::Region3::zero, generator);
+   CheckIteratorPoints(csg::Region3f::zero, generator);
+}
+
+TEST(RegionIterator, EmptyCube) {
+   auto generator = [&]() -> Point3Set {
+      return Point3Set();
+   };
+   csg::Region3 empty;
+   csg::Region3f emptyf;
+   const_cast<csg::Region3::CubeVector&>(empty.GetContents()).push_back(csg::Cube3::zero);
+   const_cast<csg::Region3f::CubeVector&>(emptyf.GetContents()).push_back(csg::Cube3f::zero);
+   CheckIteratorPoints(empty, generator);
+   CheckIteratorPoints(emptyf, generator);
+}
+
+TEST(RegionIterator, EmptyCubeEmbeddedStart) {
+   csg::Cube3 cubea(csg::Point3::zero, csg::Point3::one.Scaled(2), 0);
+   csg::Cube3 cubeb(csg::Point3::one.Scaled(2), csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cubea, points);
+      AddCubePointsToSet(cubeb, points);
+      return points;
+   };
+
+  
+   // Start...
+   csg::Region3 r;
+   const_cast<csg::Region3::CubeVector&>(r.GetContents()).push_back(csg::Cube3::zero);
+   r.AddUnique(cubea);
+   r.AddUnique(cubeb);
+   CheckIteratorPoints(r, generator);
+   CheckIteratorPoints(csg::ToFloat(r), generator);
+}
+
+TEST(RegionIterator, EmptyCubeEmbeddedMiddle) {
+   csg::Cube3 cubea(csg::Point3::zero, csg::Point3::one.Scaled(2), 0);
+   csg::Cube3 cubeb(csg::Point3::one.Scaled(2), csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cubea, points);
+      AddCubePointsToSet(cubeb, points);
+      return points;
+   };
+
+   // Middle...
+   csg::Region3 r;
+   r.AddUnique(cubea);
+   const_cast<csg::Region3::CubeVector&>(r.GetContents()).push_back(csg::Cube3::zero);
+   r.AddUnique(cubeb);
+   CheckIteratorPoints(r, generator);
+   CheckIteratorPoints(csg::ToFloat(r), generator);
+}
+
+TEST(RegionIterator, EmptyCubeEmbeddedEnd) {
+   csg::Cube3 cubea(csg::Point3::zero, csg::Point3::one.Scaled(2), 0);
+   csg::Cube3 cubeb(csg::Point3::one.Scaled(2), csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cubea, points);
+      AddCubePointsToSet(cubeb, points);
+      return points;
+   };
+
+   // End...
+   csg::Region3 r;
+   r.AddUnique(cubea);
+   r.AddUnique(cubeb);
+   const_cast<csg::Region3::CubeVector&>(r.GetContents()).push_back(csg::Cube3::zero);
+   CheckIteratorPoints(r, generator);
+   CheckIteratorPoints(csg::ToFloat(r), generator);
+}
+
+TEST(RegionIterator, Trivial) {
+   csg::Cube3 cube(csg::Point3::zero, csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cube, points);
+      return points;
+   };
+
+   CheckIteratorPoints(csg::Region3(cube), generator);
+   CheckIteratorPoints(csg::Region3f(csg::ToFloat(cube)), generator);
+}
+
+TEST(RegionIterator, FloatingPoint) {
+   csg::Cube3f cube(csg::Point3f::one.Scaled(-1.5), csg::Point3f::one.Scaled(1.5), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(csg::ToInt(cube), points);
+      return points;
+   };
+
+   CheckIteratorPoints(csg::Region3(csg::ToInt(cube)), generator);
+   CheckIteratorPoints(csg::Region3f(cube), generator);
+}
+
+TEST(RegionIterator, Multiple) {
+   csg::Cube3 cubea(csg::Point3::zero, csg::Point3::one.Scaled(2), 0);
+   csg::Cube3 cubeb(csg::Point3::one.Scaled(2), csg::Point3::one.Scaled(4), 0);
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cubea, points);
+      AddCubePointsToSet(cubeb, points);
+      return points;
+   };
+
+   csg::Region3 r;
+   r.AddUnique(cubea);
+   r.AddUnique(cubeb);
+   CheckIteratorPoints(r, generator);
+   CheckIteratorPoints(csg::ToFloat(r), generator);
+}
+
+TEST(RegionIterator, MultipleFloatingPoint) {
+   csg::Cube3f cubea(csg::Point3f::zero, csg::Point3f::one.Scaled(1.5), 0);
+   csg::Cube3f cubeb(csg::Point3f(0.1, 1.5, 0.1), csg::Point3f(1.4, 3, 1.4));
+   auto generator = [&]() -> Point3Set {
+      Point3Set points;
+      AddCubePointsToSet(cubea, points);
+      AddCubePointsToSet(cubeb, points);
+      return points;
+   };
+
+   csg::Region3f r;
+   r.Add(cubea);
+   r.Add(cubeb);
+   //CheckIteratorPoints(csg::ToInt(r), generator);
+   CheckIteratorPoints(r, generator);
+}
 
 TEST(RegionTest, SubtractCube) {
    for (int x = 0; x < 3; x++) {
@@ -192,7 +401,7 @@ TEST(RegionTools2D, ForEachPlane) {
 
    RegionTools2 tools;
    tools.ForEachPlane(r2, [=](Region1 const& r1, RegionTools2::PlaneInfo const& pi) {
-      for (const auto &c : r1) {
+      for (const auto &c : csg::EachCube(r1)) {
          LOG_(0) << c << " " << pi.reduced_value;
       }
    });
@@ -214,7 +423,7 @@ TEST(RegionTools3, ForEachPlane) {
 
    RegionTools3 tools;
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
-      for (const auto &c : r2) {
+      for (const auto &c : csg::EachCube(r2)) {
          LOG_(0) << c << " " << pi.reduced_value;
       }
    });

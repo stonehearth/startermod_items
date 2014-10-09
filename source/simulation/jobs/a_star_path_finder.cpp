@@ -11,6 +11,7 @@
 #include "om/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "movement_helpers.h"
 
 using namespace ::radiant;
@@ -722,7 +723,7 @@ void AStarPathFinder::WatchWorldRegion(csg::Region3f const& region)
    if (!navgrid_guard_.Empty()) {
       csg::Cube3 bounds = csg::ToInt(region.GetBounds());
       csg::Cube3 chunks = csg::GetChunkIndex<phys::TILE_SIZE>(bounds);
-      for (csg::Point3 const& cursor : chunks) {
+      for (csg::Point3 const& cursor : csg::EachPoint(chunks)) {
          WatchTile(cursor);
       }
    }

@@ -131,9 +131,9 @@ void Matrix4::fill(const float *values)
 //-------------------------------------------------------------------------------
 void Matrix4::set_translation(const Point3f& translation)
 {
-   v[12] = translation.x;
-   v[13] = translation.y;
-   v[14] = translation.z;
+   v[12] = (float)translation.x;
+   v[13] = (float)translation.y;
+   v[14] = (float)translation.z;
 }
 
 
@@ -159,17 +159,17 @@ Point3f Matrix4::get_translation() const
 //-------------------------------------------------------------------------------
 void Matrix4::set_rotation_bases(const Point3f& forward, const Point3f& up, const Point3f& left)
 {
-   v[0] = left.x;
-   v[1] = left.y;
-   v[2] = left.z;
+   v[0] = (float)left.x;
+   v[1] = (float)left.y;
+   v[2] = (float)left.z;
 
-   v[4] = up.x;
-   v[5] = up.y;
-   v[6] = up.z;
+   v[4] = (float)up.x;
+   v[5] = (float)up.y;
+   v[6] = (float)up.z;
    
-   v[8] = forward.x;
-   v[9] = forward.y;
-   v[10] = forward.z;
+   v[8] = (float)forward.x;
+   v[9] = (float)forward.y;
+   v[10] = (float)forward.z;
 }
 
 
@@ -476,9 +476,9 @@ Matrix4&
    v[9] = 0.0f;
    v[10] = 1.0f;
    v[11] = 0.0f;
-   v[12] = xlate.x;
-   v[13] = xlate.y;
-   v[14] = xlate.z;
+   v[12] = (float)xlate.x;
+   v[13] = (float)xlate.y;
+   v[14] = (float)xlate.z;
    v[15] = 1.0f;
 
    return *this;
@@ -495,24 +495,28 @@ Matrix4&
    Matrix4::rotation(const Quaternion& rotate)
 {
    if (!rotate.is_unit()) {
-      float length = rotate.magnitude();
+      float length = (float)rotate.magnitude();
       ASSERT(rotate.is_unit());
    }
 
+   float rx = (float)rotate.x;
+   float ry = (float)rotate.y;
+   float rz = (float)rotate.z;
+   float rw = (float)rotate.w;
    float xs, ys, zs, wx, wy, wz, xx, xy, xz, yy, yz, zz;
 
-   xs = rotate.x+rotate.x;   
-   ys = rotate.y+rotate.y;
-   zs = rotate.z+rotate.z;
-   wx = rotate.w*xs;
-   wy = rotate.w*ys;
-   wz = rotate.w*zs;
-   xx = rotate.x*xs;
-   xy = rotate.x*ys;
-   xz = rotate.x*zs;
-   yy = rotate.y*ys;
-   yz = rotate.y*zs;
-   zz = rotate.z*zs;
+   xs = rx+rx;   
+   ys = ry+ry;
+   zs = rz+rz;
+   wx = rw*xs;
+   wy = rw*ys;
+   wz = rw*zs;
+   xx = rx*xs;
+   xy = rx*ys;
+   xz = rx*zs;
+   yy = ry*ys;
+   yz = ry*zs;
+   zz = rz*zs;
 
    v[0] = 1.0f - (yy + zz);
    v[4] = xy - wz;
@@ -628,24 +632,28 @@ Matrix4 &
    nAxis.Normalize();
 
    // intermediate values
-   float tx = t*nAxis.x;  float ty = t*nAxis.y;  float tz = t*nAxis.z;
-   float sx = s*nAxis.x;  float sy = s*nAxis.y;  float sz = s*nAxis.z;
-   float txy = tx*nAxis.y; float tyz = tx*nAxis.z; float txz = tx*nAxis.z;
+   float nx = (float)nAxis.x;
+   float ny = (float)nAxis.y;
+   float nz = (float)nAxis.z;
+
+   float tx = t*nx;  float ty = t*ny;  float tz = t*nz;
+   float sx = s*nx;  float sy = s*ny;  float sz = s*nz;
+   float txy = tx*ny; float tyz = tx*nz; float txz = tx*nz;
 
    // set matrix
-   v[0] = tx*nAxis.x + c;
+   v[0] = tx*nx + c;
    v[4] = txy - sz; 
    v[8] = txz + sy;
    v[12] = 0.0f;
 
    v[1] = txy + sz;
-   v[5] = ty*nAxis.y + c;
+   v[5] = ty*ny + c;
    v[9] = tyz - sx;
    v[13] = 0.0f;
 
    v[2] = txz - sy;
    v[6] = tyz + sx;
-   v[10] = tz*nAxis.z + c;
+   v[10] = tz*nz + c;
    v[14] = 0.0f;
 
    v[3] = 0.0f;
@@ -666,17 +674,17 @@ Matrix4 &
 Matrix4& 
    Matrix4::scaling(const Point3f& scaleFactors)
 {
-   v[0] = scaleFactors.x;
+   v[0] = (float)scaleFactors.x;
    v[1] = 0.0f;
    v[2] = 0.0f;
    v[3] = 0.0f;
    v[4] = 0.0f;
-   v[5] = scaleFactors.y;
+   v[5] = (float)scaleFactors.y;
    v[6] = 0.0f;
    v[7] = 0.0f;
    v[8] = 0.0f;
    v[9] = 0.0f;
-   v[10] = scaleFactors.z;
+   v[10] = (float)scaleFactors.z;
    v[11] = 0.0f;
    v[12] = 0.0f;
    v[13] = 0.0f;

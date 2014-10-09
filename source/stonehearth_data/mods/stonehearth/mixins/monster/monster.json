@@ -1,0 +1,52 @@
+{
+   "type": "entity", 
+   "mixins" : "stonehearth:mixins:mob",
+   "components": {
+      "stonehearth:ai": {
+         "actions" : [
+            "stonehearth:actions:idle:sway",
+            "stonehearth:actions:idle:look_around",
+            "stonehearth:actions:wander",
+            "stonehearth:actions:wander_within_leash",
+            "stonehearth:actions:wander_when_bored",
+            "stonehearth:actions:choose_point_around_leash",
+            "stonehearth:actions:wait_for_attribute_above",
+            "stonehearth:actions:wait_for_attribute_below",
+            "stonehearth:actions:combat",
+            "stonehearth:actions:combat:attack_after_cooldown",
+         "stonehearth:actions:combat:attack:melee",
+            "stonehearth:actions:combat:attack:melee_adjacent",
+            "stonehearth:actions:combat:defend_dispatcher",
+            "stonehearth:actions:combat:defend:melee",
+            "stonehearth:actions:combat:idle_dispatcher",
+            "stonehearth:actions:combat:idle:ready",
+            "stonehearth:actions:combat:idle:shuffle",
+            "stonehearth:actions:combat:hit_stun",
+            "stonehearth:actions:chase_entity",
+            "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:reserve_stockpile_space",
+            "stonehearth:actions:work_task_dispatcher",
+            "stonehearth:actions:place_item",
+            "stonehearth:actions:stockpile_arson",
+            "stonehearth:actions:combat:create_engage_callback",
+            "stonehearth:actions:combat:get_melee_range",
+            "stonehearth:actions:combat:get_primary_target",
+            "stonehearth:actions:combat:set_global_attack_cooldown",
+            "stonehearth:actions:combat:wait_for_global_attack_cooldown",
+            "stonehearth:actions:set_posture"
+         ],
+         "observers": [
+            "stonehearth:observers:aggro",
+            "stonehearth:observers:find_target",
+            "stonehearth:observers:health_score"
+         ]
+      },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "radius": 64
+            }
+         }
+      }
+   }
+}

@@ -2,6 +2,7 @@
 #include "radiant_stdutil.h"
 #include "csg/cube.h"
 #include "csg/region.h"
+#include "csg/iterators.h"
 #include "collision_tracker.h"
 #include "om/entity.h"
 #include "nav_grid.h"
@@ -169,8 +170,8 @@ bool NavGridTile::IsTerrain(csg::Region3 const& region)
 
 bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Region3 const& region)
 {
-   for (csg::Cube3 const& cube : region ) {
-      if (!IsMarked(predicate, cube)) {
+   for (csg::Point3 const& pt : csg::EachPoint(region)) {
+      if (!IsMarked(predicate, pt)) {
          return false;
       }
    }
@@ -183,7 +184,7 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
 
-   for (csg::Point3 pt : cube) {
+   for (csg::Point3 pt : csg::EachPoint(cube)) {
       if ((this->*predicate)(pt)) {
          return true;
       }

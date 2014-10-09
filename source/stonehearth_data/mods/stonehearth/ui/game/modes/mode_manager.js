@@ -76,13 +76,13 @@ $(document).ready(function() {
 
             // hide the old mode view
             if (this._currentView) {
-               this._currentView.$().fadeOut();
+               this._currentView.hide();
             }
 
             // show the new mode view, if there is one
             var view = this.views[mode]
             if (view) {
-               view.$().fadeIn();
+               view.show();
             }
             
             this._currentView = view;

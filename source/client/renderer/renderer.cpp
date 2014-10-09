@@ -18,6 +18,7 @@
 #include "lib/perfmon/perfmon.h"
 #include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
+#include "csg/iterators.h"
 #include "csg/random_number_generator.h"
 #include "pipeline.h"
 #include <unordered_set>
@@ -289,7 +290,7 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
    float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
    float* f = start;
    float ySize = 100.0f;
-   for (const auto& c : region) 
+   for (const auto& c : csg::EachCube(region)) 
    {
       float px = static_cast<float>((c.max + c.min).x) * 0.5f;
       float pz = static_cast<float>((c.max + c.min).y) * 0.5f;

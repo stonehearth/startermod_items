@@ -2,11 +2,13 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_region.h"
+#include "lua_iterator.h"
 #include "csg/edge_tools.h"
 #include "csg/region_tools.h"
 #include "csg/region.h"
 #include "csg/util.h"
 #include "csg/rotate_shape.h"
+#include "csg/iterators.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -55,7 +57,7 @@ T IntersectRegion(T const& lhs, T const& rhs)
 Region2f ProjectOntoXZPlane(Region3f const& region)
 {
    Region2f r2;
-   for (Cube3f const& cube : region) {
+   for (Cube3f const& cube : EachCube(region)) {
       Rect2f rect(Point2f(cube.min.x, cube.min.z), Point2f(cube.max.x, cube.max.z), cube.GetTag());
       if (rect.GetArea() > 0) {
          r2.Add(rect);
@@ -124,12 +126,14 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
       def("intersect_region2", IntersectRegion<Region2f>),
       def("intersect_region3", IntersectRegion<Region3f>),
       Register<Region3f>(L,  "Region3")
+         .def("each_point",               &EachPointRegion3f)
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
          .def("get_edge_list",            &RegionGetEdgeList<double, 3>)
          .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
       Register<Region2f>(L,  "Region2")
+         .def("each_point",               &EachPointRegion2f)
          .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
       ,
       Register<Region1f>(L,  "Region1");

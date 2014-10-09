@@ -5,6 +5,7 @@
 #include "csg/quaternion.h"
 #include "csg/transform.h"
 #include "csg/ray.h"
+#include "csg/iterators.h"
 #include "csg/color.h"
 #include "csg/util.h" // xxx: should be csg/edge.h
 #include "csg/heightmap.h"
@@ -130,7 +131,7 @@ static T decode_region(Node const& node) {
 template <typename T>
 static Node encode_region(T const& value) {
    Node node(JSONNode(JSON_ARRAY));
-   for (auto const& cube : value) {
+   for (auto const& cube : csg::EachCube(value)) {
       node.add(cube);
    }
    return node;

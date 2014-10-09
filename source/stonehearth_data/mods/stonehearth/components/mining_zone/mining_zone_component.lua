@@ -8,12 +8,6 @@ local MiningZoneComponent = class()
 local MAX_REACH_DOWN = 1
 local MAX_REACH_UP = 3
 
-function clear_tags(region)
-   for cube in region:each_cube() do
-      cube.tag = 0
-   end
-end
-
 function MiningZoneComponent:__init()
 end
 
@@ -139,7 +133,7 @@ function MiningZoneComponent:_update_destination()
 
          local world_space_region = self._sv.region:get():translated(location)
          local terrain_region = radiant.terrain.intersect_region(world_space_region)
-         clear_tags(terrain_region)
+         terrain_region:set_tag(0)
          terrain_region:optimize_by_merge()
          terrain_region:translate(-location)
 
@@ -194,30 +188,28 @@ function MiningZoneComponent:_update_adjacent()
          local adj_cube = Cube3()
          cursor:clear()
 
-         for dst_cube in destination_region:each_cube() do
-            for point in dst_cube:each_point() do
-               -- TODO: define conditions for MAX_REACH_UP
-               local y_min = point.y - MAX_REACH_UP
-               local y_max = point.y + 1
-               local world_point = point + location
+         for point in destination_region:each_point() do
+            -- TODO: define conditions for MAX_REACH_UP
+            local y_min = point.y - MAX_REACH_UP
+            local y_max = point.y + 1
+            local world_point = point + location
 
-               if not radiant.terrain.is_terrain(world_point + Point3.unit_y) then
-                  -- we can strike down on the adjacent block if nothing is on top of it
-                  y_max = y_max + MAX_REACH_DOWN
-               end
-
-               self:_set_adjacent_column(adj_cube, point.x-1, point.z, y_min, y_max)
-               cursor:add_cube(adj_cube)
-
-               self:_set_adjacent_column(adj_cube, point.x+1, point.z, y_min, y_max)
-               cursor:add_cube(adj_cube)
-
-               self:_set_adjacent_column(adj_cube, point.x, point.z-1, y_min, y_max)
-               cursor:add_cube(adj_cube)
-
-               self:_set_adjacent_column(adj_cube, point.x, point.z+1, y_min, y_max)
-               cursor:add_cube(adj_cube)
+            if not radiant.terrain.is_terrain(world_point + Point3.unit_y) then
+               -- we can strike down on the adjacent block if nothing is on top of it
+               y_max = y_max + MAX_REACH_DOWN
             end
+
+            self:_set_adjacent_column(adj_cube, point.x-1, point.z, y_min, y_max)
+            cursor:add_cube(adj_cube)
+
+            self:_set_adjacent_column(adj_cube, point.x+1, point.z, y_min, y_max)
+            cursor:add_cube(adj_cube)
+
+            self:_set_adjacent_column(adj_cube, point.x, point.z-1, y_min, y_max)
+            cursor:add_cube(adj_cube)
+
+            self:_set_adjacent_column(adj_cube, point.x, point.z+1, y_min, y_max)
+            cursor:add_cube(adj_cube)
          end
 
          cursor:optimize_by_merge()
