@@ -6,7 +6,7 @@ import hashlib
 
 def checksum(filename):
    sha256 = hashlib.sha256()
-   with file(filename) as f:
+   with file(filename, 'rb') as f:
       sha256.update(f.read())
    return sha256.hexdigest()
 
