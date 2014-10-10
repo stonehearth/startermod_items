@@ -79,7 +79,7 @@ uint32 SysInfo::GetCurrentMemoryUsage()
    if (GetProcessMemoryInfof) {
       PROCESS_MEMORY_COUNTERS info = { 0 };
       if (GetProcessMemoryInfof(GetCurrentProcess( ), &info, sizeof(info))) {
-         return (size_t)info.WorkingSetSize;
+         return (size_t)info.PagefileUsage;
       }
    }
 	return (size_t)0;
