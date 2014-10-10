@@ -15,6 +15,7 @@ function Town:initialize(session)
    self._sv._next_saved_call_id = 1
    self._sv.worker_combat_enabled = false
    self._sv.rally_to_battle_standard = false
+   self._sv.mining_zones = {}
    
    self._sv.entity = radiant.entities.create_entity()
    
@@ -35,9 +36,11 @@ function Town:restore()
    self._placement_xs = {}
    self._worker_combat_tasks = {}
    self._rally_tasks = {}
+   self._mining_zone_destroy_listeners = {}
 
-   radiant.events.listen_once(radiant, 'radiant:game_loaded',
-      function()
+   self:_restore_mining_zone_listeners()
+
+   radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          self:_on_game_loaded()
       end
    )
@@ -124,6 +127,10 @@ function Town:get_citizens()
 end
 
 function Town:destroy()
+   for _, listener in pairs(self._mining_zone_destroy_listeners) do
+      listener:destroy()
+   end
+   self._mining_zone_destroy_listeners = {}
 end
 
 function Town:set_town_name(town_name)
@@ -501,6 +508,41 @@ function Town:disable_rally_to_battle_standard()
    self._rally_tasks = {}
    self._sv.rally_to_battle_standard = false
    self.__saved_variables:mark_changed()
+end
+
+----- Zones -----
+
+function Town:get_mining_zones()
+   return self._sv.mining_zones
+end
+
+function Town:add_mining_zone(mining_zone)
+   local id = mining_zone:get_id()
+   self._sv.mining_zones[id] = mining_zone
+   self.__saved_variables:mark_changed()
+
+   self:_listen_for_mining_zone_destroyed(mining_zone)
+end
+
+function Town:_listen_for_mining_zone_destroyed(mining_zone)
+   local id = mining_zone:get_id()
+   local listener -- forward declaration
+   
+   listener = radiant.events.listen(mining_zone, 'radiant:entity:pre_destroy', function()
+         self._sv.mining_zones[id] = nil
+         self.__saved_variables:mark_changed()
+
+         listener:destroy()
+         self._mining_zone_destroy_listeners[id] = nil
+      end)
+
+   self._mining_zone_destroy_listeners[id] = listener
+end
+
+function Town:_restore_mining_zone_listeners()
+   for id, mining_zone in pairs(self._sv.mining_zones) do
+      self:_listen_for_mining_zone_destroyed(mining_zone)
+   end
 end
 
 return Town

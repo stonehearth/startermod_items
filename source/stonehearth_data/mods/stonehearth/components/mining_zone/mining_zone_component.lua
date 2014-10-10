@@ -143,7 +143,6 @@ function MiningZoneComponent:_update_destination()
 
          if cursor:empty() then
             -- add the whole region and wait for an adjacent to open up
-            -- TODO: optimize this as the region (and adjacent) will have a lot of cubes
             cursor:add_region(terrain_region)
          end
       end)

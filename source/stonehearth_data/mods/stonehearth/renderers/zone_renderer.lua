@@ -15,12 +15,12 @@ function ZoneRenderer:__init(render_entity)
    self:set_size(Point2.zero)
    self:_on_ui_mode_changed()
 
-   self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   self._ui_mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 function ZoneRenderer:destroy()
-   self._mode_listener:destroy()
-   self._mode_listener = nil
+   self._ui_mode_listener:destroy()
+   self._ui_mode_listener = nil
 
    -- take all items out of ghost mode
    self:_update_item_states(self._items, false)
