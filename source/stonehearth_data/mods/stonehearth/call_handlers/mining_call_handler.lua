@@ -81,7 +81,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return q0, q1
    end
 
-   stonehearth.selection:select_designation_region()
+   stonehearth.selection:select_xz_region()
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :set_can_contain_entity_filter(function(entity)
             -- TODO
