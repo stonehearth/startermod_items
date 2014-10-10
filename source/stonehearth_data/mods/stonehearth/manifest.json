@@ -940,7 +940,7 @@
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "client"
       },
-      "create_mining_zone": {
+      "add_mining_zone": {
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "server"
       },
