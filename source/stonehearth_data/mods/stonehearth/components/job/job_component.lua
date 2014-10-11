@@ -206,18 +206,18 @@ end
 
 -- Given a level, apply all perks relevant to that job
 -- Uses the current job controller's functions to do this. 
--- Factoring out of individual controllers for code-reuse purposes.
 function JobComponent:_apply_perk_for_level(target_level)
    local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(target_level)]
    local perk_descriptions = {}
    if job_updates_for_level then
       for i, perk_data in ipairs(job_updates_for_level.perks) do
-
-         self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
+         if perk_data.type then
+            self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
          
-         --Collect text about the perk
-         local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
-         table.insert(perk_descriptions, perk_info)
+            --Collect text about the perk
+            local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
+            table.insert(perk_descriptions, perk_info)
+         end
       end
    end
    return perk_descriptions
@@ -237,7 +237,9 @@ function JobComponent:_remove_all_perks()
       local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(i)]
       if job_updates_for_level then
          for i, perk_data in ipairs(job_updates_for_level.perks) do
-             self._sv.curr_job_controller[perk_data.demote_fn]( self._sv.curr_job_controller, perk_data)
+            if perk_data.demote_fn then
+               self._sv.curr_job_controller[perk_data.demote_fn]( self._sv.curr_job_controller, perk_data)
+            end
          end
       end
    end 

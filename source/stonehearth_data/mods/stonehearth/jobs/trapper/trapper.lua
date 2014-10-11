@@ -120,6 +120,13 @@ function TrapperClass:apply_buff(args)
    radiant.entities.add_buff(self._sv._entity, args.buff_name)   
 end
 
+-- Add the equipment specified in the description
+-- Save the equipment so we can remove it later.
+function TrapperClass:add_equipment(args)
+   self._sv[args.equipment] = radiant.entities.create_entity(args.equipment)
+   radiant.entities.equip_item(self._sv._entity, self._sv[args.equipment])
+end
+
 --Increase the size of the backpack
 function TrapperClass:increase_backpack_size(args)
    local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
@@ -131,6 +138,14 @@ end
 --Remove any buffs added
 function TrapperClass:remove_buff(args)
    radiant.entities.remove_buff(self._sv._entity, args.buff_name)
+end
+
+--If the equipment specified is stored in us, remove it
+function TrapperClass:remove_equipment(args)
+   if self._sv[args.equipment] then
+      radiant.entities.unequip_item(self._sv._entity, self._sv[args.equipment])
+      self._sv[args.equipment] = nil
+   end
 end
 
 --Make the backpack size smaller
