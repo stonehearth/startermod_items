@@ -14,7 +14,7 @@
             "stonehearth:actions:wait_for_attribute_below",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack_after_cooldown",
-         "stonehearth:actions:combat:attack:melee",
+            "stonehearth:actions:combat:attack:melee",
             "stonehearth:actions:combat:attack:melee_adjacent",
             "stonehearth:actions:combat:defend_dispatcher",
             "stonehearth:actions:combat:defend:melee",
