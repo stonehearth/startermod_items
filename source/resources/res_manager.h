@@ -70,6 +70,7 @@ private:
    std::shared_ptr<std::istream> OpenResourceCanonical(std::string const& stream) const;
 
 private:
+   bool                                            _modDirectoryChanged;
    boost::filesystem::path                         resource_dir_;
    std::map<std::string, std::unique_ptr<IModule>> modules_;
    std::vector<std::string>                        module_names_;
