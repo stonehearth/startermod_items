@@ -302,7 +302,7 @@ function Building:grow_local_box_to_roof(entity, local_box)
       for shingle in merged_roof_overhang:each_cube() do
          local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
                            Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-         shape:add_unique_cube(col)
+         shape:add_cube(col)
       end
    end
    return shape
