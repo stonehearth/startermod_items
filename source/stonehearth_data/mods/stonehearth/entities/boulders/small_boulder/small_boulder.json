@@ -5,12 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(small_boulder_1.qb)"
-                  ]
-               }
+               "file(small_boulder_1.qb)"
             ]
          }
       }, 

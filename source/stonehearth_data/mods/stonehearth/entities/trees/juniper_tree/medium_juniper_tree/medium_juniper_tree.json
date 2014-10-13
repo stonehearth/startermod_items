@@ -5,12 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(medium_juniper_tree.qb)"
-                  ]
-               }
+               "file(medium_juniper_tree.qb)"
             ]
          }
       }, 
