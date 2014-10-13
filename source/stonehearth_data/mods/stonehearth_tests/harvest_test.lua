@@ -13,8 +13,8 @@ function HarvestTest:__init()
    self:place_item('stonehearth:medium_juniper_tree', -5, -5)
    self:place_item('stonehearth:small_juniper_tree',  15, -5)
 
-   self:place_item('stonehearth:large_boulder',  -25, 5)
-   self:place_item('stonehearth:medium_boulder', -15, 5)
+   self:place_item('stonehearth:large_boulder_1',  -25, 5)
+   self:place_item('stonehearth:medium_boulder_1', -15, 5)
    self:place_item('stonehearth:small_boulder',   -5, 5)
 
    self:place_item('stonehearth:small_boulder',    5, 5)

@@ -4,6 +4,6 @@
    "habitat_types" : ["forest"],
    "weight" : 3,
    "scenario_info" : {
-      "critter_type" : "stonehearth:squirrel"
+      "critter_type" : [ "stonehearth:squirrel" ]
    }
 }

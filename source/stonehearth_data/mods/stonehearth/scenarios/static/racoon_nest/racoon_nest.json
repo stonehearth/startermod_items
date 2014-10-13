@@ -3,6 +3,6 @@
    "name" : "racoon_nest",
    "habitat_types" : ["forest"],
    "scenario_info" : {
-      "critter_type" : "stonehearth:racoon"
+      "critter_type" : [ "stonehearth:racoon" ] 
    }
 }
