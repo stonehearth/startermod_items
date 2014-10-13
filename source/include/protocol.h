@@ -74,7 +74,8 @@ namespace radiant {
          void Push(google::protobuf::MessageLite const &protobuf);
 
       public: // xxx - only because make_shared is silly
-         SendQueue(boost::asio::ip::tcp::socket& s, const char* endpoint) : socket_(s), _bufferedBytes(0), _endpoint(endpoint) { }
+         SendQueue(boost::asio::ip::tcp::socket& s, const char* endpoint, int32 maxBuffersInFlight = 20) : socket_(s), _bufferedBytes(0), _endpoint(endpoint), 
+            _lastBufferWritten(0), _lastBufferCompleted(0), _maxBuffersInFlight(maxBuffersInFlight) { }
 
       private:
          struct Buffer {
@@ -90,6 +91,9 @@ namespace radiant {
          std::stack<BufferPtr>   _freelist;
          int32                   _bufferedBytes;
          const char*             _endpoint;
+         int32                   _lastBufferWritten;
+         int32                   _lastBufferCompleted;
+         int32                   _maxBuffersInFlight;
       };
 
       class RecvQueue : public std::enable_shared_from_this<RecvQueue> {
