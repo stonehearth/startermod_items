@@ -3,6 +3,6 @@
    "name" : "fox_nest",
    "habitat_types" : ["forest"],
    "scenario_info" : {
-      "critter_type" : "stonehearth:red_fox"
+      "critter_type" : [ "stonehearth:red_fox" ]
    }
 }
