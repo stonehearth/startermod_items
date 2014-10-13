@@ -5,12 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(large_juniper_tree.qb)"
-                  ]
-               }
+               "file(large_juniper_tree.qb)"
             ], 
             "scale": 1
          }

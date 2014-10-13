@@ -302,6 +302,12 @@ function Building:grow_local_box_to_roof(entity, local_box)
       for shingle in merged_roof_overhang:each_cube() do
          local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
                            Point3(shingle.max.x, shingle.min.y, shingle.max.z))
+         -- In specific circumstances, (L-shaped room with the vertical part of
+         -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
+         -- slopes perpendicular to the vertical part of the 'L'), we get walls
+         -- that pass through shingles more than once, and therefore cannot be added
+         -- uniquely. This trips an assert/crashes the game, so let's just add
+         -- them blindly, for now. -- klochek-rad
          shape:add_cube(col)
       end
    end
