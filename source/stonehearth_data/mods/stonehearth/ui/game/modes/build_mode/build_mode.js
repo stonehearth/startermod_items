@@ -19,7 +19,9 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       // show the building designer when the "design building" button on the start menu
       // is clicked.
       $(top).on('stonehearth_building_plans', function() {
-         self._showBuildingPlansView();
+         //Disable for now not working as intended yet
+         //self._showBuildingPlansView();
+         self._showBuildingDesignerView();
       });
 
       // show the building editor

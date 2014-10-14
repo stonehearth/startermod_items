@@ -1,0 +1,38 @@
+{
+   "mixins": "stonehearth:mixins:boulder", 
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(large_boulder_1.qb)",
+            ]
+         }
+      }, 
+      "unit_info": {
+         "name": "Huge Boulder",
+         "description": "Harvestable for stone",
+         "portrait": "file(large_boulder.png)"
+      }, 
+      "stonehearth:resource_node": {
+         "durability": 12
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.5, "y": 0, "z": 0.5 }
+      },
+      "destination" : {
+         "region": [
+            {
+               "min" : { "x" : -2, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 5, "z" :  2 }
+            }
+         ]
+      },      
+      "region_collision_shape" : {
+         "foo" : { "x": 0.5, "y": 0, "z": -0.5 },
+         "region_from_model": {
+            "model" : "file(large_boulder_1.qb)"
+         }
+      }
+   }
+}
