@@ -3,6 +3,6 @@
    "name" : "rabbit_nest",
    "habitat_types" : ["forest", "plains", "foothills"],
    "scenario_info" : {
-      "critter_type" : "stonehearth:rabbit"
+      "critter_type" : [ "stonehearth:rabbit" ] 
    }
 }

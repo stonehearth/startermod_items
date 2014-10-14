@@ -85,14 +85,14 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             
             -- check for ground placement
             if entity_forms:is_placeable_on_ground() and normal.y == 1 then
-               if radiant.terrain.is_standable(placement_test_entity, result.brick) then
+               if radiant.terrain.is_standable(selector:get_cursor_entity(), result.brick) then
                   return true
                end
             end
 
             -- check for wall placement
             if entity_forms:is_placeable_on_wall() and normal.y == 0 then
-               if not radiant.terrain.is_blocked(placement_test_entity, result.brick) then
+               if not radiant.terrain.is_blocked(selector:get_cursor_entity(), result.brick) then
                   local entities = radiant.terrain.get_entities_at_point(result.brick - normal)
                   for _, entity in pairs(entities) do
                      local wall = entity:get_component('stonehearth:wall')

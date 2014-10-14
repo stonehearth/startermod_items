@@ -315,6 +315,18 @@ bool Region<S, C>::Intersects(Cube const& cube) const
    }
    return false;
 }
+
+template <class S, int C>
+bool Region<S, C>::Intersects(Region const& region) const
+{
+   for (Cube const& c : cubes_) {
+      if (region.Intersects(c)) {
+         return true;
+      }
+   }
+   return false;
+}
+
 template <class S, int C>
 bool Region<S, C>::Contains(Point const& pt) const
 {
@@ -831,6 +843,7 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template const Cls& Cls::operator+=(const Cls&); \
    template const Cls& Cls::operator-=(const Cls&); \
    template bool Cls::Intersects(const Cls::Cube&) const; \
+   template bool Cls::Intersects(const Cls&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(); \

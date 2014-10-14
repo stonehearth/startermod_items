@@ -63,6 +63,50 @@ while getopts "o:t:cabdsm:" OPTION; do
    esac
 done
 
+function stage_data_dir
+{
+   # $1 - the name of the mod to stage
+   echo Copying data files for $1
+   mkdir -p $OUTPUT_DIR/$1
+   pushd $DATA_ROOT/$1 > /dev/null
+   find . -type f  \
+      ! -name '*.qmo' \
+      -print0 | xargs -0 cp -u --parents --target-directory $OUTPUT_DIR/$1
+   popd > /dev/null
+}
+
+function compile_lua_and_package_module
+{
+
+   # $1 - the name of the mod to stage
+   stage_data_dir $1
+
+   echo Compiling lua and packaging module in $1
+   MOD_NAME=${1##*/}
+   pushd $OUTPUT_DIR/$1/.. > /dev/null
+   pwd
+   #set LUA_PATH=$LUAJIT_BIN_ROOT
+   for infile in $(find $MOD_NAME -type f -name '*.lua'); do
+     OUTFILE=${infile}c
+     # $LUAJIT_BIN_ROOT/luajit.exe -b $infile $OUTFILE
+     echo "Compiling $infile ..."
+     $LUA_BIN_ROOT/lua.exe $STONEHEARTH_ROOT/scripts/stage/LuaSrcDiet-0.12.1/bin/LuaSrcDiet.lua $infile --quiet --none --opt-comments --opt-whitespace --opt-emptylines --opt-eols -o $OUTFILE
+     if [ $? -ne 0 ]; then
+       echo "failed to compile $infile"
+       exit 1
+     fi
+     rm -f $infile
+   done
+
+   # zip the package
+   # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
+   rm -f $MOD_NAME.smod
+   7za a -r -tzip $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
+
+   rm -rf $MOD_NAME
+   popd > /dev/null
+}
+
 if [ $BUILD_TYPE == RelWithDebInfo ]; then
    MODULE_BUILD_TYPE=Release
    MODULE_BUILD_SUFFIX=
@@ -134,48 +178,11 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 
-function stage_data_dir
+function checksum_mod_directory
 {
-   # $1 - the name of the mod to stage
-   echo Copying data files for $1
-   mkdir -p $OUTPUT_DIR/$1
-   pushd $DATA_ROOT/$1 > /dev/null
-   find . -type f  \
-      ! -name '*.qmo' \
-      -print0 | xargs -0 cp -u --parents --target-directory $OUTPUT_DIR/$1
-   popd > /dev/null
-}
-
-function compile_lua_and_package_module
-{
-
-   # $1 - the name of the mod to stage
-   stage_data_dir $1
-
-   echo Compiling lua and packaging module in $1
-   MOD_NAME=${1##*/}
-   pushd $OUTPUT_DIR/$1/.. > /dev/null
-   pwd
-   #set LUA_PATH=$LUAJIT_BIN_ROOT
-   for infile in $(find $MOD_NAME -type f -name '*.lua'); do
-     OUTFILE=${infile}c
-     # $LUAJIT_BIN_ROOT/luajit.exe -b $infile $OUTFILE
-     echo "Compiling $infile ..."
-     $LUA_BIN_ROOT/lua.exe $STONEHEARTH_ROOT/scripts/stage/LuaSrcDiet-0.12.1/bin/LuaSrcDiet.lua $infile --quiet --none --opt-comments --opt-whitespace --opt-emptylines --opt-eols -o $OUTFILE
-     if [ $? -ne 0 ]; then
-       echo "failed to compile $infile"
-       exit 1
-     fi
-     rm -f $infile
-   done
-
-   # zip the package
-   # no silent mode for 7-zip, could save output to file and cat file if [ $? -ne 0 ] 
-   rm -f $MOD_NAME.smod
-   7za a -r -tzip $MOD_NAME.smod $MOD_NAME/'*' > /dev/null
-
-   rm -rf $MOD_NAME
-   popd > /dev/null
+   CHECKSUM_SCRIPT=$STONEHEARTH_ROOT/scripts/stage/checksum_mods.py
+   echo "Genearting checksums for mods in $OUTPUT_DIR"
+   $CHECKSUM_SCRIPT $OUTPUT_DIR
 }
 
 if [ ! -z $STAGE_DATA ]; then
@@ -197,4 +204,5 @@ if [ ! -z $STAGE_DATA ]; then
          compile_lua_and_package_module mods/$modname
       done
    fi
+   checksum_mod_directory
 fi

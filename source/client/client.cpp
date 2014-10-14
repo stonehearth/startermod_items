@@ -1767,8 +1767,17 @@ void Client::ReportLoadProgress()
  */
 void Client::RestoreDatastores()
 {
+   // Two passes: First create all the controllers for the datastores we just
+   // created
    for (om::DataStorePtr d : datastores_to_restore_) {
       d->RestoreController(d);
+   }
+
+   // Now run through all the tables on those datastores and convert the
+   // pointers-to-datastore to pointers-to-controllers
+   std::vector<luabind::object> visitedTables;
+   for (om::DataStorePtr d : datastores_to_restore_) {
+      d->RestoreControllerData(visitedTables);
    }
    datastores_to_restore_.clear();
 }

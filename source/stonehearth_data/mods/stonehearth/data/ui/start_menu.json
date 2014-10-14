@@ -41,14 +41,6 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
             "sticky" : true,
             "hotkey" : "t"
-         },
-         "create_mining_zone" : {
-            "name" : "Mining Zone",
-            "description" : "Excavate dirt and rock from the earth.",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
-            "sticky" : true,
-            "hotkey" : "m"
          }
       }
    },

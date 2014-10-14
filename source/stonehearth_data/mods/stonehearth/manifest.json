@@ -147,8 +147,11 @@
 
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
-      "medium_boulder" : "file(entities/boulders/medium_boulder)",
-      "large_boulder" : "file(entities/boulders/large_boulder)",
+      "medium_boulder_1" : "file(entities/boulders/medium_boulder/medium_boulder_1.json)",
+      "medium_boulder_2" : "file(entities/boulders/medium_boulder/medium_boulder_2.json)",
+      "medium_boulder_3" : "file(entities/boulders/medium_boulder/medium_boulder_3.json)",
+      "large_boulder_1" : "file(entities/boulders/large_boulder/large_boulder_1.json)",
+      "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
       "silkweed" : "file(entities/plants/silkweed/silkweed)",
@@ -941,7 +944,7 @@
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "client"
       },
-      "create_mining_zone": {
+      "add_mining_zone": {
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "server"
       },

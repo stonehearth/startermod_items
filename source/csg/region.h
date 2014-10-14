@@ -48,6 +48,7 @@ public:
    S GetArea() const;
    bool IsEmpty() const;
    bool Intersects(Cube const& cube) const;
+   bool Intersects(Region const& region) const;
    bool Contains(Point const& pt) const;
 
    Point GetClosestPoint(Point const& src) const;

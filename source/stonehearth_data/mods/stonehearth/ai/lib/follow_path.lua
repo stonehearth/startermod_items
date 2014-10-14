@@ -12,8 +12,10 @@ function FollowPath:__init(entity, speed, path)
    self._stop_distance = 0
    self._mob = self._entity:add_component('mob')
 
+   -- path:get_points and path:get_pruned_points return lua base 1 arrays
    self._points = self._path:get_pruned_points()
    self._num_points = #self._points
+   self._destination_y = self._points[self._num_points].y
    self._poi = self._path:get_destination_point_of_interest()
 
    self._pursuing = self:_calculate_start_index()
@@ -80,7 +82,9 @@ function FollowPath:arrived()
    if self._pursuing == self._stop_index then
       local location = self._mob:get_location()
 
-      if self._stop_distance > 0 then
+      -- only stop early if the current location is at the same elevation as the destination
+      -- and the distance to the poi is less than the stop_distance
+      if self._stop_distance > 0 and location.y == self._destination_y then
          local distance = location:distance_to(self._poi)
          return distance <= self._stop_distance
       else
@@ -203,6 +207,11 @@ function FollowPath:_calculate_stop_index()
 
    for i = last_index, 1, -1 do
       current_point = self._points[i]
+      if current_point.y ~= self._destination_y then
+         -- don't stop early if there is an elevation change between here and the destination
+         return last_index
+      end
+
       distance = distance + current_point:distance_to(previous_point)
       if distance > self._stop_distance then
          -- return the last index where the distance was closer than the stopDistance

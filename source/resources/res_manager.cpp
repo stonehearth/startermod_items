@@ -134,6 +134,7 @@ ResourceManager2::ResourceManager2()
 {
    ASSERT(!singleton_);
 
+   _modDirectoryChanged = false;
    resource_dir_ = "mods";
    LoadModules();
    ImportModuleManifests();
@@ -146,23 +147,48 @@ void ResourceManager2::LoadModules()
    for (fs::directory_iterator i(resource_dir_); i != end; i++) {
       fs::path const path = i->path();
 
-      // zip modules have priority - install them first
-      if (fs::is_regular_file(path) && path.filename().extension() == ".smod") {
+      if (fs::is_directory(path)) {
+         // directories have priority - install them first
+         std::string const module_name = path.filename().string();
+         ASSERT(!stdutil::contains(modules_, module_name));
+         modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
+         _modDirectoryChanged = true;
+      } else if (fs::is_regular_file(path) && path.filename().extension() == ".smod") {
+         // load zip modules only if the coresponding zip file does not exist
          std::string const module_name = path.filename().stem().string();
          
          ASSERT(!stdutil::contains(modules_, module_name));
          modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
-      } 
-
-      // load directories only if the coresponding zip file does not exist
-      if (fs::is_directory(path)) {
-         std::string const module_name = path.filename().string();
-         if (!fs::is_regular_file(resource_dir_ / (module_name + ".smod"))) {
-            ASSERT(!stdutil::contains(modules_, module_name));
-            modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
+         if (!_modDirectoryChanged) {
+            std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name));
+            if (goodhash.empty()) {
+               RES_LOG(1) << "Could not find hash for module \"" << module_name << "\".";
+               _modDirectoryChanged = true;
+            } else {
+               boost::algorithm::to_lower(goodhash);
+               try {
+                  std::ifstream in(path.string(), std::ios::in | std::ios::binary);
+                  if (in.good()) {
+                     std::string modhash = Checksum(io::read_contents(in));
+                     boost::algorithm::to_lower(modhash);
+                     if (modhash != goodhash) {
+                        RES_LOG(1) << "Module \"" << module_name << "\" hash " << modhash << " != " << goodhash << ".  Assuming user modified.";
+                        _modDirectoryChanged = true;
+                     }
+                  }
+               } catch (std::exception const& e) {
+                  RES_LOG(0) << "Failed to compute checksum for \"" << module_name << "\": " << e.what();
+               }
+            }
          }
-      }
+      } 
    }
+   if (_modDirectoryChanged) {
+      RES_LOG(1) << "Modules have been modified by the user!";
+   } else {
+      RES_LOG(1) << "Modules are verified prestine.";
+   }
+
    // Compute the module names last so we ensure the list is in sorted order
    for (const auto& entry : modules_) {
       module_names_.push_back(entry.first);

@@ -61,6 +61,23 @@ function MiningService:dig_up(mining_zone, region)
       end)
 end
 
+-- merges zone2 into zone1, and destroys zone2
+function MiningService:merge_zones(zone1, zone2)
+   local boxed_region1 = zone1:add_component('stonehearth:mining_zone'):get_region()
+   local boxed_region2 = zone2:add_component('stonehearth:mining_zone'):get_region()
+   local location1 = radiant.entities.get_world_grid_location(zone1)
+   local location2 = radiant.entities.get_world_grid_location(zone2)
+
+   boxed_region1:modify(function(region1)
+         -- move region2 into the local space of region1
+         local translation = location2 - location1
+         local region2 = boxed_region2:get():translated(translation)
+         region1:add_region(region2)
+      end)
+
+   radiant.entities.destroy_entity(zone2)
+end
+
 function MiningService:_dig_impl(mining_zone, region, cube_transform)
    local transformed_region = Region3()
    
