@@ -7,7 +7,8 @@ function HalloweenTest:__init()
    self:create_world()
 
    self:place_item('stonehearth:large_oak_tree', -25, -25)
-   self:place_citizen(20, 20)
+   self:place_citizen(2, 2)
+   self:place_item('candledark:pumpkin_ward', 0, 0, nil, { force_iconic = false })
 
    --[[
    local player_id = worker:get_component('unit_info'):get_player_id()
@@ -22,8 +23,9 @@ function HalloweenTest:__init()
    ]]
 
    -- Introduce a new person/scenario 
-   self:at(500,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:skeleton_invasion')
+   self:at(200,  function()
+         stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 4, minute = 58 })
+         --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')
       end)
 end
 

@@ -67,13 +67,23 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self._super();
 
       self.$().on('click', '#buyList .row', function() {        
-         self.$('.row').removeClass('selected');
+         self.$('#buyList .row').removeClass('selected');
          var row = $(this);
 
          row.addClass('selected');
          self._selectedUri = row.attr('uri');
 
          self._updateBuyButtons();
+      });
+
+      self.$().on('click', '#sellList .row', function() {        
+         self.$('#sellList .row').removeClass('selected');
+         var row = $(this);
+
+         row.addClass('selected');
+         self._selectedUri = row.attr('uri');
+
+         self._updateSellButton();
       });
 
       self.$('#buyButton').click(function() {
@@ -93,22 +103,29 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       });
 
       self.$('#buy1Button').click(function() {
-         var button = $(this);
-         if (button.hasClass('disabled')) {
-            return
+         if ($(this).hasClass('disabled')) {
+            self._doBuy(1);
          }
-
-         self._doBuy(1);
       })
 
       self.$('#buy10Button').click(function() {
-         var button = $(this);
-         if (button.hasClass('disabled')) {
-            return
+         if ($(this).hasClass('disabled')) {
+            self._doBuy(10);
          }
-
-         self._doBuy(10);
       })      
+
+      self.$('#sell1Button').click(function() {
+         if ($(this).hasClass('disabled')) {
+            self._doSell(1);
+         }
+      })
+
+      self.$('#sell10Button').click(function() {
+         if ($(this).hasClass('disabled')) {
+            self._doSell(10);
+         }
+      })      
+
    },
 
    _doBuy: function(quantity) {
@@ -117,6 +134,20 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var item = self.$('#buyList .row.selected').attr('uri')
 
       radiant.call_obj(shop, 'buy_item_command', item, quantity)
+         .always(function() {
+            self._getGold();
+         })
+         .fail(function() {
+            // play a 'bonk!' noise or something
+         })
+   },
+
+   _doSell: function(quantity) {
+      var self = this;
+      var shop = self.get('context.data.shop');
+      var item = self.$('#sellList .row.selected').attr('uri')
+
+      radiant.call_obj(shop, 'sell_item_command', item, quantity)
          .always(function() {
             self._getGold();
          })
@@ -143,6 +174,20 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
             self.$('#buy1Button').addClass('disabled');   
             self.$('#buy10Button').addClass('disabled');   
          }
+      } else {
+         self.$('#buy1Button').addClass('disabled');   
+         self.$('#buy10Button').addClass('disabled');   
+      }
+   },
+
+   _updateSellButton: function() {
+      var self = this;
+
+      var row = self.$("[uri='" + self._selectedUri + "']");
+
+      if (row) {
+         self.$('#sell1Button').removeClass('disabled');   
+         self.$('#sell10Button').removeClass('disabled');   
       } else {
          self.$('#buy1Button').addClass('disabled');   
          self.$('#buy10Button').addClass('disabled');   

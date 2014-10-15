@@ -17,7 +17,7 @@ function SkeletonInvasion:start()
    local session = {
       player_id = 'game_master',
       faction = 'undead',
-      kingdom = 'stonehearth:kingdoms:undead'
+      kingdom = 'candledark:kingdoms:undead'
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)

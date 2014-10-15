@@ -53,7 +53,6 @@
       "kingdoms:northern_alliance" : "file(services/server/population/data/northern_alliance_population.json)",
       "kingdoms:rayyas_children" : "file(services/server/population/data/rayyas_children_population.json)",
       "kingdoms:goblin" : "file(services/server/population/data/goblin_population.json)",
-      "kingdoms:undead" : "file(services/server/population/data/undead_population.json)",
 
       "default_object" : "file(entities/generic/default_object)",
 
@@ -136,8 +135,6 @@
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
-
-      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
@@ -657,6 +654,9 @@
       "ambient:summer_day"   : "file(data/ambient/sh_amb_summer_day.ogg)",
       "ambient:summer_night" : "file(data/ambient/sh_amb_summer_night.ogg)",
       
+      "skeletons:humanoid:male" : "file(/data/rigs/humans/skeletons/male.json)",
+      "skeletons:humanoid:female" : "file(/data/rigs/humans/skeletons/female.json)",
+
       "scenarios:scenario_index" : "file(scenarios/index.json)",
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
       "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.json)",
@@ -665,7 +665,6 @@
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.json)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.json)",
       "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.json)",
-      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)",
       "scenarios:returning_trader" : "file(scenarios/dynamic/returning_trader_scenario/returning_trader_scenario.json)", 
 
       "quests:collect_starting_resources" : "file(scenarios/quests/collect_starting_resources/collect_starting_resources.json)", 
@@ -1068,8 +1067,6 @@
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",
       "scenarios:goblin_raiding_camp" : "file(scenarios/dynamic/goblin_raiding_camp/goblin_raiding_camp.lua)",
-
-      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)",
 
       "scenarios:immigration" : "file(scenarios/dynamic/immigration_scenario/immigration_scenario.lua)",
       "scenarios:immigration_failure" : "file(scenarios/dynamic/immigration_failure_scenario/immigration_failure_scenario.lua)", 

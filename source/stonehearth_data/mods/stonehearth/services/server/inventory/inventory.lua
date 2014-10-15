@@ -228,6 +228,26 @@ function Inventory:get_gold_count()
    return total_gold
 end
 
+function Inventory:add_gold(amount)
+   -- for now, always add the gold in a new entity, instead of adding stacks to
+   -- and existing entity
+
+   --Add the new items to the space near the banner
+   local town = stonehearth.town:get_town(self._sv.player_id)
+   local banner = town:get_banner()
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
+      return false
+   end
+
+   local gold = radiant.entities.create_entity('stonehearth:loot:gold')
+   local item = gold:add_component('item')
+   item:set_stacks(amount)
+
+   local location = radiant.terrain.find_placement_point(drop_origin, 1, 3)
+   radiant.terrain.place_entity(item, location)
+end
+
 function Inventory:subtract_gold(amount)
    local gold_items = self:get_items_of_type('stonehearth:loot:gold')
    local stacks_to_remove = amount

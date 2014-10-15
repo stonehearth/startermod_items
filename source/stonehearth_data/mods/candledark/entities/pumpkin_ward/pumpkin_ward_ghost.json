@@ -1,0 +1,22 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(pumpkin_ward.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Pumpkin Ward",
+         "description": "A traditional lantern, built to keep evil spirits away on Candledark Eve!",
+         "icon" : "file(pumpkin_ward.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      }
+   }
+}

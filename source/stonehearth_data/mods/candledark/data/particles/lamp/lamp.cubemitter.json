@@ -1,0 +1,90 @@
+{
+    "name": "fire",
+    "duration": 60,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [1.7, 2.0]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [0.1, 0.3]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [1.0, 0.0]
+                ]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [1.0, 0.97, 0.68, 0.2]
+            },
+            "over_lifetime_g__": {
+                "kind": "CURVE",
+                "values": [[0.0, 0.7], [0.4, 0.7], [0.7, 0.1], [1.0, 0.0]]
+            },            
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 0.0], [0.5, 0.5], [1.0, 0.0]
+                ]
+            }
+        },
+        "scale": {
+            "start": {
+                "kind": "RANDOM_BETWEEN",
+                "values": [0.5, 0.8]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [[0.0, 1.0], [1.0, 1.4]]
+            }
+        },
+        "rotation__": {
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, -360.0], [1.0, 360.0]],
+                    [[0.0, 360.0], [1.0, 360.0]]
+                ]
+            }
+        },
+        "velocity_": {
+            "over_lifetime_z": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 2.0], [1.0, -2.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, -7.0]]
+                ]
+            },
+            "over_lifetime_x": {
+                "kind": "RANDOM_BETWEEN_CURVES",
+                "values": [
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 2.0], [1.0, -2.0]],
+                    [[0.0, 0.0], [0.4, 0.0], [0.6, 7.0], [1.0, -7.0]]
+                ]
+            }
+        }
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [5]
+        },
+        "origin": {
+            "surface": "POINT",
+            "values": [0, 0]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [360]
+        }
+    }
+}
