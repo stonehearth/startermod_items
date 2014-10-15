@@ -30,7 +30,7 @@ class Pipeline : public core::Singleton<Pipeline> {
       // to change (e.g. the terrain).
       SharedMaterial GetSharedMaterial(std::string const& uri);
 
-      RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color);
+      RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color, int useCoarseCollisionBox=1);
       RenderNodePtr CreateStockpileNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateSelectionNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateRegionOutlineNode(H3DNode parent, csg::Region3 const& region, csg::Color4 const& color);

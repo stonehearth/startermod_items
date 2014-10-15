@@ -85,9 +85,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             
             -- check for ground placement
             if entity_forms:is_placeable_on_ground() and normal.y == 1 then
-               if radiant.terrain.is_standable(selector:get_cursor_entity(), result.brick) then
-                  return true
-               end
+               return radiant.terrain.is_standable(selector:get_cursor_entity(), result.brick)
             end
 
             -- check for wall placement
