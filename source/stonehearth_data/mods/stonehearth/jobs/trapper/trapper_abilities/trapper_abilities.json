@@ -18,7 +18,6 @@
                "stonehearth:actions:trapping:check_bait_trap",
                "stonehearth:actions:trapping:find_trap_in_trapping_grounds",
                "stonehearth:actions:trapping:harvest_trapped_beast",
-               "stonehearth:actions:trapping:tame_trapped_beast",
                "stonehearth:actions:pickup_item_into_backpack",
                "stonehearth:actions:put_carrying_in_backpack",
                "stonehearth:actions:restock_items_in_backpack",

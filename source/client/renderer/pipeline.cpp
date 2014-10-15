@@ -184,7 +184,8 @@ RenderNodePtr
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& outline_color,
-                                csg::Color4 const& stripes_color)
+                                csg::Color4 const& stripes_color,
+								int useCoarseCollisionBox)
 {
    csg::Mesh outline_mesh;
    csg::Mesh stripes_mesh;
@@ -201,7 +202,7 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    RenderNodePtr stripes = RenderNode::CreateCsgMeshNode(group->GetNode(), stripes_mesh)
       ->SetMaterial("materials/designation/stripes.material.xml");
 
-   h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    h3dSetNodeParamI(stripes->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
@@ -209,7 +210,7 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
       ->SetMaterial("materials/designation/outline.material.xml");
 
-   h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    h3dSetNodeParamI(outline->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);  

@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:boulder", 
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(medium_boulder_3.qb)"
+            ]
+         }
+      }, 
+      "unit_info": {
+         "name": "Medium Boulder", 
+         "description": "Harvestable for stone",
+         "portrait": "file(medium_boulder.png)"
+      }, 
+      "stonehearth:resource_node": {
+         "durability": 6
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0, "y": 0, "z": 0 },
+         "align_to_grid" : [ "x", "z" ]
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      },
+      "region_collision_shape" : {
+         "region_from_model": {
+            "model" : "file(medium_boulder_3.qb)"
+         }
+      }
+   }
+}

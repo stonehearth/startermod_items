@@ -24,7 +24,15 @@ function HarvestTrappedBeast:run(ai, entity, args)
    if trapped_entity and trapped_entity:is_valid() then
       trapped_entity_id = trapped_entity:get_id()
       self:_gib_target(trapped_entity)
+
       self:_spawn_loot(trapped_entity)
+
+      --If the this entity has the right perk, spawn the loot again!
+      local job_component = entity:get_component('stonehearth:job')
+      if job_component and job_component:curr_job_has_perk('trapper_efficient_rendering') then
+         self:_spawn_loot(trapped_entity)
+      end
+
       radiant.entities.destroy_entity(trapped_entity)
       trapped_entity = nil
    end

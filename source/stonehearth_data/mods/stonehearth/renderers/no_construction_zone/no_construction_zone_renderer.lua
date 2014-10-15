@@ -16,7 +16,7 @@ local NORMAL = {
 }
 
 function NoConstructionZoneRenderer:initialize(render_entity, datastore)
-   self._zone_renderer = ZoneRenderer(render_entity)   
+   self._zone_renderer = ZoneRenderer(render_entity, true)
    
    -- trace the datastore so we can change the color whenever the overlap
    -- changes

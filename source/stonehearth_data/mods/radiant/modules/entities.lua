@@ -371,9 +371,16 @@ function entities.unthink(entity, uri)
    end
 end
 
+-- Add an existing item to the entity's equipment component
 function entities.equip_item(entity, item)
    entity:add_component('stonehearth:equipment')
                :equip_item(item)
+end
+
+--Remove the item from the entity's equipment component
+function entities.unequip_item(entity, item)
+   entity:add_component('stonehearth:equipment')
+               :unequip_item(item)
 end
 
 function entities.get_equipped_item(entity, slot)

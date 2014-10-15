@@ -1,0 +1,12 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:trapping:tame_trapped_beast"
+            ]
+         }
+      }
+   }
+}

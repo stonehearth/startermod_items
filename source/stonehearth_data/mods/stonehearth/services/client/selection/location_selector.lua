@@ -44,6 +44,10 @@ function LocationSelector:set_cursor(cursor)
    return self
 end
 
+function LocationSelector:get_cursor_entity()
+   return self._cursor_entity
+end
+
 -- sets the uri of the entity to use for the ghost cursor.  this entity's lifetime
 -- will be controlled by the selection service.  it will also automatically be
 -- rendered in ghostly form.  if you want more control over how the cursor entity

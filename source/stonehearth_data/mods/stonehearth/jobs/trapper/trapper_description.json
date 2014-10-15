@@ -56,12 +56,37 @@
       "2" : {
          "perks" : [
             {
-               "type" : "increase_backpack_size",
-               "perk_name" : "Backpack Size +2", 
-               "perk_id" : "trapper_backpack_bonus_1",
-               "icon" : "file(images/trapperLevel2.png)", 
-               "backpack_size_increase" : "2",
+               "type" : "add_equipment", 
+               "perk_name" : "Natural Empathy", 
+               "perk_id" : "trapper_natural_empathy_1", 
+               "icon" : "file(images/trapperLevel2.png)",
+               "equipment" : "stonehearth:trapper:pet_treat_bag",
+               "description" : "The trapper may occasionally choose to turn a particulary fine animal into a pet.",
                "level" : 2, 
+               "demote_fn" : "remove_equipment"
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "perk_name" : "Efficient Cuts", 
+               "perk_id" : "trapper_efficient_rendering", 
+               "icon" : "file(images/trapperLevel3.png)",
+               "description" : "Long practice helps the trapper salvage more from each animal.",
+               "level" : 3
+            }
+         ]
+      },
+      "4" : {
+         "perks" : [
+            {
+               "type" : "increase_backpack_size",
+               "perk_name" : "Backpack Size +8", 
+               "perk_id" : "trapper_backpack_bonus_1",
+               "icon" : "file(images/trapperLevel4.png)", 
+               "backpack_size_increase" : "8",
+               "level" : 4, 
                "description" : "The trapper has become more efficient at packing in the loot.", 
                "demote_fn" : "decrease_backpack_size"
             }

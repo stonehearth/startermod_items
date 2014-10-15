@@ -4,6 +4,7 @@ function TrapperClass:initialize(entity)
    self._sv._entity = entity
    self._sv.last_gained_lv = 0
    self._sv.is_current_class = false
+   self._sv.attained_perks = {}
 
    self:restore()
 end
@@ -32,6 +33,7 @@ function TrapperClass:promote(json)
    if json.xp_rewards then
       self._sv.xp_rewards = json.xp_rewards
    end
+
    if json.level_data then
       self._sv.level_data = json.level_data
    end
@@ -54,8 +56,20 @@ function TrapperClass:is_max_level()
    return self._sv.is_max_level 
 end
 
+-- Returns all the data for all the levels
 function TrapperClass:get_level_data()
    return self._sv.level_data
+end
+
+-- We keep an index of perks we've unlocked for easy lookup
+function TrapperClass:unlock_perk(perk_id)
+   self._sv.attained_perks[perk_id] = true
+   self.__saved_variables:mark_changed()
+end
+
+-- Given the ID of a perk, find out if we have the perk. 
+function TrapperClass:has_perk(perk_id)
+   return self._sv.attained_perks[perk_id]
 end
 
 function TrapperClass:_create_xp_listeners()
@@ -120,6 +134,13 @@ function TrapperClass:apply_buff(args)
    radiant.entities.add_buff(self._sv._entity, args.buff_name)   
 end
 
+-- Add the equipment specified in the description
+-- Save the equipment so we can remove it later.
+function TrapperClass:add_equipment(args)
+   self._sv[args.equipment] = radiant.entities.create_entity(args.equipment)
+   radiant.entities.equip_item(self._sv._entity, self._sv[args.equipment])
+end
+
 --Increase the size of the backpack
 function TrapperClass:increase_backpack_size(args)
    local backpack_component = self._sv._entity:add_component('stonehearth:backpack')
@@ -131,6 +152,14 @@ end
 --Remove any buffs added
 function TrapperClass:remove_buff(args)
    radiant.entities.remove_buff(self._sv._entity, args.buff_name)
+end
+
+--If the equipment specified is stored in us, remove it
+function TrapperClass:remove_equipment(args)
+   if self._sv[args.equipment] then
+      radiant.entities.unequip_item(self._sv._entity, self._sv[args.equipment])
+      self._sv[args.equipment] = nil
+   end
 end
 
 --Make the backpack size smaller
