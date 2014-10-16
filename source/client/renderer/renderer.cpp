@@ -1660,7 +1660,16 @@ bool Renderer::LoadMissingResources()
    int res = h3dQueryUnloadedResource(0);
    while( res != 0 ) {
       const char *resourceName = h3dGetResName(res);
-      std::string resourcePath = resourcePath_ + "/" + resourceName;
+	  std::string rname(resourceName);
+	  std::string resourcePath;
+
+	  // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
+	  if (rname[0] == '/') {
+		  resourcePath = rname.substr(1);
+	  } else {
+		  // No leading '/' means look in the main stonehearth mod for the resource.
+	      resourcePath = resourcePath_ + "/" + resourceName;
+	  }
       std::shared_ptr<std::istream> inf;
 
       // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony

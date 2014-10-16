@@ -3,7 +3,7 @@
    "tracks": {
       "cubemitter": {
          "type": "cubemitter",
-         "cubemitter": "particles/lamp/lamp.cubemitter.json",
+         "cubemitter": "file(../../particles/lamp/lamp.cubemitter.json)",
          "loop": true,
          "transforms": {
             "x":0,
