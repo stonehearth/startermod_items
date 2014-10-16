@@ -77,6 +77,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
 
 ##Combat
    
+   - **combat:begin\_melee\_attack** - triggered whenever someone attacks another person in combat.
+      - Key: entity that is attacking
+      - Name: stonehearth:combat:begin_melee_attack
+      - Args: the combat context
    - **combat:battery** - triggered whenever a person is hit in combat. Triggered by _combat\_service.lua_: radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
       - Key: entity that was targeted
       - Name: stonehearth:combat:battery  

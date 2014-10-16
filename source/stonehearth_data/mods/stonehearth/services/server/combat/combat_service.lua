@@ -57,6 +57,7 @@ function CombatService:begin_assault(context)
    local combat_state = self:get_combat_state(target)
    combat_state:add_assault_event(context)
 
+   radiant.events.trigger_async(attacker, 'stonehearth:combat:begin_melee_attack', context)
    radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
    self:_set_assaulting(attacker, true)
 end

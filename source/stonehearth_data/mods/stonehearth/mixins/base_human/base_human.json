@@ -242,7 +242,16 @@
          "total_level" : {
             "type" : "basic", 
             "value" : 0
+         }, 
+         "additive_dmg_modifier" : {
+            "type" : "basic", 
+            "value" : 0
+         }, 
+         "multiplicative_dmg_modifier" : {
+            "type" : "basic", 
+            "value" : 0
          }
+
       },
       "stonehearth:material" : {
          "tags" : "meat"

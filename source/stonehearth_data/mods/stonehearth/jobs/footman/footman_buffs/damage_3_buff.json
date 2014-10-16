@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Double Damage",
+   "description" : "3rd Level Footman strike powerful blows.",
+   "icon" : "file(damage_3_buff.png)",
+   "modifiers" : {
+      "multiplicative_dmg_modifier" : {
+         "add" : 1.00
+      }
+   }
+} 
