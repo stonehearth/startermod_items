@@ -1,0 +1,24 @@
+{
+   "info" : {
+      "name" : "Candledark"
+   },
+
+   "aliases" : {
+      "kingdoms:undead" : "file(population/undead_population.json)",
+      
+      "pumpkin_ward" : "file(entities/pumpkin_ward/pumpkin_ward.json)",
+      "lantern" : "file(entities/wooden_garden_lantern/wooden_garden_lantern.json)",
+      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton.json)",
+      
+      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)"
+   }, 
+
+   "mixintos": {
+      "stonehearth/jobs/carpenter/recipes/recipes.json" : "file(recipes/recipes.json)"
+   },
+
+   "controllers" :  {
+      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)"
+   }
+}
+

@@ -53,27 +53,27 @@ void DataStore::SerializeToJson(json::Node& node) const
 
 void DataStore::RestoreController(DataStoreRef self)
 {
-   if (!_controllerObject.is_valid() || (*data_object_).GetNeedsRestoration()) {
-      lua_State* L = GetData().interpreter();
-      lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
-      std::string uri = GetControllerUri();
+   if (_controllerObject.is_valid()) {
+      return;
+   }
 
-      (*data_object_).SetNeedsRestoration(false);
+   lua_State* L = GetData().interpreter();
+   lua::ScriptHost *scriptHost = lua::ScriptHost::GetScriptHost(L);
+   std::string uri = GetControllerUri();
 
-      if (!uri.empty()) {
-         try {
-            luabind::object ctor = scriptHost->RequireScript(L, uri);
-            if (ctor) {
-               DS_LOG(3) << "restored controller for script " << uri;
-               _controllerObject = ctor();
-               if (_controllerObject) {
-                  _controllerObject["__saved_variables"] = self;
-                  _controllerObject["_sv"] = GetData();
-               }
+   if (!uri.empty()) {
+      try {
+         luabind::object ctor = scriptHost->RequireScript(L, uri);
+         if (ctor) {
+            DS_LOG(3) << "restored controller for script " << uri;
+            _controllerObject = ctor();
+            if (_controllerObject) {
+               _controllerObject["__saved_variables"] = self;
+               _controllerObject["_sv"] = GetData();
             }
-         } catch (std::exception const& e) {
-            lua::ScriptHost::ReportCStackException(L, e);
          }
+      } catch (std::exception const& e) {
+         lua::ScriptHost::ReportCStackException(L, e);
       }
    }
 
@@ -93,9 +93,12 @@ void DataStore::RestoreController(DataStoreRef self)
 
 void DataStore::RestoreControllerData(std::vector<luabind::object>& visitedTables)
 {
-   DS_LOG(7) << "begin restore controller data...";
-   RestoreControllerDataRecursive(GetData(), visitedTables);
-   DS_LOG(7) << "... end restore controller.";
+   if ((*data_object_).GetNeedsRestoration()) {
+      DS_LOG(7) << "begin restore controller data...";
+      (*data_object_).SetNeedsRestoration(false);
+      RestoreControllerDataRecursive(GetData(), visitedTables);
+      DS_LOG(7) << "... end restore controller.";
+   }
 }
 
 void DataStore::RestoreControllerDataRecursive(luabind::object o, std::vector<luabind::object>& visitedTables)

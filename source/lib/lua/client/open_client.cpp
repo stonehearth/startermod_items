@@ -133,6 +133,16 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
    return node;
 }
 
+RenderNodePtr Client_CreateDesignationNode_WithCollisionBox(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region2f const& model,
+                                     csg::Color4 const& outline,
+                                     csg::Color4 const& stripes,
+									 int useCoarseCollisionBox)
+{
+   return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes, useCoarseCollisionBox);
+}
+
 RenderNodePtr Client_CreateDesignationNode(lua_State* L, 
                                      H3DNode parent,
                                      csg::Region2f const& model,
@@ -498,6 +508,7 @@ void lua::client::open(lua_State* L)
             def("create_obj_render_node",          &Client_CreateObjRenderNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
+            def("create_designation_node",         &Client_CreateDesignationNode_WithCollisionBox),
             def("create_selection_node",           &Client_CreateSelectionNode),
             def("create_region_outline_node",      &Client_CreateRegionOutlineNode),
             def("create_mesh_node",                &Client_CreateMeshNode),

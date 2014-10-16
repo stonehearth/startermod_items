@@ -134,6 +134,54 @@ function Shop:buy_item_command(session, response, uri, quantity)
    end
 end
 
+function Shop:sell_item(uri, quantity)
+   local sell_quantity = quantity or 1
+
+   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   local item_cost = self:_get_item_cost(uri)
+
+   local total_gold = 0
+   local sellable_items = inventory:get_items_of_type(uri)
+
+   -- "sell" each entity by destroying it, until we've sold the requested amount or run out of entities
+   for uri, entity in pairs(sellable_items) do
+      if sell_quantity == 0 then
+         break
+      end
+      radiant.entities.destroy_entity(entity)
+      total_gold = total_gold + item_cost
+   end
+
+   -- deduct gold from the player
+   inventory:add_gold(total_gold)
+   return true
+end
+
+function Shop:sell_item_command(session, response, uri, quantity)
+   local success = self:sell_item(uri, quantity)
+   if success then
+      response:resolve({})
+   else 
+      response:reject({})
+   end
+end
+
+function Shop:_spawn_items(uri, quantity)
+   --Add the new items to the space near the banner
+   local town = stonehearth.town:get_town(self._session.player_id)
+   local banner = town:get_banner()
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
+      return false
+   end
+
+   local items = {}
+   items[uri] = quantity
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._session.player_id)
+
+   return true
+end
+
 function Shop:_spawn_items(uri, quantity)
    --Add the new items to the space near the banner
    local town = stonehearth.town:get_town(self._session.player_id)

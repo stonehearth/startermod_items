@@ -25,7 +25,7 @@
                         <img class="icon" {{bind-attr src=this.item.unit_info.icon}} />
                         <div>{{{this.item.unit_info.name}}}</div>
                      </td>
-                     <td class="cost">{{this.cost}}</td>
+                     <td class="cost goldText">{{this.cost}}</td>
                      <td class="num">{{this.num}} in stock</td>
                   </tr>
                {{/each}}
@@ -51,7 +51,10 @@
          </div>
       </div>
 
-      Monies: {{view.playerGold}}<br>
+      <div id="playerGold">
+         <h2>Gold: <span class="goldText">{{view.playerGold}}</h2></h2>
+      </div>
+
       <div class="shopButtons" id="buyButtons">
          <button class="green disabled" id="buy1Button">Buy 1</button>
          <button class="green disabled" id="buy10Button">Buy 10</button>

@@ -2,13 +2,16 @@
    "kingdom_name" : "The Dead",
    "kingdom_id" : "undead",
    "male_entities" : [
-      "stonehearth:monsters:undead:skeleton"
+      "candledark:monsters:undead:skeleton"
    ],
    "female_entities" : [
-      "stonehearth:monsters:undead:skeleton"
+      "candledark:monsters:undead:skeleton"
    ],
    "surnames" : [
-      "the Dead"
+      "the Dead",
+      "the Deceased",
+      "o' Bones",
+      "the Ancient"
    ],
    "given_names" : {
       "male" : [
@@ -82,8 +85,5 @@
       "suffix" : [
          "yu"
       ]
-   }, 
-   "task_groups" : {
-      "stonehearth:task_group:restock" : "stonehearth:simple_labor"
    }
 }
