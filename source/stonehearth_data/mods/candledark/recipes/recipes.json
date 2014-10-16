@@ -1,0 +1,9 @@
+{
+   "craftable_recipes" : {
+      "Building Parts" : {
+         "pumpkin_ward" : {
+            "uri" : "file(pumpkin_ward_recipe.json)"
+         }
+      }
+   }
+}

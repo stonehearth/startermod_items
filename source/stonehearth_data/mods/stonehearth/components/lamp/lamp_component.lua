@@ -3,7 +3,8 @@ local LampComponent = class()
 function LampComponent:initialize(entity, json)
    self._entity = entity
    self._tracked_entities = {}
-
+   self._render_info = self._entity:add_component('render_info')
+   
    self._sv = self.__saved_variables:get_data()
    if not self._sv.light_effect then
       self._sv.light_effect = json.light_effect  
@@ -44,6 +45,7 @@ function LampComponent:_check_light()
 end
 
 function LampComponent:_light_on()
+   self._render_info:set_model_variant('lamp_on')
    if self._sv.light_effect and not self._running_effect then
       self._running_effect = radiant.effects.run_effect(self._entity, self._sv.light_effect);
    end
@@ -53,6 +55,7 @@ function LampComponent:_light_on()
 end
 
 function LampComponent:_light_off()
+   self._render_info:set_model_variant('')
    if self._running_effect then
       self._running_effect:stop()
       self._running_effect = nil
