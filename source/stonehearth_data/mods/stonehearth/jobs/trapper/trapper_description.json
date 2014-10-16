@@ -31,8 +31,7 @@
    "xp_rewards" : {
       "befriend_pet" : 75, 
       "unsuccessful_trap" : 20, 
-      "successful_trap" : 50, 
-      "unload_backpack" : 50
+      "successful_trap" : 50
    },
 
    "max_level" : 6,
@@ -89,6 +88,28 @@
                "level" : 4, 
                "description" : "The trapper has become more efficient at packing in the loot.", 
                "demote_fn" : "decrease_backpack_size"
+            }
+         ]
+      },
+      "5" : {
+         "perks" : [
+            {
+               "perk_name" : "Toothier Traps (TODO)", 
+               "perk_id" : "trapper_critter_enhancement",
+               "icon" : "file(images/trapperLevel5.png)", 
+               "level" : 5, 
+               "description" : "Traps now lure in and hold larger prey."
+            }
+         ]
+      }, 
+      "6" : {
+         "perks" : [
+            {
+               "perk_name" : "The Deadliest Catch (TODO)", 
+               "perk_id" : "trapper_defensive_traps",
+               "icon" : "file(images/trapperLevel6.png)", 
+               "level" : 6, 
+               "description" : "Lay special trapping zones to 'deter' acquisitive neighbors."
             }
          ]
       }
