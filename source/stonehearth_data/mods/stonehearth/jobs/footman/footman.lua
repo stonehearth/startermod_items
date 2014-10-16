@@ -65,32 +65,35 @@ end
 
 --- Private functions
 
+--Right now, the footman only gains XP when he's hit someone for damage. 
+--We do log attacks though, for debugging purposes. 
 function FootmanClass:_create_xp_listeners()
-
    self._on_attack = radiant.events.listen(self._sv._entity, 'stonehearth:combat:begin_melee_attack', self, self._on_attack)
-   self._on_defeat_enemy = radiant.events.listen(self._sv._entity, 'stonehearth:defeat_enemy', self, self._on_defeat_enemy)
-   self._on_patrol = radiant.events.listen(self._sv._entity, 'stonehearth:on_patrol', self, self._on_patrol)
+   self._on_damage_dealt = radiant.events.listen(self._sv._entity, 'stonehearth:combat:melee_attack_connect', self, self._on_damage_dealt)
 end
 
 function FootmanClass:_remove_xp_listeners()
    self._on_attack:destroy()
    self._on_attack = nil
-   
-   self._on_defeat_enemy:destroy()
-   self._on_defeat_enemy = nil
 
-   self._on_patrol:destroy()
-   self._on_patrol = nil
+   self._on_damage_dealt:destroy()
+   self._on_damage_dealt = nil
 end
 
 function FootmanClass:_on_attack(args)
-   self._job_component:add_exp(self._sv.xp_rewards['attack'])
+   --For debug purposes   
+   --self._job_component:add_exp(100)r
 end
 
-function FootmanClass:_on_defeat_enemy(args)
-end
-
-function FootmanClass:_on_patrol(args)
+-- Whenever you do damage, you get XP equal to the target's menace
+function FootmanClass:_on_damage_dealt(args)
+   local exp = 0
+   if not args.target_exp then
+      exp = self._sv.xp_rewards['base_exp_per_hit']
+   else
+      exp = args.target_exp
+   end
+   self._job_component:add_exp(exp)
 end
 
 --- Functions specific to level up

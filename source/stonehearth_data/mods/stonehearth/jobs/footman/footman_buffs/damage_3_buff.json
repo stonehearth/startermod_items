@@ -1,11 +1,11 @@
 {
    "type" : "buff",
-   "name" : "Double Damage",
-   "description" : "3rd Level Footman strike powerful blows.",
-   "icon" : "file(damage_3_buff.png)",
+   "name" : "Damage +20%",
+   "description" : "At Level 1, the footman attacks with increased ferocity",
+   "icon" : "file(damage_1_buff.png)",
    "modifiers" : {
       "multiplicative_dmg_modifier" : {
-         "add" : 1.00
+         "add" : 0.20
       }
    }
 } 

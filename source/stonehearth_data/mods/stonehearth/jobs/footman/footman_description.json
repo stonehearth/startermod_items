@@ -22,9 +22,7 @@
    "parent_job" : "stonehearth:jobs:worker", 
 
    "xp_rewards" : {
-      "attack" : 100, 
-      "defeat_enemy" : 50, 
-      "patrol" : 10
+      "base_exp_per_hit" : 20
    },
 
    "max_level" : 6, 

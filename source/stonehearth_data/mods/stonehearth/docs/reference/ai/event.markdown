@@ -79,18 +79,25 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
    
    - **combat:begin\_melee\_attack** - triggered whenever someone attacks another person in combat.
       - Key: entity that is attacking
-      - Name: stonehearth:combat:begin_melee_attack
+      - Name: stonehearth:combat:begin\_melee\_attack
       - Args: the combat context
+   - **combat:melee\_attack\_connect** - triggered whenever an attackers blow hits the target. Passing the target's health means we can also tell if we've killed the target. 
+      - Key: entity that is attacking
+      - Name: stonehearth:combat:melee\_attack\_connect
+      - Args: action_details - some data about the nature of the attack (attacker, target, damage, target_health, target_exp). Target_exp is exp per hit.
    - **combat:battery** - triggered whenever a person is hit in combat. Triggered by _combat\_service.lua_: radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
       - Key: entity that was targeted
       - Name: stonehearth:combat:battery  
-      - Args: context - some data about the nature of the attack
+      - Args: context (some details on combat action included, like attacker, target, etc)
+
+##Death
+
    - **kill_event** - triggered whenever a significant entity is killed and needs to inform its components etc that it is being destroyed. Only use if you are a component or an object related to that eneity, and must clean yourself up before the entity is destroyed. 
       - Key: entity that was killed
       - Name: stonehearth:kill_event
       - Args: none
       - Note: this is a synchronous event, so don't do anything crazy in the event handlers listening to it. On the flip side, you know the entity still exists. Please only use if you are a component on the entity and need to clean up after yourself. Otherwise, really complicated things can happen when a sync event goes off. 
-   - **entity_killed** - triggered when an entity of significance (a villager, an enemy) dies due to in-game causes. Like kill_event but is async, and should be used in preference to kill_event UNLESS you are a component or object related to the entity that must clean yourself up on its removal from the game. 
+   - **entity_killed** - triggered when an entity of significance (a villager, an enemy) dies due to in-game causes. Like kill_event but is async, and should be used in preference to kill_event UNLESS you are a component or object related to the entity that must clean yourself up on its removal from the game.
       - Key: radiant.entities 
       - Name: stonehearth:combat:entity_killed
       - Args: entity - the name, id, faction, and player_id of the entity that died
