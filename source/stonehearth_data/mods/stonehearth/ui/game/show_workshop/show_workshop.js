@@ -231,20 +231,20 @@ App.StonehearthCrafterView = App.View.extend({
       var recipe = this.getCurrentRecipe();
 
       if (workshop && recipe) {
-      self.$("#portrait").attr("src", recipe.portrait);
-      self.$("#usefulText").html(recipe.description);
-      self.$("#flavorText").html(recipe.flavor);
+         self.$("#portrait").attr("src", recipe.portrait);
+         self.$("#usefulText").html(recipe.description);
+         self.$("#flavorText").html(recipe.flavor);
 
-      if (recipe.locked) {
-         self.$("#orderOptions").hide()
-         self.$("#portrait").attr("src", '/stonehearth/ui/common/images/lock.png');
-         self.$('#unlock_description').show()
-         self.$('#description').hide()
-      } else {
-         self.$('#orderOptions').show()
-         self.$('#unlock_description').hide()
-         self.$('#description').show()
-      }
+         if (recipe.locked) {
+            self.$("#orderOptions").hide()
+            self.$("#portrait").attr("src", '/stonehearth/ui/common/images/lock.png');
+            self.$('#unlock_description').show()
+            self.$('#description').hide()
+         } else {
+            self.$('#orderOptions').show()
+            self.$('#unlock_description').hide()
+            self.$('#description').show()
+         }
       }
    },
 

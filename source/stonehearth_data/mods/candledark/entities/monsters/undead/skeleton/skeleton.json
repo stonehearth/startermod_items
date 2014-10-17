@@ -8,10 +8,19 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(skeleton.qb)"
+               "file(skeleton.qb)",
+               {
+                  "type": "one_of",
+                  "items": [
+                     "file(skeleton_head_1.qb)", 
+                     "file(skeleton_head_2.qb)", 
+                     "file(skeleton_head_3.qb)"
+                  ]
+               }
             ]
          }
-      },
+      }, 
+
       "unit_info" : {
          "name": "A Skeleton",
          "faction": "undead",
@@ -39,6 +48,20 @@
             "value" : 20
          }
       },
+
+      "stonehearth:ai" : {
+         "actions" : [
+            "stonehearth:actions:combat",
+            "stonehearth:actions:combat:panic_dispatcher",
+            "stonehearth:actions:combat:panic_watcher",
+            "stonehearth:actions:combat:stop_panicking",
+            "stonehearth:actions:combat:flee"
+         ],
+         "observers" : [
+            "stonehearth:observers:combat_panic",
+            "stonehearth:observers:avoid_threatening_entities"
+         ]         
+      },      
       "stonehearth:carry_block": {
       },
       "stonehearth:posture": [

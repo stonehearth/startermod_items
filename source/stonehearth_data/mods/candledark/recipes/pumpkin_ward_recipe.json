@@ -2,7 +2,7 @@
    "type":"recipe",
 
    "work_units"  : 3,
-   "recipe_name" : "Candeldark Pumpkin Ward",
+   "recipe_name" : "Candledark Pumpkin Ward",
    "description" : "A traditional lantern. The old man says it will keep evil spirits away at night during Candledark",
    "flavor"      : "Crazy old man. What does he know...",
    "portrait"    : "/candledark/entities/pumpkin_ward/pumpkin_ward.png",
