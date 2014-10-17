@@ -38,9 +38,6 @@ function TrapperClass:promote(json)
       self._sv.level_data = json.level_data
    end
 
-   --If we're not at level 0, apply existing perks
-   --self:_apply_existing_perks()
-
    self:_create_xp_listeners()
    self.__saved_variables:mark_changed()
 end

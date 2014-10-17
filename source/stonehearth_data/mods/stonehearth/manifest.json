@@ -260,6 +260,9 @@
       "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
 
       "buffs:trapper:speed_1" : "file(jobs/trapper/trapper_buffs/speed_1_buff)", 
+      "buffs:footman:dmg_1" : "file(jobs/footman/footman_buffs/damage_1_buff.json)",
+      "buffs:footman:dmg_2" : "file(jobs/footman/footman_buffs/damage_2_buff.json)",
+      "buffs:footman:dmg_3" : "file(jobs/footman/footman_buffs/damage_3_buff.json)",
 
       "actions:turn_to_face_entity" : "file(ai/actions/turn_to_face_entity_action.lua)",
       "actions:turn_to_face_point" : "file(ai/actions/turn_to_face_point_action.lua)",

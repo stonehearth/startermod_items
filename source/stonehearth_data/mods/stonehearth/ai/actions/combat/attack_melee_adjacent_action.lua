@@ -95,13 +95,43 @@ function AttackMeleeAdjacent:run(ai, entity, args)
          else
             -- TODO: get damage modifiers from action and attributes
             local base_damage = weapon_data.base_damage
-            local battery_context = BatteryContext(entity, target, base_damage)
+
+            -- TODO: Implement system to collect all damage types and all armor types
+            -- and then resolve to compute the final damage type. 
+            -- TODO: figure out HP progression of enemies, so this system will scale well
+            -- For example, if you melee Cthulu what elements should be in play so a high lv footman
+            -- will be able to actually make a difference?
+            -- For now, will have an additive dmg attribute, a multiplicative dmg attribute
+            -- and will apply both to this base damage number
+            -- TODO: Albert to implement more robust solution after he works on mining
+            local total_damage = self:_calculate_total_damage(entity, base_damage)
+            local battery_context = BatteryContext(entity, target, total_damage)
             stonehearth.combat:battery(battery_context)
          end
       end
    )
 
    ai:execute('stonehearth:run_effect', { effect = attack_info.name })
+end
+
+-- TODO: modify to work with final design
+-- TODO: should base damage be a range? Right now it is fixed by weapon.
+function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage)
+   local total_damage = base_damage
+   local attributes_component = entity:get_component('stonehearth:attributes')
+   if not attributes_component then 
+      return total_damage
+   end
+   local additive_dmg_modifier = attributes_component:get_attribute('additive_dmg_modifier')
+   local multiplicative_dmg_modifier = attributes_component:get_attribute('multiplicative_dmg_modifier')
+   if multiplicative_dmg_modifier then
+      local dmg_to_add = base_damage * multiplicative_dmg_modifier
+      total_damage = dmg_to_add + total_damage
+   end
+   if additive_dmg_modifier then
+      total_damage = total_damage + additive_dmg_modifier
+   end
+   return total_damage
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)

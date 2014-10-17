@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Damage +20%",
+   "description" : "At Level 1, the footman attacks with increased ferocity",
+   "icon" : "file(damage_1_buff.png)",
+   "modifiers" : {
+      "multiplicative_dmg_modifier" : {
+         "add" : 0.20
+      }
+   }
+} 

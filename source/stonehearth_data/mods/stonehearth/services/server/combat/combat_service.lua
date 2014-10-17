@@ -57,6 +57,7 @@ function CombatService:begin_assault(context)
    local combat_state = self:get_combat_state(target)
    combat_state:add_assault_event(context)
 
+   radiant.events.trigger_async(attacker, 'stonehearth:combat:begin_melee_attack', context)
    radiant.events.trigger_async(target, 'stonehearth:combat:assault', context)
    self:_set_assaulting(attacker, true)
 end
@@ -87,6 +88,7 @@ function CombatService:battery(context)
    local max_health = attributes_component:get_attribute('max_health')
    local health = attributes_component:get_attribute('health')
    local damage = context.damage
+   local target_exp = attributes_component:get_attribute('exp_per_hit')
 
    if max_health ~= nil then
       if damage >= max_health * self._hit_stun_damage_threshold then
@@ -97,14 +99,19 @@ function CombatService:battery(context)
    if health ~= nil then
       health = health - damage
       attributes_component:set_attribute('health', health)
+
+      --If health falls below 0, someone has died. That seems significant!
    end
 
    local action_details = {
       attacker = attacker,
       target = target,
-      damage = damage
+      damage = damage, 
+      target_health = health, 
+      target_exp = target_exp
    }
    radiant.events.trigger_async(radiant, 'stonehearth:combat:combat_action', action_details)
+   radiant.events.trigger_async(attacker, 'stonehearth:combat:melee_attack_connect', action_details)
    radiant.events.trigger_async(target, 'stonehearth:combat:battery', context)
 end
 
