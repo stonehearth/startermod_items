@@ -6,6 +6,7 @@
          "model_origin" : { "x": 0, "y": 0, "z": 0 },
          "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
       },
+
       "region_collision_shape" : {
          "region": [
             {
@@ -14,6 +15,14 @@
             }
          ]
       },
+      
+      "stonehearth:attributes": {
+         "menace": {
+            "type" : "basic",
+            "value" : 21
+         }
+      },
+
       "stonehearth:lamp" : {
          "light_effect" : "file(/data/effects/pumpkin_ward_light_effect/pumpkin_ward_light_effect.json)"
       },

@@ -1,0 +1,12 @@
+{
+   "scenario_data" : {
+      "bulletins" : {
+         "initial_warning" : {
+            "title" : "A strange old man approaches __town_name__",
+            "post_accept_title" : "Candledark begins in __days__",
+            "message" : "yo, pumpkins will save you. blah blah.",
+            "accepted_callback" : "_on_intro_accepted"
+         }
+      }
+   } 
+}

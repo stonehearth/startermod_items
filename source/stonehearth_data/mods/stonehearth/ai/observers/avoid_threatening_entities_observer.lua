@@ -28,8 +28,6 @@ function ThreatTracker:destroy()
    end
 end
 
---
-
 function AvoidThreateningEntities:initialize(entity)
    self._entity = entity
    self._entity_traces = {}
@@ -157,14 +155,17 @@ function AvoidThreateningEntities:_on_threat_menace_changed(threat)
 end
 
 function AvoidThreateningEntities:_is_threatening(other_entity)
-   local hostile = self:_is_hostile(other_entity)
+   local menace = self:_get_menace(other_entity)
+   if menace <= self._courage then
+      return false
+   end
 
+   local hostile = self:_is_hostile(other_entity)
    if not hostile then
       return false
    end
 
-   local menace = self:_get_menace(other_entity)
-   return menace > self._courage
+   return true
 end
 
 function AvoidThreateningEntities:_get_menace(other_entity)
@@ -174,11 +175,6 @@ function AvoidThreateningEntities:_get_menace(other_entity)
 end
 
 function AvoidThreateningEntities:_is_hostile(other_entity)
-   -- reject all inanimate objects first
-   if not has_ai(other_entity) then
-      return false
-   end
-
    if other_entity == self._entity then
       return false
    end
