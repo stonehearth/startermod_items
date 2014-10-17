@@ -25,6 +25,8 @@ public:
    H3DNode GetGroupNode() const;
    void MarkDirty(csg::Point3 const& location);
    csg::Point3 GetTileSize();
+   void AddCut(om::Region3fBoxedPtr const& cut);
+   void RemoveCut(om::Region3fBoxedPtr const& cut);
 
 private:
    void InitalizeColorMap();
@@ -60,6 +62,8 @@ private:
    DirtySet             _dirtyLayers;
    core::Guard          renderer_frame_trace_;
    csg::TagToColorMap   _colorMap;
+   std::unordered_set<om::Region3fBoxedPtr> _cuts;
+   std::unordered_map<om::Region3fBoxedPtr, dm::TracePtr> _cut_trace_map;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

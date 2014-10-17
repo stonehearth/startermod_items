@@ -50,6 +50,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       Skeleton& GetSkeleton() { return skeleton_; }
 
+	  std::shared_ptr<RenderComponent> GetComponent(std::string const& name) const;
 
       void AddQueryFlag(int flag);
       void RemoveQueryFlag(int flag);

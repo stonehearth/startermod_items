@@ -31,7 +31,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    if (_colorMap.empty()) {
       InitalizeColorMap();
    }
-
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
       csg::Point3 location = index.Scaled(_tileSize);
 
@@ -136,6 +135,40 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
       first.SetClipPlane(direction, second.GetClipPlane(neighbor));
       second.SetClipPlane(neighbor, first.GetClipPlane(direction));
    }
+}
+
+void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
+{
+	_cuts.insert(cut);
+
+	auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
+	_cut_trace_map[cut] = trace;
+
+	trace->OnChanged([cut, this](csg::Region3f const& region) {
+		// Figure out every tile affected by this changed region, and update them.
+
+		for (auto &t : tiles_) {
+			// FIXME: not quite....
+			if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
+				t.second->UpdateCut(cut);
+				MarkDirty(t.second->GetLocation());
+			}
+		}
+	})->PushObjectState();
+}
+
+void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
+{
+	_cuts.erase(cut);
+	_cut_trace_map.erase(cut);
+	auto region = cut->Get();
+	for (auto &t : tiles_) {
+		// FIXME: not quite....
+		if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
+			t.second->RemoveCut(cut);
+			MarkDirty(t.second->GetLocation());
+		}
+	}
 }
 
 void RenderTerrain::UpdateNeighbors()

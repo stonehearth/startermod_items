@@ -25,6 +25,11 @@ public:
    csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction);
    Geometry const& GetGeometry(csg::RegionTools3::Plane direction);
 
+   bool BoundsIntersect(csg::Region3 const& other) const;
+   csg::Point3 const& GetLocation() const;
+   void UpdateCut(om::Region3fBoxedPtr const& cut);
+   void RemoveCut(om::Region3fBoxedPtr const& cut);
+
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
    csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi);
@@ -39,6 +44,7 @@ private:
    Geometry                _geometry[csg::RegionTools3::NUM_PLANES];
    dm::TracePtr            _trace;
    csg::RegionTools3       _regionTools;
+   std::unordered_set<om::Region3fBoxedPtr> _cutSet;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
