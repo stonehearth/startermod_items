@@ -261,18 +261,9 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
    H3DNode node = h3dRadiantAddDebugShapes(parent, "RegionOutlineNode");
    csg::RegionTools3 tools;
-   std::unordered_set<LineSegment> edges;
 
-   tools.ForEachEdge(region, [&edges, &node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
-      LineSegment edge(edge_info.min, edge_info.max);
-      auto iterator = edges.find(edge);
-      if (iterator != edges.end()) {
-         // discard edges with the same endpoints (we don't care that their normals are different)
-         return;
-      }
-
-      edges.insert(edge);
-      h3dRadiantAddDebugLine(node, csg::ToFloat(edge.first) + offset, csg::ToFloat(edge.second) + offset, color);
+   tools.ForEachUniqueEdge(region, [&node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
+      h3dRadiantAddDebugLine(node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, color);
    });
 
    h3dRadiantCommitDebugShape(node);
