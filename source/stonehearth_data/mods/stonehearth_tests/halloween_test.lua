@@ -7,8 +7,11 @@ function HalloweenTest:__init()
    self:create_world()
 
    self:place_item('stonehearth:large_oak_tree', -25, -25)
-   self:place_citizen(2, 2)
+   self:place_citizen(2, 2, 'carpenter')
    self:place_item('candledark:pumpkin_ward', 0, 0, nil, { force_iconic = false })
+   self:place_item('stonehearth:wooden_garden_lantern', -4, -4, nil, { force_iconic = false })
+   self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
+   self:place_item_cluster('stonehearth:oak_log', -6, 11, 3, 3)
 
    --[[
    local player_id = worker:get_component('unit_info'):get_player_id()

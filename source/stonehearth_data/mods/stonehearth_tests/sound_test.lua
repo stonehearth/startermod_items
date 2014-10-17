@@ -11,9 +11,9 @@ function SoundTest:__init()
 
    --TODO: move to client-side, for example, sky-renderer would be able to call day/night effects
    --TODO: also vary based on camera position
-   --local json = {
-   --   track = 'stonehearth:music:title_screen'
-   --}
+   --Thus this test no longer works. If you are in client-side lua, you can call _radiant.call('stonehearth:play_music', {args})
+   --but since play_music is in client.cpp, you cannot call it from the server. 
+
    _radiant.audio.play_music('stonehearth:music:title_screen', 'bgm')
 
    ---[[

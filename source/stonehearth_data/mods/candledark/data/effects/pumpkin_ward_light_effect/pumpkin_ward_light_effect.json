@@ -1,27 +1,40 @@
 {
-   "type" : "effect",
+   "type": "effect",
    "tracks": {
-      "cubemitter": {
+      "glow": {
          "type": "cubemitter",
-         "cubemitter": "file(../../particles/lamp/lamp.cubemitter.json)",
+         "cubemitter": "file(../../particles/pumpkin_ward/pumpkin_ward_glow.cubemitter.json)",
+         "loop": true,
+         "transforms": {
+            "x": 0,
+            "y": 0.5,
+            "z": 0,
+            "rx": 90,
+            "ry": 0,
+            "rz": 0
+          }
+      },
+      "flame": {
+         "type": "cubemitter",
+         "cubemitter": "file(../../particles/pumpkin_ward/pumpkin_ward_fire.cubemitter.json)",
          "loop": true,
          "transforms": {
             "x":0,
-            "y":0.5,
-            "z":0.0,
+            "y":1,
+            "z":0,
             "rx":90,
             "ry":0,
             "rz":0
          }
       },
-     "light": {
+      "light": {
          "type": "light",
          "light": "animatedlights/lamp/lamp.animatedlight.json",
          "transforms": {
-            "x":0,
-            "y":1.0,
-            "z":0
-        }
-     }
+            "x": 0,
+            "y": 1,
+            "z": 0
+         }
+      }
    }
 }

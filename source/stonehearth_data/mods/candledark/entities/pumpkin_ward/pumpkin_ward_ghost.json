@@ -5,6 +5,11 @@
             "models": [
                "file(pumpkin_ward.qb)"
             ]
+         },
+         "lamp_on_hide": {
+            "models": [
+               "file(pumpkin_ward_on.qb)"
+            ]
          }
       },
       "render_info" : {
@@ -12,7 +17,7 @@
       },     
       "unit_info": {
          "name": "Pumpkin Ward",
-         "description": "A traditional lantern, built to keep evil spirits away on Candledark Eve!",
+         "description": "Keeps the undead away",
          "icon" : "file(pumpkin_ward.png)"
       },
       "stonehearth:material" : {
