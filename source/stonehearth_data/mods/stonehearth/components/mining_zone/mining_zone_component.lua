@@ -93,68 +93,69 @@ local FACE_DIRECTIONS = {
    -Point3.unit_x
 }
 
--- To make sure we mine in layers instead of digging randomly and potentially orphaning regions,
--- we only allow blocks with two or more exposed faces to be part of the destination.
--- (A block in the underlying layer can have at most 1 exposed face. Note that multiple sides
--- of the region can qualify for the "top" layer and be simultaneously minable. This algorithm
--- also works for complex non-convex regions too!)
--- Conveniently, blocks with two or more exposed faces must be on the on the edge or corner or
--- a cube3. We prioritize corners over edges because this is the 2d analog to the 3d case and
--- forces the 2d surface to be mined in layers from the outside in.
--- This algorithm works much better than assigning a fixed mining direction which only works
--- for the simplest cases.
-function MiningZoneComponent:_update_destination()
-   if self._sv.region_bounds:get_area() == 0 then
-      return
-   end
-   local location = radiant.entities.get_world_grid_location(self._entity)
+function MiningZoneComponent:_count_open_faces_for_block(point, max)
+   max = max or 2
+   local test_point = Point3()
+   local count = 0
 
-   local block_has_multiple_open_faces = function(point)
-      local world_point = point + location
-      local test_point = Point3()
-      local count = 0
+   for _, dir in ipairs(FACE_DIRECTIONS) do
+      test_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
 
-      for _, dir in ipairs(FACE_DIRECTIONS) do
-         test_point:set(world_point.x+dir.x, world_point.y+dir.y, world_point.z+dir.z)
-
-         if not radiant.terrain.is_terrain(test_point) then
-            count = count + 1
-            if count >= 2 then
-               return true
-            end
+      -- TODO: consider testing for obstruction
+      if not radiant.terrain.is_terrain(test_point) then
+         count = count + 1
+         if count >= max then
+            return count
          end
       end
+   end
 
+   return count
+end
+
+function MiningZoneComponent:_top_face_exposed(point)
+   local above_point = point + Point3.unit_y
+   local exposed = not radiant.terrain.is_terrain(above_point)
+   return exposed
+end
+
+local NON_TOP_DIRECTIONS = {
+    Point3.unit_z,
+   -Point3.unit_z,
+    Point3.unit_x,
+   -Point3.unit_x,
+   -Point3.unit_y
+}
+
+function MiningZoneComponent:_non_top_face_exposed(point)
+   local other_point = Point3()
+
+   for _, dir in ipairs(NON_TOP_DIRECTIONS) do
+      other_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
+
+      if not radiant.terrain.is_terrain(other_point) then
+         return true
+      end
+   end
+   return false
+end
+
+function MiningZoneComponent:_is_priority_block(point)
+   if not self:_top_face_exposed(point) then
       return false
    end
 
-   self._destination_component:get_region():modify(function(cursor)
-         cursor:clear()
-
-         local world_space_region = self._sv.region:get():translated(location)
-         local terrain_region = radiant.terrain.intersect_region(world_space_region)
-         terrain_region:set_tag(0)
-         terrain_region:optimize_by_merge()
-         terrain_region:translate(-location)
-
-         for cube in terrain_region:each_cube() do
-            self:_add_cube_corners_to_region(cursor, cube, block_has_multiple_open_faces)
-         end
-
-         if cursor:empty() then
-            -- add the whole region and wait for an adjacent to open up
-            cursor:add_region(terrain_region)
-         end
-      end)
-
-   self:_update_adjacent()
+   -- look for a second exposed face
+   return self:_non_top_face_exposed(point)
 end
 
-function MiningZoneComponent:_add_cube_corners_to_region(region, cube, filter_fn)
-   local inc = cube:get_size() - Point3(1, 1, 1)
+function MiningZoneComponent:_each_corner_block_in_cube(cube, cb)
+   -- subtract one because we want the max terrain block, not the bounding grid line
+   local max = cube.max - Point3.one
    local min = cube.min
-   local max = min + inc
-   local corner_cube = Cube3()
+   local inc = max - min
+   -- reuse this point to avoid inner loop memory allocation
+   local point = Point3()
 
    -- if inc.dimension is 0, skip the max cube because the min and max cubes have the same coordinates
    -- e.g. for the unit cube:
@@ -163,12 +164,8 @@ function MiningZoneComponent:_add_cube_corners_to_region(region, cube, filter_fn
    for y = min.y, max.y, inc.y do
       for z = min.z, max.z, inc.z do
          for x = min.x, max.x, inc.x do
-            corner_cube.min:set(x, y, z)
-            corner_cube.max:set(x+1, y+1, z+1)
-
-            if filter_fn(corner_cube.min) then
-               region:add_cube(corner_cube)
-            end
+            point:set(x, y, z)
+            cb(point)
 
             if inc.x == 0 then break end
          end
@@ -178,46 +175,114 @@ function MiningZoneComponent:_add_cube_corners_to_region(region, cube, filter_fn
    end
 end
 
+function MiningZoneComponent:_each_edge_block_in_cube(cube, cb)
+    -- subtract one because we want the max terrain block, not the bounding grid line
+   local max = cube.max - Point3.one
+   local min = cube.min
+   local x_face, y_face, z_face, num_faces
+   -- reuse this point to avoid inner loop memory allocation
+   local point = Point3()
+
+   local face_count = function(value, min, max)
+      if value == min or value == max then
+         return 1
+      else
+         return 0
+      end
+   end
+
+   for y = min.y, max.y do
+      y_face = face_count(y, min.y, max.y)
+      for z = min.z, max.z do
+         z_face = face_count(z, min.z, max.z)
+         for x = min.x, max.x do
+            x_face = face_count(x, min.x, max.x)
+            num_faces = x_face + y_face + z_face
+
+            -- block is an edge block when it is part of two or more faces
+            if num_faces >= 2 then
+               point:set(x, y, z)
+               cb(point)
+            end
+         end
+      end
+   end   
+end
+
+-- To make sure we mine in layers instead of digging randomly and potentially orphaning regions,
+-- we prioritize blocks with two or more exposed faces.
+function MiningZoneComponent:_update_destination()
+   if self._sv.region_bounds:get_area() == 0 then
+      return
+   end
+
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   local world_space_region = self._sv.region:get():translated(location)
+   local terrain_region = radiant.terrain.intersect_region(world_space_region)
+   terrain_region:set_tag(0)
+   terrain_region:optimize_by_merge()
+   
+   self._destination_component:get_region():modify(function(cursor)
+         -- reuse this cube to avoid inner loop memory allocation
+         local block = Cube3()
+         local world_to_local_translation = -location
+         cursor:clear()
+
+         local add_block = function(point)
+               block.min:set(point.x,   point.y,   point.z)
+               block.max:set(point.x+1, point.y+1, point.z+1)
+               block:translate(world_to_local_translation)
+               cursor:add_cube(block)
+            end
+
+         -- add high priority blocks
+         for cube in terrain_region:each_cube() do
+            self:_each_edge_block_in_cube(cube, function(point)
+                  if self:_is_priority_block(point) then
+                     add_block(point)
+                  end
+               end)
+         end
+
+         -- add the edges of the zone
+         -- local zone_region = self:get_region():get():translated(location)
+         -- for cube in zone_region:each_cube() do
+         --    self:_each_edge_block_in_cube(cube, function(point)
+         --          if radiant.terrain.is_terrain(point) and self:_top_face_exposed(point) then
+         --             add_block(point)
+         --          end
+         --       end)
+         -- end
+
+         if cursor:empty() then
+            -- add the whole region
+            terrain_region:translate(world_to_local_translation)
+            cursor:add_region(terrain_region)
+         else
+            -- mostly for debugging
+            cursor:optimize_by_merge()
+         end
+      end)
+
+   self:_update_adjacent()
+end
+
 function MiningZoneComponent:_update_adjacent()
    local location = radiant.entities.get_world_grid_location(self._entity)
    local destination_region = self._destination_component:get_region():get()
 
    self._destination_component:get_adjacent():modify(function(cursor)
-         -- reusing cube so we don't spam malloc
-         local adj_cube = Cube3()
          cursor:clear()
 
          for point in destination_region:each_point() do
-            -- TODO: define conditions for MAX_REACH_UP
-            local y_min = point.y - MAX_REACH_UP
-            local y_max = point.y + 1
             local world_point = point + location
-
-            if not radiant.terrain.is_terrain(world_point + Point3.unit_y) then
-               -- we can strike down on the adjacent block if nothing is on top of it
-               y_max = y_max + MAX_REACH_DOWN
-            end
-
-            self:_set_adjacent_column(adj_cube, point.x-1, point.z, y_min, y_max)
-            cursor:add_cube(adj_cube)
-
-            self:_set_adjacent_column(adj_cube, point.x+1, point.z, y_min, y_max)
-            cursor:add_cube(adj_cube)
-
-            self:_set_adjacent_column(adj_cube, point.x, point.z-1, y_min, y_max)
-            cursor:add_cube(adj_cube)
-
-            self:_set_adjacent_column(adj_cube, point.x, point.z+1, y_min, y_max)
-            cursor:add_cube(adj_cube)
+            local adjacent_region = stonehearth.mining:get_adjacent_for_destination_block(world_point)
+            adjacent_region:translate(-location)
+            cursor:add_region(adjacent_region)
          end
 
          cursor:optimize_by_merge()
       end)
-end
-
-function MiningZoneComponent:_set_adjacent_column(cube, x, z, y_min, y_max)
-   cube.min:set(x, y_min, z)
-   cube.max:set(x+1, y_max, z+1)
 end
 
 function MiningZoneComponent:_create_mining_task()
@@ -229,7 +294,6 @@ function MiningZoneComponent:_create_mining_task()
       return
    end
 
-   -- TODO: decide how many tasks to manage
    self._mining_task = town:create_task_for_group('stonehearth:task_group:mining',
                                                   'stonehearth:mining:mine',
                                                   {

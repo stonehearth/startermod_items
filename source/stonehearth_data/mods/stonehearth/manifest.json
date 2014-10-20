@@ -490,6 +490,7 @@
 
       "actions:mining_dispatcher" : "file(ai/actions/mining/mining_dispatcher.lua)",
       "actions:mining:mine" : "file(ai/actions/mining/mine_action.lua)",
+      "actions:mining:get_block_to_mine" : "file(ai/actions/mining/get_block_to_mine_action.lua)",
       "actions:mining:mine_adjacent" : "file(ai/actions/mining/mine_adjacent_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
