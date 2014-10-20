@@ -16,15 +16,23 @@
          ]
       },
       
-      "stonehearth:attributes": {
-         "menace": {
-            "type" : "basic",
-            "value" : 21
+      "stonehearth:lamp" : {
+         "light_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_light_effect.json)"
+      },
+
+      "sensor_list": {
+         "sensors": {
+            "aoe_damage": {
+               "radius": 24
+            }
          }
       },
 
-      "stonehearth:lamp" : {
-         "light_effect" : "file(/data/effects/pumpkin_ward_light_effect/pumpkin_ward_light_effect.json)"
+      "candledark:aoe_damage" : {
+         "sensor_name" : "aoe_damage",
+         "damage_amount" : 8,
+         "damage_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_damage_effect.json)",
+         "aoe_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_aoe_effect.json)"
       },
 
       "stonehearth:entity_forms" : {

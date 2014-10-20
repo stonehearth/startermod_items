@@ -6,7 +6,7 @@ function HalloweenTest:__init()
    self[MicroWorld]:__init(128)
    self:create_world()
 
-   local carpenter = self:place_citizen(20, 20, 'carpenter')
+   local carpenter = self:place_citizen(10, 10, 'carpenter')
    --self:place_item('stonehearth:large_oak_tree', -25, -25)
    self:place_item('candledark:pumpkin_ward', 2, 2, nil, { force_iconic = false })
 
@@ -17,8 +17,8 @@ function HalloweenTest:__init()
    stonehearth.town:get_town('player_1'):set_banner(banner_entity)
 
    --self:place_item('stonehearth:wooden_garden_lantern', -4, -4, nil, { force_iconic = false })
-   --self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
-   --self:place_item_cluster('stonehearth:oak_log', -6, 11, 3, 3)
+   self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
+   self:place_item_cluster('stonehearth:oak_log', -6, 11, 3, 3)
 
    --[[
    local player_id = worker:get_component('unit_info'):get_player_id()
@@ -34,8 +34,8 @@ function HalloweenTest:__init()
 
    -- Introduce a new person/scenario 
    self:at(200,  function()
-         stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 58 })
-         --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')
+         stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
+         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
       end)
 end
 

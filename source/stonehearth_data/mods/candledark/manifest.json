@@ -22,7 +22,23 @@
 
    "controllers" :  {
       "scenarios:candledark" : "file(scenarios/dynamic/candledark/candledark.lua)",
-      "scenarios:candledark:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)"
+      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)"
+   },
+
+   "components" : {
+      "aoe_damage" : "file(components/aoe_damage/aoe_damage_component.lua)"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/ui/bulletin/bulletin.html)"
+      ],
+      "js" : [
+         "file(/ui/bulletin/bulletin.js)"
+      ],
+      "less" : [
+         "file(/ui/bulletin/bulletin.less)"
+      ]
    }
 }
 

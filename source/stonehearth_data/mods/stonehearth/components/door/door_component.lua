@@ -27,37 +27,37 @@ function DoorComponent:destroy()
    end
 end
 
-function DoorComponent:_trace_sensor()
-   local sensor_list = self._entity:get_component('sensor_list')
-   local sensor = sensor_list:get_sensor(self._sv.sensor_name)
-   if sensor then
-      self._sensor_trace = sensor:trace_contents('door')
-                                       :on_added(function (id, entity)
-                                             self:_on_added_to_sensor(id, entity)
-                                          end)
-                                       :on_removed(function (id)
-                                             self:_on_removed_to_sensor(id)
-                                          end)
-                                       :push_object_state()
-   end
-end
-
-function DoorComponent:_on_added_to_sensor(id, entity)
-   if self:_valid_entity(entity) then
-      if not next(self._tracked_entities) then
-         -- if this is in our faction, open the door
-         self:_open_door();
+   function DoorComponent:_trace_sensor()
+      local sensor_list = self._entity:get_component('sensor_list')
+      local sensor = sensor_list:get_sensor(self._sv.sensor_name)
+      if sensor then
+         self._sensor_trace = sensor:trace_contents('door')
+                                          :on_added(function (id, entity)
+                                                self:_on_added_to_sensor(id, entity)
+                                             end)
+                                          :on_removed(function (id)
+                                                self:_on_removed_to_sensor(id)
+                                             end)
+                                          :push_object_state()
       end
-      self._tracked_entities[id] = entity
    end
-end
 
-function DoorComponent:_on_removed_to_sensor(id)
-   self._tracked_entities[id] = nil
-   if not next(self._tracked_entities) then
-      self:_close_door()
+   function DoorComponent:_on_added_to_sensor(id, entity)
+      if self:_valid_entity(entity) then
+         if not next(self._tracked_entities) then
+            -- if this is in our faction, open the door
+            self:_open_door();
+         end
+         self._tracked_entities[id] = entity
+      end
    end
-end
+
+   function DoorComponent:_on_removed_to_sensor(id)
+      self._tracked_entities[id] = nil
+      if not next(self._tracked_entities) then
+         self:_close_door()
+      end
+   end
 
 function DoorComponent:_open_door()
    if self._close_effect then

@@ -26,7 +26,7 @@ function SkeletonInvasion:start()
    end
    -- End hack
 
-   self:_schedule_next_spawn(1)
+   self:_schedule_next_spawn('30m')
 end
 
 function SkeletonInvasion:_schedule_next_spawn(t)
