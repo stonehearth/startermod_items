@@ -304,6 +304,7 @@ struct SpatialQuery
   bool useLightQueue;
   bool forceNoInstancing;
   uint32 userFlags;
+  float verticalClipMax;
 };
 
 struct RendQueueItem

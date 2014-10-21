@@ -602,6 +602,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    const int qUseLightQueue = query.useLightQueue;
    const Frustum& qFrustum = query.frustum;
    const Frustum* const qSecondaryFrustum = query.secondaryFrustum;
+   const float verticalClipMax = query.verticalClipMax;
 
    ASSERT(query.useLightQueue || query.useRenderableQueue);
 
@@ -633,6 +634,10 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
             lightQueue.push_back(node);
          } else if (qUseRenderableQueue) {
             if (!node->_renderable) {
+               continue;
+            }
+
+            if (verticalClipMax < node->_bBox.max().y) {
                continue;
             }
 
@@ -992,6 +997,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
    query.useRenderableQueue = useRenderableQueue;
    query.forceNoInstancing = forceNoInstancing;
    query.userFlags = userFlags;
+   query.verticalClipMax = Modules::renderer().getVerticalClipMax();
 
    _currentQuery = _checkQueryCache(query);
  
@@ -1020,6 +1026,7 @@ void SceneManager::updateQueues( const char* reason, const Frustum &frustum1, co
     sqr.query.useRenderableQueue = useRenderableQueue;
     sqr.query.forceNoInstancing = forceNoInstancing;
     sqr.query.userFlags = userFlags;
+    sqr.query.verticalClipMax = Modules::renderer().getVerticalClipMax();
  
    // Clear without affecting capacity
     if (useLightQueue) 
@@ -1301,7 +1308,10 @@ void SceneManager::fastCastRayInternal(int userFlags)
             continue;
          }
 
-		   Vec3f intsPos, intsNorm;
+         if (Modules::renderer().getVerticalClipMax() < sn->getBBox().max().y) {
+            continue;
+         }
+         Vec3f intsPos, intsNorm;
          if (!sn->checkIntersection(_rayOrigin, rayEnd, _rayDirection, intsPos, intsNorm))
 		   {
             continue;
@@ -1341,7 +1351,7 @@ void SceneManager::castRayInternal( SceneNode &node, int userFlags )
    if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	{
 		Vec3f intsPos, intsNorm;
-      if( (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayOrigin + _rayDirection, _rayDirection, intsPos, intsNorm ) )
+      if((Modules::renderer().getVerticalClipMax() >= node.getBBox().max().y) && (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayOrigin + _rayDirection, _rayDirection, intsPos, intsNorm ) )
 		{
 			float dist = (intsPos - _rayOrigin).length();
 
@@ -1510,6 +1520,11 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
       }
 
       if (query.frustum != r.query.frustum)
+      {
+         continue;
+      }
+
+      if (query.verticalClipMax != r.query.verticalClipMax) 
       {
          continue;
       }

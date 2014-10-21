@@ -225,6 +225,10 @@ public:
 
    void setGlobalUniform(const char* uniName, UniformType::List kind, void* value);
 
+   void setVerticalClipMax(float value);
+   void clearVerticalClipMax();
+   float getVerticalClipMax() const;
+
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
    bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes);
@@ -322,6 +326,7 @@ protected:
 
    float                              _lod_polygon_offset_x;
    float                              _lod_polygon_offset_y;
+   float                              _verticalClipMax;
 
 public:
    // needed to draw debug shapes in extensions!
