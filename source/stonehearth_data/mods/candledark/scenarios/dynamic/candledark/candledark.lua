@@ -2,32 +2,20 @@ local Candledark = class()
 local rng = _radiant.csg.get_default_rng()
 
 function Candledark:initialize()
-   self._sv.player_id = 'player_1'
-   self._sv.nights_survived = 0
-   self._sv.nights_until_candledark = 3
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
+   
+   self._sv.player_id = 'player_1'
+   self._sv.nights_until_candledark = self._scenario_data.config.nights_until_candledark
+   self._sv.candledark_duration = self._scenario_data.config.candledark_duration
+   self._sv.nights_survived = 0
 
    self.__saved_variables:mark_changed()
-end
-
-function Candledark:restore()
-   --If we made an expire timer then we're waiting for the player to acknowledge the traveller
-   --Start a timer that will expire at that time
-   --[[
-   if self._sv.timer_expiration then
-      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
-         local duration = self._sv.timer_expiration - stonehearth.calendar:get_elapsed_time()
-         self:_create_timer(duration)
-         return radiant.events.UNLISTEN
-      end)
-   end
-   ]]
 end
 
 function Candledark:start()
    self:_post_intro_bulletin()
    --stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
-   self._night_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
+   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
 end
 
 function Candledark:_post_intro_bulletin()
@@ -51,6 +39,7 @@ function Candledark:_on_intro_accepted()
    self:_update_bulletin()
 end
 
+-- Update the bulletin with the days remaining until Candledark starts
 function Candledark:_update_bulletin()
    if self._sv.bulletin ~= nil then
       local title = self._scenario_data.bulletins.initial_warning.post_accept_title
@@ -66,25 +55,39 @@ end
 function Candledark:_on_sunset()
    self._sv.nights_until_candledark = self._sv.nights_until_candledark - 1
    
-   -- end the scenario if the player has suvived 3 nights
-   if self._sv.nights_survived == 3 then
+   if self._sv.nights_survived == self._sv.candledark_duration then
+      -- End the scenario if the player has suvived the length of candledark   
+
+      -- nuke the old bulletin
+      stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+
+      -- post a new bulletin announcing the end of candledark
+      local bulletin_data = self._scenario_data.bulletins.candledark_end
+      self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+         :set_ui_view('StonehearthQuestBulletinDialog')
+         :set_callback_instance(self)
+         :set_type('quest')
+         :set_close_on_handle(true)
+         :set_data(bulletin_data)
+
       self:destroy();
+      return
    end
 
    if self._sv.nights_until_candledark > 0 then
+      -- Candledark hasn't arrived. Update the bulletin with the days remaining
       self:_update_bulletin()
-   elseif self._sv.nights_until_candledark <= 0 then
-
-      -- the first time only
+   else 
+      -- Candledark has arrived
+      
+      -- The first night only, make a new bulletin announcing the arrival of Candledark
       if self._sv.nights_until_candledark == 0 then
          -- nuke the old bulletin
          stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
-         self._sv.bulletin = nil
          
          -- post a new one telling the player that candledark has begun!
-         local bulletin_data = self._scenario_data.bulletins.candledark_eve
-
-         stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+         local bulletin_data = self._scenario_data.bulletins.candledark_start
+         self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
             :set_ui_view('StonehearthQuestBulletinDialog')
             :set_callback_instance(self)
             :set_type('quest')
@@ -93,18 +96,39 @@ function Candledark:_on_sunset()
       end
 
       -- time for skeletons!      
-      radiant.set_realtime_timer(1500 * 10, function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')   
-      end)
       self._sv.nights_survived = self._sv.nights_survived + 1
+
+      radiant.set_realtime_timer(100 * 15, function() --XXX CHANGE THIS TO 1000 BEFORE SHIPPING
+         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
+      end)
+
+      self.__saved_variables:mark_changed()
       
    end
 end
 
+-- Called when the player clicks the "accept" button in the final bulletin in the scenario.
+-- Spawn a bunch of candy around the banner
+function Candledark:_on_survived_accepted()
+
+   local town = stonehearth.town:get_town(self._sv.player_id)
+   local banner = town:get_banner()
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   
+   if not drop_origin then
+      return false
+   end
+
+   local items = {}
+   items['candledark:candy_basket'] = 9
+
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
+end
+
 function Candledark:destroy()
-   if self._night_listener ~= nil then
-      self._night_listener:destroy()
-      self._night_listener = nil
+   if self._sunset_listener ~= nil then
+      self._sunset_listener:destroy()
+      self._sunset_listener = nil
    end
 end
 

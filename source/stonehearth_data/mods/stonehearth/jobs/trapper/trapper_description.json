@@ -94,7 +94,7 @@
       "5" : {
          "perks" : [
             {
-               "perk_name" : "Toothier Traps (TODO)", 
+               "perk_name" : "Toothier Traps", 
                "perk_id" : "trapper_critter_enhancement",
                "icon" : "file(images/trapperLevel5.png)", 
                "level" : 5, 
@@ -105,7 +105,7 @@
       "6" : {
          "perks" : [
             {
-               "perk_name" : "The Deadliest Catch (TODO)", 
+               "perk_name" : "The Deadliest Catch", 
                "perk_id" : "trapper_defensive_traps",
                "icon" : "file(images/trapperLevel6.png)", 
                "level" : 6, 
