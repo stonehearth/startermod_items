@@ -6,6 +6,7 @@
    "description" : "Lets people through your picket fence.",
    "flavor"      : "Hope you like your neighbors!",
    "portrait"    : "/stonehearth/entities/construction/picket_fence_gate/picket_fence_gate.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

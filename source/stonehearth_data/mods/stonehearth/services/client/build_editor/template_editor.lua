@@ -6,6 +6,8 @@ local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Quaternion = _radiant.csg.Quaternion
 
+local OFFSCREEN = Point3(0, -100000, 0)
+
 local TemplateEditor = class()
 
 function TemplateEditor:__init(build_service)
@@ -18,8 +20,14 @@ function TemplateEditor:_restore_template(template_name)
    if template then
       self._building = radiant.entities.create_entity('stonehearth:entities:building')
       build_util.restore_template(self._building, template_name, { mode = 'preview'})
+
+      local bounds = build_util.get_building_bounds(self._building)
+      self._center_offset = Point3(bounds.max.x / 2, 0, bounds.max.z / 2):to_int();
+      radiant.entities.move_to(self._building, -self._center_offset)
+
       radiant._authoring_root_entity:add_component('entity_container'):add_child(self._building)
-      self._render_entity = _radiant.client.create_render_entity(1, self._building)      
+      self._render_entity = _radiant.client.create_group_node(1)
+      self._building_render_entity = _radiant.client.create_render_entity(self._render_entity:get_node(), self._building)
    end
 end
 
@@ -44,13 +52,15 @@ function TemplateEditor:go(response, template_name)
             return true
          end)
       :progress(function(selector, location, rotation)
-            if not location then
-               location = Point3(0, -100000, 0)
+            if location then
+               self._render_entity:set_position(location)
+               self._render_entity:set_rotation(Point3(0, rotation, 0))               
+            else
+               self._render_entity:set_position(OFFSCREEN)
             end
-            radiant.entities.move_to(self._building, location)
          end)
       :done(function(selector, location, rotation)
-            _radiant.call_obj(self._build_service, 'build_template_command', template_name, location, rotation)
+            _radiant.call_obj(self._build_service, 'build_template_command', template_name, location, self._center_offset, rotation)
                :done(function(r)
                      if r.new_building then
                         stonehearth.selection:select_entity(r.new_building)

@@ -85,6 +85,12 @@ function client_entities.move_to(entity, location)
    entity:add_component('mob'):set_location_grid_aligned(location)
 end
 
+function client_entities.turn_to(entity, degrees)
+   radiant.check.is_entity(entity)
+   radiant.check.is_number(degrees)
+   entity:add_component('mob'):turn_to(degrees)
+end
+
 function client_entities.add_child(parent, child, location)
    radiant.check.is_entity(parent)
    radiant.check.is_entity(child)

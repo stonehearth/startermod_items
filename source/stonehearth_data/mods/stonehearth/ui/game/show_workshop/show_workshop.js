@@ -35,6 +35,9 @@ App.StonehearthCrafterView = App.View.extend({
                "craftable_recipes" : {
                   "recipes" : []
                }
+            }, 
+            'stonehearth:job' : {
+               'curr_job_controller' : {}
             }
          },
          "order_list" : {
@@ -43,7 +46,6 @@ App.StonehearthCrafterView = App.View.extend({
             }
          }
       }
-
    },
 
    modal: true,
@@ -53,6 +55,7 @@ App.StonehearthCrafterView = App.View.extend({
    initialized: false,
    currentRecipe: null,
    isPaused: false,
+   curr_class: null,
 
    //alias because the colon messes up bindAttr
    skinClass: function() {
@@ -90,6 +93,32 @@ App.StonehearthCrafterView = App.View.extend({
    _formatRecipeIngredients: function() {
 
    }.observes('view.currentRecipe'),
+
+   //Updates the recipe display
+   _updateRecipesOnLevel: function() {
+      Ember.run.scheduleOnce('afterRender', this, '_updateRecipesNow');
+   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_controller'),
+
+   //When this view is initialized, it should remember what type of crafter it's associated with
+   //don't update if that's not the current class
+   //TODO: test with a dude who has multiple crafter classes (eep)
+   _updateRecipesNow: function() {
+      var curr_job_controller_data = this.get('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_controller');
+      if (this.curr_class == null) {
+         this.curr_class = curr_job_controller_data.job_name;
+      } else if (this.curr_class != curr_job_controller_data.job_name) {
+         //If this update does not pertain to the class that this workshop is for, then just return.
+         return;
+      }
+
+      //All the recipes start hidden
+      //If a recipe has a level requirement lower than or equal to the
+      //current level in this class show it.
+      var curr_level = curr_job_controller_data.last_gained_lv;
+      for (var i = 0; i <= curr_level; i++) {
+         $("#recipeItems").find("[unlock_level='" + i +"']").css('display', 'flex');
+      }
+   },
 
    actions: {
 
@@ -321,7 +350,7 @@ App.StonehearthCrafterView = App.View.extend({
       }).focus();
       
       // select the first recipe
-      this.$("#recipeItems").find("a")[0].click();
+      this.$("#recipeItems").find("[unlock_level='0']")[0].click();
      
    },
 

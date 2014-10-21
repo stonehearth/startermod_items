@@ -40,7 +40,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    //The array-ized job data
    all_job_data: null, 
 
-   //When we get job data from the server, turn maps into arrays and store in all)job_data
+   //When we get job data from the server, turn maps into arrays and store in all_job_data
    _create_job_data_array: function() {
       var self = this;
       self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.jobComponents);
@@ -110,9 +110,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       //For good measure, throw the level into the class name header or remove if the level is 0
       if (target_level == 0) {
-         $(target_div).find('.lvlTitle').text('(' + i18n.t('stonehearth:apprentice') + ')');
+         $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:apprentice'));
       } else {
-         $(target_div).find('.actualLevelTxt').text(target_level);
+         $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:level_text') + target_level );
       }
    },
 

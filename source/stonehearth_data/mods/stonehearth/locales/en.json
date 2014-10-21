@@ -158,6 +158,7 @@
    "morale" : "morale",
    "experience" : "experience", 
    "max_level" : "Max Level!!!", 
+   "level_text" : "Level ",
    "level_abbreviation" : "Lvl",
    "locked_status" : " (Locked)",
    "apprentice" : "Apprentice",

@@ -82,7 +82,7 @@ end
 
 function FootmanClass:_on_attack(args)
    --For debug purposes   
-   --self._job_component:add_exp(100)r
+   --self._job_component:add_exp(70)
 end
 
 -- Whenever you do damage, you get XP equal to the target's menace

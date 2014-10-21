@@ -133,3 +133,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: The trapper
       - Name: stonehearth:set\_trap
       - Args: none
+
+##Crafting
+
+   - **crafter:craft\_item** - triggered when the crafter finishes making an item
+      - Key: the crafter
+      - Name: stonehearth:crafter:craft\_item
+      - Args: crafting data, containing recipe_data (the recipe json) and product (the item crafted, may be iconic)

@@ -98,8 +98,10 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    return craftable_recipes
 end
 
--- Add the made parameter to the recipe data
+--Prep the recipe data with any default values
 function CrafterComponent:_initialize_recipe_data(recipe_data)
+   --[[
+   --Useful for locked recipes (currently not in use, comment out code)
    if recipe_data.locked and recipe_data.requirement then
       if recipe_data.requirement.type == 'unlock_on_make' then
          for i, prerequisite in ipairs(recipe_data.requirement.prerequisites) do
@@ -109,8 +111,21 @@ function CrafterComponent:_initialize_recipe_data(recipe_data)
    else
       recipe_data.locked = false
    end
+   ]]
+   if not recipe_data.level_requirement then
+      recipe_data.level_requirement = 0
+   end
 end
 
+
+--[[
+   Code relevant to whether or not we've unlcoked some recipe based on num made
+   Currently not in use for gameplay reasons
+]]
+
+-- Add the made parameter to the recipe data
+
+--[[
 -- Check to see if any locked recipes are unlocked yet
 function CrafterComponent:update_locked_recipes(new_crafted_item_uri)
    for i, category_ui_info in ipairs(self._sv.craftable_recipes) do
@@ -130,6 +145,7 @@ function CrafterComponent:update_locked_recipes(new_crafted_item_uri)
    self.__saved_variables:mark_changed()
 end
 
+
 function CrafterComponent:_test_for_unlock(recipe_data)
    local unlock = true
    if recipe_data.locked and recipe_data.requirement then
@@ -146,6 +162,8 @@ function CrafterComponent:_test_for_unlock(recipe_data)
       recipe_data.locked = false
    end
 end
+]]
+--[[End code relevant to whether or not we've unlcoked some recipe based on num made ]]
 
 --[[
 --TODO: test this with a scenario

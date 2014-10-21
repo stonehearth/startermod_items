@@ -1,5 +1,6 @@
-local Point2 = _radiant.csg.Point2
-local Rect2 = _radiant.csg.Rect2
+local build_util = require 'lib.build_util'
+
+local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local TraceCategories = _radiant.dm.TraceCategories
 
@@ -60,7 +61,6 @@ function NoConstructionZoneComponent:add_structure(structure)
    if not self._sv.structures[id] then
       local destination = structure:get_component('destination')
       if destination then
-         local region = destination:get_region()
          local structure_type
          for _, t in ipairs(STRUCTURE_TYPES) do
             if structure:get_component(t) then
@@ -73,7 +73,6 @@ function NoConstructionZoneComponent:add_structure(structure)
          end
 
          self._sv.structures[id] = {
-            region = region,
             structure = structure,
             structure_type = structure_type
          }
@@ -164,7 +163,8 @@ function NoConstructionZoneComponent:_update_no_construction_shape()
             local position = radiant.entities.get_world_grid_location(entry.structure)
             local offset = position - origin
             
-            for cube in entry.region:get():each_cube() do
+            local region = structure:get_component('destination'):get_region():get()
+            for cube in region:each_cube() do
                cube:translate(offset)
                self:_add_slice_for_cube(structure, structure_type, cube, cursor)
             end
@@ -242,13 +242,66 @@ function NoConstructionZoneComponent:_add_slice_for_cube(structure, structure_ty
    elseif structure_type == WALL then
       local normal = structure:get_component('stonehearth:construction_data')
                                  :get_normal()
-                                 :scaled(2)
+                                 :scaled(1.5)
       if normal.x < 0 or normal.z < 0 then
          region:add_cube(Cube3(cube.min + normal, cube.max))
       else
          region:add_cube(Cube3(cube.min, cube.max + normal))
       end
    end
+end
+
+
+function NoConstructionZoneComponent:save_to_template()
+   local structures = {}
+   for id, entry in pairs(self._sv.structures) do
+      structures[id] = {
+         structure = entry.structure:get_id(),
+         structure_type = entry.structure_type
+      }
+   end
+
+   return {
+      shape = self._region:get(),
+      structures = structures,
+      building_entity = build_util.pack_entity(self._sv.building_entity),
+   }
+end
+
+function NoConstructionZoneComponent:load_from_template(template, options, entity_map)
+   self._sv.structures = {}
+   for id, entry in pairs(template.structures) do
+      self._sv.structures[id] = {
+         structure = entity_map[entry.structure],
+         structure_type = entry.structure_type,
+      }
+   end
+
+   self._sv.building_entity = build_util.unpack_entity(template.building_entity, entity_map)
+
+   self._region = radiant.alloc_region3()
+   self._region:modify(function(cursor)
+         cursor:load(template.shape)
+      end)
+   self._entity:add_component('region_collision_shape')
+                  :set_region(self._region)
+
+   self.__saved_variables:mark_changed()
+
+   radiant.events.listen_once(entity_map, 'finished_loading', function()
+         for id, entry in pairs(self._sv.structures) do
+            self:_trace_structure(id, entry.structure)
+         end
+      end)
+end
+
+function NoConstructionZoneComponent:rotate_structure(degrees)
+   self._region:modify(function(cursor)
+      local origin = Point3(0.5, 0.0, 0.5)
+      cursor:translate(-origin)
+      cursor:rotate(degrees)
+      cursor:translate(origin)
+   end)
 end
 
 return NoConstructionZoneComponent

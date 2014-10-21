@@ -143,8 +143,17 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       self._workshop:add_component('entity_container'):add_child(item)
 
       --Tell the crafter to update its recipe requirements
-      local crafter_component = self._crafter:get_component('stonehearth:crafter')
-      crafter_component:update_locked_recipes(item:get_uri())
+      --TODO: consider adding this back if we ever implement make X to get Y recipes
+      --local crafter_component = self._crafter:get_component('stonehearth:crafter')
+      --crafter_component:update_locked_recipes(item:get_uri())
+
+      --send event that the carpenter has finished an item
+      local crafting_data = {
+         recipe_data = recipe, 
+         product = item
+      }
+      radiant.events.trigger_async(self._crafter, 'stonehearth:crafter:craft_item', crafting_data)
+
    end
 end
 

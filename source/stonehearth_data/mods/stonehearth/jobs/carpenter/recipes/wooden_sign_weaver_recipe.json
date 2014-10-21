@@ -6,6 +6,7 @@
    "description" : "A sign with the mark of the Weaver, to be placed on buildings.",
    "flavor"      : "Artisinally crafted fabrics and plushies!",
    "portrait"    : "/stonehearth/entities/decoration/wooden_sign_weaver/wooden_sign_weaver.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

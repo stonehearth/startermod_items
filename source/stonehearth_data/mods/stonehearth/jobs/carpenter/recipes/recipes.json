@@ -1,14 +1,14 @@
 {
    "craftable_recipes" : {
       "Tools & Weapons" : {
+         "weaver_spindle" : {
+            "uri" : "file(weaver_spindle_recipe.json)"
+         },
          "hoe" : {
             "uri" : "file(hoe_recipe.json)"
          },
          "wooden_sword" : {
             "uri" : "file(wooden_sword_recipe.json)"
-         },
-         "weaver_spindle" : {
-            "uri" : "file(weaver_spindle_recipe.json)"
          }
       },
       "Building Parts" : {

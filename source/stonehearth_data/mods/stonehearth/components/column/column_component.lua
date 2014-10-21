@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Column = class()
@@ -72,6 +73,10 @@ end
 
 function Column:load_from_template(data, options, entity_map)
    -- nothing to do!   
+end
+
+function Column:rotate_structure(degrees)
+   build_util.rotate_structure(self._entity, degrees)
 end
 
 return Column

@@ -6,6 +6,7 @@
    "description" : "Its padded seat guarantees a 98% reducion in awkward splinters!",
    "flavor"      : "If pillows are good for the head, surely they're even better for the butt and back!",
    "portrait"    : "/stonehearth/entities/furniture/comfy_chair/comfy_chair.png",
+   "level_requirement" : 2,
 
    "ingredients": [
       {

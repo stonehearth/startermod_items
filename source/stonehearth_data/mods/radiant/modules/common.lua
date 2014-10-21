@@ -7,3 +7,10 @@ function radiant.keys(t)
    end
    return keys
 end
+
+function radiant.alloc_region3()
+   if _radiant.client then
+      return _radiant.client.alloc_region3()
+   end
+   return _radiant.sim.alloc_region3()
+end

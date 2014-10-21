@@ -39,5 +39,75 @@
          { "material" : "wood resource", "count" : 1 }
       ]
    },
-   "parent_job" : "stonehearth:jobs:worker"
+   "parent_job" : "stonehearth:jobs:worker", 
+
+   "xp_rewards" : {
+      "craft_level_0" : 30, 
+      "craft_level_1" : 50, 
+      "craft_level_2" : 75,
+      "craft_level_3" : 100, 
+      "craft_level_4" : 150,
+      "craft_level_5" : 200
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "perk_name" : "Standard Catalog", 
+               "perk_id" : "crafter_recipe_unlock_1", 
+               "icon" : "file(images/carpenterLv1.png)", 
+               "description" : "The carpenter can now make a solid array of basic furniture.", 
+               "level" : 1
+            }
+         ]
+      }, 
+      "2" : {
+         "perks" : [
+            {
+               "perk_name" : "Collaborative Insight", 
+               "perk_id" : "crafter_recipe_unlock_2", 
+               "icon" : "file(images/carpenterLv2.png)", 
+               "description" : "The carpenter is now skillful enough to use materials created by other crafters.", 
+               "level" : 2
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "perk_name" : "Artistic Inspiration", 
+               "perk_id" : "crafter_recipe_unlock_3", 
+               "icon" : "file(images/carpenterLv3.png)", 
+               "description" : "When inspiration strikes, the carpenter may embellish his works in unexpected ways.", 
+               "level" : 3
+            }
+         ]
+      },
+      "4" : {
+         "perks" : [
+            {
+               "perk_name" : "Ingenuity Enhancements", 
+               "perk_id" : "crafter_recipe_unlock_4", 
+               "icon" : "file(images/carpenterLv4.png)", 
+               "description" : "The carpenter adds new levels of functionality to classic recipes.", 
+               "level" : 4
+            }
+         ]
+      },
+      "6" : {
+         "title" : "Master Carpenter",
+         "perks" : [
+            {
+               "perk_name" : "10,000 Hours", 
+               "perk_id" : "crafter_recipe_unlock_6", 
+               "icon" : "file(images/carpenterLv6.png)", 
+               "description" : "The carpenter's mastery of his trade allows him to come up with completely new ways of using wood.", 
+               "level" : 6
+            }
+         ]
+      }
+   }
 }

@@ -26,6 +26,7 @@
                "stonehearth:actions:teardown_structure_adjacent",
                "stonehearth:actions:mining_dispatcher",
                "stonehearth:actions:mining:mine",
+               "stonehearth:actions:mining:get_block_to_mine",
                "stonehearth:actions:mining:mine_adjacent"
             ],
             "observers" : [

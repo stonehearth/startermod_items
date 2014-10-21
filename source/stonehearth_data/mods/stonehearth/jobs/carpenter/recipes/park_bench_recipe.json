@@ -6,7 +6,7 @@
    "description" : "Outdoor seating for moments of relaxation.",
    "flavor"      : "Life is like a plate of berries.",
    "portrait"    : "/stonehearth/entities/furniture/park_bench/park_bench.png",
-
+   "level_requirement" : 1,
    "ingredients": [
       {
          "material" : "wood resource",

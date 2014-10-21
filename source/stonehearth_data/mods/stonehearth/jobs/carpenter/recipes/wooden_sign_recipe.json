@@ -6,6 +6,7 @@
    "description" : "A generic sign, to identify your buildings",
    "flavor"      : "But if it's *generic*, how will...? NM. (-sdee)",
    "portrait"    : "/stonehearth/entities/decoration/wooden_sign/wooden_sign.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

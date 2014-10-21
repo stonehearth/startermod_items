@@ -73,6 +73,12 @@ function LocationSelector:set_rotation(rotation)
    if self._cursor_entity then
       self._cursor_entity:add_component('mob'):turn_to(self._rotation)
    end
+
+   -- if the user installed a progress handler, go ahead and call it now
+   if self._progress_cb then
+      self._progress_cb(self, self._pt, self._rotation)
+   end
+
    return self
 end
 
@@ -169,6 +175,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    end
 
    local pt = self:_get_selected_brick(mouse_pos.x, mouse_pos.y)
+   self._pt = pt
    if self._cursor_entity then
       -- move the  cursor, if one was specified.   
       radiant.entities.move_to(self._cursor_entity, pt or OFFSCREEN)      
@@ -176,7 +183,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
 
    -- if the user installed a progress handler, go ahead and call it now
    if self._progress_cb then
-      self._progress_cb(self, pt, self._rotation)
+      self._progress_cb(self, self._pt, self._rotation)
    end
 
    -- early exit if the ray missed the entire world   
