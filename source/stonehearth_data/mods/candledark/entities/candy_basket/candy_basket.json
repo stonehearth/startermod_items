@@ -1,0 +1,35 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 3,
+         "maxStacks" : 3
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(candy_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Candy basket",
+         "description": "C'mon, it's Candy!",
+         "icon" : "file(candy_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "food_container"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "candledark:candy_serving",
+         "stacks_per_serving": 3
+      }
+   }
+}

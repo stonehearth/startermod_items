@@ -16,6 +16,12 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       self.$('#declineButton').click(function() {
          self._triggerCallbackAndDestroy('declined_callback');
       });
+
+      var cssClass = self.get('context.data.cssClass');
+      
+      if (cssClass) {
+         self.$('.bulletinDialog').addClass(cssClass);
+      }
    },
 
    _triggerCallbackAndDestroy: function(callback_key) {
