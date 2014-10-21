@@ -44,7 +44,7 @@
                "type" : "apply_buff", 
                "perk_name" : "Speed Up 10%", 
                "perk_id" : "trapper_speed_up_1", 
-               "icon" : "file(images/trapperLevel1.png)",
+               "icon" : "file(images/speed_up.png)",
                "buff_name" : "stonehearth:buffs:trapper:speed_1",
                "description" : "Long walks have increased the trapper's foot speed.",
                "level" : 1, 
@@ -56,11 +56,11 @@
          "perks" : [
             {
                "type" : "add_equipment", 
-               "perk_name" : "Natural Empathy", 
+               "perk_name" : "Charm Pet", 
                "perk_id" : "trapper_natural_empathy_1", 
-               "icon" : "file(images/trapperLevel2.png)",
+               "icon" : "file(images/charm_pet.png)",
                "equipment" : "stonehearth:trapper:pet_treat_bag",
-               "description" : "The trapper may occasionally choose to turn a particulary fine animal into a pet.",
+               "description" : "The trapper will occasionally choose to turn a particulary fine animal into a pet!",
                "level" : 2, 
                "demote_fn" : "remove_equipment"
             }
@@ -71,7 +71,7 @@
             {
                "perk_name" : "Efficient Cuts", 
                "perk_id" : "trapper_efficient_rendering", 
-               "icon" : "file(images/trapperLevel3.png)",
+               "icon" : "file(images/loot_up.png)",
                "description" : "Long practice helps the trapper salvage more from each animal.",
                "level" : 3
             }
@@ -83,7 +83,7 @@
                "type" : "increase_backpack_size",
                "perk_name" : "Backpack Size +8", 
                "perk_id" : "trapper_backpack_bonus_1",
-               "icon" : "file(images/trapperLevel4.png)", 
+               "icon" : "file(images/backpack_up.png)", 
                "backpack_size_increase" : "8",
                "level" : 4, 
                "description" : "The trapper has become more efficient at packing in the loot.", 

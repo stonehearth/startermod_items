@@ -18,6 +18,7 @@
       "unit_info": {
          "name": "Pumpkin Ward",
          "description": "Keeps the undead away",
+         "faction" : "civ",
          "icon" : "file(pumpkin_ward.png)"
       },
       "stonehearth:material" : {

@@ -6,6 +6,7 @@
          "model_origin" : { "x": 0, "y": 0, "z": 0 },
          "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
       },
+
       "region_collision_shape" : {
          "region": [
             {
@@ -14,8 +15,24 @@
             }
          ]
       },
+      
       "stonehearth:lamp" : {
-         "light_effect" : "file(/data/effects/pumpkin_ward_light_effect/pumpkin_ward_light_effect.json)"
+         "light_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_light_effect.json)"
+      },
+
+      "sensor_list": {
+         "sensors": {
+            "aoe_damage": {
+               "radius": 24
+            }
+         }
+      },
+
+      "candledark:aoe_damage" : {
+         "sensor_name" : "aoe_damage",
+         "damage_amount" : 8,
+         "damage_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_damage_effect.json)",
+         "aoe_effect" : "file(/data/effects/pumpkin_ward/pumpkin_ward_aoe_effect.json)"
       },
 
       "stonehearth:entity_forms" : {

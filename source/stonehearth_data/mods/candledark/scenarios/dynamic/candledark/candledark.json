@@ -1,0 +1,16 @@
+{
+   "scenario_data" : {
+      "bulletins" : {
+         "initial_warning" : {
+            "title" : "A mysterious old man approaches...",
+            "post_accept_title" : "Nights until Candledark Eve: __days__",
+            "message" : "\"Beware the nights of Candledark! In three days time, the spirits will rise wreak havoc for the living.<p>Pumpkin wards will protect you. Ask your Carpenter about them.\"",
+            "accepted_callback" : "_on_intro_accepted"
+         },
+         "candledark_eve" : {
+            "title" : "Candledark Eve is here!",
+            "message" : "And....nothing. Crazy old man and his superstitious ramblings..."
+         }
+      }
+   } 
+}

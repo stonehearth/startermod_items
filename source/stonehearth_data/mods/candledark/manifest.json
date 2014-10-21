@@ -3,14 +3,17 @@
       "name" : "Candledark"
    },
 
+   "server_init_script" : "file(candledark_server)",
+
    "aliases" : {
       "kingdoms:undead" : "file(population/undead_population.json)",
       
       "pumpkin_ward" : "file(entities/pumpkin_ward/pumpkin_ward.json)",
       "lantern" : "file(entities/wooden_garden_lantern/wooden_garden_lantern.json)",
-      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton.json)",
+      "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton/skeleton.json)",
       
-      "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)"
+      "scenarios:candledark" : "file(scenarios/dynamic/candledark/candledark.json)",
+      "scenarios:candledark:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)"
    }, 
 
    "mixintos": {
@@ -18,7 +21,24 @@
    },
 
    "controllers" :  {
+      "scenarios:candledark" : "file(scenarios/dynamic/candledark/candledark.lua)",
       "scenarios:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.lua)"
+   },
+
+   "components" : {
+      "aoe_damage" : "file(components/aoe_damage/aoe_damage_component.lua)"
+   },
+
+   "ui" :  {
+      "html" : [
+         "file(/ui/bulletin/bulletin.html)"
+      ],
+      "js" : [
+         "file(/ui/bulletin/bulletin.js)"
+      ],
+      "less" : [
+         "file(/ui/bulletin/bulletin.less)"
+      ]
    }
 }
 

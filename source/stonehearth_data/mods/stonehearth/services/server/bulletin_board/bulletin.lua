@@ -35,7 +35,7 @@ function Bulletin:set_sticky(sticky)
 end
 
 function Bulletin:get_ui_view()
-   return self._sv.ui_view
+   return self._sv.ui_view or 'StonehearthGenericBulletinDialog'
 end
 
 function Bulletin:set_ui_view(ui_view)

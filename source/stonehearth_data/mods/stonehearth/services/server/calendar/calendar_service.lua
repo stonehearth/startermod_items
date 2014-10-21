@@ -49,7 +49,7 @@ function CalendarService:initialize()
       
       -- When you change the start time change these to match
       self._sv._fired_sunrise_today = true
-      self._sv._fired_noon_today = true
+      self._sv._fired_noon_today = false
       self._sv._fired_sunset_today = false
       self._sv._fired_midnight_today = false
    end
