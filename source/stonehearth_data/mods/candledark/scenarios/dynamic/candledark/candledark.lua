@@ -4,7 +4,7 @@ local rng = _radiant.csg.get_default_rng()
 function Candledark:initialize()
    self._sv.player_id = 'player_1'
    self._sv.nights_survived = 0
-   self._sv.nights_until_candledark = 1
+   self._sv.nights_until_candledark = 3
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
 
    self.__saved_variables:mark_changed()
