@@ -144,20 +144,28 @@ void ResourceManager2::LoadModules()
 {
    fs::directory_iterator const end;
    
+   // directories have priority - install them first
    for (fs::directory_iterator i(resource_dir_); i != end; i++) {
       fs::path const path = i->path();
 
       if (fs::is_directory(path)) {
-         // directories have priority - install them first
          std::string const module_name = path.filename().string();
          ASSERT(!stdutil::contains(modules_, module_name));
          modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
          _modDirectoryChanged = true;
-      } else if (fs::is_regular_file(path) && path.filename().extension() == ".smod") {
-         // load zip modules only if the coresponding zip file does not exist
+      }
+   }
+
+   // load zip modules only if the coresponding zip file does not exist
+   for (fs::directory_iterator i(resource_dir_); i != end; i++) {
+      fs::path const path = i->path();
+
+      if (fs::is_regular_file(path) && path.filename().extension() == ".smod") {
          std::string const module_name = path.filename().stem().string();
          
-         ASSERT(!stdutil::contains(modules_, module_name));
+         if (stdutil::contains(modules_, module_name)) {
+            continue;
+         }
          modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
          if (!_modDirectoryChanged) {
             std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name), "");
