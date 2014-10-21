@@ -2228,3 +2228,6 @@ DLL void h3dAdvanceAnimatedTextureTime(float timeDelta);
 
 DLL void h3dSetCurrentRenderTime( float time );
 
+DLL void h3dSetVerticalClipMax(float value);
+
+DLL void h3dClearVerticalClipMax();
