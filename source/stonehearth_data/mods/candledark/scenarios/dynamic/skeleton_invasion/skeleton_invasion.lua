@@ -14,14 +14,13 @@ function SkeletonInvasion:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
-      player_id = 'game_master',
+      player_id = 'candledark_undead',
       faction = 'undead',
       kingdom = 'candledark:kingdoms:undead'
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
       self._population = stonehearth.population:add_population(session)
-      self._population:create_town_name()
    else
       self._inventory = stonehearth.inventory:get_inventory(session.player_id)
       self._population = stonehearth.population:get_population(session.player_id)
