@@ -11,12 +11,6 @@ function AoeDamageComponent:initialize(entity, json)
 
    self._tracked_entities = {}
    
-   --[[
-   if self._sensor_name then
-      
-   end
-   ]]
-
    if self._sensor_name then
       self._poll_listener = radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
       radiant.events.listen_once(self._entity, 'radiant:entity:post_create', function()
@@ -25,21 +19,17 @@ function AoeDamageComponent:initialize(entity, json)
    end   
 end
 
--- deal damage to everyone within my sensor
+-- Deal damage to everyone within my sensor
 function AoeDamageComponent:_on_poll()
-   --[[
-   if self._sensor == nil then
-      local sensor_list = self._entity:add_component('sensor_list')
-      self._sensor = sensor_list:get_sensor(self._sensor_name)
-   end
-
-   local entities_in_sensor = self._sensor:get_contents()
-   ]]
    
+   -- If an aoe effect has been specified and there's at least one entry in the
+   -- tracked entities table, run the aoe effect on my entity
    if self._aoe_effect and next(self._tracked_entities) then
       radiant.effects.run_effect(self._entity, self._aoe_effect)
    end
 
+   -- For all the hostile entities being tracked, play the damage effect and deal
+   -- damage
    for id, entity in pairs(self._tracked_entities) do
       -- play the damage effect
       if self._damage_effect then
@@ -56,6 +46,7 @@ function AoeDamageComponent:_on_poll()
    end
 end
 
+-- Track entities as they enter and leave the sensor
 function AoeDamageComponent:_trace_sensor()
    local sensor_list = self._entity:get_component('sensor_list')
    local sensor = sensor_list:get_sensor(self._sensor_name)
@@ -71,17 +62,21 @@ function AoeDamageComponent:_trace_sensor()
    end
 end
 
+-- When an entity enters the sensor, keep track of it if it's hostile. Every
+-- so often we will deal damage to all tracked entities
 function AoeDamageComponent:_on_added_to_sensor(id, entity)
    if radiant.entities.is_hostile(entity, self._entity) then
       self._tracked_entities[id] = entity
    end
 end
 
+-- When an entity leaves the sensor, stop tracking it
 function AoeDamageComponent:_on_removed_to_sensor(id)
    self._tracked_entities[id] = nil
 end
 
 
+-- Cleanup all listeners when the component is destroyed
 function AoeDamageComponent:destroy()
    self._poll_listener:destroy()
    self._poll_listener = nil
