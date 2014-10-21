@@ -15,6 +15,11 @@ class Type(object):
       return self
    ref = property(_add_reference)
 
+   def _add_pointer(self):
+      self.name += '*'
+      return self
+   pointer = property(_add_pointer)
+
 class Method(object):
    def __init__(self, result, *args, **options):
       self.result = result

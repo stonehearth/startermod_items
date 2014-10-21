@@ -2,19 +2,24 @@
    <div class="gui">
       <div class="window" id="citizenCharacterSheet">
          <div class="title">
-            Character Info
+            {{i18n stonehearth:character_sheet_title}}
             <div class="closeButton"></div>
          </div>
 
          <div id="header">
             <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} />
-            <div id="description">{{unit_info.description}}</div>
+            <div id="description"> 
+               <img class = "classIconImg" {{bind-attr src=view.currJobIcon}}/>
+               <span class = "classNameLvlDesc">
+                  {{stonehearth:job.curr_job_name}}
+               </span>
+            </div>
 
             <div id="stats">
 
                <!-- health -->
                <div class="stat">
-                  <div class="label">health</div>
+                  <div class="label">{{i18n stonehearth:health}}</div>
                   <div class="bar">
                      <div class="healthBar" />
                      <div class="value">{{stonehearth:attributes.attributes.health.effective_value}} / {{stonehearth:attributes.attributes.max_health.effective_value}}</div>
@@ -23,7 +28,7 @@
 
                <!-- morale -->
                <div class="stat">
-                  <div class="label">morale</div>
+                  <div class="label">{{i18n stonehearth:morale}}</div>
                   <div class="bar">
                      <div class="moraleBar" />
                      <div class="value">{{stonehearth:score.scores.happiness.score}} / 100</div>
@@ -32,11 +37,19 @@
 
                <!-- experience -->
                <div class="stat" id="experienceStat">
-                  <div class="label">experience</div>
-                  <div class="bar">
-                     <div class="expBar" />
-                     <div class="value">100 / 100</div>
-                  </div>
+                  {{#if stonehearth:job.curr_job_controller.no_levels}}
+                  {{else}}
+                     <div class="label">{{i18n stonehearth:experience}}</div>
+                     {{#if stonehearth:job.curr_job_controller.is_max_level}}
+                        <div class = "maxLevelNotice">{{i18n stonehearth:max_level}}</>
+                     {{else}}
+                        <div class="bar">
+                        <div class="expBar" />
+                        <div class="value">{{stonehearth:job.current_level_exp}} / {{stonehearth:job.xp_to_next_lv}}</div>
+                     {{/if}}
+                     </div>
+                  {{/if}}
+
                </div>
             </div>
          </div>
@@ -106,6 +119,24 @@
                   <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id="compassion" class="value">{{stonehearth:attributes.attributes.compassion.effective_value}}</div>
                </table>
             </div>
+            <div id="abilitiesTab" class = "tabPage">
+               {{#each view.all_job_data}}
+                  <div class="jobData" {{bind-attr uri=this.alias}}>
+                     <div class="className retiredClassNameHeader">{{this.name}} (<span class="lvlTitle"></span>)</div>
+                     <div class="jobPerks">
+                        {{#each this.levelArray}}
+                           {{#each this.perks}}
+                           <div class="perkDiv tooltip" locked="true" {{bind-attr name=this.perk_name description=this.description divLevel=this.level}}>
+                              <img {{bind-attr src=this.icon imgLevel=this.level}}/>
+                              <span class="levelLabel" {{bind-attr lbLevel=this.level}}>{{i18n stonehearth:level_abbreviation}} <span class="levelText">{{this.level}}</span></span>
+                           </div>
+                           {{/each}}
+                        {{/each}}
+                     </div>
+                  </div>
+               {{/each}}
+
+            </div>
             <div id="moraleTab" class="tabPage">
                <div id="persona" class="column">
                   <h2>{{i18n stonehearth:happiness}}</h2>
@@ -150,6 +181,7 @@
 
          <div id="tabs">
             <div class="tab active" tabPage="equipmentTab">{{i18n stonehearth:equipment}}</div>
+            <div class="tab" tabPage="abilitiesTab">{{i18n stonehearth:abilities}}</div>
             <div class="tab" tabPage="attributesTab">{{i18n stonehearth:attributes}}</div>
             <div class="tab" tabPage="moraleTab">{{i18n stonehearth:happiness}}</div>
          </div>

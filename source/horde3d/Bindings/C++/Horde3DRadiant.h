@@ -22,12 +22,8 @@ DLL void h3dRadiantStopCubemitterNode(H3DNode node);
 DLL void h3dRadiantAdvanceAnimatedLightTime(float timeDelta);
 DLL H3DNode h3dRadiantAddAnimatedLightNode(H3DNode parent, const char* nam, H3DRes animatedLightRes);
 
-#include "../extensions/stockpile/stockpile_node.h"
 #include "../extensions/stockpile/decal_node.h"
 #include "../extensions/stockpile/toast_node.h"
-
-H3DNode h3dRadiantCreateStockpileNode(H3DNode parent, std::string const& name);
-bool h3dRadiantResizeStockpileNode(H3DNode node, int width, int height);
 
 std::pair<H3DNode, ::radiant::horde3d::DecalNode*> h3dRadiantCreateDecalNode(H3DNode parent, std::string const& name, std::string const& material);
 ::radiant::horde3d::ToastNode* h3dRadiantCreateToastNode(H3DNode parent, std::string const& name);

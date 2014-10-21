@@ -59,6 +59,7 @@ enum TrackerType {
    COLLISION = 0,
    TERRAIN,
    LADDER,
+   PLATFORM,
 
    NUM_BIT_VECTOR_TRACKERS,
 

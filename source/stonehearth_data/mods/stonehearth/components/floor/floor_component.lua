@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Floor = class()
@@ -5,7 +6,6 @@ local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-
 
 -- called to initialize the component on creation and loading.
 --
@@ -105,5 +105,16 @@ function Floor:clone_from(entity)
    return self
 end
 
+function Floor:save_to_template()
+   return {}
+end
+
+function Floor:load_from_template(data, options, entity_map)
+   -- nothing to do!   
+end
+
+function Floor:rotate_structure(degrees)
+   build_util.rotate_structure(self._entity, degrees)
+end
 
 return Floor

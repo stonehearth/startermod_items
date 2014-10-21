@@ -9,5 +9,8 @@ class int(ridl.Type):
 class float(ridl.Type):
    name = 'float'
 
+class double(ridl.Type):
+   name = 'double'
+
 class bool(ridl.Type):
    name = 'bool'

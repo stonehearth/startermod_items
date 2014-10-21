@@ -1,0 +1,20 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Reinforced Wooden Door",
+   "description" : "Stronger than your average door.",
+   "portrait"    : "/stonehearth/entities/construction/wooden_door_2/wooden_door_2.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:wooden_door_2"
+      }
+  ]
+}

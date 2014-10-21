@@ -48,6 +48,7 @@ local constants = {
          PATROLLING        = 2,
          FARMING           = 2,
          TRAPPING          = 2,
+         MINING            = 2,
          CRAFTING          = 10,
          UPGRADE_EQUIPMENT = 20,
       },
@@ -74,6 +75,10 @@ local constants = {
          UNLOAD_BACKPACK = 3,
          CHECK_TRAPS = 3,
          PICK_UP_LOOT = 10,
+      },
+
+      mining = {
+         MINE = 1,
       },
 
       crafting = {

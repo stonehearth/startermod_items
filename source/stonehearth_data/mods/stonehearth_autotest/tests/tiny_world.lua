@@ -8,12 +8,13 @@ local DEFAULT_FACTION = 'civ'
 
 function create_world(environment) 
    local region3 = Region3()
-   region3:add_cube(Cube3(Point3(0, -16, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.SOIL_LIGHT))
-   region3:add_cube(Cube3(Point3(0,   0, 0), Point3(WORLD_SIZE, 1, WORLD_SIZE), Terrain.GRASS))
+   region3:add_cube(Cube3(Point3(0, -2, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), Terrain.BEDROCK))
+   region3:add_cube(Cube3(Point3(0, 0, 0), Point3(WORLD_SIZE, 9, WORLD_SIZE), Terrain.SOIL_DARK))
+   region3:add_cube(Cube3(Point3(0, 9, 0), Point3(WORLD_SIZE, 10, WORLD_SIZE), Terrain.GRASS))
 
    local terrain = radiant._root_entity:add_component('terrain')
-   terrain:set_tile_size(WORLD_SIZE)
-   terrain:add_tile(Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2), region3)
+   local offset = Point3(-WORLD_SIZE / 2, 0, -WORLD_SIZE / 2)
+   terrain:add_tile(region3:translated(offset))
 end
 
 return create_world

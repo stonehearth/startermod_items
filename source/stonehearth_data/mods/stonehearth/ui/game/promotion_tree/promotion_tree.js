@@ -26,17 +26,22 @@ App.StonehearthPromotionTree = App.View.extend({
       self.jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.components);
       self.jobsTrace.progress(function(eobj) {
             self._jobs = eobj.jobs;
-            self._initCitizen();
-            
+            self._initCitizen();            
          });
    },
 
    _initCitizen: function() {
       var self = this;
-      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), { 'stonehearth:job' : {} });
+      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), 
+         { 
+            'stonehearth:job' : {},
+            'unit_info' : {},
+         });
+      
       self._citizenTrace.progress(function(o) {
             self._startingJob = o['stonehearth:job'].job_uri;
             self._buildTree();
+            self.set('citizen', o);
             self._citizenTrace.destroy();
          })
    },
@@ -112,6 +117,9 @@ App.StonehearthPromotionTree = App.View.extend({
             $.each(o.available_jobs, function(key, job) {
                self._jobButtons[job].addClass('available');
             })
+
+            //The worker job is always available
+            self._jobButtons['stonehearth:jobs:worker'].addClass('available');
          });  
 
       self._jobButtons[self._startingJob].addClass('available');
@@ -165,7 +173,8 @@ App.StonehearthPromotionTree = App.View.extend({
          self._updateUi(jobAlias);
       });
 
-      self.$('#promoteButton').click(function() {
+      self.$('#approveStamper').click(function() {
+         self._animateStamper(); 
          self._promote(self.get('selectedJob.alias'));
       })
    },
@@ -198,11 +207,30 @@ App.StonehearthPromotionTree = App.View.extend({
 
       // tell handlebars about changes
       self.set('selectedJob', selectedJob);
-      self.set('promoteButtonText', 'Promote to ' + selectedJob.name); //xxx localize
 
       var requirementsMet = self._jobButtons[jobAlias].hasClass('available') || selectedJob.alias == self._startingJob;
+      var promoteOk = selectedJob.alias != self._startingJob && requirementsMet;
+
       self.set('requirementsMet', requirementsMet);
-      self.set('promoteOk', selectedJob.alias != self._startingJob && requirementsMet);
+      self.set('promoteOk', promoteOk);
+
+      if (selectedJob.alias == self._startingJob) {
+         self.$('#scroll').hide();
+      } else {
+         self.$('#scroll').show();
+      }
+
+      if (requirementsMet) {
+         self.$('#deniedStamp').hide();
+      } else {
+         self.$('#deniedStamp').show();
+      }
+
+      if (promoteOk) {
+         self.$('#approveStamper').fadeIn();
+      } else {
+         self.$('#approveStamper').fadeOut();
+      }
    },
 
 
@@ -214,11 +242,43 @@ App.StonehearthPromotionTree = App.View.extend({
       var citizen = this.get('citizen');
       var talisman = jobInfo.talisman_uri;
 
-      radiant.call('stonehearth:grab_promotion_talisman', citizen, talisman);
-      this.destroy();
+      radiant.call('stonehearth:grab_promotion_talisman', citizen.__self, talisman);
+   },
+
+   _animateStamper: function() {
+      var self = this;
+
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp');
+
+      // animate down
+      self.$('#approveStamper').animate({ bottom: 20 }, 130 , function() {
+         self.$('#approvedStamp').show();
+         //animate up
+         $(this)
+            .delay(200)
+            .animate({ bottom: 200 }, 150, function () {
+               // close the wizard after a short delay
+               setTimeout(function() {
+                  self.invokeDestroy();
+               }, 1500);
+            });
+         });      
+   },
+
+   dateString: function() {
+      var dateObject = App.gameView.getDate();
+      var date;
+      if (dateObject) {
+         date = dateObject.date;
+      } else {
+         date = "Ooops, clock's broken."
+      }
+      return date;
    },
 
    destroy: function() {
+      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
+
       if (this.jobsTrace) {
          this.jobsTrace.destroy();
       }

@@ -27,6 +27,13 @@ IMPLEMENT_TRIVIAL_TOSTRING(Edge1);
 IMPLEMENT_TRIVIAL_TOSTRING(EdgePoint1);
 IMPLEMENT_TRIVIAL_TOSTRING(EdgeMap1);
 
+
+template <typename S, int C>
+std::vector<Edge<S, C>> const& EdgeMap_EachEdges(EdgeMap<S, C> const& map)
+{
+   return map.GetEdges();
+}
+
 template <typename S, int C>
 static scope Register(struct lua_State* L, const char* suffix)
 {
@@ -41,16 +48,16 @@ static scope Register(struct lua_State* L, const char* suffix)
          .def_readonly("accumulated_normals", &EdgePoint<S, C>::accumulated_normals)
       ,
       lua::RegisterTypePtr_NoTypeInfo<EdgeMap<S, C>>(BUILD_STRING("EdgeMap" << suffix).c_str())
-         .def("each_edge",           &EdgeMap<S, C>::GetEdges, return_stl_iterator)
+         .def("each_edge",           &EdgeMap_EachEdges<S, C>, return_stl_iterator)
       ;
 }
 
 scope LuaEdgeList::RegisterLuaTypes(lua_State* L)
 {
    return
-      Register<float, 3>(L, "3f"),
-      Register<float, 2>(L, "2f"),
-      Register<float, 1>(L, "1f"),
+      Register<double, 3>(L, "3f"),
+      Register<double, 2>(L, "2f"),
+      Register<double, 1>(L, "1f"),
       Register<int, 3>(L, "3"),
       Register<int, 2>(L, "2"),
       Register<int, 1>(L, "1"),

@@ -68,6 +68,7 @@ radiant.mods = require 'modules.mods'
 
 radiant.log.info('server', 'radiant api initialized.')
 
+require 'modules.common'
 require 'modules.timer'
 
 function radiant.not_reached(reason, ...)

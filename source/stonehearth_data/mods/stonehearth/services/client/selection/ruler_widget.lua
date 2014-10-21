@@ -14,9 +14,41 @@ function RulerWidget:__init()
    self._margin = 1.5;
    self._line_color = Color4(0, 0, 0, 128)
    self._meshNormal = Point3(0, 1, 0)
+   self._hidden = false
 end
 
 function RulerWidget:destroy()
+   self:_destroy_render_nodes()
+end
+
+function RulerWidget:set_points(start, finish, normal, label)
+   self._normal = normal
+   self._label = label
+   self._start = start + normal + Point3(-0.5, 0.01, -0.5)
+   self._finish = finish + normal + Point3(0.5, 0.01, 0.5)
+   if normal.z < 0 then
+      local offset = self:_get_height() - 1
+      self._start.z = self._start.z - offset
+      self._finish.z = self._finish.z - offset
+   end
+   self:_recreate_render_node(self._label);
+end
+
+function RulerWidget:hide()
+   if not self._hidden then
+      self:_destroy_render_nodes()
+      self._hidden = true
+   end
+end
+
+function RulerWidget:show()
+   if self._hidden then
+      self._hidden = false
+      self:_recreate_render_node(self._label);
+   end
+end
+
+function RulerWidget:_destroy_render_nodes()
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
@@ -26,19 +58,6 @@ function RulerWidget:destroy()
       self._text_node = nil
    end   
 end
-
-function RulerWidget:set_points(start, finish, normal, label)
-   self._normal = normal
-   self._start = start + normal + Point3(-0.5, 0.01, -0.5)
-   self._finish = finish + normal + Point3(0.5, 0.01, 0.5)
-   if normal.z < 0 then
-      local offset = self:_get_height() - 1
-      self._start.z = self._start.z - offset
-      self._finish.z = self._finish.z - offset
-   end
-   self:_recreate_render_node(label);
-end
-
 
 function RulerWidget:_transform_point(pt)
    if self._normal.z < 0 then
@@ -118,15 +137,11 @@ function RulerWidget:_get_height()
 end
 
 function RulerWidget:_recreate_render_node(label)
-   if self._render_node then
-      self._render_node:destroy()
-      self._render_node = nil
-   end
-   if self._text_node then
-      self._text_node:destroy()
-      self._text_node = nil
-   end
+   self:_destroy_render_nodes()
 
+   if self._hidden then
+      return
+   end
 
    local w = self:_get_width()
    local h = self:_get_height()

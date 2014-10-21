@@ -8,9 +8,10 @@
 #include "renderer.h"
 #include "lib/voxel/qubicle_file.h"
 #include "resources/res_manager.h"
+#include "csg/iterators.h"
 #include "csg/region_tools.h"
 #include <fstream>
-#include <unordered_map>
+#include <unordered_set>
 
 #define P_LOG(level)   LOG(renderer.pipeline, level)
 
@@ -82,7 +83,7 @@ Pipeline::~Pipeline()
 
 H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region)
 {
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
       mesh.AddRegion(plane, pi);
    });
@@ -92,46 +93,46 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
-void Pipeline::AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels)
+void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
 {   
    float y = 0;
-   for (csg::Rect2 const& c: panels) {      
+   for (csg::Rect2 const& c: csg::EachCube(panels)) {      
       csg::Rect2f cube = ToFloat(c);
       csg::Point2f size = cube.GetSize();
-      for (float i = 0; i < size.y; i ++) {
+      for (double i = 0; i < size.y; i ++) {
          // xxx: why do we have to use a clockwise winding here?
-         float x1 = std::min(i + 1.0f, size.x);
-         float x2 = std::min(i + 0.5f, size.x);
-         float y1 = std::max(i + 1.0f - size.x, 0.0f);
-         float y2 = std::max(i + 0.5f - size.x, 0.0f);
+         double x1 = std::min(i + 1.0, size.x);
+         double x2 = std::min(i + 0.5, size.x);
+         double y1 = std::max(i + 1.0 - size.x, 0.0);
+         double y2 = std::max(i + 0.5 - size.x, 0.0);
          csg::Point3f points[] = {
-            csg::Point3f(cube.min.x, y, cube.min.y + i + 1.0f),
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 1.0),
             csg::Point3f(cube.min.x + x1, y, cube.min.y + y1),
             csg::Point3f(cube.min.x + x2, y, cube.min.y + y2),
-            csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5f),
+            csg::Point3f(cube.min.x, y, cube.min.y + i + 0.5),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
+         m.AddFace(points, csg::Point3f::unitY);
       }
-      for (float i = 0; i < size.x; i ++) {
+      for (double i = 0; i < size.x; i ++) {
          // xxx: why do we have to use a clockwise winding here?
-         float x0 = i + 0.5f;
-         float x1 = i + 1.0f;
-         float x2 = std::min(x1 + size.y, size.x);
-         float x3 = std::min(x0 + size.y, size.x);
-         float y2 = -std::min(x2 - x1, size.y);
-         float y3 = -std::min(x3 - x0, size.y);
+         double x0 = i + 0.5;
+         double x1 = i + 1.0;
+         double x2 = std::min(x1 + size.y, size.x);
+         double x3 = std::min(x0 + size.y, size.x);
+         double y2 = -std::min(x2 - x1, size.y);
+         double y3 = -std::min(x3 - x0, size.y);
          csg::Point3f points[] = {
             csg::Point3f(cube.min.x + x0, y, cube.max.y),
             csg::Point3f(cube.min.x + x1, y, cube.max.y),
             csg::Point3f(cube.min.x + x2, y, cube.max.y + y2),
             csg::Point3f(cube.min.x + x3, y, cube.max.y + y3),
          };
-         m.AddFace(points, csg::Point3f::unitY, csg::Color4(0, 0, 0, 255));
+         m.AddFace(points, csg::Point3f::unitY);
       }
    }
 }
 
-void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap)
+void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
 {
    float thickness = 0.25f;
    csg::PlaneInfo3f pi;
@@ -153,27 +154,27 @@ void Pipeline::AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edg
       max -= ToFloat(edge.normal) * thickness;
 
       csg::Rect2f dash = csg::Rect2f::Construct(min, max);
-      float min_t = dash.min[t];
-      float max_t = dash.max[t];
+      double min_t = dash.min[t];
+      double max_t = dash.max[t];
 
       // Min corner...
       if (edge.min->accumulated_normals.Length() > 1) {
          dash.min[t] = min_t;
          dash.max[t] = dash.min[t] + 0.75f;
          m.AddRect(dash, ToFloat(pi));
-         min_t += 1.0f;
+         min_t += 1.0;
       }
       // Max corner...
       if (edge.max->accumulated_normals.Length() > 1) {
          dash.max[t] = max_t;
-         dash.min[t] = dash.max[t] - 0.75f;
+         dash.min[t] = dash.max[t] - 0.75;
          m.AddRect(dash, ToFloat(pi));
-         max_t -= 1.0f;
+         max_t -= 1.0;
       }
       // Range...
-      for (float v = min_t; v < max_t; v++) {
-         dash.min[t] = v + 0.25f;
-         dash.max[t] = v + 0.75f;
+      for (double v = min_t; v < max_t; v++) {
+         dash.min[t] = v + 0.25;
+         dash.max[t] = v + 0.75;
          m.AddRect(dash, ToFloat(pi));
       }
    }
@@ -183,10 +184,11 @@ RenderNodePtr
 Pipeline::CreateDesignationNode(H3DNode parent,
                                 csg::Region2 const& plane,
                                 csg::Color4 const& outline_color,
-                                csg::Color4 const& stripes_color)
+                                csg::Color4 const& stripes_color,
+								int useCoarseCollisionBox)
 {
-   csg::mesh_tools::mesh outline_mesh;
-   csg::mesh_tools::mesh stripes_mesh;
+   csg::Mesh outline_mesh;
+   csg::Mesh stripes_mesh;
 
    // flip the normal, since this is the bottom face
    outline_mesh.SetColor(outline_color);
@@ -200,7 +202,7 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    RenderNodePtr stripes = RenderNode::CreateCsgMeshNode(group->GetNode(), stripes_mesh)
       ->SetMaterial("materials/designation/stripes.material.xml");
 
-   h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    h3dSetNodeParamI(stripes->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
@@ -208,7 +210,7 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
       ->SetMaterial("materials/designation/outline.material.xml");
 
-   h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+   h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    h3dSetNodeParamI(outline->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
    h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);  
@@ -236,6 +238,38 @@ Pipeline::CreateSelectionNode(H3DNode parent,
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 0.2f);
 }
 
+typedef std::pair<csg::Point3, csg::Point3> LineSegment;
+
+// template specialization for the hash of a LineSegment
+namespace std {
+   template <>
+   class std::hash<LineSegment>
+   {
+   public:
+      size_t operator()(LineSegment const& segment) const {
+         // use boost::hash_combine if you want something better
+         return 51 * csg::Point3::Hash()(segment.first) + csg::Point3::Hash()(segment.second);
+      }
+   };
+}
+
+RenderNodePtr
+Pipeline::CreateRegionOutlineNode(H3DNode parent,
+                                  csg::Region3 const& region,
+                                  csg::Color4 const& color)
+{
+   csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
+   H3DNode node = h3dRadiantAddDebugShapes(parent, "RegionOutlineNode");
+   csg::RegionTools3 tools;
+
+   tools.ForEachUniqueEdge(region, [&node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
+      h3dRadiantAddDebugLine(node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, color);
+   });
+
+   h3dRadiantCommitDebugShape(node);
+
+   return std::make_shared<RenderNode>(node);
+}
 
 RenderNodePtr
 Pipeline::CreateXZBoxNode(H3DNode parent,
@@ -246,7 +280,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
 {
    csg::RegionTools2 tools;
 
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
 
    //interior_mesh.SetColor(interior_color);
    //border_mesh.SetColor(border_color);
@@ -267,7 +301,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
    return group;
 }
 
-void Pipeline::CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, 
+void Pipeline::CreateXZBoxNodeGeometry(csg::Mesh& mesh, 
                                        csg::Region2 const& region, 
                                        csg::Color4 const& interior_color, 
                                        csg::Color4 const& border_color, 

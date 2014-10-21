@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "csg/iterators.h"
 #include "nine_grid_brush.h"
 
 using namespace ::radiant;
@@ -117,8 +118,8 @@ csg::Region3 NineGridBrush::PaintThroughStencilOpt(csg::Region3 const* modelSten
    // finally, build the model for the grid
    csg::Region3 model;
 
-   for (csg::Rect2 const& rect : ninegrid) {
-      for (csg::Point2 const& src : rect) {
+   for (csg::Rect2 const& rect : csg::EachCube(ninegrid)) {
+      for (csg::Point2 const& src : csg::EachPoint(rect)) {
          // dst offset is where to drop the column.  it's in the coordinate system
          // of the original Region2, offset by the computed height
          int height = getColumnHeight(heightmap, src);
@@ -230,7 +231,7 @@ csg::Region2 NineGridBrush::ClassifyNineGrid(csg::EdgeMap<int, 2> const& edgeMap
    csg::Point2 delta;
    csg::Region2 classified;
 
-   for (csg::Rect2 const& r : shape_region2_) {
+   for (csg::Rect2 const& r : csg::EachCube(shape_region2_)) {
       classified.AddUnique(csg::Rect2(r.min, r.max, 5));
    }
 
@@ -283,10 +284,8 @@ void NineGridBrush::ComputeHeightMap(csg::Region2 const& ninegrid, GridMap<short
    GridMap<bool> updated(shapeBounds_, false);
 
    // Initialize the entire height of the roof to zero.
-   for (csg::Rect2 const& rect : ninegrid) {
-      for (csg::Point2 const& src : rect) {
-         heightmap.set(src, 0);
-      }
+   for (csg::Point2 const& src : csg::EachPoint(ninegrid)) {
+      heightmap.set(src, 0);
    }
 
    // Create a set of directions that the roof is allowed to grow
@@ -320,15 +319,13 @@ void NineGridBrush::ComputeHeightMap(csg::Region2 const& ninegrid, GridMap<short
 
    // compute the fringe.
    std::vector<csg::Point2> fringe;
-   for (csg::Rect2 const& rect : ninegrid) {
-      for (csg::Point2 const& src : rect) {
-         for (auto const& delta : growDirections) {
-            if (heightmap.get(src + delta, -1) == -1) {
-               gradiant.set(src, delta);
-               updated.set(src, true);
-               fringe.push_back(src);
-               break;
-            }
+   for (csg::Point2 const& src : csg::EachPoint(ninegrid)) {
+      for (auto const& delta : growDirections) {
+         if (heightmap.get(src + delta, -1) == -1) {
+            gradiant.set(src, delta);
+            updated.set(src, true);
+            fringe.push_back(src);
+            break;
          }
       }
    }

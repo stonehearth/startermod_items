@@ -57,8 +57,8 @@ App.StonehearthLoadingScreenView = App.View.extend({
 
                   radiant.call('radiant:get_config', 'tutorial')
                      .done(function(o) {
-                        if (o.hideStartingTutorial) {
-                           App.gameView.addView(App.StonehearthCreateCampView, { hideStartingTutorial: o.hideStartingTutorial});
+                        if (o.tutorial && o.tutorial.hideStartingTutorial) {
+                           App.gameView.addView(App.StonehearthCreateCampView, { hideStartingTutorial: true});
                         } else {
                            App.gameView.addView(App.StonehearthHelpCameraView)
                         }

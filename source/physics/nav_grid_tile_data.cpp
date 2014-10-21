@@ -111,15 +111,16 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
    if (type < NUM_BIT_VECTOR_TRACKERS) {
       csg::Region3 overlap = tracker.GetOverlappingRegion(world_bounds).Translated(-world_bounds.min);
 
-      int count = 0;
-
-      auto& marked_type = marked_[type];
+      if (type == PLATFORM) {
+         type = COLLISION;
+      }
 
       // This code is on the critical path when pathing during construction; so, we avoid using Point3
       // iterators, and duplicate the loops in order to avoid an interior branch.
       if (type == TERRAIN) {
+         auto& marked_terrain = marked_[TERRAIN];
          auto& marked_collision = marked_[COLLISION];
-         for (csg::Cube3 const& cube : overlap) {
+         for (csg::Cube3 const& cube : EachCube(overlap)) {
             for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
                for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
@@ -128,15 +129,15 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
                      DEBUG_ONLY(
                         NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
                      )
-                     marked_type.set(offset);
+                     marked_terrain.set(offset);
                      marked_collision.set(offset);
                   }
                }
             }
-            count += cube.GetArea();
          }
       } else {
-         for (csg::Cube3 const& cube : overlap) {
+         auto& marked_type = marked_[type];
+         for (csg::Cube3 const& cube : EachCube(overlap)) {
             for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
                for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                   for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
@@ -149,10 +150,8 @@ void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, cs
                   }
                }
             }
-            count += cube.GetArea();
          }
       }
-      NG_LOG(5) << "marked " << count << " bits in vector " << type;
    }
 }
 

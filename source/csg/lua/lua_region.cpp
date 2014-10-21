@@ -2,11 +2,13 @@
 #include "lib/lua/register.h"
 #include "lib/lua/script_host.h"
 #include "lua_region.h"
+#include "lua_iterator.h"
 #include "csg/edge_tools.h"
 #include "csg/region_tools.h"
 #include "csg/region.h"
 #include "csg/util.h"
 #include "csg/rotate_shape.h"
+#include "csg/iterators.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -55,7 +57,7 @@ T IntersectRegion(T const& lhs, T const& rhs)
 Region2f ProjectOntoXZPlane(Region3f const& region)
 {
    Region2f r2;
-   for (Cube3f const& cube : region) {
+   for (Cube3f const& cube : EachCube(region)) {
       Rect2f rect(Point2f(cube.min.x, cube.min.z), Point2f(cube.max.x, cube.max.z), cube.GetTag());
       if (rect.GetArea() > 0) {
          r2.Add(rect);
@@ -66,10 +68,10 @@ Region2f ProjectOntoXZPlane(Region3f const& region)
 
 // The csg version of these functions are optimized for use in templated code.  They
 // avoid copies for nop conversions by returning a const& to the input parameter.
-// For lua's "to_int" and "to_float", we always want to return a copy to avoid confusion.
+// For lua's "to_int" and "to_double", we always want to return a copy to avoid confusion.
 
 template <typename S, int C>
-csg::Region<float, C> Region_ToInt(csg::Region<S, C> const& r)
+csg::Region<double, C> Region_ToInt(csg::Region<S, C> const& r)
 {
    return csg::ToFloat(csg::ToInt(r));
 }
@@ -94,7 +96,8 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_bounds",         &T::GetBounds)
          .def("optimize_by_oct_tree", &T::OptimizeByOctTree)
          .def("optimize_by_merge",  &T::OptimizeByMerge)
-         .def("intersects",         &T::Intersects)
+         .def("intersects",         (bool (T::*)(T const&) const)&T::Intersects)
+         .def("intersects",         (bool (T::*)(typename T::Cube const&) const)&T::Intersects)
          .def("add_region",         (void (T::*)(T const&))&T::Add)
          .def("add_cube",           (void (T::*)(typename T::Cube const&))&T::Add)
          .def("add_point",          (void (T::*)(typename T::Point const&))&T::Add)
@@ -104,7 +107,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("subtract_region",    (void (T::*)(T const&))&T::Subtract)
          .def("subtract_cube",      (void (T::*)(typename T::Cube const&))&T::Subtract)
          .def("subtract_point",     (void (T::*)(typename T::Point const&))&T::Subtract)
-         .def("each_cube",          &T::GetContents, return_stl_iterator)
+         .def("each_cube",          (T::CubeVector const& (T::*)() const)&T::GetContents, return_stl_iterator)
          .def("clipped",            &RegionClip<T>)
          .def("get_num_rects",      &T::GetRectCount)
          .def("get_rect",           &T::GetRect)
@@ -124,13 +127,18 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
       def("intersect_region2", IntersectRegion<Region2f>),
       def("intersect_region3", IntersectRegion<Region3f>),
       Register<Region3f>(L,  "Region3")
+         .def("each_point",               &EachPointRegion3f)
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
-         .def("get_edge_list",            &RegionGetEdgeList<float, 3>)
+         .def("get_edge_list",            &RegionGetEdgeList<double, 3>)
+         .def("rotate",                   (void (*)(Region3f&, int))&csg::Rotate)
          .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
       Register<Region2f>(L,  "Region2")
-         .def("get_edge_list",            &RegionGetEdgeList<float, 2>)
+         .def("each_point",               &EachPointRegion2f)
+         .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
+         .def("rotate",                   (void (*)(Region2f&, int))&csg::Rotate)
+         .def("rotated",                  (Region2f (*)(Region2f const&, int))&csg::Rotated)
       ,
       Register<Region1f>(L,  "Region1");
 }

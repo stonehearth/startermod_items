@@ -26,11 +26,13 @@ end
 function TameTrappedBeast:run(ai, entity, args)
    local trap_component = args.trap:add_component('stonehearth:bait_trap')
    local pet = trap_component:get_trapped_entity()
+   local pet_id = nil
 
    ai:execute('stonehearth:turn_to_face_entity', { entity = args.trap })
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
    if pet and pet:is_valid() then
+      pet_id = pet:get_id()
       local equipment_component = pet:add_component('stonehearth:equipment')
       local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
       equipment_component:equip_item(pet_collar)
@@ -45,6 +47,8 @@ function TameTrappedBeast:run(ai, entity, args)
       radiant.entities.set_description(pet, 'Befriended by ' .. radiant.entities.get_name(entity))
 
       trap_component:release()
+
+      radiant.events.trigger_async(entity, 'stonehearth:befriend_pet', {pet_id = pet_id})
    end
 
    ai:unprotect_entity(args.trap)

@@ -6,6 +6,7 @@
    "description" : "A chest of drawers for storing clothing and personal possessions.",
    "flavor"      : "Step 2: acquire personal possessions...",
    "portrait"    : "/stonehearth/entities/furniture/dresser/dresser.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

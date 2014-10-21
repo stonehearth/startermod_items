@@ -9,7 +9,7 @@ class TerrainTesselator
 {
 public:
    TerrainTesselator();
-   void TesselateTerrain(csg::Region3 const& terrain, csg::Region3& tess);
+   csg::Region3 TesselateTerrain(csg::Region3 const& terrain, csg::Rect2 const* clipper);
 
 private:
    struct RingInfo {
@@ -25,8 +25,9 @@ private:
    RingInfo grass_ring_info_;
    RingInfo dirt_ring_info_;
 
-   void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Region3 const& clipper, RingInfo const& ringInfo, csg::Region3& tess);
-   void TesselateLayer(csg::Region2 const& layer, int height, csg::Region3 const& clipper, RingInfo const& ringInfo, csg::Region3& tess);
+   void AddTerrainTypeToTesselation(csg::Region3 const& grass, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess);
+   void TesselateLayer(csg::Region2 const& layer, int height, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess);
+   csg::Region2 CreateRing(csg::EdgeMap2 const& edges, int width, csg::Region2 const* clipper);
 };
 END_RADIANT_OM_NAMESPACE
 

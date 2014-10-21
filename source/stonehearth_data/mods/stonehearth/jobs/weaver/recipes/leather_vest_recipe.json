@@ -6,6 +6,7 @@
    "description" : "Hardened leather provides study protection against light weapons.",
    "flavor"      : "Insults bounce right off too!",
    "portrait"    : "/stonehearth/entities/armor/leather_vest/leather_vest.png",
+   "level_requirement" : 2,
 
    "ingredients": [
       {

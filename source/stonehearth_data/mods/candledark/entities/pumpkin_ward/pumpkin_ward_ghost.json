@@ -1,0 +1,28 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(pumpkin_ward.qb)"
+            ]
+         },
+         "lamp_on_hide": {
+            "models": [
+               "file(pumpkin_ward_on.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Pumpkin Ward",
+         "description": "Keeps the undead away",
+         "faction" : "civ",
+         "icon" : "file(pumpkin_ward.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      }
+   }
+}

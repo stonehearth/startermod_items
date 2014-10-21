@@ -1,4 +1,5 @@
 local constants = require('constants').construction
+local build_util = require 'lib.build_util'
 local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
@@ -336,7 +337,7 @@ end
 -- See `_init_fabricator` for more details.
 --    @param blueprint - The blueprint which needs a new fabricator.
 --
-function BuildService:_add_fabricator(blueprint)
+function BuildService:add_fabricator(blueprint)
    local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
 
    local blueprint_mob = blueprint:add_component('mob')
@@ -389,7 +390,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
-   local fabricator = self:_add_fabricator(blueprint)
+   local fabricator = self:add_fabricator(blueprint)
 
    -- track the structure in the building component.  the building component is
    -- responsible for cross-structure interactions (e.g. sharing scaffolding)
@@ -612,6 +613,10 @@ function BuildService:is_blueprint(entity)
    return entity:get_component('stonehearth:construction_progress') ~= nil
 end
 
+function BuildService:is_building(entity)
+   return entity:get_component('stonehearth:building') ~= nil
+end
+
 -- return the building the specified buildprint is attached to, assuming it
 -- is a blueprint to begin with!
 --
@@ -809,7 +814,7 @@ function BuildService:grow_roof(building, roof_uri, options)
    local roof_location = Point3(0, height - 1, 0)
    local roof = self:_create_blueprint(building, roof_uri, roof_location, function(roof_entity)
          roof_entity:add_component('stonehearth:construction_data')
-                        :apply_options(options)
+                        :apply_nine_grid_options(options)
          roof_entity:add_component('stonehearth:roof')
                         :cover_region2(region2)
       end)
@@ -901,6 +906,9 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
                   :connect_to(column_a, column_b, normal)
                   :layout()
 
+         wall:add_component('stonehearth:construction_data')
+                  :set_normal(normal)
+
          wall:add_component('stonehearth:construction_progress')
                      :add_dependency(column_a)
                      :add_dependency(column_b)
@@ -926,6 +934,17 @@ function BuildService:add_portal_command(session, response, wall_entity, portal_
    end
 end
 
+function BuildService:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
+   -- `portal` is actually a blueprint of the fixture, not the actual fixture
+   -- itself.  change the material we use to render it and hook up a fixture_fabricator
+   -- to help build it.
+   portal_blueprint:add_component('render_info')
+                     :set_material('materials/blueprint.material.xml')
+                     
+   portal_blueprint:add_component('stonehearth:fixture_fabricator')
+                     :start_project(portal_iconic_uri, portal_uri)
+end
+
 function BuildService:_add_portal(wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
@@ -944,18 +963,11 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
       wall:add_portal(portal_blueprint, location)
           :layout()
 
-      -- `portal` is actually a blueprint of the fixture, not the actual fixture
-      -- itself.  change the material we use to render it and hook up a fixture_fabricator
-      -- to help build it.
-      portal_blueprint:add_component('render_info')
-                        :set_material('materials/blueprint.material.xml')
-                        
       portal_blueprint:add_component('stonehearth:construction_progress')
                         :add_dependency(wall_entity)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
-      portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                        :start_project(portal_iconic_uri, portal_uri)
+      self:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
@@ -1019,8 +1031,12 @@ function BuildService:_substitute_blueprint(old, new_uri)
          end
 
          -- clone all the components that pertain to structure.
-         new:add_component('stonehearth:construction_progress')
-                  :clone_from(old)
+         local normal = old:get_component('stonehearth:construction_data')
+                              :get_normal()
+         if normal then
+            new:add_component('stonehearth:construction_data')
+                     :set_normal(normal)
+         end
 
          for _, name in ipairs(STRUCTURE_COMPONENTS) do
             local old_structure = old:get_component(name)
@@ -1054,16 +1070,16 @@ end
 --
 function BuildService:apply_options_command(session, response, blueprint, options)
    local success = self:do_command('apply_options', response, function()
-         self:_apply_options(blueprint, options)
+         self:_apply_nine_grid_options(blueprint, options)
       end)
    return success or nil
 end
 
-function BuildService:_apply_options(blueprint, options)
+function BuildService:_apply_nine_grid_options(blueprint, options)
    local cd = blueprint:get_component('stonehearth:construction_data')
    if cd then
       -- apply the new options to the blueprint      
-      cd:apply_options(options)
+      cd:apply_nine_grid_options(options)
 
       -- copy the options to the project.  this probably shouldn't be necessary. 
       -- project's don't need a construction data component, do they? (the only
@@ -1172,6 +1188,25 @@ end
 
 function BuildService:at_end_of_transaction(fn)
    table.insert(self._at_end_of_transaction_cbs, fn)
+end
+
+function BuildService:build_template_command(session, response, template_name, location, centroid, rotation)
+   local building
+   self:do_command('build_template', response, function()
+         building  = self:build_template(session, template_name, ToPoint3(location), ToPoint3(centroid), rotation)
+      end)
+   return { building = building }
+end
+
+function BuildService:build_template(session, template_name, location, centroid, rotation)
+   local position = location - centroid:rotated(rotation)
+   local building = self:_create_new_building(session, position)
+   
+   build_util.restore_template(building, template_name, {
+         rotation = rotation
+      })
+
+   return building
 end
 
 return BuildService

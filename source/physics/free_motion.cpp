@@ -85,7 +85,7 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
                if (current.y < valid.y) {
                   // The entity is stuck inside a collision shape.  Just pop them
                   // up and poke them
-                  float dy = static_cast<float>(valid.y - current.y);
+                  double dy = valid.y - current.y;
                   mob->MoveTo(mob->GetLocation() + csg::Point3f(0, dy, 0));
                } else {
                   // The entity is floating above a collision shape.  Put them into

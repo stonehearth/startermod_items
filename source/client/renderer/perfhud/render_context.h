@@ -23,11 +23,11 @@ public:
    csg::Point2f GetPixelSize();
 
 private:
-   H3DResUnique                                    material_;
-   H3DResUnique                                    font_material_;
-   float                                           text_size_;
-   csg::Point2f                                    one_pixel_;
-   perfmon::CounterValueType                       timeline_height_t_;
+   H3DResUnique                        material_;
+   H3DResUnique                        font_material_;
+   float                               text_size_;
+   csg::Point2f                        one_pixel_;
+   perfmon::CounterValueType           timeline_height_t_;
 };
 
 

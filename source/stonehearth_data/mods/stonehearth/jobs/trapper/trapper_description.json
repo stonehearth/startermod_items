@@ -15,6 +15,8 @@
    },
 
    "roles" : "trapper_job hunter", 
+   "promotion_activity_name" : "promote_trapper",
+
 
    "task_groups" : [
       "stonehearth:task_group:trapping",
@@ -24,5 +26,92 @@
 
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
-   "parent_job" : "stonehearth:jobs:worker"
+   "parent_job" : "stonehearth:jobs:worker", 
+
+   "xp_rewards" : {
+      "befriend_pet" : 75, 
+      "unsuccessful_trap" : 20, 
+      "successful_trap" : 50
+   },
+
+   "max_level" : 6,
+
+   "level_data" : {
+      "1" : {
+         "title" : "Journeyman Trapper",
+         "perks" : [
+            {
+               "type" : "apply_buff", 
+               "perk_name" : "Speed Up 10%", 
+               "perk_id" : "trapper_speed_up_1", 
+               "icon" : "file(images/speed_up.png)",
+               "buff_name" : "stonehearth:buffs:trapper:speed_1",
+               "description" : "Long walks have increased the trapper's foot speed.",
+               "level" : 1, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      },
+      "2" : {
+         "perks" : [
+            {
+               "type" : "add_equipment", 
+               "perk_name" : "Charm Pet", 
+               "perk_id" : "trapper_natural_empathy_1", 
+               "icon" : "file(images/charm_pet.png)",
+               "equipment" : "stonehearth:trapper:pet_treat_bag",
+               "description" : "The trapper will occasionally choose to turn a particulary fine animal into a pet!",
+               "level" : 2, 
+               "demote_fn" : "remove_equipment"
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "perk_name" : "Efficient Cuts", 
+               "perk_id" : "trapper_efficient_rendering", 
+               "icon" : "file(images/loot_up.png)",
+               "description" : "Long practice helps the trapper salvage more from each animal.",
+               "level" : 3
+            }
+         ]
+      },
+      "4" : {
+         "perks" : [
+            {
+               "type" : "increase_backpack_size",
+               "perk_name" : "Backpack Size +8", 
+               "perk_id" : "trapper_backpack_bonus_1",
+               "icon" : "file(images/backpack_up.png)", 
+               "backpack_size_increase" : "8",
+               "level" : 4, 
+               "description" : "The trapper has become more efficient at packing in the loot.", 
+               "demote_fn" : "decrease_backpack_size"
+            }
+         ]
+      },
+      "5" : {
+         "perks" : [
+            {
+               "perk_name" : "Toothier Traps", 
+               "perk_id" : "trapper_critter_enhancement",
+               "icon" : "file(images/trapperLevel5.png)", 
+               "level" : 5, 
+               "description" : "Traps now lure in and hold larger prey."
+            }
+         ]
+      }, 
+      "6" : {
+         "perks" : [
+            {
+               "perk_name" : "The Deadliest Catch", 
+               "perk_id" : "trapper_defensive_traps",
+               "icon" : "file(images/trapperLevel6.png)", 
+               "level" : 6, 
+               "description" : "Lay special trapping zones to 'deter' acquisitive neighbors."
+            }
+         ]
+      }
+   }
 }

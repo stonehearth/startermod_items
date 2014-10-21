@@ -1,0 +1,104 @@
+#shopBulletinDialog {
+
+   #top {
+      position: relative;
+      height: 70px;
+      padding-top: 10px;
+      vertical-align: bottom;
+
+      div {
+         display: inline-block;
+      }
+
+      #shopTitle {
+         position: relative;
+         top: 26px;
+         left: 8px;
+      }
+
+      #modeButtons {
+         position: absolute;
+         right: -4px;
+      }
+
+   }
+
+   table {
+      td.itemName {
+         width: 100%;
+      }
+   }
+
+   #inventory {
+      position: absolute;
+      height: 300px;
+
+      .icon {
+         width: 48px;
+         height: 48px;
+      }
+
+      td:first-of-type {
+         div {
+            position: relative;
+            top: -20px;
+            display: inline-block;
+         }
+      }
+
+      td {
+         .nobr;
+         padding-right: 10px;
+      }
+
+      td.cost {
+         text-align: right;
+         background-image: url(images/gold.png);
+         background-position: right center;
+         background-repeat: no-repeat;
+         padding-right: 30px;
+      }
+
+      td.num {
+         padding-left: 20px;
+         text-align: right;
+      }
+   }
+
+   #buyList {
+
+   }
+
+   #sellList {
+      display: none;
+   }
+
+   .shopButtons {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+   }
+
+   #buyButtons {
+
+   }
+
+   #sellButtons {
+      display: none;
+   }
+
+   #playerGold {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background-image: url(images/gold.png);
+      background-position: right bottom;
+      background-repeat: no-repeat;
+      padding-right: 30px;
+
+   }
+
+   .goldText {
+      color: #eccd39;
+   }
+}

@@ -9,198 +9,83 @@ using namespace ::radiant::csg;
 
 #define MT_LOG(level)      LOG(csg.meshtools, level)
 
-mesh_tools::mesh_tools() :
-   colorMap_(nullptr),
-   offset_(-0.5f, 0.0f, -0.5f)
+Vertex::Vertex(Point3f const& p, Point3f const& n, Point4f const& c)
 {
+   SetLocation(p);
+   SetNormal(n);
+   color[0] = (float)c[0];
+   color[1] = (float)c[1];
+   color[2] = (float)c[2];
+   color[3] = (float)c[3];
 }
 
-mesh_tools& mesh_tools::SetOffset(Point3f const& offset)
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color3 const& c)
 {
-   offset_ = offset;
-   return *this;
+   SetLocation(p);
+   SetNormal(n);
+   color[1] = (float)(c.r / 255.0);
+   color[2] = (float)(c.g / 255.0);
+   color[3] = (float)(c.b / 255.0);
+   color[4] = 1;
 }
 
-mesh_tools& mesh_tools::SetColorMap(TagToColorMap const& colorMap)
+Vertex::Vertex(Point3f const& p, Point3f const& n, Color4 const& c)
 {
-   colorMap_ = &colorMap;
-   return *this;
+   SetLocation(p);
+   SetNormal(n);
+   SetColor(c);
 }
 
-void mesh_tools::ForEachRegionSegment(SegmentMap const& front, SegmentMap const& back, SegmentInfo pi, int normal_dir, int flags, ForEachRegionSegmentCb const& cb)
+void Vertex::SetLocation(Point3f const& p)
 {
-   pi.normal_dir = normal_dir;
-
-   for (const auto& entry : front) {
-      pi.line_value = entry.first;
-      Region1 const& region = entry.second;
-
-      if ((flags & INCLUDE_HIDDEN_FACES) != 0) {
-         cb(region, pi);
-      } else {
-         auto i = back.find(pi.line_value);
-         if (i != back.end()) {
-            cb(region - i->second, pi);
-         } else {
-            cb(region, pi);
-         }
-      }
-   }
+   location[0] = (float)p.x;
+   location[1] = (float)p.y;
+   location[2] = (float)p.z;
 }
 
-void mesh_tools::ForEachRegionSegment(Region2 const& region, int flags, ForEachRegionSegmentCb const& cb)
+void Vertex::SetNormal(Point3f const& n)
 {
-   // xxx: this is in no way thread safe! (see SH-8)
-   static const SegmentInfo segment_data [] = {
-      { 0, 1, 0xd3adb33f, 0xd3adb33f },
-      { 1, 0, 0xd3adb33f, 0xd3adb33f },
-   };
-   for (auto const& sd : segment_data) {
-      SegmentMap front, back;
-
-      for (Rect2 const& r : region) {
-         Line1 line(Point1(r.min[sd.x]), Point1(r.max[sd.x]), r.GetTag());
-         front[r.min[sd.i]].AddUnique(line);
-         back[r.max[sd.i]].AddUnique(line);
-      }
-      ForEachRegionSegment(front, back, sd, -1, flags, cb);
-      ForEachRegionSegment(back, front, sd,  1, flags, cb);
-   }
+   normal[0] = (float)n.x;
+   normal[1] = (float)n.y;
+   normal[2] = (float)n.z;
 }
 
-void mesh_tools::ForEachRegionPlane(PlaneMap const& front, PlaneMap const& back, PlaneInfoX pi, int normal_dir, int flags, ForEachRegionPlaneCb const& cb)
+void Vertex::SetColor(Color4 const& c)
 {
-   pi.normal_dir = normal_dir;
-
-   for (const auto& entry : front) {
-      pi.plane_value = entry.first;
-      Region2 const& region = entry.second;
-
-      if ((flags & INCLUDE_HIDDEN_FACES) != 0) {
-         cb(region, pi);
-      } else {
-         auto i = back.find(pi.plane_value);
-         if (i != back.end()) {
-            cb(region - i->second, pi);
-         } else {
-            cb(region, pi);
-         }
-      }
-   }
+   color[0] = (float)(c.r / 255.0);
+   color[1] = (float)(c.g / 255.0);
+   color[2] = (float)(c.b / 255.0);
+   color[3] = (float)(c.a / 255.0);
 }
 
-// Iterate through every outward facing plane in the region...
-void mesh_tools::ForEachRegionPlane(Region3 const& region, int flags, ForEachRegionPlaneCb const& cb)
+csg::Point3f Vertex::GetLocation() const
 {
-   // xxx: this is in no way thread safe! (see SH-8)
-   static const PlaneInfoX plane_data [] = {
-      { 0, 2, 1, 0xd3adb33f, 0xd3adb33f },
-      { 1, 0, 2, 0xd3adb33f, 0xd3adb33f },
-      { 2, 0, 1, 0xd3adb33f, 0xd3adb33f },
-   };
-   for (auto const& pd : plane_data) {
-      PlaneMap front, back;
-
-      for (Cube3 const& c : region) {
-         Rect2 rect(Point2(c.min[pd.x], c.min[pd.y]), Point2(c.max[pd.x], c.max[pd.y]), c.GetTag());
-         front[c.min[pd.i]].AddUnique(rect);
-         back[c.max[pd.i]].AddUnique(rect);
-      }
-      ForEachRegionPlane(front, back, pd, -1, flags, cb);
-      ForEachRegionPlane(back, front, pd,  1, flags, cb);
-   }
+   return csg::Point3f(location[0], location[1], location[2]);
 }
 
-void mesh_tools::ForEachRegionEdge(Region3 const& region, int flags, ForEachRegionEdgeCb const& cb)
+csg::Point3f Vertex::GetNormal() const
 {
-   EdgeInfo ei;
-   ForEachRegionPlane(region, 0, [&](Region2 const& r2, PlaneInfoX const& pi) {
-      ei.normal = Point3::zero;
-      ei.min[pi.i] = pi.plane_value;
-      ei.max[pi.i] = pi.plane_value;
-      ei.normal[pi.i] = pi.normal_dir;
-      ForEachRegionSegment(r2, 0, [&](Region1 const& r1, SegmentInfo const& si) {
-         int x = si.i == 0 ? pi.y : pi.x;
-         int y = si.i == 0 ? pi.x : pi.y;
-         ei.min[y] = si.line_value;
-         ei.max[y] = si.line_value;
-         for (Line1 const& line : r1) {
-            ei.min[x] = line.min.x;
-            ei.max[x] = line.max.x;
-            cb(ei);
-         }
-      });
-   });
+   return csg::Point3f(normal[0], normal[1], normal[2]);
 }
 
-mesh_tools::mesh mesh_tools::ConvertRegionToMesh(const Region3& region)
-{   
-   mesh m;
-   m.SetOffset(offset_);
-
-   ForEachRegionPlane(region, 0, [&](Region2 const& r2, PlaneInfoX const& pi) {
-      AddRegionToMesh(r2, pi, m);
-   });
-   return m;
+csg::Color4 Vertex::GetColor() const
+{
+   return csg::Color4((unsigned char)(color[0] * 255.0), 
+      (unsigned char)(color[1] * 255.0),
+      (unsigned char)(color[2] * 255.0),
+      (unsigned char)(color[3] * 255.0));
 }
 
-void mesh_tools::AddRegionToMesh(Region2 const& region, PlaneInfoX const& pi, mesh& m)
+
+void Mesh::AddFace(Point3f const points[], Point3f const& normal)
 {
-   for (Rect2 const& r: region) {
-      Point2 const& min = r.GetMin();
-      Point2 const& max = r.GetMax();
-      Point3f points[4];
-
-      points[0][pi.x] = (float)min.x;
-      points[0][pi.y] = (float)min.y;
-      points[0][pi.i] = (float)pi.plane_value;
-
-      points[1][pi.x] = (float)min.x;
-      points[1][pi.y] = (float)max.y;
-      points[1][pi.i] = (float)pi.plane_value;
-
-      points[2][pi.x] = (float)max.x;
-      points[2][pi.y] = (float)max.y;
-      points[2][pi.i] = (float)pi.plane_value;
-
-      points[3][pi.x] = (float)max.x;
-      points[3][pi.y] = (float)min.y;
-      points[3][pi.i] = (float)pi.plane_value;
-
-      Point3f normal(0, 0, 0);
-      normal[pi.i] = (float)pi.normal_dir;
-
-      if (normal.x < 0 || normal.y < 0 || normal.z > 0) {
-         // swap the diagonals to traverse in the opposite direction
-         std::swap(points[0], points[2]);
-      }
-
-      int tag = r.GetTag();
-
-      if (!colorMap_) {         
-         Color4 color = Color4::FromInteger(tag);
-         m.AddFace(points, normal, color);
-      } else {
-         auto i = colorMap_->find(tag);
-         if (i != colorMap_->end()) {
-            m.AddFace(points, normal, i->second);
-         } else {
-            Color4 color = Color4::FromInteger(tag);
-            m.AddFace(points, normal, color);
-         }
-      }
-   }
+   AddFace(points, normal, color_);
 }
 
-void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& color)
+void Mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& c)
 {
-   csg::Point4f c;
-   if (override_color_) {
-      c = Point4f(color_.r / 255.0f, color_.g / 255.0f, color_.b / 255.0f, color_.a / 255.0f);
-   } else {
-      c = Point4f(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-   }
-   
+   csg::Point4f color(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+
    if (vertices.empty()) {
       bounds.SetMin(points[0] + offset_);
       bounds.SetMax(points[0] + offset_);
@@ -208,7 +93,7 @@ void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Co
    int vlast = vertices.size();
    for (int i = 0; i < 4; i++) {
       Point3f pt = points[i] + offset_;
-      vertices.emplace_back(vertex(pt, normal, c));
+      vertices.emplace_back(Vertex(pt, normal, color));
       bounds.Grow(pt);
    }
    
@@ -223,17 +108,17 @@ void mesh_tools::mesh::AddFace(Point3f const points[], Point3f const& normal, Co
 }
 
 template <typename S>
-void mesh_tools::mesh::AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& p)
+void Mesh::AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& p)
 {
-   for (Cube<S, 2> const& rect : region) {
+   for (Cube<S, 2> const& rect : EachCube(region)) {
       AddRect(rect, p);
    }
 }
 
 template <class S>
-void mesh_tools::mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
+void Mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
 {
-   PlaneInfo<float, 3> pi = ToFloat(p);
+   PlaneInfo3f pi = ToFloat(p);
    Point3f normal = pi.GetNormal();
 
    if (flip_) {
@@ -263,37 +148,83 @@ void mesh_tools::mesh::AddRect(Cube<S, 2> const& rect, PlaneInfo<S, 3> const& p)
       RegionToolsTraits3f::ExpandPoint(p2, pi),
       RegionToolsTraits3f::ExpandPoint(p3, pi),
    };
-   AddFace(points, normal, override_color_ ? color_ : Color4::FromInteger(rect.GetTag()));
+
+   int tag = rect.GetTag();
+   csg::Color4 color = Color4::FromInteger(tag);
+
+   if (override_color_) {
+      color = color_;      
+   } else if (colorMap_) {
+      auto i = colorMap_->find(tag);
+      if (i != colorMap_->end()) {
+         color = i->second;
+      }
+   }
+   AddFace(points, normal, color);
 }
 
-mesh_tools::mesh::mesh() : 
+Mesh::Mesh() : 
    override_color_(false),
+   color_(0, 0, 0, 255),
+   colorMap_(nullptr),
    offset_(-0.5f, 0.0f, -0.5f),
    flip_(false)
 {
 }
 
-mesh_tools::mesh& mesh_tools::mesh::SetColor(csg::Color4 const& color)
+Mesh& Mesh::SetColor(csg::Color4 const& color)
 {
    color_ = csg::Color4(color.r, color.g, color.b, color.a);
    override_color_ = true;
    return *this;
 }
 
-mesh_tools::mesh& mesh_tools::mesh::SetOffset(csg::Point3f const& offset)
+Mesh& Mesh::SetColorMap(TagToColorMap const* colorMap)
+{
+   colorMap_ = colorMap;
+   return *this;
+}
+
+Mesh& Mesh::SetOffset(csg::Point3f const& offset)
 {
    offset_ = offset;
    return *this;
 }
 
 
-mesh_tools::mesh& mesh_tools::mesh::FlipFaces()
+Mesh& Mesh::FlipFaces()
 {
    flip_ = !flip_;
    return *this;
 }
 
-void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::Point3f const& offset, bool optimizePlanes)
+Mesh& Mesh::AddVertices(Mesh const& other)
+{   
+   int offset = vertices.size();
+
+   if (offset == 0) {
+      vertices = other.vertices;
+      indices = other.indices;
+      bounds = other.bounds;
+   } else {
+      vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+      for (int32 i : other.indices) {
+         indices.push_back(i + offset);
+      }
+      bounds.Grow(other.bounds);
+   }
+   return *this;
+}
+
+Mesh& Mesh::Clear()
+{
+   vertices.clear();
+   indices.clear();
+   bounds = Cube3f::zero;
+   return *this;
+}
+
+void csg::RegionToMesh(csg::Region3 const& region, Mesh &mesh, csg::Point3f const& offset, bool optimizePlanes)
 {
    mesh.SetOffset(offset);
    csg::RegionTools3().ForEachPlane(region, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
@@ -307,7 +238,7 @@ void csg::RegionToMesh(csg::Region3 const& region, mesh_tools::mesh &mesh, csg::
    });
 }
 
-template void mesh_tools::mesh::AddRegion(Region<float, 2> const& region, PlaneInfo<float, 3> const& p);
-template void mesh_tools::mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p);
-template void mesh_tools::mesh::AddRect(Cube<float, 2> const& region, PlaneInfo<float, 3> const& p);
-template void mesh_tools::mesh::AddRect(Cube<int, 2> const& region, PlaneInfo<int, 3> const& p);
+template void Mesh::AddRegion(Region<double, 2> const& region, PlaneInfo<double, 3> const& p);
+template void Mesh::AddRegion(Region<int, 2> const& region, PlaneInfo<int, 3> const& p);
+template void Mesh::AddRect(Cube<double, 2> const& region, PlaneInfo<double, 3> const& p);
+template void Mesh::AddRect(Cube<int, 2> const& region, PlaneInfo<int, 3> const& p);

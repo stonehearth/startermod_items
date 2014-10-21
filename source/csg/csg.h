@@ -14,6 +14,7 @@ bool IsZero(double value);
 bool AreEqual(float v1, float v2);
 float Sqrt(float value);
 void SinCos(float value, float& sin, float& cos);
+void SinCos(double value, double& sin, double& cos);
 float Sin(float value);
 float Cos(float value);
 float InvSqrt(float value);
@@ -26,7 +27,7 @@ T trunc( const T& value )
    return static_cast<T>((value < 0.0) ? -result : result);
 }
 
-void GetAxisAngleNormalized(Quaternion const& q, Point3f& axis, float& angle);
+void GetAxisAngleNormalized(Quaternion const& q, Point3f& axis, double& angle);
 
 END_RADIANT_CSG_NAMESPACE
 

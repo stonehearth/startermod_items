@@ -7,9 +7,6 @@ using namespace ::luabind;
 using namespace ::radiant;
 using namespace ::radiant::csg;
 
-typedef mesh_tools::mesh Mesh;
-typedef mesh_tools::vertex Vertex;
-
 IMPLEMENT_TRIVIAL_TOSTRING(Mesh);
 IMPLEMENT_TRIVIAL_TOSTRING(Vertex);
 
@@ -55,14 +52,14 @@ scope LuaMesh::RegisterLuaTypes(lua_State* L)
          .def("add_vertex",            &Mesh_AddVertex)
          .def("get_vertex_count",      &Mesh_GetVertexCount)
          .def("add_index",             &Mesh_AddIndex)
-         .def("get_index_count",       &Mesh_GetVertexCount)
+         .def("get_index_count",       &Mesh_GetIndexCount)
       ,
       lua::RegisterType_NoTypeInfo<Vertex>("Vertex")
          .def(constructor<Point3f const&, Point3f const&, Point4f const&>())
          .def(constructor<Point3f const&, Point3f const&, Color3 const&>())
          .def(constructor<Point3f const&, Point3f const&, Color4 const&>())
-         .def_readwrite("location", &mesh_tools::vertex::location)
-         .def_readwrite("normal", &mesh_tools::vertex::normal)
-         .def_readwrite("color", &mesh_tools::vertex::color)
+         .property("location", &Vertex::GetLocation, &Vertex::SetLocation)
+         .property("normal", &Vertex::GetNormal, &Vertex::SetNormal)
+         .property("color", &Vertex::GetColor, &Vertex::SetColor)
       ;
 }

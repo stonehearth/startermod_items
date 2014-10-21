@@ -24,22 +24,24 @@ class Terrain(Component):
       DirtEdge1     = 401,
     )
 
-   tiles = dm.Map(csg.Point3f(), Region3fBoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
-   tile_size = dm.Boxed(c.float())
+   tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
 
-   cached_bounds = dm.Boxed(csg.Cube3f(), no_lua_impl = True)
-   origin_offset = dm.Boxed(csg.Point3f())
+   bounds = dm.Boxed(csg.Cube3(), get=None, set=None, no_lua_impl = True)
    in_bounds = ridl.Method(c.bool(), ('location', csg.Point3f().const.ref)).const
    get_bounds = ridl.Method(csg.Cube3f()).const
    add_tile = ridl.Method(c.void(),
-                          ('tile_offset', csg.Point3f().const.ref),
                           ('region', csg.Region3f().const.ref))
+   add_tile_clipped = ridl.Method(c.void(),
+                          ('region', csg.Region3f().const.ref),
+                          ('clipper', csg.Rect2f().const.ref))
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
    add_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
-   subtract_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
    add_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
+   subtract_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
    subtract_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
+   intersect_cube = ridl.Method(csg.Region3f(), ('cube', csg.Cube3f().const.ref))
+   intersect_region = ridl.Method(csg.Region3f(), ('region', csg.Region3f().const.ref))
 
    _includes = [
       "om/components/terrain_tesselator.h",
@@ -50,14 +52,13 @@ class Terrain(Component):
 
    _public = \
    """
-   Region3fBoxedPtr GetTile(csg::Point3f const& location, csg::Point3f& tile_offset) const;
+   csg::Point3 const& GetTileSize() const;
    """
 
    _private = \
    """
-   typedef std::function<void(csg::Region3f& tile, csg::Region3f& intersection)> ApplyRegionToTileCb;
+   Region3BoxedPtr GetTile(csg::Point3 const& index);
+   void AddTileWorker(csg::Region3f const& region, csg::Rect2 const* clipper);
+
    TerrainTesselator terrainTesselator_;
-   csg::Cube3f CalculateBounds() const;
-   csg::Cube3f GetTileBounds(csg::Point3f const& tile_offset) const;
-   void ApplyRegionToTiles(csg::Region3f const& region, ApplyRegionToTileCb const& operation);
    """

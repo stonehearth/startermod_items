@@ -17,23 +17,31 @@ void SendQueue::Flush(std::shared_ptr<SendQueue> sendQueue)
 {
    ASSERT(sendQueue);
    
-   if (sendQueue) {
+   if (!sendQueue) {
+      return;
+   }
+
+   if (sendQueue->_lastBufferCompleted >= sendQueue->_lastBufferWritten - sendQueue->_maxBuffersInFlight) {
       auto &queue = sendQueue->_queue;
 
       while (!queue.empty()) {
          auto buffer = queue.front();
          queue.pop_front();
-
          auto writeFinished = [sendQueue, buffer](const boost::system::error_code& error, size_t bytes_transferred) {
+            ASSERT(bytes_transferred == buffer->size);
+            ASSERT(!error);
             sendQueue->_bufferedBytes -= buffer->size;
             NETWORK_LOG(3) << sendQueue->_endpoint << " finished sending buffer of size " << buffer->size << "(bytes pending: " << sendQueue->_bufferedBytes << ")";
-            ASSERT(!error);
             sendQueue->_freelist.push(buffer);
+            sendQueue->_lastBufferCompleted++;
          };
          sendQueue->_bufferedBytes += buffer->size;
          NETWORK_LOG(3) << sendQueue->_endpoint << " sending buffer of size " << buffer->size << "(bytes pending: " << sendQueue->_bufferedBytes << ")";
          sendQueue->socket_.async_send(boost::asio::buffer(buffer->data, buffer->size), writeFinished);
+         sendQueue->_lastBufferWritten++;
       }
+   } else {
+      NETWORK_LOG(2) << sendQueue->_endpoint << " sendqueue too far ahead of receiver; skipping flush.";
    }
 }
 
@@ -53,7 +61,7 @@ void SendQueue::Push(google::protobuf::MessageLite const& msg)
          buffer = _freelist.top();
          _freelist.pop();
       } else {
-         NETWORK_LOG(7) << _endpoint << " allocating new send buffer";
+         NETWORK_LOG(2) << _endpoint << " allocating new send buffer (total: " << _queue.size() << ")";
          buffer = std::make_shared<Buffer>();
       }
       buffer->size = 0;
@@ -101,7 +109,7 @@ void RecvQueue::Read()
       auto read_handler = std::bind(&RecvQueue::HandleRead, this, shared_from_this(), std::placeholders::_1, std::placeholders::_2);
       socket_.async_receive(boost::asio::buffer((void *)readBuf_.nextdata(), readBuf_.remaining()), read_handler);
    } else {
-      NETWORK_LOG(3) << endpoint_ << " buffer full in RecvQueue::Read.  Waiting for next process loop...";
+      NETWORK_LOG(3) << endpoint_ << " buffer only has " << readBuf_.remaining() << " in RecvQueue::Read.  Waiting for next process loop...";
    }
 }
 
@@ -110,6 +118,9 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    ASSERT(readPending_); 
    readPending_ = false;
 
+   if (e) {
+      NETWORK_LOG(1) << BUILD_STRING("Error during HandleRead: " << e);
+   }
    ASSERT(!e);
 
 
@@ -121,6 +132,7 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
       startTime = timeGetTime();
    }
    readBuf_.grow(bytes_transferred);
+   ASSERT(readBuf_.size() <= ReadBufferSize);
    total += bytes_transferred;
 
    NETWORK_LOG(3) << endpoint_ << " received " << bytes_transferred << " bytes (read buf size is now: " << readBuf_.size() << ")";

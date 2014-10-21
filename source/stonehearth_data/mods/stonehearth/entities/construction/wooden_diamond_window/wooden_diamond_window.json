@@ -1,0 +1,11 @@
+{
+   "mixins" : "file(wooden_diamond_window_ghost.json)",
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_diamond_window_iconic.json)",
+         "ghost_form" : "file(wooden_diamond_window_ghost.json)",
+         "placeable_on_walls" : true,
+         "hide_placement_ui" : true
+      }      
+   }
+}

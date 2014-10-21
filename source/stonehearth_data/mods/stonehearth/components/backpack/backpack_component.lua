@@ -19,6 +19,12 @@ function BackpackComponent:destroy()
    self._kill_listener = nil
 end
 
+-- Call to increase/decrease backpack size
+-- @param capacity_change - add this number to capacity. For decrease, us a negative number
+function BackpackComponent:change_max_capacity(capacity_change)
+   self._sv.capacity = self._sv.capacity + capacity_change
+end
+
 --If we're killed, dump the things in our backpack
 function BackpackComponent:_on_kill_event()
    while not self:is_empty() do

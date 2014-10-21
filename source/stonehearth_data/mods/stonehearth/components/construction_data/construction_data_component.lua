@@ -9,11 +9,31 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build')
 
-local OPTIONS = {
-   nine_grid_slope = 'number',
+local NINE_GRID_OPTION_TYPES = {
    nine_grid_gradiant = 'table',
+   nine_grid_slope = 'number',
    nine_grid_max_height = 'number',
 }
+
+local NG_STRING_TO_DEGREES = {
+   front  = 1,
+   left   = 2,
+   back   = 3,
+   right  = 4,
+}
+
+local NG_ROTATION_TABLE = { 
+   "front",    -- 0 degrees.
+   "left",     -- 90 degress.
+   "back",     -- 180 degress.
+   "right",    -- 270 degress.
+   "front",    -- 360 degress.
+   "left",     -- 450 degress.
+   "back",     -- 540 degress.
+   "right",    -- 630 degress.
+   "front",    -- 720 degrees (longer than it needs to be, frankly).
+}
+
 
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
@@ -41,25 +61,28 @@ function ConstructionDataComponent:trace_data(reason, category)
    return self.__saved_variables:trace_data(reason)
 end
 
+function ConstructionDataComponent:_clone_writeable_options(into, from)
+   into.normal = from.normal and Point3(from.normal) or nil
+   into.nine_grid_region = from.nine_grid_region and Region2(from.nine_grid_region) or nil
+   into.type = from.type
+   into.material = from.material
+   into.use_custom_renderer = from.use_custom_renderer
+   into.needs_scaffolding = from.needs_scaffolding
+   into.max_workers = from.max_workers
+   into.allow_diagonal_adjacency = from.allow_diagonal_adjacency
+   into.project_adjacent_to_base = from.project_adjacent_to_base
+   into.allow_crouching_construction = from.allow_crouching_construction
+   into.paint_through_blueprint = from.paint_through_blueprint
+   into.nine_grid_slope = from.nine_grid_slope
+   into.nine_grid_gradiant = from.nine_grid_gradiant
+   into.nine_grid_max_height = from.nine_grid_max_height
+   into.brush = from.brush
+end
+
 function ConstructionDataComponent:clone_from(entity)
    if entity then
       local other_cd = entity:get_component('stonehearth:construction_data')
-
-      self._sv.normal = other_cd._sv.normal and Point3(other_cd._sv.normal) or nil
-      self._sv.nine_grid_region = other_cd._sv.nine_grid_region and Region2(other_cd._sv.nine_grid_region) or nil
-      self._sv.type = other_cd._sv.type
-      self._sv.material = other_cd._sv.material
-      self._sv.use_custom_renderer = other_cd._sv.use_custom_renderer
-      self._sv.needs_scaffolding = other_cd._sv.needs_scaffolding
-      self._sv.max_workers = other_cd._sv.max_workers
-      self._sv.allow_diagonal_adjacency = other_cd._sv.allow_diagonal_adjacency
-      self._sv.project_adjacent_to_base = other_cd._sv.project_adjacent_to_base
-      self._sv.allow_crouching_construction = other_cd._sv.allow_crouching_construction
-      self._sv.paint_through_blueprint = other_cd._sv.paint_through_blueprint
-      self._sv.nine_grid_slope = other_cd._sv.nine_grid_slope
-      self._sv.nine_grid_gradiant = other_cd._sv.nine_grid_gradiant
-      self._sv.nine_grid_max_height = other_cd._sv.nine_grid_max_height
-      self._sv.brush = other_cd._sv.brush
+      self:_clone_writeable_options(self._sv, other_cd._sv)
       self.__saved_variables:mark_changed()
    end
 end
@@ -68,16 +91,13 @@ end
 -- 
 --    @param options - the options to change.  
 --
-function ConstructionDataComponent:apply_options(options)
+function ConstructionDataComponent:apply_nine_grid_options(options)
    if options then
       for name, val in pairs(options) do
-         local t = OPTIONS[name]
-         if t then
-            if t == 'number' then
-               self._sv[name] = tonumber(val)
-            else
-               self._sv[name] = val
-            end
+         if NINE_GRID_OPTION_TYPES[name] == 'number' then
+            self._sv[name] = tonumber(val)
+         elseif NINE_GRID_OPTION_TYPES[name] == 'table' then
+            self._sv[name] = val
          end
       end
       self.__saved_variables:mark_changed()
@@ -211,6 +231,67 @@ function ConstructionDataComponent:create_voxel_brush()
    if self._sv.brush then
       return voxel_brush_util.create_brush(self._sv)
    end
+end
+
+function ConstructionDataComponent:save_to_template()
+   local result = {
+      normal = self._sv.normal,
+      nine_grid_region = self._sv.nine_grid_region2,
+      needs_scaffolding = self._sv.needs_scaffolding,
+      project_adjacent_to_base = self._sv.project_adjacent_to_base,
+      nine_grid_region = self._sv.nine_grid_region,
+      nine_grid_slope = self._sv.nine_grid_slope,
+      nine_grid_gradiant = self._sv.nine_grid_gradiant,
+      nine_grid_max_height = self._sv.nine_grid_max_height,
+      loan_scaffolding_to = radiant.keys(self._sv._loaning_scaffolding_to),
+   }
+   return result
+end
+
+function ConstructionDataComponent:load_from_template(data, options, entity_map)
+   if data.normal then
+      self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
+   end
+   if data.nine_grid_region then
+      self._sv.nine_grid_region = Region2()
+      self._sv.nine_grid_region:load(data.nine_grid_region)
+   end
+   self._sv.needs_scaffolding = data.needs_scaffolding
+   self._sv.project_adjacent_to_base = data.project_adjacent_to_base
+   if options.mode == 'preview' then
+      self._sv.paint_through_blueprint = false
+   end
+   self:apply_nine_grid_options(data)
+
+   for _, key in pairs(data.loan_scaffolding_to) do
+      self:loan_scaffolding_to(entity_map[key])
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+function ConstructionDataComponent:rotate_structure(degrees)
+   if self._sv.normal then
+      self._sv.normal = self._sv.normal:rotated(degrees)
+   end
+   if self._sv.nine_grid_region then
+      local cursor = self._sv.nine_grid_region
+      local origin = Point2(0.5, 0.5)
+      cursor:translate(-origin)
+      cursor:rotate(degrees)
+      cursor:translate(origin)      
+   end
+   if self._sv.nine_grid_gradiant then
+      local new_gradiant = {}
+      local rotation_offset = degrees / 90
+      for _, value in pairs(self._sv.nine_grid_gradiant) do
+         local rotation = NG_STRING_TO_DEGREES[value]
+         local next_value = NG_ROTATION_TABLE[rotation + rotation_offset]
+         table.insert(new_gradiant, next_value)
+      end
+      self._sv.nine_grid_gradiant = new_gradiant
+   end  
+   self.__saved_variables:mark_changed()
 end
 
 return ConstructionDataComponent

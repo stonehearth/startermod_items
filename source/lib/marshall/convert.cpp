@@ -23,11 +23,8 @@ Convert::Convert(dm::Store const& store, int flags) :
 void Convert::ToProtobuf(luabind::object const& from, Protocol::Value* to) {
    std::vector<luabind::object> tables;
 
-   CONVERT_LOG(9) << " converting to protobuf" << lua::ScriptHost::LuaToJson(from.interpreter(), from).write_formatted();
-
    Protocol::LuaObject* msg = to->MutableExtension(Protocol::LuaObject::extension);
    LuaToProtobuf(from, msg, msg, tables);
-
 }
 
 void Convert::ToLua(Protocol::Value const& from, luabind::object &to)
@@ -49,7 +46,9 @@ static luabind::object GetObjectSavedVariables(luabind::object const& obj)
          if (i == saved_variables) {
             CONVERT_LOG(1) << "breaking infinite loop in __saved_variables definition for object.";
             CONVERT_LOG(1) << lua::ScriptHost::LuaToJson(obj.interpreter(), obj).write_formatted();
-            ASSERT(false); // ASSERT immediately so we find the bug.  Will be removed in release builds
+            DEBUG_ONLY(
+               ASSERT(false); // ASSERT immediately so we find the bug.  Will be removed in release builds
+            )
             return luabind::object(); // Return LUA_TNIL if we pass the ASSERT
          }
       }

@@ -87,7 +87,7 @@ RenderNodePtr Client_CreateVoxelNode(lua_State* L,
                                      std::string const& material_path,
                                      csg::Point3f const& origin)
 {
-   csg::mesh_tools::mesh mesh;
+   csg::Mesh mesh;
    csg::RegionToMesh(csg::ToInt(model), mesh, -origin, false);
 
    return RenderNode::CreateCsgMeshNode(parent, mesh)
@@ -121,7 +121,7 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
          key.AddElement("matrix", matrix);
 
          // xxx: can we create a shared mesh without lod levels?
-         auto create_mesh = [&matrix, &origin](csg::mesh_tools::mesh &mesh, int lodLevel) {
+         auto create_mesh = [&matrix, &origin](csg::Mesh &mesh, int lodLevel) {
             csg::Region3 model = voxel::QubicleBrush(matrix)
                                           .SetOffsetMode(voxel::QubicleBrush::Matrix)
                                           .PaintOnce();
@@ -131,6 +131,16 @@ RenderNodePtr Client_CreateQubicleMatrixNode(lua_State* L,
       }
    }
    return node;
+}
+
+RenderNodePtr Client_CreateDesignationNode_WithCollisionBox(lua_State* L, 
+                                     H3DNode parent,
+                                     csg::Region2f const& model,
+                                     csg::Color4 const& outline,
+                                     csg::Color4 const& stripes,
+									 int useCoarseCollisionBox)
+{
+   return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes, useCoarseCollisionBox);
 }
 
 RenderNodePtr Client_CreateDesignationNode(lua_State* L, 
@@ -151,6 +161,14 @@ RenderNodePtr Client_CreateSelectionNode(lua_State* L,
    return Pipeline::GetInstance().CreateSelectionNode(parent, csg::ToInt(model), interior_color, border_color);
 }
 
+RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L, 
+                                  H3DNode parent,
+                                  csg::Region3f const& region,
+                                  csg::Color4 const& color)
+{
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, csg::ToInt(region), color);
+}
+
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
                                    H3DNode parent,
                                    csg::Region2f const& model,
@@ -162,7 +180,7 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
 
 RenderNodePtr Client_CreateMeshNode(lua_State* L, 
                                     H3DNode parent,
-                                    csg::mesh_tools::mesh const& m)
+                                    csg::Mesh const& m)
 {
    return RenderNode::CreateCsgMeshNode(parent, m);
 }
@@ -179,6 +197,14 @@ RenderNodePtr Client_CreateTextNode(lua_State* L,
       toastNode->SetText(text);
    }
    return node;
+}
+
+RenderNodePtr Client_CreateGroupNode(lua_State* L, 
+                                     H3DNode parent)
+{
+   static int id = 1;
+   std::string name = BUILD_STRING("groupnode" << id++);
+   return RenderNode::CreateGroupNode(parent, name.c_str());
 }
 
 om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
@@ -490,9 +516,12 @@ void lua::client::open(lua_State* L)
             def("create_obj_render_node",          &Client_CreateObjRenderNode),
             def("create_qubicle_matrix_node",      &Client_CreateQubicleMatrixNode),
             def("create_designation_node",         &Client_CreateDesignationNode),
+            def("create_designation_node",         &Client_CreateDesignationNode_WithCollisionBox),
             def("create_selection_node",           &Client_CreateSelectionNode),
+            def("create_region_outline_node",      &Client_CreateRegionOutlineNode),
             def("create_mesh_node",                &Client_CreateMeshNode),
             def("create_text_node",                &Client_CreateTextNode),
+            def("create_group_node",               &Client_CreateGroupNode),
             def("create_stockpile_node",           &Client_CreateStockpileNode),
             def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),

@@ -1,0 +1,57 @@
+{
+    "name": "dust_poof",
+    "duration": 9999,
+    "particle": {
+        "lifetime": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [1.0]
+            }
+        },
+        "speed": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0.0]
+            }
+        },
+
+        "color": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [1.0, 0.95, 0.56, 0.2]
+            },
+            "over_lifetime_a": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 0.2], [1.0, 0.0]
+                ]
+            }
+        },
+        "scale": {
+            "start": {
+                "kind": "CONSTANT",
+                "values": [0.1]
+            },
+            "over_lifetime": {
+                "kind": "CURVE",
+                "values": [
+                    [0.0, 1.0], [1.0, 400.0]
+                ]
+            }
+        }        
+    },
+    "emission": {
+        "rate": {
+            "kind": "CONSTANT",
+            "values": [1]
+        },
+        "origin": {
+            "surface": "POINT",
+            "values": [0.1, 0.1]
+        },
+        "angle": {
+            "kind": "CONSTANT",
+            "values": [360]
+        }
+    }
+}

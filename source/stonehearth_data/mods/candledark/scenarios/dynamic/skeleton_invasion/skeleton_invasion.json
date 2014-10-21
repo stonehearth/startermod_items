@@ -1,0 +1,16 @@
+{
+   "scenario_data" : {
+      "config" : {
+         "invasion_sizes" : [4, 20, 35]
+      },
+      "bulletins" : {
+         "attack" : {
+            "titles" : [
+               "What?! A wave of skeletons is attacking!",
+               "Here comes another wave of skeletons",
+               "The spirits are back. This wave is HUGE!"
+            ]
+         }
+      }
+   } 
+}

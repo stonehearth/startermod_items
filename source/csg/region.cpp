@@ -79,7 +79,7 @@ void Region<S, C>::Clear()
 template <class S, int C>
 void Region<S, C>::Add(Region const& region)
 {
-   for (Cube const& c : region) {
+   for (Cube const& c : EachCube(region)) {
       Add(c);
    }
 }
@@ -140,7 +140,7 @@ void Region<S, C>::AddUnique(Region const& region)
 {
    Validate();
    region.Validate();
-   for (Cube const& cube : region) {
+   for (Cube const& cube : EachCube(region)) {
 #if REGION_PARANOIA_LEVEL > 0
       ASSERT(!Intersects(cube));
 #endif
@@ -176,7 +176,7 @@ void Region<S, C>::Subtract(Cube const& cube)
             size--;
          } else {
             cubes_[i] = replacement[0];
-            added.insert(added.end(), replacement.begin() + 1, replacement.end());
+            added.insert(added.end(), replacement.cubes_.begin() + 1, replacement.cubes_.end());
             i++;
          }
       }
@@ -199,7 +199,7 @@ template <class S, int C>
 Region<S, C> Region<S, C>::operator-(Region const& r) const
 {
    Region result(*this);
-   for (const auto& c : r) {
+   for (const auto& c : EachCube(r)) {
       result -= c;
    }
    return result;
@@ -291,7 +291,7 @@ Region<S, C> const& Region<S, C>::operator-=(Region const& r)
 template <class S, int C>
 void Region<S, C>::Subtract(Region const& r)
 {
-   for (const auto &rc : r) {
+   for (const auto &rc : EachCube(r)) {
       Subtract(rc);
    }
 }
@@ -299,7 +299,7 @@ void Region<S, C>::Subtract(Region const& r)
 template <class S, int C>
 Region<S, C> const& Region<S, C>::operator+=(Region const& r)
 {
-   for (const auto &rc : r) {
+   for (const auto &rc : EachCube(r)) {
       Add(rc);
    }
    return *this;
@@ -308,13 +308,25 @@ Region<S, C> const& Region<S, C>::operator+=(Region const& r)
 template <class S, int C>
 bool Region<S, C>::Intersects(Cube const& cube) const
 {
-   for (Cube const& c : *this) {
+   for (Cube const& c : cubes_) {
       if (cube.Intersects(c)) {
          return true;
       }
    }
    return false;
 }
+
+template <class S, int C>
+bool Region<S, C>::Intersects(Region const& region) const
+{
+   for (Cube const& c : cubes_) {
+      if (region.Intersects(c)) {
+         return true;
+      }
+   }
+   return false;
+}
+
 template <class S, int C>
 bool Region<S, C>::Contains(Point const& pt) const
 {
@@ -331,7 +343,7 @@ Point<S, C> Region<S, C>::GetClosestPoint(Point const& from) const
 {
    ASSERT(!IsEmpty());
 
-   float bestDistance = FLT_MAX;
+   double bestDistance = FLT_MAX;
 
    Point closest;
    for (int i = 0; i < C; i++) {
@@ -341,7 +353,7 @@ Point<S, C> Region<S, C>::GetClosestPoint(Point const& from) const
 
    for (const auto &cube : cubes_) {
       Point candidate = cube.GetClosestPoint(from);
-      float candidateDistance = from.SquaredDistanceTo(candidate);
+      double candidateDistance = from.SquaredDistanceTo(candidate);
       if (candidateDistance < bestDistance) {
          bestDistance = candidateDistance;
          closest = candidate;
@@ -571,9 +583,9 @@ void Region<S, C>::OptimizeOneTagByOctTree(S minCubeSize)
 
    for (int d = 0; d < C; d++) {
       // floor quantizes towards -infinity which is what we want
-      min[d] = static_cast<S>(std::floor((float)bounds.GetMin()[d] / cubeSize) * cubeSize);
+      min[d] = static_cast<S>(std::floor((double)bounds.GetMin()[d] / cubeSize) * cubeSize);
       // max[d] is an open interval and not included in the set
-      max[d] = static_cast<S>(std::ceil((float)bounds.GetMax()[d] / cubeSize) * cubeSize);
+      max[d] = static_cast<S>(std::ceil((double)bounds.GetMax()[d] / cubeSize) * cubeSize);
    }
 
    Cube quantizedBounds = Cube(min, max);
@@ -736,25 +748,25 @@ Region3 radiant::csg::GetBorderXZ(const Region3 &other)
 #endif
 
 template <int C>
-Region<float, C> csg::ToFloat(Region<int, C> const& region) {
+Region<double, C> csg::ToFloat(Region<int, C> const& region) {
    // xxx: how about a fast path that looks for cubes?  T(2n) usually
 
-   Region<float, C> result;
-   for (Cube<int, C> const& cube : region) {
+   Region<double, C> result;
+   for (Cube<int, C> const& cube : EachCube(region)) {
       result.Add(ToFloat(cube));    // make no be unique due to rounding!  see csg::ToInt(Cube)
    }
    return result;
 }
 
 template <int C>
-Region<float, C> const& csg::ToFloat(Region<float, C> const& region) {
+Region<double, C> const& csg::ToFloat(Region<double, C> const& region) {
    return region;
 }
 
 template <int C>
-Region<int, C> csg::ToInt(Region<float, C> const& region) {
+Region<int, C> csg::ToInt(Region<double, C> const& region) {
    Region<int, C> result;
-   for (Cube<float, C> const& cube : region) {
+   for (Cube<double, C> const& cube : EachCube(region)) {
       result.Add(ToInt(cube)); // so expensive!
    }
    return result;
@@ -788,24 +800,24 @@ void Region<S, C>::Validate() const
 }
 
 template <typename S, int C>
-Point<float, C> csg::GetCentroid(Region<S, C> const& region)
+Point<double, C> csg::GetCentroid(Region<S, C> const& region)
 {
-   Point<float, C> weightedSum = Point<float, C>::zero;
-   float totalWeight = 0;
+   Point<double, C> weightedSum = Point<double, C>::zero;
+   double totalWeight = 0;
 
-   for (Cube<S, C> const& cube : region) {
-      Point<float, C> cubeCentroid = GetCentroid(cube);
-      float cubeArea = (float)cube.GetArea();
+   for (Cube<S, C> const& cube : EachCube(region)) {
+      Point<double, C> cubeCentroid = GetCentroid(cube);
+      double cubeArea = (double)cube.GetArea();
       weightedSum += cubeCentroid.Scaled(cubeArea);
       totalWeight += cubeArea;
    }
 
-   Point<float, C> centroid = weightedSum.Scaled(1 / totalWeight);
+   Point<double, C> centroid = weightedSum.Scaled(1 / totalWeight);
    return centroid;
 }
 
 #define MAKE_REGION(Cls) \
-   const Cls Cls::empty; \
+   const Cls Cls::zero; \
    template Cls::Region(); \
    template Cls::Region(const Cls::Cube&); \
    template Cls::ScalarType Cls::GetArea() const; \
@@ -831,6 +843,7 @@ Point<float, C> csg::GetCentroid(Region<S, C> const& region)
    template const Cls& Cls::operator+=(const Cls&); \
    template const Cls& Cls::operator-=(const Cls&); \
    template bool Cls::Intersects(const Cls::Cube&) const; \
+   template bool Cls::Intersects(const Cls&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point&) const; \
    template void Cls::OptimizeByMerge(); \
@@ -848,10 +861,10 @@ MAKE_REGION(Region1)
 MAKE_REGION(Region1f)
 
 #define DEFINE_REGION_CONVERSIONS(C) \
-   template Region<float, C> csg::ToFloat(Region<int, C> const&); \
-   template Region<float, C> const& csg::ToFloat(Region<float, C> const&); \
+   template Region<double, C> csg::ToFloat(Region<int, C> const&); \
+   template Region<double, C> const& csg::ToFloat(Region<double, C> const&); \
    template Region<int, C> const& csg::ToInt(Region<int, C> const&); \
-   template Region<int, C> csg::ToInt(Region<float, C> const&); \
+   template Region<int, C> csg::ToInt(Region<double, C> const&); \
 
 DEFINE_REGION_CONVERSIONS(1)
 DEFINE_REGION_CONVERSIONS(2)

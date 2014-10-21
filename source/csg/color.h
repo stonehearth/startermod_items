@@ -48,11 +48,11 @@ public:
    void SaveValue(protocol::color *c) const;
 
    Point3f ToHsl() const {
-      const Point3f nRGB(r / 255.0f, g / 255.0f, b / 255.0f);
-      const float cMax = std::max(std::max(nRGB.x, nRGB.y), nRGB.z);
-      const float cMin = std::min(std::min(nRGB.x, nRGB.y), nRGB.z);
-      const float delta = cMax - cMin;
-      Point3f result(0, 0, (cMax + cMin) / 2.0f);
+      const Point3f nRGB(r / 255.0, g / 255.0, b / 255.0);
+      const double cMax = std::max(std::max(nRGB.x, nRGB.y), nRGB.z);
+      const double cMin = std::min(std::min(nRGB.x, nRGB.y), nRGB.z);
+      const double delta = cMax - cMin;
+      Point3f result(0, 0, (cMax + cMin) / 2.0);
 
       if (delta != 0) {
          result.y = result.z > 0.5f ? delta / (2.0f - cMax - cMin) : delta / (cMax + cMin);

@@ -18,13 +18,122 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       },
       'stonehearth:attributes' : {},
       'stonehearth:personality' : {},
-      'stonehearth:score' : {}
+      'stonehearth:score' : {}, 
+      'stonehearth:job' : {
+         'curr_job_controller' : {},
+         'job_controllers' : {
+            '*' : {}
+         }
+      }
    },
-
 
    init: function() {
       this._super();
       this.set('equipment', {});
+      this._create_job_data_array();
+   },
+
+   jobComponents: {
+      "jobs" : {}
+   },
+
+   //The array-ized job data
+   all_job_data: null, 
+
+   //When we get job data from the server, turn maps into arrays and store in all_job_data
+   _create_job_data_array: function() {
+      var self = this;
+      self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.jobComponents);
+      self._jobPerkTrace.progress(function(eobj){
+         //Make the table of data
+         $.each(eobj.jobs, function (index, value) {
+            if (value.level_data) {
+               var levelArray = self._mapToArrayObject(value.level_data);
+               value.levelArray = levelArray;
+            }
+         })
+
+         self.set('all_job_data', eobj.jobs);
+         self._jobPerkTrace.destroy()
+      });
+   },
+
+   //Updates job related attributes
+   _updateJobData : function() {
+      this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
+      Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
+   }.observes('context.stonehearth:job'),
+
+   //Updates perk table
+   _updateJobDataDetails: function() {
+      Ember.run.scheduleOnce('afterRender', this, '_updateJobsAndPerks');
+   }.observes('context.stonehearth:job.curr_job_controller'),
+
+   //Go through each job we've had and annotate the perk table accordingly
+   _updateJobsAndPerks : function() {
+      var self = this;
+
+      //show each class that this person has ever been
+      var jobs = this.get('context.stonehearth:job.job_controllers');
+      $.each(jobs, function(alias, data) {
+         if(alias != "__self" && jobs.hasOwnProperty(alias)) {
+            var div = self.$("[uri='" + alias + "']");
+            
+            //For each, figure out which perks should be unlocked
+            self._unlockPerksToLevel(div, data.last_gained_lv)
+
+            $(div).show();
+         }
+      });
+
+      //Highlight current class, since it needs to be 100% up to date
+      $('.activeClassNameHeader').removeClass('activeClassNameHeader');
+      $('.className').addClass('retiredClassNameHeader');
+      var currClassAlias = this.get('context.stonehearth:job.job_uri');
+      var $currClass = $("[uri='" + currClassAlias + "']");
+      $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
+      self._unlockPerksToLevel($currClass,  this.get('context.stonehearth:job.curr_job_controller.last_gained_lv'))
+
+      //Make the job tooltips
+      this._updateJobTooltips();
+   },
+
+   //Given a perk div and target level, change the classes within to reflect the current level
+   _unlockPerksToLevel : function (target_div, target_level) {
+      $(target_div).find('.levelLabel').addClass('lvLabelLocked');
+      $(target_div).find('img').addClass('perkImgLocked');
+      for(var i=0; i<=target_level; i++) {
+         $(target_div).find("[imgLevel='" + i + "']").removeClass('perkImgLocked').addClass('perkImgUnlocked');
+         $(target_div).find("[lbLevel='" + i + "']").removeClass('lvLabelLocked').addClass('lvLabelUnlocked');
+         $(target_div).find("[divLevel='" + i + "']").attr('locked', "false");
+      }
+
+      //For good measure, throw the level into the class name header or remove if the level is 0
+      if (target_level == 0) {
+         $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:apprentice'));
+      } else {
+         $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:level_text') + target_level );
+      }
+   },
+
+   //Make tooltips for the perks
+   _updateJobTooltips : function() {
+      var self = this;
+      $('.tooltip').tooltipster();
+      $('.perkDiv').each(function(index){
+         var perkName = $(this).attr('name');
+         var perkDescription = $(this).attr('description');
+         var tooltipString = '<div class="perkTooltip"> <h2>' + perkName;
+
+         //If we're locked then add the locked label
+         if ($(this).attr('locked') == "true") {
+            tooltipString = tooltipString + '<span class="lockedTooltipLabel">' + i18n.t('stonehearth:locked_status') + '</span>';
+         }
+
+         tooltipString = tooltipString + '</h2>'+ perkDescription + '</div>';
+         $(this).tooltipster('content', $(tooltipString));
+      });
+ 
    },
 
    _setFirstJournalEntry: function() {
@@ -89,8 +198,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
     }.observes('context.stonehearth:equipment.equipped_items'),
 
+    //When the attribute data changes, update the bars
    _setAttributeData: function() {
-      this._updateAttributes();
+      Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
    }.observes('context.stonehearth:attributes, context.stonehearth:buffs'),
 
    _updateAttributes: function() {
@@ -98,6 +208,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var buffsByAttribute = this._sortBuffsByAttribute();
 
       if (!self.$()) {
+         //Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
          return;
       }
 
@@ -111,9 +222,10 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       var healthPercent = Math.floor(self.get('context.stonehearth:attributes.attributes.health.effective_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.effective_value'))
       var moralePercent = Math.floor(self.get('context.stonehearth:score.scores.happiness.score'));
-      //self.$('.healthBar').width(healthPercent + '%');
+      var expPercent = Math.floor(self.get('context.stonehearth:job.current_level_exp') * 100 / self.get('context.stonehearth:job.xp_to_next_lv'))
       self.$('.healthBar').width(healthPercent + '%');
       self.$('.moraleBar').width(moralePercent + '%');
+      self.$('.expBar').width(expPercent + '%');
    },
 
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute

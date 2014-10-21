@@ -11,7 +11,7 @@ Quaternion Quaternion::zero(0.0f, 0.0f, 0.0f, 0.0f);
 Quaternion Quaternion::identity(1.0f, 0.0f, 0.0f, 0.0f);
 
 
-Quaternion::Quaternion(const Point3f& axis, float angle)
+Quaternion::Quaternion(const Point3f& axis, double angle)
 {
     set(axis, angle);
 }   // End of Quaternion::Quaternion()
@@ -29,12 +29,12 @@ Quaternion::Quaternion(const Point3f& vector)
 
 Quaternion::Quaternion(const Matrix3& rotation)
 {
-    float trace = rotation.Guard();
+    double trace = rotation.Guard();
     if (trace > 0.0f)
     {
-        float s = sqrt(trace + 1.0f);
+        double s = sqrt(trace + 1.0f);
         w = s*0.5f;
-        float recip = 0.5f/s;
+        double recip = 0.5f/s;
         x = (rotation(2,1) - rotation(1,2))*recip;
         y = (rotation(0,2) - rotation(2,0))*recip;
         z = (rotation(1,0) - rotation(0,1))*recip;
@@ -49,11 +49,11 @@ Quaternion::Quaternion(const Matrix3& rotation)
         unsigned int j = (i+1)%3;
         unsigned int k = (j+1)%3;
 
-        float s = sqrt(rotation(i,i) - rotation(j,j) - rotation(k,k) + 1.0f);
+        double s = sqrt(rotation(i,i) - rotation(j,j) - rotation(k,k) + 1.0f);
 
-        float* apkQuat[3] = { &x, &y, &z };
+        double* apkQuat[3] = { &x, &y, &z };
         *apkQuat[i] = 0.5f*s;
-        float recip = 0.5f/s;
+        double recip = 0.5f/s;
         w = (rotation(k,j) - rotation(j,k))*recip;
         *apkQuat[j] = (rotation(j,i) + rotation(i,j))*recip;
         *apkQuat[k] = (rotation(k,i) + rotation(i,k))*recip;
@@ -62,12 +62,12 @@ Quaternion::Quaternion(const Matrix3& rotation)
 
 Quaternion::Quaternion(const Matrix4& rotation)
 {
-    float trace = rotation(0,0) + rotation(1,1) + rotation(2,2);
+    double trace = rotation(0,0) + rotation(1,1) + rotation(2,2);
     if (trace > 0.0f)
     {
-        float s = sqrt(trace + 1.0f);
+        double s = sqrt(trace + 1.0f);
         w = s*0.5f;
-        float recip = 0.5f/s;
+        double recip = 0.5f/s;
         x = (rotation(2,1) - rotation(1,2))*recip;
         y = (rotation(0,2) - rotation(2,0))*recip;
         z = (rotation(1,0) - rotation(0,1))*recip;
@@ -82,11 +82,11 @@ Quaternion::Quaternion(const Matrix4& rotation)
         unsigned int j = (i+1)%3;
         unsigned int k = (j+1)%3;
 
-        float s = sqrt(rotation(i,i) - rotation(j,j) - rotation(k,k) + 1.0f);
+        double s = sqrt(rotation(i,i) - rotation(j,j) - rotation(k,k) + 1.0f);
 
-        float* apkQuat[3] = { &x, &y, &z };
+        double* apkQuat[3] = { &x, &y, &z };
         *apkQuat[i] = 0.5f*s;
-        float recip = 0.5f/s;
+        double recip = 0.5f/s;
         w = (rotation(k,j) - rotation(j,k))*recip;
         *apkQuat[j] = (rotation(j,i) + rotation(i,j))*recip;
         *apkQuat[k] = (rotation(k,i) + rotation(i,k))*recip;
@@ -129,14 +129,14 @@ csg::operator<<(std::ostream& out, const Quaternion& source)
 }   // End of operator<<()
     
 
-float 
+double 
 Quaternion::magnitude() const
 {
     return sqrt(w*w + x*x + y*y + z*z);
 
 }
 
-float 
+double 
 Quaternion::norm() const
 {
     return (w*w + x*x + y*y + z*z);
@@ -191,23 +191,23 @@ Quaternion::is_identity() const
 }
 
 void
-Quaternion::set(const Point3f& axis, float angle)
+Quaternion::set(const Point3f& axis, double angle)
 {
    // if axis of rotation is zero vector, just set to identity quat
-   float lengthSquared = axis.LengthSquared();
+   double lengthSquared = axis.LengthSquared();
    if (csg::IsZero(lengthSquared)) {
       SetIdentity();
       return;
    }
 
    // recall the rotation angle = 2*theta
-   float theta = angle * 0.5f;
+   double theta = angle * 0.5f;
 
-   float sinTheta, cosTheta;
+   double sinTheta, cosTheta;
    csg::SinCos(theta, sinTheta, cosTheta);
 
    // divide by the length in case the axis is not a unit vector
-   float k = sinTheta / std::sqrt(lengthSquared);
+   double k = sinTheta / std::sqrt(lengthSquared);
 
    w = cosTheta;
    x = k * axis.x;
@@ -228,36 +228,36 @@ Quaternion::lookAt(const Point3f& from, const Point3f& target)
    right.Normalize();
    up = forward.Cross(right);
    up.Normalize();
-   float trace = right.x + up.y + forward.z;
+   double trace = right.x + up.y + forward.z;
 
    if (trace > 0) {
-      float s = sqrtf(trace + 1.0f) * 2.0f;
-      float s_recip = 1.0f / s;
-	   w = 0.25f * s;
+      double s = sqrt(trace + 1.0) * 2.0;
+      double s_recip = 1.0 / s;
+	   w = 0.25 * s;
 	   x = (up.z - forward.y) * s_recip;
 	   y = (forward.x - right.z) * s_recip;
 	   z = (right.y - up.x) * s_recip;
    } else if (right.x > up.y && right.x > forward.z) {
-      float s = sqrtf(1.0f + right.x - up.y - forward.z) * 2.0f;
-      float s_recip = 1.0f / s;
+      double s = sqrt(1.0 + right.x - up.y - forward.z) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (up.z - forward.y) * s_recip;
-	   x = 0.25f * s;
+	   x = 0.25 * s;
 	   y = (up.x + right.y) * s_recip;
 	   z = (forward.x + right.z) * s_recip;
    } else if (up.y > forward.z) {
-      float s = sqrtf(1.0f + up.y - right.x - forward.z) * 2.0f;
-      float s_recip = 1.0f / s;
+      double s = sqrt(1.0 + up.y - right.x - forward.z) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (forward.x - right.z) * s_recip;
 	   x = (up.x + right.y) * s_recip;
-	   y = 0.25f * s;
+	   y = 0.25 * s;
 	   z = (forward.y + up.z) * s_recip;
    } else {
-      float s = sqrtf(1.0f + forward.z - right.x - up.y) * 2.0f;
-      float s_recip = 1.0f / s;
+      double s = sqrt(1.0 + forward.z - right.x - up.y) * 2.0;
+      double s_recip = 1.0 / s;
 	   w = (right.y - up.x) * s_recip;
 	   x = (forward.x + right.z) * s_recip;
 	   y = (forward.y + up.z) * s_recip;
-	   z = 0.25f * s;
+	   z = 0.25 * s;
    }
 }
 
@@ -290,7 +290,7 @@ Quaternion::set(const Point3f& from, const Point3f& to)
     //                cos(theta/2)
 
     // before we Normalize, check if vectors are opposing
-    if (w <= k_epsilon)
+    if (w <= DBL_EPSILON)
     {
         // rotate pi radians around orthogonal vector
         // take Cross product with x axis
@@ -307,20 +307,20 @@ Quaternion::set(const Point3f& from, const Point3f& to)
 }
 
 void 
-Quaternion::set(float z_rotation, float y_rotation, float x_rotation) 
+Quaternion::set(double z_rotation, double y_rotation, double x_rotation) 
 {
     z_rotation *= 0.5f;
     y_rotation *= 0.5f;
     x_rotation *= 0.5f;
 
     // get sines and cosines of half angles
-    float Cx, Sx;
+    double Cx, Sx;
     csg::SinCos(x_rotation, Sx, Cx);
 
-    float Cy, Sy;
+    double Cy, Sy;
     csg::SinCos(y_rotation, Sy, Cy);
 
-    float Cz, Sz;
+    double Cz, Sz;
     csg::SinCos(z_rotation, Sz, Cz);
 
     // multiply it out
@@ -332,16 +332,16 @@ Quaternion::set(float z_rotation, float y_rotation, float x_rotation)
 }
 
 void
-Quaternion::get_axis_angle(Point3f& axis, float& angle) const
+Quaternion::get_axis_angle(Point3f& axis, double& angle) const
 {
    // recall the rotation angle = 2*theta
    angle = 2.0f * std::acos(w);
 
    // Don't do this:
-   // float length = sqrt(1.0f - w*w);
+   // double length = sqrt(1.0f - w*w);
 
    // This is far more accurate:
-   float length = std::sqrt(x*x + y*y + z*z);
+   double length = std::sqrt(x*x + y*y + z*z);
 
    // For small angles, w is close to 1 and has poor precision because we spend all of our mantissa bits storing 9's
    // e.g. if w^2 = 0.999999, 1 - w^2 = 0.0000001?????
@@ -351,7 +351,7 @@ Quaternion::get_axis_angle(Point3f& axis, float& angle) const
    if (csg::IsZero(length)) {
       axis.SetZero();
    } else {
-      float k = 1.0f / length;
+      double k = 1.0f / length;
       axis = Point3f(x*k, y*k, z*k);
    }
 }
@@ -373,7 +373,7 @@ Quaternion::clean()
 void
 Quaternion::Normalize()
 {
-    float lengthsq = w*w + x*x + y*y + z*z;
+    double lengthsq = w*w + x*x + y*y + z*z;
 
     if (csg::IsZero(lengthsq))
     {
@@ -381,7 +381,7 @@ Quaternion::Normalize()
     }
     else
     {
-        float factor = csg::InvSqrt(lengthsq);
+        double factor = 1 / std::sqrt(lengthsq);
         w *= factor;
         x *= factor;
         y *= factor;
@@ -411,7 +411,7 @@ Quaternion::conjugate()
 Quaternion 
 csg::inverse(const Quaternion& quat)
 {
-    float magnitude = quat.w*quat.w + quat.x*quat.x + quat.y*quat.y + quat.z*quat.z;
+    double magnitude = quat.w*quat.w + quat.x*quat.x + quat.y*quat.y + quat.z*quat.z;
     // if we're the zero Quaternion, just return identity
     if (!csg::IsZero(magnitude))
     {
@@ -419,7 +419,7 @@ csg::inverse(const Quaternion& quat)
         return Quaternion();
     }
 
-    float normRecip = 1.0f / magnitude;
+    double normRecip = 1.0f / magnitude;
     return Quaternion(normRecip*quat.w, -normRecip*quat.x, -normRecip*quat.y, 
                    -normRecip*quat.z);
 
@@ -428,12 +428,12 @@ csg::inverse(const Quaternion& quat)
 const Quaternion& 
 Quaternion::inverse()
 {
-    float magnitude = w*w + x*x + y*y + z*z;
+    double magnitude = w*w + x*x + y*y + z*z;
     // if we're the zero Quaternion, just return
     if (csg::IsZero(magnitude))
         return *this;
 
-    float normRecip = 1.0f / magnitude;
+    double normRecip = 1.0f / magnitude;
     w = normRecip*w;
     x = -normRecip*x;
     y = -normRecip*y;
@@ -518,7 +518,7 @@ Quaternion::operator-() const
 // Scalar multiplication by self
 //-------------------------------------------------------------------------------
 Quaternion&
-Quaternion::operator*=(float scalar)
+Quaternion::operator*=(double scalar)
 {
     w *= scalar;
     x *= scalar;
@@ -569,7 +569,7 @@ Quaternion::operator*=(const Quaternion& other)
 //-------------------------------------------------------------------------------
 // Dot product by self
 //-------------------------------------------------------------------------------
-float               
+double               
 Quaternion::Dot(const Quaternion& quat) const
 {
     return (w*quat.w + x*quat.x + y*quat.y + z*quat.z);
@@ -588,9 +588,9 @@ Quaternion::rotate(const Point3f& vector) const
 {
     ASSERT(is_unit());
 
-    float v_mult = 2.0f*(x*vector.x + y*vector.y + z*vector.z);
-    float cross_mult = 2.0f*w;
-    float p_mult = cross_mult*w - 1.0f;
+    double v_mult = 2.0f*(x*vector.x + y*vector.y + z*vector.z);
+    double cross_mult = 2.0f*w;
+    double p_mult = cross_mult*w - 1.0f;
 
     return Point3f(p_mult*vector.x + v_mult*x + cross_mult*(y*vector.z - z*vector.y),
                    p_mult*vector.y + v_mult*y + cross_mult*(z*vector.x - x*vector.z),
@@ -605,16 +605,16 @@ Quaternion::rotate(const Point3f& vector) const
 // This will always take the shorter path between them
 //-------------------------------------------------------------------------------
 void 
-csg::lerp(Quaternion& result, const Quaternion& start, const Quaternion& end, float t)
+csg::lerp(Quaternion& result, const Quaternion& start, const Quaternion& end, double t)
 {
     // get cos of "angle" between Quaternions
-    float cosTheta = start.Dot(end);
+    double cosTheta = start.Dot(end);
 
     // initialize result
     result = t*end;
 
     // if "angle" between Quaternions is less than 90 degrees
-    if (cosTheta >= k_epsilon)
+    if (cosTheta >= DBL_EPSILON)
     {
         // use standard interpolation
         result += (1.0f-t)*start;
@@ -635,24 +635,24 @@ csg::lerp(Quaternion& result, const Quaternion& start, const Quaternion& end, fl
 // This will always take the shorter path between them
 //-------------------------------------------------------------------------------
 void 
-csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, float t)
+csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, double t)
 {
    // get cosine of "angle" between Quaternions
-   float cosTheta = start.Dot(end);
-   float startInterp, endInterp;
+   double cosTheta = start.Dot(end);
+   double startInterp, endInterp;
 
    // if "angle" between Quaternions is less than 90 degrees
-   if (cosTheta >= k_epsilon)
+   if (cosTheta >= DBL_EPSILON)
    {
       // if angle is greater than zero
-      if ((1.0f - cosTheta) > k_epsilon)
+      if ((1.0f - cosTheta) > DBL_EPSILON)
       {
          // use standard slerp
-         float theta = acosf(cosTheta);
-         float recipSinTheta = 1.0f/csg::Sin(theta);
+         double theta = acos(cosTheta);
+         double recipSinTheta = 1.0f/std::sin(theta);
 
-         startInterp = csg::Sin((1.0f - t)*theta)*recipSinTheta;
-         endInterp = csg::Sin(t*theta)*recipSinTheta;
+         startInterp = std::sin((1.0f - t)*theta)*recipSinTheta;
+         endInterp = std::sin(t*theta)*recipSinTheta;
       }
       // angle is close to zero
       else
@@ -666,14 +666,14 @@ csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, f
    else
    {
       // if angle is less than 180 degrees
-      if ((1.0f + cosTheta) > k_epsilon)
+      if ((1.0f + cosTheta) > DBL_EPSILON)
       {
          // use slerp w/negation of start Quaternion
-         float theta = acosf(-cosTheta);
-         float recipSinTheta = 1.0f/csg::Sin(theta);
+         double theta = acos(-cosTheta);
+         double recipSinTheta = 1.0f/std::sin(theta);
 
-         startInterp = csg::Sin((t-1.0f)*theta)*recipSinTheta;
-         endInterp = csg::Sin(t*theta)*recipSinTheta;
+         startInterp = std::sin((t-1.0f)*theta)*recipSinTheta;
+         endInterp = std::sin(t*theta)*recipSinTheta;
       }
       // angle is close to 180 degrees
       else
@@ -697,19 +697,19 @@ csg::slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, f
 // See Game Developer, February 2004 for an alternate method.
 //-------------------------------------------------------------------------------
 void 
-csg::approx_slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, float t)
+csg::approx_slerp(Quaternion& result, const Quaternion& start, const Quaternion& end, double t)
 {
-    float cosTheta = start.Dot(end);
+    double cosTheta = start.Dot(end);
 
     // correct time by using cosine of angle between Quaternions
-    float factor = 1.0f - 0.7878088f*cosTheta;
-    float k = 0.5069269f;
+    double factor = 1.0f - 0.7878088f*cosTheta;
+    double k = 0.5069269f;
     factor *= factor;
     k *= factor;
 
-    float b = 2*k;
-    float c = -3*k;
-    float d = 1 + k;
+    double b = 2*k;
+    double c = -3*k;
+    double d = 1 + k;
 
     t = t*(b*t + c) + d;
 
@@ -717,7 +717,7 @@ csg::approx_slerp(Quaternion& result, const Quaternion& start, const Quaternion&
     result = t*end;
 
     // if "angle" between Quaternions is less than 90 degrees
-    if (cosTheta >= k_epsilon)
+    if (cosTheta >= DBL_EPSILON)
     {
         // use standard interpolation
         result += (1.0f-t)*start;

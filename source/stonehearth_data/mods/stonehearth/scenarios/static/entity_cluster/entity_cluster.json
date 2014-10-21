@@ -9,7 +9,6 @@
    "script" : "file(entity_cluster.lua)",
 
    "scenario_info" : {
-      "entity_type" : "stonehearth:rabbit",
       "entity_footprint_length" : 1,
       "quantity" : {
          "min" : 2,

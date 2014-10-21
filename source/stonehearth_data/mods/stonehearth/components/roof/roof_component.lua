@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Roof = class()
@@ -39,6 +40,18 @@ function Roof:cover_region2(region2)
    self._entity:get_component('stonehearth:construction_data')
                   :set_nine_grid_region2(region2)
    return self
+end
+
+function Roof:save_to_template()
+   return {}
+end
+
+function Roof:load_from_template(data, options, entity_map)
+   -- nothing to do!   
+end
+
+function Roof:rotate_structure(degrees)
+   build_util.rotate_structure(self._entity, degrees)
 end
 
 return Roof

@@ -5,6 +5,7 @@ function EquipmentComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    if not self._sv.equipped_items then
       self._sv.equipped_items = {}
+      self._sv.no_slot_counter = 0
    end
    self._kill_listener = radiant.events.listen(entity, 'stonehearth:kill_event', self, self._on_kill_event)
 end
@@ -18,8 +19,13 @@ end
 
 --When we've been killed, dump things that are >0 iLevel on the ground
 function EquipmentComponent:_on_kill_event()
+   self:drop_equipment()
+end
+
+function EquipmentComponent:drop_equipment()
    if self._sv.equipped_items then
       for key, item in pairs(self._sv.equipped_items) do
+         self:unequip_item(item)
          local ep = item:get_component('stonehearth:equipment_piece')
          if ep and ep:get_ilevel() > 0 then 
             local location = radiant.entities.get_world_grid_location(self._entity)
@@ -56,7 +62,8 @@ function EquipmentComponent:equip_item(item)
    
    if not slot then
       -- no slot specified, make up a magic slot name
-      slot = 'no_slot_' .. #self._sv.equipped_items
+      slot = 'no_slot_' .. self._sv.no_slot_counter
+      self._sv.no_slot_counter = self._sv.no_slot_counter + 1
    end
 
    -- unequip previous item in slot first, then assign the item to the slot

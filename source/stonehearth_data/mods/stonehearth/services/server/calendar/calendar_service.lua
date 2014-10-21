@@ -49,7 +49,7 @@ function CalendarService:initialize()
       
       -- When you change the start time change these to match
       self._sv._fired_sunrise_today = true
-      self._sv._fired_noon_today = true
+      self._sv._fired_noon_today = false
       self._sv._fired_sunset_today = false
       self._sv._fired_midnight_today = false
    end
@@ -236,7 +236,8 @@ function CalendarService:format_time()
 end
 
 function CalendarService:format_date()
-   return string.format("day %d of %s, %d", self._sv.date.day, self._constants.month_names[self._sv.date.month + 1],
+   -- all time units are stored in base 0, but days and months are displayed in base 1
+   return string.format("day %d of %s, %d", self._sv.date.day + 1, self._constants.month_names[self._sv.date.month + 1],
       self._sv.date.year)
 end
 

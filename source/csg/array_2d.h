@@ -56,6 +56,8 @@ public:
       ASSERT(inbounds(x, y));
       if (inbounds(x, y)) {
          return data_[y * width_ + x];
+      } else {
+         throw std::logic_error(BUILD_STRING("get " << x + origin_.x << ", " << y + origin_.y << " is out of bounds"));
       }
       return 0;
    }
@@ -77,6 +79,8 @@ public:
       ASSERT(inbounds(x, y));
       if (inbounds(x, y)) {
          data_[y * width_ + x] = value;
+      } else {
+         throw std::logic_error(BUILD_STRING("set " << x + origin_.x << ", " << y + origin_.y << " is out of bounds"));
       }
    }
 

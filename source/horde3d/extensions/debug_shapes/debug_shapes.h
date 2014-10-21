@@ -64,7 +64,7 @@ private:
 
       Vertex(const csg::Point3f& v, const csg::Color4& c) {
          for (int i = 0; i < 3; i++) {
-            position[i] = v[i];
+            position[i] = (float)v[i];
          }
          color[0] = c.r / 255.0f;
          color[1] = c.g / 255.0f;

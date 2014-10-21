@@ -30,17 +30,18 @@ class Pipeline : public core::Singleton<Pipeline> {
       // to change (e.g. the terrain).
       SharedMaterial GetSharedMaterial(std::string const& uri);
 
-      RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color);
+      RenderNodePtr CreateDesignationNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& outline_color, csg::Color4 const& stripes_color, int useCoarseCollisionBox=1);
       RenderNodePtr CreateStockpileNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
       RenderNodePtr CreateSelectionNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color);
+      RenderNodePtr CreateRegionOutlineNode(H3DNode parent, csg::Region3 const& region, csg::Color4 const& color);
       H3DRes CreateVoxelGeometryFromRegion(std::string const& geoName, csg::Region3 const& region);
-      csg::mesh_tools::mesh CreateMeshFromRegion(csg::Region3 const& region);
+      csg::Mesh CreateMeshFromRegion(csg::Region3 const& region);
 
    private:
-      void AddDesignationBorder(csg::mesh_tools::mesh& m, csg::EdgeMap2& edgemap);
-      void AddDesignationStripes(csg::mesh_tools::mesh& m, csg::Region2 const& panels);
+      void AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap);
+      void AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels);
       RenderNodePtr CreateXZBoxNode(H3DNode parent, csg::Region2 const& model, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
-      void CreateXZBoxNodeGeometry(csg::mesh_tools::mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
+      void CreateXZBoxNodeGeometry(csg::Mesh& mesh, csg::Region2 const& region, csg::Color4 const& interior_color, csg::Color4 const& border_color, float border_size);
       SharedGeometry CreateMeshGeometryFromObj(std::string const& geoName, std::istream& stream);
 
    private:

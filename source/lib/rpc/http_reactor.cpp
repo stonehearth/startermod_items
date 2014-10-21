@@ -202,7 +202,7 @@ void HttpReactor::GetMimeType(std::string const& uri, std::string& mimetype)
    } mimeTypes_[] = {
       { "htm",  "text/html" },
       { "html", "text/html" },
-      {  "css",  "text/css" },
+      { "css",  "text/css" },
       { "less",  "text/css" },
       { "js",   "application/x-javascript" },
       { "json", "application/json" },

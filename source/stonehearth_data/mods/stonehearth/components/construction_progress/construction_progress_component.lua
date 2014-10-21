@@ -1,3 +1,5 @@
+local build_util = require 'lib.build_util'
+
 local ConstructionProgress = class()
 local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
@@ -21,22 +23,20 @@ function ConstructionProgress:initialize(entity, json)
       self._sv.dependencies_finished = false
    end
 
+   self._log:debug('initialized construction_progress component')
+
    self._blueprint_listeners = {}
    self._teardown_listeners = {}
    self._finished_listeners = {}
    
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         for id, blueprint in pairs(self._sv.dependencies) do
-            self:_listen_for_changes(blueprint)
-         end
-         for id, blueprint in pairs(self._sv.inverse_dependencies) do            
-            self:_listen_for_changes(blueprint)
-         end
+         self:_restore_listeners()
          self:check_dependencies()
       end)
 end
 
 function ConstructionProgress:destroy()
+   self._log:debug('destroying construction_progress for %s', self._entity)
    self:unlink()   
 end
 
@@ -62,6 +62,15 @@ function ConstructionProgress:clone_from(other)
       end
    end
    return self
+end
+
+function ConstructionProgress:_restore_listeners()
+   for id, blueprint in pairs(self._sv.dependencies) do
+      self:_listen_for_changes(blueprint)
+   end
+   for id, blueprint in pairs(self._sv.inverse_dependencies) do            
+      self:_listen_for_changes(blueprint)
+   end
 end
 
 function ConstructionProgress:_listen_for_changes(blueprint)
@@ -91,6 +100,7 @@ function ConstructionProgress:_unlisten_for_changes(blueprint)
 end
 
 function ConstructionProgress:unlink()
+   self._log:debug('unlink called on %s', self._entity)
    for id, blueprint in pairs(self._sv.inverse_dependencies) do
       local cp = blueprint:get_component('stonehearth:construction_progress')
       if cp then
@@ -100,6 +110,7 @@ function ConstructionProgress:unlink()
    for id, blueprint in pairs(self._sv.dependencies) do
       local cp = blueprint:get_component('stonehearth:construction_progress')
       if cp then
+         self._log:debug('calling removing inverse dependency %s -> %s / %s', self._entity, blueprint, cp._entity)
          cp:_remove_inverse_dependency(self._entity)
       end
    end
@@ -139,6 +150,8 @@ end
 function ConstructionProgress:remove_dependency(blueprint)
    assert(self._entity ~= blueprint)
 
+   self._log:debug('%s removing dependency %s', self._entity, blueprint)
+
    local id = blueprint:get_id()
    self._sv.dependencies[id] = nil
    self.__saved_variables:mark_changed()
@@ -154,6 +167,8 @@ end
 function ConstructionProgress:_remove_inverse_dependency(blueprint)
    assert(self._entity ~= blueprint)
    
+   self._log:debug('%s removing inverse dependency %s', self._entity, blueprint)
+
    local id = blueprint:get_id()
    self._sv.inverse_dependencies[id] = nil
    self.__saved_variables:mark_changed()
@@ -352,6 +367,28 @@ function ConstructionProgress:get_fabricator_component()
       assert(component)
       return component
    end
+end
+
+function ConstructionProgress:save_to_template()
+   return {
+      building_entity            = build_util.pack_entity(self._sv.building_entity),
+      dependencies               = build_util.pack_entity_table(self._sv.dependencies),
+      inverse_dependencies       = build_util.pack_entity_table(self._sv.inverse_dependencies),
+      fabricator_component_name  = self._sv._fabricator_component_name,
+   }
+end
+
+function ConstructionProgress:load_from_template(template, options, entity_map)
+   self._sv.building_entity            = build_util.unpack_entity(template.building_entity, entity_map)
+   self._sv.dependencies               = build_util.unpack_entity_table(template.dependencies, entity_map)
+   self._sv.inverse_dependencies       = build_util.unpack_entity_table(template.inverse_dependencies, entity_map)
+   self._sv._fabricator_component_name = template.fabricator_component_name
+   self.__saved_variables:mark_changed()
+
+   radiant.events.listen_once(entity_map, 'finished_loading', function()
+         self:_restore_listeners()
+         stonehearth.build:add_fabricator(self._entity)
+      end)
 end
 
 return ConstructionProgress

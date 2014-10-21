@@ -37,14 +37,13 @@ function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
       end
    end
    
-   self._pathfinder:set_solved_cb(
-      function(path)
+   self._pathfinder:set_solved_cb(function(path)
          ai:set_think_output({
             path = path,
             stockpile = path:get_destination()
          })
-      end
-   )
+         return true
+      end)
    self._pathfinder:start()
 end
 

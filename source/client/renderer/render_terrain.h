@@ -10,6 +10,7 @@
 #include "dm/dm.h"
 #include "csg/util.h"
 #include "render_node.h"
+#include "render_terrain_tile.h"
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
 
@@ -20,39 +21,49 @@ public:
    RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain);
    ~RenderTerrain();
 
-private:
-   class RenderTile {
-   public:
-      csg::Point3                location;
-      om::Region3fBoxedRef       region;
-      dm::TracePtr               trace;
-
-      RenderTile() { }
-
-      void SetNode(RenderNodePtr n) {
-         _node = n;
-      }
-
-   private:
-      RenderNodePtr _node;
-   };
-   DECLARE_SHARED_POINTER_TYPES(RenderTile)
+   csg::TagToColorMap const& GetColorMap() const;
+   H3DNode GetGroupNode() const;
+   void MarkDirty(csg::Point3 const& location);
+   csg::Point3 GetTileSize();
+   void AddCut(om::Region3fBoxedPtr const& cut);
+   void RemoveCut(om::Region3fBoxedPtr const& cut);
 
 private:
    void InitalizeColorMap();
+   void ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& tile, csg::RegionTools3::Plane direction);
+
+   void UpdateNeighbors();
+   void UpdateClipPlanes();
+   void UpdateGeometry();
+   void UpdateLayers();
+   void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
-   void UpdateRenderRegion(RenderTilePtr render_tile);
-   void AddDirtyTile(RenderTileRef tile);
+
+   RenderTerrainLayer& GetLayer(csg::Point3 const& location);
+
+   csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
+   csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
+
+private:
+   typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
 
 private:
    const RenderEntity&  entity_;
+   csg::Point3          _tileSize;
    dm::TracePtr         tiles_trace_;
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
-   std::unordered_map<csg::Point3, std::shared_ptr<RenderTile>, csg::Point3::Hash> tiles_;
-   std::vector<RenderTileRef> dirty_tiles_;
+   std::unordered_map<csg::Point3, RenderTerrainTile*, csg::Point3::Hash> tiles_;
+   std::unordered_map<csg::Point3, RenderTerrainLayer*, csg::Point3::Hash> layers_;
+   DirtySet             _dirtyGeometry;
+   DirtySet             _dirtyClipPlanes;
+   DirtySet             _dirtyNeighbors;
+   DirtySet             _dirtyLayers;
    core::Guard          renderer_frame_trace_;
+   csg::TagToColorMap   _colorMap;
+   std::unordered_set<om::Region3fBoxedPtr> _cuts;
+   std::unordered_map<om::Region3fBoxedPtr, dm::TracePtr> _cut_trace_map;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

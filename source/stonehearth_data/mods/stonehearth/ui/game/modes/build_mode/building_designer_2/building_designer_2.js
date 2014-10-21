@@ -1,7 +1,7 @@
 App.StonehearthBuildingDesignerTools = App.View.extend({
    templateName: 'buildingDesignerTools',
    i18nNamespace: 'stonehearth',
-   classNames: ['fullScreen', 'flex', "gui"],
+   classNames: ['fullScreen', "gui"],
    uriProperty: 'context.selection',
 
    components: {
@@ -43,34 +43,30 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    },
 
    _buildMaterialPalette: function(materials, materialClassName) {
-      var palette = $('<div>')
-                     .addClass('brushPalette')
-                     .addClass('section');
+      var palette = $('<div>').addClass('brushPalette');
 
-      
       // for each category
       var index = 0;
       $.each(materials, function(i, category) {
          // for each material
          $.each(category.items, function(k, material) {
-            var brush = $('<img>')
+            var brush = $('<div>')
+                           .addClass('brush')
                            .attr('brush', material.brush)
-                           .attr('src', material.portrait)
+                           .css({ 'background-image' : 'url(' + material.portrait + ')' })
                            .attr('title', material.name)
                            .attr('index', index)
-                           .addClass(materialClassName);
+                           .addClass(materialClassName)
+                           .append('<div class=selectBox />'); // for showing the brush when it's selected
 
             palette.append(brush);
+            
+
             index += 1;
          });
       });
 
-      var el = $('<div>')
-                  .append('<h2>Materials</h2>')
-                  .append(palette);
-
-
-      return el;
+      return palette;
    },
 
    _selectActiveMaterial: function(el) {
@@ -116,15 +112,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       $.get('/stonehearth/data/build/building_parts.json')
          .done(function(json) {
             self.buildingParts = json;
-            self.$('#floorToolTab').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'floorMaterial'));
-            self.$('#wallToolTab').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
-            self.$('.roofMaterialsContainer').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
-            self.$('#doodadToolTab').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
-            self.$('#roadToolTab').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'roadMaterial'));
+            self.$('#floorMaterials').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'floorMaterial'));
+            self.$('#wallMaterials').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
+            self.$('#roofMaterials').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
+            self.$('#doodadMaterials').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
 
             self._addEventHandlers();
             self._restoreUiState();
             self._updateControls();
+
+            self.$("[title]").tooltipster();
          });
    },
 
@@ -142,67 +139,26 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var self = this;
 
       // tab buttons and pages
-      this.$('.tabButton').click(function() {
-         var tabId = $(this).attr('tab');
+      this.$('.toolButton').click(function() {
+         var tool = $(this);
+         var tabId = tool.attr('tab');
          var tab = self.$('#' + tabId);
 
          if (!tabId) {
             return;
          }
 
-         // If a new tab is being selected, deactivate the old tools
-         var clickedTab = $(this).attr('id');
-         var currentActiveTab = self.$('.tabButton.active').attr('id');
-         if(clickedTab != currentActiveTab) {
-            App.stonehearthClient.deactivateAllTools();   
-         }
-         
-         // style the tabs to reflect the new active tab
-         self.$('.tabButton').removeClass('active');
-         $(this).addClass('active');
-         
-         // restore the last used tool for the tab
-         var activeTool = self._state[tabId + "ActiveTool"];
-         if (activeTool) {
-            // disable this, because it messes with the ability to just click around the parts of the building.
-            // For example, you click a wall, the grow walls tool activates, and you can't click around anymore
-            //tab.find(activeTool).click();   
-         }
-
-         // update the material in the tab to reflect the selection
-         self._selectActiveMaterial(tab);
-
          // show the correct tab page
          self.$('.tabPage').hide();
          tab.show();
 
-         self._state.activeTabId = tabId;
-         self._saveState();
-      });
-
-      // tools
-      this.$('.toolButton').click(function() {
-         var tool = $(this);
-         var toolActive = tool.hasClass('active');
-         var toolSaveState = null;
-
-         // change display for all the other tool buttons
-         self.$('.toolButton').removeClass('active');         
+         // activate the tool
+         self.$('.toolButton').removeClass('active');
+         tool.addClass('active');
          
-         // toggle the tool based on its old state
-         if (toolActive) {
-            // was active, deactivate it
-            toolSaveState = null;
-            App.stonehearthClient.deactivateAllTools();
-         } else {
-            // was not active, activate it
-            tool.addClass('active');
-            toolSaveState = '#' + tool.attr('id');
-         }
+         // update the material in the tab to reflect the selection
+         self._selectActiveMaterial(tab);
 
-         var tabId = tool.parents('.tabPage').attr('id');
-         self._state[tabId + "ActiveTool"] = toolSaveState;
-         self._saveState();
       });
 
       // undo/redoo tool
@@ -222,12 +178,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw floor tool
       var doDrawFloor = function() {
-         var brush = self.$('#floorToolTab .floorMaterial.selected').attr('brush');
+         var brush = self.$('#floorMaterialTab .floorMaterial.selected').attr('brush');
          App.stonehearthClient.buildFloor(brush, 
             activateElement('#drawFloorTool'))
             .fail(self._deactivateTool('#drawFloorTool'))
             .done(function() {
-               doDrawFloor(false);
+               doDrawFloor();
             });
       };
 
@@ -244,7 +200,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw wall tool
       var doDrawWall = function() {
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
+         var wallUri = self.$('#wallMaterialTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, 
             activateElement('#drawWallTool'))
             .fail(self._deactivateTool('#drawWallTool'))
@@ -255,7 +211,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
 
       var doGrowWalls = function() {
-         var wallUri = self.$('#wallToolTab .wallMaterial.selected').attr('brush');
+         var wallUri = self.$('#wallMaterialTab .wallMaterial.selected').attr('brush');
          App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri,
             activateElement('#growWallsTool'))
             .fail(self._deactivateTool('#growWallsTool'))
@@ -267,7 +223,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // roof tab
       var doGrowRoof = function() {
-         var roofUri = self.$('#roofToolTab .roofMaterial.selected').attr('brush');
+         var roofUri = self.$('#roofMaterialTab .roofMaterial.selected').attr('brush');
          App.stonehearthClient.growRoof(roofUri,
             activateElement('#growRoofTool'))
             .fail(self._deactivateTool('#growRoofTool'))
@@ -278,7 +234,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // draw doodad tool
       var doAddDoodad = function() {
-         var uri = self.$('#doodadToolTab .doodadMaterial.selected').attr('brush');
+         var uri = self.$('#doodadMaterialTab .doodadMaterial.selected').attr('brush');
          App.stonehearthClient.addDoodad(uri,
             activateElement('#drawDoodadTool'))
             .fail(self._deactivateTool('#drawDoodadTool'))
@@ -287,23 +243,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       }
 
-      // roads tab
-      var doDrawRoad = function() {
-         var brush = self.$('#roadToolTab .roadMaterial.selected').attr('brush');
-         App.stonehearthClient.buildRoad(brush, 
-            activateElement('#drawRoadTool'))
-            .fail(self._deactivateTool('#drawRoadTool'))
-            .done(function() {
-               doDrawRoad(false);
-            });
-      };
-
-      this.$('#drawRoadTool').click(function() {
-         doDrawRoad(true);
-      });
-
       this.$('#drawFloorTool').click(function() {
-         doDrawFloor(true);
+         doDrawFloor();
       });
 
       this.$('#eraseFloorTool').click(function() {
@@ -337,24 +278,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
          // Re/activate the floor tool with the new material
          doDrawFloor(true);
-      });
-
-      // floor materials
-      this.$('.roadMaterial').click(function() {
-         self.$('.roadMaterial').removeClass('selected');
-         $(this).addClass('selected');
-
-         self._state.roadMaterial = $(this).attr('index');
-         self._saveState();
-
-         // Re/activate the floor tool with the new material
-         doDrawRoad(true);
-      });
+      })      
 
       // wall materials
-      this.$('#wallToolTab .wallMaterial').click(function() {
+      this.$('#wallMaterialTab .wallMaterial').click(function() {
          // select the clicked material
-         self.$('#wallToolTab .wallMaterial').removeClass('selected');
+         self.$('#wallMaterialTab .wallMaterial').removeClass('selected');
          $(this).addClass('selected');
 
          self._state.wallMaterial = $(this).attr('index');
@@ -377,9 +306,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       });
 
-      this.$('#roofToolTab .roofMaterial').click(function() {
+      this.$('#roofMaterialTab .roofMaterial').click(function() {
          // select the clicked material
-         self.$('#roofToolTab .roofMaterial').removeClass('selected');
+         self.$('#roofMaterialTab .roofMaterial').removeClass('selected');
          $(this).addClass('selected');
 
          self._state.roofMaterial = $(this).attr('index');
@@ -399,7 +328,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          doGrowRoof();
       });
 
-      this.$('#roofToolTab .roofNumericInput').change(function() {
+      this.$('#roofMaterialTab .roofNumericInput').change(function() {
          // update the options for future roofs
          var numericInput = $(this);
          var options = self._state.growRoofOptions;
@@ -420,10 +349,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       // roof slope buttons
-      this.$('#roofToolTab .roofDiagramButton').click(function() {
+      this.$('#roofMaterialTab .roofDiagramButton').click(function() {
          // update the options for future roofs
          $(this).toggleClass('active');
-         self._getRoofOptionsFromElement('#roofToolTab', self._state.growRoofOptions);
+         self._getRoofOptionsFromElement('#roofMaterialTab', self._state.growRoofOptions);
          self._updateGrowRoofOptions();
          self._saveState();
 
@@ -458,11 +387,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                //xxx hack! The server should do this for us
                self.set('building.active', true);
             }
+            App.setGameMode('normal');
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
             { 
-               title : "Really Start Building?",
+               title : "Really start building?",
                message : "Once you begin building this structure it cannot be edited. Are you sure you want to build now?",
                buttons : [
                   { 
@@ -478,13 +408,42 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       });
 
       this.$('#removeBuilding').click(function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
-         var building_entity = self.get('building');
-         if (building_entity) {
-            radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
-            self.set('context.selection', null);
+         var doRemoveBuilding = function() {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
+            var building_entity = self.get('building');
+            if (building_entity) {
+               radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
+               self.set('context.selection', null);
+            }            
          }
+
+         App.gameView.addView(App.StonehearthConfirmView, 
+            { 
+               title : "Really remove this building",
+               message : "Are you sure you want to remove this entire building?",
+               buttons : [
+                  { 
+                     id: 'confirmRemove',
+                     label: "Keep this building"
+                  },
+                  {
+                     label: "Remove this building",
+                     click: doRemoveBuilding
+                  }
+               ] 
+            });         
       });
+
+      // intabuild. for debugging only
+      $(top).bind('keyup', function(e){
+         if (e.keyCode == 88)  { // x
+            var building = self.get('building');
+
+            if (building) {
+               App.stonehearthClient.instabuild(building);
+            }
+         }
+      });         
 
    },
 
@@ -495,14 +454,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       radiant.call('stonehearth:load_browser_object', 'stonehearth:building_designer')
          .done(function(o) {
             self._state = o.value || {};
-            if (!self._state.activeTabId) {
-               self._state.activeTabId = 'floorToolButton';
-            }
             if (!self._state.floorMaterial) {
                self._state.floorMaterial = 0;
-            }
-            if (!self._state.roadMaterial) {
-               self._state.roadMaterial = 0;
             }
             if (!self._state.wallMaterial) {
                self._state.wallMaterial = 0;
@@ -529,27 +482,23 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    _applyRoofGradiantControlState : function(options) {
       var self = this;
 
-      self.$('#roofToolTab .roofDiagramButton').removeClass('active');
+      self.$('#roofMaterialTab .roofDiagramButton').removeClass('active');
       $.each(options.nine_grid_gradiant || [], function(_, dir) {
-         self.$('#roofToolTab .roofDiagramButton[gradient="' + dir + '"]').addClass('active');
+         self.$('#roofMaterialTab .roofDiagramButton[gradient="' + dir + '"]').addClass('active');
       });
 
-      $('#roofToolTab #inputMaxRoofHeight').val(options.nine_grid_max_height || 4);
-      $('#roofToolTab #inputMaxRoofSlope').val(options.nine_grid_slope || 1);
+      $('#roofMaterialTab #inputMaxRoofHeight').val(options.nine_grid_max_height || 4);
+      $('#roofMaterialTab #inputMaxRoofSlope').val(options.nine_grid_slope || 1);
    },
 
    _applyControlState: function() {
       var self = this;
       if (self._state) {
          // select default materials
-         $(self.$('#floorToolTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
-         $(self.$('#wallToolTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
-         $(self.$('#roofToolTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
-         $(self.$('#doodadToolTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
-         $(self.$('#roadToolTab .roadMaterial')[self._state.roadMaterial]).addClass('selected');
-
-         // most recently selected tab
-         self.$("[tab='" + self._state.activeTabId + "']").click();
+         $(self.$('#floorMaterialTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
+         $(self.$('#wallMaterialTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
+         $(self.$('#roofMaterialTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
+         $(self.$('#doodadMaterialTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
          // gradiant on the grow roof control
          self._applyRoofGradiantControlState(self._state.growRoofOptions);
@@ -615,14 +564,20 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          var constructionData = this.get('blueprint.stonehearth:construction_data')
          var type = constructionData.type;
 
+
          if (type == 'floor') {
-            self.$('.floorToolButton').click();
+            self.$('.tabPage').hide();
+            self.$('#floorMaterialTab').show();
          } else if (type == 'wall') {           
-            self.$('.wallToolButton').click();
+            self.$('.tabPage').hide();
+            self.$('#wallMaterialTab').show();
          } else if (type == 'roof') {
             self._applyRoofGradiantControlState(constructionData);
-            self.$('.roofToolButton').click();
+            self.$('.tabPage').hide();
+            self.$('#roofMaterialTab').show();
          }
+
+         
       }
    },
    

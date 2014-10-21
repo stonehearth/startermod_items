@@ -24,9 +24,6 @@ function CrafterComponent:initialize(entity, json)
 
       -- parts of our save state used by the ui.  careful modifying these     
       self._sv.craftable_recipes = craftable_recipes
-
-
-      self._sv.active = false
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             local o = self._sv._create_workshop_args
@@ -101,8 +98,10 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    return craftable_recipes
 end
 
--- Add the made parameter to the recipe data
+--Prep the recipe data with any default values
 function CrafterComponent:_initialize_recipe_data(recipe_data)
+   --[[
+   --Useful for locked recipes (currently not in use, comment out code)
    if recipe_data.locked and recipe_data.requirement then
       if recipe_data.requirement.type == 'unlock_on_make' then
          for i, prerequisite in ipairs(recipe_data.requirement.prerequisites) do
@@ -112,8 +111,21 @@ function CrafterComponent:_initialize_recipe_data(recipe_data)
    else
       recipe_data.locked = false
    end
+   ]]
+   if not recipe_data.level_requirement then
+      recipe_data.level_requirement = 0
+   end
 end
 
+
+--[[
+   Code relevant to whether or not we've unlcoked some recipe based on num made
+   Currently not in use for gameplay reasons
+]]
+
+-- Add the made parameter to the recipe data
+
+--[[
 -- Check to see if any locked recipes are unlocked yet
 function CrafterComponent:update_locked_recipes(new_crafted_item_uri)
    for i, category_ui_info in ipairs(self._sv.craftable_recipes) do
@@ -133,6 +145,7 @@ function CrafterComponent:update_locked_recipes(new_crafted_item_uri)
    self.__saved_variables:mark_changed()
 end
 
+
 function CrafterComponent:_test_for_unlock(recipe_data)
    local unlock = true
    if recipe_data.locked and recipe_data.requirement then
@@ -149,6 +162,8 @@ function CrafterComponent:_test_for_unlock(recipe_data)
       recipe_data.locked = false
    end
 end
+]]
+--[[End code relevant to whether or not we've unlcoked some recipe based on num made ]]
 
 --[[
 --TODO: test this with a scenario
@@ -207,6 +222,7 @@ function CrafterComponent:_create_workshop_orchestrator(ghost_workshop)
    self.__saved_variables:mark_changed()
 end
 
+-- Let the crafter know which workshop component is his
 function CrafterComponent:set_workshop(workshop_component)
    self._sv._create_workshop_args = nil
    self.__saved_variables:mark_changed()
@@ -219,6 +235,53 @@ function CrafterComponent:set_workshop(workshop_component)
             entity = self._entity,
             workshop = self._sv.workshop,
          })
+   end
+end
+
+--Returns the workshop component associated with this crafter
+function CrafterComponent:get_workshop()
+   return self._sv.workshop
+end
+
+-- Unset the workshop
+-- Presumes that the caller calls remove_component afterwards; this class will not be reused
+function CrafterComponent:demote()
+   if self._sv.workshop then
+      self._sv.workshop:set_crafter(nil)
+   end
+end
+
+-- Given a talisman, associate it with our workshop, if we have one
+function CrafterComponent:associate_talisman_with_workshop(talisman_entity)
+   local talisman_component = talisman_entity:get_component('stonehearth:promotion_talisman')
+   if not talisman_component then
+      return
+   end
+   if self._sv.workshop then
+      talisman_component:associate_with_entity('workshop_component', self._sv.workshop:get_entity() )
+   end
+end
+
+
+--if this talisman is associated with an existing workshop, we should use that workshop
+--instead of making a new one. 
+-- @returns the associated workshop entity
+function CrafterComponent:setup_with_existing_workshop(talisman_entity)
+   if not talisman_entity then 
+      return
+   end
+
+   local talisman_component = talisman_entity:get_component('stonehearth:promotion_talisman')
+   if not talisman_component then
+      return
+   end
+
+   local associated_workshop = talisman_component:get_associated_entity('workshop_component')
+   if associated_workshop then
+      local workshop_component = associated_workshop:get_component('stonehearth:workshop')
+      self:set_workshop(workshop_component)
+      workshop_component:set_crafter(self._entity)
+      return associated_workshop
    end
 end
 

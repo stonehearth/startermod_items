@@ -17,6 +17,8 @@ add_library(client_renderer STATIC
             render_entity_container.cpp
             render_mob.cpp
             render_terrain.cpp
+            render_terrain_tile.cpp
+            render_terrain_layer.cpp
             render_effect_list.cpp
             render_destination.cpp
             render_render_info.cpp

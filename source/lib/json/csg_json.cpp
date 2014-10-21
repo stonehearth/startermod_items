@@ -5,6 +5,7 @@
 #include "csg/quaternion.h"
 #include "csg/transform.h"
 #include "csg/ray.h"
+#include "csg/iterators.h"
 #include "csg/color.h"
 #include "csg/util.h" // xxx: should be csg/edge.h
 #include "csg/heightmap.h"
@@ -103,6 +104,7 @@ static T decode_cube(Node const& node) {
    T value;
    value.min = node.get<typename T::Point>("min");
    value.max = node.get<typename T::Point>("max");
+   value.SetTag(node.get<int>("tag", 0));
    return value;
 }
 
@@ -111,6 +113,9 @@ static Node encode_cube(T const& value) {
    Node node;
    node.set("min", value.min);
    node.set("max", value.max);
+   if (value.GetTag() != 0) {
+      node.set("tag", value.GetTag());
+   }
    return node;
 }
 
@@ -126,7 +131,7 @@ static T decode_region(Node const& node) {
 template <typename T>
 static Node encode_region(T const& value) {
    Node node(JSONNode(JSON_ARRAY));
-   for (auto const& cube : value) {
+   for (auto const& cube : csg::EachCube(value)) {
       node.add(cube);
    }
    return node;
@@ -164,7 +169,4 @@ DECLARE_TYPE(color, csg::Color3);
 DECLARE_TYPE(color, csg::Color4);
 
 DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::HeightMap<double>>)
-DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgePointX>)
-DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeX>)
-DEFINE_INVALID_JSON_CONVERSION(std::shared_ptr<csg::EdgeList>)
 DEFINE_INVALID_JSON_CONVERSION(csg::RandomNumberGenerator)

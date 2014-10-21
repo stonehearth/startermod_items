@@ -58,9 +58,9 @@ static void MoveSceneNode(H3DNode node, const csg::Transform& t, float scale)
 {
    csg::Matrix4 m(t.orientation);
    
-   m[12] = t.position.x * scale;
-   m[13] = t.position.y * scale;
-   m[14] = t.position.z * scale;
+   m[12] = (float)t.position.x * scale;
+   m[13] = (float)t.position.y * scale;
+   m[14] = (float)t.position.z * scale;
    
    bool result = h3dSetNodeTransMat(node, m.get_float_ptr());
    if (!result) {
@@ -289,6 +289,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
    animation_->MoveNodes(offset, [&](std::string const& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
+         EL_LOG(9) << "moving " << bone << " to " << transform;
          MoveSceneNode(node, transform, entity_.GetSkeleton().GetScale());
       }
    });
@@ -365,7 +366,10 @@ void CubemitterEffectTrack::Update(FrameStartInfo const& info, bool& finished)
          H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
 
-         h3dSetNodeTransform(cubemitterNode_.get(), pos_.x, pos_.y, pos_.z, rot_.x, rot_.y, rot_.z, 1, 1, 1);
+         h3dSetNodeTransform(cubemitterNode_.get(),
+                             (float)pos_.x, (float)pos_.y, (float)pos_.z,
+                             (float)rot_.x, (float)rot_.y, (float)rot_.z,
+                             1, 1, 1);
          finished = false;
          return;
       }
@@ -924,8 +928,8 @@ void PlaySoundEffectTrack::Update(FrameStartInfo const& info, bool& finished)
    om::MobPtr mobP = entity->GetComponent<om::Mob>();
    if (mobP) {
       om::EntityRef entityRoot;
-      csg::Point3f loc = mobP -> GetWorldLocation(entityRoot);
-      sound_->setPosition(loc.x, loc.y, loc.z);
+      csg::Point3f loc = mobP->GetWorldLocation(entityRoot);
+      sound_->setPosition((float)loc.x, (float)loc.y, (float)loc.z);
    }
 
    // if not end time was specified in the JSON, compute the end time based on the

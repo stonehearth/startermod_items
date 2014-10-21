@@ -18,6 +18,7 @@
 #include "lib/perfmon/perfmon.h"
 #include "perfhud/perfhud.h"
 #include "resources/res_manager.h"
+#include "csg/iterators.h"
 #include "csg/random_number_generator.h"
 #include "pipeline.h"
 #include <unordered_set>
@@ -99,7 +100,7 @@ void Renderer::OneTimeIninitializtion()
 
    // If the mod is unzipped, put a watch on the filesystem directory where the resources live
    // so we can dynamically load resources whenever the file changes.
-   std::string fspath = std::string("mods/") + resourcePath_;
+   std::string fspath = std::string("mods/");
    if (boost::filesystem::is_directory(fspath)) {
       fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
          Renderer::GetInstance().FlushMaterials();
@@ -289,13 +290,13 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
    float* start = (float*)h3dMapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer);
    float* f = start;
    float ySize = 100.0f;
-   for (const auto& c : region) 
+   for (const auto& c : csg::EachCube(region)) 
    {
-      float px = (c.max + c.min).x * 0.5f;
-      float pz = (c.max + c.min).y * 0.5f;
+      float px = static_cast<float>((c.max + c.min).x) * 0.5f;
+      float pz = static_cast<float>((c.max + c.min).y) * 0.5f;
 
-      float xSize = (float)c.max.x - c.min.x;
-      float zSize = (float)c.max.y - c.min.y;
+      float xSize = (float)(c.max.x - c.min.x);
+      float zSize = (float)(c.max.y - c.min.y);
       f[0] = xSize; f[1] = 0;                f[2] =   0;    f[3] =  0;
       f[4] = 0;     f[5] = ySize;            f[6] =   0;    f[7] =  0;
       f[8] = 0;     f[9] = 0;                f[10] = zSize; f[11] = 0;
@@ -306,8 +307,8 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
 
    h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
    csg::Rect2f bounds = region.GetBounds();
-   h3dUpdateBoundingBox(node, bounds.min.x, -ySize/2.0f, bounds.min.y, 
-                        bounds.max.x, ySize/2.0f, bounds.max.y);   
+   h3dUpdateBoundingBox(node, (float)bounds.min.x, -ySize/2.0f, (float)bounds.min.y, 
+                        (float)bounds.max.x, ySize/2.0f, (float)bounds.max.y);   
 }
 
 void Renderer::RenderFogOfWarRT()
@@ -379,8 +380,8 @@ void Renderer::RenderFogOfWarRT()
 
 void Renderer::SetSkyColors(const csg::Point3f& startCol, const csg::Point3f& endCol)
 {
-   h3dSetMaterialUniform(skysphereMat, "skycolor_start", startCol.x, startCol.y, startCol.z, 1.0f);
-   h3dSetMaterialUniform(skysphereMat, "skycolor_end", endCol.x, endCol.y, endCol.z, 1.0f);
+   h3dSetMaterialUniform(skysphereMat, "skycolor_start", (float)startCol.x, (float)startCol.y, (float)startCol.z, 1.0f);
+   h3dSetMaterialUniform(skysphereMat, "skycolor_end", (float)endCol.x, (float)endCol.y, (float)endCol.z, 1.0f);
 }
 
 H3DRes Renderer::BuildSphereGeometry() {
@@ -1043,12 +1044,16 @@ void Renderer::RenderOneFrame(int now, float alpha)
       // Update the position of the sky so that it is always around the camera.  This isn't strictly
       // necessary for rendering, but very important for culling!  Horde doesn't (yet) know that
       // some nodes should _always_ be drawn.
+      csg::Point3f cp = camera_->GetPosition();
+      float cx = (float)cp.x, cy = (float)cp.y, cz = (float)cp.z;
+
       h3dSetNodeTransform(meshNode, 
-         camera_->GetPosition().x, -(skysphereDistance * 0.5f) + camera_->GetPosition().y, camera_->GetPosition().z,
+         cx, -(skysphereDistance * 0.5f) + cy, cz,
          25.0, 0.0, 0.0,
          skysphereDistance, skysphereDistance, skysphereDistance);
+
       h3dSetNodeTransform(starfieldMeshNode, 
-         camera_->GetPosition().x, camera_->GetPosition().y, camera_->GetPosition().z,
+         cx, cy, cz,
          0.0, 0.0, 0.0, 
          starsphereDistance, starsphereDistance, starsphereDistance);
 
@@ -1116,9 +1121,16 @@ void Renderer::GetCameraToViewportRay(int viewportX, int viewportY, csg::Ray3* r
 
       // calculate the ray starting at the eye position of the camera, casting
       // through the specified window coordinates into the scene
+      float ox, oy, oz, dx, dy, dz;
       h3dutPickRay(camera_->GetNode(), nwx, nwy,
-                   &ray->origin.x, &ray->origin.y, &ray->origin.z,
-                   &ray->direction.x, &ray->direction.y, &ray->direction.z);
+                   &ox, &oy, &oz, &dx, &dy, &dz);
+
+      ray->origin.x = ox;
+      ray->origin.y = oy;
+      ray->origin.z = oz;
+      ray->direction.x = dx;
+      ray->direction.y = dy;
+      ray->direction.z = dz;
    }
 }
 
@@ -1130,16 +1142,18 @@ void Renderer::CastRay(const csg::Point3f& origin, const csg::Point3f& direction
 
    // Cast the ray from the root node to make sure we hit everything, including client-side created
    // entities which are not children of the game root entity.
-   int num_results = h3dCastRay(1, origin.x, origin.y, origin.z,
-                                direction.x, direction.y, direction.z, 10, userFlags);
+   int num_results = h3dCastRay(1, (float)origin.x, (float)origin.y, (float)origin.z,
+                                (float)direction.x, (float)direction.y, (float)direction.z, 10, userFlags);
    
    // Pull out the intersection node and intersection point
    for (int i = 0; i < num_results; i++) {
       H3DNode node;
-      csg::Point3f intersection, normal;
-      if (h3dGetCastRayResult(i, &node, 0, &intersection.x, &normal.x)) {
-         normal.Normalize();
-         cb(intersection, normal, node);
+      float intersection[3], normal[3];
+
+      if (h3dGetCastRayResult(i, &node, 0, intersection, normal)) {
+         cb(csg::Point3f(intersection[0], intersection[1], intersection[2]),
+            csg::Point3f(normal[0], normal[1], normal[2]).Normalized(),
+            node);
       }
    }
 }
@@ -1169,11 +1183,11 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
       csg::Point3 brick;
       // For x,z the intersection is a face with a half-integer (0.5) coordinate
       // So, nudge inside the voxel and round to the center
-      brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01f));
-      brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01f));
+      brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01));
+      brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01));
       // For y, the intersection is a whole integer coordiante
       // So, nudge inside the voxel and floor to the bottom face which defines the voxel coordinate
-      brick.y = std::floor(intersection.y - (normal.y * 0.01f));
+      brick.y = (int)std::floor(intersection.y - (normal.y * 0.01));
       result.AddResult(intersection, normal, brick, entity);
    });
 
@@ -1382,8 +1396,8 @@ void Renderer::UpdateCamera()
    // Let the audio listener know where the camera is
    csg::Point3f position = camera_->GetPosition();
    csg::Point3f direction = camera_->GetOrientation().rotate(csg::Point3f(0, 0, -1));
-   sf::Listener::setPosition(position.x, position.y, position.z);
-   sf::Listener::setDirection(direction.x, direction.y, direction.z);
+   sf::Listener::setPosition((float)position.x, (float)position.y, (float)position.z);
+   sf::Listener::setDirection((float)direction.x, (float)direction.y, (float)direction.z);
 }
 
 void Renderer::OnMouseWheel(double value)
@@ -1646,7 +1660,16 @@ bool Renderer::LoadMissingResources()
    int res = h3dQueryUnloadedResource(0);
    while( res != 0 ) {
       const char *resourceName = h3dGetResName(res);
-      std::string resourcePath = resourcePath_ + "/" + resourceName;
+	  std::string rname(resourceName);
+	  std::string resourcePath;
+
+	  // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
+	  if (rname[0] == '/') {
+		  resourcePath = rname.substr(1);
+	  } else {
+		  // No leading '/' means look in the main stonehearth mod for the resource.
+	      resourcePath = resourcePath_ + "/" + resourceName;
+	  }
       std::shared_ptr<std::istream> inf;
 
       // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony

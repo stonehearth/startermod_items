@@ -6,7 +6,7 @@ App.StonehearthRedAlertWidget = App.View.extend({
       this._super();
 
       this.$('#redAlert').click(function() {
-         App.stonehearthClient.redAlert();
+         App.stonehearthClient.rallyWorkers();
       });
 
       this.$('#redAlert').pulse();

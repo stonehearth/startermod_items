@@ -618,7 +618,14 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRouteJ("radiant:get_config", [this](rpc::Function const& f) {
       json::Node args(f.args);
       std::string key = args.get<std::string>(0);
-      return core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
+      JSONNode result = core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
+      if (result.type() == JSON_NODE && result.type() == JSON_ARRAY) {
+         return result;
+      }
+      JSONNode node;
+      result.set_name(key);
+      node.push_back(result);
+      return node;
    });
 
    core_reactor_->AddRouteJ("radiant:set_config", [this](rpc::Function const& f) {
@@ -1760,8 +1767,17 @@ void Client::ReportLoadProgress()
  */
 void Client::RestoreDatastores()
 {
+   // Two passes: First create all the controllers for the datastores we just
+   // created
    for (om::DataStorePtr d : datastores_to_restore_) {
       d->RestoreController(d);
+   }
+
+   // Now run through all the tables on those datastores and convert the
+   // pointers-to-datastore to pointers-to-controllers
+   std::vector<luabind::object> visitedTables;
+   for (om::DataStorePtr d : datastores_to_restore_) {
+      d->RestoreControllerData(visitedTables);
    }
    datastores_to_restore_.clear();
 }

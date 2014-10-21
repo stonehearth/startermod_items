@@ -18,6 +18,7 @@
    BOXED(bool) \
    BOXED(int) \
    BOXED(float) \
+   BOXED(double) \
    BOXED(om::EntityRef) \
    BOXED(om::EntityPtr) \
    BOXED(om::MobRef) \

@@ -32,28 +32,62 @@ const Point1f Point1f::one(1);
 
 
 template <int C>
-Point<float, C> csg::ToFloat(Point<int, C> const& pt) {
-   Point<float, C> result;
-   for (int i = 0; i < C; i++) {
-      result[i] = static_cast<float>(pt[i]);
-   }
-   return result;
+Point<double, C> ToFloatFn(Point<int, C> const& pt);
+
+template <>
+Point<double, 1> ToFloatFn(Point<int, 1> const& pt) {
+   return Point<double, 1>(static_cast<double>(pt.x));
+}
+
+template <>
+Point<double, 2> ToFloatFn(Point<int, 2> const& pt) {
+   return Point<double, 2>(static_cast<double>(pt.x),
+                          static_cast<double>(pt.y));
+}
+
+template <>
+Point<double, 3> ToFloatFn(Point<int, 3> const& pt) {
+   return Point<double, 3>(static_cast<double>(pt.x),
+                          static_cast<double>(pt.y),
+                          static_cast<double>(pt.z));
 }
 
 template <int C>
-Point<float, C> const& csg::ToFloat(Point<float, C> const& pt) {
+Point<double, C> csg::ToFloat(Point<int, C> const& pt) {
+   return ToFloatFn(pt);
+}
+
+template <int C>
+Point<double, C> const& csg::ToFloat(Point<double, C> const& pt) {
    return pt;
 }
 
 template <int C>
-Point<int, C> csg::ToInt(Point<float, C> const& pt)
+Point<int, C> ToIntFn(Point<double, C> const& pt);
+
+template <>
+Point<int, 1> ToIntFn(Point<double, 1> const& pt)
 {
-   Point<int, C> result;
-   for (int i = 0; i < C; i++) {
-      float s = pt[i];
-      result[i] = static_cast<int>(trunc(s + (s > 0 ? k_epsilon : -k_epsilon)));
-   }
-   return result;
+   return Point<int, 1>(ToInt(pt.x));
+}
+
+template <>
+Point<int, 2> ToIntFn(Point<double, 2> const& pt)
+{
+   return Point<int, 2>(ToInt(pt.x),
+                        ToInt(pt.y));
+}
+template <>
+Point<int, 3> ToIntFn(Point<double, 3> const& pt)
+{
+   return Point<int, 3>(ToInt(pt.x),
+                        ToInt(pt.y),
+                        ToInt(pt.z));
+}
+
+template <int C>
+Point<int, C> csg::ToInt(Point<double, C> const& pt) {
+   return ToIntFn(pt);
 }
 
 template <int C>
@@ -62,13 +96,31 @@ Point<int, C> const& csg::ToInt(Point<int, C> const& pt) {
 }
 
 template <int C>
-Point<int, C> csg::ToClosestInt(Point<float, C> const& pt)
+Point<int, C> ToClosestIntFn(Point<double, C> const& pt);
+
+template <>
+Point<int, 1> ToClosestIntFn(Point<double, 1> const& pt)
 {
-   Point<int, C> result;
-   for (int i = 0; i < C; i++) {
-      result[i] = ToClosestInt(pt[i]);
-   }
-   return result;
+   return Point<int, 1>(ToClosestInt(pt.x));
+}
+
+template <>
+Point<int, 2> ToClosestIntFn(Point<double, 2> const& pt)
+{
+   return Point<int, 2>(ToClosestInt(pt.x),
+                        ToClosestInt(pt.y));
+}
+template <>
+Point<int, 3> ToClosestIntFn(Point<double, 3> const& pt)
+{
+   return Point<int, 3>(ToClosestInt(pt.x),
+                        ToClosestInt(pt.y),
+                        ToClosestInt(pt.z));
+}
+
+template <int C>
+Point<int, C> csg::ToClosestInt(Point<double, C> const& pt) {
+   return ToClosestIntFn(pt);
 }
 
 template <int C>
@@ -76,7 +128,7 @@ Point<int, C> const& csg::ToClosestInt(Point<int, C> const& pt) {
    return pt;
 }
 
-template<typename S> S csg::Interpolate(S const& p0, S const& p1, float alpha)
+template<typename S> S csg::Interpolate(S const& p0, S const& p1, double alpha)
 {
    if (alpha <= 0.0f) {
       return p0;
@@ -88,17 +140,17 @@ template<typename S> S csg::Interpolate(S const& p0, S const& p1, float alpha)
    return p0 + (delta * alpha);
 }
 
-template float csg::Interpolate(float const&, float const&, float);
+template double csg::Interpolate(double const&, double const&, double);
 
 #define DEFINE_POINT_CONVERSIONS(C) \
-   template Point<float, C> csg::ToFloat(Point<int, C> const&); \
-   template Point<float, C> const& csg::ToFloat(Point<float, C> const&); \
+   template Point<double, C> csg::ToFloat(Point<int, C> const&); \
+   template Point<double, C> const& csg::ToFloat(Point<double, C> const&); \
    template Point<int, C> const& csg::ToInt(Point<int, C> const&); \
-   template Point<int, C> csg::ToInt(Point<float, C> const&); \
+   template Point<int, C> csg::ToInt(Point<double, C> const&); \
    template Point<int, C> const& csg::ToClosestInt(Point<int, C> const&); \
-   template Point<int, C> csg::ToClosestInt(Point<float, C> const&); \
-   template Point<float, C> csg::Interpolate(Point<float, C> const&, Point<float, C> const&, float); \
-   template float csg::Interpolate(float const&, float const&, float);
+   template Point<int, C> csg::ToClosestInt(Point<double, C> const&); \
+   template Point<double, C> csg::Interpolate(Point<double, C> const&, Point<double, C> const&, double); \
+   template double csg::Interpolate(double const&, double const&, double);
 
 template <> Point3 csg::ConvertTo(Point3 const& pt) { return pt; }
 template <> Point3f csg::ConvertTo(Point3f const& pt) { return pt; }

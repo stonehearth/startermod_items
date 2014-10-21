@@ -41,8 +41,15 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
             "sticky" : true,
             "hotkey" : "t"
+         },
+         "create_mining_zone" : {
+            "name" : "Mining Zone (not implemented)",
+            "description" : "Excavate dirt and rock from the earth.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
+            "sticky" : true,
+            "hotkey" : "m"
          }
-
       }
    },
    "build_menu" : {
@@ -55,13 +62,13 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-         "design_building" : {
-            "name" : "Design Custom Building",
-            "description" : "Design your own custom building with it's own floor-plan and structure.",
+         "building_plans" : {
+            "name" : "Construct a Building",
+            "description" : "Construct buildings like houses and towers",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/design_building.png",
             "sticky" : true,
-            "hotkey" : "c"
+            "hotkey" : "b"
          },
          "place_item" : {
             "name" : "Place an Item",
@@ -72,7 +79,7 @@
             "hotkey" : "p"
          },
          "build_ladder" : {
-            "name" : "Build a Ladder",
+            "name" : "Construct a Ladder",
             "description" : "Build a ladder to access hard to reach places",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/build_ladder.png",

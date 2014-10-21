@@ -26,7 +26,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinder(Simulation& sim, std::string const& name, om::EntityPtr source);
 
    public:
-      typedef std::function<void(PathPtr)> SolvedCb;
+      typedef std::function<bool(PathPtr)> SolvedCb;
       typedef std::function<void()> ExhaustedCb;
       typedef std::function<bool(om::EntityPtr)> FilterFn;
 
@@ -52,7 +52,6 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       float EstimateCostToSolution();
       std::ostream& Format(std::ostream& o) const;
       void SetDebugColor(csg::Color4 const& color);
-      std::string DescribeProgress();
 
    public: // Job Interface
       bool IsIdle() const override;
@@ -79,11 +78,11 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void AddEdge(const PathFinderNode &current, const csg::Point3 &next, float cost);
       void RebuildHeap();
 
-      void SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst);
+      bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst);
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
-      bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst &dst);
+      bool FindDirectPathToDestination(csg::Point3 const& from, PathFinderDst*& dst);
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
       bool CheckIfIdle() const;
@@ -108,6 +107,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
    
       core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode>   open_;
+      csg::Cube3                    closedBounds_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         closed_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;

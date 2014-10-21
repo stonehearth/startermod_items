@@ -5,22 +5,23 @@ local Color4 = _radiant.csg.Color4
 
 local ZoneRenderer = class()
 
-function ZoneRenderer:__init(render_entity)
+function ZoneRenderer:__init(render_entity, model_collision_check)
    local default_color = Color4(128, 128, 128, 128)
 
    self._render_entity = render_entity
    self._items = {}
    self._parent_node = render_entity:get_node()
+   self._use_coarse_collision = model_collision_check and 0 or 1
 
    self:set_size(Point2.zero)
    self:_on_ui_mode_changed()
 
-   self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
+   self._ui_mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
 end
 
 function ZoneRenderer:destroy()
-   self._mode_listener:destroy()
-   self._mode_listener = nil
+   self._ui_mode_listener:destroy()
+   self._ui_mode_listener = nil
 
    -- take all items out of ghost mode
    self:_update_item_states(self._items, false)
@@ -149,7 +150,7 @@ function ZoneRenderer:_regenerate_designation_node()
    if self._designation_color_interior and self._designation_color_border then
       if self:_in_hud_mode() then
          self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
-                                  self._designation_color_interior, self._designation_color_border)
+                                  self._designation_color_interior, self._designation_color_border, self._use_coarse_collision)
       end
    end
 end

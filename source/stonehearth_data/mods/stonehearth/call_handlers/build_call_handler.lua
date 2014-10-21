@@ -1,5 +1,8 @@
+local build_util = require 'lib.build_util'
+
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+
 local BuildCallHandler = class()
 
 -- these are quite annoying.  we can get rid of them by implementing and using
@@ -20,6 +23,13 @@ end
 function BuildCallHandler:set_building_teardown(session, request, building, enabled)
    if radiant.check.is_entity(building) then
       stonehearth.build:set_teardown(building, enabled)
+   end
+   return { success = true }
+end
+
+function BuildCallHandler:save_building_template(session, request, building, info)
+   if radiant.check.is_entity(building) then
+      build_util.save_template(building, info, true)
    end
    return { success = true }
 end

@@ -23,6 +23,7 @@ class PathFinderDst;
 class BfsPathFinder;
 class AStarPathFinder;
 class DirectPathFinder;
+class FilterResultCache;
 class EntityJobScheduler;
 class ApplyFreeMotionTask;
 
@@ -33,6 +34,7 @@ DECLARE_SHARED_POINTER_TYPES(PathFinderDst)
 DECLARE_SHARED_POINTER_TYPES(BfsPathFinder)
 DECLARE_SHARED_POINTER_TYPES(AStarPathFinder)
 DECLARE_SHARED_POINTER_TYPES(DirectPathFinder)
+DECLARE_SHARED_POINTER_TYPES(FilterResultCache)
 DECLARE_SHARED_POINTER_TYPES(EntityJobScheduler)
 DECLARE_SHARED_POINTER_TYPES(ApplyFreeMotionTask)
 

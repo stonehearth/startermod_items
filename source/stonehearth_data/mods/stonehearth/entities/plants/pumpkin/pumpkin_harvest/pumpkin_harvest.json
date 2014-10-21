@@ -14,7 +14,7 @@
          }
       },
       "unit_info": {
-         "name": "Pumpkin",
+         "name": "Pumpkin Basket",
          "description": "Ready for eating",
          "icon" : "file(pumpkin_harvest.png)"
       },
@@ -30,6 +30,16 @@
          "effect": "fiddle",
          "food": "stonehearth:pumpkin_serving",
          "stacks_per_serving": 6
-      }
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 3,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }      
    }
 }

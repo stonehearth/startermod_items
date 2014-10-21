@@ -13,6 +13,8 @@ public:
 
    static std::string GetOSVersion();
    static std::string GetOSName();
+   static uint32 GetCurrentMemoryUsage();
+   static unsigned long long GetTotalSystemMemory();
 };
 
 END_RADIANT_PLATFORM_NAMESPACE

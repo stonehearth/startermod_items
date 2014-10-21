@@ -19,8 +19,8 @@
 
       //Note: some views have no template, ignore
       if (this.templateName != null) {
-         radiant.call('radiant:send_design_event', 
-                      'ui:hide_ui:' + this.templateName);
+         // radiant.call('radiant:send_design_event', 
+         //             'ui:hide_ui:' + this.templateName);
       }
       
       // if there's an input on the view, unconditionally re-enable
@@ -49,6 +49,18 @@
 
       if (this.$()) {
          this._addHotkeys();   
+      }
+   },
+
+   show: function() {
+      if (this.$()) {
+         this.$().show();   
+      }
+   },
+
+   hide: function() {
+      if (this.$()) {
+         this.$().hide();   
       }
    },
 
@@ -141,9 +153,11 @@
    }.observes('uri'),
 
    _mapToArray: function(mapPath, arrayPath) {
-      var vals = [];
+      
+      //var vals = [];
       var map = this.get(mapPath);
-     
+      var vals = this._mapToArrayObject(map);
+      /*
       if (map) {
          $.each(map, function(k ,v) {
             if(k != "__self" && map.hasOwnProperty(k)) {
@@ -151,8 +165,20 @@
             }
          });
       }
-
+      */
       this.set(arrayPath, vals);
+   },
+
+   _mapToArrayObject: function(map) {
+      var vals = [];     
+      if (map) {
+         $.each(map, function(k ,v) {
+            if(k != "__self" && map.hasOwnProperty(k)) {
+               vals.push(v);
+            }
+         });
+      }
+      return vals;
    }
 
 

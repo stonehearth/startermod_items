@@ -113,7 +113,7 @@ bool CollisionTracker::Intersects(csg::CollisionShape const& region) const
 bool CollisionTracker::Intersects(csg::CollisionShape const& region, csg::CollisionBox const& regionBounds) const
 {
    if (Intersects(regionBounds)) {
-      for (csg::Cube3f const& cube : region) {
+      for (csg::Cube3f const& cube : EachCube(region)) {
          if (Intersects(cube)) {
             return true;
          }

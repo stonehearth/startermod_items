@@ -53,6 +53,27 @@ App.ContainerView = Ember.ContainerView.extend({
       return childView;
    },
 
+   show: function() {
+      if (this.$()) {
+         this.$().show();   
+      }
+   },
+
+   hide: function() {
+      if (this.$()) {
+         this.$().hide();   
+      }
+   },
+
+   hideAllViews: function() {
+      var childViews = this.get('childViews');
+
+      $.each(childViews, function(i, childView) {
+         childView.hide();
+      });
+      App.stonehearthClient.hideTip();
+   },
+
    getView: function(type) {
       return this._viewLookup[type];
    }

@@ -9,6 +9,7 @@
 #include "lib/lua/register.h"
 #include "raycast_result.h"
 #include "Horde3DRadiant.h"
+#include "render_terrain.h"
 
 using namespace luabind;
 using namespace ::radiant;
@@ -54,6 +55,20 @@ static csg::Point3f Camera_GetLeft()
    c->GetBases(&forward, &up, &left);
 
    return left;
+}
+
+static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
+{
+	auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
+	auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+	renderTerrain->AddCut(cut);
+}
+
+static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
+{
+	auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
+	auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+	renderTerrain->RemoveCut(cut);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -164,6 +179,8 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
+			def("add_terrain_cut", &Terrain_AddClientCut),
+			def("remove_terrain_cut", &Terrain_RemoveClientCut),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),
@@ -287,7 +304,9 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetNodeFlags",                 &h3dSetNodeFlags),
       def("h3dGetNodeFlags",                 &h3dGetNodeFlags),
       def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat),
-      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag)
+      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag),
+      def("h3dSetVerticalClipMax",           &h3dSetVerticalClipMax),
+      def("h3dClearVerticalClipMax",         &h3dClearVerticalClipMax)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };

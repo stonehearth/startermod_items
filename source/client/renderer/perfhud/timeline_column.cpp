@@ -64,7 +64,7 @@ TimelineColumn& TimelineColumn::Render(RenderContext & rc, csg::Rect2f const& re
    csg::Point2f max = rect.GetMax();
    
    // Draw in reverse order so the bigger bars are on the bottom.
-   float offset = max.y, height = max.y - min.y;
+   double offset = max.y, height = max.y - min.y;
    int i, c = (int)entries_.size();
    for (i = c - 1; i >= 0; i--) {
       ColumnEntry const& entry = entries_[i];

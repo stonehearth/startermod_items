@@ -2,9 +2,9 @@
    "job_id": "footman",
    "alias" : "stonehearth:jobs:footman", 
    "name" : "Footman",
+   "controller" : "stonehearth:class:footman", 
    "description" : "The Footman is a melee fighter. A good choice for the backbone of your town's defense.",
    "requirements" : "Wooden Practice Sword, crafted by the Carpenter.",
-   "controller" : "stonehearth:class:footman", 
    "talisman_uri" : "stonehearth:footman:wooden_sword_talisman",
    "default_stance": "aggressive",
 
@@ -15,7 +15,62 @@
    },
 
    "roles" : "footman_job combat",
+   "promotion_activity_name" : "promote_footman",
    
    "icon" : "file(images/icon.png)",
-   "bannerIcon" : "file(images/banner.png)"
+   "bannerIcon" : "file(images/banner.png)", 
+   "parent_job" : "stonehearth:jobs:worker", 
+
+   "xp_rewards" : {
+      "base_exp_per_hit" : 20
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "type" : "apply_buff", 
+               "perk_name" : "Damage Up 20%", 
+               "perk_id" : "footman_damage_up_1", 
+               "icon" : "file(images/damage_up_1.png)", 
+               "buff_name" : "stonehearth:buffs:footman:dmg_1",
+               "description" : "The footman knows that all combats may have mortal consequences, and attacks with renewed determination.", 
+               "level" : 1, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      }, 
+      "2" : {
+         "perks" : [
+            {
+               "type" : "apply_chained_buff", 
+               "perk_name" : "Damage Up 40%", 
+               "perk_id" : "footman_damage_up_2", 
+               "icon" : "file(images/damage_up_2.png)", 
+               "buff_name" : "stonehearth:buffs:footman:dmg_2",
+               "last_buff" : "stonehearth:buffs:footman:dmg_1",
+               "description" : "The footman is now practiced at optimizing the effect of each blow.", 
+               "level" : 2, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "type" : "apply_chained_buff", 
+               "perk_name" : "Power Strike", 
+               "perk_id" : "footman_damage_up_3", 
+               "icon" : "file(images/power_strike.png)", 
+               "buff_name" : "stonehearth:buffs:footman:dmg_3",
+               "last_buff" : "stonehearth:buffs:footman:dmg_2",
+               "description" : "A powerful overhead strike that deals double damage!", 
+               "level" : 3, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      }
+   }
 }

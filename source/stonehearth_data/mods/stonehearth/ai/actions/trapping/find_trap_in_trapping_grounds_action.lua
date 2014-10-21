@@ -39,6 +39,7 @@ function FindTrapInTrappingGrounds:start_thinking(ai, entity, args)
             path = path,
             trap = path:get_destination()
          })
+         return true
       end)
    self._pathfinder:start()
 end

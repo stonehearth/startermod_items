@@ -9,7 +9,6 @@
 // Named after the classic signal/slot pattern...
 // The client must assure that the owner of the slot out-lives all
 // the clients!
-
 BEGIN_RADIANT_CORE_NAMESPACE
 
 // a better implementation with variadic templates would be nice..
@@ -19,7 +18,14 @@ class Slot
 public:
    typedef std::function<void(A0 const&)> Fn;
 
-   Slot(std::string const& name) : name_(std::string("signal ") + name), firing_(false) { }
+   Slot(const char* name) : name_(name), firing_(false) { }
+
+   ~Slot() {
+      ASSERT(firing_ == false);
+      ASSERT(added_callbacks_.size() == 0);
+      ASSERT(removed_callbacks_.size() == 0);
+      ASSERT(callbacks_.size() == 0);
+   }
 
    core::Guard Register(Fn fn) {
       int id = next_id_++;
@@ -35,7 +41,7 @@ public:
    }
 
    void Signal(A0 const& arg) {
-      perfmon::TimelineCounterGuard tcg(name_.c_str());
+      perfmon::TimelineCounterGuard tcg(name_);
 
       firing_ = true;
       for (auto const& entry : callbacks_) {
@@ -81,7 +87,7 @@ private:
    NO_COPY_CONSTRUCTOR(Slot);
 
 private:
-   std::string                         name_;
+   const char*                         name_;
    bool                                firing_;
    int                                 next_id_;
    boost::container::flat_map<int,Fn>  callbacks_;

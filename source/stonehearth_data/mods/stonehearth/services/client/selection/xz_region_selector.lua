@@ -8,6 +8,8 @@ local Cube3 = _radiant.csg.Cube3
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
 
+local log = radiant.log.create_logger('xz_region_selector')
+
 local DEFAULT_BOX_COLOR = Color4(192, 192, 192, 255)
 
 local TERRAIN_NODES = 1
@@ -20,6 +22,13 @@ function XZRegionSelector:__init()
    self._find_support_filter_fn = function(result)
       return self:_default_find_support_filter(result)
    end
+
+   local identity_end_point_transform = function(p0, p1)
+      return p0, p1
+   end
+
+   self._get_proposed_points_fn = identity_end_point_transform
+   self._get_resolved_points_fn = identity_end_point_transform
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
@@ -36,6 +45,15 @@ end
 
 function XZRegionSelector:set_find_support_filter(filter_fn)
    self._find_support_filter_fn = filter_fn
+   return self
+end
+
+-- used to constrain the selected region
+-- examples include forcing the region to be square, enforcing minimum or maximum sizes,
+-- or quantizing the region to certain step sizes
+function XZRegionSelector:set_end_point_transforms(get_proposed_points_fn, get_resolved_points_fn)
+   self._get_proposed_points_fn = get_proposed_points_fn
+   self._get_resolved_points_fn = get_resolved_points_fn
    return self
 end
 
@@ -165,31 +183,33 @@ end
 -- also make sure that all the entities at the specified poit pass the can_contain_entity_filter
 -- filter.
 --
-function XZRegionSelector:_get_hover_brick(x, y, check_containment_filter)
+function XZRegionSelector:_get_hover_brick(x, y)
    local brick = selector_util.get_selected_brick(x, y, true, function(result)
          return self._find_support_filter_fn(result, self)
       end)
-   if brick and self:_is_valid_location(brick, check_containment_filter) then
-      return brick
-   end
+   return brick
 end
 
 -- given a candidate p1, compute the p1 which would result in a valid xz region
 -- will iterate from p0-p1 in 'i-major' order, where i is 'x' or 'z'.  See
 -- _compute_p1 for more info
 --
-function XZRegionSelector:_compute_p1_loop(p1, i)
-   local j = i == 'x' and 'z' or 'x'
-   local di = p1[i] > self._p0[i] and 1 or -1
-   local dj = p1[j] > self._p0[j] and 1 or -1
+function XZRegionSelector:_compute_p1_loop(p0, p1, i)
+   if not self:_is_valid_location(p0, true) then
+      return nil
+   end
 
-   local pt = Point3(self._p0.x, self._p0.y, self._p0.z)
+   local j = i == 'x' and 'z' or 'x'
+   local di = p1[i] > p0[i] and 1 or -1
+   local dj = p1[j] > p0[j] and 1 or -1
+
+   local pt = Point3(p0.x, p0.y, p0.z)
 
    while pt[i] ~= p1[i] + di do
-      pt[j] = self._p0[j]
+      pt[j] = p0[j]
       while pt[j] ~= p1[j] + dj do
          if not self:_is_valid_location(pt, true) then
-            local go_narrow = pt[i] == self._p0[i]
+            local go_narrow = pt[i] == p0[i]
             if go_narrow then
                -- make the rect narrower and keep iterating
                p1[j] = pt[j] - dj
@@ -210,13 +230,17 @@ end
 
 -- given a candidate p1, compute the p1 which would result in a valid xz region.
 --
-function XZRegionSelector:_compute_p1(p1)
-   local lx = math.abs(p1.x - self._p0.x)
-   local lz = math.abs(p1.z - self._p0.z)
+function XZRegionSelector:_compute_p1(p0, p1)
+   if not p0 or not p1 then
+      return nil
+   end
+
+   local lx = math.abs(p1.x - p0.x)
+   local lz = math.abs(p1.z - p0.z)
 
    local coord = lx > lz and 'x' or 'z'
 
-   return self:_compute_p1_loop(p1, coord)
+   return self:_compute_p1_loop(p0, p1, coord)
 end
 
 function XZRegionSelector:_on_mouse_event(event)
@@ -232,52 +256,82 @@ function XZRegionSelector:_on_mouse_event(event)
       return
    end
 
-   local current_brick = self:_get_hover_brick(event.x, event.y, not self._finished_p0)
-   if current_brick then
-      if not self._finished_p0 then
-         -- select p0...
-         self._p0 = current_brick
-         self._p1 = self:_compute_p1(current_brick)
-         self._finished_p0 = event:down(1)
+   local current_brick = self:_get_hover_brick(event.x, event.y)
+   -- TODO: clean this up
+   if not event:up(1) and not event:down(1) then
+      -- only recalculate when the brick changes
+      if current_brick == self._last_hover_brick then
+         return
       end
-      if self._finished_p0 then
-         -- select p1...
-         self._p1 = self:_compute_p1(current_brick)
-         self._finished = event:up(1)
+      self._last_hover_brick = current_brick
+   end
+
+   local valid_end_points = false
+   local start, finish
+
+   if current_brick then
+      start = self._selected_p0 and self._p0 or current_brick
+      finish = current_brick
+      log:spam('hover bricks: %s, %s', tostring(start), tostring(finish))
+      start, finish = self._get_proposed_points_fn(start, finish)
+      log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
+
+      if self:_is_valid_location(start, true) then
+         finish = self:_compute_p1(start, finish)
+         start, finish = self._get_resolved_points_fn(start, finish)
+         log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
+         valid_end_points = start and finish
       end
    end
 
-   if self._p0 then
-      local selected_cube = self:_create_cube(self._p0, self._p1)
-      if self._finished then
-         if self._done_cb then
-            self._done_cb(self, selected_cube)
-         end
-         self:destroy()
+   if valid_end_points then
+      self._p0 = start
+      self._p1 = finish
+      self._selected_p0 = self._selected_p0 or event:down(1)
+   else
+      if not self._selected_p0 then
+         self._p0 = nil
+         self._p1 = nil
       else
-         self:_update_rulers(self._p0, self._p1)
-         self:_notify_progress(selected_cube)
+         -- keep the last valid region
       end
+   end
+
+   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
+   self:_notify_progress(selected_cube)
+   self:_update_rulers(self._p0, self._p1)
+
+   local done = self._selected_p0 and event:up(1)
+   if done then
+      if self._done_cb then
+         self._done_cb(self, selected_cube)
+      end
+      self:destroy()
    end
 end
 
 function XZRegionSelector:_update_rulers(p0, p1)
-   if self._finished_p0 then
-      local p0, p1 = self._p0, self._p1
-      if self._x_ruler then
-         local normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
-         self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), p0.y, p1.z),
-                                  Point3(math.max(p0.x, p1.x), p0.y, p1.z),
-                                  normal,
-                                  string.format('%d\'', math.abs(p1.x - p0.x) + 1))
-      end
-      if self._z_ruler then
-         local normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
-         self._z_ruler:set_points(Point3(p1.x, p0.y, math.min(p0.z, p1.z)),
-                                  Point3(p1.x, p0.y, math.max(p0.z, p1.z)),
-                                  normal,
-                                  string.format('%d\'', math.abs(p1.z - p0.z) + 1))
-      end
+   if not self._show_rulers or not self._x_ruler or not self._z_ruler then
+      return
+   end
+
+   if p0 and p1 then
+      local x_normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
+      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), p0.y, p1.z),
+                               Point3(math.max(p0.x, p1.x), p0.y, p1.z),
+                               x_normal,
+                               string.format('%d\'', math.abs(p1.x - p0.x) + 1))
+      self._x_ruler:show()
+
+      local z_normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
+      self._z_ruler:set_points(Point3(p1.x, p0.y, math.min(p0.z, p1.z)),
+                               Point3(p1.x, p0.y, math.max(p0.z, p1.z)),
+                               z_normal,
+                               string.format('%d\'', math.abs(p1.z - p0.z) + 1))
+      self._z_ruler:show()
+   else
+      self._x_ruler:hide()
+      self._z_ruler:hide()
    end
 end
 
@@ -285,6 +339,10 @@ function XZRegionSelector:_notify_progress(box)
    if self._render_node then
       self._render_node:destroy()
       self._render_node = nil
+   end
+
+   if not box then
+      return
    end
 
    if self._create_marquee_fn then

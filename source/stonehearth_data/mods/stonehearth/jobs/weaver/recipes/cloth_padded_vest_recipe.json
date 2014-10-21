@@ -6,6 +6,7 @@
    "description" : "This triple-quilted vest provides more protection to your combat units than mere clothing. Not a lot more, but every little bit helps, right?",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/armor/cloth_padded_vest/cloth_padded_vest.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

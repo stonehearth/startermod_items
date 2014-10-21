@@ -41,7 +41,7 @@ function Building:initialize(entity, json)
       self._sv.initialized = true
       self._sv.envelope_entity = radiant.entities.create_entity()    
       self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
-      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')      
+      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
                                  :set_building_entity(self._entity)
       radiant.entities.add_child(self._entity, self._sv.envelope_entity)
 
@@ -51,11 +51,7 @@ function Building:initialize(entity, json)
       end
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-            for _, structures in pairs(self._sv.structures) do
-               for _, entry in pairs(structures) do
-                  self:_trace_entity(entry.entity, true)
-               end
-            end
+            self:_restore_structure_traces()
          end)      
    end
    self:_trace_entity_container()
@@ -69,6 +65,14 @@ function Building:destroy()
       self._ec_trace = nil
    end
    radiant.entities.destroy_entity(self._sv.envelope_entity)
+end
+
+function Building:_restore_structure_traces()
+   for _, structures in pairs(self._sv.structures) do
+      for _, entry in pairs(structures) do
+         self:_trace_entity(entry.entity, true)
+      end
+   end
 end
 
 function Building:_get_structures(type)
@@ -131,13 +135,15 @@ function Building:add_structure(entity)
          }
 
          if structure_type == ROOF then
-            self:_add_roof(entity)
+            self:_create_roof_dependencies(entity)
          elseif structure_type == FLOOR then
-            self:_add_floor(entity)
+            self:_create_floor_dependencies(entity)
          elseif structure_type == WALL then
-            self:_add_wall(entity)
+            self:_create_wall_dependencies(entity)
          end
          self:_trace_entity(entity)
+         self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                       :add_structure(entity)         
          structure:layout()
          break
       end
@@ -165,7 +171,7 @@ function Building:remove_structure(entity)
    self:_untrace_entity(id)
 end
 
-function Building:_add_wall(wall)
+function Building:_create_wall_dependencies(wall)
    for _, entry in pairs(self._sv.structures[FLOOR]) do
       local floor = entry.entity
       wall:get_component('stonehearth:construction_progress')
@@ -173,7 +179,7 @@ function Building:_add_wall(wall)
    end
 end
 
-function Building:_add_floor(floor)
+function Building:_create_floor_dependencies(floor)
    for _, entry in pairs(self._sv.structures[WALL]) do
       local wall = entry.entity
       wall:get_component('stonehearth:construction_progress')
@@ -181,7 +187,7 @@ function Building:_add_floor(floor)
    end
 end
 
-function Building:_add_roof(roof)
+function Building:_create_roof_dependencies(roof)
    for _, entry in pairs(self._sv.structures[WALL]) do
       local structure = entry.entity
 
@@ -244,9 +250,6 @@ function Building:_trace_entity(entity, loading)
          trace:push_object_state()
       end
    end
-
-   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                 :add_structure(entity)
 end
 
 function Building:_untrace_entity(id)
@@ -265,7 +268,7 @@ function Building:_untrace_entity(id)
 
    if self._sv.envelope_entity:is_valid() then
       self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                    :remove_structure(id)
+                                 :remove_structure(id)
    end
 end
 
@@ -302,7 +305,13 @@ function Building:grow_local_box_to_roof(entity, local_box)
       for shingle in merged_roof_overhang:each_cube() do
          local col = Cube3(Point3(shingle.min.x, p1.y, shingle.min.z),
                            Point3(shingle.max.x, shingle.min.y, shingle.max.z))
-         shape:add_unique_cube(col)
+         -- In specific circumstances, (L-shaped room with the vertical part of
+         -- the 'L' being only 1-unit 'tall'), and roof configurations (the roof
+         -- slopes perpendicular to the vertical part of the 'L'), we get walls
+         -- that pass through shingles more than once, and therefore cannot be added
+         -- uniquely. This trips an assert/crashes the game, so let's just add
+         -- them blindly, for now. -- klochek-rad
+         shape:add_cube(col)
       end
    end
    return shape
@@ -341,7 +350,6 @@ function Building:layout_roof(roof)
    end
 
    -- layout all the normal walls and create a list of the patch walls.
-
    local patch_walls = {}
    for _, entry in pairs(self._sv.structures[WALL]) do
       if entry.structure:is_patch_wall() then
@@ -567,6 +575,39 @@ function Building:_on_child_finished(changed)
    local finished = children_finished(self._entity)
    self._entity:get_component('stonehearth:construction_progress')
                      :set_finished(finished)
+end
+
+function Building:save_to_template()
+   local structures = {}
+   for structure_type, entries in pairs(self._sv.structures) do
+      structures[structure_type] = radiant.keys(entries)
+   end
+   
+   return {
+      structures = structures
+   }
+end
+
+function Building:load_from_template(template, options, entity_map)
+   self._sv.structures = {}
+   for structure_type, ids in pairs(template.structures) do
+      local structures = {}
+      self._sv.structures[structure_type] = structures
+      for _, id in ipairs(ids) do
+         local entity = entity_map[id]
+         assert(entity)
+
+         structures[entity:get_id()] = {
+            entity = entity,
+            structure = entity:add_component(structure_type),
+         }
+      end
+   end
+   self.__saved_variables:mark_changed()
+
+   radiant.events.listen_once(entity_map, 'finished_loading', function()
+         self:_restore_structure_traces()
+      end)
 end
 
 return Building

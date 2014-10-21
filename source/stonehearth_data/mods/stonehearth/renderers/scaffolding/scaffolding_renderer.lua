@@ -124,11 +124,9 @@ function ScaffoldingRenderer:_update_shape(mode)
    -- update the ladder
    local ladder_points = {}
    local show_region_bounds = show_region and show_region:get_bounds() or self._segment_region:get_bounds()
-   for cube in ladder_region:each_cube() do
-      for pt in cube:each_point() do
-         if pt.y >= show_region_bounds.min.y and pt.y < show_region_bounds.max.y then
-            table.insert(ladder_points, pt)
-         end
+   for pt in ladder_region:each_point() do
+      if pt.y >= show_region_bounds.min.y and pt.y < show_region_bounds.max.y then
+         table.insert(ladder_points, pt)
       end
    end
    self:_rebuild_ladder(ladder_points)
@@ -146,38 +144,30 @@ function ScaffoldingRenderer:_update_shape(mode)
    end
    
    -- For every point that's missing, add a new piece of scaffolding.
-   for cube in missing:each_cube() do
-      for pt in cube:each_point() do
-         local node = self:_create_segment_node(pt)
-         self:_add_segment(pt, node)
-         self:_move_top(pt)
-      end
+   for pt in missing:each_point() do
+      local node = self:_create_segment_node(pt)
+      self:_add_segment(pt, node)
+      self:_move_top(pt)
    end
 
    -- For every point that's extra, remove that bit of scaffolding
-   for cube in extra:each_cube() do
-      for pt in cube:each_point() do
-         self:_remove_segment(pt)
-         self:_move_top(pt)
-      end
+   for pt in extra:each_point() do
+      self:_remove_segment(pt)
+      self:_move_top(pt)
    end
 
    -- show all the segments inside the draw region
    if show_region then
-      for cube in show_region:each_cube() do
-         for pt in cube:each_point() do
-            self:_get_segment_node(pt)
-                     :set_visible(true)
-         end
+      for pt in show_region:each_point() do
+         self:_get_segment_node(pt)
+                  :set_visible(true)
       end
    end
    -- hide all the segments outside the draw region
    if hide_region then
-      for cube in hide_region:each_cube() do
-         for pt in cube:each_point() do
-            self:_get_segment_node(pt)
-                     :set_visible(false)
-         end
+      for pt in hide_region:each_point() do
+         self:_get_segment_node(pt)
+                  :set_visible(false)
       end
    end
    -- show or hide the tops, too.

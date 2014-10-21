@@ -6,50 +6,20 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-struct EdgePointX;
-struct EdgeX;
-struct EdgeList;
-typedef std::shared_ptr<EdgePointX> EdgePointPtr;
-typedef std::shared_ptr<EdgeX> EdgePtr;
-typedef std::shared_ptr<EdgeList> EdgeListPtr;
-
-// A point at the endge of an edge.  Shared by all edges in the edge list.
-struct EdgePointX : public csg::Point2 {
-   EdgePointX() { }
-   EdgePointX(int x, int y, csg::Point2 const& n) : csg::Point2(x, y), normals(n) { }
-
-   csg::Point2 normals;  // the accumulated normals of all edges
-};
-
-struct EdgeX {
-   EdgePointPtr   start;
-   EdgePointPtr   end;
-   csg::Point2    normal;
-
-   EdgeX(EdgePointPtr s, EdgePointPtr e, csg::Point2 const& n);
-};
-
-struct EdgeList {
-   std::vector<EdgePointPtr>  points;
-   std::vector<EdgePtr>       edges;
-
-   void Inset(int dist);
-   void Grow(int dist);
-   void Fragment();
-   void AddEdge(csg::Point2 const& start, csg::Point2 const& end, csg::Point2 const& normal);
-
-private:
-   EdgePointPtr GetPoint(csg::Point2 const& pt, csg::Point2 const& normal);
-};
-
 // Slow versions which resort to std::floor().  ew!
 int GetChunkAddressSlow(int value, int chunk_width);
 int GetChunkIndexSlow(int value, int chunk_width);
 void GetChunkIndexSlow(int value, int chunk_width, int& index, int& offset);
 Point3 GetChunkIndexSlow(Point3 const& value, int chunk_width);
+Point3 GetChunkIndexSlow(Point3 const& value, Point3 const& chunk_width);
 void GetChunkIndexSlow(Point3 const& value, int chunk_width, Point3& index, Point3& offset);
+void GetChunkIndexSlow(Point3 const& value, Point3 const& chunk_width, Point3& index, Point3& offset);
 Cube3 GetChunkIndexSlow(Cube3 const& value, int chunk_width);
+Cube3 GetChunkIndexSlow(Cube3 const& value, Point3 const& chunk_width);
 bool PartitionCubeIntoChunksSlow(Cube3 const& cube, int width, std::function<bool(Point3 const& index, Cube3 const& cube)> const& cb);
+bool PartitionCubeIntoChunksSlow(Cube3 const& cube, Point3 const& width, std::function<bool(Point3 const& index, Cube3 const& cube)> const& cb);
+bool PartitionRegionIntoChunksSlow(Region3 const& region, int width, std::function<bool(Point3 const& index, Region3 const& r)> cb);
+bool PartitionRegionIntoChunksSlow(Region3 const& region, Point3 const& width, std::function<bool(Point3 const& index, Region3 const& r)> cb);
 
 // Fast versions which use templates.  Prefer these when the size is known at compile time, especially when using power of 2 
 // widths.
@@ -63,37 +33,35 @@ template <int S> inline bool PartitionCubeIntoChunks(Cube3 const& cube, std::fun
 
 template <typename Region> Region GetAdjacent(Region const& r, bool allow_diagonals);
 
-bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
+bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, double& distance);
 void HeightmapToRegion2f(HeightMap<double> const& h, Region2f& r);
-EdgeListPtr Region2ToEdgeList(csg::Region2 const& rgn, int height, csg::Region3 const& clipper);
-csg::Region2 EdgeListToRegion2(EdgeListPtr segments, int width, csg::Region2 const* clipper);
 int RoundTowardNegativeInfinity(int i, int tile_size);
 int GetTileOffset(int position, int tile_size);
-bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, float& distance);
+bool Region3Intersects(const Region3& rgn, const csg::Ray3& ray, double& distance);
 Region3 Reface(Region3 const& rgn, Point3 const& forward);
-bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance);
-bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance);
+bool Cube3Intersects(const Cube3& rgn, const Ray3& ray, double& distance);
+bool Cube3Intersects(const Cube3f& rgn, const Ray3& ray, double& distance);
 
 int ToInt(int i);
-int ToInt(float s);
+int ToInt(double s);
 int ToClosestInt(int i);
-int ToClosestInt(float s);
+int ToClosestInt(double s);
 
-template <int C> Point<float, C> const& ToFloat(Point<float, C> const& pt);
-template <int C> Cube<float, C> const& ToFloat(Cube<float, C> const& cube);
-template <int C> Region<float, C> const& ToFloat(Region<float, C> const& region);
-template <int C> Point<float, C> ToFloat(Point<int, C> const& pt);
-template <int C> Cube<float, C> ToFloat(Cube<int, C> const& cube);
-template <int C> Region<float, C> ToFloat(Region<int, C> const& region);
-template <int C> Point<int, C> ToInt(Point<float, C> const& pt);
+template <int C> Point<double, C> const& ToFloat(Point<double, C> const& pt);
+template <int C> Cube<double, C> const& ToFloat(Cube<double, C> const& cube);
+template <int C> Region<double, C> const& ToFloat(Region<double, C> const& region);
+template <int C> Point<double, C> ToFloat(Point<int, C> const& pt);
+template <int C> Cube<double, C> ToFloat(Cube<int, C> const& cube);
+template <int C> Region<double, C> ToFloat(Region<int, C> const& region);
+template <int C> Point<int, C> ToInt(Point<double, C> const& pt);
 template <int C> Point<int, C> const& ToInt(Point<int, C> const& pt);
-template <int C> Point<int, C> ToClosestInt(Point<float, C> const& pt);
+template <int C> Point<int, C> ToClosestInt(Point<double, C> const& pt);
 template <int C> Point<int, C> const& ToClosestInt(Point<int, C> const& pt);
 template <int C> Cube<int, C> const& ToInt(Cube<int, C> const& cube);
 template <int C> Region<int, C> const& ToInt(Region<int, C> const& region);
-template <int C> Cube<int, C> ToInt(Cube<float, C> const& cube);
-template <int C> Region<int, C> ToInt(Region<float, C> const& pt);
-template <typename S> S Interpolate(S const& p0, S const& p1, float alpha);
+template <int C> Cube<int, C> ToInt(Cube<double, C> const& cube);
+template <int C> Region<int, C> ToInt(Region<double, C> const& pt);
+template <typename S> S Interpolate(S const& p0, S const& p1, double alpha);
 
 template <typename T, int C, typename F> Point<T, C> ConvertTo(Point<F, C> const& pt);
 template <typename T, int C, typename F> Cube<T, C> ConvertTo(Cube<F, C> const& cube);
@@ -123,13 +91,16 @@ template <typename S> static inline bool IsBetween(Point<S, 3> const& a, Point<S
           IsBetween(a.z, b.z, c.z);
 }
 
-std::ostream& operator<<(std::ostream& os, EdgePointX const& f);
-std::ostream& operator<<(std::ostream& os, EdgeX const& f);
-std::ostream& operator<<(std::ostream& os, EdgeList const& f);
+template <typename S> Point<S, 2> ProjectOntoXY(Point<S, 3> const& pt);
+template <typename S> Point<S, 2> ProjectOntoXZ(Point<S, 3> const& pt);
+template <typename S> Point<S, 2> ProjectOntoYZ(Point<S, 3> const& pt);
+template <typename S> Cube<S, 2> ProjectOntoXY(Cube<S, 3> const& cube);
+template <typename S> Cube<S, 2> ProjectOntoXZ(Cube<S, 3> const& cube);
+template <typename S> Cube<S, 2> ProjectOntoYZ(Cube<S, 3> const& cube);
 
 template <int C>
 struct ToClosestIntTransform {
-   Point<float, C> operator()(Point<float, C> const& key) const {
+   Point<double, C> operator()(Point<double, C> const& key) const {
       return csg::ToFloat(ToClosestInt(key));
    }
 };

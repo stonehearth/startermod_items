@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Trapper Speed Increase +10%",
+   "description" : "Long walks have increased the trapper's foot speed.",
+   "icon" : "file(speed_1_buff.png)",
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 1.10
+      }
+   }
+} 

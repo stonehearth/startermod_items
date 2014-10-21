@@ -1,0 +1,29 @@
+{
+   "scenario_data" : {
+      "config" : {
+         "nights_until_candledark" : 3,
+         "candledark_duration" : 3
+      },
+      "bulletins" : {
+         "initial_warning" : {
+            "cssClass" : "candledarkBulletin",
+            "title" : "A mysterious old man approaches...",
+            "post_accept_title" : "Nights until Candledark Eve: __days__",
+            "message" : "\"Beware the nights of Candledark! In three days time, the spirits will rise wreak havoc for the living.<p>Pumpkin wards will protect you. Ask your Carpenter about them.\"",
+            "accepted_callback" : "_on_intro_accepted"
+         },
+         "candledark_start" : {
+            "title" : "Candledark Eve is here!",
+            "message" : "And....nothing. Crazy old man and his superstitious ramblings...",
+            "ok_callback" : "foo"
+         },
+         "candledark_end" : {
+            "cssClass" : "candledarkBulletin",
+            "title" : "The old man has returned",
+            "message" : "\"Thought I was crazy, didn't you? I see you've survived your first Candledark. Maybe next time you'll listen to an old man, ay?<p>Here, have some candy to celebrate!\"",
+            "accepted_callback" : "_on_survived_accepted",
+            "declined_callback" : "_on_survived_declined"
+         }
+      }
+   } 
+}

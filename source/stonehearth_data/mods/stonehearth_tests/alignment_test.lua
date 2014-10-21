@@ -24,8 +24,11 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:medium_juniper_tree', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:small_juniper_tree', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:large_boulder', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:medium_boulder', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:large_boulder_1', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:large_boulder_2', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:medium_boulder_1', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:medium_boulder_2', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:medium_boulder_3', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:small_boulder', x, z, dx, 0); x=x_start; z=z+dz;
 
    x_start, z_start = col[2], row[1]

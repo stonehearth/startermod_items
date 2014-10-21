@@ -5,7 +5,6 @@ add_definitions(-DCMAKE )
 
 add_library(horde3d_stockpile STATIC
             decal_node.cpp
-            stockpile_node.cpp
             toast_node.cpp
             )
 

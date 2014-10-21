@@ -11,4 +11,7 @@ CombatIdleDispatcher.priority = constants.priorities.combat.IDLE
 local ai = stonehearth.ai
 return ai:create_compound_action(CombatIdleDispatcher)
          :execute('stonehearth:combat:get_primary_target')
-         :execute('stonehearth:combat:idle', { enemy = ai.PREV.target })
+         -- don't idle if there is no path to attack the entity
+         -- i.e. looks stupid for entities to be in combat when separated by a wall or cliff
+         :execute('stonehearth:find_path_to_entity', { destination = ai.PREV.target })
+         :execute('stonehearth:combat:idle', { enemy = ai.BACK(2).target })

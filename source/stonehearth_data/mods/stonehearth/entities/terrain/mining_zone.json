@@ -1,0 +1,14 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Mining Zone",
+         "description" : "This terrain is designated for removal."
+      },
+      "stonehearth:mining" : {
+      }
+   },
+   "entity_data" : {
+      "stonehearth:designation" : {}
+   }
+}

@@ -1,0 +1,70 @@
+<script type="text/x-handlebars" data-template-name="shopBulletinDialog">
+<div id="shopBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      
+      
+      <div id="top">
+         <div>
+            <h2 id="shopTitle">Shop inventory</h2>
+         </div>
+         <div id="modeButtons">
+            <button id="buyButton">Buy</button>
+            <button id="sellButton">Sell</button>
+         </div>
+      </div>
+      <div id="inventory" class="downSection inventory">
+         <div id="content">      
+
+            <!-- shop inventory -->      
+            <table id="buyList" class="list">
+               <tbody>
+               {{#each view.inventoryArray}}
+                  <tr class="row" {{bind-attr uri=this.uri num=this.num cost=this.cost}}>
+                     <td class="itemName">
+                        <img class="icon" {{bind-attr src=this.item.unit_info.icon}} />
+                        <div>{{{this.item.unit_info.name}}}</div>
+                     </td>
+                     <td class="cost goldText">{{this.cost}}</td>
+                     <td class="num">{{this.num}} in stock</td>
+                  </tr>
+               {{/each}}
+               </tbody>
+            </table>
+
+            <!-- player inventory -->
+            <table id="sellList" class="list">
+               <tbody>
+               {{#each view.playerInventoryArray}}
+                  <tr class="row" {{bind-attr uri=this.uri num=this.num cost=this.cost}}>
+                     <td class="itemName">
+                        <img class="icon" {{bind-attr src=this.item.unit_info.icon}} />
+                        <div>{{{this.item.unit_info.name}}}</div>
+                     </td>
+                     <td class="cost">{{this.cost}}</td>
+                     <td class="num">{{this.num}} in stock</td>
+                  </tr>
+               {{/each}}
+               </tbody>
+            </table>
+
+         </div>
+      </div>
+
+      <div id="playerGold">
+         <h2>Gold: <span class="goldText">{{view.playerGold}}</h2></h2>
+      </div>
+
+      <div class="shopButtons" id="buyButtons">
+         <button class="green disabled" id="buy1Button">Buy 1</button>
+         <button class="green disabled" id="buy10Button">Buy 10</button>
+      </div>
+
+      <div class="shopButtons" id="sellButtons">
+         <button class="green disabled" id="sell1Button">Sell 1</button>
+         <button class="green disabled" id="sell10Button">Sell 10</button>
+      </div>
+
+   </div>
+</div>
+</script>

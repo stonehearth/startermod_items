@@ -467,14 +467,12 @@ function Fabricator:_update_dst_region()
 
       -- project each column down to the base
       local dr = Region3()      
-      for cube in dst_region:each_cube() do
-         for pt in cube:each_point() do
-            pt.y = 0
-            while not shape_region:contains(pt) do
-               pt.y = pt.y + 1
-   end
-            dr:add_unique_point(pt)
-         end         
+      for pt in dst_region:each_point() do
+         pt.y = 0
+         while not shape_region:contains(pt) do
+            pt.y = pt.y + 1
+         end
+         dr:add_unique_point(pt)
       end
       dst_region = dr
    end
@@ -576,19 +574,17 @@ function Fabricator:_update_fabricator_region()
             -- we know points in the middle of the region have a connectivity count of 4,
             -- so we're definitely not going to use those.  iterate through every point in
             -- the border to find candiates for poorly connected cubes.
-            for fringe_cube in top_slice_cube:get_border():each_cube() do
-               for pt in fringe_cube:each_point() do
-                  local rank = 1
-                  -- keep a count of the number of points adjacent to this one, then add
-                  -- this point to the rank table. 
-                  for _, offset in ipairs(ADJACENT_POINTS) do
-                     local test_point = pt + offset
-                     if not top_slice_bounds:contains(test_point) and not top_slice:contains(test_point) then
-                        rank = rank + 1
-                     end
+            for pt in top_slice_cube:get_border():each_point() do
+               local rank = 1
+               -- keep a count of the number of points adjacent to this one, then add
+               -- this point to the rank table. 
+               for _, offset in ipairs(ADJACENT_POINTS) do
+                  local test_point = pt + offset
+                  if not top_slice_bounds:contains(test_point) and not top_slice:contains(test_point) then
+                     rank = rank + 1
                   end
-                  table.insert(points_by_connect_count[rank], pt)
                end
+               table.insert(points_by_connect_count[rank], pt)
             end
          end
          -- choose the least connected points (i.e. those points with the highest rank).

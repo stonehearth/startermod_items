@@ -1,0 +1,49 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks": 1000
+      },
+      "unit_info": {
+         "name": "Chest of Gold Coins",
+         "description": "It's money!",
+         "icon" : "file(gold.png)"
+      },     
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(chest.qb)",
+               "file(gold_3.qb)"
+            ]
+         },
+         "1": {
+            "models": [
+               "file(gold_1.qb)"
+            ]
+         },
+         "2": {
+            "models": [
+               "file(gold_2.qb)"
+            ]
+         },
+         "3": {
+            "models": [
+               "file(gold_3.qb)"
+            ]
+         }
+      },
+      "stonehearth:stacks_model_renderer" : {},
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:treasure_glow"
+         ]  
+      },
+      "stonehearth:material" : {
+         "tags" :  "gold money"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

@@ -5,12 +5,7 @@
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(ancient_oak_tree.qb)"
-                  ]
-               }
+               "file(ancient_oak_tree.qb)"
             ]
          }
       },

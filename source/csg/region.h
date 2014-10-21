@@ -3,11 +3,22 @@
 
 #include <vector>
 #include <map>
-#include <EASTL/fixed_vector.h>
+#include <EASTL/vector.h>
 #include "cube.h"
 
+// eastl vectors behave just like std::vector, but they don't allocate until
+// used.  this is a big win!
 #define EASTL_REGIONS
-#define INITIAL_CUBE_SPACE    64
+
+//
+// (note: used only in the non-EASTL_REGIONS case.)
+// Emperical evidence suggests that without prior knowledge of how big a region
+// is going to be, reserving capacity does not actually improve CPU performance.
+// Dropping this value from 64 to 0 reduces the commited memory from ~370MB to
+// ~120MB in my testing of starting random worlds.  Perhaps this will change when
+// we more efficiently share regions, but for now lets go with it.
+//
+#define INITIAL_CUBE_SPACE    2
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
@@ -20,7 +31,7 @@ public:
 #if !defined(EASTL_REGIONS)
    typedef std::vector<Cube> CubeVector;
 #else
-   typedef eastl::fixed_vector<Cube, INITIAL_CUBE_SPACE, true> CubeVector;
+   typedef eastl::vector<Cube> CubeVector;
 #endif
    enum { Dimension = C };
    typedef S ScalarType;
@@ -30,18 +41,17 @@ public:
    Region(Cube const& cube);
    Region(Region const&& r);
 
-   static const Region empty;
-  
-   const CubeVector& GetContents() const { return cubes_; }
-   typename CubeVector::const_iterator begin() const { return cubes_.begin(); }
-   typename CubeVector::const_iterator end() const { return cubes_.end(); }
+   static const Region zero; 
+   CubeVector& GetContents() { return cubes_; }
+   CubeVector const& GetContents() const { return cubes_; }
 
 public:
    S GetArea() const;
    bool IsEmpty() const;
    bool Intersects(Cube const& cube) const;
+   bool Intersects(Region const& region) const;
    bool Contains(Point const& pt) const;
-   
+
    Point GetClosestPoint(Point const& src) const;
    Cube GetBounds() const;
    Point GetCentroid() const;
@@ -111,7 +121,7 @@ private:
 };
 
 template <typename S, int C>
-Point<float, C> GetCentroid(Region<S, C> const& region);
+Point<double, C> GetCentroid(Region<S, C> const& region);
 
 template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)
@@ -119,6 +129,32 @@ std::ostream& operator<<(std::ostream& os, Region<S, C> const& o)
    os << "(" << o.GetCubeCount() << " cubes of area " << o.GetArea() << ")";
    return os;
 }
+
+
+#define DECLARE_CUBE_ITERATOR(T) \
+class T ## CubeRange \
+{ \
+public: \
+   T ## CubeRange(T const& container) : _container(container) { } \
+ \
+   T::CubeVector::const_iterator begin() const { return _container.GetContents().begin(); } \
+   T::CubeVector::const_iterator end() const { return _container.GetContents().end(); } \
+ \
+private: \
+   T const& _container; \
+}; \
+ \
+static inline T ## CubeRange EachCube(T const& cube) \
+{ \
+   return T ## CubeRange(cube); \
+} \
+
+DECLARE_CUBE_ITERATOR(Region1)
+DECLARE_CUBE_ITERATOR(Region1f)
+DECLARE_CUBE_ITERATOR(Region2)
+DECLARE_CUBE_ITERATOR(Region2f)
+DECLARE_CUBE_ITERATOR(Region3)
+DECLARE_CUBE_ITERATOR(Region3f)
 
 END_RADIANT_CSG_NAMESPACE
 

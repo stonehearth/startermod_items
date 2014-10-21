@@ -8,6 +8,7 @@
 #include "lua_quaternion.h"
 #include "lua_ray.h"
 #include "lua_mesh.h"
+#include "lua_iterator.h"
 #include "lua_random_number_generator.h"
 #include "csg/region.h"
 #include "csg/random_number_generator.h"
@@ -70,7 +71,6 @@ DEFINE_INVALID_LUA_CONVERSION(csg::Region2f)
 DEFINE_INVALID_LUA_CONVERSION(csg::Region3f)
 DEFINE_INVALID_LUA_CONVERSION(csg::Color3)
 DEFINE_INVALID_LUA_CONVERSION(csg::Color4)
-DEFINE_INVALID_LUA_CONVERSION(csg::Cube3f::PointIterator)
 DEFINE_INVALID_LUA_CONVERSION(csg::Transform)
 DEFINE_INVALID_LUA_CONVERSION(csg::Quaternion)
 DEFINE_INVALID_LUA_CONVERSION(csg::Ray3)
@@ -90,10 +90,11 @@ void csg::RegisterLuaTypes(lua_State* L)
             LuaRay::RegisterLuaTypes(L),
             LuaRandomNumberGenerator::RegisterLuaTypes(L),
             LuaMesh::RegisterLuaTypes(L),
-            def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2f const&)) &csg::GetCentroid<float, 2>),
-            def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3f const&)) &csg::GetCentroid<float, 3>),
-            def("get_region_centroid", (csg::Point2f(*)(csg::Region2f const&)) &csg::GetCentroid<float, 2>),
-            def("get_region_centroid", (csg::Point3f(*)(csg::Region3f const&)) &csg::GetCentroid<float, 3>)
+            RegisterIteratorTypes(L),
+            def("get_rect_centroid", (csg::Point2f(*)(csg::Rect2f const&)) &csg::GetCentroid<double, 2>),
+            def("get_cube_centroid", (csg::Point3f(*)(csg::Cube3f const&)) &csg::GetCentroid<double, 3>),
+            def("get_region_centroid", (csg::Point2f(*)(csg::Region2f const&)) &csg::GetCentroid<double, 2>),
+            def("get_region_centroid", (csg::Point3f(*)(csg::Region3f const&)) &csg::GetCentroid<double, 3>)
          ]
       ]
    ];

@@ -125,7 +125,7 @@ void VoxelMeshNode::setParamI( int param, int value )
 bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f &rayDir, Vec3f &intsPos, Vec3f &intsNorm ) const
 {
    if (_parentModel->useCoarseCollisionBox()) {
-      float d;
+      double d;
       radiant::csg::Point3f origin(rayOrig.x, rayOrig.y, rayOrig.z);
       radiant::csg::Point3f dir(rayDir.x, rayDir.y, rayDir.z);
       dir.Normalize();
@@ -142,9 +142,9 @@ bool VoxelMeshNode::checkIntersectionInternal( const Vec3f &rayOrig, const Vec3f
       // instaed of what we're coplanar with
       d -= 0.05f;
       radiant::csg::Point3f intersection = origin + (dir * d);
-      intsPos.x = intersection.x;
-      intsPos.y = intersection.y;
-      intsPos.z = intersection.z;
+      intsPos.x = (float)intersection.x;
+      intsPos.y = (float)intersection.y;
+      intsPos.z = (float)intersection.z;
       intsNorm.x = 0; // lies!
       intsNorm.y = 1; // lies!
       intsNorm.z = 0; // lies!

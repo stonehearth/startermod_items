@@ -206,4 +206,76 @@ function Inventory:find_closest_unused_placable_item(uri, location)
    return best_item, acceptable_item_count
 end
 
+function Inventory:get_gold_count_command(session, response, uri)
+   local gold = self:get_gold_count()
+   response:resolve({ gold = gold})
+end
+
+function Inventory:get_gold_count()
+   local gold_items = self:get_items_of_type('stonehearth:loot:gold')
+
+   local total_gold = 0
+   if gold_items ~= nil then
+      for id, item in pairs(gold_items.items) do
+         -- get stacks for the item
+         local item_component = item:add_component('item')
+         local stacks = item_component:get_stacks()
+
+         total_gold = total_gold + stacks
+      end
+   end
+
+   return total_gold
+end
+
+function Inventory:add_gold(amount)
+   -- for now, always add the gold in a new entity, instead of adding stacks to
+   -- and existing entity
+
+   --Add the new items to the space near the banner
+   local town = stonehearth.town:get_town(self._sv.player_id)
+   local banner = town:get_banner()
+   local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
+   if not drop_origin then
+      return false
+   end
+
+   local gold = radiant.entities.create_entity('stonehearth:loot:gold')
+   local item = gold:add_component('item')
+   item:set_stacks(amount)
+
+   local location = radiant.terrain.find_placement_point(drop_origin, 1, 3)
+   radiant.terrain.place_entity(item, location)
+end
+
+function Inventory:subtract_gold(amount)
+   local gold_items = self:get_items_of_type('stonehearth:loot:gold')
+   local stacks_to_remove = amount
+
+   if gold_items ~= nil then
+      for id, item in pairs(gold_items.items) do
+         -- get stacks for the item
+         local item_component = item:add_component('item')
+         local item_stacks = item_component:get_stacks()
+
+         -- nuke some stacks
+         if item_stacks > stacks_to_remove then
+            -- this item has more stacks than we need to remove, reduce the stacks and we're done
+            item_component:set_stacks(item_stacks - stacks_to_remove)
+            break
+         else 
+            -- consume the whole item and run through the loop again
+            radiant.entities.destroy_entity(item)
+            stacks_to_remove = stacks_to_remove - item_stacks
+         end
+
+         assert(stacks_to_remove >= 0)
+
+         if stacks_to_remove == 0 then
+            break
+         end
+      end
+   end
+end
+
 return Inventory

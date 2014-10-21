@@ -6,80 +6,6 @@
 
 BEGIN_RADIANT_CSG_NAMESPACE
 
-template <typename S>
-class PointIterator<S, 3> {
-public:
-   typedef Cube<S, 3> Cube;
-   typedef Point<S, 3> Point;
-
-   PointIterator(Cube const& c, Point const& iter);
-
-   Point operator*() const;
-   void operator++();
-   bool operator!=(const PointIterator& rhs) const;
-
-public:
-   static   Point end;
-
-private:
-   Cube3    bounds_;
-   Point    iter_;
-   int      axis_;
-};
-
-template <typename S>
-struct PointIterator<S, 2> {
-   typedef Cube<S, 2> Cube;
-   typedef Point<S, 2> Point;
-
-   PointIterator(Cube const& c, Point const& iter) :
-      min(c.GetMin()),
-      max(c.GetMax()),
-      axis_(0)
-   {
-      if (c.GetArea() <= 0) {
-         iter_ = end;
-         return;
-      }
-
-      ASSERT(iter == end || c.Contains(iter));
-      if (!c.Contains(iter)) {
-         iter_ = end;
-         return;
-      }
-      iter_ = iter;
-   }
-
-   const Point operator*() const {
-      return iter_;
-   }
-
-   const void operator++() {
-      if (iter_ != end) {
-         iter_.x++;
-         if (iter_.x == max.x) {
-            iter_.x = min.x;
-            iter_.y++;
-            if (iter_.y == max.y) {
-               iter_ = end;
-            }
-         }
-      }
-   }
-   bool operator!=(const PointIterator& rhs) {
-      return iter_ != rhs.iter_;
-   }
-
-public:
-   static   Point    end;
-
-private:
-   Point    min;
-   Point    max;
-   Point    iter_;
-   int      axis_;
-};
-
 template <typename S, int C>
 class Cube
 {
@@ -88,7 +14,6 @@ public:
    enum { Dimension = C };
    typedef Point<S, C> Point;
    typedef Region<S, C> Region;
-   typedef PointIterator<S, C> PointIterator;
 
 public:
    static Cube<S, C> zero;
@@ -107,9 +32,6 @@ public:
       }
       return Cube(min_value, max_value, tag);
    }
-
-   PointIterator begin() const { return PointIterator(*this, GetMin()); }
-   PointIterator end() const { return PointIterator(*this, PointIterator::end); }
 
    S GetArea() const;
    bool IsEmpty() const { return GetArea() == 0; }
@@ -138,7 +60,7 @@ public:
    }
 
    Cube Inflated(Point const& amount) const;
-   Cube Scaled(float factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
+   Cube Scaled(double factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
    Cube Intersection(Cube const& other) const;
    Region GetBorder() const;
@@ -147,10 +69,10 @@ public:
    bool Contains(Point const& pt) const;
    Point GetClosestPoint(Point const& other) const;
    Point GetSize() const { return GetMax() - GetMin(); }
-   inline float SquaredDistanceTo(Point const& other) const;
-   inline float SquaredDistanceTo(Cube const& other) const;
-   float DistanceTo(Point const& other) const;
-   float DistanceTo(Cube const& other) const;
+   inline double SquaredDistanceTo(Point const& other) const;
+   inline double SquaredDistanceTo(Cube const& other) const;
+   double DistanceTo(Point const& other) const;
+   double DistanceTo(Cube const& other) const;
 
    // optimizing...
    bool operator==(Cube const& other) const;
@@ -194,7 +116,7 @@ private:
 };
 
 template <typename S, int C>
-Point<float, C> GetCentroid(Cube<S, C> const& cube);
+Point<double, C> GetCentroid(Cube<S, C> const& cube);
 
 template <typename S, int C>
 std::ostream& operator<<(std::ostream& os, Cube<S, C> const& in)

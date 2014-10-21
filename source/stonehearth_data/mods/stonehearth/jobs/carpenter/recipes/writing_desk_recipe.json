@@ -6,6 +6,7 @@
    "description" : "Not at all like a raven.",
    "flavor"      : "...Except it can produce a few notes, tho they are very flat.",
    "portrait"    : "/stonehearth/entities/furniture/writing_desk/writing_desk.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

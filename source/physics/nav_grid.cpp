@@ -7,6 +7,7 @@
 #include "dm/record_trace.h"
 #include "csg/util.h"
 #include "csg/color.h"
+#include "csg/iterators.h"
 #include "core/config.h"
 #include "om/components/component.h"
 #include "om/components/mob.ridl.h"
@@ -204,16 +205,16 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
    om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
    auto regionCollisionType = regionCollisionShapePtr->GetRegionCollisionType();
 
+   NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
    switch (regionCollisionType) {
       case om::RegionCollisionShape::RegionCollisionTypes::SOLID:
-         NG_LOG(7) << "creating RegionCollisionShapeTracker for " << *entity;
          return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
-         break;
-      default:
-         ASSERT(regionCollisionType == om::RegionCollisionShape::RegionCollisionTypes::NONE);
-         NG_LOG(7) << "creating RegionNonCollisionShapeTracker for " << *entity;
+      case om::RegionCollisionShape::RegionCollisionTypes::NONE:
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
+      case om::RegionCollisionShape::RegionCollisionTypes::PLATFORM:
+         return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
+   return nullptr;
 }
 
 /*
@@ -278,13 +279,13 @@ void NavGrid::OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> reg
  * Terrain tile trackers are added differently than the other trackers.
  * This will be called once for every terrain tile.
  */
-void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3f const& offset, om::Region3fBoxedPtr tile)
+void NavGrid::AddTerrainTileTracker(om::EntityRef e, csg::Point3 const& offset, om::Region3BoxedPtr tile)
 {
    NG_LOG(3) << "tracking terrain tile at " << offset;
    om::EntityPtr entity = e.lock();
    if (entity) {
-      CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, offset, tile);
-      terrain_tile_collision_trackers_[csg::ToClosestInt(offset)] = tracker;
+      CollisionTrackerPtr tracker = std::make_shared<TerrainTileTracker>(*this, entity, tile);
+      terrain_tile_collision_trackers_[offset] = tracker;
       tracker->Initialize();
    }
 }
@@ -305,11 +306,9 @@ void NavGrid::RemoveNonStandableRegion(om::EntityPtr entity, csg::Region3f& regi
 {
    csg::Region3f nonStandable;
 
-   for (csg::Cube3f const& cube : region) {
-      for (csg::Point3f const& pt : cube) {
-         if (!IsStandable(csg::ToInt(pt))) {
-            nonStandable.AddUnique(pt);
-         }
+   for (csg::Point3 pt : csg::EachPoint(region)) {
+      if (!IsStandable(csg::ToInt(pt))) {
+         nonStandable.AddUnique(csg::ToFloat(pt));
       }
    }
 
@@ -350,7 +349,7 @@ void NavGrid::OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
-   for (csg::Point3 const& cursor : previous_chunks) {
+   for (csg::Point3 const& cursor : csg::EachPoint(previous_chunks)) {
       if (!current_chunks.Contains(cursor)) {
          NG_LOG(5) << "removing tracker from grid tile at " << cursor;
          GridTileNonResident(cursor).RemoveCollisionTracker(tracker);
@@ -358,7 +357,7 @@ void NavGrid::OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::
    }
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
-   for (csg::Point3 const& cursor : current_chunks) {
+   for (csg::Point3 const& cursor : csg::EachPoint(current_chunks)) {
       NG_LOG(5) << "adding tracker for grid tile at " << cursor << " for " << *tracker->GetEntity();
       GridTileNonResident(cursor).AddCollisionTracker(tracker);
    }
@@ -378,7 +377,7 @@ void NavGrid::OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId e
 
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
-   for (csg::Point3 const& cursor : chunks) {
+   for (csg::Point3 const& cursor : csg::EachPoint(chunks)) {
       GridTileNonResident(cursor).OnTrackerRemoved(entityId, type);
    }
 
@@ -468,7 +467,8 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
          standable_color = csg::Color4(0, 0, 255, 64);
          break;
    }
-   for (csg::Point3 i : csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE)) {
+   csg::Cube3 tile = csg::Cube3::one.Scaled(TILE_SIZE).Translated(index * TILE_SIZE);
+   for (csg::Point3 i : csg::EachPoint(tile)) {
       bool standable = p != nullptr ? IsStandable(p, i) : IsStandable(i);
       if (standable) {
          protocol::coord* coord = msg->add_coords();
@@ -633,7 +633,7 @@ bool NavGrid::ForEachTileInBox(csg::CollisionBox const& worldBox, ForEachTileCb 
    csg::Cube3 clippedWorldBounds = csg::ToInt(worldBox).Intersection(bounds_);
    csg::Cube3 indexBounds = csg::GetChunkIndex<TILE_SIZE>(clippedWorldBounds);
 
-   auto i = indexBounds.begin(), end = indexBounds.end();
+   csg::Cube3PointIterator i(indexBounds), end;
    while (!stopped && i != end) {
       csg::Point3 index = *i;
       stopped = cb(index, GridTileNonResident(index));
@@ -661,7 +661,7 @@ bool NavGrid::ForEachTileInShape(csg::CollisionShape const& worldShape, ForEachT
    bool stopped = false;
    eastl::fixed_set<csg::Point3, 8> visited;
 
-   auto i = worldShape.begin(), end = worldShape.end();
+   auto i = worldShape.GetContents().begin(), end = worldShape.GetContents().end();
    while (!stopped && i != end) {
       csg::CollisionBox worldBox = *i++;
       stopped = ForEachTileInBox(worldBox, [&visited, cb](csg::Point3 const& index, NavGridTile &tile) {
@@ -839,7 +839,7 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
 bool NavGrid::IsBlocked(csg::Region3 const& region)
 {
    NG_LOG(7) << "::IsBlocked checking world region " << region.GetBounds();
-   for (csg::Cube3 const& cube : region) {
+   for (csg::Cube3 const& cube : csg::EachCube(region)) {
       if (IsBlocked(cube)) {
          return true;
       }
@@ -887,7 +887,8 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
-   return GridTileResident(index).IsSupport(offset);
+   bool isSupport = GridTileResident(index).IsSupport(offset);
+   return isSupport;
 }
 
 /*
@@ -915,7 +916,10 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    if (!bounds_.Contains(worldPoint)) {
       return false;
    }
-   return !IsBlocked(worldPoint) && IsSupported(worldPoint);
+   // allow debug builds to inspect variables before returning
+   bool blocked = IsBlocked(worldPoint);
+   bool supported = IsSupported(worldPoint);
+   return !blocked && supported;
 }
 
 /*
@@ -1013,10 +1017,10 @@ bool NavGrid::RegionIsSupported(om::EntityPtr entity, csg::Point3 const& locatio
 
 bool NavGrid::RegionIsSupportedForTitan(csg::Region3 const& r)
 {
-   for (csg::Cube3 const& cube : r) {
+   for (csg::Cube3 const& cube : csg::EachCube(r)) {
       csg::Cube3 slice(csg::Point3(cube.min.x, cube.min.y - 1, cube.min.z),
                        csg::Point3(cube.max.x, cube.min.y    , cube.max.z));
-      for (csg::Point3 const& pt : slice) {
+      for (csg::Point3 const& pt : csg::EachPoint(slice)) {
          if (IsTerrain(pt)) {
             NG_LOG(7) << pt << "is support!  returnin true. (titan)";
             return true;
@@ -1049,12 +1053,12 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
    NG_LOG(7) << "checking is region supported for " << r.GetBounds();
 
    int bottom = rb.min.y;
-   for (csg::Cube3 const& cube : r) {
+   for (csg::Cube3 const& cube : csg::EachCube(r)) {
       // Only consider cubes that are on the bottom row of the region.
       if (cube.min.y == bottom) {
          csg::Cube3 slice(csg::Point3(cube.min.x, bottom - 1, cube.min.z),
                           csg::Point3(cube.max.x, bottom    , cube.max.z));
-         for (csg::Point3 const& pt : slice) {
+         for (csg::Point3 const& pt : csg::EachPoint(slice)) {
             if (IsSupport(pt)) {
                NG_LOG(7) << pt << "is support!  returnin true";
                return true;

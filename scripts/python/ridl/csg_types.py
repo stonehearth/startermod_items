@@ -24,6 +24,12 @@ class Cube3f(ridl.Type):
 class Cube3(ridl.Type):
    name = "csg::Cube3"
 
+class Rect2f(ridl.Type):
+   name = "csg::Rect2f"
+
+class Rect2(ridl.Type):
+   name = "csg::Rect2"
+
 class Region3f(ridl.Type):
    name = "csg::Region3f"
 

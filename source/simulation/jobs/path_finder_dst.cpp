@@ -11,6 +11,7 @@
 #include "csg/util.h"
 #include "a_star_path_finder.h"
 #include "csg/color.h"
+#include "csg/iterators.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -44,10 +45,6 @@ void PathFinderDst::Start()
 {
    auto dstEntity = dstEntity_.lock();
    if (dstEntity) {
-      if (!om::IsInWorld(dstEntity)) {
-         throw core::Exception("destination entity is not in the world"); 
-      }
-
       PF_LOG(7) << "starting path finder dst for " << *dstEntity;
 
       auto destination_may_have_changed = [this](const char* reason) {
@@ -86,6 +83,10 @@ void PathFinderDst::ClipAdjacentToTerrain()
    om::EntityPtr dstEntity = dstEntity_.lock();
    om::EntityPtr srcEntity = srcEntity_.lock();
    if (dstEntity && srcEntity) {
+      if (!om::IsInWorld(dstEntity)) {
+         PF_LOG(1) << *dstEntity << " is not in world.  Cannot use as destination in pathfinder!";
+      }
+      
       world_space_adjacent_region_ = MovementHelper().GetRegionAdjacentToEntity(sim_, srcEntity, dstEntity);
       pathfinder_.WatchWorldRegion(world_space_adjacent_region_);
       PF_LOG(7) << "world space region for " << *dstEntity << " is " << world_space_adjacent_region_ << "(bounds:" << world_space_adjacent_region_.GetBounds() << ")";
@@ -127,7 +128,7 @@ void PathFinderDst::EncodeDebugShapes(radiant::protocol::shapelist *msg, csg::Co
    if (LOG_IS_ENABLED(simulation.pathfinder.astar, 7)) {
       auto region = msg->add_region();
       debug_color.SaveValue(region->mutable_color());
-      for (auto const& cube : world_space_adjacent_region_) {
+      for (auto const& cube : csg::EachCube(world_space_adjacent_region_)) {
          cube.SaveValue(region->add_cubes());
       }
    }

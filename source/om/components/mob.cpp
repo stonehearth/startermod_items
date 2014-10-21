@@ -64,15 +64,15 @@ void Mob::SetRotation(csg::Quaternion const& orientation)
    });
 }
 
-float Mob::GetFacing() const
+double Mob::GetFacing() const
 {
    csg::Point3f axis;
-   float radians;
+   double radians;
 
    csg::GetAxisAngleNormalized((*transform_).orientation, axis, radians);
 
    // this method currently only makes sense for rotations about the y axis
-   ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < csg::k_epsilon);
+   ASSERT(axis == csg::Point3f::zero || std::abs(std::abs(axis.y) - 1.0f) < FLT_EPSILON);
 
    return radians / csg::k_pi * 180.0f;
 }
@@ -212,10 +212,6 @@ void Mob::LoadFromJson(json::Node const& obj)
       __str_to_type["tiny"]  = TINY;
       __str_to_type["clutter"]  = CLUTTER;
       __str_to_type["titan"]  = TITAN;
-   }
-
-   if (obj.has("parent")) {
-      parent_ = GetStore().FetchObject<Entity>(obj.get<std::string>("parent", ""));
    }
 
    std::string t = obj.get<std::string>("mob_collision_type", "");

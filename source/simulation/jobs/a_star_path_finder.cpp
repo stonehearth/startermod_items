@@ -11,6 +11,7 @@
 #include "om/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
+#include "csg/iterators.h"
 #include "movement_helpers.h"
 
 using namespace ::radiant;
@@ -52,7 +53,7 @@ void AStarPathFinder::ComputeCounters(std::function<void(const char*, double, co
       count++;
       if (pf->enabled_) {
          active_count++;
-         if (!pf->IsIdle()) {
+         if (!pf->CheckIfIdle()) {
             running_count++;
          }
       }
@@ -166,7 +167,6 @@ bool AStarPathFinder::CheckIfIdle() const
       return true;
    }
 
-   // xxx: this is redundant with the multi path finder...
    bool all_idle = true;
    for (const auto& entry : destinations_) {
       if (!entry.second->IsIdle()) {
@@ -192,6 +192,7 @@ bool AStarPathFinder::CheckIfIdle() const
 AStarPathFinderPtr AStarPathFinder::Start()
 {
    PF_LOG(5) << "start requested";
+   ASSERT(solved_cb_);
    enabled_ = true;
    return shared_from_this();
 }
@@ -207,23 +208,43 @@ AStarPathFinderPtr AStarPathFinder::Stop()
 AStarPathFinderPtr AStarPathFinder::AddDestination(om::EntityRef e)
 {
    auto dstEntity = e.lock();
-   if (dstEntity) {
-      if (om::IsInWorld(dstEntity)) {
-         auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
-            OnPathFinderDstChanged(dst, reason);
-         };
-         PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
-         destinations_[dstEntity->GetObjectId()] = std::unique_ptr<PathFinderDst>(dst);
-         OnPathFinderDstChanged(*dst, "added destination");
-      } else {
-         PF_LOG(3) << "cannot add " << dstEntity << " to pathfinder because it is not in the world.";
+   if (!dstEntity) {
+      PF_LOG(3) << "cannot add destination to pathfinder.  invalid entity.";
+      return shared_from_this();
+   }
+   
+   if (!om::IsInWorld(dstEntity)) {
+      PF_LOG(3) << "cannot add " << *dstEntity << " to pathfinder.  not in the world.";
+      return shared_from_this();
+   }
+
+   dm::ObjectId id = dstEntity->GetObjectId();
+   if (stdutil::contains(destinations_, id)) {
+      PF_LOG(3) << *dstEntity << " destination is already in pathfinder.  ignoring add request.";
+      return shared_from_this();
+   }
+
+   PF_LOG(3) << "adding destination " << *dstEntity << ".";
+   auto changed_cb = [this](PathFinderDst const& dst, const char* reason) {
+      OnPathFinderDstChanged(dst, reason);
+   };
+   PathFinderDst* dst = new PathFinderDst(GetSim(), *this, entity_, dstEntity, GetName(), changed_cb);
+   destinations_[id] = std::unique_ptr<PathFinderDst>(dst);
+   OnPathFinderDstChanged(*dst, "added destination");
+   if (LOG_IS_ENABLED(simulation.pathfinder.astar, 9)) {
+      PF_LOG(9) << "destination list:";
+      for (auto const& entry : destinations_) {
+         PathFinderDst* dst = entry.second.get();
+         PF_LOG(9) << "  destination " << entry.first << ":" << *dst->GetEntity();
       }
+      PF_LOG(9) << "end destination list";
    }
    return shared_from_this();
 }
 
 AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
 {
+   PF_LOG(3) << "removing destination " << id << ".";
    auto i = destinations_.find(id);
    if (i != destinations_.end()) {
       destinations_.erase(i);
@@ -232,7 +253,18 @@ AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
          if (solution_entity && solution_entity->GetObjectId() == id) {
             RestartSearch("destination removed");
          }
+      } else {
+         PF_LOG(3) << "recomputing open heuristics on destination removal";
+         _rebuildOpenHeuristics = true;
       }
+   }
+   if (LOG_IS_ENABLED(simulation.pathfinder.astar, 9)) {
+      PF_LOG(9) << "destination list:";
+      for (auto const& entry : destinations_) {
+         PathFinderDst* dst = entry.second.get();
+         PF_LOG(9) << "  destination " << entry.first << ":" << *dst->GetEntity();
+      }
+      PF_LOG(9) << "end destination list";
    }
    return shared_from_this();
 }
@@ -246,6 +278,7 @@ void AStarPathFinder::Restart()
 
    cameFrom_.clear();
    closed_.clear();
+   closedBounds_ = csg::Cube3::zero;
    open_.clear();
 
    rebuildHeap_ = true;
@@ -336,6 +369,11 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       VERIFY_HEAPINESS();
       PathFinderNode current = PopClosestOpenNode();
+      if (closed_.empty()) {
+         closedBounds_ = csg::Cube3(current.pt);
+      } else {
+         closedBounds_.Grow(current.pt);
+      }
       closed_.insert(current.pt);
       WatchWorldPoint(current.pt);
 
@@ -349,14 +387,25 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
          std::vector<csg::Point3f> solution;
          ReconstructPath(solution, current.pt);
-         SolveSearch(solution, *closest);
-         return;
+         if (SolveSearch(solution, closest)) {
+            return;
+         }
+         if (restart_search_) {
+            PF_LOG(3) << "restarting search after failed attempt to dispatch solution!";
+            Restart();
+         }
       } 
+      ASSERT(!restart_search_);
 
-      if (closest && FindDirectPathToDestination(current.pt, *closest)) {
+      if (closest && FindDirectPathToDestination(current.pt, closest)) {
          // Found a solution!  Bail.
          return;
       }
+      if (restart_search_) {
+         PF_LOG(3) << "restarting search after failed attempt to dispatch direct path solution!";
+         Restart();
+      }
+      ASSERT(!restart_search_);
 
       if (current.g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
@@ -447,7 +496,7 @@ float AStarPathFinder::EstimateCostToSolution()
       RebuildOpenHeuristics();
    }
 
-   if (IsIdle()) {
+   if (CheckIfIdle()) {
       return FLT_MAX;
    }
    return open_.front().f;
@@ -567,6 +616,8 @@ void AStarPathFinder::RebuildHeap()
 
 void AStarPathFinder::SetSearchExhausted()
 {
+   PF_LOG(7) << "trying to market search as exhausted!";
+
    if (world_changed_) {
       PF_LOG(5) << "restarting search after exhaustion: world changed during search";
       RestartSearch("world changed during search");
@@ -576,6 +627,7 @@ void AStarPathFinder::SetSearchExhausted()
    if (!search_exhausted_) {
       cameFrom_.clear();
       closed_.clear();
+      closedBounds_ = csg::Cube3::zero;
       open_.clear();
       search_exhausted_ = true;
       if (exhausted_cb_) {
@@ -586,21 +638,32 @@ void AStarPathFinder::SetSearchExhausted()
    }
 }
 
-void AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst& dst)
+bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst)
 {
+   int dstId = dst->GetEntityId();
+
    if (solution.empty()) {
       solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3f dst_point_of_interest = dst.GetPointOfInterest(solution.back());
-   PF_LOG(5) << "found solution to destination " << dst.GetEntityId() << " (last point is " << solution.back() << ")";
-   solution_ = std::make_shared<Path>(solution, entity_.lock(), dst.GetEntity(), dst_point_of_interest);
-   if (solved_cb_) {
-      PF_LOG(5) << "calling lua solved callback";
-      solved_cb_(solution_);
-      PF_LOG(5) << "finished calling lua solved callback";
+   csg::Point3f dst_point_of_interest = dst->GetPointOfInterest(solution.back());
+   PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
+   PathPtr path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
+
+   PF_LOG(5) << "calling lua solved callback";
+   bool solved = solved_cb_(path);
+   PF_LOG(5) << "finished calling lua solved callback";
+
+   if (solved) {
+      solution_  = path;
+   } else {
+      PF_LOG(5) << "solved cb said no bueno.  removing destination and continuing search.";
+      RemoveDestination(dstId);
+      dst = nullptr;
    }
 
    VERIFY_HEAPINESS();
+
+   return solution_ != nullptr;
 }
 
 PathPtr AStarPathFinder::GetSolution() const
@@ -617,6 +680,7 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       solution_ = nullptr;
       cameFrom_.clear();
       closed_.clear();
+      closedBounds_ = csg::Cube3::zero;
       open_.clear();
 
       world_changed_ = false;
@@ -654,23 +718,12 @@ void AStarPathFinder::SetDebugColor(csg::Color4 const& color)
    debug_color_ = color;
 }
 
-std::string AStarPathFinder::DescribeProgress()
-{
-   std::ostringstream progress;
-   progress << GetName() << open_.size() << " open nodes. " << closed_.size() << " closed nodes. ";
-   if (!open_.empty()) {
-      progress << EstimateCostToDestination(open_.front().pt) << " nodes from destination. ";
-   }
-   progress << "idle? " << IsIdle();
-   return progress.str();
-}
-
 void AStarPathFinder::WatchWorldRegion(csg::Region3f const& region)
 {
    if (!navgrid_guard_.Empty()) {
       csg::Cube3 bounds = csg::ToInt(region.GetBounds());
       csg::Cube3 chunks = csg::GetChunkIndex<phys::TILE_SIZE>(bounds);
-      for (csg::Point3 const& cursor : chunks) {
+      for (csg::Point3 const& cursor : csg::EachPoint(chunks)) {
          WatchTile(cursor);
       }
    }
@@ -713,8 +766,10 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
    }
 }
 
-bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst &dst)
+bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst*& dst)
 {   
+   ASSERT(dst);
+
    if (direct_path_search_cooldown_ > 0) {
       return false;
    }
@@ -724,7 +779,7 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, Path
    om::EntityPtr entity = entity_.lock();
 
    csg::Point3f from = csg::ToFloat(start);
-   csg::Region3f const& dstRegion = dst.GetWorldSpaceAdjacentRegion();
+   csg::Region3f const& dstRegion = dst->GetWorldSpaceAdjacentRegion();
    csg::Point3f to = dstRegion.GetClosestPoint(from);
 
    if (!mh.GetPathPoints(GetSim(), entity, false, from, to, _directPathCandiate)) {
@@ -734,16 +789,19 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, Path
    std::vector<csg::Point3f> solution;
    ReconstructPath(solution, start);
    solution.insert(solution.end(), _directPathCandiate.begin(), _directPathCandiate.end());
-   SolveSearch(solution, dst);
-   return true;
+   return SolveSearch(solution, dst);
 }
 
 void AStarPathFinder::OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason)
 {
-   if (false) {
-      // the dst contains a closed node
-      RestartSearch(reason);
-      return;
+   PF_LOG(7) << "path finder dst changed.  (worldRegion:" << dst.GetWorldSpaceAdjacentRegion().GetBounds() << " closedBounds:" << closedBounds_ << ")";
+
+   if (!closed_.empty()) {
+      if (dst.GetWorldSpaceAdjacentRegion().Intersects(csg::ToFloat(closedBounds_))) {
+         // Too close.  Just restart
+         RestartSearch("added dst inside closed bounding box");
+         return;
+      }
    }
    _rebuildOpenHeuristics = true;
 }

@@ -72,22 +72,28 @@ std::string Animation::JsonToBinary(const JSONNode &node)
          csg::Point3f translation;
          csg::Quaternion rotation;
          csg::Point3f axis;
-         float angle;
+         double angle;
 
          for (int i = 0; i < 3; i++) {
-            translation[i] = (float)pos[i].as_float();
+            translation[i] = pos[i].as_float();
          }
          for (int i = 0; i < 4; i++) {
-            rotation[i] = (float)rot[i].as_float();
+            rotation[i] = rot[i].as_float();
          }
 
          rotation.get_axis_angle(axis, angle);
          translation = coordSpaceTransform.rotate(translation);
          rotation = csg::Quaternion(coordSpaceTransform.rotate(axis), angle);
 
-         float *trans = &translation[0], *quat = &rotation[0];
-         result.insert(result.end(), (char *)trans, (char *)(trans + 3));
-         result.insert(result.end(), (char *)quat, (char *)(quat + 4));
+         float packet[7];
+         packet[0] = (float)translation.x;
+         packet[1] = (float)translation.y;
+         packet[2] = (float)translation.z;
+         packet[3] = (float)rotation.w;
+         packet[4] = (float)rotation.x;
+         packet[5] = (float)rotation.y;
+         packet[6] = (float)rotation.z;
+         result.insert(result.end(), (char *)packet, (char *)(packet + 7));
       }
    }
    return std::string(&result[0], result.size());

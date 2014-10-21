@@ -76,6 +76,17 @@ static ${class_return_type} ${class_upper}_LoadFromJson(lua_State* L, ${class_fo
    throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
 }
 
+static luabind::object ${class_upper}_SaveToJson(lua_State* L, ${class_formal_parameter})
+{
+   ${class_to_pointer}
+   if (instance)  {
+      json::Node obj;
+      instance->SerializeToJson(obj);
+      return lua::ScriptHost::JsonToLua(L, obj);
+   }
+   throw std::invalid_argument("invalid reference in native ${class_lower}::extend");
+}
+
 % endif
 
 ## - Boxed -----------------------------------------------------------------------------------
@@ -345,7 +356,8 @@ scope Register${class_upper}(lua_State* L)
          ]
 % endfor
 % if is_component:
-         .def("load_from_json",                &${class_upper}_LoadFromJson)
+         .def("load_from_json",                 &${class_upper}_LoadFromJson)
+         .def("save_to_json",                   &${class_upper}_SaveToJson)
 % endif
 ## - Boxed -----------------------------------------------------------------------------------
 % for name, boxed in env.properties(C, dm.Boxed):

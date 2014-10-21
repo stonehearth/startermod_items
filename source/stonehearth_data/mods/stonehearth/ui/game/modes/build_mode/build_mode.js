@@ -1,6 +1,4 @@
-App.StonehearthBuildModeView = App.View.extend({
-   templateName: 'buildMode',
-   i18nNamespace: 'stonehearth',
+App.StonehearthBuildModeView = App.ContainerView.extend({
 
    init: function() {
       this._super();
@@ -20,8 +18,15 @@ App.StonehearthBuildModeView = App.View.extend({
 
       // show the building designer when the "design building" button on the start menu
       // is clicked.
-      $(top).on('stonehearth_design_building', function() {
-         self._showBuildingDesigner();
+      $(top).on('stonehearth_building_plans', function() {
+         //Disable for now not working as intended yet
+         //self._showBuildingPlansView();
+         self._showBuildingDesignerView();
+      });
+
+      // show the building editor
+      $(top).on('stonehearth_building_designer', function() {
+         self._showBuildingDesignerView();
       });
 
       // show the place item UI "place item" button on the start menu
@@ -29,15 +34,16 @@ App.StonehearthBuildModeView = App.View.extend({
       $(top).on('stonehearth_place_item', function() {
          self._showPlaceItemUi();
       });
-
-      // called when the "build ladder" item on the start menu is clicked
-      $(top).on('stonehearth_build_ladder', function() {
-         App.stonehearthClient.buildLadder();
-      });
    },
    
    didInsertElement: function() {
-      this.$().hide();
+      var self = this;
+
+      this._placeItemView = self.addView(App.StonehearthPlaceItemView);
+      this._buildingPlansView = self.addView(App.StonehearthBuildingPlansView);
+      this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
+
+      this.hide();
    },
 
    // Nuke the trace on the selected entity
@@ -47,95 +53,53 @@ App.StonehearthBuildModeView = App.View.extend({
       this._super();
    },
 
-   _showBuildingDesigner: function(uri) {
-      if (!this._buildDesignerTools || !this._buildDesignerTools.get('isVisible')) {
-         App.setGameMode('build');
-         App.setVisionMode('normal');
-
-         // hide all other views
-         this._hideDesignerViews();
-
-         // show the building designer
-         if (this._buildDesignerTools && this._buildDesignerTools.$()) {
-            this._buildDesignerTools.$().show();
-         } else {      
-            this._buildDesignerTools = App.gameView.addView(App.StonehearthBuildingDesignerTools);
-         }
-      }
-      this._buildDesignerTools.set('uri', uri);
-   },
-
-   _destroyBuildingDesigner: function() {
-      if (this._buildDesignerTools) {
-         this._buildDesignerTools.invokeDestroy();
-         this._buildDesignerTools = null;
-         App.stonehearthClient.hideTip();
-      }
-   },
-
-   _showPlaceItemUi: function(uri) {
+   _showBuildingPlansView: function() {
       App.setGameMode('build');
-
-      // hide all other views
-      this._hideDesignerViews();
-
-      if (this._placeItemUi) {
-         this._placeItemUi.$().show();
-      } else {      
-         this._placeItemUi = App.gameView.addView(App.StonehearthPlaceItemView);
-      }
+      this.hideAllViews();
+      this._buildingPlansView.show();
+      this._onStateChanged();
    },
 
-   _destroyPlaceItemUi: function() {
-      if (this._placeItemUi) {
-         this._placeItemUi.invokeDestroy();
-         this._placeItemUi = null;
-      }
+   _showPlaceItemUi: function() {
+      App.setGameMode('build');
+      this.hideAllViews();
+      this._placeItemView.show();
    },
 
-   _hideDesignerViews: function() {
-      //For some reason, this isn't setting the visiblity of the building designer to false
-      //so use ember to actually set it/get it
-      $('.buildAndDesignTool').parent().hide();
-
-      if (this._buildDesignerTools) {
-         this._buildDesignerTools.set('isVisible', false); 
-      }
+   _showBuildingDesignerView: function() {
+      App.setGameMode('build');
+      this.hideAllViews();
+      this._buildingDesignerView.show();
    },
-
-   _destroyAllViews: function() {
-      this._destroyBuildingDesigner();
-      this._destroyPlaceItemUi();
-   },
-
+   
    _onStateChanged: function() {
       var self = this;
 
-      if (this._mode == "build") {
+      if (self._mode == "build") {
          //trace the selected entity to determine its components
          if (self.selectedEntityTrace) {
             self.selectedEntityTrace.destroy();
             self.selectedEntityTrace = null;
          }
 
-         if (this._sub_selected_part) {
-            self.selectedEntityTrace = radiant.trace(this._sub_selected_part)
+         if (self._sub_selected_part) {
+            self.selectedEntityTrace = radiant.trace(self._sub_selected_part)
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     self._showBuildingDesigner(entity.__self);
+                     self._buildingDesignerView.set('uri', entity.__self);
+                     self.hideAllViews();
+                     self._buildingDesignerView.show();
                   } else {
-                     self._destroyBuildingDesigner();
+                     self._buildingDesignerView.hide();
                   }
                })
                .fail(function(e) {
                   console.log(e);
                });         
-         } else if (this._buildDesignerTools) {
-            self._showBuildingDesigner();
          }
       } else {
-         this._destroyAllViews();
+         self.hideAllViews();
       }
    },
 });

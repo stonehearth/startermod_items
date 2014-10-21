@@ -182,17 +182,17 @@ Matrix3::is_identity() const
 void 
 Matrix3::set_rows(const Point3f& row1, const Point3f& row2, const Point3f& row3)
 {
-    v[0] = row1.x;
-    v[3] = row1.y;
-    v[6] = row1.z;
+    v[0] = (float)row1.x;
+    v[3] = (float)row1.y;
+    v[6] = (float)row1.z;
 
-    v[1] = row2.x;
-    v[4] = row2.y;
-    v[7] = row2.z;
+    v[1] = (float)row2.x;
+    v[4] = (float)row2.y;
+    v[7] = (float)row2.z;
 
-    v[2] = row3.x;
-    v[5] = row3.y;
-    v[8] = row3.z;
+    v[2] = (float)row3.x;
+    v[5] = (float)row3.y;
+    v[8] = (float)row3.z;
 
 }   // End of Matrix3::set_rows()
 
@@ -205,17 +205,17 @@ Matrix3::set_rows(const Point3f& row1, const Point3f& row2, const Point3f& row3)
 void 
 Matrix3::get_rows(Point3f& row1, Point3f& row2, Point3f& row3) const
 {
-    row1.x = v[0];
-    row1.y = v[3];
-    row1.z = v[6];
+    row1.x = (float)v[0];
+    row1.y = (float)v[3];
+    row1.z = (float)v[6];
 
-    row2.x = v[1];
-    row2.y = v[4];
-    row2.z = v[7];
+    row2.x = (float)v[1];
+    row2.y = (float)v[4];
+    row2.z = (float)v[7];
 
-    row3.x = v[2];
-    row3.y = v[5];
-    row3.z = v[8];
+    row3.x = (float)v[2];
+    row3.y = (float)v[5];
+    row3.z = (float)v[8];
 }   // End of Matrix3::get_rows()
 
 
@@ -241,17 +241,17 @@ Matrix3::GetRow(unsigned int i) const
 void 
 Matrix3::set_columns(const Point3f& col1, const Point3f& col2, const Point3f& col3)
 {
-    v[0] = col1.x;
-    v[1] = col1.y;
-    v[2] = col1.z;
+    v[0] = (float)col1.x;
+    v[1] = (float)col1.y;
+    v[2] = (float)col1.z;
 
-    v[3] = col2.x;
-    v[4] = col2.y;
-    v[5] = col2.z;
+    v[3] = (float)col2.x;
+    v[4] = (float)col2.y;
+    v[5] = (float)col2.z;
 
-    v[6] = col3.x;
-    v[7] = col3.y;
-    v[8] = col3.z;
+    v[6] = (float)col3.x;
+    v[7] = (float)col3.y;
+    v[8] = (float)col3.z;
 
 }   // End of Matrix3::set_columns()
 
@@ -502,20 +502,24 @@ Matrix3::rotation(const Quaternion& rotate)
 {
     ASSERT(rotate.is_unit());
 
+    float rx = (float)rotate.x;
+    float ry = (float)rotate.y;
+    float rz = (float)rotate.z;
+    float rw = (float)rotate.w;
     float xs, ys, zs, wx, wy, wz, xx, xy, xz, yy, yz, zz;
 
-    xs = rotate.x+rotate.x;   
-    ys = rotate.y+rotate.y;
-    zs = rotate.z+rotate.z;
-    wx = rotate.w*xs;
-    wy = rotate.w*ys;
-    wz = rotate.w*zs;
-    xx = rotate.x*xs;
-    xy = rotate.x*ys;
-    xz = rotate.x*zs;
-    yy = rotate.y*ys;
-    yz = rotate.y*zs;
-    zz = rotate.z*zs;
+    xs = rx+rx;   
+    ys = ry+ry;
+    zs = rz+rz;
+    wx = rw*xs;
+    wy = rw*ys;
+    wz = rw*zs;
+    xx = rx*xs;
+    xy = rx*ys;
+    xz = rx*zs;
+    yy = ry*ys;
+    yz = ry*zs;
+    zz = rz*zs;
 
     v[0] = 1.0f - (yy + zz);
     v[3] = xy - wz;
@@ -585,20 +589,24 @@ Matrix3::rotation(const Point3f& axis, float angle)
     nAxis.Normalize();
 
     // intermediate values
-    float tx = t*nAxis.x;  float ty = t*nAxis.y;  float tz = t*nAxis.z;
-    float sx = s*nAxis.x;  float sy = s*nAxis.y;  float sz = s*nAxis.z;
-    float txy = tx*nAxis.y; float tyz = tx*nAxis.z; float txz = tx*nAxis.z;
+    float nx = (float)nAxis.x;
+    float ny = (float)nAxis.y;
+    float nz = (float)nAxis.z;
+
+    float tx = t*nx;  float ty = t*ny;  float tz = t*nz;
+    float sx = s*nx;  float sy = s*ny;  float sz = s*nz;
+    float txy = tx*ny; float tyz = tx*nz; float txz = tx*nz;
 
     // set matrix
-    v[0] = tx*nAxis.x + c;
+    v[0] = tx*nx + c;
     v[3] = txy - sz;
     v[6] = txz + sy;
     v[1] = txy + sz;
-    v[4] = ty*nAxis.y + c;
+    v[4] = ty*ny + c;
     v[7] = tyz - sx;
     v[2] = txz - sy;
     v[5] = tyz + sx;
-    v[8] = tz*nAxis.z + c;
+    v[8] = tz*nz + c;
 
     return *this;
 
@@ -613,15 +621,15 @@ Matrix3::rotation(const Point3f& axis, float angle)
 Matrix3& 
 Matrix3::scaling(const Point3f& scaleFactors)
 {
-    v[0] = scaleFactors.x;
+    v[0] = (float)scaleFactors.x;
     v[1] = 0.0f;
     v[2] = 0.0f;
     v[3] = 0.0f;
-    v[4] = scaleFactors.y;
+    v[4] = (float)scaleFactors.y;
     v[5] = 0.0f;
     v[6] = 0.0f;
     v[7] = 0.0f;
-    v[8] = scaleFactors.z;
+    v[8] = (float)scaleFactors.z;
 
     return *this;
 
@@ -765,7 +773,7 @@ Matrix3::get_axis_angle(Point3f& axis, float& angle)
         axis = Point3f::unitX;
     }
     // standard case
-    else if (angle < k_pi-k_epsilon)
+    else if (angle < k_pi-FLT_EPSILON)
     {
         axis = Point3f(v[5]-v[7], v[6]-v[2], v[1]-v[3]);
         axis.Normalize();

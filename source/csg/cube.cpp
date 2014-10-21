@@ -23,19 +23,13 @@ Rect2f Rect2f::one(Point2f(0, 0), Point2f(1, 1));
 Line1f Line1f::zero(Point1f(0), Point1f(0));
 Line1f Line1f::one(Point1f(0), Point1f(1));
 
-Point3 Cube3::PointIterator::end(INT_MAX, INT_MAX, INT_MAX);
-Point2 Rect2::PointIterator::end(INT_MAX, INT_MAX);
-
-Point3f Cube3f::PointIterator::end(FLT_MAX, FLT_MAX, FLT_MAX);
-Point2f Rect2f::PointIterator::end(FLT_MAX, FLT_MAX);
-
 template <class C>
-static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
+static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, double& d)
 {
    const auto& min_value = cube.GetMin();
    const auto& max_value = cube.GetMax();
-   float max_s = -FLT_MAX;
-   float min_t = FLT_MAX;
+   double max_s = -FLT_MAX;
+   double min_t = FLT_MAX;
 
    // do tests against three sets of planes
    for (int i = 0; i < 3; ++i) {
@@ -47,10 +41,10 @@ static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
          }
       } else {
          // compute intersection parameters and sort
-         float s = (min_value[i] - ray.origin[i]) / ray.direction[i];
-         float t = (max_value[i] - ray.origin[i]) / ray.direction[i];
+         double s = (min_value[i] - ray.origin[i]) / ray.direction[i];
+         double t = (max_value[i] - ray.origin[i]) / ray.direction[i];
          if (s > t) {
-            float temp = s;
+            double temp = s;
             s = t;
             t = temp;
          }
@@ -75,12 +69,12 @@ static bool Cube3IntersectsImpl(const C& cube, const csg::Ray3& ray, float& d)
    return true;
 }
 
-bool csg::Cube3Intersects(const Cube3& rgn, const Ray3& ray, float& distance)
+bool csg::Cube3Intersects(const Cube3& rgn, const Ray3& ray, double& distance)
 {
    return Cube3IntersectsImpl(rgn, ray, distance);
 }
 
-bool csg::Cube3Intersects(const Cube3f& rgn, const Ray3& ray, float& distance)
+bool csg::Cube3Intersects(const Cube3f& rgn, const Ray3& ray, double& distance)
 {
    return Cube3IntersectsImpl(rgn, ray, distance);
 }
@@ -116,13 +110,30 @@ Cube<S, C>::Cube(Point const& min_value, Point const& max_value, int tag) :
 }
 
 template <typename S, int C>
+S GetAreaFn(Cube<S, C> const&);
+
+template <typename S>
+S GetAreaFn(Cube<S, 1> const& cube)
+{
+   return (cube.max.x - cube.min.x);
+}
+
+template <typename S>
+S GetAreaFn(Cube<S, 2> const& cube)
+{
+   return (cube.max.x - cube.min.x) * (cube.max.y - cube.min.y);
+}
+
+template <typename S>
+S GetAreaFn(Cube<S, 3> const& cube)
+{
+   return (cube.max.x - cube.min.x) * (cube.max.y - cube.min.y) * (cube.max.z - cube.min.z);
+}
+
+template <typename S, int C>
 S Cube<S, C>::GetArea() const
 {
-   S area = 1;
-   for (int i = 0; i < C; i++) {
-      area *= (max[i] - min[i]);
-   }
-   return area;
+   return GetAreaFn(*this);
 }
 
 /*
@@ -296,7 +307,7 @@ Region<S, C> Cube<S, C>::operator&(Region const& region) const
 {
    Region result;
 
-   for (Cube const& c : region) {
+   for (Cube const& c : EachCube(region)) {
       Cube clipped = *this & c;
       if (!clipped.IsEmpty()) {
          result.AddUnique(clipped);
@@ -351,23 +362,23 @@ Cube<S, C> Cube<S, C>::operator+(Point const& offset) const
 }
 
 template <typename S, int C>
-float Cube<S, C>::DistanceTo(Point const& other) const
+double Cube<S, C>::DistanceTo(Point const& other) const
 {
    Point closest = GetClosestPoint(other);
    return closest.DistanceTo(other);
 }
 
 template <typename S, int C>
-inline float Cube<S, C>::SquaredDistanceTo(Point const& other) const
+inline double Cube<S, C>::SquaredDistanceTo(Point const& other) const
 {
    Point closest = GetClosestPoint(other);
    return closest.SquaredDistanceTo(other);
 }
 
 template <typename S, int C>
-float Cube<S, C>::DistanceTo(Cube const& other) const
+double Cube<S, C>::DistanceTo(Cube const& other) const
 {
-   float d = 0;
+   double d = 0;
    for (int i = 0; i < C; i++) {
       if (other.min[i] > max[i]) {
          d += (other.min[i] - max[i]) * (other.min[i] - max[i]);
@@ -375,13 +386,13 @@ float Cube<S, C>::DistanceTo(Cube const& other) const
          d += (other.max[i] - min[i]) * (other.max[i] - min[i]);
       }
    }
-   return csg::Sqrt(d);
+   return std::sqrt(d);
 }
 
 template <typename S, int C>
-inline float Cube<S, C>::SquaredDistanceTo(Cube const& other) const
+inline double Cube<S, C>::SquaredDistanceTo(Cube const& other) const
 {
-   float d = 0;
+   double d = 0;
    for (int i = 0; i < C; i++) {
       if (other.min[i] > max[i]) {
          d += (other.min[i] - max[i]) * (other.min[i] - max[i]);
@@ -399,12 +410,39 @@ bool Cube<S, C>::Contains(Point const& pt) const
 }
 
 template <class S, int C>
+void GrowFn(Cube<S, C>& cube, Point<S, C> const& pt);
+
+template <class S>
+void GrowFn(Cube<S, 1>& cube, Point<S, 1> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+}
+
+template <class S>
+void GrowFn(Cube<S, 2>& cube, Point<S, 2> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+   cube.min.y = std::min(cube.min.y, pt.y);
+   cube.max.y = std::max(cube.max.y, pt.y);
+}
+
+template <class S>
+void GrowFn(Cube<S, 3>& cube, Point<S, 3> const& pt)
+{
+   cube.min.x = std::min(cube.min.x, pt.x);
+   cube.max.x = std::max(cube.max.x, pt.x);
+   cube.min.y = std::min(cube.min.y, pt.y);
+   cube.max.y = std::max(cube.max.y, pt.y);
+   cube.min.z = std::min(cube.min.z, pt.z);
+   cube.max.z = std::max(cube.max.z, pt.z);
+}
+
+template <class S, int C>
 void Cube<S, C>::Grow(Point const& pt)
 {
-   for (int i = 0; i < C; i++) {
-      min[i] = std::min(min[i], pt[i]);
-      max[i] = std::max(max[i], pt[i]);
-   }
+   GrowFn(*this, pt);
 }
 
 template <class S, int C>
@@ -415,23 +453,54 @@ void Cube<S, C>::Grow(Cube const& cube)
 }
 
 template <int C>
-Cube<float, C> csg::ToFloat(Cube<int, C> const& cube) {
-   return Cube<float, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
+Cube<double, C> csg::ToFloat(Cube<int, C> const& cube) {
+   return Cube<double, C>(ToFloat(cube.min), ToFloat(cube.max), cube.GetTag());
 }
 
 template <int C>
-Cube<float, C> const& csg::ToFloat(Cube<float, C> const& pt) {
+Cube<double, C> const& csg::ToFloat(Cube<double, C> const& pt) {
    return pt;
 }
 
 template <int C>
-Cube<int, C> csg::ToInt(Cube<float, C> const& cube) {
-   Point<int, C> min, max;
-   for (int i = 0; i < C; i++) {
-      min[i] = static_cast<int>(std::floor(cube.min[i])); // round toward negative infinity
-      max[i] = static_cast<int>(std::ceil(cube.max[i]));  // round toward positive infinity
-   }
-   return Cube<int, C>(min, max, cube.GetTag());
+Cube<int, C> ToIntFn(Cube<double, C> const& cube);
+ 
+template <>
+Cube<int, 1> ToIntFn(Cube<double, 1> const& cube) {
+   Cube<int, 1> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   return result;
+}
+
+template <>
+Cube<int, 2> ToIntFn(Cube<double, 2> const& cube) {
+   Cube<int, 2> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.min.y = static_cast<int>(std::floor(cube.min.y));
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   result.max.y = static_cast<int>(std::ceil(cube.max.y));
+   return result;
+}
+
+template <>
+Cube<int, 3> ToIntFn(Cube<double, 3> const& cube) {
+   Cube<int, 3> result;
+   result.SetTag(cube.GetTag());
+   result.min.x = static_cast<int>(std::floor(cube.min.x)); // round toward negative infinity
+   result.min.y = static_cast<int>(std::floor(cube.min.y));
+   result.min.z = static_cast<int>(std::floor(cube.min.z));
+   result.max.x = static_cast<int>(std::ceil(cube.max.x));  // round toward positive infinity
+   result.max.y = static_cast<int>(std::ceil(cube.max.y));
+   result.max.z = static_cast<int>(std::ceil(cube.max.z));
+   return result;
+}
+
+template <int C>
+Cube<int, C> csg::ToInt(Cube<double, C> const& cube) {
+   return ToIntFn(cube);
 }
 
 template <int C>
@@ -447,7 +516,12 @@ bool Cube<S, C>::CombineWith(Cube const& cube)
    }
    Cube together(*this);
    together.Grow(cube);
-   if (together.GetArea() == GetArea() + cube.GetArea()) {
+
+   S a1 = together.GetArea();
+   S a2 = GetArea();
+   S a3 = cube.GetArea();
+   S a4 = a2 + a3;
+   if (a1 == a4) {
       *this = together;
       return true;
    }
@@ -455,56 +529,10 @@ bool Cube<S, C>::CombineWith(Cube const& cube)
 }
 
 template <typename S, int C>
-Point<float, C> csg::GetCentroid(Cube<S, C> const& cube)
+Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
 {
-   Point<float, C> centroid = ToFloat(cube.min + cube.max).Scaled(0.5);
+   Point<double, C> centroid = ToFloat(cube.min + cube.max).Scaled(0.5f);
    return centroid;
-}
-
-
-template <typename S>
-PointIterator<S, 3>::PointIterator(Cube const& c, Point const& iter) :
-   bounds_(ToInt(c)),
-   axis_(0)
-{
-   if (iter == end) {
-      iter_ = iter;
-   } else if (c.GetArea() == 0) {
-      iter_ = end;
-   } else {
-      ASSERT(c.Contains(iter));
-      iter_ = iter;
-   }
-}
-
-
-template <typename S>
-typename PointIterator<S, 3>::Point PointIterator<S, 3>::operator*() const {
-   return iter_;
-}
-
-template <typename S>
-void PointIterator<S, 3>::operator++() {
-   if (iter_ != end) {
-      iter_.z++;
-      if (iter_.z >= bounds_.max.z) {
-         iter_.z = static_cast<S>(bounds_.min.z);
-         iter_.x++;
-         if (iter_.x >= bounds_.max.x) {
-            iter_.z = static_cast<S>(bounds_.min.z);
-            iter_.x = static_cast<S>(bounds_.min.x);
-            iter_.y++;
-            if (iter_.y >= bounds_.max.y) {
-               iter_ = end;
-            }
-         }
-      }
-   }
-}
-
-template <typename S>
-bool PointIterator<S, 3>::operator!=(const PointIterator& rhs) const {
-   return iter_ != rhs.iter_;
 }
 
 #define MAKE_CUBE(Cls) \
@@ -523,21 +551,13 @@ bool PointIterator<S, 3>::operator!=(const PointIterator& rhs) const {
    template Cls::Region Cls::operator-(const Cls::Region& other) const; \
    template bool Cls::Contains(const Cls::Point& other) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point& other) const; \
-   template float Cls::DistanceTo(const Cls& other) const; \
-   template float Cls::DistanceTo(const Cls::Point& other) const; \
+   template double Cls::DistanceTo(const Cls& other) const; \
+   template double Cls::DistanceTo(const Cls::Point& other) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
    template Cls Cls::Intersection(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \
-
-
-#define MAKE_POINT_ITERATOR(Cls) \
-   template Cls::PointIterator(Cube const& c, Point const& iter); \
-   template Cls::Point Cls::operator*() const; \
-   template void Cls::operator++(); \
-   template bool Cls::operator!=(Cls const& rhs) const; \
-
 
 MAKE_CUBE(Cube3)
 MAKE_CUBE(Cube3f)
@@ -546,14 +566,11 @@ MAKE_CUBE(Rect2f)
 MAKE_CUBE(Line1)
 MAKE_CUBE(Line1f)
 
-MAKE_POINT_ITERATOR(PointIterator3)
-MAKE_POINT_ITERATOR(PointIterator3f)
-
 #define DEFINE_CUBE_CONVERSIONS(C) \
-   template Cube<float, C> csg::ToFloat(Cube<int, C> const&); \
-   template Cube<float, C> const& csg::ToFloat(Cube<float, C> const&); \
+   template Cube<double, C> csg::ToFloat(Cube<int, C> const&); \
+   template Cube<double, C> const& csg::ToFloat(Cube<double, C> const&); \
    template Cube<int, C> const& csg::ToInt(Cube<int, C> const&); \
-   template Cube<int, C> csg::ToInt(Cube<float, C> const&);
+   template Cube<int, C> csg::ToInt(Cube<double, C> const&);
 
 DEFINE_CUBE_CONVERSIONS(1)
 DEFINE_CUBE_CONVERSIONS(2)

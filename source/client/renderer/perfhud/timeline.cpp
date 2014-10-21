@@ -84,7 +84,7 @@ Timeline& Timeline::Render(RenderContext & rc, csg::Rect2f const& r)
    csg::Point2f min = r.min;
    csg::Point2f max = r.max;
 
-   float mid = min.x + (max.x - min.x) * 3 / 4;
+   double mid = min.x + (max.x - min.x) * 3 / 4;
 
    RenderColumns(rc, min, csg::Point2f(mid, max.y));
    RenderLegend(rc, csg::Point2f(mid, min.y), max);
@@ -94,7 +94,7 @@ Timeline& Timeline::Render(RenderContext & rc, csg::Rect2f const& r)
 void Timeline::RenderColumns(RenderContext & rc, csg::Point2f min, csg::Point2f max)
 {
    uint i = 0;
-   float width = (max.x - min.x) / max_columns_;
+   double width = (max.x - min.x) / max_columns_;
 
    csg::Point2f cmin = min;
    csg::Point2f cmax = max;
@@ -110,7 +110,7 @@ void Timeline::RenderLegend(RenderContext &rc, csg::Point2f min, csg::Point2f ma
    float box_height = 16;
    csg::Point2f one = rc.GetPixelSize();
    csg::Rect2f box(min, min + one * box_height);
-   float h = (box_height + 4) * one.y;
+   double h = (box_height + 4) * one.y;
 
    int numToDraw = std::min((uint)counter_data_sorted_.size(), max_top_traces_);
    for (int i = 0; i < numToDraw; i++) {

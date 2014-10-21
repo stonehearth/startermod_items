@@ -22,8 +22,8 @@ function AiService:initialize()
 end
 
 -- injecting entity may be null
-function AiService:inject_ai(entity, injecting_entity, ai) 
-   return AiInjector(entity, injecting_entity, ai)
+function AiService:inject_ai(entity, ai, injecting_entity) 
+   return AiInjector(entity, ai, injecting_entity)
 end
 
 function AiService:format_activity(activity)
