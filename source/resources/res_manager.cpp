@@ -160,7 +160,7 @@ void ResourceManager2::LoadModules()
          ASSERT(!stdutil::contains(modules_, module_name));
          modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
          if (!_modDirectoryChanged) {
-            std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name));
+            std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name), "");
             if (goodhash.empty()) {
                RES_LOG(1) << "Could not find hash for module \"" << module_name << "\".";
                _modDirectoryChanged = true;
