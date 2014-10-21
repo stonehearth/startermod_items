@@ -9,8 +9,10 @@
       "kingdoms:undead" : "file(population/undead_population.json)",
       
       "pumpkin_ward" : "file(entities/pumpkin_ward/pumpkin_ward.json)",
-      "lantern" : "file(entities/wooden_garden_lantern/wooden_garden_lantern.json)",
       "monsters:undead:skeleton" : "file(entities/monsters/undead/skeleton/skeleton.json)",
+      "candy_basket" : "file(entities/candy_basket/candy_basket.json)",
+      "candy_serving"    : "file(entities/candy_serving/candy_serving.json)",
+
       
       "scenarios:candledark" : "file(scenarios/dynamic/candledark/candledark.json)",
       "scenarios:candledark:skeleton_invasion" : "file(scenarios/dynamic/skeleton_invasion/skeleton_invasion.json)"
@@ -30,12 +32,6 @@
    },
 
    "ui" :  {
-      "html" : [
-         "file(/ui/bulletin/bulletin.html)"
-      ],
-      "js" : [
-         "file(/ui/bulletin/bulletin.js)"
-      ],
       "less" : [
          "file(/ui/bulletin/bulletin.less)"
       ]

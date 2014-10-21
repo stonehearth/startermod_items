@@ -27,12 +27,12 @@ function FabricatorComponent:initialize(entity, json)
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.blueprint and self._sv.project then
-            self:restore()
+            self:_restore()
          end
       end)
 end
 
-function FabricatorComponent:restore()
+function FabricatorComponent:_restore()
    self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
                                  self._entity,
                                  self._sv.blueprint,
