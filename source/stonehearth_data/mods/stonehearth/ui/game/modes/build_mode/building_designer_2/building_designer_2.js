@@ -168,6 +168,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       });
 
+      this.$('#drawTemplateTool').click(function() {
+         App.stonehearthClient.drawTemplate(activateElement('#drawTemplateTool'));
+      });
+
       var activateElement = function(elPath) {
          return function() {
             if (self.$(elPath)) {
@@ -444,7 +448,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             }
          }
       });         
-
    },
 
    _restoreUiState: function() {
