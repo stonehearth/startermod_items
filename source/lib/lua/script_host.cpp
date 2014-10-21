@@ -99,7 +99,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
    std::function<JSONNode(luabind::object const&)> luaToJson;
 
    luaToJson = [&luaToJson, &visited, this] (luabind::object const& current_obj) -> JSONNode {
-      luabind::object obj = GetObjectRepresentation(current_obj, "__tojson");
+      luabind::object obj = GetJsonRepresentation(current_obj);
       int t = luabind::type(obj);
       if (t == LUA_TTABLE) {
          for (luabind::object const& o : visited) {
@@ -862,35 +862,40 @@ void ScriptHost::SetPerformanceCounter(const char* name, double value, const cha
    performanceCounters_[BUILD_STRING("lua:" << name)] = std::make_pair(value, kind);
 }
 
-luabind::object ScriptHost::GetObjectRepresentation(luabind::object obj, std::string const& format) const
+luabind::object ScriptHost::GetJsonRepresentation(luabind::object obj) const
 {
-   auto convert = [=](luabind::object& o) -> bool {
-      switch (luabind::type(o)) {
-      case LUA_TTABLE:
-      case LUA_TUSERDATA:
-         try {
-            luabind::object __translator = o[format];
-            if (__translator && __translator.is_valid()) {
-               luabind::object translated = luabind::call_function<luabind::object>(__translator, o);
-               if (translated && translated.is_valid()) {
-                  o = translated;
-                  return true;
-               }
-            }
-         } catch (std::exception const& e) {
-            LUA_LOG(1) << "call to " << format << " failed: " << e.what();
-            ReportCStackThreadException(L_, e);
-         }
+   int type = luabind::type(obj);
+   if (type == LUA_TTABLE) {
+      // If we have __saved_variable, route over there first.  This happens routinely
+      // when saving controllers.  They have a __saved_variables member which points
+      // to their DataStore.
+      luabind::object __saved_variables = obj["__saved_variables"];
+      int svType = luabind::type(__saved_variables);
+      if (svType != LUA_TNIL) {
+         type = svType;
+         obj = __saved_variables;
       }
-      return false;
-   };
-
-   luabind::object result(obj);
-   while (convert(result)) {
-      continue;
    }
-   return result;
+
+   if (type == LUA_TTABLE || type == LUA_TUSERDATA) {
+      try {
+         // If there's a __tojson function, call it.
+         luabind::object __tojson = obj["__tojson"];
+         if (__tojson && __tojson.is_valid()) {
+            luabind::object json = luabind::call_function<luabind::object>(__tojson, obj);
+            if (json && json.is_valid()) {
+               obj = json;
+            }
+         }
+      } catch (std::exception const& e) {
+         LUA_LOG(1) << "call to __to_json failed: " << e.what();
+         ReportCStackThreadException(L_, e);
+      }
+   }
+
+   return obj;
 }
+ 
 
 void ScriptHost::AddObjectToLuaConvertor(dm::ObjectType type, ObjectToLuaFn const& cast_fn)
 {

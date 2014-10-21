@@ -106,7 +106,7 @@ private:
    int GetLogLevel(std::string const& category);
    double GetRealTime();
    void ReportStackException(std::string const& category, std::string const& error, std::string const& traceback) const;
-   luabind::object GetObjectRepresentation(luabind::object o, std::string const& format) const;
+   luabind::object GetJsonRepresentation(luabind::object o) const;
    bool IsNumericTable(luabind::object tbl) const;
    void CreateModules(om::ModListPtr mods);
    luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
