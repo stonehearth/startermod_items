@@ -15,13 +15,13 @@ local NORMAL = {
    border  = Color4( 32,  32,  32, 255),
 }
 
-function NoConstructionZoneRenderer:initialize(render_entity, datastore)
+function NoConstructionZoneRenderer:initialize(render_entity, ncz)
    self._zone_renderer = ZoneRenderer(render_entity, true)
    
    -- trace the datastore so we can change the color whenever the overlap
    -- changes
-   self._datastore = datastore
-   self._datastore_trace = datastore:trace('rendering no construction zone')
+   self._ncz = ncz
+   self._ncz_trace = ncz:trace('rendering no construction zone')
                               :on_changed(function()
                                     self:_update_shape()
                                  end)
@@ -49,9 +49,9 @@ function NoConstructionZoneRenderer:destroy()
       self._region_trace:destroy()
       self._region_trace = nil
    end
-   if self._datastore_trace then
-      self._datastore_trace:destroy()
-      self._datastore_trace = nil
+   if self._ncz_trace then
+      self._ncz_trace:destroy()
+      self._ncz_trace = nil
    end
    if self._zone_renderer then
       self._zone_renderer:destroy()
@@ -69,7 +69,7 @@ function NoConstructionZoneRenderer:_update_shape()
    end
 
    -- figure out what color to draw the zone.
-   local empty = next(self._datastore:get_data().overlapping) == nil
+   local empty = next(self._ncz:get_overlapping()) == nil
    local colors = empty and NORMAL or OVERLAPPING
 
    -- recreate the designation

@@ -107,7 +107,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("subtract_region",    (void (T::*)(T const&))&T::Subtract)
          .def("subtract_cube",      (void (T::*)(typename T::Cube const&))&T::Subtract)
          .def("subtract_point",     (void (T::*)(typename T::Point const&))&T::Subtract)
-         .def("each_cube",          &T::GetContents, return_stl_iterator)
+         .def("each_cube",          (T::CubeVector const& (T::*)() const)&T::GetContents, return_stl_iterator)
          .def("clipped",            &RegionClip<T>)
          .def("get_num_rects",      &T::GetRectCount)
          .def("get_rect",           &T::GetRect)
@@ -131,11 +131,14 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
          .def("get_edge_list",            &RegionGetEdgeList<double, 3>)
+         .def("rotate",                   (void (*)(Region3f&, int))&csg::Rotate)
          .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
       Register<Region2f>(L,  "Region2")
          .def("each_point",               &EachPointRegion2f)
          .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
+         .def("rotate",                   (void (*)(Region2f&, int))&csg::Rotate)
+         .def("rotated",                  (Region2f (*)(Region2f const&, int))&csg::Rotated)
       ,
       Register<Region1f>(L,  "Region1");
 }

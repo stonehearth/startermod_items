@@ -210,7 +210,7 @@ end
 -- See `_init_fabricator` for more details.
 --    @param blueprint - The blueprint which needs a new fabricator.
 --
-function BuildService:_add_fabricator(blueprint)
+function BuildService:add_fabricator(blueprint)
    local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
 
    local blueprint_mob = blueprint:add_component('mob')
@@ -263,7 +263,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
 
    -- if the blueprint does not yet have a fabricator, go ahead and create one
    -- now.
-   local fabricator = self:_add_fabricator(blueprint)
+   local fabricator = self:add_fabricator(blueprint)
 
    -- track the structure in the building component.  the building component is
    -- responsible for cross-structure interactions (e.g. sharing scaffolding)
@@ -271,22 +271,6 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
                :add_structure(blueprint)
 
    return blueprint, fabricator
-end
-
-function BuildService:_initialize_template_blueprint(blueprint, building)
-   -- make the owner of the blueprint the same as the owner as of the building
-   blueprint:add_component('unit_info')
-            :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))
-
-   -- if the blueprint does not yet have a fabricator, go ahead and create one
-   -- now.
-   self:_add_fabricator(blueprint)
-
-   -- track the structure in the building component.  the building component is
-   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
-   building:get_component('stonehearth:building')
-               :add_structure(blueprint)
 end
 
 -- creates a new building for the owner of `sesssion` located at `origin` in
@@ -714,6 +698,9 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
                   :connect_to(column_a, column_b, normal)
                   :layout()
 
+         wall:add_component('stonehearth:construction_data')
+                  :set_normal(normal)
+
          wall:add_component('stonehearth:construction_progress')
                      :add_dependency(column_a)
                      :add_dependency(column_b)
@@ -739,6 +726,17 @@ function BuildService:add_portal_command(session, response, wall_entity, portal_
    end
 end
 
+function BuildService:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
+   -- `portal` is actually a blueprint of the fixture, not the actual fixture
+   -- itself.  change the material we use to render it and hook up a fixture_fabricator
+   -- to help build it.
+   portal_blueprint:add_component('render_info')
+                     :set_material('materials/blueprint.material.xml')
+                     
+   portal_blueprint:add_component('stonehearth:fixture_fabricator')
+                     :start_project(portal_iconic_uri, portal_uri)
+end
+
 function BuildService:_add_portal(wall_entity, portal_uri, location)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
@@ -757,18 +755,11 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
       wall:add_portal(portal_blueprint, location)
           :layout()
 
-      -- `portal` is actually a blueprint of the fixture, not the actual fixture
-      -- itself.  change the material we use to render it and hook up a fixture_fabricator
-      -- to help build it.
-      portal_blueprint:add_component('render_info')
-                        :set_material('materials/blueprint.material.xml')
-                        
       portal_blueprint:add_component('stonehearth:construction_progress')
                         :add_dependency(wall_entity)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
-      portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                        :start_project(portal_iconic_uri, portal_uri)
+      self:add_fixture_fabricator(portal_blueprint, portal_uri, location)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
@@ -832,8 +823,12 @@ function BuildService:_substitute_blueprint(old, new_uri)
          end
 
          -- clone all the components that pertain to structure.
-         new:add_component('stonehearth:construction_progress')
-                  :clone_from(old)
+         local normal = old:get_component('stonehearth:construction_data')
+                              :get_normal()
+         if normal then
+            new:add_component('stonehearth:construction_data')
+                     :set_normal(normal)
+         end
 
          for _, name in ipairs(STRUCTURE_COMPONENTS) do
             local old_structure = old:get_component(name)
@@ -987,23 +982,22 @@ function BuildService:at_end_of_transaction(fn)
    table.insert(self._at_end_of_transaction_cbs, fn)
 end
 
-function BuildService:build_template_command(session, response, template_name, location, rotation)
+function BuildService:build_template_command(session, response, template_name, location, centroid, rotation)
    local building
    self:do_command('build_template', response, function()
-         building  = self:build_template(session, template_name, ToPoint3(location), rotation)
-         radiant.terrain.place_entity(building, location)
+         building  = self:build_template(session, template_name, ToPoint3(location), ToPoint3(centroid), rotation)
       end)
    return { building = building }
 end
 
-function BuildService:build_template(session, template_name, location, rotation)
-   local building = self:_create_new_building(session, location)
-   build_util.restore_template(building, template_name)
-   self:_call_all_children(building, function(entity)
-         if entity ~= building and self:is_blueprint(entity) then
-            self:_initialize_template_blueprint(entity, building)
-         end
-      end)
+function BuildService:build_template(session, template_name, location, centroid, rotation)
+   local position = location - centroid:rotated(rotation)
+   local building = self:_create_new_building(session, position)
+   
+   build_util.restore_template(building, template_name, {
+         rotation = rotation
+      })
+
    return building
 end
 

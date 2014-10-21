@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Roof = class()
@@ -47,6 +48,10 @@ end
 
 function Roof:load_from_template(data, options, entity_map)
    -- nothing to do!   
+end
+
+function Roof:rotate_structure(degrees)
+   build_util.rotate_structure(self._entity, degrees)
 end
 
 return Roof

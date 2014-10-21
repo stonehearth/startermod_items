@@ -4,6 +4,7 @@
 #include "csg/point.h"
 #include "csg/color.h"
 #include "csg/transform.h"
+#include "csg/rotate_shape.h"
 #include "csg/util.h" // xxx: should be in csg/csg.h
 
 using namespace ::luabind;
@@ -134,6 +135,7 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
       Register3<Point3f>(L, "Point3")
          .def("to_int",             &Pointf_ToInt<3>)
          .def("to_closest_int",     &Pointf_ToClosestInt<3>)
+         .def("rotated",            (Point3f (*)(Point3f const&, int))&csg::Rotated)
          .def(const_self * double())
          .def(const_self / double())
          .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, double alpha))&csg::Interpolate),
