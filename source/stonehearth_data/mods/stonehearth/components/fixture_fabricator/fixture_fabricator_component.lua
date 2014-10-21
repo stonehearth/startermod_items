@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local priorities = require('constants').priorities.simple_labor
 
@@ -11,11 +12,15 @@ function FixtureFabricator:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         if self._sv.fixture_iconic_uri then
-            self._deps_listener = radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
-            self:_start_project()
-         end
+         restore()
       end)
+end
+
+function FixtureFabricator:restore()
+   if self._sv.fixture_iconic_uri then
+      self._deps_listener = radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
+      self:_start_project()
+   end
 end
 
 -- destroy the fabricator
@@ -188,6 +193,33 @@ function FixtureFabricator:_destroy_placeable_item_trace()
       self._placeable_item_trace:destroy()
       self._placeable_item_trace = nil
    end
+end
+
+
+function FixtureFabricator:save_to_template()
+   return {
+      fixture_iconic       = self._sv.fixture_iconic,
+      fixture_iconic_uri   = self._sv.fixture_iconic_uri,
+   }
+end
+
+function FixtureFabricator:load_from_template(template, options, entity_map)  
+   radiant.events.listen_once(entity_map, 'finished_loading', function()
+         stonehearth.build:add_fixture_fabricator(self._entity, template.fixture_iconic_uri, template.fixture_uri)
+      end)
+end
+
+function FixtureFabricator:rotate_structure(degrees)
+   local mob = self._entity:get_component('mob')
+   local rotated = mob:get_location()
+                           :rotated(degrees)
+   mob:move_to(rotated)
+
+   local rotation = mob:get_facing() + degrees
+   if degrees >= 360 then
+      degrees = degrees - 360
+   end
+   mob:turn_to(rotation)
 end
 
 return FixtureFabricator

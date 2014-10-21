@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Wall = class()
@@ -43,10 +44,6 @@ local TWEAK_OFFSETS = {
    Point2(-2,  2),
 }
 
-local function is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil
-end
-
 -- called to initialize the component on creation and loading.
 --
 function Wall:initialize(entity, json)
@@ -57,6 +54,8 @@ function Wall:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
+   else
+      self:_compute_wall_measurements()
    end
 end
 
@@ -77,10 +76,11 @@ end
 function Wall:create_patch_wall(normal, region)
    local bounds = region:get_bounds()
    self._sv.patch_wall_region = region
-   self._sv.start_pt = bounds.min
-   self._sv.end_pt = bounds.max
    self._sv.normal = normal
    self.__saved_variables:mark_changed()
+
+   self._start_pt = bounds.min
+   self._end_pt = bounds.max
 
    -- forward the normal over to our construction_data component.  
    self._entity:add_component('stonehearth:construction_data')
@@ -92,17 +92,12 @@ function Wall:clone_from(entity)
    if entity then
       local other_wall = entity:get_component('stonehearth:wall')
 
-      self._sv.start_pt = Point3(other_wall._sv.start_pt)
-      self._sv.end_pt = Point3(other_wall._sv.end_pt)
-      self._sv.fixture_rotation = other_wall._sv.fixture_rotation
-      self._sv.tangent_coord = other_wall._sv.tangent_coord
-      self._sv.normal_coord = other_wall._sv.normal_coord
+      self._sv.pos_a = other_wall._sv.pos_a
+      self._sv.pos_b = other_wall._sv.pos_b
       self._sv.normal = other_wall._sv.normal
       self._sv.patch_wall_region = other_wall._sv.patch_wall_region
       self.__saved_variables:mark_changed()
-
-      self._entity:get_component('stonehearth:construction_data')
-            :set_normal(self._sv.normal)
+      self:_compute_wall_measurements()
    end
    return self
 end
@@ -119,16 +114,16 @@ function Wall:get_editing_reserved_region()
 end
 
 function Wall:get_tangent_coord()
-   return self._sv.tangent_coord
+   return self._tangent_coord
 end
 
 function Wall:get_normal_coord()
-   return self._sv.normal_coord
+   return self._normal_coord
 end
 
 function Wall:compute_fixture_placement(fixture_entity, location)
-   local t, n = self._sv.tangent_coord, self._sv.normal_coord
-   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local t, n = self._tangent_coord, self._normal_coord
+   local start_pt, end_pt = self._start_pt, self._end_pt
 
    -- if there's no fixture component, it cannot be placed on a wall.
    local fixture = fixture_entity:get_component('stonehearth:fixture')
@@ -185,8 +180,8 @@ function Wall:compute_fixture_placement(fixture_entity, location)
 end
 
 function Wall:_get_portal_region(portal_entity, portal)
-   local t, n = self._sv.tangent_coord, self._sv.normal_coord
-   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local t, n = self._tangent_coord, self._normal_coord
+   local start_pt, end_pt = self._start_pt, self._end_pt
    local origin = portal_entity:get_component('mob'):get_grid_location()
 
    local region2 = portal:get_portal_region()
@@ -208,7 +203,7 @@ end
 
 
 function Wall:add_portal(portal, location)
-   local rotation = self._sv.fixture_rotation
+   local rotation = self._fixture_rotation
    radiant.entities.add_child(self._entity, portal, location)
    portal:get_component('mob'):turn_to(rotation)
    return self
@@ -227,9 +222,13 @@ end
 -- is useful (e.g. connect_to(), attach_to_roof())
 -- 
 function Wall:layout()
+   if self._sv.patch_wall_region then   
+      return
+   end
+   
    local building = self._entity:add_component('mob'):get_parent()
 
-   local start_pt, end_pt = self._sv.start_pt, self._sv.end_pt
+   local start_pt, end_pt = self._start_pt, self._end_pt
 
    local t = (math.abs(start_pt.x - end_pt.x) == 1) and 'z' or 'x'
    local n = t == 'x' and 'z' or 'x'
@@ -295,15 +294,18 @@ end
 --    @param normal - a Point3 pointing "outside" of the wall
 -- 
 function Wall:connect_to(column_a, column_b, normal)
-   local building = self._entity:get_component('mob'):get_parent()
-
    self._sv.normal = normal
-   self._entity:get_component('stonehearth:construction_data')
-               :set_normal(normal)
+   self._sv.pos_a = radiant.entities.get_location_aligned(column_a)
+   self._sv.pos_b = radiant.entities.get_location_aligned(column_b)
+   self.__saved_variables:mark_changed()
 
-   local pos_a = radiant.entities.get_location_aligned(column_a)
-   local pos_b = radiant.entities.get_location_aligned(column_b)
-   local origin = radiant.entities.get_world_grid_location(building)
+   self:_compute_wall_measurements()
+   radiant.entities.move_to(self._entity, self._position)
+   return self
+end
+
+function Wall:_compute_wall_measurements()
+   local normal, pos_a, pos_b = self._sv.normal, self._sv.pos_a, self._sv.pos_b
 
    -- figure out the tangent and normal coordinate indicies based on the direction
    -- of the normal
@@ -314,7 +316,11 @@ function Wall:connect_to(column_a, column_b, normal)
       t, n = 'x', 'z'
    end   
    assert(pos_a[n] == pos_b[n], 'points are not co-linear')
-   assert(pos_a[t] <  pos_b[t], 'points are not sorted')
+   if pos_a[t] >  pos_b[t] then
+      pos_a, pos_b = pos_b, pos_a  -- make sure pos_a is < pos_b
+      self._sv.pos_a, self._sv.pos_b = self._sv.pos_b, self._sv.pos_a
+      self.__saved_variables:mark_changed()
+   end
 
    -- the origin of the wall will be at the start or the end, depending on the
    -- normal.  to make the tiling of the voxels of the wall look good, ensure
@@ -332,34 +338,35 @@ function Wall:connect_to(column_a, column_b, normal)
 
    -- compoute the width of the wall and a tangent vector which will march
    -- us from pos_a to pos_b.
-   local tangent = Point3(0, 0, 0)
-   self._sv.start_pt = Point3(0, 0, 0)
-   self._sv.end_pt = Point3(1, constants.STOREY_HEIGHT, 1)
+   self._tangent = Point3(0, 0, 0)
+   self._start_pt = Point3(0, 0, 0)
+   self._end_pt = Point3(1, constants.STOREY_HEIGHT, 1)
 
    if pos_a[t] < pos_b[t] then
-      tangent[t] = 1
-      self._sv.end_pt[t] = pos_b[t] - pos_a[t] - 1
+      self._tangent[t] = 1
+      self._end_pt[t] = pos_b[t] - pos_a[t] - 1
    else
-      tangent[t] = -1
-      self._sv.start_pt[t] = -(pos_a[t] - pos_b[t] - 2)
+      self._tangent[t] = -1
+      self._start_pt[t] = -(pos_a[t] - pos_b[t] - 2)
    end
 
    -- paint once to get the depth of the wall
+   -- in a world where walls can be more than 1-unit thick, we will need to do 
+   -- this.  it's really expensive, though, so let's not for now
+   --[[
    local brush_bounds = self._entity:get_component('stonehearth:construction_data')
                                        :create_voxel_brush()
                                        :paint_once()
                                        :get_bounds()
-   self._sv.end_pt[n] = brush_bounds.max[n]
-   self._sv.start_pt[n] = brush_bounds.min[n]
-   self._sv.tangent_coord = t
-   self._sv.normal_coord = n
-   self._sv.fixture_rotation = FIXTURE_ROTATIONS[t][normal[n]]
 
-   radiant.entities.move_to(self._entity, pos_a + tangent)
-
-   self.__saved_variables:mark_changed()
-   
-   return self
+   self._end_pt[n] = brush_bounds.max.z
+   self._start_pt[n] = brush_bounds.min.z
+   ]]
+   self._tangent_coord = t
+   self._normal_coord = n
+   self._fixture_rotation = FIXTURE_ROTATIONS[t][normal[n]]
+   self._position = pos_a + self._tangent
+   assert(self._fixture_rotation)
 end
 
 -- computes the shape of the wall.  the wall goes from start_pt to end_pt
@@ -375,7 +382,7 @@ function Wall:_compute_wall_shape()
    end
 
    -- otherwise, grow our box up to the roof level
-   local box = Cube3(self._sv.start_pt, self._sv.end_pt, 0)
+   local box = Cube3(self._start_pt, self._end_pt, 0)
    local building = stonehearth.build:get_building_for(self._entity)
 
    return building:get_component('stonehearth:building')
@@ -384,22 +391,46 @@ end
 
 
 function Wall:save_to_template()
-   return self._sv
+   return {
+      normal = self._sv.normal,
+      pos_a = self._sv.pos_a,
+      pos_b = self._sv.pos_b,
+      patch_wall_region = self._sv.patch_wall_region,
+   }
 end
 
 function Wall:load_from_template(data, options, entity_map)
-   for name, value in pairs(data) do
-      if name == 'normal' or name == 'start_pt' or name == 'end_pt' then
-         self._sv[name] = Point3(value.x, value.y, value.z)
-      elseif name == 'patch_wall_region' then
-         local region = Region2()
-         region:load(value)
-         self._sv[name] = region
-      else
-         self._sv[name] = value
-      end
+   self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
+   if data.patch_wall_region then
+      self._sv.patch_wall_region = Region3()
+      self._sv.patch_wall_region:load(data.patch_wall_region)
+      self.__saved_variables:mark_changed()
+      return
    end
+   self._sv.pos_a = Point3(data.pos_a.x, data.pos_a.y, data.pos_a.z)
+   self._sv.pos_b = Point3(data.pos_b.x, data.pos_b.y, data.pos_b.z)
    self.__saved_variables:mark_changed()
+   self:_compute_wall_measurements()
+end
+
+function Wall:rotate_structure(degrees)
+   self._sv.normal = self._sv.normal:rotated(degrees)
+   if self._sv.patch_wall_region then
+      local cursor = self._sv.patch_wall_region
+      local origin = Point3(0.5, 0, 0.5)
+      cursor:translate(-origin)
+      cursor:rotate(degrees)
+      cursor:translate(origin)
+      local mob = self._entity:get_component('mob')
+      mob:move_to(mob:get_location():rotated(degrees))
+      return
+   end
+   self._sv.pos_a = self._sv.pos_a:rotated(degrees)
+   self._sv.pos_b = self._sv.pos_b:rotated(degrees)
+   self.__saved_variables:mark_changed()
+   self:_compute_wall_measurements()
+   radiant.entities.move_to(self._entity, self._position)
+   --self:layout() required!
 end
 
 return Wall

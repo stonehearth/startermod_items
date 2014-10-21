@@ -289,6 +289,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
    animation_->MoveNodes(offset, [&](std::string const& bone, const csg::Transform &transform) {
       H3DNode node = entity_.GetSkeleton().GetSceneNode(bone);
       if (node) {
+         EL_LOG(9) << "moving " << bone << " to " << transform;
          MoveSceneNode(node, transform, entity_.GetSkeleton().GetScale());
       }
    });

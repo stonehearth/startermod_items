@@ -27,15 +27,19 @@ function FabricatorComponent:initialize(entity, json)
 
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
          if self._sv.blueprint and self._sv.project then
-            self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
-                                          self._entity,
-                                          self._sv.blueprint,
-                                          self._sv.project)
-            self._fabricator:set_teardown(self._sv.teardown)
-            self._fabricator:set_active(self._sv.active)
-            radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
+            self:restore()
          end
       end)
+end
+
+function FabricatorComponent:restore()
+   self._fabricator = Fabricator(string.format("(%s Fabricator)", tostring(self._sv.blueprint)),
+                                 self._entity,
+                                 self._sv.blueprint,
+                                 self._sv.project)
+   self._fabricator:set_teardown(self._sv.teardown)
+   self._fabricator:set_active(self._sv.active)
+   radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)   
 end
 
 function FabricatorComponent:destroy()

@@ -1170,7 +1170,8 @@
       "entity_forms" : "file(components/entity_forms/entity_forms_component.lua)",
       "iconic_form" : "file(components/iconic_form/iconic_form_component.lua)",
       "ghost_form" : "file(components/ghost_form/ghost_form_component.lua)",
-      "ladder" : "file(components/ladder/ladder_component.lua)"
+      "ladder" : "file(components/ladder/ladder_component.lua)",
+      "no_construction_zone" : "file(components/no_construction_zone/no_construction_zone_client_component.lua)"
    },
    "component_renderers" : {
       "stockpile" : "file(renderers/stockpile/stockpile_renderer.lua)",

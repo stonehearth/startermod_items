@@ -42,7 +42,8 @@ public:
    Region(Region const&& r);
 
    static const Region zero; 
-   const CubeVector& GetContents() const { return cubes_; }
+   CubeVector& GetContents() { return cubes_; }
+   CubeVector const& GetContents() const { return cubes_; }
 
 public:
    S GetArea() const;

@@ -199,6 +199,14 @@ RenderNodePtr Client_CreateTextNode(lua_State* L,
    return node;
 }
 
+RenderNodePtr Client_CreateGroupNode(lua_State* L, 
+                                     H3DNode parent)
+{
+   static int id = 1;
+   std::string name = BUILD_STRING("groupnode" << id++);
+   return RenderNode::CreateGroupNode(parent, name.c_str());
+}
+
 om::EntityRef Client_CreateAuthoringEntity(std::string const& uri)
 {
    return Client::GetInstance().CreateAuthoringEntity(uri);
@@ -513,6 +521,7 @@ void lua::client::open(lua_State* L)
             def("create_region_outline_node",      &Client_CreateRegionOutlineNode),
             def("create_mesh_node",                &Client_CreateMeshNode),
             def("create_text_node",                &Client_CreateTextNode),
+            def("create_group_node",               &Client_CreateGroupNode),
             def("create_stockpile_node",           &Client_CreateStockpileNode),
             def("alloc_region3",                   &Client_AllocObject<om::Region3fBoxed>),
             def("alloc_region2",                   &Client_AllocObject<om::Region2fBoxed>),

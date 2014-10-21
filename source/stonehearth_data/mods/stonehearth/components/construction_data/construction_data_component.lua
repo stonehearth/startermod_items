@@ -15,6 +15,26 @@ local NINE_GRID_OPTION_TYPES = {
    nine_grid_max_height = 'number',
 }
 
+local NG_STRING_TO_DEGREES = {
+   front  = 1,
+   left   = 2,
+   back   = 3,
+   right  = 4,
+}
+
+local NG_ROTATION_TABLE = { 
+   "front",    -- 0 degrees.
+   "left",     -- 90 degress.
+   "back",     -- 180 degress.
+   "right",    -- 270 degress.
+   "front",    -- 360 degress.
+   "left",     -- 450 degress.
+   "back",     -- 540 degress.
+   "right",    -- 630 degress.
+   "front",    -- 720 degrees (longer than it needs to be, frankly).
+}
+
+
 function ConstructionDataComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
@@ -57,44 +77,6 @@ function ConstructionDataComponent:_clone_writeable_options(into, from)
    into.nine_grid_gradiant = from.nine_grid_gradiant
    into.nine_grid_max_height = from.nine_grid_max_height
    into.brush = from.brush
-end
-
-
-function ConstructionDataComponent:save_to_template()
-   local result = {
-      normal = self._sv.normal,
-      nine_grid_region = self._sv.nine_grid_region2,
-      needs_scaffolding = self._sv.needs_scaffolding,
-      project_adjacent_to_base = self._sv.project_adjacent_to_base,
-      nine_grid_region = self._sv.nine_grid_region,
-      nine_grid_slope = self._sv.nine_grid_slope,
-      nine_grid_gradiant = self._sv.nine_grid_gradiant,
-      nine_grid_max_height = self._sv.nine_grid_max_height,
-      loan_scaffolding_to = radiant.keys(self._sv._loaning_scaffolding_to),
-   }
-   return result
-end
-
-function ConstructionDataComponent:load_from_template(data, options, entity_map)
-   if data.normal then
-      self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
-   end
-   if data.nine_grid_region then
-      self._sv.nine_grid_region = Region2()
-      self._sv.nine_grid_region:load(data.nine_grid_region)
-   end
-   self._sv.needs_scaffolding = data.needs_scaffolding
-   self._sv.project_adjacent_to_base = data.project_adjacent_to_base
-   if options.mode == 'preview' then
-      self._sv.paint_through_blueprint = false
-   end
-   self:apply_nine_grid_options(data)
-
-   for _, key in pairs(data.loan_scaffolding_to) do
-      self:loan_scaffolding_to(entity_map[key])
-   end
-
-   self.__saved_variables:mark_changed()
 end
 
 function ConstructionDataComponent:clone_from(entity)
@@ -249,6 +231,67 @@ function ConstructionDataComponent:create_voxel_brush()
    if self._sv.brush then
       return voxel_brush_util.create_brush(self._sv)
    end
+end
+
+function ConstructionDataComponent:save_to_template()
+   local result = {
+      normal = self._sv.normal,
+      nine_grid_region = self._sv.nine_grid_region2,
+      needs_scaffolding = self._sv.needs_scaffolding,
+      project_adjacent_to_base = self._sv.project_adjacent_to_base,
+      nine_grid_region = self._sv.nine_grid_region,
+      nine_grid_slope = self._sv.nine_grid_slope,
+      nine_grid_gradiant = self._sv.nine_grid_gradiant,
+      nine_grid_max_height = self._sv.nine_grid_max_height,
+      loan_scaffolding_to = radiant.keys(self._sv._loaning_scaffolding_to),
+   }
+   return result
+end
+
+function ConstructionDataComponent:load_from_template(data, options, entity_map)
+   if data.normal then
+      self._sv.normal = Point3(data.normal.x, data.normal.y, data.normal.z)
+   end
+   if data.nine_grid_region then
+      self._sv.nine_grid_region = Region2()
+      self._sv.nine_grid_region:load(data.nine_grid_region)
+   end
+   self._sv.needs_scaffolding = data.needs_scaffolding
+   self._sv.project_adjacent_to_base = data.project_adjacent_to_base
+   if options.mode == 'preview' then
+      self._sv.paint_through_blueprint = false
+   end
+   self:apply_nine_grid_options(data)
+
+   for _, key in pairs(data.loan_scaffolding_to) do
+      self:loan_scaffolding_to(entity_map[key])
+   end
+
+   self.__saved_variables:mark_changed()
+end
+
+function ConstructionDataComponent:rotate_structure(degrees)
+   if self._sv.normal then
+      self._sv.normal = self._sv.normal:rotated(degrees)
+   end
+   if self._sv.nine_grid_region then
+      local cursor = self._sv.nine_grid_region
+      local origin = Point2(0.5, 0.5)
+      cursor:translate(-origin)
+      cursor:rotate(degrees)
+      cursor:translate(origin)      
+   end
+   if self._sv.nine_grid_gradiant then
+      local new_gradiant = {}
+      local rotation_offset = degrees / 90
+      for _, value in pairs(self._sv.nine_grid_gradiant) do
+         local rotation = NG_STRING_TO_DEGREES[value]
+         local next_value = NG_ROTATION_TABLE[rotation + rotation_offset]
+         table.insert(new_gradiant, next_value)
+      end
+      self._sv.nine_grid_gradiant = new_gradiant
+   end  
+   self.__saved_variables:mark_changed()
 end
 
 return ConstructionDataComponent
