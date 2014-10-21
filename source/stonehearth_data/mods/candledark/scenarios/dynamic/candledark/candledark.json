@@ -1,7 +1,7 @@
 {
    "scenario_data" : {
       "config" : {
-         "nights_until_candledark" : 1,
+         "nights_until_candledark" : 3,
          "candledark_duration" : 3
       },
       "bulletins" : {
