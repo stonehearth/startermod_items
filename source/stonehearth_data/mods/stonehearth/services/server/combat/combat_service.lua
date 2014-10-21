@@ -123,7 +123,8 @@ function CombatService:hit_stun(context)
       return nil
    end
 
-   radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
+   --TODO: figure out how to make hitstun only happen when not attacking/defending
+   --radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
 end
 
 function CombatService:get_assault_events(target)

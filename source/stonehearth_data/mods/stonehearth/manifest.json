@@ -93,6 +93,8 @@
       "trapper:snare_trap" : "file(jobs/trapper/snare_trap)",
       "trapper:pet_treat_bag" : "file(jobs/trapper/trapper_equipment/pet_treat_bag.json)", 
 
+      "footman:manual_of_power_spike" : "file(jobs/footman/footman_abilities/footman_power_spike_manual.json)", 
+
       "weaver:workbench" : "file(jobs/weaver/weaver_workbench)",
       "weaver:outfit" : "file(jobs/weaver/weaver_outfit)",
       "weaver:spindle" : "file(jobs/weaver/weaver_spindle)",

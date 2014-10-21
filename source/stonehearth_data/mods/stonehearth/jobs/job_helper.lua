@@ -37,4 +37,18 @@ function job_helper.level_up(sv)
    end
 end
 
+-- Add equipment to the character, and also to a tracking table for removal purposes later
+function job_helper.add_equipment(sv, args)
+   sv[args.equipment] = radiant.entities.create_entity(args.equipment)
+   radiant.entities.equip_item(sv._entity, sv[args.equipment])
+end
+
+-- Remove equipment from the character
+function job_helper.remove_equipment(sv, args)
+   if sv[args.equipment] then
+      radiant.entities.unequip_item(sv._entity, sv[args.equipment])
+      sv[args.equipment] = nil
+   end
+end
+
 return job_helper

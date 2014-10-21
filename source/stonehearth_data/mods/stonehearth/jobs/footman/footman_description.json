@@ -42,7 +42,22 @@
             }
          ]
       }, 
-      "2" : {
+      "3" : {
+         "perks" : [
+            {
+               "type" : "add_combat_action", 
+               "perk_name" : "Power Spike", 
+               "perk_id" : "footman_power_spike", 
+               "icon" : "file(images/power_strike.png)", 
+               "equipment" : "stonehearth:footman:manual_of_power_spike",
+               "action_type" : "stonehearth:combat:melee_attacks",
+               "description" : "This powerful, overhead swing deals double damage.", 
+               "level" : 3, 
+               "demote_fn" : "remove_combat_action"
+            }
+         ]
+      },
+      "4" : {
          "perks" : [
             {
                "type" : "apply_chained_buff", 
@@ -52,22 +67,7 @@
                "buff_name" : "stonehearth:buffs:footman:dmg_2",
                "last_buff" : "stonehearth:buffs:footman:dmg_1",
                "description" : "The footman is now practiced at optimizing the effect of each blow.", 
-               "level" : 2, 
-               "demote_fn" : "remove_buff"
-            }
-         ]
-      },
-      "3" : {
-         "perks" : [
-            {
-               "type" : "apply_chained_buff", 
-               "perk_name" : "Power Strike", 
-               "perk_id" : "footman_damage_up_3", 
-               "icon" : "file(images/power_strike.png)", 
-               "buff_name" : "stonehearth:buffs:footman:dmg_3",
-               "last_buff" : "stonehearth:buffs:footman:dmg_2",
-               "description" : "The footman now does double damage on each blow.", 
-               "level" : 3, 
+               "level" : 4, 
                "demote_fn" : "remove_buff"
             }
          ]
