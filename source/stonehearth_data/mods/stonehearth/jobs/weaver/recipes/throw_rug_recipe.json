@@ -6,6 +6,7 @@
    "description" : "Brightens up that old dusty floor.",
    "flavor"      : "Too beautiful to step on.",
    "portrait"    : "/stonehearth/entities/decoration/throw_rug/throw_rug.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

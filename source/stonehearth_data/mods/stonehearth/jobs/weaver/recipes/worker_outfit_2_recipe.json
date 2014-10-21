@@ -6,6 +6,7 @@
    "description" : "Double stiching and strategically placed padding improves the worker's efficiency. The worker who dons this upgrade outfit will move 10% faster.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/jobs/worker/worker_outfit_2/worker_outfit_2.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

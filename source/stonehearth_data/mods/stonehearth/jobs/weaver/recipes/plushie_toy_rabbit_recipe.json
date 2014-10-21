@@ -6,6 +6,7 @@
    "description" : "A toy... for children of course.",
    "flavor"      : "She loves you!",
    "portrait"    : "/stonehearth/entities/toys/plushie_toy_rabbit/plushie_toy_rabbit.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

@@ -6,6 +6,7 @@
    "description" : "A warm and cozy rug, sewn from various animal pelts.",
    "flavor"      : "Perfect for an evening by the fire.",
    "portrait"    : "/stonehearth/entities/decoration/fur_rug/fur_rug.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

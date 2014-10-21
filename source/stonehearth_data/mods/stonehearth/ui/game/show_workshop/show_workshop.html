@@ -50,7 +50,7 @@
          <h3>{{category}}</h3>
          <div>
             {{#each recipes}}
-               <a {{bind-attr recipe_name = "this.recipe_name"}}href="#" {{action select this target="view"}} class="recipeLink uisounds">
+               <a {{bind-attr recipe_name =this.recipe_name unlock_level=this.level_requirement}}href="#" {{action select this target="view"}} class="recipeLink uisounds">
                   {{#if locked}}
                      <img src="/stonehearth/ui/common/images/lock.png" {{bind-attr title="this.recipe_name"}} />
                   {{else}}

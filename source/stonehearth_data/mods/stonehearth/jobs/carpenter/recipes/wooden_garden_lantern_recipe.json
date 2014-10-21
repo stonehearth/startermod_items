@@ -6,7 +6,7 @@
    "description" : "A small lantern that's placed on the ground. Suitable for lighting paths or small gardens.",
    "flavor"      : "Practical and romantic!",
    "portrait"    : "/stonehearth/entities/construction/wooden_garden_lantern/wooden_garden_lantern.png",
-
+   "level_requirement" : 1,
    "ingredients": [
       {
          "material" : "wood resource",

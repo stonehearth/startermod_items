@@ -6,6 +6,7 @@
    "description" : "Promotes a citizen into a Weaver.",
    "flavor"      : "From fiber, thread, from thread, fabric, from fabric, civilization.",
    "portrait"    : "/stonehearth/jobs/weaver/weaver_spindle/weaver_spindle.png",
+   "level_requirement" : 1,
    "ingredients": [
       {
          "material" : "wood resource",

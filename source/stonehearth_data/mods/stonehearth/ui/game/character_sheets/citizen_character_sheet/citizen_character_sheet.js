@@ -40,7 +40,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    //The array-ized job data
    all_job_data: null, 
 
-   //When we get job data from the server, turn maps into arrays and store in all)job_data
+   //When we get job data from the server, turn maps into arrays and store in all_job_data
    _create_job_data_array: function() {
       var self = this;
       self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.jobComponents);
