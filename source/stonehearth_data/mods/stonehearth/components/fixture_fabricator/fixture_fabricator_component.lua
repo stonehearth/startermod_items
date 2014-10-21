@@ -12,11 +12,11 @@ function FixtureFabricator:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
    radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
-         restore()
+         self:_restore()
       end)
 end
 
-function FixtureFabricator:restore()
+function FixtureFabricator:_restore()
    if self._sv.fixture_iconic_uri then
       self._deps_listener = radiant.events.listen(self._entity, 'stonehearth:construction:dependencies_finished_changed', self, self._on_dependencies_finished_changed)
       self:_start_project()

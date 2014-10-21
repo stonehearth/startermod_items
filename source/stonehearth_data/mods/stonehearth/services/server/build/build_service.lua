@@ -759,7 +759,7 @@ function BuildService:_add_portal(wall_entity, portal_uri, location)
                         :add_dependency(wall_entity)
                         :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
-      self:add_fixture_fabricator(portal_blueprint, portal_uri, location)
+      self:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
