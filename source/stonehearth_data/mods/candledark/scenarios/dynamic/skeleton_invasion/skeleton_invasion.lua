@@ -26,7 +26,7 @@ function SkeletonInvasion:start()
    end
    -- End hack
 
-   self:_schedule_next_spawn('30m')
+   self:_schedule_next_spawn(1)
 end
 
 function SkeletonInvasion:_schedule_next_spawn(t)
@@ -34,7 +34,7 @@ function SkeletonInvasion:_schedule_next_spawn(t)
          self:_post_bulletin()
          local num_skeletons = 30
          for i = 1, num_skeletons do
-            radiant.set_realtime_timer(3000 * i, function()
+            radiant.set_realtime_timer(2000 * i, function()
                self:_spawn_skeleton()
             end)
          end

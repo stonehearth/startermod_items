@@ -34,7 +34,7 @@ function HalloweenTest:__init()
 
    -- Introduce a new person/scenario 
    self:at(200,  function()
-         stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
+         stonehearth.calendar:set_time_unit_test_only({ hour = 21, minute = 38 })
          stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
       end)
 end

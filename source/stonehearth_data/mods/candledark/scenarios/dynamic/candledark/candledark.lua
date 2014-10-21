@@ -26,7 +26,8 @@ end
 
 function Candledark:start()
    self:_post_intro_bulletin()
-   self._night_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self._on_midnight)
+   --stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
+   self._night_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
 end
 
 function Candledark:_post_intro_bulletin()
@@ -62,7 +63,7 @@ function Candledark:_update_bulletin()
 end
 
 
-function Candledark:_on_midnight()
+function Candledark:_on_sunset()
    self._sv.nights_until_candledark = self._sv.nights_until_candledark - 1
    
    -- end the scenario if the player has suvived 3 nights
@@ -72,25 +73,31 @@ function Candledark:_on_midnight()
 
    if self._sv.nights_until_candledark > 0 then
       self:_update_bulletin()
-   elseif self._sv.nights_until_candledark == 0 then
-      -- nuke the old bulletin
-      stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
-      self._sv.bulletin = nil
-      
-      -- post a new one telling the player that candledark has begun!
-      local bulletin_data = self._scenario_data.bulletins.candledark_eve
+   elseif self._sv.nights_until_candledark <= 0 then
 
-      stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-         :set_ui_view('StonehearthQuestBulletinDialog')
-         :set_callback_instance(self)
-         :set_type('quest')
-         :set_close_on_handle(true)
-         :set_data(bulletin_data)
+      -- the first time only
+      if self._sv.nights_until_candledark == 0 then
+         -- nuke the old bulletin
+         stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+         self._sv.bulletin = nil
+         
+         -- post a new one telling the player that candledark has begun!
+         local bulletin_data = self._scenario_data.bulletins.candledark_eve
 
-      if self._sv.nights_until_candledark <= 0 then
-         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')   
-         self._sv.nights_survived = self._sv.nights_survived + 1
+         stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+            :set_ui_view('StonehearthQuestBulletinDialog')
+            :set_callback_instance(self)
+            :set_type('quest')
+            :set_close_on_handle(true)
+            :set_data(bulletin_data)
       end
+
+      -- time for skeletons!      
+      radiant.set_realtime_timer(1500 * 10, function()
+         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')   
+      end)
+      self._sv.nights_survived = self._sv.nights_survived + 1
+      
    end
 end
 
