@@ -166,15 +166,17 @@ function MiningService:resolve_point_of_interest(from, mining_zone, default_poi)
    local location = radiant.entities.get_world_grid_location(mining_zone)
    local destination_component = mining_zone:add_component('destination')
    local destination_region = destination_component:get_region():get()
+   local reserved_region = destination_component:get_reserved():get()
 
    -- get the reachable region in local coordinates to the zone
    local reachable_region = self:get_reachable_region(from - location)
-   local reachable_destination = reachable_region:intersected(destination_region)
+   local eligible_region = reachable_region - reserved_region
+   local eligible_destination_region = eligible_region:intersected(destination_region)
    local max
 
-   if not reachable_destination:empty() then
+   if not eligible_destination_region:empty() then
       -- pick any highest point in the region
-      for cube in reachable_destination:each_cube() do
+      for cube in eligible_destination_region:each_cube() do
          if not max or cube.max.y > max.y then
             max = cube.max
          end
@@ -195,7 +197,8 @@ end
 function MiningService:get_reachable_region(location)
    local y_min = location.y - MAX_REACH_DOWN
    local y_max = location.y + MAX_REACH_UP
-   return self:_create_adjacent_columns(location, y_min, y_max)
+   local region = self:_create_adjacent_columns(location, y_min, y_max)
+   return region
 end
 
 -- return all the locations that can reach the block at point
@@ -211,7 +214,11 @@ function MiningService:get_adjacent_for_destination_block(point)
       y_max = point.y + MAX_REACH_DOWN
    end
 
-   return self:_create_adjacent_columns(point, y_min, y_max)
+   -- create the adjacent, but remove the terrain blocks from it so the pathfinder doesn't have to do this every step
+   local region = self:_create_adjacent_columns(point, y_min, y_max, function(block)
+         return not radiant.terrain.is_terrain(block)
+      end)
+   return region
 end
 
 function MiningService:_transform_cubes_in_region(region, cube_transform)
@@ -240,16 +247,14 @@ function MiningService:_get_aligned_cube(cube)
    return Cube3(aligned_min, aligned_max)
 end
 
-function MiningService:_create_adjacent_columns(point, y_min, y_max, remove_blocks_with_terrain)
+function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filter)
    local region = Region3()
    local block = Point3()
 
    local add_xz_column = function(x, z, y_min, y_max)
       for y = y_min, y_max do
          block:set(x, y, z)
-         if remove_blocks_with_terrain and radiant.terrain.is_terrain(block) then
-            -- don't add
-         else
+         if block_filter and block_filter(block) then
             region:add_point(block)
          end
       end

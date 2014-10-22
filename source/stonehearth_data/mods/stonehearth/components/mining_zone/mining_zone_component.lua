@@ -332,12 +332,13 @@ end
 function MiningZoneComponent:_update_adjacent()
    local location = radiant.entities.get_world_grid_location(self._entity)
    local destination_region = self._destination_component:get_region():get()
+   local reserved_region = self._destination_component:get_reserved():get()
+   local unreserved_destination_region = destination_region - reserved_region
 
    self._destination_component:get_adjacent():modify(function(cursor)
          cursor:clear()
 
-         -- consider removing blocks occupied by terrain from the adjacent so the pathfinder doesn't have to keep doing this
-         for point in destination_region:each_point() do
+         for point in unreserved_destination_region:each_point() do
             local world_point = point + location
             local adjacent_region = stonehearth.mining:get_adjacent_for_destination_block(world_point)
             adjacent_region:translate(-location)
@@ -366,7 +367,7 @@ function MiningZoneComponent:_create_mining_task()
       :set_source(self._entity)
       :set_name('mine task')
       :set_priority(stonehearth.constants.priorities.mining.MINE)
-      :set_max_workers(4)
+      --:set_max_workers(4)
       :notify_completed(function()
             self._mining_task = nil
          end)
