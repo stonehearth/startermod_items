@@ -13,7 +13,11 @@ function Candledark:initialize()
 end
 
 function Candledark:start()
-   self:_post_intro_bulletin()
+   if not self._sv.started then
+      self:_post_intro_bulletin()
+      self._sv.started = true
+      self.__saved_variables:mark_changed()
+   end
    --stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
    self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
 end
@@ -98,7 +102,7 @@ function Candledark:_on_sunset()
       -- time for skeletons!      
       self._sv.nights_survived = self._sv.nights_survived + 1
 
-      radiant.set_realtime_timer(100 * 15, function() --XXX CHANGE THIS TO 1000 BEFORE SHIPPING
+      radiant.set_realtime_timer(1000 * 15, function()
          stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
       end)
 

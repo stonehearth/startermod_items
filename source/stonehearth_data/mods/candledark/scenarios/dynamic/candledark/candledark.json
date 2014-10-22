@@ -9,7 +9,7 @@
             "cssClass" : "candledarkBulletin",
             "title" : "A mysterious old man approaches...",
             "post_accept_title" : "Nights until Candledark Eve: __days__",
-            "message" : "\"Beware the nights of Candledark! In three days time, the spirits will rise to wreak havoc for the living.<p>Pumpkin Wards will protect you. Ask your Carpenter about them.\"",
+            "message" : "\"Beware the nights of Candledark! In three days time, the spirits will rise to wreak havoc on the living.<p>Pumpkin Wards will protect you. Ask your Carpenter about them.\"",
             "accepted_callback" : "_on_intro_accepted"
          },
          "candledark_start" : {
