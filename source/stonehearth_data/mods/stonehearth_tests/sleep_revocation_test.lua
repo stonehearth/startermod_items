@@ -11,7 +11,7 @@ function SleepRevocationTest:__init()
    self:create_world()
 
    self:place_citizen(-8, 8)
-   local bed = self:place_item('stonehearth:comfy_bed', 0, 0)
+   local bed = self:place_item('stonehearth:furniture:comfy_bed', 0, 0)
 
    local calendar = stonehearth.calendar
    calendar:set_time(22, 59, 0)

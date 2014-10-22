@@ -1,10 +1,13 @@
 {
    "type": "entity",
+   "mixins" : "file(geranium_hanging_ghost.json)",
+
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(geranium_hanging_iconic.json)",
          "ghost_form" : "file(geranium_hanging_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Decoration"
       },
       "destination": {
          "region": [

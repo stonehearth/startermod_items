@@ -189,7 +189,7 @@ var StonehearthClient;
          }
       },
 
-      // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
+      // item is a reference to an actual entity, not a class of entities like stonehearth:furniture:comfy_bed
       placeItem: function(item) {
          var self = this;
 
@@ -234,7 +234,7 @@ var StonehearthClient;
          });
       },
 
-      // item is a reference to an actual entity, not a class of entities like stonehearth:comfy_bed
+      // item is a reference to an actual entity, not a class of entities like stonehearth:furniture:comfy_bed
       undeployItem: function(item) {
          var self = this;
 

@@ -143,8 +143,7 @@
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
 
       "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
-      "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
-
+      
       "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder_1" : "file(entities/boulders/medium_boulder/medium_boulder_1.json)",
@@ -154,7 +153,7 @@
       "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
-      "silkweed" : "file(entities/plants/silkweed/silkweed)",
+      
 
       "oak_log" : "file(entities/trees/oak_tree/oak_log)",
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
@@ -184,50 +183,38 @@
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
       "silkweed_crop" : "file(entities/plants/silkweed/silkweed_crop)", 
+      "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
 
-      "brightbell" : "file(entities/plants/brightbell)",
-      "brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
+      "plants:brightbell" : "file(entities/plants/brightbell)",
+      "plants:brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
+      "plants:frostsnap" : "file(entities/plants/frostsnap)",
+      "plants:frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
+      "plants:silkweed" : "file(entities/plants/silkweed/silkweed)",
 
-      "frostsnap" : "file(entities/plants/frostsnap)",
-      "frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
-
-      "berry_basket" : "file(entities/plants/berry_basket)",
-      "berry_plate" : "file(entities/plants/berry_plate)",
-
-      "arch_backed_chair" :       "file(entities/furniture/arch_backed_chair)",
-
-      "comfy_bed" :       "file(entities/furniture/comfy_bed)",
-      "dining_table" : "file(entities/furniture/dining_table)",
+      "furniture:arch_backed_chair" : "file(entities/furniture/arch_backed_chair)",
+      "furniture:comfy_bed" :       "file(entities/furniture/comfy_bed)",
+      "furniture:dining_table" : "file(entities/furniture/dining_table)",
+      "furniture:table_for_one" : "file(entities/furniture/table_for_one)",
       "furniture:park_bench" : "file(entities/furniture/park_bench)",
       "furniture:writing_desk" : "file(entities/furniture/writing_desk)",
       "furniture:dresser" : "file(entities/furniture/dresser)",
 
-      "berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
-      "geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
+      "furniture:not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
+      "furniture:picket_fence" : "file(entities/construction/picket_fence)",
+      "furniture:picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
+      "furniture:wooden_wall_lantern" : "file(entities/construction/wooden_wall_lantern)",
+      "furniture:wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
+      "furniture:simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
+      "furniture:comfy_chair" : "file(entities/furniture/comfy_chair)",
 
-      "green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
-      "camp_standard" : "file(entities/gizmos/camp_standard)",
-      "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
-      "tombstone" : "file(entities/furniture/tombstone)",
-      "firepit" : "file(entities/gizmos/firepit)",
-      "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
+      "portals:wooden_door" : "file(entities/construction/wooden_door)",
+      "portals:wooden_door_2" : "file(entities/construction/wooden_door_2)",
+      "portals:wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
+      "portals:wooden_diamond_window" : "file(entities/construction/wooden_diamond_window)",
 
-      "not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
-      "picket_fence" : "file(entities/construction/picket_fence)",
-      "picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
-      "wooden_wall_lantern" : "file(entities/construction/wooden_wall_lantern)",
-      "wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
-      "simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
-      "comfy_chair" : "file(entities/furniture/comfy_chair)",
-      
-      "thread" : "file(entities/cloth/thread)",
-      "cloth_bolt" : "file(entities/cloth/cloth_bolt)",
-      "leather_bolt" : "file(entities/cloth/leather_bolt)",
-      "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
-
-      "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
-      "armor:leather_vest" : "file(entities/armor/leather_vest)",
-
+      "decoration:berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
+      "decoration:geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
+      "decoration:green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
       "decoration:wooden_sign" : "file(entities/decoration/wooden_sign)",
       "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
       "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
@@ -238,7 +225,24 @@
       "decoration:fur_rug" : "file(entities/decoration/fur_rug)",
       "decoration:curtains" : "file(entities/decoration/curtains)",
 
-      "table_for_one" : "file(entities/furniture/table_for_one)",
+      "camp_standard" : "file(entities/gizmos/camp_standard)",
+      "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
+      "tombstone" : "file(entities/furniture/tombstone)",
+      "firepit" : "file(entities/gizmos/firepit)",
+      "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
+
+
+      "berry_basket" : "file(entities/plants/berry_basket)",
+      "berry_plate" : "file(entities/plants/berry_plate)",
+      
+      "thread" : "file(entities/cloth/thread)",
+      "cloth_bolt" : "file(entities/cloth/cloth_bolt)",
+      "leather_bolt" : "file(entities/cloth/leather_bolt)",
+      "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
+
+      "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
+      "armor:leather_vest" : "file(entities/armor/leather_vest)",
+
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
       "loot:gold" : "file(entities/loot/gold)",
@@ -246,10 +250,6 @@
       "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
       "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
-      "wooden_door" : "file(entities/construction/wooden_door)",
-      "wooden_door_2" : "file(entities/construction/wooden_door_2)",
-      "wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
-      "wooden_diamond_window" : "file(entities/construction/wooden_diamond_window)",
       "ball" : "file(entities/toys/ball)",
 
       "buffs:groggy" : "file(data/buffs/groggy/groggy_buff.json)",
