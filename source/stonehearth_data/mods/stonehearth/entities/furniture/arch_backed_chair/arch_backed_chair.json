@@ -1,11 +1,13 @@
 {
+   "type" : "entity",
    "mixins" : "file(arch_backed_chair_ghost.json)",
 
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(arch_backed_chair_iconic.json)",
          "ghost_form" : "file(arch_backed_chair_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
       },
       "region_collision_shape" : {
          "region": [

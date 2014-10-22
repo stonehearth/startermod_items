@@ -1,10 +1,13 @@
 {
+   "type" : "entity",
    "mixins" : "file(park_bench_ghost.json)",
+   
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(park_bench_iconic.json)",
          "ghost_form" : "file(park_bench_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
       },
       "region_collision_shape" : {
          "region": [

@@ -15,7 +15,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:wooden_window_frame"
+         "item":"stonehearth:portals:wooden_window_frame"
       }
   ]
 }

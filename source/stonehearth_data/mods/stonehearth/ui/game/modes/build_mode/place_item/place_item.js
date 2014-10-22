@@ -21,7 +21,7 @@ App.StonehearthPlaceItemView = App.View.extend({
    components: {
       'tracking_data' : {
          '*' : {              // category...    (e.g. Furniture)
-            '*' : {           // uri of items.. (e.g. stonehearth:comfy_bed)
+            '*' : {           // uri of items.. (e.g. stonehearth:furniture:comfy_bed)
                'items' : {    // all the items, keyed by id
                   '*' : {
                      'stonehearth:entity_forms' : {}
@@ -44,7 +44,7 @@ App.StonehearthPlaceItemPicker = App.View.extend({
    components: {
       'tracking_data' : {
          '*' : {              // category...    (e.g. Furniture)
-            '*' : {           // uri of items.. (e.g. stonehearth:comfy_bed)
+            '*' : {           // uri of items.. (e.g. stonehearth:furniture:comfy_bed)
                'items' : {    // all the items, keyed by id
                   '*' : {
                      'stonehearth:entity_forms' : {}

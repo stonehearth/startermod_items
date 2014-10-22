@@ -62,10 +62,10 @@ function score_tests.town_score_test(autotest)
             job = 'farmer'
          })
    local player_id = radiant.entities.get_player_id(worker)
-   local chair = autotest.env:create_entity(0, 0, 'stonehearth:simple_wooden_chair', {
+   local chair = autotest.env:create_entity(0, 0, 'stonehearth:furniture:simple_wooden_chair', {
       player_id = player_id
       })
-   local fancy_chair = autotest.env:create_entity(0, 1, 'stonehearth:arch_backed_chair', {
+   local fancy_chair = autotest.env:create_entity(0, 1, 'stonehearth:furniture:arch_backed_chair', {
       player_id = player_id
       })
    local stockpile = autotest.env:create_stockpile(-2, -2)

@@ -1,4 +1,5 @@
 {
+   "type" : "entity",
    "mixins" : "file(tapestry_wall_ghost.json)",
 
    "components": {
