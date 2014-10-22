@@ -11,6 +11,7 @@
          <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof"></div>
          <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
          <div id="undoTool" class="toolButton" title="Undo"></div>
+         <div id="drawTemplateTool" class="toolButton" title="Draw Template"></div>
       </div>
 
       <div class="tabPage" id="floorMaterialTab" style="display: block">
@@ -88,12 +89,13 @@
 
       <div id="buttons">
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
+         <button class="warn" id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
 
          <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
             {{#if building.active }}
-               Pause Building
+               {{i18n stonehearth:pause_building}}
             {{else}}
-               Start Building
+               {{i18n stonehearth:start_building}}
             {{/if}}
          </button>
       </div>

@@ -19,6 +19,13 @@ function EntityFormsComponent:initialize(entity, json)
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             self:_load_placement_task()
+            if self._sv.should_restock then
+               -- why do we need to set a 1000 ms timer just to get the effect to show up?
+               -- this is quite disturbing... investigate! -- tony
+               radiant.set_realtime_timer(1000, function()
+                     self:_update_restock_info()
+                  end)
+            end
          end)
 
    else
@@ -96,32 +103,37 @@ end
 
 -- call to toggle whether this deployed item should be undeployed and stored in a stockpile
 function EntityFormsComponent:set_should_restock(restock)
-   self._sv.should_restock = restock
+   if restock ~= self._sv.should_restock then
+      self._sv.should_restock = restock
+      self.__saved_variables:mark_changed()
+      self:_update_restock_info()
+   end
+end
    
-   if restock then 
-      if not self._sv.overlay_effect then
-         self._sv.overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
+function EntityFormsComponent:_update_restock_info()
+   if self._sv.should_restock then 
+      if not self._overlay_effect then
+         self._overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
       end
 
       -- trace the item's position. When it's position becomes nil, we know the item has changed
       -- forms, so if necessary we'll clear the undeploy setting
-      self._position_trace = radiant.entities.trace_location(self._entity, 'entity forms component')
-                                             :on_changed(function()
-                                                self:_on_position_changed()
-                                             end)
+      if not self._position_trace then
+         self._position_trace = radiant.entities.trace_location(self._entity, 'entity forms component')
+                                                :on_changed(function()
+                                                   self:_on_position_changed()
+                                                end)
+      end
    else
-
-      if self._sv.overlay_effect then
-         self._sv.overlay_effect:stop()
-         self._sv.overlay_effect = nil
+      if self._overlay_effect then
+         self._overlay_effect:stop()
+         self._overlay_effect = nil
       end
 
       if self._position_trace then
          self._position_trace:destroy()
       end
    end
-
-   self.__saved_variables:mark_changed()
 end
 
 function EntityFormsComponent:should_hide_placement_ui()

@@ -71,7 +71,33 @@ std::string SysInfo::GetOSVersion()
    return "";
 }
 
-uint32 SysInfo::GetCurrentMemoryUsage()
+void SysInfo::GetVirtualAddressSpaceUsage(platform::SysInfo::ByteCount& total, platform::SysInfo::ByteCount& avail)
+{
+   MEMORYSTATUSEX mse = { 0 };
+   mse.dwLength = sizeof(MEMORYSTATUSEX);
+   if (GlobalMemoryStatusEx(&mse)) {
+      // From MSDN...
+      //
+      // ullTotalVirtual - The size of the user-mode portion of the virtual address
+      // space of the calling process, in bytes. This value depends on the type of
+      // process, the type of processor, and the configuration of the operating
+      // system. For example, this value is approximately 2 GB for most 32-bit processes
+      // on an x86 processor and approximately 3 GB for 32-bit processes that are
+      // large address aware running on a system with 4-gigabyte tuning enabled.
+      //
+      // ullAvailVirtual - The amount of unreserved and uncommitted memory currently
+      // in the user-mode portion of the virtual address space of the calling
+      // process, in bytes.
+      //
+      total = mse.ullTotalVirtual;
+      avail = mse.ullAvailVirtual;
+   } else {
+      total = 0;
+      avail = 0;
+   }
+}
+
+platform::SysInfo::ByteCount SysInfo::GetCurrentMemoryUsage()
 {
 #if defined(_WIN32)
 	/* Windows -------------------------------------------------- */
@@ -79,10 +105,10 @@ uint32 SysInfo::GetCurrentMemoryUsage()
    if (GetProcessMemoryInfof) {
       PROCESS_MEMORY_COUNTERS info = { 0 };
       if (GetProcessMemoryInfof(GetCurrentProcess( ), &info, sizeof(info))) {
-         return (size_t)info.PagefileUsage;
+         return (platform::SysInfo::ByteCount)info.PagefileUsage;
       }
    }
-	return (size_t)0;
+   return (platform::SysInfo::ByteCount)0;
 
 #elif defined(__APPLE__) && defined(__MACH__)
 	/* OSX ------------------------------------------------------ */
@@ -113,7 +139,7 @@ uint32 SysInfo::GetCurrentMemoryUsage()
 #endif
 }
 
-unsigned long long SysInfo::GetTotalSystemMemory()
+platform::SysInfo::ByteCount SysInfo::GetTotalSystemMemory()
 {
    unsigned long long result = 0;
    #ifdef _WIN32
