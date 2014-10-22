@@ -60,7 +60,7 @@ $(document).ready(function() {
 
       setGameMode: function (mode) {
          if (mode != this._currentMode) {
-
+            radiant.call('stonehearth:select_entity', null);
             App.stonehearthClient.deactivateAllTools();
             
             /*

@@ -29,8 +29,8 @@ App.StonehearthStartMenuView = App.View.extend({
       create_mining_zone : function () {
          App.stonehearthClient.createMiningZone();
       },
-      building_plans: function () {
-         $(top).trigger('stonehearth_building_plans');
+      building_templates: function () {
+         $(top).trigger('stonehearth_building_templates');
       },
       place_item: function () {
          $(top).trigger('stonehearth_place_item');

@@ -18,10 +18,9 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
 
       // show the building designer when the "design building" button on the start menu
       // is clicked.
-      $(top).on('stonehearth_building_plans', function() {
-         //Disable for now not working as intended yet
-         //self._showBuildingPlansView();
-         self._showBuildingDesignerView();
+      $(top).on('stonehearth_building_templates', function() {
+         self._showBuildingTemplatesView();
+         //self._showBuildingDesignerView();
       });
 
       // show the building editor
@@ -40,7 +39,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       var self = this;
 
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
-      this._buildingPlansView = self.addView(App.StonehearthBuildingPlansView);
+      this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
 
       this.hide();
@@ -53,11 +52,11 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._super();
    },
 
-   _showBuildingPlansView: function() {
+   _showBuildingTemplatesView: function() {
+      radiant.call('stonehearth:select_entity', null);
       App.setGameMode('build');
       this.hideAllViews();
-      this._buildingPlansView.show();
-      this._onStateChanged();
+      this._buildingTemplatesView.show();
    },
 
    _showPlaceItemUi: function() {

@@ -19,6 +19,10 @@
    #tools {
       margin-bottom: 10px;
 
+      #toolGrid {
+         width: 100%;
+      }
+
       .toolButton {
          .button;
          display: inline-block;
@@ -59,16 +63,15 @@
          background-image: url(images/add_doodad_tool.png);
       }
 
+      #placeItemTool {
+         background-image: url(images/place_item_tool.png);
+      }
+
       #removeDoodadTool {
          background-image: url(images/remove_doodad_tool.png);
       }
 
       #undoTool {
-         background-image: url(images/undo_tool.png);  
-      }
-
-      #drawTemplateTool {
-         opacity: 0.75;
          background-image: url(images/undo_tool.png);  
       }
 
@@ -206,5 +209,18 @@
 
    #buttons {
       padding-top: 10px;
+   }
+}
+
+#templateNameView {
+   margin: auto;
+
+   .window {
+      width: 400px;
+      padding-bottom: 74px;
+   }
+
+   input {
+      width: 380px;
    }
 }
