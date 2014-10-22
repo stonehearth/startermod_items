@@ -10,12 +10,26 @@ using boost::asio::ip::tcp;
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
-class RemoteClient {
+class RemoteClient
+{
 public:
+   RemoteClient();
+
+   bool IsClientReadyForUpdates() const;
+   void SetSequenceNumber(int sequenceNumber);
+   void AckSequenceNumber(int sequenceNumber);
+   void FlushSendQueue();
+
+public:  // Someone should get shot for making these public (probably the person typing this comment right now...)
    std::shared_ptr<tcp::socket>  socket;
    protocol::SendQueuePtr        send_queue;
    protocol::RecvQueuePtr        recv_queue;
    dm::StreamerPtr               streamer;
+
+private:
+   mutable bool   _lastReadyToRun;
+   int            _lastSequenceNumberAckd;
+   int            _lastSequenceNumberSent;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

@@ -107,7 +107,8 @@ Client::Client() :
    initialUpdate_(false),
    save_stress_test_(false),
    debug_track_object_lifetime_(false),
-   loading_(false)
+   loading_(false),
+   _lastSequenceNumber(0)
 {
 }
 
@@ -1037,6 +1038,7 @@ void Client::PostCommandReply(const proto::PostCommandReply& msg)
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
 {
+   _lastSequenceNumber = msg.sequence_number();
 }
 
 
@@ -1072,6 +1074,13 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
    game_render_tracer_->Flush();
+
+   // Acknowledge that we've finished processing the update.
+   proto::Request ack;
+   ack.set_type(proto::Request::FinishedUpdate);   
+   proto::FinishedUpdate* r = ack.MutableExtension(proto::FinishedUpdate::extension);
+   r->set_sequence_number(_lastSequenceNumber);
+   send_queue_->Push(ack);
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
