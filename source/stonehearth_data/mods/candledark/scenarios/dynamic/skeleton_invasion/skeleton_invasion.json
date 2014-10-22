@@ -1,7 +1,7 @@
 {
    "scenario_data" : {
       "config" : {
-         "invasion_sizes" : [4, 20, 35]
+         "invasion_sizes" : [8, 25, 40]
       },
       "bulletins" : {
          "attack" : {

@@ -447,7 +447,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                App.stonehearthClient.instabuild(building);
             }
          }
-      });         
+      });
+
+      this.$('#saveTemplate').click(function() {
+         var building = self.get('building');
+
+         if (building) {
+            radiant.call('stonehearth:save_building_template', building.__self, { 
+               name: 'blah',
+               display_name: 'yadda yadda yadda',
+            })
+         }
+      });
+
    },
 
    _restoreUiState: function() {
