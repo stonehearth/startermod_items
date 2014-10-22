@@ -11,7 +11,6 @@
          <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof"></div>
          <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
          <div id="undoTool" class="toolButton" title="Undo"></div>
-         <div id="drawTemplateTool" class="toolButton" title="Draw Template"></div>
       </div>
 
       <div class="tabPage" id="floorMaterialTab" style="display: block">
@@ -101,4 +100,22 @@
       </div>
    </div>
 
+</script>
+
+<script type="text/x-handlebars" data-template-name="templateNameView">
+   <div id="templateNameView" class="gui">
+      <div class="window">
+         <div class="title">
+            {{i18n stonehearth:building_designer_template_name}}
+         </div>
+
+         <p>
+            {{i18n stonehearth:building_designer_template_name_prompt}}
+         </p>
+         <p>
+            <input id="name" onClick="this.select();" type="text" maxlength="28" />
+         </p>
+         <button class="ok"></button>
+      </div>
+   </div>
 </script>

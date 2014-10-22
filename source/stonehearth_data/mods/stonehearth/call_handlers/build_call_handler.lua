@@ -34,6 +34,10 @@ function BuildCallHandler:save_building_template(session, request, building, inf
    return { success = true }
 end
 
+function BuildCallHandler:get_building_templates(session, request)
+   return build_util.get_templates()
+end
+
 function BuildCallHandler:get_service(session, request, name)
    if stonehearth[name] then
       -- we'd like to just send the store address rather than the actual

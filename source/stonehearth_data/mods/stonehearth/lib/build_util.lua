@@ -243,10 +243,10 @@ function build_util.get_templates()
    local result = {}
    for _, name in ipairs(templates) do
       local template = radiant.mods.read_object('building_templates/' .. name)
-      result[name] = template.info
+      result[name] = template.header
    end
 
-   return templates
+   return result
 end
 
 function build_util.get_building_bounds(building)
