@@ -19,10 +19,10 @@ local STRUCTURE_COMPONENTS = {
 -- these are quite annoying.  we can get rid of them by implementing and using
 -- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
 local function ToPoint3(pt)
-   return Point3(pt.x, pt.y, pt.z)
+   return pt and Point3(pt.x, pt.y, pt.z) or nil
 end
 local function ToCube3(box)
-   return Cube3(ToPoint3(box.min), ToPoint3(box.max))
+   return box and Cube3(ToPoint3(box.min), ToPoint3(box.max)) or nil
 end
 
 
@@ -708,65 +708,65 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
 end
 
 
--- creates a portal inside `wall_entity` at `location`  
---    @param wall_entity - the wall you'd like to contain the portal
---    @param portal_uri - the type of portal to create
---    @param location - where to put the portal, in wall-local coordinates
+-- creates a fixture inside `wall_entity` at `location`  
+--    @param wall_entity - the wall you'd like to contain the fixture
+--    @param fixture_uri - the type of fixture to create
+--    @param location - where to put the fixture, in wall-local coordinates
 --
-function BuildService:add_portal_command(session, response, wall_entity, portal_uri, location)
-   local portal
-   local success = self:do_command('add_portal', response, function()
-         portal = self:_add_portal(wall_entity, portal_uri, location)
+function BuildService:add_fixture_command(session, response, wall_entity, fixture_uri, location, normal)
+   local fixture
+   local success = self:do_command('add_fixture', response, function()
+         fixture = self:add_fixture(wall_entity, fixture_uri, ToPoint3(location), ToPoint3(normal))
       end)
 
    if success then
       response:resolve({
-         new_selection = portal
+         new_selection = fixture
       })
    end
 end
 
-function BuildService:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
-   -- `portal` is actually a blueprint of the fixture, not the actual fixture
+function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_iconic_uri, fixture_uri, normal)
+   -- `fixture` is actually a blueprint of the fixture, not the actual fixture
    -- itself.  change the material we use to render it and hook up a fixture_fabricator
    -- to help build it.
-   portal_blueprint:add_component('render_info')
+   fixture_blueprint:add_component('render_info')
                      :set_material('materials/blueprint.material.xml')
                      
-   portal_blueprint:add_component('stonehearth:fixture_fabricator')
-                     :start_project(portal_iconic_uri, portal_uri)
+   fixture_blueprint:add_component('stonehearth:fixture_fabricator')
+                     :start_project(fixture_iconic_uri, fixture_uri, normal)
 end
 
-function BuildService:_add_portal(wall_entity, portal_uri, location)
+function BuildService:add_fixture(wall_entity, fixture_uri, location, normal)
    local wall = wall_entity:get_component('stonehearth:wall')
    if wall then
-      local data = radiant.entities.get_component_data(portal_uri, 'stonehearth:entity_forms')
-      local portal_iconic_uri = data.iconic_form
-      local portal_ghost_uri = data.ghost_form
+      local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
+      local fixture_iconic_uri = data.iconic_form
+      local fixture_ghost_uri = data.ghost_form
 
       local building = self:get_building_for(wall_entity)
-      local portal_blueprint = radiant.entities.create_entity(portal_ghost_uri)
+      local fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
 
-      portal_blueprint:add_component('unit_info')
+      fixture_blueprint:add_component('unit_info')
                         :set_player_id(radiant.entities.get_player_id(building))
                         :set_faction(radiant.entities.get_faction(building))
 
-      -- add the new portal to the wall and reconstruct the shape.
-      wall:add_portal(portal_blueprint, location)
+      -- add the new fixture to the wall and reconstruct the shape.
+      wall:add_fixture(fixture_blueprint, location, normal)
           :layout()
 
-      portal_blueprint:add_component('stonehearth:construction_progress')
+      fixture_blueprint:add_component('stonehearth:construction_progress')
+                        :set_fabricator_entity(fixture_blueprint, 'stonehearth:fixture_fabricator')
                         :add_dependency(wall_entity)
-                        :set_fabricator_entity(portal_blueprint, 'stonehearth:fixture_fabricator')
 
-      self:add_fixture_fabricator(portal_blueprint, portal_iconic_uri, portal_uri)
+      self:add_fixture_fabricator(fixture_blueprint, fixture_iconic_uri, fixture_uri, normal)
 
       -- sadly, ordering matters here.  we cannot set the building until both
       -- the fabricator and blueprint have been fully initialized.
-      portal_blueprint:add_component('stonehearth:construction_progress')
+      fixture_blueprint:add_component('stonehearth:construction_progress')
                         :set_building_entity(building)
 
-      return portal_blueprint
+      return fixture_blueprint
    end
 end
 

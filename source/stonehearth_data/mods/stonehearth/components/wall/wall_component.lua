@@ -7,11 +7,6 @@ local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 
-local FIXTURE_ROTATIONS = {
-   x = { [-1] =  0, [1] = 180 },
-   z = { [-1] = 90, [1] = 270 },
-}
-
 -- enumerate the range (-2, -2) - (2, 2) in the order which is most
 -- likely the least visually disturbing to the user
 local TWEAK_OFFSETS = {
@@ -202,15 +197,21 @@ function Wall:_get_portal_region(portal_entity, portal)
 end
 
 
-function Wall:add_portal(portal, location)
-   local rotation = self._fixture_rotation
-   radiant.entities.add_child(self._entity, portal, location)
-   portal:get_component('mob'):turn_to(rotation)
+function Wall:add_fixture(fixture, location, normal)
+   if not normal then
+      -- if no normal specified, use the normal of the wall
+      normal = self._sv.normal
+   end
+
+   local rotation = build_util.normal_to_rotation(normal)
+   radiant.entities.add_child(self._entity, fixture, location)
+   fixture:get_component('mob'):turn_to(rotation)
+   
    return self
 end
 
-function Wall:remove_portal(portal)
-   radiant.entities.remove_child(self._entity, portal)
+function Wall:remove_fixture(fixture)
+   radiant.entities.remove_child(self._entity, fixture)
    return self
 end
 
@@ -364,9 +365,7 @@ function Wall:_compute_wall_measurements()
    ]]
    self._tangent_coord = t
    self._normal_coord = n
-   self._fixture_rotation = FIXTURE_ROTATIONS[t][normal[n]]
    self._position = pos_a + self._tangent
-   assert(self._fixture_rotation)
 end
 
 -- computes the shape of the wall.  the wall goes from start_pt to end_pt
