@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:picket_fence_gate"
+         "item":"stonehearth:furniture:picket_fence_gate"
       }
   ]
 }

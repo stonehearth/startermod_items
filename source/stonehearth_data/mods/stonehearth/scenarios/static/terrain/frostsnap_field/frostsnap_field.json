@@ -11,7 +11,7 @@
    "habitat_types" : ["plains", "foothills"],
 
    "scenario_info" : {
-      "entity_type" : [ "stonehearth:frostsnap:wild" ],
+      "entity_type" : [ "stonehearth:plants:frostsnap:wild" ],
       "entity_footprint_length" : 2,
       "quantity" : {
          "min" : 1,

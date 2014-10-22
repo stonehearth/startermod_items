@@ -1,10 +1,13 @@
 {
+   "type" : "entity",
    "mixins" : "file(writing_desk_ghost.json)",
+   
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(writing_desk_iconic.json)",
          "ghost_form" : "file(writing_desk_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
       },
       "region_collision_shape" : {
          "region": [

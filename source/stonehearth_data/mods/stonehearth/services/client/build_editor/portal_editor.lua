@@ -82,10 +82,10 @@ function PortalEditor:_position_fixture(location)
    self._fixture_blueprint_render_entity:set_visible_override(location ~= nil)
    if location then
       self:_change_cursor(self._cursor_uri)
-      self._wall:add_portal(self._fixture_blueprint, location)
+      self._wall:add_fixture(self._fixture_blueprint, location)
    else
       self._change_cursor('stonehearth:cursors:invalid_hover')
-      self._wall:remove_portal(self._fixture_blueprint)
+      self._wall:remove_fixture(self._fixture_blueprint)
    end
    self._wall:layout()
 end
@@ -105,7 +105,7 @@ end
 
 function PortalEditor:submit(response)   
    local location = self._fixture_blueprint:get_component('mob'):get_grid_location()
-   _radiant.call_obj(self._build_service, 'add_portal_command', self:get_blueprint(), self._fixture_uri, location)
+   _radiant.call_obj(self._build_service, 'add_fixture_command', self:get_blueprint(), self._fixture_uri, location)
       :done(function(r)
             response:resolve(r)
          end)

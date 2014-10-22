@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local build_util = require 'lib.build_util'
 local ConstructionRenderTracker = require 'services.client.renderer.construction_render_tracker'
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
@@ -138,7 +138,7 @@ function ScaffoldingRenderer:_update_shape(mode)
    if self._construction_data then
       local normal = self._construction_data:get_normal()
       if normal then
-         self._rotation = voxel_brush_util.normal_to_rotation(normal)
+         self._rotation = build_util.normal_to_rotation(normal)
          self._tangent = normal.x == 0 and 'x' or 'z'
       end
    end

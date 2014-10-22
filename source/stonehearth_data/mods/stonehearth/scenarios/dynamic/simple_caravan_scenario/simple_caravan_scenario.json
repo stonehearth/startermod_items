@@ -42,15 +42,15 @@
             "min": 3, 
             "max": 10
          }, 
-         "stonehearth:picket_fence" : {
+         "stonehearth:furniture:picket_fence" : {
             "min" : 2, 
             "max" : 20
          },
-         "stonehearth:picket_fence_gate" : {
+         "stonehearth:furniture:picket_fence_gate" : {
             "min" : 2, 
             "max" : 20
          },
-         "stonehearth:arch_backed_chair" : {
+         "stonehearth:furniture:arch_backed_chair" : {
             "min" : 1, 
             "max" : 3
          },
@@ -58,11 +58,11 @@
             "min" : 1, 
             "max" : 1
          },
-         "stonehearth:not_much_of_a_bed" : {
+         "stonehearth:furniture:not_much_of_a_bed" : {
             "min" : 1, 
             "max" : 3
          },
-         "stonehearth:simple_wooden_chair" : {
+         "stonehearth:furniture:simple_wooden_chair" : {
             "min" : 1, 
             "max" : 3
          }

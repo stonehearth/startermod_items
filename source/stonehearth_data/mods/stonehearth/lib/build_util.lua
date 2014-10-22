@@ -19,6 +19,30 @@ local SAVED_COMPONENTS = {
    ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
+function build_util.normal_to_rotation(normal)
+   if normal == -Point3.unit_z then
+      return 0
+   elseif normal == -Point3.unit_x then
+      return 90
+   elseif normal == Point3.unit_z then
+      return 180
+   elseif normal == Point3.unit_x then
+      return 270
+   end
+end
+
+function build_util.rotation_to_normal(rotation)
+   if rotation == 0 then
+      return Point3(0, 0, -1)
+   elseif rotation == 90 then
+      return Point3(-1, 0, 0)
+   elseif rotation == 180 then
+      return Point3(0, 0, 1)
+   elseif rotation == 270 then
+      return Point3(1, 0, 0)
+   end
+end
+
 local function for_each_child(entity, fn)
    local ec = entity:get_component('entity_container')
    if ec then
@@ -102,7 +126,7 @@ local function create_template_entities(building, template)
    return entity_map
 end
 
-local function save_structure_to_template(entity, template)
+local function save_entity_to_template(entity)
    local template = {}
    local uri = entity:get_uri()
    template.uri = uri
@@ -135,7 +159,7 @@ local function save_all_structures_to_template(entity)
       return nil
    end
 
-   local template = save_structure_to_template(entity)
+   local template = save_entity_to_template(entity, SAVED_COMPONENTS)
 
    for_each_child(entity, function(id, child)
          local info = save_all_structures_to_template(child)
@@ -218,6 +242,7 @@ function build_util.restore_template(building, template_name, options)
 
    local entity_map = create_template_entities(building, template)
    load_all_structures_from_template(building, template.root, options, entity_map)
+
    if rotation and rotation ~= 0 then
       rotate_entity(building)
    end

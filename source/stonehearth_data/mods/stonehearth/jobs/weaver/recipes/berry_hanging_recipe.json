@@ -23,7 +23,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:berry_hanging"
+         "item":"stonehearth:decoration:berry_hanging"
       }
   ]
 }

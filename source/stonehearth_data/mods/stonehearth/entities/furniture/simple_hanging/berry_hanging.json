@@ -1,10 +1,13 @@
 {
-   "extends" : "file(berry_hanging_ghost.json)",
+   "type" : "entity",
+   "mixins" : "file(berry_hanging_ghost.json)",
+
    "components": {      
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(berry_hanging_iconic.json)",
          "ghost_form" : "file(berry_hanging_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Decoration"
       },
       "destination": {
          "region": [

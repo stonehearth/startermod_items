@@ -1,4 +1,5 @@
 {
+   "type" : "entity",
    "mixins": "file(wooden_garden_lantern_ghost.json)",
 
    "components" : {
@@ -21,7 +22,8 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_garden_lantern_iconic.json)",
          "ghost_form" : "file(wooden_garden_lantern_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
       }
    }
 }
