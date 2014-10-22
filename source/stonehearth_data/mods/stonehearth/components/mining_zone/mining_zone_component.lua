@@ -7,6 +7,24 @@ local MiningZoneComponent = class()
 
 local MAX_REACH_DOWN = 1
 local MAX_REACH_UP = 3
+local MAX_DESTINATION_DELTA_Y = 3
+
+local FACE_DIRECTIONS = {
+    Point3.unit_y,
+   -Point3.unit_y,
+    Point3.unit_z,
+   -Point3.unit_z,
+    Point3.unit_x,
+   -Point3.unit_x
+}
+
+local NON_TOP_DIRECTIONS = {
+    Point3.unit_z,
+   -Point3.unit_z,
+    Point3.unit_x,
+   -Point3.unit_x,
+   -Point3.unit_y
+}
 
 function MiningZoneComponent:__init()
 end
@@ -84,15 +102,6 @@ function MiningZoneComponent:_on_region_changed()
    self:_create_mining_task()
 end
 
-local FACE_DIRECTIONS = {
-    Point3.unit_y,
-   -Point3.unit_y,
-    Point3.unit_z,
-   -Point3.unit_z,
-    Point3.unit_x,
-   -Point3.unit_x
-}
-
 function MiningZoneComponent:_count_open_faces_for_block(point, max)
    max = max or 2
    local test_point = Point3()
@@ -101,7 +110,6 @@ function MiningZoneComponent:_count_open_faces_for_block(point, max)
    for _, dir in ipairs(FACE_DIRECTIONS) do
       test_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
 
-      -- TODO: consider testing for obstruction
       if not radiant.terrain.is_terrain(test_point) then
          count = count + 1
          if count >= max then
@@ -113,73 +121,81 @@ function MiningZoneComponent:_count_open_faces_for_block(point, max)
    return count
 end
 
+function MiningZoneComponent:_has_n_plus_exposed_faces(point, n)
+   local count = self:_count_open_faces_for_block(point, n)
+   return count >= n
+end
+
 function MiningZoneComponent:_top_face_exposed(point)
    local above_point = point + Point3.unit_y
    local exposed = not radiant.terrain.is_terrain(above_point)
    return exposed
 end
 
-local NON_TOP_DIRECTIONS = {
-    Point3.unit_z,
-   -Point3.unit_z,
-    Point3.unit_x,
-   -Point3.unit_x,
-   -Point3.unit_y
-}
-
 function MiningZoneComponent:_non_top_face_exposed(point)
-   local other_point = Point3()
+   local adjacent_point = Point3()
 
    for _, dir in ipairs(NON_TOP_DIRECTIONS) do
-      other_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
+      adjacent_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
 
-      if not radiant.terrain.is_terrain(other_point) then
+      if not radiant.terrain.is_terrain(adjacent_point) then
          return true
       end
    end
    return false
 end
 
-function MiningZoneComponent:_is_priority_block(point)
+function MiningZoneComponent:_top_and_second_face_exposed(point)
    if not self:_top_face_exposed(point) then
       return false
    end
 
    -- look for a second exposed face
-   return self:_non_top_face_exposed(point)
+   local second_exposed_face = self:_non_top_face_exposed(point)
+   return second_exposed_face
+end
+
+function MiningZoneComponent:_has_higher_neighbor(point, radius)
+   local above_point = Point3()
+   local y = point.y + 1
+   
+   for z = -radius, radius do
+      for x = -radius, radius do
+         if x ~= 0 or y ~= 0 then
+            above_point:set(point.x+x, y, point.z+z)
+            if radiant.terrain.is_terrain(above_point) then
+               return true
+            end
+         end
+      end
+   end
+   return false
 end
 
 function MiningZoneComponent:_each_corner_block_in_cube(cube, cb)
-   -- subtract one because we want the max terrain block, not the bounding grid line
-   local max = cube.max - Point3.one
-   local min = cube.min
-   local inc = max - min
-   -- reuse this point to avoid inner loop memory allocation
-   local point = Point3()
-
-   -- if inc.dimension is 0, skip the max cube because the min and max cubes have the same coordinates
-   -- e.g. for the unit cube:
-   --   Cube3(cube.min, cube.min + Point3(1,1,1)) == Cube3(cube.max - Point3(1,1,1), cube.max)
-
-   for y = min.y, max.y, inc.y do
-      for z = min.z, max.z, inc.z do
-         for x = min.x, max.x, inc.x do
-            point:set(x, y, z)
-            cb(point)
-
-            if inc.x == 0 then break end
-         end
-         if inc.z == 0 then break end
-      end
-      if inc.y == 0 then break end
-   end
+   -- block is a corner block when it is part of three or more faces
+   self:_each_block_in_cube_with_faces(cube, 3, cb)
 end
 
 function MiningZoneComponent:_each_edge_block_in_cube(cube, cb)
+   -- block is an edge block when it is part of two or more faces
+   self:_each_block_in_cube_with_faces(cube, 2, cb)
+end
+
+function MiningZoneComponent:_each_face_block_in_cube(cube, cb)
+   -- block is a face block when it is part of one or more faces
+   self:_each_block_in_cube_with_faces(cube, 1, cb)
+end
+
+-- invokes callback when a block in the cube is on min_faces or more
+-- min_faces = 3 iterates over all the corner blocks
+-- min_faces = 2 iterates over all the edge blocks
+-- min_faces = 1 iterates over all the face blocks
+function MiningZoneComponent:_each_block_in_cube_with_faces(cube, min_faces, cb)
     -- subtract one because we want the max terrain block, not the bounding grid line
    local max = cube.max - Point3.one
    local min = cube.min
-   local x_face, y_face, z_face, num_faces
+   local x, y, z, x_face, y_face, z_face, num_faces
    -- reuse this point to avoid inner loop memory allocation
    local point = Point3()
 
@@ -191,21 +207,46 @@ function MiningZoneComponent:_each_edge_block_in_cube(cube, cb)
       end
    end
 
-   for y = min.y, max.y do
+   -- can't use for loops because lua doesn't respect changes to the loop counter in the optimization check
+   y = min.y
+   while y <= max.y do
       y_face = face_count(y, min.y, max.y)
-      for z = min.z, max.z do
+      if y_face + 2 < min_faces then
+         -- optimizaton, jump to opposite face if constraint cannot be met
+         y = max.y
+         y_face = 1
+      end
+
+      z = min.z
+      while z <= max.z do
          z_face = face_count(z, min.z, max.z)
-         for x = min.x, max.x do
+         if y_face + z_face + 1 < min_faces then
+            -- optimizaton, jump to opposite face if constraint cannot be met
+            z = max.z
+            z_face = 1
+         end
+
+         x = min.x
+         while x <= max.x do
             x_face = face_count(x, min.x, max.x)
+            if x_face + y_face + z_face < min_faces then
+               -- optimizaton, jump to opposite face if constraint cannot be met
+               x = max.x
+               x_face = 1
+            end
+
             num_faces = x_face + y_face + z_face
 
-            -- block is an edge block when it is part of two or more faces
-            if num_faces >= 2 then
+            if num_faces >= min_faces then
                point:set(x, y, z)
+               --log:spam('cube iterator: %s', point)
                cb(point)
             end
+            x = x + 1
          end
+         z = z + 1
       end
+      y = y + 1
    end   
 end
 
@@ -221,6 +262,7 @@ function MiningZoneComponent:_update_destination()
    local terrain_region = radiant.terrain.intersect_region(world_space_region)
    terrain_region:set_tag(0)
    terrain_region:optimize_by_merge()
+   local bounds = terrain_region:get_bounds()
    
    self._destination_component:get_region():modify(function(cursor)
          -- reuse this cube to avoid inner loop memory allocation
@@ -235,33 +277,53 @@ function MiningZoneComponent:_update_destination()
                cursor:add_cube(block)
             end
 
-         -- add high priority blocks
          for cube in terrain_region:each_cube() do
-            self:_each_edge_block_in_cube(cube, function(point)
-                  if self:_is_priority_block(point) then
-                     add_block(point)
-                  end
-               end)
-         end
+            -- this code not finalized
+            if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
+               local slice_min = Point3(cube.min.x, cube.max.y-1, cube.min.z)
+               local slice_max = cube.max
+               local top_slice = Cube3(slice_min, slice_max)
 
-         -- add the edges of the zone
-         -- local zone_region = self:get_region():get():translated(location)
-         -- for cube in zone_region:each_cube() do
-         --    self:_each_edge_block_in_cube(cube, function(point)
-         --          if radiant.terrain.is_terrain(point) and self:_top_face_exposed(point) then
-         --             add_block(point)
-         --          end
-         --       end)
-         -- end
+               if cube.max.y == bounds.max.y then
+                  self:_each_face_block_in_cube(top_slice, function(point)
+                        if self:_top_face_exposed(point) then
+                           add_block(point)
+                        end
+                     end)
+               else
+                  self:_each_face_block_in_cube(top_slice, function(point)
+                        if self:_top_face_exposed(point) and not self:_has_higher_neighbor(point, 1) then
+                           add_block(point)
+                        end
+                     end)
+               end
+            end
+         end
 
          if cursor:empty() then
-            -- add the whole region
-            terrain_region:translate(world_to_local_translation)
-            cursor:add_region(terrain_region)
-         else
-            -- mostly for debugging
-            cursor:optimize_by_merge()
+            for cube in terrain_region:each_cube() do
+               self:_each_edge_block_in_cube(cube, function(point)
+                     -- prioritizing blocks with 2+ exposed faces naturally mines in layers
+                     -- provided the starting shape is relatively flat
+                     if self:_has_n_plus_exposed_faces(point, 2) then
+                        add_block(point)
+                     end
+                  end)
+            end
          end
+
+         if cursor:empty() then
+            for cube in terrain_region:each_cube() do
+               self:_each_face_block_in_cube(cube, function(point)
+                     if self:_has_n_plus_exposed_faces(point, 1) then
+                        add_block(point)
+                     end
+                  end)
+            end
+         end
+
+         -- mostly for debugging
+         cursor:optimize_by_merge()
       end)
 
    self:_update_adjacent()
@@ -274,6 +336,7 @@ function MiningZoneComponent:_update_adjacent()
    self._destination_component:get_adjacent():modify(function(cursor)
          cursor:clear()
 
+         -- consider removing blocks occupied by terrain from the adjacent so the pathfinder doesn't have to keep doing this
          for point in destination_region:each_point() do
             local world_point = point + location
             local adjacent_region = stonehearth.mining:get_adjacent_for_destination_block(world_point)
@@ -281,6 +344,7 @@ function MiningZoneComponent:_update_adjacent()
             cursor:add_region(adjacent_region)
          end
 
+         -- this optimization is important to reduce pathfinding time
          cursor:optimize_by_merge()
       end)
 end
@@ -302,6 +366,7 @@ function MiningZoneComponent:_create_mining_task()
       :set_source(self._entity)
       :set_name('mine task')
       :set_priority(stonehearth.constants.priorities.mining.MINE)
+      :set_max_workers(4)
       :notify_completed(function()
             self._mining_task = nil
          end)

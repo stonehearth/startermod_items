@@ -274,6 +274,8 @@
    "raise_walls_tip_description" : "Right click to exit", 
    "doodad_tip_title" : "Click a wall to place the door or window", 
    "doodad_tip_description" : "Right click to exit",
+   "draw_template_title" : "Click to build template", 
+   "draw_template_description": "Rotate with , and . keys",
 
    "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",
@@ -343,6 +345,8 @@
    "building_designer_edit_help" : "Select a building part to change its properties.",
    "building_designer_draw_edit" : "Edit Building Parts",
    "building_designer_undo" : "undo",
+   "building_designer_template_name" : "Template Name",
+   "building_designer_template_name_prompt" : "Enter a name for this template",
 
    "0_score" : "Wretched",
    "1_score" : "Miserable",

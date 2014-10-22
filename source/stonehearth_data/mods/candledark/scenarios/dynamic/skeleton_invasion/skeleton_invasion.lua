@@ -33,22 +33,34 @@ end
 function SkeletonInvasion:spawn_skeleton_wave()
    local wave_sizes = self._scenario_data.config.invasion_sizes
    local num_skeletons = wave_sizes[self._sv.wave_number]
-   
-   self:_post_bulletin()
+   local bulletin_posted = false
    
    for i = 1, num_skeletons do
       radiant.set_realtime_timer(2000 * i, function()
-         self:_spawn_skeleton()
+         local skeleton = self:_spawn_skeleton()
+         
+         -- if at least one skeleton spawns (it's unlikely, but possible that none spawned because
+         -- there was no room for them on the terrain), post a bulletin warning of the invasion
+         if skeleton ~= nil and not bulletin_posted then
+            self:_post_bulletin(skeleton)
+            bulletin_posted = true
+         end
       end)
    end
 end
 
-function SkeletonInvasion:_post_bulletin()
+function SkeletonInvasion:_post_bulletin(skeleton)
    local titles = self._scenario_data.bulletins.attack.titles
    local title = titles[self._sv.wave_number]
+   local first_skeleton = nil
+
    self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
       :set_type('alert')
-      :set_data({ title = title })
+      :set_data({ 
+         title = title,
+         zoom_to_entity = skeleton,
+      })
+
 end
 
 function SkeletonInvasion:_spawn_skeleton()
@@ -57,7 +69,10 @@ function SkeletonInvasion:_spawn_skeleton()
 
    if spawn_point then
       radiant.terrain.place_entity(skeleton, spawn_point)
+      return skeleton
    end
+
+   return nil
 end
 
 function SkeletonInvasion:_create_skeleton()

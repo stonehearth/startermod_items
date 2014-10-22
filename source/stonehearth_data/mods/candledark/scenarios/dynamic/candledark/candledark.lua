@@ -102,7 +102,7 @@ function Candledark:_on_sunset()
       -- time for skeletons!      
       self._sv.nights_survived = self._sv.nights_survived + 1
 
-      radiant.set_realtime_timer(1000 * 15, function()
+      radiant.set_realtime_timer(1000 * 12, function()
          stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
       end)
 

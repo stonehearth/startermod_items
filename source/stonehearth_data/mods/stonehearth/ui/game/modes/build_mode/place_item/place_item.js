@@ -32,6 +32,29 @@ App.StonehearthPlaceItemView = App.View.extend({
       }
    },
 
+   didInsertElement: function() {
+      var self = this;
+      this._super();
+      this.hide();
+   },
+});
+
+App.StonehearthPlaceItemPicker = App.View.extend({
+   templateName: 'stonehearthPlaceItemPicker',
+   components: {
+      'tracking_data' : {
+         '*' : {              // category...    (e.g. Furniture)
+            '*' : {           // uri of items.. (e.g. stonehearth:comfy_bed)
+               'items' : {    // all the items, keyed by id
+                  '*' : {
+                     'stonehearth:entity_forms' : {}
+                  }
+               }
+            }
+         }
+      }
+   },
+
    init: function() {
       this._super();
 
@@ -58,7 +81,6 @@ App.StonehearthPlaceItemView = App.View.extend({
       });
 
       self.$('.item').tooltipster();
-      this.hide();
    },
 
    _mapToArray : function(map, convert_fn) {

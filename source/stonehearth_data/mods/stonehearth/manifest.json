@@ -20,6 +20,7 @@
       "cursors:create_door" : "file(data/cursors/create_door.cur)",
       "cursors:create_window" : "file(data/cursors/create_window.cur)",
       "cursors:create_ladder" : "file(data/cursors/create_ladder.cur)",
+      "cursors:place_template" : "file(data/cursors/place_template.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
       "cursors:zone_generic" : "file(data/cursors/zone_generic.cur)",
@@ -977,6 +978,10 @@
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_building_templates": {
+         "controller" : "file(call_handlers/build_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_service" : {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "server"
@@ -1221,7 +1226,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.html)",
-         "file(ui/game/modes/build_mode/building_plans/building_plans.html)",
+         "file(ui/game/modes/build_mode/building_templates/building_templates.html)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
@@ -1284,7 +1289,7 @@
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
-         "file(ui/game/modes/build_mode/building_plans/building_plans.js)",
+         "file(ui/game/modes/build_mode/building_templates/building_templates.js)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
@@ -1350,7 +1355,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.less)",
-         "file(ui/game/modes/build_mode/building_plans/building_plans.less)",
+         "file(ui/game/modes/build_mode/building_templates/building_templates.less)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",
