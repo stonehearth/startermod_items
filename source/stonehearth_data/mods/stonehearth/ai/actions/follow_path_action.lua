@@ -39,41 +39,48 @@ function FollowPathAction:run(ai, entity, args)
       ai:abort('cannot follow path because entity is not a child of the root entity')
    end
 
-   local path = args.path
    self._ai = ai
    self._entity = entity
+   local path = args.path
 
    log:detail('following path: %s', path)
    if path:is_empty() then
-      log:detail('path is empty.  returning')
+      log:detail('path is empty. returning')
       return
    end
 
    local speed = radiant.entities.get_world_speed(entity)
+   local arrived = false
+   local suspended = false
 
    local arrived_fn = function()
-      ai:resume('mover finished')
+      arrived = true
+      if suspended then 
+         suspended = false
+         ai:resume('mover finished')
+      end
    end
 
    local aborted_fn = function()
       log:detail('mover aborted (path may no longer be traversable)')
       ai:abort('mover aborted')
    end
-   
+  
    self._mover = FollowPath(entity, speed, path)
       :set_stop_distance(args.stop_distance)
       :set_arrived_cb(arrived_fn)
       :set_aborted_cb(aborted_fn)
+      :start()
 
-   if not self._mover:arrived() then
+   if arrived then
+      log:detail('mover finished synchronously because entity is already at destination')
+   else
       self._posture = radiant.entities.get_posture(entity)
       self._posture_listener = radiant.events.listen(entity, 'stonehearth:posture_changed', self, self._on_posture_changed)
       self._speed_listener = radiant.events.listen(entity, 'stonehearth:attribute_changed:speed', self, self._on_speed_changed)
-
       self:_start_move_effect()
-
-      log:debug('starting mover');
-      self._mover:start()
+      
+      suspended = true
       ai:suspend('waiting for mover to finish')
    end
 
@@ -126,7 +133,6 @@ function FollowPathAction:stop(ai, entity)
    end
 
    if self._mover then
-      log:debug('stopping mover in stop...');
       self._mover:stop()
       self._mover = nil
    end
