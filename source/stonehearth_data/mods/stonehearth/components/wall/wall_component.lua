@@ -306,6 +306,10 @@ function Wall:connect_to(column_a, column_b, normal)
 end
 
 function Wall:_compute_wall_measurements()
+   if self._sv.patch_wall_region then
+      return
+   end
+   
    local normal, pos_a, pos_b = self._sv.normal, self._sv.pos_a, self._sv.pos_b
 
    -- figure out the tangent and normal coordinate indicies based on the direction
