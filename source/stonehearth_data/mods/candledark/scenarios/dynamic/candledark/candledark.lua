@@ -79,7 +79,9 @@ function Candledark:_on_sunset()
       -- End the scenario if the player has suvived the length of candledark   
 
       -- nuke the old bulletin
-      stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+      if self._sv.bulletin ~= nil then
+         stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+      end
 
       -- post a new bulletin announcing the end of candledark
       local bulletin_data = self._scenario_data.bulletins.candledark_end
