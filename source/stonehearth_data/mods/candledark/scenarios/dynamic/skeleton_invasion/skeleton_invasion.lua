@@ -3,14 +3,18 @@ local rng = _radiant.csg.get_default_rng()
 local SkeletonInvasion = class()
 
 function SkeletonInvasion:initialize(params)
-   self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/skeleton_invasion/skeleton_invasion.json').scenario_data
 
    self._sv.player_id = 'player_1'
    self._sv.wave_number = params.wave
+   self._sv.wave_complete = true
+   self:restore()
+
    self.__saved_variables:mark_changed()
 end
 
-function SkeletonInvasion:start()
+function SkeletonInvasion:restore()
+   self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/skeleton_invasion/skeleton_invasion.json').scenario_data
+
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
@@ -27,52 +31,64 @@ function SkeletonInvasion:start()
    end
    -- End hack
 
-   self:spawn_skeleton_wave()
+   --we're loading in the middle of a wave, load the rest of the wave
+   if not self._sv.wave_complete and self._sv.num_skeletons_remaining then
+      self:spawn_skeleton_wave(self._sv.num_skeletons_remaining)
+   end
 end
 
-function SkeletonInvasion:spawn_skeleton_wave()
+function SkeletonInvasion:start()
    local wave_sizes = self._scenario_data.config.invasion_sizes
    local num_skeletons = wave_sizes[self._sv.wave_number]
-   local bulletin_posted = false
-   
+   self:spawn_skeleton_wave(num_skeletons)
+end
+
+function SkeletonInvasion:spawn_skeleton_wave(num_skeletons)
+   self._sv.wave_complete = false
+   self._sv.num_skeletons_remaining = num_skeletons
    for i = 1, num_skeletons do
       radiant.set_realtime_timer(2000 * i, function()
-         local skeleton = self:_spawn_skeleton()
-         
-         -- if at least one skeleton spawns (it's unlikely, but possible that none spawned because
-         -- there was no room for them on the terrain), post a bulletin warning of the invasion
-         if skeleton ~= nil and not bulletin_posted then
-            self:_post_bulletin(skeleton)
-            bulletin_posted = true
+         self:_spawn_skeleton(i)
+         self._sv.num_skeletons_remaining = num_skeletons - i
+         if self._sv.num_skeletons_remaining == 0 then
+            self._sv.wave_complete = true
          end
       end)
    end
+   
 end
 
 function SkeletonInvasion:_post_bulletin(skeleton)
    local titles = self._scenario_data.bulletins.attack.titles
    local title = titles[self._sv.wave_number]
-   local first_skeleton = nil
-
    self._sv.bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
       :set_type('alert')
       :set_data({ 
-         title = title,
-         zoom_to_entity = skeleton,
+         title = title, 
+         zoom_to_entity = skeleton
       })
-
 end
 
-function SkeletonInvasion:_spawn_skeleton()
+function SkeletonInvasion:_spawn_skeleton(index_in_wave)
    local skeleton = self:_create_skeleton()
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(skeleton, 80)
 
    if spawn_point then
       radiant.terrain.place_entity(skeleton, spawn_point)
-      return skeleton
    end
 
-   return nil
+   --If this is the first skeleton in a wave, post the bulletin about the skeleton
+   --destroy the bulletin if the skeleton dies
+   if index_in_wave == 1 then
+      self:_post_bulletin(skeleton)
+      radiant.events.listen_once(skeleton, 'radiant:entity:pre_destroy', function()
+         if self._sv.bulletin then
+            local bulletin_id = self._sv.bulletin:get_id()
+            stonehearth.bulletin_board:remove_bulletin(bulletin_id)
+            self._sv.bulletin = nil
+         end
+      end)
+   end
 end
 
 function SkeletonInvasion:_create_skeleton()
