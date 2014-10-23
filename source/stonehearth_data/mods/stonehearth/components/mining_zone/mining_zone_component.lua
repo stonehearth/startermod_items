@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local TraceCategories = _radiant.dm.TraceCategories
 local log = radiant.log.create_logger('mining')
 
 local MiningZoneComponent = class()
@@ -46,14 +47,19 @@ function MiningZoneComponent:initialize(entity, json)
       self:_restore()
    end
 
+   self:_trace_reserved()
+
    -- TODO: listen for changes to terrain
 end
 
 function MiningZoneComponent:_restore()
+   self:_trace_region()
    self:_create_mining_task()
 end
 
 function MiningZoneComponent:destroy()
+   self:_destroy_region_trace()
+   self:_destroy_reserved_trace()
 end
 
 -- region is a boxed region
@@ -79,15 +85,20 @@ function MiningZoneComponent:mine_point(point)
 end
 
 function MiningZoneComponent:_trace_region()
-   if self._region_trace then
-      self._region_trace:destroy()
-   end
+   self:_destroy_region_trace()
 
    self._region_trace = self._sv.region:trace('mining zone')
       :on_changed(function()
             self:_on_region_changed()
          end)
       :push_object_state()
+end
+
+function MiningZoneComponent:_destroy_region_trace()
+   if self._region_trace then
+      self._region_trace:destroy()
+      self._region_trace = nil
+   end
 end
 
 function MiningZoneComponent:_on_region_changed()
@@ -100,6 +111,26 @@ function MiningZoneComponent:_on_region_changed()
 
    self:_update_destination()
    self:_create_mining_task()
+end
+
+function MiningZoneComponent:_trace_reserved()
+   self:_destroy_reserved_trace()
+
+   self._reserved_trace = self._destination_component:trace_reserved('mining zone component', TraceCategories.SYNC_TRACE)
+      :on_changed(function()
+            self:_on_reserved_changed()
+         end)
+end
+
+function MiningZoneComponent:_destroy_reserved_trace()
+   if self._reserved_trace then
+      self._reserved_trace:destroy()
+      self._reserved_trace = nil
+   end
+end
+
+function MiningZoneComponent:_on_reserved_changed()
+   self:_update_adjacent()
 end
 
 function MiningZoneComponent:_count_open_faces_for_block(point, max)
@@ -345,7 +376,6 @@ function MiningZoneComponent:_update_adjacent()
             cursor:add_region(adjacent_region)
          end
 
-         -- this optimization is important to reduce pathfinding time
          cursor:optimize_by_merge()
       end)
 end
@@ -367,7 +397,7 @@ function MiningZoneComponent:_create_mining_task()
       :set_source(self._entity)
       :set_name('mine task')
       :set_priority(stonehearth.constants.priorities.mining.MINE)
-      --:set_max_workers(4)
+      :set_max_workers(4)
       :notify_completed(function()
             self._mining_task = nil
          end)
