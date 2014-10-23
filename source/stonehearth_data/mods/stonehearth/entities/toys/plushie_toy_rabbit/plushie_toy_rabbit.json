@@ -1,5 +1,7 @@
 {
+   "type" : "entity",
    "mixins" : "file(plushie_toy_rabbit_ghost.json)",
+   
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(plushie_toy_rabbit_iconic.json)",

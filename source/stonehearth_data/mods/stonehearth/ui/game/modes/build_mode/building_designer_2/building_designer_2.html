@@ -4,13 +4,39 @@
 
       <div id="tools">
          <h2>Tools</h2>
-         <div id="drawFloorTool" class="toolButton" tab="floorMaterialTab" title="Draw floor"></div>
-         <div id="eraseFloorTool" class="toolButton" tab="floorMaterialTab" title="Erase floor"></div>
-         <div id="growWallsTool" class="toolButton" tab="wallMaterialTab" title="Grow walls"></div>
-         <div id="drawWallTool" class="toolButton" tab="wallMaterialTab" title="Draw wall"></div>
-         <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof"></div>
-         <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
-         <div id="undoTool" class="toolButton" title="Undo"></div>
+         <table id="toolGrid">
+            <tr>
+               <td>
+                  <div id="drawFloorTool" class="toolButton" tab="floorMaterialTab" title="Draw floor"></div>
+               </td>
+               <td>
+                  <div id="growWallsTool" class="toolButton" tab="wallMaterialTab" title="Grow walls around floor"></div>
+               </td>
+               <td>   
+                  <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof on walls"></div>
+               </td>
+               <td>
+                  <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
+               </td>
+               <td>
+                  <div id="undoTool" class="toolButton" title="Undo"></div>
+               </td>
+            </tr>
+            <tr>
+               <td>
+                  <div id="eraseFloorTool" class="toolButton" tab="floorMaterialTab" title="Erase floor"></div>
+               </td>
+               <td>
+                  <div id="drawWallTool" class="toolButton" tab="wallMaterialTab" title="Draw wall"></div>
+               </td>
+               <td>
+               </td>
+               <td>
+                  <div id="placeItemTool" class="toolButton" tab="itemMaterialTab" title="Place furniture and decoration"></div>
+               </td>
+            </tr>
+         </table>
+         
       </div>
 
       <div class="tabPage" id="floorMaterialTab" style="display: block">
@@ -81,6 +107,16 @@
          
       </div>
 
+      <div class="tabPage" id="itemMaterialTab">        
+         <h2>Furniture & Decorations</h2>
+
+         <div class="downSection" id="itemMaterials">
+            <!-- Material palette built dynamically and inserted here -->
+            {{view "App.StonehearthPlaceItemPicker" }}
+         </div>
+         
+      </div>
+
    </div>
 
    <div id="selectedBuildingWindow" class="window">
@@ -88,15 +124,34 @@
 
       <div id="buttons">
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
+         <button class="warn" id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
 
          <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
             {{#if building.active }}
-               Pause Building
+               {{i18n stonehearth:pause_building}}
             {{else}}
-               Start Building
+               {{i18n stonehearth:start_building}}
             {{/if}}
          </button>
       </div>
    </div>
 
+</script>
+
+<script type="text/x-handlebars" data-template-name="templateNameView">
+   <div id="templateNameView" class="gui">
+      <div class="window">
+         <div class="title">
+            {{i18n stonehearth:building_designer_template_name}}
+         </div>
+
+         <p>
+            {{i18n stonehearth:building_designer_template_name_prompt}}
+         </p>
+         <p>
+            <input id="name" onClick="this.select();" type="text" maxlength="28" />
+         </p>
+         <button class="ok"></button>
+      </div>
+   </div>
 </script>

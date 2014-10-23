@@ -76,9 +76,10 @@ end
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the wall
 --
-function FixtureFabricator:start_project(fixture_iconic_uri, fixture_uri)
+function FixtureFabricator:start_project(fixture_iconic_uri, fixture_uri, normal)
    assert(fixture_iconic_uri)
 
+   self._sv.normal = normal
    self._sv.fixture_uri = fixture_uri
    self._sv.fixture_iconic_uri = fixture_iconic_uri
    self.__saved_variables:mark_changed()
@@ -103,7 +104,7 @@ function FixtureFabricator:_start_project()
    local teardown = cp:get_teardown()
    local dependencies_finished = cp:get_dependencies_finished()
 
-   if not finished and active and dependencies_finished then
+   if not finished and dependencies_finished then
       run_teardown_task = teardown
       run_fabricate_task = not teardown
    end
@@ -143,9 +144,12 @@ function FixtureFabricator:_place_fixture_in_wall()
 
       -- we've got an item!  ask it to be placed where our fixture is
       local wall = self._entity:get_component('mob'):get_parent()
-      local normal = wall:get_component('stonehearth:construction_data')
-                              :get_normal()
-      
+      local normal = self._sv.normal
+      if not normal then
+         normal = wall:get_component('stonehearth:construction_data')
+                           :get_normal()
+      end
+
       local root_entity = item:get_component('stonehearth:iconic_form')
                                  :get_root_entity()
                                  

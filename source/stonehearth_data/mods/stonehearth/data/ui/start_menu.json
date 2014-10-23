@@ -62,7 +62,7 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-         "building_plans" : {
+         "building_templates" : {
             "name" : "Construct a Building",
             "description" : "Construct buildings like houses and towers",
             "class" : "button",

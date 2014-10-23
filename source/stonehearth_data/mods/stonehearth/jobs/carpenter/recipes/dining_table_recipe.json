@@ -16,7 +16,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:dining_table"
+         "item":"stonehearth:furniture:dining_table"
       }
   ]
 }

@@ -15,7 +15,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:wooden_garden_lantern"
+         "item":"stonehearth:furniture:wooden_garden_lantern"
       }
   ]
 }

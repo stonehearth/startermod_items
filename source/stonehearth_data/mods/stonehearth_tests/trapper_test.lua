@@ -26,7 +26,7 @@ function TrapperTest:__init()
 
    self:place_item('stonehearth:berry_bush', -25, 15)
    self:place_item('stonehearth:berry_bush', -15, 15)
-   self:place_item('stonehearth:silkweed',  -5, 15)
+   self:place_item('stonehearth:plants:silkweed',  -5, 15)
 
    self:place_citizen(10, 10, 'stonehearth:jobs:trapper')
    self:place_citizen(8, 8, 'stonehearth:jobs:trapper')

@@ -235,9 +235,10 @@ function lrbt.expensive_building(autotest)
    create_workers(autotest)
 
    autotest.ui:click_dom_element('#startMenu #build_menu')
+   autotest:sleep(1000)
 
    stonehearth.build:do_command('create floor', nil, function()
-         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-20, 1, -20), Point3(18, 2, 10)))
+         local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-20, 10, -20), Point3(18, 11, 10)))
          building = stonehearth.build:get_building_for(floor)
       end)
 
@@ -260,5 +261,8 @@ function lrbt.expensive_building(autotest)
    autotest:sleep(200000000)
    autotest:success()
 end
+
+lrbt.expensive_building = nil
+lrbt.grow_walls_perf_test = nil
 
 return lrbt

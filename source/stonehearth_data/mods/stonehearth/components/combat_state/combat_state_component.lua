@@ -146,6 +146,12 @@ function CombatStateComponent:get_combat_actions(action_type)
    return actions
 end
 
+-- Call to recalculate the combat action array
+function CombatStateComponent:recompile_combat_actions(action_type)
+   local actions = self:_compile_combat_actions(action_type)
+   self._combat_actions[action_type] = actions
+end
+
 -- combat actions can come from two sources:
 --   1) something you are (a dragon has a tail attack)
 --   2) something you have (a wand of lightning bolt)

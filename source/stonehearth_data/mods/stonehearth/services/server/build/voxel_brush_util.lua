@@ -7,21 +7,6 @@ local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local MODEL_OFFSET = Point3(0, 0, 0)
 
--- A lookup table to convert a normal in the xz-plane to a rotation
--- about the y-axis.  Usage: ROTATION_TABLE[normal.x][normal.z]
-local ROTATION_TABLE = {
-   [ 0] = {
-      [-1] = 0,
-      [ 1] = 180,
-   },
-   [ 1] = {
-      [ 0] = 270
-   }, 
-   [-1] = {
-      [ 0] = 90
-   }   
-}
-
 function voxel_brush_util.create_brush(construction_data)
    assert(construction_data)
 
@@ -113,10 +98,6 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
       end
    end
    return render_node
-end
-
-function voxel_brush_util.normal_to_rotation(normal)
-   return ROTATION_TABLE[normal.x][normal.z]
 end
 
 return voxel_brush_util

@@ -1,10 +1,13 @@
 {
+   "type" : "entity",   
    "mixins": "file(picket_fence_ghost.json)",
+   
    "components": {
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(picket_fence_iconic.json)",
          "ghost_form" : "file(picket_fence_ghost.json)",
-         "placeable_on_ground" : true
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
       },
       "region_collision_shape" : {
          "region": [

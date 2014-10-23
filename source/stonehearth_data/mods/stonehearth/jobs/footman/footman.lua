@@ -82,7 +82,7 @@ end
 
 function FootmanClass:_on_attack(args)
    --For debug purposes   
-   --self._job_component:add_exp(70)
+   --self._job_component:add_exp(100)
 end
 
 -- Whenever you do damage, you get XP equal to the target's menace
@@ -108,6 +108,19 @@ end
 
 function FootmanClass:remove_buff(args)
    radiant.entities.remove_buff(self._sv._entity, args.buff_name)
+end
+
+--Add or remove a type of combat action the footman can choose in melee
+function FootmanClass:add_combat_action(args)
+   job_helper.add_equipment(self._sv, args)
+   local combat_state = stonehearth.combat:get_combat_state(self._sv._entity)
+   combat_state:recompile_combat_actions(args.action_type)
+end
+
+function FootmanClass:remove_combat_action(args)
+   job_helper.remove_equipment(self._sv, args)
+   local combat_state = stonehearth.combat:get_combat_state(self._sv._entity)
+   combat_state:recompile_combat_actions(args.action_type)
 end
 
 return FootmanClass

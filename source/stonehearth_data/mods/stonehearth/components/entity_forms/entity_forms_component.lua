@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 
@@ -19,6 +19,13 @@ function EntityFormsComponent:initialize(entity, json)
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             self:_load_placement_task()
+            if self._sv.should_restock then
+               -- why do we need to set a 1000 ms timer just to get the effect to show up?
+               -- this is quite disturbing... investigate! -- tony
+               radiant.set_realtime_timer(1000, function()
+                     self:_update_restock_info()
+                  end)
+            end
          end)
 
    else
@@ -96,32 +103,37 @@ end
 
 -- call to toggle whether this deployed item should be undeployed and stored in a stockpile
 function EntityFormsComponent:set_should_restock(restock)
-   self._sv.should_restock = restock
+   if restock ~= self._sv.should_restock then
+      self._sv.should_restock = restock
+      self.__saved_variables:mark_changed()
+      self:_update_restock_info()
+   end
+end
    
-   if restock then 
-      if not self._sv.overlay_effect then
-         self._sv.overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
+function EntityFormsComponent:_update_restock_info()
+   if self._sv.should_restock then 
+      if not self._overlay_effect then
+         self._overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
       end
 
       -- trace the item's position. When it's position becomes nil, we know the item has changed
       -- forms, so if necessary we'll clear the undeploy setting
-      self._position_trace = radiant.entities.trace_location(self._entity, 'entity forms component')
-                                             :on_changed(function()
-                                                self:_on_position_changed()
-                                             end)
+      if not self._position_trace then
+         self._position_trace = radiant.entities.trace_location(self._entity, 'entity forms component')
+                                                :on_changed(function()
+                                                   self:_on_position_changed()
+                                                end)
+      end
    else
-
-      if self._sv.overlay_effect then
-         self._sv.overlay_effect:stop()
-         self._sv.overlay_effect = nil
+      if self._overlay_effect then
+         self._overlay_effect:stop()
+         self._overlay_effect = nil
       end
 
       if self._position_trace then
          self._position_trace:destroy()
       end
    end
-
-   self.__saved_variables:mark_changed()
 end
 
 function EntityFormsComponent:should_hide_placement_ui()
@@ -222,7 +234,7 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
    -- build view mode changes, the ghost item will show and hide itself along with
    -- the wall).  if the wall's finished, we'll use the blueprint.  otherwise,
    -- use the fabricator
-   local rotation = voxel_brush_util.normal_to_rotation(normal)
+   local rotation = build_util.normal_to_rotation(normal)
    local offset = location - radiant.entities.get_world_grid_location(wall_entity)
    local ghost_entity_parent = wall_finished and wall_entity or wall_cp:get_fabricator_entity()
 
@@ -236,17 +248,17 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
       return
    end
 
-   radiant.entities.add_child(wall_entity, self._sv.ghost_entity, offset)
-   radiant.entities.turn_to(self._sv.ghost_entity, rotation)
-
    -- the wall is finished.  let's start up the tasks.  if we're currently on a wall,
    -- we may need to build a ladder to pick ourselves up.  request that now.
-   local parent = self._entity:add_component('mob'):get_parent()
+   local mob = self._entity:add_component('mob')
+   local parent = mob:get_parent()
    if parent and parent:get_component('stonehearth:wall') then
-      local parent_normal = parent:get_component('stonehearth:construction_data')
-                                       :get_normal()
-      local pickup_location = radiant.entities.get_world_grid_location(self._entity) + parent_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, parent_normal)
+      -- ah!  we're on a wall.  the ladder has to move over by our normal to the wall, which
+      -- we can compute based on the rotation.
+      local current_rotation = mob:get_facing()
+      local curernt_normal = build_util.rotation_to_normal(current_rotation)
+      local pickup_location = radiant.entities.get_world_grid_location(self._entity) + curernt_normal
+      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, curernt_normal)
    end
 
    -- create another ladder request to climb up to the placement point.

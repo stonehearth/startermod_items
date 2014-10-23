@@ -9,7 +9,7 @@
       "length" : 4
    },
    "scenario_info" : {
-      "entity_type" : [ "stonehearth:brightbell:wild" ],
+      "entity_type" : [ "stonehearth:plants:brightbell:wild" ],
       "entity_footprint_length" : 2,
       "quantity" : {
          "min" : 1,

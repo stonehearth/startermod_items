@@ -53,9 +53,32 @@ bool CrashReporterClient::OnException(void* context, EXCEPTION_POINTERS* exinfo,
 {
    // We're dying, so let's log anything useful here.  It would have been nice to have the exception message,
    // but I'm not sure if there's any way to retrieve that.
+   platform::SysInfo::ByteCount va_total, va_avail;
+   platform::SysInfo::GetVirtualAddressSpaceUsage(va_total, va_avail);
+
+   static auto logMemoryUsage = [](const char* str, platform::SysInfo::ByteCount memory) {
+      static const char* suffix[] = {
+         "B",
+         "KB",
+         "MB",
+         "GB",
+         "TB",
+         "PB", // HA!
+      };
+      int i = 0;
+      double friendly = static_cast<double>(memory);
+      while (friendly > 1024 && i < ARRAY_SIZE(suffix) - 1) {
+         friendly /= 1024;
+         i++;
+      }
+      LOG_CRITICAL() << " " << str << std::setprecision(3) << std::fixed << friendly << " " << suffix[i] << " (" << memory << " bytes)";
+   };
    LOG_CRITICAL() << " Fatal Exception.";
-   LOG_CRITICAL() << " Total System Memory: " << platform::SysInfo::GetTotalSystemMemory();
-   LOG_CRITICAL() << " Current memory usage: " << platform::SysInfo::GetCurrentMemoryUsage();
+   logMemoryUsage("Total System Memory:     ", platform::SysInfo::GetTotalSystemMemory());
+   logMemoryUsage("Current Memory Usage:    ", platform::SysInfo::GetCurrentMemoryUsage());
+   logMemoryUsage("Total Address Space:     ", va_total);
+   logMemoryUsage("Available Address Space: ", va_avail);
+   logMemoryUsage("Used Address Space:      ", va_total - va_avail);
    return true;
 }
 

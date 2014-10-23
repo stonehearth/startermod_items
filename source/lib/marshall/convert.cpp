@@ -46,10 +46,8 @@ static luabind::object GetObjectSavedVariables(luabind::object const& obj)
          if (i == saved_variables) {
             CONVERT_LOG(1) << "breaking infinite loop in __saved_variables definition for object.";
             CONVERT_LOG(1) << lua::ScriptHost::LuaToJson(obj.interpreter(), obj).write_formatted();
-            DEBUG_ONLY(
-               ASSERT(false); // ASSERT immediately so we find the bug.  Will be removed in release builds
-            )
-            return luabind::object(); // Return LUA_TNIL if we pass the ASSERT
+            ASSERT(false); // ASSERT immediately so we find the bug.  Will be removed in release builds
+            return obj; // Return the original object if we pass the ASSERT
          }
       }
       visited.push_back(saved_variables);
@@ -112,6 +110,28 @@ void Convert::ProtobufToUserdata(Protocol::Value const& msg, luabind::object& ob
 
 void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* msg, Protocol::LuaObject* rootmsg, std::vector<luabind::object>& tables)
 {
+   if (luabind::type(from) == LUA_TTABLE) {
+      // A Lua table is an instance of a class if it has member variable called __type == "object"
+      luabind::object objectType = from["__type"];
+      bool isInstance = luabind::type(objectType) == LUA_TSTRING && 
+                        luabind::object_cast<std::string>(objectType) == "object";
+      if (isInstance) {
+         // It's impossible to reasonably convert an instance of a class to a serializable form.  There's
+         // all these random instance variables like __type and __class that we should (or shouldn't?)
+         // serialize, etc.  If the instance has its state locked away in a __saved_variables member, go
+         // ahead and convert that (since they know what they're doing), but otherwise convert the whole
+         // thing to a nil.  Also assert.  This is a logical error on the part of the programmer!!
+         if (luabind::type(from["__saved_variables"]) == LUA_TNIL) {
+            msg->set_type(Protocol::LuaObject::NIL);
+
+            CONVERT_LOG(1) << "cannot convert class instance with no delegated __saved_variables to protobuf!";
+            CONVERT_LOG(1) << lua::ScriptHost::LuaToJson(from.interpreter(), from).write_formatted();
+            msg->set_type(Protocol::LuaObject::NIL);
+            return;
+         }
+      }
+   }
+
    luabind::object obj = GetObjectSavedVariables(from);
    int t = luabind::type(obj);
 
@@ -169,7 +189,6 @@ void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* ms
                LuaToProtobuf(key, entry_msg->mutable_key(), rootmsg, tables);
                LuaToProtobuf(*i, entry_msg->mutable_value(), rootmsg, tables);
             }
-
          }
       }
       break;

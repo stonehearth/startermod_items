@@ -80,7 +80,8 @@ public:
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
 
 private:
-   void PostCommand(tesseract::protocol::PostCommandRequest const& request);
+   void PostCommandRequest(tesseract::protocol::PostCommandRequest const& msg);
+   void FinishedUpdate(tesseract::protocol::FinishedUpdate const& msg);
    void EncodeDebugShapes(protocol::SendQueuePtr queue);
    void ProcessTaskList();
    void ProcessJobList();
@@ -209,6 +210,7 @@ private:
    boost::filesystem::path             load_saveid_;
    std::vector<std::function<void()>>  _bottomLoopFns;
    std::string                         _versionStr;
+   int                                 _sequenceNumber;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

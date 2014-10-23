@@ -11,10 +11,13 @@ public:
    SysInfo(std::string const& uri);
    ~SysInfo();
 
+   typedef unsigned long long ByteCount;
+
    static std::string GetOSVersion();
    static std::string GetOSName();
-   static uint32 GetCurrentMemoryUsage();
-   static unsigned long long GetTotalSystemMemory();
+   static ByteCount GetCurrentMemoryUsage();
+   static void GetVirtualAddressSpaceUsage(ByteCount& total, ByteCount& avail);
+   static ByteCount GetTotalSystemMemory();
 };
 
 END_RADIANT_PLATFORM_NAMESPACE

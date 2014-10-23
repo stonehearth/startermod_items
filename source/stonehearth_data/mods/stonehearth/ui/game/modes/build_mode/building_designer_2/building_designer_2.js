@@ -434,6 +434,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });         
       });
 
+      this.$('#saveTemplate').click(function() {
+         var building = self.get('building');
+
+         if (building) {
+            App.gameView.addView(App.StonehearthTemplateNameView, { 
+               building : building
+            });
+         }
+      });
+
       // intabuild. for debugging only
       $(top).bind('keyup', function(e){
          if (e.keyCode == 88)  { // x
@@ -443,8 +453,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                App.stonehearthClient.instabuild(building);
             }
          }
-      });         
-
+      });
    },
 
    _restoreUiState: function() {
@@ -576,9 +585,41 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.$('.tabPage').hide();
             self.$('#roofMaterialTab').show();
          }
-
-         
       }
    },
    
+});
+
+App.StonehearthTemplateNameView = App.View.extend({
+   templateName: 'templateNameView',
+   classNames: ['fullScreen', "flex"],
+
+   didInsertElement: function() {
+      var self = this;
+      this._super();
+
+      this.$('#name').val('binky');
+      this.$('#name').focus();
+
+      this.$('#name').keypress(function (e) {
+         if (e.which == 13) {
+            $(this).blur();
+            self.$('.ok').click();
+        }
+      });
+
+      this.$('.ok').click(function() {
+         var templateDisplayName = self.$('#name').val()
+         var templateName = templateDisplayName.split(' ').join('_')
+
+         radiant.call('stonehearth:save_building_template', self.building.__self, { 
+            name: templateName,
+            display_name: templateDisplayName,
+         })
+
+         self.destroy();
+
+      });
+   },
+
 });

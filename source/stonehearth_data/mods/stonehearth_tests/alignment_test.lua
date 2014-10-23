@@ -33,57 +33,57 @@ function AlignmentTest:__init()
 
    x_start, z_start = col[2], row[1]
    x,z = x_start,z_start; dx,dz = 8,8
-   self:_check_item('stonehearth:berry_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:geranium_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:green_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:berry_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:geranium_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:green_hanging', x, z, dx, 0, false); x=x_start; z=z+dz;
    self:_check_item('stonehearth:camp_standard', x, z, dx, 0, false); x=x_start; z=z+dz;
    self:_check_item('stonehearth:tombstone', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:not_much_of_a_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:comfy_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:not_much_of_a_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:comfy_bed', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:arch_backed_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:simple_wooden_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:arch_backed_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:simple_wooden_chair', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:dining_table', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:table_for_one', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:dining_table', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:table_for_one', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:wooden_wall_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:wooden_garden_lantern', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:picket_fence', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:picket_fence', x, z, dx, 0, false); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:firepit', x, z, dx, 0, false); x=x_start; z=z+dz;
 
    x_start, z_start = col[3], row[1]
    x,z = x_start,z_start; dx,dz = 4,8
-   self:_check_item('stonehearth:berry_hanging', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:geranium_hanging', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:green_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:berry_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:geranium_hanging', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:green_hanging', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:camp_standard', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:tombstone', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:not_much_of_a_bed', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:comfy_bed', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:not_much_of_a_bed', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:comfy_bed', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:arch_backed_chair', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:simple_wooden_chair', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:arch_backed_chair', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:simple_wooden_chair', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:dining_table', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:table_for_one', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:dining_table', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:table_for_one', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:wooden_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_garden_lantern', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:wooden_wall_lantern', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:wooden_garden_lantern', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:picket_fence', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:picket_fence', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:firepit', x, z, dx, 0); x=x_start; z=z+dz;
 
 --
 
-   self:_check_item('stonehearth:picket_fence_gate', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_door', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:wooden_window_frame', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:furniture:picket_fence_gate', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:portals:wooden_door', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:portals:wooden_window_frame', x, z, dx, 0); x=x_start; z=z+dz;
 
 
    x_start, z_start = col[4], row[1]
@@ -104,8 +104,8 @@ function AlignmentTest:__init()
    self:_check_item('stonehearth:berry_plate', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:berry_bush', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:brightbell:wild', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:brightbell', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:plants:brightbell:wild', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:plants:brightbell', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:terrain:tall_grass', x, z, dx, 0); x=x_start; z=z+dz;
 
    self:_check_item('stonehearth:ball', x, z, dx, 0); x=x_start; z=z+dz;

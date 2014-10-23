@@ -15,7 +15,7 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:wooden_diamond_window"
+         "item":"stonehearth:portals:wooden_diamond_window"
       }
   ]
 }
