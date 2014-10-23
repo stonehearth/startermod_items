@@ -17,6 +17,7 @@ function ConstructionProgress:initialize(entity, json)
    if not self._sv.dependencies then
       self._sv.dependencies = {}
       self._sv.inverse_dependencies = {}
+      self._sv.loaning_scaffolding_to = {}
       self._sv.finished = false
       self._sv.active = false
       self._sv.teardown = false
@@ -355,6 +356,21 @@ function ConstructionProgress:get_dependencies()
    return self._sv.dependencies
 end
 
+-- used to loan our scaffolding to the borrower.  this means we won't
+-- try to tear down the scaffolding until our entity and the borrower
+-- entity are both finished.
+function ConstructionProgress:loan_scaffolding_to(borrower)
+   if borrower and borrower:is_valid() then
+      self._sv.loaning_scaffolding_to[borrower:get_id()] = borrower
+      self.__saved_variables:mark_changed()
+   end
+end
+
+-- return the map of entities that we're loaning our scaffolding to
+function ConstructionProgress:get_loaning_scaffolding_to()
+   return self._sv.loaning_scaffolding_to
+end
+
 -- returns the fabricator component for this entity.  the exact name of the component
 -- was specified during the :set_fabricator_entity() call.  for walls, columns, etc,
 -- it's 'stonehearth:fabricator'.  for windows, lanterns, flags, etc. it's 
@@ -375,6 +391,7 @@ function ConstructionProgress:save_to_template()
       dependencies               = build_util.pack_entity_table(self._sv.dependencies),
       inverse_dependencies       = build_util.pack_entity_table(self._sv.inverse_dependencies),
       fabricator_component_name  = self._sv._fabricator_component_name,
+      loan_scaffolding_to        = build_util.pack_entity_table(self._sv.loaning_scaffolding_to),
    }
 end
 
@@ -383,6 +400,11 @@ function ConstructionProgress:load_from_template(template, options, entity_map)
    self._sv.dependencies               = build_util.unpack_entity_table(template.dependencies, entity_map)
    self._sv.inverse_dependencies       = build_util.unpack_entity_table(template.inverse_dependencies, entity_map)
    self._sv._fabricator_component_name = template.fabricator_component_name
+
+   for _, key in pairs(template.loan_scaffolding_to) do
+      self:loan_scaffolding_to(entity_map[key])
+   end
+
    self.__saved_variables:mark_changed()
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()

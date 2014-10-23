@@ -196,7 +196,7 @@ function Building:_create_roof_dependencies(roof)
                   :add_dependency(structure)
 
       -- loan out some scaffolding
-      structure:get_component('stonehearth:construction_data')
+      structure:get_component('stonehearth:construction_progress')
                   :loan_scaffolding_to(roof)
    end
 end

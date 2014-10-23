@@ -86,7 +86,7 @@ end
 -- in the build service!
 function ScaffoldingFabricator:_compute_borrowers_required_height()
    local desired_height
-   local borrowing_us = self._blueprint_cd:get_loaning_scaffolding_to()
+   local borrowing_us = self._blueprint_cp:get_loaning_scaffolding_to()
    for id, borrower in pairs(borrowing_us) do
       local borrower_cp = borrower:get_component('stonehearth:construction_progress')
       local finished = borrower_cp:get_finished()
