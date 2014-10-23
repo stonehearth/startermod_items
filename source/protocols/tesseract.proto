@@ -9,6 +9,7 @@ message Request {
    extensions 100 to max;
    enum Type {
       PostCommandRequest = 2;
+      FinishedUpdate     = 3;
    }
    required Type     type = 1;
 };
@@ -27,6 +28,13 @@ message PostCommandRequest {
    optional string   object = 3;
    optional string   route = 4;
    optional string   args = 5;
+}
+
+message FinishedUpdate {
+   extend Request {
+      optional FinishedUpdate extension = 103;
+   }
+   required uint32   sequence_number = 1;
 }
 
 message Update {

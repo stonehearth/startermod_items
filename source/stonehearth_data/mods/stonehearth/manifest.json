@@ -893,6 +893,14 @@
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
+      "place_item_on_wall" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
+      "place_item_type_on_wall" : {
+         "endpoint" : "server",
+         "controller" : "file(call_handlers/place_item_call_handler.lua)"
+      },
       "undeploy_item" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"

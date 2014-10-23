@@ -264,6 +264,7 @@ private:
       rpc::ReactorDeferredPtr     load_progress_deferred_;
       rpc::ReactorDeferredPtr     server_load_deferred_;
       rpc::ReactorDeferredPtr     perf_counter_deferred_;
+      int                         _lastSequenceNumber;
 
       bool                        loading_;
 };
