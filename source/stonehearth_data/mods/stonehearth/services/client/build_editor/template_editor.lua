@@ -35,7 +35,7 @@ function TemplateEditor:go(response, template_name)
    self:_restore_template(template_name)
 
    stonehearth.selection:select_location()
-      :set_cursor('stonehearth:cursors:create_ladder')
+      :set_cursor('stonehearth:cursors:place_template')
       :set_filter_fn(function (result)
             self._log:spam('testing: %s', result.entity)
             if result.entity:get_id() ~= 1 then

@@ -15,15 +15,17 @@ function FollowPath:__init(entity, speed, path)
    -- path:get_points and path:get_pruned_points return lua base 1 arrays
    self._points = self._path:get_pruned_points()
    self._num_points = #self._points
-   self._destination_y = self._points[self._num_points].y
+   self._last_index = self._num_points
    self._poi = self._path:get_destination_point_of_interest()
+   self._finish_point = self._path:get_finish_point()
+   self._destination_y = self._finish_point.y
+   assert(self._finish_point == self._points[self._last_index])
 
-   self._pursuing = self:_calculate_start_index()
+   self._pursuing_index = self:_calculate_start_index()
    self._stop_index = self:_calculate_stop_index()
 
    self._contiguous_points = self._path:get_points()
    self._contiguous_index = 1
-
    assert(self:_is_contiguous_path(self._contiguous_points))
 
    -- our convention is to have the starting point as the first point in the path
@@ -35,7 +37,7 @@ function FollowPath:__init(entity, speed, path)
    end
 
    log:debug('%s following path: start_index: %d, stop_index: %d, num_points: %d',
-             self._entity, self._pursuing, self._stop_index, self._num_points)
+             self._entity, self._pursuing_index, self._stop_index, self._num_points)
 end
 
 function FollowPath:set_speed(speed)
@@ -59,7 +61,13 @@ function FollowPath:set_aborted_cb(aborted_cb)
 end
 
 function FollowPath:start()
-   self._gameloop_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._move_one_gameloop)
+   self:_check_ignore_stop_distance()
+   if self:_arrived() then
+      self:_do_arrived()
+   else
+      self._gameloop_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', self, self._move_one_gameloop)
+   end
+   return self
 end
 
 function FollowPath:stop()
@@ -67,11 +75,26 @@ function FollowPath:stop()
       self._gameloop_listener:destroy()
       self._gameloop_listener = nil
    end
+   return self
 end
 
-function FollowPath:arrived()
-   if self._pursuing < self._stop_index then
+function FollowPath:_do_arrived()
+   self:_trigger_arrived_cb()
+   self:stop()
+end
+
+function FollowPath:_do_aborted()
+   self:_trigger_aborted_cb()
+   self:stop()
+end
+
+function FollowPath:_arrived()
+   if self._pursuing_index < self._stop_index then
       return false
+   end
+
+   if self._pursuing_index > self._stop_index then
+      return true
    end
 
    -- Don't travel all the way to stop_index if not necessary.
@@ -79,21 +102,36 @@ function FollowPath:arrived()
    -- If stop_distance == 0 then make sure we finish pursuing all points on the path.
    -- This is important when the entity and poi are at the same location and we're trying
    -- to move to a point in the adjacent region (e.g. to pick up the item).
-   if self._pursuing == self._stop_index then
-      local location = self._mob:get_location()
+   assert(self._pursuing_index == self._stop_index)
 
-      -- only stop early if the current location is at the same elevation as the destination
-      -- and the distance to the poi is less than the stop_distance
-      if self._stop_distance > 0 and location.y == self._destination_y then
-         local distance = location:distance_to(self._poi)
-         return distance <= self._stop_distance
-      else
-         local goal = self._points[self._stop_index]
-         return location == goal
+   local location = self._mob:get_location()
+
+   -- only stop early if the current location is at the same elevation as the destination
+   -- and the distance to the poi is less than the stop_distance
+   if self._stop_distance > 0 and location.y == self._destination_y then
+      local poi_distance = location:distance_to(self._poi)
+      return poi_distance <= self._stop_distance
+   else
+      local goal = self._points[self._stop_index]
+      return location == goal
+   end
+end
+
+-- If stop_distance is non-zero, we want to be stop_distance away from the poi.
+-- If we're too close and the finish point is further, just go to the finish point.
+function FollowPath:_check_ignore_stop_distance()
+   local location = self._mob:get_location()
+   local location_to_poi_distance = location:distance_to(self._poi)
+
+   if location_to_poi_distance < self._stop_distance then
+      local finish_point_to_poi_distance = self._finish_point:distance_to(self._poi)
+
+      if finish_point_to_poi_distance > location_to_poi_distance then
+         log:info('Start location closer than stop_distance from the poi. Ignoring stop_distance and going to the finish point.')
+         self._stop_distance = 0
+         self._stop_index = self._last_index
       end
    end
-
-   return true
 end
 
 function FollowPath:_move_one_gameloop()
@@ -102,9 +140,8 @@ function FollowPath:_move_one_gameloop()
    assert(self._mob:get_location() == self._mob:get_world_location(), 'entity must be a child of the root entity')
 
    while true do
-      if self:arrived() then
-         self:_trigger_arrived_cb()
-         self:stop()
+      if self:_arrived() then
+         self:_do_arrived()
          break
       end
 
@@ -115,7 +152,7 @@ function FollowPath:_move_one_gameloop()
 
       local current_location = self._mob:get_location()
       local new_location
-      local goal = self._points[self._pursuing]
+      local goal = self._points[self._pursuing_index]
       local goal_vector = goal - current_location
       local goal_distance = goal_vector:length()
 
@@ -123,7 +160,7 @@ function FollowPath:_move_one_gameloop()
          -- enough movement distance to reach the next point
          new_location = goal
          move_distance = move_distance - goal_distance
-         self._pursuing = self._pursuing + 1
+         self._pursuing_index = self._pursuing_index + 1
       else
          -- movement distance stops short of the next point
          new_location = current_location + goal_vector * (move_distance / goal_distance)
@@ -132,8 +169,8 @@ function FollowPath:_move_one_gameloop()
 
       -- verify that the move is still valid because the the terrain may have changed from when we found the path
       if not self:_is_valid_move(current_location, new_location) then
-         self:_trigger_aborted_cb()
-         self:stop()
+         log:info('Follow path aborting because terrain/nav_grid has changed and move is no longer valid')
+         self:_do_aborted()
          break
       end
 
@@ -197,19 +234,18 @@ end
 function FollowPath:_calculate_stop_index()
    local previous_point = self._poi
    local current_point
-   local last_index = self._num_points
-   local index = last_index
+   local index = self._last_index
    local distance = 0
 
    if self._stop_distance == 0 then
-      return last_index
+      return self._last_index
    end
 
-   for i = last_index, 1, -1 do
+   for i = self._last_index, 1, -1 do
       current_point = self._points[i]
       if current_point.y ~= self._destination_y then
          -- don't stop early if there is an elevation change between here and the destination
-         return last_index
+         return self._last_index
       end
 
       distance = distance + current_point:distance_to(previous_point)

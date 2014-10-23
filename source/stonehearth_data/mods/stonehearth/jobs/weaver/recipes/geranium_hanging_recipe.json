@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:geranium_hanging"
+         "item":"stonehearth:decoration:geranium_hanging"
       }
   ]
 }

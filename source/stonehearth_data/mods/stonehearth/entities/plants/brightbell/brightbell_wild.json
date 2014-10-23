@@ -20,7 +20,7 @@
          "task_group_name" : "stonehearth:task_group:harvest",
          "harvest_overlay_effect" : "/stonehearth/data/effects/harvest_plant_overlay_effect",
          "description" : "harvest_plant",
-         "resource": "stonehearth:brightbell"
+         "resource": "stonehearth:plants:brightbell"
       },
 
       "mob" : {

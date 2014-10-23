@@ -13,8 +13,8 @@ function SleepTest:__init()
 
    local w1 = self:place_citizen(-8, 8)
    local w2 = self:place_citizen(8, 8)
-   self:place_item('stonehearth:comfy_bed', 0, 8)
-   --self:place_item('stonehearth:comfy_bed', 0, 0)
+   self:place_item('stonehearth:furniture:comfy_bed', 0, 8)
+   --self:place_item('stonehearth:furniture:comfy_bed', 0, 0)
    local tree = self:place_tree(-12, -12)
 
    --Make sure pets sleep too 

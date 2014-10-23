@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local build_util = require 'lib.build_util'
 local priorities = require('constants').priorities.worker_task
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3
@@ -21,10 +21,10 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    assert(item_to_place, "Must pass entity data about the object to place")
 
    local placement_test_entity, destroy_placement_test_entity, cursor_uri
-   local next_call, target_entity_data, test_entity, entity_being_placed, ghost_entity, iconic_entity
-   
+   local target_entity_data, test_entity, entity_being_placed, ghost_entity, iconic_entity
+   local specific_item_to_place, item_uri_to_place
    if type(item_to_place) == 'string' then   
-      next_call = 'stonehearth:place_item_type_in_world'
+      item_uri_to_place = item_to_place
       placement_test_entity = radiant.entities.create_entity(item_to_place)
       --[[  xxx, place_item_type_in_world is capable of dealing with non-iconic entity forms, so this is unnecessary.
       item_to_place = placement_test_entity:get_component('stonehearth:entity_forms')
@@ -33,8 +33,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
       ]]
       destroy_placement_test_entity = true
    else
-      next_call = 'stonehearth:place_item_in_world'
-     
+      specific_item_to_place = item_to_place      
       -- if this is the iconic version, use the actual ghost for the template
       local iconic_form = item_to_place:get_component('stonehearth:iconic_form')
       if iconic_form then
@@ -95,7 +94,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                   for _, entity in pairs(entities) do
                      local wall = entity:get_component('stonehearth:wall')
                      if wall then
-                        local rotation = voxel_brush_util.normal_to_rotation(normal)
+                        local rotation = build_util.normal_to_rotation(normal)
                         placing_on_wall = entity
                         placing_on_wall_normal = normal
                         selector:set_rotation(rotation)
@@ -106,7 +105,21 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             end
          end)
       :done(function(selector, location, rotation)
-            _radiant.call(next_call, item_to_place, location, rotation, placing_on_wall, placing_on_wall_normal)
+            local deferred
+            if placing_on_wall then
+               if specific_item_to_place then
+                  deferred = _radiant.call('stonehearth:place_item_on_wall', specific_item_to_place, location, placing_on_wall, placing_on_wall_normal)
+               else
+                  deferred = _radiant.call('stonehearth:place_item_type_on_wall', item_uri_to_place, location, placing_on_wall, placing_on_wall_normal)
+               end
+            else
+               if specific_item_to_place then
+                  deferred = _radiant.call('stonehearth:place_item_in_world', specific_item_to_place, location, rotation)
+               else
+                  deferred = _radiant.call('stonehearth:place_item_type_in_world', item_uri_to_place, location, rotation)
+               end
+            end
+            deferred
                :done(function (result)
                      response:resolve(result)
                   end)
@@ -129,43 +142,69 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
       :go()
 end
 
---- Tell a worker to place the item in the world
--- Server side object to handle creation of the workbench.  This is called
--- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
-   local location = ToPoint3(location)
+local function get_root_entity(item)
    if not item or not radiant.util.is_a(item, Entity) or not item:is_valid() then
-      return false
+      return
    end
+
    local iconic_form = item:get_component('stonehearth:iconic_form')
    if iconic_form then
-      item = iconic_form:get_root_entity()      
+      item = iconic_form:get_root_entity()
    end
    local ghost_form = item:get_component('stonehearth:ghost_form')
    if ghost_form then
-      item = ghost_form:get_root_entity()      
+      item = ghost_form:get_root_entity()
    end
    
    local entity_forms = item:get_component('stonehearth:entity_forms')
+   if entity_forms then
+      return item, entity_forms
+   end
+end
+
+--- Tell a worker to place the item in the world
+-- Server side object to handle creation of the workbench.  This is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItemCallHandler:place_item_in_world(session, response, item_to_place, location, rotation)
+   location = ToPoint3(location)
+
+   local item, entity_forms = get_root_entity(item_to_place)
    if not entity_forms then
-      response:reject({ error = 'item has no entity_forms component '})
+      response:reject({ error = 'item has no entity_forms component'})
+      return
    end
    
    radiant.entities.set_player_id(item, session.player_id)
-   if placing_on_wall then
-      entity_forms:place_item_on_wall(location, placing_on_wall, ToPoint3(placing_on_wall_normal))
-   else
-      entity_forms:place_item_on_ground(location, rotation)
-   end
+   entity_forms:place_item_on_ground(location, rotation)
 
    return true
 end
 
+--- Tell a worker to place the item in the world
+-- Server side object to handle creation of the workbench.  This is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItemCallHandler:place_item_on_wall(session, response, item, location, wall, normal)
+   location = ToPoint3(location)
+   normal = ToPoint3(normal)
+
+   local item, entity_forms = get_root_entity(item)
+   if not entity_forms then
+      response:reject({ error = 'item has no entity_forms component'})
+   end
+   
+   radiant.entities.set_player_id(item, session.player_id)
+   entity_forms:place_item_on_wall(location, wall, normal)
+   return true
+end
+
+
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation, placing_on_wall, placing_on_wall_normal)
-   local location = Point3(location.x, location.y, location.z)
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
+   location = Point3(location.x, location.y, location.z)
+
+   --- xxx: make a "place on ground" fixture fabricator type paradigm here
 
    -- look for entities which are not currently being placed
    local uri = entity_uri
@@ -177,8 +216,8 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
                                                             :find_closest_unused_placable_item(uri, location)
 
    if item then
-      self:place_item_in_world(session, response, item, location, rotation, placing_on_wall, placing_on_wall_normal)
-   
+      self:place_item_in_world(session, response, item, location, rotation)
+
       -- return whether or not there are most items we could potentially place
       response:resolve({ 
             more_items = acceptable_item_count > 1,
@@ -187,6 +226,21 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
    else 
       response:reject({error = 'no more placeable items'})
    end
+end
+
+--- Place any object that matches the entity_uri
+-- server side object to handle creation of the workbench.  this is called
+-- by doing a POST to the route for this file specified in the manifest.
+function PlaceItemCallHandler:place_item_type_on_wall(session, response, entity_uri, location, wall, normal)
+   location = Point3(location.x, location.y, location.z)
+   normal = ToPoint3(normal)
+
+   local fixture_uri = entity_uri
+   local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
+   assert(data, 'must send entity-forms root entity to place_item_type_on_wall')
+   location = location - radiant.entities.get_world_grid_location(wall)
+   stonehearth.build:add_fixture(wall, fixture_uri, location, normal)
+   return true
 end
 
 function PlaceItemCallHandler:undeploy_item(session, response, item)

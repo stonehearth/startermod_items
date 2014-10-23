@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
@@ -64,7 +64,7 @@ function LadderRenderer:_update_shape()
    -- update the normal
    local normal = self._ladder:get_normal()
    if normal then
-      self._rotation = voxel_brush_util.normal_to_rotation(normal)
+      self._rotation = build_util.normal_to_rotation(normal)
    end
 
    -- update the ladder

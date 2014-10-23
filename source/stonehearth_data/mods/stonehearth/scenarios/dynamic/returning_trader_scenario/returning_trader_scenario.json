@@ -29,37 +29,37 @@
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:simple_wooden_chair" : {
+         "stonehearth:furniture:simple_wooden_chair" : {
             "min" : 5, 
             "max" : 12
          }, 
-          "stonehearth:picket_fence" : {
+          "stonehearth:furniture:picket_fence" : {
             "min" : 5, 
             "max" : 20
          }, 
-         "stonehearth:picket_fence_gate" : {
+         "stonehearth:furniture:picket_fence_gate" : {
             "min" : 1, 
             "max" : 4
          }, 
-         "stonehearth:table_for_one" : {
+         "stonehearth:furniture:table_for_one" : {
             "min" : 3, 
             "max" : 8
          }, 
-         "stonehearth:not_much_of_a_bed" : {
+         "stonehearth:furniture:not_much_of_a_bed" : {
             "min" : 3, 
             "max" : 10
          }, 
-         "stonehearth:wooden_door" : {
+         "stonehearth:portals:wooden_door" : {
             "min" : 2, 
             "max" : 10
          },
-         "stonehearth:wooden_window_frame" : {
+         "stonehearth:portals:wooden_window_frame" : {
             "min" : 4, 
             "max" : 10
          }
       },
       "rewards" : {
-         "stonehearth:wooden_garden_lantern" : {
+         "stonehearth:furniture:wooden_garden_lantern" : {
             "type" : "object", 
             "min" : 2, 
             "max" : 6
@@ -69,7 +69,7 @@
             "min" : 2, 
             "max" : 10
          }, 
-         "stonehearth:comfy_bed" : {
+         "stonehearth:furniture:comfy_bed" : {
             "type" : "object", 
             "min" : 1, 
             "max" : 3

@@ -11,12 +11,12 @@ function CollisionTest:__init()
    local worker = self:place_citizen(13, 13)
    local player_id = worker:get_component('unit_info'):get_player_id()   
 ---[[
-   self:place_item('stonehearth:picket_fence', 0, 3)
-   self:place_item('stonehearth:picket_fence', 2, 3)
-   self:place_item('stonehearth:picket_fence', 4, 3)
-   self:place_item('stonehearth:picket_fence', 6, 3)
-   self:place_item('stonehearth:picket_fence', 8, 3)
-   self:place_item('stonehearth:picket_fence', 10, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 0, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 2, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 4, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 6, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 8, 3)
+   self:place_item('stonehearth:furniture:picket_fence', 10, 3)
 --]]
 
 --[[

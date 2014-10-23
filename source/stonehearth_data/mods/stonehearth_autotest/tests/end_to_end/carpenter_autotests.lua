@@ -30,7 +30,7 @@ function carpenter_tests.place_workshop(autotest)
    autotest.ui:click_dom_element('#craftWindow #closeButton')
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-      if e.entity:get_uri() == 'stonehearth:table_for_one' then 
+      if e.entity:get_uri() == 'stonehearth:furniture:table_for_one' then 
          autotest:success()
          return radiant.events.UNLISTEN
       end
@@ -76,7 +76,7 @@ function carpenter_tests.maintain_x(autotest)
 
    local num_built = 0
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-      if e.entity:get_uri() == 'stonehearth:table_for_one' then 
+      if e.entity:get_uri() == 'stonehearth:furniture:table_for_one' then 
          num_built = num_built + 1
          if num_built == 1 then
          local table_proxy = e.entity:get_component('stonehearth:entity_forms')

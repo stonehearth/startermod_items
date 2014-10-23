@@ -18,7 +18,7 @@ function BuffTest:__init()
    local bush = self:place_item('stonehearth:berry_bush', 4, -4)
    radiant.entities.add_buff(citizen_2, 'stonehearth:buffs:starving')
 
-   self:place_item('stonehearth:comfy_bed', 0, 0)
+   self:place_item('stonehearth:furniture:comfy_bed', 0, 0)
 
    self:at(10,  function()
          self:place_stockpile_cmd(player_id, 12, 12, 4, 4)

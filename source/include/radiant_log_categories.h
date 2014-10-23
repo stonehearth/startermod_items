@@ -38,6 +38,7 @@
    END_GROUP(core) \
    \
    BEGIN_GROUP(simulation) \
+      ADD_CATEGORY(remote_client) \
       ADD_CATEGORY(core) \
       ADD_CATEGORY(jobs) \
       BEGIN_GROUP(pathfinder) \

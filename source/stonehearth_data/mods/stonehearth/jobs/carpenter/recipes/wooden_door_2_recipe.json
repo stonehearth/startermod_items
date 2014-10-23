@@ -14,7 +14,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:wooden_door_2"
+         "item":"stonehearth:portals:wooden_door_2"
       }
   ]
 }

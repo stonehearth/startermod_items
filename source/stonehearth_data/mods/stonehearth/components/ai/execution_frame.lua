@@ -891,7 +891,7 @@ function ExecutionFrame:_destroy_from_running()
 end
 
 function ExecutionFrame:abort()
-   self._log:debug('abort')
+   self._log:info('abort')
    self:_trace_state_change(tostring(self._state), 'abort')
    assert(not self._aborting)
    self._aborting = true

@@ -12,7 +12,6 @@ function AoeDamageComponent:initialize(entity, json)
    self._tracked_entities = {}
    
    if self._sensor_name then
-      self._poll_listener = radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
       radiant.events.listen_once(self._entity, 'radiant:entity:post_create', function()
             self:_trace_sensor()
          end)
@@ -20,7 +19,7 @@ function AoeDamageComponent:initialize(entity, json)
 end
 
 -- Deal damage to everyone within my sensor
-function AoeDamageComponent:_on_poll()
+function AoeDamageComponent:_do_aoe_damage()
    
    -- If an aoe effect has been specified and there's at least one entry in the
    -- tracked entities table, run the aoe effect on my entity
@@ -65,14 +64,31 @@ end
 -- When an entity enters the sensor, keep track of it if it's hostile. Every
 -- so often we will deal damage to all tracked entities
 function AoeDamageComponent:_on_added_to_sensor(id, entity)
+
+   -- track the entity if it's hostile
    if radiant.entities.is_hostile(entity, self._entity) then
       self._tracked_entities[id] = entity
+   end
+
+   -- if there are any entities being tracked and we haven't set the aoe tick timer, then do so.
+   if next(self._tracked_entities) and self._aoe_timer == nil then
+      self._aoe_timer = stonehearth.calendar:set_interval('10m',  function()
+                              self:_do_aoe_damage()
+                           end)
    end
 end
 
 -- When an entity leaves the sensor, stop tracking it
 function AoeDamageComponent:_on_removed_to_sensor(id)
+   -- stop tracking the entity
    self._tracked_entities[id] = nil
+
+   -- if there are aren't any more entities being tracked, clean up the aoe timer
+   if next(self._tracked_entities) == nil and self._aoe_timer ~= nil then
+      self._aoe_timer:destroy()
+      self._aoe_timer = nil
+   end
+
 end
 
 

@@ -20,7 +20,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:comfy_bed"
+         "item":"stonehearth:furniture:comfy_bed"
       }
   ]
 }

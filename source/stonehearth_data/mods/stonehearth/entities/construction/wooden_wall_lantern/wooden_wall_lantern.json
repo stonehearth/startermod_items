@@ -1,4 +1,5 @@
 {
+   "type" : "entity",
    "mixins": "file(wooden_wall_lantern_ghost.json)",
 
    "components" : {
@@ -16,7 +17,8 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_wall_lantern_iconic.json)",
          "ghost_form" : "file(wooden_wall_lantern_ghost.json)",
-      "placeable_on_walls" : true
+         "placeable_on_walls" : true,
+         "placeable_category" : "Furniture"
       }
    }
 }

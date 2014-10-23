@@ -73,6 +73,7 @@ Simulation::Simulation(std::string const& versionStr) :
    debug_navgrid_enabled_(false),
    profile_next_lua_update_(false),
    begin_loading_(false),
+   _sequenceNumber(1),
    _versionStr(versionStr)
 {
    OneTimeIninitializtion();
@@ -496,7 +497,8 @@ void Simulation::EncodeBeginUpdate(std::shared_ptr<RemoteClient> c)
    proto::Update update;
    update.set_type(proto::Update::BeginUpdate);
    auto msg = update.MutableExtension(proto::BeginUpdate::extension);
-   msg->set_sequence_number(1);
+   msg->set_sequence_number(_sequenceNumber);
+   c->SetSequenceNumber(_sequenceNumber);
    c->send_queue->Push(update);
 }
 
@@ -708,20 +710,29 @@ void Simulation::ProcessJobList()
    SIM_LOG_GAMELOOP(7) << "done processing job list";
 }
 
-void Simulation::PostCommand(proto::PostCommandRequest const& request)
+void Simulation::PostCommandRequest(proto::PostCommandRequest const& request)
 {
    protobuf_reactor_->Dispatch(session_, request);
+}
+
+void Simulation::FinishedUpdate(proto::FinishedUpdate const& msg)
+{
+   for (std::shared_ptr<RemoteClient> c : _clients) {
+      // xxx: when we do multiplayer, this needs to be keyed by session
+      c->AckSequenceNumber(msg.sequence_number());
+   }
 }
 
 bool Simulation::ProcessMessage(std::shared_ptr<RemoteClient> c, const proto::Request& msg)
 {
 #define DISPATCH_MSG(MsgName) \
-   case proto::Request::MsgName ## Request: \
-      MsgName(msg.GetExtension(proto::MsgName ## Request::extension)); \
+   case proto::Request::MsgName: \
+      MsgName(msg.GetExtension(proto::MsgName::extension)); \
       break;
 
    switch (msg.type()) {
-      DISPATCH_MSG(PostCommand)
+      DISPATCH_MSG(PostCommandRequest)
+      DISPATCH_MSG(FinishedUpdate)
    default:
       ASSERT(false);
    }
@@ -788,6 +799,7 @@ void Simulation::main()
    game_loop_timer_.set(game_tick_interval_);
    while (1) {
       Mainloop();
+      ++_sequenceNumber;
    }
 }
 
@@ -921,18 +933,22 @@ void Simulation::SendClientUpdates()
 
    for (std::shared_ptr<RemoteClient> c : _clients) {
       SendUpdates(c);
-      protocol::SendQueue::Flush(c->send_queue);
    };
 }
 
 void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
-{
-   EncodeBeginUpdate(c);
-   EncodeServerTick(c);
-   FlushStream(c);
-   EncodeDebugShapes(c->send_queue);
-   EncodeEndUpdate(c);
+{   
+   if (c->IsClientReadyForUpdates()) {
+      EncodeBeginUpdate(c);
+      EncodeServerTick(c);
+      FlushStream(c);
+      EncodeDebugShapes(c->send_queue);
+      EncodeEndUpdate(c);
+   }
+   // updates are responses to things like call's and traces.  send those
+   // unconditionally...
    EncodeUpdates(c);
+   c->FlushSendQueue();
 }
 
 void Simulation::ReadClientMessages()
@@ -1010,7 +1026,7 @@ void Simulation::Load()
       // Push the updates immediately.
       for (std::shared_ptr<RemoteClient> c : _clients) {
          EncodeUpdates(c);
-         protocol::SendQueue::Flush(c->send_queue);
+         c->FlushSendQueue();
       }
    });
    
@@ -1059,7 +1075,7 @@ void Simulation::Load()
    load_progress_deferred_->Resolve(json::Node().set("progress", 100));
    for (std::shared_ptr<RemoteClient> c : _clients) {
       EncodeUpdates(c);
-      protocol::SendQueue::Flush(c->send_queue);
+      c->FlushSendQueue();
    }
    SIM_LOG(0) << "Done loading.";
 }

@@ -1,4 +1,4 @@
-local voxel_brush_util = require 'services.server.build.voxel_brush_util'
+local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Entity = _radiant.om.Entity
 
@@ -234,7 +234,7 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
    -- build view mode changes, the ghost item will show and hide itself along with
    -- the wall).  if the wall's finished, we'll use the blueprint.  otherwise,
    -- use the fabricator
-   local rotation = voxel_brush_util.normal_to_rotation(normal)
+   local rotation = build_util.normal_to_rotation(normal)
    local offset = location - radiant.entities.get_world_grid_location(wall_entity)
    local ghost_entity_parent = wall_finished and wall_entity or wall_cp:get_fabricator_entity()
 
@@ -248,17 +248,17 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
       return
    end
 
-   radiant.entities.add_child(wall_entity, self._sv.ghost_entity, offset)
-   radiant.entities.turn_to(self._sv.ghost_entity, rotation)
-
    -- the wall is finished.  let's start up the tasks.  if we're currently on a wall,
    -- we may need to build a ladder to pick ourselves up.  request that now.
-   local parent = self._entity:add_component('mob'):get_parent()
+   local mob = self._entity:add_component('mob')
+   local parent = mob:get_parent()
    if parent and parent:get_component('stonehearth:wall') then
-      local parent_normal = parent:get_component('stonehearth:construction_data')
-                                       :get_normal()
-      local pickup_location = radiant.entities.get_world_grid_location(self._entity) + parent_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, parent_normal)
+      -- ah!  we're on a wall.  the ladder has to move over by our normal to the wall, which
+      -- we can compute based on the rotation.
+      local current_rotation = mob:get_facing()
+      local curernt_normal = build_util.rotation_to_normal(current_rotation)
+      local pickup_location = radiant.entities.get_world_grid_location(self._entity) + curernt_normal
+      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, curernt_normal)
    end
 
    -- create another ladder request to climb up to the placement point.

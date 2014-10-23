@@ -33,8 +33,8 @@ function PetTest:__init()
    self:place_item('stonehearth:berry_plate', -10, 10)
    self:place_item('stonehearth:berry_plate', 10, -10)
    self:place_item('stonehearth:berry_plate', -10, -10)
-   self:place_item('stonehearth:arch_backed_chair', 5, 5)
-   self:place_item('stonehearth:comfy_bed', -4, -4)
+   self:place_item('stonehearth:furniture:arch_backed_chair', 5, 5)
+   self:place_item('stonehearth:furniture:comfy_bed', -4, -4)
 
    local town = stonehearth.town:get_town(worker1)
 

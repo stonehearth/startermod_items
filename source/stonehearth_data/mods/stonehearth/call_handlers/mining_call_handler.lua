@@ -120,50 +120,14 @@ function MiningCallHandler:designate_mining_zone(session, response)
       :go()
 end
 
--- test code
+-- test code, just mines down for the moment
 function MiningCallHandler:add_mining_zone(session, response, region_table)
-   local new_region = Region3()
-   new_region:load(region_table)
-   local inflated_region = new_region:inflated(Point3(1, 1, 1))
+   local region = Region3()
+   region:load(region_table)
+   
+   local mining_zone = stonehearth.mining:dig_down(session.player_id, session.faction, region)
 
-   -- using town as a proxy for the eventual player object
-   local town = stonehearth.town:get_town(session.player_id)
-   local mining_zones = town:get_mining_zones()
-   local mergable_zones = {}
-
-   -- find all the existing mining zones that are adjacent or overlap the new region
-   for _, zone in pairs(mining_zones) do
-      -- move the inflated region to the local space of the zone
-      local location = radiant.entities.get_world_grid_location(zone)
-      local translated_inflated_region = inflated_region:translated(-location)
-
-      local mining_zone_component = zone:add_component('stonehearth:mining_zone')
-      local existing_region = mining_zone_component:get_region():get()
-
-      if existing_region:intersects(translated_inflated_region) then
-         mergable_zones[zone:get_id()] = zone
-      end
-   end
-
-   local _, selected_zone = next(mergable_zones)
-
-   if selected_zone then
-      -- remove the surviving zone from the merge list
-      mergable_zones[selected_zone:get_id()] = nil
-   else
-      -- no adjacent or overlapping zone exists, so create a new one
-      selected_zone = stonehearth.mining:create_mining_zone(session.player_id, session.faction)
-      town:add_mining_zone(selected_zone)
-   end
-
-   stonehearth.mining:dig_down(selected_zone, new_region)
-
-   -- merge the other zones into the surviving zone and destroy them
-   for _, zone in pairs(mergable_zones) do
-      stonehearth.mining:merge_zones(selected_zone, zone)
-   end
-
-   return { mining_zone = selected_zone }
+   return { mining_zone = mining_zone }
 end
 
 return MiningCallHandler

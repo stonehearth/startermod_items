@@ -16,7 +16,7 @@ function HalloweenTest:__init()
    radiant.terrain.place_entity(banner_entity, Point3(0, 0, 0))
    stonehearth.town:get_town('player_1'):set_banner(banner_entity)
 
-   --self:place_item('stonehearth:wooden_garden_lantern', -4, -4, nil, { force_iconic = false })
+   --self:place_item('stonehearth:furniture:wooden_garden_lantern', -4, -4, nil, { force_iconic = false })
    --self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
    self:place_item_cluster('stonehearth:oak_log', -6, 11, 3, 3)
 
