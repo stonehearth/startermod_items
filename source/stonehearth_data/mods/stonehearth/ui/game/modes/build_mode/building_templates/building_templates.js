@@ -55,7 +55,7 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       */
 
       self.$('#customBuildingButton').click(function() {
-         $(top).trigger('stonehearth_building_designer');
+         $(top).trigger('stonehearth_building_editor');
       })      
    },
 

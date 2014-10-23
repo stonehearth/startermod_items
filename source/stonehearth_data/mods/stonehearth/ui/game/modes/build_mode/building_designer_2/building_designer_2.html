@@ -1,6 +1,21 @@
-<script type="text/x-handlebars" data-template-name="buildingDesignerTools">
-   <div id="buildingDesignerTools" class="window buildAndDesignTool">
-      <div class="title">Building Designer</div>
+<script type="text/x-handlebars" data-template-name="buildingDesigner">
+   <div id="buildingDesigner">
+
+      <div id="buildingEditor">
+         {{partial 'buildingEditor'}}
+      </div>
+
+      <div id="buildingOverview">
+         {{partial 'buildingOverview'}}
+      </div>
+
+   </div>
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="buildingEditor">
+   <div class="window mainWindow">
+      <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
 
       <div id="tools">
          <h2>Tools</h2>
@@ -119,12 +134,25 @@
 
    </div>
 
-   <div id="selectedBuildingWindow" class="window">
-      <div class="title">{{ view.building.unit_info.name }}</div>
+   <div class="window selectedBuildingWindow">
+      <div id="buttons">
+         <button class="green" id="showOverview">{{i18n stonehearth:show_building_overview}}</button>
+         <button id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
+      </div>
+   </div>
+
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="buildingOverview">
+   <div class="window mainWindow">
+      <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
+      <div class="downSection">
+         Building requirements go here
+      </div>
 
       <div id="buttons">
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
-         <button class="warn" id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
 
          <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
             {{#if building.active }}
@@ -133,6 +161,12 @@
                {{i18n stonehearth:start_building}}
             {{/if}}
          </button>
+      </div>
+
+   </div>
+   <div class="window selectedBuildingWindow">
+      <div id="buttons">
+         <button id="showEditor">{{i18n stonehearth:show_building_editor}}</button>
       </div>
    </div>
 

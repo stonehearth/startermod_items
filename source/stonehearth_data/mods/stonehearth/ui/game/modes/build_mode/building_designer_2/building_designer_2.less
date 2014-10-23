@@ -1,226 +1,231 @@
-#buildingDesignerTools {
-   margin-left: 10px;
-   margin-top: 10px;
-   
-   width: 424px;
-   //height: 420px;
+#buildingDesigner {
 
-   #buildActiveCoverSheet {
+   .mainWindow {
       position: absolute;
-      top: 40px;
-      bottom: 8px;
-      left: 8px;
-      right: 8px;
-      z-index: 999;
-      background: red;
+      left: 10px;
+      top: 10px;
+      width: 500px;
+      height: 650px;
 
-   }
-
-   #tools {
-      margin-bottom: 10px;
-
-      #toolGrid {
-         width: 100%;
-      }
-
-      .toolButton {
-         .button;
-         display: inline-block;
-         width: 60px;
-         height: 45px;
-         padding: 4px;
-         background-position: center;
-         background-repeat: no-repeat;
-         border: 2px solid;
-         border-color:  rgba(0,0,0,0);
-      }
-
-      .toolButton.active {
-         border-color: #ffc000;
-      }      
-
-      #drawFloorTool {
-         background-image: url(images/add_floor_tool.png);
-      }
-
-      #eraseFloorTool {
-         background-image: url(images/remove_floor_tool.png);
-      }
-
-      #drawWallTool {
-         background-image: url(images/add_wall_tool.png);
-      }
-
-      #growWallsTool {
-         background-image: url(images/grow_walls_tool.png);
-      }
-
-      #growRoofTool {
-         background-image: url(images/grow_roof_tool.png);
-      }
-
-      #drawDoodadTool {
-         background-image: url(images/add_doodad_tool.png);
-      }
-
-      #placeItemTool {
-         background-image: url(images/place_item_tool.png);
-      }
-
-      #removeDoodadTool {
-         background-image: url(images/remove_doodad_tool.png);
-      }
-
-      #undoTool {
-         background-image: url(images/undo_tool.png);  
-      }
-
-      .disabled {
-         opacity: 0.15;
+      #buttons {
+         position: absolute;
+         left: 10px;
+         bottom: 10px;
       }
    }
 
-   .tabPage {
-      display: none;
-      width: 394px;
+   .selectedBuildingWindow {
+      position: absolute;
+      top: 710px;
+      left: 10px;
+      width: 500px;
+
+      #buttons {
+         padding-top: 10px;
+      }
    }
 
-   .downSection {
-      width: 100%;
-   }
+   #buildingEditor {
 
-   #floorMaterialTab {
-      display: block;
-   }
+      #tools {
+         margin-bottom: 10px;
 
-   .brushPalette {
+         #toolGrid {
+            width: 100%;
+         }
 
-      .brush {
-         .button;
-         width: 72px;
-         height: 72px;
-         display: inline-block;
-         margin-right: 4px;
-         background-size: contain;
+         .toolButton {
+            .button;
+            display: inline-block;
+            width: 60px;
+            height: 45px;
+            padding: 4px;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2px solid;
+            border-color:  rgba(0,0,0,0);
+         }
 
-         .selectBox {
+         .toolButton.active {
+            border-color: #ffc000;
+         }      
+
+         #drawFloorTool {
+            background-image: url(images/add_floor_tool.png);
+         }
+
+         #eraseFloorTool {
+            background-image: url(images/remove_floor_tool.png);
+         }
+
+         #drawWallTool {
+            background-image: url(images/add_wall_tool.png);
+         }
+
+         #growWallsTool {
+            background-image: url(images/grow_walls_tool.png);
+         }
+
+         #growRoofTool {
+            background-image: url(images/grow_roof_tool.png);
+         }
+
+         #drawDoodadTool {
+            background-image: url(images/add_doodad_tool.png);
+         }
+
+         #placeItemTool {
+            background-image: url(images/place_item_tool.png);
+         }
+
+         #removeDoodadTool {
+            background-image: url(images/remove_doodad_tool.png);
+         }
+
+         #undoTool {
+            background-image: url(images/undo_tool.png);  
+         }
+
+         .disabled {
+            opacity: 0.15;
+         }
+
+         .selectedBuildingWindow {
             display: none;
          }
       }
 
-      .brush.selected {
-         .selectBox {
-            display: block;
+      .tabPage {
+         display: none;
+         width: 394px;
+      }
+
+      .downSection {
+         width: 100%;
+      }
+
+      #floorMaterialTab {
+         display: block;
+      }
+
+      .brushPalette {
+
+         .brush {
+            .button;
+            width: 72px;
+            height: 72px;
+            display: inline-block;
+            margin-right: 4px;
+            background-size: contain;
+
+            .selectBox {
+               display: none;
+            }
+         }
+
+         .brush.selected {
+            .selectBox {
+               display: block;
+            }
          }
       }
-   }
 
-   .doodadPalette {
-      overflow-y: auto;
-      max-height: 450px;
-   }
+      .doodadPalette {
+         overflow-y: auto;
+         max-height: 450px;
+      }
 
-   .roofShape {
-      position: relative;
-      height: 100px;
+      .roofShape {
+         position: relative;
+         height: 100px;
 
-      #roofNumerics {
-         .controlFont;
-         position: absolute;
-         top: 10px;
-         left: 140px;
-         font-size: 16px;
-         color: #ffe156;
+         #roofNumerics {
+            .controlFont;
+            position: absolute;
+            top: 10px;
+            left: 140px;
+            font-size: 16px;
+            color: #ffe156;
 
-         div {
-            float: left;
+            div {
+               float: left;
+            }
+
+            .label {
+               padding-top: 8px;
+               width: 100px;
+            }
          }
 
-         .label {
-            padding-top: 8px;
-            width: 100px;
+         #roofDiagram {
+            position: absolute;
+            top: 22px;
+            left: 33px;
+            width: 51px;
+            height: 51px;
+            background: url(images/roof_diagram_nsew.png);
          }
+
+         .roofDiagramButton {
+            .button;
+            position: absolute;
+            width: 24px;
+            height: 24px;
+         }
+
+         .north {
+            top: 0px;
+            left: 47px;
+            background: url(images/n.png);
+         }
+
+         .north.active {
+            background: url(images/n_active.png);  
+         }
+
+         .south {
+            top: 69px;
+            left: 47px;
+            background: url(images/s.png);
+         }
+
+         .south.active {
+            background: url(images/s_active.png);  
+         }
+
+         .east {
+            top: 35px;
+            left: 82px;
+            background: url(images/e.png);
+         }
+
+         .east.active {
+            background: url(images/e_active.png);  
+         }
+
+         .west {
+            top: 35px;
+            left: 11px;
+            background: url(images/w.png);
+         }
+
+         .west.active {
+            background: url(images/w_active.png);  
+         }               
       }
 
-      #roofDiagram {
-         position: absolute;
-         top: 22px;
-         left: 33px;
-         width: 51px;
-         height: 51px;
-         background: url(images/roof_diagram_nsew.png);
-      }
-
-      .roofDiagramButton {
-         .button;
-         position: absolute;
-         width: 24px;
-         height: 24px;
-      }
-
-      .north {
-         top: 0px;
-         left: 47px;
-         background: url(images/n.png);
-      }
-
-      .north.active {
-         background: url(images/n_active.png);  
-      }
-
-      .south {
-         top: 69px;
-         left: 47px;
-         background: url(images/s.png);
-      }
-
-      .south.active {
-         background: url(images/s_active.png);  
-      }
-
-      .east {
-         top: 35px;
-         left: 82px;
-         background: url(images/e.png);
-      }
-
-      .east.active {
-         background: url(images/e_active.png);  
-      }
-
-      .west {
-         top: 35px;
-         left: 11px;
-         background: url(images/w.png);
-      }
-
-      .west.active {
-         background: url(images/w_active.png);  
-      }               
    }
 
-}
+   #templateNameView {
+      margin: auto;
 
-#selectedBuildingWindow {
-   margin-left: 10px;
-   margin-top: 10px;
-   width: 424px;
-   display: none;
+      .window {
+         width: 400px;
+         padding-bottom: 74px;
+      }
 
-   #buttons {
-      padding-top: 10px;
-   }
-}
-
-#templateNameView {
-   margin: auto;
-
-   .window {
-      width: 400px;
-      padding-bottom: 74px;
-   }
-
-   input {
-      width: 380px;
+      input {
+         width: 380px;
+      }
    }
 }

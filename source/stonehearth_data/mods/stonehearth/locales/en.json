@@ -380,5 +380,7 @@
 
    "start_building" : "Start Building",
    "pause_building" : "Pause Building",
-   "save_building_template" : "Save Template"
+   "save_building_template" : "Save Template",
+   "show_building_overview" : "Build this building",
+   "show_building_editor" : "Edit this building"
 }
