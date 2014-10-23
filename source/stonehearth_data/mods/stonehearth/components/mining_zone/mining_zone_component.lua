@@ -58,6 +58,7 @@ function MiningZoneComponent:_restore()
 end
 
 function MiningZoneComponent:destroy()
+   self:_destroy_mining_task()
    self:_destroy_region_trace()
    self:_destroy_reserved_trace()
 end
@@ -106,7 +107,6 @@ function MiningZoneComponent:_on_region_changed()
    self._sv.region:modify(function(cursor)
          cursor:optimize_by_merge()
       end)
-   self._sv.region_bounds = self._sv.region:get():get_bounds()
    self.__saved_variables:mark_changed()
 
    self:_update_destination()
@@ -135,13 +135,10 @@ end
 
 function MiningZoneComponent:_count_open_faces_for_block(point, max)
    max = max or 2
-   local test_point = Point3()
    local count = 0
 
    for _, dir in ipairs(FACE_DIRECTIONS) do
-      test_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
-
-      if not radiant.terrain.is_terrain(test_point) then
+      if not radiant.terrain.is_terrain(point + dir) then
          count = count + 1
          if count >= max then
             return count
@@ -158,18 +155,16 @@ function MiningZoneComponent:_has_n_plus_exposed_faces(point, n)
 end
 
 function MiningZoneComponent:_top_face_exposed(point)
-   local above_point = point + Point3.unit_y
-   local exposed = not radiant.terrain.is_terrain(above_point)
-   return exposed
+   return not radiant.terrain.is_terrain(point + Point3.unit_y)
+end
+
+function MiningZoneComponent:_bottom_face_exposed(point)
+   return not radiant.terrain.is_terrain(point - Point3.unit_y)
 end
 
 function MiningZoneComponent:_non_top_face_exposed(point)
-   local adjacent_point = Point3()
-
    for _, dir in ipairs(NON_TOP_DIRECTIONS) do
-      adjacent_point:set(point.x+dir.x, point.y+dir.y, point.z+dir.z)
-
-      if not radiant.terrain.is_terrain(adjacent_point) then
+      if not radiant.terrain.is_terrain(point + dir) then
          return true
       end
    end
@@ -187,14 +182,16 @@ function MiningZoneComponent:_top_and_second_face_exposed(point)
 end
 
 function MiningZoneComponent:_has_higher_neighbor(point, radius)
-   local above_point = Point3()
+   local test_point = Point3()
+   local px = point.x
+   local pz = point.z
    local y = point.y + 1
    
    for z = -radius, radius do
       for x = -radius, radius do
          if x ~= 0 or y ~= 0 then
-            above_point:set(point.x+x, y, point.z+z)
-            if radiant.terrain.is_terrain(above_point) then
+            test_point:set(px + x, y, pz + z)
+            if radiant.terrain.is_terrain(test_point) then
                return true
             end
          end
@@ -284,32 +281,29 @@ end
 -- To make sure we mine in layers instead of digging randomly and potentially orphaning regions,
 -- we prioritize blocks with two or more exposed faces.
 function MiningZoneComponent:_update_destination()
-   if self._sv.region_bounds:get_area() == 0 then
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   if not location then
       return
    end
 
-   local location = radiant.entities.get_world_grid_location(self._entity)
    local world_space_region = self._sv.region:get():translated(location)
    local terrain_region = radiant.terrain.intersect_region(world_space_region)
    terrain_region:set_tag(0)
    terrain_region:optimize_by_merge()
    local bounds = terrain_region:get_bounds()
-   
+
    self._destination_component:get_region():modify(function(cursor)
-         -- reuse this cube to avoid inner loop memory allocation
-         local block = Cube3()
          local world_to_local_translation = -location
          cursor:clear()
 
          local add_block = function(point)
-               block.min:set(point.x,   point.y,   point.z)
-               block.max:set(point.x+1, point.y+1, point.z+1)
+               local block = Cube3(point, point + Point3.one)
                block:translate(world_to_local_translation)
                cursor:add_cube(block)
             end
 
+         -- this code not finalized
          for cube in terrain_region:each_cube() do
-            -- this code not finalized
             if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
                local slice_min = Point3(cube.min.x, cube.max.y-1, cube.min.z)
                local slice_max = cube.max
@@ -362,6 +356,10 @@ end
 
 function MiningZoneComponent:_update_adjacent()
    local location = radiant.entities.get_world_grid_location(self._entity)
+   if not location then
+      return
+   end
+
    local destination_region = self._destination_component:get_region():get()
    local reserved_region = self._destination_component:get_reserved():get()
    local unreserved_destination_region = destination_region - reserved_region
