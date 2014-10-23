@@ -15,6 +15,12 @@ sections:
                - slug: actions
                  display_name: Actions and Activities
                  filename: guide/ai/ai_actions.markdown
+         -  slug: events
+            display_name: Events
+            filename: reference/ai/event.markdown
+         -  slug: attributes
+            display_name: Attributes
+            filename: reference/entities/attributes.markdown
    -  slug: reference
       display_name: Reference Guide
       filename: reference/reference.markdown
@@ -26,29 +32,33 @@ sections:
                -  slug: action_interface
                   display_name: Action Interface
                   filename: reference/ai/action_interface.luadoc
-         -  slug: activities
-            display_name: Activities
-            filename: reference/ai/activity.markdown
-            sections:
-                  -  slug: drop_carrying_now
-                     display_name: drop_carrying_now
-                     filename: ../ai/actions/drop_carrying_now_action.lua
-                  -  slug: drop_carrying_adjacent
-                     display_name: drop_carrying_adjacent
-                     filename: ../ai/actions/drop_carrying_adjacent_action.lua
-                  -  slug: drop_carrying_at
-                     display_name: drop_carrying_at
-                     filename: ../ai/actions/drop_carrying_at_action.lua
-                  -  slug: trigger_event
-                     display_name: trigger_event
-                     filename: ../ai/actions/trigger_event.lua
-         -  slug: observers
-            display_name: Observers
-            filename: reference/ai/observer.markdown
-            sections:
-                  -  slug: combat_panic_observer
-                     display_name: combat_panic_observer
-                     filename: ../ai/observers/combat_panic_observer.lua
-         - slug: events
-           display_name: Events
-           filename: reference/ai/event.markdown
+               -  slug: activities
+                  display_name: Activities
+                  filename: reference/ai/activity.markdown
+                  sections:
+                        -  slug: drop_carrying_now
+                           display_name: drop_carrying_now
+                           filename: ../ai/actions/drop_carrying_now_action.lua
+                        -  slug: drop_carrying_adjacent
+                           display_name: drop_carrying_adjacent
+                           filename: ../ai/actions/drop_carrying_adjacent_action.lua
+                        -  slug: drop_carrying_at
+                           display_name: drop_carrying_at
+                           filename: ../ai/actions/drop_carrying_at_action.lua
+                        -  slug: trigger_event
+                           display_name: trigger_event
+                           filename: ../ai/actions/trigger_event.lua
+               -  slug: observers
+                  display_name: Observers
+                  filename: reference/ai/observer.markdown
+                  sections:
+                        -  slug: combat_panic_observer
+                           display_name: combat_panic_observer
+                           filename: ../ai/observers/combat_panic_observer.lua
+         -  slug: components
+            display_name: Components
+            filename: reference/entities/components.markdown
+            sections: 
+               -  slug: attributes_component
+                  display_name: attributes_component
+                  filename: ../components/attributes/attributes_component.lua

@@ -26,8 +26,11 @@ App.StonehearthStartMenuView = App.View.extend({
       create_trapping_grounds : function () {
          App.stonehearthClient.createTrappingGrounds();
       },
-      create_mining_zone : function () {
-         App.stonehearthClient.createMiningZone();
+      dig_down : function () {
+         App.stonehearthClient.digDown();
+      },
+      dig_out : function () {
+         App.stonehearthClient.digOut();
       },
       building_templates: function () {
          $(top).trigger('stonehearth_building_templates');

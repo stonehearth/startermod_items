@@ -227,6 +227,11 @@ local constants = {
          TOWN_DEATH = -20,
       }
    },
+
+   mining = {
+      XZ_ALIGN = 4,
+      Y_ALIGN = 5,
+   },
 }
 
 return constants

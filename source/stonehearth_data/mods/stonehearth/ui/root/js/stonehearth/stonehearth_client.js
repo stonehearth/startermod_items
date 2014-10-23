@@ -345,18 +345,37 @@ var StonehearthClient;
          });
       },
 
-      createMiningZone: function() {
+      digDown: function() {
          var self = this;
 
          App.setGameMode('zones');
          var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
 
          return this._callTool(function() {
-            return radiant.call('stonehearth:designate_mining_zone')
+            return radiant.call('stonehearth:designate_mining_zone', 'down')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   //radiant.call('stonehearth:select_entity', response.trapping_grounds);
-                  self.createMiningZone();
+                  self.digDown();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
+      digOut: function() {
+         var self = this;
+
+         App.setGameMode('zones');
+         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+
+         return this._callTool(function() {
+            return radiant.call('stonehearth:designate_mining_zone', 'out')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  self.digDown();
                })
                .fail(function(response) {
                   self.hideTip(tip);

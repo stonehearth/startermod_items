@@ -1,3 +1,5 @@
+local constants = require 'constants'
+local mining_lib = require 'lib.mining.mining_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -8,24 +10,21 @@ local log = radiant.log.create_logger('mining')
 
 local MiningCallHandler = class()
 
--- TODO: move these constants to constants where they can be accessed from both client and server
-local XZ_ALIGN = 4
-local Y_ALIGN = 5
-
--- test code
-function MiningCallHandler:designate_mining_zone(session, response)
+function MiningCallHandler:designate_mining_zone(session, response, mode)
    local enable_mining = radiant.util.get_config('enable_mining', false)
    if not enable_mining then
       response:reject('disabled')
       return
    end
 
+   local xz_align = constants.mining.XZ_ALIGN
+
    local aligned_floor = function(value)
-      return math.floor(value / XZ_ALIGN) * XZ_ALIGN
+      return math.floor(value / xz_align) * xz_align
    end
 
    local aligned_ceil = function(value)
-      return math.ceil(value / XZ_ALIGN) * XZ_ALIGN
+      return math.ceil(value / xz_align) * xz_align
    end
 
    local get_proposed_points = function(p0, p1)
@@ -40,9 +39,9 @@ function MiningCallHandler:designate_mining_zone(session, response)
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
             q0[d] = aligned_floor(q0[d])
-            q1[d] = aligned_floor(q1[d]) + XZ_ALIGN-1
+            q1[d] = aligned_floor(q1[d]) + xz_align-1
          else
-            q0[d] = aligned_floor(q0[d]) + XZ_ALIGN-1
+            q0[d] = aligned_floor(q0[d]) + xz_align-1
             q1[d] = aligned_floor(q1[d])
          end
       end
@@ -69,7 +68,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
                return nil, nil
             end
          else
-            q0[d] = aligned_floor(q0[d]) + XZ_ALIGN-1
+            q0[d] = aligned_floor(q0[d]) + xz_align-1
             q1[d] = aligned_ceil(q1[d])
             if q0[d] < q1[d] then
                return nil, nil
@@ -89,19 +88,13 @@ function MiningCallHandler:designate_mining_zone(session, response)
          end)
       :set_cursor('stonehearth:cursors:harvest')
       :use_manual_marquee(function(selector, box)
-            -- test code
-            local ground_box = box:translated(Point3(0, -1, 0))
-            ground_box.min.y = ground_box.max.y - Y_ALIGN
-            local region = Region3(ground_box)
+            local region = self:_get_dig_region(box, mode)
             local render_node = _radiant.client.create_region_outline_node(1, region, Color4(255, 255, 0, 0))
             return render_node
          end)
       :done(function(selector, box)
-            -- test code
-            local ground_box = box:translated(Point3(0, -1, 0))
-            local region = Region3(ground_box)
-
-            _radiant.call('stonehearth:add_mining_zone', region)
+            local region = self:_get_dig_region(box, mode)
+            _radiant.call('stonehearth:add_mining_zone', region, mode)
                :done(function(r)
                      response:resolve({ mining_zone = r.mining_zone })
                   end
@@ -120,12 +113,41 @@ function MiningCallHandler:designate_mining_zone(session, response)
       :go()
 end
 
--- test code, just mines down for the moment
-function MiningCallHandler:add_mining_zone(session, response, region_table)
+function MiningCallHandler:_get_dig_region(selection_box, mode)
+   local cube = nil
+
+   if mode == 'down' then
+      local ground_box = selection_box:translated(-Point3.unit_y)
+      cube = self:_get_aligned_cube(ground_box)
+   elseif mode == 'out' then
+      cube = self:_get_aligned_cube(selection_box)
+      cube.max.y = cube.max.y - 1
+   end
+
+   if cube then
+      return Region3(cube)
+   else
+      return nil
+   end
+end
+
+function MiningCallHandler:_get_aligned_cube(cube)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_ALIGN, constants.mining.Y_ALIGN)
+end
+
+-- test code
+function MiningCallHandler:add_mining_zone(session, response, region_table, mode)
+   local mining_zone
    local region = Region3()
    region:load(region_table)
    
-   local mining_zone = stonehearth.mining:dig_down(session.player_id, session.faction, region)
+   if mode == 'down' then
+      mining_zone = stonehearth.mining:dig_down(session.player_id, session.faction, region)
+   elseif mode == 'out' then
+      mining_zone = stonehearth.mining:dig_out(session.player_id, session.faction, region)
+   elseif mode == 'up' then
+      mining_zone = stonehearth.mining:dig_up(session.player_id, session.faction, region)
+   end
 
    return { mining_zone = mining_zone }
 end

@@ -1,6 +1,7 @@
 local Candledark = class()
 local rng = _radiant.csg.get_default_rng()
 
+-- Called when the scenario is first initialized
 function Candledark:initialize()
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
    
@@ -8,10 +9,25 @@ function Candledark:initialize()
    self._sv.nights_until_candledark = self._scenario_data.config.nights_until_candledark
    self._sv.candledark_duration = self._scenario_data.config.candledark_duration
    self._sv.nights_survived = 0
-
+   
    self.__saved_variables:mark_changed()
 end
 
+-- Called when the scenario is loaded (from a save)
+function Candledark:restore()
+   self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
+   
+   if self._sv.started then
+      self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
+   end
+
+   --We saved/loaded while the timer was running, so just start it again and spawn the skeletons later
+   if self._sv.timer_running then
+      self:_spawn_skeletons()
+   end
+end
+
+-- Called when the scenario is started
 function Candledark:start()
    if not self._sv.started then
       self:_post_intro_bulletin()
@@ -63,7 +79,9 @@ function Candledark:_on_sunset()
       -- End the scenario if the player has suvived the length of candledark   
 
       -- nuke the old bulletin
-      stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+      if self._sv.bulletin ~= nil then
+         stonehearth.bulletin_board:remove_bulletin(self._sv.bulletin:get_id())
+      end
 
       -- post a new bulletin announcing the end of candledark
       local bulletin_data = self._scenario_data.bulletins.candledark_end
@@ -102,13 +120,20 @@ function Candledark:_on_sunset()
       -- time for skeletons!      
       self._sv.nights_survived = self._sv.nights_survived + 1
 
-      radiant.set_realtime_timer(1000 * 12, function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
-      end)
+      self:_spawn_skeletons()
 
       self.__saved_variables:mark_changed()
       
    end
+end
+
+function Candledark:_spawn_skeletons()
+   self._sv.timer_running = true
+   radiant.set_realtime_timer(1000 * 12, function()
+      self._sv.timer_running = false
+      stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })      
+   end)
+
 end
 
 -- Called when the player clicks the "accept" button in the final bulletin in the scenario.

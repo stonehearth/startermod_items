@@ -41,7 +41,7 @@
          },
          "menace": {
             "type" : "basic",
-            "value" : 70
+            "value" : 160
          },
          "courage": {
             "type" : "basic",

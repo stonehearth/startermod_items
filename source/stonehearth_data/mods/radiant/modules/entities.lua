@@ -935,6 +935,17 @@ function entities.unwrap_iconic_item(entity, component_name)
    return root_entity, root_component
 end
 
+--Return whether the entitiy is frightened of the target
+--Compares the entity's courage score to the target's menace score
+--returns false if either is missing the appropriate component
+function entities.is_frightened_of(entity, target)
+   local entity_attribute_component = entity:get_component('stonehearth:attributes')
+   local target_attribute_component = target:get_component('stonehearth:attributes')
+   local entity_courage = entity_attribute_component and entity_attribute_component:get_attribute('courage') or 0
+   local target_menace = target_attribute_component and target_attribute_component:get_attribute('menace') or 0
+   return entity_courage < target_menace
+end
+
 
 entities.__init()
 return entities

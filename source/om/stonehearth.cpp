@@ -154,6 +154,7 @@ Stonehearth::InitEntity(EntityPtr entity, const char* uri, lua_State* L)
                   object lua_component = datastore->CreateController(datastore, "components", component_name);
                   if (lua_component.is_valid()) {
                      entity->AddLuaComponent(component_name.c_str(), datastore);
+                     // XXX: don't call initialize till they're all there!
                      SetEntityForComponent(L, lua_component, entity, lua::ScriptHost::JsonToLua(L, entry));
                   }
                }
@@ -209,6 +210,7 @@ Stonehearth::RestoreLuaComponents(lua::ScriptHost* scriptHost, EntityPtr entity)
          ASSERT(lua_component && lua_component.is_valid());
 
          // XXX: LEGACY!!!
+         E_LOG(5) << "restoring entity for component datastore " << datastore->GetObjectId();
          SetEntityForComponent(L, lua_component, entity, lua::ScriptHost::JsonToLua(L, json));
       }
       TriggerPostCreate(scriptHost, entity);
