@@ -1,4 +1,5 @@
 local constants = require('constants').construction
+local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local build_util = require 'lib.build_util'
 local BuildUndoManager = require 'services.server.build.build_undo_manager'
 local Rect2 = _radiant.csg.Rect2
@@ -156,7 +157,7 @@ function BuildService:add_floor(session, floor_uri, box, brush_shape)
 
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(overlap, function(entity)
-         if not self:is_blueprint(entity) then
+         if not build_util.is_blueprint(entity) then
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
@@ -188,7 +189,7 @@ function BuildService:erase_floor(session, box)
 
    -- look for floor that we can merge into.
    local all_overlapping_floor = radiant.terrain.get_entities_in_cube(box, function(entity)
-         return self:is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
+         return build_util.is_blueprint(entity) and self:_get_structure_type(entity) == 'floor'
       end)
 
    for _, floor in pairs(all_overlapping_floor) do
@@ -211,6 +212,8 @@ end
 --    @param blueprint - The blueprint which needs a new fabricator.
 --
 function BuildService:add_fabricator(blueprint)
+   assert(blueprint:get_component('stonehearth:construction_data'))
+
    local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
 
    local blueprint_mob = blueprint:add_component('mob')
@@ -219,16 +222,61 @@ function BuildService:add_fabricator(blueprint)
       parent:add_component('entity_container'):add_child(fabricator)
    end
    local transform = blueprint_mob:get_transform()
-   fabricator:add_component('mob'):set_transform(transform)
+   fabricator:add_component('mob')
+                  :set_transform(transform)
+
    fabricator:set_debug_text('(Fabricator for ' .. tostring(blueprint) .. ')')
    
-   if blueprint:get_component('stonehearth:construction_data') then
-      fabricator:add_component('stonehearth:fabricator')
-                     :start_project(blueprint)
-      blueprint:add_component('stonehearth:construction_progress')   
-                     :set_fabricator_entity(fabricator)
-   end   
+   fabricator:add_component('stonehearth:fabricator')
+                  :start_project(blueprint)   
+
+   self:_bind_fabricator_to_blueprint(blueprint, fabricator, 'stonehearth:fabricator')
+
    return fabricator
+end
+
+function BuildService:_bind_building_to_blueprint(building, blueprint)
+   -- make the owner of the blueprint the same as the owner as of the building
+   blueprint:add_component('unit_info')
+            :set_player_id(radiant.entities.get_player_id(building))
+            :set_faction(radiant.entities.get_faction(building))   
+
+   -- fixtures, for example, don't have construction data.  so check first!
+   local cd_component = blueprint:get_component('stonehearth:construction_data')
+   if cd_component then
+      cd_component:set_building_entity(building)
+   end
+
+   blueprint:add_component('stonehearth:construction_progress')
+               :set_building_entity(building)
+end
+
+function BuildService:_bind_fabricator_to_blueprint(blueprint, fabricator, fabricator_component_name)
+   local fabricator_component = fabricator:get_component(fabricator_component_name)
+   assert(fabricator_component)
+   
+   local building = build_util.get_building_for(blueprint)
+   local project = fabricator_component:get_project()
+   if project then
+      local cd_component = project:get_component('stonehearth:construction_data')
+      if cd_component then
+         cd_component:set_building_entity(building)
+                     :set_fabricator_entity(fabricator)
+      end
+   end
+   blueprint:get_component('stonehearth:construction_progress')
+               :set_fabricator_entity(fabricator, fabricator_component_name)
+               
+   -- fixtures, for example, don't have construction data.  so check first!
+   local cd_component = blueprint:get_component('stonehearth:construction_data')
+   if cd_component then
+      cd_component:set_fabricator_entity(fabricator)
+   end
+
+   -- track the structure in the building component.  the building component is
+   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
+   building:get_component('stonehearth:building')
+               :add_structure(blueprint)
 end
 
 -- adds a new `blueprint` entity to the specified `building` entity at the optional
@@ -243,32 +291,23 @@ end
 function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn)
    local blueprint = radiant.entities.create_entity(blueprint_uri)
 
-   -- make the owner of the blueprint the same as the owner as of the building
-   blueprint:add_component('unit_info')
-            :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))
+   self:_bind_building_to_blueprint(building, blueprint)
 
+   -- give it a region and stick it in the building...
    blueprint:add_component('destination')
-               :set_region(_radiant.sim.alloc_region3())
+               :set_region(radiant.alloc_region3())
 
-   -- add the blueprint to the building's entity container and wire up the
-   -- building entity pointer in the construction_progress component.
-   blueprint:add_component('stonehearth:construction_progress')
-               :set_building_entity(building)
-
-   radiant.entities.add_child(building, blueprint, offset)
+   -- if an offset is specified, stick the object in the building.  if not,
+   -- the init function must take care of it
+   if offset then
+      radiant.entities.add_child(building, blueprint, offset)
+   end
 
    -- initialize...
    init_fn(blueprint)
 
-   -- if the blueprint does not yet have a fabricator, go ahead and create one
-   -- now.
+   -- add a fabricator to the blueprint now that it's initialized.
    local fabricator = self:add_fabricator(blueprint)
-
-   -- track the structure in the building component.  the building component is
-   -- responsible for cross-structure interactions (e.g. sharing scaffolding)
-   building:get_component('stonehearth:building')
-               :add_structure(blueprint)
 
    return blueprint, fabricator
 end
@@ -341,9 +380,9 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
 
    -- now do the merge...
    local buildings_to_merge = {}
-   local floor_building = self:get_building_for(floor)
+   local floor_building = build_util.get_building_for(floor)
    for _, old_floor in pairs(existing_floor) do
-      local building = self:get_building_for(old_floor)
+      local building = build_util.get_building_for(old_floor)
       if building ~= floor_building then
          buildings_to_merge[building:get_id()] = building
       end
@@ -388,40 +427,6 @@ function BuildService:_add_new_floor_to_building(building, floor_uri, floor_regi
    return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
          self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
       end)
-end
-
--- return the building the `blueprint` is contained in
---
---    @param blueprint - the blueprint whose building you're interested in
---
-function BuildService:get_building_for(blueprint)
-   local cp = blueprint:get_component('stonehearth:construction_progress')
-   return cp and cp:get_building_entity()
-end
-
--- return whether or not the specified `entity` is a blueprint.  only blueprints
--- have stonehearth:construction_progress components.
---
---    @param entity - the entity to be tested for blueprintedness
---
-function BuildService:is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil
-end
-
-function BuildService:is_building(entity)
-   return entity:get_component('stonehearth:building') ~= nil
-end
-
--- return the building the specified buildprint is attached to, assuming it
--- is a blueprint to begin with!
---
---     @param entity - the blueprint whose building you're looking for
---
-function BuildService:get_building_for_blueprint(entity)
-   local cp = entity:get_component('stonehearth:construction_progress')
-   if cp then
-      return cp:get_building_entity()
-   end
 end
 
 -- return the type of the specified structure (be it a blueprint or a project)
@@ -479,12 +484,12 @@ function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    local either_column = c0 or c1
    local building
    if c0 and c1 then
-      local b0 = self:get_building_for(c0)
-      local b1 = self:get_building_for(c1)
+      local b0 = build_util.get_building_for(c0)
+      local b1 = build_util.get_building_for(c1)
       assert(b0 == b1) -- merge required
       building = b0
    elseif either_column then
-      building = self:get_building_for(either_column)
+      building = build_util.get_building_for(either_column)
    else
       building = self:_create_new_building(session, p0)
    end
@@ -622,7 +627,7 @@ end
 --
 function BuildService:_get_blueprint_at_point(point)
    local entities = radiant.terrain.get_entities_at_point(point, function(entity)
-         return self:is_blueprint(entity)
+         return build_util.is_blueprint(entity)
       end)
 
    local id, blueprint = next(entities)
@@ -646,7 +651,7 @@ end
 function BuildService:_fetch_blueprint_at_point(building, point, blueprint_uri, init_fn)
    local blueprint = self:_get_blueprint_at_point(point)
    if blueprint then
-      assert(self:get_building_for(blueprint) == building)
+      assert(build_util.get_building_for(blueprint) == building)
    else
       local origin = radiant.entities.get_world_grid_location(building)
       blueprint = self:_create_blueprint(building, blueprint_uri, point - origin, init_fn)
@@ -708,15 +713,15 @@ function BuildService:_create_wall(building, column_a, column_b, normal, wall_ur
 end
 
 
--- creates a fixture inside `wall_entity` at `location`  
---    @param wall_entity - the wall you'd like to contain the fixture
+-- creates a fixture inside `parent_entity` at `location`  
+--    @param parent_entity - the structure you'd like to contain the fixture
 --    @param fixture_uri - the type of fixture to create
 --    @param location - where to put the fixture, in wall-local coordinates
 --
-function BuildService:add_fixture_command(session, response, wall_entity, fixture_uri, location, normal)
+function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, normal)
    local fixture
    local success = self:do_command('add_fixture', response, function()
-         fixture = self:add_fixture(wall_entity, fixture_uri, ToPoint3(location), ToPoint3(normal))
+         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), ToPoint3(normal))
       end)
 
    if success then
@@ -726,48 +731,60 @@ function BuildService:add_fixture_command(session, response, wall_entity, fixtur
    end
 end
 
-function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_iconic_uri, fixture_uri, normal)
+function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
    -- `fixture` is actually a blueprint of the fixture, not the actual fixture
    -- itself.  change the material we use to render it and hook up a fixture_fabricator
    -- to help build it.
    fixture_blueprint:add_component('render_info')
-                     :set_material('materials/blueprint.material.xml')
-                     
-   fixture_blueprint:add_component('stonehearth:fixture_fabricator')
-                     :start_project(fixture_iconic_uri, fixture_uri, normal)
+                        :set_material('materials/blueprint.material.xml')
+   
+   local fab_component = fixture_blueprint:add_component('stonehearth:fixture_fabricator')
+   fab_component:start_project(fixture_or_uri, normal)
+
+   self:_bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
+
+   return fab_component
 end
 
-function BuildService:add_fixture(wall_entity, fixture_uri, location, normal)
-   local wall = wall_entity:get_component('stonehearth:wall')
+function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal)
+   if not build_util.is_blueprint(parent_entity) then
+      self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_uri, parent_entity)
+      return
+   end
+
+   local _, fixture_blueprint
+
+   local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
+   fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
+   fixture_blueprint:set_debug_text('(fixture')
+   
+   local building = build_util.get_building_for(parent_entity)
+
+   self:_bind_building_to_blueprint(building, fixture_blueprint)
+
+   local wall = parent_entity:get_component('stonehearth:wall')
    if wall then
-      local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
-      local fixture_iconic_uri = data.iconic_form
-      local fixture_ghost_uri = data.ghost_form
-
-      local building = self:get_building_for(wall_entity)
-      local fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
-
-      fixture_blueprint:add_component('unit_info')
-                        :set_player_id(radiant.entities.get_player_id(building))
-                        :set_faction(radiant.entities.get_faction(building))
-
       -- add the new fixture to the wall and reconstruct the shape.
       wall:add_fixture(fixture_blueprint, location, normal)
-          :layout()
-
-      fixture_blueprint:add_component('stonehearth:construction_progress')
-                        :set_fabricator_entity(fixture_blueprint, 'stonehearth:fixture_fabricator')
-                        :add_dependency(wall_entity)
-
-      self:add_fixture_fabricator(fixture_blueprint, fixture_iconic_uri, fixture_uri, normal)
-
-      -- sadly, ordering matters here.  we cannot set the building until both
-      -- the fabricator and blueprint have been fully initialized.
-      fixture_blueprint:add_component('stonehearth:construction_progress')
-                        :set_building_entity(building)
-
-      return fixture_blueprint
+               :layout()
+   else
+      radiant.entities.add_child(parent_entity, fixture_blueprint, location)
    end
+
+   self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
+
+   fixture_blueprint:add_component('stonehearth:construction_progress')
+                        :add_dependency(parent_entity)
+
+   -- fixtures can be added to the building after it's already been started.
+   -- if this is the case, go ahead and start the placing process
+   local active = building:get_component('stonehearth:construction_progress')
+                              :get_active()
+   if active then
+      fixture_blueprint:get_component('stonehearth:construction_progress')
+                           :set_active(true)
+   end
+   return fixture_blueprint
 end
 
 
@@ -806,7 +823,7 @@ function BuildService:_substitute_blueprint(old, new_uri)
       return
    end
    
-   local building = self:get_building_for(old)   
+   local building = build_util.get_building_for(old)   
    local replaced = self:_create_blueprint(building, new_uri, Point3.zero, function(new)
          -- place the new entity in the same position as the old one
          local mob = old:get_component('mob')
@@ -846,7 +863,7 @@ function BuildService:_substitute_blueprint(old, new_uri)
 end
 
 function BuildService:unlink_entity(entity)
-   local building = self:get_building_for(entity)
+   local building = build_util.get_building_for(entity)
    if building then
       building:get_component('stonehearth:building')
                   :unlink_entity(entity)
@@ -952,6 +969,9 @@ function BuildService:instabuild(building)
                self._log:info( '  fabricator %s -> %s instabuild', entity:get_uri(), fabricator._entity)
                fabricator:instabuild()
             end
+            -- mark as active.  this is a nop now that we've built it, but the
+            -- bit still need be set to mimic the building actually being built
+            cp:instabuild()
          end
       end)
 end

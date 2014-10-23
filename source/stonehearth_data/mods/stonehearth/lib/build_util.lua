@@ -1,7 +1,6 @@
 local constants = require('constants').construction
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
-local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Quaternion = _radiant.csg.Quaternion
 
@@ -29,6 +28,7 @@ function build_util.normal_to_rotation(normal)
    elseif normal == Point3.unit_x then
       return 270
    end
+   assert(false, string.format('invalid normal %s in normal_to_rotation()', tostring(normal)))
 end
 
 function build_util.rotation_to_normal(rotation)
@@ -41,6 +41,7 @@ function build_util.rotation_to_normal(rotation)
    elseif rotation == 270 then
       return Point3(1, 0, 0)
    end
+   assert(false, string.format('non-aligned rotation %.2f in rotation_to_normal()', rotation))
 end
 
 local function for_each_child(entity, fn)
@@ -197,6 +198,16 @@ function build_util.is_footprint(entity)
    return entity:get_component('stonehearth:no_construction_zone') ~= nil
 end
 
+
+-- return the building the `blueprint` is contained in
+--
+--    @param blueprint - the blueprint whose building you're interested in
+--
+function build_util.get_building_for(blueprint)
+   local cp = blueprint:get_component('stonehearth:construction_progress')
+   return cp and cp:get_building_entity()
+end
+
 function build_util.save_template(building, header, overwrite)
    local existing_templates = build_util.get_templates()
    local namebase = header.name and header.name:lower() or 'untitled'
@@ -272,6 +283,11 @@ function build_util.get_templates()
    end
 
    return result
+end
+
+function build_util.get_building_centroid(building)
+   local bounds = build_util.get_building_bounds(building)
+   return Point3(bounds.max.x / 2, 0, bounds.max.z / 2):to_int();
 end
 
 function build_util.get_building_bounds(building)

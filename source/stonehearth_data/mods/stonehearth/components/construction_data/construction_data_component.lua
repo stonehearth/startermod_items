@@ -177,19 +177,24 @@ function ConstructionDataComponent:get_fabricator_entity()
    return self._sv.fabricator_entity
 end
 
-function ConstructionDataComponent:set_fabricator_entity(fentity)
-   self._sv.fabricator_entity = fentity
+function ConstructionDataComponent:set_fabricator_entity(entity)
+   assert(entity, 'no entity specified in :set_fabricator_entity()')
+   self._sv.fabricator_entity = entity
    self.__saved_variables:mark_changed()
-end
-
-function ConstructionDataComponent:set_building_entity(entity)
-   self._sv.building_entity = entity
-   self.__saved_variables:mark_changed()
+   return self
 end
 
 function ConstructionDataComponent:get_building_entity(entity)
    return self._sv.building_entity
 end
+
+function ConstructionDataComponent:set_building_entity(entity)
+   assert(entity, 'no entity specified in :set_building_entity()')
+   self._sv.building_entity = entity
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 
 function ConstructionDataComponent:get_allow_diagonal_adjacency()
    -- coearse to bool 

@@ -274,6 +274,15 @@ function ConstructionProgress:get_active()
    return self._sv.active
 end
 
+
+function ConstructionProgress:instabuild()
+   -- mark as active.  this is a nop now that we've built it, but the
+   -- bit still need be set to mimic the building actually being built
+   self._sv.active = true
+   self._sv.finished = true
+   self.__saved_variables:mark_changed()
+end
+
 function ConstructionProgress:set_teardown(teardown)
    assert(self._entity:is_valid())
    
@@ -313,14 +322,7 @@ end
 function ConstructionProgress:set_building_entity(building_entity)
    self._sv.building_entity = building_entity
    self.__saved_variables:mark_changed()
-
-   if self._sv.fabricator_entity then
-      local project = self:get_fabricator_component():get_project()
-      if project then
-         project:add_component('stonehearth:construction_data')
-                :set_building_entity(building_entity)
-      end
-   end
+   return self
 end
 
 -- returns the fabricator entity which is using our blueprint as a reference
@@ -330,17 +332,10 @@ end
 
 -- sets the fabricator entity which is using our blueprint as a reference
 function ConstructionProgress:set_fabricator_entity(fabricator_entity, component_name)
-   self._sv._fabricator_component_name = component_name or 'stonehearth:fabricator'
+   assert(component_name)
+   self._sv._fabricator_component_name = component_name
    self._sv.fabricator_entity = fabricator_entity
    self.__saved_variables:mark_changed()
-
-   if self._sv.building_entity then
-      local project = self:get_fabricator_component():get_project()
-      if project then
-         project:add_component('stonehearth:construction_data')
-                :set_building_entity(self._sv.building_entity)
-      end
-   end
    return self
 end
 
@@ -409,7 +404,10 @@ function ConstructionProgress:load_from_template(template, options, entity_map)
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()
          self:_restore_listeners()
-         stonehearth.build:add_fabricator(self._entity)
+         -- this is a weird place to put the fabricator back on, but let's go for it.   
+         if self._sv._fabricator_component_name == 'stonehearth:fabricator' then
+            stonehearth.build:add_fabricator(self._entity)
+         end
       end)
 end
 

@@ -386,7 +386,7 @@ function Wall:_compute_wall_shape()
 
    -- otherwise, grow our box up to the roof level
    local box = Cube3(self._start_pt, self._end_pt, 0)
-   local building = stonehearth.build:get_building_for(self._entity)
+   local building = build_util.get_building_for(self._entity)
 
    return building:get_component('stonehearth:building')
                      :grow_local_box_to_roof(self._entity, box)

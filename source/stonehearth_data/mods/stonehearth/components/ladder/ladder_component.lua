@@ -17,6 +17,7 @@ function Ladder:get_normal()
 end
 
 function Ladder:set_normal(normal)
+   assert(normal.y == 0, string.format('invalid normal %s in :set_normal()', tostring(normal)))
    if normal ~= self._sv.normal then
       self._sv.normal = normal
       self.__saved_variables:mark_changed()

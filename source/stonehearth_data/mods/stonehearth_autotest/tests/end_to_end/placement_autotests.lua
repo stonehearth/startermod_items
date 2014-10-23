@@ -1,3 +1,4 @@
+local build_util = require 'stonehearth.lib.build_util'
 local Point3 = _radiant.csg.Point3
 
 local placement_autotests = {}
@@ -63,14 +64,14 @@ function placement_autotests.place_on_wall(autotest)
                                            Point3(-2, 10, 2),
                                            Point3( 2, 10, 2),
                                            normal)
-         local building = stonehearth.build:get_building_for(wall)
+         local building = build_util.get_building_for(wall)
          stonehearth.build:instabuild(building)         
       end)
    
    -- place the signe on the wall
    local placement_location = Point3(1, 15, 3)
-   sign:get_component('stonehearth:entity_forms')
-               :place_item_on_wall(placement_location, wall, normal)
+   local location = placement_location - radiant.entities.get_world_grid_location(wall)
+   stonehearth.build:add_fixture(wall, sign, location, normal)
 
    local trace = radiant.entities.trace_grid_location(sign, 'find path to entity')
       :on_changed(function()         
