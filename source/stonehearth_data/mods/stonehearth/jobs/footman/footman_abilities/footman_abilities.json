@@ -8,7 +8,12 @@
                "stonehearth:actions:patrol",
                "stonehearth:actions:patrol:idle",
                "stonehearth:actions:get_patrol_route",
-               "stonehearth:actions:mark_patrol_completed"
+               "stonehearth:actions:mark_patrol_completed",
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower"
+            ],
+            "observers" : [
+               "stonehearth:observers:avoid_threatening_entities"
             ]
          },
          "injected_buffs" : [ "stonehearth:buffs:combat_basics" ]

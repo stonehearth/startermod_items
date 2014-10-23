@@ -421,6 +421,7 @@ local worker_defense_jobs = {
    ['stonehearth:jobs:farmer'] = true,
    ['stonehearth:jobs:carpenter'] = true,
    ['stonehearth:jobs:trapper'] = true,
+   ['stonehearth:jobs:footman'] = true,
 }
 
 function Town:worker_combat_enabled()
