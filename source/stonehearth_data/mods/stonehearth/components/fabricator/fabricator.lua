@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local priorities = require('constants').priorities.simple_labor
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
@@ -94,7 +95,6 @@ function Fabricator:set_mining_zone(mining_zone)
       self._mining_zone = mining_zone
       self._mining_trace = self._mining_zone:get_component('destination'):trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
          :on_changed(function(region)
-            self._log:error('mining region changed')
             self:_update_dst_region()
          end)
          :push_object_state()
@@ -167,9 +167,9 @@ function Fabricator:_create_new_project()
                         
    -- get fabrication specific info, if available.  copy it into the project, too
    -- so everything gets rendered correctly.
+   local building = build_util.get_building_for(blueprint)
    local state = self._blueprint_construction_data:get_savestate()
    self._project:add_component('stonehearth:construction_data', state)
-                     :set_fabricator_entity(self._entity)
 
    -- we'll replicate the ladder into the project as it gets built up.
    if self._blueprint_ladder then
@@ -633,7 +633,7 @@ function Fabricator:_update_fabricator_region()
 
    if self._blueprint and self._blueprint:is_valid() then
       self._blueprint:add_component('stonehearth:construction_progress')
-                     :set_finished(self._finished)
+                        :set_finished(self._finished)
       -- finishing in teardown mode might cause us to immediately be destroyed.
       -- if so, there's no point in continuing.
       if not self._entity:is_valid() then

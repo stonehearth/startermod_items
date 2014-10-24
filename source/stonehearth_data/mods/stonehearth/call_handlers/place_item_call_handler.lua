@@ -65,52 +65,73 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
    -- don't allow rotation if we're placing stuff on the wall
    local rotation_disabled = entity_forms:is_placeable_on_wall()
 
-   local placing_on_wall, placing_on_wall_normal
+   local placement_structure, placement_structure_normal
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor(cursor_uri)
       :set_rotation_disabled(rotation_disabled)
       :set_filter_fn(function (result, selector)
+            local entity = result.entity
+
             -- if the entity is any of the forms of the thing we want to place, bail
-            if result.entity == item_to_place then
+            if entity == item_to_place then
                return stonehearth.selection.FILTER_IGNORE
             end
-            if result.entity == iconic_entity then
+            if entity == iconic_entity then
                return stonehearth.selection.FILTER_IGNORE
             end
-            if result.entity == ghost_entity then
+            if entity == ghost_entity then
                return stonehearth.selection.FILTER_IGNORE
             end
             local normal = result.normal:to_int()
-            
-            -- check for ground placement
-            if entity_forms:is_placeable_on_ground() and normal.y == 1 then
-               return radiant.terrain.is_standable(selector:get_cursor_entity(), result.brick)
+            local location = result.brick:to_int()
+            local cursor = selector:get_cursor_entity()
+
+            if radiant.terrain.is_blocked(cursor, location) then
+               -- if the space occupied by the cursor is blocked, we definitely can't
+               -- place the item there
+               return nil
             end
 
-            -- check for wall placement
-            if entity_forms:is_placeable_on_wall() and normal.y == 0 then
-               if not radiant.terrain.is_blocked(selector:get_cursor_entity(), result.brick) then
-                  local entities = radiant.terrain.get_entities_at_point(result.brick - normal)
-                  for _, entity in pairs(entities) do
-                     local wall = entity:get_component('stonehearth:wall')
-                     if wall then
-                        local rotation = build_util.normal_to_rotation(normal)
-                        placing_on_wall = entity
-                        placing_on_wall_normal = normal
-                        selector:set_rotation(rotation)
-                        return true
-                     end
+            local wall_ok = entity_forms:is_placeable_on_wall() and normal.y == 0 
+            local ground_ok = entity_forms:is_placeable_on_ground() and normal.y == 1
+
+            placement_structure, placement_structure_normal = nil
+
+            if ground_ok and radiant.terrain.is_standable(cursor, location) then
+               -- we're directly placeable on the ground.  yay!
+               return true
+            end
+
+            -- trawl through the list of entities which would potentially support the
+            -- fixture and see if there's a good match
+            local entities = radiant.terrain.get_entities_at_point(location - normal)
+            for _, entity in pairs(entities) do
+               if wall_ok then
+                  local wall = entity:get_component('stonehearth:wall')
+                  if wall then
+                     local rotation = build_util.normal_to_rotation(normal)
+                     placement_structure = entity
+                     placement_structure_normal = normal
+                     selector:set_rotation(rotation)
+                     return true
+                  end
+               end
+               if ground_ok then
+                  if entity:get_component('stonehearth:construction_progress') then
+                     placement_structure = entity
+                     placement_structure_normal = normal
+                     return true
                   end
                end
             end
          end)
       :done(function(selector, location, rotation)
             local deferred
-            if placing_on_wall then
+            if placement_structure then
                if specific_item_to_place then
-                  deferred = _radiant.call('stonehearth:place_item_on_wall', specific_item_to_place, location, placing_on_wall, placing_on_wall_normal)
+                  deferred = _radiant.call('stonehearth:place_item_on_structure', specific_item_to_place, location, placement_structure, placement_structure_normal)
                else
-                  deferred = _radiant.call('stonehearth:place_item_type_on_wall', item_uri_to_place, location, placing_on_wall, placing_on_wall_normal)
+                  deferred = _radiant.call('stonehearth:place_item_type_on_structure', item_uri_to_place, location, placement_structure, placement_structure_normal)
                end
             else
                if specific_item_to_place then
@@ -183,7 +204,7 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_on_wall(session, response, item, location, wall, normal)
+function PlaceItemCallHandler:place_item_on_structure(session, response, item, location, structure_entity, normal)
    location = ToPoint3(location)
    normal = ToPoint3(normal)
 
@@ -192,8 +213,8 @@ function PlaceItemCallHandler:place_item_on_wall(session, response, item, locati
       response:reject({ error = 'item has no entity_forms component'})
    end
    
-   radiant.entities.set_player_id(item, session.player_id)
-   entity_forms:place_item_on_wall(location, wall, normal)
+   location = location - radiant.entities.get_world_grid_location(structure_entity)
+   stonehearth.build:add_fixture(structure_entity, item, location, normal)
    return true
 end
 
@@ -231,15 +252,15 @@ end
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_on_wall(session, response, entity_uri, location, wall, normal)
+function PlaceItemCallHandler:place_item_type_on_structure(session, response, entity_uri, location, structure_entity, normal)
    location = Point3(location.x, location.y, location.z)
    normal = ToPoint3(normal)
 
    local fixture_uri = entity_uri
    local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
-   assert(data, 'must send entity-forms root entity to place_item_type_on_wall')
-   location = location - radiant.entities.get_world_grid_location(wall)
-   stonehearth.build:add_fixture(wall, fixture_uri, location, normal)
+   assert(data, 'must send entity-forms root entity to place_item_type_on_structure')
+   location = location - radiant.entities.get_world_grid_location(structure_entity)
+   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal)
    return true
 end
 

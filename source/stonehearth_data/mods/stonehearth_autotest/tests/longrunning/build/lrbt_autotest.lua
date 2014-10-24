@@ -1,9 +1,12 @@
+local build_util = require 'stonehearth.lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
 local lrbt = {}
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 local lrbt_cases = require 'tests.longrunning.build.lrbt_cases'
+
+local TEMPLATE_NAME = 'autotest_template'
 
 -- get the area of the blueprint for the given structure
 --
@@ -18,8 +21,17 @@ local function create_workers(autotest)
    autotest.env:create_person(-10, 10, { job = 'worker' })
 end
 
-local function create_buildings(autotest, cb)
-   local buildings, scaffolding = {}, {}
+local function create_log_pile(autotest)
+   for y=8,12 do
+      for x=8,12 do
+         lrbt_util.create_endless_entity(autotest, x, y, 'stonehearth:oak_log')
+      end
+   end
+end
+
+local function track_buildings_and_scaffolding_creation(cb)
+   local scaffolding, buildings = {}, {}
+
    local building_listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
          if entity:is_valid() and entity:get_uri() == 'stonehearth:entities:building' then
@@ -30,17 +42,10 @@ local function create_buildings(autotest, cb)
          end
       end)
 
-   -- now run `cd` to create all the building structures.
-   local session = autotest.env:get_player_session()
-   local steps = cb(autotest, session)
-   for i, step_cb in ipairs(steps) do
-      stonehearth.build:do_command('step ' .. tostring(i), nil, function()
-            step_cb()
-         end)
-   end
+   cb()
 
    building_listener:destroy()
-
+   
    -- the act of running through all the steps may have deleted some of these objects.
    -- remove them from the arrays
    stonehearth.build:clear_undo_stack()
@@ -55,6 +60,49 @@ local function create_buildings(autotest, cb)
    
    prune_dead_entities(buildings)
    prune_dead_entities(scaffolding)
+
+   return buildings, scaffolding
+end
+
+local function create_buildings(autotest, cb)
+   local buildings, scaffolding = track_buildings_and_scaffolding_creation(function()
+         -- now run `cd` to create all the building structures.
+         local session = autotest.env:get_player_session()
+         local steps = cb(autotest, session)
+         for i, step_cb in ipairs(steps) do
+            stonehearth.build:do_command('step ' .. tostring(i), nil, function()
+                  step_cb()
+               end)
+         end
+      end)
+
+   return buildings, scaffolding
+end
+
+local function create_template(autotest, cb)
+   local buildings = create_buildings(autotest, cb)
+
+   -- template test only works with the first building
+   local _, building = next(buildings)
+   local centroid = build_util.get_building_centroid(building)
+   build_util.save_template(building, { name = TEMPLATE_NAME }, true)
+
+   -- nuke the buildings
+   for _, b in pairs(buildings) do
+      radiant.entities.destroy_entity(b)
+   end
+   
+   return centroid
+end
+
+local function place_template(autotest, centroid)
+   -- drop the template
+   local buildings, scaffolding = track_buildings_and_scaffolding_creation(function()
+         local session = autotest.env:get_player_session()
+         stonehearth.build:do_command('place template', nil, function()
+               stonehearth.build:build_template(session, TEMPLATE_NAME, Point3(-4, 15, -4), centroid, 90)
+            end)
+      end)
 
    return buildings, scaffolding
 end
@@ -112,9 +160,26 @@ end
 local function do_build(autotest, cb)
    -- setup the environment for the build
    create_workers(autotest)
-   autotest.env:create_entity_cluster(8, 8, 8, 8, 'stonehearth:oak_log')
+   create_log_pile(autotest)
 
    local buildings, scaffolding = create_buildings(autotest, cb)
+
+   mark_buildings_active(autotest, buildings)
+   succeed_when_buildings_finished(autotest, buildings, scaffolding)
+      
+   autotest:sleep(60000)
+   autotest:fail('failed to build structures')
+end
+
+-- run a template test
+--
+local function do_template(autotest, cb)
+   -- setup the environment for the build
+   create_workers(autotest)
+   create_log_pile(autotest)
+
+   local centroid = create_template(autotest, cb)
+   local buildings, scaffolding = place_template(autotest, centroid)
 
    mark_buildings_active(autotest, buildings)
    succeed_when_buildings_finished(autotest, buildings, scaffolding)
@@ -151,6 +216,9 @@ for name, cb in pairs(lrbt_cases) do
    lrbt['build_' .. name] = function(autotest)
       do_build(autotest, cb)
    end
+   lrbt['template_' .. name] = function(autotest)
+      do_template(autotest, cb)
+   end
    lrbt['teardown_' .. name] = function(autotest)
       do_teardown(autotest, cb)
    end
@@ -169,7 +237,7 @@ function lrbt.grow_walls_twice(autotest)
 
    stonehearth.build:do_command('create floor', nil, function()
          local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(4, 11, 1)))
-         building = stonehearth.build:get_building_for(floor)
+         building = build_util.get_building_for(floor)
       end)
 
    for i=1,3 do
@@ -197,7 +265,7 @@ function lrbt.grow_walls_perf_test(autotest)
          end)
       stonehearth.build:do_command('create floor', nil, function()
             local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-w, 10, i), Point3(w, 11, i+2)))
-            building = stonehearth.build:get_building_for(floor)
+            building = build_util.get_building_for(floor)
          end)
    end
    autotest:sleep(1)
@@ -219,18 +287,9 @@ function lrbt.expensive_building(autotest)
    local session = autotest.env:get_player_session()
    local building
 
-   local function create_endless_entity(x, y, uri)
-      local trace
-      local log = autotest.env:create_entity(x, y, uri)
-      trace = log:trace('make more logs')
-                     :on_destroyed(function()
-                           trace:destroy()
-                           create_endless_entity(x, y, uri)
-                        end)
-   end
    for i = 0,8 do
-      create_endless_entity(8 + i % 4, 16 + i / 4, 'stonehearth:oak_log')
-      create_endless_entity(-8 + i % 4, 16 + i / 4, 'stonehearth:berry_basket')
+      lrbt_util.create_endless_entity(autotest, 8 + i % 4, 16 + i / 4, 'stonehearth:oak_log')
+      lrbt_util.create_endless_entity(autotest, -8 + i % 4, 16 + i / 4, 'stonehearth:berry_basket')
    end
    create_workers(autotest)
 
@@ -239,7 +298,7 @@ function lrbt.expensive_building(autotest)
 
    stonehearth.build:do_command('create floor', nil, function()
          local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(-20, 10, -20), Point3(18, 11, 10)))
-         building = stonehearth.build:get_building_for(floor)
+         building = build_util.get_building_for(floor)
       end)
 
    local w=18

@@ -22,7 +22,8 @@ end
 function PortalEditor:begin_editing(fabricator, blueprint, project, structure_type)
    self[StructureEditor]:begin_editing(fabricator, blueprint, project, 'stonehearth:wall')
    
-   self._wall = self:get_proxy_blueprint():get_component('stonehearth:wall')
+   self._proxy_blueprint = self:get_proxy_blueprint()
+   self._proxy_wall = self._proxy_blueprint:get_component('stonehearth:wall')
    return self
 end
 
@@ -80,14 +81,16 @@ function PortalEditor:_position_fixture(location)
                               :compute_fixture_placement(self._fixture_blueprint, location)
 
    self._fixture_blueprint_render_entity:set_visible_override(location ~= nil)
+
+   local proxy_blueprint = self:get_proxy_blueprint()
    if location then
       self:_change_cursor(self._cursor_uri)
-      self._wall:add_fixture(self._fixture_blueprint, location)
+      self._proxy_wall:add_fixture(self._fixture_blueprint, location)
    else
       self._change_cursor('stonehearth:cursors:invalid_hover')
-      self._wall:remove_fixture(self._fixture_blueprint)
+      self._proxy_wall:remove_fixture(self._fixture_blueprint)
    end
-   self._wall:layout()
+   self._proxy_wall:layout()
 end
 
 function PortalEditor:_change_cursor(uri)

@@ -19,6 +19,7 @@
    }, 
 
    "mixintos": {
+      "stonehearth/professions/carpenter/recipes/recipes.json" : "file(recipes/recipes.json)",
       "stonehearth/jobs/carpenter/recipes/recipes.json" : "file(recipes/recipes.json)"
    },
 

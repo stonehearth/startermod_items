@@ -42,13 +42,21 @@
             "sticky" : true,
             "hotkey" : "t"
          },
-         "create_mining_zone" : {
-            "name" : "Mining Zone (not implemented)",
+         "dig_down" : {
+            "name" : "Dig Down (not implemented)",
             "description" : "Excavate dirt and rock from the earth.",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
+            "icon" : "",
             "sticky" : true,
             "hotkey" : "m"
+         },
+         "dig_out" : {
+            "name" : "Dig Out (not implemented)",
+            "description" : "Excavate dirt and rock from the earth.",
+            "class" : "button",
+            "icon" : "",
+            "sticky" : true,
+            "hotkey" : "n"
          }
       }
    },

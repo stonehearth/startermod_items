@@ -1,5 +1,5 @@
 App.StonehearthBuildingDesignerTools = App.View.extend({
-   templateName: 'buildingDesignerTools',
+   templateName: 'buildingDesigner',
    i18nNamespace: 'stonehearth',
    classNames: ['fullScreen', "gui"],
    uriProperty: 'context.selection',
@@ -36,6 +36,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
       this.components['stonehearth:construction_data'].fabricator_entity['stonehearth:fabricator'].blueprint = this.blueprint_components;
    },   
+
+   showOverview: function() {
+      this.$('#buildingEditor').hide();
+      this.$('#buildingOverview').show();
+   },
+
+   showEditor: function() {
+      this.$('#buildingEditor').show();
+      this.$('#buildingOverview').hide();
+   },
 
    // Save the state of the dialog int the 'stonehearth:building_designer' key.
    _saveState: function() {
@@ -376,6 +386,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       })
 
       // building buttons
+      this.$('#showOverview').click(function() {
+         $(top).trigger('stonehearth_building_overview');
+      });
+
+      this.$('#showEditor').click(function() {
+         $(top).trigger('stonehearth_building_editor');
+      });
+
+
       this.$('#startBuilding').click(function() {
          var doStartBuilding = function() {
             App.stonehearthClient.deactivateAllTools();
@@ -388,7 +407,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                //xxx hack! The server should do this for us
                self.set('building.active', true);
             }
-            App.setGameMode('normal');
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
@@ -455,6 +473,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             }
          }
       });
+
    },
 
    _restoreUiState: function() {
@@ -513,6 +532,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // gradiant on the grow roof control
          self._applyRoofGradiantControlState(self._state.growRoofOptions);
          self._updateGrowRoofOptions()
+
+         self.$('.tabPage').hide();
       }
    },
 
@@ -537,6 +558,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (blueprint_entity && !building_entity) {
             building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
          }
+
+         self.$('.selectedBuildingWindow').show();
+      } else {
+         self.$('.selectedBuildingWindow').hide();
       }
 
       self.set('building', building_entity);
@@ -556,7 +581,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          return;
       }
 
-      var selectedBuildingWindow = self.$('#selectedBuildingWindow');
+      var selectedBuildingWindow = self.$('.selectedBuildingWindow');
       if (!selectedBuildingWindow) {
          return;
       }

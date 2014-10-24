@@ -174,10 +174,8 @@ end
 
 function EntityFormsComponent:_load_placement_task()
    if self._sv.placing_at then
-      if self._sv.placing_at.wall then
-         self:place_item_on_wall(self._sv.placing_at.location,
-                                 self._sv.placing_at.wall,
-                                 self._sv.placing_at.normal)
+      if self._sv.placing_at.structure then
+         -- the fabricator will restart us...
       else
          self:place_item_on_ground(self._sv.placing_at.location,
                                    self._sv.placing_at.rotation)
@@ -198,9 +196,9 @@ function EntityFormsComponent:_destroy_placement_task()
       self._placement_task:destroy()
       self._placement_task = nil
    end
-   if self._wall_finished_event then
-      self._wall_finished_event:destroy()
-      self._wall_finished_event = nil
+   if self._structure_finished_event then
+      self._structure_finished_event:destroy()
+      self._structure_finished_event = nil
    end
    if self._sv.placing_at then
       self._sv.placing_at = nil
@@ -208,47 +206,29 @@ function EntityFormsComponent:_destroy_placement_task()
    end
 end
 
-function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
-   assert(wall_entity, 'no wall in place_item_on_wall')
-   assert(radiant.util.is_a(wall_entity, Entity), 'wall is not an entity in place_item_on_wall')
-   assert(self:is_placeable_on_wall(), 'cannot place item on wall')
+function EntityFormsComponent:place_item_on_structure(location, structure_entity, normal, rotation)
+   assert(structure_entity, 'no structure in :place_item_on_structure()')
+   assert(normal, 'no normal in :place_item_on_structure()')
+   assert(radiant.util.is_a(structure_entity, Entity), 'structure is not an entity in place_item_on_structure')
+   assert(self:is_placeable(), 'cannot place non-placeable item')
 
    -- cancel whatever pending tasks we had earliers.
    self:_destroy_placement_task()
 
    -- rememeber what we're doing now so we can early-exit later if necessary.
    self._sv.placing_at = {
-      wall = wall_entity,
+      structure = structure_entity,
       normal = normal,
       location = location,
    }
    self.__saved_variables:mark_changed()
 
-   -- figure out if the wall is finished or not.  we shouldn't try to place items on
-   -- unfinished walls..
-   local wall_cp = wall_entity:get_component('stonehearth:construction_progress')
-   local wall_finished = wall_cp:get_finished()
+   -- make sure the structure is finished, first.  the fixture fabricator should have
+   -- managed this dependency for us!
+   local structure_cp = structure_entity:get_component('stonehearth:construction_progress')
+   assert(structure_cp:get_finished())
 
-   -- move our ghost entity inside the wall that we'd like to be placed on.  this
-   -- gives the wall ownership of the visibilty of the ghost item (e.g. when the
-   -- build view mode changes, the ghost item will show and hide itself along with
-   -- the wall).  if the wall's finished, we'll use the blueprint.  otherwise,
-   -- use the fabricator
-   local rotation = build_util.normal_to_rotation(normal)
-   local offset = location - radiant.entities.get_world_grid_location(wall_entity)
-   local ghost_entity_parent = wall_finished and wall_entity or wall_cp:get_fabricator_entity()
-
-   radiant.entities.add_child(ghost_entity_parent, self._sv.ghost_entity, offset)
-   radiant.entities.turn_to(self._sv.ghost_entity, rotation)
-
-   if not wall_finished then
-      radiant.events.listen_once(wall_entity, 'stonehearth:construction:finished_changed', function()
-            self._wall_finished_event = self:place_item_on_wall(location, wall_entity, normal)
-         end)
-      return
-   end
-
-   -- the wall is finished.  let's start up the tasks.  if we're currently on a wall,
+   -- the structure is finished.  let's start up the tasks.  if we're currently on a structure,
    -- we may need to build a ladder to pick ourselves up.  request that now.
    local mob = self._entity:add_component('mob')
    local parent = mob:get_parent()
@@ -262,14 +242,16 @@ function EntityFormsComponent:place_item_on_wall(location, wall_entity, normal)
    end
 
    -- create another ladder request to climb up to the placement point.
-   local climb_to = normal + location - Point3.unit_y
-   self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
+   if normal and normal.y == 0 then
+      local climb_to = normal + location - Point3.unit_y
+      self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
+   end
 
    -- finally create a placement task to move the item from one spot to another
    local item = self:_get_form_in_world()
-   self:_create_task('stonehearth:place_item_on_wall', {
+   self:_create_task('stonehearth:place_item_on_structure', {
          item = item,
-         wall = wall_entity,
+         structure = structure_entity,
          location = location,
          rotation = rotation,
       })
@@ -326,7 +308,7 @@ function EntityFormsComponent:_create_task(activity, args)
                        :once()
                        :notify_completed(function()
                               -- remove the ghost entity from whatever its parent was.  this could
-                              -- best the terrain or a wall, depending on how we were placed
+                              -- best the terrain or a structure, depending on how we were placed
                               local ghost = self._sv.ghost_entity
                               local parent = ghost:get_component('mob'):get_parent()
                               if parent then

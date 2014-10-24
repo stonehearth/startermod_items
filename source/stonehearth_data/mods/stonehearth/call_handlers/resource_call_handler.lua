@@ -27,9 +27,6 @@ function ResourceCallHandler:box_harvest_resources(session, response)
       :fail(function(selector)            
             response:reject('no region')
          end)
-      :always(function(selector)
-            selector:destroy()
-         end)
       :go()
 end
 

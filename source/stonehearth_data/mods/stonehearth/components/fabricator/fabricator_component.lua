@@ -159,7 +159,7 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
                               
    -- wire up the back pointer so we can find the fab entity from the blueprint
    scaffolding:add_component('stonehearth:construction_progress')   
-               :set_fabricator_entity(fabricator)
+               :set_fabricator_entity(fabricator, 'stonehearth:fabricator')
 
    self._sv.scaffolding_blueprint = scaffolding
    self._sv.scaffolding_fabricator = fabricator

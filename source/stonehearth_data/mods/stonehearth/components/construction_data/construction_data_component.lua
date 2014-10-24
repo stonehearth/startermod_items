@@ -41,8 +41,7 @@ function ConstructionDataComponent:initialize(entity, json)
 
    if not self._sv.initialized then
       self._sv = json
-      self._sv.initialized = true
-      self._sv._loaning_scaffolding_to = {}
+      self._sv.initialized = true           
       self.__saved_variables:set_data(self._sv)
 
       if not self._sv.material then
@@ -178,19 +177,24 @@ function ConstructionDataComponent:get_fabricator_entity()
    return self._sv.fabricator_entity
 end
 
-function ConstructionDataComponent:set_fabricator_entity(fentity)
-   self._sv.fabricator_entity = fentity
+function ConstructionDataComponent:set_fabricator_entity(entity)
+   assert(entity, 'no entity specified in :set_fabricator_entity()')
+   self._sv.fabricator_entity = entity
    self.__saved_variables:mark_changed()
-end
-
-function ConstructionDataComponent:set_building_entity(entity)
-   self._sv.building_entity = entity
-   self.__saved_variables:mark_changed()
+   return self
 end
 
 function ConstructionDataComponent:get_building_entity(entity)
    return self._sv.building_entity
 end
+
+function ConstructionDataComponent:set_building_entity(entity)
+   assert(entity, 'no entity specified in :set_building_entity()')
+   self._sv.building_entity = entity
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 
 function ConstructionDataComponent:get_allow_diagonal_adjacency()
    -- coearse to bool 
@@ -212,21 +216,6 @@ function ConstructionDataComponent:get_allow_crouching_construction()
    return self._sv.allow_crouching_construction and true or false
 end
 
--- used to loan our scaffolding to the borrower.  this means we won't
--- try to tear down the scaffolding until our entity and the borrower
--- entity are both finished.
-function ConstructionDataComponent:loan_scaffolding_to(borrower)
-   if borrower and borrower:is_valid() then
-      self._sv._loaning_scaffolding_to[borrower:get_id()] = borrower
-      self.__saved_variables:mark_changed()
-   end
-end
-
--- return the map of entities that we're loaning our scaffolding to
-function ConstructionDataComponent:get_loaning_scaffolding_to()
-   return self._sv._loaning_scaffolding_to
-end
-
 function ConstructionDataComponent:create_voxel_brush()
    if self._sv.brush then
       return voxel_brush_util.create_brush(self._sv)
@@ -242,8 +231,7 @@ function ConstructionDataComponent:save_to_template()
       nine_grid_region = self._sv.nine_grid_region,
       nine_grid_slope = self._sv.nine_grid_slope,
       nine_grid_gradiant = self._sv.nine_grid_gradiant,
-      nine_grid_max_height = self._sv.nine_grid_max_height,
-      loan_scaffolding_to = radiant.keys(self._sv._loaning_scaffolding_to),
+      nine_grid_max_height = self._sv.nine_grid_max_height,      
    }
    return result
 end
@@ -262,10 +250,6 @@ function ConstructionDataComponent:load_from_template(data, options, entity_map)
       self._sv.paint_through_blueprint = false
    end
    self:apply_nine_grid_options(data)
-
-   for _, key in pairs(data.loan_scaffolding_to) do
-      self:loan_scaffolding_to(entity_map[key])
-   end
 
    self.__saved_variables:mark_changed()
 end

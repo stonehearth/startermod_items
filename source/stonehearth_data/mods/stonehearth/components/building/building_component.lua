@@ -17,12 +17,14 @@ local WALL = 'stonehearth:wall'
 local COLUMN = 'stonehearth:column'
 local ROOF = 'stonehearth:roof'
 local FLOOR = 'stonehearth:floor'
+local FIXTURE_FABRICATOR = 'stonehearth:fixture_fabricator' -- xx: rename this fixture...
 
 local STRUCTURE_TYPES = {
    WALL,
    COLUMN,
    ROOF,
    FLOOR,
+   FIXTURE_FABRICATOR,
 }
 
 -- normals in the x and z directions.  used for creating patch walls.
@@ -37,7 +39,11 @@ local X_NORMALS = {
 
 function Building:initialize(entity, json)
    self._entity = entity
-   if not self._sv.initialized then
+   self._log = radiant.log.create_logger('build')
+                              :set_prefix('building')
+                              :set_entity(entity)
+
+  if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.envelope_entity = radiant.entities.create_entity()    
       self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
@@ -139,6 +145,8 @@ end
 function Building:add_structure(entity)
    local id = entity:get_id()
 
+   self._log:detail('adding structure %s to building', entity)
+
    for _, structure_type in pairs(STRUCTURE_TYPES) do
       local trace
       local structure = entity:get_component(structure_type)
@@ -211,7 +219,7 @@ function Building:_create_roof_dependencies(roof)
                   :add_dependency(structure)
 
       -- loan out some scaffolding
-      structure:get_component('stonehearth:construction_data')
+      structure:get_component('stonehearth:construction_progress')
                   :loan_scaffolding_to(roof)
    end
 end
@@ -572,6 +580,7 @@ function Building:_on_child_finished(changed)
          if entity ~= self._entity then
             local cp = entity:get_component('stonehearth:construction_progress')
             if cp and not cp:get_finished() then
+               self._log:spam('%s is not finished!  stopping search.', entity)
                return false
             end
          end
@@ -587,6 +596,12 @@ function Building:_on_child_finished(changed)
       end
       return true
    end
+   
+   if not self._entity:is_valid() then
+      return
+   end
+   self._log:spam('checking to see if all children are finished...')
+
    local finished = children_finished(self._entity)
    self._entity:get_component('stonehearth:construction_progress')
                      :set_finished(finished)

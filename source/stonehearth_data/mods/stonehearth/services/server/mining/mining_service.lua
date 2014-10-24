@@ -1,3 +1,5 @@
+local constants = require 'constants'
+local mining_lib = require 'lib.mining.mining_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -5,8 +7,6 @@ local log = radiant.log.create_logger('mining')
 
 MiningService = class()
 
-local XZ_ALIGN = 4
-local Y_ALIGN = 5
 local MAX_REACH_UP = 3
 local MAX_REACH_DOWN = 1
 
@@ -28,7 +28,7 @@ end
 -- to explicitly manage the zones yourself.
 ----------------------------------------------------------------------------
 
--- dig out an arbitary region
+-- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, faction, region)
    local inflated_region = region:inflated(Point3.one)
 
@@ -72,7 +72,8 @@ function MiningService:dig_region(player_id, faction, region)
    return selected_zone
 end
 
--- dig down, quantized to the 4x5x4 mining cells
+-- Dig down, quantized to the 4x5x4 mining cells.
+-- Region is defined in world space.
 function MiningService:dig_down(player_id, faction, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          return self:_get_aligned_cube(cube)
@@ -80,7 +81,8 @@ function MiningService:dig_down(player_id, faction, region)
    self:dig_region(player_id, faction, aligned_region)
 end
 
--- dig out, quantized to the 4x5x4 cells, but preserve the ceiling
+-- Dig out, quantized to the 4x5x4 cells, but preserve the ceiling.
+-- Region is defined in world space.
 function MiningService:dig_out(player_id, faction, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
@@ -95,7 +97,8 @@ function MiningService:dig_out(player_id, faction, region)
    self:dig_region(player_id, faction, aligned_region)
 end
 
--- dig up, quantized to the 4x5x4 cells
+-- Dig up, quantized to the 4x5x4 cells.
+-- Region is defined in world space.
 function MiningService:dig_up(player_id, faction, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
@@ -110,7 +113,7 @@ function MiningService:dig_up(player_id, faction, region)
    self:dig_region(player_id, faction, aligned_region)
 end
 
--- explicitly create a mining zone
+-- Explicitly create a mining zone.
 function MiningService:create_mining_zone(player_id, faction)
    local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone')
 
@@ -121,7 +124,7 @@ function MiningService:create_mining_zone(player_id, faction)
    return mining_zone
 end
 
--- explicitly add a region to a mining zone
+-- Explicitly add a region to a mining zone.
 function MiningService:add_region_to_zone(mining_zone, region)
    if not region or region:empty() then
       return
@@ -145,7 +148,7 @@ function MiningService:add_region_to_zone(mining_zone, region)
       end)
 end
 
--- merges zone2 into zone1, and destroys zone2
+-- Merges zone2 into zone1, and destroys zone2.
 function MiningService:merge_zones(zone1, zone2)
    local boxed_region1 = zone1:add_component('stonehearth:mining_zone'):get_region()
    local boxed_region2 = zone2:add_component('stonehearth:mining_zone'):get_region()
@@ -162,6 +165,7 @@ function MiningService:merge_zones(zone1, zone2)
    radiant.entities.destroy_entity(zone2)
 end
 
+-- Chooses the best point to mine when standing on from.
 function MiningService:resolve_point_of_interest(from, mining_zone)
    local location = radiant.entities.get_world_grid_location(mining_zone)
    local destination_component = mining_zone:add_component('destination')
@@ -192,7 +196,7 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    return poi
 end
 
--- return all the locations that can be reached from point
+-- Return all the locations that can be reached from point.
 function MiningService:get_reachable_region(location)
    local y_min = location.y - MAX_REACH_DOWN
    local y_max = location.y + MAX_REACH_UP
@@ -200,7 +204,7 @@ function MiningService:get_reachable_region(location)
    return region
 end
 
--- return all the locations that can reach the block at point
+-- Return all the locations that can reach the block at point.
 function MiningService:get_adjacent_for_destination_block(point)
    local y_min = point.y - MAX_REACH_UP
    local y_max
@@ -231,18 +235,7 @@ function MiningService:_transform_cubes_in_region(region, cube_transform)
 end
 
 function MiningService:_get_aligned_cube(cube)
-   local min, max = cube.min, cube.max
-   local aligned_min = Point3(
-         math.floor(min.x / XZ_ALIGN) * XZ_ALIGN,
-         math.floor(min.y / Y_ALIGN)  * Y_ALIGN,
-         math.floor(min.z / XZ_ALIGN) * XZ_ALIGN
-      )
-   local aligned_max = Point3(
-         math.ceil(max.x / XZ_ALIGN) * XZ_ALIGN,
-         math.ceil(max.y / Y_ALIGN)  * Y_ALIGN,
-         math.ceil(max.z / XZ_ALIGN) * XZ_ALIGN
-      )
-   return Cube3(aligned_min, aligned_max)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_ALIGN, constants.mining.Y_ALIGN)
 end
 
 function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filter)

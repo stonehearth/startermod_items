@@ -34,6 +34,10 @@ function AutotestInstance:_protect_framework_interface(iname)
    self[iname] = protected_interface
 end
 
+function AutotestInstance:is_running()
+   return self._thread:is_running()
+end
+
 function AutotestInstance:_check_running(fn_name)
    if self._thread:is_finished() then
       local err  = string.format('call to autotest:%s() from %s when thread is not running', fn_name, self._name)

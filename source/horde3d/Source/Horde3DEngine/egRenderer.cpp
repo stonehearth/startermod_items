@@ -3550,13 +3550,13 @@ void Renderer::renderDebugView()
    Modules::sceneMan().updateQueues( "rendering debug view", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                 SceneNodeFlags::NoDraw, 0, true, true, true );
 	gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &color[0] );
-	//drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
+	drawRenderables( "", "", true, &_curCamera->getFrustum(), 0x0, RenderingOrder::None, -1, 0 );
    for (const auto& queue : Modules::sceneMan().getRenderableQueues())
    {
       for( const auto& entry : queue.second )
 	   {
 		   const SceneNode *sn = entry.node;
-		   drawAABB( sn->_bBox.min(), sn->_bBox.max() );
+		   //drawAABB( sn->_bBox.min(), sn->_bBox.max() );
 	   }
    }
 
@@ -3565,7 +3565,7 @@ void Renderer::renderDebugView()
    for (const auto& frust : gRDI->_frameDebugInfo.getShadowCascadeFrustums())
    {
 	   gRDI->setShaderConst( Modules::renderer()._defColShader_color, CONST_FLOAT4, &frustCol[frustNum * 4] );
-      drawFrustum(frust);
+      //drawFrustum(frust);
       frustNum = (frustNum + 1) % 4;
    }
 

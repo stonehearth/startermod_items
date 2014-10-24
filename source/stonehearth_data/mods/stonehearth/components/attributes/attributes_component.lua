@@ -1,28 +1,34 @@
---[[
-   Attributes are numbers associated with an entity. There are a few kinds of attributes
+-- @title stonehearth:attribtes
+-- @book reference
+-- @section attributes
+
+--[[ @markdown
+   Attributes are numbers associated with an entity. There are a few kinds of attributes:
+
    - basic attributes are just integers 
    - random_range attributes will get you a number between base and max, inclusive
    - derived attributes derived from equations relating other attributes. 
    - variable attributes are changed in game, but have a min of 0 and a (soft) max of some other stat (soft to account for temp buffs)
+   - private attributes are not shown to the UI
 
    Here are the 3 example types as described in json:
-   "menace": {
-      "type" : "basic",
-      "value" : 1
-   },
-   "compassion_modifier": {
-      "type" : "random_range",
-      "base" :  1,
-      "max"  :  9
-   },
-   "max_health": {
-      "type" : "derived", 
-      "equation" : "muscle + willpower + discipline"
-   }, 
-   "health" : {
-      "type" : "variable", 
-      "source" : "max_health"
-   }
+      "menace": {
+         "type" : "basic",
+         "value" : 1
+      },
+      "compassion_modifier": {
+         "type" : "random_range",
+         "base" :  1,
+         "max"  :  9
+      },
+      "max_health": {
+         "type" : "derived", 
+         "equation" : "muscle + willpower + discipline"
+      }, 
+      "health" : {
+         "type" : "variable", 
+         "source" : "max_health"
+      }
 
    Attributes can have alphabetical characters in them, + the _ character. (But they cannot have
    numeric characters in them)
@@ -34,10 +40,11 @@
    it's a basic attribute, or the number derived from its equation, if it's a derived attribute. 
    All attributes also have an effective value, which is the base value + it's modifiers. 
 
-   TODO: - Optimizations: check for loops
-         - make declaring attributes easier
-         - design: do the derived attributes make the player feel that the differences are bigger than 
-                   are actually important? This is the opposite of what we want
+   TODO: 
+
+   - Optimizations: check for loops
+   - make declaring attributes easier
+   - design: do the derived attributes make the player feel that the differences are bigger than are actually important? This is the opposite of what we want
 ]]
 
 local AttributeModifier = require 'components.attributes.attribute_modifier'
@@ -187,6 +194,7 @@ function AttributesComponent:set_attribute(name, value)
    self.__saved_variables:mark_changed()
 end
 
+-- Change the value of a basic attribute
 function AttributesComponent:modify_attribute(attribute)
    local modifier = AttributeModifier(self, attribute)
    
@@ -198,6 +206,7 @@ function AttributesComponent:modify_attribute(attribute)
    return modifier
 end
 
+-- Remove the modifier part of an attribute
 function AttributesComponent:_remove_modifier(attribute, attribute_modifier)
    for i, modifier in ipairs(self._modifiers[attribute]) do
       if modifier == attribute_modifier then
@@ -208,7 +217,7 @@ function AttributesComponent:_remove_modifier(attribute, attribute_modifier)
    end
 end
 
--- called to notify the outside world that an attribute has changed.  both
+-- Called to notify the outside world that an attribute has changed. Voth
 -- update the public field in our saved variables and trigger an event
 function AttributesComponent:_notify_attribute_changed(name, attribute_data)
    if not attribute_data.private then
@@ -228,6 +237,7 @@ function AttributesComponent:_notify_attribute_changed(name, attribute_data)
    end
 end
 
+-- Recalculate the attribute's value (carefully!)
 function AttributesComponent:_recalculate(name)
    local mult_factor = 1.0
    local add_factor = 0.0

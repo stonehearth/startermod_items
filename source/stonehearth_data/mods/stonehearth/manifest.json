@@ -340,8 +340,8 @@
       "actions:pickup_item_made_of" : "file(ai/actions/pickup_item_made_of.lua)",
       "actions:pickup_item_with_uri" : "file(ai/actions/pickup_item_with_uri_action.lua)",
       "actions:place_item" : "file(ai/actions/place_item_action.lua)",
-      "actions:place_item_on_wall" : "file(ai/actions/place_item_on_wall_action.lua)",
-      "actions:place_carrying_on_wall_adjacent" : "file(ai/actions/place_carrying_on_wall_adjacent_action.lua)",
+      "actions:place_item_on_structure" : "file(ai/actions/place_item_on_structure_action.lua)",
+      "actions:place_carrying_on_structure_adjacent" : "file(ai/actions/place_carrying_on_structure_adjacent_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
       "actions:wait_for_closest_stockpile_space" : "file(ai/actions/wait_for_closest_stockpile_space.lua)",
       "actions:drop_item_near_workshop" : "file(ai/actions/drop_item_near_workshop.lua)", 
@@ -893,11 +893,11 @@
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_on_wall" : {
+      "place_item_on_structure" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_type_on_wall" : {
+      "place_item_type_on_structure" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
