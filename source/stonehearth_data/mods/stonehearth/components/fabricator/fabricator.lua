@@ -89,6 +89,18 @@ function Fabricator:destroy()
    end
 end
 
+function Fabricator:set_mining_zone(mining_zone)
+   if not self._mining_zone then
+      self._mining_zone = mining_zone
+      self._mining_trace = self._mining_zone:get_component('destination'):trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+         :on_changed(function(region)
+            self._log:error('mining region changed')
+            self:_update_dst_region()
+         end)
+         :push_object_state()
+   end
+end
+
 function Fabricator:set_active(active)
    self._active = active
    if self._active then
@@ -482,6 +494,13 @@ function Fabricator:_update_dst_region()
    --self:_log_region(rcs_rgn, 'region collision shape ->')
    --self:_log_region(dst_region, 'resulted in destination ->')
    
+   -- Any region that needs mining should be removed from our destination region.
+   if self._mining_zone and self._mining_zone:get_component('destination') then
+      local mining_region = self._mining_zone:get_component('destination'):get_region():get()
+
+      dst_region = dst_region - mining_region:translated(Point3(0, -1, 0))
+   end
+
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -544,7 +563,7 @@ end
 -- regardless of how those regions change
 function Fabricator:_update_fabricator_region()
    local br = self._teardown and emptyRegion or self._blueprint_dst:get_region():get()
-   local pr = self._project:get_component('destination'):get_region():get()
+   local pr = self._project_dst:get_region():get()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br

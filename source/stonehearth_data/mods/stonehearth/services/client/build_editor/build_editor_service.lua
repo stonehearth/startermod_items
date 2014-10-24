@@ -17,6 +17,7 @@ local log = radiant.log.create_logger('build_editor')
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
    self._sv = self.__saved_variables:get_data()
+   self._sv.terrain_cuts = {}
    self._sv.selected_sub_part = nil
 
    _radiant.call('stonehearth:get_service', 'build')
@@ -28,6 +29,20 @@ function BuildEditorService:initialize()
             self._build_service = r.result:__tojson()
          end)
    self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+end
+
+function BuildEditorService:add_terrain_cut(cut_region)
+   if not self._sv.terrain_cuts[cut_region] then
+      self._sv.terrain_cuts[cut_region] = true
+      _radiant.renderer.add_terrain_cut(cut_region)
+   end
+end
+
+function BuildEditorService:remove_terrain_cut(cut_region)
+   if self._sv.terrain_cuts[cut_region] then
+      self._sv.terrain_cuts[cut_region] = nil
+      _radiant.renderer.remove_terrain_cut(cut_region)
+   end
 end
 
 function BuildEditorService:on_selection_changed()

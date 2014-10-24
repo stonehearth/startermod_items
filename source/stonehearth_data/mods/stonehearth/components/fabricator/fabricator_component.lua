@@ -66,6 +66,10 @@ function FabricatorComponent:instabuild()
    self._fabricator:instabuild()
 end
 
+function FabricatorComponent:set_mining_zone(mining_zone)
+   self._fabricator:set_mining_zone(mining_zone)
+end
+
 function FabricatorComponent:set_active(enabled)
    self._log:info('setting active to %s', tostring(enabled))
    
