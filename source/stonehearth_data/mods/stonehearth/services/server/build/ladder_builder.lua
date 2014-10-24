@@ -10,6 +10,11 @@ function LadderBuilder:initialize(manager, base, normal, removeable)
    self._sv.climb_to = {}
 
    local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder')
+   self._ladder_dtor_trace = ladder:trace('ladder dtor')
+                                       :on_destroyed(function()
+                                             self._sv.manager:_destroy_builder(self._sv.base, self)
+                                          end)
+
    if removeable then
       ladder:add_component('stonehearth:commands')
                   :add_command('/stonehearth/data/commands/remove_ladder')
@@ -55,6 +60,10 @@ function LadderBuilder:destroy()
       self._vpr_trace:destroy()
       self._vpr_trace = nil
    end   
+   if self._ladder_dtor_trace then
+      self._ladder_dtor_trace:destroy()
+      self._ladder_dtor_trace = nil
+   end
    if self._sv.ladder then
       radiant.entities.destroy_entity(self._sv.ladder)
       self._vpr_component = nil
@@ -64,6 +73,8 @@ function LadderBuilder:destroy()
 end
 
 function LadderBuilder:add_point(to)
+   assert(self._sv.ladder:is_valid())
+
    log:debug('adding point %s to ladder', to)
    self._sv.climb_to[to:key_value()] = to
    self.__saved_variables:mark_changed()   
@@ -100,7 +111,7 @@ function LadderBuilder:_get_climb_to()
          top = pt
       end
    end
-   return top and top - origin or nil
+   return top and (top - origin) or nil
 end
 
 function LadderBuilder:_get_completed_height()
