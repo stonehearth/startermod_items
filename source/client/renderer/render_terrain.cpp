@@ -7,6 +7,7 @@
 #include "render_terrain_layer.h"
 #include "dm/map_trace.h"
 #include "om/components/terrain.ridl.h"
+#include "csg/iterators.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
 #include "Horde3D.h"
@@ -146,18 +147,33 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
 
    trace->OnChanged([cut, this](csg::Region3f const& region) {
       // Update the cut map to the new region.
-      _cutToICut[cut] = csg::ToInt(region);
-      const csg::Region3& iRegion = _cutToICut[cut];
+      csg::Region3 const& oldRegion = _cutToICut[cut];
+      auto bounds = oldRegion.GetBounds();
+      csg::Cube3 oldRegionChunks = csg::GetChunkIndexSlow(bounds, _tileSize);
 
-      // Figure out every tile affected by this changed region, and update them.
-      for (auto &t : tiles_) {
-         // Remember to check the previous bounds, because the bounds may have shrunk
-         if (t.second->BoundsIntersect(iRegion)) {
-            t.second->UpdateCut(cut, iRegion);
-            MarkDirty(t.first);
-         } else if (t.second->ContainsCut(cut)) {
-            t.second->RemoveCut(cut);
-            MarkDirty(t.first);
+      // Remove all the cuts from the tiles that overlapped the old region.
+      for (csg::Point3 const& cursor : csg::EachPoint(oldRegionChunks)) {
+         csg::Point3 tilePoint = cursor * _tileSize;
+         auto i = tiles_.find(tilePoint);
+         if (i != tiles_.end()) {
+            i->second->RemoveCut(cut);
+            MarkDirty(i->first);
+         }
+      }
+
+      // Now, update teh stored region, and find the new overlapping tiles.
+      _cutToICut[cut] = csg::ToInt(region);
+      csg::Region3 const& iRegion = _cutToICut[cut];
+
+      bounds = iRegion.GetBounds();
+      csg::Cube3 regionChunks = csg::GetChunkIndexSlow(bounds, _tileSize);
+
+      for (csg::Point3 const& cursor : csg::EachPoint(regionChunks)) {
+         csg::Point3 tilePoint = cursor * _tileSize;
+         auto i = tiles_.find(tilePoint);
+         if (i != tiles_.end()) {
+            i->second->UpdateCut(cut, iRegion);
+            MarkDirty(i->first);
          }
       }
    })->PushObjectState();
