@@ -68,14 +68,6 @@ void Terrain::AddTileWorker(csg::Region3f const& region, csg::Rect2 const* clipp
    });
 }
 
-bool Terrain::InBounds(csg::Point3f const& location) const
-{
-   // must test using the grid location of the point
-   csg::Point3 grid_location = csg::ToClosestInt(location);
-   bool inBounds = (*bounds_).Contains(grid_location);
-   return inBounds;
-}
-
 // if we start streaming in tiles, this will need to return a region instead of a cube
 // WARNING: when testing GetBounds().Contains() you must pass in a grid location
 csg::Cube3f Terrain::GetBounds() const
