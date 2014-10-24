@@ -139,18 +139,25 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
 void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
 {
-   _cuts.insert(cut);
+   _cutToICut[cut] = csg::ToInt(cut->Get());
 
    auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
    _cut_trace_map[cut] = trace;
 
    trace->OnChanged([cut, this](csg::Region3f const& region) {
+      // Update the cut map to the new region.
+      _cutToICut[cut] = csg::ToInt(region);
+      const csg::Region3& iRegion = _cutToICut[cut];
+
       // Figure out every tile affected by this changed region, and update them.
       for (auto &t : tiles_) {
-         // FIXME: not quite....
-         if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
-            t.second->UpdateCut(cut);
-            MarkDirty(t.second->GetLocation());
+         // Remember to check the previous bounds, because the bounds may have shrunk
+         if (t.second->BoundsIntersect(iRegion)) {
+            t.second->UpdateCut(cut, iRegion);
+            MarkDirty(t.first);
+         } else if (t.second->ContainsCut(cut)) {
+            t.second->RemoveCut(cut);
+            MarkDirty(t.first);
          }
       }
    })->PushObjectState();
@@ -158,14 +165,12 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
 
 void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
 {
-   _cuts.erase(cut);
    _cut_trace_map.erase(cut);
    auto region = cut->Get();
    for (auto &t : tiles_) {
-      // FIXME: not quite....
-      if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
+      if (t.second->ContainsCut(cut)) {
          t.second->RemoveCut(cut);
-         MarkDirty(t.second->GetLocation());
+         MarkDirty(t.first);
       }
    }
 }

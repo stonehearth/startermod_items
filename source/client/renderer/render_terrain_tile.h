@@ -26,9 +26,9 @@ public:
    Geometry const& GetGeometry(csg::RegionTools3::Plane direction);
 
    bool BoundsIntersect(csg::Region3 const& other) const;
-   csg::Point3 const& GetLocation() const;
-   void UpdateCut(om::Region3fBoxedPtr const& cut);
-   void RemoveCut(om::Region3fBoxedPtr const& cut);
+   void UpdateCut(om::Region3fBoxedPtr const& cutPtr, csg::Region3 const& cut);
+   void RemoveCut(om::Region3fBoxedPtr const& cutPtr);
+   bool ContainsCut(om::Region3fBoxedPtr const& cutPtr) const;
 
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
@@ -44,7 +44,7 @@ private:
    Geometry                _geometry[csg::RegionTools3::NUM_PLANES];
    dm::TracePtr            _trace;
    csg::RegionTools3       _regionTools;
-   std::unordered_set<om::Region3fBoxedPtr> _cutSet;
+   std::unordered_map<om::Region3fBoxedPtr, csg::Region3> _cutMap;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

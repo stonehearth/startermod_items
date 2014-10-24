@@ -62,7 +62,7 @@ private:
    DirtySet             _dirtyLayers;
    core::Guard          renderer_frame_trace_;
    csg::TagToColorMap   _colorMap;
-   std::unordered_set<om::Region3fBoxedPtr> _cuts;
+   std::unordered_map<om::Region3fBoxedPtr, csg::Region3> _cutToICut;
    std::unordered_map<om::Region3fBoxedPtr, dm::TracePtr> _cut_trace_map;
 };
 
