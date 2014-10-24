@@ -378,6 +378,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // building buttons
       this.$('#startBuilding').click(function() {
          var doStartBuilding = function() {
+            App.stonehearthClient.deactivateAllTools();
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
             var building_entity = self.get('building');
             if (building_entity) {

@@ -19,6 +19,8 @@ function XZRegionSelector:__init()
    self._require_supported = false
    self._require_unblocked = false
    self._show_rulers = true
+   self._select_front_brick = true
+   self._allow_select_cursor = false
    self._find_support_filter_fn = function(result)
       return self:_default_find_support_filter(result)
    end
@@ -31,6 +33,16 @@ function XZRegionSelector:__init()
    self._get_resolved_points_fn = identity_end_point_transform
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
+end
+
+function XZRegionSelector:allow_select_cursor(allow)
+   self._allow_select_cursor = allow
+   return self
+end
+
+function XZRegionSelector:select_front_brick(v)
+   self._select_front_brick = v
+   return self
 end
 
 function XZRegionSelector:require_supported(supported)
@@ -119,6 +131,10 @@ function XZRegionSelector:deactivate_tool()
 end
 
 function XZRegionSelector:destroy()
+   if self._always_cb then
+      self._always_cb(self)
+   end
+
    stonehearth.selection:register_tool(self, false)
 
    if self._input_capture then
@@ -184,7 +200,7 @@ end
 -- filter.
 --
 function XZRegionSelector:_get_hover_brick(x, y)
-   local brick = selector_util.get_selected_brick(x, y, true, function(result)
+   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)
          return self._find_support_filter_fn(result, self)
       end)
    return brick
@@ -248,9 +264,6 @@ function XZRegionSelector:_on_mouse_event(event)
    if event and event:up(2) and not event.dragging then
       if self._fail_cb then
          self._fail_cb(self)
-      end
-      if self._always_cb then
-         self._always_cb(self)
       end
       self:destroy()
       return
@@ -355,7 +368,12 @@ function XZRegionSelector:_notify_progress(box)
                                     :set_position(box.min)
    end
 
-   self._render_node:set_can_query(false)
+   -- Why would we want a selectable cursor?  Because we're querying the actual displayed objects, and when
+   -- laying down floor, we cut into the actual displayed object.  So, you select a piece of terrain, then cut
+   -- into it, and then you move the mouse a smidge.  Now, the query goes through the new hole, hits another
+   -- terrain block, and the hole _moves_ to the new selection; nudge the mouse again, and the hole jumps again.
+   -- Outside of re-thinking the way selection works, this is the only fix that occurs to me.
+   self._render_node:set_can_query(self._allow_select_cursor)
    if self._progress_cb then
       self._progress_cb(self, box)
    end   
@@ -363,6 +381,13 @@ end
 
 function XZRegionSelector:_default_find_support_filter(result)
    local entity = result.entity
+
+   -- TODO: maybe overthinking it, but perhaps 'return self._allow_nil_entity', and add that
+   -- to the API?  The only case entity should be null is when allowing self-selection of the
+   -- cursor.
+   if not entity then
+      return true
+   end
 
    -- fast check for 'is terrain'
    if entity:get_id() == 1 then
