@@ -11,7 +11,7 @@ radiant.events.listen(candledark, 'radiant:init', function()
    -- We only want this to happen once, on the first time we load. If we load after 
    -- noon on the 1st day, do not create candledark
    --
-   local ticks_per_second = stonehearth.calendar:get_constants().ticks_per_second
+   local ticks_per_second = 9 
    if radiant.gamestate.now() < 60 * 60 * 4 * ticks_per_second then
       radiant.set_realtime_timer(1000, function()
          stonehearth.calendar:set_timer('4h', function()
