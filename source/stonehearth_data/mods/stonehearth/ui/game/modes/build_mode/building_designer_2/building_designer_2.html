@@ -19,117 +19,95 @@
 
       <div id="tools">
          <h2>Tools</h2>
-         <table id="toolGrid">
-            <tr>
-               <td>
-                  <div id="drawFloorTool" class="toolButton" tab="floorMaterialTab" title="Draw floor"></div>
-               </td>
-               <td>
-                  <div id="growWallsTool" class="toolButton" tab="wallMaterialTab" title="Grow walls around floor"></div>
-               </td>
-               <td>   
-                  <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof on walls"></div>
-               </td>
-               <td>
-                  <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
-               </td>
-               <td>
-                  <div id="undoTool" class="toolButton" title="Undo"></div>
-               </td>
-            </tr>
-            <tr>
-               <td>
-                  <div id="eraseFloorTool" class="toolButton" tab="floorMaterialTab" title="Erase floor"></div>
-               </td>
-               <td>
-                  <div id="drawWallTool" class="toolButton" tab="wallMaterialTab" title="Draw wall"></div>
-               </td>
-               <td>
-               </td>
-               <td>
-                  <div id="placeItemTool" class="toolButton" tab="itemMaterialTab" title="Place furniture and decoration"></div>
-               </td>
-            </tr>
-         </table>
-         
+         <div id="drawFloorTool" class="toolButton" tab="floorMaterialTab" title="Draw floor"></div>
+         <div id="eraseFloorTool" class="toolButton" tab="floorMaterialTab" title="Erase floor"></div>
+         <div id="growWallsTool" class="toolButton" tab="wallMaterialTab" title="Grow walls around floor"></div>
+         <div id="drawWallTool" class="toolButton" tab="wallMaterialTab" title="Draw wall"></div>
+         <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof on walls"></div>
+         <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
+         <div id="placeItemTool" class="toolButton" tab="itemMaterialTab" title="Place furniture and decoration"></div>
+         <div id="undoTool" class="toolButton" title="Undo"></div>
       </div>
 
-      <div class="tabPage" id="floorMaterialTab" style="display: block">
-         <h2>Floor Material</h2>
-         <div class="downSection" id="floorMaterials">
-            <!-- Material palette built dynamically and inserted here -->
+      <div id="tabs">
+
+         <div class="tabPage" id="floorMaterialTab" style="display: block">
+            <h2>Floor Material</h2>
+            <div class="downSection" id="floorMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+            </div>
+
          </div>
 
-      </div>
+         <div class="tabPage" id="wallMaterialTab">
+            <h2>Wall Material</h2>
+            
+            <div class="downSection" id="wallMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+            </div>
 
-      <div class="tabPage" id="wallMaterialTab">
-         <h2>Wall Material</h2>
-         
-         <div class="downSection" id="wallMaterials">
-            <!-- Material palette built dynamically and inserted here -->
          </div>
 
-      </div>
+         <div class="tabPage" id="roofMaterialTab">
+            <h2>Roof Material</h2>
 
-      <div class="tabPage" id="roofMaterialTab">
-         <h2>Roof Material</h2>
+            <div class="downSection" id="roofMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+            </div>
 
-         <div class="downSection" id="roofMaterials">
-            <!-- Material palette built dynamically and inserted here -->
-         </div>
+            <div id="roofEditor">
+               <h2>{{i18n stonehearth:building_designer_roof_shape}}
+               <div class="brushPalette downSection">
+                  <div class="roofShape">
+                     <div id="roofDiagram" />
+                     <div class="roofDiagramButton north" gradient="back"/>
+                     <div class="roofDiagramButton south" gradient="front"/>
+                     <div class="roofDiagramButton east" gradient="right" />
+                     <div class="roofDiagramButton west" gradient="left" />
 
-         <div id="roofEditor">
-            <h2>{{i18n stonehearth:building_designer_roof_shape}}
-            <div class="brushPalette downSection">
-               <div class="roofShape">
-                  <div id="roofDiagram" />
-                  <div class="roofDiagramButton north" gradient="back"/>
-                  <div class="roofDiagramButton south" gradient="front"/>
-                  <div class="roofDiagramButton east" gradient="right" />
-                  <div class="roofDiagramButton west" gradient="left" />
+                     <div id="roofNumerics">
+                        <div>
+                           <div class="label">Max height</div>
+                           <div class="dec numericButton uisounds">-</div>
+                           <input type="number" id="inputMaxRoofHeight" value="4" min="1" max="8" class="numericInput roofNumericInput">
+                           <div class="inc numericButton uisounds">+</div>
+                           <div style="clear: both;" />
+                        </div>
 
-                  <div id="roofNumerics">
-                     <div>
-                        <div class="label">Max height</div>
-                        <div class="dec numericButton uisounds">-</div>
-                        <input type="number" id="inputMaxRoofHeight" value="4" min="1" max="8" class="numericInput roofNumericInput">
-                        <div class="inc numericButton uisounds">+</div>
-                        <div style="clear: both;" />
+                        <!--
+                        <div>
+                           <div class="label">Rise slope</div>
+                           <div class="dec numericButton uisounds">-</div>
+                           <input type="number" id="inputMaxRoofSlope" value="1" min="1" max="4" class="numericInput roofNumericInput">
+                           <div class="inc numericButton uisounds">+</div>
+                           <div style="clear: both;" />
+                        </div>
+                        -->
                      </div>
-
-                     <!--
-                     <div>
-                        <div class="label">Rise slope</div>
-                        <div class="dec numericButton uisounds">-</div>
-                        <input type="number" id="inputMaxRoofSlope" value="1" min="1" max="4" class="numericInput roofNumericInput">
-                        <div class="inc numericButton uisounds">+</div>
-                        <div style="clear: both;" />
-                     </div>
-                     -->
                   </div>
-               </div>
 
+               </div>
             </div>
          </div>
-      </div>
 
-      <div class="tabPage" id="doodadMaterialTab">        
-         <h2>Doors & Windows</h2>
+         <div class="tabPage" id="doodadMaterialTab">        
+            <h2>Doors & Windows</h2>
 
-         <div class="downSection" id="doodadMaterials">
-            <!-- Material palette built dynamically and inserted here -->
+            <div class="downSection" id="doodadMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+            </div>
+            
          </div>
-         
-      </div>
 
-      <div class="tabPage" id="itemMaterialTab">        
-         <h2>Furniture & Decorations</h2>
+         <div class="tabPage" id="itemMaterialTab">        
+            <h2>Furniture & Decorations</h2>
 
-         <div class="downSection" id="itemMaterials">
-            <!-- Material palette built dynamically and inserted here -->
-            {{view "App.StonehearthPlaceItemPicker" }}
+            <div class="downSection" id="itemMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+               {{view "App.StonehearthPlaceItemPicker" }}
+            </div>
+            
          </div>
-         
       </div>
 
    </div>
@@ -152,6 +130,12 @@
       </div>
 
       <div id="buttons">
+      </div>
+
+   </div>
+   <div class="window selectedBuildingWindow">
+      <div id="buttons">
+         <button id="showEditor">{{i18n stonehearth:show_building_editor}}</button>
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
 
          <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
@@ -161,12 +145,6 @@
                {{i18n stonehearth:start_building}}
             {{/if}}
          </button>
-      </div>
-
-   </div>
-   <div class="window selectedBuildingWindow">
-      <div id="buttons">
-         <button id="showEditor">{{i18n stonehearth:show_building_editor}}</button>
       </div>
    </div>
 

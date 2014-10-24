@@ -472,6 +472,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             }
          }
       });
+
    },
 
    _restoreUiState: function() {
@@ -530,6 +531,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // gradiant on the grow roof control
          self._applyRoofGradiantControlState(self._state.growRoofOptions);
          self._updateGrowRoofOptions()
+
+         self.$('.tabPage').hide();
       }
    },
 

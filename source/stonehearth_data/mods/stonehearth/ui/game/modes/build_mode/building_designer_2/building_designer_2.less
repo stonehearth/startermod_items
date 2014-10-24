@@ -28,7 +28,12 @@
    #buildingEditor {
 
       #tools {
+         width: 80px;
          margin-bottom: 10px;
+         background-color: #4f483a;
+         text-align: center;
+         display: inline-block;
+         vertical-align: top;   
 
          #toolGrid {
             width: 100%;
@@ -47,7 +52,8 @@
          }
 
          .toolButton.active {
-            border-color: #ffc000;
+            border-color: #000;
+            background-color: #ffc000;
          }      
 
          #drawFloorTool {
@@ -95,9 +101,15 @@
          }
       }
 
+      #tabs {
+         display: inline-block;
+         vertical-align: top;   
+         margin-left: 10px;
+      }
+
       .tabPage {
          display: none;
-         width: 394px;
+         width: 384px;
       }
 
       .downSection {
@@ -105,7 +117,7 @@
       }
 
       #floorMaterialTab {
-         display: block;
+         //display: block;
       }
 
       .brushPalette {
