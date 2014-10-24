@@ -447,6 +447,11 @@ function Fabricator:_stop_project()
       self._fabricate_task:destroy()
       self._fabricate_task = nil
    end
+
+   if self._mining_trace then
+      self._mining_trace:destroy()
+      self._mining_trace = nil
+   end
 end
 
 function Fabricator:_update_dst_region()

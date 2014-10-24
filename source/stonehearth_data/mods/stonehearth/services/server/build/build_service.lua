@@ -81,7 +81,7 @@ function BuildService:set_active(entity, enabled)
 
    local trr = nil
    local mining_zone = nil
-   if bc then
+   if bc and enabled then
       local player_id = radiant.entities.get_player_id(entity)
       local faction = radiant.entities.get_faction(entity)
 
@@ -91,7 +91,13 @@ function BuildService:set_active(entity, enabled)
          local world_trr = trr:translated(entity:get_component('mob'):get_location())
          self._mining_zone = stonehearth.mining:dig_region(player_id, faction, world_trr)
       end
+   elseif not enabled then
+      if self._mining_zone then
+         self._mining_zone:destroy()
+         self._mining_zone = nil
+      end
    end
+
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
          if c then
@@ -99,7 +105,7 @@ function BuildService:set_active(entity, enabled)
 
             -- Only the general fabricator can deal with mining zones, so check to see if we
             -- have a fab with 'set_mining_zone' on it.
-            if self._mining_zone and f and f.set_mining_zone then
+            if enabled and self._mining_zone and f and f.set_mining_zone then
                f:set_mining_zone(self._mining_zone)
             end
             c:set_active(enabled)
