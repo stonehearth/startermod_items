@@ -86,10 +86,8 @@ end
 --
 function FixtureFabricator:start_project(fixture, normal)
    if radiant.util.is_a(fixture, Entity) then
-      -- it's an actual item.  we need to place this one, specfically
-      -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      -- make sure we trace the ghost and destroy ourselves if its destroyed before 
-      -- being placed!
+      fixture:get_component('stonehearth:entity_forms')
+                  :set_fixture_fabricator(self._entity)
       self._sv.fixture = fixture
    end
    self._sv.normal = normal

@@ -109,7 +109,15 @@ function EntityFormsComponent:set_should_restock(restock)
       self:_update_restock_info()
    end
 end
-   
+
+function EntityFormsComponent:set_fixture_fabricator(fixture_fabricator)
+   if self._sv.fixture_fabricator then
+      radiant.entities.destroy_entity(self._sv.fixture_fabricator)
+   end
+   self._sv.fixture_fabricator = fixture_fabricator
+   self.__saved_variables:mark_changed()
+end
+
 function EntityFormsComponent:_update_restock_info()
    if self._sv.should_restock then 
       if not self._overlay_effect then
