@@ -13,6 +13,7 @@ local service_creation_order = {
    'selection',
    'hilight',
    'build_editor',
+   'subterranean_view',
 }
 
 local function create_service(name)
