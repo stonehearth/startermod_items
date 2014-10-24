@@ -161,7 +161,7 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
          }
       }
 
-      // Now, update teh stored region, and find the new overlapping tiles.
+      // Now, update the stored region, and find the new overlapping tiles.
       _cutToICut[cut] = csg::ToInt(region);
       csg::Region3 const& iRegion = _cutToICut[cut];
 
