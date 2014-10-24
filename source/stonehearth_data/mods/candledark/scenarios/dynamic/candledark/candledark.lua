@@ -2,6 +2,7 @@ local Candledark = class()
 local rng = _radiant.csg.get_default_rng()
 
 -- Called when the scenario is first initialized
+--
 function Candledark:initialize()
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
    
@@ -13,7 +14,8 @@ function Candledark:initialize()
    self.__saved_variables:mark_changed()
 end
 
--- Called when the scenario is loaded (from a save)
+-- Called when the scenario is loaded from a save
+--
 function Candledark:restore()
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
    
@@ -21,7 +23,7 @@ function Candledark:restore()
       self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
    end
 
-   --We saved/loaded while the timer was running, so just start it again and spawn the skeletons later
+   -- We saved/loaded while the timer was running, so just start it again and spawn the skeletons later
    if self._sv.timer_running then
       self:_spawn_skeletons()
    end
@@ -130,16 +132,15 @@ end
 function Candledark:_spawn_skeletons()
    self._sv.timer_running = true
    radiant.set_realtime_timer(1000 * 12, function()
-      self._sv.timer_running = false
-      stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })      
-   end)
+         self._sv.timer_running = false
+         stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion', { wave = self._sv.nights_survived })
+      end)
 
 end
 
 -- Called when the player clicks the "accept" button in the final bulletin in the scenario.
 -- Spawn a bunch of candy around the banner
 function Candledark:_on_survived_accepted()
-
    local town = stonehearth.town:get_town(self._sv.player_id)
    local banner = town:get_banner()
    local drop_origin = banner and radiant.entities.get_world_grid_location(banner)

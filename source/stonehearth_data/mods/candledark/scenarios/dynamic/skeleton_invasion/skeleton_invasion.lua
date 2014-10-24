@@ -3,7 +3,6 @@ local rng = _radiant.csg.get_default_rng()
 local SkeletonInvasion = class()
 
 function SkeletonInvasion:initialize(params)
-
    self._sv.player_id = 'player_1'
    self._sv.wave_number = params.wave
    self._sv.wave_complete = true
