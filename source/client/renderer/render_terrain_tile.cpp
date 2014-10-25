@@ -128,7 +128,7 @@ void RenderTerrainTile::UpdateGeometry()
       csg::Region3 afterCut(rgn);
 
       for (const auto& cuts : _cutMap) {
-         afterCut -= cuts.second;
+         afterCut -= *cuts.second;
       }
 
       _regionTools.ForEachPlane(afterCut, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
@@ -167,25 +167,13 @@ RenderTerrainTile::Geometry const& RenderTerrainTile::GetGeometry(csg::RegionToo
    return _geometry[direction];
 }
 
-bool RenderTerrainTile::BoundsIntersect(csg::Region3 const& other) const
-{
-   om::Region3BoxedPtr region = _region.lock();
-
-   return region && other.GetBounds().Intersects(region->Get().GetBounds());
-}
-
-void RenderTerrainTile::UpdateCut(om::Region3fBoxedPtr const& cutPtr, csg::Region3 const& cut)
+void RenderTerrainTile::UpdateCut(om::Region3fBoxedPtr const& cutPtr, csg::Region3* cut)
 {
    // Just blindly insert.
-   _cutMap[cutPtr] = cut;
-}
-
-bool RenderTerrainTile::ContainsCut(om::Region3fBoxedPtr const& cutPtr) const
-{
-   return _cutMap.find(cutPtr) != _cutMap.end();
+   _cutMap[cutPtr->GetObjectId()] = cut;
 }
 
 void RenderTerrainTile::RemoveCut(om::Region3fBoxedPtr const& cutPtr)
 {
-   _cutMap.erase(cutPtr);
+   _cutMap.erase(cutPtr->GetObjectId());
 }

@@ -38,6 +38,7 @@ private:
    void UpdateLayers();
    void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
+   void EachTileIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainTile* tile)> cb);
 
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
 
@@ -62,8 +63,8 @@ private:
    DirtySet             _dirtyLayers;
    core::Guard          renderer_frame_trace_;
    csg::TagToColorMap   _colorMap;
-   std::unordered_map<om::Region3fBoxedPtr, csg::Region3> _cutToICut;
-   std::unordered_map<om::Region3fBoxedPtr, dm::TracePtr> _cut_trace_map;
+   std::unordered_map<dm::ObjectId, csg::Region3> _cutToICut;
+   std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
