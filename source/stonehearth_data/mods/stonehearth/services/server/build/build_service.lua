@@ -79,22 +79,15 @@ function BuildService:set_active(entity, enabled)
       end
    end
 
-   local trr = nil
-   local mining_zone = nil
    if bc and enabled then
       local player_id = radiant.entities.get_player_id(entity)
       local faction = radiant.entities.get_faction(entity)
 
-      trr = bc:calculate_terrain_removal_region()
+      local trr = bc:calculate_terrain_removal_region()
 
       if not trr:empty() then
          local world_trr = trr:translated(entity:get_component('mob'):get_location())
          self._mining_zone = stonehearth.mining:dig_region(player_id, faction, world_trr)
-      end
-   elseif not enabled then
-      if self._mining_zone then
-         self._mining_zone:destroy()
-         self._mining_zone = nil
       end
    end
 
@@ -116,6 +109,12 @@ end
 function BuildService:set_teardown(entity, enabled)
    if enabled then
       self._undo:clear()
+      
+      -- We can only destroy a mining zone once!
+      if self._mining_zone then
+         radiant.entities.destroy_entity(self._mining_zone)
+         self._mining_zone = nil
+      end
    end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
