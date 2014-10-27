@@ -15,12 +15,14 @@
 #include "om/components/destination.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 #include "mob_tracker.h"
 #include "terrain_tracker.h"
 #include "terrain_tile_tracker.h"
 #include "destination_tracker.h"
 #include "vertical_pathing_region_tracker.h"
 #include "region_collision_shape_tracker.h"
+#include "movement_modifier_shape_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
 #include <EASTL/fixed_set.h>
@@ -133,6 +135,11 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
          CreateCollisionTypeTrace(rcs);
          break;
       }
+      case om::MovementModifierShapeObjectType: {
+         auto mms = std::static_pointer_cast<om::MovementModifierShape>(component);
+         tracker = CreateMovementModifierShapeTracker(mms);
+         break;
+      }
       case om::DestinationObjectType: {
          NG_LOG(7) << "creating DestinationRegionTracker for " << *entity;
          auto dst = std::static_pointer_cast<om::Destination>(component);
@@ -208,6 +215,19 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
          return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
    return nullptr;
+}
+
+/*
+ * -- NavGrid::CreateMovementModifierShapeTracker
+ *
+ * Create a tracker for the MovementModifierShape.
+ */
+MovementModifierShapeTrackerPtr NavGrid::CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr)
+{
+   om::EntityPtr entity = movementModifierShapePtr->GetEntityPtr();
+
+   NG_LOG(7) << "creating MovementModifierShapeTracker for " << *entity;
+   return std::make_shared<MovementModifierShapeTracker>(*this, entity, movementModifierShapePtr);
 }
 
 /*
@@ -1144,6 +1164,22 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
       location += direction;
    }
    return location;
+}
+
+float NavGrid::GetMovementCostAt(csg::Point3 const& point)
+{
+   csg::Point3f p3f = csg::ToFloat(point);
+   float result = 1.0f;
+   csg::CollisionShape pointShape(csg::Cube3f(p3f + csg::Point3f(0, -1, 0), p3f + csg::Point3f(1, 1, 1)));
+   ForEachTrackerInShape(pointShape, [&](CollisionTrackerPtr tracker) -> bool {
+      if (tracker->GetType() == TrackerType::MOVEMENT_MODIFIER) {
+         auto mms = std::static_pointer_cast<om::MovementModifierShape>(tracker->GetEntity()->GetComponent("movement_modifier_shape"));
+         result /= mms->GetModifier();
+      }
+      return false;
+   });
+
+   return result;
 }
 
 /*

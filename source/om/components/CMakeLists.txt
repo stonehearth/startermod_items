@@ -47,6 +47,7 @@ SET(RIDL_SOURCES
     mod_list.ridl.py
     model_layer.ridl.py
     model_variants.ridl.py
+    movement_modifier_shape.ridl.py
     region_collision_shape.ridl.py
     render_info.ridl.py
     sensor.ridl.py
@@ -74,6 +75,7 @@ add_library(om_components STATIC
             entity_container.cpp
             mob.cpp
             mod_list.cpp
+            movement_modifier_shape.cpp
             region_collision_shape.cpp
             render_info.cpp
             model_layer.cpp

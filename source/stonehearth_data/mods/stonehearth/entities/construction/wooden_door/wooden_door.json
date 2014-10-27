@@ -20,6 +20,16 @@
          "ghost_form" : "file(wooden_door_ghost.json)",
          "placeable_on_walls" : true,
          "hide_placement_ui" : true
+      },
+
+      "region_collision_shape" : {
+         "region_collision_type" : "none",
+         "region": [
+            {
+               "min" : { "x" : -2, "y" : 0,  "z" : -2 },
+               "max" : { "x" :  1, "y" : 4, "z" :  1 }
+            }
+         ]
       }
    }
 }

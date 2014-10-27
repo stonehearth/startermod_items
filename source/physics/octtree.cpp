@@ -262,7 +262,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
          if (navgrid_.IsStandable(entity, to)) {
-            cb(to, GetMovementCost(from, to));
+            cb(to, GetAdjacentMovementCost(from, to));
             break;
          }
       }
@@ -277,7 +277,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
          if (!ValidDiagonalMove(entity, from, to)) {
             continue;
          }
-         cb(to, GetMovementCost(from, to));
+         cb(to, GetAdjacentMovementCost(from, to));
          break;
       }
    }
@@ -286,7 +286,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
       csg::Point3 to = from + direction;
       if (navgrid_.IsStandable(entity, to)) {
          OT_LOG(9) << to << " is standable.  adding to list";
-         cb(to, GetMovementCost(from, to));
+         cb(to, GetAdjacentMovementCost(from, to));
       } else {
          OT_LOG(9) << to << " is not standable.  not adding to list";
       }
@@ -301,12 +301,12 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
  * to validate the parameters.
  */
 
-float OctTree::GetMovementCost(const csg::Point3& start, const csg::Point3& end) const
+float OctTree::GetDistanceCost(const csg::Point3& start, const csg::Point3& end) const
 {
-   return std::sqrt(GetSquaredMovementCost(start, end));
+   return std::sqrt(GetSquaredDistanceCost(start, end));
 }
 
-float OctTree::GetSquaredMovementCost(const csg::Point3& start, const csg::Point3& end) const
+float OctTree::GetSquaredDistanceCost(const csg::Point3& start, const csg::Point3& end) const
 {
    float cost = 0;
 
@@ -321,7 +321,22 @@ float OctTree::GetSquaredMovementCost(const csg::Point3& start, const csg::Point
    int dz = end.z - start.z;
    cost += static_cast<float>(dx*dx + dz*dz);
 
+
    return cost;
+}
+
+float OctTree::GetAdjacentMovementCost(const csg::Point3& start, const csg::Point3& end) const
+{
+   return std::sqrt(GetSquaredAdjacentMovementCost(start, end));
+}
+
+float OctTree::GetSquaredAdjacentMovementCost(const csg::Point3& start, const csg::Point3& end) const
+{
+   float cost = GetSquaredDistanceCost(start, end);
+
+   float movementCost = navgrid_.GetMovementCostAt(start);
+
+   return cost * movementCost;
 }
 
 void OctTree::EnableSensorTraces(bool enabled)

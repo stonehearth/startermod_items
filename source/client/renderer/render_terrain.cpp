@@ -7,6 +7,7 @@
 #include "render_terrain_layer.h"
 #include "dm/map_trace.h"
 #include "om/components/terrain.ridl.h"
+#include "csg/iterators.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
 #include "Horde3D.h"
@@ -124,6 +125,19 @@ csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, csg::
    return location + offsets[direction];
 }
 
+void RenderTerrain::EachTileIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainTile* tile)> cb)
+{
+   csg::Cube3 regionChunks = csg::GetChunkIndexSlow(bounds, _tileSize);
+
+   for (csg::Point3 const& cursor : csg::EachPoint(regionChunks)) {
+      csg::Point3 tilePoint = cursor * _tileSize;
+      auto i = tiles_.find(tilePoint);
+      if (i != tiles_.end()) {
+         cb(tilePoint, i->second);
+      }
+   }
+}
+
 void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& first, csg::RegionTools3::Plane direction)
 {
    ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
@@ -139,36 +153,47 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
 void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
 {
-	_cuts.insert(cut);
+   _cutToICut[cut->GetObjectId()] = csg::ToInt(cut->Get());
 
-	auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
-	_cut_trace_map[cut] = trace;
+   auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
+   om::Region3fBoxedRef cutRef = cut;
+   _cut_trace_map[cut->GetObjectId()] = trace;
 
-	trace->OnChanged([cut, this](csg::Region3f const& region) {
-		// Figure out every tile affected by this changed region, and update them.
+   trace->OnChanged([cutRef, this](csg::Region3f const& region) {
+      auto cut = cutRef.lock();
 
-		for (auto &t : tiles_) {
-			// FIXME: not quite....
-			if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
-				t.second->UpdateCut(cut);
-				MarkDirty(t.second->GetLocation());
-			}
-		}
-	})->PushObjectState();
+      if (!cut) {
+         return;
+      }
+      dm::ObjectId objId = cut->GetObjectId();
+
+      // Update the cut map to the new region.
+      EachTileIn(_cutToICut[objId].GetBounds(), [this, &cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->RemoveCut(cut);
+         MarkDirty(cursor);
+      });
+
+      // Now, update the stored region, and find the new overlapping tiles.
+      _cutToICut[objId] = csg::ToInt(region);
+      csg::Region3& iRegion = _cutToICut[objId];
+      EachTileIn(iRegion.GetBounds(), [this, &cut, &iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->UpdateCut(cut, &iRegion);
+         MarkDirty(cursor);
+      });
+
+   })->PushObjectState();
 }
 
 void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
 {
-	_cuts.erase(cut);
-	_cut_trace_map.erase(cut);
-	auto region = cut->Get();
-	for (auto &t : tiles_) {
-		// FIXME: not quite....
-		if (t.second->BoundsIntersect(csg::ToInt(region)) /*|| t.second->BoundsIntersect(_prevRegions(cut)) */) {
-			t.second->RemoveCut(cut);
-			MarkDirty(t.second->GetLocation());
-		}
-	}
+   dm::ObjectId objId = cut->GetObjectId();
+
+   _cut_trace_map.erase(cut->GetObjectId());
+   EachTileIn(_cutToICut[objId].GetBounds(), [this, cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      tile->RemoveCut(cut);
+      MarkDirty(cursor);
+   });
+   _cutToICut.erase(objId);
 }
 
 void RenderTerrain::UpdateNeighbors()

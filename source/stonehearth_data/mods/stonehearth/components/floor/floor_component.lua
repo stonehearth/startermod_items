@@ -10,7 +10,12 @@ local Point3 = _radiant.csg.Point3
 -- called to initialize the component on creation and loading.
 --
 function Floor:initialize(entity, json)
+   self._sv = self.__saved_variables:get_data()
    self._entity = entity
+end
+
+function Floor:get_region()
+   return self._entity:get_component('destination'):get_region()
 end
 
 -- adds the `region` in world coordinates to the floor
@@ -36,6 +41,14 @@ end
 
 function Floor:layout()
    -- nothing to do...
+end
+
+function Floor:set_is_road(is_road)
+   self._sv.is_road = is_road
+end
+
+function Floor:is_road()
+   return self._sv.is_road
 end
 
 function Floor:remove_region_from_floor(region)
