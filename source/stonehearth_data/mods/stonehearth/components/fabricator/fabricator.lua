@@ -490,8 +490,9 @@ function Fabricator:_update_dst_region()
    for zone,_ in pairs(self._mining_zones) do
       if zone:get_component('destination') then
          local mining_region = zone:get_component('destination'):get_region():get()
+         local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
 
-         dst_region = dst_region - mining_region:translated(Point3(0, -1, 0))
+         dst_region:subtract_region(fab_mining_region)
       end
    end
    -- copy into the destination region
@@ -548,9 +549,9 @@ function Fabricator:_update_dst_adjacent()
    end)
 end
 
--- Called when the blueprint region is changed (added or merged).  Not called when the
--- fabricator is told to stop.
+-- Called only when the blueprint region is changed (added or merged).
 function Fabricator:_update_mining_region()
+
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local faction = radiant.entities.get_faction(self._blueprint)
 
