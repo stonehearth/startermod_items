@@ -133,6 +133,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: The trapper
       - Name: stonehearth:set\_trap
       - Args: none
+   - **harvest\_crop** - triggered whenever a farmer harvests a plant from a field
+      - Key: the farmer
+      - Name: stonehearth:harvest\_crop
+      - Args: crop - the crop that was harvested
 
 ##Crafting
 

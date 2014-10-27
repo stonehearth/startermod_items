@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Farmer Speed Increase +10%",
+   "description" : "Running fresh food from field to table has increased the farmer's footspeed.",
+   "icon" : "file(speed_1_buff.png)",
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 1.10
+      }
+   }
+} 
