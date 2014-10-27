@@ -89,21 +89,6 @@ function Building:get_all_structures()
    return self._sv.structures
 end
 
-function Building:calculate_terrain_removal_region()
-   local result = Region3()
-   for _, entry in pairs(self._sv.structures[FLOOR]) do
-      local floor_entity = entry.entity
-      local rgn = floor_entity:get_component('destination'):get_region():get()
-      result:add_region(rgn)
-   end
-
-   -- Compute the pieces of terrain that need to be removed in order to
-   -- construct the floor/road.
-   result = radiant.terrain.intersect_region(result)
-
-   return result
-end
-
 function Building:calculate_floor_region()
    local floor_region = Region2()
    for _, entry in pairs(self._sv.structures[FLOOR]) do

@@ -554,9 +554,15 @@ function Fabricator:_update_mining_region()
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local faction = radiant.entities.get_faction(self._blueprint)
 
-   -- The mining service will handle all overlap merging for us.
    local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
    local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
+   world_region = radiant.terrain.intersect_region(world_region)
+
+   if world_region:empty() then
+      return
+   end
+
+   -- The mining service will handle all existing mining region overlap merging for us.
    local mining_zone = stonehearth.mining:dig_region(player_id, faction, world_region)
    
    if not self._mining_zones[mining_zone] then
