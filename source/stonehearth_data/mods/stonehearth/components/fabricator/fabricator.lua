@@ -569,13 +569,16 @@ function Fabricator:_update_mining_region()
    if not self._mining_zones[mining_zone] then
       self._mining_zones[mining_zone] = true
 
-      local mining_trace = mining_zone:get_component('destination'):trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+      self._mining_traces[mining_zone] = mining_zone:get_component('destination'):trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
          :on_changed(function(region)
             self:_update_dst_region()
          end)
          :push_object_state()
 
-      table.insert(self._mining_traces, mining_trace)
+      radiant.events.listen_once(mining_zone, 'radiant:entity:destroy', function()
+         self._mining_zones[mining_zone] = nil
+         self._mining_traces[mining_zone] = nil
+      end)
    end
 end
 
