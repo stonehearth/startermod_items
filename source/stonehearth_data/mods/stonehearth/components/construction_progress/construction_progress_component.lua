@@ -17,6 +17,7 @@ function ConstructionProgress:initialize(entity, json)
    if not self._sv.dependencies then
       self._sv.dependencies = {}
       self._sv.inverse_dependencies = {}
+      self._sv.loaning_scaffolding_to = {}
       self._sv.finished = false
       self._sv.active = false
       self._sv.teardown = false
@@ -273,6 +274,15 @@ function ConstructionProgress:get_active()
    return self._sv.active
 end
 
+
+function ConstructionProgress:instabuild()
+   -- mark as active.  this is a nop now that we've built it, but the
+   -- bit still need be set to mimic the building actually being built
+   self._sv.active = true
+   self._sv.finished = true
+   self.__saved_variables:mark_changed()
+end
+
 function ConstructionProgress:set_teardown(teardown)
    assert(self._entity:is_valid())
    
@@ -312,14 +322,7 @@ end
 function ConstructionProgress:set_building_entity(building_entity)
    self._sv.building_entity = building_entity
    self.__saved_variables:mark_changed()
-
-   if self._sv.fabricator_entity then
-      local project = self:get_fabricator_component():get_project()
-      if project then
-         project:add_component('stonehearth:construction_data')
-                :set_building_entity(building_entity)
-      end
-   end
+   return self
 end
 
 -- returns the fabricator entity which is using our blueprint as a reference
@@ -329,17 +332,10 @@ end
 
 -- sets the fabricator entity which is using our blueprint as a reference
 function ConstructionProgress:set_fabricator_entity(fabricator_entity, component_name)
-   self._sv._fabricator_component_name = component_name or 'stonehearth:fabricator'
+   assert(component_name)
+   self._sv._fabricator_component_name = component_name
    self._sv.fabricator_entity = fabricator_entity
    self.__saved_variables:mark_changed()
-
-   if self._sv.building_entity then
-      local project = self:get_fabricator_component():get_project()
-      if project then
-         project:add_component('stonehearth:construction_data')
-                :set_building_entity(self._sv.building_entity)
-      end
-   end
    return self
 end
 
@@ -353,6 +349,21 @@ end
 
 function ConstructionProgress:get_dependencies()
    return self._sv.dependencies
+end
+
+-- used to loan our scaffolding to the borrower.  this means we won't
+-- try to tear down the scaffolding until our entity and the borrower
+-- entity are both finished.
+function ConstructionProgress:loan_scaffolding_to(borrower)
+   if borrower and borrower:is_valid() then
+      self._sv.loaning_scaffolding_to[borrower:get_id()] = borrower
+      self.__saved_variables:mark_changed()
+   end
+end
+
+-- return the map of entities that we're loaning our scaffolding to
+function ConstructionProgress:get_loaning_scaffolding_to()
+   return self._sv.loaning_scaffolding_to
 end
 
 -- returns the fabricator component for this entity.  the exact name of the component
@@ -375,6 +386,7 @@ function ConstructionProgress:save_to_template()
       dependencies               = build_util.pack_entity_table(self._sv.dependencies),
       inverse_dependencies       = build_util.pack_entity_table(self._sv.inverse_dependencies),
       fabricator_component_name  = self._sv._fabricator_component_name,
+      loan_scaffolding_to        = build_util.pack_entity_table(self._sv.loaning_scaffolding_to),
    }
 end
 
@@ -383,11 +395,19 @@ function ConstructionProgress:load_from_template(template, options, entity_map)
    self._sv.dependencies               = build_util.unpack_entity_table(template.dependencies, entity_map)
    self._sv.inverse_dependencies       = build_util.unpack_entity_table(template.inverse_dependencies, entity_map)
    self._sv._fabricator_component_name = template.fabricator_component_name
+
+   for _, key in pairs(template.loan_scaffolding_to) do
+      self:loan_scaffolding_to(entity_map[key])
+   end
+
    self.__saved_variables:mark_changed()
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()
          self:_restore_listeners()
-         stonehearth.build:add_fabricator(self._entity)
+         -- this is a weird place to put the fabricator back on, but let's go for it.   
+         if self._sv._fabricator_component_name == 'stonehearth:fabricator' then
+            stonehearth.build:add_fabricator(self._entity)
+         end
       end)
 end
 

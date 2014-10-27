@@ -1,7 +1,7 @@
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 
-local lrbt_cases = {}
+local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
 local WOODEN_COLUMN = 'stonehearth:wooden_column'
@@ -10,6 +10,7 @@ local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
 local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
 local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
+local lrbt_cases = {}
 
 function lrbt_cases.simple_floor(autotest, session)
    return {
@@ -78,6 +79,78 @@ function lrbt_cases.simple_wall(autotest, session)
    }
 end
 
+
+function lrbt_cases.wall_with_banner_by_item(autotest, session)
+   autotest.env:create_stockpile(4, 8)
+   local sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
+   local wall
+   return {
+      function()
+         wall = lrbt_util.create_wooden_wall(session, Point3(4, 10, 0), Point3(0, 10, 0))
+         autotest.util:fail_if(lrbt_util.get_area(wall) ~= (3 * STOREY_HEIGHT), 'failed to create 4x4 floor blueprint')
+      end,
+      function()
+         local location = Point3(1, 4, 1)
+         local normal = Point3(0, 0, 1)
+         stonehearth.build:add_fixture(wall, sign, location, normal)
+      end,
+   }
+end
+
+function lrbt_cases.place_banner_by_type(autotest, session)
+   autotest.env:create_stockpile(4, 8)
+   autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
+
+   local wall
+   return {
+      function()
+         wall = lrbt_util.create_wooden_wall(session, Point3(4, 10, 0), Point3(0, 10, 0))
+         autotest.util:fail_if(lrbt_util.get_area(wall) ~= (3 * STOREY_HEIGHT), 'failed to create 4x4 floor blueprint')
+      end,
+      function()
+         local location = Point3(1, 4, 1)
+         local normal = Point3(0, 0, 1)
+         stonehearth.build:add_fixture(wall, 'stonehearth:decoration:wooden_sign_carpenter', location, normal)
+      end,
+   }
+end
+
+
+function lrbt_cases.place_bed_by_type(autotest, session)
+   autotest.env:create_stockpile(4, 8)
+   autotest.env:create_entity(4, 8, 'stonehearth:furniture:comfy_bed')
+   local floor
+   return {
+      function()
+          floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(7, 11, 7)))
+         autotest.util:fail_if(lrbt_util.get_area(floor) ~= 49, 'failed to create 4x4 floor blueprint')
+      end,
+      function()
+         local location = Point3(3, 1, 3)
+         local normal = Point3(0, 1, 0)
+         stonehearth.build:add_fixture(floor, 'stonehearth:furniture:comfy_bed', location, normal)
+      end,
+   }
+end
+
+function lrbt_cases.place_banner_by_type_flipped(autotest, session)
+   autotest.env:create_stockpile(4, 8)
+   autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
+
+   local wall
+   return {
+      function()
+         wall = lrbt_util.create_wooden_wall(session, Point3(4, 10, 0), Point3(0, 10, 0))
+         autotest.util:fail_if(lrbt_util.get_area(wall) ~= (3 * STOREY_HEIGHT), 'failed to create 4x4 floor blueprint')
+      end,
+      function()
+         local location = Point3(1, 4, -1)
+         local normal = Point3(0, 0, -1)
+         stonehearth.build:add_fixture(wall, 'stonehearth:decoration:wooden_sign_carpenter', location, normal)
+      end,
+   }
+end
+
 function lrbt_cases.grow_walls(autotest, session)
    local floor
    return {
@@ -86,7 +159,7 @@ function lrbt_cases.grow_walls(autotest, session)
          autotest.util:fail_if(lrbt_util.get_area(floor) ~= 16, 'failed to create 4x4 floor blueprint')
       end,
       function()
-         local building = stonehearth.build:get_building_for(floor)
+         local building = build_util.get_building_for(floor)
          lrbt_util.grow_wooden_walls(session, building)
 
          local expected = {
@@ -107,7 +180,7 @@ function lrbt_cases.peaked_roof(autotest, session)
          floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(0, 10, 0), Point3(5, 11, 5)))
       end,
       function()
-         building = stonehearth.build:get_building_for(floor)
+         building = build_util.get_building_for(floor)
          lrbt_util.grow_wooden_walls(session, building)
       end,
       function()

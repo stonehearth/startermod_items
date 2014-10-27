@@ -341,8 +341,8 @@
       "actions:pickup_item_made_of" : "file(ai/actions/pickup_item_made_of.lua)",
       "actions:pickup_item_with_uri" : "file(ai/actions/pickup_item_with_uri_action.lua)",
       "actions:place_item" : "file(ai/actions/place_item_action.lua)",
-      "actions:place_item_on_wall" : "file(ai/actions/place_item_on_wall_action.lua)",
-      "actions:place_carrying_on_wall_adjacent" : "file(ai/actions/place_carrying_on_wall_adjacent_action.lua)",
+      "actions:place_item_on_structure" : "file(ai/actions/place_item_on_structure_action.lua)",
+      "actions:place_carrying_on_structure_adjacent" : "file(ai/actions/place_carrying_on_structure_adjacent_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
       "actions:wait_for_closest_stockpile_space" : "file(ai/actions/wait_for_closest_stockpile_space.lua)",
       "actions:drop_item_near_workshop" : "file(ai/actions/drop_item_near_workshop.lua)", 
@@ -894,11 +894,11 @@
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_on_wall" : {
+      "place_item_on_structure" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
-      "place_item_type_on_wall" : {
+      "place_item_type_on_structure" : {
          "endpoint" : "server",
          "controller" : "file(call_handlers/place_item_call_handler.lua)"
       },
@@ -1229,6 +1229,7 @@
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.html)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.html)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
+         "file(ui/game/modes/build_mode/build_roads/build_roads.html)",
          "file(ui/game/esc_menu/esc_menu.html)",
          "file(ui/game/save_view/save_view.html)",
          "file(ui/game/task_manager/task_manager.html)",   
@@ -1292,6 +1293,7 @@
          "file(ui/game/modes/build_mode/build_mode.js)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.js)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.js)",
+         "file(ui/game/modes/build_mode/build_roads/build_roads.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",
          "file(ui/game/save_view/save_view.js)",
@@ -1352,12 +1354,13 @@
          "file(ui/debug/error_dialog_js/error_dialog_js.less)",
          "file(ui/game/game.less)",
          "file(ui/game/modes/modes.less)",
-         "file(ui/game/modes/zones_mode/zones_mode.less)",
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.less)",
+         "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.less)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.less)",
+         "file(ui/game/modes/build_mode/build_roads/build_roads.less)",
          "file(ui/game/esc_menu/esc_menu.less)",
          "file(ui/game/save_view/save_view.less)",
          "file(ui/game/task_manager/task_manager.less)",   

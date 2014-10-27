@@ -1,10 +1,11 @@
 {
    "type": "effect",
    "tracks": {
-      "glow": {
+      "aoe": {
          "type": "cubemitter",
          "cubemitter": "file(../../particles/pumpkin_ward/pumpkin_ward_aoe.cubemitter.json)",
-         "loop": true,
+         "start_time" : 0,
+         "end_time" : 200,
          "transforms": {
             "x": 0,
             "y": 0.5,

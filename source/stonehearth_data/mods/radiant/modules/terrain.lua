@@ -3,6 +3,8 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
+local INFINITE = 1000000
+
 local Terrain = {}
 local singleton = {}
 
@@ -62,8 +64,14 @@ function Terrain.get_point_on_terrain(pt)
    return Terrain._get_terrain_component():get_point_on_terrain(pt)
 end
 
-function Terrain.in_bounds(pt)
-   return Terrain._get_terrain_component():in_bounds(pt)
+function Terrain.in_bounds(pt)   
+   -- the terrain bounds contains the bounds of all the tiles which have been
+   -- defined.  we'll add in some extra padding on the top representing the
+   -- sky.  otherwise, the point directly above the highest mountain in the world
+   -- would be classified as "out of bounds"
+   local bounds = Terrain._get_terrain_component():get_bounds()
+   bounds.max.y = INFINITE
+   return bounds:contains(pt:to_closest_int())
 end
 
 -- returns whether an entity can stand on the Point3 location

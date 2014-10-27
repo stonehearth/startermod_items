@@ -64,4 +64,17 @@ function lrbt_util.grow_wooden_roof(session, building)
       })
 end
 
+function lrbt_util.create_endless_entity(autotest, x, y, uri)
+   local trace
+   local entity = autotest.env:create_entity(x, y, uri)
+   trace = entity:trace('make more logs')
+                     :on_destroyed(function()
+                           trace:destroy()
+                           if autotest:is_running() then
+                              lrbt_util.create_endless_entity(autotest, x, y, uri)
+                           end
+                        end)
+end
+
+
 return lrbt_util

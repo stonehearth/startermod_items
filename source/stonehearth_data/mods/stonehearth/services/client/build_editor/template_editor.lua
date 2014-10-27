@@ -21,8 +21,7 @@ function TemplateEditor:_restore_template(template_name)
       self._building = radiant.entities.create_entity('stonehearth:entities:building')
       build_util.restore_template(self._building, template_name, { mode = 'preview'})
 
-      local bounds = build_util.get_building_bounds(self._building)
-      self._center_offset = Point3(bounds.max.x / 2, 0, bounds.max.z / 2):to_int();
+      self._center_offset = build_util.get_building_centroid(self._building)
       radiant.entities.move_to(self._building, -self._center_offset)
 
       radiant._authoring_root_entity:add_component('entity_container'):add_child(self._building)

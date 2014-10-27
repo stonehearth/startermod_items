@@ -621,7 +621,13 @@ luabind::object ScriptHost::Require(std::string const& s)
 luabind::object ScriptHost::RequireScript(std::string const& path)
 {
    res::ResourceManager2 const& rm = res::ResourceManager2::GetInstance();
-   std::string canonical_path = rm.FindScript(path);
+   std::string canonical_path;
+   try {
+      canonical_path = rm.FindScript(path);
+   } catch (std::exception const&) {
+      // Use of exceptions here is idiotic. One of my worst ideas in a decade...
+      return luabind::object();
+   }
 
    luabind::object obj;
 

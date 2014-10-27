@@ -9,6 +9,9 @@ function BuildTest:__init()
    self:create_world()
 
    self:place_citizen(2, 2)
+   self:place_citizen(2, 2)
+   self:place_citizen(2, 2)
+   self:place_citizen(2, 2)
 
    self:place_item_cluster('stonehearth:oak_log', 8, 8, 7, 7)
    self:place_item_cluster('stonehearth:portals:wooden_door_2', -2, -2, 2, 2)

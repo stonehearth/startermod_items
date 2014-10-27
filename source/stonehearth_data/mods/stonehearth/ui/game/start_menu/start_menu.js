@@ -35,6 +35,9 @@ App.StonehearthStartMenuView = App.View.extend({
       building_templates: function () {
          $(top).trigger('stonehearth_building_templates');
       },
+      build_road: function () {
+         $(top).trigger('stonehearth_build_road');
+      },
       place_item: function () {
          $(top).trigger('stonehearth_place_item');
       },
