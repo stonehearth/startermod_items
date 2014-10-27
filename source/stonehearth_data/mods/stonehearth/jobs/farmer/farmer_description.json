@@ -1,29 +1,75 @@
 {
    "job_id": "farmer",
    "alias": "stonehearth:jobs:farmer",
-
    "name": "Farmer",
+   "controller" : "stonehearth:class:farmer", 
    "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.", 
    "requirements" : "Farmer's Hoe, crafted by the Carpenter.",
-   "controller" : "stonehearth:class:farmer", 
-
    "talisman_uri" : "stonehearth:farmer:hoe_talisman",
    "default_stance" : "passive",
-   "promotion_activity_name" : "promote_farmer",
-
+   
    "equipment" : {
       "abilities" : "file(farmer_abilities)",
       "torso" : "file(farmer_outfit)",
       "mainhand" : "stonehearth:farmer:hoe"
    },
+   
    "roles" : "farmer_job",
+   "promotion_activity_name" : "promote_farmer",
 
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
+   "parent_job" : "stonehearth:jobs:worker",
 
    "task_groups" : [
       "stonehearth:task_group:restock",
       "stonehearth:task_group:simple_farming"
    ],
-   "parent_job" : "stonehearth:jobs:worker"
+
+   "xp_rewards" : {
+      "base_exp_per_harvest" : 4, 
+      "stonehearth:pumpking_crop" : 10, 
+      "stonhearth:corn_crop" : 30
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "type" : "apply_buff", 
+               "perk_name" : "Speed Up 10%", 
+               "perk_id" : "farmer_speed_up_1", 
+               "icon" : "file(images/speed_up.png)", 
+               "buff_name" : "stonehearth:buffs:farmer:speed_1",
+               "description" : "Running fresh food from field to table has increased the farmer's footspeed.", 
+               "level" : 1, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      }, 
+      "3" : {
+         "perks" : [
+            {
+               "perk_name" : "Bountiful Harvest", 
+               "perk_id" : "farmer_harvest_increase", 
+               "icon" : "file(images/farmerLv3.png)", 
+               "description" : "The farmer coaxes greater yield from each plant.", 
+               "level" : 3
+            }
+         ]
+      },
+      "6" : {
+         "perks" : [
+            {
+               "perk_name" : "Nature's Surprise (not implemented)", 
+               "perk_id" : "farmer_special_plant", 
+               "icon" : "file(images/farmerLv6.png)", 
+               "description" : "Occasionally, the farmer's special touch yields... special results.", 
+               "level" : 6
+            }
+         ]
+      }
+   }
 }

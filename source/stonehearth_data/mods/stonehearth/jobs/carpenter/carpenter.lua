@@ -53,6 +53,11 @@ function CarpenterClass:unlock_perk(perk_id)
    self.__saved_variables:mark_changed()
 end
 
+-- Given the ID of a perk, find out if we have the perk. 
+function CarpenterClass:has_perk(perk_id)
+   return self._sv.attained_perks[perk_id]
+end
+
 -- Call when it's time to level up in this class
 function CarpenterClass:level_up()
    job_helper.level_up(self._sv)
