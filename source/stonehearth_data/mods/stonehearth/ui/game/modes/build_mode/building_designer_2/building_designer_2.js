@@ -38,13 +38,13 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    },   
 
    showOverview: function() {
-      this.$('#buildingEditor').hide();
-      this.$('#buildingOverview').show();
+      this.$('#editor').hide();
+      this.$('#overview').show();
    },
 
    showEditor: function() {
-      this.$('#buildingEditor').show();
-      this.$('#buildingOverview').hide();
+      this.$('#editor').show();
+      this.$('#overview').hide();
    },
 
    // Save the state of the dialog int the 'stonehearth:building_designer' key.
@@ -387,11 +387,11 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       // building buttons
       this.$('#showOverview').click(function() {
-         $(top).trigger('stonehearth_building_overview');
+         self.showOverview();
       });
 
       this.$('#showEditor').click(function() {
-         $(top).trigger('stonehearth_building_editor');
+         self.showEditor();
       });
 
 
@@ -559,9 +559,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             building_entity = blueprint_entity['stonehearth:construction_progress']['building_entity'];         
          }
 
-         self.$('.selectedBuildingWindow').show();
+         self.$('.bottomButtons').show();
       } else {
-         self.$('.selectedBuildingWindow').hide();
+         self.$('.bottomButtons').hide();
       }
 
       self.set('building', building_entity);
@@ -581,8 +581,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          return;
       }
 
-      var selectedBuildingWindow = self.$('.selectedBuildingWindow');
-      if (!selectedBuildingWindow) {
+      var bottomButtons = self.$('.bottomButtons');
+      if (!bottomButtons) {
          return;
       }
 
@@ -590,9 +590,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var blueprint_entity = this.get('blueprint');
 
       if (building_entity) {
-         selectedBuildingWindow.show();
+         bottomButtons.show();
       } else {
-         selectedBuildingWindow.hide();
+         bottomButtons.hide();
       }
 
       if (blueprint_entity) {

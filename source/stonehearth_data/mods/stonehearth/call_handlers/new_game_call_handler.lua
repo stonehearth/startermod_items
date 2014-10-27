@@ -45,6 +45,8 @@ function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y
    if generation_method == 'tiny' then
       tile_margin = 0
       blueprint = wgs.blueprint_generator:get_empty_blueprint(2, 2) -- (2,2) is minimum size
+      blueprint:get(1, 1).terrain_type = 'mountains'
+      blueprint:get(1, 2).terrain_type = 'foothills'
    else
       -- generate extra tiles along the edge of the map so that we still have a full N x N set of tiles if we embark on the edge
       tile_margin = GENERATION_RADIUS

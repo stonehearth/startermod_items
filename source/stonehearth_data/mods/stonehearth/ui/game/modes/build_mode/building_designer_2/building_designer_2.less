@@ -1,60 +1,9 @@
+// common styles for all construction tools are in /ui/game/modes/build_mode/build_mode.less
 #buildingDesigner {
 
-   .mainWindow {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      width: 500px;
-      height: 650px;
-
-      #buttons {
-         position: absolute;
-         left: 10px;
-         bottom: 10px;
-      }
-   }
-
-   .selectedBuildingWindow {
-      position: absolute;
-      top: 710px;
-      left: 10px;
-      width: 500px;
-
-      #buttons {
-         padding-top: 10px;
-      }
-   }
-
-   #buildingEditor {
+   #editor {
 
       #tools {
-         width: 80px;
-         margin-bottom: 10px;
-         background-color: #4f483a;
-         text-align: center;
-         display: inline-block;
-         vertical-align: top;   
-
-         #toolGrid {
-            width: 100%;
-         }
-
-         .toolButton {
-            .button;
-            display: inline-block;
-            width: 60px;
-            height: 45px;
-            padding: 4px;
-            background-position: center;
-            background-repeat: no-repeat;
-            border: 2px solid;
-            border-color:  rgba(0,0,0,0);
-         }
-
-         .toolButton.active {
-            border-color: #000;
-            background-color: #ffc000;
-         }      
 
          #drawFloorTool {
             background-image: url(images/add_floor_tool.png);
@@ -91,29 +40,6 @@
          #undoTool {
             background-image: url(images/undo_tool.png);  
          }
-
-         .disabled {
-            opacity: 0.15;
-         }
-
-         .selectedBuildingWindow {
-            display: none;
-         }
-      }
-
-      #tabs {
-         display: inline-block;
-         vertical-align: top;   
-         margin-left: 10px;
-      }
-
-      .tabPage {
-         display: none;
-         width: 384px;
-      }
-
-      .downSection {
-         width: 100%;
       }
 
       #floorMaterialTab {
@@ -226,6 +152,10 @@
          }               
       }
 
+      #itemMaterials {
+         overflow-y: scroll;
+         max-height: 520px;
+      }
    }
 
    #templateNameView {

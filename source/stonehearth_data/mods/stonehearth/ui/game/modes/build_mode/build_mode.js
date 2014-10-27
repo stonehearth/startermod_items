@@ -37,10 +37,15 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
          self._showBuildingDesignerView('overview');
       });
 
+      // show the road ui
+      $(top).on('stonehearth_build_road', function() {
+         self._showBuildRoadsView();
+      });
+
       // show the place item UI "place item" button on the start menu
       // is clicked.
       $(top).on('stonehearth_place_item', function() {
-         self._showPlaceItemUi();
+         self._showPlaceItemView();
       });
    },
    
@@ -50,6 +55,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
+      this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
 
       this.hide();
    },
@@ -68,10 +74,16 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._buildingTemplatesView.show();
    },
 
-   _showPlaceItemUi: function() {
+   _showPlaceItemView: function() {
       App.setGameMode('build');
       this.hideAllViews();
       this._placeItemView.show();
+   },
+
+   _showBuildRoadsView: function() {
+      App.setGameMode('build');
+      this.hideAllViews();
+      this._buildRoadsView.show();
    },
 
    _showBuildingDesignerView: function(mode) {
