@@ -53,6 +53,10 @@ function MiningZoneComponent:initialize(entity, json)
 end
 
 function MiningZoneComponent:_restore()
+   self._destination_component:get_reserved():modify(function(cursor)
+         cursor:clear()
+      end)
+   
    self:_trace_region()
    self:_create_mining_task()
 end
@@ -133,93 +137,26 @@ function MiningZoneComponent:_on_reserved_changed()
    self:_update_adjacent()
 end
 
-function MiningZoneComponent:_count_open_faces_for_block(point, max)
-   max = max or 2
-   local count = 0
-
-   for _, dir in ipairs(FACE_DIRECTIONS) do
-      if not radiant.terrain.is_terrain(point + dir) then
-         count = count + 1
-         if count >= max then
-            return count
-         end
-      end
-   end
-
-   return count
-end
-
-function MiningZoneComponent:_has_n_plus_exposed_faces(point, n)
-   local count = self:_count_open_faces_for_block(point, n)
-   return count >= n
-end
-
-function MiningZoneComponent:_top_face_exposed(point)
-   return not radiant.terrain.is_terrain(point + Point3.unit_y)
-end
-
-function MiningZoneComponent:_bottom_face_exposed(point)
-   return not radiant.terrain.is_terrain(point - Point3.unit_y)
-end
-
-function MiningZoneComponent:_non_top_face_exposed(point)
-   for _, dir in ipairs(NON_TOP_DIRECTIONS) do
-      if not radiant.terrain.is_terrain(point + dir) then
-         return true
-      end
-   end
-   return false
-end
-
-function MiningZoneComponent:_top_and_second_face_exposed(point)
-   if not self:_top_face_exposed(point) then
-      return false
-   end
-
-   -- look for a second exposed face
-   local second_exposed_face = self:_non_top_face_exposed(point)
-   return second_exposed_face
-end
-
-function MiningZoneComponent:_has_higher_neighbor(point, radius)
-   local test_point = Point3()
-   local px = point.x
-   local pz = point.z
-   local y = point.y + 1
-   
-   for z = -radius, radius do
-      for x = -radius, radius do
-         if x ~= 0 or y ~= 0 then
-            test_point:set(px + x, y, pz + z)
-            if radiant.terrain.is_terrain(test_point) then
-               return true
-            end
-         end
-      end
-   end
-   return false
-end
-
-function MiningZoneComponent:_each_corner_block_in_cube(cube, cb)
+local function each_corner_block_in_cube(cube, cb)
    -- block is a corner block when it is part of three or more faces
-   self:_each_block_in_cube_with_faces(cube, 3, cb)
+   each_block_in_cube_with_faces(cube, 3, cb)
 end
 
-function MiningZoneComponent:_each_edge_block_in_cube(cube, cb)
+local function each_edge_block_in_cube(cube, cb)
    -- block is an edge block when it is part of two or more faces
-   self:_each_block_in_cube_with_faces(cube, 2, cb)
+   each_block_in_cube_with_faces(cube, 2, cb)
 end
 
-function MiningZoneComponent:_each_face_block_in_cube(cube, cb)
+local function each_face_block_in_cube(cube, cb)
    -- block is a face block when it is part of one or more faces
-   self:_each_block_in_cube_with_faces(cube, 1, cb)
+   each_block_in_cube_with_faces(cube, 1, cb)
 end
 
 -- invokes callback when a block in the cube is on min_faces or more
 -- min_faces = 3 iterates over all the corner blocks
 -- min_faces = 2 iterates over all the edge blocks
 -- min_faces = 1 iterates over all the face blocks
-function MiningZoneComponent:_each_block_in_cube_with_faces(cube, min_faces, cb)
+local function each_block_in_cube_with_faces(cube, min_faces, cb)
     -- subtract one because we want the max terrain block, not the bounding grid line
    local max = cube.max - Point3.one
    local min = cube.min
@@ -278,6 +215,74 @@ function MiningZoneComponent:_each_block_in_cube_with_faces(cube, min_faces, cb)
    end   
 end
 
+local DIMENSIONS = { 'x', 'y', 'z'}
+
+local function get_face(cube, normal)
+   local dim = nil
+
+   for _, d in ipairs(DIMENSIONS) do
+      if normal[d] ~= 0 then
+         dim = d
+         break
+      end
+   end
+   assert(dim)
+
+   local face = Cube3(cube)
+
+   if normal[dim] > 0 then
+      face.min[dim] = face.max[dim] - 1
+   else
+      face.max[dim] = face.min[dim] + 1
+   end
+
+   return face
+end
+
+local function face_is_exposed(point, direction)
+   return not radiant.terrain.is_terrain(point + direction)
+end
+
+local function count_open_faces_for_block(point, max)
+   max = max or 2
+   local count = 0
+
+   for _, dir in ipairs(FACE_DIRECTIONS) do
+      if not radiant.terrain.is_terrain(point + dir) then
+         count = count + 1
+         if count >= max then
+            return count
+         end
+      end
+   end
+
+   return count
+end
+
+local function has_n_plus_exposed_faces(point, n)
+   local count = self:_count_open_faces_for_block(point, n)
+   return count >= n
+end
+
+local function has_higher_neighbor(point, radius)
+   local test_point = Point3()
+   local px = point.x
+   local pz = point.z
+   local y = point.y + 1
+   
+   for z = -radius, radius do
+      for x = -radius, radius do
+         if x ~= 0 or y ~= 0 then
+            test_point:set(px + x, y, pz + z)
+            if radiant.terrain.is_terrain(test_point) then
+               return true
+            end
+         end
+      end
+   end
+   return false
+end
+
 -- To make sure we mine in layers instead of digging randomly and potentially orphaning regions,
 -- we prioritize blocks with two or more exposed faces.
 function MiningZoneComponent:_update_destination()
@@ -286,65 +291,15 @@ function MiningZoneComponent:_update_destination()
       return
    end
 
-   local world_space_region = self._sv.region:get():translated(location)
-   local terrain_region = radiant.terrain.intersect_region(world_space_region)
-   terrain_region:set_tag(0)
-   terrain_region:optimize_by_merge()
-   local bounds = terrain_region:get_bounds()
+   local zone_region = self._sv.region:get()
 
    self._destination_component:get_region():modify(function(cursor)
-         local world_to_local_translation = -location
          cursor:clear()
 
-         local add_block = function(point)
-               local block = Cube3(point, point + Point3.one)
-               block:translate(world_to_local_translation)
-               cursor:add_cube(block)
-            end
-
-         -- this code not finalized
-         for cube in terrain_region:each_cube() do
-            if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
-               local slice_min = Point3(cube.min.x, cube.max.y-1, cube.min.z)
-               local slice_max = cube.max
-               local top_slice = Cube3(slice_min, slice_max)
-
-               if cube.max.y == bounds.max.y then
-                  self:_each_face_block_in_cube(top_slice, function(point)
-                        if self:_top_face_exposed(point) then
-                           add_block(point)
-                        end
-                     end)
-               else
-                  self:_each_face_block_in_cube(top_slice, function(point)
-                        if self:_top_face_exposed(point) and not self:_has_higher_neighbor(point, 1) then
-                           add_block(point)
-                        end
-                     end)
-               end
-            end
-         end
-
-         if cursor:empty() then
-            for cube in terrain_region:each_cube() do
-               self:_each_edge_block_in_cube(cube, function(point)
-                     -- prioritizing blocks with 2+ exposed faces naturally mines in layers
-                     -- provided the starting shape is relatively flat
-                     if self:_has_n_plus_exposed_faces(point, 2) then
-                        add_block(point)
-                     end
-                  end)
-            end
-         end
-
-         if cursor:empty() then
-            for cube in terrain_region:each_cube() do
-               self:_each_face_block_in_cube(cube, function(point)
-                     if self:_has_n_plus_exposed_faces(point, 1) then
-                        add_block(point)
-                     end
-                  end)
-            end
+         -- break the zone into convex regions (cubes) and run the destination block algorithm
+         -- assumes the zone_region has been optimized already
+         for zone_cube in zone_region:each_cube() do
+            self:_add_destination_blocks(cursor, zone_cube, location)
          end
 
          -- mostly for debugging
@@ -352,6 +307,66 @@ function MiningZoneComponent:_update_destination()
       end)
 
    self:_update_adjacent()
+end
+
+-- this algorithm assumes a convex region, so we break the zone into cubes before running it
+-- destination_region and zone_cube are in local coordinates
+-- everything else is in world coordinates
+function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cube, zone_location)
+   local zone_region = Region3(zone_cube:translated(zone_location))
+   local terrain_region = radiant.terrain.intersect_region(zone_region)
+   terrain_region:set_tag(0)
+   terrain_region:optimize_by_merge()
+   local bounds = terrain_region:get_bounds()
+   local world_to_local_translation = -zone_location
+
+   local add_block = function(point)
+         local block = Cube3(point, point + Point3.one)
+         block:translate(world_to_local_translation)
+         destination_region:add_cube(block)
+      end
+
+   for cube in terrain_region:each_cube() do
+      if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
+         local top_face = get_face(cube, Point3.unit_y)
+
+         if top_face.max.y == bounds.max.y then
+            for point in cube:each_point() do
+               if face_is_exposed(point, Point3.unit_y) then
+                  add_block(point)
+               end
+            end
+         else
+            for point in cube:each_point() do
+               if face_is_exposed(point, Point3.unit_y) and not has_higher_neighbor(point, 1) then
+                  add_block(point)
+               end
+            end
+         end
+      end
+   end
+
+   for _, normal in ipairs(NON_TOP_DIRECTIONS) do
+      local face_region = Region3(get_face(bounds, normal))
+      local face_blocks = face_region:intersected(terrain_region)
+      for point in face_blocks:each_point() do
+         if face_is_exposed(point, normal) then
+            add_block(point)
+         end
+      end
+   end
+
+   if destination_region:empty() then
+      -- fallback condition
+      log:warning('adding all exposed faces to destination')
+      for cube in terrain_region:each_cube() do
+         each_face_block_in_cube(cube, function(point)
+               if self:_has_n_plus_exposed_faces(point, 1) then
+                  add_block(point)
+               end
+            end)
+      end
+   end
 end
 
 function MiningZoneComponent:_update_adjacent()
