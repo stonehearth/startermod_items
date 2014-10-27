@@ -45,6 +45,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
    showEditor: function() {
       this.$('#editor').show();
       this.$('#overview').hide();
+
+      // activate the first tool
+      var toolButtons = this.$('.toolButton');
+      if (toolButtons[0]) {
+         toolButtons[0].click();
+      }
    },
 
    // Save the state of the dialog int the 'stonehearth:building_designer' key.

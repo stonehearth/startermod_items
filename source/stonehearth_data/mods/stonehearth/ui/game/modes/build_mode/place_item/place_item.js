@@ -73,14 +73,46 @@ App.StonehearthPlaceItemPicker = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      self.$('.itemButton').click(function() {
+      self.$('.item').click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
 
          var itemType = $(this).attr('uri');
          App.stonehearthClient.placeItemType(itemType);
       });
 
-      self.$('.item').tooltipster();
+      this.$('#searchInput').keyup(function (e) {
+         var search = $(this).val();
+
+         if (!search || search == '') {
+            self.$('.item').show();
+            self.$('.category').show();
+         } else {
+            // hide items that don't match the search
+            self.$('.item').each(function(i, item) {
+               var el = $(item);
+               var itemName = el.attr('title').toLowerCase();
+
+               if(itemName.indexOf(search) > -1) {
+                  el.show();
+               } else {
+                  el.hide();
+               }
+            })
+
+            self.$('.category').each(function(i, category) {
+               var el = $(category)
+
+               if (el.find('.item:visible').length > 0) {
+                  el.show();
+               } else {
+                  el.hide();
+               }
+            })
+         }
+         
+      });
+
+      //self.$('.item').tooltipster();
    },
 
    _mapToArray : function(map, convert_fn) {
