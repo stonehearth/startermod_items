@@ -2,6 +2,8 @@ local constants = require 'constants'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 SubterraneanViewService = class()
 
+local UNITY_PLUS_EPSILON = 1.000001
+
 function SubterraneanViewService:initialize()
    local enable_mining = radiant.util.get_config('enable_mining', false)
    if not enable_mining then
@@ -11,8 +13,9 @@ function SubterraneanViewService:initialize()
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
+      -- we have some floating point drift on the integer coordinates, not sure why yet
+      self._sv.clip_height = constants.mining.Y_ALIGN * 4 * UNITY_PLUS_EPSILON
       self._sv.clip_enabled = false
-      self._sv.clip_height = constants.mining.Y_ALIGN * 4
       self._sv.initialized = true
    else
    end

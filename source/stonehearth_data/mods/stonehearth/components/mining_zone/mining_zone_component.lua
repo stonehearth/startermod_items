@@ -139,17 +139,17 @@ end
 
 local function each_corner_block_in_cube(cube, cb)
    -- block is a corner block when it is part of three or more faces
-   self:_each_block_in_cube_with_faces(cube, 3, cb)
+   each_block_in_cube_with_faces(cube, 3, cb)
 end
 
 local function each_edge_block_in_cube(cube, cb)
    -- block is an edge block when it is part of two or more faces
-   self:_each_block_in_cube_with_faces(cube, 2, cb)
+   each_block_in_cube_with_faces(cube, 2, cb)
 end
 
 local function each_face_block_in_cube(cube, cb)
    -- block is a face block when it is part of one or more faces
-   self:_each_block_in_cube_with_faces(cube, 1, cb)
+   each_block_in_cube_with_faces(cube, 1, cb)
 end
 
 -- invokes callback when a block in the cube is on min_faces or more
