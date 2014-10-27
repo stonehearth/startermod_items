@@ -310,7 +310,7 @@ function EntityFormsComponent:_create_task(activity, args)
                               -- remove the ghost entity from whatever its parent was.  this could
                               -- best the terrain or a structure, depending on how we were placed
                               local ghost = self._sv.ghost_entity
-                              local parent = ghost:get_component('mob'):get_parent()
+                              local parent = radiant.entities.get_parent(ghost)
                               if parent then
                                  radiant.entities.remove_child(parent, ghost)
                                  radiant.entities.move_to(ghost, Point3.zero)                              
