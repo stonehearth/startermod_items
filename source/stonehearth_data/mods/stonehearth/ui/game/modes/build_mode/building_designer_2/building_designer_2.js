@@ -49,7 +49,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // activate the first tool
       var toolButtons = this.$('.toolButton');
       if (toolButtons[0]) {
-         toolButtons[0].click();
+         //toolButtons[0].click();
       }
    },
 
