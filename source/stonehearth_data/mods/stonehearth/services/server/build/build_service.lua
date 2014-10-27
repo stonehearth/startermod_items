@@ -6,7 +6,6 @@ local Rect2 = _radiant.csg.Rect2
 local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
-local Point3f = _radiant.csg.Point3f
 local Region2 = _radiant.csg.Region2
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
@@ -70,37 +69,17 @@ function BuildService:clear_undo_stack()
 end
 
 function BuildService:set_active(entity, enabled)
-   local bc = nil
    if enabled then
       self:clear_undo_stack() -- can't undo once building starts!
-      bc = entity:get_component('stonehearth:building')
+      local bc = entity:get_component('stonehearth:building')
       if bc then 
          bc:clear_no_construction_zone_traces()
-      end
-   end
-
-   if bc and enabled then
-      local player_id = radiant.entities.get_player_id(entity)
-      local faction = radiant.entities.get_faction(entity)
-
-      local trr = bc:calculate_terrain_removal_region()
-
-      if not trr:empty() then
-         local world_trr = trr:translated(entity:get_component('mob'):get_location())
-         self._mining_zone = stonehearth.mining:dig_region(player_id, faction, world_trr)
       end
    end
 
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
          if c then
-            local f = c:get_fabricator_component()
-
-            -- Only the general fabricator can deal with mining zones, so check to see if we
-            -- have a fab with 'set_mining_zone' on it.
-            if enabled and self._mining_zone and f and f.set_mining_zone then
-               f:set_mining_zone(self._mining_zone)
-            end
             c:set_active(enabled)
          end
       end)
@@ -108,13 +87,7 @@ end
 
 function BuildService:set_teardown(entity, enabled)
    if enabled then
-      self._undo:clear()
-      
-      -- We can only destroy a mining zone once!
-      if self._mining_zone then
-         radiant.entities.destroy_entity(self._mining_zone)
-         self._mining_zone = nil
-      end
+      self._undo:clear()      
    end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
