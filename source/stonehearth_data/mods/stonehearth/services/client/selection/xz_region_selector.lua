@@ -133,6 +133,7 @@ end
 function XZRegionSelector:destroy()
    if self._always_cb then
       self._always_cb(self)
+      self._always_cb = nil
    end
 
    stonehearth.selection:register_tool(self, false)

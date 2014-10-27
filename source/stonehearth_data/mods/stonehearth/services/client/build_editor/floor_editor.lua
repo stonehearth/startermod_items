@@ -32,7 +32,6 @@ function FloorEditor:go(response, brush_shape)
 
             -- Update the cut region for the floor
             self._cut_region:modify(function(cursor)
-                  cursor:clear()
                   cursor:copy_region(box_region)
                end)
             return node

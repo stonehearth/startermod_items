@@ -35,6 +35,7 @@ function BuildEditorService:add_terrain_cut(cut_region)
    if not self._sv.terrain_cuts[cut_region] then
       self._sv.terrain_cuts[cut_region] = true
       _radiant.renderer.add_terrain_cut(cut_region)
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -42,6 +43,7 @@ function BuildEditorService:remove_terrain_cut(cut_region)
    if self._sv.terrain_cuts[cut_region] then
       self._sv.terrain_cuts[cut_region] = nil
       _radiant.renderer.remove_terrain_cut(cut_region)
+      self.__saved_variables:mark_changed()
    end
 end
 

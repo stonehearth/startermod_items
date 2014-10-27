@@ -487,13 +487,11 @@ function Fabricator:_update_dst_region()
    --self:_log_region(dst_region, 'resulted in destination ->')
    
    -- Any region that needs mining should be removed from our destination region.
-   for zone,_ in pairs(self._mining_zones) do
-      if zone:get_component('destination') then
-         local mining_region = zone:get_component('destination'):get_region():get()
-         local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
+   for zone, mining_dst in pairs(self._mining_zones) do
+      local mining_region = mining_dst:get_region():get()
+      local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
 
-         dst_region:subtract_region(fab_mining_region)
-      end
+      dst_region:subtract_region(fab_mining_region)
    end
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
@@ -567,15 +565,19 @@ function Fabricator:_update_mining_region()
    local mining_zone = stonehearth.mining:dig_region(player_id, faction, world_region)
    
    if not self._mining_zones[mining_zone] then
-      self._mining_zones[mining_zone] = true
+      local mining_dst = mining_zone:get_component('destination')
+      self._mining_zones[mining_zone] = mining_dst
 
-      self._mining_traces[mining_zone] = mining_zone:get_component('destination'):trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+      self._mining_traces[mining_zone] = mining_dst:trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
          :on_changed(function(region)
             self:_update_dst_region()
          end)
          :push_object_state()
 
-      radiant.events.listen_once(mining_zone, 'radiant:entity:destroy', function()
+      -- Needs to be pre_destroy!  Otherwise, the mining region is destroyed, which triggers
+      -- the callback in the fabricator to update the region, which accessess the cached
+      -- destination component, which blows up.
+      radiant.events.listen_once(mining_zone, 'radiant:entity:pre_destroy', function()
          self._mining_zones[mining_zone] = nil
          self._mining_traces[mining_zone] = nil
       end)

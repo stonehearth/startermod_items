@@ -143,7 +143,7 @@ function ConstructionRenderTracker:_compute_rpg_render_region()
       self._rpg_region = _radiant.client.alloc_region3()
    end
    if self._rpg_region_dirty then
-      local clipper = Cube3(Point3(-INFINITE, -1, -INFINITE),
+      local clipper = Cube3(Point3(-INFINITE, -INFINITE, -INFINITE),
                             Point3( INFINITE, RPG_REGION_HEIGHT,  INFINITE))
       self._rpg_region:modify(function(cursor)
             cursor:copy_region(self._region:get():to_int():clipped(clipper))
