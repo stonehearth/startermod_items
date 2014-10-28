@@ -1,5 +1,4 @@
 {
-   "mixins" : "stonehearth:mixins:player_task_groups",
    "kingdom_name" : "Ascendancy",
    "kingdom_id" : "ascendency",
    "male_entities" : [

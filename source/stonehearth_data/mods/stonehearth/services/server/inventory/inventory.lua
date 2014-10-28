@@ -12,7 +12,6 @@ end
 function Inventory:initialize(session)   
    self._sv.next_stockpile_no = 1
    self._sv.player_id = session.player_id
-   self._sv.kingdom = session.kingdom
    self._sv.faction = session.faction
    self._sv.storage = {}
    self._sv.num_stockpiles = 0

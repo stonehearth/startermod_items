@@ -9,7 +9,6 @@ local Town = class()
 
 function Town:initialize(session)
    self._sv.faction = session.faction
-   self._sv.kingdom = session.kingdom
    self._sv.player_id = session.player_id
    self._sv._saved_calls = {}
    self._sv._next_saved_call_id = 1
@@ -65,11 +64,11 @@ function Town:_create_task_groups()
    self._task_groups = {}
 
    -- Create new task groups
-   local task_group_data = radiant.resources.load_json(self._sv.kingdom).task_groups
+   local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups').task_groups
    if task_group_data then
       for task_group_name, activity_dispatcher in pairs(task_group_data) do
          self._task_groups[task_group_name] = self._scheduler:create_task_group(activity_dispatcher, {})
-                                                            :set_counter_name(task_group_name)
+                                                                  :set_counter_name(task_group_name)
       end
    end
 end
@@ -115,10 +114,6 @@ end
 
 function Town:get_player_id()
    return self._sv.player_id
-end
-
-function Town:get_kingdom()
-   return self._sv.kingdom
 end
 
 function Town:get_citizens()
@@ -186,7 +181,6 @@ end
 function Town:add_pet(entity)
    local unit_info = entity:add_component('unit_info')
    unit_info:set_faction(self._sv.faction)
-   unit_info:set_kingdom(self._sv.kingdom)
    unit_info:set_player_id(self._sv.player_id)
 
    self:create_orchestrator(PetOrchestrator, { entity = entity })

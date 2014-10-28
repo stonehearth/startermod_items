@@ -16,7 +16,6 @@ void UnitInfo::LoadFromJson(json::Node const& obj)
    character_sheet_info_ = obj.get<std::string>("character_sheet_info", *character_sheet_info_);
    portrait_ = obj.get<std::string>("portrait", *portrait_);
    faction_ = obj.get<std::string>("faction", *faction_);
-   kingdom_ = obj.get<std::string>("kingdom", *kingdom_);
    icon_ = obj.get<std::string>("icon", *icon_);
 }
 
@@ -29,6 +28,5 @@ void UnitInfo::SerializeToJson(json::Node& node) const
    node.set("character_sheet_info", GetCharacterSheetInfo());
    node.set("portrait", GetPortrait());
    node.set("faction", GetFaction());
-   node.set("kingdom", GetKingdom());
    node.set("icon", GetIcon());
 }

@@ -6,7 +6,6 @@ function CaravanShopScenario:initialize()
    self.session = {
       player_id = 'player_1',
       faction = 'civ',
-      kingdom = 'stonehearth:kingdoms:ascendancy',
    }
 
    self:restore()

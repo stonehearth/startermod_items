@@ -87,12 +87,11 @@ function CombatSpamTest:create_enemy_kingdom()
    local session = {
       player_id = 'game_master',
       faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
    stonehearth.town:add_town(session)
-   self._enemy_population = stonehearth.population:add_population(session)
+   self._enemy_population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function CombatSpamTest:equip_weapon(entity, weapon_uri)

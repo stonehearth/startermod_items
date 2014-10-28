@@ -24,7 +24,6 @@ function FarmingTest:__init()
 
    local session = {
       player_id = radiant.entities.get_player_id(farmer),
-      kingdom = radiant.entities.get_kingdom(farmer)
    }
 
    stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
