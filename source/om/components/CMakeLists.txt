@@ -77,6 +77,7 @@ add_library(om_components STATIC
             mod_list.cpp
             movement_modifier_shape.cpp
             region_collision_shape.cpp
+			region_common.cpp
             render_info.cpp
             model_layer.cpp
             model_variants.cpp
