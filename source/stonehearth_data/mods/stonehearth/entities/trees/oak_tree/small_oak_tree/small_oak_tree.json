@@ -18,8 +18,7 @@
       }, 
       "unit_info": {
          "name": "Small Oak Tree", 
-         "description": "He's just a sapling!",
-         "portrait": "file(small_oak_tree.png)"
+         "description": "He's just a sapling!"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 

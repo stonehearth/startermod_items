@@ -5,7 +5,6 @@
       "unit_info" : {
          "name" : "Racoon",
          "description" : "Small forest creature",
-         "portrait" : "file(portrait.png)",
          "faction" : "critter",
          "character_sheet_info" : "file(racoon_character_sheet_info.json)"
       },

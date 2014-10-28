@@ -2,8 +2,7 @@
    "components": {
       "unit_info": {
          "name": "Mason Workbench",
-         "description": "Unclaimed",
-         "portrait": "file(mason_workbench.png)"
+         "description": "Unclaimed"
       },
       "model_variants": {
          "default": {

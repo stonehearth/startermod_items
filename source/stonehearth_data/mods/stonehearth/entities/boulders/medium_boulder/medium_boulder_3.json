@@ -11,8 +11,7 @@
       }, 
       "unit_info": {
          "name": "Medium Boulder", 
-         "description": "Harvestable for stone",
-         "portrait": "file(medium_boulder.png)"
+         "description": "Harvestable for stone"
       }, 
       "stonehearth:resource_node": {
          "durability": 6

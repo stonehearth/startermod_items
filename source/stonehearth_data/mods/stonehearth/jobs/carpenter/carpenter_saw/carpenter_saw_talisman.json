@@ -5,7 +5,6 @@
       "unit_info" : {
          "name" :  "Carpenter's Saw",
          "description" : "Promotes a citizen into a Carpenter.",
-         "portrait": "file(carpenter_saw.png)",
          "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
       },
       "item" : {

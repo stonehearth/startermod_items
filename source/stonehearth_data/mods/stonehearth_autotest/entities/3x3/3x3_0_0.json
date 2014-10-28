@@ -1,8 +1,7 @@
 {
    "components": {
       "unit_info": {
-         "name": "3x3 model pos:(0, 0)", 
-         "portrait": "file(3x3.png)"
+         "name": "3x3 model pos:(0, 0)"
       }, 
       "mob" : {
          "model_origin" : { "x": -1.5, "y": 0, "z": 1.5 },

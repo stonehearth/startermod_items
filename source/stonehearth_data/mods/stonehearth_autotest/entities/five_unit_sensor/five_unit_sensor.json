@@ -22,8 +22,7 @@
       "unit_info": {
          "name": "Test Sensor",
          "description": "Radius is 5 units",
-         "icon" : "file(five_unit_sensor.png)",
-         "portrait": "file(five_unit_sensor.png)"
+         "icon" : "file(five_unit_sensor.png)"
       }
    }
 }

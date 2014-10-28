@@ -5,7 +5,6 @@
       "unit_info" : {
          "name" : "Rabbit",
          "description" : "Om nom nom",
-         "portrait" : "file(portrait.png)",
          "faction" : "critter",
          "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
       },

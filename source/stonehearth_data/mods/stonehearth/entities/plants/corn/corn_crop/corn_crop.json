@@ -47,8 +47,7 @@
       "unit_info": {
          "name": "Corn", 
          "description": "Slow-growning, but super nutritious crop.", 
-         "icon" : "file(icon.png)",
-         "portrait" : "file(portrait.png)"
+         "icon" : "file(icon.png)"
       },
       "stonehearth:crop" : {
          "resource_pairings" : {
