@@ -14,6 +14,9 @@ end
 
 function FloorEraser:go(response)
    stonehearth.selection:select_xz_region()
+      :require_unblocked(false)
+      :select_front_brick(false)
+      :allow_select_cursor(true)
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
             return _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.xml', Point3(0.5, 0, 0.5))
