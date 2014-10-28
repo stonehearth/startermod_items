@@ -14,10 +14,10 @@ function WorkerSchedulerPriorityTest:__init()
    -- Two workers near the wood...
    local worker = self:place_citizen(13, 13)
    local worker = self:place_citizen(12, 14)
-   local faction = worker:get_component('unit_info'):get_faction()
+   local player_id = worker:get_component('unit_info'):get_player_id()
 
    --- A stockpile close to the workers and the wood...
-   self:place_stockpile_cmd(faction, 10, 10, 2, 2)
+   self:place_stockpile_cmd(player_id, 10, 10, 2, 2)
    
    --- A tasty wall, fairly far away from everything else
    local wall = radiant.entities.create_entity('stonehearth:wooden_wall')
@@ -27,7 +27,7 @@ function WorkerSchedulerPriorityTest:__init()
    end)
    wall:add_component('destination'):set_region(rgn)
    wall:add_component('stonehearth:construction_data'):set_normal(Point3(1, 0, 0))
-   radiant.entities.set_faction(wall, faction)
+   radiant.entities.set_player_id(wall, player_id)
    
    radiant.entities.move_to(wall, Point3(0, 1, 0))
    local root = radiant.entities.get_root_entity()

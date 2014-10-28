@@ -12,7 +12,6 @@ end
 function Inventory:initialize(session)   
    self._sv.next_stockpile_no = 1
    self._sv.player_id = session.player_id
-   self._sv.faction = session.faction
    self._sv.storage = {}
    self._sv.num_stockpiles = 0
    self._sv.items = {}
@@ -33,9 +32,9 @@ function Inventory:create_stockpile(location, size)
    self:_add_collision_region(entity, size)
 
    --xxx localize
-   entity:get_component('unit_info'):set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
-   entity:get_component('unit_info'):set_player_id(self._sv.player_id)
-   entity:get_component('unit_info'):set_faction(self._sv.faction)
+   entity:get_component('unit_info')
+            :set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
+            :set_player_id(self._sv.player_id)
 
    self._sv.next_stockpile_no = self._sv.next_stockpile_no + 1
    self.__saved_variables:mark_changed()

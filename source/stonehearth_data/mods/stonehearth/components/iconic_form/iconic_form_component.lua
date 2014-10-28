@@ -10,7 +10,6 @@ local UNIT_INFO_PROPERTIES = {
    'display_name',
    'description',
    'icon',
-   'portrait'
 }
 
 local IconicFormComponent = class()

@@ -22,7 +22,7 @@ function GoblinRaidingCamp:restore()
    if self._sv.__scenario:is_running() then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             if self._sv._squad then
-               self._sv._squad = EscortSquad('game_master', self._sv._squad)
+               self._sv._squad = EscortSquad('goblins', self._sv._squad)
             end
             if not self._sv._squad or not self._sv._squad:spawned() then
                -- We were saved in a triggered state, but no goblin has been spawned.
@@ -42,8 +42,7 @@ function GoblinRaidingCamp:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
-      player_id = 'game_master',
-      faction = 'goblin',
+      player_id = 'goblins',
    }
    
    -- the camp's stockpile
@@ -109,7 +108,7 @@ end
 --Determine the # of brigands based on the wealth of the town
 function GoblinRaidingCamp:_on_spawn()
    if not self._sv._squad then
-      self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
+      self._sv._squad = EscortSquad('goblins', radiant.create_datastore())
       self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
 
       --Set the thief to only attack when attacked.

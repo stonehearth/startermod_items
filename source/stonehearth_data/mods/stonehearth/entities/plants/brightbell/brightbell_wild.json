@@ -6,8 +6,7 @@
       },
       "unit_info" : {
          "name": "Wild Brightbell", 
-         "description": "A harvestable wild flower",
-         "portrait": "file(portrait.png)"
+         "description": "A harvestable wild flower"
       },      
       "model_variants": {
          "default": {

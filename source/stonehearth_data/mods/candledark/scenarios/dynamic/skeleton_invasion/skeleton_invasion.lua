@@ -18,7 +18,6 @@ function SkeletonInvasion:restore()
    -- is likely not the correct place.
    local session = {
       player_id = 'candledark_undead',
-      faction = 'undead',
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)

@@ -67,7 +67,6 @@ function CreateWorkshop:_complete_construction(crafter, ghost_workshop, workshop
                   :add_command('/stonehearth/data/commands/move_item')
 
 
-   radiant.entities.set_faction(workshop_entity, crafter)
    radiant.entities.set_player_id(workshop_entity, crafter)
 
    -- destroy the everything we put in the ghost entity to make the workbench

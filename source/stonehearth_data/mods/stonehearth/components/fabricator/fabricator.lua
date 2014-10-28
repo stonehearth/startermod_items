@@ -143,7 +143,6 @@ function Fabricator:_create_new_project()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
    self._project_dst = self._project:add_component('destination')
 
-   radiant.entities.set_faction(self._project, blueprint)
    radiant.entities.set_player_id(self._project, blueprint)
 
    self._project_dst:set_region(rgn)
@@ -549,9 +548,7 @@ end
 
 -- Called only when the blueprint region is changed (added or merged).
 function Fabricator:_update_mining_region()
-
    local player_id = radiant.entities.get_player_id(self._blueprint)
-   local faction = radiant.entities.get_faction(self._blueprint)
 
    local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
    local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
@@ -562,7 +559,7 @@ function Fabricator:_update_mining_region()
    end
 
    -- The mining service will handle all existing mining region overlap merging for us.
-   local mining_zone = stonehearth.mining:dig_region(player_id, faction, world_region)
+   local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
    
    if not self._mining_zones[mining_zone] then
       local mining_dst = mining_zone:get_component('destination')

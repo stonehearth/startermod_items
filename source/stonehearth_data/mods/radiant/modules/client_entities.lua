@@ -114,11 +114,6 @@ function client_entities.remove_child(parent, child)
    end
 end
 
-function client_entities.get_faction(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_faction() or nil
-end
-
 function client_entities.get_player_id(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_player_id() or nil

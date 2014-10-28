@@ -5,7 +5,6 @@
       "unit_info" : {
          "name" :  "Carpenter's Saw",
          "description" : "Basic level carpenter's saw.",
-         "portrait": "file(carpenter_saw.png)",
          "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
       },
       "item" : {

@@ -20,7 +20,6 @@
          "name": "Oak Log",
          "description": "That's right.  It's a log.",
          "icon" : "file(log.png)",
-         "portrait": "file(oak_log.png)",
          "character_sheet_info" : "file(../../log_character_sheet_info.json)"
       },
       "mob" : {

@@ -7,7 +7,6 @@ function PetTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   local faction = 'civ'
    local humans = {}
    local critters = {}
 

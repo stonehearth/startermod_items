@@ -4,8 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Mason's Chisel",
-         "description" : "Promotes a citizen into a mason.",
-         "portrait": "file(mason_chisel.png)"
+         "description" : "Promotes a citizen into a mason."
       },
       "item" : {
          "stacks" : 1

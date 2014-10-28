@@ -9,7 +9,6 @@
       "unit_info" : {
          "name": "Tall Grass", 
          "description": "Harvestable for thatch",
-         "portrait": "file(portrait.png)",
          "character_sheet_info" : "file(tall_grass_character_sheet_info.json)"
       },
       "model_variants": {

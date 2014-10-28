@@ -13,7 +13,7 @@ function mining_tests.down_and_out_tunnel(autotest)
    local point = Point3(20, 9, 4)
    local region = Region3(Cube3(point, point + Point3(1, 1, 1)))
 
-   local mining_zone = stonehearth.mining:create_mining_zone(session.player_id, session.faction)
+   local mining_zone = stonehearth.mining:create_mining_zone(session.player_id)
    stonehearth.mining:dig_down(mining_zone, region)
 
    for i = 1, 2 do

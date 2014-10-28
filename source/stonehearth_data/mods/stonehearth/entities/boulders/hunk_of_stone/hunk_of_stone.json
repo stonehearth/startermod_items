@@ -20,7 +20,6 @@
          "name": "Hunk 'o Stone",
          "description": "A heavy, ordinary rock.",
          "icon" : "file(hunk_of_stone.png)",
-         "portrait": "file(hunk_of_stone.png)",
          "character_sheet_info" : "file(hunk_of_stone_character_sheet_info.json)"
       }
    }
