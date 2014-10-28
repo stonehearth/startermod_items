@@ -175,4 +175,17 @@ function FabricatorComponent:_on_blueprint_destroyed()
    end
 end
 
+function FabricatorComponent:accumulate_costs(cost)
+   local blueprint = self._sv.blueprint
+   local material = blueprint:get_component('stonehearth:construction_data')
+                                    :get_material()
+
+   local area = blueprint:get_component('destination')
+                           :get_region()
+                              :get()
+                                 :get_area()
+
+   cost.resources[material] = (cost.resources[material] or 0) + area
+end
+
 return FabricatorComponent

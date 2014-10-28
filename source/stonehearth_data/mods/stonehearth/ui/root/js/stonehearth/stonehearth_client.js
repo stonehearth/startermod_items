@@ -492,6 +492,10 @@ var StonehearthClient;
          return radiant.call_obj(this._build_service, 'instabuild_command', building);
       },
 
+      getCost: function(building) {
+         return radiant.call_obj(this._build_service, 'get_cost_command', building);
+      },
+
       setGrowRoofOptions: function(options) {
          return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },

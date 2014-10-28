@@ -254,4 +254,22 @@ function FixtureFabricator:layout()
    -- nothing to do...
 end
 
+function FixtureFabricator:accumulate_costs(cost)
+   local uri = self._sv.fixture_uri
+   local entry = cost.items[uri];
+   if not entry then
+      local json = radiant.resources.load_json(uri)
+      local components = json and json.components
+      local unit_info = components and components.unit_info or nil
+      entry = {
+         name = unit_info and unit_info.name or nil,
+         icon = unit_info and unit_info.icon or nil,
+         count = 1,
+      }
+      cost.items[uri] = entry
+   else
+      entry.count = entry.count + 1
+   end
+end
+
 return FixtureFabricator
