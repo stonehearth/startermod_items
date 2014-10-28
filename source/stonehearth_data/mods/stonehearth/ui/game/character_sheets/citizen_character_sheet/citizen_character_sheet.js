@@ -289,7 +289,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $.each(allBuffs, function(k ,v) {
             if(k != "__self" && allBuffs.hasOwnProperty(k)) {
                //If the buff is private don't add it. Public buffs can be undefined or is_private = false
-               if (allBuffs[k].is_private == undefined || !allBuffs[k].is_private) {
+               if (allBuffs[k].invisible_to_player == undefined || !allBuffs[k].invisible_to_player) {
                   var modifiers = allBuffs[k].modifiers;
                   for (var mod in modifiers) {
                      var new_buff_data = {}

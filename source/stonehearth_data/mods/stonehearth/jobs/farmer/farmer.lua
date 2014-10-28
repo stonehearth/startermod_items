@@ -67,9 +67,7 @@ end
 
 -- Private Functions
 
--- Farmers gain XP when... they've produced a basket of stuff?
--- Different crops should return different XP based on grow time so it's not just turnips all day
--- For testing, add xp to tilling
+-- Farmers gain XP when they harvest things. The amount of XP depends on the crop
 function FarmerClass:_create_xp_listeners()
    self._on_harvest_listener = radiant.events.listen(self._sv._entity, 'stonehearth:harvest_crop', self, self._on_harvest)
 end
