@@ -49,7 +49,10 @@ App.StonehearthUnitFrameView = App.View.extend({
         if (attributeMap) {
            $.each(attributeMap, function(k ,v) {
               if(k != "__self" && attributeMap.hasOwnProperty(k)) {
-                 vals.push(v);
+                  //only push public buffs (buffs who have an is_private unset or false)
+                  if (v.is_private == undefined || !v.is_private) {
+                     vals.push(v);
+                  }
               }
            });
         }

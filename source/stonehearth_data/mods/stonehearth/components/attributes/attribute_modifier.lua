@@ -6,6 +6,14 @@ function AttributeModifier:__init(attributes_component, attribute)
    self._mods = {}
 end
 
+function AttributeModifier:set_private(value)
+   self._private = value
+end
+
+function AttributeModifier:get_private()
+   return self._private
+end
+
 function AttributeModifier:multiply_by(value)
    self._mods['multiply'] = value
    self:_recalculate()

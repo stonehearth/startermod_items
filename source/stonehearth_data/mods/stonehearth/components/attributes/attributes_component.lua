@@ -97,6 +97,7 @@ function AttributesComponent:_add_new_attribute(name, data)
          new_attribute.value = self:_evaluate_equation(data.equation)
       end
       new_attribute.effective_value = new_attribute.value
+      new_attribute.user_visible_value = new_attribute.value
       self._sv._attribute_data[name] = new_attribute
 
       -- update the public one, too!
@@ -189,6 +190,7 @@ function AttributesComponent:set_attribute(name, value)
    if value ~= attribute_data.value then
       attribute_data.value = value
       attribute_data.effective_value = nil
+      attribute_data.user_visible_value = nil
       self:_recalculate(name)
    end
    self.__saved_variables:mark_changed()
@@ -224,6 +226,7 @@ function AttributesComponent:_notify_attribute_changed(name, attribute_data)
       self._sv.attributes[name] = {
          value = attribute_data.value,
          effective_value = attribute_data.effective_value,
+         user_visible_value = attribute_data.user_visible_value
       }
       
       -- we leave the value out of the trigger to prevent the listener from reading it.
@@ -238,9 +241,14 @@ function AttributesComponent:_notify_attribute_changed(name, attribute_data)
 end
 
 -- Recalculate the attribute's value (carefully!)
+-- Track user visible and effective values separately, so we can show only the buffs with visible effect
 function AttributesComponent:_recalculate(name)
    local mult_factor = 1.0
    local add_factor = 0.0
+
+   local user_visible_mult_factor = 1.0
+   local user_visible_add_factor = 0.0
+
    local min = nil
    local max = nil
 
@@ -251,11 +259,19 @@ function AttributesComponent:_recalculate(name)
 
             if mods['multiply'] then
                mult_factor = mult_factor * mods['multiply']
+               if not modifier:get_private() then
+                  user_visible_mult_factor = user_visible_mult_factor * mods['multiply']
+               end
             end
 
             if mods['add'] then
                add_factor = add_factor + mods['add']
+               if not modifier:get_private() then
+                  user_visible_add_factor = user_visible_add_factor * mods['multiply']
+               end
             end
+
+            --no need to special case min/max for user visible factors since they make no visible difference
 
             if mods['min'] then
                if min then
@@ -281,11 +297,17 @@ function AttributesComponent:_recalculate(name)
    local attribute_data = self._sv._attribute_data[name]
    attribute_data.effective_value = attribute_data.value * mult_factor
    attribute_data.effective_value = attribute_data.effective_value + add_factor
+
+   attribute_data.user_visible_value = attribute_data.value * user_visible_mult_factor
+   attribute_data.user_visible_value = attribute_data.user_visible_value + user_visible_add_factor
+
    if min then
       attribute_data.effective_value = math.max(min, attribute_data.effective_value)
+      attribute_data.user_visible_value = math.max(min, attribute_data.user_visible_value)
    end
    if max then
       attribute_data.effective_value = math.min(max, attribute_data.effective_value)
+      attribute_data.user_visible_value = math.min(max, attribute_data.user_visible_value)
    end
 
    -- update our public interface to javascript with the saved value
