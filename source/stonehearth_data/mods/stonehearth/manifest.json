@@ -215,6 +215,7 @@
       "furniture:simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "furniture:simple_wooden_chair:fine" : "file(entities/furniture/simple_wooden_chair_fine)",
       "furniture:comfy_chair" : "file(entities/furniture/comfy_chair)",
+      "furniture:comfy_chair:fine" : "file(entities/furniture/comfy_chair_fine)",
 
       "portals:wooden_door" : "file(entities/construction/wooden_door)",
       "portals:wooden_door_2" : "file(entities/construction/wooden_door_2)",
