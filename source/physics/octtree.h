@@ -30,8 +30,11 @@ class OctTree {
       typedef std::function<void(csg::Point3 const&, float)> MovementCostCb;
 
       void ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point3& from, MovementCostCb const& cb) const;
-      float GetMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
-      float GetSquaredMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
+      float GetAdjacentMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
+      float GetSquaredAdjacentMovementCost(const csg::Point3& src, const csg::Point3& dst) const;
+
+      float GetDistanceCost(const csg::Point3& src, const csg::Point3& dst) const;
+      float GetSquaredDistanceCost(const csg::Point3& src, const csg::Point3& dst) const;
 
       bool ValidMove(om::EntityPtr const& entity, bool const reversible, csg::Point3 const& fromLocation, csg::Point3 const& toLocation) const;
 

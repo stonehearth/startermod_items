@@ -308,7 +308,7 @@ function PlayerCameraController:_calculate_drag(e)
       -- it might be more correct to stab through to the first front-face instead,
       -- but we don't have the infractrsture for that just yet.
       for result in r:each_result() do
-         if result.entity:get_id() == 1 then
+         if result.entity and result.entity:get_id() == 1 then
             self._drag_start = result.intersection
             break
          end

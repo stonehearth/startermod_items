@@ -12,26 +12,39 @@ local FloorEditor = class()
 function FloorEditor:__init(build_service)
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
+   self._cut_region = _radiant.client.alloc_region3()
+   stonehearth.build_editor:add_terrain_cut(self._cut_region)
 end
 
 function FloorEditor:go(response, brush_shape)
    local brush = _radiant.voxel.create_brush(brush_shape)
 
    stonehearth.selection:select_xz_region()
-      :require_unblocked(true)
+      :require_unblocked(false)
+      :select_front_brick(false)
+      :allow_select_cursor(true)
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
-            local model = brush:paint_through_stencil(Region3(box))
+            local box_region = Region3(box)
+            local model = brush:paint_through_stencil(box_region)
             local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3.zero)
             node:set_position(MODEL_OFFSET)
+
+            -- Update the cut region for the floor
+            self._cut_region:modify(function(cursor)
+                  cursor:copy_region(box_region)
+               end)
             return node
          end)
       :done(function(selector, box)
             self:_add_floor(response, selector, box, brush_shape)
          end)
       :fail(function(selector)
-            selector:destroy()
             response:reject('no region')            
+         end)
+      :always(function()
+            stonehearth.build_editor:remove_terrain_cut(self._cut_region)
+            self._cut_region = nil
          end)
       :go()
 
@@ -50,7 +63,8 @@ function FloorEditor:_add_floor(response, selector, box, brush_shape)
             response:reject(r)
          end)
       :always(function()
-            selector:destroy()
+            stonehearth.build_editor:remove_terrain_cut(self._cut_region)
+            self._cut_region = nil
          end)
 end
 

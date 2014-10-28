@@ -2,7 +2,7 @@ local ConstructionRenderTracker = class()
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local INFINITE = 100000000
-local RPG_REGION_HEIGHT = 2
+local RPG_REGION_HEIGHT = 1
 
 -- create a new construction render tracker for the specified entity.  the entity is used
 -- during visibility calculations in xrag mode.
@@ -143,7 +143,7 @@ function ConstructionRenderTracker:_compute_rpg_render_region()
       self._rpg_region = _radiant.client.alloc_region3()
    end
    if self._rpg_region_dirty then
-      local clipper = Cube3(Point3(-INFINITE, 0, -INFINITE),
+      local clipper = Cube3(Point3(-INFINITE, -INFINITE, -INFINITE),
                             Point3( INFINITE, RPG_REGION_HEIGHT,  INFINITE))
       self._rpg_region:modify(function(cursor)
             cursor:copy_region(self._region:get():to_int():clipped(clipper))

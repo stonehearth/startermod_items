@@ -87,7 +87,7 @@ end
 
 function BuildService:set_teardown(entity, enabled)
    if enabled then
-      self._undo:clear()
+      self._undo:clear()      
    end
    self:_call_all_children(entity, function(entity)
          local c = entity:get_component('stonehearth:construction_progress')
@@ -131,6 +131,26 @@ function BuildService:add_floor_command(session, response, floor_uri, box, brush
    end
 end
 
+function BuildService:add_road_command(session, response, road_uri, box, brush_shape)
+   local road
+   local success = self:do_command('add_road', response, function()
+         road = self:add_road(session, road_uri, ToCube3(box), brush_shape)
+      end)
+
+   if success then
+      -- if we managed to create some road, return the fabricator to the client as the
+      -- new selected entity.  otherwise, return an error.
+      if road then
+         local road_fab = road:get_component('stonehearth:construction_progress'):get_fabricator_entity()
+         response:resolve({
+            new_selection = road_fab
+         })
+      else
+         response:reject({ error = 'could not create road' })
+      end
+   end
+end
+
 function BuildService:add_wall_command(session, response, columns_uri, walls_uri, p0, p1, normal)
    local wall
    local success = self:do_command('add_wall', response, function()
@@ -149,6 +169,108 @@ function BuildService:add_wall_command(session, response, columns_uri, walls_uri
    end
 end
 
+-- Given a Region2 total_region, convert that into a road region, return both the curb
+-- and the road.
+function BuildService:_region_to_road_regions(total_region, origin)
+   local proj_curb_region = Region2()
+   local road_region = Region3()
+   local curb_region = nil
+   if total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
+      local edges = total_region:get_edge_list()
+      curb_region = Region3()
+      for edge in edges:each_edge() do
+         local min = Point2(edge.min.location.x, edge.min.location.y)
+         local max = Point2(edge.max.location.x, edge.max.location.y)
+
+         if min.y == max.y then
+            if edge.min.accumulated_normals.y < 0 then
+               max.y = max.y + 1
+            elseif edge.min.accumulated_normals.y > 0 then
+               min.y = min.y - 1
+            end
+         elseif min.x == max.x then
+            if edge.min.accumulated_normals.x < 0 then
+               max.x = max.x + 1
+            elseif edge.min.accumulated_normals.x > 0 then
+               min.x = min.x - 1
+            end
+         end
+
+         local c = Cube3(Point3(min.x, origin.y, min.y), Point3(max.x, 2 + origin.y, max.y))
+         curb_region:add_cube(c)
+      end
+
+      proj_curb_region = curb_region:project_onto_xz_plane()
+   end
+
+   local proj_road_region = total_region - proj_curb_region
+
+   for cube in proj_road_region:each_cube() do
+      local c = Cube3(Point3(cube.min.x, origin.y, cube.min.y),
+         Point3(cube.max.x, origin.y + 1, cube.max.y))
+      road_region:add_cube(c)
+   end
+
+   return curb_region, road_region
+end
+
+function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, curb_height)
+   local road = nil
+   local origin = box.min
+   local total_region = Region3(box)
+   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
+                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
+   local clip_against_curbs = Region3()
+
+   -- look for road that we can merge into.
+   local all_overlapping_road = radiant.terrain.get_entities_in_cube(overlap, function(entity)
+         if entity:get_component('stonehearth:portal') then
+            local rcs = entity:get_component('region_collision_shape')
+
+            if rcs then
+               local r = radiant.entities.local_to_world(rcs:get_region():get(), entity)
+               clip_against_curbs:add_region(r)
+            end
+            return false
+         end
+         if not self:is_blueprint(entity) then
+            return false
+         end
+         if self:_get_structure_type(entity) == 'floor' then
+            -- Only merge with roads
+            local fc = entity:get_component('stonehearth:floor')
+            if fc:is_road() then
+               return true
+            end
+         end
+
+         local dst = entity:get_component('destination')
+         if dst then
+            total_region:subtract_region(dst:get_region():get())
+         end
+         return false
+      end)
+
+   local proj_total_region = total_region:project_onto_xz_plane()
+
+   if not next(all_overlapping_road) then
+      local building = self:_create_new_building(session, origin)
+      local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
+
+      if curb_region then
+         curb_region:subtract_region(clip_against_curbs)
+         -- We might not have a curb (road was too narrow!)
+         self:_add_new_road_to_building(building, road_uri, curb_region, brush_shape)
+      end
+      road = self:_add_new_road_to_building(building, road_uri, road_region, brush_shape)
+   else
+      -- we overlapped some pre-existing floor.  merge this box into that floor,
+      -- potentially merging multiple buildings together!
+      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, brush_shape, origin, clip_against_curbs)
+   end
+   return road
+end
+
 function BuildService:add_floor(session, floor_uri, box, brush_shape)
    local floor
    local floor_region = Region3(box)
@@ -161,7 +283,11 @@ function BuildService:add_floor(session, floor_uri, box, brush_shape)
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
-            return true
+            -- Only merge with floors.
+            local fc = entity:get_component('stonehearth:floor')
+            if not fc:is_road() then
+               return true
+            end
          end
 
          local dst = entity:get_component('destination')
@@ -181,6 +307,7 @@ function BuildService:add_floor(session, floor_uri, box, brush_shape)
       -- potentially merging multiple buildings together!
       floor = self:_merge_overlapping_floor(all_overlapping_floor, floor_uri, floor_region, brush_shape)
    end
+
    return floor   
 end
 
@@ -402,6 +529,75 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
     return floor
 end
 
+function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin, clip_against_curbs)
+   -- Select a road to merge into.
+   local road = nil
+   for id, f in pairs(existing_roads) do
+      if not road or id < road:get_id() then
+         road = f
+      end
+   end
+
+   -- Find and merge the buildings for those roads.
+   local buildings_to_merge = {}
+   local road_building = self:get_building_for(road)
+   for _, old_road in pairs(existing_roads) do
+      local building = self:get_building_for(old_road)
+      if building ~= road_building then
+         buildings_to_merge[building:get_id()] = building
+      end
+   end
+   self:_merge_buildings_into(road_building, buildings_to_merge)
+
+   -- Actually merge those roads.
+   for _, old_road in pairs(existing_roads) do
+      if old_road ~= road then
+         road:get_component('stonehearth:floor'):merge_with(old_road)
+      end
+   end
+
+   -- Okay, finally the new guy.  Generate a road and curb region.
+   local curb_region, road_region = self:_region_to_road_regions(new_road_region, origin)
+
+   -- Build a new region that is the road region, extruded up a bit (enough to encompass
+   -- any existing curb).
+   local extruded_road = Region3()
+   for cube in road_region:each_cube() do
+      local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
+      extruded_road:add_cube(c)
+   end
+
+   -- Subtracting the extruded region removes all that area from the existing roads, thus
+   -- making room for the new road.
+   road:get_component('stonehearth:floor'):remove_region_from_floor(extruded_road)
+
+   -- Add the road.
+   road:get_component('stonehearth:floor'):add_region_to_floor(road_region, brush_shape)
+
+   if curb_region then
+      -- The curb is the curb we generated, removing anything that overlaps with existing
+      -- road.
+      -- Again, make an extruded region, this time from all the existing roads, extruded up
+      -- a bit, so that we can eliminate any crossover with the new curb (new curb should NOT
+      -- be built on existing road!)
+      local extruded_road = Region3()
+      for cube in road:get_component('stonehearth:floor'):get_region():get():each_cube() do
+         local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
+         extruded_road:add_cube(c)
+      end
+      extruded_road:translate(radiant.entities.get_world_grid_location(road))
+
+      -- Eliminate those bits from the generated curb.
+      curb_region:subtract_region(extruded_road)
+      curb_region:subtract_region(clip_against_curbs)
+
+      -- Add the curb.
+      road:add_component('stonehearth:floor'):add_region_to_floor(curb_region, brush_shape)
+   end
+
+   return road
+end
+
 -- add `box` to the `floor` region.  the caller must ensure that the
 -- box *only* overlaps with this segement of floor.  see :add_floor()
 -- for more details.
@@ -427,6 +623,49 @@ function BuildService:_add_new_floor_to_building(building, floor_uri, floor_regi
    return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
          self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
       end)
+end
+
+function BuildService:_add_new_road_to_building(building, floor_uri, floor_region, brush_shape)
+   local bp, fab = self:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
+   bp:get_component('stonehearth:floor'):set_is_road(true)
+   local fc = fab:get_component('stonehearth:fabricator')
+   local move_mod = fc:get_project():add_component('movement_modifier_shape')
+   move_mod:set_region(fc:get_project():get_component('region_collision_shape'):get_region())
+   return bp
+end
+
+-- return the building the `blueprint` is contained in
+--
+--    @param blueprint - the blueprint whose building you're interested in
+--
+function BuildService:get_building_for(blueprint)
+   local cp = blueprint:get_component('stonehearth:construction_progress')
+   return cp and cp:get_building_entity()
+end
+
+-- return whether or not the specified `entity` is a blueprint.  only blueprints
+-- have stonehearth:construction_progress components.
+--
+--    @param entity - the entity to be tested for blueprintedness
+--
+function BuildService:is_blueprint(entity)
+   return entity:get_component('stonehearth:construction_progress') ~= nil
+end
+
+function BuildService:is_building(entity)
+   return entity:get_component('stonehearth:building') ~= nil
+end
+
+-- return the building the specified buildprint is attached to, assuming it
+-- is a blueprint to begin with!
+--
+--     @param entity - the blueprint whose building you're looking for
+--
+function BuildService:get_building_for_blueprint(entity)
+   local cp = entity:get_component('stonehearth:construction_progress')
+   if cp then
+      return cp:get_building_entity()
+   end
 end
 
 -- return the type of the specified structure (be it a blueprint or a project)
@@ -476,6 +715,28 @@ function BuildService:_merge_building_into(merge_into, building)
    end
    self:unlink_entity(building)
 end
+
+
+-- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
+-- 1-unit removed from where the floor is for each edge, so we add in the
+-- accumualted normal for both the min and the max, with one small wrinkle:
+-- the edges returned by :each_edge() live in the coordinate space of the
+-- grid tile *lines* not the grid tile.  a consequence of this is that points
+-- whose normals point in the positive direction end up getting pushed out
+-- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
+-- accumulated normal in grid-tile space (as opposed to grid-line space) to
+-- prove this to yourself if you don't believe me.
+function BuildService:_edge_point_to_point(edge_point)
+   local point = Point3(edge_point.location.x, 0, edge_point.location.y)
+   if edge_point.accumulated_normals.x <= 0 then
+      point.x = point.x + edge_point.accumulated_normals.x
+   end
+   if edge_point.accumulated_normals.y <= 0 then
+      point.z = point.z + edge_point.accumulated_normals.y
+   end
+   return point
+end
+
 
 function BuildService:add_wall(session, columns_uri, walls_uri, p0, p1, normal)
    -- look for floor that we can merge into.
@@ -529,25 +790,6 @@ function BuildService:grow_walls(building, columns_uri, walls_uri)
    local floor_region = building:get_component('stonehearth:building')
                                     :calculate_floor_region()
 
-   -- convert a 2d edge point to the proper 3d coordinate.  we want to put columns
-   -- 1-unit removed from where the floor is for each edge, so we add in the
-   -- accumualted normal for both the min and the max, with one small wrinkle:
-   -- the edges returned by :each_edge() live in the coordinate space of the
-   -- grid tile *lines* not the grid tile.  a consequence of this is that points
-   -- whose normals point in the positive direction end up getting pushed out
-   -- one unit too far.  try drawing a 2x2 cube and looking at each edge point +
-   -- accumulated normal in grid-tile space (as opposed to grid-line space) to
-   -- prove this to yourself if you don't believe me.
-   local function edge_point_to_point(edge_point)
-      local point = Point3(edge_point.location.x, 0, edge_point.location.y)
-      if edge_point.accumulated_normals.x <= 0 then
-         point.x = point.x + edge_point.accumulated_normals.x
-      end
-      if edge_point.accumulated_normals.y <= 0 then
-         point.z = point.z + edge_point.accumulated_normals.y
-      end
-      return point
-   end
 
    local origin = radiant.entities.get_world_grid_location(building)
 
@@ -555,8 +797,8 @@ function BuildService:grow_walls(building, columns_uri, walls_uri)
    -- for each one.
    local edges = floor_region:get_edge_list()
    for edge in edges:each_edge() do
-      local min = edge_point_to_point(edge.min) + origin
-      local max = edge_point_to_point(edge.max) + origin
+      local min = self:_edge_point_to_point(edge.min) + origin
+      local max = self:_edge_point_to_point(edge.max) + origin
       local normal = Point3(edge.normal.x, 0, edge.normal.y)
 
       if min ~= max then

@@ -36,6 +36,8 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint_ladder = blueprint:get_component('vertical_pathing_region')   
    self._blueprint_construction_data = blueprint:get_component('stonehearth:construction_data')
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
+   self._mining_zones = {}
+   self._mining_traces = {}
 
    self._traces = {}
    self._active = false
@@ -59,7 +61,7 @@ function Fabricator:__init(name, entity, blueprint, project)
 
    table.insert(self._traces, self._fabricator_rcs:trace_region('fabricator dst region', TraceCategories.SYNC_TRACE):on_changed(update_dst_region))
    table.insert(self._traces, self._fabricator_dst:trace_region('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
-   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator dst adjacent', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
+   table.insert(self._traces, self._fabricator_dst:trace_reserved('fabricator dst reserved', TraceCategories.SYNC_TRACE):on_changed(update_dst_adjacent))
    
    if self._blueprint_construction_progress then
       self._dependencies_finished = self._blueprint_construction_progress:check_dependencies()
@@ -371,7 +373,8 @@ function Fabricator:_destroy_teardown_task()
    end
 end
 
-function Fabricator:_start_fabricate_task() 
+function Fabricator:_start_fabricate_task()
+   self:_update_mining_region()
    if not self._fabricate_task then
       self._log:debug('starting fabricate task')
       local town = stonehearth.town:get_town(self._blueprint)
@@ -483,6 +486,13 @@ function Fabricator:_update_dst_region()
    --self:_log_region(rcs_rgn, 'region collision shape ->')
    --self:_log_region(dst_region, 'resulted in destination ->')
    
+   -- Any region that needs mining should be removed from our destination region.
+   for zone, mining_dst in pairs(self._mining_zones) do
+      local mining_region = mining_dst:get_region():get()
+      local fab_mining_region = mining_region:translated(-radiant.entities.get_world_location(radiant.entities.get_parent(self._entity)) + radiant.entities.get_world_location(zone))
+
+      dst_region:subtract_region(fab_mining_region)
+   end
    -- copy into the destination region
    self._fabricator_dst:get_region():modify(function (cursor)
          cursor:copy_region(dst_region)
@@ -537,6 +547,43 @@ function Fabricator:_update_dst_adjacent()
    end)
 end
 
+-- Called only when the blueprint region is changed (added or merged).
+function Fabricator:_update_mining_region()
+
+   local player_id = radiant.entities.get_player_id(self._blueprint)
+   local faction = radiant.entities.get_faction(self._blueprint)
+
+   local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
+   local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
+   world_region = radiant.terrain.intersect_region(world_region)
+
+   if world_region:empty() then
+      return
+   end
+
+   -- The mining service will handle all existing mining region overlap merging for us.
+   local mining_zone = stonehearth.mining:dig_region(player_id, faction, world_region)
+   
+   if not self._mining_zones[mining_zone] then
+      local mining_dst = mining_zone:get_component('destination')
+      self._mining_zones[mining_zone] = mining_dst
+
+      self._mining_traces[mining_zone] = mining_dst:trace_region('fabricator mining trace', TraceCategories.SYNC_TRACE)
+         :on_changed(function(region)
+            self:_update_dst_region()
+         end)
+         :push_object_state()
+
+      -- Needs to be pre_destroy!  Otherwise, the mining region is destroyed, which triggers
+      -- the callback in the fabricator to update the region, which accessess the cached
+      -- destination component, which blows up.
+      radiant.events.listen_once(mining_zone, 'radiant:entity:pre_destroy', function()
+         self._mining_zones[mining_zone] = nil
+         self._mining_traces[mining_zone] = nil
+      end)
+   end
+end
+
 -- the region of the fabricator is defined as the blueprint region
 -- minus the project region.  this represents the totality of the
 -- finished project minus the part which is already done.  in other
@@ -545,7 +592,7 @@ end
 -- regardless of how those regions change
 function Fabricator:_update_fabricator_region()
    local br = self._teardown and emptyRegion or self._blueprint_dst:get_region():get()
-   local pr = self._project:get_component('destination'):get_region():get()
+   local pr = self._project_dst:get_region():get()
 
    -- rgn(f) = rgn(b) - rgn(p) ... (see comment above)
    local teardown_region = pr - br
@@ -632,6 +679,9 @@ end
 
 function Fabricator:_trace_blueprint_and_project()
    local update_fabricator_region = function()
+      if self._active then
+         self:_update_mining_region()
+      end
       self:_update_fabricator_region()
    end
    

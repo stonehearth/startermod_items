@@ -7,6 +7,7 @@
 #include "om/components/model_variants.ridl.h"
 #include "om/components/terrain.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/effect_list.ridl.h"
 #include "om/components/render_info.ridl.h"
