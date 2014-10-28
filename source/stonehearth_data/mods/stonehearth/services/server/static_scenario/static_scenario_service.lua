@@ -100,7 +100,7 @@ function StaticScenarioService:_register_events()
    -- TODO: in multiplayer, scenario service needs to reveal for all factions.  we actually need
    -- to iterate over all player popluations rather than just the hardcoded "player_1".  When the
    -- service to iterate over all players in the game is written, change this bit. -- tony
-   self._faction = stonehearth.population:get_population('player_1')
+   self._population = stonehearth.population:get_population('player_1')
    radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
 end
 
@@ -209,7 +209,7 @@ end
 
 function StaticScenarioService:_reveal_around_entities()
    local reveal_distance = self._reveal_distance
-   local citizens = self._faction:get_citizens()
+   local citizens = self._population:get_citizens()
    local region = Region2()
    local pt, rect
 

@@ -19,7 +19,7 @@ function WorkAtWorkshop:run(town, args)
    self:_on_order_list_changed(self._craft_order_list, not self._craft_order_list:get_next_order())
 
    --Listen on this to re-check mantain whenever an item is removed from the stockpile
-   self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_order_list_changed)
+   self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_removed', self, self._on_order_list_changed)
 
    while true do
       local order = self:_get_next_order()
@@ -137,7 +137,6 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
          end
       end
       item:add_component('mob'):set_location_grid_aligned(Point3(0, 1, 0))
-      radiant.entities.set_faction(item, self._crafter)
       radiant.entities.set_player_id(item, self._crafter)
 
       self._workshop:add_component('entity_container'):add_child(item)

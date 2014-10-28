@@ -4,7 +4,6 @@
       "unit_info" : {
          "name" : "Stockpile",
          "description" : "For storing things",
-         "portrait": "file(portrait.png)",
          "character_sheet_info" : "file(stockpile_character_sheet_info.json)"
       },
       "stonehearth:stockpile" : {

@@ -7,5 +7,5 @@ using namespace ::radiant::rpc;
 
 std::ostream& rpc::operator<<(std::ostream& os, Session const& s)
 {
-   return (os << "[session faction:" << s.faction << "]");
+   return (os << "[session player_id:" << s.player_id << "]");
 }

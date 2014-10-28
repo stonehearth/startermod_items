@@ -47,8 +47,7 @@
       "unit_info": {
          "name": "Silkweed", 
          "description": "This plant's fiber can be spun into thread", 
-         "icon" : "file(icon.png)",
-         "portrait" : "file(portrait.png)"
+         "icon" : "file(icon.png)"
       },
       "stonehearth:crop" : {
          "resource_pairings" : {

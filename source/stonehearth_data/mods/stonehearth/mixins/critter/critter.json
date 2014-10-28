@@ -6,7 +6,7 @@
          "mob_collision_type" : "tiny"
       },
       "unit_info" : {
-         "faction" : "critter"
+         "player_id" : "critters"
       },
       "stonehearth:ai" : {
          "actions" : [

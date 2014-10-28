@@ -5,7 +5,7 @@ function PopulationService:initialize()
    self._sv = self.__saved_variables:get_data() 
    if self._sv.populations then
       for player_id, ss in pairs(self._sv.populations) do
-         local pop = PopulationFaction(nil, ss)
+         local pop = PopulationFaction(nil, nil, ss) -- xxx: make this a controller!
          self._sv.populations[player_id] = pop
       end
    else
@@ -13,14 +13,13 @@ function PopulationService:initialize()
    end
 end
 
-function PopulationService:add_population(session)
+function PopulationService:add_population(session, kingdom)
    radiant.check.is_string(session.player_id)
-   radiant.check.is_string(session.faction)
-   radiant.check.is_string(session.kingdom)
+   radiant.check.is_string(kingdom)
 
    assert(not self._sv.populations[session.player_id])
 
-   local pop = PopulationFaction(session, radiant.create_datastore())
+   local pop = PopulationFaction(session, kingdom, radiant.create_datastore())
    self._sv.populations[session.player_id] = pop
    return pop
 end
@@ -35,15 +34,14 @@ function PopulationService:get_all_populations()
    return self._sv.populations
 end
 
--- return all populations which are friendly to the specified
--- faction
-function PopulationService:get_friendly_populations(faction)
+-- return all populations which are friendly to the specified player
+function PopulationService:get_friendly_populations(player_id)
    local result = {}
-   for player_id, pop in pairs(self._sv.populations) do
+   for other_player_id, pop in pairs(self._sv.populations) do
       -- kind of a lame definition of "friendly", but we can fix when we get
       -- to multiplayer.
-      if pop:get_faction() == faction then
-         result[player_id] = pop
+      if other_player_id == player_id then
+         result[other_player_id] = pop
       end
    end
    return result

@@ -70,7 +70,6 @@ function FixtureFabricator:instabuild()
    -- change ownership so we can interact with it
    root_entity:add_component('unit_info')
                   :set_player_id(radiant.entities.get_player_id(self._entity))
-                  :set_faction(radiant.entities.get_faction(self._entity))
 
    radiant.entities.add_child(parent, root_entity, location)
    root_entity:add_component('mob')
@@ -86,10 +85,8 @@ end
 --
 function FixtureFabricator:start_project(fixture, normal)
    if radiant.util.is_a(fixture, Entity) then
-      -- it's an actual item.  we need to place this one, specfically
-      -- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      -- make sure we trace the ghost and destroy ourselves if its destroyed before 
-      -- being placed!
+      fixture:get_component('stonehearth:entity_forms')
+                  :set_fixture_fabricator(self._entity)
       self._sv.fixture = fixture
    end
    self._sv.normal = normal
@@ -166,7 +163,6 @@ function FixtureFabricator:_place_fixture()
    -- change ownership so we can interact with it (xxx: should be unnecessary! - tony)
    fixture:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(self._entity))
-            :set_faction(radiant.entities.get_faction(self._entity))
 
    self:_place_item_on_structure(fixture, location)
 
@@ -254,6 +250,24 @@ end
 
 function FixtureFabricator:layout()
    -- nothing to do...
+end
+
+function FixtureFabricator:accumulate_costs(cost)
+   local uri = self._sv.fixture_uri
+   local entry = cost.items[uri];
+   if not entry then
+      local json = radiant.resources.load_json(uri)
+      local components = json and json.components
+      local unit_info = components and components.unit_info or nil
+      entry = {
+         name = unit_info and unit_info.name or nil,
+         icon = unit_info and unit_info.icon or nil,
+         count = 1,
+      }
+      cost.items[uri] = entry
+   else
+      entry.count = entry.count + 1
+   end
 end
 
 return FixtureFabricator

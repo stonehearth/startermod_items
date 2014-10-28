@@ -138,7 +138,6 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- ask the build service to set all this up!!
 
    local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding')
-   radiant.entities.set_faction(scaffolding, project)
    radiant.entities.set_player_id(scaffolding, project)
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -173,6 +172,19 @@ function FabricatorComponent:_on_blueprint_destroyed()
    if self._entity then
       radiant.entities.destroy_entity(self._entity)
    end
+end
+
+function FabricatorComponent:accumulate_costs(cost)
+   local blueprint = self._sv.blueprint
+   local material = blueprint:get_component('stonehearth:construction_data')
+                                    :get_material()
+
+   local area = blueprint:get_component('destination')
+                           :get_region()
+                              :get()
+                                 :get_area()
+
+   cost.resources[material] = (cost.resources[material] or 0) + area
 end
 
 return FabricatorComponent

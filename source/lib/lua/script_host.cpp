@@ -1020,7 +1020,7 @@ luabind::object ScriptHost::GetModuleList() const
 
 bool ScriptHost::WriteObject(const char* modname, const char* objectName, luabind::object o)
 {
-   fs::path path = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / (std::string(objectName) + ".json");
+   fs::path path = core::System::GetInstance().GetTempDirectory() / "saved_objects" / modname / (std::string(objectName) + ".json");
 
    try {
       fs::path parent = path.parent_path();
@@ -1042,7 +1042,7 @@ luabind::object ScriptHost::ReadObject(const char* modname, const char* objectNa
 {
    luabind::object obj;
 
-   fs::path path = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / (std::string(objectName) + ".json");
+   fs::path path = core::System::GetInstance().GetTempDirectory() / "saved_objects" / modname / (std::string(objectName) + ".json");
 
    try {
       if (fs::is_regular_file(path)) {
@@ -1062,7 +1062,7 @@ luabind::object ScriptHost::EnumObjects(const char* modname, const char* path)
 {
    luabind::object objects = luabind::newtable(L_);
 
-   fs::path modpath = core::System::GetInstance().GetTempDirectory() / "mod_saved_objects" / modname / std::string(path);
+   fs::path modpath = core::System::GetInstance().GetTempDirectory() / "saved_objects" / modname / std::string(path);
 
    try {
       if (fs::is_directory(modpath)) {

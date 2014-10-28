@@ -21,8 +21,7 @@
       "unit_info": {
          "name": "Tester", 
          "description": "Steeped in the soil.",
-         "icon" : "file(icon.png)",
-         "portrait" : "file(portrait.png)"
+         "icon" : "file(icon.png)"
       },
       "stonehearth:crop" : {
          "resource_pairings" : {

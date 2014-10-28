@@ -44,7 +44,7 @@ end
 function TerrainService:_update_convex_hull()
    -- Get the new points from the citizens.
    local new_points = {}
-   local friendly_pops = stonehearth.population:get_friendly_populations('civ')
+   local friendly_pops = stonehearth.population:get_friendly_populations('player_1')
    for player_id, pop in pairs(friendly_pops) do
       local citizens = pop:get_citizens()
       for _, entity in pairs(citizens) do
@@ -129,11 +129,11 @@ function TerrainService:_update_regions()
    local old_visible_region, new_visible_region
    local explored_region_boxed, explored_region, unexplored_region
 
-   for faction, visible_region_boxed in pairs(self._sv._visible_regions) do
-      explored_region_boxed = self:get_explored_region(faction)
+   for player_id, visible_region_boxed in pairs(self._sv._visible_regions) do
+      explored_region_boxed = self:get_explored_region(player_id)
 
       old_visible_region = visible_region_boxed:get()
-      new_visible_region = self:_get_visible_region(faction)
+      new_visible_region = self:_get_visible_region(player_id)
 
       if not self:_are_equivalent_regions(old_visible_region, new_visible_region) then
          visible_region_boxed:modify(
@@ -185,13 +185,13 @@ function TerrainService:_get_terrain_region()
    return region
 end
 
-function TerrainService:_get_visible_region(faction)
+function TerrainService:_get_visible_region(player_id)
    local terrain_bounds = self:_get_terrain_region()
    local visible_region = Region2()
    local pop, citizens, entity_region, bounded_visible_region
 
    -- TODO: where do we get the kingdom name from?
-   local friendly_pops = stonehearth.population:get_friendly_populations(faction)
+   local friendly_pops = stonehearth.population:get_friendly_populations(player_id)
    for player_id, pop in pairs(friendly_pops) do
       citizens = pop:get_citizens()
       for _, entity in pairs(citizens) do
@@ -205,8 +205,8 @@ function TerrainService:_get_visible_region(faction)
    return bounded_visible_region
 end
 
-function TerrainService:get_entities_in_explored_region(faction, filter_fn)
-   local explored_region_boxed = self:get_explored_region(faction)
+function TerrainService:get_entities_in_explored_region(player_id, filter_fn)
+   local explored_region_boxed = self:get_explored_region(player_id)
    local explored_region = explored_region_boxed:get()
 
    local entities_in_region = {}
@@ -277,24 +277,24 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
    return intersection:get_area() == area_a
 end
 
-function TerrainService:get_visible_region(faction)
-   return self:_get_region(self._sv._visible_regions, faction)
+function TerrainService:get_visible_region(player_id)
+   return self:_get_region(self._sv._visible_regions, player_id)
 end
 
-function TerrainService:get_explored_region(faction)
-   return self:_get_region(self._sv._explored_regions, faction)
+function TerrainService:get_explored_region(player_id)
+   return self:_get_region(self._sv._explored_regions, player_id)
 end
 
-function TerrainService:get_player_perimeter(faction)
+function TerrainService:get_player_perimeter(player_id)
    return self._sv._convex_hull
 end
 
-function TerrainService:_get_region(map, faction)
-   local boxed_region = map[faction]
+function TerrainService:_get_region(map, player_id)
+   local boxed_region = map[player_id]
 
    if not boxed_region then
       boxed_region = _radiant.sim.alloc_region2()
-      map[faction] = boxed_region
+      map[player_id] = boxed_region
    end
 
    return boxed_region

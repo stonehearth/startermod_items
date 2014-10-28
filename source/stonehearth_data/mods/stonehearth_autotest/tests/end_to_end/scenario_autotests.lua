@@ -67,7 +67,7 @@ function score_tests.simple_carvan(autotest)
    end)
 
    --Wait until the person has put the thing in the stockpile
-   radiant.events.listen(stockpile, 'stonehearth:item_added', function(e)
+   radiant.events.listen(stockpile, 'stonehearth:stockpile:item_added', function(e)
       stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:simple_caravan')
       return radiant.events.UNLISTEN
    end)

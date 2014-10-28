@@ -34,7 +34,6 @@
       }, 
       "unit_info" : {
          "name": "A Goblin",
-         "faction": "goblin",
          "description": "Attracted to shiny things"
       },
       "stonehearth:attributes": {

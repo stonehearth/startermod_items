@@ -37,8 +37,8 @@ function CrafterComponent:initialize(entity, json)
 
    local inventory = stonehearth.inventory:get_inventory(self._entity)
    self:_determine_maintain()
-   self._added_listener = radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
-   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+   self._added_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', self, self._on_stockpiles_changed)
+   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_removed', self, self._on_stockpiles_changed)
 
 end
 
@@ -56,15 +56,16 @@ function CrafterComponent:destroy()
    self._removed_listener = nil
 end
 
-function CrafterComponent:_on_storage_changed()
+function CrafterComponent:_on_stockpiles_changed()
    self:_determine_maintain()
 end
 
 -- True if there are stockpiles, false otherwise. 
 -- TODO: consider elaborating to whether the stockpiles can contain stuff crafted by this crafter
 function CrafterComponent:_determine_maintain()
-   local num_stockpiles = stonehearth.inventory:get_inventory(self._entity):get_num_active_stockpiles()
-   self._sv.should_maintain = num_stockpiles > 0
+   local stockpiles = stonehearth.inventory:get_inventory(self._entity)
+                                                :get_all_stockpiles()
+   self._sv.should_maintain = next(stockpiles) ~= nil
    self.__saved_variables:mark_changed()
 end
 

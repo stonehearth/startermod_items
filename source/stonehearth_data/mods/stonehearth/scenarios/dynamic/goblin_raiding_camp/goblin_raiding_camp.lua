@@ -22,7 +22,7 @@ function GoblinRaidingCamp:restore()
    if self._sv.__scenario:is_running() then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             if self._sv._squad then
-               self._sv._squad = EscortSquad('game_master', self._sv._squad)
+               self._sv._squad = EscortSquad('goblins', self._sv._squad)
             end
             if not self._sv._squad or not self._sv._squad:spawned() then
                -- We were saved in a triggered state, but no goblin has been spawned.
@@ -42,9 +42,7 @@ function GoblinRaidingCamp:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
-      player_id = 'game_master',
-      faction = 'goblin',
-      kingdom = 'stonehearth:kingdoms:goblin'
+      player_id = 'goblins',
    }
    
    -- the camp's stockpile
@@ -58,7 +56,7 @@ function GoblinRaidingCamp:start()
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
       self._inventory = stonehearth.inventory:add_inventory(session)
-      self._population = stonehearth.population:add_population(session)
+      self._population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
       self._population:create_town_name()
    else
       self._inventory = stonehearth.inventory:get_inventory(session.player_id)
@@ -71,7 +69,7 @@ function GoblinRaidingCamp:start()
 end
 
 function GoblinRaidingCamp:_attach_listeners()
-   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:stockpile:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._squad, 'stonehearth:squad:squad_destroyed', self, self._squad_killed)
    self._destroy_listener = radiant.events.listen(self._sv._thief, 'radiant:entity:pre_destroy', self, self._thief_killed)
    self._carrying_listener = radiant.events.listen(self._sv._thief, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
@@ -110,7 +108,7 @@ end
 --Determine the # of brigands based on the wealth of the town
 function GoblinRaidingCamp:_on_spawn()
    if not self._sv._squad then
-      self._sv._squad = EscortSquad('game_master', radiant.create_datastore())
+      self._sv._squad = EscortSquad('goblins', radiant.create_datastore())
       self._sv._thief = self._sv._squad:set_escorted('stonehearth:goblin:thief')
 
       --Set the thief to only attack when attacked.

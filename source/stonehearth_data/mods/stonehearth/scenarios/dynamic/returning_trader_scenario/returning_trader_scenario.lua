@@ -47,8 +47,6 @@ end
 function ReturningTrader:initialize()
    --TODO: have to get this from the service
    self._sv._player_id = 'player_1'
-   local town = stonehearth.town:get_town( self._sv._player_id)
-   self._sv._kingdom = town:get_kingdom()
 
    --Make a dummy entity to hold the lease on desired items
    --TODO: replace with the actual caravan entity once they move in the world
@@ -152,7 +150,6 @@ function ReturningTrader:_get_reward_items()
       --TODO: Remove this check once we implement bags of seeds
       local session = {
          player_id = self._sv._player_id,
-         kingdom = self._sv._kingdom
       } 
       if stonehearth.farming:has_crop_type(session, reward_item_uri) then
          return self:_get_reward_items()
@@ -423,7 +420,6 @@ function ReturningTrader:_accept_trade()
    elseif self._trade_data.rewards[self._sv._trade_data.reward_uri].type == 'crop' then
       local session = {
          player_id = self._sv._player_id,
-         kingdom = self._sv._kingdom
       }
       stonehearth.farming:add_crop_type(session, self._sv._trade_data.reward_uri)
    end

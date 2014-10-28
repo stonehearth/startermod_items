@@ -93,7 +93,7 @@ function DoorComponent:_valid_entity(entity)
       return false
    end
 
-   if radiant.entities.get_faction(entity) ~= radiant.entities.get_faction(self._entity) then
+   if radiant.entities.get_player_id(entity) ~= radiant.entities.get_player_id(self._entity) then
       return false
    end
    

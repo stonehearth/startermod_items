@@ -12,10 +12,10 @@ FindStockpileForBackpackItem.think_output = {
 FindStockpileForBackpackItem.version = 2
 FindStockpileForBackpackItem.priority = 1
 
-local function get_all_storage_for_entity(entity)
+local function get_all_stockpiles_for_entity(entity)
    local player_id = radiant.entities.get_player_id(entity)
    local player_inventory = stonehearth.inventory:get_inventory(player_id)
-   return player_inventory:get_all_storage()
+   return player_inventory:get_all_stockpiles()
 end
 
 function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
@@ -26,14 +26,14 @@ function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
       return
    end
 
-   local all_storage = get_all_storage_for_entity(entity)
+   local all_stockpiles = get_all_stockpiles_for_entity(entity)
    self._pathfinder = _radiant.sim.create_astar_path_finder(entity, 'find stockpile for backpack item')
 
-   for id, storage in pairs(all_storage) do
-      local stockpile_component = storage:get_component('stonehearth:stockpile')
+   for id, stockpiles in pairs(all_stockpiles) do
+      local stockpile_component = stockpiles:get_component('stonehearth:stockpile')
 
       if self:_can_currently_stock_backpack_item(stockpile_component) then
-         self._pathfinder:add_destination(storage)
+         self._pathfinder:add_destination(stockpiles)
       end
    end
    
@@ -55,7 +55,7 @@ function FindStockpileForBackpackItem:stop_thinking(ai, entity, args)
 end
 
 function FindStockpileForBackpackItem:_can_currently_stock_backpack_item(stockpile_component)
-   if not stockpile_component or stockpile_component:is_full() or stockpile_component:is_outbox() then
+   if not stockpile_component or stockpile_component:is_full() then
       return false
    end
 

@@ -71,7 +71,6 @@ function EmbarkTest:__init()
 
    local session = {
       player_id = player_id,
-      kingdom = radiant.entities.get_kingdom(worker)
    }
 
    --stonehearth.farming:add_crop_type(session, 'stonehearth:silkweed_crop')

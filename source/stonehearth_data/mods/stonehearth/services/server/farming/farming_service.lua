@@ -40,9 +40,8 @@ function FarmingService:create_new_field(session, location, size)
    
    local town = stonehearth.town:get_town(session.player_id)
 
-   local unit_info = entity:get_component('unit_info')
-   unit_info:set_faction(session.faction)
-   unit_info:set_player_id(session.player_id)
+   entity:get_component('unit_info')
+            :set_player_id(session.player_id)
 
    local farmer_field = entity:get_component('stonehearth:farmer_field')
    farmer_field:create_dirt_plots(town, location, size)
@@ -145,9 +144,13 @@ function FarmingService:_get_crop_list(session)
    local player_id = session.player_id
    local crop_list = self._data.player_crops[player_id]
    if not crop_list then
+      -- xxx: look this up from the player info when that is avaiable
+      local kingdom = stonehearth.population:get_population(player_id)
+                                                :get_kingdom()
+
       -- start out with the default crops for this player's kingdom.
       crop_list = {}
-      local kingdom_crops = self._initial_crops[session.kingdom]
+      local kingdom_crops = self._initial_crops[kingdom]
       if kingdom_crops then
          for i, crop in ipairs(kingdom_crops) do
             crop_list[i] = {
