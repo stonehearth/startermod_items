@@ -16,8 +16,8 @@ end
 function CollectStartingResourcesScenario:start()
    self._inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
 
-   self._item_added_listener = radiant.events.listen(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
-   self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:item_removed', self, self._on_inventory_item_removed)
+   self._item_added_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_added', self, self._on_inventory_item_added)
+   self._item_removed_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_removed', self, self._on_inventory_item_removed)
 
    self:_post_bulletin()
 end

@@ -55,7 +55,7 @@ function GoblinThief:start()
 end
 
 function GoblinThief:_attach_listeners()
-   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:stockpile:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
    self._carrying_listener = radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end
