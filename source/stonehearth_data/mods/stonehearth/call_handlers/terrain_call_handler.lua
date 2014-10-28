@@ -3,8 +3,8 @@ local log = radiant.log.create_logger('visibility')
 local TerrainCallHandler = class()
 
 function TerrainCallHandler:get_visibility_regions(session, request)
-   local visible_region = stonehearth.terrain:get_visible_region(session.faction)
-   local explored_region = stonehearth.terrain:get_explored_region(session.faction)
+   local visible_region = stonehearth.terrain:get_visible_region(session.player_id)
+   local explored_region = stonehearth.terrain:get_explored_region(session.player_id)
 
    return {
       -- these boxed regions will serialize into a uri handle

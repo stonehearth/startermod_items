@@ -5,7 +5,7 @@
       "unit_info" : {
          "name" : "Squirrel",
          "description" : "Small forest creature",
-         "faction" : "critter",
+         "player_id" : "critters",
          "character_sheet_info" : "file(squirrel_character_sheet_info.json)"
       },
       "stonehearth:loot_table" : {

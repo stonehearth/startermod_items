@@ -50,8 +50,7 @@ end
 
 function CombatTest:create_enemy_kingdom()
    local session = {
-      player_id = 'game_master',
-      faction = 'raider',
+      player_id = 'goblins',
    }
 
    stonehearth.inventory:add_inventory(session)

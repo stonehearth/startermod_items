@@ -108,7 +108,6 @@ function entities.kill_entity(entity)
          entity = entity,
          id = entity:get_id(),
          name = radiant.entities.get_display_name(entity),
-         faction = radiant.entities.get_faction(entity), 
          player_id = radiant.entities.get_player_id(entity)
       })
 
@@ -218,11 +217,6 @@ function entities.set_description(entity, description)
    end
 end
 
-function entities.get_faction(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_faction() or nil
-end
-
 function entities.get_player_id(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_player_id() or nil
@@ -237,15 +231,6 @@ function entities.is_entity(entity)
       return entity:get_type_name() == 'class radiant::om::Entity'
    end
    return false
-end
-
-function entities.set_faction(entity, faction)
-   assert(entity, 'no entity passed to set_faction')
-   assert(faction, 'no faction passed to set_faction')
-   if entities.is_entity(faction) then
-      faction = faction:add_component('unit_info'):get_faction()
-   end
-   return entity:add_component('unit_info'):set_faction(faction)
 end
 
 function entities.set_player_id(entity, player_id)
@@ -816,32 +801,37 @@ end
 
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities.is_hostile(entity_a, entity_b)
-   local faction_a = radiant.entities.get_faction(entity_a)
-   local faction_b = radiant.entities.get_faction(entity_b)
-
-   if entities._are_neutral_factions(faction_a, faction_b) then
+   local player_a = radiant.entities.get_player_id(entity_a)
+   if entities._is_neutral_player(player_a) then
       return false
    end
 
-   return faction_a ~= faction_b
+   local player_b = radiant.entities.get_player_id(entity_b)
+   if entities._is_neutral_player(player_b) then
+      return false
+   end
+
+   return player_a ~= player_b
 end
 
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities.is_friendly(entity_a, entity_b)
-   local faction_a = radiant.entities.get_faction(entity_a)
-   local faction_b = radiant.entities.get_faction(entity_b)
-
-   if entities._are_neutral_factions(faction_a, faction_b) then
+   local player_a = radiant.entities.get_player_id(entity_a)
+   if entities._is_neutral_player(player_a) then
       return false
    end
 
-   return faction_a == faction_b
+   local player_b = radiant.entities.get_player_id(entity_b)
+   if entities._is_neutral_player(player_b) then
+      return false
+   end
+
+   return player_a == player_b
 end
 
 -- we'll use a mapping table later to determine alliances / hostilities
-function entities._are_neutral_factions(faction_a, faction_b)
-   return faction_a == nil or faction_a == '' or faction_a == 'critter' or
-          faction_b == nil or faction_b == '' or faction_b == 'critter'
+function entities._is_neutral_player(player)
+   return player == nil or player == '' or player == 'critters'
 end
 
 function entities.get_world_speed(entity)

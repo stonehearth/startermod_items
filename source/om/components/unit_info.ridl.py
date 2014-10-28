@@ -7,6 +7,5 @@ class UnitInfo(Component):
    display_name = dm.Boxed(std.string())
    description = dm.Boxed(std.string())
    character_sheet_info = dm.Boxed(std.string())
-   faction = dm.Boxed(std.string())
    icon = dm.Boxed(std.string())
    player_id = dm.Boxed(std.string())

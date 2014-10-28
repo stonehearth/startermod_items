@@ -70,7 +70,6 @@ function FixtureFabricator:instabuild()
    -- change ownership so we can interact with it
    root_entity:add_component('unit_info')
                   :set_player_id(radiant.entities.get_player_id(self._entity))
-                  :set_faction(radiant.entities.get_faction(self._entity))
 
    radiant.entities.add_child(parent, root_entity, location)
    root_entity:add_component('mob')
@@ -164,7 +163,6 @@ function FixtureFabricator:_place_fixture()
    -- change ownership so we can interact with it (xxx: should be unnecessary! - tony)
    fixture:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(self._entity))
-            :set_faction(radiant.entities.get_faction(self._entity))
 
    self:_place_item_on_structure(fixture, location)
 

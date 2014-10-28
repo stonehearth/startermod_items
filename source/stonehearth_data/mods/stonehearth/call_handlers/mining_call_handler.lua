@@ -142,11 +142,11 @@ function MiningCallHandler:add_mining_zone(session, response, region_table, mode
    region:load(region_table)
    
    if mode == 'down' then
-      mining_zone = stonehearth.mining:dig_down(session.player_id, session.faction, region)
+      mining_zone = stonehearth.mining:dig_down(session.player_id, region)
    elseif mode == 'out' then
-      mining_zone = stonehearth.mining:dig_out(session.player_id, session.faction, region)
+      mining_zone = stonehearth.mining:dig_out(session.player_id, region)
    elseif mode == 'up' then
-      mining_zone = stonehearth.mining:dig_up(session.player_id, session.faction, region)
+      mining_zone = stonehearth.mining:dig_up(session.player_id, region)
    end
 
    return { mining_zone = mining_zone }

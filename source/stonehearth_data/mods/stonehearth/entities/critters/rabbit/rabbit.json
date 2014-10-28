@@ -5,7 +5,7 @@
       "unit_info" : {
          "name" : "Rabbit",
          "description" : "Om nom nom",
-         "faction" : "critter",
+         "player_id" : "critters",
          "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
       },
       "stonehearth:loot_table" : {

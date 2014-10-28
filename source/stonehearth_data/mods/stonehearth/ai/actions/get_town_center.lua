@@ -15,8 +15,8 @@ GetTownCenter.version = 2
 GetTownCenter.priority = 1
 
 function GetTownCenter:start_thinking(ai, entity, args)
-   local faction = args.town:get_faction()
-   local explored_region = stonehearth.terrain:get_visible_region(faction):get()
+   local player_id = args.town:get_player_id()
+   local explored_region = stonehearth.terrain:get_visible_region(player_id):get()
    local centroid = _radiant.csg.get_region_centroid(explored_region):to_closest_int()
    local town_center = radiant.terrain.get_point_on_terrain(Point3(centroid.x, 0, centroid.y))
    ai:set_think_output({ location = town_center })

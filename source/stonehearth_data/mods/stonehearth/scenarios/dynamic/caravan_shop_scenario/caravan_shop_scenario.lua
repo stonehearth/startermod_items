@@ -5,7 +5,6 @@ function CaravanShopScenario:initialize()
    -- xxx hack in the session.
    self.session = {
       player_id = 'player_1',
-      faction = 'civ',
    }
 
    self:restore()

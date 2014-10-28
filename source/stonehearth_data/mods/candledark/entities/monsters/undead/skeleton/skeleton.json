@@ -23,7 +23,7 @@
 
       "unit_info" : {
          "name": "A Skeleton",
-         "faction": "undead",
+         "player_id": "undead",
          "description": "It yearns for flesh"
       },
       "stonehearth:attributes": {

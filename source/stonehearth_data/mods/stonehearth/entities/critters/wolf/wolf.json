@@ -5,8 +5,7 @@
    "components": {
       "unit_info": {
          "name": "A wolf",
-         "description": "Om nom nom",
-         "faction": "wolf"
+         "description": "Om nom nom"
       },
       "stonehearth:attributes": {
          "menace": {

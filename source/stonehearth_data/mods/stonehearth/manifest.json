@@ -940,11 +940,6 @@
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_entities_in_explored_region": {
-         "controller" : "file(call_handlers/inventory_call_handler.lua)",
-         "endpoint" : "server"
-      },
-
       "get_talismans_in_explored_region": {
          "controller" : "file(call_handlers/inventory_call_handler.lua)",
          "endpoint" : "server"

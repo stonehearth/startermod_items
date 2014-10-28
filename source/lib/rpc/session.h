@@ -11,7 +11,6 @@ class Session
 public:
 
 public:
-   std::string          faction;
    std::string          player_id;
 };
 

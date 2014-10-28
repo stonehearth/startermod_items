@@ -29,7 +29,7 @@ end
 ----------------------------------------------------------------------------
 
 -- Dig an arbitary region. Region is defined in world space.
-function MiningService:dig_region(player_id, faction, region)
+function MiningService:dig_region(player_id, region)
    local inflated_region = region:inflated(Point3.one)
 
    -- using town as a proxy for the eventual player object
@@ -58,7 +58,7 @@ function MiningService:dig_region(player_id, faction, region)
       mergable_zones[selected_zone:get_id()] = nil
    else
       -- no adjacent or overlapping zone exists, so create a new one
-      selected_zone = self:create_mining_zone(player_id, faction)
+      selected_zone = self:create_mining_zone(player_id)
       town:add_mining_zone(selected_zone)
    end
 
@@ -74,16 +74,16 @@ end
 
 -- Dig down, quantized to the 4x5x4 mining cells.
 -- Region is defined in world space.
-function MiningService:dig_down(player_id, faction, region)
+function MiningService:dig_down(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          return self:_get_aligned_cube(cube)
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Dig out, quantized to the 4x5x4 cells, but preserve the ceiling.
 -- Region is defined in world space.
-function MiningService:dig_out(player_id, faction, region)
+function MiningService:dig_out(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
          local min, max = aligned_cube.min, aligned_cube.max
@@ -94,12 +94,12 @@ function MiningService:dig_out(player_id, faction, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Dig up, quantized to the 4x5x4 cells.
 -- Region is defined in world space.
-function MiningService:dig_up(player_id, faction, region)
+function MiningService:dig_up(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
          local min, max = aligned_cube.min, aligned_cube.max
@@ -110,16 +110,15 @@ function MiningService:dig_up(player_id, faction, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Explicitly create a mining zone.
-function MiningService:create_mining_zone(player_id, faction)
+function MiningService:create_mining_zone(player_id)
    local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone')
 
    mining_zone:add_component('unit_info')
       :set_player_id(player_id)
-      :set_faction(faction)
 
    return mining_zone
 end

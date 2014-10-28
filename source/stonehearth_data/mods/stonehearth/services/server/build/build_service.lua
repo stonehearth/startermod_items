@@ -366,7 +366,6 @@ function BuildService:_bind_building_to_blueprint(building, blueprint)
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))   
 
    -- fixtures, for example, don't have construction data.  so check first!
    local cd_component = blueprint:get_component('stonehearth:construction_data')
@@ -454,7 +453,6 @@ function BuildService:_create_new_building(session, location)
    building:add_component('unit_info')
            :set_display_name(string.format('Building No.%d', self._sv.next_building_id))
            :set_player_id(session.player_id)
-           :set_faction(session.faction)
            
 
    self._sv.next_building_id = self._sv.next_building_id + 1

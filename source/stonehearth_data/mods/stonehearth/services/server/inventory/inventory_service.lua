@@ -28,7 +28,6 @@ end
 
 function InventoryService:add_inventory(session)
    radiant.check.is_string(session.player_id)
-   radiant.check.is_string(session.faction)
 
    assert(not self._sv.inventories[session.player_id])
 

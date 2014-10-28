@@ -8,7 +8,6 @@ function PopulationFaction:__init(session, kingdom, saved_variables)
    self._sv = self.__saved_variables:get_data()
    if session then
       self._sv.kingdom = kingdom
-      self._sv.faction = session.faction
       self._sv.player_id = session.player_id
       self._sv.citizens = {}
       self._sv.citizen_scores = {}
@@ -19,10 +18,6 @@ end
 
 function PopulationFaction:get_datastore(reason)
    return self.__saved_variables
-end
-
-function PopulationFaction:get_faction()
-   return self._sv.faction
 end
 
 function PopulationFaction:get_kingdom()
@@ -84,9 +79,8 @@ function PopulationFaction:create_new_citizen()
       self:customize_citizen(citizen, all_variants, "root")
    end
 
-   local unit_info = citizen:add_component('unit_info')
-   unit_info:set_faction(self._sv.faction)
-   unit_info:set_player_id(self._sv.player_id)
+   citizen:add_component('unit_info')
+               :set_player_id(self._sv.player_id)
 
    self:_set_citizen_initial_state(citizen, gender)
 
@@ -182,7 +176,8 @@ end
 
 function PopulationFaction:create_entity(uri)
    local entity = radiant.entities.create_entity(uri)
-   entity:add_component('unit_info'):set_faction(self._sv.faction)
+   entity:add_component('unit_info')
+            :set_player_id(self._sv.player_id)
    return entity
 end
 
