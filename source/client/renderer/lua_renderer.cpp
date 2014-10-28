@@ -59,16 +59,16 @@ static csg::Point3f Camera_GetLeft()
 
 static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 {
-	auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
-	auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-	renderTerrain->AddCut(cut);
+   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
+   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+   renderTerrain->AddCut(cut);
 }
 
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
-	auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
-	auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-	renderTerrain->RemoveCut(cut);
+   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
+   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+   renderTerrain->RemoveCut(cut);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -179,8 +179,8 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
-			def("add_terrain_cut", &Terrain_AddClientCut),
-			def("remove_terrain_cut", &Terrain_RemoveClientCut),
+            def("add_terrain_cut", &Terrain_AddClientCut),
+            def("remove_terrain_cut", &Terrain_RemoveClientCut),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),
@@ -231,32 +231,32 @@ void LuaRenderer::RegisterType(lua_State* L)
       class_<H3DResTypes>("H3DResTypes")
          .enum_("constants")
       [
-		   value("Undefined",                  H3DResTypes::Undefined),
-		   value("SceneGraph",                 H3DResTypes::SceneGraph),
-		   value("Geometry",                   H3DResTypes::Geometry),
-		   value("Animation",                  H3DResTypes::Animation),
-		   value("Material",                   H3DResTypes::Material),
-		   value("Code",                       H3DResTypes::Code),
-		   value("Shader",                     H3DResTypes::Shader),
-		   value("Texture",                    H3DResTypes::Texture),
-		   value("ParticleEffect",             H3DResTypes::ParticleEffect),
-		   value("Pipeline",                   H3DResTypes::Pipeline),
+         value("Undefined",                  H3DResTypes::Undefined),
+         value("SceneGraph",                 H3DResTypes::SceneGraph),
+         value("Geometry",                   H3DResTypes::Geometry),
+         value("Animation",                  H3DResTypes::Animation),
+         value("Material",                   H3DResTypes::Material),
+         value("Code",                       H3DResTypes::Code),
+         value("Shader",                     H3DResTypes::Shader),
+         value("Texture",                    H3DResTypes::Texture),
+         value("ParticleEffect",             H3DResTypes::ParticleEffect),
+         value("Pipeline",                   H3DResTypes::Pipeline),
          value("Cubemitter",                 RT_CubemitterResource)
       ],
       class_<H3DLight>("H3DLight")
          .enum_("constants")
       [
          value("MatResI",                    H3DLight::MatResI),
-		   value("RadiusF",                    H3DLight::RadiusF),
-		   value("FovF",                       H3DLight::FovF),
-		   value("ColorF3",                    H3DLight::ColorF3),
-		   value("ColorMultiplierF",           H3DLight::ColorMultiplierF),
-		   value("AmbientColorF3",             H3DLight::AmbientColorF3),
-		   value("ShadowMapCountI",            H3DLight::ShadowMapCountI),
-		   value("ShadowSplitLambdaF",         H3DLight::ShadowSplitLambdaF),
-		   value("ShadowMapBiasF",             H3DLight::ShadowMapBiasF),
-		   value("LightingContextStr",         H3DLight::LightingContextStr),
-		   value("ShadowContextStr",           H3DLight::ShadowContextStr),
+         value("RadiusF",                    H3DLight::RadiusF),
+         value("FovF",                       H3DLight::FovF),
+         value("ColorF3",                    H3DLight::ColorF3),
+         value("ColorMultiplierF",           H3DLight::ColorMultiplierF),
+         value("AmbientColorF3",             H3DLight::AmbientColorF3),
+         value("ShadowMapCountI",            H3DLight::ShadowMapCountI),
+         value("ShadowSplitLambdaF",         H3DLight::ShadowSplitLambdaF),
+         value("ShadowMapBiasF",             H3DLight::ShadowMapBiasF),
+         value("LightingContextStr",         H3DLight::LightingContextStr),
+         value("ShadowContextStr",           H3DLight::ShadowContextStr),
          value("DirectionalI",               H3DLight::DirectionalI)
       ],
       class_<H3DNodeParams>("H3DNodeParams")

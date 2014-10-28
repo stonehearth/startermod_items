@@ -627,6 +627,8 @@ end
 -- component and the stacks of that item are > 0, it simply decrements
 -- the stack count.  otherwise, it conumes the whole item (i.e. we
 -- destroy it!)
+-- @param - item to consume
+-- @param - number of stacks to consume, if nil, default to 1
 -- @returns whether or not the item was consumed
 function entities.consume_stack(item, num_stacks)
    local item_component = item:get_component('item')
@@ -653,7 +655,10 @@ function entities.consume_stack(item, num_stacks)
    return success
 end
 
-function entities.increment_carrying(entity)
+-- If the entity is carrying something then increment the number
+-- of things the entity is carrying by a number (1 by default). 
+-- This is useful when adding one to something the player is already carrying
+function entities.increment_carrying(entity, num_to_add)
    local item = entities.get_carrying(entity)
    if not item then
       return false, 'not carrying anything objects'
@@ -666,7 +671,14 @@ function entities.increment_carrying(entity)
    if stacks >= item_component:get_max_stacks() then
       return false, 'max stacks on carried object reached'
    end
-   item_component:set_stacks(stacks + 1)
+   if num_to_add == nil then
+      num_to_add = 1
+   end
+
+   --shouldn't ever be higher than max stacks
+   local final_stacks = math.min(item_component:get_max_stacks(), stacks + num_to_add)
+   item_component:set_stacks(final_stacks)
+   
    return true
 end
 

@@ -1,10 +1,75 @@
-#buildMode {
-   position: absolute;
-   top: 0px;
-   left: 0px;
-   right: 0px;
-   bottom: 0px;
-   border-width: 100px;
-   border-image: url('../images/mode_border.png') 50 50 50 50 repeat;
-   display: flex;
+
+// common styles for all "thing" designers that show up on the left and side of the screen
+// and have an editor vs. overview view
+.constructionGui {
+
+   #editor {
+      #tools {
+         width: 80px;
+         margin-bottom: 10px;
+         background-color: #4f483a;
+         text-align: center;
+         display: inline-block;
+         vertical-align: top;
+         height: 590px;
+
+         .toolButton {
+            .button;
+            display: inline-block;
+            width: 60px;
+            height: 45px;
+            padding: 4px;
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 2px solid;
+            border-color:  rgba(0,0,0,0);
+         }
+
+         .toolButton.active {
+            border-color: #000;
+            background-color: #ffc000;
+         }      
+      }
+
+      #tabs {
+         display: inline-block;
+         vertical-align: top;   
+         margin-left: 10px;
+      }
+
+      .tabPage {
+         display: none;
+         width: 384px;
+      }
+
+      .downSection {
+         width: 100%;
+      }
+
+   }
+
+   .mainWindow {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      width: 500px;
+      height: 650px;
+
+      #buttons {
+         position: absolute;
+         left: 10px;
+         bottom: 10px;
+      }
+   }
+
+   .bottomButtons {
+      position: absolute;
+      top: 710px;
+      left: 10px;
+      width: 500px;
+
+      #buttons {
+         padding-top: 10px;
+      }
+   }
 }

@@ -69,6 +69,7 @@ class NavGrid {
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
       bool IsTerrain(csg::Point3 const& location);
+      float GetMovementCostAt(csg::Point3 const& point);
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);
@@ -127,6 +128,7 @@ private:
       void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
       void RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId componentId);
       CollisionTrackerPtr CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
+      MovementModifierShapeTrackerPtr CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr);
       void CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr);
       void OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef);
 

@@ -265,7 +265,7 @@ void RenderEntity::UpdateInvariantRenderers()
 
 std::shared_ptr<RenderComponent> RenderEntity::GetComponent(std::string const& name) const
 {
-	return components_.at(name);
+   return components_.at(name);
 }
 
 void RenderEntity::AddComponent(std::string const& name, std::shared_ptr<dm::Object> value)

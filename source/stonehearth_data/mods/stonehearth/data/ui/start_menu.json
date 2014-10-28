@@ -70,7 +70,7 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-         "building_templates" : {
+      "building_templates" : {
             "name" : "Construct a Building",
             "description" : "Construct buildings like houses and towers",
             "class" : "button",
@@ -85,6 +85,14 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/place_item.png",
             "sticky" : true,
             "hotkey" : "p"
+         },
+         "build_road" : {
+            "name" : "Build Roads",
+            "description" : "Add roads to your town",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/roads.png",
+            "sticky" : true,
+            "hotkey" : ""
          },
          "build_ladder" : {
             "name" : "Construct a Ladder",

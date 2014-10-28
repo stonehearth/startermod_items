@@ -62,9 +62,11 @@
          <div id="buffs">
             {{#each buffs}}
                {{#if this.name}}
+                  {{#unless this.is_private}}
                   <div class="item" {{bind-attr title=this.name description=this.description}}>
                      <img {{bind-attr src=this.icon}} />
                   </div>
+                  {{/unless}}
                {{/if}}
             {{/each}}
          </div>
@@ -102,21 +104,21 @@
             <div id="attributesTab" class="tabPage">
                <h2>{{i18n stonehearth:attributes}}</h2>
                <table>
-                  <tr><td>{{i18n stonehearth:diligence_attribute}}<td><div id="diligence" class="value">{{stonehearth:attributes.attributes.diligence.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:curiosity_attribute}}<td><div id="curiosity" class="value">{{stonehearth:attributes.attributes.curiosity.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:inventiveness_attribute}}<td><div id="inventiveness"class="value">{{stonehearth:attributes.attributes.inventiveness.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:diligence_attribute}}<td><div id="diligence" class="value">{{stonehearth:attributes.attributes.diligence.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:curiosity_attribute}}<td><div id="curiosity" class="value">{{stonehearth:attributes.attributes.curiosity.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:inventiveness_attribute}}<td><div id="inventiveness"class="value">{{stonehearth:attributes.attributes.inventiveness.user_visible_value}}</div>
                </table>
                <br>
                <table>
-                  <tr><td>{{i18n stonehearth:muscle_attribute}}<td><div  id="muscle" class="value">{{stonehearth:attributes.attributes.muscle.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:speed_attribute}}<td><div  id="speed" class="value">{{stonehearth:attributes.attributes.speed.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:stamina_attribute}}<td><div id="stamina" class="value">{{stonehearth:attributes.attributes.stamina.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:muscle_attribute}}<td><div  id="muscle" class="value">{{stonehearth:attributes.attributes.muscle.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:speed_attribute}}<td><div  id="speed" class="value">{{stonehearth:attributes.attributes.speed.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:stamina_attribute}}<td><div id="stamina" class="value">{{stonehearth:attributes.attributes.stamina.user_visible_value}}</div>
                </table>
                <br>
                <table>
-                  <tr><td>{{i18n stonehearth:courage_attribute}}<td><div id="courage" class="value">{{stonehearth:attributes.attributes.courage.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:willpower_attribute}}<td><div  id="willpower" class="value">{{stonehearth:attributes.attributes.willpower.effective_value}}</div>
-                  <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id="compassion" class="value">{{stonehearth:attributes.attributes.compassion.effective_value}}</div>
+                  <tr><td>{{i18n stonehearth:courage_attribute}}<td><div id="courage" class="value">{{stonehearth:attributes.attributes.courage.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:willpower_attribute}}<td><div  id="willpower" class="value">{{stonehearth:attributes.attributes.willpower.user_visible_value}}</div>
+                  <tr><td>{{i18n stonehearth:compassion_attribute}}<td><div  id="compassion" class="value">{{stonehearth:attributes.attributes.compassion.user_visible_value}}</div>
                </table>
             </div>
             <div id="abilitiesTab" class = "tabPage">

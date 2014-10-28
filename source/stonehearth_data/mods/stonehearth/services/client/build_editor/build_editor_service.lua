@@ -2,6 +2,7 @@ local BuildEditorService = class()
 -- xxx: move all the proxy stuff to the client! - tony
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
+local RoadEditor = require 'services.client.build_editor.road_editor'
 local FloorEraser = require 'services.client.build_editor.floor_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
@@ -16,6 +17,7 @@ local log = radiant.log.create_logger('build_editor')
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
    self._sv = self.__saved_variables:get_data()
+   self._sv.terrain_cuts = {}
    self._sv.selected_sub_part = nil
 
    _radiant.call('stonehearth:get_service', 'build')
@@ -27,6 +29,22 @@ function BuildEditorService:initialize()
             self._build_service = r.result:__tojson()
          end)
    self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
+end
+
+function BuildEditorService:add_terrain_cut(cut_region)
+   if not self._sv.terrain_cuts[cut_region] then
+      self._sv.terrain_cuts[cut_region] = true
+      _radiant.renderer.add_terrain_cut(cut_region)
+      self.__saved_variables:mark_changed()
+   end
+end
+
+function BuildEditorService:remove_terrain_cut(cut_region)
+   if self._sv.terrain_cuts[cut_region] then
+      self._sv.terrain_cuts[cut_region] = nil
+      _radiant.renderer.remove_terrain_cut(cut_region)
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function BuildEditorService:on_selection_changed()
@@ -102,6 +120,11 @@ end
 function BuildEditorService:erase_floor(session, response, brush_shape)
    FloorEraser(self._build_service)
          :go(response)
+end
+
+function BuildEditorService:place_new_road(session, response, brush_shape)
+   RoadEditor(self._build_service)
+         :go(response, brush_shape)
 end
 
 function BuildEditorService:place_template(session, response, template_name)

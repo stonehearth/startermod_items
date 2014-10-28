@@ -1,11 +1,11 @@
 <script type="text/x-handlebars" data-template-name="buildingDesigner">
-   <div id="buildingDesigner">
+   <div id="buildingDesigner" class="constructionGui">
 
-      <div id="buildingEditor">
+      <div id="editor">
          {{partial 'buildingEditor'}}
       </div>
 
-      <div id="buildingOverview">
+      <div id="overview">
          {{partial 'buildingOverview'}}
       </div>
 
@@ -112,9 +112,9 @@
 
    </div>
 
-   <div class="window selectedBuildingWindow">
+   <div class="window bottomButtons">
       <div id="buttons">
-         <button class="green" id="showOverview">{{i18n stonehearth:show_building_overview}}</button>
+         <button class="green" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
          <button id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
       </div>
    </div>
@@ -133,9 +133,9 @@
       </div>
 
    </div>
-   <div class="window selectedBuildingWindow">
+   <div class="window bottomButtons">
       <div id="buttons">
-         <button id="showEditor">{{i18n stonehearth:show_building_editor}}</button>
+         <button id="showEditor">{{i18n stonehearth:start_editing}}</button>
          <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
 
          <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
@@ -154,7 +154,7 @@
    <div id="templateNameView" class="gui">
       <div class="window">
          <div class="title">
-            {{i18n stonehearth:building_designer_template_name}}
+            {{i18n stonehearth:building_designer_template_name}}<div class="closeButton"></div>
          </div>
 
          <p>

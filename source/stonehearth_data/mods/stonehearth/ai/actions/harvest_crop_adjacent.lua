@@ -15,7 +15,7 @@ function HarvestCropAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, args.crop)
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
-   if not radiant.entities.increment_carrying(entity) then
+   if not radiant.entities.increment_carrying(entity, self:_get_num_to_increment(entity)) then
       local crop_component = args.crop:get_component('stonehearth:crop')
       local product_uri = crop_component:get_product()
       
@@ -27,8 +27,24 @@ function HarvestCropAdjacent:run(ai, entity, args)
       end
    end
 
+   --Fire the event that describes the harvest
+   radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = entity:get_uri()})
+
    ai:unprotect_entity(args.crop)
    radiant.entities.destroy_entity(args.crop)
+end
+
+--By default, we produce 1 item stack per basket
+function HarvestCropAdjacent:_get_num_to_increment(entity)
+   local num_to_spawn = 1
+
+   --If the this entity has the right perk, spawn more than one
+   local job_component = entity:get_component('stonehearth:job')
+   if job_component and job_component:curr_job_has_perk('farmer_harvest_increase') then
+      num_to_spawn = 2
+   end
+
+   return num_to_spawn
 end
 
 return HarvestCropAdjacent

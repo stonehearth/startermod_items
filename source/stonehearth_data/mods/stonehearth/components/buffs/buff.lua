@@ -89,6 +89,7 @@ function Buff:_create_modifiers()
       local attributes = self._entity:add_component('stonehearth:attributes')
       for name, modifier in pairs(modifiers) do
          local attribute_modifier = attributes:modify_attribute(name)
+         attribute_modifier:set_private(self._sv.is_private)
          for type, value in pairs (modifier) do
             if type == 'multiply' then
                attribute_modifier:multiply_by(value)
