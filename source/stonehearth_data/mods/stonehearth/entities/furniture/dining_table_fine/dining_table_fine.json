@@ -1,0 +1,21 @@
+{
+   "type" : "entity",
+   "mixins" : "file(dining_table_fine_ghost.json)",
+   
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(dining_table_fine_iconic.json)",
+         "ghost_form" : "file(dining_table_fine_ghost.json)",
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
+      },
+      "region_collision_shape": {
+         "region": [
+            {
+               "min" : { "x" : -0.5, "y" : 0, "z" : -0.5 },
+               "max" : { "x" :  1.5, "y" : 1, "z" :  1.5 }
+            }
+         ]
+      }
+   }
+}

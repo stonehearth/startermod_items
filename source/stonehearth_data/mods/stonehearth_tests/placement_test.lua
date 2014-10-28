@@ -21,7 +21,7 @@ end
 function PlacementTest:_place_all_items()
    local mods = radiant.resources.get_mod_list()
    local x = 0
-   local z = 0
+   local z = -12
    
    -- for each mod
    for i, mod in ipairs(mods) do

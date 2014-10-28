@@ -3,14 +3,14 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(simple_wooden_chair.qb)"
+               "file(park_bench_fine.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Simple Wooden Chair",
-         "description": "For sitting",
-         "icon" : "file(simple_wooden_chair.png)"
+         "name": "Fine Park Bench",
+         "description": "Outdoor seating for moments of relaxation",
+         "icon" : "file(park_bench_fine.png)"
       },
       "stonehearth:material" : {
          "tags" : "wood furniture crafted chair"

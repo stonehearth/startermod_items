@@ -1,0 +1,40 @@
+{
+   "type" : "entity",
+   "mixins": "file(comfy_bed_fine_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(comfy_bed_fine_iconic.json)",
+         "ghost_form" : "file(comfy_bed_fine_ghost.json)",
+         "placeable_on_ground" : true,
+         "placeable_category" : "Furniture"
+      },
+      "region_collision_shape": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -2 },
+               "max" : { "x" :  2, "y" : 2, "z" : -1 }
+            },
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            },
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : 2 },
+               "max" : { "x" :  2, "y" : 2, "z" : 3 }
+            }
+         ]
+      },
+      "destination": {
+         "region": [
+            {
+               "min" : { "x" : -1, "y" : 0, "z" : -1 },
+               "max" : { "x" :  2, "y" : 1, "z" :  2 }
+            }
+         ]
+      }
+   },
+   "entity_data" : {
+      "stonehearth:bed" : {}
+   }
+}
