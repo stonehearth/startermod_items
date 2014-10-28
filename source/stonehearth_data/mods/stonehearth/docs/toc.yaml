@@ -21,6 +21,9 @@ sections:
          -  slug: attributes
             display_name: Attributes
             filename: reference/entities/attributes.markdown
+         -  slug: buffs
+            display_name: Buffs
+            filename: reference/entities/buffs.markdown
    -  slug: reference
       display_name: Reference Guide
       filename: reference/reference.markdown
