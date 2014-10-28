@@ -283,6 +283,40 @@ function lrbt.grow_walls_perf_test(autotest)
    autotest:success()
 end
 
+function lrbt.shanty_town(autotest)
+   local session = autotest.env:get_player_session()
+   local building
+
+   for i = 0,8 do
+      lrbt_util.create_endless_entity(autotest, -31, i, 'stonehearth:oak_log')
+      lrbt_util.create_endless_entity(autotest, -30, i, 'stonehearth:berry_basket')
+   end
+   create_workers(autotest)
+
+   local function create_house(x, y)
+      local house
+      stonehearth.build:do_command('house', nil, function()
+            local w, h = 3, 3
+            local floor = lrbt_util.create_wooden_floor(session, Cube3(Point3(x, 10, y), Point3(x + w, 11, y + h)))
+            house = build_util.get_building_for(floor)
+            lrbt_util.grow_wooden_walls(session, house)
+            lrbt_util.grow_wooden_roof(session, house)
+         end)
+      return house
+   end
+
+   for y = -24, 24, 9 do
+      for x = -24, 24, 9 do
+         local house = create_house(x, y)
+         stonehearth.build:set_active(house, true)
+      end
+   end
+
+   while true do
+      autotest:sleep(1000)
+   end
+end
+
 function lrbt.expensive_building(autotest)
    local session = autotest.env:get_player_session()
    local building
