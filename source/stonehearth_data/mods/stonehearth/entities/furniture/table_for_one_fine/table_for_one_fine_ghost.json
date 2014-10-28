@@ -3,17 +3,17 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(simple_wooden_chair.qb)"
+               "file(table_for_one_fine.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Simple Wooden Chair",
-         "description": "For sitting",
-         "icon" : "file(simple_wooden_chair.png)"
+         "name": "Fine Table for One",
+         "description": "Dining furniture for introverts.",
+         "icon" : "file(table_for_one_fine.png)"
       },
       "stonehearth:material" : {
-         "tags" : "wood furniture crafted chair"
+         "tags" : "wood furniture crafted"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },

@@ -3,14 +3,14 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(simple_wooden_chair.qb)"
+               "file(simple_wooden_chair_fine.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Simple Wooden Chair",
+         "name": "Fine Wooden Chair",
          "description": "For sitting",
-         "icon" : "file(simple_wooden_chair.png)"
+         "icon" : "file(simple_wooden_chair_fine.png)"
       },
       "stonehearth:material" : {
          "tags" : "wood furniture crafted chair"
