@@ -121,6 +121,10 @@ function CraftOrder:should_execute_order()
    if condition.type == "make" then
       return condition.remaining > 0 
    elseif condition.type == "maintain" then
+      if condition.at_least == 0 then
+         return false
+      end
+
       --Check if the crafter (if we have one) has a don't maintain flag
       --If "maintain" is not working right now, for example, because we have
       --no stockpiles, then don't craft. The UI will warn the player.
@@ -137,11 +141,18 @@ function CraftOrder:should_execute_order()
       end
 
       local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-      local inventory_data_for_item = inventory:get_items_of_type(uri)
-      if inventory_data_for_item and inventory_data_for_item.count then
-         we_have = inventory_data_for_item.count
+      local data = inventory:get_items_of_type(uri)
+      if data and data.items then
+         for _, item in pairs(data.items) do
+            if radiant.entities.get_world_grid_location(item) then
+               we_have = we_have + 1
+               if we_have >= condition.at_least then
+                  return false
+               end
+            end
+         end
       end
-      return we_have < condition.at_least
+      return true
    end
 end
 
