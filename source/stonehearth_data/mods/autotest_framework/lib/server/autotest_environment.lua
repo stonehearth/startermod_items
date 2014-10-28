@@ -9,11 +9,10 @@ function env.create_world(world_generator_script)
    env.session = {
       player_id = 'player_1',
       faction = 'civ',
-      kingdom = 'stonehearth:kingdoms:ascendancy',
    }
    stonehearth.town:add_town(env.session)
    stonehearth.inventory:add_inventory(env.session)
-   stonehearth.population:add_population(env.session)
+   stonehearth.population:add_population(env.session, 'stonehearth:kingdoms:ascendancy')
    stonehearth.terrain:get_visible_region(env.session.faction) 
    stonehearth.terrain:get_explored_region(env.session.faction)
 
@@ -49,12 +48,11 @@ function env.create_enemy_kingdom()
    local session = {
       player_id = 'enemy',
       faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
    stonehearth.town:add_town(session)
-   stonehearth.population:add_population(session)
+   stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function env.clear()

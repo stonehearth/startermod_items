@@ -16,7 +16,6 @@ end
 function TownService:add_town(session)
    radiant.check.is_string(session.player_id)
    radiant.check.is_string(session.faction)
-   radiant.check.is_string(session.kingdom)
 
    assert(not self._sv.towns[session.player_id])
 

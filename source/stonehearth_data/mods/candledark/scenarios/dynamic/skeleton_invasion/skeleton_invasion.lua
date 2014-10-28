@@ -19,11 +19,10 @@ function SkeletonInvasion:restore()
    local session = {
       player_id = 'candledark_undead',
       faction = 'undead',
-      kingdom = 'candledark:kingdoms:undead'
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
-      self._population = stonehearth.population:add_population(session)
+      self._population = stonehearth.population:add_population(session, 'candledark:kingdoms:undead')
    else
       self._inventory = stonehearth.inventory:get_inventory(session.player_id)
       self._population = stonehearth.population:get_population(session.player_id)

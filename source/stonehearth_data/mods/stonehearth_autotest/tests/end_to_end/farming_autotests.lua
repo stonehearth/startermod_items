@@ -6,7 +6,6 @@ function farming_tests.grow_one_turnip(autotest)
    --Add a fast-harvest test crop
    local session = {
       player_id = radiant.entities.get_player_id(farmer),
-      kingdom = radiant.entities.get_kingdom(farmer)
    }
 
    stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')

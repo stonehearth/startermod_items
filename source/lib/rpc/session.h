@@ -12,7 +12,6 @@ public:
 
 public:
    std::string          faction;
-   std::string          kingdom;
    std::string          player_id;
 };
 

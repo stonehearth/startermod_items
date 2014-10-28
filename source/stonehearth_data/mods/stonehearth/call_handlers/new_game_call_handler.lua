@@ -19,7 +19,7 @@ function NewGameCallHandler:sign_in(session, response, num_tiles_x, num_tiles_y,
    if not town then
       stonehearth.town:add_town(session)
       stonehearth.inventory:add_inventory(session)
-      stonehearth.population:add_population(session)
+      stonehearth.population:add_population(session, 'stonehearth:kingdoms:ascendancy')
    end
 
    return {

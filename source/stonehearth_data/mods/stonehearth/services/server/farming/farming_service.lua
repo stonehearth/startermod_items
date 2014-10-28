@@ -145,9 +145,13 @@ function FarmingService:_get_crop_list(session)
    local player_id = session.player_id
    local crop_list = self._data.player_crops[player_id]
    if not crop_list then
+      -- xxx: look this up from the player info when that is avaiable
+      local kingdom = stonehearth.population:get_population(player_id)
+                                                :get_kingdom()
+
       -- start out with the default crops for this player's kingdom.
       crop_list = {}
-      local kingdom_crops = self._initial_crops[session.kingdom]
+      local kingdom_crops = self._initial_crops[kingdom]
       if kingdom_crops then
          for i, crop in ipairs(kingdom_crops) do
             crop_list[i] = {

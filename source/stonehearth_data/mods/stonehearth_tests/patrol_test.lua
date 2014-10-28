@@ -44,11 +44,10 @@ function PatrolTest:create_enemy_kingdom()
    local session = {
       player_id = 'game_master',
       faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
-   self._enemy_population = stonehearth.population:add_population(session)
+   self._enemy_population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function PatrolTest:place_enemy(x, z)

@@ -1218,6 +1218,24 @@ function BuildService:instabuild(building)
       end)
 end
 
+function BuildService:get_cost_command(session, response, building)
+   local costs = {
+      resources = {},
+      items = {},
+   }
+   self:_call_all_children(building, function(entity)
+         local cp = entity:get_component('stonehearth:construction_progress')
+         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+            radiant.log.write('', 0, entity:get_uri())
+            local fabricator = cp:get_fabricator_component()
+            if fabricator then
+               fabricator:accumulate_costs(costs)
+            end
+         end
+      end)
+   return costs
+end
+
 function BuildService:do_command(reason, response, cb)
    self._undo:begin_transaction(reason)
    self._in_transaction = true

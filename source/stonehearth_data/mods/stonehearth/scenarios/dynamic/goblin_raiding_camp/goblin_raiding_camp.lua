@@ -44,7 +44,6 @@ function GoblinRaidingCamp:start()
    local session = {
       player_id = 'game_master',
       faction = 'goblin',
-      kingdom = 'stonehearth:kingdoms:goblin'
    }
    
    -- the camp's stockpile
@@ -58,7 +57,7 @@ function GoblinRaidingCamp:start()
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
       self._inventory = stonehearth.inventory:add_inventory(session)
-      self._population = stonehearth.population:add_population(session)
+      self._population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
       self._population:create_town_name()
    else
       self._inventory = stonehearth.inventory:get_inventory(session.player_id)
