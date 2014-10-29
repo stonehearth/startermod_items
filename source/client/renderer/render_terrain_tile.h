@@ -19,7 +19,7 @@ public:
    ~RenderTerrainTile();
 
    int UpdateClipPlanes();
-   void UpdateGeometry();
+   void UpdateGeometry(int clip_height);
 
    void SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane);
    csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction);
