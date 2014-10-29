@@ -35,6 +35,10 @@ function FabricatorClientComponent:get_editing_region()
    return self:get_data().editing_region
 end
 
+function FabricatorClientComponent:get_total_mining_region()
+   return self:get_data().total_mining_region
+end
+
 function FabricatorClientComponent:begin_editing(blueprint, project, editing_region)
    -- xxx: assert we're in a RW store...
    self.__saved_variables:modify_data(function (o)

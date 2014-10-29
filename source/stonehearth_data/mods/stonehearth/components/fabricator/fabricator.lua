@@ -38,6 +38,7 @@ function Fabricator:__init(name, entity, blueprint, project)
    self._blueprint_construction_progress = blueprint:get_component('stonehearth:construction_progress')
    self._mining_zones = {}
    self._mining_traces = {}
+   self._total_mining_region = _radiant.sim.alloc_region3()
 
    self._traces = {}
    self._active = false
@@ -191,6 +192,10 @@ end
 
 function Fabricator:get_entity()  
    return self._entity
+end
+
+function Fabricator:get_total_mining_region()
+   return self._total_mining_region
 end
 
 function Fabricator:add_block(material_entity, location)  
@@ -548,8 +553,6 @@ end
 
 -- Called only when the blueprint region is changed (added or merged).
 function Fabricator:_update_mining_region()
-   local player_id = radiant.entities.get_player_id(self._blueprint)
-
    local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
    local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
    world_region = radiant.terrain.intersect_region(world_region)
@@ -559,6 +562,7 @@ function Fabricator:_update_mining_region()
    end
 
    -- The mining service will handle all existing mining region overlap merging for us.
+   local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
    
    if not self._mining_zones[mining_zone] then
@@ -579,6 +583,25 @@ function Fabricator:_update_mining_region()
          self._mining_traces[mining_zone] = nil
       end)
    end
+end
+
+-- Called when the blueprint changes; calculate the intersection of the entire blueprint with the world
+-- and set that to the 'total_mining_zone' (used primarily on the client for cutting away regions of 
+-- the terrain in the renderer).  Note that we don't ever listen to the mining zones for recalculation; 
+-- this is arguably wrong, since the mining zone will shrink as it is mined.  However, we don't see any 
+-- visual artifacting (right now!), and only updating on blueprint change is potentially a lot faster.
+function Fabricator:_update_total_mining_region()
+   self._total_mining_region:modify(function(cursor)
+         local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
+         local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
+         world_region = radiant.terrain.intersect_region(world_region)
+
+         if world_region:empty() then
+            return
+         end
+
+         cursor:copy_region(world_region)
+      end)
 end
 
 -- the region of the fabricator is defined as the blueprint region
@@ -679,6 +702,7 @@ function Fabricator:_trace_blueprint_and_project()
       if self._active then
          self:_update_mining_region()
       end
+      self:_update_total_mining_region()
       self:_update_fabricator_region()
    end
    
