@@ -228,6 +228,7 @@ function EntityFormsComponent:place_item_on_structure(location, structure_entity
       structure = structure_entity,
       normal = normal,
       location = location,
+      rotation = rotation,
    }
    self.__saved_variables:mark_changed()
 

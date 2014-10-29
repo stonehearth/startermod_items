@@ -83,13 +83,14 @@ end
 -- called to kick off the fabricator.  don't call until all the components are
 -- installed and the fabricator entity is at the correct location in the parent
 --
-function FixtureFabricator:start_project(fixture, normal)
+function FixtureFabricator:start_project(fixture, normal, rotation)
    if radiant.util.is_a(fixture, Entity) then
       fixture:get_component('stonehearth:entity_forms')
                   :set_fixture_fabricator(self._entity)
       self._sv.fixture = fixture
    end
    self._sv.normal = normal
+   self._sv.rotation = rotation
    self._sv.fixture_uri, self._sv.fixture_iconic_uri = entity_forms.get_uris(fixture)
    self.__saved_variables:mark_changed()
    
@@ -181,9 +182,13 @@ function FixtureFabricator:_place_item_on_structure(root_entity, location)
       normal = structure:get_component('stonehearth:construction_data')
                            :get_normal()
    end
+   local rotation = self._sv.rotation
+   if not rotation then
+      rotation = build_util.normal_to_rotation(normal)
+   end
 
    root_entity:get_component('stonehearth:entity_forms')
-                  :place_item_on_structure(location, structure, normal, 0)
+                  :place_item_on_structure(location, structure, normal, rotation)
 end
 
 function FixtureFabricator:_destroy_item_tracker_listener()
@@ -221,17 +226,28 @@ end
 function FixtureFabricator:save_to_template()
    return {
       normal         = self._sv.normal,
+      rotation       = self._sv.rotation,
       fixture_uri    = self._sv.fixture_uri,
    }
 end
 
 function FixtureFabricator:load_from_template(template, options, entity_map)  
-   local normal = Point3(template.normal.x, template.normal.y, template.normal.z)
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()
+         local normal = Point3(template.normal.x, template.normal.y, template.normal.z)
+         local rotation = template.rotation
+         
+         if self._post_load_rotation then
+            normal = normal:rotated(self._post_load_rotation)
+            if rotation then
+               rotation = build_util.rotated_degrees(rotation, self._post_load_rotation)
+            end
+            self._post_load_rotation = nil
+         end
          stonehearth.build:add_fixture_fabricator(self._entity,
                                                   template.fixture_uri,
-                                                  normal)
+                                                  normal,
+                                                  rotation)
       end)
 end
 
@@ -241,11 +257,10 @@ function FixtureFabricator:rotate_structure(degrees)
                            :rotated(degrees)
    mob:move_to(rotated)
 
-   local rotation = mob:get_facing() + degrees
-   if degrees >= 360 then
-      degrees = degrees - 360
-   end
+   local rotation = build_util.rotated_degrees(mob:get_facing(), degrees)
    mob:turn_to(rotation)
+
+   self._post_load_rotation = degrees
 end
 
 function FixtureFabricator:layout()
