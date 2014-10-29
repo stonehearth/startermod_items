@@ -256,6 +256,7 @@ end
 --Set the chances that the crafter will make something fine
 function CrafterComponent:set_fine_percentage(percentage)
    self._sv.fine_percentage = percentage
+   self.__saved_variables:mark_changed()
 end
 
 --Get the chances that the crafter will make something fine
