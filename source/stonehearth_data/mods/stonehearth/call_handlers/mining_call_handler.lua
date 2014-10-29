@@ -18,13 +18,14 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
    end
 
    local xz_align = constants.mining.XZ_ALIGN
+   local y_align = constants.mining.Y_ALIGN
 
-   local aligned_floor = function(value)
-      return math.floor(value / xz_align) * xz_align
+   local aligned_floor = function(value, align)
+      return math.floor(value / align) * align
    end
 
-   local aligned_ceil = function(value)
-      return math.ceil(value / xz_align) * xz_align
+   local aligned_ceil = function(value, align)
+      return math.ceil(value / align) * align
    end
 
    local get_proposed_points = function(p0, p1)
@@ -32,17 +33,20 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
          return nil, nil
       end
       
-      local q0 = Point3(p0.x, p0.y, p0.z)
-      local q1 = Point3(p1.x, p1.y, p1.z)
+      local y_offset = mode == 'out' and -1 or 0
+      local y = aligned_floor(p0.y, y_align) + y_align-1 + y_offset
+      local q0 = Point3(p0.x, y, p0.z)
+      local q1 = Point3(p1.x, y, p1.z)
 
+      -- expand q0 and q1 so they span the the quantized region
       -- expand q0 and q1 so they span the the quantized region
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
-            q0[d] = aligned_floor(q0[d])
-            q1[d] = aligned_floor(q1[d]) + xz_align-1
+            q0[d] = aligned_floor(q0[d], xz_align)
+            q1[d] = aligned_floor(q1[d], xz_align) + xz_align-1
          else
-            q0[d] = aligned_floor(q0[d]) + xz_align-1
-            q1[d] = aligned_floor(q1[d])
+            q0[d] = aligned_floor(q0[d], xz_align) + xz_align-1
+            q1[d] = aligned_floor(q1[d], xz_align)
          end
       end
       log:spam('proposed point transform: %s, %s -> %s, %s', p0, p1, q0, q1)
@@ -62,14 +66,14 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       -- this code is ugly. find a clearer way to do this
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
-            q0[d] = aligned_floor(q0[d])
-            q1[d] = aligned_floor(q1[d]+1) - 1
+            q0[d] = aligned_floor(q0[d], xz_align)
+            q1[d] = aligned_floor(q1[d]+1, xz_align) - 1
             if q1[d] < q0[d] then
                return nil, nil
             end
          else
-            q0[d] = aligned_floor(q0[d]) + xz_align-1
-            q1[d] = aligned_ceil(q1[d])
+            q0[d] = aligned_floor(q0[d], xz_align) + xz_align-1
+            q1[d] = aligned_ceil(q1[d], xz_align)
             if q0[d] < q1[d] then
                return nil, nil
             end
@@ -81,12 +85,13 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
    end
 
    stonehearth.selection:select_xz_region()
+      :set_cursor('stonehearth:cursors:harvest')
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
+      :select_front_brick(false)
       :set_can_contain_entity_filter(function(entity)
             -- TODO
             return true
          end)
-      :set_cursor('stonehearth:cursors:harvest')
       :use_manual_marquee(function(selector, box)
             local region = self:_get_dig_region(box, mode)
             local render_node = _radiant.client.create_region_outline_node(1, region, Color4(255, 255, 0, 0))
@@ -117,8 +122,7 @@ function MiningCallHandler:_get_dig_region(selection_box, mode)
    local cube = nil
 
    if mode == 'down' then
-      local ground_box = selection_box:translated(-Point3.unit_y)
-      cube = self:_get_aligned_cube(ground_box)
+      cube = self:_get_aligned_cube(selection_box)
    elseif mode == 'out' then
       cube = self:_get_aligned_cube(selection_box)
       cube.max.y = cube.max.y - 1

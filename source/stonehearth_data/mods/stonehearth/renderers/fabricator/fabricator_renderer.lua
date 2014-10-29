@@ -34,6 +34,14 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                        self:_update_region(region)
                                     end)
                                  :set_visible_changed_cb(function(visible)
+                                       if self._total_mining_region then
+                                          if visible then
+                                             stonehearth.build_editor:add_terrain_cut(self._total_mining_region)
+                                          else
+                                             stonehearth.build_editor:remove_terrain_cut(self._total_mining_region)
+                                          end
+                                       end
+
                                        self._render_entity:set_visible_override(visible)
                                     end)
                                  :start()
@@ -69,9 +77,13 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
    end
    self:update_selection_material(stonehearth.build_editor:get_sub_selection(), 'materials/blueprint_selected.material.xml')
    self._sub_sel_listener = radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
+
+   self._total_mining_region = fabricator:get_total_mining_region()
 end
 
 function FabricatorRenderer:destroy()
+   stonehearth.build_editor:remove_terrain_cut(self._total_mining_region)
+
    self._sub_sel_listener:destroy()
    self._sub_sel_listener = nil
 

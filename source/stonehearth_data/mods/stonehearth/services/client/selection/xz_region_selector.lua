@@ -330,16 +330,20 @@ function XZRegionSelector:_update_rulers(p0, p1)
    end
 
    if p0 and p1 then
+      -- if we're selecting the hover brick, the rulers are on the bottom of the selection
+      -- if we're selecting the terrain brick, the rulers are on the top of the selection
+      local y_offset = self._select_front_brick and 0 or 1
+      local y = p0.y + y_offset
       local x_normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
-      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), p0.y, p1.z),
-                               Point3(math.max(p0.x, p1.x), p0.y, p1.z),
+      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), y, p1.z),
+                               Point3(math.max(p0.x, p1.x), y, p1.z),
                                x_normal,
                                string.format('%d\'', math.abs(p1.x - p0.x) + 1))
       self._x_ruler:show()
 
       local z_normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
-      self._z_ruler:set_points(Point3(p1.x, p0.y, math.min(p0.z, p1.z)),
-                               Point3(p1.x, p0.y, math.max(p0.z, p1.z)),
+      self._z_ruler:set_points(Point3(p1.x, y, math.min(p0.z, p1.z)),
+                               Point3(p1.x, y, math.max(p0.z, p1.z)),
                                z_normal,
                                string.format('%d\'', math.abs(p1.z - p0.z) + 1))
       self._z_ruler:show()

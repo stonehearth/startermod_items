@@ -228,7 +228,7 @@ var StonehearthClient;
                   }
                })
                .fail(function(response) {
-                  App.setGameMode('normal');
+                  //App.setGameMode('normal');
                   self.hideTip();
                });
          });
@@ -348,14 +348,14 @@ var StonehearthClient;
       digDown: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:designate_mining_zone', 'down')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
                   self.digDown();
                })
                .fail(function(response) {
@@ -367,15 +367,15 @@ var StonehearthClient;
       digOut: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:designate_mining_zone', 'out')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
-                  self.digDown();
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
+                  self.digOut();
                })
                .fail(function(response) {
                   self.hideTip(tip);

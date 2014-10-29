@@ -1,8 +1,12 @@
+local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
 local constants = require 'constants'
 local TerrainType = require 'services.server.world_generation.terrain_type'
+
 SubterraneanViewService = class()
 
 local UNITY_PLUS_EPSILON = 1.000001
+local MAX_CLIP_HEIGHT = 1000000000
 
 function SubterraneanViewService:initialize()
    local enable_mining = radiant.util.get_config('enable_mining', false)
@@ -13,9 +17,9 @@ function SubterraneanViewService:initialize()
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
-      -- we have some floating point drift on the integer coordinates, not sure why yet
-      self._sv.clip_height = constants.mining.Y_ALIGN * 4 * UNITY_PLUS_EPSILON
       self._sv.clip_enabled = false
+      -- we have some floating point drift on the integer coordinates, not sure why yet
+      self._sv.clip_height = 25 * UNITY_PLUS_EPSILON
       self._sv.initialized = true
    else
    end
@@ -25,11 +29,26 @@ function SubterraneanViewService:initialize()
          return self:_on_keyboard_event(e)
       end)
 
-   self:_update()
+   self._initialize_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
+         -- wait for the root entity to show up before updating
+         local root_entity = _radiant.client.get_object(1)
+         if root_entity and root_entity:is_valid() then
+            self:_update()
+         end
+         self:_destroy_initialize_listener()
+      end)
 end
 
 function SubterraneanViewService:destroy()
+   self:_destroy_initialize_listener()
    self._input_capture:destroy()
+end
+
+function SubterraneanViewService:_destroy_initialize_listener()
+   if self._initialize_listener then
+      self._initialize_listener:destroy()
+      self._initialize_listener = nil
+   end
 end
 
 function SubterraneanViewService:_on_keyboard_event(e)
@@ -65,8 +84,11 @@ end
 
 function SubterraneanViewService:_update()
    if self._sv.clip_enabled then
+      -- -1 to remove the ceiling
+      _radiant.renderer.set_clip_height(self._sv.clip_height-1)
       h3dSetVerticalClipMax(self._sv.clip_height)
    else
+      _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
       h3dClearVerticalClipMax()
    end
 end
