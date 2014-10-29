@@ -79,7 +79,6 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
    self._sub_sel_listener = radiant.events.listen(stonehearth.build_editor, 'stonehearth:sub_selection_changed', self, self._on_build_selection_changed)
 
    self._total_mining_region = fabricator:get_total_mining_region()
-   stonehearth.build_editor:add_terrain_cut(self._total_mining_region)
 end
 
 function FabricatorRenderer:destroy()
