@@ -14,6 +14,8 @@ App.StonehearthUnitFrameView = App.View.extend({
       "stonehearth:commands": {
          commands: []
       },
+      "stonehearth:job" : {
+      },
       "stonehearth:buffs" : {
          "buffs" : {
             "*" : {}
@@ -70,6 +72,8 @@ App.StonehearthUnitFrameView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
+      self.$("[title]").tooltipster();
+
       this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
             content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
@@ -94,11 +98,9 @@ App.StonehearthUnitFrameView = App.View.extend({
           radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
         });
 
-      this.$('.name').click(function() {
-         var entity = self.get('uri');
-         if (entity) {
-            //App.stonehearthClient.showCharacterSheet(entity); 
-         }
+
+      this.$('#jobButton').click(function (){
+         App.stonehearthClient.showCharacterSheet(self.get('uri')); 
       });
 
       this._updateCommandButtons();      

@@ -271,6 +271,35 @@ void RegionTools<S, 1>::ForEachEdge(Region<S, 1> const& region, typename RegionT
    }
 }
 
+template <typename S, int C>
+Region<S, C-1> RegionTools<S, C>::GetCrossSection(Region<S, C> region, int dimension, int value)
+{
+   Region<S, C-1> cross_section;
+   int d = dimension;
+   std::vector<int> surviving_dimensions; // faster if we make this a standard C array?
+
+   for (int i = 0; i < C; i++) {
+      if (i != d) {
+         surviving_dimensions.push_back(i);
+      }
+   }
+
+   for (Cube<S, C> const& cube : EachCube(region)) {
+      if (cube.min[d] <= value && cube.max[d] > value) {
+         Point<S, C-1> min, max;
+         for (int i = 0; i < C-1; i++) {
+            min[i] = cube.min[surviving_dimensions[i]];
+            max[i] = cube.max[surviving_dimensions[i]];
+         }
+
+         Cube<S, C-1> projected_cube(min, max);
+         cross_section.AddUnique(projected_cube);
+      }
+   }
+
+   return cross_section;
+}
+
 // Create RegionTools implementations with these parameters
 template RegionTools<int, 2>;
 template RegionTools<int, 3>;

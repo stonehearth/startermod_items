@@ -24,7 +24,8 @@ static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
-   _tileSize(terrain->GetTileSize())
+   _tileSize(terrain->GetTileSize()),
+   _clip_height(INT_MAX)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
@@ -64,6 +65,7 @@ void RenderTerrain::InitalizeColorMap()
 {
    std::string const unknownColor = "#ff00ff";
    json::Node config = Renderer::GetInstance().GetTerrainConfig();
+   _colorMap[om::Terrain::Hidden]     = csg::Color4::FromString(config.get("hidden", unknownColor));
    _colorMap[om::Terrain::Bedrock]    = csg::Color4::FromString(config.get("bedrock", unknownColor));
    _colorMap[om::Terrain::RockLayer1] = csg::Color4::FromString(config.get("rock.layer_1", unknownColor));
    _colorMap[om::Terrain::RockLayer2] = csg::Color4::FromString(config.get("rock.layer_2", unknownColor));
@@ -196,6 +198,26 @@ void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
    _cutToICut.erase(objId);
 }
 
+void RenderTerrain::SetClipHeight(int height)
+{
+   if (height == _clip_height) {
+      return;
+   }
+
+   int old_clip_height = _clip_height;
+   _clip_height = height;
+
+   for (auto const& entry : tiles_) {
+      int min_y = entry.first.y;
+      int max_y = min_y + _tileSize.y;
+      // mark dirty all tiles affected by the previous and current clip heights
+      if (csg::IsBetween(min_y, old_clip_height, max_y) || csg::IsBetween(min_y, _clip_height, max_y)) {
+         // technically, we only need to mark the geometry dirty, but this is convenient
+         MarkDirty(entry.first);
+      }
+   }
+}
+
 void RenderTerrain::UpdateNeighbors()
 {   
    for (csg::Point3 const& location : _dirtyNeighbors) {
@@ -234,7 +256,7 @@ void RenderTerrain::UpdateGeometry()
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry();
+         i->second->UpdateGeometry(_clip_height);
       }
    }
    _dirtyGeometry.clear();

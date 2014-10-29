@@ -115,8 +115,9 @@ int RenderTerrainTile::UpdateClipPlanes()
    return -1;     // everything for now... optimize later!
 }
 
-void RenderTerrainTile::UpdateGeometry()
+void RenderTerrainTile::UpdateGeometry(int clip_height)
 {
+   csg::Point3 tile_size = _terrain.GetTileSize();
    om::Region3BoxedPtr region = _region.lock();
 
    for (int i = 0; i < csg::RegionTools3::NUM_PLANES; i++) {
@@ -131,16 +132,39 @@ void RenderTerrainTile::UpdateGeometry()
          afterCut -= *cuts.second;
       }
 
+      // modify the geometry if the clipping plane intersects this tile
+      if (csg::IsBetween(_location.y, clip_height, _location.y + tile_size.y)) {
+         T_LOG(9) << "removing geometry above clipping plane";
+         csg::Cube3 hidden_volume(_location, _location + tile_size);
+         hidden_volume.min.y = clip_height;
+         afterCut -= hidden_volume;
+      }
+
       _regionTools.ForEachPlane(afterCut, [&](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
          Geometry& g = _geometry[pi.which];
-         csg::Region2 const* clipper = GetClipPlaneFor(pi);
 
-         if (clipper) {
-            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
-            g[pi.reduced_value].AddUnique(plane - *clipper);
+         if (pi.which == csg::RegionTools3::TOP_PLANE && pi.reduced_value == clip_height) {
+            // generate geometry for the clipped plane that puts a roof on the lower region
+            csg::RegionTools3 tools;
+            csg::Region2 clipped_footprint = tools.GetCrossSection(rgn, 1, clip_height);
+            clipped_footprint &= plane;
+            clipped_footprint.SetTag(om::Terrain::Hidden);
+
+            // replace obscured areas with the hidden tag
+            csg::Region2 top_plane(plane); // WARNING: Region copy
+            top_plane.Add(clipped_footprint);
+            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << clipped_footprint.GetArea() << ")";
+            g[pi.reduced_value].AddUnique(top_plane);
+            return;
          } else {
-            T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
-            g[pi.reduced_value].AddUnique(plane);
+            csg::Region2 const* clipper = GetClipPlaneFor(pi);
+            if (clipper) {
+               T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
+               g[pi.reduced_value].AddUnique(plane - *clipper);
+            } else {
+               T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
+               g[pi.reduced_value].AddUnique(plane);
+            }
          }
       });
    }

@@ -641,7 +641,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                var formatting = App.constants.formatting.resources[material];
 
                // rough approximation of the # entitites required 
-               var entityCount = parseInt(count / formatting.stacks); 
+               var entityCount = Math.max(1, parseInt(count / formatting.stacks)); 
 
                arr.push({
                   name: formatting.name,
