@@ -236,7 +236,6 @@ function NewGameCallHandler:create_camp(session, response, pt)
 end
 
 function NewGameCallHandler:place_citizen(pop, x, z, job, talisman)
-   --TODO: faction denotes which player is playing. Have user pick?
    local citizen = pop:create_new_citizen()
    if not job then
       job = 'stonehearth:jobs:worker'
@@ -251,9 +250,8 @@ function NewGameCallHandler:place_item(pop, uri, x, z, options)
    local entity = radiant.entities.create_entity(uri)
    radiant.terrain.place_entity(entity, Point3(x, 1, z), options)
 
-   local unit_info = entity:add_component('unit_info')
-   unit_info:set_faction(pop:get_faction())
-   unit_info:set_player_id(pop:get_player_id())
+   entity:add_component('unit_info')
+            :set_player_id(pop:get_player_id())
 
    return entity
 end

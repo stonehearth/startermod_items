@@ -34,10 +34,10 @@ function TrapperTest:__init()
    self:place_citizen(12, 12, 'stonehearth:jobs:carpenter')
    self:place_citizen(14, 14)
 
-   self:place_item('stonehearth:red_fox', 15, 15, 'game_master')
-   -- self:place_critter('stonehearth:rabbit', 14, 14, 'game_master')
-   -- self:place_critter('stonehearth:racoon', 13, 13, 'game_master')
-   -- self:place_critter('stonehearth:squirrel', 12, 12, 'game_master')
+   self:place_item('stonehearth:red_fox', 15, 15, 'critters')
+   -- self:place_critter('stonehearth:rabbit', 14, 14, 'critters')
+   -- self:place_critter('stonehearth:racoon', 13, 13, 'critters')
+   -- self:place_critter('stonehearth:squirrel', 12, 12, 'critters')
 end
 
 return TrapperTest

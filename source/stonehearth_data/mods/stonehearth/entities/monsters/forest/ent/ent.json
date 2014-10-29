@@ -27,7 +27,6 @@
       },
       "unit_info" : {
          "name": "Ent",
-         "faction": "forest",
          "description": "Guardian of the forest"
       },
       "sensor_list": {

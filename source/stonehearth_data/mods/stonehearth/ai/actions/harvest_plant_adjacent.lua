@@ -28,7 +28,7 @@ function HarvestPlantsAction:run(ai, entity, args)
       ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
       local location = radiant.entities.get_world_grid_location(entity)
-      local spawned_item = factory:spawn_resource(location)
+      local spawned_item = factory:spawn_resource(entity, location)
 
       -- xxx: mucking with the personality compounent should probably be factored
       -- into its own action entirely (iff possible.... i don't even know if that's

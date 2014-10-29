@@ -24,7 +24,7 @@ function FindEquipmentUpgrade:start_thinking(ai, entity, args)
             return
          end
       end
-      self._added_listener = radiant.events.listen(self._inventory, 'stonehearth:item_added', self, self._on_inventory_item_added)
+      self._added_listener = radiant.events.listen(self._inventory, 'stonehearth:inventory:item_added', self, self._on_inventory_item_added)
    end
 end
 

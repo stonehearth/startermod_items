@@ -185,6 +185,10 @@ void Convert::LuaToProtobuf(luabind::object const &from, Protocol::LuaObject* ms
                      continue;
                   }
                }
+               if (luabind::type(key) == LUA_TUSERDATA) {
+                  CONVERT_LOG(1) << "cannot store table key with type LUA_TUSERDATA";
+                  continue;
+               }
                Protocol::LuaObject::Table::Entry *entry_msg = table_msg->add_entries();
                LuaToProtobuf(key, entry_msg->mutable_key(), rootmsg, tables);
                LuaToProtobuf(*i, entry_msg->mutable_value(), rootmsg, tables);
@@ -242,10 +246,22 @@ void Convert::RestoreLuaTableFromProtobuf(uint i, Protocol::LuaObject const& roo
    lua_State* L = store_.GetInterpreter();
    obj = luabind::newtable(L);
    for (Protocol::LuaObject::Table::Entry const& entry : msg.entries()) {
-      luabind::object key, value;
+      luabind::object key;
       ProtobufToLua(entry.key(), key, rootmsg, tables);
+      if (luabind::type(key) == LUA_TUSERDATA) {
+         CONVERT_LOG(1) << "ignoring table key with type LUA_TUSERDATA";
+         continue;
+      }
+      if (luabind::type(key) == LUA_TNIL) {
+         CONVERT_LOG(1) << "ignoring table key with type LUA_TNIL";
+         continue;
+      }
+
+      luabind::object value;
       ProtobufToLua(entry.value(), value, rootmsg, tables);
       if (key.is_valid() && value.is_valid()) {
+         luabind::object tostring = luabind::globals(L)["tostring"];
+         volatile std::string strval = luabind::object_cast<std::string>(tostring(key));
          obj[key] = value;
       }
    }

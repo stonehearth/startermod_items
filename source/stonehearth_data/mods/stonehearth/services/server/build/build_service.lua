@@ -366,7 +366,6 @@ function BuildService:_bind_building_to_blueprint(building, blueprint)
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))   
 
    -- fixtures, for example, don't have construction data.  so check first!
    local cd_component = blueprint:get_component('stonehearth:construction_data')
@@ -454,7 +453,6 @@ function BuildService:_create_new_building(session, location)
    building:add_component('unit_info')
            :set_display_name(string.format('Building No.%d', self._sv.next_building_id))
            :set_player_id(session.player_id)
-           :set_faction(session.faction)
            
 
    self._sv.next_building_id = self._sv.next_building_id + 1
@@ -994,6 +992,12 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
       return
    end
 
+   if not normal then
+      normal = parent_entity:get_component('stonehearth:construction_data')
+                              :get_normal()
+   end
+   assert(normal)
+   
    local _, fixture_blueprint
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
@@ -1012,6 +1016,7 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
    else
       radiant.entities.add_child(parent_entity, fixture_blueprint, location)
    end
+
 
    self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
 

@@ -11,7 +11,6 @@ function MicroWorld:__init(size)
    self._running = false
    self._session = {
       player_id = 'player_1',
-      faction = 'civ'
    }
 
    if not size then
@@ -31,8 +30,8 @@ function MicroWorld:create_world()
    stonehearth.population:add_population(session, 'stonehearth:kingdoms:ascendancy')
    -- xxx, oh lawd. These gets are required to intialize the terrain visible and explored regions.
    -- refactoring is required.
-   stonehearth.terrain:get_visible_region(session.faction) 
-   stonehearth.terrain:get_explored_region(session.faction)
+   stonehearth.terrain:get_visible_region(session.player_id) 
+   stonehearth.terrain:get_explored_region(session.player_id)
 
    assert(self._size % 2 == 0)
    local half_size = self._size / 2

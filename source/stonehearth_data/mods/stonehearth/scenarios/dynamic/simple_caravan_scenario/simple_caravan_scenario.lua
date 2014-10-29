@@ -8,16 +8,10 @@ function SimpleCaravan:can_spawn()
    --TODO: don't send the caravan when there's been a lot of violence in the area recently
 
    --Only spawn the caravan if there is at least 1 stockpile
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-   local storage = inventory:get_all_storage()
+   local stockpiles = stonehearth.inventory:get_inventory(self._sv.player_id)
+                                                :get_all_stockpiles()
 
-   for id, storage in pairs(storage) do
-      local stockpile_component = storage:get_component('stonehearth:stockpile')
-      if stockpile_component and not stockpile_component:is_outbox() then
-         return true
-      end
-   end  
-   return false
+   return next(stockpiles) ~= nil
 end
 
 --[[

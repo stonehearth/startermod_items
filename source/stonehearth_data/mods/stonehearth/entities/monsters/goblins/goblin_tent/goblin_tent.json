@@ -3,8 +3,7 @@
    "components": {
       "unit_info" : {
          "name": "A Tent",
-         "description": "Made from crudely-sewn animal hides",
-         "faction": "goblin"
+         "description": "Made from crudely-sewn animal hides"
       },      
       "render_info" : {
          "scale" : 0.5

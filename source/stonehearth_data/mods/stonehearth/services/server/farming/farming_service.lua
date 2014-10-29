@@ -40,9 +40,8 @@ function FarmingService:create_new_field(session, location, size)
    
    local town = stonehearth.town:get_town(session.player_id)
 
-   local unit_info = entity:get_component('unit_info')
-   unit_info:set_faction(session.faction)
-   unit_info:set_player_id(session.player_id)
+   entity:get_component('unit_info')
+            :set_player_id(session.player_id)
 
    local farmer_field = entity:get_component('stonehearth:farmer_field')
    farmer_field:create_dirt_plots(town, location, size)

@@ -106,7 +106,6 @@ end
 local function create_template_entities(building, template)
    local entity_map = {}
    local player_id = radiant.entities.get_player_id(building)
-   local faction = radiant.entities.get_faction(building)
 
    entity_map[tonumber(template.root.id)] = building
    
@@ -116,7 +115,6 @@ local function create_template_entities(building, template)
             local entity = radiant.entities.create_entity(o.uri)
             entity:add_component('unit_info')
                      :set_player_id(player_id)
-                     :set_faction(faction)
 
             entity_map[tonumber(orig_id)] = entity
             create_entities(o.children)

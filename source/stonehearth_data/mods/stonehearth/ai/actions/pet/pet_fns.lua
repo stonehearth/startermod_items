@@ -6,9 +6,9 @@ function PetFns.get_friends_nearby(pet, range)
    local num_friends = 0
    local range_squared = range * range
    local pet_location = pet:add_component('mob'):get_world_location()
-   local faction = pet:add_component('unit_info'):get_faction()
+   local player_id = pet:add_component('unit_info'):get_player_id()
 
-   local friendly_pops = stonehearth.population:get_friendly_populations(faction)
+   local friendly_pops = stonehearth.population:get_friendly_populations(player_id)
    for _, pop in pairs(friendly_pops) do
       local citizens = pop:get_citizens()
       for _, citizen in pairs (citizens) do

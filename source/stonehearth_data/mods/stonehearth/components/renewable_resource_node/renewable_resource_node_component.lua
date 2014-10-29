@@ -58,12 +58,16 @@ function RenewableResourceNodeComponent:get_harvest_overlay_effect()
    return self._harvest_overlay_effect
 end
 
-function RenewableResourceNodeComponent:spawn_resource(location)
+function RenewableResourceNodeComponent:spawn_resource(owner, location)
    if self._resource then
       --Create the harvested entity and put it on the ground
       local item = radiant.entities.create_entity(self._resource)
       local pt = radiant.terrain.find_placement_point(location, 0, 2)
       radiant.terrain.place_entity(item, pt)
+
+      -- add it to the inventory of the owner
+      stonehearth.inventory:get_inventory(owner)
+                              :add_item(item)
 
       --start the countdown to respawn.
       local render_info = self._entity:add_component('render_info')

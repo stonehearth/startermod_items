@@ -8,7 +8,6 @@ local CreateWorkshop = require 'services.server.town.orchestrators.create_worksh
 local Town = class()
 
 function Town:initialize(session)
-   self._sv.faction = session.faction
    self._sv.player_id = session.player_id
    self._sv._saved_calls = {}
    self._sv._next_saved_call_id = 1
@@ -108,10 +107,6 @@ function Town:get_scheduler()
    return self._scheduler
 end
 
-function Town:get_faction()
-   return self._sv.faction
-end
-
 function Town:get_player_id()
    return self._sv.player_id
 end
@@ -179,9 +174,8 @@ end
 
 -- does not tame the pet, just adds it to the town
 function Town:add_pet(entity)
-   local unit_info = entity:add_component('unit_info')
-   unit_info:set_faction(self._sv.faction)
-   unit_info:set_player_id(self._sv.player_id)
+   entity:add_component('unit_info')
+            :set_player_id(self._sv.player_id)
 
    self:create_orchestrator(PetOrchestrator, { entity = entity })
 
@@ -190,7 +184,8 @@ end
 
 -- does not untame the pet, just removes it from the town
 function Town:remove_pet(entity)
-   entity:add_component('unit_info'):set_faction('critter')
+   entity:add_component('unit_info')
+            :set_player_id('critters')
 end
 
 function Town:_add_unit_controller(entity, activity_name, priority)
