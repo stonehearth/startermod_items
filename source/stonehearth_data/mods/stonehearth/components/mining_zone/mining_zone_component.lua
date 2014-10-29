@@ -260,7 +260,7 @@ local function count_open_faces_for_block(point, max)
 end
 
 local function has_n_plus_exposed_faces(point, n)
-   local count = self:_count_open_faces_for_block(point, n)
+   local count = count_open_faces_for_block(point, n)
    return count >= n
 end
 
@@ -361,7 +361,7 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
       log:warning('adding all exposed faces to destination')
       for cube in terrain_region:each_cube() do
          each_face_block_in_cube(cube, function(point)
-               if self:_has_n_plus_exposed_faces(point, 1) then
+               if has_n_plus_exposed_faces(point, 1) then
                   add_block(point)
                end
             end)
