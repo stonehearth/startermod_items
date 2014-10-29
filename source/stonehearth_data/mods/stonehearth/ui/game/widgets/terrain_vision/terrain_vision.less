@@ -1,0 +1,62 @@
+#stoneheartTerrainVision {
+   position: absolute;
+   bottom: 55px;
+   right: 590px;
+
+   #visionButton {
+      .control;
+      position: absolute;
+      right: 0px;
+      width: 50px;
+      height: 50px;
+      background-repeat: no-repeat;
+      background-size: 50px 50px;
+      //background-image: url(./images/vision_button.png);
+   }
+
+   #visionButton.normal {
+      background-image: url(./images/normal.png);  
+   }
+
+   #visionButton.xray {
+      background-image: url(./images/xray.png);  
+   }
+
+   #visionButton.rpg {
+      background-image: url(./images/rpg.png);  
+   }
+
+   #palette {
+      position: absolute;
+      top: -15px;
+      right: -16px;
+      display: none;
+      text-align: right;
+      padding: 4px 66px 4px 0px;
+
+
+      background: rgba(0,0,0,0.5);
+      width: 250px;
+
+      .button {
+         .control;
+         width: 55px;
+         height: 55px;
+         display: inline-block;
+         margin: 0px 10px 0px 10px;
+      }
+
+      #showAllWalls {
+         background: url(./images/show_all_walls.png);
+      }
+
+      #hideFacingWalls {
+         background: url(./images/hide_facing_walls.png);
+      }
+
+      #hideAllWalls {
+         background: url(./images/hide_all_walls.png);
+      }
+
+   }
+}
