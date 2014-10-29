@@ -80,6 +80,14 @@ function WeaverClass:demote()
    self.__saved_variables:mark_changed()
 end
 
+function WeaverClass:set_fine_percentage(args)
+   self._sv._entity:get_component('stonehearth:crafter'):set_fine_percentage(args.percent_chance)
+end
+
+function WeaverClass:unset_fine_percentage(args)
+   self._sv._entity:get_component('stonehearth:crafter'):set_fine_percentage(0)
+end
+
 --- Private functions
 
 function WeaverClass:_create_xp_listeners()

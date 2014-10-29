@@ -15,6 +15,7 @@ function CrafterComponent:initialize(entity, json)
       -- it in the crafter component?  then we don't have to stick it in sv!
       self._sv._initialized = true
       self._sv.work_effect = json.work_effect
+      self._sv.fine_percentage = 0
 
       local craftable_recipes = {}
       self._sv._recipe_index = {}
@@ -250,6 +251,17 @@ function CrafterComponent:demote()
    if self._sv.workshop then
       self._sv.workshop:set_crafter(nil)
    end
+end
+
+--Set the chances that the crafter will make something fine
+function CrafterComponent:set_fine_percentage(percentage)
+   self._sv.fine_percentage = percentage
+end
+
+--Get the chances that the crafter will make something fine
+--Nil until the crafter reaches a certain level. 
+function CrafterComponent:get_fine_percentage()
+   return self._sv.fine_percentage
 end
 
 -- Given a talisman, associate it with our workshop, if we have one

@@ -28,7 +28,8 @@
    ],
   "produces": [
       {
-         "item" : "stonehearth:furniture:arch_backed_chair"
+         "item" : "stonehearth:furniture:arch_backed_chair", 
+         "fine" : "stonehearth:furniture:arch_backed_chair:fine"
       }
   ]
 }

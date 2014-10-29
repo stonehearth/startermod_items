@@ -81,6 +81,14 @@ function CarpenterClass:demote()
    self.__saved_variables:mark_changed()
 end
 
+function CarpenterClass:set_fine_percentage(args)
+   self._sv._entity:get_component('stonehearth:crafter'):set_fine_percentage(args.percent_chance)
+end
+
+function CarpenterClass:unset_fine_percentage(args)
+   self._sv._entity:get_component('stonehearth:crafter'):set_fine_percentage(0)
+end
+
 --- Private functions
 
 function CarpenterClass:_create_xp_listeners()

@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 local CollectIngredients = require 'services.server.town.orchestrators.collect_ingredients_orchestrator'
 local ClearWorkshop = require 'services.server.town.orchestrators.clear_workshop_orchestrator'
+local rng = _radiant.csg.get_default_rng()
 
 local WorkAtWorkshop = class()
 
@@ -128,7 +129,8 @@ end
 function WorkAtWorkshop:_add_outputs_to_bench(recipe)
    -- create all the recipe products
    for i, product in ipairs(recipe.produces) do
-      local item = radiant.entities.create_entity(product.item)
+      --If we're a certain level of crafter, we can make fine versions of objects
+      local item = radiant.entities.create_entity(self:_determine_output(product))
       local entity_forms = item:get_component('stonehearth:entity_forms')
       if entity_forms then
          local iconic_entity = entity_forms:get_iconic_entity()
@@ -154,6 +156,19 @@ function WorkAtWorkshop:_add_outputs_to_bench(recipe)
       radiant.events.trigger_async(self._crafter, 'stonehearth:crafter:craft_item', crafting_data)
 
    end
+end
+
+-- Does the crafter have a chance of making a fine object? 
+-- Is there a chance that this object might be fine? If so, make one!
+-- Crafter's chance of getting a fine object goes from 0 to some number on level up.
+function WorkAtWorkshop:_determine_output(product)
+   local item_uri = product.item
+   local target_num = rng:get_int(1, 100)
+   local crafter_component = self._crafter:get_component('stonehearth:crafter')
+   if product.fine and target_num <= crafter_component:get_fine_percentage() then
+      item_uri = product.fine
+   end
+   return item_uri
 end
 
 function WorkAtWorkshop:_destroy_items_on_bench()
