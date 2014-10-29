@@ -355,7 +355,7 @@ var StonehearthClient;
             return radiant.call('stonehearth:designate_mining_zone', 'down')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
                   self.digDown();
                })
                .fail(function(response) {
@@ -374,8 +374,8 @@ var StonehearthClient;
             return radiant.call('stonehearth:designate_mining_zone', 'out')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
-                  self.digDown();
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
+                  self.digOut();
                })
                .fail(function(response) {
                   self.hideTip(tip);

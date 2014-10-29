@@ -309,16 +309,28 @@ function MiningZoneComponent:_update_destination()
    self:_update_adjacent()
 end
 
+function MiningZoneComponent:_get_working_region(zone_cube, zone_location)
+   local reserved_region = self._destination_component:get_reserved():get()
+   local zone_region = Region3(zone_cube)
+   local zone_reserved_region = zone_region:intersected(reserved_region)
+
+   zone_region:subtract_region(zone_reserved_region)
+   zone_region:translate(zone_location)
+   zone_reserved_region:translate(zone_location)
+
+   local working_region = radiant.terrain.intersect_region(zone_region)
+   working_region:set_tag(0)
+   working_region:optimize_by_merge()
+   return working_region, zone_reserved_region
+end
+
 -- this algorithm assumes a convex region, so we break the zone into cubes before running it
+-- working_region and zone_reserved_region are in world coordinates
 -- destination_region and zone_cube are in local coordinates
--- everything else is in world coordinates
 function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cube, zone_location)
-   local zone_region = Region3(zone_cube:translated(zone_location))
-   local terrain_region = radiant.terrain.intersect_region(zone_region)
-   terrain_region:set_tag(0)
-   terrain_region:optimize_by_merge()
-   local bounds = terrain_region:get_bounds()
    local world_to_local_translation = -zone_location
+   local working_region, zone_reserved_region = self:_get_working_region(zone_cube, zone_location)
+   local bounds = working_region:get_bounds()
 
    local add_block = function(point)
          local block = Cube3(point, point + Point3.one)
@@ -326,7 +338,8 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
          destination_region:add_cube(block)
       end
 
-   for cube in terrain_region:each_cube() do
+   -- check top facing blocks
+   for cube in working_region:each_cube() do
       if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
          local top_face = get_face(cube, Point3.unit_y)
 
@@ -346,9 +359,10 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
       end
    end
 
+   -- check side and bottom facing blocks
    for _, normal in ipairs(NON_TOP_DIRECTIONS) do
       local face_region = Region3(get_face(bounds, normal))
-      local face_blocks = face_region:intersected(terrain_region)
+      local face_blocks = face_region:intersected(working_region)
       for point in face_blocks:each_point() do
          if face_is_exposed(point, normal) then
             add_block(point)
@@ -359,7 +373,7 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
    if destination_region:empty() then
       -- fallback condition
       log:warning('adding all exposed faces to destination')
-      for cube in terrain_region:each_cube() do
+      for cube in working_region:each_cube() do
          each_face_block_in_cube(cube, function(point)
                if has_n_plus_exposed_faces(point, 1) then
                   add_block(point)
@@ -367,6 +381,22 @@ function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cu
             end)
       end
    end
+
+  if destination_region:empty() then
+      -- fallback condition
+      log:warning('adding all blocks to destination')
+      working_region:translate(world_to_local_translation)
+      destination_region:add_region(working_region)
+      working_region = nil -- don't reuse, not in world coordinates anymore
+  end
+
+  -- add the reserved region back, since we excluded it from the working set analysis
+  for point in zone_reserved_region:each_point() do
+      -- point may have been mined, but not yet unreserved
+      if radiant.terrain.is_terrain(point) then
+         add_block(point)
+      end
+  end
 end
 
 function MiningZoneComponent:_update_adjacent()
