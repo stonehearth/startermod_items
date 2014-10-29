@@ -15,7 +15,8 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:furniture:park_bench"
+         "item":"stonehearth:furniture:park_bench", 
+         "fine":"stonehearth:furniture:park_bench:fine"
       }
   ]
 }

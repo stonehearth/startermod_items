@@ -16,7 +16,8 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:furniture:writing_desk"
+         "item":"stonehearth:furniture:writing_desk",
+         "fine":"stonehearth:furniture:writing_desk:fine"
       }
   ]
 }

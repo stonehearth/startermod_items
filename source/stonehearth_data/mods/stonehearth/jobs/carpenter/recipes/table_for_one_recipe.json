@@ -15,7 +15,8 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:furniture:table_for_one"
+         "item":"stonehearth:furniture:table_for_one", 
+         "fine" : "stonehearth:furniture:table_for_one:fine"
       }
   ]
 }
