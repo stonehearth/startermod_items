@@ -8,58 +8,6 @@
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup"
    },
-   "zone_menu" : {
-      "name" : "Zone Tools",
-      "description" : "Designate areas of the ground for storage, farming, etc.",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
-      "hotkey" : "2",
-      "game_mode" : "zones",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
-      "items" : {
-         "create_stockpile" : {
-            "name" : "Stockpile",
-            "description" : "Place a stockpile for storing resources.",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
-            "sticky" : true,
-            "hotkey" : "o"
-         },
-         "create_farm" : {
-            "name" : "Farm",
-            "description" : "Place a farm on the terrain.",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
-            "sticky" : true,
-            "hotkey" : "f"
-         },
-         "create_trapping_grounds" : {
-            "name" : "Trapping Ground",
-            "description" : "Place traps to capture small critters.",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
-            "sticky" : true,
-            "hotkey" : "t"
-         },
-         "dig_down" : {
-            "name" : "Dig Down (not implemented)",
-            "description" : "Excavate dirt and rock from the earth.",
-            "class" : "button",
-            "icon" : "",
-            "sticky" : true,
-            "hotkey" : "m"
-         },
-         "dig_out" : {
-            "name" : "Dig Out (not implemented)",
-            "description" : "Excavate dirt and rock from the earth.",
-            "class" : "button",
-            "icon" : "",
-            "sticky" : true,
-            "hotkey" : "n"
-         }
-      }
-   },
    "build_menu" : {
       "name" : "Build & Design",
       "description" : "Build structures like houses and city walls.",
@@ -104,6 +52,25 @@
          }
       }
    },
+   "mining_menu" : {
+      "name" : "Mine & Landscape",
+      "description" : "Change the shape of the terrain, with mines and landscaping",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_mine.png",
+      "hotkey" : "5",
+      "game_mode" : "normal",
+      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click",
+      "items" : {
+         "mining_ui" : {
+            "name" : "Mine",
+            "description" : "Mine out tunnels and caves",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "m"
+         }
+      }
+   },   
    "town_menu" : {
       "name" : "Town Info",
       "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
@@ -113,6 +80,42 @@
       "game_mode" : "normal",
       "clickSound": "stonehearth:sounds:banner_grab"
    },   
+   "zone_menu" : {
+      "name" : "Zone Tools",
+      "description" : "Designate areas of the ground for storage, farming, etc.",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
+      "hotkey" : "2",
+      "game_mode" : "zones",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
+      "items" : {
+         "create_stockpile" : {
+            "name" : "Stockpile",
+            "description" : "Place a stockpile for storing resources.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_stockpile.png",
+            "sticky" : true,
+            "hotkey" : "o"
+         },
+         "create_farm" : {
+            "name" : "Farm",
+            "description" : "Place a farm on the terrain.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_farm.png",
+            "sticky" : true,
+            "hotkey" : "f"
+         },
+         "create_trapping_grounds" : {
+            "name" : "Trapping Ground",
+            "description" : "Place traps to capture small critters.",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/zone_trap.png",
+            "sticky" : true,
+            "hotkey" : "t"
+         }
+      }
+   },
    "citizen_manager" : {
       "name" : "Manage Citizen",
       "description" : "Manage your settlers and promote them to new jobs.",
@@ -122,15 +125,6 @@
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
-   },
-   "crafter_manager" : {
-      "name" : "Manage Crafters",
-      "description" : "Manager all of your crafters and workshops.",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_crafters.png",
-      "hotkey" : "5",
-      "game_mode" : "normal",
-      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click"
    },
    "squad_manager" : {
       "name" : "Defend",

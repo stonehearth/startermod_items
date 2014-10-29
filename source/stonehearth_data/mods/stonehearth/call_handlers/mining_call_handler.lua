@@ -39,6 +39,7 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       local q1 = Point3(p1.x, y, p1.z)
 
       -- expand q0 and q1 so they span the the quantized region
+      -- expand q0 and q1 so they span the the quantized region
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
             q0[d] = aligned_floor(q0[d], xz_align)
