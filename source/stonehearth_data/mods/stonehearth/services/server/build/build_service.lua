@@ -958,10 +958,10 @@ end
 --    @param fixture_uri - the type of fixture to create
 --    @param location - where to put the fixture, in wall-local coordinates
 --
-function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, rotation, normal)
+function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, normal, rotation)
    local fixture
    local success = self:do_command('add_fixture', response, function()
-         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), rotation, ToPoint3(normal))
+         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), ToPoint3(normal), rotation)
       end)
 
    if success then
@@ -986,7 +986,7 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
    return fab_component
 end
 
-function BuildService:add_fixture(parent_entity, fixture_or_uri, location, rotation, normal)
+function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal, rotation)
    if not build_util.is_blueprint(parent_entity) then
       self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_uri, parent_entity)
       return
