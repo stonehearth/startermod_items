@@ -414,7 +414,7 @@ function StockpileComponent:_remove_item_from_stock(id)
 
    --Tell the inventory to remove this item
    stonehearth.inventory:get_inventory(self._sv.player_id)
-                           :remove_item(self._entity, id)
+                           :remove_item(id)
       
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then

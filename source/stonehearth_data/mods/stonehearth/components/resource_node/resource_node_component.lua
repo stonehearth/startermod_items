@@ -47,11 +47,15 @@ function ResourceNodeComponent:get_description()
 end
 
 -- If the resource is nil, the object will still eventually disappear
-function ResourceNodeComponent:spawn_resource(collect_location)
+function ResourceNodeComponent:spawn_resource(owner, collect_location)
    if self._sv.resource then
       local item = radiant.entities.create_entity(self._sv.resource)
       local pt = radiant.terrain.find_placement_point(collect_location, 0, 4)
       radiant.terrain.place_entity(item, pt)
+
+      -- add it to the inventory of the owner
+      stonehearth.inventory:get_inventory(owner)
+                              :add_item(item)
    end
 
    self._sv.durability = self._sv.durability - 1

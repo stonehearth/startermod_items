@@ -31,7 +31,10 @@
 
       <div id="tabs">
 
-         <div class="tabPage" id="floorMaterialTab" style="display: block">
+         <div class="tabPage" id="defaultTab" style="display: block">
+            Choose a tool on the left
+         </div>
+         <div class="tabPage" id="floorMaterialTab">
             <h2>Floor Material</h2>
             <div class="downSection" id="floorMaterials">
                <!-- Material palette built dynamically and inserted here -->
@@ -125,13 +128,16 @@
 <script type="text/x-handlebars" data-template-name="buildingOverview">
    <div class="window mainWindow">
       <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
-      <div class="downSection">
-         Building requirements go here
+      <div id="scroll" class="parchment">
+         <h2>Building Cost</h2>
+         {{#each view.building_cost}}
+            <div class="item" {{bind-attr title=this.name}}>
+               <img {{bind-attr src=this.icon}} />
+               <div class="count">{{this.count}} / {{this.available}}</div>
+            </div>
+         {{/each}}
+            
       </div>
-
-      <div id="buttons">
-      </div>
-
    </div>
    <div class="window bottomButtons">
       <div id="buttons">

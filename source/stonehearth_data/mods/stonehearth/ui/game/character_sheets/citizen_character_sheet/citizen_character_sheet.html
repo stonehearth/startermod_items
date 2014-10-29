@@ -62,7 +62,7 @@
          <div id="buffs">
             {{#each buffs}}
                {{#if this.name}}
-                  {{#unless this.is_private}}
+                  {{#unless this.invisible_to_player}}
                   <div class="item" {{bind-attr title=this.name description=this.description}}>
                      <img {{bind-attr src=this.icon}} />
                   </div>

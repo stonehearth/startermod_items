@@ -33,7 +33,7 @@ function ShearSheepAction:run(ai, entity, path)
    if factory then
       ai:execute('stonehearth:run_effect','fiddle')
       local location = radiant.entities.get_world_grid_location(entity)
-      local spawned_item = factory:spawn_resource(location)
+      local spawned_item = factory:spawn_resource(entity, location)
 
       --Log it in the personality component
       local spawned_item_name = spawned_item:get_component('unit_info'):get_display_name()

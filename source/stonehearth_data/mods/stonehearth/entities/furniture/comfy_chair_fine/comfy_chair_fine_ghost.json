@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(comfy_chair_fine.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Fine Comfy Chair",
+         "description": "For sitting!",
+         "icon" : "file(comfy_chair_fine.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood furniture crafted chair"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}

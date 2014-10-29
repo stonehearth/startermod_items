@@ -31,7 +31,7 @@ function HarvestResourceNodeAdjacent:run(ai, entity, args)
          local effect = factory:get_harvester_effect()
          ai:execute('stonehearth:run_effect', { effect = effect})
 
-         factory:spawn_resource(location)
+         factory:spawn_resource(entity, location)
       until not node:is_valid()   
     
       local description = factory:get_description()

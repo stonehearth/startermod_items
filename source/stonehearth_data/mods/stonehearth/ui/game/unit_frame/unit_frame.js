@@ -14,6 +14,8 @@ App.StonehearthUnitFrameView = App.View.extend({
       "stonehearth:commands": {
          commands: []
       },
+      "stonehearth:job" : {
+      },
       "stonehearth:buffs" : {
          "buffs" : {
             "*" : {}
@@ -50,7 +52,7 @@ App.StonehearthUnitFrameView = App.View.extend({
            $.each(attributeMap, function(k ,v) {
               if(k != "__self" && attributeMap.hasOwnProperty(k)) {
                   //only push public buffs (buffs who have an is_private unset or false)
-                  if (v.is_private == undefined || !v.is_private) {
+                  if (v.invisible_to_player == undefined || !v.invisible_to_player) {
                      vals.push(v);
                   }
               }
@@ -69,6 +71,8 @@ App.StonehearthUnitFrameView = App.View.extend({
 
    didInsertElement: function() {
       var self = this;
+
+      self.$("[title]").tooltipster();
 
       this.$('#unitFrame #buffs').find('.item').each(function() {
         $(this).tooltipster({
@@ -94,11 +98,9 @@ App.StonehearthUnitFrameView = App.View.extend({
           radiant.call('stonehearth:camera_look_at_entity', self.get('uri'))
         });
 
-      this.$('.name').click(function() {
-         var entity = self.get('uri');
-         if (entity) {
-            //App.stonehearthClient.showCharacterSheet(entity); 
-         }
+
+      this.$('#jobButton').click(function (){
+         App.stonehearthClient.showCharacterSheet(self.get('uri')); 
       });
 
       this._updateCommandButtons();      
