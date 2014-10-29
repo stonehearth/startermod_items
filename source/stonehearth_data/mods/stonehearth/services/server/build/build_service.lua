@@ -958,10 +958,10 @@ end
 --    @param fixture_uri - the type of fixture to create
 --    @param location - where to put the fixture, in wall-local coordinates
 --
-function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, normal)
+function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, rotation, normal)
    local fixture
    local success = self:do_command('add_fixture', response, function()
-         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), ToPoint3(normal))
+         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), rotation, ToPoint3(normal))
       end)
 
    if success then
@@ -971,7 +971,7 @@ function BuildService:add_fixture_command(session, response, parent_entity, fixt
    end
 end
 
-function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
+function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation)
    -- `fixture` is actually a blueprint of the fixture, not the actual fixture
    -- itself.  change the material we use to render it and hook up a fixture_fabricator
    -- to help build it.
@@ -979,14 +979,14 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
                         :set_material('materials/blueprint.material.xml')
    
    local fab_component = fixture_blueprint:add_component('stonehearth:fixture_fabricator')
-   fab_component:start_project(fixture_or_uri, normal)
+   fab_component:start_project(fixture_or_uri, normal, rotation)
 
    self:_bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
 
    return fab_component
 end
 
-function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal)
+function BuildService:add_fixture(parent_entity, fixture_or_uri, location, rotation, normal)
    if not build_util.is_blueprint(parent_entity) then
       self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_uri, parent_entity)
       return
@@ -1015,10 +1015,11 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
                :layout()
    else
       radiant.entities.add_child(parent_entity, fixture_blueprint, location)
+      radiant.entities.turn_to(fixture_blueprint, rotation or 0)
    end
 
 
-   self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
+   self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation)
 
    fixture_blueprint:add_component('stonehearth:construction_progress')
                         :add_dependency(parent_entity)

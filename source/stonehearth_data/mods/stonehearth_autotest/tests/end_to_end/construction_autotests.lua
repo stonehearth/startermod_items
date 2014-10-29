@@ -38,6 +38,8 @@ function construction_tests.simple_build(autotest)
          end
    end)
 
+   autotest:sleep(500)
+   
    autotest.ui:click_dom_element('#startMenu #build_menu')
    autotest.ui:click_dom_element('#startMenu div[hotkey="b"]')
    autotest.ui:click_dom_element('#customBuildingButton')
