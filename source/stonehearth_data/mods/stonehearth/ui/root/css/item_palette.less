@@ -20,8 +20,20 @@
          position: absolute;
          bottom: 0px;
          right: 4px;
-         z-index: 4;
          color: #fff;
+      }
+
+      .selectBox {
+         position: absolute;
+         top: 0px;
+         left: 4px;
+         display: none;
+      }
+   }
+
+   .item.selected {
+      .selectBox {
+         display: block;
       }
    }
 

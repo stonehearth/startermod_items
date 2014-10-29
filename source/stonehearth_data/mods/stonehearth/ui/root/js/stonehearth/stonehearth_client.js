@@ -228,7 +228,7 @@ var StonehearthClient;
                   }
                })
                .fail(function(response) {
-                  App.setGameMode('normal');
+                  //App.setGameMode('normal');
                   self.hideTip();
                });
          });

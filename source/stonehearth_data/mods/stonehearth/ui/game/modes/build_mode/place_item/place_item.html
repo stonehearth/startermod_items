@@ -16,8 +16,9 @@
                <div class="downSection">
                   {{#each this.items}}
                      <div class="item" {{bind-attr title=this.display_name uri=this.uri}}>
-                        <div class="num">{{this.count}}</div>
                         <img class="image" {{bind-attr src=this.icon}}>
+                        <div class="num">{{this.count}}</div>
+                        <div class="selectBox" />
                      </div>
                   {{/each}}
                   <div style="clear: both;" />
