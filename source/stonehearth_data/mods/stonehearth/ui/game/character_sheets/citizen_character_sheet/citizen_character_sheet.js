@@ -60,6 +60,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    //Updates job related attributes
    _updateJobData : function() {
+
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
    }.observes('context.stonehearth:job'),
@@ -335,6 +336,10 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var p = this.get('context.stonehearth:personality');
       var b = this.get('context.stonehearth:buffs');
 
+      // have the character sheet tract the selected entity.
+      $(top).on("radiant_selection_changed.citizen_character_sheet", function (_, data) {
+         self._onEntitySelected(data);
+      });
 
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
@@ -371,4 +376,50 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       }
    },
 
+   _onEntitySelected: function(e) {
+      var self = this;
+      var entity = e.selected_entity
+      
+      if (!entity) {
+         self.destroy();
+      }
+
+      // nuke the old trace
+      if (self.selectedEntityTrace) {
+         self.selectedEntityTrace.destroy();
+      }
+
+      // trace the properties so we can tell if we need to popup the properties window for the object
+      self.selectedEntityTrace = radiant.trace(entity)
+         .progress(function(result) {
+            self._examineEntity(result);
+         })
+         .fail(function(e) {
+            console.log(e);
+         });
+   },
+
+   _examineEntity: function(entity) {
+      var self = this;
+
+      if (!entity) {
+         self.destroy();
+      }
+
+      if (entity['stonehearth:job']) {
+         self.set('uri', entity.__self);
+      } else  {
+         self.destroy();
+      }
+   },
+
+   destroy: function() {
+      $(top).off("radiant_selection_changed.citizen_character_sheet")
+
+      if (self.selectedEntityTrace) {
+         self.selectedEntityTrace.destroy();
+      }
+
+      this._super();
+   }
 });
