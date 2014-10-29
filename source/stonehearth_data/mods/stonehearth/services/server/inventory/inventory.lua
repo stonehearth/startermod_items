@@ -12,8 +12,7 @@ end
 function Inventory:initialize(session)   
    self._sv.next_stockpile_no = 1
    self._sv.player_id = session.player_id
-   self._sv.storage = {}
-   self._sv.num_stockpiles = 0
+   self._sv.stockpiles = {}
    self._sv.items = {}
    self._sv.trackers = {}
    self.__saved_variables:mark_changed()
@@ -27,9 +26,15 @@ end
 function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('stonehearth:stockpile')   
    radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:stockpile'):set_size(size.x, size.y)
+   entity:get_component('stonehearth:stockpile')
+            :set_size(size.x, size.y)
 
-   self:_add_collision_region(entity, size)
+   entity:add_component('region_collision_shape')
+            :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+            :set_region(_radiant.sim.alloc_region3())
+            :get_region():modify(function (cursor)
+                  cursor:add_unique_cube(Cube3(Point3.zero, Point3(size.x, 1, size.y)))
+                  end)
 
    --xxx localize
    entity:get_component('unit_info')
@@ -42,63 +47,49 @@ function Inventory:create_stockpile(location, size)
 end
 
 --Returns a map of the stockpiles, sorted by ID
-function Inventory:get_all_storage()
-   return self._sv.storage
+function Inventory:get_all_stockpiles()
+   return self._sv.stockpiles
 end
 
-function Inventory:get_num_active_stockpiles()
-   return self._sv.num_stockpiles
-end
-
-function Inventory:add_storage(storage_entity)
-   assert(not self._sv.storage[storage_entity:get_id()])
-   self._sv.storage[storage_entity:get_id()] = storage_entity
-   self._sv.num_stockpiles = self._sv.num_stockpiles + 1
+function Inventory:add_stockpile(stockpile)
+   assert(not self._sv.stockpiles[stockpile:get_id()])
+   self._sv.stockpiles[stockpile:get_id()] = stockpile
    self.__saved_variables:mark_changed()
-   radiant.events.trigger(self, 'stonehearth:storage_added', { storage = storage_entity })
+   radiant.events.trigger(self, 'stonehearth:inventory:stockpile_added', { stockpile = stockpile })
 end
 
-function Inventory:remove_storage(storage_entity)
-   local id = storage_entity:get_id()
-   if self._sv.storage[id] then
-      self._sv.storage[id] = nil
+function Inventory:remove_stockpile(stockpile)
+   local id = stockpile:get_id()
+   if self._sv.stockpiles[id] then
+      self._sv.stockpiles[id] = nil
       self.__saved_variables:mark_changed()
    end
-   self._sv.num_stockpiles = self._sv.num_stockpiles - 1
-   radiant.events.trigger(self, 'stonehearth:storage_removed', { storage = storage_entity })
+   radiant.events.trigger(self, 'stonehearth:inventory:stockpile_removed', { stockpile = stockpile })
    --xxx remove the items?
 end
 
-function Inventory:_add_collision_region(entity, size)
-   entity:add_component('region_collision_shape')
-               :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
-               :set_region(_radiant.sim.alloc_region3())
-               :get_region():modify(function (cursor)
-                     cursor:add_unique_cube(Cube3(Point3.zero, Point3(size.x, 1, size.y)))
-                  end)
-  
-end
-
 --- Call whenever a stockpile wants to tell the inventory that we're adding an item
-function Inventory:add_item(storage, item)
-   local storage_id = storage:get_id()
-   assert(self._sv.storage[storage_id], 'tried to add an item to an untracked storage entity ' .. tostring(storage))
+function Inventory:add_item(item)
+   local id = item:get_id()
+   local items = self._sv.items
 
-   self._sv.items[item:get_id()] = item
-   --Tell all the trackers for this player about this item
-   for name, tracker in pairs(self._sv.trackers) do
-      tracker:add_item(item)
+   item:add_component('unit_info')
+            :set_player_id(self._sv.player_id)
+
+   if not items[id] then
+      items[id] = item
+
+      --Tell all the trackers for this player about this item
+      for name, tracker in pairs(self._sv.trackers) do
+         tracker:add_item(item)
+      end
+      radiant.events.trigger(self, 'stonehearth:inventory:item_added', { item = item })
+      self.__saved_variables:mark_changed()
    end
-   radiant.events.trigger(self, 'stonehearth:item_added', { item = item })
-   self.__saved_variables:mark_changed()
-
 end
 
 --- Call whenever a stockpile wants to tell the inventory that we're removing an item
-function Inventory:remove_item(storage, item_id)
-   local storage_id = storage:get_id()
-   assert(self._sv.storage[storage_id], 'tried to remove an item to an untracked storage entity ' .. tostring(storage))
-
+function Inventory:remove_item(item_id)
    if self._sv.items[item_id] then
       self._sv.items[item_id] = nil
       
@@ -106,9 +97,8 @@ function Inventory:remove_item(storage, item_id)
       for name, tracker in pairs(self._sv.trackers) do
          tracker:remove_item(item_id)
       end
-      radiant.events.trigger(self, 'stonehearth:item_removed', { item_id = item_id })
+      radiant.events.trigger(self, 'stonehearth:inventory:item_removed', { item_id = item_id })
       self.__saved_variables:mark_changed()
-
    end
 end
 
@@ -193,11 +183,13 @@ function Inventory:find_closest_unused_placable_item(uri, location)
       if not entity_forms:is_being_placed() then
          acceptable_item_count = acceptable_item_count + 1
          local position = radiant.entities.get_world_grid_location(item)
-         local distance = position:distance_to(location)
+         if position then
+            local distance = position:distance_to(location)
 
-         -- make sure the item is better than the previous one.
-         if not best_item or distance < best_distance then
-            best_item, best_distance = item, distance
+            -- make sure the item is better than the previous one.
+            if not best_item or distance < best_distance then
+               best_item, best_distance = item, distance
+            end
          end
       end
    end
@@ -206,7 +198,7 @@ end
 
 function Inventory:get_gold_count_command(session, response, uri)
    local gold = self:get_gold_count()
-   response:resolve({ gold = gold})
+   response:resolve({ gold = gold })
 end
 
 function Inventory:get_gold_count()

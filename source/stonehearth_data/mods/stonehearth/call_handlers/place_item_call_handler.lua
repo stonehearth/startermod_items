@@ -97,11 +97,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
 
             placement_structure, placement_structure_normal = nil
 
-            if ground_ok and radiant.terrain.is_standable(cursor, location) then
-               -- we're directly placeable on the ground.  yay!
-               return true
-            end
-
             -- trawl through the list of entities which would potentially support the
             -- fixture and see if there's a good match
             local entities = radiant.terrain.get_entities_at_point(location - normal)
@@ -123,6 +118,12 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                      return true
                   end
                end
+            end
+              
+            if ground_ok and radiant.terrain.is_standable(cursor, location) then
+               -- we're directly placeable on the ground and didn't find and structures
+               -- directly underneath us.  just place right away!
+               return true
             end
          end)
       :done(function(selector, location, rotation)

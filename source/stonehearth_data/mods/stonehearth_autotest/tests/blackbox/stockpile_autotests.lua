@@ -7,7 +7,7 @@ function stockpile_tests.restock_twice(autotest)
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local counter = 0
-   radiant.events.listen(stockpile, 'stonehearth:item_added', function()
+   radiant.events.listen(stockpile, 'stonehearth:stockpile:item_added', function()
          counter = counter + 1
          if counter == 2 then
             autotest:success()

@@ -16,7 +16,7 @@ function trapper_tests.basic(autotest)
    component.check_traps_interval = stonehearth.calendar:parse_duration('2h')
    component:start_tasks()
 
-   radiant.events.listen(stockpile, 'stonehearth:item_added', function()
+   radiant.events.listen(stockpile, 'stonehearth:stockpile:item_added', function()
          count = count + 1
          if count == 2 then
             autotest:success()

@@ -992,6 +992,12 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
       return
    end
 
+   if not normal then
+      normal = parent_entity:get_component('stonehearth:construction_data')
+                              :get_normal()
+   end
+   assert(normal)
+   
    local _, fixture_blueprint
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
@@ -1010,6 +1016,7 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
    else
       radiant.entities.add_child(parent_entity, fixture_blueprint, location)
    end
+
 
    self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
 

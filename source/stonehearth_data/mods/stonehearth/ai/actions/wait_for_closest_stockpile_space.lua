@@ -19,15 +19,15 @@ function WaitForClosestStockpileSpace:start_thinking(ai, entity, args)
    self._ai = ai
    self._log = ai:get_log()
 
-   local inventory = stonehearth.inventory:get_inventory(entity)
-   self._stockpiles = inventory:get_all_storage()
+   local stockpiles = stonehearth.inventory:get_inventory(entity)
+                                             :get_all_stockpiles()
 
    local shortest_distance
    local closest_stockpile
 
    --Iterate through the stockpiles. If we match the stockpile criteria AND there is room
    --check if the stockpile is the closest such stockpile to the entity
-   for id, stockpile_entity in pairs(self._stockpiles) do
+   for id, stockpile_entity in pairs(stockpiles) do
       local stockpile_component = stockpile_entity:get_component('stonehearth:stockpile')
       if not stockpile_component:is_full() and stockpile_component:can_stock_entity(args.item) then
          local distance_between = radiant.entities.distance_between(entity, stockpile_entity)
