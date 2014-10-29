@@ -1,0 +1,11 @@
+{
+   "formatting" : {
+      "resources" : {
+         "wood resource" : {
+            "name" : "Wood log",
+            "icon" : "/stonehearth/entities/trees/oak_tree/oak_log/oak_log.png",
+            "stacks" : 80
+         }
+      }
+   }
+}

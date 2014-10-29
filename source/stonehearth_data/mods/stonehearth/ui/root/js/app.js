@@ -31,6 +31,7 @@ App = Ember.Application.createWithMixins({
 
              self._moduleData = data;
 
+             deferreds = deferreds.concat(self._loadConstants());
              deferreds = deferreds.concat(self._loadJavaScripts(data));
              deferreds = deferreds.concat(self._loadCsss(data));
              deferreds = deferreds.concat(self._loadTemplates(data));
@@ -44,6 +45,14 @@ App = Ember.Application.createWithMixins({
             radiant.report_error('call to radiant.get_modules failed', e);
          });
       });
+    },
+
+    _loadConstants: function() {
+      var deferred = $.getJSON('/stonehearth/ui/data/constants.json', function(data) {
+        App.constants = data;
+      });
+
+      return deferred;
     },
 
     _loadJavaScripts: function(modules) {

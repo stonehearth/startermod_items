@@ -38,9 +38,13 @@ var StonehearthInventory;
          this._initCompleteDeferred.resolve();
       },
 
+      /* 10/29/2014
+       * Commenting this out to see if anything breaks. I suspect this is dead code. -Tom
+
       getData: function() {
          return this._inventory;
       },
+      */
    });
 })();
 
