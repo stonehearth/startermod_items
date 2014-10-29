@@ -78,7 +78,7 @@ function FarmerClass:_remove_xp_listeners()
 end
 
 function FarmerClass:_on_harvest(args)
-   local crop = args.crop
+   local crop = args.crop_uri
    local xp_to_add = self._sv.xp_rewards["base_exp_per_harvest"]
    if self._sv.xp_rewards[crop] then
       xp_to_add = self._sv.xp_rewards[crop] 

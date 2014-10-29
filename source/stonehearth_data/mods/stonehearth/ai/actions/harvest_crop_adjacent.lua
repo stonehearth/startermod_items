@@ -28,7 +28,7 @@ function HarvestCropAdjacent:run(ai, entity, args)
    end
 
    --Fire the event that describes the harvest
-   radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = entity:get_uri()})
+   radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = args.crop:get_uri()})
 
    ai:unprotect_entity(args.crop)
    radiant.entities.destroy_entity(args.crop)
