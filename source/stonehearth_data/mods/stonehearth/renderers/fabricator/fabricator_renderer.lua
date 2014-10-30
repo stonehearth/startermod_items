@@ -36,9 +36,9 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                  :set_visible_changed_cb(function(visible)
                                        if self._total_mining_region then
                                           if visible then
-                                             stonehearth.build_editor:add_terrain_cut(self._total_mining_region)
+                                             _radiant.renderer.add_terrain_cut(self._total_mining_region)
                                           else
-                                             stonehearth.build_editor:remove_terrain_cut(self._total_mining_region)
+                                             _radiant.renderer.remove_terrain_cut(self._total_mining_region)
                                           end
                                        end
 
@@ -86,7 +86,10 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
 end
 
 function FabricatorRenderer:destroy()
-   stonehearth.build_editor:remove_terrain_cut(self._total_mining_region)
+   if self._total_mining_region then
+      _radiant.renderer.remove_terrain_cut(self._total_mining_region)
+      self._total_mining_region = nil
+   end
 
    self._sub_sel_listener:destroy()
    self._sub_sel_listener = nil
