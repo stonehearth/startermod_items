@@ -132,7 +132,7 @@ end
 
 function SelectionService:deactivate_all_tools()
    for tool, _ in pairs(self._all_tools) do
-      tool:deactivate_tool()
+      tool:destroy()
    end
 end
 
@@ -153,6 +153,5 @@ function SelectionService:_on_mouse_input(e)
 
    return false
 end
-
 
 return SelectionService

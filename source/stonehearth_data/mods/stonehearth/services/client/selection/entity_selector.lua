@@ -24,13 +24,50 @@ function EntitySelector:always(cb)
    return self
 end
 
-function EntitySelector:set_filter_fn(fn)
-   self._filter_fn = fn
+function EntitySelector:_call_once(name, ...)
+   local method_name = '_' .. name .. '_cb'
+   if self[method_name] then
+      local method = self[method_name]
+      self[method_name] = nil
+      method(self, ...)
+   end
+end
+
+function EntitySelector:resolve(...)
+   self:_call_once('done', ...)
+   self:_call_once('always')
+   self:_cleanup_promise()
    return self
 end
 
-function EntitySelector:set_tool_mode(enabled)
-   self._tool_mode = enabled
+function EntitySelector:reject(...)
+   self:_call_once('fail', ...)
+   self:_call_once('always')
+   self:_cleanup_promise()
+   return self
+end
+
+function EntitySelector:notify(...)
+   if self._progress_cb then
+      self._progress_cb(self, ...)
+   end
+   return self
+end
+
+function EntitySelector:_cleanup_promise()
+   self._fail_cb = nil
+   self._progress_cb = nil
+   self._done_cb = nil
+   self._always_cb = nil
+
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+end
+
+function EntitySelector:set_filter_fn(fn)
+   self._filter_fn = fn
    return self
 end
 
@@ -39,29 +76,16 @@ function EntitySelector:set_cursor(uri)
    return self
 end
 
-function EntitySelector:deactivate_tool()
-   self:destroy()
-   
-   if self._fail_cb then
-      self._fail_cb(self)
-   end
-   if self._always_cb then
-      self._always_cb(self)
-   end
-end
-
 -- destroy the location selector.  needs to be called when the user is
 -- "done" with the selection, usually in an :always() promise callback,
 -- though the user may choose to keep it around till later if they'd like
 -- the cursor entity to stick around (e.g. in a multi-step wizard)
 --
 function EntitySelector:destroy()
-   stonehearth.selection:register_tool(self, false)
+   stonehearth.selection:register_tool(self, true)
 
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
+   self:reject({ error = 'selector destroyed'})
+
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
@@ -95,25 +119,14 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
 
    if event and event:up(2) and not event.dragging then
    -- if the user right clicks, cancel the selection
-      self._input_capture:destroy()
-      self._input_capture = nil
-      if not self._tool_mode then
-         if self._fail_cb then
-            self._fail_cb(self, { error = 'cancelled via keyboard '})
-         end
-      end
-      if self._always_cb then
-         self._always_cb(self)
-      end
+      self:reject({ error = 'cancelled via right click'})
       return
    end
 
    local entity = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
 
    -- if the user installed a progress handler, go ahead and call it now
-   if self._progress_cb then
-      self._progress_cb(self, entity)
-   end
+   self:notify(entity)
 
    local cursor_uri = entity and self._cursor or 'stonehearth:cursors:invalid_hover'
    if self._cursor_obj_uri ~= cursor_uri then
@@ -124,16 +137,7 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
    end
 
    if entity and event and event:up(1) then
-      if self._done_cb then
-         self._done_cb(self, entity)
-      end
-      if not self._tool_mode then
-         self._input_capture:destroy()
-         self._input_capture = nil
-         if self._always_cb then
-            self._always_cb(self)
-         end
-      end
+      self:resolve(entity)
    end
 end
 
