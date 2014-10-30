@@ -179,7 +179,14 @@
          });
       }
       return vals;
-   }
+   },
 
+   _getClosestEmberView: function(el) {
+     var id = el.closest('.ember-view').attr('id');
+     if (!id) return;
+     if (Ember.View.views.hasOwnProperty(id)) {
+       return Ember.View.views[id];
+     }
+   },
 
 });
