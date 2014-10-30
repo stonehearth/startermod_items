@@ -107,25 +107,29 @@ var StonehearthClient;
       // Wrapper to call all tools, handling the boilerplate tool management.
       _callTool: function(toolName, toolFunction, preCall) {
          var self = this;
-         var prefix = '(' + toolName + ') ';
          var deferred = new $.Deferred();
 
-         console.log(prefix + 'new call to _callTool... ');
+         var debug_log = function(str) {
+             // console.log('(processing tool ' + toolName + ') ' + str);
+         };
+
+         debug_log('new call to _callTool... ');
+
          var activateTool = function() {
             console.log('activating tool...')
             if (preCall) {
-               console.log(prefix + 'in preCall for activateTool...');
+               debug_log('in preCall for activateTool...');
                preCall();
             }
-            console.log(prefix + 'calling tool function...');            
+            debug_log('calling tool function...');            
             self._activeTool = toolFunction()
                .done(function(response) {
-                  console.log(prefix + 'clearing self._activeTool in tool done handler...');
+                  debug_log('clearing self._activeTool in tool done handler...');
                   self._activeTool = null;
                   deferred.resolve(response);
                })
                .fail(function(response) {
-                  console.log(prefix + 'clearing self._activeTool in tool fail handler...');
+                  debug_log('clearing self._activeTool in tool fail handler...');
                   self._activeTool = null;
                   deferred.reject(response);
                });
@@ -134,14 +138,14 @@ var StonehearthClient;
          if (self._activeTool) {
             // If we have an active tool, trigger a deactivate so that when that
             // tool completes, we'll activate the new tool.
-            console.log(prefix + 'installing activateTool always handler on old tool to activate this one (crazy!)');
+            debug_log('installing activateTool always handler on old tool to activate this one (crazy!)');
             self._activeTool.always(activateTool);
             this.deactivateAllTools();
          } else {
-            console.log(prefix + 'activating tool immediately, since there is no active one now.');
+            debug_log('activating tool immediately, since there is no active one now.');
             activateTool();
          }
-         console.log(prefix + 'returning deferred from _callTool');
+         debug_log('returning deferred from _callTool');
 
          return deferred;
       },
