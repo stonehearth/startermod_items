@@ -1,6 +1,17 @@
 {
    "type" : "effect",
    "tracks": {
+
+      "sound": {
+         "type": "sound_effect",
+         "duration": 700,
+         "start_time":  0,
+         "min_distance": 42,
+         "max_distance": 100,
+         "volume": 40,
+         "track" : "stonehearth:sounds:tree_fall"
+         },
+
       "dust": {
          "type": "cubemitter",
          "start_time" : 0,
@@ -13,7 +24,10 @@
             "rx":90,
             "ry":0,
             "rz":0
+            }  
          }
-      }      
+      }
    }
-}
+ 
+   
+   
