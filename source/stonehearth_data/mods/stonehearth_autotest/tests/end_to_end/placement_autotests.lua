@@ -53,7 +53,7 @@ function placement_autotests.place_on_wall(autotest)
    local session = autotest.env:get_player_session()
    radiant.entities.set_player_id(sign, session.player_id)
 
-   local wall, normal
+   local wall, normal, building
 
    -- create a wall super fast.
    stonehearth.build:do_command('place_on_wall', nil, function()
@@ -64,9 +64,9 @@ function placement_autotests.place_on_wall(autotest)
                                            Point3(-2, 10, 2),
                                            Point3( 2, 10, 2),
                                            normal)
-         local building = build_util.get_building_for(wall)
-         stonehearth.build:instabuild(building)         
+         building = build_util.get_building_for(wall)
       end)
+   stonehearth.build:instabuild(building)
    
    -- place the signe on the wall
    local placement_location = Point3(1, 15, 3)
