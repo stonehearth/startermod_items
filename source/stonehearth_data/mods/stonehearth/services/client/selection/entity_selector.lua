@@ -147,8 +147,6 @@ function EntitySelector:go()
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   -- capture the mouse.  Call our _on_mouse_event each time, passing in
-   -- the entity that we're supposed to create whenever the user clicks.
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
                                  self:_on_mouse_event(e, e)
