@@ -19,8 +19,8 @@
          "loop" : true,
          "start_time": 275,
          "end_time": 4950,
-         "min_distance": 60,
-         "max_distance": 200,
+         "min_distance": 40,
+         "max_distance": 100,
          "volume" : 20,
          "track" : "stonehearth:sounds:harp_loop"
       },

@@ -11,9 +11,9 @@
          "type": "sound_effect",
          "duration": 3000,
          "start_time": 2500,
-         "min_distance": 50,
+         "min_distance": 30,
          "max_distance": 100,
-         "volume": 55,
+         "volume": 22,
          "track" : "stonehearth:sounds:woodsword_powerspike_01"
       },
       "jump": {

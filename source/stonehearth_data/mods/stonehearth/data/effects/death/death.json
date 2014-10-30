@@ -15,9 +15,9 @@
          "type": "sound_effect",
          "duration": 2300,
          "start_time": 0,
-         "min_distance": 50,
+         "min_distance": 60,
          "max_distance": 100,
-         "volume": 80,
+         "volume": 40,
          "track" : "stonehearth:sounds:death_poof" 
       },
       "dust": {

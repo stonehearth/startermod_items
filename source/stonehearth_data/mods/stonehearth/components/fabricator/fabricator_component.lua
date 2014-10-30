@@ -66,10 +66,6 @@ function FabricatorComponent:instabuild()
    self._fabricator:instabuild()
 end
 
-function FabricatorComponent:set_mining_zone(mining_zone)
-   self._fabricator:set_mining_zone(mining_zone)
-end
-
 function FabricatorComponent:set_active(enabled)
    self._log:info('setting active to %s', tostring(enabled))
    
@@ -116,6 +112,7 @@ function FabricatorComponent:start_project(blueprint)
    -- remember the blueprint and project
    self._sv.project = project
    self._sv.blueprint = blueprint
+   self._sv.total_mining_region = self._fabricator:get_total_mining_region()
    self.__saved_variables:mark_changed()
    
    radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)

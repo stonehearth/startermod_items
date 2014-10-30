@@ -24,9 +24,9 @@
       "sound": {
          "type": "sound_effect",
          "start_time": 150,
-         "min_distance": 50,
+         "min_distance": 35,
          "max_distance": 100,
-         "volume": 40,
+         "volume": 30,
          "track" : {
             "type": "one_of",
             "items": [

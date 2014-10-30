@@ -348,8 +348,8 @@ var StonehearthClient;
       digDown: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:designate_mining_zone', 'down')
@@ -367,8 +367,8 @@ var StonehearthClient;
       digOut: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
 
          return this._callTool(function() {
             return radiant.call('stonehearth:designate_mining_zone', 'out')

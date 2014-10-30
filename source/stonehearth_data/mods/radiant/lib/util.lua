@@ -46,6 +46,25 @@ function util.tostring(value)
    return tostring(value)
 end
 
+function util.typename(value)
+   local t = type(value)
+   if t == 'userdata' then
+      if value.get_type_name then
+         return value:get_type_name()
+      end
+      return class_info(value).name
+   end
+   if t == 'table' then
+      if util.is_class(value) then
+         return value.__classname or '*anonymous class*'
+      end
+      if util.is_instance(value) then
+         return util.tostring(value.__class)
+      end
+   end
+   return t
+end
+
 function util.is_instance(maybe_instance)
    return type(maybe_instance) == 'table' and maybe_instance.__type == 'object'
 end

@@ -18,6 +18,14 @@ local SAVED_COMPONENTS = {
    ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
+function build_util.rotated_degrees(value, degrees)
+   value = value + degrees
+   if value >= 360 then
+      value = value - 360
+   end
+   return value
+end
+
 function build_util.normal_to_rotation(normal)
    if normal == -Point3.unit_z then
       return 0

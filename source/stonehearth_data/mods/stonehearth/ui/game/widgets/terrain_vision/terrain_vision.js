@@ -1,5 +1,5 @@
-App.StonehearthBuildingVisionWidget = App.View.extend({
-   templateName: 'stoneheartBuildingVision',
+App.StonehearthTerrainVisionWidget = App.View.extend({
+   templateName: 'stoneheartTerrainVision',
 
    modeChangeClickHandler: function() {
       var self = this;
@@ -7,9 +7,7 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
          var currentMode = App.getVisionMode();
 
          if (currentMode == 'normal') {
-            currentMode = 'xray';
-         } else if (currentMode == 'xray') {
-            currentMode = 'rpg';
+            currentMode = 'slice';
          } else {
             currentMode = 'normal';
          }
