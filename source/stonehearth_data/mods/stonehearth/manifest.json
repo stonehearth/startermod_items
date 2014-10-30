@@ -1266,6 +1266,7 @@
          "file(ui/game/bulletin/bulletin_dialog/generic_bulletin_dialog/generic_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
       ],
@@ -1337,6 +1338,7 @@
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
+         "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
@@ -1399,6 +1401,7 @@
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
+         "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.less)",
          "file(ui/game/event_log/event_log.less)"
       ]
    }
