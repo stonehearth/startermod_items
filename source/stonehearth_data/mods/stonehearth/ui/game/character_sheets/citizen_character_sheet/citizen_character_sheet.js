@@ -60,7 +60,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    //Updates job related attributes
    _updateJobData : function() {
-
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
    }.observes('context.stonehearth:job'),
@@ -92,6 +91,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       $('.className').addClass('retiredClassNameHeader');
       var currClassAlias = this.get('context.stonehearth:job.job_uri');
       var $currClass = $("[uri='" + currClassAlias + "']");
+      $currClass.prependTo("#citizenCharacterSheet #abilitiesTab");
       $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
       self._unlockPerksToLevel($currClass,  this.get('context.stonehearth:job.curr_job_controller.last_gained_lv'))
 
