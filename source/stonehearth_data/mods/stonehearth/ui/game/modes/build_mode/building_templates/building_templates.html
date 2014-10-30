@@ -21,9 +21,23 @@
    <div id="buildingTemplatesDetailsPopup" class="window">
       <center>
          <h2>{{selected_template.display_name}}</h2>
-         screenshot goes here
-         <br><br>
-         building cost goes here too
-      <center>
+
+         <div id="screenshot">
+         </div>
+
+         <div id="corners"></div>
+      </center>
+      
+      <div class="info">
+         <center>
+            <h2>Building cost</h2>
+
+            <div id="#tempateCost">
+               {{ view "App.StonehearthBuildingCostView" }}
+            </div>
+         </center>
+
+      </div>
+      
    </div>
 </script>

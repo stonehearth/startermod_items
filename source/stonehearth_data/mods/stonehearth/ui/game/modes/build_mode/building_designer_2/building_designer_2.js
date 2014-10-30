@@ -600,12 +600,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // refresh the building cost
          App.stonehearthClient.getCost(building_entity.__self)
             .done(function(response) {
-               var costArr = [];
-
-               self._addResourcesToCost(costArr, response.resources)
-               self._addItemsToCost(costArr, response.items)
-
-               self.set('building_cost', costArr);
+               var costView = self._getClosestEmberView(self.$('#buildingCost'));
+               costView.set('cost', response);
             })
             .fail(function(response) {
                console.log(response);
@@ -635,41 +631,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       }
    },
 
-   _addResourcesToCost: function(arr, map) {
-      if (map) {
-         $.each(map, function(material, count) {
-            if(map.hasOwnProperty(material)) {
-               var formatting = App.constants.formatting.resources[material];
-
-               // rough approximation of the # entitites required 
-               var entityCount = Math.max(1, parseInt(count / formatting.stacks)); 
-
-               arr.push({
-                  name: formatting.name,
-                  icon: formatting.icon,
-                  count: entityCount,
-                  available: "*",
-               });
-            }
-         });
-      }
-   },
-
-   _addItemsToCost: function(arr, map) {
-      if (map) {
-         $.each(map, function(uri, item) {
-            if(map.hasOwnProperty(uri)) {
-               arr.push({
-                  name: item.name,
-                  icon: item.icon,
-                  count: item.count,
-                  available: "*",
-               });
-            }
-         });
-      }
-   },   
-   
 });
 
 App.StonehearthTemplateNameView = App.View.extend({

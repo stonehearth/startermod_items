@@ -270,7 +270,8 @@ end
 
 function NoConstructionZoneComponent:load_from_template(template, options, entity_map)
    self._sv.structures = {}
-   for id, entry in pairs(template.structures) do
+   for _, entry in pairs(template.structures) do
+      local id = entity_map[entry.structure]:get_id()
       self._sv.structures[id] = {
          structure = entity_map[entry.structure],
          structure_type = entry.structure_type,
