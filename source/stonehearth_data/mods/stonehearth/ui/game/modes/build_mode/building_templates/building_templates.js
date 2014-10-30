@@ -27,8 +27,8 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       var self = this;
       radiant.call('stonehearth:get_building_templates')
          .done(function(response) {
-            var templateArray = self._mapToArrayObject(response)
-            self.set('context.templates', templateArray);
+            self._templatesMap = response
+            self.set('context.templates', self._mapToArrayObject(response));
          });
 
    },
@@ -46,8 +46,10 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       });
 
 
-      /*
-      self.$().on('mouseenter', '#templatesList .row', function() {        
+      self.$().on('mouseenter', '#templatesList .row', function() {
+            var templateName = $(this).attr('template');
+            self.set('context.selected_template', self._templatesMap[templateName]);
+
             self.$('#buildingTemplatesDetailsPopup').show()
                .position({
                   my: "left center",
@@ -60,7 +62,6 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       self.$().on('mouseleave', '#templatesList .row', function() {        
             self.$('#buildingTemplatesDetailsPopup').hide();
          });
-      */
    
       self.$('#customBuildingButton').click(function() {
          $(top).trigger('stonehearth_building_editor');
