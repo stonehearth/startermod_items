@@ -624,6 +624,8 @@ function Building:load_from_template(template, options, entity_map)
       end
    end
    self._sv.envelope_entity = entity_map[template.envelope_entity]
+   self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+
    self.__saved_variables:mark_changed()
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()
