@@ -83,12 +83,9 @@ end
 function FabricatorComponent:set_teardown(enabled)
    self._log:info('setting teardown to %s', tostring(enabled))
    
+   self._sv.teardown = enabled
    self._fabricator:set_teardown(enabled)
-   -- TODO: questionable.  The set_teardown call can cause us to be destroyed, which seems odd.
-   if self._entity:is_valid() then
-      self._sv.teardown = enabled
-      self.__saved_variables:mark_changed()
-   end
+   self.__saved_variables:mark_changed()  
 end
 
 function FabricatorComponent:start_project(blueprint)
