@@ -11,16 +11,18 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
-#define FP_LOG(level)      LOG_CATEGORY(simulation.follow_path, level, GetName())
+#define FM_LOG(level)      LOG_CATEGORY(simulation.free_motion, level, BUILD_STRING(*entity_.lock()))
 
 ApplyFreeMotionTask::ApplyFreeMotionTask(Simulation& sim, om::EntityRef e) :
    Task(sim, "apply free movement"),
    entity_(e)
 {
+   FM_LOG(5) << "creating free motion task";
 }
 
 ApplyFreeMotionTask::~ApplyFreeMotionTask()
 {
+   FM_LOG(5) << "free motion task destroyed";
 }
 
 bool ApplyFreeMotionTask::Work(platform::timer const& timer)
@@ -36,6 +38,9 @@ bool ApplyFreeMotionTask::Work(platform::timer const& timer)
          // Update velocity.  Terminal velocity is currently 1-block per tick
          // to make it really easy to figure out where the thing lands.
          csg::Transform velocity = mob->GetVelocity();
+         
+         FM_LOG(5) << "adding " << acceleration << " to current velocity " << velocity;
+
          velocity.position.y -= acceleration;
          velocity.position.y = std::max(velocity.position.y, -1.0);
 
@@ -50,6 +55,8 @@ bool ApplyFreeMotionTask::Work(platform::timer const& timer)
          // If our next position is blocked, fall to the bottom of the current
          // brick and clear the free motion flag.
          if (ng.IsBlocked(entity, csg::ToInt(next.position))) {
+            FM_LOG(5) << "next position " << next.position << " is blocked.  leaving free motion";
+
             velocity.position = csg::Point3f::zero;
             next.position.y = std::floor(current.position.y);
             mob->SetInFreeMotion(false);

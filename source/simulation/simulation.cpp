@@ -1089,30 +1089,35 @@ int Simulation::GetGameTickInterval() const
 
 void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
 {
-   dm::ObjectId id = mob->GetObjectId();
-   om::MobRef m = mob;
+   if (mob->GetInFreeMotion()) {
+      dm::ObjectId id = mob->GetEntity().GetObjectId();
+      om::MobRef m = mob;
 
-   // If the mob ever goes into free-motion, create a task to move it around.
-   // When it leaves free-motion, destroy the task.
-   freeMotionTasks_[id].trace = mob->TraceInFreeMotion("free motion task", dm::OBJECT_MODEL_TRACES)
-      ->OnChanged([this, id, m](bool inFreeMotion) {
-         FreeMotionTaskMapEntry& entry = freeMotionTasks_[id];
-         if (inFreeMotion) {
-            if (!entry.task) {
-               om::MobPtr mob = m.lock();
-               if (mob) {
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob->GetEntityPtr());
-                  tasks_.push_back(entry.task);
+      // If the mob ever goes into free-motion, create a task to move it around.
+      // When it leaves free-motion, destroy the task.
+      freeMotionTasks_[id].trace = mob->TraceInFreeMotion("free motion task", dm::OBJECT_MODEL_TRACES)
+         ->OnChanged([this, id, m](bool inFreeMotion) {
+            FreeMotionTaskMapEntry& entry = freeMotionTasks_[id];
+            if (inFreeMotion) {
+               if (!entry.task) {
+                  om::MobPtr mob = m.lock();
+                  if (mob) {
+                     LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
+                     entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob->GetEntityPtr());
+                     tasks_.push_back(entry.task);
+                  }
                }
+            } else {
+               LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (left free motion state)";
+               entry.task.reset();
             }
-         } else {
-            entry.task.reset();
-         }
-      })
-      ->OnDestroyed([this, id]() {
-         freeMotionTasks_.erase(id);
-      })
-      ->PushObjectState();
+         })
+         ->OnDestroyed([this, id]() {
+            LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (mob destroyed)";
+            freeMotionTasks_.erase(id);
+         })
+         ->PushObjectState();
+   }
 }
 
 void Simulation::LogAllJobProgress()
