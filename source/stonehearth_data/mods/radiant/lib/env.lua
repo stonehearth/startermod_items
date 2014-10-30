@@ -56,7 +56,7 @@ require = function(s)
    -- level 3 is the caller of the caller, which is in the module we're looking for!
    local modname = __get_current_module_name(3)
    if modname then
-      local mod = _host:require(modname .. '.' ..s)
+      local mod = _host:require(modname .. '.' .. s)
       if mod then
          return mod
       end

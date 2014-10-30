@@ -10,7 +10,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 class ApplyFreeMotionTask : public Task
 {
 public:
-   ApplyFreeMotionTask(Simulation& sim, om::EntityRef entity);
+   ApplyFreeMotionTask(Simulation& sim, om::MobRef mob);
    virtual ~ApplyFreeMotionTask();
 
 public:
@@ -20,7 +20,7 @@ public:
    void Stop();
 
 protected:
-   om::EntityRef           entity_;
+   om::MobRef           mob_;
 };
 
 END_RADIANT_SIMULATION_NAMESPACE

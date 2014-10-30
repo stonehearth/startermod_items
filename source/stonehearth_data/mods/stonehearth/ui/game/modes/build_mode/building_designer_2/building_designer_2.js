@@ -432,14 +432,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });         
       });
 
-      this.$('#removeBuilding').click(function() {
+      this.$('.removeBuilding').click(function() {
          var doRemoveBuilding = function() {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
             var building_entity = self.get('building');
             if (building_entity) {
+               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
                radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
                self.set('context.selection', null);
-            }            
+               $(top).trigger('stonehearth_building_templates');
+            }
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 

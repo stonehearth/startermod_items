@@ -81,7 +81,6 @@ end
 
 
 function lrbt_cases.wall_with_banner_by_item(autotest, session)
-   autotest.env:create_stockpile(4, 8)
    local sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
    local wall
    return {
@@ -98,9 +97,6 @@ function lrbt_cases.wall_with_banner_by_item(autotest, session)
 end
 
 function lrbt_cases.place_banner_by_type(autotest, session)
-   autotest.env:create_stockpile(4, 8)
-   autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
-
    local wall
    return {
       function()
@@ -117,8 +113,6 @@ end
 
 
 function lrbt_cases.place_bed_by_type(autotest, session)
-   autotest.env:create_stockpile(4, 8)
-   autotest.env:create_entity(4, 8, 'stonehearth:furniture:comfy_bed')
    local floor
    return {
       function()
@@ -128,15 +122,12 @@ function lrbt_cases.place_bed_by_type(autotest, session)
       function()
          local location = Point3(3, 1, 3)
          local normal = Point3(0, 1, 0)
-         stonehearth.build:add_fixture(floor, 'stonehearth:furniture:comfy_bed', location, normal)
+         stonehearth.build:add_fixture(floor, 'stonehearth:furniture:comfy_bed', location, normal, 0)
       end,
    }
 end
 
 function lrbt_cases.place_banner_by_type_flipped(autotest, session)
-   autotest.env:create_stockpile(4, 8)
-   autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
-
    local wall
    return {
       function()

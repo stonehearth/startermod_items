@@ -324,6 +324,7 @@ void Simulation::ShutdownGameObjects()
    entity_jobs_schedulers_.clear();
    jobs_.clear();
    tasks_.clear();
+   freeMotionTasks_.clear();
 
    // Remove the entityMap datastructure before destroying the entities; this is because entity
    // destruction will cause other entities to be accessed/destroyed, but we'd need a valid
@@ -1101,15 +1102,18 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
             if (!entry.task) {
                om::MobPtr mob = m.lock();
                if (mob) {
-                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob->GetEntityPtr());
+                  LOG(simulation.free_motion, 7) << "creating free motion task for entity " << id << " (no tasks exists yet)";
+                  entry.task = std::make_shared<ApplyFreeMotionTask>(*this, mob);
                   tasks_.push_back(entry.task);
                }
             }
          } else {
+            LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (left free motion state)";
             entry.task.reset();
          }
       })
       ->OnDestroyed([this, id]() {
+         LOG(simulation.free_motion, 7) << "destroying free motion task for entity " << id << " (mob destroyed)";
          freeMotionTasks_.erase(id);
       })
       ->PushObjectState();

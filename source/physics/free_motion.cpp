@@ -47,7 +47,9 @@ void FreeMotion::ProcessDirtyTile(csg::Point3 const& index)
 {
    LOG(physics.free_motion, 4) << "Unsticking entities on tile " << index;
    _ng.ForEachEntityAtIndex(index, [this](om::EntityPtr e) {
-      UnstickEntity(e);
+      if (e->GetObjectId() != 1) {
+         UnstickEntity(e);
+      }
       return false;     // continue iteration through the whole list
    });
 }
@@ -86,10 +88,13 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
                   // The entity is stuck inside a collision shape.  Just pop them
                   // up and poke them
                   double dy = valid.y - current.y;
-                  mob->MoveTo(mob->GetLocation() + csg::Point3f(0, dy, 0));
+                  csg::Point3f location = mob->GetLocation() + csg::Point3f(0, dy, 0);
+                  LOG(physics.free_motion, 7) << "Popping " << *entity << " up to " << location;
+                  mob->MoveTo(location);
                } else {
                   // The entity is floating above a collision shape.  Put them into
                   // free motion so the simulation can take over.
+                  LOG(physics.free_motion, 7) << "Putting " << *entity << " into free motion";
                   mob->SetInFreeMotion(true);
                   mob->SetVelocity(csg::Transform(csg::Point3f::zero, csg::Quaternion()));
                }
