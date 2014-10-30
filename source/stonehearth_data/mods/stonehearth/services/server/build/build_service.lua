@@ -1219,12 +1219,16 @@ function BuildService:instabuild(building)
             end
             -- mark as active.  this is a nop now that we've built it, but the
             -- bit still need be set to mimic the building actually being built
-            cp:instabuild()
+            cp:set_active(true)
          end
       end)
 end
 
 function BuildService:get_cost_command(session, response, building)
+   return self:get_cost(building)
+end
+
+function BuildService:get_cost(building)
    local costs = {
       resources = {},
       items = {},

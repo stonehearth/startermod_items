@@ -39,6 +39,19 @@ function AutotestUtil:fail_if_buff_added(entity, uri)
       end)
 end
 
+function AutotestUtil:fail_if_created(uri)
+   local listener
+   listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
+         if self._autotest:is_finished() then
+            listener:destroy()
+            return
+         end
+         if e.entity:get_uri() == uri then
+            self._autotest:fail('entity with uri "%s" created.  failing', uri)
+         end
+      end)
+end
+
 function AutotestUtil:call_if_attribute_above(entity, attribute, threshold, cb)
    local current = radiant.entities.get_attribute(entity, attribute)
    if current > threshold then

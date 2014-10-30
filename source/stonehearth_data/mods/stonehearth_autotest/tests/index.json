@@ -52,7 +52,14 @@
                ]
             },
 
-            "not_ready_for_prime_time" : {
+            "regression" : {
+               "name" : "regression tests",
+               "scripts" : [
+                  "file(regression/sh_81.lua)"
+               ]
+            },
+
+             "not_ready_for_prime_time" : {
                "name" : "end to end tests",
 
                "scripts" : [
