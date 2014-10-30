@@ -115,6 +115,17 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       } else {
          $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:level_text') + target_level );
       }
+
+      //Calculate the height of the jobPerks section based on the number of perkDivs
+      //TODO: factor these magic numbers out or change if/when the icons change size
+      var numPerks = $(target_div).find('.perkDiv').length;
+      if (numPerks == 0) {
+         $(target_div).find('.jobPerks').css('height', '0px');
+      } else {
+         var num_rows = parseInt(numPerks/8) + 1;
+         var total_height = num_rows * 90;
+         $(target_div).find('.jobPerks').css('height', total_height + 'px');
+      }
    },
 
    //Make tooltips for the perks
