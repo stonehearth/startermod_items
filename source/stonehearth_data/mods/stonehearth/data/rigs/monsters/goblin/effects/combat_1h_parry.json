@@ -11,9 +11,9 @@
          "type": "sound_effect",
          "duration": 1000,
          "start_time": 200,
-         "min_distance": 45,
+         "min_distance": 30,
          "max_distance": 100,
-         "volume": 75,
+         "volume": 22,
          "track" : {
             "type": "one_of",
             "items": [
