@@ -29,6 +29,7 @@ end
 
 function BuildCallHandler:save_building_template(session, request, building, info)
    if radiant.check.is_entity(building) then
+      info.cost = stonehearth.build:get_cost(building)
       build_util.save_template(building, info, true)
    end
    return { success = true }

@@ -48,7 +48,11 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
 
       self.$().on('mouseenter', '#templatesList .row', function() {
             var templateName = $(this).attr('template');
-            self.set('context.selected_template', self._templatesMap[templateName]);
+            var template = self._templatesMap[templateName];
+            self.set('context.selected_template', template);
+
+            var costView = self._getClosestEmberView(self.$('#buildingCost'));
+            costView.set('cost', template.cost);
 
             self.$('#buildingTemplatesDetailsPopup').show()
                .position({
@@ -67,5 +71,5 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
          $(top).trigger('stonehearth_building_editor');
       })      
    },
-   
+
 });

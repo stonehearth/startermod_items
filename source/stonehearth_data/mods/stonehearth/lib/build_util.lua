@@ -209,9 +209,63 @@ end
 --
 --    @param blueprint - the blueprint whose building you're interested in
 --
-function build_util.get_building_for(blueprint)
-   local cp = blueprint:get_component('stonehearth:construction_progress')
-   return cp and cp:get_building_entity()
+
+function build_util.get_fbp_for(entity)
+   if entity and entity:is_valid() then
+      -- is this a fabricator?  if so, finding the blueprint and the project is easy!
+      local fc = entity:get_component('stonehearth:fabricator')
+      if fc then
+         return entity, fc:get_blueprint(), fc:get_project()
+      end
+      
+      -- also works for blueprints.  we will take this path if the user passes a
+      -- blueprint in directly.
+      local cp = entity:get_component('stonehearth:construction_progress')
+      if cp then
+         local fabricator_entity = cp:get_fabricator_entity()
+         if fabricator_entity == entity then
+            -- fixture fabricators use the same entity for themselves and the fabricator.
+            -- crazy.
+            return entity, entity, nil
+         end
+
+         if fabricator_entity then
+            return build_util.get_fbp_for(fabricator_entity)
+         end
+         -- no fabricator for this blueprint?  no problem!  just return nil for those
+         -- entities.
+         return nil, entity, nil
+      end
+
+      -- must be a project.  get the fabricator out of the construction data.
+      local cd = entity:get_component('stonehearth:construction_data')
+      if cd then
+         return build_util.get_fbp_for(cd:get_fabricator_entity())
+      end
+   end
+end
+
+function build_util.get_fbp_for_structure(entity, structure_component_name)
+   local fabricator, blueprint, project = build_util.get_fbp_for(entity)
+   if blueprint then
+      local structure_component = blueprint:get_component(structure_component_name)
+      if structure_component then
+         return fabricator, blueprint, project, structure_component
+      end
+   end
+end
+
+
+function build_util.get_building_for(entity)
+   if entity and entity:is_valid() then
+      local _, blueprint, _ = build_util.get_fbp_for(entity)
+      if blueprint then
+         local cp = blueprint:get_component('stonehearth:construction_progress')
+         if cp then
+            return cp:get_building_entity()
+         end
+      end
+   end
 end
 
 function build_util.save_template(building, header, overwrite)

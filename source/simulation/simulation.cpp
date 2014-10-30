@@ -937,15 +937,14 @@ void Simulation::SendClientUpdates()
 
 void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
 {   
-   if (c->IsClientReadyForUpdates()) {
-      EncodeBeginUpdate(c);
-      EncodeServerTick(c);
-      FlushStream(c);
-      EncodeDebugShapes(c->send_queue);
-      EncodeEndUpdate(c);
+   if (!c->IsClientReadyForUpdates()) {
+      return;
    }
-   // updates are responses to things like call's and traces.  send those
-   // unconditionally...
+   EncodeBeginUpdate(c);
+   EncodeServerTick(c);
+   FlushStream(c);
+   EncodeDebugShapes(c->send_queue);
+   EncodeEndUpdate(c);
    EncodeUpdates(c);
    c->FlushSendQueue();
 }

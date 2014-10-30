@@ -155,6 +155,9 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
 void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
 {
+   if (_cutToICut.find(cut->GetObjectId()) != _cutToICut.end()) {
+      return;
+   }
    _cutToICut[cut->GetObjectId()] = csg::ToInt(cut->Get());
 
    auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
@@ -189,6 +192,9 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
 void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
 {
    dm::ObjectId objId = cut->GetObjectId();
+   if (_cutToICut.find(objId) == _cutToICut.end()) {
+      return;
+   }
 
    _cut_trace_map.erase(cut->GetObjectId());
    EachTileIn(_cutToICut[objId].GetBounds(), [this, cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {

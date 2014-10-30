@@ -24,6 +24,48 @@ function LocationSelector:always(cb)
    return self
 end
 
+function LocationSelector:_call_once(name, ...)
+   local method_name = '_' .. name .. '_cb'
+   if self[method_name] then
+      local method = self[method_name]
+      self[method_name] = nil
+      method(self, ...)
+   end
+end
+
+function LocationSelector:resolve(...)
+   self:_call_once('done', ...)
+   self:_call_once('always')
+   self:_cleanup_promise()
+   return self
+end
+
+function LocationSelector:reject(...)
+   self:_call_once('fail', ...)
+   self:_call_once('always')
+   self:_cleanup_promise()
+   return self
+end
+
+function LocationSelector:notify(...)
+   if self._progress_cb then
+      self._progress_cb(self, ...)
+   end
+   return self
+end
+
+function LocationSelector:_cleanup_promise()
+   self._fail_cb = nil
+   self._progress_cb = nil
+   self._done_cb = nil
+   self._always_cb = nil
+
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+end
+
 function LocationSelector:allow_shift_queuing(enabled)
    self._allow_shift_queuing = enabled
    return self
@@ -75,9 +117,7 @@ function LocationSelector:set_rotation(rotation)
    end
 
    -- if the user installed a progress handler, go ahead and call it now
-   if self._progress_cb then
-      self._progress_cb(self, self._pt, self._rotation)
-   end
+   self:notify(self._pt, self._rotation)
 
    return self
 end
@@ -95,17 +135,6 @@ function LocationSelector:set_cursor_entity(cursor_entity)
    return self
 end
 
-function LocationSelector:deactivate_tool()
-   self:destroy()
-   
-   if self._fail_cb then
-      self._fail_cb(self)
-   end
-   if self._always_cb then
-      self._always_cb(self)
-   end
-end
-
 -- destroy the location selector.  needs to be called when the user is
 -- "done" with the selection, usually in an :always() promise callback,
 -- though the user may choose to keep it around till later if they'd like
@@ -114,10 +143,8 @@ end
 function LocationSelector:destroy()
    stonehearth.selection:register_tool(self, false)
 
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
+   self:reject({ error = 'selector destroyed'})
+
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
@@ -165,12 +192,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
       self._input_capture:destroy()
       self._input_capture = nil
 
-      if self._fail_cb then
-         self._fail_cb(self, { error = 'cancelled via mouse '})
-      end
-      if self._always_cb then
-         self._always_cb(self)
-      end
+      self:reject({ error = 'selection cancelled '})
       return
    end
 
@@ -182,9 +204,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    end
 
    -- if the user installed a progress handler, go ahead and call it now
-   if self._progress_cb then
-      self._progress_cb(self, self._pt, self._rotation)
-   end
+   self:notify(self._pt, self._rotation)
 
    -- early exit if the ray missed the entire world   
    if not pt then
@@ -213,12 +233,8 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
          self._done_cb(self, pt, self._rotation, finished)
       end
       if finished then
-         self._input_capture:destroy()
-         self._input_capture = nil
-
-         if self._always_cb then
-            self._always_cb(self)
-         end
+         self:_call_once('always')
+         self:_cleanup_promise()
       end
    end
 end
