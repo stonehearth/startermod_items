@@ -67,8 +67,10 @@ static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
    auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
-   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-   renderTerrain->RemoveCut(cut);
+   if (terrainRenderEntity) {
+      auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+      renderTerrain->RemoveCut(cut);
+   }
 }
 
 static void Terrain_SetClipHeight(int height)
