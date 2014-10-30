@@ -48,14 +48,14 @@ function CarpenterClass:get_level_data()
 end
 
 -- We keep an index of perks we've unlocked for easy lookup
-function CarpenterClass:unlock_perk(perk_id)
-   self._sv.attained_perks[perk_id] = true
+function CarpenterClass:unlock_perk(id)
+   self._sv.attained_perks[id] = true
    self.__saved_variables:mark_changed()
 end
 
 -- Given the ID of a perk, find out if we have the perk. 
-function CarpenterClass:has_perk(perk_id)
-   return self._sv.attained_perks[perk_id]
+function CarpenterClass:has_perk(id)
+   return self._sv.attained_perks[id]
 end
 
 -- Call when it's time to level up in this class

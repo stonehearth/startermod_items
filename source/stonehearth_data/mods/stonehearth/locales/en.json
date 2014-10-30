@@ -377,7 +377,6 @@
 
    "bulletin_dialog_title" : "New Message",
    "bulletin_dialog_level_title" : "has Leveled Up!",
-   "bulletin_dialog_level_text" : "has gained the following perks:", 
    "showCharSheet" : "Character Sheet",
    "zoomToChar" : "Find Person", 
    "classPerks" : "Class Perks", 

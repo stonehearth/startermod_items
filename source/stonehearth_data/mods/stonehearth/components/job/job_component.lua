@@ -193,8 +193,8 @@ function JobComponent:promote_to(job_uri, talisman_entity)
 end
 
 --- Given the ID of a perk, find out of the current class has unlocked that perk. 
-function JobComponent:curr_job_has_perk(perk_id)
-   return self._sv.curr_job_controller:has_perk(perk_id)
+function JobComponent:curr_job_has_perk(id)
+   return self._sv.curr_job_controller:has_perk(id)
 end
 
 --If we've been this class before, re-apply any perks we've gained
@@ -216,14 +216,14 @@ function JobComponent:_apply_perk_for_level(target_level)
    local perk_descriptions = {}
    if job_updates_for_level then
       for i, perk_data in ipairs(job_updates_for_level.perks) do
-         self._sv.curr_job_controller:unlock_perk(perk_data.perk_id)
+         self._sv.curr_job_controller:unlock_perk(perk_data.id)
          if perk_data.type then
             self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
          end
 
          --Collect text about the perk
          local perk_info = {
-            perk_name = perk_data.perk_name,
+            name = perk_data.name,
             description = perk_data.description, 
             icon = perk_data.icon
          }
@@ -370,7 +370,7 @@ end
 function JobComponent:_add_race_perks()
    local race_perks = {}
    local human_level_perk = {
-      perk_name = 'HP +10', 
+      name = 'HP +10', 
       icon = '/stonehearth/data/images/race/human_HP_on_level.png'
    }
    table.insert(race_perks, human_level_perk)
