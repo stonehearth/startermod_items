@@ -1,0 +1,25 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Frostsnap Window Box",
+   "description" : "A planter box full of Frostsnap flowers, built to be placed below window frames.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/window_box_frostsnap/window_box_frostsnap.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:plants:frostsnap",
+         "count" : 1
+      }      
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:decoration:window_box:frostsnap"
+      }
+  ]
+}

@@ -196,6 +196,25 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    return poi
 end
 
+-- Returns a region containing the poi and all blocks that support it.
+-- Currently just the blocks below the poi, but could be useful when trying to
+-- clear out unsupported floors.
+function MiningService:get_reserved_region_for_poi(poi, from, mining_zone)
+   local location = radiant.entities.get_world_grid_location(mining_zone)
+   local mining_zone_component = mining_zone:add_component('stonehearth:mining_zone')
+   local zone_region = mining_zone_component:get_region():get()
+   local poi = poi - location
+   local from = from - location
+
+   local cube = Cube3(poi, poi + Point3.one)
+   cube.min.y = from.y
+   local proposed_region = Region3(cube)
+   local reserved_region = zone_region:intersected(proposed_region)
+   -- by convention, all input and output values in the mining service are in world coordiantes
+   reserved_region:translate(location)
+   return reserved_region
+end
+
 -- Return all the locations that can be reached from point.
 function MiningService:get_reachable_region(location)
    local y_min = location.y - MAX_REACH_DOWN
