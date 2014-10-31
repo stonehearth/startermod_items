@@ -41,6 +41,7 @@ function MiningZoneComponent:initialize(entity, json)
          :set_adjacent(_radiant.sim.alloc_region3())
          :set_reserved(_radiant.sim.alloc_region3())
       self:set_region(_radiant.sim.alloc_region3())
+      self._sv.mining_zone_enabled = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -58,7 +59,7 @@ function MiningZoneComponent:_restore()
       end)
    
    self:_trace_region()
-   self:_create_mining_task()
+   self:_update_mining_task()
 end
 
 function MiningZoneComponent:destroy()
@@ -87,6 +88,19 @@ function MiningZoneComponent:mine_point(point)
    if self._destination_component:get_region():get():empty() then
       radiant.entities.destroy_entity(self._entity)
    end
+end
+
+function MiningZoneComponent:set_mining_zone_enabled(enabled)
+   if self._sv.mining_zone_enabled == enabled then
+      return
+   end
+
+   self._sv.mining_zone_enabled = enabled
+   self:_update_mining_task()
+end
+
+function MiningZoneComponent:get_mining_zone_enabled()
+   return self._sv.mining_zone_enabled
 end
 
 function MiningZoneComponent:_trace_region()
@@ -451,6 +465,14 @@ function MiningZoneComponent:_destroy_mining_task()
    if self._mining_task then
       self._mining_task:destroy()
       self._mining_task = nil
+   end
+end
+
+function MiningZoneComponent:_update_mining_task()
+   if self._sv.mining_zone_enabled then
+      self:_create_mining_task()
+   else
+      self:_destroy_mining_task()
    end
 end
 

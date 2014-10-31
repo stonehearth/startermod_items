@@ -30,12 +30,12 @@ function SubterraneanViewService:initialize()
       end)
 
    self._initialize_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
-         -- wait for the root entity to show up before updating
          local root_entity = _radiant.client.get_object(1)
          if root_entity and root_entity:is_valid() then
-            self:_update()
+            -- still broken, need to wait for the renderterrain object to be created
+            --self:_update()
+            self:_destroy_initialize_listener()
          end
-         self:_destroy_initialize_listener()
       end)
 end
 
@@ -54,11 +54,7 @@ end
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
       if e.key == _radiant.client.KeyboardInput.KEY_BACKSLASH then
-         if self._sv.clip_enabled then
-            self._sv.clip_enabled = false
-         else
-            self._sv.clip_enabled = true
-         end
+         self._sv.clip_enabled = not self._sv.clip_enabled
          self.__saved_variables:mark_changed()
          self:_update()
          return true
@@ -66,13 +62,13 @@ function SubterraneanViewService:_on_keyboard_event(e)
 
       if self._sv.clip_enabled then
          if e.key == _radiant.client.KeyboardInput.KEY_LEFT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height - constants.mining.Y_ALIGN
+            self._sv.clip_height = self._sv.clip_height - constants.mining.Y_CELL_SIZE
             self.__saved_variables:mark_changed()
             self:_update()
             return true
          end
          if e.key == _radiant.client.KeyboardInput.KEY_RIGHT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height + constants.mining.Y_ALIGN
+            self._sv.clip_height = self._sv.clip_height + constants.mining.Y_CELL_SIZE
             self.__saved_variables:mark_changed()
             self:_update()
             return true

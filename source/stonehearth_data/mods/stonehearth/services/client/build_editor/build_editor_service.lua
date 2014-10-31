@@ -153,14 +153,10 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
                         end
                      end)
             end
+            response:resolve('done')
          end)
       :fail(function(selector)
-         selector:destroy()
-         response:reject('failed')
-         end)
-      :always(function(selector)
-            selector:destroy()
-            response:resolve('done')
+            response:reject('failed')
          end)
       :go()   
 end
