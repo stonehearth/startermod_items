@@ -659,6 +659,7 @@
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
       "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
       "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
+      "sounds:tree_fall" : "file(data/sounds/effects/sh_treefall.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",

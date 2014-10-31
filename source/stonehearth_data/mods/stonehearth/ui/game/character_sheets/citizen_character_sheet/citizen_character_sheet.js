@@ -60,7 +60,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    //Updates job related attributes
    _updateJobData : function() {
-
       this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
    }.observes('context.stonehearth:job'),
@@ -83,6 +82,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             //For each, figure out which perks should be unlocked
             self._unlockPerksToLevel(div, data.last_gained_lv)
 
+            //special case: if the alias is worker, then hide the 
+            if (alias == 'stonehearth:jobs:worker') {
+               $(div).find('.progressionSummary').hide();
+            }
+
             $(div).show();
          }
       });
@@ -90,10 +94,15 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       //Highlight current class, since it needs to be 100% up to date
       $('.activeClassNameHeader').removeClass('activeClassNameHeader');
       $('.className').addClass('retiredClassNameHeader');
+      $('.jobData').addClass('retiredEffect');
       var currClassAlias = this.get('context.stonehearth:job.job_uri');
       var $currClass = $("[uri='" + currClassAlias + "']");
+      $currClass.prependTo("#citizenCharacterSheet #abilitiesTab");
       $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
+      $currClass.removeClass('retiredEffect');
+      //$currClass.removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
       self._unlockPerksToLevel($currClass,  this.get('context.stonehearth:job.curr_job_controller.last_gained_lv'))
+      $currClass.find('.retiredAt').hide();
 
       //Make the job tooltips
       this._updateJobTooltips();
@@ -115,6 +124,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       } else {
          $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:level_text') + target_level );
       }
+
+      //Calculate the height of the jobPerks section based on the number of perkDivs
+      //TODO: factor these magic numbers out or change if/when the icons change size
+      var numPerks = $(target_div).find('.perkDiv').length;
+      if (numPerks == 0) {
+         $(target_div).find('.jobPerks').css('height', '0px');
+      } else {
+         var num_rows = parseInt(numPerks/8) + 1;
+         var total_height = num_rows * 90;
+         $(target_div).find('.jobPerks').css('height', total_height + 'px');
+      }
+
+      $(target_div).find('.retiredAt').show();
    },
 
    //Make tooltips for the perks

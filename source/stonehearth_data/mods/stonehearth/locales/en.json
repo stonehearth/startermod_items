@@ -381,6 +381,7 @@
    "zoomToChar" : "Find Person", 
    "classPerks" : "Class Perks", 
    "generalPerks" : "General Perks",
+   "retired" : "Retired at:",
 
    "red_alert": "Red Alert!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
