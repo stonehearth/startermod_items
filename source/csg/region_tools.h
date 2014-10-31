@@ -49,7 +49,7 @@ public:
    EdgeMap<S, C> GetEdgeMap(Region<S, C> const& region);
    Region<double, C> GetInnerBorder(Region<S, C> const& region, double d);
 
-   Region<S, C-1> GetCrossSection(Region<S, C> region, int dimension, int value);
+   Region<S, C-1> GetCrossSection(Region<S, C> region, int dimension, S value);
 
 private:
    void ForEachPlane(typename Traits::PlaneMap const& front, typename Traits::PlaneMap const& back,

@@ -30,7 +30,8 @@ end
 
 -- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, region)
-   local inflated_region = region:inflated(Point3.one)
+   -- only merge zones in the same xz slice
+   local inflated_region = region:inflated(Point3(1, 0, 1))
 
    -- using town as a proxy for the eventual player object
    local town = stonehearth.town:get_town(player_id)

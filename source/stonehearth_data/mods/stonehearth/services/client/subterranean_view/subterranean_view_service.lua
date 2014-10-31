@@ -30,12 +30,12 @@ function SubterraneanViewService:initialize()
       end)
 
    self._initialize_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
-         -- wait for the root entity to show up before updating
          local root_entity = _radiant.client.get_object(1)
          if root_entity and root_entity:is_valid() then
-            self:_update()
+            -- still broken, need to wait for the renderterrain object to be created
+            --self:_update()
+            self:_destroy_initialize_listener()
          end
-         self:_destroy_initialize_listener()
       end)
 end
 
