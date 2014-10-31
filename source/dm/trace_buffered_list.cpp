@@ -18,6 +18,7 @@ bool TraceBufferedList::IsEmpty() const
       if (i->lock()) {
          return false;
       }
+      ++i;
    }
 
    i = _pendingTraces.begin(), end = _pendingTraces.end();
@@ -25,6 +26,7 @@ bool TraceBufferedList::IsEmpty() const
       if (i->lock()) {
          return false;
       }
+      ++i;
    }
    return true;
 }
