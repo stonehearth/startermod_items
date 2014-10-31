@@ -1,0 +1,27 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(window_box_brightbell.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": -0.5, "z": -0.5 },
+         "region_origin" : { "x": 0.0, "y": 0, "z": 0.0 },
+         "align_to_grid" : [ "x" ]
+      },      
+      "render_info" : {
+         "scale" : 0.10
+      },     
+      "unit_info": {
+         "name": "Brightbell planter",
+         "description": "A tidy home for the plant.",
+         "icon" : "file(window_box_brightbell.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted"
+      }
+   }
+}

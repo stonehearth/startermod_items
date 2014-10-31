@@ -1,0 +1,35 @@
+{
+   "mixins" : "file(wooden_door_ghost.json)",
+
+   "components" : {
+      "sensor_list": {
+         "sensors": {
+            "door_sensor": {
+               "type": "sensor",
+               "radius": 2
+            }
+         }
+      },
+
+      "stonehearth:door" : {
+         "sensor" : "door_sensor"
+      },
+
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_door_iconic.json)",
+         "ghost_form" : "file(wooden_door_ghost.json)",
+         "placeable_on_walls" : true,
+         "hide_placement_ui" : true
+      },
+
+      "region_collision_shape" : {
+         "region_collision_type" : "none",
+         "region": [
+            {
+               "min" : { "x" : -2, "y" : 0,  "z" : -2 },
+               "max" : { "x" :  1, "y" : 4, "z" :  1 }
+            }
+         ]
+      }
+   }
+}
