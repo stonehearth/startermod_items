@@ -97,7 +97,7 @@ App.StonehearthCrafterView = App.View.extend({
       if (this.get('formatted_recipes')) {
          return;
       }
-      
+
       $.each(recipes, function(name, category) {
          $.each(category.recipes, function(i, recipe) {
             $.each(recipe.ingredients, function(i, ingredient) {
@@ -150,9 +150,14 @@ App.StonehearthCrafterView = App.View.extend({
       }
    },
 
+   _setTooltips: function() {
+      this.$('[title]').tooltipster();
+   },
+
    actions: {
       select: function(object, remaining, maintainNumber) {
          this.set('currentRecipe', object);
+         Ember.run.scheduleOnce('afterRender', this, '_setTooltips');
          if (this.currentRecipe) {
             //You'd think that when the object updated, the variable would update, but noooooo
             this.set('context.data.current', this.currentRecipe);
@@ -293,14 +298,11 @@ App.StonehearthCrafterView = App.View.extend({
          
       });
 
-      this.$().on('mouseenter', '[title]', function() {
-         $(this).tooltipster();
-      });
-
+      self.$('[title]').tooltipster();
       // select the first recipe
       this.$("#recipeItems").find("[unlock_level='0']")[0].click();
 
-   }, 
+   },
 
    _setRadioButtons: function(remaining, maintainNumber) {
       //Set the radio buttons correctly
