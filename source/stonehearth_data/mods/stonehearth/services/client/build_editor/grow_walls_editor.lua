@@ -34,16 +34,11 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
             if building then
                _radiant.call_obj(self._build_service, 'grow_walls_command', building, columns_uri, walls_uri)
             end
+            response:resolve('done')
          end)
       :fail(function(selector)
             log:detail('failed to select building')
-            selector:destroy()
             response:reject('failed')
-         end)
-      :always(function(selector)
-            log:detail('selector called always')
-            selector:destroy()
-            response:resolve('done')
          end)
       :go()
 

@@ -36,14 +36,14 @@ end
 function EntitySelector:resolve(...)
    self:_call_once('done', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   self:_cleanup()
    return self
 end
 
 function EntitySelector:reject(...)
    self:_call_once('fail', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   self:_cleanup()
    return self
 end
 
@@ -54,7 +54,9 @@ function EntitySelector:notify(...)
    return self
 end
 
-function EntitySelector:_cleanup_promise()
+function EntitySelector:_cleanup()
+   stonehearth.selection:register_tool(self, true)
+
    self._fail_cb = nil
    self._progress_cb = nil
    self._done_cb = nil
@@ -64,6 +66,11 @@ function EntitySelector:_cleanup_promise()
       self._input_capture:destroy()
       self._input_capture = nil
    end
+
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
 end
 
 function EntitySelector:set_filter_fn(fn)
@@ -72,24 +79,8 @@ function EntitySelector:set_filter_fn(fn)
 end
 
 function EntitySelector:set_cursor(uri)
-   self._cursor = uri
+   self._cursor_uri = uri
    return self
-end
-
--- destroy the location selector.  needs to be called when the user is
--- "done" with the selection, usually in an :always() promise callback,
--- though the user may choose to keep it around till later if they'd like
--- the cursor entity to stick around (e.g. in a multi-step wizard)
---
-function EntitySelector:destroy()
-   stonehearth.selection:register_tool(self, true)
-
-   self:reject({ error = 'selector destroyed'})
-
-   if self._cursor_obj then
-      self._cursor_obj:destroy()
-      self._cursor_obj = nil
-   end
 end
 
 -- given the x, y coordinate on screen, return the brick that is a
@@ -128,11 +119,12 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
    -- if the user installed a progress handler, go ahead and call it now
    self:notify(entity)
 
-   local cursor_uri = entity and self._cursor or 'stonehearth:cursors:invalid_hover'
-   if self._cursor_obj_uri ~= cursor_uri then
+   local cursor_uri = entity and self._cursor_uri or 'stonehearth:cursors:invalid_hover'
+   if self._last_cursor_uri ~= cursor_uri then
       if self._cursor_obj then
          self._cursor_obj:destroy()
       end
+      self._last_cursor_uri = cursor_uri
       self._cursor_obj = _radiant.client.set_cursor(cursor_uri)
    end
 
@@ -157,6 +149,8 @@ function EntitySelector:go()
                                  return true
                               end)
 
+   self._last_cursor_uri = self._cursor_uri
+   self._cursor_obj = _radiant.client.set_cursor(self._cursor_uri)
    -- fake an initial event to move the cursor under the mouse
    if self._progress_cb then
       self:_on_mouse_event(_radiant.client.get_mouse_position())
