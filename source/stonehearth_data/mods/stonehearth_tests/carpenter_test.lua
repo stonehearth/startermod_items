@@ -16,8 +16,8 @@ function CarpenterTest:__init()
 
    --Create the carpenter. You will have to create the bench as part of the test
    local carpenter = self:place_citizen(-12, 7, 'carpenter')
-   self:place_citizen(-12, 7, 'footman')
-   self:place_citizen(-12, 7)
+   --self:place_citizen(-12, 7, 'footman')
+   --self:place_citizen(-12, 7)
 
    local player_id = radiant.entities.get_player_id(carpenter)
 
@@ -35,8 +35,8 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:furniture:picket_fence', 2, 3)
    self:place_item('stonehearth:furniture:picket_fence', 3, 3)
    self:place_item('stonehearth:furniture:picket_fence', 4, 3)
-   self:place_item('stonehearth:furniture:picket_fence', 5, 3)
-   self:place_item('stonehearth:furniture:picket_fence', 6, 3)
+   self:place_item('stonehearth:plants:frostsnap', 6, 3)
+   self:place_item('stonehearth:plants:brightbell', 6, 3)
    self:place_item('stonehearth:firepit', 7, 3, player_id)
    self:place_item('stonehearth:firepit', 9, 3, player_id)
 

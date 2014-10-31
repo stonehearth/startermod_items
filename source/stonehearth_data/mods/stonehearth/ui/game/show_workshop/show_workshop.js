@@ -90,9 +90,36 @@ App.StonehearthCrafterView = App.View.extend({
       self.destroy();
    },
 
-   _formatRecipeIngredients: function() {
+   _addIngredientImages: function() {
+      var self = this;
+      var recipes = self.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
+      
 
-   }.observes('view.currentRecipe'),
+      $.each(recipes, function(name, category) {
+         $.each(category.recipes, function(i, recipe) {
+            $.each(recipe.ingredients, function(i, ingredient) {
+               if (ingredient.material) {
+                  var formatting = App.constants.formatting.resources[ingredient.material];
+                  if (formatting) {
+                     ingredient.name = formatting.name;
+                     ingredient.icon = formatting.icon;
+                  } else {
+                     // XXX, roll back to some generic icon
+                     ingredient.name = ingredient.material;
+                  }
+               } else {
+                  radiant.trace(ingredient.uri)
+                     .progress(function(json) {
+                        ingredient.icon = json.components.unit_info.icon;
+                        ingredient.name = json.components.unit_info.name;
+                     });
+               }
+            })
+         })
+      })
+
+      self.set('formatted_recipes', recipes);
+   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes'),
 
    //Updates the recipe display
    _updateRecipesOnLevel: function() {
@@ -121,7 +148,6 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    actions: {
-
       select: function(object, remaining, maintainNumber) {
          this.set('currentRecipe', object);
          if (this.currentRecipe) {
@@ -130,6 +156,7 @@ App.StonehearthCrafterView = App.View.extend({
             this._setRadioButtons(remaining, maintainNumber);
             //TODO: make the selected item visually distinct
             this.preview();
+            console.log(object.ingredients[0]);
          }
       },
 
@@ -220,7 +247,6 @@ App.StonehearthCrafterView = App.View.extend({
          return;
       }
 
-      self._buildRecipeList();
       self._buildOrderList();
 
       self.$("#craftWindow")
@@ -231,6 +257,46 @@ App.StonehearthCrafterView = App.View.extend({
          }, function () {
             $(this).find('#craftButtonLabel').fadeOut();
          });
+
+      self.$('#searchInput').keyup(function (e) {
+         var search = $(this).val();
+
+         if (!search || search == '') {
+            self.$('.item').show();
+            self.$('.category').show();
+         } else {
+            // hide items that don't match the search
+            self.$('.item').each(function(i, item) {
+               var el = $(item);
+               var itemName = el.attr('title').toLowerCase();
+
+               if(itemName.indexOf(search) > -1) {
+                  el.show();
+               } else {
+                  el.hide();
+               }
+            })
+
+            self.$('.category').each(function(i, category) {
+               var el = $(category)
+
+               if (el.find('.item:visible').length > 0) {
+                  el.show();
+               } else {
+                  el.hide();
+               }
+            })
+         }
+         
+      });
+
+      this.$().on('mouseenter', '[title]', function() {
+         $(this).tooltipster();
+      });
+
+      // select the first recipe
+      this.$("#recipeItems").find("[unlock_level='0']")[0].click();
+
    }, 
 
    _setRadioButtons: function(remaining, maintainNumber) {
@@ -320,76 +386,6 @@ App.StonehearthCrafterView = App.View.extend({
 
    }.observes('context.data.stonehearth:workshop.is_paused'),
 
-   _buildRecipeList: function() {
-      var self = this;
-
-      this._buildRecipeArray();
-
-      this.$( "#searchInput" ).autocomplete({
-         source: allRecipes,
-         select: function( event, ui ) {
-            event.preventDefault();
-            //TODO: put the values in a hash by their names
-            //TODO: associate functionality with search box
-            //TODO: fix search box
-            console.log("selecting... " + ui.item.value);
-            //$("#searchInput").val(ui.item.label);
-            this.val = ui.item.label;
-            self.send('select', ui.item.value)
-         },
-         focus: function (event, ui) {
-            event.preventDefault();
-            this.value = ui.item.label;
-         },
-      }).keydown(function(e){
-         //On enter
-         var userInput = this.value.toLowerCase();
-         if (e.keyCode === 13) {
-            self.findAndSelectRecipe();
-         }
-      }).focus();
-      
-      // select the first recipe
-      this.$("#recipeItems").find("[unlock_level='0']")[0].click();
-     
-   },
-
-   findAndSelectRecipe: function() {
-      var userInput = this.$("#searchInput").val().toLowerCase(),
-          currRecipe = this.get('context.data.current.recipe_name');
-      if ( !currRecipe || (currRecipe && (currRecipe.toLowerCase() != userInput)) ) {
-         //Look to see if we have a recipe named similar to the contents
-         var numRecipes = allRecipes.length;
-         for (var i=0; i<numRecipes; i++) {
-            if (userInput == allRecipes[i].label.toLowerCase()) {
-               this.send('select', allRecipes[i].value);
-               this.$(".ui-autocomplete").hide();
-               break;
-            }
-         }
-      } else if (currRecipe && (currRecipe.toLowerCase() == userInput)) {
-         //If the recipe is already selected and the menu is open, just hide the menu
-         this.$(".ui-autocomplete").hide();
-      }
-   },
-
-   allRecipes: null,
-
-   _buildRecipeArray: function() {
-      allRecipes = new Array();
-      var craftableRecipeArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes')
-      var numCategories = craftableRecipeArr.length;
-      for (var i = 0; i < numCategories; i++) {
-         var recipes = craftableRecipeArr[i].recipes;
-         var numRecipes = recipes.length;
-         for (var j = 0; j < numRecipes; j++) {
-            allRecipes.push({
-               label: recipes[j].recipe_name ,
-               category: craftableRecipeArr[i].category,
-               value: recipes[j]});
-         }
-      }
-   },
 
    //Attach sortable/draggable functionality to the order
    //list. Hook order list onto garbage can. Set up scroll
