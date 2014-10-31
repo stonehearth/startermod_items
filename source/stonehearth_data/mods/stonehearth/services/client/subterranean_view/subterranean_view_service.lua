@@ -54,11 +54,7 @@ end
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
       if e.key == _radiant.client.KeyboardInput.KEY_BACKSLASH then
-         if self._sv.clip_enabled then
-            self._sv.clip_enabled = false
-         else
-            self._sv.clip_enabled = true
-         end
+         self._sv.clip_enabled = not self._sv.clip_enabled
          self.__saved_variables:mark_changed()
          self:_update()
          return true

@@ -41,7 +41,7 @@ function MiningZoneComponent:initialize(entity, json)
          :set_adjacent(_radiant.sim.alloc_region3())
          :set_reserved(_radiant.sim.alloc_region3())
       self:set_region(_radiant.sim.alloc_region3())
-      self._sv.enable_mining_task = true
+      self._sv.mining_zone_enabled = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -90,22 +90,17 @@ function MiningZoneComponent:mine_point(point)
    end
 end
 
-function MiningZoneComponent:enable_mining()
-   if self._sv.enable_mining_task then
+function MiningZoneComponent:set_mining_zone_enabled(enabled)
+   if self._sv.mining_zone_enabled == enabled then
       return
    end
 
-   self._sv.enable_mining_task = true
+   self._sv.mining_zone_enabled = enabled
    self:_update_mining_task()
 end
 
-function MiningZoneComponent:disable_mining()
-   if not self._sv.enable_mining_task then
-      return
-   end
-
-   self._sv.enable_mining_task = false
-   self:_destroy_mining_task()
+function MiningZoneComponent:get_mining_zone_enabled()
+   return self._sv.mining_zone_enabled
 end
 
 function MiningZoneComponent:_trace_region()
@@ -474,7 +469,7 @@ function MiningZoneComponent:_destroy_mining_task()
 end
 
 function MiningZoneComponent:_update_mining_task()
-   if self._sv.enable_mining_task then
+   if self._sv.mining_zone_enabled then
       self:_create_mining_task()
    else
       self:_destroy_mining_task()
