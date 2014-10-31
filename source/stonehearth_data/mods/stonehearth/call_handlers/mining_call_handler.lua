@@ -17,8 +17,10 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       return
    end
 
-   local xz_align = constants.mining.XZ_ALIGN
-   local y_align = constants.mining.Y_ALIGN
+   local edge_color = Color4(255, 255, 0, 128)
+   local face_color = Color4(255, 255, 0, 16)
+   local xz_cell_size = constants.mining.XZ_CELL_SIZE
+   local y_cell_size = constants.mining.Y_CELL_SIZE
 
    local aligned_floor = function(value, align)
       return math.floor(value / align) * align
@@ -28,25 +30,31 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       return math.ceil(value / align) * align
    end
 
+   local get_cell_min = aligned_floor
+
+   local get_cell_max = function(value, cell_size)
+      return get_cell_min(value, cell_size) + cell_size-1
+   end
+
    local get_proposed_points = function(p0, p1)
       if not p0 or not p1 then
          return nil, nil
       end
       
+      -- Set the y level to the top of the zone
       local y_offset = mode == 'out' and -1 or 0
-      local y = aligned_floor(p0.y, y_align) + y_align-1 + y_offset
+      local y = get_cell_max(p0.y, y_cell_size) + y_offset
       local q0 = Point3(p0.x, y, p0.z)
       local q1 = Point3(p1.x, y, p1.z)
 
-      -- expand q0 and q1 so they span the the quantized region
-      -- expand q0 and q1 so they span the the quantized region
+      -- Expand q0 and q1 so they span the the quantized region
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
-            q0[d] = aligned_floor(q0[d], xz_align)
-            q1[d] = aligned_floor(q1[d], xz_align) + xz_align-1
+            q0[d] = get_cell_min(q0[d], xz_cell_size)
+            q1[d] = get_cell_max(q1[d], xz_cell_size)
          else
-            q0[d] = aligned_floor(q0[d], xz_align) + xz_align-1
-            q1[d] = aligned_floor(q1[d], xz_align)
+            q0[d] = get_cell_max(q0[d], xz_cell_size)
+            q1[d] = get_cell_min(q1[d], xz_cell_size)
          end
       end
       log:spam('proposed point transform: %s, %s -> %s, %s', p0, p1, q0, q1)
@@ -59,21 +67,24 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
          return nil, nil
       end
       
+      assert(p0.y == p1.y)
       local q0 = Point3(p0.x, p0.y, p0.z)
       local q1 = Point3(p1.x, p1.y, p1.z)
 
-      -- contract q0 and q1 to the largest quantized region that fits inside the validated region
-      -- this code is ugly. find a clearer way to do this
+      -- Contract q1 to the largest quantized region that fits inside the validated region.
+      -- q0's final location is the same as the proposed location, which must be valid
+      -- or we wouldn't be asked to resolve.
+      -- This code is ugly. Find a clearer way to do this.
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
-            q0[d] = aligned_floor(q0[d], xz_align)
-            q1[d] = aligned_floor(q1[d]+1, xz_align) - 1
+            assert(q0[d] == get_cell_min(q0[d], xz_cell_size))
+            q1[d] = aligned_floor(q1[d]+1, xz_cell_size) - 1
             if q1[d] < q0[d] then
                return nil, nil
             end
          else
-            q0[d] = aligned_floor(q0[d], xz_align) + xz_align-1
-            q1[d] = aligned_ceil(q1[d], xz_align)
+            assert(q0[d] == get_cell_max(q0[d], xz_cell_size))
+            q1[d] = aligned_ceil(q1[d], xz_cell_size)
             if q0[d] < q1[d] then
                return nil, nil
             end
@@ -94,7 +105,7 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
          end)
       :use_manual_marquee(function(selector, box)
             local region = self:_get_dig_region(box, mode)
-            local render_node = _radiant.client.create_region_outline_node(1, region, Color4(255, 255, 0, 0))
+            local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
             return render_node
          end)
       :done(function(selector, box)
@@ -136,7 +147,7 @@ function MiningCallHandler:_get_dig_region(selection_box, mode)
 end
 
 function MiningCallHandler:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_ALIGN, constants.mining.Y_ALIGN)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 -- test code
