@@ -30,7 +30,8 @@ end
 
 -- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, region)
-   local inflated_region = region:inflated(Point3.one)
+   -- only merge zones in the same xz slice
+   local inflated_region = region:inflated(Point3(1, 0, 1))
 
    -- using town as a proxy for the eventual player object
    local town = stonehearth.town:get_town(player_id)
@@ -234,7 +235,7 @@ function MiningService:_transform_cubes_in_region(region, cube_transform)
 end
 
 function MiningService:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_ALIGN, constants.mining.Y_ALIGN)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filter)

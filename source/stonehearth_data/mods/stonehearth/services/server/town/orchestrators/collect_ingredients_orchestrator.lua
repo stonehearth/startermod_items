@@ -4,7 +4,7 @@ local IngredientList = require 'components.workshop.ingredient_list'
 function CollectIngredients:run(town, args)
    local task_group = args.task_group
    local workshop = args.workshop
-   local ingredients = IngredientList(args.ingredients)
+   local ingredients = IngredientList(workshop, args.ingredients)
    self._craft_order_list = args.order_list
    self._order = args.order
 
@@ -12,12 +12,10 @@ function CollectIngredients:run(town, args)
       self._order_list_listener = radiant.events.listen(self._craft_order_list, 'stonehearth:order_list_changed', self, self._on_order_list_changed)
    end
 
-   ingredients:remove_contained_ingredients(workshop)
-
    while not ingredients:completed() do
       local ing = ingredients:get_next_ingredient()
       local args = {
-         material = ing.material,
+         ingredient = ing,
          workshop = workshop,
          ingredient_list = ingredients,
       }

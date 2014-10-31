@@ -66,6 +66,8 @@ App.StonehearthZonesModeView = App.View.extend({
          this._showFarmUi(entity);
       } else if (entity['stonehearth:trapping_grounds']) {
          this._showTrappingGroundsUi(entity);
+      } else if (entity['stonehearth:mining_zone']) {
+         this._showMiningZoneUi(entity);
       }
    },
 
@@ -117,9 +119,28 @@ App.StonehearthZonesModeView = App.View.extend({
       };
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
-      
-      // TODO: refactor parameters with stockpile and farm?
+
       this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
+            uri: uri,
+            position_hide: {
+               my : 'center bottom',
+               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
+               of : $(document),
+               collision : 'fit'
+            }
+         });
+   },
+
+   _showMiningZoneUi: function(entity) {
+      var self = this;
+
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
+      var uri = typeof(entity) == 'string' ? entity : entity.__self;
+      
+      this._propertyView = App.gameView.addView(App.StonehearthMiningZoneView, { 
             uri: uri,
             position_hide: {
                my : 'center bottom',

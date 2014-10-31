@@ -149,7 +149,8 @@ $(document).ready(function() {
       _getModeForEntity: function(entity) {
          if (entity['stonehearth:stockpile'] ||
              entity['stonehearth:farmer_field'] ||
-             entity['stonehearth:trapping_grounds']) {
+             entity['stonehearth:trapping_grounds'] ||
+             entity['stonehearth:mining_zone']) {
             return this.modes.ZONES;
          }
 

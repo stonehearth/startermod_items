@@ -106,14 +106,18 @@ end
 function XZRegionSelector:resolve(...)
    self:_call_once('done', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
+   self:_cleanup()
    return self
 end
 
 function XZRegionSelector:reject(...)
    self:_call_once('fail', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
+   self:_cleanup()
    return self
 end
 
@@ -124,7 +128,9 @@ function XZRegionSelector:notify(...)
    return self
 end
 
-function XZRegionSelector:_cleanup_promise()
+function XZRegionSelector:_cleanup()
+   stonehearth.selection:register_tool(self, false)
+
    self._fail_cb = nil
    self._progress_cb = nil
    self._done_cb = nil
@@ -137,8 +143,28 @@ function XZRegionSelector:_cleanup_promise()
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
+   end
+
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
+   end
+
+   if self._x_ruler then
+      self._x_ruler:destroy()
+      self._x_ruler = nil
    end   
+
+   if self._z_ruler then
+      self._z_ruler:destroy()
+      self._z_ruler = nil
+   end
 end
+
+function XZRegionSelector:destroy()
+   self:reject('destroy')
+end
+
 -- set the 'can_contain_entity_filter'.  when growing the xz region,
 -- make sure that it does *not* contain any of the entities for which
 -- this filter returns false
@@ -169,25 +195,6 @@ end
 function XZRegionSelector:use_manual_marquee(marquee_fn)
    self._create_marquee_fn = marquee_fn
    return self
-end
-
-function XZRegionSelector:destroy()
-   stonehearth.selection:register_tool(self, false)
-
-   self:reject({ error = 'selection cancelled' })
-
-   if self._render_node then
-      self._render_node:destroy()
-      self._render_node = nil
-   end
-   if self._x_ruler then
-      self._x_ruler:destroy()
-      self._x_ruler = nil
-   end   
-   if self._z_ruler then
-      self._z_ruler:destroy()
-      self._z_ruler = nil
-   end   
 end
 
 -- create the cube for the xz region given endpoints p0 and p1.

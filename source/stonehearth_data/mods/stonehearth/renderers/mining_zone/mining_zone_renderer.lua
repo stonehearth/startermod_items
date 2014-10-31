@@ -7,7 +7,8 @@ local MiningZoneRenderer = class()
 function MiningZoneRenderer:initialize(render_entity, datastore)
    self._parent_node = render_entity:get_node()
    self._datastore = datastore
-   self._outline_color = Color4(255, 255, 0, 0)
+   self._edge_color = Color4(255, 255, 0, 128)
+   self._face_color = Color4(255, 255, 0, 16)
 
    self._ui_view_mode = stonehearth.renderer:get_ui_mode()
    self._ui_mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
@@ -35,14 +36,22 @@ function MiningZoneRenderer:destroy()
 end
 
 function MiningZoneRenderer:_destroy_outline_node()
-   if self._render_node then
-      self._render_node:destroy()
-      self._render_node = nil
+   if self._outline_node then
+      self._outline_node:destroy()
+      self._outline_node = nil
+   end
+end
+
+function MiningZoneRenderer:_destroy_selection_node()
+   if self._selection_node then
+      self._selection_node:destroy()
+      self._selection_node = nil
    end
 end
 
 function MiningZoneRenderer:_update()
    self:_destroy_outline_node()
+   self:_destroy_selection_node()
 
    if not self:_in_hud_mode() then
       return
@@ -51,7 +60,7 @@ function MiningZoneRenderer:_update()
    local data = self._datastore:get_data()
    local region = data.region:get()
 
-   self._render_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._outline_color)
+   self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._edge_color, self._face_color)
 end
 
 function MiningZoneRenderer:_on_ui_mode_changed()

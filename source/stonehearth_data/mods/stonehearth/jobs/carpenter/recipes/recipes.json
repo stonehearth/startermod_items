@@ -78,8 +78,13 @@
          },
          "wooden_sign_weaver" : {
             "uri" : "file(wooden_sign_weaver_recipe.json)" 
-         }
-
+         },
+         "window_box_brightbell" : {
+            "uri" : "file(window_box_brightbell_recipe.json)" 
+         },
+         "window_box_frostsnap" : {
+            "uri" : "file(window_box_frostsnap_recipe.json)" 
+         }         
       }
    }
 }
