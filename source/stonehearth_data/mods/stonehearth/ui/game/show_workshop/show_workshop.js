@@ -94,7 +94,10 @@ App.StonehearthCrafterView = App.View.extend({
       var self = this;
       var recipes = self.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
       
-
+      if (this.get('formatted_recipes')) {
+         return;
+      }
+      
       $.each(recipes, function(name, category) {
          $.each(category.recipes, function(i, recipe) {
             $.each(recipe.ingredients, function(i, ingredient) {
