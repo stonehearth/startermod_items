@@ -61,9 +61,9 @@ function DoodadPlacer:_on_mouse_event(e)
                log:detail('got blueprint %s', tostring(blueprint))
                log:detail('creating wall editor for blueprint: %s', blueprint)
                self._wall_editor = PortalEditor(self._build_service)
-                                 :begin_editing(fabricator, blueprint, project)
-                                 :set_fixture_uri(self._uri)
-                                 :go()
+                                       :begin_editing(fabricator, blueprint, project)
+                                       :set_fixture_uri(self._uri)
+                                       :go()
             end
          end
          if self._wall_editor then
@@ -74,7 +74,6 @@ function DoodadPlacer:_on_mouse_event(e)
    if e:up(1) then
       if self._wall_editor then
          self._wall_editor:submit(self._response)
-         self._wall_editor = nil
 
          -- the wall editor will submit the response.  nil it out here so we
          -- don't fail it in destroy
