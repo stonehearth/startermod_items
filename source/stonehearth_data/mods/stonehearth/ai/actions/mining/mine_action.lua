@@ -24,11 +24,10 @@ return ai:create_compound_action(Mine)
          })
          :execute('stonehearth:mining:get_block_to_mine', {
             mining_zone = ai.ARGS.mining_zone,
-            default_point_of_interest = ai.PREV.point_of_interest,
          })
-         :execute('stonehearth:reserve_entity_destination', {
+         :execute('stonehearth:reserve_entity_destination_region', {
             entity = ai.ARGS.mining_zone,
-            location = ai.PREV.block,
+            region = ai.PREV.reserved_region,
          })
          :execute('stonehearth:mining:mine_adjacent', {
             mining_zone = ai.ARGS.mining_zone,

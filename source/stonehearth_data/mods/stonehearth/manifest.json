@@ -374,6 +374,7 @@
       "actions:call_method" : "file(ai/actions/call_method.lua)",
       "actions:reserve_entity" : "file(ai/actions/reserve_entity.lua)",
       "actions:reserve_entity_destination" : "file(ai/actions/reserve_entity_destination.lua)",
+      "actions:reserve_entity_destination_region" : "file(ai/actions/reserve_entity_destination_region.lua)",
       "actions:pickup_item_on_table_action" : "file(ai/actions/pickup_item_on_table_action.lua)",
       "actions:craft_action" : "file(ai/actions/craft_action.lua)",
       "actions:fill_outbox_action" : "file(ai/actions/fill_outbox_action.lua)",
