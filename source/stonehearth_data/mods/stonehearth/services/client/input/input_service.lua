@@ -42,7 +42,7 @@ function InputService:_dispatch_input(e)
       -- event propagation
       if capture:_dispatch(e) then
         log:detail('input capture %d handled input.', i)
-        return true
+         return true
       end
     end
   end

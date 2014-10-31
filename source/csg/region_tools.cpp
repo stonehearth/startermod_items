@@ -272,7 +272,7 @@ void RegionTools<S, 1>::ForEachEdge(Region<S, 1> const& region, typename RegionT
 }
 
 template <typename S, int C>
-Region<S, C-1> RegionTools<S, C>::GetCrossSection(Region<S, C> region, int dimension, int value)
+Region<S, C-1> RegionTools<S, C>::GetCrossSection(Region<S, C> region, int dimension, S value)
 {
    Region<S, C-1> cross_section;
    int d = dimension;
@@ -285,7 +285,7 @@ Region<S, C-1> RegionTools<S, C>::GetCrossSection(Region<S, C> region, int dimen
    }
 
    for (Cube<S, C> const& cube : EachCube(region)) {
-      if (cube.min[d] <= value && cube.max[d] > value) {
+      if (IsBetween(cube.min[d], value, cube.max[d])) {
          Point<S, C-1> min, max;
          for (int i = 0; i < C-1; i++) {
             min[i] = cube.min[surviving_dimensions[i]];

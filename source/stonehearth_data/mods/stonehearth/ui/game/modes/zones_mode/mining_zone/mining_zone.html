@@ -1,0 +1,18 @@
+<script type="text/x-handlebars" data-template-name="stonehearthMiningZone">
+   <div id="miningZoneWindow" class="gui">
+      <div class="window">
+         <div class="title">
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} /> <div class="closeButton"></div>
+         </div>
+
+         <p>{{i18n stonehearth:mining_zone_help}}</p>
+         <center>
+            
+         </center>
+
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <button id="disableButton">{{i18n stonehearth:mining_zone_disable}}</button>
+         <button class="ok"></button>
+      </div>
+   </div>
+</script>

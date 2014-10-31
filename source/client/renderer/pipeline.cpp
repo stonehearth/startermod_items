@@ -72,6 +72,13 @@ void h3dRemoveNodeChecked(H3DRes node)
    }
 }
 
+static void EnablePolygonOffset(H3DNode node)
+{
+   h3dSetNodeParamI(node, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 0, -1.0);
+   h3dSetNodeParamF(node, H3DModel::PolygonOffsetF, 1, -.01f);
+}
+
 Pipeline::Pipeline() :
    unique_id_(1)
 {
@@ -203,17 +210,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
       ->SetMaterial("materials/designation/stripes.material.xml");
 
    h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
-   h3dSetNodeParamI(stripes->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(stripes->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
+   EnablePolygonOffset(stripes->GetNode());
 
    RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
       ->SetMaterial("materials/designation/outline.material.xml");
 
    h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
-   h3dSetNodeParamI(outline->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(outline->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);  
+   EnablePolygonOffset(outline->GetNode());
 
    group->AddChild(stripes);
    group->AddChild(outline);
@@ -256,19 +259,46 @@ namespace std {
 RenderNodePtr
 Pipeline::CreateRegionOutlineNode(H3DNode parent,
                                   csg::Region3 const& region,
-                                  csg::Color4 const& color)
+                                  csg::Color4 const& edge_color,
+                                  csg::Color4 const& face_color)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
-   H3DNode node = h3dRadiantAddDebugShapes(parent, "RegionOutlineNode");
    csg::RegionTools3 tools;
 
-   tools.ForEachUniqueEdge(region, [&node, &offset, &color](csg::EdgeInfo3 const& edge_info) {
-      h3dRadiantAddDebugLine(node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, color);
-   });
+   RenderNodePtr group_node = RenderNode::CreateGroupNode(parent, "RegionOutlineNode");
 
-   h3dRadiantCommitDebugShape(node);
+   if (edge_color.a != 0) {
+      H3DNode edge_node = h3dRadiantAddDebugShapes(group_node->GetNode(), "edge_node");
 
-   return std::make_shared<RenderNode>(node);
+      tools.ForEachUniqueEdge(region, [&edge_node, &offset, &edge_color](csg::EdgeInfo3 const& edge_info) {
+         h3dRadiantAddDebugLine(edge_node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, edge_color);
+      });
+
+      h3dRadiantCommitDebugShape(edge_node);
+   }
+
+   if (face_color.a != 0) {
+      int tag = face_color.ToInteger();
+      csg::Mesh mesh;
+
+      tools.ForEachPlane(region, [&mesh, tag](csg::Region2 const& region2, csg::PlaneInfo3 const& plane_info) {
+         for (csg::Rect2 const& rect : csg::EachCube(region2)) {
+            csg::Rect2 face(rect);
+            face.SetTag(tag);
+            mesh.AddRect(face, plane_info);
+         }
+      });
+
+      RenderNodePtr face_node = RenderNode::CreateCsgMeshNode(group_node->GetNode(), mesh)
+         ->SetMaterial("materials/transparent.material.xml");
+
+      h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
+      EnablePolygonOffset(face_node->GetNode());
+
+      group_node->AddChild(face_node);
+   }
+
+   return group_node;
 }
 
 RenderNodePtr
@@ -293,9 +323,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
       ->SetMaterial("materials/transparent.material.xml");
 
    h3dSetNodeParamI(interior->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
-   h3dSetNodeParamI(interior->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
-   h3dSetNodeParamF(interior->GetNode(), H3DModel::PolygonOffsetF, 0, -1.0);
-   h3dSetNodeParamF(interior->GetNode(), H3DModel::PolygonOffsetF, 1, -.01f);
+   EnablePolygonOffset(interior->GetNode());
 
    group->AddChild(interior);
    return group;

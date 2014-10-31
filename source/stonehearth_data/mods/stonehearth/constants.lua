@@ -229,8 +229,8 @@ local constants = {
    },
 
    mining = {
-      XZ_ALIGN = 4,
-      Y_ALIGN = 5,
+      XZ_CELL_SIZE = 4,
+      Y_CELL_SIZE = 5,
    },
 }
 

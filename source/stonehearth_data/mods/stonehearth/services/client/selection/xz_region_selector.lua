@@ -94,6 +94,77 @@ function XZRegionSelector:always(cb)
    return self
 end
 
+function XZRegionSelector:_call_once(name, ...)
+   local method_name = '_' .. name .. '_cb'
+   if self[method_name] then
+      local method = self[method_name]
+      self[method_name] = nil
+      method(self, ...)
+   end
+end
+
+function XZRegionSelector:resolve(...)
+   self:_call_once('done', ...)
+   self:_call_once('always')
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function XZRegionSelector:reject(...)
+   self:_call_once('fail', ...)
+   self:_call_once('always')
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function XZRegionSelector:notify(...)
+   if self._progress_cb then
+      self._progress_cb(self, ...)
+   end
+   return self
+end
+
+function XZRegionSelector:_cleanup()
+   stonehearth.selection:register_tool(self, false)
+
+   self._fail_cb = nil
+   self._progress_cb = nil
+   self._done_cb = nil
+   self._always_cb = nil
+
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
+
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
+   end
+
+   if self._x_ruler then
+      self._x_ruler:destroy()
+      self._x_ruler = nil
+   end   
+
+   if self._z_ruler then
+      self._z_ruler:destroy()
+      self._z_ruler = nil
+   end
+end
+
+function XZRegionSelector:destroy()
+   self:reject('destroy')
+end
+
 -- set the 'can_contain_entity_filter'.  when growing the xz region,
 -- make sure that it does *not* contain any of the entities for which
 -- this filter returns false
@@ -124,40 +195,6 @@ end
 function XZRegionSelector:use_manual_marquee(marquee_fn)
    self._create_marquee_fn = marquee_fn
    return self
-end
-
-function XZRegionSelector:deactivate_tool()
-   self:destroy()  
-end
-
-function XZRegionSelector:destroy()
-   if self._always_cb then
-      self._always_cb(self)
-      self._always_cb = nil
-   end
-
-   stonehearth.selection:register_tool(self, false)
-
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
-   if self._render_node then
-      self._render_node:destroy()
-      self._render_node = nil
-   end
-   if self._cursor_obj then
-      self._cursor_obj:destroy()
-      self._cursor_obj = nil
-   end
-   if self._x_ruler then
-      self._x_ruler:destroy()
-      self._x_ruler = nil
-   end   
-   if self._z_ruler then
-      self._z_ruler:destroy()
-      self._z_ruler = nil
-   end   
 end
 
 -- create the cube for the xz region given endpoints p0 and p1.
@@ -263,10 +300,7 @@ end
 function XZRegionSelector:_on_mouse_event(event)
    -- cancel on mouse button 2.
    if event and event:up(2) and not event.dragging then
-      if self._fail_cb then
-         self._fail_cb(self)
-      end
-      self:destroy()
+      self:reject({ error = 'selection cancelled'})
       return
    end
 
@@ -317,10 +351,7 @@ function XZRegionSelector:_on_mouse_event(event)
 
    local done = self._selected_p0 and event:up(1)
    if done then
-      if self._done_cb then
-         self._done_cb(self, selected_cube)
-      end
-      self:destroy()
+      self:resolve(selected_cube)
    end
 end
 
@@ -379,9 +410,7 @@ function XZRegionSelector:_notify_progress(box)
    -- terrain block, and the hole _moves_ to the new selection; nudge the mouse again, and the hole jumps again.
    -- Outside of re-thinking the way selection works, this is the only fix that occurs to me.
    self._render_node:set_can_query(self._allow_select_cursor)
-   if self._progress_cb then
-      self._progress_cb(self, box)
-   end   
+   self:notify(box)
 end
 
 function XZRegionSelector:_default_find_support_filter(result)

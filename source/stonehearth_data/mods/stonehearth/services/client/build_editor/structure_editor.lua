@@ -1,3 +1,5 @@
+local build_util = require 'lib.build_util'
+
 local StructureEditor = class()
 local Point3 = _radiant.csg.Point3
 
@@ -39,7 +41,7 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    self._blueprint = blueprint
    self._project = project
 
-   local building = stonehearth.build_editor:get_building_for(blueprint)
+   local building = build_util.get_building_for(blueprint)
    --TODO: why is this sometimes nil?   
    if building then 
       local location = radiant.entities.get_world_grid_location(building)

@@ -286,9 +286,16 @@ function FollowPath:_is_contiguous_path(points)
    for i=2, #points do
       local previous = points[i-1]
       local current = points[i]
+      
+      if previous == current then
+         return false
+      end
+      
       local delta = current - previous
       delta.y = 0 -- consider xz movement only
-      if delta:distance_squared() > 2 then
+      
+      local distance_squared = delta:distance_squared()
+      if distance_squared > 2 then
          return false
       end
    end

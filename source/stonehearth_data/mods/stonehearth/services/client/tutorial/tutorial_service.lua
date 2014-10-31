@@ -71,7 +71,7 @@ function TutorialService:_get_next_step(session, response)
       end
    end
 
-   response:fail()
+   response:reject()
 end
 
 ]]

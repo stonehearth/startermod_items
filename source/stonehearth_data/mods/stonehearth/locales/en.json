@@ -219,6 +219,10 @@
    "trapping_grounds_disable" : "Suspend Trapping",
    "trapping_grounds_enable" : "Resume Trapping",
 
+   "mining_zone_help" : "Mining allows you to create underground rooms and corridors. You can also discover resources while digging.",
+   "mining_zone_disable" : "Suspend Mining",
+   "mining_zone_enable" : "Resume Mining",
+
    "show_workshop_description" : "Owned by ",
    "craft_number_left": "Craft",
    "craft_number_right": "right now.",
@@ -381,6 +385,7 @@
    "zoomToChar" : "Find Person", 
    "classPerks" : "Class Perks", 
    "generalPerks" : "General Perks",
+   "retired" : "Retired at:",
 
    "red_alert": "Red Alert!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",

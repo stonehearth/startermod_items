@@ -155,7 +155,6 @@ void RenderTerrainTile::UpdateGeometry(int clip_height)
             top_plane.Add(clipped_footprint);
             T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << clipped_footprint.GetArea() << ")";
             g[pi.reduced_value].AddUnique(top_plane);
-            return;
          } else {
             csg::Region2 const* clipper = GetClipPlaneFor(pi);
             if (clipper) {

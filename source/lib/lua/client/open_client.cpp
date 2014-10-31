@@ -164,9 +164,10 @@ RenderNodePtr Client_CreateSelectionNode(lua_State* L,
 RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L, 
                                   H3DNode parent,
                                   csg::Region3f const& region,
-                                  csg::Color4 const& color)
+                                  csg::Color4 const& edge_color,
+                                  csg::Color4 const& face_color)
 {
-   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, csg::ToInt(region), color);
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, csg::ToInt(region), edge_color, face_color);
 }
 
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 

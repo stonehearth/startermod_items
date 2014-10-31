@@ -95,16 +95,30 @@ PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
    for (PathPtr const& path : paths) {
       std::vector<csg::Point3f> const& points = path->GetPoints();
 
+      auto begin = points.begin();
+      auto end = points.end();
+      if (begin == end) {
+         continue;
+      }
+
       if (!combinedPoints.empty()) {
+         csg::Point3f lastCombined = combinedPoints.back();
+
+         if (begin != end && lastCombined == *begin) {
+            // The point at the back of combinedPoints is the same as the point at
+            // the front of the path.  Skip the duplicate.
+            ++begin;
+         }
+
          // really want to assert using OctTree::ValidMove(), but we don't have access to the simulation from here
-         double distance = (points.front() - combinedPoints.back()).Length();
+         double distance = (*begin - lastCombined).Length();
          if (distance >= 2) {
             PF_LOG(3) << "Combined paths are not adjacent. Distance between paths = " << distance <<
-               ". This is an unusual or impossible move.";
+                         ". This is an unusual or impossible move.";
          }
       }
 
-      combinedPoints.insert(combinedPoints.end(), path->GetPoints().begin(), path->GetPoints().end());
+      combinedPoints.insert(combinedPoints.end(), begin, end);
    }
 
    PathPtr combinedPath = std::make_shared<Path>(

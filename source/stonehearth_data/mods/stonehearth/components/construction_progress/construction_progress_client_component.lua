@@ -16,6 +16,10 @@ function ConstructionProgressClient:get_building_entity()
    return self:get_data().building_entity
 end
 
+function ConstructionProgressClient:get_fabricator_entity()
+   return self:get_data().fabricator_entity
+end
+
 function ConstructionProgressClient:begin_editing(building, fabricator)
    -- xxx: assert we're in a RW store...
    self.__saved_variables:modify_data(function (o)

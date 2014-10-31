@@ -788,7 +788,17 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, Path
 
    std::vector<csg::Point3f> solution;
    ReconstructPath(solution, start);
-   solution.insert(solution.end(), _directPathCandiate.begin(), _directPathCandiate.end());
+   
+   auto begin = _directPathCandiate.begin();
+   auto end = _directPathCandiate.end();
+
+   if (!solution.empty() && begin != end && solution.back() == *begin) {
+      // The point at the back of the solution is the same as the point at
+      // the front of the direct path.  Skip the duplicate.
+      ++begin;
+   }
+   solution.insert(solution.end(), begin, end);
+
    return SolveSearch(solution, dst);
 }
 

@@ -233,7 +233,7 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
             end
             return false
          end
-         if not self:is_blueprint(entity) then
+         if not build_util.is_blueprint(entity) then
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
@@ -538,9 +538,9 @@ function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_roa
 
    -- Find and merge the buildings for those roads.
    local buildings_to_merge = {}
-   local road_building = self:get_building_for(road)
+   local road_building = build_util.get_building_for(road)
    for _, old_road in pairs(existing_roads) do
-      local building = self:get_building_for(old_road)
+      local building = build_util.get_building_for(old_road)
       if building ~= road_building then
          buildings_to_merge[building:get_id()] = building
       end
@@ -630,40 +630,6 @@ function BuildService:_add_new_road_to_building(building, floor_uri, floor_regio
    local move_mod = fc:get_project():add_component('movement_modifier_shape')
    move_mod:set_region(fc:get_project():get_component('region_collision_shape'):get_region())
    return bp
-end
-
--- return the building the `blueprint` is contained in
---
---    @param blueprint - the blueprint whose building you're interested in
---
-function BuildService:get_building_for(blueprint)
-   local cp = blueprint:get_component('stonehearth:construction_progress')
-   return cp and cp:get_building_entity()
-end
-
--- return whether or not the specified `entity` is a blueprint.  only blueprints
--- have stonehearth:construction_progress components.
---
---    @param entity - the entity to be tested for blueprintedness
---
-function BuildService:is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil
-end
-
-function BuildService:is_building(entity)
-   return entity:get_component('stonehearth:building') ~= nil
-end
-
--- return the building the specified buildprint is attached to, assuming it
--- is a blueprint to begin with!
---
---     @param entity - the blueprint whose building you're looking for
---
-function BuildService:get_building_for_blueprint(entity)
-   local cp = entity:get_component('stonehearth:construction_progress')
-   if cp then
-      return cp:get_building_entity()
-   end
 end
 
 -- return the type of the specified structure (be it a blueprint or a project)

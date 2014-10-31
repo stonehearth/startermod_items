@@ -124,7 +124,7 @@
             <div id="abilitiesTab" class = "tabPage">
                {{#each view.all_job_data}}
                   <div class="jobData" {{bind-attr uri=this.alias}}>
-                     <div class="className retiredClassNameHeader">{{this.name}} (<span class="lvlTitle"></span>)</div>
+                     <div class="className">{{this.name}} <span class="progressionSummary">(<span class="retiredAt">{{i18n stonehearth:retired}} </span><span class="lvlTitle"></span>)</span></div>
                      <div class="jobPerks">
                         {{#each this.levelArray}}
                            {{#each this.perks}}

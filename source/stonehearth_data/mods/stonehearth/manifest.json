@@ -664,6 +664,7 @@
       "sounds:health_down" : "file(data/sounds/effects/sh_health_down.wav)",
       "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
       "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
+      "sounds:tree_fall" : "file(data/sounds/effects/sh_treefall.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
@@ -974,6 +975,14 @@
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_mining_zone_enabled": {
+         "controller" : "file(call_handlers/mining_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "set_mining_zone_enabled": {
+         "controller" : "file(call_handlers/mining_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_build_editor": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "client"
@@ -1238,6 +1247,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.html)",
          "file(ui/game/modes/zones_mode/farm/farm.html)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.html)",
+         "file(ui/game/modes/zones_mode/mining_zone/mining_zone.html)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.html)",
          "file(ui/game/modes/build_mode/building_cost/building_cost.html)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
@@ -1304,6 +1314,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.js)",
          "file(ui/game/modes/zones_mode/farm/farm.js)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.js)",
+         "file(ui/game/modes/zones_mode/mining_zone/mining_zone.js)",
          "file(ui/game/modes/build_mode/build_mode.js)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.js)",
          "file(ui/game/modes/build_mode/building_cost/building_cost.js)",
@@ -1374,6 +1385,7 @@
          "file(ui/game/modes/zones_mode/stockpile/stockpile.less)",
          "file(ui/game/modes/zones_mode/farm/farm.less)",
          "file(ui/game/modes/zones_mode/trapping_grounds/trapping_grounds.less)",
+         "file(ui/game/modes/zones_mode/mining_zone/mining_zone.less)",
          "file(ui/game/modes/build_mode/build_mode.less)",
          "file(ui/game/modes/build_mode/building_templates/building_templates.less)",
          "file(ui/game/modes/build_mode/building_cost/building_cost.less)",

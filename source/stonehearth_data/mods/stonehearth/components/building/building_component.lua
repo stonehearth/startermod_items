@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Building = class()
@@ -604,7 +605,7 @@ function Building:save_to_template()
    
    return {
       structures = structures,
-      envelope_entity = self._sv.envelope_entity:get_id()
+      envelope_entity = build_util.pack_entity(self._sv.envelope_entity),
    }
 end
 
@@ -623,7 +624,7 @@ function Building:load_from_template(template, options, entity_map)
          }
       end
    end
-   self._sv.envelope_entity = entity_map[template.envelope_entity]
+   self._sv.envelope_entity = build_util.unpack_entity(template.envelope_entity, entity_map)
    self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
 
    self.__saved_variables:mark_changed()
