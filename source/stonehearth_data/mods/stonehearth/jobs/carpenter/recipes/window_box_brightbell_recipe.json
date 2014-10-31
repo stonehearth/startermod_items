@@ -1,0 +1,25 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Brightbell Window Box",
+   "description" : "A planter box full of brightbell flowers, built to be placed below window frames.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/window_box_brightbell/window_box_brightbell.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:plants:brightbell",
+         "count" : 1
+      }      
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:decoration:window_box:brightbell"
+      }
+  ]
+}

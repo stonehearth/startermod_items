@@ -7,6 +7,8 @@
             "stonehearth:actions:work_task_dispatcher",
             "stonehearth:actions:simple_labor_task_dispatcher",
             "stonehearth:actions:collect_ingredient",
+            "stonehearth:actions:pickup_ingredient_with_material",
+            "stonehearth:actions:pickup_ingredient_with_uri",
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
