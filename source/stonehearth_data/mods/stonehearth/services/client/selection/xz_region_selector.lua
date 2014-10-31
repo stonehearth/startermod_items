@@ -106,6 +106,8 @@ end
 function XZRegionSelector:resolve(...)
    self:_call_once('done', ...)
    self:_call_once('always')
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
    self:_cleanup()
    return self
 end
@@ -113,6 +115,8 @@ end
 function XZRegionSelector:reject(...)
    self:_call_once('fail', ...)
    self:_call_once('always')
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
    self:_cleanup()
    return self
 end
@@ -156,6 +160,11 @@ function XZRegionSelector:_cleanup()
       self._z_ruler = nil
    end
 end
+
+function XZRegionSelector:destroy()
+   self:reject('destroy')
+end
+
 -- set the 'can_contain_entity_filter'.  when growing the xz region,
 -- make sure that it does *not* contain any of the entities for which
 -- this filter returns false

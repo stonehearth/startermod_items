@@ -36,6 +36,8 @@ end
 function EntitySelector:resolve(...)
    self:_call_once('done', ...)
    self:_call_once('always')
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
    self:_cleanup()
    return self
 end
@@ -43,6 +45,8 @@ end
 function EntitySelector:reject(...)
    self:_call_once('fail', ...)
    self:_call_once('always')
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
    self:_cleanup()
    return self
 end
@@ -71,6 +75,10 @@ function EntitySelector:_cleanup()
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
+end
+
+function EntitySelector:destroy()
+   self:reject('destroy')
 end
 
 function EntitySelector:set_filter_fn(fn)
