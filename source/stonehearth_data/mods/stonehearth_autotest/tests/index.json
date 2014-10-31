@@ -55,6 +55,7 @@
             "regression" : {
                "name" : "regression tests",
                "scripts" : [
+                  "file(regression/sh_80.lua)",
                   "file(regression/sh_81.lua)"
                ]
             },
