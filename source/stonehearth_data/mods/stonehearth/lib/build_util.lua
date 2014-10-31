@@ -268,6 +268,25 @@ function build_util.get_building_for(entity)
    end
 end
 
+
+function build_util.get_cost(building)
+   local costs = {
+      resources = {},
+      items = {},
+   }
+   radiant.entities.for_all_children(building, function(entity)
+         local cp = entity:get_component('stonehearth:construction_progress')
+         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+            radiant.log.write('', 0, entity:get_uri())
+            local fabricator = cp:get_fabricator_component()
+            if fabricator then
+               fabricator:accumulate_costs(costs)
+            end
+         end
+      end)
+   return costs
+end
+
 function build_util.save_template(building, header, overwrite)
    local existing_templates = build_util.get_templates()
    local namebase = header.name and header.name:lower() or 'untitled'
@@ -283,6 +302,8 @@ function build_util.save_template(building, header, overwrite)
    
    local building_template = save_all_structures_to_template(building)
    building_template.id = building:get_id()
+
+   header.cost = build_util.get_cost(building)
 
    local template = {
       header = header,

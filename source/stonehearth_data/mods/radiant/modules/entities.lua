@@ -943,6 +943,16 @@ function entities.is_frightened_of(entity, target)
    return entity_courage < target_menace
 end
 
+-- assumes the hiearchy will NOT be modified during iteration
+function entities.for_all_children(entity, cb)
+   local ec = entity:get_component('entity_container')  
+   if ec then
+      for _, child in ec:each_child() do
+         entities.for_all_children(child, cb)
+      end
+   end
+   cb(entity)
+end
 
 entities.__init()
 return entities

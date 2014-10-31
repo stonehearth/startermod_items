@@ -25,6 +25,16 @@ function AutotestUtil:call_if_buff_added(entity, uri, cb)
       end)
 end
 
+-- note: only works with the functional form of listen
+function AutotestUtil:listen_while_running(obj, msg, cb)
+   radiant.events.listen(obj, msg, function(...)
+         if self._autotest:is_finished() then
+            return radiant.events.UNLISTEN
+         end
+         cb(...)
+      end)   
+end
+
 function AutotestUtil:succeed_if_buff_added(entity, uri)
    self:call_if_buff_added(entity, uri, function()
          self._autotest:success()
@@ -40,12 +50,7 @@ function AutotestUtil:fail_if_buff_added(entity, uri)
 end
 
 function AutotestUtil:fail_if_created(uri)
-   local listener
-   listener = radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
-         if self._autotest:is_finished() then
-            listener:destroy()
-            return
-         end
+   self:listen_while_running(radiant, 'radiant:entity:post_create', function(e)
          if e.entity:get_uri() == uri then
             self._autotest:fail('entity with uri "%s" created.  failing', uri)
          end
