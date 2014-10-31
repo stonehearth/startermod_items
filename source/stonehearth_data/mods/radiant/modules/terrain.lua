@@ -147,24 +147,24 @@ function Terrain.trace_world_entities(reason, added_cb, removed_cb)
    local root = radiant.entities.get_root_entity()
    local ec = radiant.entities.get_root_entity():add_component('entity_container');
 
-   if not added_cb then
-      added_cb = function(id, entity) end
-   end
-
-   if not removed_cb then
-      removed_cb = function(id, entity) end
-   end
-
    -- put a trace on the root entity container to detect when items
    -- go on and off the terrain.  each item is forwarded to the
    -- appropriate tracker.
-   return ec:trace_children('radiant.terrain: ' .. reason)
-                        :on_added(function (id, entity) 
-                              if entity and entity:is_valid() then
-                                 added_cb(id, entity)
-                              end
-                           end)
-                        :on_removed(removed_cb)
+
+   local t = ec:trace_children('radiant.terrain: ' .. reason)
+   if added_cb then
+      t:on_added(function (id, entity) 
+            if entity and entity:is_valid() then
+               added_cb(id, entity)
+            end
+         end)
+   end
+
+   if removed_cb then
+      t:on_removed(removed_cb)
+   end
+
+   return t
 end
 
 -- only finds points at the same elevation as origin
