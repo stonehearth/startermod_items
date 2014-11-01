@@ -276,7 +276,7 @@ App.StonehearthCrafterView = App.View.extend({
             // hide items that don't match the search
             self.$('.item').each(function(i, item) {
                var el = $(item);
-               var itemName = el.attr('recipe_title').toLowerCase();
+               var itemName = el.attr('title').toLowerCase();
 
                if(itemName.indexOf(search) > -1) {
                   el.show();
