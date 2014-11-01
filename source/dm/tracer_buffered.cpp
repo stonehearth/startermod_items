@@ -13,7 +13,8 @@ using namespace ::radiant::dm;
 #define TRACE_LOG_ENABLED(level)    LOG_IS_ENABLED(dm.trace.buffered, level)
 
 TracerBuffered::TracerBuffered(std::string const& name, Store& store) :
-   Tracer(name)
+   Tracer(name),
+   _running(true)
 {
    store_trace_ = store.TraceStore("tracer buffered")
       ->OnDestroyed([this](ObjectId id, bool dynamic) {
@@ -28,8 +29,23 @@ TracerBuffered::~TracerBuffered()
 {
 }
 
+void TracerBuffered::Start()
+{
+   _running = true;
+}
+
+void TracerBuffered::Stop()
+{
+   _running = false;
+}
+
 void TracerBuffered::OnObjectModified(ObjectId id)
 {
+   if (!_running) {
+      TRACE_LOG(5) << "ignoring object " << id << " (not running)";
+      return;
+   }
+
    TRACE_LOG(5) << "adding object " << id << " to modified set len:" << modified_objects_.size();
    modified_objects_.insert(id);
 
@@ -78,19 +94,12 @@ void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
    for (ObjectId id : last_modified) {
       auto i = traces_.find(id);
       if (i != traces_.end()) {
-         stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
+         TraceBufferedList &traces = i->second;
+         traces.ForEachTrace([](TraceBufferedPtr t) {
             t->Flush();
          });
 
-         bool anyValidTracesLeft = false;
-         for (const auto& tr : i->second) {
-            if (tr.lock()) {
-               anyValidTracesLeft = true;
-               break;
-            }
-         }
-
-         if (!anyValidTracesLeft) {
+         if (traces.IsEmpty()) {
             traces_.erase(i);
          }
       }
@@ -99,19 +108,13 @@ void TracerBuffered::FlushOnce(ModifiedObjectsSet& last_modified,
    for (ObjectId id : last_destroyed) {
       auto i = traces_.find(id);
       if (i != traces_.end()) {
-         stdutil::ForEachPrune<TraceBuffered>(i->second, [](TraceBufferedPtr t) {
+         TraceBufferedList &traces = i->second;
+
+         traces.ForEachTrace([](TraceBufferedPtr t) {
             t->SignalDestroyed();
          });
 
-         bool anyValidTracesLeft = false;
-         for (const auto& tr : i->second) {
-            if (tr.lock()) {
-               anyValidTracesLeft = true;
-               break;
-            }
-         }
-
-         if (!anyValidTracesLeft) {
+         if (traces.IsEmpty()) {
             traces_.erase(i);
          }
       }

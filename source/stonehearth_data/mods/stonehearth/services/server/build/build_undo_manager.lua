@@ -13,6 +13,8 @@ function BuildUndoManager:__init()
    self._added_entities = {}
    self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
+   
+   self._tracer:stop()
 end
 
 function BuildUndoManager:begin_transaction(desc)
@@ -24,12 +26,14 @@ function BuildUndoManager:begin_transaction(desc)
    assert(not next(self._unlinked_entities))
 
    self._in_transaction = true
+   self._tracer:start()
 end
 
 function BuildUndoManager:end_transaction(desc)
    log:detail('end_transaction for "%s"', desc)
 
    self._tracer:flush()
+   self._tracer:stop()
 
    -- compute the stack offset of the entry we're about to push onto
    -- the stack

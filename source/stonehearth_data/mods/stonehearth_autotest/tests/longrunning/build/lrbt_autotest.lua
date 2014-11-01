@@ -30,8 +30,11 @@ end
 -- run a template test
 --
 local function do_template(autotest, cb)
-   local centroid = lrbt_util.create_template(autotest, cb)
-   local buildings, scaffolding = lrbt_util.place_template(autotest, centroid)
+   local rotation = 90
+   local location = Point3(-4, 15, -4)
+   local centroid = lrbt_util.create_template(autotest, TEMPLATE_NAME, cb)
+
+   local buildings, scaffolding = lrbt_util.place_template(autotest, TEMPLATE_NAME, location, centroid, rotation)
 
    lrbt_util.fund_construction(autotest, buildings)
    lrbt_util.mark_buildings_active(autotest, buildings)

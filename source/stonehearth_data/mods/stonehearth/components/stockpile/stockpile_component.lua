@@ -95,12 +95,6 @@ function StockpileComponent:initialize(entity, json)
                        :set_reserved(_radiant.sim.alloc_region3())
                        :set_auto_update_adjacent(true)
 
-      if json.size then
-         self:set_size(json.size.x, json.size.y)
-      else
-         self:set_size(0, 0)
-      end
-
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
          self:_finish_initialization()
          return radiant.events.UNLISTEN
@@ -113,8 +107,8 @@ function StockpileComponent:initialize(entity, json)
 
       --Don't start listening on created items until after we load
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-         self:_finish_initialization()
-      end)   
+            self:_finish_initialization()
+         end)   
    end
         
    all_stockpiles[self._entity:get_id()] = self
@@ -259,7 +253,6 @@ function StockpileComponent:_finish_initialization()
                                           end)
       
    self:_assign_to_player()
-   self:_rebuild_item_sv()
 end
 
 function StockpileComponent:get_items()
@@ -292,6 +285,7 @@ end
 function StockpileComponent:bounds_contain(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:get_bounds()
+   
    if not world_bounds then
       return false
    end
@@ -386,6 +380,8 @@ function StockpileComponent:_add_item_to_stock(entity)
    
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
    --Trigger this anyway so various scenarios, tests, etc, can still use it
+   radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
+   
    radiant.events.trigger(self._entity, "stonehearth:stockpile:item_added", { 
       stockpile = self._entity,
       item = entity 
@@ -430,6 +426,9 @@ function StockpileComponent:_remove_item_from_stock(id)
 end
 
 function StockpileComponent:_rebuild_item_sv()
+   -- verify this doesn't get called until we get placed in the world.
+   assert(self._entity:get_component('mob'):get_parent() ~= nil)
+   
    self._destination:get_region():modify(function(cursor)
       cursor:clear()
       cursor:add_cube(self:_get_bounds())

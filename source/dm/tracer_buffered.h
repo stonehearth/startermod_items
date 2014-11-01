@@ -7,6 +7,7 @@
 #include "record_trace_buffered.h"
 #include "set_trace_buffered.h"
 #include "boxed_trace_buffered.h"
+#include "trace_buffered_list.h"
 #include <unordered_set>
 #include <boost/container/flat_set.hpp>
 
@@ -19,14 +20,16 @@ public:
    virtual ~TracerBuffered();
 
    TracerType GetType() const { return BUFFERED; }
-   
+   void Start();
+   void Stop();
+
 #define DEFINE_TRACE_CLS_CHANGES(Cls, ctor_sig) \
    template <typename C> \
    std::shared_ptr<Cls ## Trace<C>> Trace ## Cls ## Changes(const char* reason, Store& store, C const& object) \
    { \
       ObjectId id = object.GetObjectId(); \
       std::shared_ptr<Cls ## TraceBuffered<C>> trace = std::make_shared<Cls ## TraceBuffered<C>> ctor_sig; \
-      traces_[id].push_back(trace); \
+      traces_[id].AddTrace(trace); \
       return trace; \
    }
 
@@ -49,10 +52,10 @@ private:
    void OnObjectModified(ObjectId id);
 
 private:
-   typedef std::vector<TraceBufferedRef> TraceBufferedList;
    typedef std::unordered_map<ObjectId, TraceBufferedList> TraceBufferedMap;
 
 private:
+   bool                          _running;
    ModifiedObjectsSet            modified_objects_;
    std::vector<ObjectId>         destroyed_objects_;
    StoreTracePtr                 store_trace_;

@@ -10,7 +10,7 @@
 
    "ingredients": [
       {
-         "material" : "wood resource",
+         "uri" : "stonehearth:furniture:not_much_of_a_bed",
          "count" : 1
       },
       {

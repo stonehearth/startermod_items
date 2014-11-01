@@ -1,3 +1,5 @@
+local build_util = require 'stonehearth.lib.build_util'
+
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 
@@ -35,7 +37,7 @@ function lrbt_util.fund_construction(autotest, buildings)
    local x, y = 18, 20
    
    for _, building in pairs(buildings) do
-      local cost = stonehearth.build:get_cost(building)   
+      local cost = build_util.get_cost(building)
       for material, _ in pairs(cost.resources) do
          if material:find('wood') then
             x = x - 2
@@ -232,13 +234,13 @@ function lrbt_util.create_buildings(autotest, setup_building_fn)
    return buildings, scaffolding
 end
 
-function lrbt_util.create_template(autotest, cb)
+function lrbt_util.create_template(autotest, template_name, cb)
    local buildings = lrbt_util.create_buildings(autotest, cb)
 
    -- template test only works with the first building
    local _, building = next(buildings)
    local centroid = build_util.get_building_centroid(building)
-   build_util.save_template(building, { name = TEMPLATE_NAME }, true)
+   build_util.save_template(building, { name = template_name }, true)
 
    -- nuke the buildings
    for _, b in pairs(buildings) do
@@ -254,12 +256,12 @@ function lrbt_util.mark_buildings_active(autotest, buildings)
    end
 end
 
-function lrbt_util.place_template(autotest, centroid)
+function lrbt_util.place_template(autotest, template_name, location, centroid, rotation)
    -- drop the template
-   local buildings, scaffolding = lrbt_util.track_buildings_and_scaffolding_creation(function()
+   local buildings, scaffolding = track_buildings_and_scaffolding_creation(function()
          local session = autotest.env:get_player_session()
          stonehearth.build:do_command('place template', nil, function()
-               stonehearth.build:build_template(session, TEMPLATE_NAME, Point3(-4, 15, -4), centroid, 90)
+               stonehearth.build:build_template(session, template_name, location, centroid, rotation or 0)
             end)
       end)
 
