@@ -1,3 +1,4 @@
+local LootTable = require 'lib.loot_table.loot_table'
 local Entity = _radiant.om.Entity
 
 local HarvestTrappedBeast = class()
@@ -59,12 +60,11 @@ function HarvestTrappedBeast:_gib_target(target)
 end
 
 function HarvestTrappedBeast:_spawn_loot(target)
-   local loot_table_component = target:get_component('stonehearth:loot_table')
-   if not loot_table_component then
-      return
-   end
-
-   local items = loot_table_component:spawn_loot()
+   local location = radiant.entities.get_world_grid_location(target)
+   local loot_table = LootTable()
+   loot_table:load_from_entity(target)
+   local uris = loot_table:roll_loot()
+   local items = radiant.entities.spawn_items(uris, location, 1, 3)
 
    for id, item in pairs(items) do
       -- lease the item so nobody else picks it up
