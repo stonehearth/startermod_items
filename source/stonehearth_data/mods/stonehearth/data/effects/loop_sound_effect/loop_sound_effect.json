@@ -6,8 +6,8 @@
          "duration": 1000000,
          "start_time": 0,
          "min_distance": 20,
-         "max_distance": 500,
-         "falloff" : 1.15,
+         "max_distance": 250,
+         "falloff" : 3.15,
          "loop": true,
          "volume": 100,
          "track" : {
