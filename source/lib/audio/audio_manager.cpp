@@ -27,6 +27,13 @@ const float DEFAULT_PLAYER_EFX_VOL = 1.0f;
 //TODO: get the default volumes not from contstants, but from user-set saved files
 AudioManager::AudioManager()
 {
+   std::unordered_map<std::string, sf::SoundSource::AttenuationFunc> falloffLookup;
+   falloffLookup["linear"] = sf::SoundSource::AttenuationFunc::Linear;
+   falloffLookup["linear_clamp"] = sf::SoundSource::AttenuationFunc::LinearClamped;
+   falloffLookup["inverse"] = sf::SoundSource::AttenuationFunc::Inverse;
+   falloffLookup["inverse_clamp"] = sf::SoundSource::AttenuationFunc::InverseClamped;
+   falloffLookup["exp"] = sf::SoundSource::AttenuationFunc::Exponential;
+   falloffLookup["exp_clamp"] = sf::SoundSource::AttenuationFunc::ExponentialClamped;
    empty_sound_ = std::make_shared<sf::Sound>(sf::SoundBuffer());
 
    const core::Config& config = core::Config::GetInstance();
@@ -35,6 +42,18 @@ AudioManager::AudioManager()
 
    bgm_channel_.SetPlayerVolume(player_bgm_volume_);
    ambient_channel_.SetPlayerVolume(player_efx_volume_);
+
+   useOldFalloff_ = config.Get("audio.use_old_falloff", true);
+
+   if (!useOldFalloff_) {
+      std::string attenFunc = config.Get("audio.attenuation_func", "inverse");
+      sf::SoundSource::setAttenuationFunc(falloffLookup[attenFunc]);
+   }
+}
+
+bool AudioManager::IsUsingOldFalloff() const
+{
+   return useOldFalloff_;
 }
 
 //Iterate through the map and list, cleaning memory
