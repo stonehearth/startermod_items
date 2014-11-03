@@ -24,13 +24,19 @@ function sh_82.verify_not_on_bench(autotest)
    autotest:suspend()
    
    autotest.ui:push_unitframe_command_button(workshop, 'show_workshop')
-   autotest.ui:click_dom_element('#craftWindow #recipeList a[recipe_name="Table for One"]')
+   autotest.ui:click_dom_element('#craftWindow #recipeList div[title="Table for One"]')
    autotest.ui:click_dom_element('#craftWindow #craftButton')
-   autotest.ui:click_dom_element('#craftWindow #recipeList a[recipe_name="Table for One"]')
+
+   autotest:sleep(1000)
+   autotest.ui:click_dom_element('#craftWindow #recipeList div[title="Table for One"]')
    autotest.ui:click_dom_element('#craftWindow #craftButton')
-   autotest.ui:click_dom_element('#craftWindow #recipeList a[recipe_name="Table for One"]')
+   
+   autotest:sleep(1000)
+   autotest.ui:click_dom_element('#craftWindow #recipeList div[title="Table for One"]')
    autotest.ui:click_dom_element('#craftWindow #craftButton')
-   autotest.ui:click_dom_element('#craftWindow #recipeList a[recipe_name="Table for One"]')
+   
+   autotest:sleep(1000)
+   autotest.ui:click_dom_element('#craftWindow #recipeList div[title="Table for One"]')
    autotest.ui:click_dom_element('#craftWindow #craftButton')
    autotest.ui:click_dom_element('#craftWindow #closeButton')
 
