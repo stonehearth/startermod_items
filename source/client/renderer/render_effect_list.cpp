@@ -845,7 +845,17 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
       sound_->setPitch(static_cast<float>(i->as_float()));
    }
 
-   attenuation = CalculateAttenuation(maxDistance, minDistance);
+   if (audio::AudioManager::GetInstance().IsUsingOldFalloff()) {
+      attenuation = CalculateAttenuation(maxDistance, minDistance);
+   } else {
+      i = node.find("falloff");
+      if (i != node.end()) {
+         attenuation = (float)i->as_float();
+      } else {
+         attenuation = 1.0f;
+      }
+      sound_->setMaxDistance((float)maxDistance);
+   }
 
    //Set member variables
    maxDistance_ = maxDistance; 

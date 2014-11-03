@@ -1,4 +1,4 @@
-local WeightedSet = require 'services.server.world_generation.math.weighted_set'
+local WeightedSet = require 'lib.algorithms.weighted_set'
 local PetFns = require 'ai.actions.pet.pet_fns'
 
 local Point3 = _radiant.csg.Point3

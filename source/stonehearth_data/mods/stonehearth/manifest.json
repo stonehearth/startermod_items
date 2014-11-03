@@ -1178,7 +1178,6 @@
       "construction_progress" : "file(components/construction_progress/construction_progress_component.lua)",
       "construction_project" : "file(components/construction_project/construction_project_component.lua)",
       "personality" : "file(components/personality/personality_component.lua)",
-      "loot_table" : "file(components/loot_table/loot_table_component.lua)",
       "backpack" : "file(components/backpack/backpack_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
