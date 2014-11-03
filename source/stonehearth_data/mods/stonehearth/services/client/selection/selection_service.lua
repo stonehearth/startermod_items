@@ -8,6 +8,28 @@ local SelectionService = class()
 -- services.
 SelectionService.FILTER_IGNORE = 'ignore'
 
+-- a filter function which looks for things which are solid.
+--
+SelectionService.find_supported_xz_region_filter = function (result)
+   local entity = result.entity
+
+   -- fast check for 'is terrain'
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   -- solid regions are good if we're pointing at the top face
+   if result.normal:to_int().y == 1 then
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return true
+      end
+   end
+
+   -- otherwise, keep looking!
+   return stonehearth.selection.FILTER_IGNORE
+end
+
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
 
    -- returns whether or not the zone can contain the specified entity

@@ -1,4 +1,6 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
+
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
@@ -28,6 +30,27 @@ function FloorEditor:go(response, brush_shape)
       :select_front_brick(false)
       :allow_select_cursor(true)
       :set_cursor('stonehearth:cursors:create_floor')
+      :set_find_support_filter(function(result)
+
+            -- stop if we've hit a piece of existing floor.  the call to  :allow_select_cursor(true)
+            -- will save us most, but not all, of the time.  without both checks, we will occasionally
+            -- stab through existing floor blueprints and hit the bottom of the terrain cut, creating
+            -- another slab of floor below this one.
+            --
+            local entity = result.entity
+            if entity then               
+               local fc = entity:get_component('stonehearth:fabricator')
+               if fc then
+                  local blueprint = build_util.get_blueprint_for(entity)
+                  if blueprint:get_component('stonehearth:floor') then
+                     return true
+                  end
+               end
+            end
+            
+            -- defer to the common implementation
+            return stonehearth.selection.find_supported_xz_region_filter(result)
+         end)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)

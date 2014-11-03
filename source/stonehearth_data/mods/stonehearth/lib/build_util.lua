@@ -268,6 +268,11 @@ function build_util.get_building_for(entity)
    end
 end
 
+function build_util.get_blueprint_for(entity)
+   local fabricator, blueprint, project = build_util.get_fbp_for(entity)
+   return blueprint
+end
+
 
 function build_util.get_cost(building)
    local costs = {
