@@ -619,14 +619,13 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRouteJ("radiant:get_config", [this](rpc::Function const& f) {
       json::Node args(f.args);
       std::string key = args.get<std::string>(0);
-      JSONNode result = core::Config::GetInstance().Get<JSONNode>(key, JSONNode());
-      if (result.type() == JSON_NODE && result.type() == JSON_ARRAY) {
-         return result;
+      JSONNode result;
+      if (core::Config::GetInstance().Has(key)) {
+         JSONNode node = core::Config::GetInstance().Get<JSONNode>(key);
+         node.set_name(key);
+         result.push_back(node);
       }
-      JSONNode node;
-      result.set_name(key);
-      node.push_back(result);
-      return node;
+      return result;
    });
 
    core_reactor_->AddRouteJ("radiant:set_config", [this](rpc::Function const& f) {

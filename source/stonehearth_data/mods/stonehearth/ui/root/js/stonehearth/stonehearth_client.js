@@ -555,10 +555,6 @@ var StonehearthClient;
          return radiant.call_obj(this._build_service, 'apply_options_command', blueprint.__self, options);
       },
 
-      instabuild: function(building) {
-         return radiant.call_obj(this._build_service, 'instabuild_command', building);
-      },
-
       getCost: function(building) {
          return radiant.call_obj(this._build_service, 'get_cost_command', building);
       },
