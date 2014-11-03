@@ -509,7 +509,7 @@ var StonehearthClient;
          }, precall);
       },
 
-      eraseFloor: function(precall) {
+      eraseStructure: function(precall) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
