@@ -66,6 +66,7 @@ Thumbs.db
 
 # Stonehearth Save State
 source/stonehearth_data/saved_games/
+source/stonehearth_data/saved_objects/
 
 # Python genearted files
 *.pyc

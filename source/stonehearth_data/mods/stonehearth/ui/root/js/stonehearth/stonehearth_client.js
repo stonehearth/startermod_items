@@ -456,10 +456,10 @@ var StonehearthClient;
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         var tip = self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
 
-         return this._callTool('eraseFloor', function() {
-            return radiant.call_obj(self._build_editor, 'erase_floor')
+         return this._callTool('eraseStructure', function() {
+            return radiant.call_obj(self._build_editor, 'erase_structure')
                .done(function(response) {                  
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })

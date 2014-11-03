@@ -4,7 +4,7 @@ local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
 local GrowWallsEditor = require 'services.client.build_editor.grow_walls_editor'
 local RoadEditor = require 'services.client.build_editor.road_editor'
-local FloorEraser = require 'services.client.build_editor.floor_eraser'
+local StructureEraser = require 'services.client.build_editor.structure_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
 local DoodadPlacer = require 'services.client.build_editor.doodad_placer'
@@ -102,8 +102,8 @@ function BuildEditorService:place_new_floor(session, response, brush_shape)
          :go(response, brush_shape)
 end
 
-function BuildEditorService:erase_floor(session, response, brush_shape)
-   FloorEraser(self._build_service)
+function BuildEditorService:erase_structure(session, response, brush_shape)
+   StructureEraser(self._build_service)
          :go(response)
 end
 
