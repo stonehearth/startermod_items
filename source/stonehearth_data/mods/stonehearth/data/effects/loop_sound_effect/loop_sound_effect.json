@@ -1,0 +1,24 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "sound": {
+         "type": "sound_effect",
+         "duration": 1000000,
+         "start_time": 0,
+         "min_distance": 20,
+         "max_distance": 500,
+         "falloff" : 1.15,
+         "loop": true,
+         "volume": 100,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:axe_chopping_sound_01",
+               "stonehearth:sounds:axe_chopping_sound_02",
+               "stonehearth:sounds:axe_chopping_sound_03"
+            ]    
+         }
+    
+      }
+   }
+}
