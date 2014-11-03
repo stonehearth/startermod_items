@@ -138,7 +138,7 @@ RenderNodePtr Client_CreateDesignationNode_WithCollisionBox(lua_State* L,
                                      csg::Region2f const& model,
                                      csg::Color4 const& outline,
                                      csg::Color4 const& stripes,
-									 int useCoarseCollisionBox)
+                                     int useCoarseCollisionBox)
 {
    return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes, useCoarseCollisionBox);
 }
