@@ -6,14 +6,14 @@ local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
-local FloorEraser = class()
+local StructureEraser = class()
 
 -- this is the component which manages the fabricator entity.
-function FloorEraser:__init(build_service)
+function StructureEraser:__init(build_service)
    self._build_service = build_service
 end
 
-function FloorEraser:go(response)   
+function StructureEraser:go(response)   
    stonehearth.selection:register_tool(self, true)
    self._cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
 
@@ -21,7 +21,7 @@ function FloorEraser:go(response)
    self:_add_tool_selection_capture()
 end
 
-function FloorEraser:_cleanup()
+function StructureEraser:_cleanup()
    stonehearth.selection:register_tool(self, false)
 
    self:_remove_tool_selection_capture()
@@ -36,7 +36,7 @@ function FloorEraser:_cleanup()
    end   
 end
 
-function FloorEraser:resolve(...)
+function StructureEraser:resolve(...)
    if self._response then
       self._response:resolve(...)
       self._response = nil
@@ -44,7 +44,7 @@ function FloorEraser:resolve(...)
    self:_cleanup()
 end
 
-function FloorEraser:reject(...)
+function StructureEraser:reject(...)
    if self._response then
       self._response:reject(...)
       self._response = nil
@@ -52,7 +52,7 @@ function FloorEraser:reject(...)
    self:_cleanup()
 end
 
-function FloorEraser:_choose_tool(mouse)
+function StructureEraser:_choose_tool(mouse)
    local tool
 
    local s = _radiant.client.query_scene(mouse.x, mouse.y)
@@ -82,7 +82,7 @@ function FloorEraser:_choose_tool(mouse)
    end
 end
 
-function FloorEraser:_install_correct_tool(mouse)
+function StructureEraser:_install_correct_tool(mouse)
    local tool_name, hover_entity = self:_choose_tool(mouse)
    if tool_name ~= self._current_tool_name then
       self:_switch_tool(tool_name, hover_entity)
@@ -91,14 +91,14 @@ function FloorEraser:_install_correct_tool(mouse)
    return false
 end
 
-function FloorEraser:_remove_tool_selection_capture()
+function StructureEraser:_remove_tool_selection_capture()
    if self._tool_selection_capture then
       self._tool_selection_capture:destroy()
       self._tool_selection_capture = nil
    end
 end
 
-function FloorEraser:_add_tool_selection_capture()
+function StructureEraser:_add_tool_selection_capture()
    self._tool_selection_capture = stonehearth.input:capture_input()
                                        :on_mouse_event(function(event)
                                              if event and event:up(2) and not event.dragging then
@@ -109,7 +109,7 @@ function FloorEraser:_add_tool_selection_capture()
                                           end)
 end
 
-function FloorEraser:_switch_tool(tool_name, hover_entity)
+function StructureEraser:_switch_tool(tool_name, hover_entity)
    radiant.log.write('', 0, 'switching to %s', tostring(tool_name))
    self:_remove_tool_selection_capture()
 
@@ -128,7 +128,7 @@ function FloorEraser:_switch_tool(tool_name, hover_entity)
    self:_add_tool_selection_capture()
 end
 
-function FloorEraser:_start_erase_floor_tool()
+function StructureEraser:_start_erase_floor_tool()
    return stonehearth.selection:select_xz_region()
       :require_unblocked(false)
       :select_front_brick(false)
@@ -149,7 +149,7 @@ function FloorEraser:_start_erase_floor_tool()
       :go()
 end
 
-function FloorEraser:_start_erase_fixture_tool(hover_entity)
+function StructureEraser:_start_erase_fixture_tool(hover_entity)
    local function erase_fixture_tool(event)
       if event and event:up(1) and not event.dragging then
          local s = _radiant.client.query_scene(event.x, event.y)
@@ -169,7 +169,7 @@ function FloorEraser:_start_erase_fixture_tool(hover_entity)
       end
    end
 
-   local cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:erase_window')
+   local cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:erase_fixture')
    return stonehearth.input:capture_input()
                                  :on_mouse_event(function(event)
                                        erase_fixture_tool(event)
@@ -180,8 +180,8 @@ function FloorEraser:_start_erase_fixture_tool(hover_entity)
                                     end)
 end
 
-function FloorEraser:destroy()
+function StructureEraser:destroy()
    self:reject({ error = 'tool cancelled' })
 end
 
-return FloorEraser
+return StructureEraser
