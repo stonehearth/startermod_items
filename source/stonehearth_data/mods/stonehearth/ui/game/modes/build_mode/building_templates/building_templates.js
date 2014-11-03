@@ -52,7 +52,11 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
             self.set('context.selected_template', template);
 
             var costView = self._getClosestEmberView(self.$('#buildingCost'));
-            costView.set('cost', template.cost);
+            if (template) {
+               costView.set('cost', template.cost);   
+            } else {
+               console.error('could not find template: ' + templateName);
+            }
 
             self.$('#buildingTemplatesDetailsPopup').show()
                .position({
