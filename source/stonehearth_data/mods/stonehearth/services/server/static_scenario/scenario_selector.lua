@@ -1,6 +1,6 @@
 local HabitatType = require 'services.server.world_generation.habitat_type'
-local WeightedSet = require 'services.server.world_generation.math.weighted_set'
-local Histogram = require 'services.server.world_generation.math.histogram'
+local WeightedSet = require 'lib.algorithms.weighted_set'
+local Histogram = require 'lib.algorithms.histogram'
 
 local ScenarioSelector = class()
 local log = radiant.log.create_logger('scenario_service')

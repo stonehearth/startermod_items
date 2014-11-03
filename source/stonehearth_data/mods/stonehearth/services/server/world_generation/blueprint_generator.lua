@@ -1,7 +1,7 @@
 local Array2D = require 'services.server.world_generation.array_2D'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
-local Histogram = require 'services.server.world_generation.math.histogram'
+local Histogram = require 'lib.algorithms.histogram'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 
 local BlueprintGenerator = class()
