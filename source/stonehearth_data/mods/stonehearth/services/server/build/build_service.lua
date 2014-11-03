@@ -333,6 +333,27 @@ function BuildService:erase_floor_command(session, response, box)
    return success or nil
 end
 
+function BuildService:erase_fixture(fixture_blueprint)
+   -- grab the parent before we unlink, since the unlinking process will remove
+   -- the entity from the world
+   local parent = radiant.entities.get_parent(fixture_blueprint)
+   self:unlink_entity(fixture_blueprint)
+
+   -- if we're a portal and were taken off a wall, re-layout to clear the hole.
+   local wall = parent:get_component('stonehearth:wall')
+   if wall then
+      wall:remove_fixture(fixture_blueprint)
+               :layout()
+   end 
+end
+
+function BuildService:erase_fixture_command(session, response, fixture_blueprint)
+   local success = self:do_command('erase_fixture', response, function()
+         self:erase_fixture(fixture_blueprint)
+      end)
+   return success or nil
+end
+
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
 -- entity, adds a fabricator component to it, and wires that fabricator up to the blueprint.
 -- See `_init_fabricator` for more details.

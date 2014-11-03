@@ -1,7 +1,13 @@
 local InputCapture = class()
 
 function InputCapture:destroy()
-  self._destroyed = true
+  if not self._destroyed then
+    self._destroyed = true
+    if self._destroy_cb then
+      self._destroy_cb(self)
+      self._destroy_cb = nil
+    end
+  end
 end
 
 -- set the mouse event handler
@@ -13,6 +19,11 @@ end
 -- set the keyboard event handler
 function InputCapture:on_keyboard_event(cb)
   self._keyboard_cb = cb
+  return self
+end
+
+function InputCapture:on_destroyed(cb)
+  self._destroy_cb = cb
   return self
 end
 

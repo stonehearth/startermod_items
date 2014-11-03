@@ -18,19 +18,20 @@ public:
    RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& location, om::Region3BoxedRef region);
    ~RenderTerrainTile();
 
-   int UpdateClipPlanes();
+   int UpdateClipPlanes(int clip_height);
    void UpdateGeometry(int clip_height);
 
    void SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane);
    csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction);
    Geometry const& GetGeometry(csg::RegionTools3::Plane direction);
 
-   void UpdateCut(om::Region3fBoxedPtr const& cutPtr, csg::Region3* cut);
-   void RemoveCut(om::Region3fBoxedPtr const& cutPtr);
+   void AddCut(dm::ObjectId cutId, csg::Region3 const* cut);
+   void RemoveCut(dm::ObjectId cutId);
 
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
    csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi);
+   csg::Region3 const& ComputeCutTerrainRegion(int clip_height, csg::Region3& storage) const;
 
 private:
    RenderTerrain&          _terrain;
@@ -42,7 +43,7 @@ private:
    Geometry                _geometry[csg::RegionTools3::NUM_PLANES];
    dm::TracePtr            _trace;
    csg::RegionTools3       _regionTools;
-   std::unordered_map<dm::ObjectId, csg::Region3*> _cutMap;
+   std::unordered_map<dm::ObjectId, csg::Region3 const*> _cutMap;
 };
 
 END_RADIANT_CLIENT_NAMESPACE
