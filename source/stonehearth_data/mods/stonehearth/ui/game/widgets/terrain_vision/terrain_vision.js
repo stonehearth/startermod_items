@@ -22,6 +22,15 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
 
       var self = this;
       
+      // hide menus that are in development
+      radiant.call('radiant:get_config', 'show_in_progress_ui')
+         .done(function(response) {
+            if (!response.show_in_progress_ui) {
+               self.destroy();
+               return;
+            }
+         })      
+
       this.$('#visionButton').click(function() {
          var button = $(this);
          var currentlyClipping = button.hasClass('clip');
