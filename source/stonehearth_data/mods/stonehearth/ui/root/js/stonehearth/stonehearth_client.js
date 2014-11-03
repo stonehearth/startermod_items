@@ -267,17 +267,12 @@ var StonehearthClient;
       },
 
       subterraneanSetClip: function(enabled) {
-         var self = this;
-         
-         if (enabled) {
-            App.setGameMode('build');
-         }
-
-         return radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', enabled);
+         return radiant.call_obj(this._subterranean_view, 'set_clip_enabled_command', enabled);
       },
 
       subterraneanMoveUp: function() {
-         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', enabled)
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
             .done(function(response) {
                if (response) {
                   radiant.call_obj(self._subterranean_view, 'move_clip_height_up_command');
@@ -286,7 +281,8 @@ var StonehearthClient;
       },
 
       subterraneanMoveDown: function() {
-         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', enabled)
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
             .done(function(response) {
                if (response) {
                   radiant.call_obj(self._subterranean_view, 'move_clip_height_down_command');

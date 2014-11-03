@@ -63,23 +63,19 @@ function SubterraneanViewService:set_clip_enabled(enabled)
 end
 
 function SubterraneanViewService:move_clip_height_up()
-   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_up_command()
-   return self:set_clip_height_up();
-end
-
-function SubterraneanViewService:move_clip_height_up()
-   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_down()
    return self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
 end
 
-function SubterraneanViewService:move_clip_height_down_command()
-   return self:set_clip_height_down();
+function SubterraneanViewService:move_clip_height_up_command(session, response)
+   return self:move_clip_height_up();
+end
+
+function SubterraneanViewService:move_clip_height_down()
+   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down_command(session, response)
+   return self:move_clip_height_down();
 end
 
 function SubterraneanViewService:set_clip_height(height)
