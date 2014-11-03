@@ -140,7 +140,7 @@ RenderNodePtr Client_CreateDesignationNode_WithCollisionBox(lua_State* L,
                                      csg::Color4 const& stripes,
                                      int useCoarseCollisionBox)
 {
-   return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes, useCoarseCollisionBox);
+   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes, useCoarseCollisionBox);
 }
 
 RenderNodePtr Client_CreateDesignationNode(lua_State* L, 
@@ -149,7 +149,7 @@ RenderNodePtr Client_CreateDesignationNode(lua_State* L,
                                      csg::Color4 const& outline,
                                      csg::Color4 const& stripes)
 {
-   return Pipeline::GetInstance().CreateDesignationNode(parent, csg::ToInt(model), outline, stripes);
+   return Pipeline::GetInstance().CreateDesignationNode(parent, model, outline, stripes);
 }
 
 RenderNodePtr Client_CreateSelectionNode(lua_State* L, 
@@ -158,7 +158,7 @@ RenderNodePtr Client_CreateSelectionNode(lua_State* L,
                                   csg::Color4 const& interior_color,
                                   csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateSelectionNode(parent, csg::ToInt(model), interior_color, border_color);
+   return Pipeline::GetInstance().CreateSelectionNode(parent, model, interior_color, border_color);
 }
 
 RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L, 
@@ -167,7 +167,7 @@ RenderNodePtr Client_CreateRegionOutlineNode(lua_State* L,
                                   csg::Color4 const& edge_color,
                                   csg::Color4 const& face_color)
 {
-   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, csg::ToInt(region), edge_color, face_color);
+   return Pipeline::GetInstance().CreateRegionOutlineNode(parent, region, edge_color, face_color);
 }
 
 RenderNodePtr Client_CreateStockpileNode(lua_State* L, 
@@ -176,7 +176,7 @@ RenderNodePtr Client_CreateStockpileNode(lua_State* L,
                                    csg::Color4 const& interior_color,
                                    csg::Color4 const& border_color)
 {
-   return Pipeline::GetInstance().CreateStockpileNode(parent, csg::ToInt(model), interior_color, border_color);
+   return Pipeline::GetInstance().CreateStockpileNode(parent, model, interior_color, border_color);
 }
 
 RenderNodePtr Client_CreateMeshNode(lua_State* L, 
