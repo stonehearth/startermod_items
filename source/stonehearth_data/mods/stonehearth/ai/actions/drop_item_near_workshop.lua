@@ -1,4 +1,5 @@
 local Entity = _radiant.om.Entity
+local Point3 = _radiant.csg.Point3
 
 local DropItemNearWorkshop = class()
 DropItemNearWorkshop.name = 'drop item near workshop'
@@ -16,5 +17,5 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(DropItemNearWorkshop)
    :execute('stonehearth:pickup_item_on_table', { item = ai.ARGS.item })
-   :execute('stonehearth:wander', { radius_min = 1, radius = 3 })
-   :execute('stonehearth:drop_carrying_now', {})
+   :execute('stonehearth:walk_to_empty_space', {radius = 8, radius_min = 1})
+   :execute('stonehearth:drop_carrying_now')

@@ -203,12 +203,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       };
 
-      var doEraseFloor = function() {
-         App.stonehearthClient.eraseFloor(
-            activateElement('#eraseFloorTool'))
-            .fail(self._deactivateTool('#eraseFloorTool'))
+      var doEraseStructure = function() {
+         App.stonehearthClient.eraseStructure(
+            activateElement('#eraseStructureTool'))
+            .fail(self._deactivateTool('#eraseStructureTool'))
             .done(function() {
-               doEraseFloor(false);
+               doEraseStructure();
             });
       };
 
@@ -263,8 +263,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          doDrawFloor();
       });
 
-      this.$('#eraseFloorTool').click(function() {
-         doEraseFloor(true);
+      this.$('#eraseStructureTool').click(function() {
+         doEraseStructure();
       });
 
       this.$('#drawWallTool').click(function() {

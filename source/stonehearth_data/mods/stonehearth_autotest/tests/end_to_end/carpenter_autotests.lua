@@ -95,6 +95,7 @@ function carpenter_tests.maintain_x(autotest)
 end
 --]]
 
+---[[
 --Autotest for move workshop
 function carpenter_tests.move_workshop(autotest)
    local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
@@ -131,5 +132,6 @@ function carpenter_tests.move_workshop(autotest)
    autotest:sleep(120 * 10000)
    autotest:fail('failed to mantain 1 wooden table')
 end
+--]]
 
 return carpenter_tests
