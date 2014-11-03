@@ -51,15 +51,46 @@ function SubterraneanViewService:_destroy_initialize_listener()
    end
 end
 
+function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
+   return self:set_clip_enabled(enabled);
+end
+
+function SubterraneanViewService:set_clip_enabled(enabled)
+   self._sv.clip_enabled = enabled
+   self.__saved_variables:mark_changed()
+   self:_update()
+   return true;
+end
+
+function SubterraneanViewService:move_clip_height_up()
+   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_up_command()
+   return self:set_clip_height_up();
+end
+
+function SubterraneanViewService:move_clip_height_up()
+   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down()
+   return self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down_command()
+   return self:set_clip_height_down();
+end
+
+function SubterraneanViewService:set_clip_height(height)
+   self._sv.clip_height = height
+   self.__saved_variables:mark_changed()
+   self:_update()
+   return true;
+end
+
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
-      if e.key == _radiant.client.KeyboardInput.KEY_BACKSLASH then
-         self._sv.clip_enabled = not self._sv.clip_enabled
-         self.__saved_variables:mark_changed()
-         self:_update()
-         return true
-      end
-
       if self._sv.clip_enabled then
          if e.key == _radiant.client.KeyboardInput.KEY_LEFT_BRACKET then
             self._sv.clip_height = self._sv.clip_height - constants.mining.Y_CELL_SIZE

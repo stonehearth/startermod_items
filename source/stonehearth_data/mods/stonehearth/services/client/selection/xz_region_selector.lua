@@ -21,9 +21,7 @@ function XZRegionSelector:__init()
    self._show_rulers = true
    self._select_front_brick = true
    self._allow_select_cursor = false
-   self._find_support_filter_fn = function(result)
-      return self:_default_find_support_filter(result)
-   end
+   self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
    local identity_end_point_transform = function(p0, p1)
       return p0, p1
@@ -238,7 +236,12 @@ end
 -- filter.
 --
 function XZRegionSelector:_get_hover_brick(x, y)
-   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)
+   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)               
+         -- The only case entity should be null is when allowing self-selection of the
+         -- cursor.
+         if self._allow_select_cursor and not result.entity then
+            return true
+         end
          return self._find_support_filter_fn(result, self)
       end)
    return brick
@@ -411,33 +414,6 @@ function XZRegionSelector:_notify_progress(box)
    -- Outside of re-thinking the way selection works, this is the only fix that occurs to me.
    self._render_node:set_can_query(self._allow_select_cursor)
    self:notify(box)
-end
-
-function XZRegionSelector:_default_find_support_filter(result)
-   local entity = result.entity
-
-   -- TODO: maybe overthinking it, but perhaps 'return self._allow_nil_entity', and add that
-   -- to the API?  The only case entity should be null is when allowing self-selection of the
-   -- cursor.
-   if not entity then
-      return true
-   end
-
-   -- fast check for 'is terrain'
-   if entity:get_id() == 1 then
-      return true
-   end
-
-   -- solid regions are good if we're pointing at the top face
-   if result.normal:to_int().y == 1 then
-      local rcs = entity:get_component('region_collision_shape')
-      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-         return true
-      end
-   end
-
-   -- otherwise, keep looking!
-   return stonehearth.selection.FILTER_IGNORE
 end
 
 function XZRegionSelector:go()

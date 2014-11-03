@@ -1,4 +1,6 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
+
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
@@ -28,6 +30,7 @@ function FloorEditor:go(response, brush_shape)
       :select_front_brick(false)
       :allow_select_cursor(true)
       :set_cursor('stonehearth:cursors:create_floor')
+      :set_find_support_filter(stonehearth.selection.edit_floor_xz_region_filter)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
