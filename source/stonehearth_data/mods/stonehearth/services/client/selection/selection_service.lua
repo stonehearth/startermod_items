@@ -1,7 +1,10 @@
-local log = radiant.log.create_logger('selection_service')
+local build_util = require 'lib.build_util'
 local EntitySelector = require 'services.client.selection.entity_selector'
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
+
+local log = radiant.log.create_logger('selection_service')
+
 local SelectionService = class()
 
 -- enumeration used by the filter functions of the various selection
@@ -28,6 +31,27 @@ SelectionService.find_supported_xz_region_filter = function (result)
 
    -- otherwise, keep looking!
    return stonehearth.selection.FILTER_IGNORE
+end
+
+SelectionService.edit_floor_xz_region_filter = function (result)
+   -- stop if we've hit a piece of existing floor.  the call to  :allow_select_cursor(true)
+   -- will save us most, but not all, of the time.  without both checks, we will occasionally
+   -- stab through existing floor blueprints and hit the bottom of the terrain cut, creating
+   -- another slab of floor below this one.
+   --
+   local entity = result.entity
+   if entity then               
+      local fc = entity:get_component('stonehearth:fabricator')
+      if fc then
+         local blueprint = build_util.get_blueprint_for(entity)
+         if blueprint:get_component('stonehearth:floor') then
+            return true
+         end
+      end
+   end
+   
+   -- defer to the common implementation
+   return stonehearth.selection.find_supported_xz_region_filter(result)
 end
 
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
