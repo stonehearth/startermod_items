@@ -87,20 +87,7 @@ end
 
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
-      if self._sv.clip_enabled then
-         if e.key == _radiant.client.KeyboardInput.KEY_LEFT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height - constants.mining.Y_CELL_SIZE
-            self.__saved_variables:mark_changed()
-            self:_update()
-            return true
-         end
-         if e.key == _radiant.client.KeyboardInput.KEY_RIGHT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height + constants.mining.Y_CELL_SIZE
-            self.__saved_variables:mark_changed()
-            self:_update()
-            return true
-         end
-      end
+      
    end
    return false
 end
