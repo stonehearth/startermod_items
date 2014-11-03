@@ -20,6 +20,8 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
    didInsertElement: function() {
       this._super();
 
+      var self = this;
+      
       this.$('#visionButton').click(function() {
          var button = $(this);
          var currentlyClipping = button.hasClass('clip');
@@ -42,6 +44,13 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
 
       this.$('#clipDown').click(function() {
          App.stonehearthClient.subterraneanMoveDown();
+      });
+
+      // bit of a hack given that we can't do hotkey="\" in the div
+      $(document).keyup(function(e) {
+         if(e.keyCode == 220) {
+            self.$('#visionButton').click();
+         }
       });
 
       this.$('[title]').tooltipster();
