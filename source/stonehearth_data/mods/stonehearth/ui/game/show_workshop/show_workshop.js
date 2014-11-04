@@ -98,6 +98,15 @@ App.StonehearthCrafterView = App.View.extend({
          return;
       }
 
+      //Sort the recipe categories by ordinal
+      recipes.sort(this._compareByOrdinal);
+
+      //For each of the recipes inside each category, sort them by their level_requirement
+      $.each(recipes, function(i, category) {
+         category.recipes.sort(self._compareByLevelAndAlphabetical);
+      });
+
+      //Add ingredient images to the recipes
       $.each(recipes, function(name, category) {
          $.each(category.recipes, function(i, recipe) {
             $.each(recipe.ingredients, function(i, ingredient) {
@@ -124,11 +133,31 @@ App.StonehearthCrafterView = App.View.extend({
       self.set('formatted_recipes', recipes);
    }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes'),
 
+   //Something with an ordinal of 1 should have precedence
+   _compareByOrdinal: function(a, b) {
+      return (a.ordinal - b.ordinal);
+   },
+
+   //Sort the recipies first by their level requirement, then by their user visible name
+   //Note: may have difficulty if we ever get more than 9 crafter levels, but till then this is good.
+   _compareByLevelAndAlphabetical: function(a, b) {
+      var aName = a.level_requirement + a.recipe_name;
+      var bName = b.level_requirement + b.recipe_name;
+      if (aName < bName) {
+         return -1;
+      }
+      if (aName > bName) {
+         return 1;
+      }
+      return 0;
+   },
+
    //Updates the recipe display
    _updateRecipesOnLevel: function() {
       Ember.run.scheduleOnce('afterRender', this, '_updateRecipesNow');
    }.observes('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_controller'),
 
+   //Show the recipes that should now be visible
    //When this view is initialized, it should remember what type of crafter it's associated with
    //don't update if that's not the current class
    //TODO: test with a dude who has multiple crafter classes (eep)
@@ -146,7 +175,7 @@ App.StonehearthCrafterView = App.View.extend({
       //current level in this class show it.
       var curr_level = curr_job_controller_data.last_gained_lv;
       for (var i = 0; i <= curr_level; i++) {
-         $("#recipeItems").find("[unlock_level='" + i +"']").css('display', 'flex');
+         $("#recipeItems").find("[unlock_level='" + i +"']").css('-webkit-filter', 'grayscale(0%)');
       }
    },
 
@@ -335,15 +364,15 @@ App.StonehearthCrafterView = App.View.extend({
          self.$("#usefulText").html(recipe.description);
          self.$("#flavorText").html(recipe.flavor);
 
-         if (recipe.locked) {
-            self.$("#orderOptions").hide()
-            self.$("#portrait").attr("src", '/stonehearth/ui/common/images/lock.png');
-            self.$('#unlock_description').show()
-            self.$('#description').hide()
+         var curr_job_controller_data = this.get('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_controller');
+         var curr_level = curr_job_controller_data.last_gained_lv;
+         if (recipe.level_requirement > curr_level) {
+            self.$("#craftWindow #orderOptions").hide();
+            self.$('#craftWindow #orderOptionsLocked').show();
+            self.$('#craftWindow #orderOptionsLocked').text("Unlocked at Level: " + recipe.level_requirement);
          } else {
-            self.$('#orderOptions').show()
-            self.$('#unlock_description').hide()
-            self.$('#description').show()
+            self.$("#craftWindow #orderOptions").show();
+            self.$('#craftWindow #orderOptionsLocked').hide();            
          }
       }
    },

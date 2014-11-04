@@ -1,38 +1,67 @@
 App.StonehearthTerrainVisionWidget = App.View.extend({
    templateName: 'stoneheartTerrainVision',
+   uriProperty: 'context.data',
 
-   modeChangeClickHandler: function() {
+   init: function() {
       var self = this;
-      return function() {
-         var currentMode = App.getVisionMode();
 
-         if (currentMode == 'normal') {
-            currentMode = 'slice';
-         } else {
-            currentMode = 'normal';
-         }
-         App.setVisionMode(currentMode);
-      };
-   },
+      self._super();
 
-   modeChangeHandler: function() {
-      var self = this;
-      return function(e, newMode) {
-         self.$('#visionButton').attr('class', newMode);
-      };
+      radiant.call('stonehearth:get_client_service', 'subterranean_view')
+         .done(function(e) {
+            self.set('uri', e.result);
+         })
+         .fail(function(e) {
+            console.log('error getting subterranean_view client service')
+            console.dir(e)
+         })
    },
 
    didInsertElement: function() {
       this._super();
 
-      this.$(top).on('stonehearthVisionModeChange', this.modeChangeHandler());
+      var self = this;
+      
+      // hide menus that are in development
+      radiant.call('radiant:get_config', 'show_in_progress_ui')
+         .done(function(response) {
+            if (!response.show_in_progress_ui) {
+               self.destroy();
+               return;
+            }
+         })      
 
-      this.$('#visionButton').click(this.modeChangeClickHandler());
+      this.$('#visionButton').click(function() {
+         var button = $(this);
+         var currentlyClipping = button.hasClass('clip');
 
-      this.$('#visionButton').tooltipster({
-         content: $('<div class=title>' + i18n.t('stonehearth:building_vision') + '</div>' + 
-                    '<div class=description>' + i18n.t('stonehearth:building_vision_description') + '</div>' + 
-                    '<div class=hotkey>' + $.t('hotkey') + ' <span class=key>' + this.$('#visionButton').attr('hotkey')  + '</span></div>')
+         // toggle vision modes
+         if (currentlyClipping) {
+            App.stonehearthClient.subterraneanSetClip(false);
+            button.removeClass('clip');
+            self.$('#palette').hide();
+         } else {
+            App.stonehearthClient.subterraneanSetClip(true);
+            button.addClass('clip');
+            self.$('#palette').show();
+         }
       });
+
+      this.$('#clipUp').click(function() {
+         App.stonehearthClient.subterraneanMoveUp();
+      });
+
+      this.$('#clipDown').click(function() {
+         App.stonehearthClient.subterraneanMoveDown();
+      });
+
+      // bit of a hack given that we can't do hotkey="\" in the div
+      $(document).keyup(function(e) {
+         if(e.keyCode == 220) {
+            self.$('#visionButton').click();
+         }
+      });
+
+      this.$('[title]').tooltipster();
    }
 });

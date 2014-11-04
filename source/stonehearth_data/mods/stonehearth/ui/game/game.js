@@ -21,6 +21,7 @@ App.StonehearthGameUiView = App.ContainerView.extend({
             'StonehearthTaskManagerView',
             'StonehearthGameSpeedWidget',
             'StonehearthBuildingVisionWidget',
+            'StonehearthTerrainVisionWidget',
             'StonehearthBulletinListWidget',
             'StonehearthHudScoreWidget',
             'StonehearthUnitFrameView',

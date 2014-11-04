@@ -83,6 +83,16 @@ App.StonehearthStartMenuView = App.View.extend({
          .done(function(json) {
             self._buildMenu(json);
             self._addHotkeys();
+
+            // hide menus that are in development
+            radiant.call('radiant:get_config', 'show_in_progress_ui')
+               .done(function(response) {
+                  if (!response.show_in_progress_ui) {
+                     self.$('#mining_menu').hide();
+                     self.$('#build_road').hide();
+                  }
+               })
+
          });
 
 

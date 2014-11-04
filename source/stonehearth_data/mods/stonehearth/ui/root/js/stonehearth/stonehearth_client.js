@@ -29,6 +29,15 @@ var StonehearthClient;
                console.dir(e)
             })
       
+         radiant.call('stonehearth:get_client_service', 'subterranean_view')
+            .done(function(e) {
+               self._subterranean_view = e.result;
+            })
+            .fail(function(e) {
+               console.log('error getting subterranean_view client service')
+               console.dir(e)
+            })
+
          radiant.call('stonehearth:get_service', 'build')
             .done(function(e) {
                self._build_service = e.result;
@@ -257,6 +266,50 @@ var StonehearthClient;
          });
       },
 
+      subterraneanSetClip: function(enabled) {
+         return radiant.call_obj(this._subterranean_view, 'set_clip_enabled_command', enabled);
+      },
+
+      subterraneanMoveUp: function() {
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
+            .done(function(response) {
+               if (response) {
+                  radiant.call_obj(self._subterranean_view, 'move_clip_height_up_command');
+               }
+            })
+      },
+
+      subterraneanMoveDown: function() {
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
+            .done(function(response) {
+               if (response) {
+                  radiant.call_obj(self._subterranean_view, 'move_clip_height_down_command');
+               }
+            })
+      },
+
+      // item type is a uri, not an item entity
+      buildLadder: function() {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:build_ladder_title', 'stonehearth:build_ladder_description',
+            {i18n: true});
+
+         App.setGameMode('build');
+         return this._callTool('buildLadder', function() {
+            return radiant.call_obj(self._build_editor, 'build_ladder')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  self.buildLadder();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       // item type is a uri, not an item entity
       buildLadder: function() {
          var self = this;
@@ -452,14 +505,14 @@ var StonehearthClient;
          }, precall);
       },
 
-      eraseFloor: function(precall) {
+      eraseStructure: function(precall) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         var tip = self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
 
-         return this._callTool('eraseFloor', function() {
-            return radiant.call_obj(self._build_editor, 'erase_floor')
+         return this._callTool('eraseStructure', function() {
+            return radiant.call_obj(self._build_editor, 'erase_structure')
                .done(function(response) {                  
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -500,10 +553,6 @@ var StonehearthClient;
 
       applyConstructionDataOptions: function(blueprint, options) {
          return radiant.call_obj(this._build_service, 'apply_options_command', blueprint.__self, options);
-      },
-
-      instabuild: function(building) {
-         return radiant.call_obj(this._build_service, 'instabuild_command', building);
       },
 
       getCost: function(building) {

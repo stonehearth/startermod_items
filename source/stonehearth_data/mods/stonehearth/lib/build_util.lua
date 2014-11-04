@@ -268,6 +268,11 @@ function build_util.get_building_for(entity)
    end
 end
 
+function build_util.get_blueprint_for(entity)
+   local fabricator, blueprint, project = build_util.get_fbp_for(entity)
+   return blueprint
+end
+
 
 function build_util.get_cost(building)
    local costs = {
@@ -368,15 +373,27 @@ end
 
 function build_util.get_building_centroid(building)
    local bounds = build_util.get_building_bounds(building)
-   return Point3(bounds.max.x / 2, 0, bounds.max.z / 2):to_int();
+   local centroid = bounds.min + bounds:get_size():scaled(0.5):to_int();
+   centroid.y = 0
+   return centroid
 end
 
 function build_util.get_building_bounds(building)
-   local bounds = Cube3(Point3.zero, Point3.zero, 0)
+   local bounds
+   local origin = radiant.entities.local_to_world(Point3.zero, building)
+   assert(origin)
+
    local function measure_bounds(entity)
       local dst = entity:get_component('region_collision_shape')
       if dst then
-         bounds:grow(dst:get_region():get():get_bounds())
+         local region_bounds = dst:get_region():get():get_bounds()
+         region_bounds = radiant.entities.local_to_world(region_bounds, entity)
+                                             :translated(-origin)
+         if bounds then
+            bounds:grow(region_bounds)
+         else
+            bounds = region_bounds
+         end
       end
       
       for_each_child(entity, function(id, child)

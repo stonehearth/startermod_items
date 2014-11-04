@@ -182,16 +182,16 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
       dm::ObjectId objId = cut->GetObjectId();
 
       // Update the cut map to the new region.
-      EachTileIn(_cutToICut[objId].GetBounds(), [this, &cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->RemoveCut(cut);
+      EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->RemoveCut(objId);
          MarkDirty(cursor);
       });
 
       // Now, update the stored region, and find the new overlapping tiles.
       _cutToICut[objId] = csg::ToInt(region);
-      csg::Region3& iRegion = _cutToICut[objId];
-      EachTileIn(iRegion.GetBounds(), [this, &cut, &iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->UpdateCut(cut, &iRegion);
+      csg::Region3 const* iRegion = &_cutToICut[objId];
+      EachTileIn(iRegion->GetBounds(), [this, objId, iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->AddCut(objId, iRegion);
          MarkDirty(cursor);
       });
 
@@ -206,8 +206,8 @@ void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
    }
 
    _cut_trace_map.erase(cut->GetObjectId());
-   EachTileIn(_cutToICut[objId].GetBounds(), [this, cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-      tile->RemoveCut(cut);
+   EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      tile->RemoveCut(objId);
       MarkDirty(cursor);
    });
    _cutToICut.erase(objId);
@@ -253,7 +253,7 @@ void RenderTerrain::UpdateClipPlanes()
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes();
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {

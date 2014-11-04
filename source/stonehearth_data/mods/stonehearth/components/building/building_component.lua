@@ -235,8 +235,16 @@ function Building:_trace_entity_container()
                            end)
 end
 
-function Building:clear_no_construction_zone_traces()
-   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone'):clear_traces()
+function Building:get_building_footprint()
+   return self._sv.envelope_entity:get_component('region_collision_shape')
+                                       :get_region()
+end
+
+function Building:set_active(enabled)
+   if enabled then
+      self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                 :clear_traces()
+   end
 end
 
 function Building:_trace_entity(entity, loading)

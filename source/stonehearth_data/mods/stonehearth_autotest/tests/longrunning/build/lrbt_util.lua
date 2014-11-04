@@ -116,10 +116,8 @@ function lrbt_util.create_endless_entity(autotest, x0, y0, w, h, uri)
       local entity = autotest.env:create_entity(x, y, uri)
       trace = entity:trace('make more logs')
                         :on_destroyed(function()
-                              print ('log destroyed' .. tostring(autotest:is_finished()))
                               trace:destroy()
                               if not autotest:is_finished() then
-                                 print 'making new log destroyed'
                                  create_another_entity(x, y, uri)
                               end
                            end)

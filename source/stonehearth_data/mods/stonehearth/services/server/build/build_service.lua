@@ -73,7 +73,7 @@ function BuildService:set_active(entity, enabled)
       self:clear_undo_stack() -- can't undo once building starts!
       local bc = entity:get_component('stonehearth:building')
       if bc then 
-         bc:clear_no_construction_zone_traces()
+         bc:set_active(true)
       end
    end
 
@@ -330,6 +330,27 @@ function BuildService:erase_floor_command(session, response, box)
          self:erase_floor(session, ToCube3(box))
       end)
 
+   return success or nil
+end
+
+function BuildService:erase_fixture(fixture_blueprint)
+   -- grab the parent before we unlink, since the unlinking process will remove
+   -- the entity from the world
+   local parent = radiant.entities.get_parent(fixture_blueprint)
+   self:unlink_entity(fixture_blueprint)
+
+   -- if we're a portal and were taken off a wall, re-layout to clear the hole.
+   local wall = parent:get_component('stonehearth:wall')
+   if wall then
+      wall:remove_fixture(fixture_blueprint)
+               :layout()
+   end 
+end
+
+function BuildService:erase_fixture_command(session, response, fixture_blueprint)
+   local success = self:do_command('erase_fixture', response, function()
+         self:erase_fixture(fixture_blueprint)
+      end)
    return success or nil
 end
 

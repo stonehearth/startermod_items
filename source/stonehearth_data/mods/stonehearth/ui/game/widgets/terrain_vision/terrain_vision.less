@@ -1,7 +1,7 @@
 #stoneheartTerrainVision {
    position: absolute;
    bottom: 55px;
-   right: 590px;
+   right: 530px;
 
    #visionButton {
       .control;
@@ -11,52 +11,49 @@
       height: 50px;
       background-repeat: no-repeat;
       background-size: 50px 50px;
-      //background-image: url(./images/vision_button.png);
+      background-image: url(./images/normal.png);
    }
 
    #visionButton.normal {
       background-image: url(./images/normal.png);  
    }
 
-   #visionButton.xray {
-      background-image: url(./images/xray.png);  
-   }
-
-   #visionButton.rpg {
-      background-image: url(./images/rpg.png);  
+   #visionButton.clip {
+      background-image: url(./images/clip.png);  
    }
 
    #palette {
       position: absolute;
-      top: -15px;
-      right: -16px;
-      display: none;
-      text-align: right;
-      padding: 4px 66px 4px 0px;
-
-
+      top: -120px;
+      left: -65px;
+      text-align: center;
+      padding: 4px;
       background: rgba(0,0,0,0.5);
-      width: 250px;
+      height: -150px;
+      display: none;
 
       .button {
-         .control;
-         width: 55px;
-         height: 55px;
-         display: inline-block;
-         margin: 0px 10px 0px 10px;
+         .button;
+         width: 70px;
+         height: 31px;
       }
 
-      #showAllWalls {
-         background: url(./images/show_all_walls.png);
+      #depth {
+         .controlFont;
+         padding: 10px 0px 10px 0px;
+         width: 70px;
+         font-size: 22px;
+         color: #ff7200;
+         background: #000;
+         vertical-align: middle;
       }
 
-      #hideFacingWalls {
-         background: url(./images/hide_facing_walls.png);
+      #clipUp {
+         background: url(./images/clip_up.png);
       }
 
-      #hideAllWalls {
-         background: url(./images/hide_all_walls.png);
+      #clipDown {
+         background: url(./images/clip_down.png);
       }
-
    }
-}
+} 
