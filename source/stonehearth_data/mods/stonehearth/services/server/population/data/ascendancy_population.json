@@ -60,6 +60,8 @@
       "Wester",
       "Yiss",
       "Lebam",
+      "Mavel",
+      "Pounder",
       "Zedro"
    ],
    "given_names" : {
@@ -92,6 +94,7 @@
          "Willad",
          "Irving",
          "Lee",
+         "Locan",
          "Chopper"
       ],
       "female" : [
@@ -125,6 +128,7 @@
          "Vio",
          "Jess",
          "Marianne", 
+         "Trilla",
          "Olive"
       ]
    }, 
@@ -166,6 +170,7 @@
          "Donner", 
          "Scylla",
          "Charibdis", 
+         "Silkweed",
          "Berry", 
          "Oak",
          "Juniper",
@@ -197,7 +202,8 @@
          "rock", 
          " Valley", 
          " Vale", 
-         " Crossing"
+         " Crossing", 
+         " Glen"
       ]
    },
    "task_groups" : {}
