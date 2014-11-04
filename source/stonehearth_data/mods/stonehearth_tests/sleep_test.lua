@@ -11,20 +11,21 @@ function SleepTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
+   local session = self:get_session()
+
    local w1 = self:place_citizen(-8, 8)
    local w2 = self:place_citizen(8, 8)
-   self:place_item('stonehearth:furniture:comfy_bed', 0, 8)
-   --self:place_item('stonehearth:furniture:comfy_bed', 0, 0)
+   self:place_item('stonehearth:furniture:comfy_bed', 0, 8, session.player_id, { force_iconic = false })
    local tree = self:place_tree(-12, -12)
 
    --Make sure pets sleep too 
    local town = stonehearth.town:get_town(w1)
    local critter = self:place_item('stonehearth:red_fox', 2, 2)
+   local pet_collar = radiant.entities.create_entity('stonehearth:pet_collar')
    local equipment = critter:add_component('stonehearth:equipment')
-   equipment:equip_item('stonehearth:pet_collar')
+   equipment:equip_item(pet_collar)
    town:add_pet(critter)
 
-   ---[[
    --A few seconds in, set the time of day to right before sleepy time
    self:at(3000, function()
       stonehearth.calendar:set_time_unit_test_only({ hour = stonehearth.constants.sleep.BEDTIME_START - 1, minute = 58 })
@@ -34,10 +35,6 @@ function SleepTest:__init()
       radiant.entities.set_attribute(w2, 'sleepiness', stonehearth.constants.sleep.EXHAUSTION)
       radiant.entities.set_attribute(critter, 'sleepiness', stonehearth.constants.sleep.EXHAUSTION)
    end)
-   --]]
-
-
 end
 
 return SleepTest
-

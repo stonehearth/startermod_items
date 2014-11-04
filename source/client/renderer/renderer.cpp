@@ -80,9 +80,6 @@ Renderer::Renderer() :
 
 void Renderer::OneTimeIninitializtion()
 {
-   res::ResourceManager2::GetInstance().LookupJson("stonehearth/renderers/terrain/terrain_renderer.json", [&](const json::Node& n) {
-      terrainConfig_ = n;
-   });
    GetConfigOptions();
 
    assert(renderer_.get() == nullptr);
@@ -1596,11 +1593,6 @@ int Renderer::GetWindowWidth() const
 int Renderer::GetWindowHeight() const
 {
    return windowHeight_;
-}
-
-json::Node Renderer::GetTerrainConfig() const
-{  
-   return terrainConfig_;
 }
 
 void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)

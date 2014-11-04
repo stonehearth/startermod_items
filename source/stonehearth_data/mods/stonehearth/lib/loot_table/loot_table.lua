@@ -34,7 +34,7 @@ end
 -- "items":
 --    a) Array of entries with keys "uri" and "weight"
 --    b) If "uri" is the empty string, no drop is created if it is rolled
---    c) If "weight" is omitted, defaults to 1
+--    c) If "weight" is omitted, defaults to 1. Non-integer values are ok.
 function LootTable:load_from_json(json)
    if not json then
       self:_clear()

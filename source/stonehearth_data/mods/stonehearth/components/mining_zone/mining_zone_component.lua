@@ -82,12 +82,17 @@ function MiningZoneComponent:set_region(region)
 end
 
 function MiningZoneComponent:mine_point(point)
+   local block_kind = radiant.terrain.get_block_kind_at(point)
+   local loot = stonehearth.mining:roll_loot(block_kind)
+
    radiant.terrain.subtract_point(point)
    self:_update_destination()
 
    if self._destination_component:get_region():get():empty() then
       radiant.entities.destroy_entity(self._entity)
    end
+
+   return loot
 end
 
 function MiningZoneComponent:set_mining_zone_enabled(enabled)

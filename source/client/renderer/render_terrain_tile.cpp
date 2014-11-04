@@ -19,6 +19,7 @@ static const char* planes[] = {
    "FRONT",
    "BACK"
 };
+static const int UNKNOWN_TAG = 1;
 
 #define T_LOG(level)      LOG(renderer.terrain, level) << "(tile @ " << _location << ") "
 
@@ -80,8 +81,9 @@ int RenderTerrainTile::UpdateClipPlanes(int clip_height)
    om::Region3BoxedPtr region = _region.lock();
    if (region) {
       csg::Point3 tileSize = _terrain.GetTileSize();
-      csg::Region3 cutTerrainStorage;
-      csg::Region3 const& rgn = ComputeCutTerrainRegion(clip_height, cutTerrainStorage);
+      csg::Region3 cut_terrain_storage;
+      csg::Region2 cross_section;
+      csg::Region3 const& rgn = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section);
 
       for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
          _clipPlanes[d].Clear();
@@ -125,24 +127,24 @@ void RenderTerrainTile::UpdateGeometry(int clip_height)
    }
 
    if (region) {
-      csg::Region3 cutTerrainStorage;
-      csg::Region3 const& afterCut = ComputeCutTerrainRegion(clip_height, cutTerrainStorage);
+      csg::Region3 cut_terrain_storage;
+      csg::Region2 cross_section;
+      csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section);
 
-      _regionTools.ForEachPlane(afterCut, [this, clip_height, &afterCut](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+      _regionTools.ForEachPlane(after_cut, [this, clip_height, &after_cut, &cross_section](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
          Geometry& g = _geometry[pi.which];
 
          if (pi.which == csg::RegionTools3::TOP_PLANE && pi.reduced_value == clip_height) {
-            // generate geometry for the clipped plane that puts a roof on the lower region
-            csg::RegionTools3 tools;
-            csg::Region2 clipped_footprint = tools.GetCrossSection(afterCut, 1, clip_height);
-            clipped_footprint &= plane;
-            clipped_footprint.SetTag(om::Terrain::Hidden);
-
-            // replace obscured areas with the hidden tag
-            csg::Region2 top_plane(plane); // WARNING: Region copy
-            top_plane.Add(clipped_footprint);
-            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << clipped_footprint.GetArea() << ")";
-            g[pi.reduced_value].AddUnique(top_plane);
+            // only create rects for geometry that extends through the clip plane
+            cross_section &= plane;
+            // hide the block types since we can't see inside the earth
+            // TODO: verify that the unknown tag is defined in the json
+            cross_section.SetTag(UNKNOWN_TAG);
+            // add any blocks that extend up to the clip plane, but do not cross it
+            csg::Region2 residual = plane - cross_section;
+            cross_section += residual;
+            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << cross_section.GetArea() << ")";
+            g[pi.reduced_value].AddUnique(cross_section);
          } else {
             csg::Region2 const* clipper = GetClipPlaneFor(pi);
             if (clipper) {
@@ -197,7 +199,7 @@ void RenderTerrainTile::RemoveCut(dm::ObjectId cutId)
 // a direct reference to the terrain tile (super fast!).  If not, it copies the region and
 // applies the cuts.
 //
-csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(int clip_height, csg::Region3& storage) const
+csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section) const
 {
    om::Region3BoxedPtr region = _region.lock();
    if (!region) {
@@ -222,6 +224,9 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(int clip_height, 
    // modify the geometry if the clipping plane intersects this tile
    if (is_clipped) {
       T_LOG(9) << "removing geometry above clipping plane";
+      csg::RegionTools3 tools;
+      cross_section = tools.GetCrossSection(storage, 1, clip_height);
+
       csg::Cube3 hidden_volume(_location, _location + tile_size);
       hidden_volume.min.y = clip_height;
       storage -= hidden_volume;

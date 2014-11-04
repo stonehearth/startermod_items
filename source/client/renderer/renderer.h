@@ -134,8 +134,6 @@ class Renderer
       bool IsRunning() const;
       HWND GetWindowHandle() const;
 
-      json::Node GetTerrainConfig() const;
-
       std::shared_ptr<RenderEntity> GetRenderEntity(om::EntityPtr obj);
       std::shared_ptr<RenderEntity> CreateRenderEntity(H3DNode parent, om::EntityPtr obj);
       

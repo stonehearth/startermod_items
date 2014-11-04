@@ -1,5 +1,6 @@
 local constants = require 'constants'
 local mining_lib = require 'lib.mining.mining_lib'
+local LootTable = require 'lib.loot_table.loot_table'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -12,6 +13,8 @@ local MAX_REACH_DOWN = 1
 
 function MiningService:initialize()
    self._sv = self.__saved_variables:get_data()
+
+   self:_init_loot_tables()
 
    if not self._sv.initialized then
       self._sv.initialized = true
@@ -207,7 +210,9 @@ function MiningService:get_reserved_region_for_poi(poi, from, mining_zone)
    local from = from - location
 
    local cube = Cube3(poi, poi + Point3.one)
-   cube.min.y = from.y
+   if poi.y > from.y then
+      cube.min.y = from.y
+   end
    local proposed_region = Region3(cube)
    local reserved_region = zone_region:intersected(proposed_region)
    -- by convention, all input and output values in the mining service are in world coordiantes
@@ -276,6 +281,23 @@ function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filte
    add_xz_column(point.x,   point.z+1, y_min, y_max)
 
    return region
+end
+
+function MiningService:_init_loot_tables()
+   local json = radiant.resources.load_json('/stonehearth/services/server/mining/mining_loot_tables.json')
+   self._loot_tables = {}
+
+   for block_kind, loot_json in pairs(json) do
+      local loot_table = LootTable()
+      loot_table:load_from_json(loot_json)
+      self._loot_tables[block_kind] = loot_table
+   end
+end
+
+function MiningService:roll_loot(block_kind)
+   local loot_table = self._loot_tables[block_kind]
+   local uris = loot_table and loot_table:roll_loot() or {}
+   return uris
 end
 
 return MiningService

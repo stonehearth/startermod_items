@@ -553,8 +553,7 @@ end
 
 -- Called only when the blueprint region is changed (added or merged).
 function Fabricator:_update_mining_region()
-   local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
-   local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
+   local world_region = radiant.entities.local_to_world(self._blueprint_dst:get_region():get(), self._entity)
    world_region = radiant.terrain.intersect_region(world_region)
 
    if world_region:empty() then
@@ -592,14 +591,12 @@ end
 -- visual artifacting (right now!), and only updating on blueprint change is potentially a lot faster.
 function Fabricator:_update_total_mining_region()
    self._total_mining_region:modify(function(cursor)
-         local world_pos = radiant.entities.get_parent(self._entity):get_component('mob'):get_location()
-         local world_region = self._blueprint_dst:get_region():get():translated(world_pos)
+         local world_region = radiant.entities.local_to_world(self._blueprint_dst:get_region():get(), self._entity)
          world_region = radiant.terrain.intersect_region(world_region)
-
          if world_region:empty() then
+            cursor:clear()
             return
          end
-
          cursor:copy_region(world_region)
       end)
 end
@@ -708,6 +705,7 @@ function Fabricator:_trace_blueprint_and_project()
    
    local update_fabricator_region = function()
       self:_update_fabricator_region()
+      self:_update_total_mining_region()
    end
    
    local btrace = self._blueprint_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
