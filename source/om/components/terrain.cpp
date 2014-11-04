@@ -5,6 +5,8 @@
 #include "om/entity.h"
 #include "om/region.h"
 #include "csg/iterators.h"
+#include "dm/dm.h"
+#include "resources/res_manager.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
@@ -12,15 +14,6 @@ using namespace ::radiant::om;
 static const csg::Point3 TILE_SIZE(32, 5, 32);
 
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
-
-static float GetPositiveRemainder(float x, float y)
-{
-   float remainder = std::fmod(x, y);
-   if (remainder < 0) {
-      remainder += y;
-   }
-   return remainder;
-}
 
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
@@ -35,6 +28,18 @@ void Terrain::LoadFromJson(json::Node const& obj)
 void Terrain::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
+}
+
+void Terrain::ConstructObject()
+{
+   Component::ConstructObject();
+
+   config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
+      ->OnModified([this]() {
+         res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
+            terrainTesselator_.LoadFromJson(node);
+         });
+      });
 }
 
 void Terrain::AddTile(csg::Region3f const& region)

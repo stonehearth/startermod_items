@@ -1,7 +1,5 @@
 local Point3  = _radiant.csg.Point3
 
-local DEFAULT_FACTION = 'civ'
-
 local _all_entities = {}
 
 local env = {}
@@ -19,7 +17,7 @@ function env.create_world(world_generator_script)
    create_world(env)
    env._reset_camera()
 
-   -- listen for every entity creation event so we can tear them all down between tests
+   -- listen for every entity creation event sGo we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
          local id = entity:get_id()

@@ -19,6 +19,7 @@ static const char* planes[] = {
    "FRONT",
    "BACK"
 };
+static const int UNKNOWN_TAG = 1;
 
 #define T_LOG(level)      LOG(renderer.terrain, level) << "(tile @ " << _location << ") "
 
@@ -148,7 +149,7 @@ void RenderTerrainTile::UpdateGeometry(int clip_height)
             csg::RegionTools3 tools;
             csg::Region2 clipped_footprint = tools.GetCrossSection(rgn, 1, clip_height);
             clipped_footprint &= plane;
-            clipped_footprint.SetTag(om::Terrain::Hidden);
+            clipped_footprint.SetTag(UNKNOWN_TAG); // TODO: verify that the unknown tag is defined in the json
 
             // replace obscured areas with the hidden tag
             csg::Region2 top_plane(plane); // WARNING: Region copy

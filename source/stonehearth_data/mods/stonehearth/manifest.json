@@ -58,6 +58,8 @@
 
       "default_object" : "file(entities/generic/default_object)",
 
+      "terrain_block_config" : "file(data/terrain/terrain_blocks.json)",
+
       "entities:wooden_floor" : "file(entities/build/wooden_floor)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",

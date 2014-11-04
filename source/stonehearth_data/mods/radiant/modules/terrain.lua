@@ -6,7 +6,26 @@ local rng = _radiant.csg.get_default_rng()
 local INFINITE = 1000000
 
 local Terrain = {}
-local singleton = {}
+
+function Terrain.set_config_file(config_file)
+   Terrain._get_terrain_component():set_config_file_name(config_file)
+   Terrain._initialize_block_types(config_file)
+end
+
+-- Must be called after set_config_file
+function Terrain.get_block_types()
+   return Terrain._block_types
+end
+
+function Terrain.get_block_kind_for_tag(tag)
+   return Terrain._block_kinds[tag]
+end
+
+function Terrain.get_block_kind_at(point)
+   local region = Terrain.intersect_point(point)
+   local tag = region:get_rect(0).tag
+   return Terrain.get_block_kind_for_tag(tag)
+end
 
 -- place an entity in the world.  this may not end up no the terrain, but is
 -- the most appropriate place given the specified `location`.  for example,
@@ -318,7 +337,7 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
 end
 
 function Terrain.add_point(point, tag)
-   Terrain.add_cube(Cube3(point, Point3(point.x+1, point.y+1, point.z+1), tag))
+   Terrain.add_cube(Cube3(point, point + Point3.one, tag))
 end
 
 function Terrain.add_cube(cube)
@@ -330,7 +349,7 @@ function Terrain.add_region(region)
 end
 
 function Terrain.subtract_point(point)
-   Terrain.subtract_cube(Cube3(point, Point3(point.x+1, point.y+1, point.z+1)))
+   Terrain.subtract_cube(Cube3(point, point + Point3.one))
 end
 
 function Terrain.subtract_cube(cube)
@@ -339,6 +358,10 @@ end
 
 function Terrain.subtract_region(region)
    Terrain._get_terrain_component():subtract_region(region)
+end
+
+function Terrain.intersect_point(point)
+   return Terrain.intersect_cube(Cube3(point, point + Point3.one))
 end
 
 function Terrain.intersect_cube(cube)
@@ -355,6 +378,17 @@ end
 
 function Terrain.get_movement_cost_at(point)
    return _physics:get_movement_cost_at(point)
+end
+
+function Terrain._initialize_block_types(config_file)
+   local config = radiant.resources.load_json(config_file)
+   Terrain._block_types = {}
+   Terrain._block_kinds = {}
+
+   for name, block_type in pairs(config.block_types) do
+      Terrain._block_types[name] = block_type.tag
+      Terrain._block_kinds[block_type.tag] = block_type.kind
+   end
 end
 
 return Terrain

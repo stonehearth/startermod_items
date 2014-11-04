@@ -10,6 +10,7 @@
 #include "csg/iterators.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
+#include "resources/res_manager.h"
 #include "Horde3D.h"
 #include <unordered_map>
 
@@ -30,9 +31,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
 
-   if (_colorMap.empty()) {
-      InitalizeColorMap();
-   }
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
       csg::Point3 location = index.Scaled(_tileSize);
 
@@ -52,6 +50,12 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                  NOT_YET_IMPLEMENTED();
                               })
                               ->PushObjectState();
+
+   terrain_config_trace_ = terrain->TraceConfigFileName("render", dm::RENDER_TRACES)
+                                    ->OnModified([this]() {
+                                       LoadColorMap();
+                                    })
+                                    ->PushObjectState();
 }
 
 RenderTerrain::~RenderTerrain()
@@ -61,25 +65,30 @@ RenderTerrain::~RenderTerrain()
    }
 }
 
-void RenderTerrain::InitalizeColorMap()
+void RenderTerrain::LoadColorMap()
 {
-   std::string const unknownColor = "#ff00ff";
-   json::Node config = Renderer::GetInstance().GetTerrainConfig();
-   _colorMap[om::Terrain::Hidden]     = csg::Color4::FromString(config.get("hidden", unknownColor));
-   _colorMap[om::Terrain::Bedrock]    = csg::Color4::FromString(config.get("bedrock", unknownColor));
-   _colorMap[om::Terrain::RockLayer1] = csg::Color4::FromString(config.get("rock.layer_1", unknownColor));
-   _colorMap[om::Terrain::RockLayer2] = csg::Color4::FromString(config.get("rock.layer_2", unknownColor));
-   _colorMap[om::Terrain::RockLayer3] = csg::Color4::FromString(config.get("rock.layer_3", unknownColor));
-   _colorMap[om::Terrain::RockLayer4] = csg::Color4::FromString(config.get("rock.layer_4", unknownColor));
-   _colorMap[om::Terrain::RockLayer5] = csg::Color4::FromString(config.get("rock.layer_5", unknownColor));
-   _colorMap[om::Terrain::RockLayer6] = csg::Color4::FromString(config.get("rock.layer_6", unknownColor));
-   _colorMap[om::Terrain::SoilLight]  = csg::Color4::FromString(config.get("soil.light", unknownColor));
-   _colorMap[om::Terrain::SoilDark]   = csg::Color4::FromString(config.get("soil.dark", unknownColor));
-   _colorMap[om::Terrain::GrassEdge1] = csg::Color4::FromString(config.get("grass.edge1", unknownColor));
-   _colorMap[om::Terrain::GrassEdge2] = csg::Color4::FromString(config.get("grass.edge2", unknownColor));
-   _colorMap[om::Terrain::Grass]      = csg::Color4::FromString(config.get("grass.inner", unknownColor));
-   _colorMap[om::Terrain::DirtEdge1]  = csg::Color4::FromString(config.get("dirt.edge1", unknownColor));
-   _colorMap[om::Terrain::Dirt]       = csg::Color4::FromString(config.get("dirt.inner", unknownColor));
+   _colorMap.clear();
+
+   om::TerrainPtr terrainPtr = terrain_.lock();
+   if (!terrainPtr) {
+      return;
+   }
+
+   std::string config_file_name = terrainPtr->GetConfigFileName();
+   if (config_file_name.empty()) {
+      return;
+   }
+
+   res::ResourceManager2::GetInstance().LookupJson(config_file_name, [&](const json::Node& config) {
+      json::Node block_types = config.get_node("block_types");
+
+      for (json::Node const& block_type : block_types) {
+         int tag = block_type.get<int>("tag");
+         std::string color_code = block_type.get<std::string>("color");
+         csg::Color4 color = csg::Color4::FromString(color_code);
+         _colorMap[tag] = color;
+      }
+   });
 }
 
 csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
