@@ -27,7 +27,7 @@ function sh_99.verify_moving_placed_item_when_in_use(autotest)
          end
       end)
 
-   autotest:sleep(25000)
+   autotest:sleep(20000)
    autotest:fail('task failed to complete')
 end
 
