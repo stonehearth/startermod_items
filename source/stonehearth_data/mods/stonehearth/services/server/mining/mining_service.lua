@@ -210,7 +210,9 @@ function MiningService:get_reserved_region_for_poi(poi, from, mining_zone)
    local from = from - location
 
    local cube = Cube3(poi, poi + Point3.one)
-   cube.min.y = from.y
+   if poi.y > from.y then
+      cube.min.y = from.y
+   end
    local proposed_region = Region3(cube)
    local reserved_region = zone_region:intersected(proposed_region)
    -- by convention, all input and output values in the mining service are in world coordiantes
