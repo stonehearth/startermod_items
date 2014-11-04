@@ -2,6 +2,7 @@
 #include "csg/util.h"
 #include "csg/iterators.h"
 #include "csg/region_tools.h"
+#include "resources/res_manager.h"
 #include "terrain.ridl.h"
 #include "terrain_tesselator.h"
 
@@ -12,36 +13,74 @@ using namespace ::radiant::om;
 
 TerrainTesselator::TerrainTesselator()
 {
-   // TODO: make this configurable
-   grass_ring_info_.rings.emplace_back(RingInfo::Ring(4, om::Terrain::GrassEdge1));
-   grass_ring_info_.rings.emplace_back(RingInfo::Ring(6, om::Terrain::GrassEdge2));
-   grass_ring_info_.innerTag = om::Terrain::Grass;
+}
 
-   dirt_ring_info_.rings.emplace_back(RingInfo::Ring(8, om::Terrain::DirtEdge1));
-   dirt_ring_info_.innerTag = om::Terrain::Dirt;
+void TerrainTesselator::LoadFromJson(json::Node config)
+{
+   tag_map_.clear();
+   ring_infos_.clear();
+
+   json::Node block_types = config.get_node("block_types");
+
+   for (json::Node const& block_type : block_types) {
+      tag_map_[block_type.name()] = block_type.get<int>("tag");
+   }
+
+   json::Node ring_tesselation = config.get_node("ring_tesselation");
+
+   for (json::Node const& ring_type : ring_tesselation) {
+      RingInfo ring_info;
+
+      int base_tag = GetTag(ring_type.name());
+      ring_info.innerTag = base_tag;
+
+      for (json::Node const& ring : ring_type) {
+         int width = ring.get<int>("width");
+         std::string ring_name = ring.get<std::string>("name");
+         int tag = GetTag(ring_name);
+         ring_info.rings.emplace_back(RingInfo::Ring(width, tag));
+      }
+
+      ring_infos_[base_tag] = ring_info;
+   }
+}
+
+int TerrainTesselator::GetTag(std::string name)
+{
+   auto i = tag_map_.find(name);
+   if (i != tag_map_.end()) {
+      return i->second;
+   } else {
+      throw core::Exception(BUILD_STRING("Unknown terrain block type: " << name));
+   }
 }
 
 csg::Region3 TerrainTesselator::TesselateTerrain(csg::Region3 const& terrain, csg::Rect2 const* clipper)
 {
    csg::Region3 tesselated;
-   csg::Region3 grass, dirt;
+   std::unordered_map<int, std::shared_ptr<csg::Region3>> tesselation_map;
+
+   for (auto i : ring_infos_) {
+      tesselation_map[i.first] = std::make_shared<csg::Region3>();
+   }
 
    TERRAIN_LOG(7) << "Tesselating Terrain...";
    for (csg::Cube3 const& cube : csg::EachCube(terrain)) {
-      switch (cube.GetTag()) {
-      case om::Terrain::Grass:
-         grass.AddUnique(cube);
-         break;
-      case om::Terrain::Dirt:
-         dirt.AddUnique(cube);
-         break;
-      default:
+      int tag = cube.GetTag();
+      auto i = ring_infos_.find(tag);
+      if (i == ring_infos_.end()) {
          tesselated.AddUnique(cube);
+      } else {
+         tesselation_map[tag]->AddUnique(cube);
       }
    }
 
-   AddTerrainTypeToTesselation(grass, clipper, grass_ring_info_, tesselated);
-   AddTerrainTypeToTesselation(dirt, clipper, dirt_ring_info_, tesselated);
+   for (auto const& i : tesselation_map) {
+      csg::Region3& region = *(i.second);
+      RingInfo ring_info = ring_infos_[i.first];
+      AddTerrainTypeToTesselation(region, clipper, ring_info, tesselated);
+   }
+
    TERRAIN_LOG(7) << "Done Tesselating Terrain!";
 
    return tesselated;
@@ -54,7 +93,12 @@ void TerrainTesselator::AddTerrainTypeToTesselation(csg::Region3 const& region, 
    for (csg::Cube3 const& cube : csg::EachCube(region)) {
       csg::Point3 const& min = cube.GetMin();
       csg::Point3 const& max = cube.GetMax();
-      ASSERT(min.y == max.y - 1); // 1 block thin, pizza box
+
+      // 1 block thin, pizza box
+      if (cube.GetSize().y != 1) {
+         throw core::Exception("Can only tesselate layers that are 1 voxel thick");
+      }
+
       layers[min.y].AddUnique(csg::Rect2(
             csg::Point2(min.x, min.z),
             csg::Point2(max.x, max.z)
