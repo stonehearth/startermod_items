@@ -48,12 +48,9 @@ function SleepInBedAdjacent:run(ai, entity, args)
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
+   radiant.events.trigger_async(entity, 'stonehearth:sleep_in_bed', { bed_uri = bed:get_uri() })
    ai:execute('stonehearth:run_effect_timed', { effect = 'sleep', duration = '1h'})
    radiant.entities.set_attribute(entity, 'sleepiness', 0)
-
-   --When we've slept, fire an event
-   radiant.events.trigger_async(entity, 'stonehearth:sleep_in_bed', 
-      {bed_uri = bed:get_uri()} )
 end
 
 function SleepInBedAdjacent:stop(ai, entity, args)

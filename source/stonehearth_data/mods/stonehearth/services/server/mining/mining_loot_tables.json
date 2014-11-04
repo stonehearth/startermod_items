@@ -1,0 +1,21 @@
+{
+   "rock" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:hunk_of_stone", "weight" : 5 }
+      ]
+   },
+   "dirt" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:hunk_of_stone", "weight" : 2 }
+      ]
+   },
+   "grass" : {
+      "num_rolls" : 0,
+      "items" : [
+      ]
+   }
+}

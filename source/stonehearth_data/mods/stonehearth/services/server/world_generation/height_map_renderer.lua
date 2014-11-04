@@ -1,7 +1,6 @@
 local Array2D = require 'services.server.world_generation.array_2D'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 
-local Terrain = _radiant.om.Terrain
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local Cube3 = _radiant.csg.Cube3
@@ -17,16 +16,19 @@ function HeightMapRenderer:__init(terrain_info)
    self._tile_size = self._terrain_info.tile_size
    self._terrain = radiant._root_entity:add_component('terrain')
 
+   radiant.terrain.set_config_file('stonehearth:terrain_block_config')
+   self._block_types = radiant.terrain.get_block_types()
+
    -- rock layers
    local mountains_info = self._terrain_info[TerrainType.mountains]
    local rock_layers = {}
    local terrain_tags = {
-      Terrain.ROCK_LAYER_1,
-      Terrain.ROCK_LAYER_2,
-      Terrain.ROCK_LAYER_3,
-      Terrain.ROCK_LAYER_4,
-      Terrain.ROCK_LAYER_5,
-      Terrain.ROCK_LAYER_6
+      self._block_types.rock_layer_1,
+      self._block_types.rock_layer_2,
+      self._block_types.rock_layer_3,
+      self._block_types.rock_layer_4,
+      self._block_types.rock_layer_5,
+      self._block_types.rock_layer_6
    }
 
    for i, tag in ipairs(terrain_tags) do
@@ -101,7 +103,7 @@ function HeightMapRenderer:_add_bedrock_to_region(region3, height_map, thickness
    region3:add_unique_cube(Cube3(
          Point3(0, -thickness, 0),
          Point3(height_map.width, 0, height_map.height),
-         Terrain.BEDROCK
+         self._block_types.bedrock
       ))
 end
 
@@ -154,14 +156,14 @@ function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
       region3:add_unique_cube(Cube3(
             Point3(rect.min.x, soil_top, rect.min.y),
             Point3(rect.max.x, height,   rect.max.y),
-            Terrain.GRASS
+            self._block_types.grass
          ))
    end
 end
 
 function HeightMapRenderer:_add_plains_to_region(region3, rect, height)
    local plains_max_height = self._terrain_info[TerrainType.plains].max_height
-   local material = height < plains_max_height and Terrain.DIRT or Terrain.GRASS
+   local material = height < plains_max_height and self._block_types.dirt or self._block_types.grass
 
    self:_add_soil_strata_to_region(region3, Cube3(
          Point3(rect.min.x, 0,        rect.min.y),
@@ -188,7 +190,7 @@ function HeightMapRenderer:_add_soil_strata_to_region(region3, cube3)
    for j = j_min, j_max, STRATA_HEIGHT do
       local lower = math.max(j, y_min)
       local upper = math.min(j+STRATA_HEIGHT, y_max)
-      local block_type = j % STRATA_PERIOD == 0 and Terrain.SOIL_LIGHT or Terrain.SOIL_DARK
+      local block_type = j % STRATA_PERIOD == 0 and self._block_types.soil_light or self._block_types.soil_dark
 
       region3:add_unique_cube(Cube3(
             Point3(cube3.min.x, lower, cube3.min.z),

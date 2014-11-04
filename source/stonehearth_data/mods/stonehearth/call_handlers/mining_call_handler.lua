@@ -74,7 +74,6 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       -- Contract q1 to the largest quantized region that fits inside the validated region.
       -- q0's final location is the same as the proposed location, which must be valid
       -- or we wouldn't be asked to resolve.
-      -- This code is ugly. Find a clearer way to do this.
       for _, d in ipairs({ 'x', 'z' }) do
          if q0[d] <= q1[d] then
             assert(q0[d] == get_cell_min(q0[d], xz_cell_size))
