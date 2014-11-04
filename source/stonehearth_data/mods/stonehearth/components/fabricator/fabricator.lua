@@ -378,8 +378,8 @@ function Fabricator:_destroy_teardown_task()
 end
 
 function Fabricator:_start_fabricate_task()
-   self:_update_mining_region()
    if not self._fabricate_task then
+      self:_update_mining_region()
       self._log:debug('starting fabricate task')
       local town = stonehearth.town:get_town(self._blueprint)
       self._fabricate_task = town:create_task_for_group('stonehearth:task_group:build', 'stonehearth:fabricate_structure', { fabricator = self })
@@ -698,16 +698,20 @@ function Fabricator:_update_fabricator_region()
 end
 
 function Fabricator:_trace_blueprint_and_project()
-   local update_fabricator_region = function()
+   local update_blueprint_region = function()
       if self._active then
          self:_update_mining_region()
-      end
+      end   
       self:_update_total_mining_region()
       self:_update_fabricator_region()
    end
    
+   local update_fabricator_region = function()
+      self:_update_fabricator_region()
+   end
+   
    local btrace = self._blueprint_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
-                                     :on_changed(update_fabricator_region)
+                                     :on_changed(update_blueprint_region)
 
    local ptrace  = self._project_dst:trace_region('updating fabricator', TraceCategories.SYNC_TRACE)
                                      :on_changed(update_fabricator_region)
