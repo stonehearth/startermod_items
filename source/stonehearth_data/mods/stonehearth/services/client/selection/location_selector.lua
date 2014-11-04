@@ -110,6 +110,10 @@ function LocationSelector:set_rotation_disabled(disabled)
    return self
 end
 
+function LocationSelector:get_rotation()
+   return self._rotation
+end
+
 function LocationSelector:set_rotation(rotation)   
    self._rotation = rotation
    if self._cursor_entity then

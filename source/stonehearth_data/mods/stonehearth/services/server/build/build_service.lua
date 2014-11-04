@@ -73,7 +73,7 @@ function BuildService:set_active(entity, enabled)
       self:clear_undo_stack() -- can't undo once building starts!
       local bc = entity:get_component('stonehearth:building')
       if bc then 
-         bc:clear_no_construction_zone_traces()
+         bc:set_active(true)
       end
    end
 

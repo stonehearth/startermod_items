@@ -63,23 +63,19 @@ function SubterraneanViewService:set_clip_enabled(enabled)
 end
 
 function SubterraneanViewService:move_clip_height_up()
-   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_up_command()
-   return self:set_clip_height_up();
-end
-
-function SubterraneanViewService:move_clip_height_up()
-   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_down()
    return self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
 end
 
-function SubterraneanViewService:move_clip_height_down_command()
-   return self:set_clip_height_down();
+function SubterraneanViewService:move_clip_height_up_command(session, response)
+   return self:move_clip_height_up();
+end
+
+function SubterraneanViewService:move_clip_height_down()
+   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down_command(session, response)
+   return self:move_clip_height_down();
 end
 
 function SubterraneanViewService:set_clip_height(height)
@@ -91,20 +87,7 @@ end
 
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
-      if self._sv.clip_enabled then
-         if e.key == _radiant.client.KeyboardInput.KEY_LEFT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height - constants.mining.Y_CELL_SIZE
-            self.__saved_variables:mark_changed()
-            self:_update()
-            return true
-         end
-         if e.key == _radiant.client.KeyboardInput.KEY_RIGHT_BRACKET then
-            self._sv.clip_height = self._sv.clip_height + constants.mining.Y_CELL_SIZE
-            self.__saved_variables:mark_changed()
-            self:_update()
-            return true
-         end
-      end
+      
    end
    return false
 end

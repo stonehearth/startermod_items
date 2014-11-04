@@ -100,11 +100,10 @@ H3DRes Pipeline::CreateVoxelGeometryFromRegion(std::string const& geoName, csg::
    return h3dutCreateVoxelGeometryRes(geoName.c_str(), (VoxelGeometryVertex*)mesh.vertices.data(), vertexOffsets, (uint*)mesh.indices.data(), indexOffsets, 1);
 }
 
-void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
+void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2f const& panels)
 {   
    float y = 0;
-   for (csg::Rect2 const& c: csg::EachCube(panels)) {      
-      csg::Rect2f cube = ToFloat(c);
+   for (csg::Rect2f const& cube: csg::EachCube(panels)) {      
       csg::Point2f size = cube.GetSize();
       for (double i = 0; i < size.y; i ++) {
          // xxx: why do we have to use a clockwise winding here?
@@ -139,7 +138,7 @@ void Pipeline::AddDesignationStripes(csg::Mesh& m, csg::Region2 const& panels)
    }
 }
 
-void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
+void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2f& edgemap)
 {
    float thickness = 0.25f;
    csg::PlaneInfo3f pi;
@@ -156,8 +155,8 @@ void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
          t = 1, n = 0;
       }
 
-      csg::Point2f min = ToFloat(edge.min->location);
-      csg::Point2f max = ToFloat(edge.max->location);
+      csg::Point2f min = edge.min->location;
+      csg::Point2f max = edge.max->location;
       max -= ToFloat(edge.normal) * thickness;
 
       csg::Rect2f dash = csg::Rect2f::Construct(min, max);
@@ -189,10 +188,10 @@ void Pipeline::AddDesignationBorder(csg::Mesh& m, csg::EdgeMap2& edgemap)
 
 RenderNodePtr
 Pipeline::CreateDesignationNode(H3DNode parent,
-                                csg::Region2 const& plane,
+                                csg::Region2f const& plane,
                                 csg::Color4 const& outline_color,
                                 csg::Color4 const& stripes_color,
-								int useCoarseCollisionBox)
+                                int useCoarseCollisionBox)
 {
    csg::Mesh outline_mesh;
    csg::Mesh stripes_mesh;
@@ -201,7 +200,7 @@ Pipeline::CreateDesignationNode(H3DNode parent,
    outline_mesh.SetColor(outline_color);
    stripes_mesh.SetColor(stripes_color);
 
-   csg::EdgeMap2 edgemap = csg::RegionTools2().GetEdgeMap(plane);
+   csg::EdgeMap2f edgemap = csg::RegionTools2f().GetEdgeMap(plane);
    AddDesignationBorder(outline_mesh, edgemap);
    AddDesignationStripes(stripes_mesh, plane);
 
@@ -225,16 +224,16 @@ Pipeline::CreateDesignationNode(H3DNode parent,
 
 RenderNodePtr
 Pipeline::CreateStockpileNode(H3DNode parent,
-                                csg::Region2 const& plane,
-                                csg::Color4 const& interior_color,
-                                csg::Color4 const& border_color)
+                              csg::Region2f const& plane,
+                              csg::Color4 const& interior_color,
+                              csg::Color4 const& border_color)
 {
    return CreateXZBoxNode(parent, plane, interior_color, border_color, 1.0);
 }
 
 RenderNodePtr
 Pipeline::CreateSelectionNode(H3DNode parent,
-                              csg::Region2 const& plane,
+                              csg::Region2f const& plane,
                               csg::Color4 const& interior_color,
                               csg::Color4 const& border_color)
 {
@@ -258,20 +257,20 @@ namespace std {
 
 RenderNodePtr
 Pipeline::CreateRegionOutlineNode(H3DNode parent,
-                                  csg::Region3 const& region,
+                                  csg::Region3f const& region,
                                   csg::Color4 const& edge_color,
                                   csg::Color4 const& face_color)
 {
    csg::Point3f offset(-0.5, 0, -0.5); // offset for terrain alignment
-   csg::RegionTools3 tools;
+   csg::RegionTools3f tools;
 
    RenderNodePtr group_node = RenderNode::CreateGroupNode(parent, "RegionOutlineNode");
 
    if (edge_color.a != 0) {
       H3DNode edge_node = h3dRadiantAddDebugShapes(group_node->GetNode(), "edge_node");
 
-      tools.ForEachUniqueEdge(region, [&edge_node, &offset, &edge_color](csg::EdgeInfo3 const& edge_info) {
-         h3dRadiantAddDebugLine(edge_node, csg::ToFloat(edge_info.min) + offset, csg::ToFloat(edge_info.max) + offset, edge_color);
+      tools.ForEachUniqueEdge(region, [&edge_node, &offset, &edge_color](csg::EdgeInfo3f const& edge_info) {
+         h3dRadiantAddDebugLine(edge_node, edge_info.min + offset, edge_info.max + offset, edge_color);
       });
 
       h3dRadiantCommitDebugShape(edge_node);
@@ -281,9 +280,9 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
       int tag = face_color.ToInteger();
       csg::Mesh mesh;
 
-      tools.ForEachPlane(region, [&mesh, tag](csg::Region2 const& region2, csg::PlaneInfo3 const& plane_info) {
-         for (csg::Rect2 const& rect : csg::EachCube(region2)) {
-            csg::Rect2 face(rect);
+      tools.ForEachPlane(region, [&mesh, tag](csg::Region2f const& region2, csg::PlaneInfo3f const& plane_info) {
+         for (csg::Rect2f const& rect : csg::EachCube(region2)) {
+            csg::Rect2f face(rect);
             face.SetTag(tag);
             mesh.AddRect(face, plane_info);
          }
@@ -303,7 +302,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
 
 RenderNodePtr
 Pipeline::CreateXZBoxNode(H3DNode parent,
-                          csg::Region2 const& plane,
+                          csg::Region2f const& plane,
                           csg::Color4 const& interior_color,
                           csg::Color4 const& border_color,
                           float border_size)
@@ -330,7 +329,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
 }
 
 void Pipeline::CreateXZBoxNodeGeometry(csg::Mesh& mesh, 
-                                       csg::Region2 const& region, 
+                                       csg::Region2f const& region, 
                                        csg::Color4 const& interior_color, 
                                        csg::Color4 const& border_color, 
                                        float border_size)
@@ -343,7 +342,7 @@ void Pipeline::CreateXZBoxNodeGeometry(csg::Mesh& mesh,
    pi.normal_dir = 1;
 
    
-   csg::Rect2f bounds = csg::ToFloat(region.GetBounds());
+   csg::Rect2f bounds = region.GetBounds();
    bounds.SetTag(border_color.ToInteger());
 
    csg::Region2f boxRegion;
