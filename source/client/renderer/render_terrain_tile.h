@@ -31,7 +31,7 @@ public:
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
    csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi);
-   csg::Region3 const& ComputeCutTerrainRegion(int clip_height, csg::Region3& storage) const;
+   csg::Region3 const& ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section) const;
 
 private:
    RenderTerrain&          _terrain;
