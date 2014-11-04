@@ -61,7 +61,7 @@ function RoadEditor:__init(build_service)
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
    self._cut_region = _radiant.client.alloc_region3()
-   stonehearth.build_editor:add_terrain_cut(self._cut_region)
+   _radiant.renderer.add_terrain_cut(self._cut_region)
 end
 
 function RoadEditor:go(response, brush_shape)
@@ -94,8 +94,10 @@ function RoadEditor:go(response, brush_shape)
             response:reject('no region')            
          end)
       :always(function()
-            stonehearth.build_editor:remove_terrain_cut(self._cut_region)
-            self._cut_region = nil
+            if self._cut_region then
+               _radiant.renderer.remove_terrain_cut(self._cut_region)
+               self._cut_region = nil
+            end
          end)
       :go()
 
@@ -114,8 +116,10 @@ function RoadEditor:_add_road(response, selector, box, brush_shape)
             response:reject(r)
          end)
       :always(function()
-            stonehearth.build_editor:remove_terrain_cut(self._cut_region)
-            self._cut_region = nil
+            if self._cut_region then
+               _radiant.renderer.remove_terrain_cut(self._cut_region)
+               self._cut_region = nil
+            end
          end)
 end
 
