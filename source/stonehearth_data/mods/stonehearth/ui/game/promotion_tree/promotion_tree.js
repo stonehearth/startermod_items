@@ -248,7 +248,7 @@ App.StonehearthPromotionTree = App.View.extend({
    _animateStamper: function() {
       var self = this;
 
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:promotion_menu:stamp');
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'});
 
       // animate down
       self.$('#approveStamper').animate({ bottom: 20 }, 130 , function() {
@@ -277,7 +277,7 @@ App.StonehearthPromotionTree = App.View.extend({
    },
 
    destroy: function() {
-      radiant.call('radiant:play_sound', 'stonehearth:sounds:ui:start_menu:page_down' );
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'} );
 
       if (this.jobsTrace) {
          this.jobsTrace.destroy();
