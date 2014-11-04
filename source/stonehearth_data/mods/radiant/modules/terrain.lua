@@ -23,6 +23,10 @@ end
 
 function Terrain.get_block_kind_at(point)
    local region = Terrain.intersect_point(point)
+   if region:empty() then
+      return nil
+   end
+   
    local tag = region:get_rect(0).tag
    return Terrain.get_block_kind_for_tag(tag)
 end
