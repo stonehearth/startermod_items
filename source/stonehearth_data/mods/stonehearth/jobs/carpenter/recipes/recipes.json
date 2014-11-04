@@ -1,90 +1,106 @@
 {
    "craftable_recipes" : {
-      "Tools & Weapons" : {
-         "weaver_spindle" : {
-            "uri" : "file(weaver_spindle_recipe.json)"
-         },
-         "hoe" : {
-            "uri" : "file(hoe_recipe.json)"
-         },
-         "wooden_sword" : {
-            "uri" : "file(wooden_sword_recipe.json)"
+      "tools_weapons" : {
+         "ordinal" : 1, 
+         "name" : "Tools & Weapons", 
+         "recipes" : {
+            "weaver_spindle" : {
+               "uri" : "file(weaver_spindle_recipe.json)"
+            },
+            "hoe" : {
+               "uri" : "file(hoe_recipe.json)"
+            },
+            "wooden_sword" : {
+               "uri" : "file(wooden_sword_recipe.json)"
+            }            
          }
       },
-      "Building Parts" : {
-         "wooden_door" : {
-            "uri" : "file(wooden_door_recipe.json)"
-         }, 
-         "wooden_door_2" : {
-            "uri" : "file(wooden_door_2_recipe.json)"
-         }, 
-         "wooden_window_frame" : {
-            "uri" : "file(wooden_window_frame_recipe.json)"
-         }, 
-         "wooden_diamond_window" : {
-            "uri" : "file(wooden_diamond_window_recipe.json)"
-         }, 
-         "wooden_wall_lantern" : {
-            "uri" : "file(wooden_wall_lantern_recipe.json)"
-         },
-         "wooden_garden_lantern" : {
-            "uri" : "file(wooden_garden_lantern_recipe.json)"
-         },
-         "picket_fence" : {
-            "uri" : "file(picket_fence_recipe.json)"
-         },
-         "picket_fence_gate" : {
-            "uri" : "file(picket_fence_gate_recipe.json)"
+      "building_parts" : {
+         "ordinal" : 2, 
+         "name" : "Building Parts", 
+         "recipes" : {
+            "wooden_door" : {
+               "uri" : "file(wooden_door_recipe.json)"
+            }, 
+            "wooden_door_2" : {
+               "uri" : "file(wooden_door_2_recipe.json)"
+            }, 
+            "wooden_window_frame" : {
+               "uri" : "file(wooden_window_frame_recipe.json)"
+            }, 
+            "wooden_diamond_window" : {
+               "uri" : "file(wooden_diamond_window_recipe.json)"
+            }, 
+            "wooden_wall_lantern" : {
+               "uri" : "file(wooden_wall_lantern_recipe.json)"
+            },
+            "wooden_garden_lantern" : {
+               "uri" : "file(wooden_garden_lantern_recipe.json)"
+            },
+            "picket_fence" : {
+               "uri" : "file(picket_fence_recipe.json)"
+            },
+            "picket_fence_gate" : {
+               "uri" : "file(picket_fence_gate_recipe.json)"
+            }            
          }
       },
-      "Furniture" : {
-         "simple_wooden_chair" : {
+      "furniture" : {
+         "ordinal" : 3, 
+         "name" : "Furniture", 
+         "recipes" : {
+            "simple_wooden_chair" : {
             "uri" : "file(simple_wooden_chair_recipe.json)"
-         }, 
-         "comfy_chair" : {
-            "uri" : "file(comfy_chair_recipe.json)"
-         }, 
-         "arch_backed_chair" : {
-            "uri" : "file(arch_backed_chair_recipe.json)"
-         },
-         "table_for_one" : {
-            "uri" : "file(table_for_one_recipe.json)" 
-         },
-         "dining_table" : {
-            "uri" : "file(dining_table_recipe.json)" 
-         },
-         "mean_bed" : {
-            "uri" : "file(not_much_of_a_bed_recipe.json)"
-         },
-         "comfy_bed" : {
-            "uri" : "file(comfy_bed_recipe.json)" 
-         },
-         "park_bench" : {
-            "uri" : "file(park_bench_recipe.json)" 
-         },
-         "dresser" : {
-            "uri" : "file(dresser_recipe.json)" 
-         },
-         "writing_desk" : {
-            "uri" : "file(writing_desk_recipe.json)" 
+            }, 
+            "comfy_chair" : {
+               "uri" : "file(comfy_chair_recipe.json)"
+            }, 
+            "arch_backed_chair" : {
+               "uri" : "file(arch_backed_chair_recipe.json)"
+            },
+            "table_for_one" : {
+               "uri" : "file(table_for_one_recipe.json)" 
+            },
+            "dining_table" : {
+               "uri" : "file(dining_table_recipe.json)" 
+            },
+            "mean_bed" : {
+               "uri" : "file(not_much_of_a_bed_recipe.json)"
+            },
+            "comfy_bed" : {
+               "uri" : "file(comfy_bed_recipe.json)" 
+            },
+            "park_bench" : {
+               "uri" : "file(park_bench_recipe.json)" 
+            },
+            "dresser" : {
+               "uri" : "file(dresser_recipe.json)" 
+            },
+            "writing_desk" : {
+               "uri" : "file(writing_desk_recipe.json)" 
+            }
          }
       },
-      "Signage & Decoration" : {
-         "wooden_sign" : {
-            "uri" : "file(wooden_sign_recipe.json)" 
-         },
-         "wooden_sign_carpenter" : {
-            "uri" : "file(wooden_sign_carpenter_recipe.json)" 
-         },
-         "wooden_sign_weaver" : {
-            "uri" : "file(wooden_sign_weaver_recipe.json)" 
-         },
-         "window_box_brightbell" : {
-            "uri" : "file(window_box_brightbell_recipe.json)" 
-         },
-         "window_box_frostsnap" : {
-            "uri" : "file(window_box_frostsnap_recipe.json)" 
-         }         
+      "signage_decoration" : {
+         "ordinal" : 4, 
+         "name" : "Signage & Decoration", 
+         "recipes" : {
+            "wooden_sign" : {
+               "uri" : "file(wooden_sign_recipe.json)" 
+            },
+            "wooden_sign_carpenter" : {
+               "uri" : "file(wooden_sign_carpenter_recipe.json)" 
+            },
+            "wooden_sign_weaver" : {
+               "uri" : "file(wooden_sign_weaver_recipe.json)" 
+            },
+            "window_box_brightbell" : {
+               "uri" : "file(window_box_brightbell_recipe.json)" 
+            },
+            "window_box_frostsnap" : {
+               "uri" : "file(window_box_frostsnap_recipe.json)" 
+            }         
+         }
       }
    }
 }

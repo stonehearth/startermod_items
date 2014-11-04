@@ -81,7 +81,7 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    local craftable_recipes = {}
    for category, category_data in pairs(self._sv.recipe_index) do
       local recipe_array = {}
-      for recipe_name, recipe_data in pairs(category_data) do
+      for recipe_name, recipe_data in pairs(category_data.recipes) do
          local recipe_data = radiant.resources.load_json(recipe_data.uri)
          self:_initialize_recipe_data(recipe_data)
          table.insert(recipe_array, 1, recipe_data)
@@ -89,7 +89,8 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
       if #recipe_array > 0 then
          --Make an entry in the recipe table for the UI
          local category_ui_info = {}
-         category_ui_info.category = category
+         category_ui_info.category = category_data.name
+         category_ui_info.ordinal = category_data.ordinal
          category_ui_info.recipes = recipe_array
          --Make sure we have a pointer to the recipe data for fast access/edit'
          category_data.ui_info = category_ui_info

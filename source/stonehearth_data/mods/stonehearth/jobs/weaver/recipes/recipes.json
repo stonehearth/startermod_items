@@ -1,51 +1,66 @@
 { 
    "craftable_recipes" : {
-      "Crafting Materials" : {
-         "thread" : {
-            "uri" : "file(thread_recipe.json)"
-         },
-         "cloth_bolt" : {
-            "uri" : "file(cloth_bolt_recipe.json)"
-         },
-         "leather_bolt" : {
-            "uri" : "file(leather_bolt_recipe.json)"
-         }
-
-      },
-      "Clothing & Armor" : {
-         "worker_outfit_2" : {
-            "uri" : "file(worker_outfit_2_recipe.json)"
-         },
-         "cloth_padded_vest" : {
-            "uri" : "file(cloth_padded_vest_recipe.json)"
-         },
-         "leather_vest" : {
-            "uri" : "file(leather_vest_recipe.json)"
+      "crafting_materials" : {
+         "ordinal" : 1, 
+         "name" : "Crafting Materials", 
+         "recipes" : {
+            "thread" : {
+               "uri" : "file(thread_recipe.json)"
+            },
+            "cloth_bolt" : {
+               "uri" : "file(cloth_bolt_recipe.json)"
+            },
+            "leather_bolt" : {
+               "uri" : "file(leather_bolt_recipe.json)"
+            }            
          }
       },
-      "Decorations" : {
-         "banner_wall_big" : {
-            "uri" : "file(banner_wall_big_recipe.json)"
-         },
-         "banner_wall_small" : {
-            "uri" : "file(banner_wall_small_recipe.json)"
-         },
-         "tapestry_wall" : {
-            "uri" : "file(tapestry_wall_recipe.json)"
-         },
-         "curtains" : {
-            "uri" : "file(curtains_recipe.json)"
-         },
-         "throw_rug" : {
-            "uri" : "file(throw_rug_recipe.json)"
-         },
-         "fur_rug" : {
-            "uri" : "file(fur_rug_recipe.json)"
+      "clothing_armor" : {
+         "ordinal" : 2, 
+         "name" : "Clothing & Armor",
+         "recipes" : {
+            "worker_outfit_2" : {
+               "uri" : "file(worker_outfit_2_recipe.json)"
+            },
+            "cloth_padded_vest" : {
+               "uri" : "file(cloth_padded_vest_recipe.json)"
+            },
+            "leather_vest" : {
+               "uri" : "file(leather_vest_recipe.json)"
+            }            
          }
       },
-      "Toys" : {
-         "plushie_toy_rabbit" : {
-            "uri" : "file(plushie_toy_rabbit_recipe.json)"
+      "decorations" : {
+         "ordinal" : 3, 
+         "name" : "Decorations", 
+         "recipes" : {
+            "banner_wall_big" : {
+               "uri" : "file(banner_wall_big_recipe.json)"
+            },
+            "banner_wall_small" : {
+               "uri" : "file(banner_wall_small_recipe.json)"
+            },
+            "tapestry_wall" : {
+               "uri" : "file(tapestry_wall_recipe.json)"
+            },
+            "curtains" : {
+               "uri" : "file(curtains_recipe.json)"
+            },
+            "throw_rug" : {
+               "uri" : "file(throw_rug_recipe.json)"
+            },
+            "fur_rug" : {
+               "uri" : "file(fur_rug_recipe.json)"
+            }
+         }
+      },
+      "toys" : {
+         "ordinal" : 4, 
+         "name" : "Toys", 
+         "recipes" : {
+            "plushie_toy_rabbit" : {
+               "uri" : "file(plushie_toy_rabbit_recipe.json)"
+            }            
          }
       }
    }

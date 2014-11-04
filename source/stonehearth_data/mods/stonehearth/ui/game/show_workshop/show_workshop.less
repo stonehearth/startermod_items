@@ -160,7 +160,8 @@
             margin-right: 4px;
             margin-bottom: 4px;
             background-position: 0px -930px;
-            display: none;
+            -webkit-filter: grayscale(75%); 
+            display: flex;
 
             &:hover {
                background-position: -66px -930px;
@@ -297,6 +298,21 @@
             height: 60px;
          }
       }
+   }
+
+   #orderOptionsLocked {
+      .controlFont;
+      position: absolute;
+      bottom: 0px;
+      top: 578px;
+      left: 340px;
+      right: 14px;
+      width: 410px;
+      height: 70px;
+      color: red;
+      text-align: center;
+      display: none;
+      font-size: 24px;
    }
 
    #orderOptions {
