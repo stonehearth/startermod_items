@@ -59,10 +59,10 @@ function CombatPaceKeeper:compute_value()
   -- the value of all of the enemy combat troops.  The idea is that if there are lots of enemy 
   -- troops, but no violence has been done yet, we still want to penalize spawning new combat 
   -- scenarios if there are lots of baddies present that will probably do violence.
-  local gm_scores = stonehearth.score:get_scores_for_player('game_master')
+  local gm_scores = stonehearth.score:get_scores_for_player('goblins')
   local enemy_pop_size = 0
 
-  local gm_population = stonehearth.population:get_all_populations()['game_master']
+  local gm_population = stonehearth.population:get_all_populations()['goblins']
   if gm_population then
     for _ in pairs(gm_population:get_citizens()) do enemy_pop_size = enemy_pop_size + 1 end
   end

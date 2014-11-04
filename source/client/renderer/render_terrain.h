@@ -27,9 +27,10 @@ public:
    csg::Point3 GetTileSize();
    void AddCut(om::Region3fBoxedPtr const& cut);
    void RemoveCut(om::Region3fBoxedPtr const& cut);
+   void SetClipHeight(int height);
 
 private:
-   void InitalizeColorMap();
+   void LoadColorMap();
    void ConnectNeighbors(csg::Point3 const& location, RenderTerrainTile& tile, csg::RegionTools3::Plane direction);
 
    void UpdateNeighbors();
@@ -52,6 +53,7 @@ private:
    const RenderEntity&  entity_;
    csg::Point3          _tileSize;
    dm::TracePtr         tiles_trace_;
+   dm::TracePtr         terrain_config_trace_;
    core::Guard          selected_guard_;
    om::TerrainRef       terrain_;
    H3DNodeUnique        terrain_root_node_;
@@ -65,6 +67,7 @@ private:
    csg::TagToColorMap   _colorMap;
    std::unordered_map<dm::ObjectId, csg::Region3> _cutToICut;
    std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
+   int                  _clip_height;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

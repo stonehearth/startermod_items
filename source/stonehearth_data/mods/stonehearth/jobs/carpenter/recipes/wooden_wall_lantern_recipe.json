@@ -15,7 +15,8 @@
    ],
   "produces": [
       {
-         "item":"stonehearth:furniture:wooden_wall_lantern"
+         "item":"stonehearth:furniture:wooden_wall_lantern", 
+         "fine":"stonehearth:furniture:wooden_wall_lantern:fine"
       }
   ]
 }

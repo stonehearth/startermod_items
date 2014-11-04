@@ -36,8 +36,7 @@
       "unit_info": {
          "name": "Turnip", 
          "description": "Fast-growing staple crop, but not particularly nutritious nor delicious.",
-         "icon" : "file(icon.png)",
-         "portrait" : "file(portrait.png)"
+         "icon" : "file(icon.png)"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }

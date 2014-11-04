@@ -203,12 +203,12 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       };
 
-      var doEraseFloor = function() {
-         App.stonehearthClient.eraseFloor(
-            activateElement('#eraseFloorTool'))
-            .fail(self._deactivateTool('#eraseFloorTool'))
+      var doEraseStructure = function() {
+         App.stonehearthClient.eraseStructure(
+            activateElement('#eraseStructureTool'))
+            .fail(self._deactivateTool('#eraseStructureTool'))
             .done(function() {
-               doEraseFloor(false);
+               doEraseStructure();
             });
       };
 
@@ -263,8 +263,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          doDrawFloor();
       });
 
-      this.$('#eraseFloorTool').click(function() {
-         doEraseFloor(true);
+      this.$('#eraseStructureTool').click(function() {
+         doEraseStructure();
       });
 
       this.$('#drawWallTool').click(function() {
@@ -432,14 +432,15 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });         
       });
 
-      this.$('#removeBuilding').click(function() {
+      this.$('.removeBuilding').click(function() {
          var doRemoveBuilding = function() {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
             var building_entity = self.get('building');
             if (building_entity) {
+               radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
                radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
                self.set('context.selection', null);
-            }            
+               $(top).trigger('stonehearth_building_templates');
+            }
          }
 
          App.gameView.addView(App.StonehearthConfirmView, 
@@ -468,18 +469,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
          }
       });
-
-      // intabuild. for debugging only
-      $(top).bind('keyup', function(e){
-         if (e.keyCode == 88)  { // x
-            var building = self.get('building');
-
-            if (building) {
-               App.stonehearthClient.instabuild(building);
-            }
-         }
-      });
-
    },
 
    _restoreUiState: function() {
@@ -596,6 +585,16 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       var blueprint_entity = this.get('blueprint');
 
       if (building_entity) {
+         // refresh the building cost
+         App.stonehearthClient.getCost(building_entity.__self)
+            .done(function(response) {
+               var costView = self._getClosestEmberView(self.$('#buildingCost'));
+               costView.set('cost', response);
+            })
+            .fail(function(response) {
+               console.log(response);
+            });
+      
          bottomButtons.show();
       } else {
          bottomButtons.hide();
@@ -619,7 +618,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          }
       }
    },
-   
+
 });
 
 App.StonehearthTemplateNameView = App.View.extend({
@@ -642,7 +641,7 @@ App.StonehearthTemplateNameView = App.View.extend({
 
       this.$('.ok').click(function() {
          var templateDisplayName = self.$('#name').val()
-         var templateName = templateDisplayName.split(' ').join('_')
+         var templateName = templateDisplayName.split(' ').join('_').toLowerCase();
 
          radiant.call('stonehearth:save_building_template', self.building.__self, { 
             name: templateName,

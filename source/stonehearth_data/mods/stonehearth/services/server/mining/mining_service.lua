@@ -1,5 +1,6 @@
 local constants = require 'constants'
 local mining_lib = require 'lib.mining.mining_lib'
+local LootTable = require 'lib.loot_table.loot_table'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -12,6 +13,8 @@ local MAX_REACH_DOWN = 1
 
 function MiningService:initialize()
    self._sv = self.__saved_variables:get_data()
+
+   self:_init_loot_tables()
 
    if not self._sv.initialized then
       self._sv.initialized = true
@@ -29,8 +32,9 @@ end
 ----------------------------------------------------------------------------
 
 -- Dig an arbitary region. Region is defined in world space.
-function MiningService:dig_region(player_id, faction, region)
-   local inflated_region = region:inflated(Point3.one)
+function MiningService:dig_region(player_id, region)
+   -- only merge zones in the same xz slice
+   local inflated_region = region:inflated(Point3(1, 0, 1))
 
    -- using town as a proxy for the eventual player object
    local town = stonehearth.town:get_town(player_id)
@@ -58,7 +62,7 @@ function MiningService:dig_region(player_id, faction, region)
       mergable_zones[selected_zone:get_id()] = nil
    else
       -- no adjacent or overlapping zone exists, so create a new one
-      selected_zone = self:create_mining_zone(player_id, faction)
+      selected_zone = self:create_mining_zone(player_id)
       town:add_mining_zone(selected_zone)
    end
 
@@ -74,16 +78,16 @@ end
 
 -- Dig down, quantized to the 4x5x4 mining cells.
 -- Region is defined in world space.
-function MiningService:dig_down(player_id, faction, region)
+function MiningService:dig_down(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          return self:_get_aligned_cube(cube)
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Dig out, quantized to the 4x5x4 cells, but preserve the ceiling.
 -- Region is defined in world space.
-function MiningService:dig_out(player_id, faction, region)
+function MiningService:dig_out(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
          local min, max = aligned_cube.min, aligned_cube.max
@@ -94,12 +98,12 @@ function MiningService:dig_out(player_id, faction, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Dig up, quantized to the 4x5x4 cells.
 -- Region is defined in world space.
-function MiningService:dig_up(player_id, faction, region)
+function MiningService:dig_up(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          local aligned_cube = self:_get_aligned_cube(cube)
          local min, max = aligned_cube.min, aligned_cube.max
@@ -110,16 +114,15 @@ function MiningService:dig_up(player_id, faction, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, faction, aligned_region)
+   self:dig_region(player_id, aligned_region)
 end
 
 -- Explicitly create a mining zone.
-function MiningService:create_mining_zone(player_id, faction)
+function MiningService:create_mining_zone(player_id)
    local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone')
 
    mining_zone:add_component('unit_info')
       :set_player_id(player_id)
-      :set_faction(faction)
 
    return mining_zone
 end
@@ -196,6 +199,25 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    return poi
 end
 
+-- Returns a region containing the poi and all blocks that support it.
+-- Currently just the blocks below the poi, but could be useful when trying to
+-- clear out unsupported floors.
+function MiningService:get_reserved_region_for_poi(poi, from, mining_zone)
+   local location = radiant.entities.get_world_grid_location(mining_zone)
+   local mining_zone_component = mining_zone:add_component('stonehearth:mining_zone')
+   local zone_region = mining_zone_component:get_region():get()
+   local poi = poi - location
+   local from = from - location
+
+   local cube = Cube3(poi, poi + Point3.one)
+   cube.min.y = from.y
+   local proposed_region = Region3(cube)
+   local reserved_region = zone_region:intersected(proposed_region)
+   -- by convention, all input and output values in the mining service are in world coordiantes
+   reserved_region:translate(location)
+   return reserved_region
+end
+
 -- Return all the locations that can be reached from point.
 function MiningService:get_reachable_region(location)
    local y_min = location.y - MAX_REACH_DOWN
@@ -235,7 +257,7 @@ function MiningService:_transform_cubes_in_region(region, cube_transform)
 end
 
 function MiningService:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_ALIGN, constants.mining.Y_ALIGN)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filter)
@@ -257,6 +279,23 @@ function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filte
    add_xz_column(point.x,   point.z+1, y_min, y_max)
 
    return region
+end
+
+function MiningService:_init_loot_tables()
+   local json = radiant.resources.load_json('/stonehearth/services/server/mining/mining_loot_tables.json')
+   self._loot_tables = {}
+
+   for block_kind, loot_json in pairs(json) do
+      local loot_table = LootTable()
+      loot_table:load_from_json(loot_json)
+      self._loot_tables[block_kind] = loot_table
+   end
+end
+
+function MiningService:roll_loot(block_kind)
+   local loot_table = self._loot_tables[block_kind]
+   local uris = loot_table and loot_table:roll_loot() or {}
+   return uris
 end
 
 return MiningService

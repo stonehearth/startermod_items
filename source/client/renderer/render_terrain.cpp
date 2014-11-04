@@ -10,6 +10,7 @@
 #include "csg/iterators.h"
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
+#include "resources/res_manager.h"
 #include "Horde3D.h"
 #include <unordered_map>
 
@@ -24,14 +25,12 @@ static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
-   _tileSize(terrain->GetTileSize())
+   _tileSize(terrain->GetTileSize()),
+   _clip_height(INT_MAX)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
 
-   if (_colorMap.empty()) {
-      InitalizeColorMap();
-   }
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
       csg::Point3 location = index.Scaled(_tileSize);
 
@@ -51,6 +50,12 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                  NOT_YET_IMPLEMENTED();
                               })
                               ->PushObjectState();
+
+   terrain_config_trace_ = terrain->TraceConfigFileName("render", dm::RENDER_TRACES)
+                                    ->OnModified([this]() {
+                                       LoadColorMap();
+                                    })
+                                    ->PushObjectState();
 }
 
 RenderTerrain::~RenderTerrain()
@@ -60,24 +65,30 @@ RenderTerrain::~RenderTerrain()
    }
 }
 
-void RenderTerrain::InitalizeColorMap()
+void RenderTerrain::LoadColorMap()
 {
-   std::string const unknownColor = "#ff00ff";
-   json::Node config = Renderer::GetInstance().GetTerrainConfig();
-   _colorMap[om::Terrain::Bedrock]    = csg::Color4::FromString(config.get("bedrock", unknownColor));
-   _colorMap[om::Terrain::RockLayer1] = csg::Color4::FromString(config.get("rock.layer_1", unknownColor));
-   _colorMap[om::Terrain::RockLayer2] = csg::Color4::FromString(config.get("rock.layer_2", unknownColor));
-   _colorMap[om::Terrain::RockLayer3] = csg::Color4::FromString(config.get("rock.layer_3", unknownColor));
-   _colorMap[om::Terrain::RockLayer4] = csg::Color4::FromString(config.get("rock.layer_4", unknownColor));
-   _colorMap[om::Terrain::RockLayer5] = csg::Color4::FromString(config.get("rock.layer_5", unknownColor));
-   _colorMap[om::Terrain::RockLayer6] = csg::Color4::FromString(config.get("rock.layer_6", unknownColor));
-   _colorMap[om::Terrain::SoilLight]  = csg::Color4::FromString(config.get("soil.light", unknownColor));
-   _colorMap[om::Terrain::SoilDark]   = csg::Color4::FromString(config.get("soil.dark", unknownColor));
-   _colorMap[om::Terrain::GrassEdge1] = csg::Color4::FromString(config.get("grass.edge1", unknownColor));
-   _colorMap[om::Terrain::GrassEdge2] = csg::Color4::FromString(config.get("grass.edge2", unknownColor));
-   _colorMap[om::Terrain::Grass]      = csg::Color4::FromString(config.get("grass.inner", unknownColor));
-   _colorMap[om::Terrain::DirtEdge1]  = csg::Color4::FromString(config.get("dirt.edge1", unknownColor));
-   _colorMap[om::Terrain::Dirt]       = csg::Color4::FromString(config.get("dirt.inner", unknownColor));
+   _colorMap.clear();
+
+   om::TerrainPtr terrainPtr = terrain_.lock();
+   if (!terrainPtr) {
+      return;
+   }
+
+   std::string config_file_name = terrainPtr->GetConfigFileName();
+   if (config_file_name.empty()) {
+      return;
+   }
+
+   res::ResourceManager2::GetInstance().LookupJson(config_file_name, [&](const json::Node& config) {
+      json::Node block_types = config.get_node("block_types");
+
+      for (json::Node const& block_type : block_types) {
+         int tag = block_type.get<int>("tag");
+         std::string color_code = block_type.get<std::string>("color");
+         csg::Color4 color = csg::Color4::FromString(color_code);
+         _colorMap[tag] = color;
+      }
+   });
 }
 
 csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
@@ -153,6 +164,9 @@ void RenderTerrain::ConnectNeighbors(csg::Point3 const& location, RenderTerrainT
 
 void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut) 
 {
+   if (_cutToICut.find(cut->GetObjectId()) != _cutToICut.end()) {
+      return;
+   }
    _cutToICut[cut->GetObjectId()] = csg::ToInt(cut->Get());
 
    auto trace = cut->TraceChanges("cut region change", dm::RENDER_TRACES);
@@ -168,16 +182,16 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
       dm::ObjectId objId = cut->GetObjectId();
 
       // Update the cut map to the new region.
-      EachTileIn(_cutToICut[objId].GetBounds(), [this, &cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->RemoveCut(cut);
+      EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->RemoveCut(objId);
          MarkDirty(cursor);
       });
 
       // Now, update the stored region, and find the new overlapping tiles.
       _cutToICut[objId] = csg::ToInt(region);
-      csg::Region3& iRegion = _cutToICut[objId];
-      EachTileIn(iRegion.GetBounds(), [this, &cut, &iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-         tile->UpdateCut(cut, &iRegion);
+      csg::Region3 const* iRegion = &_cutToICut[objId];
+      EachTileIn(iRegion->GetBounds(), [this, objId, iRegion](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+         tile->AddCut(objId, iRegion);
          MarkDirty(cursor);
       });
 
@@ -187,13 +201,36 @@ void RenderTerrain::AddCut(om::Region3fBoxedPtr const& cut)
 void RenderTerrain::RemoveCut(om::Region3fBoxedPtr const& cut)
 {
    dm::ObjectId objId = cut->GetObjectId();
+   if (_cutToICut.find(objId) == _cutToICut.end()) {
+      return;
+   }
 
    _cut_trace_map.erase(cut->GetObjectId());
-   EachTileIn(_cutToICut[objId].GetBounds(), [this, cut](csg::Point3 const& cursor, RenderTerrainTile* tile) {
-      tile->RemoveCut(cut);
+   EachTileIn(_cutToICut[objId].GetBounds(), [this, objId](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      tile->RemoveCut(objId);
       MarkDirty(cursor);
    });
    _cutToICut.erase(objId);
+}
+
+void RenderTerrain::SetClipHeight(int height)
+{
+   if (height == _clip_height) {
+      return;
+   }
+
+   int old_clip_height = _clip_height;
+   _clip_height = height;
+
+   for (auto const& entry : tiles_) {
+      int min_y = entry.first.y;
+      int max_y = min_y + _tileSize.y;
+      // mark dirty all tiles affected by the previous and current clip heights
+      if (csg::IsBetween(min_y, old_clip_height, max_y) || csg::IsBetween(min_y, _clip_height, max_y)) {
+         // technically, we only need to mark the geometry dirty, but this is convenient
+         MarkDirty(entry.first);
+      }
+   }
 }
 
 void RenderTerrain::UpdateNeighbors()
@@ -216,7 +253,7 @@ void RenderTerrain::UpdateClipPlanes()
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes();
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
@@ -234,7 +271,7 @@ void RenderTerrain::UpdateGeometry()
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry();
+         i->second->UpdateGeometry(_clip_height);
       }
    }
    _dirtyGeometry.clear();

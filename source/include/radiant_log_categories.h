@@ -48,6 +48,7 @@
       END_GROUP(pathfinder) \
       ADD_CATEGORY(follow_path) \
       ADD_CATEGORY(goto_location) \
+      ADD_CATEGORY(free_motion) \
       ADD_CATEGORY(terrain) \
    END_GROUP(simulation) \
    \

@@ -38,14 +38,12 @@ function GoblinThief:start()
    -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
    -- is likely not the correct place.
    local session = {
-      player_id = 'game_master',
-      faction = 'goblin',
-      kingdom = 'stonehearth:kingdoms:goblin'
+      player_id = 'goblins',
    }
    if stonehearth.town:get_town(session.player_id) == nil then
       stonehearth.town:add_town(session)
       self._inventory = stonehearth.inventory:add_inventory(session)
-      self._population = stonehearth.population:add_population(session)
+      self._population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
       self._population:create_town_name()
    else
       self._inventory = stonehearth.inventory:get_inventory(session.player_id)
@@ -57,7 +55,7 @@ function GoblinThief:start()
 end
 
 function GoblinThief:_attach_listeners()
-   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:item_added', self, self._item_added)
+   self._item_added_listener = radiant.events.listen(self._sv._stockpile, 'stonehearth:stockpile:item_added', self, self._item_added)
    radiant.events.listen_once(self._sv._goblin, 'radiant:entity:pre_destroy', self, self._goblin_killed)
    self._carrying_listener = radiant.events.listen(self._sv._goblin, 'stonehearth:carry_block:carrying_changed', self, self._theft_event)
 end

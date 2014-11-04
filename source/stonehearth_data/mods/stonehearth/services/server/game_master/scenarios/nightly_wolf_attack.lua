@@ -10,7 +10,7 @@ end
 
 function NightlyWolfAttack:load_faction()
    -- this code is old and broken. =(
-   self._civ_faction = 'civ'
+   self._civ_faction = 'player_1'
 end
 
 function NightlyWolfAttack:on_hourly()

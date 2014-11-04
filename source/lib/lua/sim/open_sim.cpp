@@ -398,6 +398,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             luabind::class_<TracerBufferedWrapper, std::shared_ptr<TracerBufferedWrapper>>("TracerBuffered")
                .def("flush",              &TracerBufferedWrapper::Flush)
+               .def("start",              &TracerBufferedWrapper::Start)
+               .def("stop",               &TracerBufferedWrapper::Stop)
                .def_readonly("category",  &TracerBufferedWrapper::category)
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")

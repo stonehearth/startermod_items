@@ -56,6 +56,7 @@
             "stonehearth:actions:call_method",
             "stonehearth:actions:reserve_entity",
             "stonehearth:actions:reserve_entity_destination",
+            "stonehearth:actions:reserve_entity_destination_region",
             "stonehearth:actions:run_effect_action",
             "stonehearth:actions:start_effect",
             "stonehearth:actions:run_effect_timed_action",
@@ -72,7 +73,8 @@
             "stonehearth:actions:get_town_banner", 
             "stonehearth:actions:goto_town_banner",
             "stonehearth:actions:goto_town_center",
-            "stonehearth:actions:get_town_center" 
+            "stonehearth:actions:get_town_center", 
+            "stonehearth:actions:walk_to_empty_space"
          ]
       }
    }

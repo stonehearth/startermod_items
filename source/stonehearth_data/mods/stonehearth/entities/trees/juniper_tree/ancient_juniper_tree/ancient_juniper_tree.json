@@ -11,8 +11,7 @@
       },
       "unit_info": {
          "name": "Ancient Oak Tree", 
-         "description": "It radiants a mysterious aura",
-         "portrait": "file(ancient_oak_tree.png)"
+         "description": "It radiants a mysterious aura"
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:oak_log", 

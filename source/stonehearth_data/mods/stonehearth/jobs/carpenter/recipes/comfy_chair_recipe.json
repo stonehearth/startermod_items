@@ -10,7 +10,7 @@
 
    "ingredients": [
       {
-         "material" : "wood resource",
+         "uri" : "stonehearth:furniture:simple_wooden_chair",
          "count" : 1
       },
       {
@@ -20,7 +20,8 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:furniture:comfy_chair"
+         "item":"stonehearth:furniture:comfy_chair", 
+         "fine":"stonehearth:furniture:comfy_chair:fine"
       }
   ]
 }

@@ -82,6 +82,11 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             //For each, figure out which perks should be unlocked
             self._unlockPerksToLevel(div, data.last_gained_lv)
 
+            //special case: if the alias is worker, then hide the 
+            if (alias == 'stonehearth:jobs:worker') {
+               $(div).find('.progressionSummary').hide();
+            }
+
             $(div).show();
          }
       });
@@ -89,10 +94,15 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       //Highlight current class, since it needs to be 100% up to date
       $('.activeClassNameHeader').removeClass('activeClassNameHeader');
       $('.className').addClass('retiredClassNameHeader');
+      $('.jobData').addClass('retiredEffect');
       var currClassAlias = this.get('context.stonehearth:job.job_uri');
       var $currClass = $("[uri='" + currClassAlias + "']");
+      $currClass.prependTo("#citizenCharacterSheet #abilitiesTab");
       $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
+      $currClass.removeClass('retiredEffect');
+      //$currClass.removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
       self._unlockPerksToLevel($currClass,  this.get('context.stonehearth:job.curr_job_controller.last_gained_lv'))
+      $currClass.find('.retiredAt').hide();
 
       //Make the job tooltips
       this._updateJobTooltips();
@@ -114,6 +124,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       } else {
          $(target_div).find('.lvlTitle').text(i18n.t('stonehearth:level_text') + target_level );
       }
+
+      //Calculate the height of the jobPerks section based on the number of perkDivs
+      //TODO: factor these magic numbers out or change if/when the icons change size
+      var numPerks = $(target_div).find('.perkDiv').length;
+      if (numPerks == 0) {
+         $(target_div).find('.jobPerks').css('height', '0px');
+      } else {
+         var num_rows = parseInt(numPerks/8) + 1;
+         var total_height = num_rows * 90;
+         $(target_div).find('.jobPerks').css('height', total_height + 'px');
+      }
+
+      $(target_div).find('.retiredAt').show();
    },
 
    //Make tooltips for the perks
@@ -289,7 +312,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          $.each(allBuffs, function(k ,v) {
             if(k != "__self" && allBuffs.hasOwnProperty(k)) {
                //If the buff is private don't add it. Public buffs can be undefined or is_private = false
-               if (allBuffs[k].is_private == undefined || !allBuffs[k].is_private) {
+               if (allBuffs[k].invisible_to_player == undefined || !allBuffs[k].invisible_to_player) {
                   var modifiers = allBuffs[k].modifiers;
                   for (var mod in modifiers) {
                      var new_buff_data = {}
@@ -335,6 +358,10 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var p = this.get('context.stonehearth:personality');
       var b = this.get('context.stonehearth:buffs');
 
+      // have the character sheet tract the selected entity.
+      $(top).on("radiant_selection_changed.citizen_character_sheet", function (_, data) {
+         self._onEntitySelected(data);
+      });
 
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
@@ -371,4 +398,50 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       }
    },
 
+   _onEntitySelected: function(e) {
+      var self = this;
+      var entity = e.selected_entity
+      
+      if (!entity) {
+         self.destroy();
+      }
+
+      // nuke the old trace
+      if (self.selectedEntityTrace) {
+         self.selectedEntityTrace.destroy();
+      }
+
+      // trace the properties so we can tell if we need to popup the properties window for the object
+      self.selectedEntityTrace = radiant.trace(entity)
+         .progress(function(result) {
+            self._examineEntity(result);
+         })
+         .fail(function(e) {
+            console.log(e);
+         });
+   },
+
+   _examineEntity: function(entity) {
+      var self = this;
+
+      if (!entity) {
+         self.destroy();
+      }
+
+      if (entity['stonehearth:job']) {
+         self.set('uri', entity.__self);
+      } else  {
+         self.destroy();
+      }
+   },
+
+   destroy: function() {
+      $(top).off("radiant_selection_changed.citizen_character_sheet")
+
+      if (self.selectedEntityTrace) {
+         self.selectedEntityTrace.destroy();
+      }
+
+      this._super();
+   }
 });

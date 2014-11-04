@@ -63,7 +63,6 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                last_column_editor:destroy()
             end
             current_column_editor:destroy()
-            selector:destroy()
          end)
       :go()
    
@@ -86,7 +85,6 @@ function WallLoopEditor:_pump_queue()
    local entry = table.remove(self._queued_points)
    if not entry then
       if self._finished_queuing then
-         self._selector:destroy()
          self._response:resolve({ success = true })
       end
       return

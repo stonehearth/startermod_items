@@ -152,7 +152,7 @@
 
          
 
-         .recipeLink {
+         .item {
             float: left;
             width: 65px;
             height: 69px;
@@ -160,7 +160,8 @@
             margin-right: 4px;
             margin-bottom: 4px;
             background-position: 0px -930px;
-            display: none;
+            -webkit-filter: grayscale(75%); 
+            display: flex;
 
             &:hover {
                background-position: -66px -930px;
@@ -204,8 +205,18 @@
    }
 
    #details {
+      .parchment;
+      position: absolute;
+      top: 0px;
+      left: 334px;
+      width: 390px;
+      height: 526px;
+      background: none;
+      border: none;
+
       h1 {
-         font-size: 34px !important;
+         font-size: 30px !important;
+         line-height: 30px;
          color: rgba(0,0,0,0.8);
          padding: 0px 25px;
       }
@@ -218,33 +229,41 @@
          margin: 0px;
       }
 
-      .parchment;
-      position: absolute;
-      top: 0px;
-      left: 330px;
-      width: 435px;
-      height: 580px;
 
       #portraitContainer {
          position: absolute;
-         top: 80px;
-         width: 430px;
+         top: 70px;
          display: block;
+         width: 100%;
          text-align: center;
 
          #portrait {
             //background: rgba(0,0,0,0.2);
             width: auto;
-            height: 240px;
+            height: 200px;
          }
       }
 
       #description {
          position: absolute;
-         top: 350px;
-         bottom: 45px;
+         top: 300px;
+         bottom: 0px;
          left: 30px;
-         width: 360px;
+         right: 30px;
+         //background: rgba(255,0,0,0.3);
+         text-align: center;
+
+         #ingredients {
+            .ingredient {
+               display: inline-block;
+               margin-right: 10px;
+            }
+
+            img {
+               width: 50px;
+               height: 50px;
+            }
+         }
 
          #usefulText {
             line-height: 18px;
@@ -279,6 +298,21 @@
             height: 60px;
          }
       }
+   }
+
+   #orderOptionsLocked {
+      .controlFont;
+      position: absolute;
+      bottom: 0px;
+      top: 578px;
+      left: 340px;
+      right: 14px;
+      width: 410px;
+      height: 70px;
+      color: red;
+      text-align: center;
+      display: none;
+      font-size: 24px;
    }
 
    #orderOptions {

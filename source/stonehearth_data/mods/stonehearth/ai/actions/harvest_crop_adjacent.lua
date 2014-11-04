@@ -15,8 +15,14 @@ function HarvestCropAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, args.crop)
    ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
 
+   -- it never hurts to be a little bit paranoid =)
+   local crop_component = args.crop:get_component('stonehearth:crop')
+   local carrying = radiant.entities.get_carrying(entity)
+   if carrying and carrying:get_uri() ~= crop_component:get_product() then
+      abort('not carrying the same type of crop')
+   end
+
    if not radiant.entities.increment_carrying(entity, self:_get_num_to_increment(entity)) then
-      local crop_component = args.crop:get_component('stonehearth:crop')
       local product_uri = crop_component:get_product()
       
       if product_uri ~= nil then
@@ -24,11 +30,15 @@ function HarvestCropAdjacent:run(ai, entity, args)
          local item_component = product:add_component('item')
          item_component:set_stacks(1)
          radiant.entities.pickup_item(entity, product)
+
+         -- newly harvested drops go into your inventory immediately
+         stonehearth.inventory:get_inventory(entity)
+                                 :add_item(product)
       end
    end
 
    --Fire the event that describes the harvest
-   radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = entity:get_uri()})
+   radiant.events.trigger(entity, 'stonehearth:harvest_crop', {crop_uri = args.crop:get_uri()})
 
    ai:unprotect_entity(args.crop)
    radiant.entities.destroy_entity(args.crop)

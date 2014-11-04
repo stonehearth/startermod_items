@@ -1,5 +1,4 @@
 {
-   "mixins" : "stonehearth:mixins:player_task_groups",
    "kingdom_name" : "Ascendancy",
    "kingdom_id" : "ascendency",
    "male_entities" : [
@@ -60,6 +59,7 @@
       "Vondess",
       "Wester",
       "Yiss",
+      "Lebam",
       "Zedro"
    ],
    "given_names" : {
@@ -91,6 +91,7 @@
          "Daff",
          "Willad",
          "Irving",
+         "Lee",
          "Chopper"
       ],
       "female" : [

@@ -62,9 +62,16 @@ $(document).ready(function(){
 
    radiant.console.register('instabuild', {
       call: function(cmdobj, fn, args) {
-         var building = args[0];
+         var building = args[0] || selected;
          App.stonehearthClient.instabuild(building);
          return {};
+      },
+   });
+
+   radiant.console.register('get_cost', {
+      call: function(cmdobj, fn, args) {
+         var building = args[0] || selected;
+         return App.stonehearthClient.getCost(building);
       },
    });
 });

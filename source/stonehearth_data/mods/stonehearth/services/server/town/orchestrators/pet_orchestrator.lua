@@ -1,4 +1,4 @@
-local WeightedSet = require 'services.server.world_generation.math.weighted_set'
+local WeightedSet = require 'lib.algorithms.weighted_set'
 local PetFns = require 'ai.actions.pet.pet_fns'
 
 local Point3 = _radiant.csg.Point3
@@ -24,10 +24,10 @@ function PetOrchestrator:run(town, args)
    self._task_group = self._pet:add_component('stonehearth:ai')
                                     :get_task_group('stonehearth:ambient_pet_behavior')
    local pet = self._pet
-   local faction = town:get_faction()
+   local player_id = town:get_player_id()
    local activity_fn
 
-   while pet:is_valid() and pet:add_component('unit_info'):get_faction() == faction do
+   while pet:is_valid() and pet:add_component('unit_info'):get_player_id() == player_id do
       activity_fn = self:_choose_activity()
       activity_fn(self, pet, town)
    end

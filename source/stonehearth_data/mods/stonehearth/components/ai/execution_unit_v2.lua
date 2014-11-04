@@ -778,7 +778,7 @@ function ExecutionUnitV2:_verify_arguments(fname, args, args_prototype)
          end
          if not radiant.util.is_a(value, expected_type) then
             report_error('wrong type for argument "%s" in "%s" (expected:%s got %s)', name,
-                                self:get_name(), tostring(expected_type), tostring(type(value)))
+                                self:get_name(), radiant.util.tostring(expected_type), radiant.util.typename(value))
             return false                      
          end
       end

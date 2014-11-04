@@ -11,8 +11,7 @@
       }, 
       "unit_info": {
          "name": "Juniper Tree", 
-         "description": "Strong and tall.",
-         "portrait": "file(medium_juniper_tree.png)"
+         "description": "Strong and tall."
       }, 
       "stonehearth:resource_node": {
          "resource": "stonehearth:juniper_log", 

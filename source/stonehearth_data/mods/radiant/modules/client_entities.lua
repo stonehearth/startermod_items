@@ -114,19 +114,9 @@ function client_entities.remove_child(parent, child)
    end
 end
 
-function client_entities.get_faction(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_faction() or nil
-end
-
 function client_entities.get_player_id(entity)
    local unit_info = entity:get_component('unit_info')
    return unit_info and unit_info:get_player_id() or nil
-end
-
-function client_entities.get_kingdom(entity)
-   local unit_info = entity:get_component('unit_info')
-   return unit_info and unit_info:get_kingdom() or nil
 end
 
 function client_entities.local_to_world(pt, e)
@@ -136,6 +126,40 @@ end
 function client_entities.world_to_local(pt, e)
    return _radiant.physics.world_to_local(pt, e)
 end
+
+
+function client_entities.is_solid_entity(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+   
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      return true
+   end
+
+   return false
+end
+
+function client_entities.get_parent(entity)
+   local mob = entity:get_component('mob')
+   return mob and mob:get_parent()
+end
+
+function client_entities.is_child_of(entity, query_parent)
+   assert(query_parent)
+  
+   local parent = client_entities.get_parent(entity)
+   while parent and parent ~= query_parent do
+      parent = client_entities.get_parent(parent)
+   end
+   return parent == query_parent
+end
+
 
 client_entities.__init()
 return client_entities

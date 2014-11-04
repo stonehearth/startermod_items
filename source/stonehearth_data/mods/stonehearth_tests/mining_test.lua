@@ -26,11 +26,11 @@ function MiningTest:__init()
    local point = Point3(20, 9, 4)
    local region = Region3(Cube3(point, point + Point3(1, 1, 1)))
 
-   stonehearth.mining:dig_down(session.player_id, session.faction, region)
+   stonehearth.mining:dig_down(session.player_id, region)
 
    for i = 1, 2 do
       region:translate(Point3(4, 0, 0))
-      stonehearth.mining:dig_out(session.player_id, session.faction, region)
+      stonehearth.mining:dig_out(session.player_id, region)
    end
 end
 

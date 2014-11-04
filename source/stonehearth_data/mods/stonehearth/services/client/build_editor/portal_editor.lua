@@ -115,9 +115,6 @@ function PortalEditor:submit(response)
       :fail(function(r)
             response:reject(r)
          end)
-      :always(function()
-            self:destroy()
-         end)
 end
 
 return PortalEditor

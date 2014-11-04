@@ -98,7 +98,6 @@ function ScoreService:_create_worth_timer()
 end
 
 --- Calculate the net worth by iterating through entities and summing their values
---  TODO: figure out how to derive faction from player_id
 function ScoreService:_calculate_net_worth()
    if self._net_worth_timer then
       self._sv.expire_time = self._net_worth_timer:get_expire_time()
@@ -190,13 +189,7 @@ end
 
 ---  Iterate through the terrain we've exposed and all items in it. 
 function ScoreService:_calc_score_from_entities(player_id, all_agg_scores)
-   -- TODO: talked to Albert, will map 'player_one' to 'civ' until we have a mechanism of
-   -- getting this out of a database
-   local faction = '???'
-   if player_id == 'player_1' then
-      faction = 'civ'
-   end
-   stonehearth.terrain:get_entities_in_explored_region(faction, function(entity)
+   stonehearth.terrain:get_entities_in_explored_region(player_id, function(entity)
       --iterate through the functions and call each with the entity. 
       if not radiant.entities.is_owned_by_player(entity, player_id) then 
          return false

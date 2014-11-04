@@ -1,0 +1,30 @@
+{
+   "block_types" : {
+      "null" :         { "tag" :   0, "color" : "#ff00ff", "kind" : "" },
+      "unknown" :      { "tag" :   1, "color" : "#25221a", "kind" : "" },
+      "bedrock" :      { "tag" : 100, "color" : "#514e45", "kind" : "rock" },
+      "rock_layer_1" : { "tag" : 101, "color" : "#615e55", "kind" : "rock" },
+      "rock_layer_2" : { "tag" : 102, "color" : "#76726b", "kind" : "rock" },
+      "rock_layer_3" : { "tag" : 103, "color" : "#82807b", "kind" : "rock" },
+      "rock_layer_4" : { "tag" : 104, "color" : "#918d86", "kind" : "rock" },
+      "rock_layer_5" : { "tag" : 105, "color" : "#b3b0aa", "kind" : "rock" },
+      "rock_layer_6" : { "tag" : 106, "color" : "#c1c0bb", "kind" : "rock" },
+      "soil_light" :   { "tag" : 200, "color" : "#918154", "kind" : "dirt" },
+      "soil_dark" :    { "tag" : 201, "color" : "#807147", "kind" : "dirt" },
+      "dirt" :         { "tag" : 210, "color" : "#807147", "kind" : "dirt" },
+      "dirt_edge_1" :  { "tag" : 211, "color" : "#918154", "kind" : "dirt" },
+      "grass" :        { "tag" : 300, "color" : "#75b370", "kind" : "grass" },
+      "grass_edge_1" : { "tag" : 301, "color" : "#99ce7c", "kind" : "grass" },
+      "grass_edge_2" : { "tag" : 302, "color" : "#87c076", "kind" : "grass" }
+   },
+
+   "ring_tesselation" : {
+      "dirt" : [
+         { "width" : 8, "name" : "dirt_edge_1" }
+      ],
+      "grass" : [
+         { "width" : 4, "name" : "grass_edge_1" },
+         { "width" : 6, "name" : "grass_edge_2" }
+      ]
+   }
+}

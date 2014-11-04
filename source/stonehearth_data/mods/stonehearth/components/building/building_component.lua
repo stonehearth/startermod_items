@@ -1,3 +1,4 @@
+local build_util = require 'lib.build_util'
 local constants = require('constants').construction
 
 local Building = class()
@@ -45,12 +46,6 @@ function Building:initialize(entity, json)
 
   if not self._sv.initialized then
       self._sv.initialized = true
-      self._sv.envelope_entity = radiant.entities.create_entity()    
-      self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
-      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
-                                 :set_building_entity(self._entity)
-      radiant.entities.add_child(self._entity, self._sv.envelope_entity)
-
       self._sv.structures = {}
       for _, structure_type in pairs(STRUCTURE_TYPES) do
          self._sv.structures[structure_type] = {}
@@ -128,6 +123,16 @@ function Building:calculate_floor_region()
 end
 
 function Building:add_structure(entity)
+   -- Lazily build envelope entity, because it might actually have been created when we loaded
+   -- this building from a template.
+   if not self._sv.envelope_entity then
+      self._sv.envelope_entity = radiant.entities.create_entity()    
+      self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+      self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
+                                 :set_building_entity(self._entity)
+      radiant.entities.add_child(self._entity, self._sv.envelope_entity)
+   end
+
    local id = entity:get_id()
 
    self._log:detail('adding structure %s to building', entity)
@@ -230,8 +235,16 @@ function Building:_trace_entity_container()
                            end)
 end
 
-function Building:clear_no_construction_zone_traces()
-   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone'):clear_traces()
+function Building:get_building_footprint()
+   return self._sv.envelope_entity:get_component('region_collision_shape')
+                                       :get_region()
+end
+
+function Building:set_active(enabled)
+   if enabled then
+      self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
+                                 :clear_traces()
+   end
 end
 
 function Building:_trace_entity(entity, loading)
@@ -599,7 +612,8 @@ function Building:save_to_template()
    end
    
    return {
-      structures = structures
+      structures = structures,
+      envelope_entity = build_util.pack_entity(self._sv.envelope_entity),
    }
 end
 
@@ -618,6 +632,9 @@ function Building:load_from_template(template, options, entity_map)
          }
       end
    end
+   self._sv.envelope_entity = build_util.unpack_entity(template.envelope_entity, entity_map)
+   self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+
    self.__saved_variables:mark_changed()
 
    radiant.events.listen_once(entity_map, 'finished_loading', function()

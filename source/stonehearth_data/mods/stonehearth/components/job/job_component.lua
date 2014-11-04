@@ -193,8 +193,8 @@ function JobComponent:promote_to(job_uri, talisman_entity)
 end
 
 --- Given the ID of a perk, find out of the current class has unlocked that perk. 
-function JobComponent:curr_job_has_perk(perk_id)
-   return self._sv.curr_job_controller:has_perk(perk_id)
+function JobComponent:curr_job_has_perk(id)
+   return self._sv.curr_job_controller:has_perk(id)
 end
 
 --If we've been this class before, re-apply any perks we've gained
@@ -216,14 +216,18 @@ function JobComponent:_apply_perk_for_level(target_level)
    local perk_descriptions = {}
    if job_updates_for_level then
       for i, perk_data in ipairs(job_updates_for_level.perks) do
-         self._sv.curr_job_controller:unlock_perk(perk_data.perk_id)
+         self._sv.curr_job_controller:unlock_perk(perk_data.id)
          if perk_data.type then
             self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
-         
-            --Collect text about the perk
-            local perk_info = {perk_name = perk_data.perk_name, description = perk_data.description}
-            table.insert(perk_descriptions, perk_info)
          end
+
+         --Collect text about the perk
+         local perk_info = {
+            name = perk_data.name,
+            description = perk_data.description, 
+            icon = perk_data.icon
+         }
+         table.insert(perk_descriptions, perk_info)
       end
    end
    return perk_descriptions
@@ -310,7 +314,11 @@ function JobComponent:_level_up()
    self:_set_unit_info(self._sv.curr_job_name)   
    local new_level = self._sv.curr_job_controller:get_job_level()
    local job_name = self._job_json.name
-   local perk_descriptions = self:_apply_perk_for_level(new_level)
+   local class_perk_descriptions = self:_apply_perk_for_level(new_level)
+   local has_class_perks = false
+   if #class_perk_descriptions > 0 then
+      has_class_perks = true
+   end
 
    local player_id = radiant.entities.get_player_id(self._entity)
    local name = radiant.entities.get_display_name(self._entity)
@@ -318,12 +326,25 @@ function JobComponent:_level_up()
    title = string.gsub(title, '__name__', name)
    title = string.gsub(title, '__job_name__', job_name)
    title = string.gsub(title, '__level_number__', new_level)
+
+   local has_race_perks = false
+   local race_perk_descriptions = self:_add_race_perks()
+   if #race_perk_descriptions > 0 then
+      has_race_perks = true
+   end
    
    stonehearth.bulletin_board:post_bulletin(player_id)
+      :set_ui_view('StonehearthLevelUpBulletinDialog')
       :set_callback_instance(self)
+      :set_type('level_up')
       :set_data({
          title = title, 
-         zoom_to_entity = self._entity
+         char_name = name,
+         zoom_to_entity = self._entity, 
+         has_class_perks = has_class_perks, 
+         class_perks = class_perk_descriptions,
+         has_race_perks = has_race_perks, 
+         race_perks = race_perk_descriptions
       })
 
    --Trigger an event so people can extend the class system
@@ -341,6 +362,23 @@ function JobComponent:_level_up()
    --stonehearth.events:add_entry(name .. ' has leveled up in ' .. self._sv.curr_job_name .. '!')
    self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
    self.__saved_variables:mark_changed()   
+end
+
+--TOTAL HACK!!!!
+--TODO: how to add this gracefully? Factor out to a race controller?
+--TODO: we don't handle race very well yet, this should only be true IF we are human
+function JobComponent:_add_race_perks()
+   local race_perks = {}
+   local human_level_perk = {
+      name = 'HP +10', 
+      icon = '/stonehearth/data/images/race/human_HP_on_level.png'
+   }
+   table.insert(race_perks, human_level_perk)
+   return race_perks
+end
+
+function JobComponent:get_xp_to_next_lv()
+   return self._sv.xp_to_next_lv
 end
 
 -- Calculate the exp requried to get to the level after this one. 

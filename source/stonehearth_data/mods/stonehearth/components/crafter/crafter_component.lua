@@ -15,6 +15,7 @@ function CrafterComponent:initialize(entity, json)
       -- it in the crafter component?  then we don't have to stick it in sv!
       self._sv._initialized = true
       self._sv.work_effect = json.work_effect
+      self._sv.fine_percentage = 0
 
       local craftable_recipes = {}
       self._sv._recipe_index = {}
@@ -37,8 +38,8 @@ function CrafterComponent:initialize(entity, json)
 
    local inventory = stonehearth.inventory:get_inventory(self._entity)
    self:_determine_maintain()
-   self._added_listener = radiant.events.listen(inventory, 'stonehearth:storage_added', self, self._on_storage_changed)
-   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:storage_removed', self, self._on_storage_changed)
+   self._added_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', self, self._on_stockpiles_changed)
+   self._removed_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_removed', self, self._on_stockpiles_changed)
 
 end
 
@@ -56,15 +57,16 @@ function CrafterComponent:destroy()
    self._removed_listener = nil
 end
 
-function CrafterComponent:_on_storage_changed()
+function CrafterComponent:_on_stockpiles_changed()
    self:_determine_maintain()
 end
 
 -- True if there are stockpiles, false otherwise. 
 -- TODO: consider elaborating to whether the stockpiles can contain stuff crafted by this crafter
 function CrafterComponent:_determine_maintain()
-   local num_stockpiles = stonehearth.inventory:get_inventory(self._entity):get_num_active_stockpiles()
-   self._sv.should_maintain = num_stockpiles > 0
+   local stockpiles = stonehearth.inventory:get_inventory(self._entity)
+                                                :get_all_stockpiles()
+   self._sv.should_maintain = next(stockpiles) ~= nil
    self.__saved_variables:mark_changed()
 end
 
@@ -79,7 +81,7 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
    local craftable_recipes = {}
    for category, category_data in pairs(self._sv.recipe_index) do
       local recipe_array = {}
-      for recipe_name, recipe_data in pairs(category_data) do
+      for recipe_name, recipe_data in pairs(category_data.recipes) do
          local recipe_data = radiant.resources.load_json(recipe_data.uri)
          self:_initialize_recipe_data(recipe_data)
          table.insert(recipe_array, 1, recipe_data)
@@ -87,7 +89,8 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
       if #recipe_array > 0 then
          --Make an entry in the recipe table for the UI
          local category_ui_info = {}
-         category_ui_info.category = category
+         category_ui_info.category = category_data.name
+         category_ui_info.ordinal = category_data.ordinal
          category_ui_info.recipes = recipe_array
          --Make sure we have a pointer to the recipe data for fast access/edit'
          category_data.ui_info = category_ui_info
@@ -249,6 +252,18 @@ function CrafterComponent:demote()
    if self._sv.workshop then
       self._sv.workshop:set_crafter(nil)
    end
+end
+
+--Set the chances that the crafter will make something fine
+function CrafterComponent:set_fine_percentage(percentage)
+   self._sv.fine_percentage = percentage
+   self.__saved_variables:mark_changed()
+end
+
+--Get the chances that the crafter will make something fine
+--Nil until the crafter reaches a certain level. 
+function CrafterComponent:get_fine_percentage()
+   return self._sv.fine_percentage
 end
 
 -- Given a talisman, associate it with our workshop, if we have one

@@ -63,16 +63,18 @@ function score_tests.town_score_test(autotest)
          })
    local player_id = radiant.entities.get_player_id(worker)
    local chair = autotest.env:create_entity(0, 0, 'stonehearth:furniture:simple_wooden_chair', {
-      player_id = player_id
+         player_id = player_id
       })
    local fancy_chair = autotest.env:create_entity(0, 1, 'stonehearth:furniture:arch_backed_chair', {
-      player_id = player_id
+         player_id = player_id
       })
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local log = autotest.env:create_entity(-2, -2, 'stonehearth:oak_log')
-   local session = {player_id = player_id, faction = 'civ'}
-   stonehearth.terrain:get_visible_region(session.faction) 
-   stonehearth.terrain:get_explored_region(session.faction)
+   local session = {
+      player_id = player_id,
+   }
+   stonehearth.terrain:get_visible_region(player_id) 
+   stonehearth.terrain:get_explored_region(player_id)
 
    stonehearth.farming:create_new_field(session, Point3(-5, 1, -5), {x = 1, y = 1})
 

@@ -29,7 +29,8 @@
    "xp_rewards" : {
       "base_exp_per_harvest" : 4, 
       "stonehearth:pumpking_crop" : 10, 
-      "stonhearth:corn_crop" : 30
+      "stonhearth:corn_crop" : 30, 
+      "stonehearth:tester_crop" : 120
    },
 
    "max_level" : 6, 
@@ -39,8 +40,8 @@
          "perks" : [
             {
                "type" : "apply_buff", 
-               "perk_name" : "Speed Up 10%", 
-               "perk_id" : "farmer_speed_up_1", 
+               "name" : "Speed Up 10%", 
+               "id" : "farmer_speed_up_1", 
                "icon" : "file(images/speed_up.png)", 
                "buff_name" : "stonehearth:buffs:farmer:speed_1",
                "description" : "Running fresh food from field to table has increased the farmer's footspeed.", 
@@ -52,8 +53,8 @@
       "3" : {
          "perks" : [
             {
-               "perk_name" : "Bountiful Harvest", 
-               "perk_id" : "farmer_harvest_increase", 
+               "name" : "Bountiful Harvest", 
+               "id" : "farmer_harvest_increase", 
                "icon" : "file(images/farmerLv3.png)", 
                "description" : "The farmer coaxes greater yield from each plant.", 
                "level" : 3
@@ -63,8 +64,8 @@
       "6" : {
          "perks" : [
             {
-               "perk_name" : "Nature's Surprise (not implemented)", 
-               "perk_id" : "farmer_special_plant", 
+               "name" : "Nature's Surprise (not implemented)", 
+               "id" : "farmer_special_plant", 
                "icon" : "file(images/farmerLv6.png)", 
                "description" : "Occasionally, the farmer's special touch yields... special results.", 
                "level" : 6

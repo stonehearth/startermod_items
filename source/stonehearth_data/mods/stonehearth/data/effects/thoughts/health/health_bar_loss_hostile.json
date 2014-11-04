@@ -5,9 +5,9 @@
          "type": "sound_effect",
          "duration": 1000,
          "start_time": 0,
-         "min_distance": 40,
-         "max_distance": 120,
-         "volume": 70,
+         "min_distance": 35,
+         "max_distance": 100,
+         "volume": 40,
          "track" : "stonehearth:sounds:health_down"
       }
    }

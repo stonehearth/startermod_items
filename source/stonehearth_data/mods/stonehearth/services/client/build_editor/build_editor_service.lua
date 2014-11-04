@@ -1,9 +1,10 @@
-local BuildEditorService = class()
+local build_util = require 'lib.build_util'
 -- xxx: move all the proxy stuff to the client! - tony
 local StructureEditor = require 'services.client.build_editor.structure_editor'
 local FloorEditor = require 'services.client.build_editor.floor_editor'
+local GrowWallsEditor = require 'services.client.build_editor.grow_walls_editor'
 local RoadEditor = require 'services.client.build_editor.road_editor'
-local FloorEraser = require 'services.client.build_editor.floor_eraser'
+local StructureEraser = require 'services.client.build_editor.structure_eraser'
 local PortalEditor = require 'services.client.build_editor.portal_editor'
 local WallLoopEditor = require 'services.client.build_editor.wall_loop_editor'
 local DoodadPlacer = require 'services.client.build_editor.doodad_placer'
@@ -13,11 +14,11 @@ local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('build_editor')
 
+local BuildEditorService = class()
 
 function BuildEditorService:initialize()
    self._grow_roof_options = {}
    self._sv = self.__saved_variables:get_data()
-   self._sv.terrain_cuts = {}
    self._sv.selected_sub_part = nil
 
    _radiant.call('stonehearth:get_service', 'build')
@@ -29,22 +30,6 @@ function BuildEditorService:initialize()
             self._build_service = r.result:__tojson()
          end)
    self._sel_changed_listener = radiant.events.listen(radiant, 'stonehearth:selection_changed', self, self.on_selection_changed)
-end
-
-function BuildEditorService:add_terrain_cut(cut_region)
-   if not self._sv.terrain_cuts[cut_region] then
-      self._sv.terrain_cuts[cut_region] = true
-      _radiant.renderer.add_terrain_cut(cut_region)
-      self.__saved_variables:mark_changed()
-   end
-end
-
-function BuildEditorService:remove_terrain_cut(cut_region)
-   if self._sv.terrain_cuts[cut_region] then
-      self._sv.terrain_cuts[cut_region] = nil
-      _radiant.renderer.remove_terrain_cut(cut_region)
-      self.__saved_variables:mark_changed()
-   end
 end
 
 function BuildEditorService:on_selection_changed()
@@ -117,8 +102,8 @@ function BuildEditorService:place_new_floor(session, response, brush_shape)
          :go(response, brush_shape)
 end
 
-function BuildEditorService:erase_floor(session, response, brush_shape)
-   FloorEraser(self._build_service)
+function BuildEditorService:erase_structure(session, response, brush_shape)
+   StructureEraser(self._build_service)
          :go(response)
 end
 
@@ -133,35 +118,8 @@ function BuildEditorService:place_template(session, response, template_name)
 end
 
 function BuildEditorService:grow_walls(session, response, columns_uri, walls_uri)
-   local has_wall_fn = function(building)
-      for _, child in building:get_component('entity_container'):each_child() do
-        if child:get_component('stonehearth:wall') then
-          return true
-         end
-      end
-      return false
-   end
-   local building
-   stonehearth.selection:select_entity_tool()
-      :set_cursor('stonehearth:cursors:grow_walls')
-      :set_filter_fn(function(entity)
-            building = self:get_building_for(entity)
-            return building ~= nil and not has_wall_fn(building)
-         end)
-      :done(function(selector, entity)
-            if building then
-               _radiant.call_obj(self._build_service, 'grow_walls_command', building, columns_uri, walls_uri)
-            end
-         end)
-      :fail(function(selector)
-            selector:destroy()
-            response:reject('failed')
-         end)
-      :always(function(selector)
-            selector:destroy()
-            response:resolve('done')
-         end)
-      :go()
+   GrowWallsEditor(self._build_service)
+         :go(response, columns_uri, walls_uri)
 end
 
 function BuildEditorService:set_grow_roof_options(session, response, options)
@@ -183,7 +141,7 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
    stonehearth.selection:select_entity_tool()
       :set_cursor('stonehearth:cursors:grow_roof')
       :set_filter_fn(function(entity)
-            building = self:get_building_for(entity)
+            building = build_util.get_building_for(entity)
             return building ~= nil and not has_roof_fn(building)
          end)
       :done(function(selector, entity)
@@ -195,56 +153,12 @@ function BuildEditorService:grow_roof(session, response, roof_uri)
                         end
                      end)
             end
-         end)
-      :fail(function(selector)
-         selector:destroy()
-         response:reject('failed')
-         end)
-      :always(function(selector)
-            selector:destroy()
             response:resolve('done')
          end)
+      :fail(function(selector)
+            response:reject('failed')
+         end)
       :go()   
-end
-
-function BuildEditorService:get_fbp_for(entity)
-   if entity and entity:is_valid() then
-      -- is this a fabricator?  if so, finding the blueprint and the project is easy!
-      local fc = entity:get_component('stonehearth:fabricator')
-      if fc then
-         return entity, fc:get_blueprint(), fc:get_project()
-      end
-
-      -- is this a blueprint or project?  use the construction_data component
-      -- to get back the fabricator
-      local cd = entity:get_component('stonehearth:construction_data')
-      if cd then
-         return self:get_fbp_for(cd:get_fabricator_entity())
-      end
-   end
-end
-
-function BuildEditorService:get_fbp_for_structure(entity, structure_component_name)
-   local fabricator, blueprint, project = self:get_fbp_for(entity)
-   if blueprint then
-      local structure_component = blueprint:get_component(structure_component_name)
-      if structure_component then
-         return fabricator, blueprint, project, structure_component
-      end
-   end
-end
-
-
-function BuildEditorService:get_building_for(entity)
-   if entity and entity:is_valid() then
-      local _, blueprint, _ = self:get_fbp_for(entity)
-      if blueprint then
-         local cp = blueprint:get_component('stonehearth:construction_progress')
-         if cp then
-            return cp:get_building_entity()
-         end
-      end
-   end
 end
 
 return BuildEditorService

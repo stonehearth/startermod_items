@@ -5,20 +5,9 @@
       "unit_info" : {
          "name" : "Fox",
          "description" : "Small forest creature",
-         "portrait" : "file(portrait.png)",
-         "faction" : "critter",
+         "player_id" : "critters",
          "character_sheet_info" : "file(red_fox_character_sheet_info.json)"
       },
-      "stonehearth:loot_table" : {
-         "num_drops" : {
-            "min" : 2,
-            "max" : 4
-         },
-         "items" : [
-            { "uri" : "stonehearth:red_fox_jerky" },
-            { "uri" : "stonehearth:red_fox_pelt"  }
-         ]
-      },      
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)",
          "scale" : 0.12
@@ -29,6 +18,18 @@
                "file(red_fox.qb)"
             ]
          }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:loot_table" : {
+         "num_rolls" : {
+            "min" : 2,
+            "max" : 4
+         },
+         "items" : [
+            { "uri" : "stonehearth:red_fox_jerky" },
+            { "uri" : "stonehearth:red_fox_pelt"  }
+         ]
       }
    }
 }

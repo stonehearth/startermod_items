@@ -1,0 +1,16 @@
+{
+   "formatting" : {
+      "resources" : {
+         "wood resource" : {
+            "name" : "Wood log",
+            "icon" : "/stonehearth/entities/trees/oak_tree/oak_log/oak_log.png",
+            "stacks" : 80
+         },
+         "cloth resource" : {
+            "name" : "Bolt of cloth",
+            "icon" : "/stonehearth/entities/cloth/cloth_bolt/cloth_bolt.png",
+            "stacks" : 1
+         }         
+      }
+   }
+}

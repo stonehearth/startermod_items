@@ -7,6 +7,8 @@
             "stonehearth:actions:work_task_dispatcher",
             "stonehearth:actions:simple_labor_task_dispatcher",
             "stonehearth:actions:collect_ingredient",
+            "stonehearth:actions:pickup_ingredient_with_material",
+            "stonehearth:actions:pickup_ingredient_with_uri",
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
@@ -104,7 +106,7 @@
       "stonehearth:job" : {
          "starting_level_title" : "Apprentice __job_name__ ",
          "default_level_title" : "Level __level_number__ __job_name__", 
-         "default_level_announcement" : "__name__ has Achieved __job_name__ Level __level_number__!", 
+         "default_level_announcement" : "__name__ has achieved __job_name__ Level __level_number__!", 
          "xp_equation_for_next_level" : "next_level ^ 2 * 100", 
          "levels_between_attribute_increase" : 10, 
          "level_data" : {

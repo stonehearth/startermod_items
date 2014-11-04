@@ -1,0 +1,43 @@
+<script type="text/x-handlebars" data-template-name="lvUpBulletinDialog">
+<div id="lvUpBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{data.char_name}} {{i18n stonehearth:bulletin_dialog_level_title}}<div class="closeButton"></div></div>
+      <div id="scroll" class="parchment">
+         <div id="content">
+            <div id="title">{{{ data.title }}}</div>
+
+            {{#if data.has_class_perks}}   
+               {{#each data.class_perks}}
+                  <div class="perk">
+                     <div class="icon">
+                        <img {{bind-attr src=this.icon}}/>
+                     </div>
+                     <div class="text">
+                        <h2>{{this.name}}</h2>
+                        {{this.description}}
+                     </div>
+                  </div>
+               {{/each}}
+            {{/if}}
+            {{#if data.has_race_perks}}
+                  {{#each data.race_perks}}
+                     <div class="perk">
+                        <div class="icon">
+                           <img {{bind-attr src=this.icon}}/>
+                        </div>
+                        <div class="text">
+                           <h2>{{this.name}}<h2>
+                           {{this.description}}
+                        </div>
+                     </div>
+                  {{/each}}
+            {{/if}}
+            
+         </div>
+      </div>
+
+      <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+      <button id="showCharSheetButton" class="" {{action showCharSheet target=view}}>{{i18n stonehearth:showCharSheet}}</button>
+   </div>
+</div>
+</script>

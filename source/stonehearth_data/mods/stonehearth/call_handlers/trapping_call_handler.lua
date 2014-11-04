@@ -45,9 +45,7 @@ function TrappingCallHandler:choose_trapping_grounds_location(session, response)
 end
 
 function TrappingCallHandler:create_trapping_grounds(session, response, location, size)
-   local player_id = session.player_id
-   local faction = session.faction
-   local trapping_grounds = stonehearth.trapping:create_trapping_grounds(player_id, faction, location, size)
+   local trapping_grounds = stonehearth.trapping:create_trapping_grounds(session.player_id, location, size)
    return { trapping_grounds = trapping_grounds }
 end
 

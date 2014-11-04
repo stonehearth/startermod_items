@@ -16,7 +16,8 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:furniture:dresser"
+         "item":"stonehearth:furniture:dresser", 
+         "fine":"stonehearth:furniture:dresser:fine"
       }
   ]
 }

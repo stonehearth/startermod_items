@@ -76,9 +76,9 @@ function SafetyScoreObserver:_on_combat_battery()
    end
 end
 
---If an entity from our faction was killed, lower safety score
+--If an entity from our population was killed, lower safety score
 function SafetyScoreObserver:_on_entity_killed(e)
-   if e.faction and e.faction == radiant.entities.get_faction(self._entity) and 
+   if e.player_id and e.player_id == radiant.entities.get_player_id(self._entity) and 
       e.player_id == radiant.entities.get_player_id(self._entity) then
 
       --Pass in name of the dead friend into the journal entry

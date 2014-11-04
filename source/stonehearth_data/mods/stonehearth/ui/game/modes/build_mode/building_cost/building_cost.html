@@ -1,0 +1,12 @@
+<script type="text/x-handlebars" data-template-name="buildingCost">
+   <div id="buildingCost">
+      {{#each view.building_cost}}
+         <div class="item" {{bind-attr title=this.name}}>
+            <center>
+               <img {{bind-attr src=this.icon}} />
+               <div class="count">{{this.count}} <!-- / {{this.available}} --></div>
+            </center>
+         </div>
+      {{/each}}
+   </div>
+</script>

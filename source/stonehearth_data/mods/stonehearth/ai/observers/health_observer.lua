@@ -106,7 +106,7 @@ end
 
 function HealthObserver:_is_friendly_to_player(entity)
    -- hard code this until we have a better solution
-   return radiant.entities.get_faction(entity) == 'player_1'
+   return radiant.entities.get_player_id(entity) == 'player_1'
 end
 
 return HealthObserver

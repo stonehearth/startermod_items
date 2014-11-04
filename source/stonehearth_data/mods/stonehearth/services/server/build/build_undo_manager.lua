@@ -13,6 +13,8 @@ function BuildUndoManager:__init()
    self._added_entities = {}
    self._tracer = _radiant.sim.create_tracer('undo manager')
    self._tracer_category = self._tracer.category
+   
+   self._tracer:stop()
 end
 
 function BuildUndoManager:begin_transaction(desc)
@@ -24,12 +26,14 @@ function BuildUndoManager:begin_transaction(desc)
    assert(not next(self._unlinked_entities))
 
    self._in_transaction = true
+   self._tracer:start()
 end
 
 function BuildUndoManager:end_transaction(desc)
    log:detail('end_transaction for "%s"', desc)
 
    self._tracer:flush()
+   self._tracer:stop()
 
    -- compute the stack offset of the entry we're about to push onto
    -- the stack
@@ -135,7 +139,8 @@ function BuildUndoManager:unlink_entity(entity)
    if mob then
       local parent = mob:get_parent()
       if parent then
-         parent:get_component('entity_container'):remove_child(entity:get_id())
+         parent:get_component('entity_container')
+                     :remove_child(entity:get_id())
          entry.parent = parent
       end
    end
@@ -145,7 +150,7 @@ function BuildUndoManager:unlink_entity(entity)
    if cp then
       cp:unlink()
       local fabricator_entity = cp:get_fabricator_entity()
-      if fabricator_entity then
+      if fabricator_entity and fabricator_entity ~= entity then
          self:unlink_entity(fabricator_entity)
       end
    end

@@ -13,7 +13,6 @@ function TasksService:initialize()
 end
 
 function TasksService:create_scheduler(name)
-   -- todo: break out by faction, too!
    local scheduler = self._schedulers[name]
    if not scheduler then
       scheduler = TaskScheduler(name)

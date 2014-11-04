@@ -66,10 +66,6 @@ function FabricatorComponent:instabuild()
    self._fabricator:instabuild()
 end
 
-function FabricatorComponent:set_mining_zone(mining_zone)
-   self._fabricator:set_mining_zone(mining_zone)
-end
-
 function FabricatorComponent:set_active(enabled)
    self._log:info('setting active to %s', tostring(enabled))
    
@@ -87,12 +83,9 @@ end
 function FabricatorComponent:set_teardown(enabled)
    self._log:info('setting teardown to %s', tostring(enabled))
    
+   self._sv.teardown = enabled
    self._fabricator:set_teardown(enabled)
-   -- TODO: questionable.  The set_teardown call can cause us to be destroyed, which seems odd.
-   if self._entity:is_valid() then
-      self._sv.teardown = enabled
-      self.__saved_variables:mark_changed()
-   end
+   self.__saved_variables:mark_changed()  
 end
 
 function FabricatorComponent:start_project(blueprint)
@@ -116,6 +109,7 @@ function FabricatorComponent:start_project(blueprint)
    -- remember the blueprint and project
    self._sv.project = project
    self._sv.blueprint = blueprint
+   self._sv.total_mining_region = self._fabricator:get_total_mining_region()
    self.__saved_variables:mark_changed()
    
    radiant.events.listen_once(self._sv.blueprint, 'radiant:entity:pre_destroy', self, self._on_blueprint_destroyed)
@@ -138,7 +132,6 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    -- ask the build service to set all this up!!
 
    local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding')
-   radiant.entities.set_faction(scaffolding, project)
    radiant.entities.set_player_id(scaffolding, project)
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -173,6 +166,19 @@ function FabricatorComponent:_on_blueprint_destroyed()
    if self._entity then
       radiant.entities.destroy_entity(self._entity)
    end
+end
+
+function FabricatorComponent:accumulate_costs(cost)
+   local blueprint = self._sv.blueprint
+   local material = blueprint:get_component('stonehearth:construction_data')
+                                    :get_material()
+
+   local area = blueprint:get_component('destination')
+                           :get_region()
+                              :get()
+                                 :get_area()
+
+   cost.resources[material] = (cost.resources[material] or 0) + area
 end
 
 return FabricatorComponent

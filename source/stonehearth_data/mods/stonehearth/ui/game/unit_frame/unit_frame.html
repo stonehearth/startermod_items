@@ -12,9 +12,16 @@
       </div>
 
       <div id="info">
-         <div class="inner" id=>
-            <div class="name">{{unit_info.name}}</div>
-            <div class="description">{{unit_info.description}}</div>
+         <div class="inner">
+            {{#if stonehearth:job}}
+               <div id="jobButton" title="Show character sheet">
+                  <img {{bind-attr src="stonehearth:job.class_icon"}} />
+               </div>
+            {{/if}}
+            <div id="nameBlock">
+               <div class="name" title="Focus camera on this unit">{{unit_info.name}}</div>
+               <div class="description">{{unit_info.description}}</div>
+            </div>
          </div>
 
          <div id="commandButtons">
@@ -36,10 +43,6 @@
          </div>
 
       </div>
-
-      <a href="#" {{action showCharacterSheet target="view"}}>
-         <div id="portrait">{{#if unit_info.portrait}}<img {{bind-attr src=unit_info.portrait}}>{{/if}}</div>
-      </a>
 
    </div>
 </script>

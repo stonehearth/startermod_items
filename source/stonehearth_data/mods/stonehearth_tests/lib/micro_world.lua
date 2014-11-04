@@ -4,15 +4,12 @@ local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
-local Terrain = _radiant.om.Terrain
 
 function MicroWorld:__init(size)
    self._nextTime = 1
    self._running = false
    self._session = {
       player_id = 'player_1',
-      faction = 'civ',
-      kingdom = 'stonehearth:kingdoms:ascendancy',
    }
 
    if not size then
@@ -29,19 +26,22 @@ function MicroWorld:create_world()
    local session = self:get_session()
    stonehearth.town:add_town(session)
    stonehearth.inventory:add_inventory(session)
-   stonehearth.population:add_population(session)
+   stonehearth.population:add_population(session, 'stonehearth:kingdoms:ascendancy')
    -- xxx, oh lawd. These gets are required to intialize the terrain visible and explored regions.
    -- refactoring is required.
-   stonehearth.terrain:get_visible_region(session.faction) 
-   stonehearth.terrain:get_explored_region(session.faction)
+   stonehearth.terrain:get_visible_region(session.player_id) 
+   stonehearth.terrain:get_explored_region(session.player_id)
 
    assert(self._size % 2 == 0)
    local half_size = self._size / 2
 
+   radiant.terrain.set_config_file('stonehearth:terrain_block_config')
+   local block_types = radiant.terrain.get_block_types()
+
    local region3 = Region3()
-   region3:add_cube(Cube3(Point3(0, -2, 0), Point3(self._size, 0, self._size), Terrain.BEDROCK))
-   region3:add_cube(Cube3(Point3(0, 0, 0), Point3(self._size, 9, self._size), Terrain.SOIL_DARK))
-   region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), Terrain.GRASS))
+   region3:add_cube(Cube3(Point3(0, -2, 0), Point3(self._size, 0, self._size), block_types.bedrock))
+   region3:add_cube(Cube3(Point3(0, 0, 0), Point3(self._size, 9, self._size), block_types.soil_dark))
+   region3:add_cube(Cube3(Point3(0, 9, 0), Point3(self._size, 10, self._size), block_types.grass))
    region3 = region3:translated(Point3(-half_size, 0, -half_size))
 
    radiant._root_entity:add_component('terrain')

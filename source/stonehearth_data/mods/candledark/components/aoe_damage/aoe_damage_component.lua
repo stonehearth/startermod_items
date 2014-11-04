@@ -91,7 +91,7 @@ function AoeDamageComponent:_on_added_to_sensor(id, entity)
 
    -- track the entity if it's hostile and undead
    if radiant.entities.is_hostile(entity, self._entity) and
-      radiant.entities.get_faction(entity) == 'undead' then
+      radiant.entities.get_player_id(entity) == 'undead' then
       self._tracked_entities[id] = entity
    end
 

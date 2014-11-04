@@ -1,0 +1,42 @@
+<script type="text/x-handlebars" data-template-name="stonehearthMining">
+   <div id="stonehearthMining" class="constructionGui">
+
+      <div id="editor">
+         {{partial 'mineEditor'}}
+      </div>
+
+   </div>
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="mineEditor">
+   <div class="window mainWindow">
+      <div class="title">Mining</div>
+
+      <div id="tools">
+         <h2>Tools</h2>
+         <div id="digDownTool" class="toolButton" title="Mine down"></div>
+         <div id="digOutTool" class="toolButton" title="Mine region"></div>
+         <!-- <div id="undoTool" class="toolButton" title="Undo"></div> -->
+      </div>
+
+      <div id="tabs">
+         <div class="tabPage" id="roadMaterialTab">
+            <h2>Mine Material</h2>
+            <div class="downSection" id="mineMaterials">
+               <!-- Material palette built dynamically and inserted here -->
+               maybe pick the style of mine wall here? dunno
+            </div>
+         </div>
+      </div>
+
+   </div>
+
+   <div class="window bottomButtons">
+      <div id="buttons">
+         <button class="green" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
+      </div>
+   </div>
+
+</script>
+

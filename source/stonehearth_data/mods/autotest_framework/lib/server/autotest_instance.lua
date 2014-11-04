@@ -34,8 +34,8 @@ function AutotestInstance:_protect_framework_interface(iname)
    self[iname] = protected_interface
 end
 
-function AutotestInstance:is_running()
-   return self._thread:is_running()
+function AutotestInstance:is_finished()
+   return self._thread:is_finished()
 end
 
 function AutotestInstance:_check_running(fn_name)

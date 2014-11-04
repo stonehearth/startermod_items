@@ -11,8 +11,7 @@
       }, 
       "unit_info": {
          "name": "Small Boulder", 
-         "description": "Harvestable for stone",
-         "portrait": "file(small_boulder.png)"
+         "description": "Harvestable for stone"
       }, 
       "stonehearth:resource_node": {
          "durability": 1

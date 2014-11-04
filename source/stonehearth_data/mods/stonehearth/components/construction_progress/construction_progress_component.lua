@@ -265,22 +265,14 @@ function ConstructionProgress:set_active(active)
       if self._sv.fabricator_entity then
          self._sv.active = active
          self.__saved_variables:mark_changed()
-         self:get_fabricator_component():set_active(active)
+         self:get_fabricator_component()
+                  :set_active(active)
       end
    end
 end
 
 function ConstructionProgress:get_active()
    return self._sv.active
-end
-
-
-function ConstructionProgress:instabuild()
-   -- mark as active.  this is a nop now that we've built it, but the
-   -- bit still need be set to mimic the building actually being built
-   self._sv.active = true
-   self._sv.finished = true
-   self.__saved_variables:mark_changed()
 end
 
 function ConstructionProgress:set_teardown(teardown)

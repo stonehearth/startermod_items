@@ -27,7 +27,7 @@ App.StonehearthBuildingVisionWidget = App.View.extend({
    didInsertElement: function() {
       this._super();
 
-      this.$(document).on('stonehearthVisionModeChange', this.modeChangeHandler());
+      this.$(top).on('stonehearthVisionModeChange', this.modeChangeHandler());
 
       this.$('#visionButton').click(this.modeChangeClickHandler());
 

@@ -29,6 +29,15 @@ var StonehearthClient;
                console.dir(e)
             })
       
+         radiant.call('stonehearth:get_client_service', 'subterranean_view')
+            .done(function(e) {
+               self._subterranean_view = e.result;
+            })
+            .fail(function(e) {
+               console.log('error getting subterranean_view client service')
+               console.dir(e)
+            })
+
          radiant.call('stonehearth:get_service', 'build')
             .done(function(e) {
                self._build_service = e.result;
@@ -97,6 +106,7 @@ var StonehearthClient;
 
       deactivateAllTools: function() {
          var self = this;
+         console.log('deactivating all tools');
          return radiant.call('stonehearth:deactivate_all_tools')
             .always(function() {
                self._activeTool = null;
@@ -104,21 +114,31 @@ var StonehearthClient;
       },
 
       // Wrapper to call all tools, handling the boilerplate tool management.
-      _callTool: function(toolFunction, preCall) {
+      _callTool: function(toolName, toolFunction, preCall) {
          var self = this;
-
          var deferred = new $.Deferred();
 
+         var debug_log = function(str) {
+             // console.log('(processing tool ' + toolName + ') ' + str);
+         };
+
+         debug_log('new call to _callTool... ');
+
          var activateTool = function() {
+            console.log('activating tool...')
             if (preCall) {
+               debug_log('in preCall for activateTool...');
                preCall();
             }
+            debug_log('calling tool function...');            
             self._activeTool = toolFunction()
                .done(function(response) {
+                  debug_log('clearing self._activeTool in tool done handler...');
                   self._activeTool = null;
                   deferred.resolve(response);
                })
                .fail(function(response) {
+                  debug_log('clearing self._activeTool in tool fail handler...');
                   self._activeTool = null;
                   deferred.reject(response);
                });
@@ -127,11 +147,14 @@ var StonehearthClient;
          if (self._activeTool) {
             // If we have an active tool, trigger a deactivate so that when that
             // tool completes, we'll activate the new tool.
+            debug_log('installing activateTool always handler on old tool to activate this one (crazy!)');
             self._activeTool.always(activateTool);
             this.deactivateAllTools();
          } else {
+            debug_log('activating tool immediately, since there is no active one now.');
             activateTool();
          }
+         debug_log('returning deferred from _callTool');
 
          return deferred;
       },
@@ -197,7 +220,7 @@ var StonehearthClient;
             { i18n: true });
 
          App.setGameMode('build');
-         return this._callTool(function() {
+         return this._callTool('placeItem', function() {
             return radiant.call('stonehearth:choose_place_item_location', item)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
@@ -217,7 +240,7 @@ var StonehearthClient;
             {i18n: true});
 
          App.setGameMode('build');
-         return this._callTool(function() {
+         return this._callTool('placeItemType', function() {
             return radiant.call('stonehearth:choose_place_item_location', itemType)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} )
@@ -228,7 +251,7 @@ var StonehearthClient;
                   }
                })
                .fail(function(response) {
-                  App.setGameMode('normal');
+                  //App.setGameMode('normal');
                   self.hideTip();
                });
          });
@@ -238,8 +261,52 @@ var StonehearthClient;
       undeployItem: function(item) {
          var self = this;
 
-         return this._callTool(function() {
+         return this._callTool('undeployItem', function() {
             return radiant.call('stonehearth:undeploy_item', item);
+         });
+      },
+
+      subterraneanSetClip: function(enabled) {
+         return radiant.call_obj(this._subterranean_view, 'set_clip_enabled_command', enabled);
+      },
+
+      subterraneanMoveUp: function() {
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
+            .done(function(response) {
+               if (response) {
+                  radiant.call_obj(self._subterranean_view, 'move_clip_height_up_command');
+               }
+            })
+      },
+
+      subterraneanMoveDown: function() {
+         var self = this;
+         radiant.call_obj(self._subterranean_view, 'set_clip_enabled_command', true)
+            .done(function(response) {
+               if (response) {
+                  radiant.call_obj(self._subterranean_view, 'move_clip_height_down_command');
+               }
+            })
+      },
+
+      // item type is a uri, not an item entity
+      buildLadder: function() {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:build_ladder_title', 'stonehearth:build_ladder_description',
+            {i18n: true});
+
+         App.setGameMode('build');
+         return this._callTool('buildLadder', function() {
+            return radiant.call_obj(self._build_editor, 'build_ladder')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  self.buildLadder();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
          });
       },
 
@@ -251,7 +318,7 @@ var StonehearthClient;
             {i18n: true});
 
          App.setGameMode('build');
-         return this._callTool(function() {
+         return this._callTool('buildLadder', function() {
             return radiant.call_obj(self._build_editor, 'build_ladder')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -273,7 +340,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:harvest_resource_tip_title', 'stonehearth:harvest_resource_tip_description', {i18n : true});
 
-         return this._callTool(function() {
+         return this._callTool('boxHarvestResources', function() {
             return radiant.call('stonehearth:box_harvest_resources')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
@@ -291,7 +358,7 @@ var StonehearthClient;
          App.setGameMode('zones');
          var tip = self.showTip('stonehearth:stockpile_tip_title', 'stonehearth:stockpile_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('createStockpile', function() {
             return radiant.call('stonehearth:choose_stockpile_location')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -312,7 +379,7 @@ var StonehearthClient;
          App.setGameMode('zones');
          var tip = self.showTip('stonehearth:field_tip_title', 'stonehearth:field_tip_description', { i18n: true });
 
-         return this._callTool(function(){
+         return this._callTool('createFarm', function(){
             return radiant.call('stonehearth:choose_new_field_location')
             .done(function(response) {
                radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -332,7 +399,7 @@ var StonehearthClient;
          App.setGameMode('zones');
          var tip = self.showTip('stonehearth:trapper_zone_tip_title', 'stonehearth:trapper_zone_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('createTrappingGrounds', function() {
             return radiant.call('stonehearth:choose_trapping_grounds_location')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -348,14 +415,14 @@ var StonehearthClient;
       digDown: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('digDown', function() {
             return radiant.call('stonehearth:designate_mining_zone', 'down')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
                   self.digDown();
                })
                .fail(function(response) {
@@ -367,15 +434,15 @@ var StonehearthClient;
       digOut: function() {
          var self = this;
 
-         App.setGameMode('zones');
-         var tip = self.showTip('stonehearth:mining_zone_tip_title', 'stonehearth:mining_zone_tip_description', { i18n: true });
+         App.setGameMode('build');
+         var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('digOut', function() {
             return radiant.call('stonehearth:designate_mining_zone', 'out')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.trapping_grounds);
-                  self.digDown();
+                  //radiant.call('stonehearth:select_entity', response.mining_zone);
+                  self.digOut();
                })
                .fail(function(response) {
                   self.hideTip(tip);
@@ -394,7 +461,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:draw_template_title', 'stonehearth:draw_template_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('drawTemplate', function() {
             return radiant.call_obj(self._build_editor, 'place_template', template)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -411,7 +478,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('buildWall', function() {
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -427,7 +494,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('buildFloor', function() {
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -438,14 +505,14 @@ var StonehearthClient;
          }, precall);
       },
 
-      eraseFloor: function(precall) {
+      eraseStructure: function(precall) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         var tip = self.showTip('stonehearth:erase_floor_tip_title', 'stonehearth:erase_floor_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:erase_structure_tip_title', 'stonehearth:erase_structure_tip_description', { i18n: true });
 
-         return this._callTool(function() {
-            return radiant.call_obj(self._build_editor, 'erase_floor')
+         return this._callTool('eraseStructure', function() {
+            return radiant.call_obj(self._build_editor, 'erase_structure')
                .done(function(response) {                  
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -460,7 +527,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:build_road_tip_title', 'stonehearth:build_road_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('buildRoad', function() {
             return radiant.call_obj(self._build_editor, 'place_new_road', roadBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -476,7 +543,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('growRoof', function() {
             return radiant.call_obj(self._build_editor, 'grow_roof', roof)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -488,8 +555,8 @@ var StonehearthClient;
          return radiant.call_obj(this._build_service, 'apply_options_command', blueprint.__self, options);
       },
 
-      instabuild: function(building) {
-         return radiant.call_obj(this._build_service, 'instabuild_command', building);
+      getCost: function(building) {
+         return radiant.call_obj(this._build_service, 'get_cost_command', building);
       },
 
       setGrowRoofOptions: function(options) {
@@ -501,7 +568,7 @@ var StonehearthClient;
 
          var tip = self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
 
-         return this._callTool(function() {
+         return this._callTool('growWalls', function() {
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'});
@@ -528,7 +595,7 @@ var StonehearthClient;
          // xxx localize
          var tip = self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
 
-         return this._callTool(function() {
+         return this._callTool('addDoodad', function() {
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -540,7 +607,7 @@ var StonehearthClient;
       buildRoom: function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
-         return this._callTool(function() {
+         return this._callTool('buildRoom', function() {
             return radiant.call_obj(self._build_editor, 'create_room');
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
          });

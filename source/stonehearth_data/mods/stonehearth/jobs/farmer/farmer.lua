@@ -43,14 +43,14 @@ function FarmerClass:get_level_data()
 end
 
 -- We keep an index of perks we've unlocked for easy lookup
-function FarmerClass:unlock_perk(perk_id)
-   self._sv.attained_perks[perk_id] = true
+function FarmerClass:unlock_perk(id)
+   self._sv.attained_perks[id] = true
    self.__saved_variables:mark_changed()
 end
 
 -- Given the ID of a perk, find out if we have the perk. 
-function FarmerClass:has_perk(perk_id)
-   return self._sv.attained_perks[perk_id]
+function FarmerClass:has_perk(id)
+   return self._sv.attained_perks[id]
 end
 
 -- Call when it's time to level up in this class
@@ -67,9 +67,7 @@ end
 
 -- Private Functions
 
--- Farmers gain XP when... they've produced a basket of stuff?
--- Different crops should return different XP based on grow time so it's not just turnips all day
--- For testing, add xp to tilling
+-- Farmers gain XP when they harvest things. The amount of XP depends on the crop
 function FarmerClass:_create_xp_listeners()
    self._on_harvest_listener = radiant.events.listen(self._sv._entity, 'stonehearth:harvest_crop', self, self._on_harvest)
 end
@@ -80,7 +78,7 @@ function FarmerClass:_remove_xp_listeners()
 end
 
 function FarmerClass:_on_harvest(args)
-   local crop = args.crop
+   local crop = args.crop_uri
    local xp_to_add = self._sv.xp_rewards["base_exp_per_harvest"]
    if self._sv.xp_rewards[crop] then
       xp_to_add = self._sv.xp_rewards[crop] 

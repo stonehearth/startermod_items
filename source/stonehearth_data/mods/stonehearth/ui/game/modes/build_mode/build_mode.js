@@ -42,6 +42,11 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
          self._showBuildRoadsView();
       });
 
+      // show the mining ui
+      $(top).on('stonehearth_mining', function() {
+         self._showMiningView();
+      });
+
       // show the place item UI "place item" button on the start menu
       // is clicked.
       $(top).on('stonehearth_place_item', function() {
@@ -56,6 +61,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
       this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
+      this._miningView = self.addView(App.StonehearthMiningView);
 
       this.hide();
    },
@@ -84,6 +90,12 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       App.setGameMode('build');
       this.hideAllViews();
       this._buildRoadsView.show();
+   },
+
+   _showMiningView: function() {
+      App.setGameMode('build');
+      this.hideAllViews();
+      this._miningView.show();
    },
 
    _showBuildingDesignerView: function(mode) {

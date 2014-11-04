@@ -11,8 +11,7 @@
       }, 
       "unit_info": {
          "name": "Huge Boulder",
-         "description": "Harvestable for stone",
-         "portrait": "file(large_boulder.png)"
+         "description": "Harvestable for stone"
       }, 
       "stonehearth:resource_node": {
          "durability": 12

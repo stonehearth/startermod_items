@@ -13,7 +13,7 @@
          "start_time": 400,
          "min_distance": 30,
          "max_distance": 100,
-         "volume": 60,
+         "volume": 22,
          "track" : {
             "type": "one_of",
             "items": [

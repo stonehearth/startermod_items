@@ -18,6 +18,14 @@ local SAVED_COMPONENTS = {
    ['stonehearth:no_construction_zone'] = true,    -- for footprint
 }
 
+function build_util.rotated_degrees(value, degrees)
+   value = value + degrees
+   if value >= 360 then
+      value = value - 360
+   end
+   return value
+end
+
 function build_util.normal_to_rotation(normal)
    if normal == -Point3.unit_z then
       return 0
@@ -106,7 +114,6 @@ end
 local function create_template_entities(building, template)
    local entity_map = {}
    local player_id = radiant.entities.get_player_id(building)
-   local faction = radiant.entities.get_faction(building)
 
    entity_map[tonumber(template.root.id)] = building
    
@@ -116,7 +123,6 @@ local function create_template_entities(building, template)
             local entity = radiant.entities.create_entity(o.uri)
             entity:add_component('unit_info')
                      :set_player_id(player_id)
-                     :set_faction(faction)
 
             entity_map[tonumber(orig_id)] = entity
             create_entities(o.children)
@@ -203,9 +209,87 @@ end
 --
 --    @param blueprint - the blueprint whose building you're interested in
 --
-function build_util.get_building_for(blueprint)
-   local cp = blueprint:get_component('stonehearth:construction_progress')
-   return cp and cp:get_building_entity()
+
+function build_util.get_fbp_for(entity)
+   if entity and entity:is_valid() then
+      -- is this a fabricator?  if so, finding the blueprint and the project is easy!
+      local fc = entity:get_component('stonehearth:fabricator')
+      if fc then
+         return entity, fc:get_blueprint(), fc:get_project()
+      end
+      
+      -- also works for blueprints.  we will take this path if the user passes a
+      -- blueprint in directly.
+      local cp = entity:get_component('stonehearth:construction_progress')
+      if cp then
+         local fabricator_entity = cp:get_fabricator_entity()
+         if fabricator_entity == entity then
+            -- fixture fabricators use the same entity for themselves and the fabricator.
+            -- crazy.
+            return entity, entity, nil
+         end
+
+         if fabricator_entity then
+            return build_util.get_fbp_for(fabricator_entity)
+         end
+         -- no fabricator for this blueprint?  no problem!  just return nil for those
+         -- entities.
+         return nil, entity, nil
+      end
+
+      -- must be a project.  get the fabricator out of the construction data.
+      local cd = entity:get_component('stonehearth:construction_data')
+      if cd then
+         return build_util.get_fbp_for(cd:get_fabricator_entity())
+      end
+   end
+end
+
+function build_util.get_fbp_for_structure(entity, structure_component_name)
+   local fabricator, blueprint, project = build_util.get_fbp_for(entity)
+   if blueprint then
+      local structure_component = blueprint:get_component(structure_component_name)
+      if structure_component then
+         return fabricator, blueprint, project, structure_component
+      end
+   end
+end
+
+
+function build_util.get_building_for(entity)
+   if entity and entity:is_valid() then
+      local _, blueprint, _ = build_util.get_fbp_for(entity)
+      if blueprint then
+         local cp = blueprint:get_component('stonehearth:construction_progress')
+         if cp then
+            return cp:get_building_entity()
+         end
+      end
+   end
+end
+
+function build_util.get_blueprint_for(entity)
+   local fabricator, blueprint, project = build_util.get_fbp_for(entity)
+   return blueprint
+end
+
+
+function build_util.get_cost(building)
+   local costs = {
+      resources = {},
+      items = {},
+   }
+   radiant.entities.for_all_children(building, function(entity)
+         local cp = entity:get_component('stonehearth:construction_progress')
+         if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
+            radiant.log.write('', 0, entity:get_uri())
+            local fabricator = cp:get_fabricator_component()
+            if fabricator then
+               fabricator:accumulate_costs(costs)
+            end
+         end
+      end)
+   return costs
 end
 
 function build_util.save_template(building, header, overwrite)
@@ -223,6 +307,8 @@ function build_util.save_template(building, header, overwrite)
    
    local building_template = save_all_structures_to_template(building)
    building_template.id = building:get_id()
+
+   header.cost = build_util.get_cost(building)
 
    local template = {
       header = header,
@@ -287,15 +373,27 @@ end
 
 function build_util.get_building_centroid(building)
    local bounds = build_util.get_building_bounds(building)
-   return Point3(bounds.max.x / 2, 0, bounds.max.z / 2):to_int();
+   local centroid = bounds.min + bounds:get_size():scaled(0.5):to_int();
+   centroid.y = 0
+   return centroid
 end
 
 function build_util.get_building_bounds(building)
-   local bounds = Cube3(Point3.zero, Point3.zero, 0)
+   local bounds
+   local origin = radiant.entities.local_to_world(Point3.zero, building)
+   assert(origin)
+
    local function measure_bounds(entity)
       local dst = entity:get_component('region_collision_shape')
       if dst then
-         bounds:grow(dst:get_region():get():get_bounds())
+         local region_bounds = dst:get_region():get():get_bounds()
+         region_bounds = radiant.entities.local_to_world(region_bounds, entity)
+                                             :translated(-origin)
+         if bounds then
+            bounds:grow(region_bounds)
+         else
+            bounds = region_bounds
+         end
       end
       
       for_each_child(entity, function(id, child)

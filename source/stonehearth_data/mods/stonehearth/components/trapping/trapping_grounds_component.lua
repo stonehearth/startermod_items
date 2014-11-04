@@ -443,13 +443,13 @@ function TrappingGroundsComponent:_is_threatening_to_critter(other_entity)
       return false
    end
 
-   local other_faction = radiant.entities.get_faction(other_entity)
-   return other_faction ~= 'critter'
+   local other_player_id = radiant.entities.get_player_id(other_entity)
+   return other_player_id ~= 'critters'
 end
 
 function TrappingGroundsComponent:_create_critter(uri)
    local critter = radiant.entities.create_entity(uri)
-   radiant.entities.set_player_id(critter, 'game_master')
+   radiant.entities.set_player_id(critter, 'critters')
 
    local despawn_ai = self:_inject_despawn_ai(critter)
 

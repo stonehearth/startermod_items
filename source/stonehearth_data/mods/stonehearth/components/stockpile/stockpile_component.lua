@@ -87,7 +87,6 @@ function StockpileComponent:initialize(entity, json)
    if not self._sv.stocked_items then
       -- creating...
       --self._sv.should_steal = false
-      self._sv.is_outbox = false
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv._filter_key = 'stockpile nofilter'
@@ -95,12 +94,6 @@ function StockpileComponent:initialize(entity, json)
       self._destination:set_region(_radiant.sim.alloc_region3())
                        :set_reserved(_radiant.sim.alloc_region3())
                        :set_auto_update_adjacent(true)
-
-      if json.size then
-         self:set_size(json.size.x, json.size.y)
-      else
-         self:set_size(0, 0)
-      end
 
       radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
          self:_finish_initialization()
@@ -114,8 +107,8 @@ function StockpileComponent:initialize(entity, json)
 
       --Don't start listening on created items until after we load
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-         self:_finish_initialization()
-      end)   
+            self:_finish_initialization()
+         end)   
    end
         
    all_stockpiles[self._entity:get_id()] = self
@@ -134,9 +127,11 @@ function StockpileComponent:destroy()
       self:_remove_item_from_stock(id)
    end
 
-   local player_id = self._entity:add_component('unit_info'):get_player_id()
-   local inventory = stonehearth.inventory:get_inventory(player_id)
-   inventory:remove_storage(self._entity)
+   local player_id = self._entity:add_component('unit_info')
+                                    :get_player_id()
+
+   stonehearth.inventory:get_inventory(player_id)
+                           :remove_stockpile(self._entity)
 
    if self._ec_trace then
       self._ec_trace:destroy()
@@ -258,19 +253,10 @@ function StockpileComponent:_finish_initialization()
                                           end)
       
    self:_assign_to_player()
-   self:_rebuild_item_sv()
 end
 
 function StockpileComponent:get_items()
    return self._sv.stocked_items;
-end
-
-function StockpileComponent:set_outbox(value)
-   self._sv.is_outbox = value
-end
-
-function StockpileComponent:is_outbox(value)
-   return self._sv.is_outbox
 end
 
 function StockpileComponent:_get_bounds()
@@ -299,6 +285,7 @@ end
 function StockpileComponent:bounds_contain(item_entity)
    local location = radiant.entities.get_world_grid_location(item_entity)
    local world_bounds = self:get_bounds()
+   
    if not world_bounds then
       return false
    end
@@ -387,14 +374,16 @@ function StockpileComponent:_add_item_to_stock(entity)
    -- add the item to the inventory 
    -- sometimes this happens before the player_id is assigned (why?)
    if self._sv.player_id then
-      local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-      inventory:add_item(self._entity, entity)
+      stonehearth.inventory:get_inventory(self._sv.player_id)
+                              :add_item(entity)
    end
    
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
    --Trigger this anyway so various scenarios, tests, etc, can still use it
-   radiant.events.trigger(self._entity, "stonehearth:item_added", { 
-      storage = self._entity,
+   radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
+   
+   radiant.events.trigger(self._entity, "stonehearth:stockpile:item_added", { 
+      stockpile = self._entity,
       item = entity 
    })
    
@@ -420,14 +409,14 @@ function StockpileComponent:_remove_item_from_stock(id)
    self.__saved_variables:mark_changed()
 
    --Tell the inventory to remove this item
-   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
-   inventory:remove_item(self._entity, id)
+   stonehearth.inventory:get_inventory(self._sv.player_id)
+                           :remove_item(id)
       
    --Remove items that have been taken out of the stockpile
    if entity and entity:is_valid() then
       
       --Trigger for scenarios, autotests, etc
-      radiant.events.trigger(self._entity, "stonehearth:item_removed", { 
+      radiant.events.trigger(self._entity, "stonehearth:stockpile:item_removed", { 
          storage = self._entity,
          item = entity
       })
@@ -437,6 +426,9 @@ function StockpileComponent:_remove_item_from_stock(id)
 end
 
 function StockpileComponent:_rebuild_item_sv()
+   -- verify this doesn't get called until we get placed in the world.
+   assert(self._entity:get_component('mob'):get_parent() ~= nil)
+   
    self._destination:get_region():modify(function(cursor)
       cursor:clear()
       cursor:add_cube(self:_get_bounds())
@@ -478,30 +470,17 @@ function StockpileComponent:_assign_to_player()
 
       -- register with the inventory service for this player_id
       if player_id then
-         local inventory = stonehearth.inventory:get_inventory(player_id)
-         inventory:add_storage(self._entity)
-
-         -- TODO: do we really still need this part where we register to a specific inventory?
-         -- Could we just call this after we explicitly tell the inventory when we've added/removed something?
-         radiant.events.listen(inventory, 'stonehearth:item_added', self, self._on_item_added_to_inventory)
-         radiant.events.listen(inventory, 'stonehearth:item_removed', self, self._on_item_removed_from_inventory)
+         stonehearth.inventory:get_inventory(player_id)
+                                 :add_stockpile(self._entity)
       end      
       self:_create_worker_tasks()
    end
 end
 
-function StockpileComponent:_on_item_added_to_inventory(e)
-   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
-end
-
-function StockpileComponent:_on_item_removed_from_inventory(e)
-   -- xxx: need to poke the pathfinder in the restock task somehow... hmm..
-end
-
 --- Returns whether or not the stockpile should stock this entity
 -- @param entity The entity you're interested in
 -- @return true if the entity can be stocked here, false otherwise.
-
+--
 function StockpileComponent:can_stock_entity(entity)
    return _can_stock_entity(entity, self._sv.filter)
 end
@@ -515,10 +494,6 @@ end
 
 --- Workers and farmers restock stockpiles.
 function StockpileComponent:_create_worker_tasks()
-   if self._sv.is_outbox then
-      return
-   end
-
    self:_destroy_tasks()
 
    local town = stonehearth.town:get_town(self._entity)

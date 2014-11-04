@@ -9,7 +9,8 @@ function PetCallHandler:release_pet(session, response, critter)
       end
    end
 
-   critter:get_component('unit_info'):set_faction('critter')
+   critter:get_component('unit_info')
+            :set_player_id('critters')
    --Remove the unit info
    -- leave the original description. we'll have another mechanism for this
    --critter:get_component('unit_info'):set_description("Unwanted, but free.")

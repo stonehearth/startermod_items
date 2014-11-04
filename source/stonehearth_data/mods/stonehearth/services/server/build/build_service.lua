@@ -73,7 +73,7 @@ function BuildService:set_active(entity, enabled)
       self:clear_undo_stack() -- can't undo once building starts!
       local bc = entity:get_component('stonehearth:building')
       if bc then 
-         bc:clear_no_construction_zone_traces()
+         bc:set_active(true)
       end
    end
 
@@ -233,7 +233,7 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
             end
             return false
          end
-         if not self:is_blueprint(entity) then
+         if not build_util.is_blueprint(entity) then
             return false
          end
          if self:_get_structure_type(entity) == 'floor' then
@@ -333,6 +333,27 @@ function BuildService:erase_floor_command(session, response, box)
    return success or nil
 end
 
+function BuildService:erase_fixture(fixture_blueprint)
+   -- grab the parent before we unlink, since the unlinking process will remove
+   -- the entity from the world
+   local parent = radiant.entities.get_parent(fixture_blueprint)
+   self:unlink_entity(fixture_blueprint)
+
+   -- if we're a portal and were taken off a wall, re-layout to clear the hole.
+   local wall = parent:get_component('stonehearth:wall')
+   if wall then
+      wall:remove_fixture(fixture_blueprint)
+               :layout()
+   end 
+end
+
+function BuildService:erase_fixture_command(session, response, fixture_blueprint)
+   local success = self:do_command('erase_fixture', response, function()
+         self:erase_fixture(fixture_blueprint)
+      end)
+   return success or nil
+end
+
 -- adds a new fabricator to blueprint.  this creates a new 'stonehearth:entities:fabricator'
 -- entity, adds a fabricator component to it, and wires that fabricator up to the blueprint.
 -- See `_init_fabricator` for more details.
@@ -366,7 +387,6 @@ function BuildService:_bind_building_to_blueprint(building, blueprint)
    -- make the owner of the blueprint the same as the owner as of the building
    blueprint:add_component('unit_info')
             :set_player_id(radiant.entities.get_player_id(building))
-            :set_faction(radiant.entities.get_faction(building))   
 
    -- fixtures, for example, don't have construction data.  so check first!
    local cd_component = blueprint:get_component('stonehearth:construction_data')
@@ -454,7 +474,6 @@ function BuildService:_create_new_building(session, location)
    building:add_component('unit_info')
            :set_display_name(string.format('Building No.%d', self._sv.next_building_id))
            :set_player_id(session.player_id)
-           :set_faction(session.faction)
            
 
    self._sv.next_building_id = self._sv.next_building_id + 1
@@ -540,9 +559,9 @@ function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_roa
 
    -- Find and merge the buildings for those roads.
    local buildings_to_merge = {}
-   local road_building = self:get_building_for(road)
+   local road_building = build_util.get_building_for(road)
    for _, old_road in pairs(existing_roads) do
-      local building = self:get_building_for(old_road)
+      local building = build_util.get_building_for(old_road)
       if building ~= road_building then
          buildings_to_merge[building:get_id()] = building
       end
@@ -632,40 +651,6 @@ function BuildService:_add_new_road_to_building(building, floor_uri, floor_regio
    local move_mod = fc:get_project():add_component('movement_modifier_shape')
    move_mod:set_region(fc:get_project():get_component('region_collision_shape'):get_region())
    return bp
-end
-
--- return the building the `blueprint` is contained in
---
---    @param blueprint - the blueprint whose building you're interested in
---
-function BuildService:get_building_for(blueprint)
-   local cp = blueprint:get_component('stonehearth:construction_progress')
-   return cp and cp:get_building_entity()
-end
-
--- return whether or not the specified `entity` is a blueprint.  only blueprints
--- have stonehearth:construction_progress components.
---
---    @param entity - the entity to be tested for blueprintedness
---
-function BuildService:is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil
-end
-
-function BuildService:is_building(entity)
-   return entity:get_component('stonehearth:building') ~= nil
-end
-
--- return the building the specified buildprint is attached to, assuming it
--- is a blueprint to begin with!
---
---     @param entity - the blueprint whose building you're looking for
---
-function BuildService:get_building_for_blueprint(entity)
-   local cp = entity:get_component('stonehearth:construction_progress')
-   if cp then
-      return cp:get_building_entity()
-   end
 end
 
 -- return the type of the specified structure (be it a blueprint or a project)
@@ -960,10 +945,10 @@ end
 --    @param fixture_uri - the type of fixture to create
 --    @param location - where to put the fixture, in wall-local coordinates
 --
-function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, normal)
+function BuildService:add_fixture_command(session, response, parent_entity, fixture_uri, location, normal, rotation)
    local fixture
    local success = self:do_command('add_fixture', response, function()
-         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), ToPoint3(normal))
+         fixture = self:add_fixture(parent_entity, fixture_uri, ToPoint3(location), ToPoint3(normal), rotation)
       end)
 
    if success then
@@ -973,7 +958,7 @@ function BuildService:add_fixture_command(session, response, parent_entity, fixt
    end
 end
 
-function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
+function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation)
    -- `fixture` is actually a blueprint of the fixture, not the actual fixture
    -- itself.  change the material we use to render it and hook up a fixture_fabricator
    -- to help build it.
@@ -981,19 +966,25 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
                         :set_material('materials/blueprint.material.xml')
    
    local fab_component = fixture_blueprint:add_component('stonehearth:fixture_fabricator')
-   fab_component:start_project(fixture_or_uri, normal)
+   fab_component:start_project(fixture_or_uri, normal, rotation)
 
    self:_bind_fabricator_to_blueprint(fixture_blueprint, fixture_blueprint, 'stonehearth:fixture_fabricator')
 
    return fab_component
 end
 
-function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal)
+function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal, rotation)
    if not build_util.is_blueprint(parent_entity) then
       self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_uri, parent_entity)
       return
    end
 
+   if not normal then
+      normal = parent_entity:get_component('stonehearth:construction_data')
+                              :get_normal()
+   end
+   assert(normal)
+   
    local _, fixture_blueprint
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
@@ -1011,9 +1002,11 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
                :layout()
    else
       radiant.entities.add_child(parent_entity, fixture_blueprint, location)
+      radiant.entities.turn_to(fixture_blueprint, rotation or 0)
    end
 
-   self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal)
+
+   self:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, normal, rotation)
 
    fixture_blueprint:add_component('stonehearth:construction_progress')
                         :add_dependency(parent_entity)
@@ -1213,9 +1206,13 @@ function BuildService:instabuild(building)
             end
             -- mark as active.  this is a nop now that we've built it, but the
             -- bit still need be set to mimic the building actually being built
-            cp:instabuild()
+            cp:set_active(true)
          end
       end)
+end
+
+function BuildService:get_cost_command(session, response, building)
+   return build_util.get_cost(building)
 end
 
 function BuildService:do_command(reason, response, cb)

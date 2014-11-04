@@ -30,6 +30,7 @@ end
 function CombatTest:place_units()
    self._citizens = {
       self:place_citizen(-9, -15, 'stonehearth:jobs:footman'),
+      self:place_citizen(-9, -15, 'stonehearth:jobs:footman'),
       self:place_citizen( -7, -15, 'stonehearth:jobs:carpenter'),
       self:place_citizen(  1, -15, 'stonehearth:jobs:weaver'),
       self:place_citizen(  9, -15, 'stonehearth:jobs:farmer'),
@@ -50,14 +51,12 @@ end
 
 function CombatTest:create_enemy_kingdom()
    local session = {
-      player_id = 'game_master',
-      faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:goblin'
+      player_id = 'goblins',
    }
 
    stonehearth.inventory:add_inventory(session)
    stonehearth.town:add_town(session)
-   self._enemy_population = stonehearth.population:add_population(session)
+   self._enemy_population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function CombatTest:place_enemy(x, z, weapon)

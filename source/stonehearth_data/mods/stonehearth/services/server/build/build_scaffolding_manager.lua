@@ -11,6 +11,17 @@ end
 
 
 function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
+   -- xxx: this is only correct in a world where the terrain doesn't change. 
+   -- we should take a pass over all the ladder building code and make sure
+   -- it can handle cases where the ground around the latter starts moving.
+   if not self:_should_build_rung(to) then
+      -- the destination is not actually a valid rung.  this will result in a 0
+      -- height ladder!  we should probably make a ladder builder anyway and just
+      -- not create it until the destination becomes reachable, but that's a project
+      -- for another day (probably must be done before mining can be called "finished")
+      return radiant.lib.Destructor(function() end)
+   end
+   
    local base = self:get_base_of_ladder_to(to)
    
    local ladder_builder = self._sv.ladder_builders[base:key_value()]

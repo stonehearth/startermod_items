@@ -194,6 +194,8 @@ function AttributesComponent:set_attribute(name, value)
       self:_recalculate(name)
    end
    self.__saved_variables:mark_changed()
+
+   return self
 end
 
 -- Change the value of a basic attribute

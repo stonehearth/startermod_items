@@ -1,12 +1,58 @@
-local log = radiant.log.create_logger('selection_service')
+local build_util = require 'lib.build_util'
 local EntitySelector = require 'services.client.selection.entity_selector'
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
+
+local log = radiant.log.create_logger('selection_service')
+
 local SelectionService = class()
 
 -- enumeration used by the filter functions of the various selection
 -- services.
 SelectionService.FILTER_IGNORE = 'ignore'
+
+-- a filter function which looks for things which are solid.
+--
+SelectionService.find_supported_xz_region_filter = function (result)
+   local entity = result.entity
+
+   -- fast check for 'is terrain'
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   -- solid regions are good if we're pointing at the top face
+   if result.normal:to_int().y == 1 then
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return true
+      end
+   end
+
+   -- otherwise, keep looking!
+   return stonehearth.selection.FILTER_IGNORE
+end
+
+SelectionService.edit_floor_xz_region_filter = function (result)
+   -- stop if we've hit a piece of existing floor.  the call to  :allow_select_cursor(true)
+   -- will save us most, but not all, of the time.  without both checks, we will occasionally
+   -- stab through existing floor blueprints and hit the bottom of the terrain cut, creating
+   -- another slab of floor below this one.
+   --
+   local entity = result.entity
+   if entity then               
+      local fc = entity:get_component('stonehearth:fabricator')
+      if fc then
+         local blueprint = build_util.get_blueprint_for(entity)
+         if blueprint:get_component('stonehearth:floor') then
+            return true
+         end
+      end
+   end
+   
+   -- defer to the common implementation
+   return stonehearth.selection.find_supported_xz_region_filter(result)
+end
 
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
 
@@ -132,7 +178,7 @@ end
 
 function SelectionService:deactivate_all_tools()
    for tool, _ in pairs(self._all_tools) do
-      tool:deactivate_tool()
+      tool:destroy()
    end
 end
 
@@ -153,6 +199,5 @@ function SelectionService:_on_mouse_input(e)
 
    return false
 end
-
 
 return SelectionService

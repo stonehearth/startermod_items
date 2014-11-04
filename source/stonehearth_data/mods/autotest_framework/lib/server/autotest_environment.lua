@@ -1,27 +1,23 @@
 local Point3  = _radiant.csg.Point3
 
-local DEFAULT_FACTION = 'civ'
-
 local _all_entities = {}
 
 local env = {}
 function env.create_world(world_generator_script)
    env.session = {
       player_id = 'player_1',
-      faction = 'civ',
-      kingdom = 'stonehearth:kingdoms:ascendancy',
    }
    stonehearth.town:add_town(env.session)
    stonehearth.inventory:add_inventory(env.session)
-   stonehearth.population:add_population(env.session)
-   stonehearth.terrain:get_visible_region(env.session.faction) 
-   stonehearth.terrain:get_explored_region(env.session.faction)
+   stonehearth.population:add_population(env.session, 'stonehearth:kingdoms:ascendancy')
+   stonehearth.terrain:get_visible_region(env.session.player_id)
+   stonehearth.terrain:get_explored_region(env.session.player_id)
 
    local create_world = radiant.mods.load_script(world_generator_script)
    create_world(env)
    env._reset_camera()
 
-   -- listen for every entity creation event so we can tear them all down between tests
+   -- listen for every entity creation event sGo we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
          local entity = e.entity
          local id = entity:get_id()
@@ -48,13 +44,11 @@ end
 function env.create_enemy_kingdom()
    local session = {
       player_id = 'enemy',
-      faction = 'raider',
-      kingdom = 'stonehearth:kingdoms:goblin'
    }
 
    stonehearth.inventory:add_inventory(session)
    stonehearth.town:add_town(session)
-   stonehearth.population:add_population(session)
+   stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function env.clear()
@@ -80,9 +74,6 @@ function env.get_town()
 end
 
 local function apply_options_to_entity(entity, options)
-   if options.faction then
-      radiant.entities.set_faction(entity, options.faction)
-   end
    if options.player_id then
       radiant.entities.set_player_id(entity, options.player_id)
    end
@@ -167,7 +158,6 @@ function env.create_stockpile(x, z, options)
 
    options = options or {}
    
-   local faction = options.faction or DEFAULT_FACTION
    local size = options.size or { x = 2, y = 2}
 
    local inventory = stonehearth.inventory:get_inventory(env.session.player_id)
@@ -179,11 +169,10 @@ function env.create_trapping_grounds(x, z, options)
    options = options or {}
    
    local player_id = env.session.player_id
-   local faction = options.faction or DEFAULT_FACTION
    local size = options.size or { x = 16, z = 16 }
 
    local location = Point3(x, 1, z)
-   return stonehearth.trapping:create_trapping_grounds(player_id, faction, location, size)
+   return stonehearth.trapping:create_trapping_grounds(player_id, location, size)
 end
 
 function env.equip_weapon(entity, weapon_uri)

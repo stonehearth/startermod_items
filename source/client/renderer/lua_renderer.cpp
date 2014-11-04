@@ -67,8 +67,18 @@ static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
    auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
+   if (terrainRenderEntity) {
+      auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+      renderTerrain->RemoveCut(cut);
+   }
+}
+
+static void Terrain_SetClipHeight(int height)
+{
+   om::EntityPtr rootEntity = Client::GetInstance().GetStore().FetchObject<om::Entity>(1);
+   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(rootEntity);
    auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-   renderTerrain->RemoveCut(cut);
+   renderTerrain->SetClipHeight(height);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -181,6 +191,7 @@ void LuaRenderer::RegisterType(lua_State* L)
          namespace_("renderer") [
             def("add_terrain_cut", &Terrain_AddClientCut),
             def("remove_terrain_cut", &Terrain_RemoveClientCut),
+            def("set_clip_height", &Terrain_SetClipHeight),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),

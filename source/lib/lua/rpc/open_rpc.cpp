@@ -130,8 +130,6 @@ void lua::rpc::open(lua_State* L, CoreReactorPtr reactor)
                .def("destroy",    &LuaDeferred_Destroy)
                ,
             lua::RegisterTypePtr_NoTypeInfo<Session>("Session")
-               .def_readonly("faction", &Session::faction)
-               .def_readonly("kingdom", &Session::kingdom)
                .def_readonly("player_id", &Session::player_id)
          ]
       ]

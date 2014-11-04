@@ -24,48 +24,71 @@ function EntitySelector:always(cb)
    return self
 end
 
-function EntitySelector:set_filter_fn(fn)
-   self._filter_fn = fn
-   return self
-end
-
-function EntitySelector:set_tool_mode(enabled)
-   self._tool_mode = enabled
-   return self
-end
-
-function EntitySelector:set_cursor(uri)
-   self._cursor = uri
-   return self
-end
-
-function EntitySelector:deactivate_tool()
-   self:destroy()
-   
-   if self._fail_cb then
-      self._fail_cb(self)
-   end
-   if self._always_cb then
-      self._always_cb(self)
+function EntitySelector:_call_once(name, ...)
+   local method_name = '_' .. name .. '_cb'
+   if self[method_name] then
+      local method = self[method_name]
+      self[method_name] = nil
+      method(self, ...)
    end
 end
 
--- destroy the location selector.  needs to be called when the user is
--- "done" with the selection, usually in an :always() promise callback,
--- though the user may choose to keep it around till later if they'd like
--- the cursor entity to stick around (e.g. in a multi-step wizard)
---
-function EntitySelector:destroy()
-   stonehearth.selection:register_tool(self, false)
+function EntitySelector:resolve(...)
+   self:_call_once('done', ...)
+   self:_call_once('always')
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function EntitySelector:reject(...)
+   self:_call_once('fail', ...)
+   self:_call_once('always')
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function EntitySelector:notify(...)
+   if self._progress_cb then
+      self._progress_cb(self, ...)
+   end
+   return self
+end
+
+function EntitySelector:_cleanup()
+   stonehearth.selection:register_tool(self, true)
+
+   self._fail_cb = nil
+   self._progress_cb = nil
+   self._done_cb = nil
+   self._always_cb = nil
 
    if self._input_capture then
       self._input_capture:destroy()
       self._input_capture = nil
    end
+
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
+end
+
+function EntitySelector:destroy()
+   self:reject('destroy')
+end
+
+function EntitySelector:set_filter_fn(fn)
+   self._filter_fn = fn
+   return self
+end
+
+function EntitySelector:set_cursor(uri)
+   self._cursor_uri = uri
+   return self
 end
 
 -- given the x, y coordinate on screen, return the brick that is a
@@ -95,45 +118,26 @@ function EntitySelector:_on_mouse_event(mouse_pos, event)
 
    if event and event:up(2) and not event.dragging then
    -- if the user right clicks, cancel the selection
-      self._input_capture:destroy()
-      self._input_capture = nil
-      if not self._tool_mode then
-         if self._fail_cb then
-            self._fail_cb(self, { error = 'cancelled via keyboard '})
-         end
-      end
-      if self._always_cb then
-         self._always_cb(self)
-      end
+      self:reject({ error = 'cancelled via right click'})
       return
    end
 
    local entity = self:_get_selected_entity(mouse_pos.x, mouse_pos.y)
 
    -- if the user installed a progress handler, go ahead and call it now
-   if self._progress_cb then
-      self._progress_cb(self, entity)
-   end
+   self:notify(entity)
 
-   local cursor_uri = entity and self._cursor or 'stonehearth:cursors:invalid_hover'
-   if self._cursor_obj_uri ~= cursor_uri then
+   local cursor_uri = entity and self._cursor_uri or 'stonehearth:cursors:invalid_hover'
+   if self._last_cursor_uri ~= cursor_uri then
       if self._cursor_obj then
          self._cursor_obj:destroy()
       end
+      self._last_cursor_uri = cursor_uri
       self._cursor_obj = _radiant.client.set_cursor(cursor_uri)
    end
 
    if entity and event and event:up(1) then
-      if self._done_cb then
-         self._done_cb(self, entity)
-      end
-      if not self._tool_mode then
-         self._input_capture:destroy()
-         self._input_capture = nil
-         if self._always_cb then
-            self._always_cb(self)
-         end
-      end
+      self:resolve(entity)
    end
 end
 
@@ -147,14 +151,14 @@ function EntitySelector:go()
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
-   -- capture the mouse.  Call our _on_mouse_event each time, passing in
-   -- the entity that we're supposed to create whenever the user clicks.
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
                                  self:_on_mouse_event(e, e)
                                  return true
                               end)
 
+   self._last_cursor_uri = self._cursor_uri
+   self._cursor_obj = _radiant.client.set_cursor(self._cursor_uri)
    -- fake an initial event to move the cursor under the mouse
    if self._progress_cb then
       self:_on_mouse_event(_radiant.client.get_mouse_position())

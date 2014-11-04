@@ -97,11 +97,6 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
 
             placement_structure, placement_structure_normal = nil
 
-            if ground_ok and radiant.terrain.is_standable(cursor, location) then
-               -- we're directly placeable on the ground.  yay!
-               return true
-            end
-
             -- trawl through the list of entities which would potentially support the
             -- fixture and see if there's a good match
             local entities = radiant.terrain.get_entities_at_point(location - normal)
@@ -124,14 +119,20 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                   end
                end
             end
+              
+            if ground_ok and radiant.terrain.is_standable(cursor, location) then
+               -- we're directly placeable on the ground and didn't find and structures
+               -- directly underneath us.  just place right away!
+               return true
+            end
          end)
       :done(function(selector, location, rotation)
             local deferred
             if placement_structure then
                if specific_item_to_place then
-                  deferred = _radiant.call('stonehearth:place_item_on_structure', specific_item_to_place, location, placement_structure, placement_structure_normal)
+                  deferred = _radiant.call('stonehearth:place_item_on_structure', specific_item_to_place, location, rotation, placement_structure, placement_structure_normal)
                else
-                  deferred = _radiant.call('stonehearth:place_item_type_on_structure', item_uri_to_place, location, placement_structure, placement_structure_normal)
+                  deferred = _radiant.call('stonehearth:place_item_type_on_structure', item_uri_to_place, location, rotation, placement_structure, placement_structure_normal)
                end
             else
                if specific_item_to_place then
@@ -204,7 +205,7 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_on_structure(session, response, item, location, structure_entity, normal)
+function PlaceItemCallHandler:place_item_on_structure(session, response, item, location, rotation, structure_entity, normal)
    location = ToPoint3(location)
    normal = ToPoint3(normal)
 
@@ -214,7 +215,7 @@ function PlaceItemCallHandler:place_item_on_structure(session, response, item, l
    end
    
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, item, location, normal)
+   stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation)
    return true
 end
 
@@ -252,7 +253,7 @@ end
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_on_structure(session, response, entity_uri, location, structure_entity, normal)
+function PlaceItemCallHandler:place_item_type_on_structure(session, response, entity_uri, location, rotation, structure_entity, normal)
    location = Point3(location.x, location.y, location.z)
    normal = ToPoint3(normal)
 
@@ -260,7 +261,7 @@ function PlaceItemCallHandler:place_item_type_on_structure(session, response, en
    local data = radiant.entities.get_component_data(fixture_uri, 'stonehearth:entity_forms')
    assert(data, 'must send entity-forms root entity to place_item_type_on_structure')
    location = location - radiant.entities.get_world_grid_location(structure_entity)
-   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal)
+   stonehearth.build:add_fixture(structure_entity, fixture_uri, location, normal, rotation)
    return true
 end
 

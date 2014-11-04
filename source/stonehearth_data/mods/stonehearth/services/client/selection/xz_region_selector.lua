@@ -21,9 +21,7 @@ function XZRegionSelector:__init()
    self._show_rulers = true
    self._select_front_brick = true
    self._allow_select_cursor = false
-   self._find_support_filter_fn = function(result)
-      return self:_default_find_support_filter(result)
-   end
+   self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
    local identity_end_point_transform = function(p0, p1)
       return p0, p1
@@ -94,6 +92,77 @@ function XZRegionSelector:always(cb)
    return self
 end
 
+function XZRegionSelector:_call_once(name, ...)
+   local method_name = '_' .. name .. '_cb'
+   if self[method_name] then
+      local method = self[method_name]
+      self[method_name] = nil
+      method(self, ...)
+   end
+end
+
+function XZRegionSelector:resolve(...)
+   self:_call_once('done', ...)
+   self:_call_once('always')
+   -- If we've resolved, we can't possibly fail.
+   self._fail_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function XZRegionSelector:reject(...)
+   self:_call_once('fail', ...)
+   self:_call_once('always')
+   -- If we've rejected, we can't possibly succeed.
+   self._done_cb = nil
+   self:_cleanup()
+   return self
+end
+
+function XZRegionSelector:notify(...)
+   if self._progress_cb then
+      self._progress_cb(self, ...)
+   end
+   return self
+end
+
+function XZRegionSelector:_cleanup()
+   stonehearth.selection:register_tool(self, false)
+
+   self._fail_cb = nil
+   self._progress_cb = nil
+   self._done_cb = nil
+   self._always_cb = nil
+
+   if self._input_capture then
+      self._input_capture:destroy()
+      self._input_capture = nil
+   end
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
+
+   if self._render_node then
+      self._render_node:destroy()
+      self._render_node = nil
+   end
+
+   if self._x_ruler then
+      self._x_ruler:destroy()
+      self._x_ruler = nil
+   end   
+
+   if self._z_ruler then
+      self._z_ruler:destroy()
+      self._z_ruler = nil
+   end
+end
+
+function XZRegionSelector:destroy()
+   self:reject('destroy')
+end
+
 -- set the 'can_contain_entity_filter'.  when growing the xz region,
 -- make sure that it does *not* contain any of the entities for which
 -- this filter returns false
@@ -124,40 +193,6 @@ end
 function XZRegionSelector:use_manual_marquee(marquee_fn)
    self._create_marquee_fn = marquee_fn
    return self
-end
-
-function XZRegionSelector:deactivate_tool()
-   self:destroy()  
-end
-
-function XZRegionSelector:destroy()
-   if self._always_cb then
-      self._always_cb(self)
-      self._always_cb = nil
-   end
-
-   stonehearth.selection:register_tool(self, false)
-
-   if self._input_capture then
-      self._input_capture:destroy()
-      self._input_capture = nil
-   end
-   if self._render_node then
-      self._render_node:destroy()
-      self._render_node = nil
-   end
-   if self._cursor_obj then
-      self._cursor_obj:destroy()
-      self._cursor_obj = nil
-   end
-   if self._x_ruler then
-      self._x_ruler:destroy()
-      self._x_ruler = nil
-   end   
-   if self._z_ruler then
-      self._z_ruler:destroy()
-      self._z_ruler = nil
-   end   
 end
 
 -- create the cube for the xz region given endpoints p0 and p1.
@@ -201,7 +236,12 @@ end
 -- filter.
 --
 function XZRegionSelector:_get_hover_brick(x, y)
-   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)
+   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)               
+         -- The only case entity should be null is when allowing self-selection of the
+         -- cursor.
+         if self._allow_select_cursor and not result.entity then
+            return true
+         end
          return self._find_support_filter_fn(result, self)
       end)
    return brick
@@ -263,10 +303,7 @@ end
 function XZRegionSelector:_on_mouse_event(event)
    -- cancel on mouse button 2.
    if event and event:up(2) and not event.dragging then
-      if self._fail_cb then
-         self._fail_cb(self)
-      end
-      self:destroy()
+      self:reject({ error = 'selection cancelled'})
       return
    end
 
@@ -317,10 +354,7 @@ function XZRegionSelector:_on_mouse_event(event)
 
    local done = self._selected_p0 and event:up(1)
    if done then
-      if self._done_cb then
-         self._done_cb(self, selected_cube)
-      end
-      self:destroy()
+      self:resolve(selected_cube)
    end
 end
 
@@ -330,16 +364,20 @@ function XZRegionSelector:_update_rulers(p0, p1)
    end
 
    if p0 and p1 then
+      -- if we're selecting the hover brick, the rulers are on the bottom of the selection
+      -- if we're selecting the terrain brick, the rulers are on the top of the selection
+      local y_offset = self._select_front_brick and 0 or 1
+      local y = p0.y + y_offset
       local x_normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
-      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), p0.y, p1.z),
-                               Point3(math.max(p0.x, p1.x), p0.y, p1.z),
+      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), y, p1.z),
+                               Point3(math.max(p0.x, p1.x), y, p1.z),
                                x_normal,
                                string.format('%d\'', math.abs(p1.x - p0.x) + 1))
       self._x_ruler:show()
 
       local z_normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
-      self._z_ruler:set_points(Point3(p1.x, p0.y, math.min(p0.z, p1.z)),
-                               Point3(p1.x, p0.y, math.max(p0.z, p1.z)),
+      self._z_ruler:set_points(Point3(p1.x, y, math.min(p0.z, p1.z)),
+                               Point3(p1.x, y, math.max(p0.z, p1.z)),
                                z_normal,
                                string.format('%d\'', math.abs(p1.z - p0.z) + 1))
       self._z_ruler:show()
@@ -375,36 +413,7 @@ function XZRegionSelector:_notify_progress(box)
    -- terrain block, and the hole _moves_ to the new selection; nudge the mouse again, and the hole jumps again.
    -- Outside of re-thinking the way selection works, this is the only fix that occurs to me.
    self._render_node:set_can_query(self._allow_select_cursor)
-   if self._progress_cb then
-      self._progress_cb(self, box)
-   end   
-end
-
-function XZRegionSelector:_default_find_support_filter(result)
-   local entity = result.entity
-
-   -- TODO: maybe overthinking it, but perhaps 'return self._allow_nil_entity', and add that
-   -- to the API?  The only case entity should be null is when allowing self-selection of the
-   -- cursor.
-   if not entity then
-      return true
-   end
-
-   -- fast check for 'is terrain'
-   if entity:get_id() == 1 then
-      return true
-   end
-
-   -- solid regions are good if we're pointing at the top face
-   if result.normal:to_int().y == 1 then
-      local rcs = entity:get_component('region_collision_shape')
-      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-         return true
-      end
-   end
-
-   -- otherwise, keep looking!
-   return stonehearth.selection.FILTER_IGNORE
+   self:notify(box)
 end
 
 function XZRegionSelector:go()

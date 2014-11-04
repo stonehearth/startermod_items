@@ -89,8 +89,8 @@ function BaitTrapComponent:is_armed()
 end
 
 function BaitTrapComponent:can_trap(target)
-   local faction = radiant.entities.get_faction(target)
-   return faction == 'critter'
+   local player_id = radiant.entities.get_player_id(target)
+   return player_id == 'critters'
 end
 
 function BaitTrapComponent:try_trap(target)
