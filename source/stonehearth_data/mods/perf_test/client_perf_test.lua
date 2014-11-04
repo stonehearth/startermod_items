@@ -18,7 +18,7 @@ function ClientPerfTest:on_loaded()
       if not response.result then
         return
       end
-      _radiant.call('radiant:set_draw_world', {["draw_world"] = true})
+      _radiant.call('radiant:set_draw_world', true)
       _radiant.renderer.enable_perf_logging(true)
 
       self._frame_trace = _radiant.client.trace_render_frame()

@@ -1,4 +1,6 @@
 #include "../pch.h"
+#include <time.h>
+#include <boost/filesystem.hpp>
 #include "open.h"
 #include "om/entity.h"
 #include "om/selection.h"
@@ -17,6 +19,7 @@
 #include "client/renderer/pipeline.h" // xxx: move to renderer::open when we move the renderer!
 #include "core/guard.h"
 #include "core/slot.h"
+#include "core/system.h"
 #include "csg/region_tools.h"
 #include "glfw3.h"
 #include "client/renderer/raycast_result.h"
@@ -24,6 +27,8 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 using namespace luabind;
+
+namespace fs = boost::filesystem;
 
 luabind::object Client_GetObject(lua_State* L, object id)
 {
@@ -337,11 +342,15 @@ class TraceRenderFramePromise : public std::enable_shared_from_this<TraceRenderF
 public:
    TraceRenderFramePromise() :
       frame_start_slot_("lua frame start"),
+      frame_finished_slot_("lua frame finished"),
       server_tick_slot_("lua server tick")
    {
       L_ = Client::GetInstance().GetScriptHost()->GetCallbackThread();
       guards_ += Renderer::GetInstance().OnRenderFrameStart([this](FrameStartInfo const& info) {
          frame_start_slot_.Signal(info);
+      });
+      guards_ += Renderer::GetInstance().OnRenderFrameFinished([this](FrameStartInfo const& info) {
+         frame_finished_slot_.Signal(info);
       });
       guards_ += Renderer::GetInstance().OnServerTick([this](int now) {
          server_tick_slot_.Signal(now);
@@ -354,6 +363,15 @@ public:
    TraceRenderFramePromisePtr OnFrameStart(std::string const& reason, luabind::object cb) {
       luabind::object callback(L_, cb);
       guards_ += frame_start_slot_.Register([=](FrameStartInfo const &info) {
+         perfmon::TimelineCounterGuard tcg(reason.c_str());
+         luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
+      });
+      return shared_from_this();
+   }
+
+   TraceRenderFramePromisePtr OnFrameFinished(std::string const& reason, luabind::object cb) {
+      luabind::object callback(L_, cb);
+      guards_ += frame_finished_slot_.Register([=](FrameStartInfo const &info) {
          perfmon::TimelineCounterGuard tcg(reason.c_str());
          luabind::call_function<void>(callback, info.now, info.interpolate, info.frame_time, info.frame_time_wallclock);
       });
@@ -377,6 +395,7 @@ public:
 private:
    lua_State*                    L_;
    core::Slot<FrameStartInfo>    frame_start_slot_;
+   core::Slot<FrameStartInfo>    frame_finished_slot_;
    core::Slot<int>               server_tick_slot_;
    core::Guard                   guards_;
 };
@@ -488,6 +507,31 @@ static csg::Point2f Client_GetMousePosition()
    return csg::ToFloat(Client::GetInstance().GetMousePosition());
 }
 
+static std::string Client_SnapScreenShot(const char* tag)
+{
+   char date[256];
+   std::time_t t = std::time(NULL);
+   if (!std::strftime(date, sizeof(date), " %Y_%m_%d__%H_%M_%S", std::localtime(&t))) {
+      *date = 0;
+   }
+   std::string filename = BUILD_STRING(tag << date << ".png");
+
+   fs::path path = core::System::GetInstance().GetTempDirectory() / "screenshots" / filename;
+   std::string pathstr = path.string();
+
+   try {
+      fs::path parent = path.parent_path();
+      if (!fs::is_directory(parent)) {
+         fs::create_directories(parent);
+      }
+      h3dutScreenshot(pathstr.c_str());
+   } catch (std::exception const& e) {
+      LUA_LOG(1) << "failed to create " << path << ": " << e.what();
+      return "";
+   }
+   return pathstr;
+}
+
 DEFINE_INVALID_JSON_CONVERSION(CaptureInputPromise);
 DEFINE_INVALID_JSON_CONVERSION(TraceRenderFramePromise);
 DEFINE_INVALID_JSON_CONVERSION(SetCursorPromise);
@@ -532,6 +576,7 @@ void lua::client::open(lua_State* L)
             def("is_key_down",                     &Client_IsKeyDown),
             def("is_mouse_button_down",            &Client_IsMouseButtonDown),
             def("get_mouse_position",              &Client_GetMousePosition),
+            def("snap_screenshot",                 &Client_SnapScreenShot),
 
             lua::RegisterTypePtr_NoTypeInfo<CaptureInputPromise>("CaptureInputPromise")
                .def("on_input",          &CaptureInputPromise::OnInput)
@@ -540,6 +585,7 @@ void lua::client::open(lua_State* L)
             lua::RegisterTypePtr_NoTypeInfo<TraceRenderFramePromise>("TraceRenderFramePromise")
                .def("on_server_tick",    &TraceRenderFramePromise::OnServerTick)
                .def("on_frame_start",    &TraceRenderFramePromise::OnFrameStart)
+               .def("on_frame_finished", &TraceRenderFramePromise::OnFrameFinished)
                .def("destroy",           &TraceRenderFramePromise::Destroy)
             ,
             lua::RegisterTypePtr_NoTypeInfo<SetCursorPromise>("SetCursorPromise")

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "radiant_stdutil.h"
 #include <regex>
 #include <luabind/detail/pcall.hpp>
 #include "lib/json/node.h"
@@ -28,23 +29,21 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
    LOR_LOG(9) << "trying to dispatch call '" << fn << "'...";
 
    try {
-      dm::ObjectPtr o = store_.FetchObject<dm::Object>(fn.object);
-      if (!o) {
-         LOR_LOG(9) << "failed to fetch object in " << store_.GetName() << " store.  aborting.";
+      if (fn.object.empty()) {
+         LOR_LOG(9) << "fn.object is empty. ignoring";
          return nullptr;
       }
-      dm::ObjectType t = o->GetObjectType();
-      if (t != om::DataStoreObjectType) {
-         LOR_LOG(9) << "object is not datastore.  aborting";
-         return nullptr;
-      }
-      om::DataStoreRef db = std::dynamic_pointer_cast<om::DataStore>(o);
 
-      object obj = db.lock()->GetController();
+      luabind::object obj;
+      if (store_.IsValidStoreAddress(fn.object)) {
+         obj = LookupObjectFromStore(fn);
+      } else {
+         obj = LookupObjectFromLuaState(fn);
+      }
       if (!obj.is_valid()) {
-         LOR_LOG(9) << "object controller is not valid.  aborting.";
          return nullptr;
       }
+
       d = std::make_shared<ReactorDeferred>(fn.desc());
 
       object method = obj[fn.route];
@@ -63,3 +62,46 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
    }
    return d;
 }
+
+luabind::object LuaObjectRouter::LookupObjectFromStore(Function const& fn)
+{
+   dm::ObjectPtr o = store_.FetchObject<dm::Object>(fn.object);
+   if (!o) {
+      LOR_LOG(9) << "failed to fetch object in " << store_.GetName() << " store.  aborting.";
+      return luabind::object();
+   }
+   dm::ObjectType t = o->GetObjectType();
+   if (t != om::DataStoreObjectType) {
+      LOR_LOG(9) << "object is not datastore.  aborting";
+      return luabind::object();
+   }
+   om::DataStoreRef db = std::dynamic_pointer_cast<om::DataStore>(o);
+   luabind::object obj = db.lock()->GetController();
+   if (!obj.is_valid()) {
+      LOR_LOG(9) << "object controller is not valid.  aborting.";
+   }
+   return obj;
+}
+
+luabind::object LuaObjectRouter::LookupObjectFromLuaState(Function const& fn)
+{
+   luabind::object obj;
+   lua_State* L = store_.GetInterpreter();
+
+   try {
+      obj = luabind::globals(L);
+      std::vector<std::string> parts = strutil::split(fn.object, ".");
+      for (std::string const& part : parts) {
+         obj = obj[part];
+         if (luabind::type(obj) == LUA_TNIL) {
+            LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: lookup for '" << part << "' returned nil)";
+            return luabind::object();
+         }
+      }
+   } catch (std::exception const& e) {
+      LOR_LOG(9) << "failed to fetch object in lua interpreter (reason:" << e.what() << ")";
+      return luabind::object();
+   }
+   return obj;
+}
+
