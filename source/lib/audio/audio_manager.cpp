@@ -43,7 +43,7 @@ AudioManager::AudioManager()
    bgm_channel_.SetPlayerVolume(player_bgm_volume_);
    ambient_channel_.SetPlayerVolume(player_efx_volume_);
 
-   std::string attenFunc = config.Get("audio.attenuation_func", "inverse");
+   std::string attenFunc = config.Get("audio.attenuation_func", "inverse_clamp");
    sf::SoundSource::setAttenuationFunc(falloffLookup[attenFunc]);
 }
 

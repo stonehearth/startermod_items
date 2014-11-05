@@ -6,7 +6,6 @@
          "loop" : true,
          "start_time": 0,
          "min_distance": 15,
-         "max_distance": 80,
          "falloff" : 4,
          "volume": 30,
          "track" : "stonehearth:sounds:tombstone"        

@@ -20,7 +20,6 @@
          "duration": 5000,
          "start_time": 0,
          "min_distance": 20,
-         "max_distance": 90,
          "falloff" : 3.15,
          "volume": 70,
          "track" : {

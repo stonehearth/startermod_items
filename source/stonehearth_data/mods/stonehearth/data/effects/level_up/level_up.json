@@ -47,7 +47,6 @@
          "type": "sound_effect",
          "loop" : false,
          "min_distance": 60,
-         "max_distance": 100,
          "falloff" : 3.15,
          "volume": 44,
          "track" : "stonehearth:sounds:level_up"

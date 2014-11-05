@@ -12,7 +12,6 @@
          "loop" : true,
          "start_time": 10,
          "min_distance": 15,
-         "max_distance": 25,
          "falloff" : 4,
          "volume": 25,
          "track" : "stonehearth:sounds:sleeping_lullaby"        

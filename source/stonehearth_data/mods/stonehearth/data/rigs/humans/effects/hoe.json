@@ -25,7 +25,6 @@
          "type": "sound_effect",
          "start_time": 150,
          "min_distance": 20,
-         "max_distance": 100,
          "falloff" : 7,
          "volume": 70,
          "track" : {

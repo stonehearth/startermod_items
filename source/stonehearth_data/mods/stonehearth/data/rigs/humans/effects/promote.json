@@ -20,7 +20,6 @@
          "start_time": 275,
          "end_time": 4950,
          "min_distance": 20,
-         "max_distance": 100,
          "falloff" : 3.15,
          "volume" : 100,
          "track" : "stonehearth:sounds:harp_loop"
@@ -31,7 +30,6 @@
          "start_time": 275,
          "end_time": 4950,
          "min_distance": 20,
-         "max_distance": 200,
          "falloff" : 3.15,
          "volume" : 100,
          "track" : "stonehearth:sounds:twinkle"         

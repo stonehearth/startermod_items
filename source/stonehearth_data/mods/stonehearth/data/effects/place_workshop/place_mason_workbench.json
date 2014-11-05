@@ -6,7 +6,6 @@
          "duration": 5000,
          "start_time": 500,
          "min_distance": 30,
-         "max_distance": 90,
          "volume": 50,
          "track" : {
             "type": "one_of",

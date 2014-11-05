@@ -825,7 +825,10 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
       if (maxDistance <= minDistance) {
          maxDistance = minDistance + 1;
       }
+   } else {
+      maxDistance = 100000;
    }
+   sound_->setMaxDistance((float)maxDistance);
 
    i = node.find("loop");
    if (i != node.end()) {
@@ -851,7 +854,6 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
    } else {
       attenuation = 1.0f;
    }
-   sound_->setMaxDistance((float)maxDistance);
 
    //Set member variables
    maxDistance_ = maxDistance; 
