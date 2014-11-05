@@ -5,7 +5,7 @@ local TerrainType = require 'services.server.world_generation.terrain_type'
 
 SubterraneanViewService = class()
 
-local UNITY_PLUS_EPSILON = 1.000001
+local EPSILON = 0.000001
 local MAX_CLIP_HEIGHT = 1000000000
 
 function SubterraneanViewService:initialize()
@@ -84,7 +84,7 @@ end
 function SubterraneanViewService:_update()
    if self._sv.clip_enabled then
       -- tweak the clip_height for some feathering in the renderer
-      local tweaked_clip_height = self._sv.clip_height * UNITY_PLUS_EPSILON
+      local tweaked_clip_height = self._sv.clip_height * (1+10*EPSILON)
       -- -1 to remove the ceiling
       _radiant.renderer.set_clip_height(tweaked_clip_height-1)
       h3dSetVerticalClipMax(tweaked_clip_height)
