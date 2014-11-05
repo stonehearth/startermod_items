@@ -131,6 +131,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.$('#floorMaterials').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'floorMaterial'));
             self.$('#wallMaterials').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
             self.$('#roofMaterials').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
+            self.$('#slabMaterials').append(self._buildMaterialPalette(self.buildingParts.slabPatterns, 'slabMaterial'));
             self.$('#doodadMaterials').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
 
             self._addEventHandlers();
@@ -209,6 +210,17 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             .fail(self._deactivateTool('#eraseStructureTool'))
             .done(function() {
                doEraseStructure();
+            });
+      };
+
+      // slab tool
+      var doDrawSlab = function() {
+         var brush = self.$('#slabMaterialTab .slabMaterial.selected').attr('brush');
+         App.stonehearthClient.buildSlab(brush, 
+            activateElement('#drawSlabfTool'))
+            .fail(self._deactivateTool('#drawSlabfTool'))
+            .done(function() {
+               doDrawSlab();
             });
       };
 
@@ -321,6 +333,19 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             doDrawWall(true);               
          }
       });
+
+      // slab materials
+      this.$('.slabMaterial').click(function() {
+         self.$('.slabMaterial').removeClass('selected');
+         $(this).addClass('selected');
+
+         self._state.slabMaterial = $(this).attr('index');
+         self._saveState();
+
+         // Re/activate the floor tool with the new material
+         doDrawSlab(true);
+      })      
+
 
       this.$('#roofMaterialTab .roofMaterial').click(function() {
          // select the clicked material
@@ -487,6 +512,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.roofMaterial) {
                self._state.roofMaterial = 0;
             }
+            if (!self._state.slabMaterial) {
+               self._state.slabMaterial = 0;
+            }
             if (!self._state.doodadMaterial) {
                self._state.doodadMaterial = 0;
             }
@@ -522,6 +550,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          $(self.$('#floorMaterialTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
          $(self.$('#wallMaterialTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
          $(self.$('#roofMaterialTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
+         $(self.$('#slabMaterialTab .slabMaterial')[self._state.slabMaterial]).addClass('selected');
          $(self.$('#doodadMaterialTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
 
          // gradiant on the grow roof control
@@ -608,6 +637,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (type == 'floor') {
             self.$('.tabPage').hide();
             self.$('#floorMaterialTab').show();
+         } else if (type == 'slab') {           
+            self.$('.tabPage').hide();
+            self.$('#slabMaterialTab').show();
          } else if (type == 'wall') {           
             self.$('.tabPage').hide();
             self.$('#wallMaterialTab').show();

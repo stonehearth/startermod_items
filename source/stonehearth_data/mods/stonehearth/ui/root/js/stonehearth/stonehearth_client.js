@@ -505,6 +505,23 @@ var StonehearthClient;
          }, precall);
       },
 
+      buildSlab: function(slabBrush, precall) {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:build_slab_tip_title', 'stonehearth:build_slab_tip_description', { i18n: true });
+
+         return this._callTool('buildSlab', function() {
+            // XXX, tony, change this to the correct call pls.
+            return radiant.call_obj(self._build_editor, 'place_new_floor', slabBrush)
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         }, precall);
+      },
+
       eraseStructure: function(precall) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
