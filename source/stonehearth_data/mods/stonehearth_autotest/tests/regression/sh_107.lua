@@ -1,7 +1,13 @@
---Build a field that is fallow to start. Click OK
---Tell the field to change to tester crop. Click OK
---Wait till we've created a tester basket.
---https://bugs/browse/SH-107
+-- Fallow fields are never replanted
+-- https://bugs/browse/SH-107
+--
+-- Set a field's crop to fallow. A few minutes later, set a field's crop to a
+-- new type of crop. The field is never planted with the new type of crop.
+--
+-- Build a field that is fallow to start. Click OK
+-- Tell the field to change to tester crop. Click OK
+-- Wait till we've created a tester basket.
+--
 
 local sh_107 = {} 
 
@@ -52,8 +58,6 @@ function sh_107.test_fallow_crop(autotest)
 
    autotest:sleep(60*1000)
    autotest:fail('failed to farm')
-
-
 end
 
 return sh_107

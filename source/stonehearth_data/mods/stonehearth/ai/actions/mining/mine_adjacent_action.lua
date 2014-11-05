@@ -27,6 +27,8 @@ function MineAdjacent:run(ai, entity, args)
    local loot = mining_zone_component:mine_point(args.point_of_interest)
    local location = radiant.entities.get_world_grid_location(entity)
    local items = radiant.entities.spawn_items(loot, location, 1, 3)
+
+   radiant.events.trigger(entity, 'stonehearth:mined_location', { location = args.point_of_interest })
 end
 
 return MineAdjacent

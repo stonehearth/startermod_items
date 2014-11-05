@@ -1,3 +1,11 @@
+-- Dragging a stockpile around items causes workers to pickup and drop the items
+-- https://bugs/browse/SH-86
+--
+-- 1) Make a grid of items on the ground
+-- 2) Draw a stockpile around them
+-- 
+-- Workers will run over and attempt to put the items in the stockpile they're already in
+-- 
 
 local sh_86 = {}
 

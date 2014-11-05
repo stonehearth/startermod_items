@@ -1,5 +1,10 @@
---https://bugs/browse/SH-82
---Test that when the carpenter makes an object, it does not land on their workbench
+-- Crafters sometimes leave items on workbench if there is no stockpile
+-- https://bugs/browse/SH-82
+--
+-- ...and once something is on the bench, it will stay there forever.
+-- Our guess was that the crafter is choosing a point near the bench to drop
+-- the item, and happens to choose the location of the bench itself.
+--
 
 local sh_82 = {} 
 

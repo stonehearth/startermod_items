@@ -1,3 +1,6 @@
+-- Trying to move a placed item that is in use, puts worker AI in bad state until the item can be moved.
+-- https://bugs/browse/SH-99
+--
 
 local sh_99 = {}
 

@@ -63,7 +63,6 @@ function FixtureFabricator:instabuild()
    local parent = self._entity:get_component('mob'):get_parent()
    local normal = parent:get_component('stonehearth:construction_data')
                               :get_normal()  
-   local rotation = build_util.normal_to_rotation(normal)
    local location = self._entity:get_component('mob')
                                     :get_grid_location()
 
@@ -71,9 +70,16 @@ function FixtureFabricator:instabuild()
    root_entity:add_component('unit_info')
                   :set_player_id(radiant.entities.get_player_id(self._entity))
 
-   radiant.entities.add_child(parent, root_entity, location)
+   local rotation
+   if normal then
+      rotation = build_util.normal_to_rotation(normal)
+   else
+      rotation = self._entity:get_component('mob')
+                                 :get_facing()
+   end
    root_entity:add_component('mob')
                   :turn_to(rotation)
+   radiant.entities.add_child(parent, root_entity, location)
 
    self:_destroy_placeable_item_trace()
    self._entity:get_component('stonehearth:construction_progress')
