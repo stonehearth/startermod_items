@@ -1,6 +1,7 @@
 
 -- Runs a single function in an autotest suite
 local AutotestInstance = class()
+local AutotestAi = require 'lib.server.autotest_ai_server'
 local AutotestUtil = require 'lib.server.autotest_util_server'
 
 function AutotestInstance:__init(name, fn)
@@ -13,6 +14,7 @@ function AutotestInstance:__init(name, fn)
       self._log:set_log_level(radiant.log.INFO)
    end
 
+   self.ai = AutotestAi(self)
    self.util = AutotestUtil(self)
    self:_protect_framework_interface('ui')
    self:_protect_framework_interface('env')

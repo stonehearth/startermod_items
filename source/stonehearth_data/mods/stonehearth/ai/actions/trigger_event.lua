@@ -28,13 +28,21 @@ TriggerEvent.args = {
    source = stonehearth.ai.ANY,  -- the source of the trigger
    event_name = 'string',        -- the event to trigger
    event_args = 'table',         -- the arguments to pass in the event
+   synchronous = {               -- fire a synchronous trigger?
+      type = 'boolean',
+      default = false,
+   }
 }
 TriggerEvent.version = 2
 TriggerEvent.priority = 1
 
 -- Trigger an event given the parameters passed in through args (source, name, args)
 function TriggerEvent:run(ai, entity, args)
-   radiant.events.trigger_async(args.source, args.event_name, args.event_args)
+   if args.synchronous then
+      radiant.events.trigger(args.source, args.event_name, args.event_args)
+   else
+      radiant.events.trigger_async(args.source, args.event_name, args.event_args)
+   end
 end
 
 return TriggerEvent

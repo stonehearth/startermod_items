@@ -48,15 +48,17 @@ function RunTaskAction:_start_stop_thinking()
             self._ai:set_cost(self._execution_frame:get_cost())
             self._ai:set_think_output()
          else
-            self._log:debug('execution frame was not ready immediately!  registering on_ready handler.')
-            self._execution_frame:on_ready(function(frame, think_output)
-               if not think_output then
-                  self._log:debug('received unready notification from injected action.')
-                  self._ai:clear_think_output()
-               else
+            self._log:debug('execution frame was not ready immediately!  registering think progress handler.')
+            self._execution_frame:set_think_progress_cb(function(frame, state, think_output)
+               if state == 'ready' then
                   self._log:debug('received ready notification from injected action. (should_think: %s', tostring(self._should_think))
                   self._ai:set_cost(self._execution_frame:get_cost())
                   self._ai:set_think_output()
+               elseif state == 'unready' then
+                  self._log:debug('received unready notification from injected action.')
+                  self._ai:clear_think_output()
+               else
+                  assert(false, string.format('unknown state %s in set_think_progress_cb', state))
                end
             end)
          end

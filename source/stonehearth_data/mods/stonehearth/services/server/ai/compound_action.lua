@@ -49,7 +49,7 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
             -- verify the compound action only calls set_think_output once at
             -- the beginning of the thinking process
             assert(#self._previous_think_output == 1)
-            self:_start_thinking()
+            self:_start_thinking_on_frame(1)
          end,
          clear_think_output = function(_)
             local msg = string.format('compound action became unready.  aborting')
@@ -99,68 +99,47 @@ function CompoundAction:start_thinking(ai, entity, args)
    
    -- start thinking for real!
    self._thinking = true
-   self:_start_thinking()
+   if self._action.start_thinking then
+      self:_spam_current_state('start_thinking (compound action)')
+      self._action:start_thinking(self._action_ai, self._entity, self._args)
+   else
+      self:_start_thinking_on_frame(1)
+   end
 end
 
-function CompoundAction:_start_thinking()
-   assert(self._thinking)
-
-   -- index is the frame in the compound action which needs to start thinking first.  use 0
-   -- as a sentinel to refer to the compound action itself. 
-   local current_frame = #self._previous_think_output
-   if current_frame == 0 then
-      if self._action.start_thinking then
-         self:_spam_current_state('start_thinking (compound action)')
-         self._action:start_thinking(self._action_ai, self._entity, self._args)
-         return
-      else
-         -- the compound action does not implement start_thinking().. hrm.  what should the
-         -- result of ai.PREV of the first :execute()'ed action be?  let's just define that
-         -- to be args().
-         table.insert(self._previous_think_output, self._args)
-         current_frame = 1
-      end
+function CompoundAction:_start_thinking_on_frame(i)
+   if i > #self._execution_frames then
+      self:_spam_current_state('all frames ready!  setting think output')
+      self:_set_think_output()
+      return      
    end
 
-   -- now ask all the compound actions to start thinking, in order.
+   local activity = self._activities[i]
+   self:_spam_current_state('start_thinking (%d of %d - %s)', i, #self._activities, activity.name)
 
-   while current_frame <= #self._execution_frames do
-      assert(current_frame == #self._previous_think_output)
+   local frame = self._execution_frames[i]
 
-      local activity = self._activities[current_frame]
-      self:_spam_current_state('start_thinking (%d of %d - %s)', current_frame, #self._activities, activity.name)
+   frame:set_think_progress_cb(function(ready_frame, status, think_output)
+         self._log:detail('think progress callback fired for %s.', activity.name)
+         assert(self._thinking, 'received ready callback while not thinking.')
 
-      local transformed_args = self:_replace_placeholders(activity.args)
-      local frame = self._execution_frames[current_frame]
-      local think_output = frame:start_thinking(transformed_args, self._ai.CURRENT)
+         if status == 'ready' then
+            assert(think_output)
+            assert(ready_frame == frame, 'unexpected ready callback (or ready delivered more than once!)')
 
-      if think_output then
-         self:_spam_current_state('after start_thinking (%d of %d - %s)', current_frame, #self._activities, activity.name)
-         table.insert(self._previous_think_output, think_output)
-         current_frame = current_frame + 1
-      else
-         self:_spam_current_state('registering on_ready handler (%d of %d - %s)', current_frame, #self._activities, activity.name)
-         frame:on_ready(function(frame, think_output)            
-            self._log:detail('on_ready callback fired.')
-            assert(self._thinking, 'received ready callback while not thinking.')
-
-            if not think_output then
-               local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
-               self._log:debug(msg)
-               self._ai:abort(msg)
-               return
-            else
-               self:_spam_current_state('frame became ready! (%d of %d - %s)', current_frame, #self._activities, activity.name)
-            end
-
+            self:_spam_current_state('frame became ready! (%d of %d - %s)', i, #self._activities, activity.name)
             table.insert(self._previous_think_output, think_output)
-            self:_start_thinking()
-            -- xxx: listen for when frames become unready, right?      
-         end)
-         return
-      end
-   end 
-   self:_set_think_output()   
+            self:_start_thinking_on_frame(i + 1)
+         elseif status == 'unready' then
+            local msg = string.format('previous frame f:%d became unready.  aborting', frame:get_id())
+            self._log:debug(msg)
+            self._ai:abort(msg)
+         elseif status == 'halted' then
+         end
+      end)
+
+   local transformed_args = self:_replace_placeholders(activity.args)
+   frame:start_thinking(transformed_args, self._ai.CURRENT)
 end
 
 function CompoundAction:_set_think_output()
@@ -197,7 +176,7 @@ function CompoundAction:stop_thinking(ai, entity, ...)
    self._previous_think_output = {}
    for i=#self._execution_frames, 1, -1 do
       self._execution_frames[i]:stop_thinking() -- must be synchronous!
-      self._execution_frames[i]:on_ready(nil)
+      self._execution_frames[i]:set_think_progress_cb(nil)
    end
    
    if self._action.stop_thinking then
