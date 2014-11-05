@@ -17,9 +17,10 @@
          "type": "sound_effect",
          "loop" : true,
          "start_time": 10,
-         "min_distance": 10,
+         "min_distance": 20,
          "max_distance": 30,
-         "volume": 40,
+         "falloff" : 30,
+         "volume": 50,
          "track" : "stonehearth:sounds:twinkle"
       }
    }

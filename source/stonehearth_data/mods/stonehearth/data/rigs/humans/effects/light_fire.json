@@ -55,7 +55,8 @@
          "start_time":  500,
          "min_distance": 20,
          "max_distance": 60,
-         "volume": 20,
+         "falloff" : 3.15,
+         "volume": 70,
          "track" : "stonehearth:sounds:flint_01_sound"
       },
       "sound": {
@@ -64,7 +65,8 @@
          "start_time": 2000,
          "min_distance": 20,
          "max_distance": 60,
-         "volume": 20,
+         "falloff" : 3.15,
+         "volume": 70,
          "track" : "stonehearth:sounds:flint_02_sound"
       },
       "sound": {
@@ -73,7 +75,8 @@
          "start_time": 2666,
          "min_distance": 20,
          "max_distance": 60,
-         "volume": 20,
+         "falloff" : 3.15,
+         "volume": 70,
          "track" : "stonehearth:sounds:flint_03_sound"
                  
       }

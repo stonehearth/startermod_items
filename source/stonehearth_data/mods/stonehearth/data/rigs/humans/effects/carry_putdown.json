@@ -10,9 +10,10 @@
       "sound": {
          "type": "sound_effect",
          "start_time": 600,
-         "min_distance": 30,
+         "min_distance": 20,
          "max_distance": 60,
-         "volume": 20,
+         "falloff" : 3.15,
+         "volume": 60,
          "track" : {
             "type": "one_of",
             "items": [

@@ -18,5 +18,10 @@
 
       "enable_gl_logging" : false,
       "use_fast_hilite" : false
+   },
+
+   "audio" : {
+      "use_old_falloff" : "false",
+      "attenuation_func" : "inverse"
    }
 }

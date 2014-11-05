@@ -19,9 +19,10 @@
          "type": "sound_effect",
          "duration": 2600,
          "start_time": 0,
-         "min_distance": 40,
+         "min_distance": 20,
          "max_distance": 80,
-         "volume": 50,
+         "falloff" : 3.15,
+         "volume": 70,
          "track" : "stonehearth:sounds:fursplosion"
       },
       "dust": {
