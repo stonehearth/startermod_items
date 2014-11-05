@@ -19,7 +19,7 @@ function HarvestCropAdjacent:run(ai, entity, args)
    local crop_component = args.crop:get_component('stonehearth:crop')
    local carrying = radiant.entities.get_carrying(entity)
    if carrying and carrying:get_uri() ~= crop_component:get_product() then
-      abort('not carrying the same type of crop')
+      ai:abort('not carrying the same type of crop')
    end
 
    if not radiant.entities.increment_carrying(entity, self:_get_num_to_increment(entity)) then

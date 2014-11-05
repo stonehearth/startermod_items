@@ -10,7 +10,6 @@ local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
 local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
 local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
-local STOREY_HEIGHT = stonehearth.constants.construction.STOREY_HEIGHT
 
 function lrbt_util.create_workers(autotest, x, y)
    local function create_worker(x, y)

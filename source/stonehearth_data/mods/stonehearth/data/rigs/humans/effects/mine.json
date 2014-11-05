@@ -23,7 +23,7 @@
       },
        "sound": {
          "type": "sound_effect",
-         "duration": 1000,
+         "duration": 0,
          "start_time": 200,
          "min_distance": 35,
          "max_distance": 100,
@@ -39,8 +39,8 @@
       },
       "dust": {
          "type": "cubemitter",
-         "start_time" : 300,
-         "end_time" : 320,
+         "start_time" : 150,
+         "end_time" : 170,
          "cubemitter": "particles/dust_poof/dust_poof.cubemitter.json",
          "transforms": {
             "x":0,

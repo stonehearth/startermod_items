@@ -15,6 +15,10 @@ public:     // IRouter
    ReactorDeferredPtr Call(Function const& fn) override;
 
 private:
+   luabind::object LookupObjectFromStore(Function const& fn);
+   luabind::object LookupObjectFromLuaState(Function const& fn);
+
+private:
    dm::Store&        store_;
 };
 

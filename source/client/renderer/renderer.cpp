@@ -63,6 +63,7 @@ Renderer::Renderer() :
    last_render_time_(0),
    server_tick_slot_("server tick"),
    render_frame_start_slot_("render frame start"),
+   render_frame_finished_slot_("render frame finished"),
    screen_resize_slot_("screen resize"),
    show_debug_shapes_changed_slot_("show debug shapes"),
    lastGlfwError_("none"),
@@ -883,6 +884,7 @@ void Renderer::Shutdown()
    show_debug_shapes_changed_slot_.Clear();
    server_tick_slot_.Clear();
    render_frame_start_slot_.Clear();
+   render_frame_finished_slot_.Clear();
 
    exploredTrace_ = nullptr;
    visibilityTrace_ = nullptr;
@@ -1020,7 +1022,8 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::SwitchToCounter("render fire traces");
    int curWallTime = platform::get_current_time_in_ms();
-   render_frame_start_slot_.Signal(FrameStartInfo(now, alpha, now - last_render_time_, curWallTime - last_render_time_wallclock_));
+   FrameStartInfo frameInfo(now, alpha, now - last_render_time_, curWallTime - last_render_time_wallclock_);
+   render_frame_start_slot_.Signal(frameInfo);
 
    if (showStats) { 
       perfmon::SwitchToCounter("show stats") ;  
@@ -1095,6 +1098,9 @@ void Renderer::RenderOneFrame(int now, float alpha)
    glfwSwapBuffers(glfwGetCurrentContext());
 
    h3dReleaseUnusedResources();
+
+   render_frame_finished_slot_.Signal(frameInfo);
+
    last_render_time_ = now;
    last_render_time_wallclock_ = curWallTime;
 }
@@ -1625,6 +1631,11 @@ core::Guard Renderer::OnServerTick(std::function<void(int)> const& fn)
 core::Guard Renderer::OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn)
 {
    return render_frame_start_slot_.Register(fn);
+}
+
+core::Guard Renderer::OnRenderFrameFinished(std::function<void(FrameStartInfo const&)> const& fn)
+{
+   return render_frame_finished_slot_.Register(fn);
 }
 
 bool Renderer::ShowDebugShapes()
