@@ -57,28 +57,45 @@ static csg::Point3f Camera_GetLeft()
    return left;
 }
 
+std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
+{
+   om::EntityPtr root = Client::GetInstance().GetStore().FetchObject<om::Entity>(1);
+   if (!root) { 
+      throw std::logic_error("root entity does not exist yet.");
+   }
+   auto rootRenderEntity = Renderer::GetInstance().GetRenderEntity(root);
+   if (!rootRenderEntity) {
+      throw std::logic_error("render entity for root not yet created");
+   }
+   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(rootRenderEntity->GetComponentRenderer("terrain"));
+   if (!renderTerrain) {
+      throw std::logic_error("terrain rendering component not yet created");
+   }
+   return renderTerrain;
+}
+
 static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 {
-   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
-   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-   renderTerrain->AddCut(cut);
+   auto renderTerrain = GetRenderTerrainObject();
+   if (renderTerrain) {
+      renderTerrain->AddCut(cut);
+   }
 }
 
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
-   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(Client::GetInstance().GetStore().FetchObject<om::Entity>(1));
-   if (terrainRenderEntity) {
-      auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
+   auto renderTerrain = GetRenderTerrainObject();
+   if (renderTerrain) {
       renderTerrain->RemoveCut(cut);
    }
 }
 
 static void Terrain_SetClipHeight(int height)
 {
-   om::EntityPtr rootEntity = Client::GetInstance().GetStore().FetchObject<om::Entity>(1);
-   auto terrainRenderEntity = Renderer::GetInstance().GetRenderEntity(rootEntity);
-   auto renderTerrain = std::static_pointer_cast<RenderTerrain>(terrainRenderEntity->GetComponent("terrain"));
-   renderTerrain->SetClipHeight(height);
+   auto renderTerrain = GetRenderTerrainObject();
+   if (renderTerrain) {
+      renderTerrain->SetClipHeight(height);
+   }
 }
 
 static csg::Point3f Camera_GetPosition()

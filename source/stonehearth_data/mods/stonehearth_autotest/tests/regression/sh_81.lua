@@ -1,3 +1,13 @@
+-- Tiny ladder gets built underground in front of doors
+-- https://bugs/browse/SH-81
+--
+-- At some point while building a wall with a door in it, a 1 voxel high
+-- ladder actually gets placed in front of the door.
+--
+-- This screenshot is the mining visualization 1 layer below a house under
+-- construction. Note the ladder.
+--
+
 local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
