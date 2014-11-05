@@ -47,7 +47,7 @@ RenderTerrainTile::~RenderTerrainTile()
    T_LOG(5) << "destroying tile";
 }
 
-csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi)
+csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi) const
 {
    static csg::Region2 zero;
    bool atEdge = false;
@@ -129,6 +129,8 @@ void RenderTerrainTile::UpdateGeometry(int clip_height)
    if (region) {
       csg::Region3 cut_terrain_storage;
       csg::Region2 cross_section;
+
+      // BUG: the cross section is empty when clip_height is on terrain boundaries, so we fail to hide anything
       csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section);
 
       _regionTools.ForEachPlane(after_cut, [this, clip_height, &after_cut, &cross_section](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
@@ -166,14 +168,14 @@ void RenderTerrainTile::SetClipPlane(csg::RegionTools3::Plane direction, csg::Re
    _neighborClipPlanes[direction] = clipPlane;
 }
 
-csg::Region2 const* RenderTerrainTile::GetClipPlane(csg::RegionTools3::Plane direction)
+csg::Region2 const* RenderTerrainTile::GetClipPlane(csg::RegionTools3::Plane direction) const
 {
    ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
 
    return &_clipPlanes[direction];
 }
 
-RenderTerrainTile::Geometry const& RenderTerrainTile::GetGeometry(csg::RegionTools3::Plane direction)
+RenderTerrainTile::Geometry const& RenderTerrainTile::GetGeometry(csg::RegionTools3::Plane direction) const
 {
    ASSERT(direction >= 0 && direction < csg::RegionTools3::NUM_PLANES);
 
@@ -209,6 +211,18 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
    csg::Point3 tile_size = _terrain.GetTileSize();
    bool is_clipped = csg::IsBetween(_location.y, clip_height, _location.y + tile_size.y);
    bool is_cut = !_cutMap.empty();
+
+   if (clip_height == _location.y + tile_size.y) {
+      // on the upper boundary, the cross section is the bottom clip plane of the top neighbor
+      // BUG: unfortunately, that clip plane is empty, because it was clipped out
+      csg::PlaneInfo3 pi;
+      pi.which = csg::RegionTools3::TOP_PLANE;
+      pi.reduced_value = clip_height;
+      csg::Region2 const* neighbor_clip_plane = GetClipPlaneFor(pi);
+      if (neighbor_clip_plane) {
+         cross_section = *neighbor_clip_plane;
+      }
+   }
 
    if (!is_cut && !is_clipped) {
       return region->Get();

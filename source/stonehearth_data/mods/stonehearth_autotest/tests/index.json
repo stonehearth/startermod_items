@@ -59,7 +59,8 @@
                   "file(regression/sh_81.lua)",
                   "file(regression/sh_82.lua)",
                   "file(regression/sh_86.lua)",
-                  "file(regression/sh_99.lua)"
+                  "file(regression/sh_99.lua)", 
+                  "file(regression/sh_107.lua)"
                ]
             },
 
