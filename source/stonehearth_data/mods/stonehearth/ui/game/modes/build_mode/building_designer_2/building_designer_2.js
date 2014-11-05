@@ -130,6 +130,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             self.buildingParts = json;
             self.$('#floorMaterials').append(self._buildMaterialPalette(self.buildingParts.floorPatterns, 'floorMaterial'));
             self.$('#wallMaterials').append(self._buildMaterialPalette(self.buildingParts.wallPatterns, 'wallMaterial'));
+            self.$('#columnMaterials').append(self._buildMaterialPalette(self.buildingParts.columnPatterns, 'columnMaterial'));
             self.$('#roofMaterials').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
             self.$('#slabMaterials').append(self._buildMaterialPalette(self.buildingParts.slabPatterns, 'slabMaterial'));
             self.$('#doodadMaterials').append(self._buildMaterialPalette(self.buildingParts.doodads, 'doodadMaterial'));
@@ -229,7 +230,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       // draw wall tool
       var doDrawWall = function() {
          var wallUri = self.$('#wallMaterialTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.buildWall('stonehearth:wooden_column', wallUri, 
+         var columnUri = self.$('#wallMaterialTab .columnMaterial.selected').attr('brush');
+         App.stonehearthClient.buildWall(columnUri, wallUri, 
             activateElement('#drawWallTool'))
             .fail(self._deactivateTool('#drawWallTool'))
             .done(function() {
@@ -240,7 +242,8 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
 
       var doGrowWalls = function() {
          var wallUri = self.$('#wallMaterialTab .wallMaterial.selected').attr('brush');
-         App.stonehearthClient.growWalls('stonehearth:wooden_column', wallUri,
+         var columnUri = self.$('#wallMaterialTab .columnMaterial.selected').attr('brush');
+         App.stonehearthClient.growWalls(columnUri, wallUri,
             activateElement('#growWallsTool'))
             .fail(self._deactivateTool('#growWallsTool'))
             .done(function() {
@@ -324,6 +327,32 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          if (blueprint && constructionData && constructionData.type == 'wall') {
             var wallUri = $(this).attr('brush');
             App.stonehearthClient.replaceStructure(blueprint, wallUri);
+         }
+         // Reactivate the active tool with the new material, if an active
+         // tool exists.  Otherwise, just select the 'draw wall' tool.
+         if (self.$('#growWallsTool').hasClass('active')) {
+            doGrowWalls();
+         } else if (self.$('#drawWallTool').hasClass('active')) {
+            doDrawWall(true);               
+         }
+      });
+
+      // wall materials
+      this.$('#wallMaterialTab .columnMaterial').click(function() {
+         // select the clicked material
+         self.$('#wallMaterialTab .columnMaterial').removeClass('selected');
+         $(this).addClass('selected');
+
+         self._state.columnMaterial = $(this).attr('index');
+         self._saveState();
+
+         // update the selected building part, if there is one
+         var blueprint = self.get('blueprint');
+         var constructionData = self.get('blueprint.stonehearth:construction_data');
+
+         if (blueprint && constructionData && constructionData.type == 'column') {
+            var columnUri = $(this).attr('brush');
+            App.stonehearthClient.replaceStructure(blueprint, columnUri);
          }
          // Reactivate the active tool with the new material, if an active
          // tool exists.  Otherwise, just select the 'draw wall' tool.
@@ -509,6 +538,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             if (!self._state.wallMaterial) {
                self._state.wallMaterial = 0;
             }
+            if (!self._state.columnMaterial) {
+               self._state.columnMaterial = 0;
+            }
             if (!self._state.roofMaterial) {
                self._state.roofMaterial = 0;
             }
@@ -549,6 +581,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          // select default materials
          $(self.$('#floorMaterialTab .floorMaterial')[self._state.floorMaterial]).addClass('selected');
          $(self.$('#wallMaterialTab .wallMaterial')[self._state.wallMaterial]).addClass('selected');
+         $(self.$('#wallMaterialTab .columnMaterial')[self._state.columnMaterial]).addClass('selected');
          $(self.$('#roofMaterialTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
          $(self.$('#slabMaterialTab .slabMaterial')[self._state.slabMaterial]).addClass('selected');
          $(self.$('#doodadMaterialTab .doodadMaterial')[self._state.doodadMaterial]).addClass('selected');
@@ -640,7 +673,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          } else if (type == 'slab') {           
             self.$('.tabPage').hide();
             self.$('#slabMaterialTab').show();
-         } else if (type == 'wall') {           
+         } else if (type == 'wall' || type == 'column') {           
             self.$('.tabPage').hide();
             self.$('#wallMaterialTab').show();
          } else if (type == 'roof') {

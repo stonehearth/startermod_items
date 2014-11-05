@@ -1,0 +1,17 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Stone Column", 
+         "description": "Provides wall support"
+      },
+      "stonehearth:construction_data" : {
+         "type": "column",
+         "project_adjacent_to_base": true,
+         "brush": "file(stone_column.qb)",
+         "max_workers": 1,
+         "material": "stone resource"
+      }
+   }
+}
