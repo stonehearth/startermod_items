@@ -17,7 +17,28 @@
             { "name": "Plastered wooden wall",    "portrait": "/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png", "brush": "stonehearth:plastered_wooden_wall" },
             { "name": "Wooden wall", "portrait": "/stonehearth/entities/build/wooden_wall/wooden_wall.png", "brush": "stonehearth:wooden_wall" }
          ]         
-      }
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "name": "Cobblestone wall",    "portrait": "/stonehearth/entities/build/cobblestone_wall/cobblestone_wall.png", "brush": "stonehearth:cobblestone_wall" }            
+         ]         
+      }      
+   ],
+
+   "columnPatterns": [
+      {
+         "category" : "Wooden Materials",
+         "items" : [
+            { "name": "Wooden column",    "portrait": "/stonehearth/entities/build/wooden_column/wooden_column.png", "brush": "stonehearth:wooden_column" }
+         ]         
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "name": "Stone column",    "portrait": "/stonehearth/entities/build/stone_column/stone_column.png", "brush": "stonehearth:stone_column" }
+         ]         
+      }      
    ],
 
    "roofPatterns": [

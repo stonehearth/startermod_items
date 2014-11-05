@@ -1,0 +1,18 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Cobbelstone Wall", 
+         "description": ""
+      },
+      "stonehearth:construction_data" : {
+         "type": "wall",
+         "brush": "file(cobblestone_wall.qb)",
+         "needs_scaffolding" : true,
+         "allow_diagonal_adjacency" : true,
+         "max_workers": 3, 
+         "material": "stone resource"
+      }
+   }
+}
