@@ -1,3 +1,10 @@
+-- Windows (and doors?) from templates are rotated incorrectly when built
+-- https://bugs/browse/SH-80
+--
+-- See screenshot. The windows appeared fine in ghostly/preview mode, but
+-- when built they are rotated incorrectly.
+-- 
+
 local build_util = require 'stonehearth.lib.build_util'
 local lrbt_util = require 'tests.longrunning.build.lrbt_util'
 
