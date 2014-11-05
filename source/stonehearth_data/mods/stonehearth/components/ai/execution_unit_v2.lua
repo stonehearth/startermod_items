@@ -11,6 +11,7 @@ local STOPPING = 'stopping'
 local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
+local HALTED = 'haulted'
 
 local CALL_NOT_IMPLEMENTED = {}
 
@@ -53,6 +54,7 @@ function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_en
    chain_function('suspend')
    chain_function('resume')
    chain_function('abort')
+   chain_function('halt')
    chain_function('get_log')
    chain_function('set_status_text')
    chain_function('set_cost')
@@ -255,7 +257,7 @@ function ExecutionUnitV2:_stop_thinking()
       return
    end
 
-   if self:in_state('thinking', 'ready') then
+   if self:in_state('thinking', 'ready', 'haulted') then
       return self:_stop_thinking_from_thinking()
    end
    if self:in_state('starting', 'started') then
@@ -303,7 +305,7 @@ function ExecutionUnitV2:_stop()
       return
    end
 
-   if self:in_state('thinking', 'ready') then
+   if self:in_state('thinking', 'ready', 'haulted') then
       return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
@@ -329,7 +331,7 @@ function ExecutionUnitV2:_destroy()
 
    self:_destroy_object_monitor()
    
-   if self:in_state('thinking', 'ready') then
+   if self:in_state('thinking', 'ready', 'haulted') then
       return self:_destroy_from_thinking()
    end
    if self._state == 'starting' then
@@ -725,6 +727,18 @@ function ExecutionUnitV2:__resume(format, ...)
       self._log:debug('ignoring call to resume in %s state', self._state)
    else
       self._thread:resume(reason)
+   end
+end
+
+function ExecutionUnitV2:__halt(reason, ...)
+   local reason = reason and string.format(reason, ...) or 'no reason given'
+   self._log:warning('__halt %s called (state: %s)', tostring(reason), self._state)
+
+   if self:in_state(THINKING, READY) then
+      self:_set_state(HALTED)
+      self._frame:_unit_halted(self)
+   else
+      self._log:debug('ignorining invalid state in call to __halt')
    end
 end
 
