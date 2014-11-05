@@ -11,7 +11,7 @@ local STOPPING = 'stopping'
 local FINISHED = 'finished'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
-local HALTED = 'haulted'
+local HALTED = 'halted'
 
 local CALL_NOT_IMPLEMENTED = {}
 
@@ -257,7 +257,7 @@ function ExecutionUnitV2:_stop_thinking()
       return
    end
 
-   if self:in_state('thinking', 'ready', 'haulted') then
+   if self:in_state('thinking', 'ready', 'halted') then
       return self:_stop_thinking_from_thinking()
    end
    if self:in_state('starting', 'started') then
@@ -305,7 +305,7 @@ function ExecutionUnitV2:_stop()
       return
    end
 
-   if self:in_state('thinking', 'ready', 'haulted') then
+   if self:in_state('thinking', 'ready', 'halted') then
       return self:_stop_from_thinking()
    end
    if self._state == 'starting' then
@@ -331,7 +331,7 @@ function ExecutionUnitV2:_destroy()
 
    self:_destroy_object_monitor()
    
-   if self:in_state('thinking', 'ready', 'haulted') then
+   if self:in_state('thinking', 'ready', 'halted') then
       return self:_destroy_from_thinking()
    end
    if self._state == 'starting' then

@@ -184,7 +184,7 @@ function CompoundAction:_restart_after_halt()
    -- allow some time to pass before trying to resume thinking to wait for
    -- initial conditions to change.  how long is long enough?  if we way too long,
    -- the entity will just sort of hang out and look confused.  if we don't wait
-   -- long enough, it will look like we're spinning.  the best case is probably to add
+   -- long enough we'll end up spinning.  the best case is probably to add
    -- some sort of exponential backoff, but until that's proven, err on the side of
    -- responsiveness. -- tony
    self._restart_after_halt_timer = radiant.set_realtime_timer(20, function()

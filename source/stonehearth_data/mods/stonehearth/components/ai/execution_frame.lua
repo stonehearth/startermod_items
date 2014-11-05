@@ -30,7 +30,7 @@ local FINISHED = 'finished'
 local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
-local HALTED = 'haulted'
+local HALTED = 'halted'
 
 local debug_info_state_order = {}
 debug_info_state_order[RUNNING] = 0
