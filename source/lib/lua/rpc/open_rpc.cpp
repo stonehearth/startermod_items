@@ -86,7 +86,7 @@ int call_impl(lua_State* L, int start, std::string const& obj, std::string const
 
    for (int i = start; i <= top; i++) {
       object obj = object(from_stack(L, i));
-      JSONNode arg = lua::ScriptHost::LuaToJson(L, obj);
+      JSONNode arg = lua::ScriptHost::LuaToJson(L, obj); // xx: LuaToProtobuf!!
       fn.args.push_back(arg);
    }
 

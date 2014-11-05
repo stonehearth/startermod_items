@@ -60,9 +60,7 @@ App.RootView = Ember.ContainerView.extend({
 
    gotoGame: function() {
 
-      radiant.call('radiant:set_draw_world', {
-            'draw_world': true
-         });
+      radiant.call('radiant:set_draw_world', true);
 
       $('#' + this._shellView.elementId).hide();
       $('#' + this._gameView.elementId).show();

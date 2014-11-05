@@ -5,7 +5,6 @@ local Region3 = _radiant.csg.Region3
 local WORLD_SIZE = 64
 
 function create_world(environment)
-   radiant.terrain.set_config_file('stonehearth:terrain_block_config')
    local block_types = radiant.terrain.get_block_types()
 
    local region3 = Region3()

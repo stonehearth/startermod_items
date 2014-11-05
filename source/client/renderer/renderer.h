@@ -150,6 +150,7 @@ class Renderer
       core::Guard OnScreenResize(std::function<void(csg::Point2)> const& fn);
       core::Guard OnServerTick(std::function<void(int)> const& fn);
       core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn);
+      core::Guard OnRenderFrameFinished(std::function<void(FrameStartInfo const&)> const& fn);
       core::Guard OnShowDebugShapesChanged(std::function<void(bool)> const& fn);
 
       bool ShowDebugShapes();
@@ -269,6 +270,7 @@ class Renderer
       core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
+      core::Slot<FrameStartInfo const&>   render_frame_finished_slot_;
       std::unique_ptr<PerfHud>            perf_hud_;
 
       int               last_render_time_;

@@ -52,6 +52,10 @@ local function create_service(name)
 end
 
 radiant.events.listen(stonehearth, 'radiant:init', function()
+      -- global config
+      radiant.terrain.set_config_file('stonehearth:terrain_block_config')
+
+      -- now create all the services
       stonehearth._sv = stonehearth.__saved_variables:get_data()
       for _, name in ipairs(service_creation_order) do
          create_service(name)

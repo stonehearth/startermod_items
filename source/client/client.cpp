@@ -485,13 +485,9 @@ void Client::OneTimeIninitializtion()
       rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:set_draw_world");
 
       try {
-         json::Node node(f.args);
-         json::Node params = node.get_node(0);
-
-         if (params.has("draw_world")) {
-            Renderer::GetInstance().SetDrawWorld(params.get<bool>("draw_world", true));
-         }
-
+         json::Node args(f.args);
+         bool drawWorld = args.get<bool>(0, false);
+         Renderer::GetInstance().SetDrawWorld(drawWorld);
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
          result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));

@@ -16,7 +16,6 @@ function HeightMapRenderer:__init(terrain_info)
    self._tile_size = self._terrain_info.tile_size
    self._terrain = radiant._root_entity:add_component('terrain')
 
-   radiant.terrain.set_config_file('stonehearth:terrain_block_config')
    self._block_types = radiant.terrain.get_block_types()
 
    -- rock layers

@@ -155,3 +155,8 @@ steam-package:
 .PHONY: docs
 docs:
 	cd $(STONEHEARTH_ROOT)/modules/stonehearth-editor && $ lua/dist/bin/lua.exe shed.lua document $(STONEHEARTH_ROOT)/source/stonehearth_data/mods/stonehearth/docs/ --doc_output_dir=$(BUILD_ROOT)/docs
+
+.PHONY: update-templates
+update-templates:
+	cd $(STONEHEARTH_ROOT)/source/stonehearth_data/ && $(SCRIPTS_ROOT)/update_templates.py
+
