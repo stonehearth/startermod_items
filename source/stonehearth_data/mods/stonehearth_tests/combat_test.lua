@@ -29,7 +29,7 @@ end
 
 function CombatTest:place_units()
    self._citizens = {
-      self:place_citizen(-9, -15, 'stonehearth:jobs:footman'),
+      
       self:place_citizen(-9, -15, 'stonehearth:jobs:footman'),
       self:place_citizen( -7, -15, 'stonehearth:jobs:carpenter'),
       self:place_citizen(  1, -15, 'stonehearth:jobs:weaver'),
