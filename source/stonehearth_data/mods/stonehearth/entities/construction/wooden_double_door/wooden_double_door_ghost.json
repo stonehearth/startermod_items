@@ -22,7 +22,7 @@
       },
       
       "render_info" : {
-      "animation_table" : "file(/data/rigs/double_door/double_door.json)"
+         "animation_table" : "file(/data/rigs/double_door/double_door.json)"
       },
 
       "effect_list" : {
