@@ -146,7 +146,7 @@ function DirtPlotComponent:plant_crop(crop_type)
    --Assert that there's nothing here 
    --TODO: use tasks to make sure things aren't planted twice
    --assert(self._sv.contents == nil, "error, trying to plant on an occupied square")
-   if self._sv.contents ~= nil then
+   if self._sv.contents ~= nil or not crop_type then
       return
    end
 

@@ -7,6 +7,18 @@ local rng = _radiant.csg.get_default_rng()
 
 local FarmerCrop = class()
 
+--[[
+   This class manages the plantable/harvestable aspect of a crop in a field. 
+   When a field is created, this crop manager is created as well, with the type of crop (including fallow)
+   that will be planted in the field. 
+   When a crop is first assigned, this manager creates the plant task for the farmers. 
+   These tasks are ongoing. 
+   Regions manage which parts of the field should be planted/harvested. The planting/harvesting tasks refer to these
+   regions to figure out what they should be doing next. 
+   When a field is left fallow, the farmers will till it under and the plantable region will be designated
+   to be unplantable until the field is again assigned a crop. Then, the plantable region for all empty locations
+   will be cleared allowing the plant actions to act on the field again. 
+]]
 
 function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harvest, auto_plant, region, tilled_region)
    self._sv.player_id = player_id
@@ -17,8 +29,6 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
    self._sv.location = location
    self._sv.total_region = Region3()
    self._sv.total_region:copy_region(region)
-
-   --Save the town so it's sure to be restored by the time we start to plant things
    self._sv.town = stonehearth.town:get_town(player_id)
    
    self._sv.plantable_region_entity = radiant.entities.create_entity()
@@ -37,10 +47,23 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
 
    self.__saved_variables:mark_changed()   
 
-   self:restore()
+   self:_on_start_do_always()
+   self:_create_planting_task()
+
 end
 
 function FarmerCrop:restore()
+   self:_on_start_do_always()
+
+   radiant.events.listen(radiant, 'radiant:game_loaded',
+      function(e)
+         self:_create_planting_task()
+         return radiant.events.UNLISTEN
+      end
+   )
+end
+
+function FarmerCrop:_on_start_do_always()
    self._till_trace = self._sv.farm_tilled_region:trace('tilling trace', TraceCategories.SYNC_TRACE)
       :on_changed(function(region)
          self:_update_plantable_region()
@@ -62,7 +85,6 @@ function FarmerCrop:restore()
       table.insert(self._plot_listeners, radiant.events.listen(plot, 'stonehearth:crop_removed', self, self.notify_harvest_done))
    end
    self:_update_plantable_region()
-   self:_create_planting_task()
 end
 
 
@@ -148,15 +170,28 @@ function FarmerCrop:_update_harvestable_region()
    self.__saved_variables:mark_changed()
 end
 
-
+-- Change the default crop for this field but it will not take effect until
+-- The new crop will not be planted unless a space is fallow (we won't raze existing crops)
+-- If the field was previously fallow, then immediately clear all the empty spaces so 
+-- new crop planting can happen. 
 function FarmerCrop:change_default_crop(new_crop)
+   local old_crop = self._sv.crop_type
    self._sv.crop_type = new_crop
+   if not old_crop then
+      --If the first crop was fallow, the planting task is never created. If 
+      --we change to a new crop that is not fallow, and we have no task, create it now.
+      if not self.planting_task then
+         self:_create_planting_task()
+      end
+      self:_clear_field()
+
+   end
    self.__saved_variables:mark_changed()
 end
 
-
+-- Tell the town that we should plant the crop
 function FarmerCrop:_create_planting_task()
-   if self._sv.crop_type then
+   if self._sv.crop_type and not self.planting_task then
       self.planting_task = self._sv.town:plant_crop(self)
    end
 end
@@ -187,7 +222,12 @@ end
 -- This is called once per dirt-plot (we listen on each plot individually.)
 function FarmerCrop:notify_harvest_done(e)
    local p = Point3(e.location.x - 1, 0, e.location.y - 1)
-   
+   self:_clear_location(p)
+
+   self.__saved_variables:mark_changed()
+end
+
+function FarmerCrop:_clear_location(p)
    self:get_plantable_region():modify(function(cursor)
       cursor:add_point(p)
    end)
@@ -195,7 +235,26 @@ function FarmerCrop:notify_harvest_done(e)
    self:get_harvestable_region():modify(function(cursor)
       cursor:subtract_point(p)
    end)
-   self.__saved_variables:mark_changed()
+end
+
+-- Look through all the areas of the field that do not have a crop in them 
+-- and that are not furrows and clear that location's plantable region.
+-- Useful for when we need to reset the planting region after a fallow crop.
+function FarmerCrop:_clear_field()
+   local field_x = #self._sv.field:get_contents()
+   local field_z = #self._sv.field:get_contents()[1]
+
+   for x=1, field_x do
+      for z=1, field_z do
+         local dirt_plot = self._sv.field:get_contents()[x][z]
+         local dirt_plot_comp = dirt_plot:get_component('stonehearth:dirt_plot')
+         if not dirt_plot_comp:get_contents() and not dirt_plot_comp:is_furrow() then
+            local p = Point3(x - 1, 0, z - 1)
+            self:_clear_location(p)
+         end
+      end
+   end
+
 end
 
 return FarmerCrop
