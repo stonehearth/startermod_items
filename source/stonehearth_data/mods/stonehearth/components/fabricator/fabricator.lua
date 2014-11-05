@@ -118,6 +118,7 @@ function Fabricator:_initialize_existing_project(project)
 end
 
 function Fabricator:instabuild()
+   radiant.terrain.subtract_region(self._total_mining_region:get())
    self._project_dst:get_region():modify(function(cursor)
          cursor:copy_region(self._blueprint_dst:get_region():get())
       end)
