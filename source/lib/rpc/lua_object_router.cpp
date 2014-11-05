@@ -92,6 +92,10 @@ luabind::object LuaObjectRouter::LookupObjectFromLuaState(Function const& fn)
       obj = luabind::globals(L);
       std::vector<std::string> parts = strutil::split(fn.object, ".");
       for (std::string const& part : parts) {
+         if (luabind::type(obj) == LUA_TTABLE) {
+            LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: prefix is not a table)";
+            return luabind::object();
+         }
          obj = obj[part];
          if (luabind::type(obj) == LUA_TNIL) {
             LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: lookup for '" << part << "' returned nil)";
