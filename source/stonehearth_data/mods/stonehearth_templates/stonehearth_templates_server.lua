@@ -34,8 +34,8 @@ end
 -- print the bounds of all the walls in a build.  useful for getting a bounds_str to
 -- pass to the helper builder functions
 --
-local function print_walls(building)
-   local bc = building:get_component('stonehearth:building')
+function StonehearthTemplateBuilder:print_walls()
+   local bc = self._building:get_component('stonehearth:building')
    local structures = bc:get_all_structures()
    for id, entry in pairs(structures['stonehearth:wall']) do
       local entity = entry.entity
@@ -54,8 +54,8 @@ end
 -- that some bounds constructor monstrosity.  Use `print_walls` if you're trying to
 -- find the bounds_str for a particular wall in the building/
 --
-local function get_wall_with_bounds(building, bounds_str)
-   local bc = building:get_component('stonehearth:building')
+function StonehearthTemplateBuilder:get_wall_with_bounds(bounds_str)
+   local bc = self._building:get_component('stonehearth:building')
    local structures = bc:get_all_structures()
    for id, entry in pairs(structures['stonehearth:wall']) do
       local entity = entry.entity
@@ -70,10 +70,21 @@ local function get_wall_with_bounds(building, bounds_str)
    error(string.format('could not find wall with bounds %s', bounds))
 end
 
+function StonehearthTemplateBuilder:get_offset_on_wall(wall, dx, dy)
+   local t = wall:get_component('stonehearth:wall')
+                        :get_tangent_coord()
+   local location = Point3(radiant.entities.get_location_aligned(wall))
+   location[t] = location[t] + dx
+   location.y = location.y + dy
+
+   return location
+end
+
 -- sticks a portal (door or window) on the wall with `bounds_str` at `location`
 --
-local function place_portal_on_wall(building, bounds_str, portal_uri, location)
-   local wall = get_wall_with_bounds(building, bounds_str)
+function StonehearthTemplateBuilder:place_portal_on_wall(bounds_str, portal_uri, dx, dy)
+   local wall = self:get_wall_with_bounds(bounds_str)
+   local location = self:get_offset_on_wall(wall, dx, dy)
    stonehearth.build:add_fixture(wall, portal_uri, location)
 end
 
@@ -81,37 +92,65 @@ end
 -- `normal` can be used to determine which side of the wall the fixture is placed on.
 -- if omitted, we put it outside.
 --
-local function place_fixture_on_wall(building, bounds_str, fixture_uri, location, normal)
-   local wall = get_wall_with_bounds(building, bounds_str)
+function StonehearthTemplateBuilder:place_item_on_wall(bounds_str, item_uri, dx, dy, normal)
+   local wall = self:get_wall_with_bounds(bounds_str)
    if not normal then
       normal = wall:get_component('stonehearth:construction_data')
                      :get_normal()
    end
-   stonehearth.build:add_fixture(wall, fixture_uri, location + normal, normal)
+   local location = self:get_offset_on_wall(wall, dx, dy)
+
+   stonehearth.build:add_fixture(wall, item_uri, location + normal, normal)
+end
+
+function StonehearthTemplateBuilder:place_item_on_floor(item_uri, dx, dz, rotation)
+   local bc = self._building:get_component('stonehearth:building')
+   local structures = bc:get_all_structures()
+   for id, entry in pairs(structures['stonehearth:floor']) do
+      local floor = entry.entity
+      stonehearth.build:add_fixture(floor, item_uri, Point3(dx, 0, dz), Point3.unit_y, rotation)
+      break
+   end
+end
+
+function StonehearthTemplateBuilder:add_floor(x0, y0, x1, y1, pattern)
+   local p0 = Point3(x0, -1, y0)
+   local p1 = Point3(x1,  0, y1)
+   local floor = stonehearth.build:add_floor(self._session, WOODEN_FLOOR, Cube3(p0, p1), pattern)
+   self._building = build_util.get_building_for(floor)
+end
+
+function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
+   stonehearth.build:grow_walls(self._building, column_uri, wall_uri)
+end
+
+function StonehearthTemplateBuilder:grow_roof(roof_uri, options)
+   stonehearth.build:grow_roof(self._building, roof_uri, options)
 end
 
 -- builds a small house
 --
 function StonehearthTemplateBuilder:_build_small_house()
-   local floor = stonehearth.build:add_floor(self._session, WOODEN_FLOOR, Cube3(Point3.zero, Point3(7, 1, 7)), WOODEN_FLOOR_LIGHT)
-   local building = build_util.get_building_for(floor)
-   stonehearth.build:grow_walls(building, WOODEN_COLUMN, WOODEN_WALL)
-   stonehearth.build:grow_roof(building, WOODEN_ROOF, {
+   self:add_floor(0, 0, 7, 7, WOODEN_FLOOR_LIGHT)      
+   self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
+   self:grow_roof(WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right' },
          nine_grid_max_height = 10,
       })
 
-   print_walls(building)
-   place_portal_on_wall(building,  '((0, 0, 0) - (7, 10, 1))', 'stonehearth:portals:wooden_door', Point3(3, 0, 0))
-   place_fixture_on_wall(building, '((0, 0, 0) - (7, 10, 1))', 'stonehearth:furniture:wooden_wall_lantern', Point3(3, 6, 0))
-
-   return building
+   self:print_walls()
+   self:place_portal_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:portals:wooden_door', 3, 0)
+   self:place_item_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:furniture:wooden_wall_lantern', 3, 6)
+   self:place_item_on_floor('stonehearth:furniture:comfy_bed', 2, 2, 90)
 end
 
 function StonehearthTemplateBuilder:_create_template(o)
    radiant.log.write('', 0, 'creating template for "%s"', o.name)
    stonehearth.build:do_command('', nil, function()
-         o.building = o.fn(self)
+         assert(not self._building)
+         o.fn(self)
+         assert(self._building)
+         o.building = self._building
       end)
 
    stonehearth.build:instabuild(o.building)
@@ -131,16 +170,15 @@ function StonehearthTemplateBuilder:build_next_template(session, response)
       radiant.exit(0)
    end
 
-   if self._last_building then
-      radiant.entities.destroy_entity(self._last_building)
-      self._last_building = nil
+   if self._building then
+      radiant.entities.destroy_entity(self._building)
+      self._building = nil
    end
 
    local entry = self._templates[self._offset]
    self._offset = self._offset + 1
 
    self:_create_template(entry)
-   self._last_building = entry.building
 
    return entry
 end
