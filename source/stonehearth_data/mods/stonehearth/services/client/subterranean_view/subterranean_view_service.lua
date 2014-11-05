@@ -19,15 +19,10 @@ function SubterraneanViewService:initialize()
    if not self._sv.initialized then
       self._sv.clip_enabled = false
       -- we have some floating point drift on the integer coordinates, not sure why yet
-      self._sv.clip_height = 25 * UNITY_PLUS_EPSILON
+      self._sv.clip_height = 25
       self._sv.initialized = true
    else
    end
-
-   self._input_capture = stonehearth.input:capture_input()
-   self._input_capture:on_keyboard_event(function(e)
-         return self:_on_keyboard_event(e)
-      end)
 
    self._initialize_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
          local root_entity = _radiant.client.get_object(1)
@@ -51,52 +46,48 @@ function SubterraneanViewService:_destroy_initialize_listener()
    end
 end
 
-function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
-   return self:set_clip_enabled(enabled);
-end
-
 function SubterraneanViewService:set_clip_enabled(enabled)
    self._sv.clip_enabled = enabled
    self.__saved_variables:mark_changed()
    self:_update()
-   return true;
-end
-
-function SubterraneanViewService:move_clip_height_up()
-   return self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_up_command(session, response)
-   return self:move_clip_height_up();
-end
-
-function SubterraneanViewService:move_clip_height_down()
-   return self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
-end
-
-function SubterraneanViewService:move_clip_height_down_command(session, response)
-   return self:move_clip_height_down();
 end
 
 function SubterraneanViewService:set_clip_height(height)
    self._sv.clip_height = height
    self.__saved_variables:mark_changed()
    self:_update()
-   return true;
 end
 
-function SubterraneanViewService:_on_keyboard_event(e)
-   if e.down then
-      
-   end
-   return false
+function SubterraneanViewService:move_clip_height_up()
+   self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:move_clip_height_down()
+   self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
+   self:set_clip_enabled(enabled)
+   return {}
+end
+
+function SubterraneanViewService:move_clip_height_up_command(session, response)
+   self:move_clip_height_up()
+   return {}
+end
+
+function SubterraneanViewService:move_clip_height_down_command(session, response)
+   self:move_clip_height_down()
+   return {}
 end
 
 function SubterraneanViewService:_update()
    if self._sv.clip_enabled then
+      -- tweak the clip_height for some feathering in the renderer
+      local tweaked_clip_height = self._sv.clip_height * UNITY_PLUS_EPSILON
       -- -1 to remove the ceiling
-      _radiant.renderer.set_clip_height(self._sv.clip_height-1)
-      h3dSetVerticalClipMax(self._sv.clip_height)
+      _radiant.renderer.set_clip_height(tweaked_clip_height-1)
+      h3dSetVerticalClipMax(tweaked_clip_height)
    else
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
       h3dClearVerticalClipMax()
