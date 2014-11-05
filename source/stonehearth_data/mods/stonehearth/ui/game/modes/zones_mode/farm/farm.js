@@ -7,31 +7,20 @@ App.StonehearthFarmView = App.View.extend({
       "stonehearth:farmer_field" : {}
    },
 
-
    init: function() {
       var self = this;
       this._super();
-      this.set('foo', 'hello world');
 
       $('#addCropButton').prop('disabled', true);
 
       //Get the crops available for this farm
       radiant.call('stonehearth:get_all_crops')
          .done(function(o){
+            console.log('stonehearth crops:', o);
             self.set('all_crops', o.all_crops);
             $('#addCropButton').prop('disabled', false);
          });
-
-      //xxx placeholder
-      //this.set('crop_rotation', []);
-     
    },
-
-   //Temporary
-   _setCurrCrop: function() {
-      var curr_crop_name = this.get('context.stonehearth:farmer_field.crop_queue')[0].name;
-      this.set('context.curr_crop_name', curr_crop_name)
-   }.observes('context.stonehearth:farmer_field'),
 
    didInsertElement: function() {
       this._super();
@@ -60,6 +49,7 @@ App.StonehearthFarmView = App.View.extend({
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
          self.destroy();
       });
+
    },
 
    destroy : function() {
@@ -76,28 +66,11 @@ App.StonehearthFarmView = App.View.extend({
       console.log(this.get('crop_rotation'));
    },
 
-   //temporary
-   change_default_crop: function(cropId) {
-      var field = this.get('context.stonehearth:farmer_field').__self;
-      radiant.call_obj(field, 'change_default_crop', cropId);
-   },
-
    actions :  {
       addCropButtonClicked: function() {
          var self = this;
          palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
-                     click: function(item) {
-                        var cropId = $(item).attr('crop');
-                        if (cropId) {
-                           radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
-                           //TODO: add back when we make the queue
-                           //self.addCropToRotation($(item).attr('crop'));
-                           self.change_default_crop(cropId);
-                        }
-                     },
-                     context: {
-                        items : self.get('all_crops')
-                     },
+                     field: this.get('context.stonehearth:farmer_field').__self,
                      position: {
                         my : 'center',
                         at : 'center', 
@@ -113,17 +86,27 @@ App.StonehearthFarmCropPalette = App.View.extend({
    modal: true,
 
    init: function() {
-      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
+      var self = this;
       this._super();
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click'} );
+      
+      //Get the crops available for this farm
+      radiant.call('stonehearth:get_all_crops')
+         .done(function(o){
+            self.set('context.crops', o.all_crops);
+         });
    },
 
    didInsertElement: function() {
       this._super();
       var self = this;
 
-      this.$('.item').click(function() {
-         if (self.click) {
-            self.click($(this));
+      this.$().on( 'click', '.item', function() {
+         var cropId = $(this).attr('crop');
+         if (cropId) {
+            //TODO: add back when we make the queue
+            //self.addCropToRotation($(item).attr('crop'));
+            radiant.call_obj(self.field, 'change_default_crop', cropId);
          }
          self.destroy();
       });
@@ -134,7 +117,5 @@ App.StonehearthFarmCropPalette = App.View.extend({
                        '<div class=description>' + $(this).attr('description') + '</div>')
          });
      });
-
-      //this.$('.item').tooltipster();
    }
 });
