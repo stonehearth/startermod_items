@@ -12,8 +12,12 @@ local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_fl
 local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
 
 function lrbt_util.create_workers(autotest, x, y)
+   local workers = {}
+
    local function create_worker(x, y)
       local worker = autotest.env:create_person(x, y, { job = 'worker' })
+      workers[worker:get_id()] = worker
+      
       local timer
       timer = stonehearth.calendar:set_interval('1m', function()
             if not worker:is_valid() then
@@ -30,6 +34,8 @@ function lrbt_util.create_workers(autotest, x, y)
    create_worker(x, y + 2)
    create_worker(x + 2, y)
    create_worker(x + 2, y + 2)
+
+   return workers
 end
 
 function lrbt_util.fund_construction(autotest, buildings)
