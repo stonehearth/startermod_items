@@ -59,7 +59,7 @@ function ExecutionFrame:__init(thread, entity, action_index, activity_name, debu
    self._execution_units = {}
    self._execution_filters = {}
    self._saved_think_output = {}
-   self._ready_cb = nil
+   self._think_progress_cb = nil
    self._state = STOPPED
    self._ai_component = entity:get_component('stonehearth:ai')
 
@@ -424,33 +424,31 @@ function ExecutionFrame:start_thinking(args, entity_state)
    self._log:spam('not immediately ready after start_thinking.')
 end
 
-function ExecutionFrame:on_ready(ready_cb)
-   self._log:spam('registering on_ready callback (state: %s)', self._state)
-   if not ready_cb then
-      self._ready_cb = nil
+function ExecutionFrame:set_think_progress_cb(think_progress_cb)
+   self._log:spam('registering think progress callback (state: %s)', self._state)
+   if not think_progress_cb then
+      self._think_progress_cb = nil
       return
    end
 
    local calling_thread = stonehearth.threads:get_current_thread()
-   self._ready_cb = function(think_output)
-         local arg = think_output and stonehearth.ai:format_args(think_output) or 'nil'
-
+   self._think_progress_cb = function(msg, arg)
          if calling_thread and not calling_thread:is_running() then
             -- this interrupt is synchronous to make sure we deliver the callback in the current.
             -- state.  for example, soon after we return from this function, a task might kill
             -- an action that's running this frame (ending up stopping the frame before the 
-            -- thread which wants the on_ready() notification actually gets scheduled!)
-            self._log:detail('ai thread is not running trying to deliver on_ready(%s) notification.  thunking.', arg)
+            -- thread which wants the notification actually gets scheduled!)
+            self._log:detail('ai thread is not running trying to deliver think progress (%s) notification.  thunking.', msg)
             calling_thread:interrupt(function()
-                  assert(self._ready_cb)
-                  self._log:detail('calling on_ready(%s) notification with thunk', arg)
-                  ready_cb(self, think_output)
+                  assert(self._think_progress_cb)
+                  self._log:detail('calling think progress (%s) notification with thunk', msg)
+                  think_progress_cb(self, msg, arg)
                end)
          else
             -- sometimes there is no thread (e.g. in pathfinder callbacks).
             -- just use whatever thread we're on.
-            self._log:detail('calling on_ready(%s) notification without thunk', arg)
-            ready_cb(self, think_output)
+            self._log:detail('calling think progress (%s) notification without thunk', msg)
+            think_progress_cb(self, msg, arg)
          end
       end
 end
@@ -707,9 +705,9 @@ function ExecutionFrame:_unit_not_ready_from_ready(unit)
       self._log:debug('active unit became unready.  going back to thinking')
       self:_set_active_unit(nil)
       self:_set_state(THINKING)
-      if self._ready_cb then
+      if self._think_progress_cb then
          self._log:debug('sending unready notification')
-         self._ready_cb(nil)
+         self._think_progress_cb('unready')
       end
    end
 end
@@ -1012,9 +1010,9 @@ function ExecutionFrame:_remove_action_from_ready(unit)
    if unit == self._active_unit then
       self._active_unit:_stop_thinking()
       self:_set_active_unit(nil)
-      if self._ready_cb then
+      if self._think_progress_cb then
          self._log:debug('sending unready notification')
-         self._ready_cb(nil)
+         self._think_progress_cb('unready')
       end
       -- errata note 1 : again, this one is verified correct, but gross and offends
       -- my programmer sensibilities.
@@ -1333,10 +1331,10 @@ function ExecutionFrame:_set_state(state)
    if self._state == self._waiting_until then
       self._calling_thread:resume('transitioned to ' .. self._state)
    end
-   if self._ready_cb and state == READY then
+   if self._think_progress_cb and state == READY then
       assert(self._active_unit)
       assert(self._active_unit_think_output)
-      self._ready_cb(self._active_unit_think_output)
+      self._think_progress_cb('ready', self._active_unit_think_output)
    end
 end
 
