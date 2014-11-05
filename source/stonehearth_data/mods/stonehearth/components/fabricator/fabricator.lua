@@ -444,6 +444,12 @@ function Fabricator:_stop_project()
       self._fabricate_task:destroy()
       self._fabricate_task = nil
    end
+
+   for zone, _ in pairs(self._mining_zones) do
+      radiant.entities.destroy_entity(zone)
+      self._mining_zones[zone] = nil
+      self._mining_traces[zone] = nil
+   end
 end
 
 function Fabricator:_update_dst_region()
