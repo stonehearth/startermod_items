@@ -6,7 +6,6 @@ local WORLD_SIZE = 64
 
 function create_world(environment)
    radiant.terrain.set_config_file('stonehearth:terrain_block_config')
-   local block_types = radiant.terrain.get_block_types()
 
    local region3 = Region3()
    region3:add_cube(Cube3(Point3(0, -2, 0), Point3(WORLD_SIZE, 0, WORLD_SIZE), block_types.bedrock))

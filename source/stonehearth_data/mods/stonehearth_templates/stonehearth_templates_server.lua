@@ -3,7 +3,6 @@ local build_util = require 'stonehearth.lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
-local Terrain = _radiant.om.Terrain
 
 local StonehearthTemplateBuilder = class()
 
@@ -20,7 +19,8 @@ function StonehearthTemplateBuilder:__init()
    local region3 = Region3()
 
    -- create the most boring world possible...
-   region3:add_cube(Cube3(Point3(-size,  -1, -size), Point3(size, 0, size), Terrain.GRASS))
+   local block_types = radiant.terrain.get_block_types()
+   region3:add_cube(Cube3(Point3(-size,  -1, -size), Point3(size, 0, size), block_types.grass))
    radiant._root_entity:add_component('terrain')
                            :add_tile(region3)
 

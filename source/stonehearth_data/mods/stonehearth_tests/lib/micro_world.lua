@@ -35,7 +35,6 @@ function MicroWorld:create_world()
    assert(self._size % 2 == 0)
    local half_size = self._size / 2
 
-   radiant.terrain.set_config_file('stonehearth:terrain_block_config')
    local block_types = radiant.terrain.get_block_types()
 
    local region3 = Region3()
