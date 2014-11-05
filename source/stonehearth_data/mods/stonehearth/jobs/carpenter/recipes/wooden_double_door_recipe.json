@@ -1,0 +1,20 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Wooden Double Door",
+   "description" : "Two doors are better than one",
+   "portrait"    : "/stonehearth/entities/construction/wooden_double_door/wooden_double_door.png",
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:portals:wooden_double_door"
+      }
+  ]
+}

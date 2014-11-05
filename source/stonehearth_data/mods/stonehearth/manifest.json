@@ -68,6 +68,8 @@
       "wooden_column" : "file(entities/build/wooden_column)",
       "wooden_peaked_roof" : "file(entities/build/roof/wooden_peaked_roof)",
       "thatch_peaked_roof" : "file(entities/build/roof/thatch_peaked_roof)",
+      "blue_slate_peaked_roof" : "file(entities/build/roof/blue_slate_peaked_roof)",
+      "red_slate_peaked_roof" : "file(entities/build/roof/red_slate_peaked_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
       "wooden_ladder" : "file(entities/build/wooden_ladder)",
       "models:arrow" : "file(data/models/arrow.obj)",

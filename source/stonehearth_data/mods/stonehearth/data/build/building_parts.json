@@ -26,7 +26,14 @@
          "items" : [
             { "name": "Wooden roof",    "portrait": "/stonehearth/entities/build/roof/wooden_peaked_roof/wooden_peaked_roof.png", "brush": "stonehearth:wooden_peaked_roof" },
             { "name": "Thatch roof",    "portrait": "/stonehearth/entities/build/roof/thatch_peaked_roof/thatch_peaked_roof.png", "brush": "stonehearth:thatch_peaked_roof" }
-      ]
+         ]
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "name": "Blue slate roof",   "portrait": "/stonehearth/entities/build/roof/blue_slate_peaked_roof/blue_slate_peaked_roof.png", "brush": "stonehearth:blue_slate_peaked_roof" },
+            { "name": "Red slate roof",    "portrait": "/stonehearth/entities/build/roof/red_slate_peaked_roof/red_slate_peaked_roof.png", "brush": "stonehearth:red_slate_peaked_roof" }
+         ]
       }
    ],
 
