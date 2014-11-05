@@ -22,8 +22,6 @@ public:
    void PlaySound(std::string const& uri, int vol);
    std::shared_ptr<sf::Sound> CreateSound(std::string const& uri);
 
-   bool IsUsingOldFalloff() const;
-
    //These set the vars from whcih the next call to PlayMusic will draw its parameters
    void SetNextMusicVolume(int volume, std::string const& channel);
    void SetNextMusicFade(int fade, std::string const& channel);

@@ -43,17 +43,8 @@ AudioManager::AudioManager()
    bgm_channel_.SetPlayerVolume(player_bgm_volume_);
    ambient_channel_.SetPlayerVolume(player_efx_volume_);
 
-   useOldFalloff_ = config.Get("audio.use_old_falloff", true);
-
-   if (!useOldFalloff_) {
-      std::string attenFunc = config.Get("audio.attenuation_func", "inverse");
-      sf::SoundSource::setAttenuationFunc(falloffLookup[attenFunc]);
-   }
-}
-
-bool AudioManager::IsUsingOldFalloff() const
-{
-   return useOldFalloff_;
+   std::string attenFunc = config.Get("audio.attenuation_func", "inverse");
+   sf::SoundSource::setAttenuationFunc(falloffLookup[attenFunc]);
 }
 
 //Iterate through the map and list, cleaning memory

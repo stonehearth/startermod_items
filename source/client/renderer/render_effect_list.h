@@ -174,7 +174,6 @@ private:
    float           volume_;      //Volume specified by json for sound
 
    void  AssignFromJSON_(const JSONNode& node);
-   float CalculateAttenuation(int maxDistance, int minDistance);
 
 };
 

@@ -845,17 +845,13 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
       sound_->setPitch(static_cast<float>(i->as_float()));
    }
 
-   if (audio::AudioManager::GetInstance().IsUsingOldFalloff()) {
-      attenuation = CalculateAttenuation(maxDistance, minDistance);
+   i = node.find("falloff");
+   if (i != node.end()) {
+      attenuation = (float)i->as_float();
    } else {
-      i = node.find("falloff");
-      if (i != node.end()) {
-         attenuation = (float)i->as_float();
-      } else {
-         attenuation = 1.0f;
-      }
-      sound_->setMaxDistance((float)maxDistance);
+      attenuation = 1.0f;
    }
+   sound_->setMaxDistance((float)maxDistance);
 
    //Set member variables
    maxDistance_ = maxDistance; 
@@ -866,22 +862,6 @@ void PlaySoundEffectTrack::AssignFromJSON_(const JSONNode& node) {
    sound_->setMinDistance((float)minDistance);
 }
 
-/* PlaySoundEffectTrack::CalculateAttenuation
- *  SFML has an attentuation parameter that determines how fast sound fades.
- * Since we'd rather expose max distance to the user (the max distance at which a sound can be heard)
- * we will use sfml's attentuation function to figure out what attentuation should be based on
- * max distance. 
- * Assumes MaxDistance >= MinDistance + 1
- * Equation: A = (maxDistance_/(.01) - minDistance_)/(maxDistance_ - minDistance_)
- * Note: remember, doing an operation of int and float converts everything to a float
- * Returns a float. 1 means the sound sticks around for a long time. Higher numbers means it softens faster.
-*/
-float PlaySoundEffectTrack::CalculateAttenuation(int maxDistance, int minDistance) {
-   float interm1 = maxDistance / PLAY_SOUND_EFFECT_MIN_VOLUME;
-   float interm2 = interm1 - minDistance;
-   float interm3 = (float)(maxDistance - minDistance);
-   return (interm2/interm3);
-}
 
 PlaySoundEffectTrack::~PlaySoundEffectTrack()
 {
