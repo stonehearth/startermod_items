@@ -1,6 +1,7 @@
 local Point3 = _radiant.csg.Point3
 
 local WorkerClass = class()
+local job_helper = require 'jobs.job_helper'
 
 --[[
    A controller that manages all the relevant data about the worker class
@@ -8,9 +9,7 @@ local WorkerClass = class()
 ]]
 
 function WorkerClass:initialize(entity)
-   self._sv.entity = entity
-   self._sv.last_gained_lv = 0
-   self._sv.is_current_class = false
+   job_helper.initialize(self._sv, entity)
    self._sv.no_levels = true
 end
 
@@ -20,11 +19,6 @@ end
 function WorkerClass:promote(json)
    self._sv.is_current_class = true
    self._sv.job_name = json.name
-
-
-   if json.level_data then
-      self._sv.level_data = json.level_data
-   end
 
    self.__saved_variables:mark_changed()
 end
@@ -38,6 +32,16 @@ end
 -- NOTE: If max level is nto declared, returns false
 function WorkerClass:is_max_level()
    return self._sv.is_max_level 
+end
+
+-- Returns all the data for all the levels
+function WorkerClass:get_level_data()
+   return nil
+end
+
+-- Given the ID of a perk, find out if we have the perk. 
+function WorkerClass:has_perk(id)
+   return false
 end
 
 function WorkerClass:demote()
