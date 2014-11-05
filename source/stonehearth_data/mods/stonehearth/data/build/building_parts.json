@@ -35,6 +35,7 @@
          "category" : "Doors",
          "items" : [
             { "name": "Wooden door", "portrait": "/stonehearth/entities/construction/wooden_door/wooden_door.png", "brush": "stonehearth:portals:wooden_door" },
+            { "name": "Wooden double door", "portrait": "/stonehearth/entities/construction/wooden_double_door/wooden_double_door.png", "brush": "stonehearth:portals:wooden_double_door" },
             { "name": "Reinforced wooden door", "portrait": "/stonehearth/entities/construction/wooden_door_2/wooden_door_2.png", "brush": "stonehearth:portals:wooden_door_2" }
          ]
       },

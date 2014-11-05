@@ -224,6 +224,7 @@
 
       "portals:wooden_door" : "file(entities/construction/wooden_door)",
       "portals:wooden_door_2" : "file(entities/construction/wooden_door_2)",
+      "portals:wooden_double_door" : "file(entities/construction/wooden_double_door)",
       "portals:wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "portals:wooden_diamond_window" : "file(entities/construction/wooden_diamond_window)",
 
