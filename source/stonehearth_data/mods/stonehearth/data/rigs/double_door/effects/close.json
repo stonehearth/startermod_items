@@ -6,14 +6,14 @@
          "start_time": 0,
          "animation": "close.json",
          "loop": false
- },
+       },
       "sound": {
          "type": "sound_effect",
          "duration": 1000,
          "start_time": 0,
          "min_distance": 20,
-         "max_distance": 60,
-         "volume": 30,
+         "falloff" : 15,
+         "volume": 60,
          "track" : "stonehearth:sounds:gate_close"
       }
    }

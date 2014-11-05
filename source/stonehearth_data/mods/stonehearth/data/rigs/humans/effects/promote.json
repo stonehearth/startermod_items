@@ -19,9 +19,9 @@
          "loop" : true,
          "start_time": 275,
          "end_time": 4950,
-         "min_distance": 43,
-         "max_distance": 100,
-         "volume" : 40,
+         "min_distance": 20,
+         "falloff" : 3.15,
+         "volume" : 100,
          "track" : "stonehearth:sounds:harp_loop"
       },
       "twinkle": {
@@ -29,8 +29,8 @@
          "loop" : true,
          "start_time": 275,
          "end_time": 4950,
-         "min_distance": 60,
-         "max_distance": 200,
+         "min_distance": 20,
+         "falloff" : 3.15,
          "volume" : 100,
          "track" : "stonehearth:sounds:twinkle"         
       },

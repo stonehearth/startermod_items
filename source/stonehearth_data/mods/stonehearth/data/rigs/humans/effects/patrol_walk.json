@@ -13,7 +13,6 @@
          "loop" : true,
          "start_time":  0,
          "min_distance": 30,
-         "max_distance": 60,
          "volume": 20,
          "track" : "stonehearth:sounds:footsteps_patrol_walk_sound"
       }      

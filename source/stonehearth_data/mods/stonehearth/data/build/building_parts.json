@@ -26,15 +26,33 @@
          "items" : [
             { "name": "Wooden roof",    "portrait": "/stonehearth/entities/build/roof/wooden_peaked_roof/wooden_peaked_roof.png", "brush": "stonehearth:wooden_peaked_roof" },
             { "name": "Thatch roof",    "portrait": "/stonehearth/entities/build/roof/thatch_peaked_roof/thatch_peaked_roof.png", "brush": "stonehearth:thatch_peaked_roof" }
-      ]
+         ]
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "name": "Blue slate roof",   "portrait": "/stonehearth/entities/build/roof/blue_slate_peaked_roof/blue_slate_peaked_roof.png", "brush": "stonehearth:blue_slate_peaked_roof" },
+            { "name": "Red slate roof",    "portrait": "/stonehearth/entities/build/roof/red_slate_peaked_roof/red_slate_peaked_roof.png", "brush": "stonehearth:red_slate_peaked_roof" }
+         ]
       }
    ],
 
+   "slabPatterns": [
+      {
+         "category" : "Wooden Materials",
+         "items" : [
+            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.png", "brush":"/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.qb" },
+            { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.png", "brush":"/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb" },
+            { "id": "diagonal", "name": "Diagonal wooden pattern",    "portrait": "/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png", "brush":"/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb" }
+         ]         
+      }   
+   ],
    "doodads": [
       {
          "category" : "Doors",
          "items" : [
             { "name": "Wooden door", "portrait": "/stonehearth/entities/construction/wooden_door/wooden_door.png", "brush": "stonehearth:portals:wooden_door" },
+            { "name": "Wooden double door", "portrait": "/stonehearth/entities/construction/wooden_double_door/wooden_double_door.png", "brush": "stonehearth:portals:wooden_double_door" },
             { "name": "Reinforced wooden door", "portrait": "/stonehearth/entities/construction/wooden_door_2/wooden_door_2.png", "brush": "stonehearth:portals:wooden_door_2" }
          ]
       },
