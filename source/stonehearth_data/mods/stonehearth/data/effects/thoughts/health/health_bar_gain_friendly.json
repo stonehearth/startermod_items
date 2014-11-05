@@ -8,7 +8,7 @@
          "min_distance": 45,
          "max_distance": 100,
          "falloff" : 4,
-         "volume": 60,
+         "volume": 50,
          "track" : "stonehearth:sounds:health_up"
       }
    }
