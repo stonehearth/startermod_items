@@ -22,15 +22,15 @@ public:
    void UpdateGeometry(int clip_height);
 
    void SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane);
-   csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction);
-   Geometry const& GetGeometry(csg::RegionTools3::Plane direction);
+   csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction) const;
+   Geometry const& GetGeometry(csg::RegionTools3::Plane direction) const;
 
    void AddCut(dm::ObjectId cutId, csg::Region3 const* cut);
    void RemoveCut(dm::ObjectId cutId);
 
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
-   csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi);
+   csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi) const;
    csg::Region3 const& ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section) const;
 
 private:
