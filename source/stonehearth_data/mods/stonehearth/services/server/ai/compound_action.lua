@@ -97,6 +97,11 @@ function CompoundAction:start_thinking(ai, entity, args)
       self._action_ai.CURRENT = ai.CURRENT
    end
    
+   if self._restart_after_halt_timer then
+      self._restart_after_halt_timer:destroy()
+      self._restart_after_halt_timer = nil
+   end
+
    -- start thinking for real!
    self._thinking = true
    if self._action.start_thinking then
@@ -120,7 +125,7 @@ function CompoundAction:_start_thinking_on_frame(i)
    local frame = self._execution_frames[i]
 
    frame:set_think_progress_cb(function(ready_frame, status, think_output)
-         self._log:detail('think progress callback fired for %s.', activity.name)
+         self._log:detail('think progress callback fired for %s. (%s)', activity.name, status)
          assert(self._thinking, 'received ready callback while not thinking.')
 
          if status == 'ready' then
@@ -135,6 +140,7 @@ function CompoundAction:_start_thinking_on_frame(i)
             self._log:debug(msg)
             self._ai:abort(msg)
          elseif status == 'halted' then
+            self:_restart_after_halt()
          end
       end)
 
@@ -169,9 +175,33 @@ function CompoundAction:_set_think_output()
    end
 end
 
+function CompoundAction:_restart_after_halt()   
+   assert(self._thinking)
+   assert(not self._restart_after_halt_timer)
+
+   self:_spam_current_state('starting restart thinking timer in _restart_after_halt')
+
+   -- allow some time to pass before trying to resume thinking to wait for
+   -- initial conditions to change.  how long is long enough?  if we way too long,
+   -- the entity will just sort of hang out and look confused.  if we don't wait
+   -- long enough we'll end up spinning.  the best case is probably to add
+   -- some sort of exponential backoff, but until that's proven, err on the side of
+   -- responsiveness. -- tony
+   self._restart_after_halt_timer = radiant.set_realtime_timer(20, function()
+         self:_spam_current_state('unwinding thinking in all previous frames in _restart_after_halt')
+         assert(self._thinking)
+         self:stop_thinking()
+         self:start_thinking(self._ai, self._entity, self._args)
+      end)
+end
+
 function CompoundAction:stop_thinking(ai, entity, ...)
    self._thinking = false
 
+   if self._restart_after_halt_timer then
+      self._restart_after_halt_timer:destroy()
+      self._restart_after_halt_timer = nil
+   end
 
    self._previous_think_output = {}
    for i=#self._execution_frames, 1, -1 do

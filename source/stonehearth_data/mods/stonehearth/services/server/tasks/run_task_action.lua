@@ -57,6 +57,8 @@ function RunTaskAction:_start_stop_thinking()
                elseif state == 'unready' then
                   self._log:debug('received unready notification from injected action.')
                   self._ai:clear_think_output()
+               elseif state == 'halted' then
+                  self._log:debug('received halt notification from injected action.')
                else
                   assert(false, string.format('unknown state %s in set_think_progress_cb', state))
                end

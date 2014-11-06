@@ -30,6 +30,7 @@ local FINISHED = 'finished'
 local STOPPING = 'stopping'
 local STOPPED = 'stopped'
 local DEAD = 'dead'
+local HALTED = 'halted'
 
 local debug_info_state_order = {}
 debug_info_state_order[RUNNING] = 0
@@ -172,6 +173,14 @@ function ExecutionFrame:_run()
       return self:_run_from_started()
    end
    self:_unknown_transition('run')
+end
+
+function ExecutionFrame:_unit_halted(unit, think_output)
+   self._log:spam('_unit_halted (unit:"%s" state:%s)', unit:get_name(), self._state)
+   if self._state == 'starting_thinking' then
+      return self:_unit_halted_from_starting_thinking(unit, think_output)
+   end
+   self:_unknown_transition('unit_halted')
 end
 
 function ExecutionFrame:_unit_ready(unit, think_output)
@@ -346,7 +355,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
       -- if units bail or abort, the current pcall should have been interrupted.
       -- verify that this is so
-      assert(self._state == current_state)
+      assert(self._state == current_state, string.format('state changed in _restart_thinking %s -> %s', current_state, self._state))
    end
 
    if self._active_unit ~= current_active_unit then
@@ -586,6 +595,26 @@ end
 
 function ExecutionFrame:_unit_ready_from_starting_thinking(unit, think_output)
    self:_do_unit_ready_bookkeeping(unit, think_output)
+end
+
+function ExecutionFrame:_unit_halted_from_starting_thinking(unit, think_output)
+   -- halted units will stop themselves.  if everything is stopped, propogate the halt
+   -- upstream
+   for _, unit in pairs(self._execution_units) do
+      local name = unit:get_name()
+      local state = unit:get_state()
+
+      self._log:spam('  unit %s -> (state:%s)', name, state)
+      if state ~= HALTED then
+         return
+      end
+   end
+   self._log:detail('all units halted.  halting execution frame.')
+   if self._think_progress_cb then
+      self._log:debug('sending halted notification')
+      self._think_progress_cb('halted')
+   end
+   -- now the frame is a zombie.  boo hoo =(
 end
 
 function ExecutionFrame:_unit_ready_from_thinking(unit, think_output)
