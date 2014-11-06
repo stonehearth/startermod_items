@@ -12,6 +12,8 @@ local MAX_REACH_UP = 3
 local MAX_REACH_DOWN = 1
 
 function MiningService:initialize()
+   self._enable_insta_mine = radiant.util.get_config('enable_insta_mine', false)
+
    self._sv = self.__saved_variables:get_data()
 
    self:_init_loot_tables()
@@ -33,6 +35,11 @@ end
 
 -- Dig an arbitary region. Region is defined in world space.
 function MiningService:dig_region(player_id, region)
+   if self._enable_insta_mine then
+      self:_insta_mine(region)
+      return nil
+   end
+
    -- only merge zones in the same xz slice
    local inflated_region = region:inflated(Point3(1, 0, 1))
 
@@ -298,6 +305,21 @@ function MiningService:roll_loot(block_kind)
    local loot_table = self._loot_tables[block_kind]
    local uris = loot_table and loot_table:roll_loot() or {}
    return uris
+end
+
+-- temporary location for this function
+function MiningService:mine_point(point)
+   radiant.terrain.subtract_point(point)
+   self:_add_to_xray_view(point)
+   self:_add_to_zray_view(point)
+end
+
+function MiningService:_insta_mine(region)
+   local terrain_region = radiant.terrain.intersect_region(region)
+
+   for point in terrain_region:each_point() do
+      self:mine_point(point)
+   end
 end
 
 return MiningService
