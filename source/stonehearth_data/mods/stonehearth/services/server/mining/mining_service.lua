@@ -310,8 +310,6 @@ end
 -- temporary location for this function
 function MiningService:mine_point(point)
    radiant.terrain.subtract_point(point)
-   self:_add_to_xray_view(point)
-   self:_add_to_zray_view(point)
 end
 
 function MiningService:_insta_mine(region)
