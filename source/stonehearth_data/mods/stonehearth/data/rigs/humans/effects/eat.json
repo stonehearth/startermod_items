@@ -13,7 +13,7 @@
          "start_time": 10,
          "min_distance": 20,
          "falloff" : 25,
-         "volume": 60,
+         "volume": 20,
          "track" : "stonehearth:sounds:eating"
 
       }
