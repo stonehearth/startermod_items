@@ -66,6 +66,7 @@ function DoorComponent:_open_door()
    end
    if not self._open_effect then
       self._open_effect = radiant.effects.run_effect(self._entity, 'open')
+         :set_cleanup_on_finish(false)
    end
 end
 

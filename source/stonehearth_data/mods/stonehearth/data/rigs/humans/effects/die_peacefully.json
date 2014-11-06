@@ -25,7 +25,6 @@
          "duration": 1000,
          "start_time": 200,
          "min_distance": 30,
-         "max_distance": 90,
          "volume": 40,
          "track" : {
             "type": "one_of",

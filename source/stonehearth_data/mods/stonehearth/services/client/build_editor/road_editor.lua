@@ -14,7 +14,9 @@ function RoadEditor:_region_to_road_regions(total_region, origin)
    local proj_curb_region = Region2()
    local road_region = Region3()
    local curb_region = nil
+
    if total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
+      -- If we're big enough, add a curb along the edge.
       local edges = total_region:get_edge_list()
       curb_region = Region3()
       for edge in edges:each_edge() do
@@ -58,31 +60,44 @@ end
 function RoadEditor:__init(build_service)
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
+   self._cut_region = _radiant.client.alloc_region3()
+   _radiant.renderer.add_terrain_cut(self._cut_region)
 end
 
 function RoadEditor:go(response, brush_shape)
    local brush = _radiant.voxel.create_brush(brush_shape)
 
    stonehearth.selection:select_xz_region()
-      :require_unblocked(true)
+      :require_unblocked(false)
+      :select_front_brick(false)
+      :allow_select_cursor(true)
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
             local proj_region = Region3(box):project_onto_xz_plane():to_int()
-            local curb_region, road_region = self:_region_to_road_regions(proj_region, Point3.zero)
+            local curb_region, road_region = self:_region_to_road_regions(proj_region, box.min)
             if curb_region then
               road_region:add_region(curb_region)
             end
             local model = brush:paint_through_stencil(road_region)
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3(0, -1, 0))
+            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3(0, 0, 0))
             node:set_position(MODEL_OFFSET)
+
+            self._cut_region:modify(function(cursor)
+                  cursor:copy_region(road_region)
+               end)
             return node
          end)
       :done(function(selector, box)
             self:_add_road(response, selector, box, brush_shape)
          end)
       :fail(function(selector)
-            selector:destroy()
             response:reject('no region')            
+         end)
+      :always(function()
+            if self._cut_region then
+               _radiant.renderer.remove_terrain_cut(self._cut_region)
+               self._cut_region = nil
+            end
          end)
       :go()
 
@@ -101,7 +116,10 @@ function RoadEditor:_add_road(response, selector, box, brush_shape)
             response:reject(r)
          end)
       :always(function()
-            selector:destroy()
+            if self._cut_region then
+               _radiant.renderer.remove_terrain_cut(self._cut_region)
+               self._cut_region = nil
+            end
          end)
 end
 

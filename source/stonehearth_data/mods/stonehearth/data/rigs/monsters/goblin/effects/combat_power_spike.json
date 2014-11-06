@@ -12,8 +12,8 @@
          "duration": 3000,
          "start_time": 2500,
          "min_distance": 30,
-         "max_distance": 100,
-         "volume": 22,
+         "falloff" : 3.6,
+         "volume": 30,
          "track" : "stonehearth:sounds:woodsword_powerspike_01"
       },
       "jump": {

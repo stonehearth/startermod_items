@@ -214,41 +214,76 @@ function BuildService:_region_to_road_regions(total_region, origin)
    return curb_region, road_region
 end
 
+function BuildService:_merge_blueprints(box, acceptable_merge_filter_fn)
+   -- look for entities in a 1-voxel border around the box specified.  this lets
+   -- us merge adjacent boxes rather than just overlapping ones.
+   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
+                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
+
+   local total_region = Region3(box)
+
+   local all_overlapping_blueprints = radiant.terrain.get_entities_in_cube(overlap, function(entity)      
+         local is_blueprint = build_util.is_blueprint(entity)
+
+         -- don't merge with things that aren't also blueprints
+         local should_merge = is_blueprint
+
+         -- don't merge with other active blueprints!
+         if should_merge then
+            local cp = entity:get_component('stonehearth:construction_progress')
+            assert(cp, 'blueprint has no construction_progress component!')
+            should_merge = not cp:get_active()
+         end
+
+         -- give the filter a crack at the entity, regardless of whether or not
+         -- we've decided to merge.  sometimes the filter has side-effects (e.g. 
+         -- updating additional regions!)
+         should_merge = acceptable_merge_filter_fn(entity) and should_merge
+
+         if not should_merge then
+            -- we're not merging.  too bad! stencil out the opaque shape of whatever it is we can't merge
+            -- into
+            local rcs = entity:get_component('region_collision_shape')
+            if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+               local region = rcs:get_region():get()
+               region = radiant.entities.local_to_world(region, entity)
+               total_region:subtract_region(region)
+            end
+            if is_blueprint then
+               local dst = entity:get_component('destination')
+               if dst then
+                  local region = dst:get_region():get()
+                  region = radiant.entities.local_to_world(region, entity)
+                  total_region:subtract_region(region)
+               end
+            end
+         end
+         return should_merge
+      end)
+   return all_overlapping_blueprints, total_region
+end
+
 function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, curb_height)
    local road = nil
    local origin = box.min
-   local total_region = Region3(box)
-   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
-                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
    local clip_against_curbs = Region3()
 
    -- look for road that we can merge into.
-   local all_overlapping_road = radiant.terrain.get_entities_in_cube(overlap, function(entity)
+   local all_overlapping_road, total_region = self:_merge_blueprints(box, function(entity)
+         -- it's odd to have curbs around the edges of roads that lead right up to doors,
+         -- so take those off automatically
          if entity:get_component('stonehearth:portal') then
             local rcs = entity:get_component('region_collision_shape')
-
             if rcs then
                local r = radiant.entities.local_to_world(rcs:get_region():get(), entity)
                clip_against_curbs:add_region(r)
             end
             return false
          end
-         if not build_util.is_blueprint(entity) then
-            return false
-         end
-         if self:_get_structure_type(entity) == 'floor' then
-            -- Only merge with roads
-            local fc = entity:get_component('stonehearth:floor')
-            if fc:is_road() then
-               return true
-            end
-         end
 
-         local dst = entity:get_component('destination')
-         if dst then
-            total_region:subtract_region(dst:get_region():get())
-         end
-         return false
+         -- Only merge with other road.
+         local fc = entity:get_component('stonehearth:floor')
+         return fc and fc:is_road()
       end)
 
    local proj_total_region = total_region:project_onto_xz_plane()
@@ -272,31 +307,13 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
 end
 
 function BuildService:add_floor(session, floor_uri, box, brush_shape)
-   local floor
-   local floor_region = Region3(box)
-   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
-                         Point3(box.max.x + 1, box.max.y, box.max.z + 1))
-
-   -- look for floor that we can merge into.
-   local all_overlapping_floor = radiant.terrain.get_entities_in_cube(overlap, function(entity)
-         if not build_util.is_blueprint(entity) then
-            return false
-         end
-         if self:_get_structure_type(entity) == 'floor' then
-            -- Only merge with floors.
-            local fc = entity:get_component('stonehearth:floor')
-            if not fc:is_road() then
-               return true
-            end
-         end
-
-         local dst = entity:get_component('destination')
-         if dst then
-            floor_region:subtract_region(dst:get_region():get())
-         end
-         return false
+   local all_overlapping_floor, floor_region = self:_merge_blueprints(box, function(entity)
+         -- Only merge with floors.
+         local fc = entity:get_component('stonehearth:floor')
+         return fc and not fc:is_road()
       end)
 
+   local floor
    if not next(all_overlapping_floor) then
       -- there was no existing floor at all. create a new building and add a floor
       -- segment to it. 

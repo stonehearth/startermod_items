@@ -25,6 +25,9 @@
             "wooden_door_2" : {
                "uri" : "file(wooden_door_2_recipe.json)"
             }, 
+            "wooden_double_door" : {
+               "uri" : "file(wooden_double_door_recipe.json)"
+            }, 
             "wooden_window_frame" : {
                "uri" : "file(wooden_window_frame_recipe.json)"
             }, 

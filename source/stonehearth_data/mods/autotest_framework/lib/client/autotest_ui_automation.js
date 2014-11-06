@@ -13,6 +13,7 @@ $(document).ready(function(){
                finishCommand();
             } else {
                console.error('could not find element to click! ' + jqselector);
+               setTimeout(try_click, 100);
             }
          }
          try_click();

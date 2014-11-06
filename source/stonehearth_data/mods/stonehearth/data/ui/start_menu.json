@@ -58,7 +58,7 @@
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_mine.png",
       "hotkey" : "3",
-      "game_mode" : "normal",
+      "game_mode" : "mining",
       "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click",
       "items" : {
          "mining_ui" : {

@@ -107,6 +107,11 @@ function PortalEditor:_change_cursor(uri)
 end
 
 function PortalEditor:submit(response)   
+   if not self._fixture_blueprint or not self._fixture_blueprint:get_component('mob') then
+      response:reject('no blueprint')
+      return
+   end
+
    local location = self._fixture_blueprint:get_component('mob'):get_grid_location()
    _radiant.call_obj(self._build_service, 'add_fixture_command', self:get_blueprint(), self._fixture_uri, location)
       :done(function(r)

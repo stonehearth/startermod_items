@@ -118,6 +118,7 @@ function Fabricator:_initialize_existing_project(project)
 end
 
 function Fabricator:instabuild()
+   radiant.terrain.subtract_region(self._total_mining_region:get())
    self._project_dst:get_region():modify(function(cursor)
          cursor:copy_region(self._blueprint_dst:get_region():get())
       end)
@@ -442,6 +443,12 @@ function Fabricator:_stop_project()
    if self._fabricate_task then
       self._fabricate_task:destroy()
       self._fabricate_task = nil
+   end
+
+   for zone, _ in pairs(self._mining_zones) do
+      radiant.entities.destroy_entity(zone)
+      self._mining_zones[zone] = nil
+      self._mining_traces[zone] = nil
    end
 end
 

@@ -15,7 +15,8 @@ $(document).ready(function() {
       modes: {
          NORMAL : "normal",
          ZONES : "zones",
-         BUILD : "build"
+         BUILD : "build",
+         MINING : "mining",
       },
 
       views: {},
@@ -99,7 +100,8 @@ $(document).ready(function() {
             var hudMode = 'normal'
 
             if (mode == this.modes.ZONES ||
-                mode == this.modes.BUILD) {
+                mode == this.modes.BUILD ||
+                mode == this.modes.MINING) {
                hudMode = 'hud';
             }
 

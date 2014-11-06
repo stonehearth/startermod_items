@@ -11,6 +11,11 @@ ReserveEntity.priority = 1
 
 function ReserveEntity:start_thinking(ai, entity, args)
    if not stonehearth.ai:can_acquire_ai_lease(args.entity, entity) then     
+      -- *** UPDATE ***
+      -- we now call :halt() to implement the 'Maybe one day...' case mentioned
+      -- below.  This comment preserved for posterity... - tony
+      --
+      -- [blockquote]
       -- the code used to just return here.  after all, if we're going to abort
       -- on start, can't we just not call set_think_output() and let some other
       -- branch of whatever activity is requesting the reservation take over?
@@ -31,11 +36,10 @@ function ReserveEntity:start_thinking(ai, entity, args)
       -- frame would simply start_thinking() over.  Maybe one day I will implement this,
       -- but we JUST stabilized the AI system and I don't want to wreak havoc on it yet
       -- again. -- tony
-      ai:get_log():debug('%s cannot acquire ai lease on %s.  future abort is quite likey.', args.entity, entity)
-      self._start_thinking_timer = radiant.set_realtime_timer(1000, function ()
-            self._start_thinking_timer = nil
-            ai:set_think_output()
-         end)
+      -- [/blockquote]
+      --
+      ai:get_log():debug('%s cannot acquire ai lease on %s.  halting.', entity, args.entity)
+      ai:halt()
       return
    end
    ai:set_think_output()

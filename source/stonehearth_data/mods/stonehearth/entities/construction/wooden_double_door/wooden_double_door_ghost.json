@@ -1,0 +1,61 @@
+{
+   "type": "entity",
+
+   "components": {
+      "mob" : {
+         "align_to_grid" : [ "x" ]
+      },      
+      "unit_info": {
+         "name": "Wooden Double Door",
+         "description": "A larger door. It makes quite an impression.",
+         "icon" : "file(wooden_double_door.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood portal crafted"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_double_door.qb)"
+            ]
+         }
+      },
+      
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/double_door/double_door.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/double_door/effects/closed.json)"
+      },
+
+      "stonehearth:fixture" : {
+         "valign" : "bottom",
+         "cursor" : "stonehearth:cursors:create_door",
+         "margin" : {
+            "left" : 1,
+            "right" : 1,
+            "top" : 1
+         },
+         "bounds" : {
+            "min" : { "x" : -2, "y" : 0 },
+            "max" : { "x" :  2, "y" : 4 }
+         }
+      },
+      
+      "stonehearth:portal" : {
+         "cutter" : [
+            {
+               "min": {
+                  "x" : -2,
+                  "y" : 0
+               },
+               "max" : {
+                  "x" : 2,
+                  "y" : 4
+               }
+            }
+         ]
+      }
+   }
+}
