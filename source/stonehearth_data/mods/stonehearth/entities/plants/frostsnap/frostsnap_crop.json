@@ -4,27 +4,27 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(brightbell.qb)"
+               "file(frostsnap.qb)"
             ]
          },
-         "brightbell_1": {
+         "frostsnap_1": {
             "models": [
-               "file(brightbell_1.qb)"
+               "file(frostsnap_1.qb)"
             ]
          },
-         "brightbell_2": {
+         "frostsnap_2": {
             "models": [
-               "file(brightbell_2.qb)"
+               "file(frostsnap_2.qb)"
             ]
          },
-         "brightbell_3": {
+         "frostsnap_3": {
             "models": [
-               "file(brightbell_3.qb)"
+               "file(frostsnap_3.qb)"
             ]
          },
-         "brightbell_4": {
+         "frostsnap_4": {
             "models": [
-               "file(brightbell_4.qb)"
+               "file(frostsnap.qb)"
             ]
          }
       },
@@ -35,39 +35,39 @@
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       },
       "unit_info": {
-         "name": "Brightbell Flower", 
-         "description": "Just a flower.", 
-         "icon" : "file(brightbell.png)"
+         "name": "Frostsnap Flower", 
+         "description": "It's chill to the touch.", 
+         "icon" : "file(frostsnap.png)"
       },
       "stonehearth:crop" : {
          "resource_pairings" : {
-            "brightbell_4": "stonehearth:plants:brightbell"
+            "frostsnap_4": "stonehearth:plants:frostsnap"
          }, 
-         "harvest_threshhold" : "brightbell_4", 
+         "harvest_threshhold" : "frostsnap_4", 
          "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
       }, 
       "stonehearth:growing" : {
          "growth_period" : "6h",
          "growth_stages" : [
             {
-               "model_name" : "brightbell_1",
-               "name": "Brightbell Seedling", 
+               "model_name" : "frostsnap_1",
+               "name": "Frostsnap Seedling", 
                "description": "Full of potential."
             },
             {
-               "model_name" : "brightbell_2",
-               "name": "Brightbell Sprout", 
+               "model_name" : "frostsnap_2",
+               "name": "Frostsnap Sprout", 
                "description": "Stubby."
             },
             {
-               "model_name" : "brightbell_3",
-               "name": "Brightbell Bud", 
-               "description": "Awkward, gangly stage."
+               "model_name" : "frostsnap_3",
+               "name": "Frostsnap Bud", 
+               "description": "Like a baby snowflake."
             },
             {
-               "model_name" : "brightbell_4",
-               "name": "Brightbell", 
-               "description": "Beauty is its own reward."
+               "model_name" : "frostsnap_4",
+               "name": "Frostsnap", 
+               "description": "Mysteriously cool."
             }
          ]
       },

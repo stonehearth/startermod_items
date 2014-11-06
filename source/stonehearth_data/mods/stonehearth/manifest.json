@@ -199,6 +199,7 @@
       "brightbell_crop" : "file(entities/plants/brightbell/brightbell_crop.json)", 
       "plants:frostsnap" : "file(entities/plants/frostsnap)",
       "plants:frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
+      "frostsnap_crop" : "file(entities/plants/frostsnap/frostsnap_crop.json)", 
       "plants:silkweed" : "file(entities/plants/silkweed/silkweed)",
 
       "furniture:arch_backed_chair" : "file(entities/furniture/arch_backed_chair)",
