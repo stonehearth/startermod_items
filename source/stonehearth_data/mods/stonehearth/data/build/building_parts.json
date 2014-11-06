@@ -7,7 +7,13 @@
             { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.png", "brush":"/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb" },
             { "id": "diagonal", "name": "Diagonal wooden pattern",    "portrait": "/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.png", "brush":"/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb" }
          ]         
-      }
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "id": "checkered", "name": "Checkered slate floor",    "portrait": "/stonehearth/entities/build/stone_floor/checkered_slate_floor.png", "brush":"/stonehearth/entities/build/stone_floor/checkered_slate_floor.qb" }
+         ]         
+      }            
    ],
 
    "wallPatterns": [
