@@ -29,8 +29,13 @@ function HarvestCropAction:start_thinking(ai, entity, args)
       return
    end
 
-   if carrying:get_uri() ~= crop_component:get_product() then
-      return
+   local crop_product = crop_component:get_product()
+   if carrying:get_uri() ~= crop_product then
+      --Check if the thing I'm carrying is iconic; if so, compare it's actual root entity to the crop product
+      local iconic_component = carrying:get_component('stonehearth:iconic_form')
+      if not iconic_component or (iconic_component and iconic_component:get_root_entity():get_uri() ~= crop_product) then
+         return
+      end
    end
 
    local item_component = carrying:add_component('item')

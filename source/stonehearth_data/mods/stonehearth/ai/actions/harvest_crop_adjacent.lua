@@ -19,7 +19,10 @@ function HarvestCropAdjacent:run(ai, entity, args)
    local crop_component = args.crop:get_component('stonehearth:crop')
    local carrying = radiant.entities.get_carrying(entity)
    if carrying and carrying:get_uri() ~= crop_component:get_product() then
-      ai:abort('not carrying the same type of crop')
+      local iconic_component = carrying:get_component('stonehearth:iconic_form')
+      if not iconic_component or (iconic_component and iconic_component:get_root_entity():get_uri() ~= crop_component:get_product()) then
+         ai:abort('not carrying the same type of crop')
+      end
    end
 
    if not radiant.entities.increment_carrying(entity, self:_get_num_to_increment(entity)) then
@@ -27,6 +30,17 @@ function HarvestCropAdjacent:run(ai, entity, args)
       
       if product_uri ~= nil then
          local product = radiant.entities.create_entity(product_uri)
+         local entity_forms = product:get_component('stonehearth:entity_forms')
+
+         --If there is an entity_forms component, then you want to put the iconic version
+         --in the farmer's arms, not the actual entity (ie, if we had a chair crop)
+         --This also prevents the item component from being added to the full sized versions of things.
+         if entity_forms then
+            local iconic = entity_forms:get_iconic_entity()
+            if iconic then
+               product = iconic
+            end
+         end
          local item_component = product:add_component('item')
          item_component:set_stacks(1)
          radiant.entities.pickup_item(entity, product)

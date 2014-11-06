@@ -18,7 +18,11 @@
       {
          "crop_type" : "stonehearth:silkweed_crop",
          "quantity" : 5
-      }      
+      }, 
+      {
+         "crop_type" : "stonehearth:brightbell_crop",
+         "quantity" : 5
+      }    
    ], 
    "stonehearth:kingdoms:rayyas_children" : [
       {
