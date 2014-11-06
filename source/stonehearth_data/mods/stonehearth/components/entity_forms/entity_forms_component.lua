@@ -132,6 +132,7 @@ function EntityFormsComponent:_update_restock_info()
                                                    self:_on_position_changed()
                                                 end)
       end
+      radiant.events.trigger_async(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self._entity)
    else
       if self._overlay_effect then
          self._overlay_effect:stop()
