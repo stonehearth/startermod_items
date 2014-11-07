@@ -495,7 +495,7 @@ var StonehearthClient;
          var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
 
          return this._callTool('buildFloor', function() {
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush, { sink_floor: true })
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -512,7 +512,7 @@ var StonehearthClient;
 
          return this._callTool('buildSlab', function() {
             // XXX, tony, change this to the correct call pls.
-            return radiant.call_obj(self._build_editor, 'place_new_floor', slabBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_slab', slabBrush, { sink_floor: false })
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })

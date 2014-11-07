@@ -217,7 +217,7 @@ end
 function BuildService:_merge_blueprints(box, acceptable_merge_filter_fn)
    -- look for entities in a 1-voxel border around the box specified.  this lets
    -- us merge adjacent boxes rather than just overlapping ones.
-   local overlap = Cube3(Point3(box.min.x - 1, box.min.y, box.min.z - 1),
+   local overlap = Cube3(Point3(box.min.x - 1, box.min.y - 1, box.min.z - 1),
                          Point3(box.max.x + 1, box.max.y, box.max.z + 1))
 
    local total_region = Region3(box)

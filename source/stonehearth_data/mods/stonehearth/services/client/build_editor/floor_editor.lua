@@ -12,23 +12,45 @@ local FloorEditor = class()
 local log = radiant.log.create_logger('build_editor.floor')
 
 -- this is the component which manages the fabricator entity.
-function FloorEditor:__init(build_service)
+function FloorEditor:__init(build_service, options)
    log:debug('created')
 
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
-   self._cut_region = _radiant.client.alloc_region3()
-   _radiant.renderer.add_terrain_cut(self._cut_region)
+   self._sink_floor = options.sink_floor
+
+   if self._sink_floor then
+      self._cut_region = _radiant.client.alloc_region3()
+      _radiant.renderer.add_terrain_cut(self._cut_region)
+   end
 end
 
 function FloorEditor:go(response, brush_shape)
    local brush = _radiant.voxel.create_brush(brush_shape)
 
    log:detail('running')
-   stonehearth.selection:select_xz_region()
-      :require_unblocked(false)
-      :select_front_brick(false)
-      :allow_select_cursor(true)
+
+   local selector = stonehearth.selection:select_xz_region()
+   
+   if self._sink_floor then
+      -- the default xz region selector will grab the blocks adjacent to the one
+      -- the cursor is under.  we want to sink into the terrain, so return the
+      -- actual brink we're pointing to instead
+      selector:select_front_brick(false)
+
+      -- we need to be able to intersect our cursor in the query function to make
+      -- sure we get points on a plane.  if we're not sinking, though, we want to
+      -- pierce the cursor to make sure we hit the actual ground.
+      selector:allow_select_cursor(true)
+
+      selector:require_unblocked(false)
+   else
+      -- at least when placing slabs, make sure there's empty space when dragging
+      -- the cursor
+      selector:require_unblocked(true)
+   end
+
+   selector
       :set_cursor('stonehearth:cursors:create_floor')
       :set_find_support_filter(stonehearth.selection.edit_floor_xz_region_filter)
       :use_manual_marquee(function(selector, box)
@@ -37,10 +59,13 @@ function FloorEditor:go(response, brush_shape)
             local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3.zero)
             node:set_position(MODEL_OFFSET)
 
-            -- Update the cut region for the floor
-            self._cut_region:modify(function(cursor)
-                  cursor:copy_region(box_region)
-               end)
+            if self._cut_region then
+               -- Update the cut region for the floor
+               self._cut_region:modify(function(cursor)
+                     cursor:copy_region(box_region)
+                  end)
+            end
+
             return node
          end)
       :done(function(selector, box)
@@ -49,12 +74,14 @@ function FloorEditor:go(response, brush_shape)
          end)
       :fail(function(selector)
             log:detail('failed to select box')
+            if self._cut_region then
+               _radiant.renderer.remove_terrain_cut(self._cut_region)
+               self._cut_region = nil
+            end
             response:reject('no region')
          end)
       :always(function()
             log:detail('selector called always')
-            _radiant.renderer.remove_terrain_cut(self._cut_region)
-            self._cut_region = nil
          end)
       :go()
 

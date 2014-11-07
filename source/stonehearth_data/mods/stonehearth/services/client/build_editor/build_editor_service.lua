@@ -97,8 +97,8 @@ function BuildEditorService:place_new_wall(session, response, columns_uri, walls
          :go(columns_uri, walls_uri, response)
 end
 
-function BuildEditorService:place_new_floor(session, response, brush_shape)
-   FloorEditor(self._build_service)
+function BuildEditorService:place_new_floor(session, response, brush_shape, options)
+   FloorEditor(self._build_service, options)
          :go(response, brush_shape)
 end
 
