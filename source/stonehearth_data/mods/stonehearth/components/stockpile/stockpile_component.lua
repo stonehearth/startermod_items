@@ -87,6 +87,7 @@ function StockpileComponent:initialize(entity, json)
    if not self._sv.stocked_items then
       -- creating...
       --self._sv.should_steal = false
+      self._sv.size = Point2(0, 0)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv._filter_key = 'stockpile nofilter'
@@ -378,10 +379,10 @@ function StockpileComponent:_add_item_to_stock(entity)
                               :add_item(entity)
    end
    
-   --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
-   --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    
+   --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
+   --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger(self._entity, "stonehearth:stockpile:item_added", { 
       stockpile = self._entity,
       item = entity 

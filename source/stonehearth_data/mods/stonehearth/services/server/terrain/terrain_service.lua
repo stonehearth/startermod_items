@@ -28,6 +28,8 @@ function TerrainService:initialize()
    self._last_optimized_rect_count = 10
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
 
+   self._enable_full_vision = radiant.util.get_config('enable_full_vision', false)
+
    self:_register_events()
 end
 
@@ -187,10 +189,13 @@ end
 
 function TerrainService:_get_visible_region(player_id)
    local terrain_bounds = self:_get_terrain_region()
+   if self._enable_full_vision then
+      return terrain_bounds
+   end
+
    local visible_region = Region2()
    local pop, citizens, entity_region, bounded_visible_region
 
-   -- TODO: where do we get the kingdom name from?
    local friendly_pops = stonehearth.population:get_friendly_populations(player_id)
    for player_id, pop in pairs(friendly_pops) do
       citizens = pop:get_citizens()

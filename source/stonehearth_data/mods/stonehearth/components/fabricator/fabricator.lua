@@ -571,7 +571,7 @@ function Fabricator:_update_mining_region()
    local player_id = radiant.entities.get_player_id(self._blueprint)
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
    
-   if not self._mining_zones[mining_zone] then
+   if mining_zone and not self._mining_zones[mining_zone] then
       local mining_dst = mining_zone:get_component('destination')
       self._mining_zones[mining_zone] = mining_dst
 

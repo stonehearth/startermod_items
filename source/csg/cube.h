@@ -21,7 +21,7 @@ public:
 
 public:
    Cube();
-   Cube(Point const& max_value, int tag = 0);
+   Cube(Point const& min_value, int tag = 0);
    Cube(Point const& min_value, Point const& max_value, int tag = 0);
 
    static Cube Construct(Point min_value, Point max_value, int tag = 0) {

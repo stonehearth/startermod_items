@@ -85,7 +85,7 @@ function MiningZoneComponent:mine_point(point)
    local block_kind = radiant.terrain.get_block_kind_at(point)
    local loot = stonehearth.mining:roll_loot(block_kind)
 
-   radiant.terrain.subtract_point(point)
+   stonehearth.mining:mine_point(point)
    self:_update_destination()
 
    if self._destination_component:get_region():get():empty() then

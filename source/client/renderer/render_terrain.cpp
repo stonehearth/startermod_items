@@ -222,15 +222,26 @@ void RenderTerrain::SetClipHeight(int height)
    int old_clip_height = _clip_height;
    _clip_height = height;
 
-   for (auto const& entry : tiles_) {
-      int min_y = entry.first.y;
-      int max_y = min_y + _tileSize.y;
-      // mark dirty all tiles affected by the previous and current clip heights
-      if (csg::IsBetween(min_y, old_clip_height, max_y) || csg::IsBetween(min_y, _clip_height, max_y)) {
-         // technically, we only need to mark the geometry dirty, but this is convenient
-         MarkDirty(entry.first);
-      }
+   om::TerrainPtr terrainPtr = terrain_.lock();
+   if (!terrainPtr) {
+      return;
    }
+
+   csg::Cube3 slice = csg::ToInt(terrainPtr->GetBounds());
+
+   // dirty the tiles intersecting the old clip plane
+   slice.min.y = old_clip_height;
+   slice.max.y = slice.min.y + 1;
+   EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      MarkDirty(cursor);
+   });
+
+   // dirty the tiles intersecting the new clip plane
+   slice.min.y = _clip_height;
+   slice.max.y = slice.min.y + 1;
+   EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
+      MarkDirty(cursor);
+   });
 }
 
 void RenderTerrain::UpdateNeighbors()
