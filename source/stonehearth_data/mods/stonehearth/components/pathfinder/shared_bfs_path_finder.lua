@@ -30,7 +30,7 @@ function SharedBfsPathFinder:__init(entity, start_location, filter_result_cache,
 
    self._log:info("created")
 
-   self._reconsider_listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._consider_destination)
+   self._reconsider_listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', self, self._reconsider_destination)
 end
 
 
@@ -205,9 +205,9 @@ function SharedBfsPathFinder:_get_parent_entity(target)
    return parent
 end
 
-function SharedBfsPathFinder:_consider_destination(target)
+function SharedBfsPathFinder:_reconsider_destination(target)
    if self._pathfinder then
-      self._log:detail('considering adding %s to pathfinder', target)
+      self._log:detail('reconsidering adding %s to pathfinder', target)
       self._pathfinder:reconsider_destination(target)
    end
 end

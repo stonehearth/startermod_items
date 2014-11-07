@@ -300,6 +300,7 @@ end
 function StockpileComponent:set_size(x, y)
    self._sv.size = Point2(x, y)
    self:_rebuild_item_sv()
+   self:_create_worker_tasks()
 end
 
 -- notification from the 'stonehearth:restock_stockpile' action that an item has
@@ -488,6 +489,7 @@ end
 
 function StockpileComponent:_destroy_tasks()
    if self._restock_task then
+      log:debug('destroying restock task')
       self._restock_task:destroy()
       self._restock_task = nil
    end
@@ -497,12 +499,17 @@ end
 function StockpileComponent:_create_worker_tasks()
    self:_destroy_tasks()
 
-   local town = stonehearth.town:get_town(self._entity)
-   self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
-                           :set_source(self._entity)
-                           :set_name('restock task')
-                           :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
-                           :start()
+   if self._sv.size.x > 0 and self._sv.size.y > 0 then
+      local town = stonehearth.town:get_town(self._entity)
+      if town then 
+         log:debug('creating restock task')
+         self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
+                                 :set_source(self._entity)
+                                 :set_name('restock task')
+                                 :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
+                                 :start()
+      end
+   end
 end
 
 return StockpileComponent
