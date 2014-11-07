@@ -12,27 +12,24 @@ local FloorEditor = class()
 local log = radiant.log.create_logger('build_editor.floor')
 
 -- this is the component which manages the fabricator entity.
-function FloorEditor:__init(build_service, options)
+function FloorEditor:__init(build_service)
    log:debug('created')
 
    self._build_service = build_service
    self._log = radiant.log.create_logger('builder')
-   self._sink_floor = options.sink_floor
-
-   if self._sink_floor then
-      self._cut_region = _radiant.client.alloc_region3()
-      _radiant.renderer.add_terrain_cut(self._cut_region)
-   end
 end
 
-function FloorEditor:go(response, brush_shape)
-   local brush = _radiant.voxel.create_brush(brush_shape)
-
+function FloorEditor:go(response, brush_shape, options)
    log:detail('running')
 
+   local brush = _radiant.voxel.create_brush(brush_shape)
    local selector = stonehearth.selection:select_xz_region()
    
-   if self._sink_floor then
+   if options.sink_floor then
+      -- create a terrain cut region to remove the terrain overlapping the cursor
+      self._cut_region = _radiant.client.alloc_region3()
+      _radiant.renderer.add_terrain_cut(self._cut_region)
+
       -- the default xz region selector will grab the blocks adjacent to the one
       -- the cursor is under.  we want to sink into the terrain, so return the
       -- actual brink we're pointing to instead

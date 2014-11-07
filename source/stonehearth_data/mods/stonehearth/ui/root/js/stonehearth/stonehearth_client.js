@@ -125,7 +125,7 @@ var StonehearthClient;
          debug_log('new call to _callTool... ');
 
          var activateTool = function() {
-            console.log('activating tool...')
+            debug_log('activating tool...')
             if (preCall) {
                debug_log('in preCall for activateTool...');
                preCall();
@@ -495,7 +495,7 @@ var StonehearthClient;
          var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
 
          return this._callTool('buildFloor', function() {
-            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush, { sink_floor: true })
+            return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -511,8 +511,7 @@ var StonehearthClient;
          var tip = self.showTip('stonehearth:build_slab_tip_title', 'stonehearth:build_slab_tip_description', { i18n: true });
 
          return this._callTool('buildSlab', function() {
-            // XXX, tony, change this to the correct call pls.
-            return radiant.call_obj(self._build_editor, 'place_new_slab', slabBrush, { sink_floor: false })
+            return radiant.call_obj(self._build_editor, 'place_new_slab', slabBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })

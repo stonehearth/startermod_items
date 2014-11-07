@@ -97,9 +97,14 @@ function BuildEditorService:place_new_wall(session, response, columns_uri, walls
          :go(columns_uri, walls_uri, response)
 end
 
-function BuildEditorService:place_new_floor(session, response, brush_shape, options)
-   FloorEditor(self._build_service, options)
-         :go(response, brush_shape)
+function BuildEditorService:place_new_floor(session, response, brush_shape)
+   FloorEditor(self._build_service)
+         :go(response, brush_shape, { sink_floor = true })
+end
+
+function BuildEditorService:place_new_slab(session, response, slab_shape)
+   FloorEditor(self._build_service)
+         :go(response, slab_shape, { sink_floor = false })
 end
 
 function BuildEditorService:erase_structure(session, response, brush_shape)
