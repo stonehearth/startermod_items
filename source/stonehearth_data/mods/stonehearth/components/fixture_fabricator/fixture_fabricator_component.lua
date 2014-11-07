@@ -259,12 +259,40 @@ end
 
 function FixtureFabricator:rotate_structure(degrees)
    local mob = self._entity:get_component('mob')
-   local rotated = mob:get_location()
-                           :rotated(degrees)
+   local location = mob:get_location()
+   local rotated = location:rotated(degrees)
+
+   if degrees == 270 or degrees == 180 then
+      --
+      -- what the heck is going on here?  basically other parts of the system want to
+      -- maintain the invariant that square region's maintain their same position in
+      -- the world when rotated, even if the origin is not exactly at the center of
+      -- the region.  this is accomplished by the axis alignment flags on the mob
+      -- component.
+      --
+      -- this means that when an entity is rotated beyond 180 degress, the origin
+      -- flips to the other side of the region (e.g. -1, 0 -> 0, 1).  to account
+      -- for this, move the fixture along the wall by an opposite amount.
+      --
+      -- yes, this is very "voodoo magic".  i apologize and loathe myself for writing
+      -- it. - tony
+      --
+      local alignment = mob:get_align_to_grid_flags()
+      if alignment ~= 0 then
+         local wall = mob:get_parent()
+                           :get_component('stonehearth:wall')
+         if wall then
+            local t = wall:get_tangent_coord()
+            rotated[t] = rotated[t] + 1
+         end
+      end
+   end
+
    mob:move_to(rotated)
 
    local rotation = build_util.rotated_degrees(mob:get_facing(), degrees)
    mob:turn_to(rotation)
+
 
    self._post_load_rotation = degrees
 end
