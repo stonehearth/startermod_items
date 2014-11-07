@@ -92,10 +92,10 @@
       "4" : {
          "perks" : [
             {
-               "name" : "Ingenuity Enhancements (not implemented)", 
+               "name" : "Extended Catalog", 
                "id" : "crafter_recipe_unlock_4", 
                "icon" : "file(images/carpenterLv4.png)", 
-               "description" : "The carpenter adds new levels of functionality to classic recipes.", 
+               "description" : "The carpenter now has the courage to try more elaborate projects.", 
                "level" : 4
             }
          ]

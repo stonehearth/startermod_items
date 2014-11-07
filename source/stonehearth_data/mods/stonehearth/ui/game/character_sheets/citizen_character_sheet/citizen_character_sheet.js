@@ -1,5 +1,6 @@
 App.StonehearthCitizenCharacterSheetView = App.View.extend({
 	templateName: 'citizenCharacterSheet',
+   uriProperty: 'context.data',
    closeOnEsc: true,
 
    components: {
@@ -9,6 +10,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             '*' : {}
          }
       },
+      
       'stonehearth:equipment' : {
          'equipped_items' : {
             '*' : {
@@ -16,15 +18,19 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             }
          }
       },
+      
       'stonehearth:attributes' : {},
       'stonehearth:personality' : {},
       'stonehearth:score' : {}, 
+      
+      
       'stonehearth:job' : {
          'curr_job_controller' : {},
          'job_controllers' : {
             '*' : {}
          }
       }
+      
    },
 
    init: function() {
@@ -60,21 +66,21 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
    //Updates job related attributes
    _updateJobData : function() {
-      this.set('currJobIcon', this.get('context.stonehearth:job.class_icon'));
+      this.set('currJobIcon', this.get('context.data.stonehearth:job.class_icon'));
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
-   }.observes('context.stonehearth:job'),
+   }.observes('context.data.stonehearth:job'),
 
    //Updates perk table
    _updateJobDataDetails: function() {
       Ember.run.scheduleOnce('afterRender', this, '_updateJobsAndPerks');
-   }.observes('context.stonehearth:job.curr_job_controller'),
+   }.observes('context.data.stonehearth:job.curr_job_controller'),
 
    //Go through each job we've had and annotate the perk table accordingly
    _updateJobsAndPerks : function() {
       var self = this;
 
       //show each class that this person has ever been
-      var jobs = this.get('context.stonehearth:job.job_controllers');
+      var jobs = this.get('context.data.stonehearth:job.job_controllers');
       $.each(jobs, function(alias, data) {
          if(alias != "__self" && jobs.hasOwnProperty(alias)) {
             var div = self.$("[uri='" + alias + "']");
@@ -95,13 +101,13 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       $('.activeClassNameHeader').removeClass('activeClassNameHeader');
       $('.className').addClass('retiredClassNameHeader');
       $('.jobData').addClass('retiredEffect');
-      var currClassAlias = this.get('context.stonehearth:job.job_uri');
+      var currClassAlias = this.get('context.data.stonehearth:job.job_uri');
       var $currClass = $("[uri='" + currClassAlias + "']");
       $currClass.prependTo("#citizenCharacterSheet #abilitiesTab");
       $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
       $currClass.removeClass('retiredEffect');
       //$currClass.removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
-      self._unlockPerksToLevel($currClass,  this.get('context.stonehearth:job.curr_job_controller.last_gained_lv'))
+      self._unlockPerksToLevel($currClass,  this.get('context.data.stonehearth:job.curr_job_controller.last_gained_lv'))
       $currClass.find('.retiredAt').hide();
 
       //Make the job tooltips
@@ -160,31 +166,31 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    _setFirstJournalEntry: function() {
-      var log = this.get('context.stonehearth:personality.log');
+      var log = this.get('context.data.stonehearth:personality.log');
 
       if (log && log.length > 0) {
-         this.set('context.firstJournalEntry', log[0]);
+         this.set('context.data.firstJournalEntry', log[0]);
 
          var targetLog = log[0].entries[log[0].entries.length-1]
-         this.set('context.firstJournalEntryText', targetLog.text);
-         this.set('context.firstJournalEntryTitle', targetLog.title);
+         this.set('context.data.firstJournalEntryText', targetLog.text);
+         this.set('context.data.firstJournalEntryTitle', targetLog.title);
 
          if (targetLog.scoreData != null) {
-            this.set('context.firstJournalEntryScore', true);
-            this.set('context.firstJournalEntryScoreIsUp', targetLog.scoreData.score_mod > 0);
+            this.set('context.data.firstJournalEntryScore', true);
+            this.set('context.data.firstJournalEntryScoreIsUp', targetLog.scoreData.score_mod > 0);
          } else {
-            this.set('context.firstJournalEntryScore', false);
+            this.set('context.data.firstJournalEntryScore', false);
          }
       } else {
-         this.set('context.firstJournalEntry', { title: "no entries" });
-         this.set('context.firstJournalEntryTitle', 'no entries');
+         this.set('context.data.firstJournalEntry', { title: "no entries" });
+         this.set('context.data.firstJournalEntryTitle', 'no entries');
       }
 
-   }.observes('context.stonehearth:personality'),
+   }.observes('context.data.stonehearth:personality'),
 
    _buildBuffsArray: function() {
         var vals = [];
-        var map = this.get('context.stonehearth:buffs.buffs');
+        var map = this.get('context.data.stonehearth:buffs.buffs');
         
         if (map) {
            $.each(map, function(k ,v) {
@@ -194,13 +200,14 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
            });
         }
 
-        this.set('context.buffs', vals);
-    }.observes('context.stonehearth:buffs'),
+        this.set('context.data.buffs', vals);
+    }.observes('context.data.stonehearth:buffs'),
 
+    
    _grabEquipment: function() {
       var self = this;
       var slots = ['torso', 'mainhand', 'offhand'];
-      var equipment = self.get('context.stonehearth:equipment.equipped_items');
+      var equipment = self.get('context.data.stonehearth:equipment.equipped_items');
       $.each(slots, function(i, slot) {
          var equipmentPiece = equipment[slot];
          /*
@@ -216,15 +223,17 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
             slotDiv.html('');
          }*/
 
+         
          self.set('equipment.' + slot, equipmentPiece);
       });
 
-    }.observes('context.stonehearth:equipment.equipped_items'),
+    }.observes('context.data.stonehearth:equipment.equipped_items'),
+   
 
     //When the attribute data changes, update the bars
    _setAttributeData: function() {
       Ember.run.scheduleOnce('afterRender', this, '_updateAttributes');
-   }.observes('context.stonehearth:attributes', 'context.stonehearth:buffs'),
+   }.observes('context.data.stonehearth:attributes' , 'context.data.stonehearth:buffs'),
 
    _updateAttributes: function() {
       var self = this;
@@ -243,9 +252,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          self._showBuffEffects(this, buffsByAttribute);
       }); 
 
-      var healthPercent = Math.floor(self.get('context.stonehearth:attributes.attributes.health.user_visible_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.user_visible_value'))
-      var moralePercent = Math.floor(self.get('context.stonehearth:score.scores.happiness.score'));
-      var expPercent = Math.floor(self.get('context.stonehearth:job.current_level_exp') * 100 / self.get('context.stonehearth:job.xp_to_next_lv'))
+      var healthPercent = Math.floor(self.get('context.data.stonehearth:attributes.attributes.health.user_visible_value') * 100 / self.get('context.stonehearth:attributes.attributes.max_health.user_visible_value'))
+      var moralePercent = Math.floor(self.get('context.data.stonehearth:score.scores.happiness.score'));
+      var expPercent = Math.floor(self.get('context.data.stonehearth:job.current_level_exp') * 100 / self.get('context.data.stonehearth:job.xp_to_next_lv'))
       self.$('.healthBar').width(healthPercent + '%');
       self.$('.moraleBar').width(moralePercent + '%');
       self.$('.expBar').width(expPercent + '%');
@@ -261,8 +270,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    //Call on a jquery object (usually a div) whose ID matches the name of the attribute
    _showBuffEffects: function(obj, buffsByAttribute) {
       var attrib_name = $(obj).attr('id');
-      var attrib_value = this.get('context.stonehearth:attributes.attributes.' + attrib_name + '.value');
-      var attrib_e_value = this.get('context.stonehearth:attributes.attributes.' + attrib_name + '.user_visible_value');
+      var attrib_value = this.get('context.data.stonehearth:attributes.attributes.' + attrib_name + '.value');
+      var attrib_e_value = this.get('context.data.stonehearth:attributes.attributes.' + attrib_name + '.user_visible_value');
 
       if (attrib_e_value > attrib_value) {
          //If buff, make text green
@@ -306,7 +315,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    },
 
    _sortBuffsByAttribute: function() {
-      var allBuffs = this.get('context.stonehearth:buffs.buffs');
+      var allBuffs = this.get('context.data.stonehearth:buffs.buffs');
       var buffsByAttribute = {};
       if (allBuffs) {
          $.each(allBuffs, function(k ,v) {
@@ -355,8 +364,8 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    didInsertElement: function() {
       var self = this;
 
-      var p = this.get('context.stonehearth:personality');
-      var b = this.get('context.stonehearth:buffs');
+      var p = this.get('context.data.stonehearth:personality');
+      var b = this.get('context.data.stonehearth:buffs');
 
       // have the character sheet tract the selected entity.
       $(top).on("radiant_selection_changed.citizen_character_sheet", function (_, data) {
