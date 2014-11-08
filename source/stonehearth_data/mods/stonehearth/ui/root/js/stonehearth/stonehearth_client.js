@@ -473,12 +473,11 @@ var StonehearthClient;
          }, precall);
       },
 
-      buildWall: function(column, wall, precall) {
+      buildWall: function(column, wall) {
          var self = this;
 
-         var tip = self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
-
-         return this._callTool('buildWall', function() {
+         return function() {
+            var tip = self.showTip('stonehearth:wall_segment_tip_title', 'stonehearth:wall_segment_tip_description', { i18n: true });
             return radiant.call_obj(self._build_editor, 'place_new_wall', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -486,23 +485,33 @@ var StonehearthClient;
                .fail(function(response) {
                   self.hideTip(tip);
                });
-         }, precall);
+         }
       },
 
-      buildFloor: function(floorBrush, precall) {
+
+      buildFloor : function(floorBrush) {
          var self = this;
-
-         var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
-
-         return this._callTool('buildFloor', function() {
+         return function() {
+            var tip = self.showTip('stonehearth:build_floor_tip_title', 'stonehearth:build_floor_tip_description', { i18n: true });
             return radiant.call_obj(self._build_editor, 'place_new_floor', floorBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
                .fail(function(response) {
                   self.hideTip(tip);
-               });
-         }, precall);
+               });      
+         };
+      },
+
+      callTool: function(toolStruct) {
+         var self = this;
+
+         this._callTool(toolStruct.toolId, toolStruct.invokeTool(), toolStruct.precall)
+            .done(function(response) {
+               if (toolStruct.repeat) {
+                  self.callTool(toolStruct);
+               }
+            });
       },
 
       buildSlab: function(slabBrush, precall) {
@@ -580,17 +589,16 @@ var StonehearthClient;
          return radiant.call_obj(this._build_editor, 'set_grow_roof_options', options);
       },
 
-      growWalls: function(column, wall, precall) {
+      growWalls: function(column, wall) {
          var self = this;
 
-         var tip = self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
-
-         return this._callTool('growWalls', function() {
+         return function() {
+            var tip = self.showTip('stonehearth:raise_walls_tip_title', 'stonehearth:raise_walls_tip_description', { i18n: true } );
             return radiant.call_obj(self._build_editor, 'grow_walls', column, wall)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'});
                });
-         }, precall);
+         };
       },
 
       replaceStructure: function(old_structure, new_structure_uri) {
@@ -606,19 +614,17 @@ var StonehearthClient;
          }
       },
 
-      addDoodad: function(doodadUri, precall) {
+      addDoodad: function(doodadUri) {
          var self = this;
 
-         // xxx localize
-         var tip = self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
-
-         return this._callTool('addDoodad', function() {
+         return function() {
+            var tip = self.showTip('stonehearth:doodad_tip_title', 'stonehearth:doodad_tip_description', { i18n: true });
             return radiant.call_obj(self._build_editor, 'add_doodad', doodadUri)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   self.hideTip();
                });
-         }, precall);
+         };
       },
 
       buildRoom: function() {
