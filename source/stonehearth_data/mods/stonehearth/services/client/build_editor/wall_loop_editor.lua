@@ -56,6 +56,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                current_column_editor:move_to(last_location)
             else
                current_column_editor:destroy()
+               response:resolve({ success = true })
             end
          end)
       :fail(function(selector)
@@ -63,6 +64,7 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
                last_column_editor:destroy()
             end
             current_column_editor:destroy()
+            response:reject('reject')
          end)
       :go()
    
@@ -113,7 +115,6 @@ function WallLoopEditor:_pump_queue()
             :always(function ()
                   entry.editor:destroy()
                   self._waiting_for_response = false
-                  self:_pump_queue()
                end)
 end
 
