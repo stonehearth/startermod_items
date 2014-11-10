@@ -67,6 +67,10 @@ function TaskGroup:get_name()
    return self._activity.name
 end
 
+function TaskGroup:get_next_task_id()
+   return self._scheduler:get_next_task_id()
+end
+
 function TaskGroup:remove_worker(id)
    assert(type(id) == 'number')
    local entry = self._workers[id]
