@@ -52,7 +52,7 @@ var DrawDoodadTool;
 
       restoreState: function(state) {
          this.doodadMaterial = state.doodadMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.floorMaterial]);
+         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.doodadMaterial]);
          selectedMaterial.addClass('selected');
          this.brush = selectedMaterial.attr('brush');
       }

@@ -13,10 +13,9 @@ end
 function DoodadPlacer:destroy()
    stonehearth.selection:register_tool(self, false)
 
-   local response = self._response
-   if response then
-      self._response = nil
-      response:reject({ error = 'selection cancelled' })
+   if self._invalid_cursor then
+      self._invalid_cursor:destroy()
+      self._invalid_cursor = nil
    end
 
    if self._wall_editor then
@@ -27,6 +26,12 @@ function DoodadPlacer:destroy()
    if self._capture then
       self._capture:destroy()
       self._capture = nil
+   end
+
+   local response = self._response
+   if response then
+      self._response = nil
+      response:reject({ error = 'selection cancelled' })
    end
 end
 
@@ -58,6 +63,11 @@ function DoodadPlacer:_on_mouse_event(e)
          if not self._wall_editor then
             local fabricator, blueprint, project = build_util.get_fbp_for(entity)
             if blueprint and blueprint:get_component('stonehearth:wall') then
+               if self._invalid_cursor then
+                  self._invalid_cursor:destroy()
+                  self._invalid_cursor = nil
+               end
+
                log:detail('got blueprint %s', tostring(blueprint))
                log:detail('creating wall editor for blueprint: %s', blueprint)
                self._wall_editor = PortalEditor(self._build_service)
@@ -71,6 +81,16 @@ function DoodadPlacer:_on_mouse_event(e)
          end
       end
    end
+
+   if not self._wall_editor then
+      if not self._invalid_cursor then
+         self._invalid_cursor = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+      end
+   elseif self._invalid_cursor then
+      self._invalid_cursor:destroy()
+      self._invalid_cursor = nil
+   end
+
    if e:up(1) then
       if self._wall_editor then
          self._wall_editor:submit(self._response)
