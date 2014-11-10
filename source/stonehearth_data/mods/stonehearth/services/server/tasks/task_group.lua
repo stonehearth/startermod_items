@@ -50,6 +50,7 @@ function TaskGroup:destroy_all_tasks()
    assert(next(self._tasks) == nil)
 end
 
+-- adds a worker to the task group
 function TaskGroup:add_worker(worker)
    local id = worker:get_id()
    assert(not self._workers[id])
@@ -321,6 +322,78 @@ function TaskGroup:_update(count)
    end
    
    return feed_count
+end
+
+function TaskGroup:_greedy_prioritize_tasks()
+   local ptasks = {}
+   for task, _ in pairs(self._feeding) do
+      table.insert(ptasks, task)
+   end
+
+   table.sort(ptasks, function(l, r)
+         return l:get_priority() > r:get_priority()
+      end)
+
+   return ptasks
+end
+
+function TaskGroup:_find_best_worker_for(task)
+   local best_worker, best_d
+
+   for id, entry in pairs(self._workers) do
+      -- ignore tasks that we're already doing
+      local ignore = entry.all_fed_tasks[task]
+
+      if not ignore then
+         local worker = entry.worker
+         if not worker:is_valid() then
+            self._workers[id] = nil
+         else
+            -- prefer workers who are closer...
+            local d = task:_estimate_task_distance(worker)
+            if not best_d or d < best_d then
+               best_worker, best_d = worker, d
+            end
+         end
+      end
+   end
+
+   return best_worker
+end
+
+function TaskGroup:_feed_worker_to_task(worker, task)
+   self._log:debug('feeding worker %s to task %s', tostring(worker), task:get_name())
+   local entry = self._workers[worker:get_id()]
+
+   assert(not entry.all_fed_tasks[task])
+   entry.all_fed_tasks[task] = true
+   entry.all_fed_tasks_count = entry.all_fed_tasks_count + 1
+   task:_feed_worker(entry.worker)
+end
+
+if radiant.util.get_config('enable_greedy_task_scheduling', true) then
+   radiant.log.write('stonehearth', 0, 'greedy task scheduling enabled')
+   function TaskGroup:_update(max_feed)
+      local fed = 0
+
+      -- our goal is to get tasks done in relative priority order.  start off
+      -- by sorting them as so.  this also narrows the field to only tasks which
+      -- should be run (e.g. removing paused tasks)
+      local ptasks = self:_greedy_prioritize_tasks()
+      for _, task in ipairs(ptasks) do
+         -- find the best worker for the task
+         local worker = self:_find_best_worker_for(task)
+         if worker then
+            self:_feed_worker_to_task(worker, task)
+            fed = fed + 1
+            if fed >= max_feed then
+               break
+            end
+         end
+      end
+
+      return fed
+   end
 end
 
 function TaskGroup:get_counter_name()

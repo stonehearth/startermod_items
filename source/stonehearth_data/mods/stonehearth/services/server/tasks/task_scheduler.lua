@@ -10,9 +10,16 @@ function TaskScheduler:__init(name)
    self._task_groups = {}
    self._poll_interval = radiant.util.get_config('task_poll_interval', 100)
    self._max_feed_per_interval = radiant.util.get_config('task_max_feed_per_interval', 5)
+   self._next_task_id = 1000
    self._last_task_group_index = 1
 
    self:_start_update_timer()
+end
+
+function TaskScheduler:get_next_task_id()
+   local next_id = self._next_task_id
+   self._next_task_id = self._next_task_id + 1
+   return next_id
 end
 
 function TaskScheduler:get_name()

@@ -17,7 +17,7 @@ function Task:__init(task_group, activity)
    self._task_group = task_group
    self._activity = activity
      
-   self._id = NEXT_TASK_ID
+   self._id = task_group:get_next_task_id()
    NEXT_TASK_ID = NEXT_TASK_ID + 1
    self._log = radiant.log.create_logger('task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', task_group:get_name())
