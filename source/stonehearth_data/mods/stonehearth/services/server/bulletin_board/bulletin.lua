@@ -55,7 +55,9 @@ function Bulletin:set_data(data)
    return self
 end
 
-function Bulletin:modify_data(data)
+-- xxx: this function goes against the grain of the rest of the api.  either rename
+-- it or make it take a function which modifies the data!
+function Bulletin:modify(data)
    for k,v in pairs(data) do 
       self._sv.data[k] = v 
    end

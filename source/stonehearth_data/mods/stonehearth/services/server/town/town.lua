@@ -165,10 +165,10 @@ function Town:create_task_for_group(task_group_name, activity_name, args)
    return task_group:create_task(activity_name, args)
 end
 
-function Town:leave_task_group(entity, name)
+function Town:leave_task_group(entity_id, name)
    local task_group = self._task_groups[name]
    assert(task_group, string.format('unknown task group "%s"', name))
-   task_group:remove_worker(entity:get_id())
+   task_group:remove_worker(entity_id)
    return self
 end
 
@@ -428,6 +428,7 @@ function Town:enable_worker_combat()
          radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
          radiant.entities.add_buff(citizen, 'stonehearth:buffs:defender');
 
+         -- xxx: let's do this by given them an item with a buff.  tasks are expensive.
          local task = citizen:add_component('stonehearth:ai')
             :get_task_group('stonehearth:urgent_actions')
             :create_task('stonehearth:town_defense:dispatcher')

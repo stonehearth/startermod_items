@@ -167,8 +167,8 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
          .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
          .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
          .def("get_data_object_id", &DataStore_GetDataObjectId) // xxx: don't we need dependency(_1, _2) here?
-         .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
-         .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
+         .def("modify",         &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
+         .def("get",            &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("trace_data",     &DataStore_TraceAsync)
          .def("restore",        &DataStore_Restore)

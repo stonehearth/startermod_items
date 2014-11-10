@@ -409,7 +409,7 @@ end
 function JobComponent:_remove_from_task_groups(task_groups)
    local town = stonehearth.town:get_town(self._entity)
    for i, task_group_name in ipairs(task_groups) do
-      town:leave_task_group(self._entity, task_group_name)
+      town:leave_task_group(self._entity:get_id(), task_group_name)
    end
 end
 

@@ -14,7 +14,7 @@ local log = radiant.log.create_logger('static_scenario_service')
 local StaticScenarioService = class()
 
 function StaticScenarioService:initialize()
-   self.__saved_variables:read_data(function(sv)
+   self.__saved_variables:get(function(sv)
          self._rng = sv._rng
          self._revealed_region = sv._revealed_region
          self._dormant_scenarios = sv._dormant_scenarios
