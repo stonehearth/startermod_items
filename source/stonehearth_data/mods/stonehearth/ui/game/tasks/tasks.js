@@ -9,7 +9,11 @@ App.StonehearthTasksView = App.View.extend({
    _components: {
       "groups" : {
          "tasks" : {
-            "*" : {}
+            "*" : {
+               "source" : {
+                  "stonehearth:stockpile" : {}
+               }
+            }
          }
       }
    },
@@ -29,13 +33,37 @@ App.StonehearthTasksView = App.View.extend({
 
                         // Boo!  It can't convince Ember to re-render the entire view whenever
                         // any of the sub-objects of the model change.  So set a timer! =()
+                        /*
                         self._timer = setInterval(function() {
                            if (self._timer) {
                               self._rebuildGroupsArray();
                            }
                         }, 200);
+                        */
                      })
                });
+   },
+
+   didInsertElement: function() {
+      var self = this;  
+      this._super();
+
+      // show toolbar control
+      this.$().on('click', '.row', function() {        
+         var selected = $(this).hasClass('selected'); // so we can toggle!
+         self.$('.row').removeClass('selected');
+         
+         if (!selected) {
+            $(this).addClass('selected');
+         }
+      });
+
+   },
+
+   actions: {
+      removeStockpile: function(stockpile_uri) {
+         radiant.call('stonehearth:destroy_entity', stockpile_uri)
+      }
    },
 
    destroy: function() {

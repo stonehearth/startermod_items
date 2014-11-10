@@ -106,6 +106,9 @@ end
 function Task:set_source(source)
    assert(self._state == PAUSED)
    self._source = source
+   self._model:modify(function(o)
+         o.source = source
+      end)
    return self
 end
 

@@ -492,6 +492,9 @@ function StockpileComponent:_destroy_tasks()
       log:debug('destroying restock task')
       self._restock_task:destroy()
       self._restock_task = nil
+      self.__saved_variables:modify(function(o)
+            o.active = false
+         end)
    end
 end
 
@@ -508,6 +511,9 @@ function StockpileComponent:_create_worker_tasks()
                                  :set_name('restock task')
                                  :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
                                  :start()
+         self.__saved_variables:modify(function(o)
+               o.active = true
+            end)
       end
    end
 end

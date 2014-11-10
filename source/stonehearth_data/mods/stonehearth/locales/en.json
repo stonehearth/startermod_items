@@ -405,5 +405,8 @@
    "farming_task_group" : "Farming",
    "harvesting_task_group" : "Harvesting",
    "mining_task_group" : "Mining",
-   "trapping_task_group" : "Trapping"
+   "trapping_task_group" : "Trapping",
+   "remove_stockpile" : "Remove Stockpile",
+   "pause_stockpile" : "Pause",
+   "resume_stockpile" : "Resume"
 }
