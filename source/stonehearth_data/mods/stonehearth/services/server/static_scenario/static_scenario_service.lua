@@ -14,12 +14,11 @@ local log = radiant.log.create_logger('static_scenario_service')
 local StaticScenarioService = class()
 
 function StaticScenarioService:initialize()
-   self.__saved_variables:get(function(sv)
-         self._rng = sv._rng
-         self._revealed_region = sv._revealed_region
-         self._dormant_scenarios = sv._dormant_scenarios
-         self._feature_size = sv._feature_size
-      end);
+   local sv = self.__saved_variables:get_data()
+   self._rng = sv._rng
+   self._revealed_region = sv._revealed_region
+   self._dormant_scenarios = sv._dormant_scenarios
+   self._feature_size = sv._feature_size
 
    self._dm = stonehearth.dm
    self._last_optimized_rect_count = 10
