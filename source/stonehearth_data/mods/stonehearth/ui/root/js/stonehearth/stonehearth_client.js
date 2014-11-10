@@ -21,7 +21,7 @@ var StonehearthClient;
                self._build_editor = e.result;
                radiant.trace(self._build_editor)
                   .progress(function(change) {
-                     $(top).trigger('selected_sub_part_changed', change.selected_sub_part);
+                     $(top).trigger('selected_sub_part_changed', change);
                   });
             })
             .fail(function(e) {
@@ -119,7 +119,7 @@ var StonehearthClient;
          var deferred = new $.Deferred();
 
          var debug_log = function(str) {
-             // console.log('(processing tool ' + toolName + ') ' + str);
+            //console.log('(processing tool ' + toolName + ') ' + str);
          };
 
          debug_log('new call to _callTool... ');
@@ -564,17 +564,34 @@ var StonehearthClient;
          }, precall);
       },
 
-      growRoof: function(roof, precall) {
+      eraseRoad: function(precall) {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
          var self = this;
 
-         var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:erase_road_tip_title', 'stonehearth:erase_road_tip_description', { i18n: true });
 
-         return this._callTool('growRoof', function() {
+         return this._callTool('eraseRoad', function() {
+            return radiant.call_obj(self._build_editor, 'erase_road')
+               .done(function(response) {                  
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         }, precall);
+      },
+
+      growRoof: function(roof) {
+         var self = this;
+
+         return function() {
+            var tip = self.showTip('stonehearth:roof_tip_title', 'stonehearth:roof_tip_description', { i18n: true });
+
             return radiant.call_obj(self._build_editor, 'grow_roof', roof)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                });
-         }, precall);
+            }
       },
 
       applyConstructionDataOptions: function(blueprint, options) {

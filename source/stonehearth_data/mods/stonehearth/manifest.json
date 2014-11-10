@@ -1263,6 +1263,7 @@
          "file(ui/game/modes/build_mode/building_templates/building_templates.html)",
          "file(ui/game/modes/build_mode/building_cost/building_cost.html)",
          "file(ui/game/modes/build_mode/building_designer_2/building_designer_2.html)",
+         "file(ui/game/modes/build_mode/building_designer_2/roof_shape_template.html)",
          "file(ui/game/modes/build_mode/build_roads/build_roads.html)",
          "file(ui/game/modes/build_mode/mine/mine.html)",
          "file(ui/game/esc_menu/esc_menu.html)",

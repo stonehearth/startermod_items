@@ -112,22 +112,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       
    },
 
-   // grow roof button
-   /*_getRoofOptionsFromElement : function(selector, options) {
-      var self = this;
-      options.nine_grid_gradiant = []
-
-      self.$(selector + ' .roofDiagramButton.active').each(function() {
-         if($(this).is(':visible')) {
-            options.nine_grid_gradiant.push($(this).attr('gradient'));
-         }
-      })
-   },
-
-   _updateGrowRoofOptions : function() {
-      App.stonehearthClient.setGrowRoofOptions(this._state.growRoofOptions);
-   },*/
-
    didInsertElement: function() {
       var self = this;
       var newTool = function(ctor) {
@@ -152,7 +136,6 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       $.get('/stonehearth/data/build/building_parts.json')
          .done(function(json) {
             self.buildingParts = json;
-            //self.$('#roofMaterials').append(self._buildMaterialPalette(self.buildingParts.roofPatterns, 'roofMaterial'));
             self.$('#slabMaterials').append(self._buildMaterialPalette(self.buildingParts.slabPatterns, 'slabMaterial'));
 
             self._addEventHandlers();
@@ -270,25 +253,9 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
             });
       };
 
-      // roof tab
-      /*var doGrowRoof = function() {
-         var roofUri = self.$('#roofMaterialTab .roofMaterial.selected').attr('brush');
-         App.stonehearthClient.growRoof(roofUri,
-            self.activateElement('#growRoofTool'))
-            .fail(self._deactivateTool('#growRoofTool'))
-            .done(function() {
-               doGrowRoof();
-            });
-      };*/
-
       this.$('#eraseStructureTool').click(function() {
          doEraseStructure();
       });
-
-      /*this.$('#growRoofTool').click(function() {
-         doGrowRoof();
-      });*/
-
 
       // slab materials
       this.$('.slabMaterial').click(function() {
@@ -303,62 +270,7 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
       })      
 
 
-      /*this.$('#roofMaterialTab .roofMaterial').click(function() {
-         // select the clicked material
-         self.$('#roofMaterialTab .roofMaterial').removeClass('selected');
-         $(this).addClass('selected');
 
-         self._state.roofMaterial = $(this).attr('index');
-         self._saveState();
-
-         // update the selected building part, if there is one
-         // XXX - ack, gotta fix this
-         /*
-         var roofUri = $(this).attr('brush');
-         var blueprint = self.get('blueprint');
-         if (blueprint) {
-            App.stonehearthClient.replaceStructure(blueprint, roofUri);
-         }
-         */
-
-         // Re/activate the active tool with the new material. 
-         /*doGrowRoof();
-      });
-
-      this.$('#roofMaterialTab .roofNumericInput').change(function() {
-         // update the options for future roofs
-         var numericInput = $(this);
-         var options = self._state.growRoofOptions;
-         if (numericInput.attr('id') == 'inputMaxRoofHeight') {
-            options.nine_grid_max_height = parseInt(numericInput.val());
-         } else if (numericInput.attr('id') == 'inputMaxRoofSlope') {
-            options.nine_grid_slope = parseInt(numericInput.val());
-         }
-
-         self._updateGrowRoofOptions();
-         self._saveState();
-
-         // if a roof is selected, change it too
-         var blueprint = self.get('blueprint');
-         if (blueprint) {
-            App.stonehearthClient.applyConstructionDataOptions(blueprint, options);
-         }
-      });*/
-
-      // roof slope buttons
-      /*this.$('#roofMaterialTab .roofDiagramButton').click(function() {
-         // update the options for future roofs
-         $(this).toggleClass('active');
-         self._getRoofOptionsFromElement('#roofMaterialTab', self._state.growRoofOptions);
-         self._updateGrowRoofOptions();
-         self._saveState();
-
-         // if a roof is selected, change it too
-         var blueprint = self.get('blueprint');
-         if (blueprint) {
-            App.stonehearthClient.applyConstructionDataOptions(blueprint, self._state.growRoofOptions);
-         }
-      });*/
 
       // building buttons
       this.$('#showOverview').click(function() {
@@ -453,47 +365,18 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
                tool.restoreState(self._state);
             });
 
-            /*if (!self._state.roofMaterial) {
-               self._state.roofMaterial = 0;
-            }*/
             if (!self._state.slabMaterial) {
                self._state.slabMaterial = 0;
             }
-            /*if (!self._state.growRoofOptions) {
-               self._state.growRoofOptions = {
-                  nine_grid_gradiant: [ 'left', 'right' ],
-                  nine_grid_max_height: 4,
-                  nine_grid_slope: 1,
-               }
-            }*/
             self._applyControlState();
          });
    },
-
-   // Make the roof gradiant picker match the specified gradiant.  gradiant is an
-   // array of the 'left', 'right', 'front', and 'back' flags.
-  /* _applyRoofGradiantControlState : function(options) {
-      var self = this;
-
-      self.$('#roofMaterialTab .roofDiagramButton').removeClass('active');
-      $.each(options.nine_grid_gradiant || [], function(_, dir) {
-         self.$('#roofMaterialTab .roofDiagramButton[gradient="' + dir + '"]').addClass('active');
-      });
-
-      $('#roofMaterialTab #inputMaxRoofHeight').val(options.nine_grid_max_height || 4);
-      $('#roofMaterialTab #inputMaxRoofSlope').val(options.nine_grid_slope || 1);
-   },*/
 
    _applyControlState: function() {
       var self = this;
       if (self._state) {
          // select default materials
-         /*$(self.$('#roofMaterialTab .roofMaterial')[self._state.roofMaterial]).addClass('selected');
          $(self.$('#slabMaterialTab .slabMaterial')[self._state.slabMaterial]).addClass('selected');
-
-         // gradiant on the grow roof control
-         self._applyRoofGradiantControlState(self._state.growRoofOptions);
-         self._updateGrowRoofOptions()*/
 
          self.$('.tabPage').hide();
       }
