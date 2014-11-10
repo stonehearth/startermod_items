@@ -40,6 +40,8 @@ function DoodadPlacer:go(session, response, uri)
    self._uri = uri
    self._response = response
 
+   self._invalid_cursor = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+
    stonehearth.selection:register_tool(self, true)
 
    self._capture = stonehearth.input:capture_input()
@@ -63,10 +65,6 @@ function DoodadPlacer:_on_mouse_event(e)
          if not self._wall_editor then
             local fabricator, blueprint, project = build_util.get_fbp_for(entity)
             if blueprint and blueprint:get_component('stonehearth:wall') then
-               if self._invalid_cursor then
-                  self._invalid_cursor:destroy()
-                  self._invalid_cursor = nil
-               end
 
                log:detail('got blueprint %s', tostring(blueprint))
                log:detail('creating wall editor for blueprint: %s', blueprint)
@@ -80,15 +78,6 @@ function DoodadPlacer:_on_mouse_event(e)
             self._wall_editor:on_mouse_event(e, s)
          end
       end
-   end
-
-   if not self._wall_editor then
-      if not self._invalid_cursor then
-         self._invalid_cursor = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
-      end
-   elseif self._invalid_cursor then
-      self._invalid_cursor:destroy()
-      self._invalid_cursor = nil
    end
 
    if e:up(1) then
