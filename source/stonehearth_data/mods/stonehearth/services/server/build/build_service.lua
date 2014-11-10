@@ -377,7 +377,8 @@ end
 --    @param blueprint - The blueprint which needs a new fabricator.
 --
 function BuildService:add_fabricator(blueprint)
-   assert(blueprint:get_component('stonehearth:construction_data'))
+   assert(blueprint:get_component('stonehearth:construction_data'),
+          string.format('blueprint %s has no construction_data', tostring(blueprint)))
 
    local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
 
