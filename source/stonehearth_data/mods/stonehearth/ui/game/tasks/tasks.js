@@ -67,6 +67,8 @@ App.StonehearthTasksView = App.View.extend({
 
       var groupsArray = objectToArray(groups);      
       $.each(groupsArray, function(k, group) {
+         var name = i18n.t(group.name);
+         group.set('name', name);
          group.set('tasksArray', objectToArray(group.tasks));
       });
 

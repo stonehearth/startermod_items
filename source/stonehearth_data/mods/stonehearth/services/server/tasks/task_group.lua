@@ -39,6 +39,10 @@ end
 
 function TaskGroup:set_counter_name(counter_name)
    self._counter_name = counter_name
+   self._model:modify(function (o)
+         o.name = counter_name
+      end)
+   
    return self
 end
 

@@ -17,6 +17,13 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="_taskGroup">
+   <tr class="header" {{bind-attr id=this.__id}}>
+      <td>
+         <div class="name">
+            {{this.name}}
+         </div>
+      </td>
+   </tr>
    {{#each this.tasksArray}}
       <tr class="row" {{bind-attr id=this.__id}}>
          <td>
