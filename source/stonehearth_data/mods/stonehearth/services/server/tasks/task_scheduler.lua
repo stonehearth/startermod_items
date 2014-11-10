@@ -13,6 +13,13 @@ function TaskScheduler:__init(name)
    self._next_task_id = 1000
    self._last_task_group_index = 1
 
+
+   self._model = radiant.create_datastore()
+   self._model:modify(function (o)
+         o.name = name
+         o.groups = {}
+      end)
+
    self:_start_update_timer()
 end
 
@@ -24,6 +31,10 @@ end
 
 function TaskScheduler:get_name()
    return self._name
+end
+
+function TaskScheduler:get_model()
+   return self._model
 end
 
 function TaskScheduler:get_counter_name()
@@ -39,6 +50,11 @@ end
 function TaskScheduler:create_task_group(activity_name, args)
    local task_group = TaskGroup(self, activity_name, args)
    table.insert(self._task_groups, task_group)
+
+   self._model:modify(function (o)
+         table.insert(o.groups, task_group:get_model())
+      end)
+
    return task_group
 end
 

@@ -53,6 +53,9 @@ App.StonehearthStartMenuView = App.View.extend({
       crafter_manager: function() {
          App.stonehearthClient.showCrafterManager();
       },
+      tasks_manager: function() {
+         App.stonehearthClient.showTasksManager();
+      },
       red_alert: function () {
          App.stonehearthClient.rallyWorkers();
       }
@@ -90,6 +93,7 @@ App.StonehearthStartMenuView = App.View.extend({
                   if (!response.show_in_progress_ui) {
                      self.$('#mining_menu').hide();
                      self.$('#build_road').hide();
+                     self.$('#tasks_manager').hide();
                   }
                })
 

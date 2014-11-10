@@ -29,6 +29,12 @@ function TaskGroup:__init(scheduler, activity_name, args)
 
    self._feeding = {}
    self._feeding_count = 0
+
+   self._model = radiant.create_datastore()
+   self._model:modify(function (o)
+         o.name = activity_name
+         o.tasks = {}
+      end)
 end
 
 function TaskGroup:set_counter_name(counter_name)
@@ -40,14 +46,8 @@ function TaskGroup:get_activity()
    return self._activity
 end
 
--- COMPLETELY untested.  DO NOT USE!! -- tonyc
-function TaskGroup:destroy_all_tasks()
-   assert(false)
-   for task, _ in pairs(self._tasks) do
-      task:destroy()
-   end
-   -- are they all gone?  
-   assert(next(self._tasks) == nil)
+function TaskGroup:get_model()
+   return self._model
 end
 
 -- adds a worker to the task group
@@ -94,6 +94,9 @@ function TaskGroup:create_task(activity_name, args)
    
    local task = Task(self, activity)
    self._tasks[task] = task
+   self._model:modify(function (o)
+         o.tasks[task:get_id()] = task:get_model()
+      end)
 
    self._log:debug('created task %s', task:get_name())   
 
@@ -106,6 +109,9 @@ function TaskGroup:_on_task_destroy(task)
       self:_stop_feeding_task(task)
       self:_unfeed_workers_from_task(task)      
       self._tasks[task] = nil
+      self._model:modify(function (o)
+            o.tasks[task:get_id()] = nil
+         end)
    end
 end
 

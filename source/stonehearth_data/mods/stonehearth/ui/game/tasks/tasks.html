@@ -1,0 +1,29 @@
+<script type="text/x-handlebars" data-template-name="tasks">
+<div id="tasks_manager" class="gui tasksManager">
+   <div class="window">
+      <div class="title">{{ view.title }} <div class="closeButton"></div></div>
+      <div class="tasksContainer">
+         <table class="list">
+            <tbody>
+            {{#each model.groupsArray}}
+               {{partial 'taskGroup'}}
+            {{/each}}
+            </tbody>
+         </table>
+      </div>
+   </div>
+
+</div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="_taskGroup">
+   {{#each this.tasksArray}}
+      <tr class="row" {{bind-attr id=this.__id}}>
+         <td>
+            <div class="name">
+               {{this.name}}
+            </div>
+         </td>
+      </tr>
+   {{/each}}
+</script>
