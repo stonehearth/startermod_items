@@ -77,7 +77,7 @@ function CollectStartingResourcesScenario:_update_quest_progress()
    end
    
    if self._sv.bulletin ~= nil then
-      self._sv.bulletin:modify_data({
+      self._sv.bulletin:modify({
          progress = self:_get_progress(),
       })
    end

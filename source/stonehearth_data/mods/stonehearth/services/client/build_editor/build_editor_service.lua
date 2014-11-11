@@ -99,7 +99,12 @@ end
 
 function BuildEditorService:place_new_floor(session, response, brush_shape)
    FloorEditor(self._build_service)
-         :go(response, brush_shape)
+         :go(response, brush_shape, { sink_floor = true })
+end
+
+function BuildEditorService:place_new_slab(session, response, slab_shape)
+   FloorEditor(self._build_service)
+         :go(response, slab_shape, { sink_floor = false })
 end
 
 function BuildEditorService:erase_structure(session, response, brush_shape)

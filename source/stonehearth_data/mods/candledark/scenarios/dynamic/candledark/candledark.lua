@@ -67,7 +67,7 @@ function Candledark:_update_bulletin()
       local title = self._scenario_data.bulletins.initial_warning.post_accept_title
       title = string.gsub(title, '__days__', self._sv.nights_until_candledark)
 
-      self._sv.bulletin:modify_data({
+      self._sv.bulletin:modify({
          title = title,
       })
    end

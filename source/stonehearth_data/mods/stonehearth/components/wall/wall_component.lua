@@ -223,24 +223,8 @@ end
 -- is useful (e.g. connect_to(), attach_to_roof())
 -- 
 function Wall:layout()
-   if self._sv.patch_wall_region then   
-      return
-   end
-   
-   local building = self._entity:add_component('mob'):get_parent()
+   local collision_shape
 
-   local start_pt, end_pt = self._start_pt, self._end_pt
-
-   local t = (math.abs(start_pt.x - end_pt.x) == 1) and 'z' or 'x'
-   local n = t == 'x' and 'z' or 'x'
-
-   if start_pt[t] == end_pt[t] then
-      return
-   end
-   assert(start_pt.x < end_pt.x)
-   assert(start_pt.y < end_pt.y)
-   assert(start_pt.z < end_pt.z)
-   
    local function compute_collision_shape()
       local stencil = self:_compute_wall_shape()
       return self._entity:get_component('stonehearth:construction_data')
@@ -248,7 +232,6 @@ function Wall:layout()
                                :paint_through_stencil(stencil)
    end
 
-   local collision_shape
    if not self._editing then
       -- server side...
       collision_shape = compute_collision_shape()
@@ -263,6 +246,7 @@ function Wall:layout()
       collision_shape = Region3()
       collision_shape:copy_region(self._editing_region:get())
    end
+   
    assert(collision_shape)
 
    -- stencil out the portals
@@ -386,6 +370,10 @@ function Wall:_compute_wall_shape()
 
    -- otherwise, grow our box up to the roof level
    local box = Cube3(self._start_pt, self._end_pt, 0)
+   if box:get_area() == 0 then
+      return Region3()
+   end
+
    local building = build_util.get_building_for(self._entity)
 
    return building:get_component('stonehearth:building')

@@ -17,8 +17,9 @@ function Task:__init(task_group, activity)
    self._task_group = task_group
    self._activity = activity
      
-   self._id = NEXT_TASK_ID
-   NEXT_TASK_ID = NEXT_TASK_ID + 1
+   self._id = task_group:get_next_task_id()
+   self._model = radiant.create_datastore()
+   
    self._log = radiant.log.create_logger('task', 'task:'..tostring(self._id))   
    self._log:debug('creating new task for %s', task_group:get_name())
    
@@ -54,6 +55,8 @@ function Task:_destroy()
    self._log:detail('notifying task group of destruction')
    self._task_group:_on_task_destroy(self)
    self._task_group = nil
+
+   radiant.destroy_datastore(self._model)
 end
 
 function Task:_fire_completed_cbs()
@@ -77,19 +80,35 @@ function Task:get_name()
    return self._name
 end
 
+function Task:get_model()
+   return self._model
+end
+
 function Task:get_id()
    return self._id
+end
+
+function Task:get_priority()
+   return self._priority
 end
 
 function Task:set_name(format, ...)
    assert(self._state == PAUSED)
    self._name = '[' .. self._id .. ':' .. string.format(format, ...) .. ']'
+
+   self._model:modify(function(o)
+         o.name = self._name
+      end)
+
    return self
 end
 
 function Task:set_source(source)
    assert(self._state == PAUSED)
    self._source = source
+   self._model:modify(function(o)
+         o.source = source
+      end)
    return self
 end
 

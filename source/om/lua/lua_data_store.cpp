@@ -100,14 +100,6 @@ DataStore_ModifyData(lua_State* L, DataStoreRef data_store, luabind::object cb)
    }
 }
 
-void
-DataStore_ReadData(lua_State* L, DataStoreRef data_store, luabind::object cb)
-{
-   auto ds = data_store.lock();
-   if (ds) {
-      DataStore_CallDataCb(L, ds, cb);
-   }
-}
 
 DataStoreRef
 DataStore_MarkChanged(DataStoreRef data_store)
@@ -164,11 +156,13 @@ scope LuaDataStore::RegisterLuaTypes(lua_State* L)
    return
       // references to DataStore's are used where lua should not be able to keep objects alive, e.g. component data
       lua::RegisterWeakGameObject<DataStore>(L, "DataStore")
-         .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
-         .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
          .def("get_data_object_id", &DataStore_GetDataObjectId) // xxx: don't we need dependency(_1, _2) here?
+         .def("set",            &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
+         .def("set_data",       &DataStore_SetData) // xxx: don't we need to adopt(_2) here?
+         .def("get",            &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
+         .def("get_data",       &DataStore_GetData) // xxx: don't we need dependency(_1, _2) here?
+         .def("modify",         &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
          .def("modify_data",    &DataStore_ModifyData) // xxx: don't we need dependency(_1, _2) here?
-         .def("read_data",      &DataStore_ReadData) // xxx: don't we need dependency(_1, _2) here?
          .def("trace_data",     &DataStore_Trace)
          .def("trace_data",     &DataStore_TraceAsync)
          .def("restore",        &DataStore_Restore)

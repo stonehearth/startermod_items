@@ -48,7 +48,13 @@ function entities.destroy_entity(entity)
       -- it from happening, since the cpp layer knowns nothing about game logic?)
       local ec = entity:get_component('entity_container')
       if ec then
+         -- Copy the blueprint's (container's) children into a local var first, because
+         -- _set_teardown_recursive could cause the entity container to be invalidated.
+         local ec_children = {}
          for id, child in ec:each_child() do
+            ec_children[id] = child
+         end         
+         for id, child in pairs(ec_children) do
             entities.destroy_entity(child)
          end
       end

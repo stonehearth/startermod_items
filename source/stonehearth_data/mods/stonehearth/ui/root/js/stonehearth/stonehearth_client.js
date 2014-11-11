@@ -125,7 +125,7 @@ var StonehearthClient;
          debug_log('new call to _callTool... ');
 
          var activateTool = function() {
-            console.log('activating tool...')
+            debug_log('activating tool...')
             if (preCall) {
                debug_log('in preCall for activateTool...');
                preCall();
@@ -493,8 +493,7 @@ var StonehearthClient;
          return function() {
             var tip = self.showTip('stonehearth:build_slab_tip_title', 'stonehearth:build_slab_tip_description', { i18n: true });
 
-            // XXX, tony, change this to the correct call pls.
-            return radiant.call_obj(self._build_editor, 'place_new_floor', slabBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_slab', slabBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -634,6 +633,11 @@ var StonehearthClient;
             this._citizenManager = null;
          }
 
+         if (this._tasksManager) {
+            this._tasksManager.destroy();
+            this._tasksManager = null;
+         }
+
          if (this._crafterManager) {
             this._crafterManager.destroy();
             this._crafterManager = null;
@@ -654,6 +658,11 @@ var StonehearthClient;
          if (this._crafterManager) {
             this._crafterManager.destroy();
             this._crafterManager = null;
+         }
+
+         if (this._tasksManager) {
+            this._tasksManager.destroy();
+            this._tasksManager = null;
          }
 
          if (this._townMenu) {
@@ -678,6 +687,11 @@ var StonehearthClient;
             this._citizenManager = null;
          }
 
+         if (this._tasksManager) {
+            this._tasksManager.destroy();
+            this._tasksManager = null;
+         }
+
          if (this._townMenu) {
             this._townMenu.destroy();
             this._townMenu = null;
@@ -689,6 +703,33 @@ var StonehearthClient;
          } else {
             this._crafterManager.destroy();
             this._crafterManager = null;
+         }
+      },
+
+      _tasksManager: null,
+      showTasksManager: function(show) {
+         // hide the other population managers....oh lord this is ugly code
+         if (this._crafterManager) {
+            this._crafterManager.destroy();
+            this._crafterManager = null;
+         }
+
+         if (this._citizenManager) {
+            this._citizenManager.destroy();
+            this._citizenManager = null;
+         }
+
+         if (this._townMenu) {
+            this._townMenu.destroy();
+            this._townMenu = null;
+         }
+
+         // toggle the tasksManager
+         if (!this._tasksManager || this._tasksManager.isDestroyed) {
+            this._tasksManager = App.gameView.addView(App.StonehearthTasksView);
+         } else {
+            this._tasksManager.destroy();
+            this._tasksManager = null;
          }
       },
 

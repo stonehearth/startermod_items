@@ -53,11 +53,25 @@ end
 function PathFinder:find_path_to_entity_type(location, filter_fn, description, solved_cb)
    -- create a filter cache base on the filter function.  multiple pathfinders from different
    -- entity sources and different locations and *all* share the same filter cache!!!
-   local filter_result_cache = FILTER_RESULT_CACHES[filter_fn]
-   if not filter_result_cache then
-      filter_result_cache = FilterResultCache()
-      filter_result_cache:set_filter_fn(filter_fn)
-      FILTER_RESULT_CACHES[filter_fn] = filter_result_cache
+   local entry = FILTER_RESULT_CACHES[filter_fn]
+   if not entry then
+      local cache = FilterResultCache()
+      cache:set_filter_fn(filter_fn)
+
+      -- whenever someone else advises the result of a filter function may have changed, invalidate
+      -- the entry in our filter_fn cache.  the cache is shared with and outlives all shared
+      -- bfs pathfinder instances.  this listener must be kept on the cache even if there are no
+      -- bfs pathfinders currently to avoid missing triggers which affect future pathfinding (liek SH-86).
+      local listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', function(e)
+            cache:clear_cache_entry(e:get_id())
+         end)
+
+      entry = {
+         listener = listener,
+         cache = cache,
+      }
+
+      FILTER_RESULT_CACHES[filter_fn] = entry
       -- xxx: these currently don't get reaped.  we could do it on a timer...  i think that's
       -- probably really easy, but requires more thought (what if there's a pathfinder currently
       -- using it?  that's *probably* ok, since it's a shared_ptr... hrm) -tony
@@ -68,7 +82,7 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
    local pfkey = string.format('%s : %s', tostring(location), tostring(filter_fn))
    local pf = self._bfs_pathfinders[pfkey]
    if not pf then
-      pf = SharedBfsPathFinder(self._entity, location, filter_result_cache, function()
+      pf = SharedBfsPathFinder(self._entity, location, entry.cache, function()
                self._bfs_pathfinders[pfkey] = nil
             end)
       pf:set_description(description)      

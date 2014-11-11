@@ -87,6 +87,8 @@ function StockpileComponent:initialize(entity, json)
    if not self._sv.stocked_items then
       -- creating...
       --self._sv.should_steal = false
+      self._sv.active = true
+      self._sv.size = Point2(0, 0)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
       self._sv._filter_key = 'stockpile nofilter'
@@ -299,6 +301,7 @@ end
 function StockpileComponent:set_size(x, y)
    self._sv.size = Point2(x, y)
    self:_rebuild_item_sv()
+   self:_create_worker_tasks()
 end
 
 -- notification from the 'stonehearth:restock_stockpile' action that an item has
@@ -378,10 +381,10 @@ function StockpileComponent:_add_item_to_stock(entity)
                               :add_item(entity)
    end
    
-   --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
-   --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    
+   --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
+   --Trigger this anyway so various scenarios, tests, etc, can still use it
    radiant.events.trigger(self._entity, "stonehearth:stockpile:item_added", { 
       stockpile = self._entity,
       item = entity 
@@ -487,6 +490,7 @@ end
 
 function StockpileComponent:_destroy_tasks()
    if self._restock_task then
+      log:debug('destroying restock task')
       self._restock_task:destroy()
       self._restock_task = nil
    end
@@ -496,12 +500,39 @@ end
 function StockpileComponent:_create_worker_tasks()
    self:_destroy_tasks()
 
-   local town = stonehearth.town:get_town(self._entity)
-   self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
-                           :set_source(self._entity)
-                           :set_name('restock task')
-                           :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
-                           :start()
+   if self._sv.size.x > 0 and self._sv.size.y > 0 then
+      local town = stonehearth.town:get_town(self._entity)
+      if town then 
+         log:debug('creating restock task')
+         self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
+                                 :set_source(self._entity)
+                                 :set_name('restock task')
+                                 :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
+         if self._sv.active then
+            self._restock_task:start()
+         end
+      end
+   end
+end
+
+function StockpileComponent:set_active(active)
+   if active ~= self._sv.active then
+      self.__saved_variables:modify(function(o)
+            o.active = active
+         end)
+      if self._restock_task then
+         if active then
+            self._restock_task:start()
+         else
+            self._restock_task:pause()
+         end
+      end
+   end
+end
+
+function StockpileComponent:set_active_command(session, response, active)
+   self:set_active(active)
+   return true;
 end
 
 return StockpileComponent

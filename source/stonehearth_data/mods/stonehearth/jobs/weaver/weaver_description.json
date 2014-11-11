@@ -59,7 +59,7 @@
             {
                "name" : "Standard Catalog", 
                "id" : "crafter_recipe_unlock_1", 
-               "icon" : "file(images/weaverLv1.png)", 
+               "icon" : "file(images/standard_catalog.png)", 
                "description" : "The weaver can now make basic hangings and decor.", 
                "level" : 1
             }
@@ -70,7 +70,7 @@
             {
                "name" : "Collaborative Insight", 
                "id" : "crafter_recipe_unlock_2", 
-               "icon" : "file(images/weaverLv2.png)", 
+               "icon" : "file(images/collaborative_insight.png)", 
                "description" : "The weaver is now skillful enough to use materials created by other crafters.", 
                "level" : 2
             }
@@ -82,7 +82,7 @@
                "type" : "set_fine_percentage",
                "name" : "Artistic Inspiration", 
                "id" : "crafter_recipe_unlock_3", 
-               "icon" : "file(images/weaverLv3.png)", 
+               "icon" : "file(images/artistic_inspiration.png)", 
                "percent_chance" : 10,  
                "description" : "When inspiration strikes, the weaver may embellish his works in unexpected ways.", 
                "level" : 3, 

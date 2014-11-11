@@ -396,5 +396,20 @@
    "pause_building" : "Pause building",
    "save_building_template" : "Save as template",
    "finished_editing" : "Done",
-   "start_editing" : "Edit"
+   "start_editing" : "Edit",
+
+   "stockpiles_task_group" : "Stockpiles", 
+   "building_task_group" : "Building",
+   "placement_task_group" : "Placed Items",
+   "maintenance_task_group" : "General Maintenance",
+   "farming_task_group" : "Farming",
+   "harvesting_task_group" : "Harvesting",
+   "mining_task_group" : "Mining",
+   "trapping_task_group" : "Trapping",
+   "remove_stockpile" : "Remove Stockpile",
+   "pause_stockpile" : "Pause",
+   "resume_stockpile" : "Resume",
+   "stockpile_percent_full" : "__percent__ Percent Full",
+   "stockpile_active" : "active",
+   "stockpile_paused" : "paused"
 }

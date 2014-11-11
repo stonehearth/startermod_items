@@ -58,7 +58,7 @@
             {
                "name" : "Standard Catalog", 
                "id" : "crafter_recipe_unlock_1", 
-               "icon" : "file(images/carpenterLv1.png)", 
+               "icon" : "file(images/standard_catalog.png)", 
                "description" : "The carpenter can now make a solid array of basic furniture.", 
                "level" : 1
             }
@@ -69,7 +69,7 @@
             {
                "name" : "Collaborative Insight", 
                "id" : "crafter_recipe_unlock_2", 
-               "icon" : "file(images/carpenterLv2.png)", 
+               "icon" : "file(images/collaborative_insight.png)", 
                "description" : "The carpenter is now skillful enough to use materials created by other crafters.", 
                "level" : 2
             }
@@ -81,7 +81,7 @@
                "type" : "set_fine_percentage",
                "name" : "Artistic Inspiration", 
                "id" : "crafter_recipe_unlock_3", 
-               "icon" : "file(images/carpenterLv3.png)", 
+               "icon" : "file(images/artistic_inspiration.png)", 
                "description" : "When inspiration strikes, the carpenter may embellish his works in unexpected ways.",
                "percent_chance" : 10,  
                "level" : 3,
@@ -92,10 +92,10 @@
       "4" : {
          "perks" : [
             {
-               "name" : "Ingenuity Enhancements (not implemented)", 
+               "name" : "Extended Catalog", 
                "id" : "crafter_recipe_unlock_4", 
                "icon" : "file(images/carpenterLv4.png)", 
-               "description" : "The carpenter adds new levels of functionality to classic recipes.", 
+               "description" : "The carpenter now has the courage to try more elaborate projects.", 
                "level" : 4
             }
          ]

@@ -29,10 +29,28 @@ function TaskGroup:__init(scheduler, activity_name, args)
 
    self._feeding = {}
    self._feeding_count = 0
+
+   self._model = radiant.create_datastore()
+   self._model:modify(function (o)
+         o.name = activity_name
+         o.tasks = {}
+      end)
 end
 
 function TaskGroup:set_counter_name(counter_name)
    self._counter_name = counter_name
+   self._model:modify(function (o)
+         o.name = counter_name
+      end)
+   
+   return self
+end
+
+function TaskGroup:set_published(value)
+   self._model:modify(function (o)
+         o.published = value
+      end)
+   
    return self
 end
 
@@ -40,16 +58,11 @@ function TaskGroup:get_activity()
    return self._activity
 end
 
--- COMPLETELY untested.  DO NOT USE!! -- tonyc
-function TaskGroup:destroy_all_tasks()
-   assert(false)
-   for task, _ in pairs(self._tasks) do
-      task:destroy()
-   end
-   -- are they all gone?  
-   assert(next(self._tasks) == nil)
+function TaskGroup:get_model()
+   return self._model
 end
 
+-- adds a worker to the task group
 function TaskGroup:add_worker(worker)
    local id = worker:get_id()
    assert(not self._workers[id])
@@ -64,6 +77,10 @@ end
 
 function TaskGroup:get_name()
    return self._activity.name
+end
+
+function TaskGroup:get_next_task_id()
+   return self._scheduler:get_next_task_id()
 end
 
 function TaskGroup:remove_worker(id)
@@ -89,6 +106,9 @@ function TaskGroup:create_task(activity_name, args)
    
    local task = Task(self, activity)
    self._tasks[task] = task
+   self._model:modify(function (o)
+         o.tasks[task:get_id()] = task:get_model()
+      end)
 
    self._log:debug('created task %s', task:get_name())   
 
@@ -101,6 +121,9 @@ function TaskGroup:_on_task_destroy(task)
       self:_stop_feeding_task(task)
       self:_unfeed_workers_from_task(task)      
       self._tasks[task] = nil
+      self._model:modify(function (o)
+            o.tasks[task:get_id()] = nil
+         end)
    end
 end
 
@@ -321,6 +344,78 @@ function TaskGroup:_update(count)
    end
    
    return feed_count
+end
+
+function TaskGroup:_greedy_prioritize_tasks()
+   local ptasks = {}
+   for task, _ in pairs(self._feeding) do
+      table.insert(ptasks, task)
+   end
+
+   table.sort(ptasks, function(l, r)
+         return l:get_priority() > r:get_priority()
+      end)
+
+   return ptasks
+end
+
+function TaskGroup:_find_best_worker_for(task)
+   local best_worker, best_d
+
+   for id, entry in pairs(self._workers) do
+      -- ignore tasks that we're already doing
+      local ignore = entry.all_fed_tasks[task]
+
+      if not ignore then
+         local worker = entry.worker
+         if not worker:is_valid() then
+            self._workers[id] = nil
+         else
+            -- prefer workers who are closer...
+            local d = task:_estimate_task_distance(worker)
+            if not best_d or d < best_d then
+               best_worker, best_d = worker, d
+            end
+         end
+      end
+   end
+
+   return best_worker
+end
+
+function TaskGroup:_feed_worker_to_task(worker, task)
+   self._log:debug('feeding worker %s to task %s', tostring(worker), task:get_name())
+   local entry = self._workers[worker:get_id()]
+
+   assert(not entry.all_fed_tasks[task])
+   entry.all_fed_tasks[task] = true
+   entry.all_fed_tasks_count = entry.all_fed_tasks_count + 1
+   task:_feed_worker(entry.worker)
+end
+
+if radiant.util.get_config('enable_greedy_task_scheduling', true) then
+   radiant.log.write('stonehearth', 0, 'greedy task scheduling enabled')
+   function TaskGroup:_update(max_feed)
+      local fed = 0
+
+      -- our goal is to get tasks done in relative priority order.  start off
+      -- by sorting them as so.  this also narrows the field to only tasks which
+      -- should be run (e.g. removing paused tasks)
+      local ptasks = self:_greedy_prioritize_tasks()
+      for _, task in ipairs(ptasks) do
+         -- find the best worker for the task
+         local worker = self:_find_best_worker_for(task)
+         if worker then
+            self:_feed_worker_to_task(worker, task)
+            fed = fed + 1
+            if fed >= max_feed then
+               break
+            end
+         end
+      end
+
+      return fed
+   end
 end
 
 function TaskGroup:get_counter_name()

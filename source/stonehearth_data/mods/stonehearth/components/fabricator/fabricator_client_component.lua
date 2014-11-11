@@ -41,7 +41,7 @@ end
 
 function FabricatorClientComponent:begin_editing(blueprint, project, editing_region)
    -- xxx: assert we're in a RW store...
-   self.__saved_variables:modify_data(function (o)
+   self.__saved_variables:modify(function (o)
          o.blueprint = blueprint
          o.project = project
          o.editing_region = editing_region

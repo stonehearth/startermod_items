@@ -7,6 +7,8 @@
 using namespace ::radiant;
 using namespace ::radiant::simulation;
 
+#define BFS_LOG(level)   LOG(simulation.pathfinder.bfs, level) << "[ filter result cache ] "
+
 
 /*
  * -- FilterResultCache::FilterResultCache
@@ -40,6 +42,7 @@ FilterResultCachePtr FilterResultCache::SetFilterFn(FilterFn fn)
  */
 FilterResultCachePtr FilterResultCache::ClearCacheEntry(dm::ObjectId id)
 {
+   BFS_LOG(9) << "clearing cache entry for entity " << id;
    _results.erase(id);
    return shared_from_this();
 }
@@ -60,7 +63,9 @@ bool FilterResultCache::ConsiderEntity(om::EntityPtr entity)
    dm::ObjectId id = entity->GetObjectId();
    auto i = _results.find(id);
    if (i != _results.end()) {
-      return i->second.value;
+      bool result = i->second.value;
+      BFS_LOG(9) << "returning cached result (" << result << ") for " << *entity;
+      return result;
    }
    
    bool result = _filterFn(entity);
@@ -74,5 +79,6 @@ bool FilterResultCache::ConsiderEntity(om::EntityPtr entity)
                                     });
    }
    _results.insert(std::make_pair(id, Entry(result, trace)));
+   BFS_LOG(9) << "cache miss!  adding new cache result result (" << result << ") for " << *entity;   
    return result;
 }

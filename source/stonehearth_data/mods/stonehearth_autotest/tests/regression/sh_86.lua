@@ -40,12 +40,11 @@ function sh_86.verify_no_restocking_after_dragging_around_items(autotest)
                         end
                      end)
                end)
-            --autotest:success()
             return radiant.events.UNLISTEN
          end
       end)
 
-   autotest:sleep(1000000)
+   autotest:sleep(10000)
    if not buggy_stockpile then
       autotest:fail('failed to create buggy stockpile')
       return
@@ -53,5 +52,36 @@ function sh_86.verify_no_restocking_after_dragging_around_items(autotest)
    autotest:success()
 end
 
+
+function sh_86.verify_no_restocking_after_recreating_stockpile(autotest) 
+   autotest.env:create_person(2, 2, { job = 'worker' })
+   autotest.env:create_person(4, 2, { job = 'worker' })
+   autotest.env:create_person(6, 2, { job = 'worker' })
+
+   autotest.env:create_entity_cluster(4, 4, 4, 4, 'stonehearth:oak_log')
+
+   -- create the first stockpile.  chill a bit.  then destroy it.
+   local first_stockpile = autotest.env:create_stockpile(3, 3, { size = { x = 7, y = 7 } } )
+   autotest:sleep(100)
+   radiant.entities.destroy_entity(first_stockpile)
+
+   -- let the noise settle, then create a 2nd stockpile.
+   autotest:sleep(1000)
+   local second_stockpile = autotest.env:create_stockpile(3, 3, { size = { x = 7, y = 7 } } )
+
+   -- chill a bit to make sure the event msg queue has drained.
+   autotest:sleep(100)
+
+   -- if anyone picks up or puts down anything here, we lose.
+   radiant.events.listen(second_stockpile, 'stonehearth:stockpile:item_removed', function(e)
+         autotest:fail('continued moving stuff in stockpile after created (iten: %s)', e.item)
+      end)
+   radiant.events.listen(second_stockpile, 'stonehearth:stockpile:item_added', function()
+         autotest:fail('continued moving stuff in stockpile after created (iten: %s)', e.item)
+      end)
+
+   autotest:sleep(2000)
+   autotest:success()
+end
 
 return sh_86

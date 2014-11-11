@@ -145,5 +145,15 @@
             "hotkey" : "r"
          }
       }
-   }
+   },
+   "tasks_manager" : {
+      "name" : "Manage Tasks",
+      "description" : "Do task stuff.",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "hotkey" : "7",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
+   }   
 }

@@ -22,7 +22,7 @@ end
 
 function ConstructionProgressClient:begin_editing(building, fabricator)
    -- xxx: assert we're in a RW store...
-   self.__saved_variables:modify_data(function (o)
+   self.__saved_variables:modify(function (o)
          o.building_entity = building
          o.fabricator_entity = fabricator
       end)

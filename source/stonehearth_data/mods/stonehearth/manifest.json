@@ -856,6 +856,10 @@
          "controller" : "file(call_handlers/population_call_handler.lua)",
          "endpoint" : "server"
       },
+      "get_tasks": {
+         "controller" : "file(call_handlers/population_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "get_score": {
          "controller" : "file(call_handlers/score_call_handler.lua)",
          "endpoint" : "server"
@@ -1292,6 +1296,7 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
+         "file(ui/game/tasks/tasks.html)",
          "file(ui/game/crafters/crafters.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1374,6 +1379,7 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
+         "file(ui/game/tasks/tasks.js)",
          "file(ui/game/crafters/crafters.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
@@ -1443,6 +1449,7 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
+         "file(ui/game/tasks/tasks.less)",
          "file(ui/game/crafters/crafters.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
          "file(ui/game/tip_popup/tip_popup.less)",

@@ -65,9 +65,10 @@ function Town:_create_task_groups()
    -- Create new task groups
    local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups').task_groups
    if task_group_data then
-      for task_group_name, activity_dispatcher in pairs(task_group_data) do
-         self._task_groups[task_group_name] = self._scheduler:create_task_group(activity_dispatcher, {})
-                                                                  :set_counter_name(task_group_name)
+      for task_group_name, entry in pairs(task_group_data) do
+         self._task_groups[task_group_name] = self._scheduler:create_task_group(entry.dispatcher, {})
+                                                                  :set_counter_name(entry.name)
+                                                                  :set_published(true)
       end
    end
 end
@@ -165,10 +166,10 @@ function Town:create_task_for_group(task_group_name, activity_name, args)
    return task_group:create_task(activity_name, args)
 end
 
-function Town:leave_task_group(entity, name)
+function Town:leave_task_group(entity_id, name)
    local task_group = self._task_groups[name]
    assert(task_group, string.format('unknown task group "%s"', name))
-   task_group:remove_worker(entity:get_id())
+   task_group:remove_worker(entity_id)
    return self
 end
 
@@ -303,14 +304,14 @@ function Town:harvest_resource_node(node)
          local task_group_name = node_component:get_task_group_name()
          local effect_name = node_component:get_harvest_overlay_effect()
          local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_resource_node', { node = node })
-            :set_source(node)
-            :add_entity_effect(node, effect_name)
-            :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-            :once()
-            :notify_completed(function()
-               self._harvest_tasks[id] = nil
-            end)
-            :start()
+                              :set_source(node)
+                              :add_entity_effect(node, effect_name)
+                              :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                              :once()
+                              :notify_completed(function()
+                                 self._harvest_tasks[id] = nil
+                              end)
+                              :start()
          self._harvest_tasks[id] = task
          self:_remember_user_initiated_task(task, 'harvest_resource_node', node)
       end
@@ -330,14 +331,14 @@ function Town:harvest_renewable_resource_node(plant)
          local task_group_name = node_component:get_task_group_name()
          local effect_name = node_component:get_harvest_overlay_effect()
          local task = self:create_task_for_group(task_group_name, 'stonehearth:harvest_plant', { plant = plant })
-            :set_source(plant)
-            :add_entity_effect(plant, effect_name)
-            :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
-            :once()
-            :notify_completed(function()
-               self._harvest_tasks[id] = nil
-            end)
-            :start()
+                              :set_source(plant)
+                              :add_entity_effect(plant, effect_name)
+                              :set_priority(stonehearth.constants.priorities.farmer_task.HARVEST)
+                              :once()
+                              :notify_completed(function()
+                                 self._harvest_tasks[id] = nil
+                              end)
+                              :start()
          self._harvest_tasks[id] = task
          self:_remember_user_initiated_task(task, 'harvest_renewable_resource_node', plant)
       end
@@ -428,6 +429,7 @@ function Town:enable_worker_combat()
          radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
          radiant.entities.add_buff(citizen, 'stonehearth:buffs:defender');
 
+         -- xxx: let's do this by given them an item with a buff.  tasks are expensive.
          local task = citizen:add_component('stonehearth:ai')
             :get_task_group('stonehearth:urgent_actions')
             :create_task('stonehearth:town_defense:dispatcher')
