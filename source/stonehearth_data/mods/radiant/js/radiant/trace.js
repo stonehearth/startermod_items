@@ -190,7 +190,7 @@ var RadiantTrace;
                         eobj.set(k, child_eobj);
                         delete pending[k];
 
-                        self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
+                        //self._log(level, 'pending is now (' + Object.keys(pending).length + ') ' + JSON.stringify(pending));
                         notify_update();
                      });
                } else {
@@ -226,7 +226,7 @@ var RadiantTrace;
             if (v) {
                self._expand_object(v, properties, level + 1)
                   .progress(function(child_eobj) {
-                     self._log(level, 'child object ' + i + ' resolved to ' + JSON.stringify(child_eobj));
+                     //self._log(level, 'child object ' + i + ' resolved to ' + JSON.stringify(child_eobj));
                      //earr.set(i, child_eobj);
 
                      var current = earr[i];
