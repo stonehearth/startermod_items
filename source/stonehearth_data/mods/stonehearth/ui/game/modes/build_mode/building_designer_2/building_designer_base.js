@@ -30,7 +30,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
    tools: {},
    actions: [],
-   _active_tool: null,
+   _active_tool_stack: [],
 
    init: function() {
       var self = this;
@@ -143,19 +143,40 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       return buildTool;
    },
 
+   _removeTool: function(depth) {
+      var toRemove = -1;
+      $.each(this._active_tool_stack, function(i, v) {
+         if (v[0] == depth) {
+            toRemove = i;
+            return false;
+         }
+      });
+      if (toRemove > -1) {
+         this._active_tool_stack.splice(toRemove, 1);
+      }      
+   },
+
    _doToolCall: function() {
       var self = this;
-      App.stonehearthClient.callTool(this._active_tool)
+      var stackDepth = this._active_tool_stack.length - 1;
+      var tool = this._active_tool_stack[stackDepth][1];
+      App.stonehearthClient.callTool(tool)
          .done(function(response) {
-            if (self._active_tool.repeat) {
-               self.reactivateTool(self._active_tool);
+            if (tool.repeat) {
+               self.reactivateTool(tool);
+               self._removeTool(stackDepth);
             } else {
-               self.$('.toolButton').removeClass('active');               
+               self._removeTool(stackDepth);
+               if (self._active_tool_stack.length == 0) {
+                  self.$('.toolButton').removeClass('active');
+               }
             }
          })
          .fail(function() {
-            self.$('.toolButton').removeClass('active');
-            self._active_tool = null;
+            self._removeTool(stackDepth);
+            if (self._active_tool_stack.length == 0) {
+               self.$('.toolButton').removeClass('active');
+            }
          });
    },
 
@@ -163,19 +184,26 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var self = this;
       this.tools[toolId].restoreState(this._state);
 
-      if (this._active_tool != this.actions[toolId]) {
+      var l = this._active_tool_stack.length;
+      var activeTool = l > 0 ? this._active_tool_stack[l - 1][1] : null;
+
+      if (activeTool != this.actions[toolId]) {
          // activate the tool
          this.$('.toolButton').removeClass('active');
          this.$('#' + toolId).addClass('active');
 
-         this._active_tool = this.actions[toolId];
+         this._active_tool_stack.push([l, this.actions[toolId]]);
          this._doToolCall();
       }
    },
 
    reactivateTool: function(tool) {
       var self = this;
-      if (this._active_tool == tool) {
+      var l = this._active_tool_stack.length;
+      var activeTool = l > 0 ? this._active_tool_stack[l - 1][1] : null;
+
+      if (activeTool == tool) {
+         this._active_tool_stack.push([l, tool]);
          this._doToolCall();
       }
    },
@@ -207,7 +235,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          self.$('.tabPage').hide();
          tab.show();
          
-         // update the material in the tab to reflect the selection
          toolId = tool.attr('id');
          if(self.tools[toolId]) {
             self.activateTool(toolId);
