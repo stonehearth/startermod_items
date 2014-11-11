@@ -40,7 +40,7 @@ class Terrain(Component):
    _private = \
    """
    Region3BoxedPtr GetTile(csg::Point3 const& index);
-   void AddTileWorker(csg::Region3f const& region, csg::Rect2 const* clipper);
+   void AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper);
 
    TerrainTesselator terrainTesselator_;
    dm::TracePtr config_file_name_trace_;

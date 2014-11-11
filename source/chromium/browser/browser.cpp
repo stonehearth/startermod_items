@@ -21,6 +21,7 @@ using namespace radiant::chromium;
 
 static std::string GetPostData(CefRefPtr<CefRequest> request);
 static JSONNode GetQuery(std::string const& query);
+static std::string UrlDecode(std::string const& in);
 
 IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port)
 {
@@ -430,6 +431,7 @@ CefRefPtr<CefResourceHandler> Browser::GetResourceHandler(CefRefPtr<CefBrowser> 
    CefURLParts url_parts;
    CefParseURL(url, url_parts);
    std::string path = CefString(&url_parts.path);
+   path = UrlDecode(path);
    JSONNode query = GetQuery(CefString(&url_parts.query));
    std::string postdata = GetPostData(request);
 

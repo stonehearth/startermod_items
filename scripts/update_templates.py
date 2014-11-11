@@ -38,8 +38,11 @@ def remove_existing_templates():
          os.unlink(os.path.join(root, f))
 
 def rewrite_png(infile, outfile):
+   size = 800
+   xpadding = (1920 - size) / 2;
+   ypadding = (1080 - size) / 2;
    im = Image.open(infile)
-   region = im.crop((420, 0, 1500, 1080)) # left, upper, right, lower
+   region = im.crop((xpadding, ypadding, 1920 - xpadding, 1080 - ypadding)) # left, upper, right, lower
    region.save(outfile)
 
 def rewrite_templates():
@@ -63,7 +66,7 @@ def rewrite_templates():
 
          # add the preview_image key to point to the moved screenshot, then rewrite
          # the json file
-         header['preview_image'] = preview_image.replace('\\', '/')
+         header['preview_image'] = '/r/' + preview_image.replace('\\', '/')
          with file(template_file, 'w') as outfile:
             print 'rewriting', template_file, 'to include preview image'
             outfile.write(json.dumps(template, indent=3))

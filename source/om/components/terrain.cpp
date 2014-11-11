@@ -44,22 +44,21 @@ void Terrain::ConstructObject()
 
 void Terrain::AddTile(csg::Region3f const& region)
 {
-   AddTileWorker(region, nullptr);
+   AddTileClipped(region, nullptr);
 }
 
 void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2f const& clipper)
 {
    csg::Rect2 clip = csg::ToInt(clipper);
-   AddTileWorker(region, &clip);
+   AddTileClipped(region, &clip);
 }
 
-void Terrain::AddTileWorker(csg::Region3f const& region, csg::Rect2 const* clipper)
+void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper)
 {
    csg::Region3 src = csg::ToInt(region); // World space...
    csg::Region3 tesselated = terrainTesselator_.TesselateTerrain(src, clipper);
 
    csg::PartitionRegionIntoChunksSlow(tesselated, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& region) {
-      ASSERT(!tiles_.Contains(index));
       Region3BoxedPtr tile = GetTile(index);
       tile->Modify([&region](csg::Region3& cursor) {
          cursor += region;

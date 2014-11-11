@@ -15,15 +15,6 @@ local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
 
 function StonehearthTemplateBuilder:__init()
-   local size = 128
-   local region3 = Region3()
-
-   -- create the most boring world possible...
-   local block_types = radiant.terrain.get_block_types()
-   region3:add_cube(Cube3(Point3(-size,  -1, -size), Point3(size, 0, size), block_types.grass))
-   radiant._root_entity:add_component('terrain')
-                           :add_tile(region3)
-
    -- this is the list of templates to create.
    self._templates = {
       { name = 'Tiny Cottage',  fn = self._build_tiny_cottage },
@@ -142,6 +133,7 @@ function StonehearthTemplateBuilder:add_floor(x0, y0, x1, y1, pattern)
    local p1 = Point3(x1,  0, y1)
    local floor = stonehearth.build:add_floor(self._session, WOODEN_FLOOR, Cube3(p0, p1), pattern)
    self._building = build_util.get_building_for(floor)
+   radiant.log.write('', 0, "building is %s", self._building)
 end
 
 function StonehearthTemplateBuilder:grow_walls(column_uri, wall_uri)
@@ -259,6 +251,15 @@ function StonehearthTemplateBuilder:_build_sleeping_hall()
 end
 
 function StonehearthTemplateBuilder:_create_template(o)
+   -- fill in the ground.  this will erase the terrain cut of the previous
+   local size = 128
+   local region3 = Region3()
+   local block_types = radiant.terrain.get_block_types()
+   region3:add_cube(Cube3(Point3(-size,  -1, -size), Point3(size, 0, size), block_types.grass))
+   radiant._root_entity:add_component('terrain')
+                           :add_tile(region3)
+
+   --
    radiant.log.write('', 0, 'creating template for "%s"', o.name)
    stonehearth.build:do_command('', nil, function()
          assert(not self._building)

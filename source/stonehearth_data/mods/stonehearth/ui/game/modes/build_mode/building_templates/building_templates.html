@@ -8,7 +8,7 @@
             {{#each templates}}
                <tr class="row" {{bind-attr template=this.name}}>
                   <td class="name">
-                     <div>{{{this.name}}} - {{{this.description}}}</div>
+                     <div>{{{this.name}}}</div>
                   </td>
                </tr>
             {{/each}}
@@ -20,9 +20,10 @@
 
    <div id="buildingTemplatesDetailsPopup" class="window">
       <center>
-         <h2>{{selected_template.display_name}}</h2>
+         <h2>{{selected_template.name}}</h2>
 
          <div id="screenshot">
+            <img {{bind-attr src=selected_template.preview_image}}/>
          </div>
 
          <div id="corners"></div>

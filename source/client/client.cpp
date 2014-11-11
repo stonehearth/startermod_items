@@ -1464,6 +1464,7 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
 
       static const std::regex call_path_regex__("/r/call/?");
       static const std::regex screenshot_path_regex_("/r/screenshot/(.*)");
+      static const std::regex saved_object_path_regex_("/r/saved_objects/(.*)");
 
       if (std::regex_match(path, match, call_path_regex__)) {
          std::lock_guard<std::mutex> guard(browserJobQueueLock_);
@@ -1477,6 +1478,9 @@ void Client::BrowserRequestHandler(std::string const& path, json::Node const& qu
       bool success = false;
       if (std::regex_match(path, match, screenshot_path_regex_)) {
          std::string localFilePath = (core::Config::GetInstance().GetSaveDirectory() / match[1].str()).string();
+         success = http_reactor_->HttpGetFile(localFilePath, code, content, mimetype);
+      } else if (std::regex_match(path, match, saved_object_path_regex_)) {
+         std::string localFilePath = (core::System::GetInstance().GetTempDirectory() / "saved_objects" / match[1].str()).string();
          success = http_reactor_->HttpGetFile(localFilePath, code, content, mimetype);
       } else {
          success = http_reactor_->HttpGetResource(path, code, content, mimetype);
