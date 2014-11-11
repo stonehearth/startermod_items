@@ -9,6 +9,12 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
    didInsertElement: function() {
       var self = this;
 
+      // TODO, maybe?  I think the argument can be made that all of these should just be sub-views,
+      // and could be just declared directly within the HTML of whatever designer you want.  The
+      // only wrinkle is that these views would need to expose the 'tool' interface as well, and
+      // the base designer view would need to interrogate all child views to figure out which
+      // is a tool and which is not.  Not hard, but kind of ugly.  At this point, I think it's more
+      // 'cute' factoring than real design advantage, and so is left as an exercise to the bored.
       this.newTool(DrawFloorTool);
       this.newTool(DrawWallTool);
       this.newTool(GrowWallsTool);
@@ -18,26 +24,5 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
 
       // Make sure we call super after adding all the tools!
       this._super();
-
-      // undo/redoo tool
-      this.$('#undoTool').click(function() {
-         if (self.get('building')) {
-            App.stonehearthClient.undo();
-         }
-      });
-
-      var doEraseStructure = function() {
-         App.stonehearthClient.eraseStructure(
-            self.activateElement('#eraseStructureTool'))
-            .fail(self._deactivateTool('#eraseStructureTool'))
-            .done(function() {
-               doEraseStructure();
-            });
-      };
-
-      this.$('#eraseStructureTool').click(function() {
-         doEraseStructure();
-      });
    }
 });
-

@@ -68,6 +68,27 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
    didInsertElement: function() {
       var self = this;
       this._super();
+
+      // undo/redoo tool
+      this.$('#undoTool').click(function() {
+         if (self.get('building')) {
+            App.stonehearthClient.undo();
+         }
+      });
+
+      var doEraseStructure = function() {
+         App.stonehearthClient.eraseStructure(
+            self.activateElement('#eraseStructureTool'))
+            .fail(self._deactivateTool('#eraseStructureTool'))
+            .done(function() {
+               doEraseStructure();
+            });
+      };
+
+      this.$('#eraseStructureTool').click(function() {
+         doEraseStructure();
+      });
+
       self._state = {};
 
       $.each(this.tools, function(_, tool) {
