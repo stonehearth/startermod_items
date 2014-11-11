@@ -98,11 +98,13 @@ void Renderer::OneTimeIninitializtion()
 
    // If the mod is unzipped, put a watch on the filesystem directory where the resources live
    // so we can dynamically load resources whenever the file changes.
-   std::string fspath = std::string("mods/");
-   if (boost::filesystem::is_directory(fspath)) {
-      fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-         Renderer::GetInstance().FlushMaterials();
-      }, true);
+   if (core::Config::GetInstance().Get<bool>("enable_renderer_file_watcher", false)) {
+      std::string fspath = std::string("mods/");
+      if (boost::filesystem::is_directory(fspath)) {
+         fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
+            Renderer::GetInstance().FlushMaterials();
+         }, true);
+      }
    }
 
    OnWindowResized(windowWidth_, windowHeight_);
