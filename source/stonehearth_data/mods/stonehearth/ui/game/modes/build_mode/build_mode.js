@@ -5,18 +5,14 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
 
       var self = this;
 
-      $(top).on("radiant_selection_changed", function (_, e) {
-         self._onEntitySelected(e);
-      });
-
-      $(top).on('selected_sub_part_changed', function(_, sub_part) {
-         self._selectedSubPart = sub_part;
+      $(top).on('selected_sub_part_changed', function(_, change) {
+         self._selectedSubPart = change.selected_sub_part;
+         self._is_selected_part_road = change.selected_sub_part_is_road
          self._onStateChanged();
       }); 
 
       // track game mode changes and nuke any UI that we've show when we exit build mode
       $(top).on('mode_changed', function(_, mode) {
-         self._mode = mode;
          self._onStateChanged();
       });
 
@@ -60,9 +56,10 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
-      this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
+      //this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
       this._miningView = self.addView(App.StonehearthMiningView);
 
+      this.hideAllViews();
       this.hide();
    },
 
@@ -110,50 +107,11 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
 
       this._buildingDesignerView.show();
    },
-   
-   _onEntitySelected: function(e) {
-      var self = this;
-      var entity = e.selected_entity
-      
-      self.hideAllViews();
-
-      // nuke the old trace
-      if (self.selectedEntityTrace) {
-         self.selectedEntityTrace.destroy();
-      }
-
-      if (entity) {
-         // trace the properties so we can tell if we need to popup the properties window for the object
-         self.selectedEntityTrace = radiant.trace(entity)
-            .progress(function(result) {
-               self._examineEntity(result);
-            })
-            .fail(function(e) {
-               console.log(e);
-            });
-      }
-   },
-
-   _examineEntity: function(entity) {
-      var self = this;
-      
-      if (!entity) {
-         return;
-      }
-
-      if (entity['stonehearth:building']) {
-         self._buildingDesignerView.show();
-      } else if (entity['stonehearth:farmer_field']) {
-         //this._showFarmUi(entity);
-      } else if (entity['stonehearth:trapping_grounds']) {
-         //this._showTrappingGroundsUi(entity);
-      }
-   },
 
    _onStateChanged: function() {
       var self = this;
 
-      if (self._mode == "build") {
+      if (App.getGameMode() == 'build') {
          //trace the selected entity to determine its components
          if (self.selectedSubPartTrace) {
             self.selectedSubPartTrace.destroy();
@@ -165,10 +123,16 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     self._buildingDesignerView.set('uri', entity.__self);
-                     self.hideAllViews();
-
-                     self._buildingDesignerView.show();
+                     if (self._is_selected_part_road) {
+                        // Unless it's a road!  Then, show the road UI.
+                        self._buildRoadsView.set('uri', entity.__self);
+                        self.hideAllViews();
+                        self._buildRoadsView.show();
+                     } else {
+                        self.hideAllViews();
+                        self._buildingDesignerView.set('uri', entity.__self);
+                        self._buildingDesignerView.show();
+                     }
                   } else {
                      self._buildingDesignerView.hide();
                   }
@@ -176,6 +140,8 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                .fail(function(e) {
                   console.log(e);
                });         
+         } else {
+            self._buildingDesignerView.set('uri', null);
          }
       } else {
          self.hideAllViews();
