@@ -18,8 +18,7 @@ var DrawDoodadTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.addDoodad(self.brush);
-            })
-            .done();
+            });
       },
 
       addTabMarkup: function(root) {

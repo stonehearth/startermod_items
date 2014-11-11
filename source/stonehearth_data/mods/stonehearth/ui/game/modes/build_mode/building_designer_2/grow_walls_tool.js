@@ -20,8 +20,7 @@ var GrowWallsTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.growWalls(self.columnBrush, self.wallBrush);
-            })
-            .done();
+            });
       },
 
       _onMaterialChange: function(type, brush) {

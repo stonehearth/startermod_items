@@ -18,8 +18,7 @@ var DrawSlabTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.buildSlab(self.brush);
-            })
-            .done();
+            });
       },
 
       addTabMarkup: function(root) {

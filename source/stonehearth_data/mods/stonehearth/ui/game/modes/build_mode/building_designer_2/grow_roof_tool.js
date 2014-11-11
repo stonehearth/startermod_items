@@ -20,8 +20,7 @@ var GrowRoofTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.growRoof(self.brush);
-            })
-            .done();
+            });
       },
 
       addTabMarkup: function(root) {
@@ -38,6 +37,7 @@ var GrowRoofTool;
 
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('roofMaterial', self.material);
+                     App.stonehearthClient.callTool(self.buildTool);
                   }
                );
 

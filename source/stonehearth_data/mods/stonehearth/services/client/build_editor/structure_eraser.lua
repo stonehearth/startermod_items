@@ -155,7 +155,6 @@ function StructureEraser:_start_erase_fixture_tool(hover_entity)
          local s = _radiant.client.query_scene(event.x, event.y)
          for result in s:each_result() do
             if result.entity == hover_entity then
-               local blueprint = build_util.get_blueprint_for(hover_entity)
                _radiant.call_obj(self._build_service, 'erase_fixture_command', hover_entity)
                   :done(function(r)
                         self:resolve(r)

@@ -115,14 +115,8 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          this.invokeTool = invoke_fn;
          return buildTool;
       };
-      buildTool.done = function() {
-         self.$('#' + toolId).click(function() {
-            App.stonehearthClient.callTool(buildTool);
-         });
-         return buildTool;
-      };
 
-      this.actions.push(buildTool);
+      this.actions[toolId] = buildTool;
 
       return buildTool;
    },
@@ -159,8 +153,12 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          tool.addClass('active');
          
          // update the material in the tab to reflect the selection
-         if(self.tools[tool.attr('id')]) {
-            self.tools[tool.attr('id')].restoreState(self._state)
+         toolId = tool.attr('id');
+         if(self.tools[toolId]) {
+            self.tools[toolId].restoreState(self._state)
+            if (self.actions[toolId]) {
+               App.stonehearthClient.callTool(self.actions[toolId]);
+            }
          }
       });
 

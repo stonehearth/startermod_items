@@ -1,8 +1,8 @@
 App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.extend({
    templateName: 'buildingDesigner',
+
    init: function() {
       var self = this;
-
       this._super();
    },   
 
@@ -16,6 +16,7 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(GrowRoofTool);
       this.newTool(DrawSlabTool);
 
+      // Make sure we call super after adding all the tools!
       this._super();
 
       // undo/redoo tool

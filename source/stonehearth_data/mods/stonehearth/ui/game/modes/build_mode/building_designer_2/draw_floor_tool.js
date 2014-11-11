@@ -18,8 +18,7 @@ var DrawFloorTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.buildFloor(self.brush);
-            })
-            .done();
+            });
       },
 
       addTabMarkup: function(root) {

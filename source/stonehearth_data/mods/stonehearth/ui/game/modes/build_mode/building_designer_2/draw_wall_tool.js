@@ -20,8 +20,7 @@ var DrawWallTool;
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
                return App.stonehearthClient.buildWall(self.columnBrush, self.wallBrush);
-            })
-            .done();
+            });
       },
 
       _onMaterialChange: function() {
