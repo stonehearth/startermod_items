@@ -148,6 +148,10 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       $.each(this._active_tool_stack, function(i, v) {
          if (v[0] == depth) {
             toRemove = i;
+
+            // It's possible we could see more than one of the same stack depth in this
+            // array.  I *think* it should be fine, as long as we remove from the
+            // bottom to the top, so stop when we see the first matching element.
             return false;
          }
       });
@@ -156,10 +160,24 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       }      
    },
 
-   _doToolCall: function() {
+   _lastTool: function() {
+      var l = this._active_tool_stack.length - 1;
+      var activeTool = l >= 0 ? this._active_tool_stack[l][1] : null;
+
+      return [l, activeTool];
+   },
+
+   _pushTool : function(tool) {
+      var stackDepth = this._lastTool()[0] + 1;
+      this._active_tool_stack.push([stackDepth, tool]);
+   },
+
+   _doToolCall: function(tool) {
       var self = this;
-      var stackDepth = this._active_tool_stack.length - 1;
-      var tool = this._active_tool_stack[stackDepth][1];
+
+      this._pushTool(tool);
+      var stackDepth = this._lastTool()[0];
+
       App.stonehearthClient.callTool(tool)
          .done(function(response) {
             if (tool.repeat) {
@@ -167,14 +185,14 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
                self._removeTool(stackDepth);
             } else {
                self._removeTool(stackDepth);
-               if (self._active_tool_stack.length == 0) {
+               if (self._lastTool()[1] == null) {
                   self.$('.toolButton').removeClass('active');
                }
             }
          })
          .fail(function() {
             self._removeTool(stackDepth);
-            if (self._active_tool_stack.length == 0) {
+            if (self._lastTool()[1] == null) {
                self.$('.toolButton').removeClass('active');
             }
          });
@@ -184,27 +202,23 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       var self = this;
       this.tools[toolId].restoreState(this._state);
 
-      var l = this._active_tool_stack.length;
-      var activeTool = l > 0 ? this._active_tool_stack[l - 1][1] : null;
+      var activeTool = this._lastTool()[1];
 
       if (activeTool != this.actions[toolId]) {
          // activate the tool
          this.$('.toolButton').removeClass('active');
          this.$('#' + toolId).addClass('active');
 
-         this._active_tool_stack.push([l, this.actions[toolId]]);
-         this._doToolCall();
+         this._doToolCall(this.actions[toolId]);
       }
    },
 
    reactivateTool: function(tool) {
       var self = this;
-      var l = this._active_tool_stack.length;
-      var activeTool = l > 0 ? this._active_tool_stack[l - 1][1] : null;
+      var activeTool = this._lastTool()[1];
 
       if (activeTool == tool) {
-         this._active_tool_stack.push([l, tool]);
-         this._doToolCall();
+         this._doToolCall(tool);
       }
    },
 
