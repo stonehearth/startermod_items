@@ -299,6 +299,10 @@ App.StonehearthBuildingDesignerTools = App.View.extend({
          doAddDoodad();
       });
 
+      this.$('#drawSlabTool').click(function() {
+         doDrawSlab();
+      });      
+
       // floor materials
       this.$('.floorMaterial').click(function() {
          self.$('.floorMaterial').removeClass('selected');
