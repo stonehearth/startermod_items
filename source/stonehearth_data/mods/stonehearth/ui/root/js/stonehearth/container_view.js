@@ -54,15 +54,11 @@ App.ContainerView = Ember.ContainerView.extend({
    },
 
    show: function() {
-      if (this.$()) {
-         this.$().show();   
-      }
+      this.set('isVisible', true);
    },
 
    hide: function() {
-      if (this.$()) {
-         this.$().hide();   
-      }
+      this.set('isVisible', false);
    },
 
    hideAllViews: function() {
@@ -70,6 +66,7 @@ App.ContainerView = Ember.ContainerView.extend({
 
       $.each(childViews, function(i, childView) {
          childView.hide();
+         //childView.set('isVisible', false);
       });
       App.stonehearthClient.hideTip();
    },
