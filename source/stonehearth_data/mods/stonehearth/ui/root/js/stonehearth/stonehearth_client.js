@@ -311,26 +311,6 @@ var StonehearthClient;
       },
 
       // item type is a uri, not an item entity
-      buildLadder: function() {
-         var self = this;
-
-         var tip = self.showTip('stonehearth:build_ladder_title', 'stonehearth:build_ladder_description',
-            {i18n: true});
-
-         App.setGameMode('build');
-         return this._callTool('buildLadder', function() {
-            return radiant.call_obj(self._build_editor, 'build_ladder')
-               .done(function(response) {
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  self.buildLadder();
-               })
-               .fail(function(response) {
-                  self.hideTip(tip);
-               });
-         });
-      },
-
-      // item type is a uri, not an item entity
       removeLadder: function(ladder) {
          return radiant.call_obj(this._build_service, 'remove_ladder_command', ladder);
       },
