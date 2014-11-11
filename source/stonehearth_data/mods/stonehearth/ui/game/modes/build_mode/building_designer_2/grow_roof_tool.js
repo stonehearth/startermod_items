@@ -10,6 +10,10 @@ var GrowRoofTool;
       brush: null,
       options: {},
 
+      handlesType: function(type) {
+         return type == 'roof';
+      },
+
       inDom: function(buildingDesigner) {
          var self = this;
 

@@ -350,23 +350,16 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          var constructionData = this.get('blueprint.stonehearth:construction_data')
          var type = constructionData.type;
 
-
-         if (type == 'floor') {
-            //self.$('.tabPage').hide();
-            //self.$('#floorMaterialTab').show();
-         } else if (type == 'slab') {           
-            //self.$('.tabPage').hide();
-            //self.$('#slabMaterialTab').show();
-         } else if (type == 'wall' || type == 'column') {           
-         //   self.$('.tabPage').hide();
-         //   self.$('#wallMaterialTab').show();
-         } else if (type == 'roof') {
-            /*self._applyRoofGradiantControlState(constructionData);
-            self.$('.tabPage').hide();
-            self.$('#roofMaterialTab').show();*/
-         }
+         $.each(self.tools, function(_, tool) {
+            if (tool.handlesType && tool.handlesType(type)) {
+               self.$('.tabPage').hide();
+               self.$('#' + tool.materialTabId).show();
+               self.showEditor();
+            }
+         });
+      } else {
+         self.showEditor();
       }
    },
-
 });
 

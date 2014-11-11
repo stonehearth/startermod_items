@@ -8,6 +8,10 @@ var DrawFloorTool;
       materialTabId: 'floorMaterialTab',
       brush: null,
 
+      handlesType: function(type) {
+         return type == 'floor';
+      },
+
       inDom: function(buildingDesigner) {
          var self = this;
 

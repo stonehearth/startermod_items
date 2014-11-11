@@ -10,6 +10,11 @@ var DrawWallTool;
       columnBrush: null,
       wallBrush: null,
 
+      handlesType: function(type) {
+         return type == 'wall' || type == 'column';
+      },
+
+
       inDom: function(buildingDesigner) {
          var self = this;
 
@@ -23,12 +28,12 @@ var DrawWallTool;
             });
       },
 
-      _onMaterialChange: function() {
+      _onMaterialChange: function(type, brush) {
          var blueprint = this.buildingDesigner.getBlueprint();
          var constructionData = this.buildingDesigner.getConstructionData();
 
-         if (blueprint && constructionData && constructionData.type == 'column') {
-            App.stonehearthClient.replaceStructure(blueprint, this.columnBrush);
+         if (blueprint && constructionData && constructionData.type == type) {
+            App.stonehearthClient.replaceStructure(blueprint, brush);
          }
          // Re/activate the tool with the new material.
          App.stonehearthClient.callTool(this.buildTool);
@@ -49,7 +54,7 @@ var DrawWallTool;
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('wallMaterial', self.wallMaterial);
 
-                     self._onMaterialChange();
+                     self._onMaterialChange('wall', self.wallBrush);
                   }
                );
                MaterialHelper.addMaterialPalette(tab, 'Column Material', self.columnMaterialClass, self.buildingParts.columnPatterns, 
@@ -60,7 +65,7 @@ var DrawWallTool;
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('columnMaterial', self.columnMaterial);
 
-                     self._onMaterialChange();
+                     self._onMaterialChange('column', self.columnBrush);
                   }
                );
          });
@@ -70,6 +75,19 @@ var DrawWallTool;
          root.append(
             $('<div>', {id:this.toolId, class:'toolButton', tab:this.materialTabId, title:'Draw wall'})
          );
+      },
+
+      activateOnBuilding: function() {
+         var blueprint = this.buildingDesigner.getBlueprint();
+         var constructionData = this.buildingDesigner.getConstructionData();
+
+         if (blueprint && constructionData) {
+            if (constructionData.type == 'column') {
+
+            } else if (constructionData.type == 'wall') {
+               
+            }
+         } 
       },
 
       restoreState: function(state) {

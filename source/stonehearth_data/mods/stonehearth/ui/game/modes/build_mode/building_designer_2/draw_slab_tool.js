@@ -8,6 +8,10 @@ var DrawSlabTool;
       materialTabId: 'slabMaterialTab',
       brush: null,
 
+      handlesType: function(type) {
+         return type == 'slab';
+      },
+
       inDom: function(buildingDesigner) {
          var self = this;
 
