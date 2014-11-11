@@ -87,6 +87,7 @@ function StockpileComponent:initialize(entity, json)
    if not self._sv.stocked_items then
       -- creating...
       --self._sv.should_steal = false
+      self._sv.active = true
       self._sv.size = Point2(0, 0)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
@@ -492,9 +493,6 @@ function StockpileComponent:_destroy_tasks()
       log:debug('destroying restock task')
       self._restock_task:destroy()
       self._restock_task = nil
-      self.__saved_variables:modify(function(o)
-            o.active = false
-         end)
    end
 end
 
@@ -510,12 +508,31 @@ function StockpileComponent:_create_worker_tasks()
                                  :set_source(self._entity)
                                  :set_name('restock task')
                                  :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)
-                                 :start()
-         self.__saved_variables:modify(function(o)
-               o.active = true
-            end)
+         if self._sv.active then
+            self._restock_task:start()
+         end
       end
    end
+end
+
+function StockpileComponent:set_active(active)
+   if active ~= self._sv.active then
+      self.__saved_variables:modify(function(o)
+            o.active = active
+         end)
+      if self._restock_task then
+         if active then
+            self._restock_task:start()
+         else
+            self._restock_task:pause()
+         end
+      end
+   end
+end
+
+function StockpileComponent:set_active_command(session, response, active)
+   self:set_active(active)
+   return true;
 end
 
 return StockpileComponent
