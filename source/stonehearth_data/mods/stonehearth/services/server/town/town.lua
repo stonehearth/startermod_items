@@ -68,6 +68,7 @@ function Town:_create_task_groups()
       for task_group_name, entry in pairs(task_group_data) do
          self._task_groups[task_group_name] = self._scheduler:create_task_group(entry.dispatcher, {})
                                                                   :set_counter_name(entry.name)
+                                                                  :set_published(true)
       end
    end
 end

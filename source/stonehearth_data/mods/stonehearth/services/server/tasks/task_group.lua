@@ -46,6 +46,14 @@ function TaskGroup:set_counter_name(counter_name)
    return self
 end
 
+function TaskGroup:set_published(value)
+   self._model:modify(function (o)
+         o.published = value
+      end)
+   
+   return self
+end
+
 function TaskGroup:get_activity()
    return self._activity
 end

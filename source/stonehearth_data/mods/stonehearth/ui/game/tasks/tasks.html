@@ -2,14 +2,15 @@
 <div id="tasks_manager" class="gui tasksManager">
    <div class="window">
       <div class="title">{{ view.title }} <div class="closeButton"></div></div>
-      <div class="tasksContainer">
-         <table class="list">
-            <tbody>
-            {{#each model.groupsArray}}
-               {{partial 'taskGroup'}}
-            {{/each}}
-            </tbody>
-         </table>
+      <div id="tabButtons">
+         {{#each model.groupsArray}}
+            <img class="tabButton" {{bind-attr tab=this.name}} {{bind-attr title=this.displayName}} {{bind-attr src=this.tabButtonIcon}}/>
+         {{/each}}
+      </div>
+      <div class="tabPages">
+         {{#each model.groupsArray}}
+            {{partial 'taskGroup'}}
+         {{/each}}
       </div>
    </div>
 
@@ -17,40 +18,41 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="_taskGroup">
-   <tr class="header" {{bind-attr id=this.__id}}>
-      <td>
-         <div class="name">
-            {{this.name}}
-         </div>
-      </td>
-   </tr>
-   {{#each this.tasksArray}}
-      <tr class="row" {{bind-attr id=this.__id}}>
-         <td>
-            <div class="name">
-               {{this.name}}
-            </div>
-            {{#if this.source }}
-               <div class="toolbar">
-                  {{#if this.source.stonehearth:stockpile }}
-                     <a {{bind-attr id="removeStockpile"}} href="#" {{action removeStockpile this.source.__self target="view"}} class='uisounds'>
-                        <button {{bind-attr class=":commandButton buttonEnabled" }}>
-                           {{i18n stonehearth:remove_stockpile}}
-                        </button>
-                     </a>
-                     <a {{bind-attr id=command.name}} href="#" {{action doCommand command target="view"}} class='uisounds'>
-                        <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>                           
-                           {{#if this.source.stonehearth:stockpile.active }}
-                              {{i18n stonehearth:pause_stockpile}}
-                           {{else}}
-                              {{i18n stonehearth:resume_stockpile}}
-                           {{/if}}
-                        </button>
-                     </a>
-                  {{/if}}
-               </div>
-            {{/if}}
-         </td>
-      </tr>
-   {{/each}}
+   <div class="tabPage" {{bind-attr id=this.name}}>
+      <table class="list">
+         <tbody>
+            {{#each this.tasksArray}}
+               <tr class="row" {{bind-attr id=this.__id}}>
+                  <td>
+                     <div class="name">
+                        <img class="banner button" {{bind-attr src=this.group.taskIcon}}/>
+                        {{this.displayName}}
+                     </div>
+                     <div class="subtext">{{this.subtext}}</div>                    
+                     <div class="toolbar">
+                        {{#if this.source.stonehearth:stockpile }}
+                           <a {{bind-attr id="removeStockpile"}} href="#" {{action removeStockpile this.source.__self target="view"}} class='uisounds'>
+                              <button {{bind-attr class=":commandButton buttonEnabled" }}>
+                                 {{i18n stonehearth:remove_stockpile}}
+                              </button>
+                           </a>
+                           <a {{bind-attr id=command.name}} href="#" {{action pauseStockpile this.source.stonehearth:stockpile.__self this.source.stonehearth:stockpile.active target="view"}} class='uisounds'>
+                              <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>                           
+                                 {{#if this.source.stonehearth:stockpile.active }}
+                                    {{i18n stonehearth:pause_stockpile}}
+                                 {{else}}
+                                    {{i18n stonehearth:resume_stockpile}}
+                                 {{/if}}
+                              </button>
+                           </a>
+                        {{/if}}
+                     </div>
+                  </td>
+                  <td><span class="status">{{this.statusText}}</span></td>
+               </tr>
+            {{/each}}
+         </tbody>
+      </table>
+   </div>
 </script>
+
