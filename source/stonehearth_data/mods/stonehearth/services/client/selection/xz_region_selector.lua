@@ -142,6 +142,10 @@ function XZRegionSelector:_cleanup()
       self._cursor_obj:destroy()
       self._cursor_obj = nil
    end
+   if self._invalid_cursor_obj then
+      self._invalid_cursor_obj:destroy()
+      self._invalid_cursor_obj = nil
+   end
 
    if self._render_node then
       self._render_node:destroy()
@@ -236,7 +240,11 @@ end
 -- filter.
 --
 function XZRegionSelector:_get_hover_brick(x, y)
-   local brick = selector_util.get_selected_brick(x, y, self._select_front_brick, function(result)               
+   local brick = selector_util.get_selected_brick(x, y, function(result)
+         if self._select_front_brick then
+            result.brick = result.brick + result.normal
+         end
+
          -- The only case entity should be null is when allowing self-selection of the
          -- cursor.
          if self._allow_select_cursor and not result.entity then
@@ -308,6 +316,21 @@ function XZRegionSelector:_on_mouse_event(event)
    end
 
    local current_brick = self:_get_hover_brick(event.x, event.y)
+
+   -- if we haven't found a valid p0 and the current brick isn't valid either, install
+   -- the invalid cursor object
+   if not current_brick and not self._selected_p0 then
+      if not self._invalid_cursor_obj then
+         self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+      end
+      self:_notify_progress(nil)
+      return
+   end
+   if self._invalid_cursor_obj then
+      self._invalid_cursor_obj:destroy()
+      self._invalid_cursor_obj = nil
+   end
+
    -- TODO: clean this up
    if not event:up(1) and not event:down(1) then
       -- only recalculate when the brick changes
