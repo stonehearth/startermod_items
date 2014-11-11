@@ -36,7 +36,7 @@ var DrawWallTool;
             App.stonehearthClient.replaceStructure(blueprint, brush);
          }
          // Re/activate the tool with the new material.
-         App.stonehearthClient.callTool(this.buildTool);
+         this.buildingDesigner.reactivateTool(this.buildTool);
       },
 
       addTabMarkup: function(root) {

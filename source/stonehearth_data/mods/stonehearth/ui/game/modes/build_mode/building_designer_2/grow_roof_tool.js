@@ -41,7 +41,7 @@ var GrowRoofTool;
 
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('roofMaterial', self.material);
-                     App.stonehearthClient.callTool(self.buildTool);
+                     self.buildingDesigner.reactivateTool(self.buildTool);
                   }
                );
 

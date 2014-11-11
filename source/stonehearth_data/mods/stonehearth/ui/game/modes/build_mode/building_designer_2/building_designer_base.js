@@ -30,6 +30,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
    tools: {},
    actions: [],
+   _active_tool: null,
 
    init: function() {
       var self = this;
@@ -142,6 +143,43 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       return buildTool;
    },
 
+   _doToolCall: function() {
+      var self = this;
+      App.stonehearthClient.callTool(this._active_tool)
+         .done(function(response) {
+            if (self._active_tool.repeat) {
+               self.reactivateTool(self._active_tool);
+            } else {
+               self.$('.toolButton').removeClass('active');               
+            }
+         })
+         .fail(function() {
+            self.$('.toolButton').removeClass('active');
+            self._active_tool = null;
+         });
+   },
+
+   activateTool: function(toolId) {
+      var self = this;
+      this.tools[toolId].restoreState(this._state);
+
+      if (this._active_tool != this.actions[toolId]) {
+         // activate the tool
+         this.$('.toolButton').removeClass('active');
+         this.$('#' + toolId).addClass('active');
+
+         this._active_tool = this.actions[toolId];
+         this._doToolCall();
+      }
+   },
+
+   reactivateTool: function(tool) {
+      var self = this;
+      if (this._active_tool == tool) {
+         this._doToolCall();
+      }
+   },
+
    _deactivateTool: function(toolTag) {
       var self = this;
       return function() {
@@ -168,18 +206,11 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          // show the correct tab page
          self.$('.tabPage').hide();
          tab.show();
-
-         // activate the tool
-         self.$('.toolButton').removeClass('active');
-         tool.addClass('active');
          
          // update the material in the tab to reflect the selection
          toolId = tool.attr('id');
          if(self.tools[toolId]) {
-            self.tools[toolId].restoreState(self._state)
-            if (self.actions[toolId]) {
-               App.stonehearthClient.callTool(self.actions[toolId]);
-            }
+            self.activateTool(toolId);
          }
       });
 

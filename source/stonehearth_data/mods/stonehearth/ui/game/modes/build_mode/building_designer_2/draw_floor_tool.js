@@ -41,7 +41,7 @@ var DrawFloorTool;
                      self.buildingDesigner.saveKey('floorMaterial', self.floorMaterial);
 
                      // Re/activate the floor tool with the new material.
-                     App.stonehearthClient.callTool(self.buildTool);
+                     self.buildingDesigner.reactivateTool(self.buildTool);
                   }
                );
          });

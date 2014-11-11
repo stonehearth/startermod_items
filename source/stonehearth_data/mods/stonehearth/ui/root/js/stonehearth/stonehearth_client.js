@@ -484,14 +484,7 @@ var StonehearthClient;
       },
 
       callTool: function(toolStruct) {
-         var self = this;
-
-         this._callTool(toolStruct.toolId, toolStruct.invokeTool(), toolStruct.precall)
-            .done(function(response) {
-               if (toolStruct.repeat) {
-                  self.callTool(toolStruct);
-               }
-            });
+         return this._callTool(toolStruct.toolId, toolStruct.invokeTool(), toolStruct.precall);
       },
 
       buildSlab: function(slabBrush, precall) {
