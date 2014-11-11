@@ -47,11 +47,27 @@ SelectionService.edit_floor_xz_region_filter = function (result)
          if blueprint:get_component('stonehearth:floor') then
             return true
          end
+         -- if we blueprint which is not floor, bail
+         return false
       end
    end
    
-   -- defer to the common implementation
-   return stonehearth.selection.find_supported_xz_region_filter(result)
+   -- fast check for 'is terrain'.  we can dig into the terrain, so leave the floor sunk.
+   if entity:get_id() == 1 then
+      return true
+   end
+
+   -- solid regions are good if we're pointing at the top face, but unsink the floor
+   -- when doing so
+   if result.normal:to_int().y == 1 then
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         result.brick = result.brick + result.normal
+         return true
+      end
+   end
+
+   return false
 end
 
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE

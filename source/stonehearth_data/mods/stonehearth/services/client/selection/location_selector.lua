@@ -171,7 +171,10 @@ end
 -- is almost certainly going to get in the way!)
 --
 function LocationSelector:_get_selected_brick(x, y)
-   return selector_util.get_selected_brick(x, y, true, function(result)
+   return selector_util.get_selected_brick(x, y, function(result)
+         -- select the brick in front...
+         result.brick = result.brick + result.normal
+
          -- skip the cursor...
          if result.entity == self._cursor_entity then
             return stonehearth.selection.FILTER_IGNORE
