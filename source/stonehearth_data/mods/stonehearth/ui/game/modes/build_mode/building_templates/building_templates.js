@@ -41,14 +41,14 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
          var row = $(this);
 
          row.addClass('selected');
-         self._selectedTemplate = row.attr('template');
+      self._selectedTemplate = row.attr('template');
          App.stonehearthClient.drawTemplate(null, self._selectedTemplate);
       });
 
 
       self.$().on('mouseenter', '#templatesList .row', function() {
             var templateName = $(this).attr('template');
-            var template = self._templatesMap[templateName];
+            var template = self._templatesMap[templateName.toLowerCase()];
             self.set('context.selected_template', template);
 
             var costView = self._getClosestEmberView(self.$('#buildingCost'));
