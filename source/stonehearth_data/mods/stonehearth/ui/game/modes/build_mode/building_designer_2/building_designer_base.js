@@ -198,19 +198,17 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          });
    },
 
-   activateTool: function(toolId) {
+   activateTool: function(tool) {
       var self = this;
       this.tools[toolId].restoreState(this._state);
 
       var activeTool = this._lastTool()[1];
 
-      if (activeTool != this.actions[toolId]) {
-         // activate the tool
-         this.$('.toolButton').removeClass('active');
-         this.$('#' + toolId).addClass('active');
+      // activate the tool
+      this.$('.toolButton').removeClass('active');
+      this.$('#' + toolId).addClass('active');
 
-         this._doToolCall(this.actions[toolId]);
-      }
+      this._doToolCall(tool);
    },
 
    reactivateTool: function(tool) {
@@ -250,8 +248,8 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          tab.show();
          
          toolId = tool.attr('id');
-         if(self.tools[toolId]) {
-            self.activateTool(toolId);
+         if (self.actions[toolId]) {
+            self.activateTool(self.actions[toolId]);
          }
       });
 

@@ -36,8 +36,8 @@ var DrawDoodadTool;
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('doodadMaterial', self.doodadMaterial);
 
-                     // Re/activate the floor tool with the new material.
-                     self.buildingDesigner.reactivateTool(self.buildTool);
+                     // Re/activate the doodad tool with the new material.
+                     self.buildingDesigner.activateTool(self.buildTool);
                   }
                );
          });

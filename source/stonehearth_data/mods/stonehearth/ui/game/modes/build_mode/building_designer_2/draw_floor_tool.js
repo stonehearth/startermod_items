@@ -41,7 +41,7 @@ var DrawFloorTool;
                      self.buildingDesigner.saveKey('floorMaterial', self.floorMaterial);
 
                      // Re/activate the floor tool with the new material.
-                     self.buildingDesigner.reactivateTool(self.buildTool);
+                     self.buildingDesigner.activateTool(self.buildTool);
                   }
                );
          });
