@@ -33,16 +33,17 @@ end
 --
 function stonehearth_templates.position_camera(o)
    local bounds = build_util.get_building_bounds(o.building)
-   local centroid = build_util.get_building_centroid(o.building)
-   
-   local max_d = math.max(bounds.max.x, math.max(bounds.max.y, bounds.max.z)) * 2
-   local position = Point3()
-   position.x = centroid.x + max_d * 3 / 4
-   position.y = centroid.y + max_d * 3 / 4
-   position.z = centroid.z + -max_d
+   local center = (bounds.min + bounds.max):scaled(0.5)
+   local girth = (bounds.max - bounds.min):length()
+
+   local camera_direction = Point3(3, 2, -4)
+   camera_direction:normalize()
+   local camera_distance = girth * 1.7
+   local camera_offset = camera_direction:scaled(camera_distance)
+   local position = center + camera_offset
 
    stonehearth.camera:set_position(position)
-   stonehearth.camera:look_at(centroid)
+   stonehearth.camera:look_at(center)
 end
 
 -- prepare to render.  clear the selection.  unfortunately we can't clear the hilight,
