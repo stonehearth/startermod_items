@@ -131,7 +131,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     if (entity['stonehearth:fabricator'] && entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].is_road) {
+                     if (entity['stonehearth:fabricator'] && entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == 2) {
                         // Unless it's a road!  Then, show the road UI.
                         self._buildRoadsView.set('uri', entity.__self);
                         self.hideAllViews();
