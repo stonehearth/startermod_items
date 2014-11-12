@@ -1,35 +1,33 @@
-<script type="text/x-handlebars" data-template-name="stonehearthBuildRoads">
-   <div id="stonehearthBuildRoads" class="constructionGui">
+<script type="text/x-handlebars" data-template-name="roadDesigner">
+   <div id="roadDesigner" class="constructionGui">
 
       <div id="editor">
          {{partial 'roadEditor'}}
       </div>
 
       <div id="overview">
-         {{partial 'roadOverview'}}
+         {{partial 'buildingOverview'}}
       </div>
 
    </div>
 </script>
 
-
 <script type="text/x-handlebars" data-template-name="roadEditor">
    <div class="window mainWindow">
-      <div class="title">Road Designer</div>
+      <div class="title">Road Designer - {{ view.building.unit_info.name }}</div>
 
-      <div id="tools">
+      <div class="tools">
          <h2>Tools</h2>
-         <div id="drawRoadTool" class="toolButton" tab="roadMaterialTab" title="Draw road"></div>
-         <div id="eraseRoadTool" class="toolButton" title="Erase road"></div>
+         <div id="tools">
+            <!-- List of tools is dynamically placed here -->
+         </div>
+         <div id="eraseStructureTool" class="toolButton" tab="none" title="Erase"></div>
          <div id="undoTool" class="toolButton" title="Undo"></div>
       </div>
 
       <div id="tabs">
-         <div class="tabPage" id="roadMaterialTab">
-            <h2>Road Material</h2>
-            <div class="downSection" id="roadMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
+         <div class="tabPage" id="defaultTab" style="display: block">
+            Choose a tool on the left
          </div>
       </div>
 
@@ -38,31 +36,9 @@
    <div class="window bottomButtons">
       <div id="buttons">
          <button class="green" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
+         <button class="warn removeBuilding">{{i18n stonehearth:remove}}</button>
+         <button id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
       </div>
    </div>
 
-</script>
-
-
-<script type="text/x-handlebars" data-template-name="roadOverview">
-   <div class="window mainWindow">
-      <div class="title">Road Summary</div>
-      <div class="downSection">
-         Road construction requirements go here.
-      </div>
-   </div>
-   <div class="window bottomButtons">
-      <div id="buttons">
-         <button id="showEditor">{{i18n stonehearth:start_editing}}</button>
-         <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
-
-         <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
-            {{#if building.active }}
-               {{i18n stonehearth:pause_building}}
-            {{else}}
-               {{i18n stonehearth:start_building}}
-            {{/if}}
-         </button>
-      </div>
-   </div>
 </script>

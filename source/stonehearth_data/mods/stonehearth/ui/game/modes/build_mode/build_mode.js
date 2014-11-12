@@ -1,5 +1,13 @@
 App.StonehearthBuildModeView = App.ContainerView.extend({
 
+   fabProperties: {
+     'stonehearth:fabricator' : {
+         'blueprint': {
+            'stonehearth:floor' : {}
+         }
+      }      
+   },
+
    init: function() {
       this._super();
 
@@ -7,9 +15,8 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
 
       $(top).on('selected_sub_part_changed', function(_, change) {
          self._selectedSubPart = change.selected_sub_part;
-         self._is_selected_part_road = change.selected_sub_part_is_road
          self._onStateChanged();
-      }); 
+      });
 
       // track game mode changes and nuke any UI that we've show when we exit build mode
       $(top).on('mode_changed', function(_, mode) {
@@ -56,7 +63,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
-      //this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
+      this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
       this._miningView = self.addView(App.StonehearthMiningView);
 
       this.hideAllViews();
@@ -108,6 +115,12 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._buildingDesignerView.show();
    },
 
+   _isRoad: function(entity) {
+      return entity['stonehearth:fabricator'] && 
+            entity['stonehearth:fabricator'].blueprint['stonehearth:floor'] &&
+            entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == 2;
+   },
+
    _onStateChanged: function() {
       var self = this;
 
@@ -119,11 +132,12 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
          }
 
          if (self._selectedSubPart) {
-            self.selectedSubPartTrace = radiant.trace(self._selectedSubPart)
+            self.selectedSubPartTrace = new RadiantTrace();
+            self.selectedSubPartTrace.traceUri(self._selectedSubPart, self.fabProperties)
                .progress(function(entity) {
                   // if the selected entity is a building part, show the building designer
                   if (entity['stonehearth:fabricator'] || entity['stonehearth:construction_data']) {
-                     if (self._is_selected_part_road) {
+                     if (self._isRoad(entity)) {
                         // Unless it's a road!  Then, show the road UI.
                         self._buildRoadsView.set('uri', entity.__self);
                         self.hideAllViews();

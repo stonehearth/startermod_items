@@ -283,7 +283,7 @@ function BuildService:add_road(session, road_uri, box, brush_shape, curb_uri, cu
 
          -- Only merge with other road.
          local fc = entity:get_component('stonehearth:floor')
-         return fc and fc:is_road()
+         return fc and fc:get_category() == constants.floor_category.ROAD
       end)
 
    local proj_total_region = total_region:project_onto_xz_plane()
@@ -310,7 +310,7 @@ function BuildService:add_floor(session, floor_uri, box, brush_shape)
    local all_overlapping_floor, floor_region = self:_merge_blueprints(box, function(entity)
          -- Only merge with floors.
          local fc = entity:get_component('stonehearth:floor')
-         return fc and not fc:is_road()
+         return fc and fc:get_category() == constants.floor_category.FLOOR
       end)
 
    local floor
@@ -664,7 +664,7 @@ end
 
 function BuildService:_add_new_road_to_building(building, floor_uri, floor_region, brush_shape)
    local bp, fab = self:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
-   bp:get_component('stonehearth:floor'):set_is_road(true)
+   bp:get_component('stonehearth:floor'):set_category(constants.floor_category.ROAD)
    local fc = fab:get_component('stonehearth:fabricator')
    local move_mod = fc:get_project():add_component('movement_modifier_shape')
    move_mod:set_region(fc:get_project():get_component('region_collision_shape'):get_region())

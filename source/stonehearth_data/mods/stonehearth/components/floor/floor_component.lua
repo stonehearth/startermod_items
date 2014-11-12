@@ -12,6 +12,7 @@ local Point3 = _radiant.csg.Point3
 function Floor:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
+   self._sv.category = constants.floor_category.FLOOR
 end
 
 function Floor:get_region()
@@ -43,12 +44,12 @@ function Floor:layout()
    -- nothing to do...
 end
 
-function Floor:set_is_road(is_road)
-   self._sv.is_road = is_road
+function Floor:set_category(category)
+   self._sv.category = category
 end
 
-function Floor:is_road()
-   return self._sv.is_road
+function Floor:get_category()
+   return self._sv.category
 end
 
 function Floor:remove_region_from_floor(region)

@@ -28,12 +28,13 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       }
    },
 
-   tools: {},
-   actions: [],
-   _active_tool_stack: [],
 
    init: function() {
       var self = this;
+
+      this.tools = {};
+      this.actions = [];
+      this._active_tool_stack = [];
 
       this._super();
       this.components['stonehearth:fabricator'].blueprint = this.blueprint_components;
