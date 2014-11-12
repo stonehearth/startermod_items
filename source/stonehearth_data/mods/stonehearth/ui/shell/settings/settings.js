@@ -57,6 +57,7 @@ App.StonehearthSettingsView = App.View.extend({
       }
 
       self.$('.tab').click(function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_up' });
          var tabPage = $(this).attr('tabPage');
 
          self.$('.tabPage').hide();
@@ -90,6 +91,7 @@ App.StonehearthSettingsView = App.View.extend({
                max: 100,
                step: 10,
                change: function(event, ui) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
                   self.$('#bgmMusicSliderDescription').html( self.$("#bgmMusicSlider" ).slider( "value" ) + '%');
                }
             });
@@ -102,6 +104,7 @@ App.StonehearthSettingsView = App.View.extend({
                max: 100,
                step: 10,
                change: function(event, ui) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
                   self.$('#efxSliderDescription').html( self.$("#effectsSlider" ).slider( "value" ) + '%');
                }
             });
@@ -161,6 +164,7 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                disabled: self.get('context.msaa_forbidden'),
                slide: function( event, ui ) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
                   $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
                }
             }); 
@@ -173,6 +177,7 @@ App.StonehearthSettingsView = App.View.extend({
                step: 1,
                disabled: self.get('context.shadows_forbidden'),
                slide: function( event, ui ) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
                   $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + ui.value));
                }
             });
@@ -184,6 +189,7 @@ App.StonehearthSettingsView = App.View.extend({
                max: 1000,
                step: 10,
                slide: function( event, ui ) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
                   $('#drawDistDescription').html(ui.value);
                }
             });
@@ -218,6 +224,7 @@ App.StonehearthSettingsView = App.View.extend({
    },
 
    applyConfig: function(persistConfig) {
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
       var newConfig = this.getGraphicsConfig(persistConfig);
       radiant.call('radiant:set_config_options', newConfig);
 
@@ -235,6 +242,7 @@ App.StonehearthSettingsView = App.View.extend({
    },
 
    cancel: function() {
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
       this.dismiss();
       this.destroy();
    },
