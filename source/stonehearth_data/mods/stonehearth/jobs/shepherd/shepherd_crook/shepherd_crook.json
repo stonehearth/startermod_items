@@ -1,0 +1,47 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Shepherd's Crook",
+         "description" : "Used corrale the flock",
+         "icon": "file(shepherd_crook.png)"
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(shepherd_crook_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(shepherd_crook_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat" ]
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 4,
+         "reach" : 1.50
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }
+      ]
+   }
+}
+
