@@ -1,8 +1,26 @@
 {
+   "job_id": "shepherd",
    "alias": "stonehearth:jobs:shepherd",
-   "name" : "???",
-   "description" : "???",
-   "requirements" : "???",
+   "name" : "Shepherd",
+   "description" : "Domesticates wild animals and harvests them for food and materials.",
+   "controller" : "stonehearth:class:shepherd", 
+   "requirements" : "Shepherd's Crook, crafted by the Carpenter",
+   "talisman_uri" : "stonehearth:shepherd:crook_talisman",
+   "default_stance" : "passive",
    "icon" : "file(../unknown/images/icon.png)",
-   "parent_job" : "stonehearth:jobs:trapper"
+   "parent_job" : "stonehearth:jobs:trapper",
+
+   "equipment" : {
+      "abilities" : "file(shepherd_abilities)",
+      "torso" : "file(shepherd_outfit)",
+      "mainhand" : "stonehearth:shepherd:crook"
+   },
+   
+   "roles" : "shepherd_job",
+   "promotion_activity_name" : "promote_shepherd",
+
+   "task_groups" : [
+      "stonehearth:task_group:restock"
+   ]
+
 }

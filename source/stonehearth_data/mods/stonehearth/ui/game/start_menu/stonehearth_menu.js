@@ -30,6 +30,8 @@ $.widget( "stonehearth.stonehearthMenu", {
 
    showMenu: function(id) {
       this.menu.find('.menuItemGroup').hide();
+      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());      
+      
       var nodeData;
 
       if (id) {
@@ -134,7 +136,7 @@ $.widget( "stonehearth.stonehearthMenu", {
          self.showMenu(null);
       });
 
-      this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
+      //this.menu.find('.menuItemGroup').width(this.menu.find('.rootGroup').width());
 
       /*
       $(document).click(function() {
