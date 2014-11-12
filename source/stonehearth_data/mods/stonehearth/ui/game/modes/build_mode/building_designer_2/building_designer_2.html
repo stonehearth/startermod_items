@@ -12,20 +12,16 @@
    </div>
 </script>
 
-
 <script type="text/x-handlebars" data-template-name="buildingEditor">
    <div class="window mainWindow">
       <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
 
-      <div id="tools">
+      <div class="tools">
          <h2>Tools</h2>
-         <div id="drawFloorTool" class="toolButton" tab="floorMaterialTab" title="Draw floor"></div>
-         <div id="growWallsTool" class="toolButton" tab="wallMaterialTab" title="Grow walls around floor"></div>
-         <div id="drawWallTool" class="toolButton" tab="wallMaterialTab" title="Draw wall"></div>
-         <div id="growRoofTool" class="toolButton" tab="roofMaterialTab" title="Grow roof on walls"></div>
-         <div id="drawDoodadTool" class="toolButton" tab="doodadMaterialTab" title="Place doors & windows"></div>
+         <div id="tools">
+            <!-- List of tools is dynamically placed here -->
+         </div>
          <div id="placeItemTool" class="toolButton" tab="itemMaterialTab" title="Place furniture and decoration"></div>
-         <div id="drawSlabTool" class="toolButton" tab="slabMaterialTab" title="Draw slab"></div>
          <div id="eraseStructureTool" class="toolButton" tab="none" title="Erase"></div>
          <div id="undoTool" class="toolButton" title="Undo"></div>
       </div>
@@ -34,85 +30,6 @@
 
          <div class="tabPage" id="defaultTab" style="display: block">
             Choose a tool on the left
-         </div>
-         <div class="tabPage" id="floorMaterialTab">
-            <h2>Floor Material</h2>
-            <div class="downSection" id="floorMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-
-         </div>
-
-         <div class="tabPage" id="wallMaterialTab">
-            <h2>Wall Material</h2>
-            <div class="downSection" id="wallMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-            
-            <h2>Column Material</h2>
-            <div class="downSection" id="columnMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-
-         </div>
-
-         <div class="tabPage" id="roofMaterialTab">
-            <h2>Roof Material</h2>
-
-            <div class="downSection" id="roofMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-
-            <div id="roofEditor">
-               <h2>{{i18n stonehearth:building_designer_roof_shape}}
-               <div class="brushPalette downSection">
-                  <div class="roofShape">
-                     <div id="roofDiagram" />
-                     <div class="roofDiagramButton north" gradient="back"/>
-                     <div class="roofDiagramButton south" gradient="front"/>
-                     <div class="roofDiagramButton east" gradient="right" />
-                     <div class="roofDiagramButton west" gradient="left" />
-
-                     <div id="roofNumerics">
-                        <div>
-                           <div class="label">Max height</div>
-                           <div class="dec numericButton uisounds">-</div>
-                           <input type="number" id="inputMaxRoofHeight" value="4" min="1" max="8" class="numericInput roofNumericInput">
-                           <div class="inc numericButton uisounds">+</div>
-                           <div style="clear: both;" />
-                        </div>
-
-                        <!--
-                        <div>
-                           <div class="label">Rise slope</div>
-                           <div class="dec numericButton uisounds">-</div>
-                           <input type="number" id="inputMaxRoofSlope" value="1" min="1" max="4" class="numericInput roofNumericInput">
-                           <div class="inc numericButton uisounds">+</div>
-                           <div style="clear: both;" />
-                        </div>
-                        -->
-                     </div>
-                  </div>
-
-               </div>
-            </div>
-         </div>
-
-         <div class="tabPage" id="doodadMaterialTab">        
-            <h2>Doors & Windows</h2>
-
-            <div class="downSection" id="doodadMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-            
-         </div>
-
-         <div class="tabPage" id="slabMaterialTab">
-            <h2>Slab Material</h2>
-            <div class="downSection" id="slabMaterials">
-               <!-- Material palette built dynamically and inserted here -->
-            </div>
-
          </div>
 
          <div class="tabPage" id="itemMaterialTab">        
@@ -136,48 +53,4 @@
       </div>
    </div>
 
-</script>
-
-
-<script type="text/x-handlebars" data-template-name="buildingOverview">
-   <div class="window mainWindow">
-      <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
-      <div id="scroll" class="parchment">
-         <h2>Building Cost</h2>
-         {{ view "App.StonehearthBuildingCostView" }}            
-      </div>
-   </div>
-   <div class="window bottomButtons">
-      <div id="buttons">
-         <button id="showEditor">{{i18n stonehearth:start_editing}}</button>
-         <button class="warn removeBuilding">{{i18n stonehearth:remove}}</button>
-
-         <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
-            {{#if building.active }}
-               {{i18n stonehearth:pause_building}}
-            {{else}}
-               {{i18n stonehearth:start_building}}
-            {{/if}}
-         </button>
-      </div>
-   </div>
-
-</script>
-
-<script type="text/x-handlebars" data-template-name="templateNameView">
-   <div id="templateNameView" class="gui">
-      <div class="window">
-         <div class="title">
-            {{i18n stonehearth:building_designer_template_name}}<div class="closeButton"></div>
-         </div>
-
-         <p>
-            {{i18n stonehearth:building_designer_template_name_prompt}}
-         </p>
-         <p>
-            <input id="name" onClick="this.select();" type="text" maxlength="28" />
-         </p>
-         <button class="ok"></button>
-      </div>
-   </div>
 </script>

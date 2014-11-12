@@ -15,6 +15,10 @@ function PortalEditor:destroy()
       radiant.entities.destroy_entity(self._fixture_blueprint)
       self._fixture_blueprint = nil
    end
+   if self._cursor then
+      self._cursor:destroy()         
+      self._cursor = nil
+   end
 
    self[StructureEditor]:destroy()
 end

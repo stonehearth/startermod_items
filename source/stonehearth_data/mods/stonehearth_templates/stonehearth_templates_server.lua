@@ -275,9 +275,11 @@ end
 function StonehearthTemplateBuilder:build_next_template(session, response)
    if not self._session then
       self._session = session
-      stonehearth.town:add_town(session)
-      stonehearth.inventory:add_inventory(session)
-      stonehearth.population:add_population(session, 'stonehearth:kingdoms:ascendancy')
+      
+      -- NewGameCallHandler:sign_in must have been run ("guaranteed" by a sleep in the
+      -- client).
+      local town = stonehearth.town:get_town(session.player_id)
+      assert(town)
    end
 
    if self._offset > #self._templates then

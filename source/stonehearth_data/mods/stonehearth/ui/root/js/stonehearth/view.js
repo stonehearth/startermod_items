@@ -53,15 +53,11 @@
    },
 
    show: function() {
-      if (this.$()) {
-         this.$().show();   
-      }
+      this.set('isVisible', true);
    },
 
    hide: function() {
-      if (this.$()) {
-         this.$().hide();   
-      }
+      this.set('isVisible', false);
    },
 
    invokeDestroy: function() {

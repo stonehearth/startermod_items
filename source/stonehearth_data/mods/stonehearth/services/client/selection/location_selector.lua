@@ -36,14 +36,14 @@ end
 function LocationSelector:resolve(...)
    self:_call_once('done', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   self:_cleanup()
    return self
 end
 
 function LocationSelector:reject(...)
    self:_call_once('fail', ...)
    self:_call_once('always')
-   self:_cleanup_promise()
+   self:_cleanup()
    return self
 end
 
@@ -54,11 +54,28 @@ function LocationSelector:notify(...)
    return self
 end
 
-function LocationSelector:_cleanup_promise()
+function LocationSelector:_cleanup()
+   stonehearth.selection:register_tool(self, false)
+
    self._fail_cb = nil
    self._progress_cb = nil
    self._done_cb = nil
    self._always_cb = nil
+
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
+
+   if self._invalid_cursor then
+      self._invalid_cursor:destroy()
+      self._invalid_cursor = nil
+   end
+
+   if self._cursor_entity then
+      radiant.entities.destroy_entity(self._cursor_entity)
+      self._cursor_entity = nil
+   end 
 
    if self._input_capture then
       self._input_capture:destroy()
@@ -145,18 +162,7 @@ end
 -- the cursor entity to stick around (e.g. in a multi-step wizard)
 --
 function LocationSelector:destroy()
-   stonehearth.selection:register_tool(self, false)
-
    self:reject({ error = 'selector destroyed'})
-
-   if self._cursor_obj then
-      self._cursor_obj:destroy()
-      self._cursor_obj = nil
-   end
-   if self._cursor_entity then
-      radiant.entities.destroy_entity(self._cursor_entity)
-      self._cursor_entity = nil
-   end 
 end
 
 -- given the x, y coordinate on screen, return the brick that is a
@@ -165,7 +171,10 @@ end
 -- is almost certainly going to get in the way!)
 --
 function LocationSelector:_get_selected_brick(x, y)
-   return selector_util.get_selected_brick(x, y, true, function(result)
+   return selector_util.get_selected_brick(x, y, function(result)
+         -- select the brick in front...
+         result.brick = result.brick + result.normal
+
          -- skip the cursor...
          if result.entity == self._cursor_entity then
             return stonehearth.selection.FILTER_IGNORE
@@ -213,17 +222,17 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
    -- early exit if the ray missed the entire world   
    if not pt then
       -- Show an invalid icon for the cursor, if we aren't already.
-      if not self._cursor_icon then
-         self._cursor_icon = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+      if not self._invalid_cursor then
+         self._invalid_cursor = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
       end
       return
    end
 
    -- At this point, the location is valid, so clean up any invalid cursor we might
    -- be showing.
-   if self._cursor_icon then
-      self._cursor_icon:destroy()
-      self._cursor_icon = nil
+   if self._invalid_cursor then
+      self._invalid_cursor:destroy()
+      self._invalid_cursor = nil
    end
 
    if event and event:up(1) then
@@ -238,7 +247,7 @@ function LocationSelector:_on_mouse_event(mouse_pos, event)
       end
       if finished then
          self:_call_once('always')
-         self:_cleanup_promise()
+         self:_cleanup()
       end
    end
 end
@@ -275,7 +284,7 @@ function LocationSelector:go()
    end
    
    self._rotation = 0
-   self._cursor_icon = nil
+   self._invalid_cursor = nil
    stonehearth.selection:register_tool(self, true)
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in

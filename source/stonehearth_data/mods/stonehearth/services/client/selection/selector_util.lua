@@ -7,17 +7,12 @@ local Point3 = _radiant.csg.Point3
 -- ignoring nodes between ourselves and the desired brick (e.g. the cursor
 -- is almost certainly going to get in the way!)
 --
-function SelectorUtil.get_selected_brick(x, y, select_brick_in_front, filter_fn)
+function SelectorUtil.get_selected_brick(x, y, filter_fn)
    assert(filter_fn)
 
    -- query the scene to figure out what's under the mouse cursor
    local s = _radiant.client.query_scene(x, y)
    for result in s:each_result() do
-      if select_brick_in_front then
-         -- selecting the brick in front of the intersection, so add the normal to get to it
-         result.brick = result.brick + result.normal
-      end
-
       local filter_result = filter_fn(result)
       if filter_result == stonehearth.selection.FILTER_IGNORE then
          -- keep going...

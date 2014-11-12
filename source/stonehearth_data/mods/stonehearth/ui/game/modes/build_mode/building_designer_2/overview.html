@@ -1,0 +1,24 @@
+<script type="text/x-handlebars" data-template-name="buildingOverview">
+   <div class="window mainWindow">
+      <div class="title">Building Designer - {{ view.building.unit_info.name }}</div>
+      <div id="scroll" class="parchment">
+         <h2>Building Cost</h2>
+         {{ view "App.StonehearthBuildingCostView" }}            
+      </div>
+   </div>
+   <div class="window bottomButtons">
+      <div id="buttons">
+         <button id="showEditor">{{i18n stonehearth:start_editing}}</button>
+         <button class="warn removeBuilding">{{i18n stonehearth:remove}}</button>
+
+         <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
+            {{#if building.active }}
+               {{i18n stonehearth:pause_building}}
+            {{else}}
+               {{i18n stonehearth:start_building}}
+            {{/if}}
+         </button>
+      </div>
+   </div>
+</script>
+
