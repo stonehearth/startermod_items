@@ -1,12 +1,18 @@
+local constants = require 'constants'
+local mining_lib = require 'lib.mining.mining_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local constants = require 'constants'
-local TerrainType = require 'services.server.world_generation.terrain_type'
+local TraceCategories = _radiant.dm.TraceCategories
+local log = radiant.log.create_logger('subterranean_view')
 
 SubterraneanViewService = class()
 
 local EPSILON = 0.000001
 local MAX_CLIP_HEIGHT = 1000000000
+
+local function is_terrain(location)
+   return _physics:is_terrain(location)
+end
 
 function SubterraneanViewService:initialize()
    local enable_mining = radiant.util.get_config('enable_mining', false)
@@ -17,21 +23,143 @@ function SubterraneanViewService:initialize()
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
+      self._sv.xray_mode = ''
       self._sv.clip_enabled = false
-      -- we have some floating point drift on the integer coordinates, not sure why yet
       self._sv.clip_height = 25
       self._sv.initialized = true
    else
    end
 
+   self._input_capture = stonehearth.input:capture_input()
+   self._input_capture:on_keyboard_event(function(e)
+         return self:_on_keyboard_event(e)
+      end)
+
    self._initialize_listener = radiant.events.listen(radiant, 'stonehearth:gameloop', function()
-         local root_entity = _radiant.client.get_object(1)
-         if root_entity and root_entity:is_valid() then
-            -- still broken, need to wait for the renderterrain object to be created
-            --self:_update()
+         if _radiant.renderer.render_terrain_is_available() then
+            self:_deferred_initialize()
             self:_destroy_initialize_listener()
          end
       end)
+end
+
+function SubterraneanViewService:_deferred_initialize()
+   self._flat_xray_region_boxed = _radiant.client.alloc_region3()
+   _radiant.renderer.set_flat_xray_region(self._flat_xray_region_boxed) -- TODO: set this on load
+   self._full_xray_region_boxed = _radiant.client.alloc_region3()
+   _radiant.renderer.set_full_xray_region(self._full_xray_region_boxed) -- TODO: set this on load
+   self:_initialize_traces() -- TODO: destroy the traces
+   self:_update()
+end
+
+function SubterraneanViewService:_initialize_traces()
+   local root_entity = _radiant.client.get_object(1)
+   local terrain_component = root_entity:add_component('terrain')
+   self._interior_region_trace = terrain_component:trace_interior_region('subterranean view', TraceCategories.SYNC_TRACE)
+      :on_changed(function()
+            self:_on_interior_region_changed()
+         end)
+
+   self._interior_region_boxed = terrain_component:get_interior_region()
+end
+
+function SubterraneanViewService:_on_interior_region_changed()
+   self:_update_full_xray_view()
+   self:_update_flat_xray_view()
+end
+
+function SubterraneanViewService:_get_visible_cube(interior_cube)
+   local visible_cube = interior_cube:inflated(Point3(1, 0, 1))
+   visible_cube.min.y = interior_cube.min.y - 1
+   return visible_cube
+end
+
+function SubterraneanViewService:_update_full_xray_view()
+   local interior_region = self._interior_region_boxed:get()
+
+   self._full_xray_region_boxed:modify(function(cursor)
+         cursor:clear()
+
+         -- assumes interior_region is optimized
+         for cube in interior_region:each_cube() do
+            local visible_cube = self:_get_visible_cube(cube)
+            cursor:add_cube(visible_cube)
+         end
+
+         -- TODO: get the terrain bounds for this
+         local world_floor = Cube3(Point3(-10000, -1, -10000), Point3(10001, 0, 10001))
+         cursor:add_cube(world_floor)
+
+         cursor:optimize_by_merge()
+      end)
+end
+
+function SubterraneanViewService:_update_flat_xray_view()
+   local rpg_min_height = 4
+   local down = -Point3.unit_y
+   local interior_region = self._interior_region_boxed:get()
+
+   local show_adjacent = function(point, check_height)
+      if not is_terrain(point + down) then
+         return false
+      end
+
+      local test_point = Point3(point)
+      for y = check_height+1, point.y+rpg_min_height-1 do
+         test_point.y = y
+         if is_terrain(test_point) then
+            return false
+         end
+      end
+
+      return true
+   end
+
+   self._flat_xray_region_boxed:modify(function(cursor)
+         cursor:clear()
+
+         -- assumes interior_region is optimized
+         for cube in interior_region:each_cube() do
+            local check_height = cube.max.y - 1
+            local bottom_face = mining_lib.get_face(cube, down)
+            for point in bottom_face:each_point() do
+               if show_adjacent(point, check_height) then
+                  local visible_cube = self:_get_visible_cube(Cube3(point, point + Point3.one))
+                  cursor:add_cube(visible_cube)
+               end
+            end
+         end
+
+         -- TODO: get the terrain bounds for this
+         local world_floor = Cube3(Point3(-10000, -1, -10000), Point3(10001, 0, 10001))
+         cursor:add_cube(world_floor)
+
+         cursor:optimize_by_merge()
+      end)
+end
+
+function SubterraneanViewService:_on_keyboard_event(e)
+   if e.down then
+      if e.key == _radiant.client.KeyboardInput.KEY_X then
+         self:toggle_xray_mode('full')
+         return true
+      end
+      if e.key == _radiant.client.KeyboardInput.KEY_Z then
+         self:toggle_xray_mode('flat')
+         return true
+      end
+   end
+   return false
+end
+
+function SubterraneanViewService:toggle_xray_mode(mode)
+   if self._sv.xray_mode == mode then
+      self._sv.xray_mode = ''
+   else
+      self._sv.xray_mode = mode
+   end
+   self.__saved_variables:mark_changed()
+   _radiant.renderer.set_xray_mode(self._sv.xray_mode)
 end
 
 function SubterraneanViewService:destroy()

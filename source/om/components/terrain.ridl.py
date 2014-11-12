@@ -9,6 +9,8 @@ class Terrain(Component):
    config_file_name = dm.Boxed(std.string())
    tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None)
    bounds = dm.Boxed(csg.Cube3(), get=None, set=None, no_lua_impl = True)
+   interior_region = dm.Boxed(Region3fBoxedPtr(), trace='deep_region')
+
    get_bounds = ridl.Method(csg.Cube3f()).const
    add_tile = ridl.Method(c.void(),
                           ('region', csg.Region3f().const.ref))

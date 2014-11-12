@@ -28,6 +28,11 @@ public:
    void AddCut(om::Region3fBoxedPtr const& cut);
    void RemoveCut(om::Region3fBoxedPtr const& cut);
    void SetClipHeight(int height);
+   void SetXrayMode(std::string const& mode);
+   om::Region3fBoxedPtr const& GetFullXrayRegion() const;
+   void SetFullXrayRegion(om::Region3fBoxedPtr value);
+   om::Region3fBoxedPtr const& GetFlatXrayRegion() const;
+   void SetFlatXrayRegion(om::Region3fBoxedPtr value);
 
 private:
    void LoadColorMap();
@@ -45,6 +50,8 @@ private:
 
    csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
    csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
+
+   om::Region3fBoxedPtr GetXrayRegion(std::string const& mode) const;
 
 private:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
@@ -68,6 +75,9 @@ private:
    std::unordered_map<dm::ObjectId, csg::Region3> _cutToICut;
    std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
    int                  _clip_height;
+   std::string          _xray_mode;
+   om::Region3fBoxedPtr _full_xray_region;
+   om::Region3fBoxedPtr _flat_xray_region;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

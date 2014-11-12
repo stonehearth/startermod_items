@@ -57,21 +57,44 @@ static csg::Point3f Camera_GetLeft()
    return left;
 }
 
-std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
+std::shared_ptr<RenderTerrain> GetRenderTerrainObject(bool throw_on_error)
 {
    om::EntityPtr root = Client::GetInstance().GetStore().FetchObject<om::Entity>(1);
-   if (!root) { 
-      throw std::logic_error("root entity does not exist yet.");
+   if (!root) {
+      if (throw_on_error) {
+         throw std::logic_error("root entity does not exist yet.");
+      } else {
+         return nullptr;
+      }
    }
    auto rootRenderEntity = Renderer::GetInstance().GetRenderEntity(root);
    if (!rootRenderEntity) {
-      throw std::logic_error("render entity for root not yet created");
+      if (throw_on_error) {
+         throw std::logic_error("render entity for root not yet created");
+      } else {
+         return nullptr;
+      }
    }
    auto renderTerrain = std::static_pointer_cast<RenderTerrain>(rootRenderEntity->GetComponentRenderer("terrain"));
    if (!renderTerrain) {
-      throw std::logic_error("terrain rendering component not yet created");
+      if (throw_on_error) {
+         throw std::logic_error("terrain rendering component not yet created");
+      } else {
+         return nullptr;
+      }
    }
    return renderTerrain;
+}
+
+std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
+{
+   return GetRenderTerrainObject(true);
+}
+
+bool Terrain_RenderTerrainIsAvailable()
+{
+   auto render_terrain = GetRenderTerrainObject(false);
+   return render_terrain;
 }
 
 static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
@@ -85,17 +108,43 @@ static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
    auto renderTerrain = GetRenderTerrainObject();
-   if (renderTerrain) {
-      renderTerrain->RemoveCut(cut);
-   }
+   renderTerrain->RemoveCut(cut);
 }
 
 static void Terrain_SetClipHeight(int height)
 {
    auto renderTerrain = GetRenderTerrainObject();
-   if (renderTerrain) {
-      renderTerrain->SetClipHeight(height);
-   }
+   renderTerrain->SetClipHeight(height);
+}
+
+static void Terrain_SetXrayMode(std::string const& mode)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->SetXrayMode(mode);
+}
+
+static om::Region3fBoxedPtr Terrain_GetFullXrayRegion()
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   return renderTerrain->GetFullXrayRegion();
+}
+
+static void Terrain_SetFullXrayRegion(om::Region3fBoxedPtr value)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->SetFullXrayRegion(value);
+}
+
+static om::Region3fBoxedPtr Terrain_GetFlatXrayRegion()
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   return renderTerrain->GetFlatXrayRegion();
+}
+
+static void Terrain_SetFlatXrayRegion(om::Region3fBoxedPtr value)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->SetFlatXrayRegion(value);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -206,9 +255,15 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
+            def("render_terrain_is_available", &Terrain_RenderTerrainIsAvailable),
             def("add_terrain_cut", &Terrain_AddClientCut),
             def("remove_terrain_cut", &Terrain_RemoveClientCut),
             def("set_clip_height", &Terrain_SetClipHeight),
+            def("set_xray_mode", &Terrain_SetXrayMode),
+            def("get_full_xray_region", &Terrain_GetFullXrayRegion),
+            def("set_full_xray_region", &Terrain_SetFullXrayRegion),
+            def("get_flat_xray_region", &Terrain_GetFlatXrayRegion),
+            def("set_flat_xray_region", &Terrain_SetFlatXrayRegion),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),

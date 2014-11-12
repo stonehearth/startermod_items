@@ -19,6 +19,7 @@ function MiningService:initialize()
    self:_init_loot_tables()
 
    if not self._sv.initialized then
+      self:_initialize_interior_region()
       self._sv.initialized = true
    else
    end
@@ -310,6 +311,7 @@ end
 -- temporary location for this function
 function MiningService:mine_point(point)
    radiant.terrain.subtract_point(point)
+   self:_add_to_interior_view(point)
 end
 
 function MiningService:_insta_mine(region)
@@ -318,6 +320,41 @@ function MiningService:_insta_mine(region)
    for point in terrain_region:each_point() do
       self:mine_point(point)
    end
+end
+
+-----
+
+function MiningService:_initialize_interior_region()
+   local terrain = radiant._root_entity:add_component('terrain')
+   self._interior_region_boxed = _radiant.sim.alloc_region3()
+   terrain:set_interior_region(self._interior_region_boxed)
+end
+
+function MiningService:_add_to_interior_view(point)
+   local cube = self:_get_interior_column(point)
+
+   self._interior_region_boxed:modify(function(cursor)
+         cursor:add_cube(cube)
+         cursor:optimize_by_merge() -- TODO: don't call this all the time
+      end)
+end
+
+function MiningService:_get_interior_column(point)
+   local y_max = point.y + 5
+   local y = point.y + 1
+   local test_point = Point3(point)
+
+   while y < y_max do
+      test_point.y = y
+      if radiant.terrain.is_terrain(test_point) then
+         break
+      end
+      y = y + 1
+   end
+
+   local cube = Cube3(point, point + Point3.one)
+   cube.max.y = test_point.y
+   return cube
 end
 
 return MiningService

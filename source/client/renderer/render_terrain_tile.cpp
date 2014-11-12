@@ -76,14 +76,14 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
    return atEdge ? _neighborClipPlanes[pi.which] : nullptr;
 }
 
-int RenderTerrainTile::UpdateClipPlanes(int clip_height)
+int RenderTerrainTile::UpdateClipPlanes(int clip_height, csg::Region3* interior_region, csg::Cube3 interior_bounds)
 {
    om::Region3BoxedPtr region = _region.lock();
    if (region) {
       csg::Point3 tileSize = _terrain.GetTileSize();
       csg::Region3 cut_terrain_storage;
       csg::Region2 cross_section;
-      csg::Region3 const& rgn = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section);
+      csg::Region3 const& rgn = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, interior_region, interior_bounds);
 
       for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
          _clipPlanes[d].Clear();
@@ -118,7 +118,7 @@ int RenderTerrainTile::UpdateClipPlanes(int clip_height)
    return -1;     // everything for now... optimize later!
 }
 
-void RenderTerrainTile::UpdateGeometry(int clip_height)
+void RenderTerrainTile::UpdateGeometry(int clip_height, csg::Region3* interior_region, csg::Cube3 interior_bounds)
 {
    om::Region3BoxedPtr region = _region.lock();
 
@@ -131,32 +131,36 @@ void RenderTerrainTile::UpdateGeometry(int clip_height)
       csg::Region2 cross_section;
 
       // BUG: the cross section is empty when clip_height is on terrain boundaries, so we fail to hide anything
-      csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section);
+      csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, interior_region, interior_bounds);
 
       _regionTools.ForEachPlane(after_cut, [this, clip_height, &after_cut, &cross_section](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
+         csg::Region2 new_plane;
          Geometry& g = _geometry[pi.which];
 
          if (pi.which == csg::RegionTools3::TOP_PLANE && pi.reduced_value == clip_height) {
             // only create rects for geometry that extends through the clip plane
-            cross_section &= plane;
+            new_plane = cross_section & plane;
             // hide the block types since we can't see inside the earth
             // TODO: verify that the unknown tag is defined in the json
-            cross_section.SetTag(UNKNOWN_TAG);
+            new_plane.SetTag(UNKNOWN_TAG);
             // add any blocks that extend up to the clip plane, but do not cross it
             csg::Region2 residual = plane - cross_section;
-            cross_section += residual;
-            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << cross_section.GetArea() << ")";
-            g[pi.reduced_value].AddUnique(cross_section);
+            new_plane += residual;
+            //T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << new_plane.GetArea() << ")";
+            //g[pi.reduced_value].AddUnique(new_plane);
          } else {
             csg::Region2 const* clipper = GetClipPlaneFor(pi);
             if (clipper) {
-               T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
-               g[pi.reduced_value].AddUnique(plane - *clipper);
+               new_plane = plane - *clipper;
+              // T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
+               //g[pi.reduced_value].AddUnique(new_plane);
             } else {
-               T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
-               g[pi.reduced_value].AddUnique(plane);
+               new_plane = plane;
+               //T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
+               //g[pi.reduced_value].AddUnique(plane);
             }
          }
+         g[pi.reduced_value].AddUnique(new_plane);
       });
    }
 }
@@ -201,7 +205,7 @@ void RenderTerrainTile::RemoveCut(dm::ObjectId cutId)
 // a direct reference to the terrain tile (super fast!).  If not, it copies the region and
 // applies the cuts.
 //
-csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section) const
+csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section, csg::Region3* interior_region, csg::Cube3 interior_bounds) const
 {
    om::Region3BoxedPtr region = _region.lock();
    if (!region) {
@@ -211,6 +215,7 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
    csg::Point3 tile_size = _terrain.GetTileSize();
    bool is_clipped = csg::IsBetween(_location.y, clip_height, _location.y + tile_size.y);
    bool is_cut = !_cutMap.empty();
+   bool is_intersect = interior_region != nullptr;
 
    if (clip_height == _location.y + tile_size.y) {
       // on the upper boundary, the cross section is the bottom clip plane of the top neighbor
@@ -224,11 +229,24 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
       }
    }
 
-   if (!is_cut && !is_clipped) {
+   if (!is_cut && !is_clipped && !is_intersect) {
       return region->Get();
    }
 
    storage = region->Get();
+
+   if (is_intersect) {
+      csg::Cube3 tile_bounds = csg::Cube3(_location, _location + tile_size);
+      if (tile_bounds.Intersects(interior_bounds)) {
+         // faster to clip the interior region before performing full intersection
+         csg::Region3 clipped_interior_region = *interior_region & tile_bounds;
+         storage &= clipped_interior_region;
+      } else {
+         // optimzied path as well as the common case
+         storage.Clear();
+      }
+   }
+
    if (is_cut) {
       for (const auto& cuts : _cutMap) {
          storage -= *cuts.second;

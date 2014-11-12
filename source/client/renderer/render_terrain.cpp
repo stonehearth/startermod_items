@@ -20,13 +20,14 @@ using namespace ::radiant::client;
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
 static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
-
+static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
    _tileSize(terrain->GetTileSize()),
-   _clip_height(INT_MAX)
+   _clip_height(MAX_CLIP_HEIGHT),
+   _xray_mode("")
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
@@ -244,6 +245,18 @@ void RenderTerrain::SetClipHeight(int height)
    });
 }
 
+void RenderTerrain::SetXrayMode(std::string const& mode)
+{
+   if (mode == _xray_mode) {
+      return;
+   }
+   _xray_mode = mode;
+
+   for (auto const& entry : tiles_) {
+      MarkDirty(entry.first);
+   }
+}
+
 void RenderTerrain::UpdateNeighbors()
 {   
    for (csg::Point3 const& location : _dirtyNeighbors) {
@@ -259,12 +272,40 @@ void RenderTerrain::UpdateNeighbors()
    _dirtyNeighbors.clear();
 }
 
+om::Region3fBoxedPtr RenderTerrain::GetXrayRegion(std::string const& mode) const
+{
+   if (mode.empty()) {
+      return nullptr;
+   }
+
+   if (mode == "full") {
+      return _full_xray_region;
+   }
+
+   if (_xray_mode == "flat") {
+      return _flat_xray_region;
+   }
+
+   throw core::Exception(BUILD_STRING("Unknown xray mode: " << mode));
+}
+
 void RenderTerrain::UpdateClipPlanes()
 {
+   csg::Region3* interior_region_ptr = nullptr;
+   csg::Region3 interior_region;
+   csg::Cube3 interior_bounds;
+   om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
+
+   if (xray_region_boxed) {
+      interior_region = csg::ToInt(xray_region_boxed->Get());
+      interior_region_ptr = &interior_region;
+      interior_bounds = interior_region.GetBounds();
+   }
+
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes(_clip_height);
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height, interior_region_ptr, interior_bounds);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
@@ -278,11 +319,22 @@ void RenderTerrain::UpdateClipPlanes()
 
 
 void RenderTerrain::UpdateGeometry()
-{   
+{
+   csg::Region3* interior_region_ptr = nullptr;
+   csg::Region3 interior_region;
+   csg::Cube3 interior_bounds;
+   om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
+
+   if (xray_region_boxed) {
+      interior_region = csg::ToInt(xray_region_boxed->Get());
+      interior_region_ptr = &interior_region;
+      interior_bounds = interior_region.GetBounds();
+   }
+
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry(_clip_height);
+         i->second->UpdateGeometry(_clip_height, interior_region_ptr, interior_bounds);
       }
    }
    _dirtyGeometry.clear();
@@ -320,6 +372,26 @@ void RenderTerrain::UpdateLayers()
       UpdateLayer(layer, location);
    }
    _dirtyLayers.clear();
+}
+
+om::Region3fBoxedPtr const& RenderTerrain::GetFullXrayRegion() const
+{
+   return _full_xray_region;
+}
+
+void RenderTerrain::SetFullXrayRegion(om::Region3fBoxedPtr value)
+{ 
+   _full_xray_region = value;
+}
+
+om::Region3fBoxedPtr const& RenderTerrain::GetFlatXrayRegion() const
+{
+   return _flat_xray_region;
+}
+
+void RenderTerrain::SetFlatXrayRegion(om::Region3fBoxedPtr value)
+{ 
+   _flat_xray_region = value;
 }
 
 void RenderTerrain::Update()
