@@ -41,6 +41,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
 
    actions: {
       saveGame: function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
          var self = this;
          var d = new Date();
          var t = d.getTime();
@@ -75,6 +76,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                   { 
                      label: "Yes",
                      click: function() {
+                        radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
                         radiant.call("radiant:client:delete_save_game", key)
                         radiant.call("radiant:client:save_game", String(t), { 
                               name: "",
@@ -95,6 +97,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
             });
       },
       deleteSaveGame: function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
          var self = this;
          var key = this.getListView().getSelectedKey();
 
@@ -107,6 +110,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                      { 
                         label: "Yes",
                         click: function() {
+                           radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash' });
                            radiant.call("radiant:client:delete_save_game", String(key))
                               .always(function() {
                                  self.refreshList();
@@ -145,6 +149,7 @@ App.StonehearthLoadView = App.StonehearthSaveLoadView.extend({
 
    actions: {
       loadGame: function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
          var self = this;
          var key = this.getListView().getSelectedKey();
 

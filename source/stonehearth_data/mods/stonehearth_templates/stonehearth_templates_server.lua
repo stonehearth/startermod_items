@@ -252,7 +252,7 @@ end
 
 function StonehearthTemplateBuilder:_create_template(o)
    -- fill in the ground.  this will erase the terrain cut of the previous
-   local size = 128
+   local size = 512
    local region3 = Region3()
    local block_types = radiant.terrain.get_block_types()
    region3:add_cube(Cube3(Point3(-size,  -1, -size), Point3(size, 0, size), block_types.grass))
