@@ -56,7 +56,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       this._placeItemView = self.addView(App.StonehearthPlaceItemView);
       this._buildingTemplatesView = self.addView(App.StonehearthBuildingTemplatesView);
       this._buildingDesignerView = self.addView(App.StonehearthBuildingDesignerTools);
-      //this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
+      this._buildRoadsView = self.addView(App.StonehearthBuildRoadsView);
       this._miningView = self.addView(App.StonehearthMiningView);
 
       this.hideAllViews();

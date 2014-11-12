@@ -520,12 +520,12 @@ var StonehearthClient;
          }, precall);
       },
 
-      buildRoad: function(roadBrush, precall) {
+      buildRoad: function(roadBrush) {
          var self = this;
 
-         var tip = self.showTip('stonehearth:build_road_tip_title', 'stonehearth:build_road_tip_description', { i18n: true });
+         return function() {
+            var tip = self.showTip('stonehearth:build_road_tip_title', 'stonehearth:build_road_tip_description', { i18n: true });
 
-         return this._callTool('buildRoad', function() {
             return radiant.call_obj(self._build_editor, 'place_new_road', roadBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
@@ -533,24 +533,7 @@ var StonehearthClient;
                .fail(function(response) {
                   self.hideTip(tip);
                });
-         }, precall);
-      },
-
-      eraseRoad: function(precall) {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
-         var self = this;
-
-         var tip = self.showTip('stonehearth:erase_road_tip_title', 'stonehearth:erase_road_tip_description', { i18n: true });
-
-         return this._callTool('eraseRoad', function() {
-            return radiant.call_obj(self._build_editor, 'erase_road')
-               .done(function(response) {                  
-                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-               })
-               .fail(function(response) {
-                  self.hideTip(tip);
-               });
-         }, precall);
+            };
       },
 
       growRoof: function(roof) {
@@ -563,7 +546,7 @@ var StonehearthClient;
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                });
-            }
+            };
       },
 
       applyConstructionDataOptions: function(blueprint, options) {
