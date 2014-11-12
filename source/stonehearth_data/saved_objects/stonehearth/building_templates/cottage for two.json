@@ -1,0 +1,6500 @@
+{
+   "header": {
+      "cost": {
+         "items": {
+            "stonehearth:portals:wooden_door": {
+               "count": 1, 
+               "name": "Wooden Door", 
+               "icon": "/stonehearth/entities/construction/wooden_door/wooden_door.png"
+            }, 
+            "stonehearth:furniture:wooden_wall_lantern": {
+               "count": 1, 
+               "name": "Wooden Wall-mounted Lantern", 
+               "icon": "/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png"
+            }, 
+            "stonehearth:portals:wooden_window_frame": {
+               "count": 2, 
+               "name": "Wooden Window Frame", 
+               "icon": "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame.png"
+            }, 
+            "stonehearth:furniture:not_much_of_a_bed": {
+               "count": 2, 
+               "name": "Mean Bed", 
+               "icon": "/stonehearth/entities/furniture/not_much_of_a_bed/not_much_of_a_bed.png"
+            }
+         }, 
+         "resources": {
+            "wood resource": 604
+         }
+      }, 
+      "name": "Cottage for Two", 
+      "preview_image": "/r/saved_objects/stonehearth/building_templates/cottage for two.png"
+   }, 
+   "root": {
+      "stonehearth:building": {
+         "structures": {
+            "stonehearth:column": [
+               5642, 
+               5517, 
+               6167, 
+               4992, 
+               5117, 
+               4467, 
+               4592, 
+               6042
+            ], 
+            "stonehearth:roof": [
+               7667
+            ], 
+            "stonehearth:floor": [
+               4316
+            ], 
+            "stonehearth:wall": [
+               5767, 
+               7117, 
+               5242, 
+               4717, 
+               6842, 
+               7917, 
+               7392, 
+               6567, 
+               6292
+            ], 
+            "stonehearth:fixture_fabricator": [
+               8042, 
+               8227, 
+               8115, 
+               8343, 
+               8289, 
+               8165
+            ]
+         }, 
+         "envelope_entity": 4441
+      }, 
+      "stonehearth:construction_progress": {
+         "inverse_dependencies": {}, 
+         "dependencies": {}, 
+         "loan_scaffolding_to": {}
+      }, 
+      "children": {
+         "6042": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  6842, 
+                  6292
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 6
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "5117": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  5242, 
+                  6567
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 9, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "4717": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  8042, 
+                  7667, 
+                  8115
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  4316, 
+                  4467, 
+                  4592
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 5, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 4, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 9, 
+                     "x": 3, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 8, 
+                     "x": 2, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 5, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 4, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -5
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -5
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 3, 
+                  "z": -5
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }, 
+            "children": {
+               "8042": {
+                  "mob": {
+                     "position": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": 0
+                     }, 
+                     "orientation": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": 1
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        4717
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "fixture_uri": "stonehearth:portals:wooden_door", 
+                     "normal": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": -1
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/construction/wooden_door/wooden_door_ghost.json"
+               }, 
+               "8115": {
+                  "mob": {
+                     "position": {
+                        "y": 6, 
+                        "x": 2, 
+                        "z": -1
+                     }, 
+                     "orientation": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": 1
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        4717
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "fixture_uri": "stonehearth:furniture:wooden_wall_lantern", 
+                     "normal": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": -1
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern_ghost.json"
+               }
+            }
+         }, 
+         "4316": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": false
+            }, 
+            "stonehearth:floor": {}, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  5767, 
+                  7117, 
+                  5242, 
+                  4717, 
+                  7917, 
+                  6842, 
+                  8289, 
+                  8343, 
+                  7392, 
+                  6567, 
+                  6292
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "uri": "stonehearth:entities:wooden_floor", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": 2
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 1
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 3, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 2, 
+                     "z": 3
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 1, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 3, 
+                     "z": 4
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 2, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 5
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 3, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 0, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 10, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 9, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 2, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 1, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 5, 
+                     "z": 2
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 4, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": 1
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 7, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 6, 
+                     "z": 3
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 7, 
+                     "z": 4
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 6, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": 5
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 7, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 5, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 4, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 8, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 6, 
+                     "z": 6
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": 2
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 10, 
+                     "z": 3
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 9, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 11, 
+                     "z": 4
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 10, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": -3
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 3, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 7, 
+                     "z": 0
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 6, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 5, 
+                     "z": -2
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 4, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": -3
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 7, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 6, 
+                     "z": -1
+                  }, 
+                  "tag": 5604501, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 3, 
+                     "z": 1
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 1, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 2
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 2, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 0, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 3
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 3, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 2, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 1, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 3, 
+                     "z": 5
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 1, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": 6
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 2, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 7, 
+                     "z": 1
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": 2
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 6, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 5, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 4, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": 3
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 7, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 6, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 7, 
+                     "z": 5
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": 6
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 6, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 11, 
+                     "z": 1
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 9, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 11, 
+                     "z": 2
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 10, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 8, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 10, 
+                     "z": 4
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 9, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 11, 
+                     "z": 5
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 9, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 11, 
+                     "z": 6
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 10, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 4, 
+                     "z": -1
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 3, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 7, 
+                     "z": -3
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": -2
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 6, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 5, 
+                     "z": 0
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 4, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 8, 
+                     "z": -1
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 7, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 0, 
+                     "x": 6, 
+                     "z": 0
+                  }, 
+                  "tag": 6657189, 
+                  "min": {
+                     "y": -1, 
+                     "x": 5, 
+                     "z": -1
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }, 
+            "children": {
+               "8343": {
+                  "mob": {
+                     "position": {
+                        "y": 0, 
+                        "x": 9, 
+                        "z": 3
+                     }, 
+                     "orientation": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": 1
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        4316
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "rotation": 0, 
+                     "fixture_uri": "stonehearth:furniture:not_much_of_a_bed", 
+                     "normal": {
+                        "y": 1, 
+                        "x": 0, 
+                        "z": 0
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/furniture/not_much_of_a_bed/not_much_of_a_bed_ghost.json"
+               }, 
+               "8289": {
+                  "mob": {
+                     "position": {
+                        "y": 0, 
+                        "x": 1, 
+                        "z": 3
+                     }, 
+                     "orientation": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": 1
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        4316
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "rotation": 0, 
+                     "fixture_uri": "stonehearth:furniture:not_much_of_a_bed", 
+                     "normal": {
+                        "y": 1, 
+                        "x": 0, 
+                        "z": 0
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/furniture/not_much_of_a_bed/not_much_of_a_bed_ghost.json"
+               }
+            }
+         }, 
+         "7392": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 1, 
+                  "z": 0
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667, 
+                  8165
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5642, 
+                  4316, 
+                  6167
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 6
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 2
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 6
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 6
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 4
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": 6
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": -1
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 1, 
+                  "z": 0
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": 0
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }, 
+            "children": {
+               "8165": {
+                  "mob": {
+                     "position": {
+                        "y": 2, 
+                        "x": 0, 
+                        "z": 3
+                     }, 
+                     "orientation": {
+                        "y": 0.707107, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": -0.707107
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        7392
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "fixture_uri": "stonehearth:portals:wooden_window_frame", 
+                     "normal": {
+                        "y": 0, 
+                        "x": 1, 
+                        "z": 0
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame_ghost.json"
+               }
+            }
+         }, 
+         "7667": {
+            "stonehearth:construction_data": {
+               "nine_grid_region": [
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 1
+                     }, 
+                     "min": {
+                        "y": -2, 
+                        "x": -2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 6
+                     }, 
+                     "min": {
+                        "y": -6, 
+                        "x": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": -2, 
+                        "x": 10
+                     }, 
+                     "min": {
+                        "y": -6, 
+                        "x": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 13
+                     }, 
+                     "min": {
+                        "y": -2, 
+                        "x": 6
+                     }
+                  }
+               ], 
+               "nine_grid_gradiant": [
+                  "left", 
+                  "right"
+               ], 
+               "nine_grid_max_height": 10
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": {}, 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5767, 
+                  7117, 
+                  6842, 
+                  4717, 
+                  5242, 
+                  7392, 
+                  6567, 
+                  6292
+               ], 
+               "loan_scaffolding_to": {}
+            }, 
+            "uri": "stonehearth:wooden_peaked_roof", 
+            "stonehearth:roof": {}, 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 6, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 6, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 6, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 6, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 6, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 8, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 7, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 9, 
+                     "z": -4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 8, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 6, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 8, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 7, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 9, 
+                     "z": -3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 8, 
+                     "z": -4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 6, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 8, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 7, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 9, 
+                     "z": -2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": 8, 
+                     "z": -3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 6, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 8, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 7, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 9, 
+                     "z": -1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 8, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 0
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 3
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 4
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 3
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 4
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 3, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 4, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 6, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 4, 
+                     "x": 5, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 6, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 8, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 7, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 9, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": 8, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 5, 
+                     "x": 3, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 6, 
+                     "x": 4, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 6, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 7, 
+                     "x": 5, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 7, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 8, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 5, 
+                     "x": 7, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 9, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 3, 
+                     "x": 11, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 2, 
+                     "x": 10, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 12, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 1, 
+                     "x": 11, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 7
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": -2, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -2
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 10, 
+                     "z": -2
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 13, 
+                     "z": 7
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 12, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 1, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": -2, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 13, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 12, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 1
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 2
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": 1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 5
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": 2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 6
+                  }, 
+                  "tag": 1581360, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": 5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": 7
+                  }, 
+                  "tag": 2042689, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": 6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 10, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 3, 
+                     "x": 9, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 10, 
+                     "z": -1
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 10, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 9, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 2, 
+                     "z": -5
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 1, 
+                     "z": -6
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": 13, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": 12, 
+                     "z": 7
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 1, 
+                     "x": -1, 
+                     "z": 8
+                  }, 
+                  "tag": 2964826, 
+                  "min": {
+                     "y": 0, 
+                     "x": -2, 
+                     "z": 7
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 5, 
+                  "x": 0, 
+                  "z": 0
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "6567": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 0
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5117, 
+                  4316, 
+                  4467
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 0
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -2
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": -2
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -1
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -5
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 0
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -2
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "6292": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 1
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  4316, 
+                  6042, 
+                  6167
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": -8, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": -10, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": -8, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": -10, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": -8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": -8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": -8, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": -10, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": -8, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": -9, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": -9, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": -10, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 0, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": -8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 0, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": -8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 9, 
+                     "x": -1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 8, 
+                     "x": -2, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 10, 
+                     "x": -2, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 8, 
+                     "x": -7, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 9, 
+                     "x": -7, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 8, 
+                     "x": -8, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 11, 
+                     "x": -3, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 10, 
+                     "x": -4, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 12, 
+                     "x": -4, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 10, 
+                     "x": -5, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 11, 
+                     "x": -5, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 10, 
+                     "x": -6, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": 6
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 6
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 1
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 10, 
+                  "z": 6
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "7117": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 1, 
+                  "z": 0
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5517, 
+                  4316, 
+                  4592
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 3
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 3
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 3
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -1
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -5
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 1, 
+                  "z": 0
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -4
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "5242": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5117, 
+                  4316, 
+                  4992
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -1
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": -1
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "4592": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7117, 
+                  4717
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -5
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "4441": {
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }, 
+            "uri": "", 
+            "stonehearth:no_construction_zone": {
+               "building_entity": 4280, 
+               "shape": [
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 3, 
+                        "z": -1
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 9, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 3, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": -5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 4, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 3, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 8, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 3, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 8, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 7, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 7, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 4, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 4, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 3, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 6, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 5, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 8, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": -6.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 12, 
+                        "z": 7
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 9, 
+                        "z": -4
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 0, 
+                        "z": 7
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": -1, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 11, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 10.5, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 10, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 9, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 11, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 10, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 0, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": -1, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 2, 
+                        "z": -2.5
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 0.5, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 2, 
+                        "z": -2.5
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 0.5, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 2, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 2, 
+                        "z": -2.5
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 0.5, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 2, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 0, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 2, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 1, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 1, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 0, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 12, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 1, 
+                        "z": 2
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 0, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": 1
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 3, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": 3
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 1, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 3, 
+                        "z": 4
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 2, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": 5
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 3, 
+                        "z": 3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 1, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 0, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 10, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 9, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 1, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 5, 
+                        "z": 2
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 4, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": 1
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 7, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 6, 
+                        "z": 3
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": 4
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 6, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": 5
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 7, 
+                        "z": 3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 5, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 4, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 9, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 8, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 6, 
+                        "z": 6
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 9, 
+                        "z": 2
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 8, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 10, 
+                        "z": 3
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 9, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 4
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 10, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": -3
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 3, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": 0
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 6, 
+                        "z": -2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 5, 
+                        "z": -2
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 4, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -3
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 7, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 6, 
+                        "z": -1
+                     }, 
+                     "tag": 5604501, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": -3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 3, 
+                        "z": 1
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 1, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": 2
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 2, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 1, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 0, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": 3
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 3, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 1, 
+                        "z": 3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 3, 
+                        "z": 5
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 1, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": 6
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 2, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": 1
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": 2
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 6, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 5, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 4, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": 3
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 7, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 6, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": 3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": 5
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": 6
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 6, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 1
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 9, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 2
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 10, 
+                        "z": 1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 9, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 8, 
+                        "z": 2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 10, 
+                        "z": 4
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 9, 
+                        "z": 3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 5
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 9, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 6
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 10, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 4, 
+                        "z": -1
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 3, 
+                        "z": -3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 7, 
+                        "z": -3
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -2
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 6, 
+                        "z": -3
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 5, 
+                        "z": 0
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 4, 
+                        "z": -2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -1
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 7, 
+                        "z": -2
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 0, 
+                        "x": 6, 
+                        "z": 0
+                     }, 
+                     "tag": 6657189, 
+                     "min": {
+                        "y": -1, 
+                        "x": 5, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 0, 
+                        "z": 5
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": -2.5, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 0, 
+                        "z": 2
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": -2.5, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 0, 
+                        "z": 6
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": -2.5, 
+                        "z": 5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 0, 
+                        "z": 6
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": -2.5, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 0, 
+                        "z": 5
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": -2.5, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 8, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 7, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 4, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 3, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 10, 
+                        "x": 8, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 9, 
+                        "x": 7, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 11, 
+                        "x": 7, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 9, 
+                        "x": 6, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 10, 
+                        "x": 4, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 9, 
+                        "x": 3, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 11, 
+                        "x": 5, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 9, 
+                        "x": 4, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 12, 
+                        "x": 6, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 10, 
+                        "x": 5, 
+                        "z": -2.5
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 3, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 2, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 13.5, 
+                        "z": 6
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 11, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 13.5, 
+                        "z": 2
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 11, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 13.5, 
+                        "z": 6
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 11, 
+                        "z": 0
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 13.5, 
+                        "z": 6
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 11, 
+                        "z": 4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 10.5, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 9, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 10.5, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 9, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 2, 
+                        "x": 10.5, 
+                        "z": -1
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 8, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 10.5, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 9, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 10.5, 
+                        "z": -1
+                     }, 
+                     "min": {
+                        "y": 2, 
+                        "x": 8, 
+                        "z": -4
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 4, 
+                        "x": 11, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 0, 
+                        "x": 0, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 2, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 0, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 2, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 1, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 1, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 6, 
+                        "x": 0, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 8, 
+                        "x": 10, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 2, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 11, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 10, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 9, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 8, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 10, 
+                        "x": 8, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 3, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 9, 
+                        "x": 3, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 8, 
+                        "x": 2, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 11, 
+                        "x": 7, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 10, 
+                        "x": 6, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 12, 
+                        "x": 6, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 10, 
+                        "x": 5, 
+                        "z": 6
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 11, 
+                        "x": 5, 
+                        "z": 8.5
+                     }, 
+                     "min": {
+                        "y": 10, 
+                        "x": 4, 
+                        "z": 6
+                     }
+                  }
+               ], 
+               "structures": {
+                  "6042": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 6042
+                  }, 
+                  "5117": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 5117
+                  }, 
+                  "4717": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 4717
+                  }, 
+                  "4316": {
+                     "structure_type": "stonehearth:floor", 
+                     "structure": 4316
+                  }, 
+                  "7392": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 7392
+                  }, 
+                  "6567": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 6567
+                  }, 
+                  "6292": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 6292
+                  }, 
+                  "7117": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 7117
+                  }, 
+                  "5242": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 5242
+                  }, 
+                  "4592": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 4592
+                  }, 
+                  "4992": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 4992
+                  }, 
+                  "5517": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 5517
+                  }, 
+                  "5767": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 5767
+                  }, 
+                  "6842": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 6842
+                  }, 
+                  "4467": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 4467
+                  }, 
+                  "5642": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 5642
+                  }, 
+                  "7917": {
+                     "structure_type": "stonehearth:wall", 
+                     "structure": 7917
+                  }, 
+                  "6167": {
+                     "structure_type": "stonehearth:column", 
+                     "structure": 6167
+                  }
+               }
+            }
+         }, 
+         "4992": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  5242, 
+                  6842
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "5517": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  5767, 
+                  7117
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 9, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "5767": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  5642, 
+                  5517, 
+                  4316
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 8, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 2, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": -1
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": 8, 
+                  "z": -1
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 9, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "6842": {
+            "stonehearth:construction_data": {
+               "needs_scaffolding": true, 
+               "normal": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 0
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7667, 
+                  8227
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  4316, 
+                  4992, 
+                  6042
+               ], 
+               "loan_scaffolding_to": [
+                  7667
+               ]
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": -3
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 2, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 0, 
+                     "z": -5
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 1, 
+                     "z": 0
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 2, 
+                     "x": 0, 
+                     "z": -1
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "pos_b": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 6
+               }, 
+               "pos_a": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": -1
+               }, 
+               "normal": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 0
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": -1, 
+                  "z": 5
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }, 
+            "children": {
+               "8227": {
+                  "mob": {
+                     "position": {
+                        "y": 2, 
+                        "x": 0, 
+                        "z": -2
+                     }, 
+                     "orientation": {
+                        "y": 0.707107, 
+                        "x": 0, 
+                        "z": 0, 
+                        "w": 0.707107
+                     }
+                  }, 
+                  "stonehearth:construction_progress": {
+                     "inverse_dependencies": {}, 
+                     "building_entity": 4280, 
+                     "fabricator_component_name": "stonehearth:fixture_fabricator", 
+                     "dependencies": [
+                        6842
+                     ], 
+                     "loan_scaffolding_to": {}
+                  }, 
+                  "stonehearth:fixture_fabricator": {
+                     "fixture_uri": "stonehearth:portals:wooden_window_frame", 
+                     "normal": {
+                        "y": 0, 
+                        "x": -1, 
+                        "z": 0
+                     }
+                  }, 
+                  "uri": "/stonehearth/entities/construction/wooden_window_frame/wooden_window_frame_ghost.json"
+               }
+            }
+         }, 
+         "4467": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  6567, 
+                  4717
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 2, 
+                  "z": -5
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "5642": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  5767, 
+                  7392
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": -1
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "7917": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true, 
+               "needs_scaffolding": false, 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": {}, 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": [
+                  4316
+               ], 
+               "loan_scaffolding_to": {}
+            }, 
+            "uri": "stonehearth:wooden_wall", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 8, 
+                     "z": 0
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 3, 
+                     "x": 7, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 4, 
+                     "x": 4, 
+                     "z": 0
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 3, 
+                     "x": 3, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 8, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 7, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 7, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 6, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 5, 
+                     "x": 4, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 3, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 5, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 4, 
+                     "x": 4, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 6, 
+                     "z": 0
+                  }, 
+                  "tag": 3097678, 
+                  "min": {
+                     "y": 5, 
+                     "x": 5, 
+                     "z": -1
+                  }
+               }, 
+               {
+                  "max": {
+                     "y": 7, 
+                     "x": 6, 
+                     "z": 0
+                  }, 
+                  "tag": 3823461, 
+                  "min": {
+                     "y": 6, 
+                     "x": 5, 
+                     "z": -1
+                  }
+               }
+            ], 
+            "stonehearth:wall": {
+               "patch_wall_region": [
+                  {
+                     "max": {
+                        "y": 5, 
+                        "x": 8, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 3, 
+                        "x": 7, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 7, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 6, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 5, 
+                        "x": 4, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 3, 
+                        "x": 3, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 6, 
+                        "x": 5, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 4, 
+                        "x": 4, 
+                        "z": -1
+                     }
+                  }, 
+                  {
+                     "max": {
+                        "y": 7, 
+                        "x": 6, 
+                        "z": 0
+                     }, 
+                     "min": {
+                        "y": 5, 
+                        "x": 5, 
+                        "z": -1
+                     }
+                  }
+               ], 
+               "normal": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": -1
+               }
+            }, 
+            "mob": {
+               "position": {
+                  "y": 5, 
+                  "x": 0, 
+                  "z": 0
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }, 
+         "6167": {
+            "stonehearth:construction_data": {
+               "project_adjacent_to_base": true
+            }, 
+            "stonehearth:construction_progress": {
+               "inverse_dependencies": [
+                  7392, 
+                  6292
+               ], 
+               "building_entity": 4280, 
+               "fabricator_component_name": "stonehearth:fabricator", 
+               "dependencies": {}, 
+               "loan_scaffolding_to": {}
+            }, 
+            "stonehearth:column": {}, 
+            "uri": "stonehearth:wooden_column", 
+            "shape": [
+               {
+                  "max": {
+                     "y": 6, 
+                     "x": 1, 
+                     "z": 1
+                  }, 
+                  "min": {
+                     "y": 0, 
+                     "x": 0, 
+                     "z": 0
+                  }
+               }
+            ], 
+            "mob": {
+               "position": {
+                  "y": 0, 
+                  "x": 11, 
+                  "z": 6
+               }, 
+               "orientation": {
+                  "y": 0, 
+                  "x": 0, 
+                  "z": 0, 
+                  "w": 1
+               }
+            }
+         }
+      }, 
+      "uri": "stonehearth:entities:building", 
+      "id": 4280
+   }
+}
