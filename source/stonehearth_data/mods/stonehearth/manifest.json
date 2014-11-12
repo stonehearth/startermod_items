@@ -1353,6 +1353,7 @@
          "file(ui/game/modes/build_mode/building_designer_2/draw_doodad_tool.js)",
          "file(ui/game/modes/build_mode/building_designer_2/grow_roof_tool.js)",
          "file(ui/game/modes/build_mode/build_roads/build_roads.js)",
+         "file(ui/game/modes/build_mode/build_roads/draw_road_tool.js)",
          "file(ui/game/modes/build_mode/mine/mine.js)",
          "file(ui/game/modes/mode_manager.js)",
          "file(ui/game/esc_menu/esc_menu.js)",

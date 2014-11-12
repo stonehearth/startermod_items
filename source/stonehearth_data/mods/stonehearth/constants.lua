@@ -132,6 +132,11 @@ local constants = {
    construction = {
       STOREY_HEIGHT = 6,
       MAX_WALL_SPAN = 16,
+      floor_category = {
+         FLOOR = 1,
+         ROAD = 2,
+         SLAB = 3
+      }
    },
 
    input = {
