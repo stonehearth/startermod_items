@@ -55,6 +55,17 @@ function InventoryService:get_inventory(arg1)
    end
 end
 
+function InventoryService:get_item_tracker_command(session, response, tracker_name)
+   local inventory = self:get_inventory(session.player_id)
+
+   if inventory == nil then
+      response:reject('there is no inventory for player ' .. session.player_id)
+      return
+   end
+
+   return { tracker = inventory:get_item_tracker(tracker_name) }
+end
+
 --Score functions related to inventory (goods you've built, stocked and crafted)
 --
 -- TODO: move these registration functions to the site where the item is implemented

@@ -1,5 +1,6 @@
 App.StonehearthTasksView = App.View.extend({
 	templateName: 'tasks',
+   classNames: ['exclusive'],
    closeOnEsc: true,
 
    init: function() {

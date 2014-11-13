@@ -1,6 +1,6 @@
 App.StonehearthTaskManagerView = App.View.extend({
    templateName: 'stonehearthTaskManager',
-
+   
    init: function() {
       this._super();
       var self = this;
@@ -79,7 +79,9 @@ App.StonehearthTaskManagerView = App.View.extend({
 
    destroy: function() {
       this._super();
-      this.trace.destroy();
+      if (this.trace) {
+         this.trace.destroy();   
+      }
    }
 
 });

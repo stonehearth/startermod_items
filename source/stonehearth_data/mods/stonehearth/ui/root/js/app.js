@@ -188,8 +188,8 @@ App = Ember.Application.createWithMixins({
       deferreds.push($.Deferred());
       App.population = new StonehearthPopulation(deferreds[deferreds.length - 1]);
 
-      deferreds.push($.Deferred());
-      App.inventory = new StonehearthInventory(deferreds[deferreds.length - 1]);
+      //deferreds.push($.Deferred());
+      //App.inventory = new StonehearthInventory(deferreds[deferreds.length - 1]);
 
       deferreds.push($.Deferred());
       App.bulletinBoard = new StonehearthBulletinBoard(deferreds[deferreds.length - 1]);

@@ -1,50 +1,30 @@
-var StonehearthInventory;
 
-(function () {
-   StonehearthInventory = SimpleClass.extend({
+App.StonehearthInventoryView = App.View.extend({
+   templateName: 'inventory',
+   classNames: ['flex'],
+   
+   init: function() {
+      var self = this;
+      this._super();
 
-      components: {
-         "items" : {
-            "*" : {
-               "unit_info": {},
-               "stonehearth:promotion_talisman" : {},               
-            }
-         }
-      },
+      return radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
+         .done(function(response) {
+            self.set('uri', response.tracker);
+         })
+         .fail(function(response) {
+            console.error(response);
+         })
+   },
 
-      init: function(initCompletedDeferred) {
-         var self = this;
-         this._initCompleteDeferred = initCompletedDeferred;
+   foo: function() {
+      var data = this.get('context.tracking_data');
+      var arr = radiant.map_to_array(data);
+      this.set('items', arr);
+   }.observes('context.tracking_data'),
 
-         return radiant.call('stonehearth:get_inventory')
-            .done(function(response) {
-               self._inventoryUri = response.inventory;
-               self._createTrace();
-            })
-      },
+   didInsertElement: function() {
+      this._super();
+      self.$('.item').tooltipster();
+   },
 
-      _createTrace: function() {
-         var self = this;
-
-         var r  = new RadiantTrace()
-         var trace = r.traceUri(this._inventoryUri, this.components);
-         trace.progress(function(eobj) {
-               self._inventory = eobj
-               $(top).trigger('inventory_changed', { 
-                  inventory : self._inventory
-               });
-            });
-
-         this._initCompleteDeferred.resolve();
-      },
-
-      /* 10/29/2014
-       * Commenting this out to see if anything breaks. I suspect this is dead code. -Tom
-
-      getData: function() {
-         return this._inventory;
-      },
-      */
-   });
-})();
-
+});

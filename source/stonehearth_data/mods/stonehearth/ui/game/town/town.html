@@ -23,7 +23,7 @@
          </div>
          <div id="scores" class="downSection">
             <div class="row">
-               <div id="netWorthIcon" />
+            <div id="netWorthIcon" />
                <div>{{i18n town_net_worth}}</div>
                <div>{{score_data.net_worth.total_score}}</div>
             </div>
@@ -46,6 +46,10 @@
 
          </div>
       </div>
+
+      <div id="inventoryTab" class="tabPage">
+         {{view "App.StonehearthInventoryView"}}
+      </div>
       
       <div id="journalsTab" class="tabPage">
          {{partial 'journalTab'}}
@@ -55,6 +59,7 @@
 
    <div id="tabs">
       <div class="tab active" tabPage="overviewTab">{{i18n town_overview}}</div>
+      <div class="tab" tabPage="inventoryTab">{{i18n town_inventory}}</div>
       <div class="tab" tabPage="journalsTab">{{i18n town_happiness_tab}}</div>
    </div>
 

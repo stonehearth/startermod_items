@@ -36,9 +36,13 @@ end
 function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data)
    if not tracking_data then
       -- We're the first object of this type.  Create a new tracking data structure.
+
+      local unit_info = entity:add_component('unit_info')      
       tracking_data = {
          count = 0, 
-         items = {}
+         items = {},
+         icon = unit_info:get_icon(),
+         display_name = unit_info:get_display_name(),
       }
    end
 

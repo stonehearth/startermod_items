@@ -234,8 +234,16 @@
             var type = typeof key;
             if (map.hasOwnProperty(key)) {
                if (type != 'string' || key.indexOf('__') != 0) {
-                  if (!filter_fn || filter_fn(key, value)) {
+                  if (!filter_fn) {
                      array.push(value);
+                  } else {
+                     var result = filter_fn(key, value);
+                     if (result === false) {                     
+                     } else if (result === true) {
+                        array.push(value);
+                     } else {
+                        array.push(result);
+                     }
                   }
                }
             }
@@ -243,5 +251,4 @@
       }
       return array;      
    };
-
 })();

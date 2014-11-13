@@ -1,7 +1,7 @@
 // The view that shows a list of citizens and lets you promote one
 App.StonehearthTownView = App.View.extend({
    templateName: 'town',
-   classNames: ['flex', 'fullScreen'],
+   classNames: ['flex', 'fullScreen', 'exclusive'],
    closeOnEsc: true,
 
    journalData: {
@@ -110,6 +110,8 @@ App.StonehearthTownView = App.View.extend({
 
          self.$('#' + tabPage).show();
       });
+
+      this.$('#overviewTab').show();
    },
 
    //Page 1 of the book is a title page
