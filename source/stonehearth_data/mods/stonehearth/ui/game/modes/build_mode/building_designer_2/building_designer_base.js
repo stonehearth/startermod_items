@@ -255,16 +255,17 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
       });
 
       // building buttons
-      this.$('#showOverview').click(function() {
+      this.$().on( 'click', '#showOverview', function() {
          self.showOverview();
       });
 
-      this.$('#showEditor').click(function() {
+
+      this.$().on( 'click', '#showEditor', function() {
          self.showEditor();
       });
 
 
-      this.$('#startBuilding').click(function() {
+      this.$().on( 'click', '#startBuilding', function() {
          var doStartBuilding = function() {
             App.stonehearthClient.deactivateAllTools();
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:submenu_select'} );
@@ -295,7 +296,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             });         
       });
 
-      this.$('.removeBuilding').click(function() {
+      this.$().on( 'click', '#removeBuilding', function() {
          var doRemoveBuilding = function() {
             var building_entity = self.get('building');
             if (building_entity) {
@@ -323,7 +324,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
             });         
       });
 
-      this.$('#saveTemplate').click(function() {
+      this.$().on( 'click', '#saveTemplate', function() {
          var building = self.get('building');
 
          if (building) {
