@@ -71,6 +71,26 @@
          }
       }
    },   
+   "fight_menu" : {
+      "name" : "Fight & Defend",
+      "description" : "Manage your combat forces",
+      "class" : "dock",
+      "hotkey" : "6",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
+      "items" : {
+         "red_alert" : {
+            "name" : "Red Alert!",
+            "description" : "Rally workers to defend the town!",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
+            "sticky" : true,
+            "hotkey" : "r"
+         }
+      }
+   },   
    "town_menu" : {
       "name" : "Town Info",
       "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
@@ -81,7 +101,7 @@
       "clickSound": "stonehearth:sounds:banner_grab"
    },   
    "zone_menu" : {
-      "name" : "Zone Tools",
+      "name" : "Designate Zones",
       "description" : "Designate areas of the ground for storage, farming, etc.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_zone.png",
@@ -120,37 +140,27 @@
       "name" : "Manage Citizen",
       "description" : "Manage your settlers and promote them to new jobs.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/citizens.png",
       "hotkey" : "5",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "squad_manager" : {
-      "name" : "Defend",
-      "description" : "Manage your city's defenses against invaders!",
+   "dead_button" : {
+      "name" : "TBD",
+      "description" : "We have one slot to use. Ideas?",
       "class" : "dock",
-      "hotkey" : "6",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dead.png",
+      "hotkey" : "7",
       "game_mode" : "normal",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
-      "items" : {
-         "red_alert" : {
-            "name" : "Red Alert!",
-            "description" : "Rally workers to defend the town!",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
-            "sticky" : true,
-            "hotkey" : "r"
-         }
-      }
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
    "tasks_manager" : {
       "name" : "Manage Tasks",
       "description" : "Do task stuff.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_jobs.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/tasks.png",
       "hotkey" : "7",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",

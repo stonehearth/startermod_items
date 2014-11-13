@@ -4,11 +4,13 @@
    components: {},
 
    init: function() {
+      // close all other windows with the "exclusive" class set. Only one such window
+      // can be on screen at one time
+      this._closeOpenExclusiveWindows();
       this._super();
    },
 
    destroy: function() {
-
       this._destroyRootTrace();
       this._destroyRadiantTrace();
       this._unbindHotkeys();
@@ -66,6 +68,18 @@
       } else {
          this.destroy();
       }
+   },
+
+   _closeOpenExclusiveWindows: function() {
+      var self = this;
+
+      $('.exclusive').each(function(i, el) {
+         var view = self._getClosestEmberView($(el));
+
+         if (view) {
+            view.destroy();
+         }
+      })
    },
 
    _addHotkeys: function() {

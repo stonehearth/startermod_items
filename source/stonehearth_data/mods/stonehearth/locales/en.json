@@ -373,6 +373,7 @@
    "town_food_happiness" : "Food",
    "town_shelter_happiness" : "Shelter",
    "town_overview" : "Town Overview",
+   "town_inventory" : "Inventory",
    "town_happiness_tab" : "Journal",
    "journal_today" : "Today", 
    "journal_town_log" : "Town Log",

@@ -1,0 +1,17 @@
+#inventory {
+   #contents {
+      overflow-y: auto;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      right: 0px;
+      bottom: 0px;
+
+      .item {
+         .arrowCursor;
+         &:hover:not(.disabled) {
+            -webkit-filter: brightness(1.0);
+         }
+      }
+   }
+}
