@@ -10,7 +10,7 @@
 
    "ingredients": [
       {
-         "material" : "leather",
+         "material" : "leather resource",
          "count" : 2
       }
   ],

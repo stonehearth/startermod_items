@@ -1,5 +1,6 @@
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
+   classNames: ['exclusive'],
    closeOnEsc: true,
 
    init: function() {

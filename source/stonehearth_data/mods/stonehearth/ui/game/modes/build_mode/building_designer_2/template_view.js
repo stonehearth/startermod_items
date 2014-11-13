@@ -17,12 +17,11 @@ App.StonehearthTemplateNameView = App.View.extend({
       });
 
       this.$('.ok').click(function() {
-         var templateDisplayName = self.$('#name').val()
-         var templateName = templateDisplayName.split(' ').join('_').toLowerCase();
+         var templateName = self.$('#name').val()
+         //var templateName = templateDisplayName.split(' ').join('_').toLowerCase();
 
          radiant.call('stonehearth:save_building_template', self.building.__self, { 
-            name: templateName,
-            display_name: templateDisplayName,
+            name: templateName
          })
 
          self.destroy();

@@ -24,8 +24,6 @@ function Column:layout()
    return self
 end
 
--- begin editing the column pointed to by `other_column`.  basically just
--- copy the shape and important variables in the save state
 function Column:clone_from(entity)
    return self
 end

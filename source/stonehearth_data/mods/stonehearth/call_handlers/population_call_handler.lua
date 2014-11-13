@@ -12,10 +12,9 @@ function PopulationCallHandler:get_tasks(session, response)
    if not town then
       response:reject('could not find town')
    end
-   local tasks_model = town:get_scheduler()
-                              :get_model()
+   local groups = town:get_task_groups_model()
 
-   return { tasks = tasks_model }
+   return { groups = groups }
 end
 
 return PopulationCallHandler

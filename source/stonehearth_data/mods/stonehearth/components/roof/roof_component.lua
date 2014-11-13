@@ -54,4 +54,8 @@ function Roof:rotate_structure(degrees)
    build_util.rotate_structure(self._entity, degrees)
 end
 
+function Roof:clone_from(entity)
+   return self
+end
+
 return Roof
