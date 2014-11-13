@@ -86,8 +86,7 @@ function SubterraneanViewService:_update_full_xray_view()
             cursor:add_cube(visible_cube)
          end
 
-         -- TODO: get the terrain bounds for this
-         local world_floor = Cube3(Point3(-10000, -1, -10000), Point3(10001, 0, 10001))
+         local world_floor = self:_get_world_floor()
          cursor:add_cube(world_floor)
 
          cursor:optimize_by_merge()
@@ -130,8 +129,7 @@ function SubterraneanViewService:_update_flat_xray_view()
             end
          end
 
-         -- TODO: get the terrain bounds for this
-         local world_floor = Cube3(Point3(-10000, -1, -10000), Point3(10001, 0, 10001))
+         local world_floor = self:_get_world_floor()
          cursor:add_cube(world_floor)
 
          cursor:optimize_by_merge()
@@ -220,6 +218,20 @@ function SubterraneanViewService:_update()
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
       h3dClearVerticalClipMax()
    end
+end
+
+function SubterraneanViewService:_get_world_floor()
+   local world_floor = self:_get_terrain_bounds()
+   world_floor.min.y = -1
+   world_floor.max.y = 0
+   return world_floor
+end
+
+function SubterraneanViewService:_get_terrain_bounds()
+   local root_entity = _radiant.client.get_object(1)
+   local terrain_component = root_entity:add_component('terrain')
+   local bounds = terrain_component:get_bounds()
+   return bounds
 end
 
 return SubterraneanViewService
