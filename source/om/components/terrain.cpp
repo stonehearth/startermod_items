@@ -34,6 +34,8 @@ void Terrain::ConstructObject()
 {
    Component::ConstructObject();
 
+   tile_accessor_.Initialize(tiles_, TILE_SIZE, GetStore());
+
    config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
       ->OnModified([this]() {
          res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
@@ -106,63 +108,9 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
    return csg::ToFloat(pt);
 }
 
-void Terrain::AddCube(csg::Cube3f const& cube)
+TiledRegion& Terrain::GetTiles()
 {
-   AddRegion(cube);
-}
-
-void Terrain::AddRegion(csg::Region3f const& r)
-{
-   csg::Region3 region = csg::ToInt(r);
-
-   csg::PartitionRegionIntoChunksSlow(region, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& subregion) {
-      Region3BoxedPtr tile = GetTile(index);
-      tile->Modify([&subregion](csg::Region3& cursor) {
-         cursor += subregion;
-      });
-      return false; // don't stop!
-   });
-}
-
-void Terrain::SubtractCube(csg::Cube3f const& cube)
-{
-   SubtractRegion(cube);
-}
-
-void Terrain::SubtractRegion(csg::Region3f const& r)
-{
-   csg::Region3 region = csg::ToInt(r);
-
-   csg::PartitionRegionIntoChunksSlow(region, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& subregion) {
-      Region3BoxedPtr tile = GetTile(index);
-      tile->Modify([&subregion](csg::Region3& cursor) {
-         cursor -= subregion;
-      });
-      return false; // don't stop!
-   });
-}
-
-csg::Region3f Terrain::IntersectCube(csg::Cube3f const& cube)
-{
-   return IntersectRegion(cube);
-}
-
-csg::Region3f Terrain::IntersectRegion(csg::Region3f const& r)
-{
-   csg::Region3 region = csg::ToInt(r);   // we expect r to be simple relative to the terrain tiles
-   csg::Region3f result;
-   csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region.GetBounds()), TILE_SIZE);
-
-   for (csg::Point3 const& index : csg::EachPoint(chunks)) {
-      auto i = tiles_.find(index);
-      if (i != tiles_.end()) {
-         Region3BoxedPtr tile = i->second;
-         csg::Region3 intersection = tile->Get() & region;
-         result.AddUnique(csg::ToFloat(intersection));
-      }
-   }
-
-   return result;
+   return tile_accessor_;
 }
 
 Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)

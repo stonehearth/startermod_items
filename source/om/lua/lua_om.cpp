@@ -13,6 +13,7 @@
 #include "dm/store.h"
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
+#include "om/tiled_region.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/dm/trace_wrapper.h"
 
@@ -113,6 +114,17 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("on_changed",         &LuaDeepRegion3fGuard::OnChanged)
                .def("push_object_state",  &LuaDeepRegion3fGuard::PushObjectState)
                .def("destroy",            &LuaDeepRegion3fGuard::Destroy)
+            ,
+            lua::RegisterTypePtr_NoTypeInfo<TiledRegion>("TiledRegion")
+               .def("add_point",        &TiledRegion::AddPoint)
+               .def("add_cube",         &TiledRegion::AddCube)
+               .def("add_region",       &TiledRegion::AddRegion)
+               .def("subtract_point",   &TiledRegion::SubtractPoint)
+               .def("subtract_cube",    &TiledRegion::SubtractCube)
+               .def("subtract_region",  &TiledRegion::SubtractRegion)
+               .def("intersect_point",  &TiledRegion::IntersectPoint)
+               .def("intersect_cube",   &TiledRegion::IntersectCube)
+               .def("intersect_region", &TiledRegion::IntersectRegion)
          ]
       ]
    ];

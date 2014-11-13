@@ -18,18 +18,14 @@ class Terrain(Component):
                           ('region', csg.Region3f().const.ref),
                           ('clipper', csg.Rect2f().const.ref))
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
-   add_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
-   add_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
-   subtract_cube = ridl.Method(c.void(), ('cube', csg.Cube3f().const.ref))
-   subtract_region = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
-   intersect_cube = ridl.Method(csg.Region3f(), ('cube', csg.Cube3f().const.ref))
-   intersect_region = ridl.Method(csg.Region3f(), ('region', csg.Region3f().const.ref))
+   get_tiles = ridl.Method(TiledRegion().ref)
 
    _generate_construct_object = True
 
    _includes = [
       "om/components/terrain_tesselator.h",
       "om/region.h",
+      "om/tiled_region.h",
       "csg/util.h",
       "csg/point.h"
    ]
@@ -44,6 +40,7 @@ class Terrain(Component):
    Region3BoxedPtr GetTile(csg::Point3 const& index);
    void AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper);
 
+   TiledRegion tile_accessor_;
    TerrainTesselator terrainTesselator_;
    dm::TracePtr config_file_name_trace_;
    """

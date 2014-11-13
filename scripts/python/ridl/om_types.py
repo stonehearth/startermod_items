@@ -30,6 +30,9 @@ class Region3fBoxedPtr(ridl.Type):
    name = "Region3fBoxedPtr"
    outer_box_type = "Region3fBoxedPtrBoxed"
 
+class TiledRegion(ridl.Type):
+   name = "TiledRegion"
+
 def EntityRef():
    return std.weak_ptr(Entity())
    _lua_weak_ref = True

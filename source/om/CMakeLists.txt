@@ -17,6 +17,7 @@ add_library(om STATIC
             om_alloc.cpp
             selection.cpp
             stonehearth.cpp
+            tiled_region.cpp
             )
 
 add_dependencies(om
