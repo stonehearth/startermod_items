@@ -1,0 +1,34 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Shepherd's Crook",
+         "description" : "Promotes a citizen into a Shepherd."
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(shepherd_crook.qb)"
+            ]
+         }
+      },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:talisman_glow"
+         ]  
+      },
+      "stonehearth:promotion_talisman": {
+         "job": "stonehearth:jobs:shepherd"
+      }
+   },
+   "entity_data" : {
+   }
+}
+

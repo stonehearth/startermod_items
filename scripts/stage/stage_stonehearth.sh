@@ -75,14 +75,25 @@ function stage_data_dir
    popd > /dev/null
 }
 
+function copy_saved_objects
+{
+   echo Copying the saved objects for $1
+   if [ -d "$DATA_ROOT/saved_objects/$1" ]; then
+      mkdir -p $OUTPUT_DIR/saved_objects
+      cp -u -r $DATA_ROOT/saved_objects/$1 $OUTPUT_DIR/saved_objects
+   fi
+}
+
 function compile_lua_and_package_module
 {
-
    # $1 - the name of the mod to stage
+   MOD_NAME=${1##*/}
+
    stage_data_dir $1
+   copy_saved_objects $MOD_NAME
 
    echo Compiling lua and packaging module in $1
-   MOD_NAME=${1##*/}
+
    pushd $OUTPUT_DIR/$1/.. > /dev/null
    pwd
    #set LUA_PATH=$LUAJIT_BIN_ROOT
@@ -204,5 +215,6 @@ if [ ! -z $STAGE_DATA ]; then
          compile_lua_and_package_module mods/$modname
       done
    fi
+
    checksum_mod_directory
 fi
