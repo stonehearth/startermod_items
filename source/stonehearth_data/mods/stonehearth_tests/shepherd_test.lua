@@ -11,7 +11,7 @@ function FarmingTest:__init()
    self:create_world()
 
    --place the hoes and board
-   --self:place_item('stonehearth:farmer:hoe_talisman', 4, 2)
+   self:place_item('stonehearth:shepherd:crook_talisman', 4, 2)
 
    self:place_citizen(-1,5)
    self:place_citizen(-1,2, 'shepherd')

@@ -7,7 +7,8 @@
    "requirements" : "Shepherd's Crook, crafted by the Carpenter",
    "talisman_uri" : "stonehearth:shepherd:crook_talisman",
    "default_stance" : "passive",
-   "icon" : "file(../unknown/images/icon.png)",
+   "icon" : "file(images/icon.png)",
+   "bannerIcon" : "file(images/banner.png)",   
    "parent_job" : "stonehearth:jobs:trapper",
 
    "equipment" : {
