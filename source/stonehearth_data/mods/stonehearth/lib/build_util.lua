@@ -431,7 +431,7 @@ function build_util.unpack_entity_table(tbl, entity_map)
    for _, id in ipairs(tbl) do
       local entity = entity_map[id]
       assert(entity)
-      unpacked[id] = entity
+      unpacked[entity:get_id()] = entity
    end
    return unpacked
 end
