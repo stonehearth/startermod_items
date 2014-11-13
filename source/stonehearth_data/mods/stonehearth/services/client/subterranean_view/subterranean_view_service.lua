@@ -55,12 +55,14 @@ end
 function SubterraneanViewService:_initialize_traces()
    local root_entity = _radiant.client.get_object(1)
    local terrain_component = root_entity:add_component('terrain')
+   
+   self._interior_region_boxed = terrain_component:get_interior_region()
+
    self._interior_region_trace = terrain_component:trace_interior_region('subterranean view', TraceCategories.SYNC_TRACE)
       :on_changed(function()
             self:_on_interior_region_changed()
          end)
-
-   self._interior_region_boxed = terrain_component:get_interior_region()
+      :push_object_state()
 end
 
 function SubterraneanViewService:_on_interior_region_changed()
