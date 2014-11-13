@@ -33,7 +33,7 @@ var StonehearthBulletinBoard;
          self._bulletinBoardTrace = self._radiantTrace.traceUri(self._bulletinBoardUri, self.components)
             .progress(function(bulletinBoard) {
                if (bulletinBoard.bulletins) {
-                  var list = self._mapToList(bulletinBoard.bulletins);
+                  var list = radiant.map_to_array(bulletinBoard.bulletins);
 
                   list.sort(function (a, b) {
                      return a.id - b.id;
@@ -47,16 +47,6 @@ var StonehearthBulletinBoard;
             });
 
          this._initCompleteDeferred.resolve();
-      },
-
-      _mapToList: function(map) {
-         var list = [];
-         $.each(map, function(key, value) {
-            if (key != "__self" && map.hasOwnProperty(key)) {
-               list.push(value);
-            }
-         });
-         return list;
       },
 
       _tryShowNextBulletin: function() {

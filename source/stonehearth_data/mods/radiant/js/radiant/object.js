@@ -237,13 +237,13 @@
                   if (!filter_fn) {
                      array.push(value);
                   } else {
-                   var result = filter_fn(key, value);
-                   if (result === false) {                     
-                   } else if (result === true) {
-                     array.push(value);
-                   } else {
-                     array.push(result);
-                   }
+                     var result = filter_fn(key, value);
+                     if (result === false) {                     
+                     } else if (result === true) {
+                        array.push(value);
+                     } else {
+                        array.push(result);
+                     }
                   }
                }
             }
