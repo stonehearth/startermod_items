@@ -22,6 +22,21 @@ App.StonehearthInventoryView = App.View.extend({
       this.set('items', arr);
    }.observes('context.tracking_data'),
 
+   _updateInventory: function() {
+      //xxx tbd
+      /*
+      var data = this.get('context.tracking_data');
+
+      var item = $('<div>')
+      $.each(data, function(key, value) {
+
+      })
+
+      var arr = radiant.map_to_array(data);
+      this.set('items', arr);
+      */
+   }.observes('context.tracking_data'),
+
    didInsertElement: function() {
       this._super();
       self.$('.item').tooltipster();
