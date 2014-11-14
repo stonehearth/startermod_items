@@ -457,6 +457,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    local blueprint = radiant.entities.create_entity(blueprint_uri)
 
    self:_bind_building_to_blueprint(building, blueprint)
+   blueprint:set_debug_text('blueprint')
 
    -- give it a region and stick it in the building...
    blueprint:add_component('destination')
@@ -1007,7 +1008,7 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
    fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
-   fixture_blueprint:set_debug_text('(fixture')
+   fixture_blueprint:set_debug_text('fixture blueprint')
    
    local building = build_util.get_building_for(parent_entity)
 
