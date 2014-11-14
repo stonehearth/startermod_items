@@ -527,8 +527,8 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, new_fl
    local id, floor = next(existing_floor)
    local id, next_floor = next(existing_floor, id)
 
-   self:_merge_overlapping_floor_trivial(floor, new_floor_region, brush_shape)
    if not next_floor then
+      self:_merge_overlapping_floor_trivial(floor, new_floor_region, brush_shape)
       return floor
    end
 
@@ -561,6 +561,7 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, new_fl
       end
    end
 
+   self:_merge_overlapping_floor_trivial(floor, new_floor_region, brush_shape)
    return floor
 end
 
