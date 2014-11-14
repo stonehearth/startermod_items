@@ -356,7 +356,7 @@ function TaskGroup:_find_best_worker_for(task)
       if not ignore then
          local worker = entry.worker
          if not worker:is_valid() then
-            self._workers[id] = nil
+            self:remove_worker(id)
          else
             -- prefer workers who are closer...
             local d = task:_estimate_task_distance(worker)
