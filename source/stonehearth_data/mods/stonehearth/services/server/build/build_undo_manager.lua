@@ -154,6 +154,12 @@ function BuildUndoManager:unlink_entity(entity)
          self:unlink_entity(fabricator_entity)
       end
    end
+
+   local fab_comp = entity:get_component('stonehearth:fabricator')
+   if fab_comp then
+      self:unlink_entity(fab_comp:get_project())
+   end
+   
    table.insert(self._unlinked_entities, entry)
 end
 
