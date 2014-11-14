@@ -60,7 +60,7 @@ function ShepherdClass:level_up()
 end
 
 function ShepherdClass:demote()
-   self:_remove_xp_listeners()
+   --self:_remove_xp_listeners()
    self._sv.is_current_class = false
    self.__saved_variables:mark_changed()
 end

@@ -32,17 +32,23 @@ App.StonehearthPromotionTree = App.View.extend({
 
    _initCitizen: function() {
       var self = this;
-      self._citizenTrace = new StonehearthDataTrace(this.get('citizen'), 
+      var citizenId = this.get('citizen');
+      self._citizenTrace = new StonehearthDataTrace(citizenId, 
          { 
-            'stonehearth:job' : {},
+            'stonehearth:job' : {
+               'job_controllers' : {
+                  '*' : {}
+               }
+            },
             'unit_info' : {},
          });
       
       self._citizenTrace.progress(function(o) {
             self._startingJob = o['stonehearth:job'].job_uri;
+            self._citizenJobData = o['stonehearth:job'].job_controllers;
             self._buildTree();
             self.set('citizen', o);
-            self._citizenTrace.destroy();
+            self._citizenTrace.destroy();               
          })
    },
 
@@ -114,8 +120,19 @@ App.StonehearthPromotionTree = App.View.extend({
       // unlock nodes based on talismans available in the world
       radiant.call('stonehearth:get_talismans_in_explored_region')
          .done(function(o) {
-            $.each(o.available_jobs, function(key, job) {
-               self._jobButtons[job].addClass('available');
+            $.each(o.available_jobs, function(key, jobAlias) {
+               //Only add this if the talisman is in the world AND if the reqirements are met
+               var selectedJob;
+               $.each(self._jobs, function(i, jobData) {
+                  if (jobData.alias == jobAlias) {
+                     selectedJob = jobData;
+                  }
+               });
+
+               var requirementsMet = self._calculateRequirementsMet(jobAlias, selectedJob);
+               if (requirementsMet) {
+                  self._jobButtons[jobAlias].addClass('available');
+               }
             })
 
             //The worker job is always available
@@ -208,7 +225,11 @@ App.StonehearthPromotionTree = App.View.extend({
       // tell handlebars about changes
       self.set('selectedJob', selectedJob);
 
-      var requirementsMet = self._jobButtons[jobAlias].hasClass('available') || selectedJob.alias == self._startingJob;
+      var requirementsMet = self._jobButtons[jobAlias].hasClass('available') || selectedJob.alias == self._startingJob; //self._calculateRequirementsMet(jobAlias, selectedJob); //
+      
+      //Need to also check if the class requires another class as a pre-req
+      //For example: if the parent job is NOT worker, we need to be level 3 at that job in order to allow upgrade
+
       var promoteOk = selectedJob.alias != self._startingJob && requirementsMet;
 
       self.set('requirementsMet', requirementsMet);
@@ -233,6 +254,33 @@ App.StonehearthPromotionTree = App.View.extend({
       }
    },
 
+   //Call only with jobs whose talismans exist in the world
+   //True if the current job is worker or has a parent that is the worker class
+   //If there is a parent job and a required level of the parent job,
+   //take that into consideration also
+   _calculateRequirementsMet: function(jobAlias, selectedJob) {
+      var self = this;
+      var requirementsMet = false;
+
+      if (jobAlias == 'stonehearth:jobs:worker' || selectedJob.parent_job == 'stonehearth:jobs:worker') {
+         return true;
+      }
+
+      if (selectedJob.parent_job != undefined) {
+         var parentJobController = self._citizenJobData[selectedJob.parent_job];
+         var parentRequiredLevel = selectedJob.parent_level_requirement;
+         
+         if (parentJobController != undefined && parentJobController != "stonehearth:jobs:worker" && parentRequiredLevel > 0) {
+            $.each(self._citizenJobData, function(jobUri, jobData) {
+               if (jobUri == selectedJob.parent_job && jobData.last_gained_lv >= parentRequiredLevel) {
+                  requirementsMet = true;
+                  return requirementsMet;
+               }
+            })
+         }
+      }
+      return requirementsMet;
+   },
 
    _promote: function(jobAlias) {
       var self = this;
