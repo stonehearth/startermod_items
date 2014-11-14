@@ -69,18 +69,18 @@ std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnDestroyed(luabind::obj
 }
 
 template <typename T>
-std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object unsafe_changed_cb)
+std::shared_ptr<MapTraceWrapper<T>> MapTraceWrapper<T>::OnAdded(luabind::object unsafe_added_cb)
 {
    if (!trace_) {
       throw std::logic_error("called on_added on invalid trace");
    }
 
-   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_changed_cb.interpreter());
-   luabind::object changed_cb(cb_thread, unsafe_changed_cb);
+   lua_State* cb_thread = lua::ScriptHost::GetCallbackThread(unsafe_added_cb.interpreter());
+   luabind::object added_cb(cb_thread, unsafe_added_cb);
 
-   trace_->OnAdded([changed_cb](typename T::Key const& key, typename T::Value const& value) mutable {
+   trace_->OnAdded([added_cb](typename T::Key const& key, typename T::Value const& value) mutable {
       try {
-         changed_cb(key, ValueCast<T::Value>().ToLua(value));
+         added_cb(key, ValueCast<T::Value>().ToLua(value));
       } catch (std::exception const& e) {
          LUA_LOG(1) << "exception delivering lua trace: " << e.what();
       }

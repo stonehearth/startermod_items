@@ -291,21 +291,21 @@ om::Region3fBoxedPtr RenderTerrain::GetXrayRegion(std::string const& mode) const
 
 void RenderTerrain::UpdateClipPlanes()
 {
-   csg::Region3* interior_region_ptr = nullptr;
-   csg::Region3 interior_region;
-   csg::Cube3 interior_bounds;
+   csg::Region3* xray_region_ptr = nullptr;
+   csg::Region3 xray_region;
+   csg::Cube3 xray_bounds;
    om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
 
    if (xray_region_boxed) {
-      interior_region = csg::ToInt(xray_region_boxed->Get());
-      interior_region_ptr = &interior_region;
-      interior_bounds = interior_region.GetBounds();
+      xray_region = csg::ToInt(xray_region_boxed->Get());
+      xray_region_ptr = &xray_region;
+      xray_bounds = xray_region.GetBounds();
    }
 
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes(_clip_height, interior_region_ptr, interior_bounds);
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height, xray_region_ptr, xray_bounds);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
@@ -320,21 +320,21 @@ void RenderTerrain::UpdateClipPlanes()
 
 void RenderTerrain::UpdateGeometry()
 {
-   csg::Region3* interior_region_ptr = nullptr;
-   csg::Region3 interior_region;
-   csg::Cube3 interior_bounds;
+   csg::Region3* xray_region_ptr = nullptr;
+   csg::Region3 xray_region;
+   csg::Cube3 xray_bounds;
    om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
 
    if (xray_region_boxed) {
-      interior_region = csg::ToInt(xray_region_boxed->Get());
-      interior_region_ptr = &interior_region;
-      interior_bounds = interior_region.GetBounds();
+      xray_region = csg::ToInt(xray_region_boxed->Get());
+      xray_region_ptr = &xray_region;
+      xray_bounds = xray_region.GetBounds();
    }
 
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry(_clip_height, interior_region_ptr, interior_bounds);
+         i->second->UpdateGeometry(_clip_height, xray_region_ptr, xray_bounds);
       }
    }
    _dirtyGeometry.clear();

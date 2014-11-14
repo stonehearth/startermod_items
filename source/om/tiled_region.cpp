@@ -5,6 +5,7 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+// TiledRegion is used for manipulating large regions that need to be spatially subdivided.
 TiledRegion::TiledRegion() :
    _tiles(nullptr),
    _tile_size(csg::Point3::zero),
@@ -57,6 +58,7 @@ csg::Region3f TiledRegion::IntersectCube(csg::Cube3f const& cube3f)
    return IntersectRegion(cube3f);
 }
 
+// can be further optimized
 csg::Region3f TiledRegion::IntersectRegion(csg::Region3f const& region3f)
 {
    csg::Region3 region3 = csg::ToInt(region3f);   // we expect the region to be simple relative to the stored tiles

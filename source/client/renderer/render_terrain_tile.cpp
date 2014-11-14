@@ -76,14 +76,14 @@ csg::Region2 const* RenderTerrainTile::GetClipPlaneFor(csg::PlaneInfo3 const& pi
    return atEdge ? _neighborClipPlanes[pi.which] : nullptr;
 }
 
-int RenderTerrainTile::UpdateClipPlanes(int clip_height, csg::Region3* interior_region, csg::Cube3 interior_bounds)
+int RenderTerrainTile::UpdateClipPlanes(int clip_height, csg::Region3* xray_region, csg::Cube3 xray_bounds)
 {
    om::Region3BoxedPtr region = _region.lock();
    if (region) {
       csg::Point3 tileSize = _terrain.GetTileSize();
       csg::Region3 cut_terrain_storage;
       csg::Region2 cross_section;
-      csg::Region3 const& rgn = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, interior_region, interior_bounds);
+      csg::Region3 const& rgn = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, xray_region, xray_bounds);
 
       for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
          _clipPlanes[d].Clear();
@@ -118,7 +118,7 @@ int RenderTerrainTile::UpdateClipPlanes(int clip_height, csg::Region3* interior_
    return -1;     // everything for now... optimize later!
 }
 
-void RenderTerrainTile::UpdateGeometry(int clip_height, csg::Region3* interior_region, csg::Cube3 interior_bounds)
+void RenderTerrainTile::UpdateGeometry(int clip_height, csg::Region3* xray_region, csg::Cube3 xray_bounds)
 {
    om::Region3BoxedPtr region = _region.lock();
 
@@ -131,7 +131,7 @@ void RenderTerrainTile::UpdateGeometry(int clip_height, csg::Region3* interior_r
       csg::Region2 cross_section;
 
       // BUG: the cross section is empty when clip_height is on terrain boundaries, so we fail to hide anything
-      csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, interior_region, interior_bounds);
+      csg::Region3 const& after_cut = ComputeCutTerrainRegion(cut_terrain_storage, clip_height, cross_section, xray_region, xray_bounds);
 
       _regionTools.ForEachPlane(after_cut, [this, clip_height, &after_cut, &cross_section](csg::Region2 const& plane, csg::PlaneInfo3 const& pi) {
          csg::Region2 new_plane;
@@ -205,7 +205,7 @@ void RenderTerrainTile::RemoveCut(dm::ObjectId cutId)
 // a direct reference to the terrain tile (super fast!).  If not, it copies the region and
 // applies the cuts.
 //
-csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section, csg::Region3* interior_region, csg::Cube3 interior_bounds) const
+csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section, csg::Region3* xray_region, csg::Cube3 xray_bounds) const
 {
    om::Region3BoxedPtr region = _region.lock();
    if (!region) {
@@ -215,7 +215,7 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
    csg::Point3 tile_size = _terrain.GetTileSize();
    bool is_clipped = csg::IsBetween(_location.y, clip_height, _location.y + tile_size.y);
    bool is_cut = !_cutMap.empty();
-   bool is_intersect = interior_region != nullptr;
+   bool is_intersect = xray_region != nullptr;
 
    if (clip_height == _location.y + tile_size.y) {
       // on the upper boundary, the cross section is the bottom clip plane of the top neighbor
@@ -237,10 +237,10 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
 
    if (is_intersect) {
       csg::Cube3 tile_bounds = csg::Cube3(_location, _location + tile_size);
-      if (tile_bounds.Intersects(interior_bounds)) {
-         // faster to clip the interior region before performing full intersection
-         csg::Region3 clipped_interior_region = *interior_region & tile_bounds;
-         storage &= clipped_interior_region;
+      if (tile_bounds.Intersects(xray_bounds)) {
+         // faster to clip the xray region before performing full intersection
+         csg::Region3 clipped_xray_region = *xray_region & tile_bounds;
+         storage &= clipped_xray_region;
       } else {
          // optimzied path as well as the common case
          storage.Clear();
