@@ -59,6 +59,18 @@ function FixtureFabricator:set_teardown()
    -- noop.
 end
 
+function FixtureFabricator:get_normal()
+   return self._sv.normal
+end
+
+function FixtureFabricator:get_rotation()
+   return self._sv.rotation
+end
+
+function FixtureFabricator:get_uri()
+   return self._sv.fixture_uri
+end
+
 function FixtureFabricator:instabuild()
    if not self._sv.fixture then
       self._sv.fixture = radiant.entities.create_entity(self._sv.fixture_uri)

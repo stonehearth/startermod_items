@@ -67,32 +67,6 @@ function Floor:remove_region_from_floor(region)
    return self
 end
 
--- merges the floor region of `old_floor` into this entity and destroys
--- the `old_floor`
---    @param old_floor - the floor to merge with.  will be destroyed once
---                       we've grabbed the region.
---
-function Floor:merge_with(old_floor)
-   assert(old_floor:get_component('stonehearth:floor'))
-   assert(old_floor:add_component('mob'):get_parent() == self._entity:add_component('mob'):get_parent())
-
-   local floor_location = radiant.entities.get_location_aligned(self._entity)
-   local floor_offset = radiant.entities.get_location_aligned(old_floor) - floor_location
-   local old_floor_region = old_floor:get_component('destination'):get_region()
-
-   self._entity:get_component('destination')
-                  :get_region()
-                     :modify(function(cursor)
-                           for cube in old_floor_region:get():each_cube() do
-                              cursor:add_unique_cube(cube:translated(floor_offset))
-                           end
-                        end)
-
-   stonehearth.build:unlink_entity(old_floor)
-
-   return self
-end
-
 function Floor:clone_from(entity)
    if entity then
       local other_floor_region = entity:get_component('destination'):get_region():get()

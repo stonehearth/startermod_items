@@ -143,6 +143,7 @@ function Fabricator:_create_new_project()
    local blueprint = self._blueprint
    local rgn = _radiant.sim.alloc_region3()
    self._project = radiant.entities.create_entity(blueprint:get_uri())
+   self._project:set_debug_text('project')
    self._project_dst = self._project:add_component('destination')
 
    radiant.entities.set_player_id(self._project, blueprint)
