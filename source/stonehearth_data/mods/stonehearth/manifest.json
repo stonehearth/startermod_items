@@ -990,6 +990,14 @@
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "server"
       },
+      "choose_pasture_location": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_pasture": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "designate_mining_zone": {
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "client"
