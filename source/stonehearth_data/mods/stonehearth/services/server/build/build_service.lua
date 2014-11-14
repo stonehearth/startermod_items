@@ -993,7 +993,7 @@ end
 
 function BuildService:add_fixture(parent_entity, fixture_or_uri, location, normal, rotation)
    if not build_util.is_blueprint(parent_entity) then
-      self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_uri, parent_entity)
+      self._log:info('cannot place fixture %s on non-blueprint entity %s', fixture_or_uri, parent_entity)
       return
    end
 

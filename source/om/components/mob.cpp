@@ -40,7 +40,8 @@ void Mob::ConstructObject()
    region_origin_ = csg::Point3f::zero;
    align_to_grid_flags_ = 0;
    interpolate_movement_ = false;
-   in_free_motion_ = 0;
+   ignore_gravity_ = false;
+   in_free_motion_ = false;
    mob_collision_type_ = NONE;
 }
 

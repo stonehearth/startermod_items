@@ -264,6 +264,10 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
+   if entity:get_id() == 1 then
+      return Point3(0, 0, 0)
+   end
+   
    local mob = entity:get_component('mob')
    local location = mob and mob:get_world_grid_location()
    return location

@@ -102,10 +102,16 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             local entities = radiant.terrain.get_entities_at_point(location - normal)
             for _, entity in pairs(entities) do
                if wall_ok then
-                  local wall = entity:get_component('stonehearth:wall')
+                  local wall = entity:get_component('stonehearth:construction_progress')
                   if wall then
                      local rotation = build_util.normal_to_rotation(normal)
                      placement_structure = entity
+                     placement_structure_normal = normal
+                     selector:set_rotation(rotation)
+                     return true
+                  end
+                  if radiant.entities.is_solid_entity(entity) then
+                     local rotation = build_util.normal_to_rotation(normal)
                      placement_structure_normal = normal
                      selector:set_rotation(rotation)
                      return true
@@ -136,9 +142,9 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             else
                if specific_item_to_place then
-                  deferred = _radiant.call('stonehearth:place_item_in_world', specific_item_to_place, location, rotation)
+                  deferred = _radiant.call('stonehearth:place_item_in_world', specific_item_to_place, location, rotation, placement_structure_normal)
                else
-                  deferred = _radiant.call('stonehearth:place_item_type_in_world', item_uri_to_place, location, rotation)
+                  deferred = _radiant.call('stonehearth:place_item_type_in_world', item_uri_to_place, location, rotation, placement_structure_normal)
                end
             end
             deferred
@@ -187,8 +193,9 @@ end
 --- Tell a worker to place the item in the world
 -- Server side object to handle creation of the workbench.  This is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_in_world(session, response, item_to_place, location, rotation)
+function PlaceItemCallHandler:place_item_in_world(session, response, item_to_place, location, rotation, normal)
    location = ToPoint3(location)
+   normal = ToPoint3(normal)
 
    local item, entity_forms = get_root_entity(item_to_place)
    if not entity_forms then
@@ -197,7 +204,7 @@ function PlaceItemCallHandler:place_item_in_world(session, response, item_to_pla
    end
    
    radiant.entities.set_player_id(item, session.player_id)
-   entity_forms:place_item_on_ground(location, rotation)
+   entity_forms:place_item_on_ground(location, rotation, normal)
 
    return true
 end
@@ -216,6 +223,7 @@ function PlaceItemCallHandler:place_item_on_structure(session, response, item, l
    
    location = location - radiant.entities.get_world_grid_location(structure_entity)
    stonehearth.build:add_fixture(structure_entity, item, location, normal, rotation)
+
    return true
 end
 
@@ -223,8 +231,9 @@ end
 --- Place any object that matches the entity_uri
 -- server side object to handle creation of the workbench.  this is called
 -- by doing a POST to the route for this file specified in the manifest.
-function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation)
-   location = Point3(location.x, location.y, location.z)
+function PlaceItemCallHandler:place_item_type_in_world(session, response, entity_uri, location, rotation, normal)
+   location = ToPoint3(location)
+   normal = ToPoint3(normal)
 
    --- xxx: make a "place on ground" fixture fabricator type paradigm here
 
@@ -235,10 +244,10 @@ function PlaceItemCallHandler:place_item_type_in_world(session, response, entity
       uri = data.iconic_form
    end
    local item, acceptable_item_count = stonehearth.inventory:get_inventory(session.player_id)
-                                                            :find_closest_unused_placable_item(uri, location)
+                                                               :find_closest_unused_placable_item(uri, location)
 
    if item then
-      self:place_item_in_world(session, response, item, location, rotation)
+      self:place_item_in_world(session, response, item, location, rotation, normal)
 
       -- return whether or not there are most items we could potentially place
       response:resolve({ 

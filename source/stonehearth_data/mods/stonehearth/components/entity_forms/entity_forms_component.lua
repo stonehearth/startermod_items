@@ -238,37 +238,20 @@ function EntityFormsComponent:place_item_on_structure(location, structure_entity
    local structure_cp = structure_entity:get_component('stonehearth:construction_progress')
    assert(structure_cp:get_finished())
 
-   -- the structure is finished.  let's start up the tasks.  if we're currently on a structure,
-   -- we may need to build a ladder to pick ourselves up.  request that now.
-   local mob = self._entity:add_component('mob')
-   local parent = mob:get_parent()
-   if parent and parent:get_component('stonehearth:wall') then
-      -- ah!  we're on a wall.  the ladder has to move over by our normal to the wall, which
-      -- we can compute based on the rotation.
-      local current_rotation = mob:get_facing()
-      local curernt_normal = build_util.rotation_to_normal(current_rotation)
-      local pickup_location = radiant.entities.get_world_grid_location(self._entity) + curernt_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, curernt_normal)
-   end
-
-   -- create another ladder request to climb up to the placement point.
-   if normal and normal.y == 0 then
-      local climb_to = normal + location - Point3.unit_y
-      self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
-   end
+   self:_create_ladder_tasks(location, normal)
 
    -- finally create a placement task to move the item from one spot to another
    local item = self:_get_form_in_world()
-   self:_create_task('stonehearth:place_item_on_structure', {
+   self:_create_task({
          item = item,
          structure = structure_entity,
          location = location,
          rotation = rotation,
+         ignore_gravity = true,
       })
 end
 
-function EntityFormsComponent:place_item_on_ground(location, rotation)
-   assert(self:is_placeable_on_ground(), 'cannot place item on ground')
+function EntityFormsComponent:place_item_on_ground(location, rotation, normal)
    assert(self._sv.iconic_entity, 'cannot place items with no iconic entity')
    assert(self._sv.ghost_entity, 'cannot place items with no ghost entity')
    
@@ -283,11 +266,14 @@ function EntityFormsComponent:place_item_on_ground(location, rotation)
    local item = self:_get_form_in_world()
    assert(item, 'neither entity nor iconic form is in world')
 
+   self:_create_ladder_tasks(location, normal)
+
    radiant.terrain.place_entity_at_exact_location(self._sv.ghost_entity, location)
    radiant.entities.turn_to(self._sv.ghost_entity, rotation)
 
-   self:_create_task('stonehearth:place_item', {
+   self:_create_task({
          item = item,
+         structure = radiant._root_entity,
          location = location,
          rotation = rotation,
       })
@@ -307,13 +293,49 @@ function EntityFormsComponent:_get_form_in_world()
    return nil
 end
 
-function EntityFormsComponent:_create_task(activity, args)
+function EntityFormsComponent:_create_ladder_tasks(location, normal)
+   if self._climb_to_item then
+      self._climb_to_item:destroy()
+      self._climb_to_item = nil
+   end
+   if self._climb_to_destination then
+      self._climb_to_destination:destroy()
+      self._climb_to_destination = nil
+   end
+
+   if not normal or normal.y == 1 then
+      -- items placed on a horizontal surface don't need ladders
+      return
+   end
+
+   -- if we're currently on a structure, we may need to build a ladder to pick ourselves up.
+   -- request that now.   
+   local mob = self._entity:add_component('mob')
+   local parent = mob:get_parent()
+   if parent then
+      -- the ladder has to move over by our normal to the wall, which
+      -- we can compute based on the rotation.
+      local rotation = mob:get_facing()
+      local pickup_normal = build_util.rotation_to_normal(rotation)
+      local pickup_location = radiant.entities.get_world_grid_location(self._entity)
+      pickup_location = pickup_location + pickup_normal
+      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, pickup_normal)
+   end
+
+   -- create another ladder request to climb up to the placement point.
+   if normal and normal.y == 0 then
+      local climb_to = normal + location - Point3.unit_y
+      self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
+   end
+end
+
+function EntityFormsComponent:_create_task(args)
    local town = stonehearth.town:get_town(self._entity)
 
    assert(town)
    assert(not self._placement_task)  
 
-   self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', activity, args)
+   self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_on_structure', args)
    self._placement_task:set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM)                    
                        :once()
                        :notify_completed(function()
@@ -323,8 +345,9 @@ function EntityFormsComponent:_create_task(activity, args)
                               local parent = radiant.entities.get_parent(ghost)
                               if parent then
                                  radiant.entities.remove_child(parent, ghost)
-                                 radiant.entities.move_to(ghost, Point3.zero)                              
+                                 radiant.entities.move_to(ghost, Point3.zero)
                               end
+
                               self._placement_task = nil
                               self:_destroy_placement_task()
                            end)
