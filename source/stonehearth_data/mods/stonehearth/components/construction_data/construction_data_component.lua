@@ -60,22 +60,18 @@ function ConstructionDataComponent:trace_data(reason, category)
    return self.__saved_variables:trace_data(reason)
 end
 
+-- clone only the options which are mutable on the construction data component.  in a perfect
+-- world, we would isolate the non-writaable from the writable ones so we could just do a
+-- table copy, but such is life!
+--
 function ConstructionDataComponent:_clone_writeable_options(into, from)
    into.normal = from.normal and Point3(from.normal) or nil
    into.nine_grid_region = from.nine_grid_region and Region2(from.nine_grid_region) or nil
-   into.type = from.type
-   into.material = from.material
-   into.use_custom_renderer = from.use_custom_renderer
-   into.needs_scaffolding = from.needs_scaffolding
-   into.max_workers = from.max_workers
-   into.allow_diagonal_adjacency = from.allow_diagonal_adjacency
-   into.project_adjacent_to_base = from.project_adjacent_to_base
-   into.allow_crouching_construction = from.allow_crouching_construction
-   into.paint_through_blueprint = from.paint_through_blueprint
    into.nine_grid_slope = from.nine_grid_slope
    into.nine_grid_gradiant = from.nine_grid_gradiant
    into.nine_grid_max_height = from.nine_grid_max_height
-   into.brush = from.brush
+   into.needs_scaffolding = from.needs_scaffolding
+   into.project_adjacent_to_base = from.project_adjacent_to_base
 end
 
 function ConstructionDataComponent:clone_from(entity)

@@ -282,7 +282,6 @@ function build_util.get_cost(building)
    radiant.entities.for_all_children(building, function(entity)
          local cp = entity:get_component('stonehearth:construction_progress')
          if cp and entity:get_uri() ~= 'stonehearth:scaffolding' then
-            radiant.log.write('', 0, entity:get_uri())
             local fabricator = cp:get_fabricator_component()
             if fabricator then
                fabricator:accumulate_costs(costs)
@@ -384,15 +383,17 @@ function build_util.get_building_bounds(building)
    assert(origin)
 
    local function measure_bounds(entity)
-      local dst = entity:get_component('region_collision_shape')
-      if dst then
-         local region_bounds = dst:get_region():get():get_bounds()
-         region_bounds = radiant.entities.local_to_world(region_bounds, entity)
-                                             :translated(-origin)
-         if bounds then
-            bounds:grow(region_bounds)
-         else
-            bounds = region_bounds
+      if build_util.is_blueprint(entity) then
+         local dst = entity:get_component('region_collision_shape')
+         if dst then
+            local region_bounds = dst:get_region():get():get_bounds()
+            region_bounds = radiant.entities.local_to_world(region_bounds, entity)
+                                                :translated(-origin)
+            if bounds then
+               bounds:grow(region_bounds)
+            else
+               bounds = region_bounds
+            end
          end
       end
       
@@ -430,7 +431,7 @@ function build_util.unpack_entity_table(tbl, entity_map)
    for _, id in ipairs(tbl) do
       local entity = entity_map[id]
       assert(entity)
-      unpacked[id] = entity
+      unpacked[entity:get_id()] = entity
    end
    return unpacked
 end

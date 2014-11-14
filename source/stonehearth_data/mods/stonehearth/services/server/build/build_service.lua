@@ -1107,12 +1107,8 @@ function BuildService:_substitute_blueprint(old, new_uri)
          end
 
          -- clone all the components that pertain to structure.
-         local normal = old:get_component('stonehearth:construction_data')
-                              :get_normal()
-         if normal then
-            new:add_component('stonehearth:construction_data')
-                     :set_normal(normal)
-         end
+         new:add_component('stonehearth:construction_data')
+               :clone_from(old)
 
          for _, name in ipairs(STRUCTURE_COMPONENTS) do
             local old_structure = old:get_component(name)
@@ -1157,10 +1153,7 @@ function BuildService:_apply_nine_grid_options(blueprint, options)
       -- apply the new options to the blueprint      
       cd:apply_nine_grid_options(options)
 
-      -- copy the options to the project.  this probably shouldn't be necessary. 
-      -- project's don't need a construction data component, do they? (the only
-      -- reason I can think of is to make it easy to find their building, but can't
-      -- we do that with a helper method that assume's its' the mob's parent?)
+      -- copy the options to the project.
       local fab = cd:get_fabricator_entity()
       local proj = fab:get_component('stonehearth:fabricator')
                            :get_project()

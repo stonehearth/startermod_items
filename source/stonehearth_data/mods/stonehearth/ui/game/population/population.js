@@ -62,14 +62,17 @@ var StonehearthPopulation;
 
       progress: function(fn) {
          this._deferred.progress(fn);
+         return this;
       },
 
       done: function(fn) {
          this._deferred.done(fn);
+         return this;
       },
 
       fail: function(fn) {
          this._deferred.fail(fn);
+         return this;
       },
 
       destroy: function() {
@@ -77,6 +80,7 @@ var StonehearthPopulation;
             this._radiantTrace.destroy();
             this._radiantTrace = null;            
          }
+         return this;
       }
 
    });

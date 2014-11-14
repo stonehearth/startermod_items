@@ -34,6 +34,10 @@ function FixtureFabricator:destroy()
       self._deps_listener:destroy()
       self._deps_listener = nil
    end
+   if self._auto_destroy_trace then
+      self._auto_destroy_trace:destroy()
+      self._auto_destroy_trace = nil
+   end
 end
 
 -- turn the fixture fabricator off or on.  we'll only try to put the
@@ -94,8 +98,7 @@ function FixtureFabricator:instabuild()
    radiant.entities.add_child(parent, root_entity, location)
 
    self:_destroy_placeable_item_trace()
-   self._entity:get_component('stonehearth:construction_progress')
-                  :set_finished(true)
+   self:_set_finished()
 end
 
 -- called to kick off the fabricator.  don't call until all the components are
@@ -225,9 +228,7 @@ function FixtureFabricator:_create_placeable_item_trace()
 
       self._placeable_item_trace:on_changed(function(new_parent)
             if new_parent == parent then
-               self:_destroy_placeable_item_trace()
-               self._entity:get_component('stonehearth:construction_progress')
-                              :set_finished(true)
+               self:_set_finished()
             end                                                   
          end)
    end
@@ -329,6 +330,42 @@ function FixtureFabricator:accumulate_costs(cost)
    else
       entry.count = entry.count + 1
    end
+end
+
+function FixtureFabricator:_set_finished()
+   self:_destroy_placeable_item_trace()
+
+   self._entity:get_component('stonehearth:construction_progress')
+                  :set_finished(true)
+
+   self:_update_auto_destroy_trace()
+end
+
+function FixtureFabricator:_update_auto_destroy_trace()
+   assert(self._sv.fixture)
+
+   -- now that we're built, if the bed somehow moves off the building, remove the
+   -- blueprint from the building.  this can happen when people start re-arranging
+   -- furniture on already built houses.
+   --
+   self._auto_destroy_trace = self._sv.fixture:get_component('mob')
+                                                   :trace_parent('placing fixture')
+
+   local parent = self._entity:get_component('mob')
+                                 :get_parent()                                    
+   local old_location = self._sv.fixture:get_component('mob')
+                                             :get_location()
+   self._auto_destroy_trace:on_changed(function(new_parent)
+         if new_parent ~= parent then
+            local location = self._sv.fixture:get_component('mob')
+                                                :get_location()
+            if location ~= old_location then
+               self._auto_destroy_trace:destroy()
+               self._auto_destroy_trace = nil
+               radiant.entities.destroy_entity(self._entity)
+            end
+         end                                                   
+      end)
 end
 
 return FixtureFabricator

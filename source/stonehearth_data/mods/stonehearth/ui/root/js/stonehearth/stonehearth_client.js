@@ -610,23 +610,7 @@ var StonehearthClient;
 
       _townMenu: null,
       showTownMenu: function(show) {
-         // hide the other population managers....oh lord this is ugly code
-         if (this._citizenManager) {
-            this._citizenManager.destroy();
-            this._citizenManager = null;
-         }
-
-         if (this._tasksManager) {
-            this._tasksManager.destroy();
-            this._tasksManager = null;
-         }
-
-         if (this._crafterManager) {
-            this._crafterManager.destroy();
-            this._crafterManager = null;
-         }
-
-         // toggle the town menu
+      // toggle the town menu
          if (!this._townMenu || this._townMenu.isDestroyed) {
             this._townMenu = App.gameView.addView(App.StonehearthTownView);
          } else {
@@ -636,23 +620,7 @@ var StonehearthClient;
       },
 
       _citizenManager: null,
-      showCitizenManager: function(show) {
-         // hide the other population managers....oh lord this is ugly code
-         if (this._crafterManager) {
-            this._crafterManager.destroy();
-            this._crafterManager = null;
-         }
-
-         if (this._tasksManager) {
-            this._tasksManager.destroy();
-            this._tasksManager = null;
-         }
-
-         if (this._townMenu) {
-            this._townMenu.destroy();
-            this._townMenu = null;
-         }
-
+      showCitizenManager: function() {
          // toggle the citizenManager
          if (!this._citizenManager || this._citizenManager.isDestroyed) {
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
@@ -662,51 +630,8 @@ var StonehearthClient;
          }
       },
 
-      _crafterManager: null,
-      showCrafterManager: function(show) {
-         // hide the other population managers....oh lord this is ugly code
-         if (this._citizenManager) {
-            this._citizenManager.destroy();
-            this._citizenManager = null;
-         }
-
-         if (this._tasksManager) {
-            this._tasksManager.destroy();
-            this._tasksManager = null;
-         }
-
-         if (this._townMenu) {
-            this._townMenu.destroy();
-            this._townMenu = null;
-         }         
-         
-         // toggle the citizenManager
-         if (!this._crafterManager || this._crafterManager.isDestroyed) {
-            this._crafterManager = App.gameView.addView(App.StonehearthCraftersView);
-         } else {
-            this._crafterManager.destroy();
-            this._crafterManager = null;
-         }
-      },
-
       _tasksManager: null,
       showTasksManager: function(show) {
-         // hide the other population managers....oh lord this is ugly code
-         if (this._crafterManager) {
-            this._crafterManager.destroy();
-            this._crafterManager = null;
-         }
-
-         if (this._citizenManager) {
-            this._citizenManager.destroy();
-            this._citizenManager = null;
-         }
-
-         if (this._townMenu) {
-            this._townMenu.destroy();
-            this._townMenu = null;
-         }
-
          // toggle the tasksManager
          if (!this._tasksManager || this._tasksManager.isDestroyed) {
             this._tasksManager = App.gameView.addView(App.StonehearthTasksView);

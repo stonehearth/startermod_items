@@ -373,6 +373,7 @@
    "town_food_happiness" : "Food",
    "town_shelter_happiness" : "Shelter",
    "town_overview" : "Town Overview",
+   "town_inventory" : "Inventory",
    "town_happiness_tab" : "Journal",
    "journal_today" : "Today", 
    "journal_town_log" : "Town Log",
@@ -392,10 +393,10 @@
    "red_alert": "Red Alert!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
 
-   "start_building" : "Start building",
+   "start_building" : "Build!",
    "pause_building" : "Pause building",
-   "save_building_template" : "Save as template",
-   "finished_editing" : "Done",
+   "save_building_template" : "Save",
+   "finished_editing" : "Edit",
    "start_editing" : "Edit",
 
    "stockpiles_task_group" : "Stockpiles", 

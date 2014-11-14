@@ -10,7 +10,7 @@ App.StonehearthEmbarkView = App.View.extend({
 
       self._newGame(function(e) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
-         $('#map').stonehearthMap({
+         self.$('#map').stonehearthMap({
             mapGrid: e.map,
 
             click: function(cellX, cellY) {
@@ -38,7 +38,7 @@ App.StonehearthEmbarkView = App.View.extend({
          self._clearSelection();
       });
 
-      this.$("#regenerateButton").click(function() {
+      self.$("#regenerateButton").click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:reroll'} );
          self._clearSelection();
 
@@ -63,7 +63,7 @@ App.StonehearthEmbarkView = App.View.extend({
       self._selectedX = cellX;
       self._selectedY = cellY;
 
-      $('#map').stonehearthMap('suspend');
+      self.$('#map').stonehearthMap('suspend');
 
       // Must show before setting position. jQueryUI does not support positioning of hidden elements.
       self.$('#embarkPin').show();
@@ -116,7 +116,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var wildlifeDescription = '';
 
       if (cell != null) {
-         $('#scroll').show();
+         self.$('#scroll').show();
 
          terrainType = i18n.t(cell.terrain_code);
          vegetationDescription = i18n.t('vegetation_' + cell.vegetation_density);
@@ -142,7 +142,7 @@ App.StonehearthEmbarkView = App.View.extend({
             .html(wildlifeDescription);
 
       } else {
-         $('#scroll').hide();
+         self.$('#scroll').hide();
       }
    },
 
@@ -156,11 +156,11 @@ App.StonehearthEmbarkView = App.View.extend({
       } catch(e) {
       }
 
-      $('#map').stonehearthMap('clearCrosshairs');
+      self.$('#map').stonehearthMap('clearCrosshairs');
       self._updateScroll(null);
 
-      if ($('#map').stonehearthMap('suspended')) {
-         $('#map').stonehearthMap('resume');
+      if (self.$('#map').stonehearthMap('suspended')) {
+         self.$('#map').stonehearthMap('resume');
       }
    },
 

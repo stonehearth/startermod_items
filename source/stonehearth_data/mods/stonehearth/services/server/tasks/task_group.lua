@@ -32,25 +32,12 @@ function TaskGroup:__init(scheduler, activity_name, args)
 
    self._model = radiant.create_datastore()
    self._model:modify(function (o)
-         o.name = activity_name
          o.tasks = {}
       end)
 end
 
 function TaskGroup:set_counter_name(counter_name)
    self._counter_name = counter_name
-   self._model:modify(function (o)
-         o.name = counter_name
-      end)
-   
-   return self
-end
-
-function TaskGroup:set_published(value)
-   self._model:modify(function (o)
-         o.published = value
-      end)
-   
    return self
 end
 
@@ -369,7 +356,7 @@ function TaskGroup:_find_best_worker_for(task)
       if not ignore then
          local worker = entry.worker
          if not worker:is_valid() then
-            self._workers[id] = nil
+            self:remove_worker(id)
          else
             -- prefer workers who are closer...
             local d = task:_estimate_task_distance(worker)

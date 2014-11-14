@@ -59,7 +59,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
             //}
          });
 
-   }.observes('context.data.shop.inventory, context.data.shop.player_inventory.tracking_data'),
+   }.observes('context.data.shop.inventory', 'context.data.shop.player_inventory.tracking_data'),
 
    didInsertElement: function() {
       var self = this;

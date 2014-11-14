@@ -8,6 +8,14 @@ function PlacementTest:__init()
    self:create_world()
 
    local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   local citizen = self:place_citizen(12, 12)
+   
    local player_id = citizen:get_component('unit_info'):get_player_id()
    
    self:_place_all_items()

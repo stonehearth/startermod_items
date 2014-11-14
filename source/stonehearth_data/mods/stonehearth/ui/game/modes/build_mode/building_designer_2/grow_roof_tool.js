@@ -27,6 +27,21 @@ var GrowRoofTool;
             });
       },
 
+      // xxx: this helper function is copied verbatim from the grow_walls tool, which is copied
+      // verbatim from the draw walls tool.  Maybe we should factor it up to a common place 
+      // somewhere?
+      _onMaterialChange: function(type, brush) {
+         var blueprint = this.buildingDesigner.getBlueprint();
+         var constructionData = this.buildingDesigner.getConstructionData();
+
+         if (blueprint && constructionData && constructionData.type == type) {
+            App.stonehearthClient.replaceStructure(blueprint, brush);
+         }
+         // Re/activate the tool with the new material.
+         this.buildingDesigner.reactivateTool(this.buildTool);
+      },
+
+
       addTabMarkup: function(root) {
          var self = this;
          $.get('/stonehearth/data/build/building_parts.json')
@@ -42,6 +57,8 @@ var GrowRoofTool;
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('roofMaterial', self.material);
                      self.buildingDesigner.reactivateTool(self.buildTool);
+
+                     self._onMaterialChange('roof', self.brush);
                   }
                );
 

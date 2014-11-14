@@ -66,9 +66,11 @@ function Town:_create_task_groups()
    local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups').task_groups
    if task_group_data then
       for task_group_name, entry in pairs(task_group_data) do
-         self._task_groups[task_group_name] = self._scheduler:create_task_group(entry.dispatcher, {})
-                                                                  :set_counter_name(entry.name)
-                                                                  :set_published(true)
+
+         local group = self._scheduler:create_task_group(entry.dispatcher, {})
+                                          :set_counter_name(entry.name)
+
+         self._task_groups[task_group_name] = group
       end
    end
 end
@@ -98,6 +100,17 @@ function Town:_restore_saved_calls()
    for _, saved_call in pairs(saved_calls) do
       self[saved_call.fn_name](self, unpack(saved_call.args))
    end
+end
+
+function Town:get_task_groups_model()
+   -- we can return a table because we know we'll never create new groupings
+   -- after the town is initialized.  this saves us a trace and a round trip
+   --  on the client
+   local model = {}
+   for name, group in pairs(self._task_groups) do
+      model[name] = group:get_model();
+   end
+   return model;
 end
 
 function Town:get_entity()
