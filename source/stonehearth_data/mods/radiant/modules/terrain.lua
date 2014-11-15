@@ -340,6 +340,7 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
    return fallback_point, false
 end
 
+-- TODO: we need to check changed tiles for optimization
 function Terrain.add_point(point, tag)
    Terrain._get_terrain_tiles():add_point(point, tag)
 end

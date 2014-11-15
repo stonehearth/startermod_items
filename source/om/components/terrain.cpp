@@ -34,8 +34,6 @@ void Terrain::ConstructObject()
 {
    Component::ConstructObject();
 
-   tile_accessor_.Initialize(tiles_, TILE_SIZE, GetStore());
-
    config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
       ->OnModified([this]() {
          res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
@@ -108,9 +106,22 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
    return csg::ToFloat(pt);
 }
 
-TiledRegion& Terrain::GetTiles()
+TiledRegionPtr Terrain::GetTiles()
 {
+   if (!tile_accessor_) {
+      tile_accessor_ = std::make_shared<TiledRegion>();
+      tile_accessor_->Initialize(tiles_, TILE_SIZE, GetStore());
+   }
    return tile_accessor_;
+}
+
+TiledRegionPtr Terrain::GetInteriorTiles()
+{
+   if (!interior_tile_accessor_) {
+      interior_tile_accessor_ = std::make_shared<TiledRegion>();
+      interior_tile_accessor_->Initialize(interior_tiles_, TILE_SIZE, GetStore());
+   }
+   return interior_tile_accessor_;
 }
 
 Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)

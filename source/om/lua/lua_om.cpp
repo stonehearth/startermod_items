@@ -9,11 +9,11 @@
 #include "lib/lua/register.h"
 #include "lib/json/core_json.h"
 #include "lib/json/dm_json.h"
-
 #include "dm/store.h"
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
 #include "om/tiled_region.h"
+#include "csg/util.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/dm/trace_wrapper.h"
 
@@ -64,6 +64,17 @@ template <typename BoxedType>
 static lua::TraceWrapperPtr AsyncTraceBoxed(BoxedType& boxed, const char* reason)
 {
    return TraceBoxed(boxed, reason, dm::LUA_ASYNC_TRACES);
+}
+
+static Region3BoxedPtr TiledRegion_GetTile(TiledRegionPtr tiled_region, csg::Point3f const& index)
+{
+   Region3BoxedPtr tile = tiled_region->GetTile(csg::ToInt(index), false);
+   return tile;
+}
+
+static void TiledRegion_ClearTile(TiledRegionPtr tiled_region, csg::Point3f const& index)
+{
+   tiled_region->ClearTile(csg::ToInt(index));
 }
 
 #define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
@@ -146,6 +157,10 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("intersect_point",  &TiledRegion::IntersectPoint)
                .def("intersect_cube",   &TiledRegion::IntersectCube)
                .def("intersect_region", &TiledRegion::IntersectRegion)
+               .def("get_tile_size",    &TiledRegion::GetTileSize)
+               .def("get_tile",         &TiledRegion_GetTile)
+               .def("clear_tile",       &TiledRegion_ClearTile)
+               .def("optimize_changed_tiles", &TiledRegion::OptimizeChangedTiles)
          ]
       ]
    ];

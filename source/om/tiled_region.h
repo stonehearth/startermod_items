@@ -8,14 +8,20 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
+class TiledRegion;
+typedef std::shared_ptr<TiledRegion> TiledRegionPtr;
 typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> TileMap3;
-typedef std::shared_ptr<TileMap3> TileMap3Ptr;
 
 class TiledRegion {
 public:
    TiledRegion();
-   TiledRegion(TileMap3& tiles, csg::Point3 tile_size, dm::Store& store);
-   void Initialize(TileMap3& tiles, csg::Point3 tile_size, dm::Store& store);
+   TiledRegion(TileMap3& tiles, csg::Point3 const& tile_size, dm::Store& store);
+   void Initialize(TileMap3& tiles, csg::Point3 const& tile_size, dm::Store& store);
+
+   csg::Point3 GetTileSize() const;
+   Region3BoxedPtr GetTile(csg::Point3 const& index, bool add_if_not_found = true);
+   void ClearTile(csg::Point3 const& index);
+   void OptimizeChangedTiles();
 
    void AddPoint(csg::Point3f const& point, int tag = 0);
    void AddCube(csg::Cube3f const& cube);
@@ -32,11 +38,10 @@ public:
    friend std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region);
 
 private:
-   Region3BoxedPtr TiledRegion::GetTile(csg::Point3 const& index);
-
    TileMap3* _tiles;
    csg::Point3 _tile_size;
    dm::Store* _store;
+   std::unordered_set<csg::Point3, csg::Point3::Hash> _unoptimized_tiles;
 };
 
 std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region);
