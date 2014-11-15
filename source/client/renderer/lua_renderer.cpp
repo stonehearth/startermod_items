@@ -4,6 +4,7 @@
 #include "client/client.h"
 #include "lua_renderer.h"
 #include "csg/point.h"
+#include "om/tiled_region.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
 #include "lib/lua/register.h"
@@ -97,12 +98,29 @@ bool Terrain_RenderTerrainIsAvailable()
    return render_terrain;
 }
 
+void Terrain_MarkDirty(csg::Point3f tile_origin)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->MarkDirty(csg::ToInt(tile_origin));
+}
+
+void Terrain_MarkDirtyIndex(csg::Point3f index)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   csg::Point3 tile_origin = csg::ToInt(index).Scaled(renderTerrain->GetTileSize());
+   renderTerrain->MarkDirty(tile_origin);
+}
+
+static void Terrain_SetClipHeight(int height)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->SetClipHeight(height);
+}
+
 static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 {
    auto renderTerrain = GetRenderTerrainObject();
-   if (renderTerrain) {
-      renderTerrain->AddCut(cut);
-   }
+   renderTerrain->AddCut(cut);
 }
 
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
@@ -111,10 +129,10 @@ static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
    renderTerrain->RemoveCut(cut);
 }
 
-static void Terrain_SetClipHeight(int height)
+om::TiledRegionPtr Terrain_GetXrayTiles()
 {
    auto renderTerrain = GetRenderTerrainObject();
-   renderTerrain->SetClipHeight(height);
+   return renderTerrain->GetXrayTiles();
 }
 
 static void Terrain_SetXrayMode(std::string const& mode)
@@ -256,9 +274,12 @@ void LuaRenderer::RegisterType(lua_State* L)
       namespace_("_radiant") [
          namespace_("renderer") [
             def("render_terrain_is_available", &Terrain_RenderTerrainIsAvailable),
+            def("mark_dirty", &Terrain_MarkDirty),
+            def("mark_dirty_index", &Terrain_MarkDirtyIndex),
+            def("set_clip_height", &Terrain_SetClipHeight),
             def("add_terrain_cut", &Terrain_AddClientCut),
             def("remove_terrain_cut", &Terrain_RemoveClientCut),
-            def("set_clip_height", &Terrain_SetClipHeight),
+            def("get_xray_tiles", &Terrain_GetXrayTiles),
             def("set_xray_mode", &Terrain_SetXrayMode),
             def("get_full_xray_region", &Terrain_GetFullXrayRegion),
             def("set_full_xray_region", &Terrain_SetFullXrayRegion),

@@ -11,6 +11,7 @@
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
 #include "resources/res_manager.h"
+#include "client/client.h"
 #include "Horde3D.h"
 #include <unordered_map>
 
@@ -32,6 +33,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
 
+   // terrain tiles are keyed in index space, but render terrain tiles are keyed in world space
+   // i.e. they differ in scale by _tileSize
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
       csg::Point3 location = index.Scaled(_tileSize);
 
@@ -42,8 +45,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       _dirtyNeighbors.insert(location);
       MarkDirty(location);
    };
-
-   auto on_remove_tile = 
 
    tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
                               ->OnAdded(on_add_tile)
@@ -57,6 +58,9 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                        LoadColorMap();
                                     })
                                     ->PushObjectState();
+
+   _xray_tiles_accessor = std::make_shared<om::TiledRegion>();
+   _xray_tiles_accessor->Initialize(_xray_region_tiles, _tileSize, Client::GetInstance().GetAuthoringStore());
 }
 
 RenderTerrain::~RenderTerrain()
@@ -426,4 +430,9 @@ RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
    }
    auto j = layers_.insert(std::make_pair(location, new RenderTerrainLayer(*this, location)));
    return *j.first->second;
+}
+
+om::TiledRegionPtr RenderTerrain::GetXrayTiles()
+{
+   return _xray_tiles_accessor;
 }

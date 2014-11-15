@@ -7,6 +7,7 @@
 #include "render_component.h"
 #include "h3d_resource_types.h"
 #include "om/om.h"
+#include "om/tiled_region.h"
 #include "dm/dm.h"
 #include "csg/util.h"
 #include "render_node.h"
@@ -33,6 +34,7 @@ public:
    void SetFullXrayRegion(om::Region3fBoxedPtr value);
    om::Region3fBoxedPtr const& GetFlatXrayRegion() const;
    void SetFlatXrayRegion(om::Region3fBoxedPtr value);
+   om::TiledRegionPtr GetXrayTiles();
 
 private:
    void LoadColorMap();
@@ -78,6 +80,8 @@ private:
    std::string          _xray_mode;
    om::Region3fBoxedPtr _full_xray_region;
    om::Region3fBoxedPtr _flat_xray_region;
+   om::TileMap3         _xray_region_tiles;
+   om::TiledRegionPtr   _xray_tiles_accessor;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

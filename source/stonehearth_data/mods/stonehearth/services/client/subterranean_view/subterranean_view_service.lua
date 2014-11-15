@@ -20,6 +20,7 @@ function SubterraneanViewService:initialize()
       return
    end
 
+   self._finished_initialization = false
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
@@ -29,6 +30,9 @@ function SubterraneanViewService:initialize()
       self._sv.initialized = true
    else
    end
+
+   self._interior_region_traces = {}
+   self._dirty_xray_tiles = {}
 
    self._input_capture = stonehearth.input:capture_input()
    self._input_capture:on_keyboard_event(function(e)
@@ -48,26 +52,120 @@ function SubterraneanViewService:_deferred_initialize()
    _radiant.renderer.set_flat_xray_region(self._flat_xray_region_boxed) -- TODO: set this on load
    self._full_xray_region_boxed = _radiant.client.alloc_region3()
    _radiant.renderer.set_full_xray_region(self._full_xray_region_boxed) -- TODO: set this on load
-   self:_initialize_traces() -- TODO: destroy the traces
+
+   self._interior_tiles = self:_get_terrain_component():get_interior_tiles()
+   self._xray_tiles = _radiant.renderer.get_xray_tiles()
+
+   self:_create_render_frame_trace()
+   self:_create_interior_region_traces()
+
+   self._finished_initialization = true
+
    self:_update()
 end
 
-function SubterraneanViewService:_initialize_traces()
-   local root_entity = _radiant.client.get_object(1)
-   local terrain_component = root_entity:add_component('terrain')
-   
-   self._interior_region_boxed = terrain_component:get_interior_region()
+function SubterraneanViewService:_create_render_frame_trace()
+   self._render_frame_trace = _radiant.client.trace_render_frame()
+      :on_frame_start('subterranean view', function()
+            self:_update_dirty_tiles()
+         end)
+end
 
-   self._interior_region_trace = terrain_component:trace_interior_region('subterranean view', TraceCategories.SYNC_TRACE)
-      :on_changed(function()
-            self:_on_interior_region_changed()
+function SubterraneanViewService:_create_interior_region_traces()
+   local terrain_component = self:_get_terrain_component()
+
+   self._interior_region_map_trace = terrain_component:trace_interior_tiles('subterranean view', TraceCategories.SYNC_TRACE)
+      :on_added(function(index, region3i_boxed)
+            local trace = region3i_boxed:trace_changes('subterranean view', TraceCategories.SYNC_TRACE)
+               :on_changed(function()
+                     self:_mark_dirty(index:to_float())
+                     self:_on_interior_region_changed(region3i_boxed:get())
+                  end)
+            self._interior_region_traces[tostring(index)] = trace
+         end)
+      :on_removed(function(index)
+            self._interior_region_traces[tostring(index)] = nil
+            self._dirty_xray_tiles[tostring(index)] = nil
          end)
       :push_object_state()
 end
 
-function SubterraneanViewService:_on_interior_region_changed()
-   self:_update_full_xray_view()
-   self:_update_flat_xray_view()
+function SubterraneanViewService:destroy()
+   self:_destroy_render_frame_trace()
+   self:_destroy_interior_region_traces()
+   self:_destroy_initialize_listener()
+   self._input_capture:destroy()
+end
+
+function SubterraneanViewService:_destroy_render_frame_trace()
+   if self._render_frame_trace then
+      self._render_frame_trace:destroy()
+      self._render_frame_trace = nil
+   end
+end
+
+function SubterraneanViewService:_destroy_interior_region_traces()
+   if self._interior_region_map_trace then
+      self._interior_region_map_trace:destroy()
+      self._interior_region_map_trace = nil
+   end
+
+   for key, trace in pairs(self._interior_region_traces) do
+      trace:destroy()
+   end
+   self._interior_region_traces = {}
+end
+
+function SubterraneanViewService:_destroy_initialize_listener()
+   if self._initialize_listener then
+      self._initialize_listener:destroy()
+      self._initialize_listener = nil
+   end
+end
+
+-- index is the index of the dirty interior tile
+function SubterraneanViewService:_mark_dirty(index)
+   -- create a 3x3x3 cube centered about index
+   local cube = Cube3(index, index + Point3.one):inflated(Point3.one)
+
+   -- dirty all 3 space adjacents including diagonals
+   for point in cube:each_point() do
+      self._dirty_xray_tiles[tostring(point)] = point
+   end
+end
+
+-- CHECKCHECK finish this
+function SubterraneanViewService:_update_dirty_tiles()
+   local xray_mode = self._sv.xray_mode
+
+   if not self._finished_initialization or
+      xray_mode == nil or xray_mode == '' then
+      return
+   end
+
+   for _, index in pairs(self._dirty_xray_tiles) do
+      self._xray_tiles:clear_tile(index)
+   end
+
+   for _, index in pairs(self._dirty_xray_tiles) do
+      local region3iboxed = self._interior_tiles:get_tile(index)
+
+      if region3iboxed then
+         if xray_mode == 'full' then
+         elseif xray_mode == 'flat' then
+         else
+            log:error('unknown xray_mode: %s', xray_mode)
+            assert(false)
+         end
+      end
+   end
+
+   self._dirty_xray_tiles = {}
+end
+
+function SubterraneanViewService:_on_interior_region_changed(interior_region3i)
+   self:_update_full_xray_view(interior_region3i)
+   self:_update_flat_xray_view(interior_region3i)
 end
 
 function SubterraneanViewService:_get_visible_cube(interior_cube)
@@ -76,14 +174,13 @@ function SubterraneanViewService:_get_visible_cube(interior_cube)
    return visible_cube
 end
 
-function SubterraneanViewService:_update_full_xray_view()
-   local interior_region = self._interior_region_boxed:get()
-
+function SubterraneanViewService:_update_full_xray_view(interior_region3i)
    self._full_xray_region_boxed:modify(function(cursor)
-         cursor:clear()
+         --cursor:clear()
 
          -- assumes interior_region is optimized
-         for cube in interior_region:each_cube() do
+         for cube3i in interior_region3i:each_cube() do
+            local cube = cube3i:to_float()
             local visible_cube = self:_get_visible_cube(cube)
             cursor:add_cube(visible_cube)
          end
@@ -95,10 +192,9 @@ function SubterraneanViewService:_update_full_xray_view()
       end)
 end
 
-function SubterraneanViewService:_update_flat_xray_view()
+function SubterraneanViewService:_update_flat_xray_view(interior_region3i)
    local rpg_min_height = 4
    local down = -Point3.unit_y
-   local interior_region = self._interior_region_boxed:get()
 
    local show_adjacent = function(point, check_height)
       if not is_terrain(point + down) then
@@ -117,10 +213,11 @@ function SubterraneanViewService:_update_flat_xray_view()
    end
 
    self._flat_xray_region_boxed:modify(function(cursor)
-         cursor:clear()
+         --cursor:clear()
 
          -- assumes interior_region is optimized
-         for cube in interior_region:each_cube() do
+         for cube3i in interior_region3i:each_cube() do
+            local cube = cube3i:to_float()
             local check_height = cube.max.y - 1
             local bottom_face = mining_lib.get_face(cube, down)
             for point in bottom_face:each_point() do
@@ -160,18 +257,6 @@ function SubterraneanViewService:toggle_xray_mode(mode)
    end
    self.__saved_variables:mark_changed()
    _radiant.renderer.set_xray_mode(self._sv.xray_mode)
-end
-
-function SubterraneanViewService:destroy()
-   self:_destroy_initialize_listener()
-   self._input_capture:destroy()
-end
-
-function SubterraneanViewService:_destroy_initialize_listener()
-   if self._initialize_listener then
-      self._initialize_listener:destroy()
-      self._initialize_listener = nil
-   end
 end
 
 function SubterraneanViewService:set_clip_enabled(enabled)
@@ -230,10 +315,13 @@ function SubterraneanViewService:_get_world_floor()
 end
 
 function SubterraneanViewService:_get_terrain_bounds()
-   local root_entity = _radiant.client.get_object(1)
-   local terrain_component = root_entity:add_component('terrain')
-   local bounds = terrain_component:get_bounds()
+   local bounds = self:_get_terrain_component():get_bounds()
    return bounds
+end
+
+function SubterraneanViewService:_get_terrain_component()
+   local root_entity = _radiant.client.get_object(1)
+   return root_entity:add_component('terrain')
 end
 
 return SubterraneanViewService
