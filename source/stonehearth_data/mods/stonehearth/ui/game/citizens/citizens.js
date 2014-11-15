@@ -21,9 +21,8 @@ App.StonehearthCitizensView = App.View.extend({
 
    destroy: function() {
       if (this._trace) {
-         this._trace.destroy();   
+         this._trace.destroy();
       }
-      
       this._super();
    },
 
@@ -33,6 +32,7 @@ App.StonehearthCitizensView = App.View.extend({
 
       // remember the citizen for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' }); // Mouse over SFX
          self._activeRowCitizen = self._rowToCitizen($(this));
       });
 
@@ -46,6 +46,7 @@ App.StonehearthCitizensView = App.View.extend({
          if (citizen) {
             radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
             radiant.call('stonehearth:select_entity', citizen.__self);
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:focus' });
          }
          event.stopPropagation();
       });
@@ -64,11 +65,12 @@ App.StonehearthCitizensView = App.View.extend({
       });
 
       // show toolbar control
-      this.$().on('click', '.row', function() {        
+      this.$().on('click', '.row', function() {  
          var selected = $(this).hasClass('selected'); // so we can toggle!
          self.$('.row').removeClass('selected');
          
          if (!selected) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_click' });  // selecting which citizen you want SFX 
             $(this).addClass('selected');   
          }
 
