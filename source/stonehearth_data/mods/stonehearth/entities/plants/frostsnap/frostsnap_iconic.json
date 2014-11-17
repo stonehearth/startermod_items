@@ -4,7 +4,8 @@
    "components": {
       "item": {
          "stacks" : 3,
-         "maxStacks" : 3
+         "maxStacks" : 3,
+         "category" : "plants"
       },
       "model_variants": {
          "default": {

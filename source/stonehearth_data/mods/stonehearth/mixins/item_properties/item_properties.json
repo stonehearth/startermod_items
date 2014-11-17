@@ -4,7 +4,9 @@
          "interpolate_movement" : false,
          "mob_collision_type" : "tiny"
       },
-      "item" : {}
+      "item" : {
+         "category" : "uncategorized"
+      }
    },
    "entity_data" : {
       "stonehearth:render_materials" : {

@@ -17,6 +17,7 @@ App.StonehearthPromotionTree = App.View.extend({
    },
 
    didInsertElement: function() {
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:scroll_open' });
       this._super();
 
       var self = this;
@@ -214,6 +215,7 @@ App.StonehearthPromotionTree = App.View.extend({
       $.each(self._jobs, function(i, job) {
          if (job.alias == jobAlias) {
             selectedJob = job;
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
          }
       })
 

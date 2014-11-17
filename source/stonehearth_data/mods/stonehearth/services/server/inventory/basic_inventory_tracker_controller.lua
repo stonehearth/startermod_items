@@ -39,6 +39,7 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
 
       local unit_info = entity:add_component('unit_info')      
       tracking_data = {
+         uri = entity:get_uri(),
          count = 0, 
          items = {},
          icon = unit_info:get_icon(),

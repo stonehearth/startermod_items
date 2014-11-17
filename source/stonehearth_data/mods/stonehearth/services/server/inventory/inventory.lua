@@ -18,6 +18,7 @@ function Inventory:initialize(session)
    self.__saved_variables:mark_changed()
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
+   self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
 end
 
 function Inventory:restore()

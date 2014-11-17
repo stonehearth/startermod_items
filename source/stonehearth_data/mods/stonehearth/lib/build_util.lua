@@ -183,12 +183,12 @@ end
 
 
 -- return whether or not the specified `entity` is a blueprint.  only blueprints
--- have stonehearth:construction_progress components.
+-- have stonehearth:construction_progress components (except buildings!)
 --
 --    @param entity - the entity to be tested for blueprintedness
 --
 function build_util.is_blueprint(entity)
-   return entity:get_component('stonehearth:construction_progress') ~= nil
+   return entity:get_component('stonehearth:construction_progress') ~= nil and not build_util.is_building(entity)
 end
 
 function build_util.is_building(entity)

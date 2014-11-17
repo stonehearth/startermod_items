@@ -586,6 +586,7 @@
       "sounds:ui:start_menu:jobs_close" : "file(data/sounds/ui/start_menu/ui_jobs_close.wav)",
       "sounds:ui:start_menu:harvest_pickup" : "file(data/sounds/ui/start_menu/ui_harvest_pickup.wav)",
       "sounds:ui:start_menu:submenu_select" : "file(data/sounds/ui/start_menu/ui_submenu_select.wav)",
+      "sounds:ui:start_menu:focus" : "file(data/sounds/ui/start_menu/ui_focus.wav)",
       "sounds:ui:carpenter_menu:add_remove" : "file(data/sounds/ui/carpenter_menu/sh_carp_add_remove.wav)",
       "sounds:ui:carpenter_menu:closed" : "file(data/sounds/ui/carpenter_menu/sh_carp_closed.wav)",
       "sounds:ui:carpenter_menu:confirm" : "file(data/sounds/ui/carpenter_menu/sh_carp_confirm.wav)",
@@ -911,10 +912,6 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_placable_items" : {
-         "endpoint" : "server",
-         "controller" : "file(call_handlers/inventory_call_handler.lua)"
-      },
       "get_event_tracker": {
          "controller" : "file(call_handlers/event_call_handler.lua)",
          "endpoint" : "server"
@@ -1124,9 +1121,9 @@
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
+      "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
-      "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
       "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
 
@@ -1314,7 +1311,7 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
-         "file(ui/game/inventory/inventory.html)",
+         "file(ui/game/inventory_tracker/inventory_tracker.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1397,7 +1394,7 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
-         "file(ui/game/inventory/inventory.js)",
+         "file(ui/game/inventory_tracker/inventory_tracker.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
@@ -1467,7 +1464,7 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
-         "file(ui/game/inventory/inventory.less)",
+         "file(ui/game/inventory_tracker/inventory_tracker.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
          "file(ui/game/tip_popup/tip_popup.less)",

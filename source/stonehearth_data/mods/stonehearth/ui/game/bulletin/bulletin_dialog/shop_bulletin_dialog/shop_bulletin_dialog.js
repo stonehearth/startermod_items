@@ -103,25 +103,25 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       });
 
       self.$('#buy1Button').click(function() {
-         if ($(this).hasClass('disabled')) {
+         if (!$(this).hasClass('disabled')) {
             self._doBuy(1);
          }
       })
 
       self.$('#buy10Button').click(function() {
-         if ($(this).hasClass('disabled')) {
+         if (!$(this).hasClass('disabled')) {
             self._doBuy(10);
          }
       })      
 
       self.$('#sell1Button').click(function() {
-         if ($(this).hasClass('disabled')) {
+         if (!$(this).hasClass('disabled')) {
             self._doSell(1);
          }
       })
 
       self.$('#sell10Button').click(function() {
-         if ($(this).hasClass('disabled')) {
+         if (!$(this).hasClass('disabled')) {
             self._doSell(10);
          }
       })      

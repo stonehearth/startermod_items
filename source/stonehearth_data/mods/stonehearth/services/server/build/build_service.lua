@@ -457,6 +457,7 @@ function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn
    local blueprint = radiant.entities.create_entity(blueprint_uri)
 
    self:_bind_building_to_blueprint(building, blueprint)
+   blueprint:set_debug_text('blueprint')
 
    -- give it a region and stick it in the building...
    blueprint:add_component('destination')
@@ -522,13 +523,12 @@ end
 --    @param floor_uri - the uri to type of floor we'd like to add
 --    @param box - the area of the new floor segment
 --
-function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_region, brush_shape)
+function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, new_floor_region, brush_shape)
    local id, floor = next(existing_floor)
    local id, next_floor = next(existing_floor, id)
+
    if not next_floor then
-      -- exactly 1 overlapping floor.  just modify the region of that floor.
-      -- pretty easy
-      self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
+      self:_merge_overlapping_floor_trivial(floor, new_floor_region, brush_shape)
       return floor
    end
 
@@ -542,28 +542,27 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, floor_
       end
    end
 
-   -- now do the merge...
+   -- merge all the floors into the single floor we picked out earlier.
+   for _, old_floor in pairs(existing_floor) do
+      if old_floor ~= floor then
+         local floor_origin = radiant.entities.get_world_location(old_floor)
+         self:_merge_overlapping_floor_trivial(floor, old_floor:get_component('destination'):get_region():get():translated(floor_origin), brush_shape)
+      end
+   end
+
+   -- now unlink all the old buildings.
    local buildings_to_merge = {}
    local floor_building = build_util.get_building_for(floor)
    for _, old_floor in pairs(existing_floor) do
       local building = build_util.get_building_for(old_floor)
       if building ~= floor_building then
-         buildings_to_merge[building:get_id()] = building
-      end
-   end
-   self:_merge_buildings_into(floor_building, buildings_to_merge)
-
-   -- now we know all the floors are of the same building.  merge all the floors
-   -- into the single floor we picked out earlier. 
-   for _, old_floor in pairs(existing_floor) do
-      if old_floor ~= floor then
-         floor:get_component('stonehearth:floor'):merge_with(old_floor)
+         self:unlink_entity(building)
+         self:unlink_entity(old_floor)
       end
    end
 
-   -- sweet!  now we can do the trivial merge
-    self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
-    return floor
+   self:_merge_overlapping_floor_trivial(floor, new_floor_region, brush_shape)
+   return floor
 end
 
 function BuildService:_merge_overlapping_roads(existing_roads, road_uri, new_road_region, brush_shape, origin, clip_against_curbs)
@@ -640,10 +639,10 @@ end
 -- for more details.
 --
 --    @param floor - the floor to extend
---    @param floor_uri - the uri to type of floor we'd like to add
---    @param box - the area of the new floor segment
+--    @param floor_region - the area of the new floor segment
+--    @param brush_shape - the brush for the new region
 --
-function BuildService:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
+function BuildService:_merge_overlapping_floor_trivial(floor, floor_region, brush_shape)
    floor:add_component('stonehearth:floor')
             :add_region_to_floor(floor_region, brush_shape)
 end
@@ -658,7 +657,7 @@ end
 --
 function BuildService:_add_new_floor_to_building(building, floor_uri, floor_region, brush_shape)
    return self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
-         self:_merge_overlapping_floor_trivial(floor, floor_uri, floor_region, brush_shape)
+         self:_merge_overlapping_floor_trivial(floor, floor_region, brush_shape)
       end)
 end
 
@@ -699,7 +698,7 @@ end
 -- merge all the children of `building` into `merge_into` and destroy
 -- `building`
 --
---    @param merge_into - a building entith which will contain all the
+--    @param merge_into - a building entity which will contain all the
 --                        children of all the buildings in `building`
 --    @param building - the building which should be merged into `merge_into`,
 --                      then destroyed.
@@ -709,13 +708,29 @@ function BuildService:_merge_building_into(merge_into, building)
                            radiant.entities.get_world_grid_location(merge_into)
 
    local container = merge_into:get_component('entity_container')
-   for id, child in building:get_component('entity_container'):each_child() do
-      local mob = child:get_component('mob')
-      local child_offset = mob:get_grid_location()
 
-      container:add_child(child)
-      mob:set_location_grid_aligned(child_offset + building_offset)      
+   -- Only move the blueprint!  Regenerate a new project/fabricator for the moved
+   -- blueprint.
+   for id, child in building:get_component('entity_container'):each_child() do
+      if build_util.is_blueprint(child) then
+         local mob = child:get_component('mob')
+         local child_offset = mob:get_grid_location()
+
+         container:add_child(child)
+         mob:set_location_grid_aligned(child_offset + building_offset)
+
+         self:_bind_building_to_blueprint(merge_into, child)
+
+         -- Re-generate fabricators (which in turn re-generate projects.)
+         local fixture_fab = child:get_component('stonehearth:fixture_fabricator')
+         if fixture_fab then
+            self:add_fixture_fabricator(child, fixture_fab:get_uri(), fixture_fab:get_normal(), fixture_fab:get_rotation())
+         else
+            self:add_fabricator(child)
+         end
+      end
    end
+
    self:unlink_entity(building)
 end
 
@@ -1007,7 +1022,7 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
    fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
-   fixture_blueprint:set_debug_text('(fixture')
+   fixture_blueprint:set_debug_text('fixture blueprint')
    
    local building = build_util.get_building_for(parent_entity)
 

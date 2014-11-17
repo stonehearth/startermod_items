@@ -642,9 +642,11 @@ var StonehearthClient;
       showCitizenManager: function() {
          // toggle the citizenManager
          if (!this._citizenManager || this._citizenManager.isDestroyed) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_open' });
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
             this._citizenManager.destroy();
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_close' });
             this._citizenManager = null;
          }
       },

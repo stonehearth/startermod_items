@@ -6,8 +6,7 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(dining_table_fine_iconic.json)",
          "ghost_form" : "file(dining_table_fine_ghost.json)",
-         "placeable_on_ground" : true,
-         "placeable_category" : "Furniture"
+         "placeable_on_ground" : true
       },
       "region_collision_shape": {
          "region": [
