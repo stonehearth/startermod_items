@@ -1,0 +1,14 @@
+{
+   "type": "entity",
+   "components" : {
+      "unit_info" : {
+         "name" : "Animal Pasture",
+         "description" : "Shepherds bring animals to these locations and tend to them here."
+      }, 
+      "stonehearth:shepherd_pasture" : {
+      }
+   },
+   "entity_data" : {
+      "stonehearth:designation" : {}
+   }
+}

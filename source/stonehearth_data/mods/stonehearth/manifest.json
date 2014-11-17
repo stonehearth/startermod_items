@@ -98,6 +98,7 @@
       
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:crook_talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
+      "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
 
       "trapper:trapping_grounds" : "file(jobs/trapper/trapping_grounds)",
       "trapper:knife" : "file(jobs/trapper/trapper_knife)",
@@ -911,10 +912,6 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_placable_items" : {
-         "endpoint" : "server",
-         "controller" : "file(call_handlers/inventory_call_handler.lua)"
-      },
       "get_event_tracker": {
          "controller" : "file(call_handlers/event_call_handler.lua)",
          "endpoint" : "server"
@@ -989,6 +986,14 @@
       },
       "create_trapping_grounds": {
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "choose_pasture_location": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_pasture": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
          "endpoint" : "server"
       },
       "designate_mining_zone": {
@@ -1116,9 +1121,9 @@
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
+      "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
-      "placable_items_view_tracker" : "file(services/server/inventory/placable_items_view_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
       "ladder_builder" : "file(services/server/build/ladder_builder.lua)",
 
@@ -1204,6 +1209,7 @@
       "backpack" : "file(components/backpack/backpack_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
+      "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",
@@ -1239,6 +1245,7 @@
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
+      "shepherd_pasture" : "file(renderers/shepherd_pasture/shepherd_pasture_renderer.lua)", 
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
@@ -1304,7 +1311,7 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
-         "file(ui/game/inventory/inventory.html)",
+         "file(ui/game/inventory_tracker/inventory_tracker.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1387,7 +1394,7 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
-         "file(ui/game/inventory/inventory.js)",
+         "file(ui/game/inventory_tracker/inventory_tracker.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
@@ -1457,7 +1464,7 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
-         "file(ui/game/inventory/inventory.less)",
+         "file(ui/game/inventory_tracker/inventory_tracker.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
          "file(ui/game/tip_popup/tip_popup.less)",

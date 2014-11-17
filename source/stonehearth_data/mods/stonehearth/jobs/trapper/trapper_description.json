@@ -74,6 +74,13 @@
                "icon" : "file(images/loot_up.png)",
                "description" : "Long practice helps the trapper salvage more from each animal.",
                "level" : 3
+            }, 
+            {
+               "name" : "Job Opportunities", 
+               "id" : "trapper_job_opportunities", 
+               "icon" : "file(images/trapperLevel5.png)",
+               "description" : "The trapper now qualifies for advanced jobs. Click the promote command for details.",
+               "level" : 3
             }
          ]
       },

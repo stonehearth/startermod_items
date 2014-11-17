@@ -32,6 +32,7 @@ local service_creation_order = {
    'linear_combat',
    'farming',
    'trapping',
+   'shepherd',
    'shop',
    'tutorial',
 }

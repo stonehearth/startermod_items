@@ -36,44 +36,10 @@ App.StonehearthPlaceItemView = App.View.extend({
       var self = this;
       this._super();
       this.hide();
-   },
-});
 
-App.StonehearthPlaceItemPicker = App.View.extend({
-   templateName: 'stonehearthPlaceItemPicker',
-   components: {
-      'tracking_data' : {
-         '*' : {              // category...    (e.g. Furniture)
-            '*' : {           // uri of items.. (e.g. stonehearth:furniture:comfy_bed)
-               'items' : {    // all the items, keyed by id
-                  '*' : {
-                     'stonehearth:entity_forms' : {}
-                  }
-               }
-            }
-         }
-      }
-   },
+      this.set('tracker', 'stonehearth:placeable_item_inventory_tracker')
 
-   init: function() {
-      this._super();
-
-      var self = this;
-      radiant.call('stonehearth:get_placable_items')
-         .done(function(e) {
-            self.set('uri', e.tracker);
-            console.log('place item tracker is', e.tracker);
-         })
-         .fail(function(e) {
-            console.log('error getting inventory for player')
-            console.dir(e)
-         })
-   },
-
-   didInsertElement: function() {
-      var self = this;
-
-      self.$('.item').click(function() {
+      self.$().on('click', '.item', function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
 
          var itemType = $(this).attr('uri');
@@ -82,102 +48,5 @@ App.StonehearthPlaceItemPicker = App.View.extend({
          App.stonehearthClient.placeItemType(itemType);
       });
 
-      this.$('#searchInput').keyup(function (e) {
-         var search = $(this).val();
-
-         if (!search || search == '') {
-            self.$('.item').show();
-            self.$('.category').show();
-         } else {
-            // hide items that don't match the search
-            self.$('.item').each(function(i, item) {
-               var el = $(item);
-               var itemName = el.attr('title').toLowerCase();
-
-               if(itemName.indexOf(search) > -1) {
-                  el.show();
-               } else {
-                  el.hide();
-               }
-            })
-
-            self.$('.category').each(function(i, category) {
-               var el = $(category)
-
-               if (el.find('.item:visible').length > 0) {
-                  el.show();
-               } else {
-                  el.hide();
-               }
-            })
-         }
-         
-      });
-
-      //self.$('.item').tooltipster();
    },
-
-   _mapToArray : function(map, convert_fn) {
-      var arr = [];
-      var self = this;
-
-      $.each(map, function(k, v) {
-         var value;
-         if (k.indexOf('__') != 0 && map.hasOwnProperty(k)) {
-            var value = convert_fn(k, v);
-            if (value != undefined) {
-               arr.push(value);
-            }
-         }
-      });
-      return arr;
-   },
-
-   _reformatData: function() {
-      var arr = []
-      var self = this;
-
-      var map = this.get('context.tracking_data');
-      if (!map) {
-         return
-      }
-
-      arr = this._mapToArray(map, function(category, entityMap) {
-         var category = {
-            'name' : category,
-            'items' : self._mapToArray(entityMap, function(uri, info) {
-               var count = 0;
-               $.each(info.items, function(id, item){
-                  if (info.items.hasOwnProperty(id)) {
-                     var ef = item['stonehearth:entity_forms']
-                     if (!ef) {
-                        console.log('wtf');
-                     }
-                     if (ef && !ef.placing_at) {
-                        count += 1;
-                     }
-                  }
-               });
-               if (count == 0) {
-                  return undefined;
-               }
-               info.uri = uri;
-               info.count = count;
-               return info;
-            })
-         }
-
-         category.items.sort(function(a, b) {
-           return a.display_name.localeCompare(b.display_name);
-         });
-         
-         return category
-      });
-
-      arr.sort(function(a, b) {
-         return a.name.localeCompare(b.name);
-      });
-
-      this.set('context.categories', arr);
-    }.observes('context.tracking_data.[]').on('init'),
 });
