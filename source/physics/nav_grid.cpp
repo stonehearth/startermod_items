@@ -1141,20 +1141,11 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
    return location;
 }
 
-float NavGrid::GetMovementCostAt(csg::Point3 const& point)
+float NavGrid::GetMovementSpeedAt(csg::Point3 const& worldPoint)
 {
-   csg::Point3f p3f = csg::ToFloat(point);
-   float result = 1.0f;
-   csg::CollisionShape pointShape(csg::Cube3f(p3f + csg::Point3f(0, -1, 0), p3f + csg::Point3f(1, 1, 1)));
-   ForEachTrackerInShape(pointShape, [&](CollisionTrackerPtr tracker) -> bool {
-      if (tracker->GetType() == TrackerType::MOVEMENT_MODIFIER) {
-         auto mms = std::static_pointer_cast<om::MovementModifierShape>(tracker->GetEntity()->GetComponent("movement_modifier_shape"));
-         result /= mms->GetModifier();
-      }
-      return false;
-   });
-
-   return result;
+   csg::Point3 index, offset;
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
+   return 1.0f + GridTile(index).GetMovementSpeedBonus(offset);
 }
 
 /*

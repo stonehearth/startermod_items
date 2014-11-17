@@ -53,6 +53,8 @@ public:
    bool IsTerrain(csg::Cube3 const& bounds);
    bool IsTerrain(csg::Region3 const& region);
 
+   float GetMovementSpeedBonus(csg::Point3 const& offset);
+
    int GetDataExpireTime() const;
    void ClearTileData();
    bool IsDataResident() const;

@@ -69,7 +69,7 @@ class NavGrid {
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
       bool IsTerrain(csg::Point3 const& location);
-      float GetMovementCostAt(csg::Point3 const& point);
+      float GetMovementSpeedAt(csg::Point3 const& point);
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);

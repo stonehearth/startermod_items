@@ -373,3 +373,9 @@ bool NavGridTile::IsDataResident() const
 {
    return data_.get() != nullptr;
 }
+
+float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
+{
+   RefreshTileData();
+   return data_->GetMovementSpeedBonus(offset);
+}
