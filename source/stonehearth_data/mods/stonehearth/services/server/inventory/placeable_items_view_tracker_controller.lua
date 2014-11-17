@@ -38,7 +38,21 @@ function PlaceableItemsView:create_key_for_entity(entity)
    if not entity_forms:is_placeable() then
       return nil
    end
-   return entity_forms:get_placeable_category()
+   --return entity_forms:get_placeable_category()
+
+   local iconic_entity = entity_forms:get_iconic_entity()
+   local item = iconic_entity:get_component('item')
+   
+   if not item then
+      return nil
+   end
+
+   local category = item:get_category()
+   if not category or category == '' then
+      return 'nil'
+   end
+
+   return category   
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
@@ -62,6 +76,7 @@ function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_
    if not tracking_data[uri] then
       local unit_info = entity:add_component('unit_info')      
       tracking_data[uri] = {
+         uri = uri,
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),

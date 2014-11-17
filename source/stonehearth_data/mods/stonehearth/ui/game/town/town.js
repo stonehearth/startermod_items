@@ -101,6 +101,8 @@ App.StonehearthTownView = App.View.extend({
       this._super();
       this._updateUi();
 
+      this.set('tracker', 'stonehearth:basic_inventory_tracker')
+      
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');
 
