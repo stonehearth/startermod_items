@@ -402,7 +402,7 @@ var StonehearthClient;
             return radiant.call('stonehearth:choose_pasture_location')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
-                  //radiant.call('stonehearth:select_entity', response.pasture);
+                  radiant.call('stonehearth:select_entity', response.pasture);
                   self.createPasture();
                })
                .fail(function(response) {

@@ -45,7 +45,8 @@ function ShepherdCallHandler:choose_pasture_location(session, response)
 end
 
 function ShepherdCallHandler:create_pasture(session, response, location, size)
-   return { pasture = nil }
+   local entity = stonehearth.shepherd:create_new_pasture(session, location, size)
+   return { pasture = entity }
 end
 
 return ShepherdCallHandler
