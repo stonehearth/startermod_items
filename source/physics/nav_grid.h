@@ -112,9 +112,8 @@ private:
       friend NavGridTile;
       void SignalTileDirty(csg::Point3 const& index);
 
-      NavGridTile& GridTileResident(csg::Point3 const& pt);
-      NavGridTile& GridTileNonResident(csg::Point3 const& pt);
-      NavGridTile& GridTile(csg::Point3 const& pt, bool make_resident);
+      NavGridTile& GridTile(csg::Point3 const& pt);
+      int NotifyTileResident(NavGridTile* tile);
 
    private: // private types
       typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3::Hash> NavGridTileMap;
@@ -137,8 +136,7 @@ private:
       dm::TraceCategories              trace_category_;
       std::pair<csg::Point3, NavGridTile*> cachedTile_;
       NavGridTileMap                   tiles_;
-      std::vector<NavGridTile*>        evictQueue_;
-      uint                             evictQueueIndex_;
+      NavGridTileMap::iterator         nextTileToEvict_;
       int                              tileExpireTime_;
       int                              now_;
       CollisionTrackerMap              collision_trackers_;

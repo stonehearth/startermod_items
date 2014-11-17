@@ -92,7 +92,6 @@ NavGrid::~NavGrid()
    collision_tracker_dtors_.clear();
    collision_type_traces_.clear();
    terrain_tile_collision_trackers_.clear();
-   evictQueue_.clear();
    for (auto& entry : tiles_) {
       delete entry.second;
    }
@@ -211,8 +210,6 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
          return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
       case om::RegionCollisionShape::RegionCollisionTypes::NONE:
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
-      case om::RegionCollisionShape::RegionCollisionTypes::PLATFORM:
-         return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
    return nullptr;
 }
@@ -352,14 +349,14 @@ void NavGrid::OnTrackerBoundsChanged(csg::CollisionBox const& last_bounds, csg::
    for (csg::Point3 const& cursor : csg::EachPoint(previous_chunks)) {
       if (!current_chunks.Contains(cursor)) {
          NG_LOG(5) << "removing tracker from grid tile at " << cursor;
-         GridTileNonResident(cursor).RemoveCollisionTracker(tracker);
+         GridTile(cursor).RemoveCollisionTracker(tracker);
       }
    }
 
    // Add trackers to tiles which overlap the current bounds of the tracker.
    for (csg::Point3 const& cursor : csg::EachPoint(current_chunks)) {
       NG_LOG(5) << "adding tracker for grid tile at " << cursor << " for " << *tracker->GetEntity();
-      GridTileNonResident(cursor).AddCollisionTracker(tracker);
+      GridTile(cursor).AddCollisionTracker(tracker);
    }
 }
 
@@ -378,7 +375,7 @@ void NavGrid::OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId e
    // Remove trackers from tiles which no longer overlap the current bounds of the tracker,
    // but did overlap their previous bounds.
    for (csg::Point3 const& cursor : csg::EachPoint(chunks)) {
-      GridTileNonResident(cursor).OnTrackerRemoved(entityId, type);
+      GridTile(cursor).OnTrackerRemoved(entityId, type);
    }
 
    // Signal the top tile, too.
@@ -389,35 +386,11 @@ void NavGrid::OnTrackerDestroyed(csg::CollisionBox const& bounds, dm::ObjectId e
  * -- NavGrid::GridTile
  *
  * Returns the tile for the world-coordinate point pt, creating it if it does
- * not yet exist, and make all the tile data resident.
- */
-NavGridTile& NavGrid::GridTileResident(csg::Point3 const& pt)
-{
-   return GridTile(pt, true);
-}
-
-/*
- * -- NavGrid::GridTileNonResident
- *
- * Returns the tile for the world-coordinate point pt, creating it if it does
- * not yet exist.  This tile will not page in it's NavGridTileData, so it's
- * only safe to call functions on this tile which update the metadata (e.g.
- * AddCollisionTracker)
- */
-NavGridTile& NavGrid::GridTileNonResident(csg::Point3 const& pt)
-{
-   return GridTile(pt, false);
-}
-
-/*
- * -- NavGrid::GridTile
- *
- * Returns the tile for the world-coordinate point pt, creating it if it does
  * not yet exist.  If you don't want to create the tile if the point is invalid,
  * use .find on tiles_ directly.
  */
 
-NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
+NavGridTile& NavGrid::GridTile(csg::Point3 const& index)
 {
    NavGridTile* tile;
    if (cachedTile_.first == index) {
@@ -428,20 +401,23 @@ NavGridTile& NavGrid::GridTile(csg::Point3 const& index, bool make_resident)
          NG_LOG(5) << "constructing new grid tile at " << index;
          NavGridTile* tile = new NavGridTile(*this, index);
          i = tiles_.emplace(std::make_pair(index, tile)).first;
+         nextTileToEvict_ = tiles_.end(); // inserting invalidates the iterator.
       }
       tile = i->second;
       cachedTile_ = std::make_pair(index, tile);
    }
-
-   if (make_resident) {
-      if (!tile->IsDataResident()) {
-         evictQueue_.push_back(tile);
-      }
-      tile->SetDataResident(true, now_ + tileExpireTime_);
-      tile->FlushDirty(*this);
-   }
-
    return *tile;
+}
+
+/*
+ * -- NavGrid::NotifyTileDirty
+ *
+ * Notification from a NavGridTile that it has become resident.  Returns the time
+ * at which the data will be evicted. 
+ */
+ int NavGrid::NotifyTileResident(NavGridTile* tile)
+{
+   return now_ + tileExpireTime_;
 }
 
 /*
@@ -480,12 +456,15 @@ void NavGrid::ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protoco
    // Draw a box around all the resident tiles.
    csg::Color4 border_color(0, 0, 128, 64);
    csg::Color4 mob_color(128, 0, 128, 64);
-   for (NavGridTile* tile : evictQueue_) {
-      protocol::box* box = msg->add_box();
-      csg::Point3f offset = csg::ToFloat(tile->GetIndex().Scaled(TILE_SIZE)) - csg::Point3f(0.5f, 0, 0.5f);
-      offset.SaveValue(box->mutable_minimum());
-      (offset + csg::Point3f(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
-      border_color.SaveValue(box->mutable_color());
+   for (auto const& entry : tiles_) {
+      NavGridTile* tile = entry.second;
+      if (tile->IsDataResident()) {
+         protocol::box* box = msg->add_box();
+         csg::Point3f offset = csg::ToFloat(tile->GetIndex().Scaled(TILE_SIZE)) - csg::Point3f(0.5f, 0, 0.5f);
+         offset.SaveValue(box->mutable_minimum());
+         (offset + csg::Point3f(TILE_SIZE, TILE_SIZE, TILE_SIZE)).SaveValue(box->mutable_maximum());
+         border_color.SaveValue(box->mutable_color());
+      }
    }
 
    // Draw a purple box around all the mobs
@@ -513,25 +492,21 @@ void NavGrid::UpdateGameTime(int now, int freq)
 {
    now_ = now;
 
-   // We want to make sure we get through the entire list in about 5 realtime seconds
-   uint size = evictQueue_.size();
+   // We want to make sure we get through the entire list in about 15 realtime seconds
+   uint size = tiles_.size();
    if (size > 0) {
-      uint toProcess = std::max((uint)1, (size / (1000 / freq) / 5));
+      uint toProcess = std::max((uint)1, (size / (1000 / freq) / 15));
       for (uint i = 0; i < toProcess; i++) {
-         if (evictQueueIndex_ >= size) {
-            evictQueueIndex_ = 0;
+         if (nextTileToEvict_ == tiles_.end()) {
+            nextTileToEvict_ = tiles_.begin();
          }
-         NavGridTile* tile = evictQueue_[evictQueueIndex_];
+         NavGridTile* tile = nextTileToEvict_->second;
          if (tile->GetDataExpireTime() < now_) {
             NG_LOG(5) << "evicting tile " << tile->GetIndex() << ".";
-            tile->SetDataResident(false, 0);
-            evictQueue_[evictQueueIndex_] = evictQueue_[--size];
-         } else {
-            evictQueueIndex_++;
+            tile->ClearTileData();
          }
+         nextTileToEvict_++;
       }
-      NG_LOG(9) << "got " << size << " tiles resident";
-      evictQueue_.resize(size);
    }
 }
 
@@ -549,7 +524,7 @@ bool NavGrid::ForEachEntityAtIndex(csg::Point3 const& index, ForEachEntityCb con
 {
    bool stopped = false;
    if (bounds_.Contains(index.Scaled(TILE_SIZE))) {
-      stopped = GridTileNonResident(index).ForEachTracker([&cb](CollisionTrackerPtr tracker) {
+      stopped = GridTile(index).ForEachTracker([&cb](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
          auto e = tracker->GetEntity();
          ASSERT(e);
@@ -636,7 +611,7 @@ bool NavGrid::ForEachTileInBox(csg::CollisionBox const& worldBox, ForEachTileCb 
    csg::Cube3PointIterator i(indexBounds), end;
    while (!stopped && i != end) {
       csg::Point3 index = *i;
-      stopped = cb(index, GridTileNonResident(index));
+      stopped = cb(index, GridTile(index));
       ++i;
    }
    return stopped;
@@ -822,7 +797,7 @@ bool NavGrid::IsBlocked(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
-   bool blocked = GridTileResident(index).IsBlocked(offset);
+   bool blocked = GridTile(index).IsBlocked(offset);
 
    NG_LOG(7) << "checking if " << worldPoint << " is blocked (result:" << std::boolalpha << blocked << ")";
    return blocked;
@@ -861,7 +836,7 @@ bool NavGrid::IsBlocked(csg::Cube3 const& cube)
    csg::Cube3 chunks = csg::GetChunkIndex<TILE_SIZE>(cube);
 
    bool stopped = csg::PartitionCubeIntoChunks<TILE_SIZE>(cube, [this](csg::Point3 const& index, csg::Cube3 const& c) {
-      bool stop = GridTileResident(index).IsBlocked(c);
+      bool stop = GridTile(index).IsBlocked(c);
       return stop;
    });
    return stopped;      // if we stopped, we're blocked!
@@ -887,7 +862,7 @@ bool NavGrid::IsSupport(csg::Point3 const& worldPoint)
    // than the collision tracker method)
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
-   bool isSupport = GridTileResident(index).IsSupport(offset);
+   bool isSupport = GridTile(index).IsSupport(offset);
    return isSupport;
 }
 
@@ -935,7 +910,7 @@ bool NavGrid::IsOccupied(csg::Point3 const& worldPoint)
 
    if (bounds_.Contains(worldPoint)) {
       csg::Point3 index = csg::GetChunkIndex<TILE_SIZE>(worldPoint);
-      stopped = GridTileNonResident(index).ForEachTracker([worldPoint](CollisionTrackerPtr tracker) {
+      stopped = GridTile(index).ForEachTracker([worldPoint](CollisionTrackerPtr tracker) {
          ASSERT(tracker);
          ASSERT(tracker->GetEntity());
          bool stop = tracker->Intersects(worldPoint);
@@ -1304,7 +1279,7 @@ bool NavGrid::IsTerrain(csg::Point3 const& location)
 {
    csg::Point3 index, offset;
    csg::GetChunkIndex<TILE_SIZE>(location, index, offset);
-   bool isTerrain = GridTileResident(index).IsTerrain(offset);
+   bool isTerrain = GridTile(index).IsTerrain(offset);
 
    NG_LOG(7) << "checking if " << location << " is terrain (result:" << std::boolalpha << isTerrain << ")";
    return isTerrain;
