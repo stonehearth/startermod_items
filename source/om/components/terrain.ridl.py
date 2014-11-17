@@ -20,8 +20,8 @@ class Terrain(Component):
                           ('clipper', csg.Rect2f().const.ref))
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
-   get_tiles = ridl.Method(TiledRegionPtr())
-   get_interior_tiles = ridl.Method(TiledRegionPtr())
+   get_tiles = ridl.Method(Region3BoxedPtrTiledPtr())
+   get_interior_tiles = ridl.Method(Region3BoxedPtrTiledPtr())
 
    _generate_construct_object = True
 
@@ -42,9 +42,10 @@ class Terrain(Component):
    """
    Region3BoxedPtr GetTile(csg::Point3 const& index);
    void AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper);
+   Region3BoxedPtrTiledPtr CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles);
 
-   TiledRegionPtr tile_accessor_;
-   TiledRegionPtr interior_tile_accessor_;
+   Region3BoxedPtrTiledPtr tile_accessor_;
+   Region3BoxedPtrTiledPtr interior_tile_accessor_;
    TerrainTesselator terrainTesselator_;
    dm::TracePtr config_file_name_trace_;
    """

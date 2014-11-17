@@ -18,8 +18,8 @@ public:
    RenderTerrainTile(RenderTerrain& terrain, csg::Point3 const& location, om::Region3BoxedRef region);
    ~RenderTerrainTile();
 
-   int UpdateClipPlanes(int clip_height, csg::Region3* xray_region, csg::Cube3 xray_bounds);
-   void UpdateGeometry(int clip_height, csg::Region3* xray_region, csg::Cube3 xray_bounds);
+   int UpdateClipPlanes(int clip_height, std::shared_ptr<csg::Region3> xray_tile);
+   void UpdateGeometry(int clip_height, std::shared_ptr<csg::Region3> xray_tile);
 
    void SetClipPlane(csg::RegionTools3::Plane direction, csg::Region2 const* clipPlane);
    csg::Region2 const* GetClipPlane(csg::RegionTools3::Plane direction) const;
@@ -31,7 +31,7 @@ public:
 private:
    NO_COPY_CONSTRUCTOR(RenderTerrainTile);
    csg::Region2 const* GetClipPlaneFor(csg::PlaneInfo3 const& pi) const;
-   csg::Region3 const& ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section, csg::Region3* xray_region, csg::Cube3 xray_bounds) const;
+   csg::Region3 const& ComputeCutTerrainRegion(csg::Region3& storage, int clip_height, csg::Region2& cross_section, std::shared_ptr<csg::Region3> xray_tile) const;
 
 private:
    RenderTerrain&          _terrain;

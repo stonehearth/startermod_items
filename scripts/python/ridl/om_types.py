@@ -30,8 +30,8 @@ class Region3fBoxedPtr(ridl.Type):
    name = "Region3fBoxedPtr"
    outer_box_type = "Region3fBoxedPtrBoxed"
 
-class TiledRegionPtr(ridl.Type):
-   name = "TiledRegionPtr"
+class Region3BoxedPtrTiledPtr(ridl.Type):
+   name = "Region3BoxedPtrTiledPtr"
 
 def EntityRef():
    return std.weak_ptr(Entity())

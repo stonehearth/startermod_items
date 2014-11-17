@@ -29,12 +29,8 @@ public:
    void AddCut(om::Region3fBoxedPtr const& cut);
    void RemoveCut(om::Region3fBoxedPtr const& cut);
    void SetClipHeight(int height);
-   void SetXrayMode(std::string const& mode);
-   om::Region3fBoxedPtr const& GetFullXrayRegion() const;
-   void SetFullXrayRegion(om::Region3fBoxedPtr value);
-   om::Region3fBoxedPtr const& GetFlatXrayRegion() const;
-   void SetFlatXrayRegion(om::Region3fBoxedPtr value);
-   om::TiledRegionPtr GetXrayTiles();
+   void EnableXrayMode(bool enabled);
+   om::Region3PtrTiledPtr GetXrayTiles();
 
 private:
    void LoadColorMap();
@@ -50,10 +46,10 @@ private:
 
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
 
+   csg::Point3 IndexToLocation(csg::Point3 const& index);
+   csg::Point3 LocationToIndex(csg::Point3 const& location);
    csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
    csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
-
-   om::Region3fBoxedPtr GetXrayRegion(std::string const& mode) const;
 
 private:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
@@ -77,11 +73,9 @@ private:
    std::unordered_map<dm::ObjectId, csg::Region3> _cutToICut;
    std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
    int                  _clip_height;
-   std::string          _xray_mode;
-   om::Region3fBoxedPtr _full_xray_region;
-   om::Region3fBoxedPtr _flat_xray_region;
-   om::TileMap3         _xray_region_tiles;
-   om::TiledRegionPtr   _xray_tiles_accessor;
+   bool                 _enable_xray_mode;
+   std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> _xray_region_tiles;
+   om::Region3PtrTiledPtr _xray_tiles_accessor;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

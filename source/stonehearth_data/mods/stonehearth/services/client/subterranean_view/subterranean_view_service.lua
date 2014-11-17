@@ -2,6 +2,7 @@ local constants = require 'constants'
 local mining_lib = require 'lib.mining.mining_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 local TraceCategories = _radiant.dm.TraceCategories
 local log = radiant.log.create_logger('subterranean_view')
 
@@ -24,7 +25,7 @@ function SubterraneanViewService:initialize()
    self._sv = self.__saved_variables:get_data()
 
    if not self._sv.initialized then
-      self._sv.xray_mode = ''
+      self._sv.xray_mode = nil
       self._sv.clip_enabled = false
       self._sv.clip_height = 25
       self._sv.initialized = true
@@ -48,11 +49,6 @@ function SubterraneanViewService:initialize()
 end
 
 function SubterraneanViewService:_deferred_initialize()
-   self._flat_xray_region_boxed = _radiant.client.alloc_region3()
-   _radiant.renderer.set_flat_xray_region(self._flat_xray_region_boxed) -- TODO: set this on load
-   self._full_xray_region_boxed = _radiant.client.alloc_region3()
-   _radiant.renderer.set_full_xray_region(self._full_xray_region_boxed) -- TODO: set this on load
-
    self._interior_tiles = self:_get_terrain_component():get_interior_tiles()
    self._xray_tiles = _radiant.renderer.get_xray_tiles()
 
@@ -79,7 +75,6 @@ function SubterraneanViewService:_create_interior_region_traces()
             local trace = region3i_boxed:trace_changes('subterranean view', TraceCategories.SYNC_TRACE)
                :on_changed(function()
                      self:_mark_dirty(index:to_float())
-                     self:_on_interior_region_changed(region3i_boxed:get())
                   end)
             self._interior_region_traces[tostring(index)] = trace
          end)
@@ -134,7 +129,6 @@ function SubterraneanViewService:_mark_dirty(index)
    end
 end
 
--- CHECKCHECK finish this
 function SubterraneanViewService:_update_dirty_tiles()
    local xray_mode = self._sv.xray_mode
 
@@ -148,11 +142,15 @@ function SubterraneanViewService:_update_dirty_tiles()
    end
 
    for _, index in pairs(self._dirty_xray_tiles) do
-      local region3iboxed = self._interior_tiles:get_tile(index)
+      local interior_region3i_boxed = self._interior_tiles:find_tile(index)
 
-      if region3iboxed then
+      if interior_region3i_boxed then
+         local interior_region3i = interior_region3i_boxed:get()
+
          if xray_mode == 'full' then
+            self:_update_full_xray_view(interior_region3i)
          elseif xray_mode == 'flat' then
+            self:_update_flat_xray_view(interior_region3i)
          else
             log:error('unknown xray_mode: %s', xray_mode)
             assert(false)
@@ -160,12 +158,9 @@ function SubterraneanViewService:_update_dirty_tiles()
       end
    end
 
-   self._dirty_xray_tiles = {}
-end
+   self._xray_tiles:optimize_changed_tiles()
 
-function SubterraneanViewService:_on_interior_region_changed(interior_region3i)
-   self:_update_full_xray_view(interior_region3i)
-   self:_update_flat_xray_view(interior_region3i)
+   self._dirty_xray_tiles = {}
 end
 
 function SubterraneanViewService:_get_visible_cube(interior_cube)
@@ -175,24 +170,20 @@ function SubterraneanViewService:_get_visible_cube(interior_cube)
 end
 
 function SubterraneanViewService:_update_full_xray_view(interior_region3i)
-   self._full_xray_region_boxed:modify(function(cursor)
-         --cursor:clear()
+   local region = Region3()
 
-         -- assumes interior_region is optimized
-         for cube3i in interior_region3i:each_cube() do
-            local cube = cube3i:to_float()
-            local visible_cube = self:_get_visible_cube(cube)
-            cursor:add_cube(visible_cube)
-         end
+   -- assumes interior_region is optimized
+   for cube3i in interior_region3i:each_cube() do
+      local cube = cube3i:to_float()
+      local visible_cube = self:_get_visible_cube(cube)
+      region:add_cube(visible_cube)
+   end
 
-         local world_floor = self:_get_world_floor()
-         cursor:add_cube(world_floor)
-
-         cursor:optimize_by_merge()
-      end)
+   self._xray_tiles:add_region(region)
 end
 
 function SubterraneanViewService:_update_flat_xray_view(interior_region3i)
+   local region = Region3()
    local rpg_min_height = 4
    local down = -Point3.unit_y
 
@@ -212,27 +203,20 @@ function SubterraneanViewService:_update_flat_xray_view(interior_region3i)
       return true
    end
 
-   self._flat_xray_region_boxed:modify(function(cursor)
-         --cursor:clear()
-
-         -- assumes interior_region is optimized
-         for cube3i in interior_region3i:each_cube() do
-            local cube = cube3i:to_float()
-            local check_height = cube.max.y - 1
-            local bottom_face = mining_lib.get_face(cube, down)
-            for point in bottom_face:each_point() do
-               if show_adjacent(point, check_height) then
-                  local visible_cube = self:_get_visible_cube(Cube3(point, point + Point3.one))
-                  cursor:add_cube(visible_cube)
-               end
-            end
+   -- assumes interior_region is optimized
+   for cube3i in interior_region3i:each_cube() do
+      local cube = cube3i:to_float()
+      local check_height = cube.max.y - 1
+      local bottom_face = mining_lib.get_face(cube, down)
+      for point in bottom_face:each_point() do
+         if show_adjacent(point, check_height) then
+            local visible_cube = self:_get_visible_cube(Cube3(point, point + Point3.one))
+            region:add_cube(visible_cube)
          end
+      end
+   end
 
-         local world_floor = self:_get_world_floor()
-         cursor:add_cube(world_floor)
-
-         cursor:optimize_by_merge()
-      end)
+   self._xray_tiles:add_region(region)
 end
 
 function SubterraneanViewService:_on_keyboard_event(e)
@@ -251,12 +235,15 @@ end
 
 function SubterraneanViewService:toggle_xray_mode(mode)
    if self._sv.xray_mode == mode then
-      self._sv.xray_mode = ''
+      self._sv.xray_mode = nil
    else
       self._sv.xray_mode = mode
    end
    self.__saved_variables:mark_changed()
-   _radiant.renderer.set_xray_mode(self._sv.xray_mode)
+
+   -- explicitly check against nil to coerce to boolean type
+   local enabled = self._sv.xray_mode ~= nil and self._sv.xray_mode ~= ''
+   _radiant.renderer.enable_xray_mode(enabled)
 end
 
 function SubterraneanViewService:set_clip_enabled(enabled)

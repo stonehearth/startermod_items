@@ -23,12 +23,65 @@ using namespace ::radiant::client;
 static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
 static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
+class Region3MapWrapper :  public om::TileMapWrapper<csg::Region3> {
+public:
+   typedef std::shared_ptr<csg::Region3> Region3Ptr;
+   typedef std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> TileMap;
+
+   Region3MapWrapper(TileMap& tiles) :
+      _tiles(tiles)
+   {}
+
+   int NumTiles()
+   {
+      return _tiles.size();
+   }
+
+   Region3Ptr FindTile(csg::Point3 const& index)
+   {
+      Region3Ptr tile = nullptr;
+      auto i = _tiles.find(index);
+      if (i != _tiles.end()) {
+         tile = i->second;
+      }
+      return tile;
+   }
+
+   Region3Ptr GetTile(csg::Point3 const& index)
+   {
+      Region3Ptr tile = FindTile(index);
+      if (!tile) {
+         tile = std::make_shared<csg::Region3>();
+         _tiles[index] = tile;
+      }
+      return tile;
+   }
+
+   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
+   {
+      Region3Ptr tile = GetTile(index);
+      fn(*tile);
+   }
+
+   csg::Region3 const& GetTileRegion(Region3Ptr tile)
+   {
+      if (!tile) {
+         ASSERT(false);
+         throw core::Exception("null tile");
+      }
+      return *tile;
+   }
+
+private:
+   TileMap& _tiles;
+};
+
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
    _tileSize(terrain->GetTileSize()),
    _clip_height(MAX_CLIP_HEIGHT),
-   _xray_mode("")
+   _enable_xray_mode(false)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
@@ -36,7 +89,7 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
    // terrain tiles are keyed in index space, but render terrain tiles are keyed in world space
    // i.e. they differ in scale by _tileSize
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
-      csg::Point3 location = index.Scaled(_tileSize);
+      csg::Point3 location = IndexToLocation(index);
 
       ASSERT(region);
       ASSERT(!stdutil::contains(tiles_, location));
@@ -59,8 +112,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                     })
                                     ->PushObjectState();
 
-   _xray_tiles_accessor = std::make_shared<om::TiledRegion>();
-   _xray_tiles_accessor->Initialize(_xray_region_tiles, _tileSize, Client::GetInstance().GetAuthoringStore());
+   std::shared_ptr<Region3MapWrapper> wrapper = std::make_shared<Region3MapWrapper>(_xray_region_tiles);
+   _xray_tiles_accessor = std::make_shared<om::Region3PtrTiled>(_tileSize, wrapper);
 }
 
 RenderTerrain::~RenderTerrain()
@@ -96,11 +149,6 @@ void RenderTerrain::LoadColorMap()
    });
 }
 
-csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
-{
-   return csg::GetChunkIndexSlow(location, TERRAIN_LAYER_SIZE).Scaled(TERRAIN_LAYER_SIZE);
-}
-
 void RenderTerrain::MarkDirty(csg::Point3 const& location)
 {
    // The geometry and contents of the clip planes at this location clearly need to be
@@ -125,6 +173,27 @@ void RenderTerrain::MarkDirty(csg::Point3 const& location)
       });
       ASSERT(!renderer_frame_trace_.Empty());
    }
+}
+
+csg::Point3 RenderTerrain::IndexToLocation(csg::Point3 const& index)
+{
+   csg::Point3 location = index.Scaled(_tileSize);
+   return location;
+}
+
+csg::Point3 RenderTerrain::LocationToIndex(csg::Point3 const& location)
+{
+   csg::Point3 index(
+         location.x / _tileSize.x,
+         location.y / _tileSize.y,
+         location.z / _tileSize.z
+      );
+   return index;
+}
+
+csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
+{
+   return csg::GetChunkIndexSlow(location, TERRAIN_LAYER_SIZE).Scaled(TERRAIN_LAYER_SIZE);
 }
 
 csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction)
@@ -249,14 +318,15 @@ void RenderTerrain::SetClipHeight(int height)
    });
 }
 
-void RenderTerrain::SetXrayMode(std::string const& mode)
+void RenderTerrain::EnableXrayMode(bool enabled)
 {
-   if (mode == _xray_mode) {
+   if (enabled == _enable_xray_mode) {
       return;
    }
-   _xray_mode = mode;
+   _enable_xray_mode = enabled;
 
    for (auto const& entry : tiles_) {
+      // suboptimal - this dirties all the neighbors repeatedly
       MarkDirty(entry.first);
    }
 }
@@ -276,40 +346,20 @@ void RenderTerrain::UpdateNeighbors()
    _dirtyNeighbors.clear();
 }
 
-om::Region3fBoxedPtr RenderTerrain::GetXrayRegion(std::string const& mode) const
-{
-   if (mode.empty()) {
-      return nullptr;
-   }
-
-   if (mode == "full") {
-      return _full_xray_region;
-   }
-
-   if (_xray_mode == "flat") {
-      return _flat_xray_region;
-   }
-
-   throw core::Exception(BUILD_STRING("Unknown xray mode: " << mode));
-}
-
 void RenderTerrain::UpdateClipPlanes()
 {
-   csg::Region3* xray_region_ptr = nullptr;
-   csg::Region3 xray_region;
-   csg::Cube3 xray_bounds;
-   om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
-
-   if (xray_region_boxed) {
-      xray_region = csg::ToInt(xray_region_boxed->Get());
-      xray_region_ptr = &xray_region;
-      xray_bounds = xray_region.GetBounds();
-   }
-
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes(_clip_height, xray_region_ptr, xray_bounds);
+         std::shared_ptr<csg::Region3> xray_tile = nullptr;
+
+         if (_enable_xray_mode) {
+            // terrain, interior, and xray tiles are all stored in index space
+            csg::Point3 index = LocationToIndex(location);
+            xray_tile = _xray_tiles_accessor->GetTile(index);
+         }
+
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height, xray_tile);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
@@ -324,21 +374,18 @@ void RenderTerrain::UpdateClipPlanes()
 
 void RenderTerrain::UpdateGeometry()
 {
-   csg::Region3* xray_region_ptr = nullptr;
-   csg::Region3 xray_region;
-   csg::Cube3 xray_bounds;
-   om::Region3fBoxedPtr xray_region_boxed = GetXrayRegion(_xray_mode);
-
-   if (xray_region_boxed) {
-      xray_region = csg::ToInt(xray_region_boxed->Get());
-      xray_region_ptr = &xray_region;
-      xray_bounds = xray_region.GetBounds();
-   }
-
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry(_clip_height, xray_region_ptr, xray_bounds);
+         std::shared_ptr<csg::Region3> xray_tile = nullptr;
+
+         if (_enable_xray_mode) {
+            // terrain, interior, and xray tiles are all stored in index space
+            csg::Point3 index = LocationToIndex(location);
+            xray_tile = _xray_tiles_accessor->GetTile(index);
+         }
+
+         i->second->UpdateGeometry(_clip_height, xray_tile);
       }
    }
    _dirtyGeometry.clear();
@@ -378,26 +425,6 @@ void RenderTerrain::UpdateLayers()
    _dirtyLayers.clear();
 }
 
-om::Region3fBoxedPtr const& RenderTerrain::GetFullXrayRegion() const
-{
-   return _full_xray_region;
-}
-
-void RenderTerrain::SetFullXrayRegion(om::Region3fBoxedPtr value)
-{ 
-   _full_xray_region = value;
-}
-
-om::Region3fBoxedPtr const& RenderTerrain::GetFlatXrayRegion() const
-{
-   return _flat_xray_region;
-}
-
-void RenderTerrain::SetFlatXrayRegion(om::Region3fBoxedPtr value)
-{ 
-   _flat_xray_region = value;
-}
-
 void RenderTerrain::Update()
 {
    UpdateClipPlanes();
@@ -432,7 +459,7 @@ RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
    return *j.first->second;
 }
 
-om::TiledRegionPtr RenderTerrain::GetXrayTiles()
+om::Region3PtrTiledPtr RenderTerrain::GetXrayTiles()
 {
    return _xray_tiles_accessor;
 }

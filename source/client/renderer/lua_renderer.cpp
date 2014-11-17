@@ -129,40 +129,16 @@ static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
    renderTerrain->RemoveCut(cut);
 }
 
-om::TiledRegionPtr Terrain_GetXrayTiles()
+om::Region3PtrTiledPtr Terrain_GetXrayTiles()
 {
    auto renderTerrain = GetRenderTerrainObject();
    return renderTerrain->GetXrayTiles();
 }
 
-static void Terrain_SetXrayMode(std::string const& mode)
+static void Terrain_EnableXrayMode(bool enabled)
 {
    auto renderTerrain = GetRenderTerrainObject();
-   renderTerrain->SetXrayMode(mode);
-}
-
-static om::Region3fBoxedPtr Terrain_GetFullXrayRegion()
-{
-   auto renderTerrain = GetRenderTerrainObject();
-   return renderTerrain->GetFullXrayRegion();
-}
-
-static void Terrain_SetFullXrayRegion(om::Region3fBoxedPtr value)
-{
-   auto renderTerrain = GetRenderTerrainObject();
-   renderTerrain->SetFullXrayRegion(value);
-}
-
-static om::Region3fBoxedPtr Terrain_GetFlatXrayRegion()
-{
-   auto renderTerrain = GetRenderTerrainObject();
-   return renderTerrain->GetFlatXrayRegion();
-}
-
-static void Terrain_SetFlatXrayRegion(om::Region3fBoxedPtr value)
-{
-   auto renderTerrain = GetRenderTerrainObject();
-   renderTerrain->SetFlatXrayRegion(value);
+   renderTerrain->EnableXrayMode(enabled);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -280,11 +256,7 @@ void LuaRenderer::RegisterType(lua_State* L)
             def("add_terrain_cut", &Terrain_AddClientCut),
             def("remove_terrain_cut", &Terrain_RemoveClientCut),
             def("get_xray_tiles", &Terrain_GetXrayTiles),
-            def("set_xray_mode", &Terrain_SetXrayMode),
-            def("get_full_xray_region", &Terrain_GetFullXrayRegion),
-            def("set_full_xray_region", &Terrain_SetFullXrayRegion),
-            def("get_flat_xray_region", &Terrain_GetFlatXrayRegion),
-            def("set_flat_xray_region", &Terrain_SetFlatXrayRegion),
+            def("enable_xray_mode", &Terrain_EnableXrayMode),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),

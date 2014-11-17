@@ -11,9 +11,64 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
+
 static const csg::Point3 TILE_SIZE(32, 5, 32);
 
-#define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
+class Region3BoxedMapWrapper :  public TileMapWrapper<Region3Boxed> {
+public:
+   typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> TileMap;
+
+   Region3BoxedMapWrapper(TileMap& tiles) :
+      _tiles(tiles),
+      _store(tiles.GetStore())
+   {}
+
+   int NumTiles()
+   {
+      return _tiles.Size();
+   }
+
+   Region3BoxedPtr FindTile(csg::Point3 const& index)
+   {
+      Region3BoxedPtr tile = nullptr;
+      auto i = _tiles.find(index);
+      if (i != _tiles.end()) {
+         tile = i->second;
+      }
+      return tile;
+   }
+
+   Region3BoxedPtr GetTile(csg::Point3 const& index)
+   {
+      Region3BoxedPtr tile = FindTile(index);
+      if (!tile) {
+         tile = _store.AllocObject<Region3Boxed>();
+         _tiles.Add(index, tile);
+      }
+      return tile;
+   }
+
+   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
+   {
+      Region3BoxedPtr tile = GetTile(index);
+      tile->Modify(fn);
+   }
+
+   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile)
+   {
+      if (!tile) {
+         ASSERT(false);
+         throw core::Exception("null tile");
+      }
+      return tile->Get();
+   }
+
+private:
+   TileMap& _tiles;
+   dm::Store& _store;
+};
+
 
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
@@ -106,20 +161,24 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
    return csg::ToFloat(pt);
 }
 
-TiledRegionPtr Terrain::GetTiles()
+Region3BoxedPtrTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
+{
+   std::shared_ptr<Region3BoxedMapWrapper> wrapper = std::make_shared<Region3BoxedMapWrapper>(tiles);
+   return std::make_shared<Region3BoxedPtrTiled>(TILE_SIZE, wrapper);
+}
+
+Region3BoxedPtrTiledPtr Terrain::GetTiles()
 {
    if (!tile_accessor_) {
-      tile_accessor_ = std::make_shared<TiledRegion>();
-      tile_accessor_->Initialize(tiles_, TILE_SIZE, GetStore());
+      tile_accessor_ = CreateTileAccessor(tiles_);
    }
    return tile_accessor_;
 }
 
-TiledRegionPtr Terrain::GetInteriorTiles()
+Region3BoxedPtrTiledPtr Terrain::GetInteriorTiles()
 {
    if (!interior_tile_accessor_) {
-      interior_tile_accessor_ = std::make_shared<TiledRegion>();
-      interior_tile_accessor_->Initialize(interior_tiles_, TILE_SIZE, GetStore());
+      interior_tile_accessor_ = CreateTileAccessor(interior_tiles_);
    }
    return interior_tile_accessor_;
 }
