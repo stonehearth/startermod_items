@@ -392,6 +392,25 @@ var StonehearthClient;
          });
       },
 
+      createPasture: function() {
+         var self = this;
+
+         App.setGameMode('zones');
+         var tip = self.showTip('stonehearth:shepherd_zone_tip_title', 'stonehearth:shepherd_zone_tip_description', { i18n: true });
+
+         return this._callTool('createPasture', function() {
+            return radiant.call('stonehearth:choose_pasture_location')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
+                  radiant.call('stonehearth:select_entity', response.pasture);
+                  self.createPasture();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       digDown: function() {
          var self = this;
 
@@ -623,9 +642,11 @@ var StonehearthClient;
       showCitizenManager: function() {
          // toggle the citizenManager
          if (!this._citizenManager || this._citizenManager.isDestroyed) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_open' });
             this._citizenManager = App.gameView.addView(App.StonehearthCitizensView);
          } else {
             this._citizenManager.destroy();
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_close' });
             this._citizenManager = null;
          }
       },

@@ -156,6 +156,7 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
                });         
          } else {
             self._buildingDesignerView.set('uri', null);
+            self._buildRoadsView.set('uri', null);
          }
       } else {
          self.hideAllViews();

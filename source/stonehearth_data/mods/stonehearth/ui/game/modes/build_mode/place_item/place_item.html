@@ -1,31 +1,8 @@
 <script type="text/x-handlebars" data-template-name="stonehearthPlaceItem">
    <div id="stonehearthPlaceItem" class="window buildAndDesignTool">
       <div class="title">Place an Item</div>
-      {{view "App.StonehearthPlaceItemPicker" }}
+      <div id="items">
+         {{view "App.StonehearthInventoryTrackerView" trackerBinding="view.tracker"}}
+      </div>      
    </div>
 </script>
-
-<script type="text/x-handlebars" data-template-name="stonehearthPlaceItemPicker">
-   
-   <div id="stonehearthPlaceItemPicker">
-      <input id="searchInput" onClick="this.select();" type="text" maxlength="28" value="search" />
-      <div class="itemPalette">
-         {{#each this.categories }}
-            <div class="category">
-               <h2>{{ this.name }}</h2>
-               <div class="downSection">
-                  {{#each this.items}}
-                     <div class="item" {{bind-attr title=this.display_name uri=this.uri}}>
-                        <img class="image" {{bind-attr src=this.icon}}>
-                        <div class="num">{{this.count}}</div>
-                        <div class="selectBox" />
-                     </div>
-                  {{/each}}
-                  <div style="clear: both;" />
-               </div>
-            </div>
-         {{/each}}
-      </div>
-   </div>
-</script>
-

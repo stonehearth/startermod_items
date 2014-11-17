@@ -298,7 +298,7 @@ function Task:_estimate_task_distance(worker)
       source_location = self._source
    end
 
-   if radiant.util.is_a(self._source, Entity) then
+   if radiant.util.is_a(self._source, Entity) and self._source:is_valid() then
       -- try the destination...
       local destination = self._source:get_component('destination')
       if destination then

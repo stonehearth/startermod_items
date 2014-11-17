@@ -152,6 +152,7 @@ $(document).ready(function() {
          if (entity['stonehearth:stockpile'] ||
              entity['stonehearth:farmer_field'] ||
              entity['stonehearth:trapping_grounds'] ||
+             entity['stonehearth:shepherd_pasture'] ||
              entity['stonehearth:mining_zone']) {
             return this.modes.ZONES;
          }

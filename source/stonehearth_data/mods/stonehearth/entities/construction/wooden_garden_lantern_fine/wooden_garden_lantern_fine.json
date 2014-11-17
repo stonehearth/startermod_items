@@ -22,8 +22,7 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(wooden_garden_lantern_fine_iconic.json)",
          "ghost_form" : "file(wooden_garden_lantern_fine_ghost.json)",
-         "placeable_on_ground" : true,
-         "placeable_category" : "Furniture"
+         "placeable_on_ground" : true
       }
    }
 }

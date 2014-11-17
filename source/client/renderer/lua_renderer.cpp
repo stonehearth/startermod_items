@@ -125,8 +125,10 @@ static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
-   auto renderTerrain = GetRenderTerrainObject();
-   renderTerrain->RemoveCut(cut);
+   try {
+      auto renderTerrain = GetRenderTerrainObject();
+      renderTerrain->RemoveCut(cut);
+   } catch (std::exception const&) {}
 }
 
 om::Region3PtrTiledPtr Terrain_GetXrayTiles()

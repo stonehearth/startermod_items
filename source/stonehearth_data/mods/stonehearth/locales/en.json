@@ -264,6 +264,8 @@
    "field_tip_description" : "Farmers will break ground and plant crops here", 
    "trapper_zone_tip_title" : "Click and drag to create trapping grounds", 
    "trapper_zone_tip_description" : "Trappers catch critters for food and resources in this zone", 
+   "shepherd_zone_tip_title" : "Click and drag to create an animal pasture", 
+   "shepherd_zone_tip_description" : "Shepherds bring animals to this region and tend to their needs here.", 
    "mine_down_tip_title" : "Click and drag to dig downward", 
    "mine_down_tip_description" : "Right click to exit", 
    "mine_out_tip_title" : "Click and drag dig within this layer", 
@@ -393,10 +395,10 @@
    "red_alert": "Red Alert!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
 
-   "start_building" : "Start building",
+   "start_building" : "Build!",
    "pause_building" : "Pause building",
-   "save_building_template" : "Save as template",
-   "finished_editing" : "Done",
+   "save_building_template" : "Save",
+   "finished_editing" : "Edit",
    "start_editing" : "Edit",
 
    "stockpiles_task_group" : "Stockpiles", 

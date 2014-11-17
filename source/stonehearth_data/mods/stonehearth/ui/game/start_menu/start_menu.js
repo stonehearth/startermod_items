@@ -26,6 +26,9 @@ App.StonehearthStartMenuView = App.View.extend({
       create_trapping_grounds : function () {
          App.stonehearthClient.createTrappingGrounds();
       },
+      create_pasture : function () {
+         App.stonehearthClient.createPasture();
+      },
       mining_ui : function () {
          $(top).trigger('stonehearth_mining');
       },
