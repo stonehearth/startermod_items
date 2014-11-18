@@ -1,6 +1,7 @@
 {
    "info" : {
-      "name" : "Candledark"
+      "name" : "Candledark",
+      "version" : 0
    },
 
    "server_init_script" : "file(candledark_server)",

@@ -1,6 +1,7 @@
 {
    "info" : {
-      "name" : "Stonehearth Autotest: Automated Testing for Stonehearth"
+      "name" : "Stonehearth Autotest: Automated Testing for Stonehearth",
+      "version" : 1
    },
 
    "server_init_script" : "file(stonehearth_autotest_server)",
