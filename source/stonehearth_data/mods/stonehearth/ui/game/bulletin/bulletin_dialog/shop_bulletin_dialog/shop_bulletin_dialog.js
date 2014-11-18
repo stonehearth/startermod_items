@@ -32,9 +32,16 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 
       // build the inventory palettes
       this._buyPalette = this.$('#buyList').stonehearthItemPalette({
+         cssClass: 'shopItem',
          itemAdded: function(itemEl, itemData) {
             itemEl.attr('cost', itemData.cost);
             itemEl.attr('num', itemData.num);
+
+            $('<div>')
+               .addClass('cost')
+               .html(itemData.cost + 'g')
+               .appendTo(itemEl);
+
          },
          click: function(item) {
             self._updateBuyButtons();

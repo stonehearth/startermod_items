@@ -6,6 +6,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          console.log('Clicked item: ' + item);
       },
 
+      cssClass: ''
    },
 
    _create: function() {
@@ -111,6 +112,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
 
       var itemEl = $('<div>')
          .addClass('item')
+         .addClass(this.options.cssClass)
          .attr('title', item.display_name)
          .attr('uri', item.uri)
          .append(img)
