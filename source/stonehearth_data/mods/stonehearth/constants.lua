@@ -135,7 +135,8 @@ local constants = {
       floor_category = {
          FLOOR = 1,
          ROAD = 2,
-         SLAB = 3
+         SLAB = 3,
+         CURB = 4
       }
    },
 

@@ -84,6 +84,16 @@ function Building:get_all_structures()
    return self._sv.structures
 end
 
+function Building:get_floors(floor_type)
+   local result = {}
+   for _, entry in pairs(self._sv.structures[FLOOR]) do
+      if entry.structure:get_category() == floor_type or floor_type == nil then
+         table.insert(result, entry.entity)
+      end
+   end
+   return result
+end
+
 function Building:calculate_floor_region()
    local floor_region = Region2()
    for _, entry in pairs(self._sv.structures[FLOOR]) do
