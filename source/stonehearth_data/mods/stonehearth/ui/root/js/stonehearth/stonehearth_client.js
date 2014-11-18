@@ -266,6 +266,10 @@ var StonehearthClient;
          });
       },
 
+      subterraneanSetXRayMode: function(mode) {
+         return radiant.call_obj(this._subterranean_view, 'toggle_xray_mode_command', mode);
+      },
+
       subterraneanSetClip: function(enabled) {
          return radiant.call_obj(this._subterranean_view, 'set_clip_enabled_command', enabled);
       },

@@ -17,6 +17,7 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
          })
    },
 
+
    didInsertElement: function() {
       this._super();
 
@@ -31,19 +32,42 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
             }
          })      
 
-      this.$('#visionButton').click(function() {
+      this.$('#xrayButton').click(function() {
+         var currentMode = self.get('context.data.xray_mode')
+         var newMode;
+
+         if (!currentMode) {
+            newMode = self._lastMode || 'full';
+
+            App.stonehearthClient.subterraneanSetClip(false);
+         } else {
+            newMode = null;
+         }
+
+         App.stonehearthClient.subterraneanSetXRayMode(newMode);
+      });
+
+      this.$('.xrayButton').click(function() {
+         var currentMode = self.get('context.data.xray_mode')
+         var newMode = $(this).attr('mode');
+
+         if (newMode != currentMode) {
+            self._lastMode = newMode
+            App.stonehearthClient.subterraneanSetXRayMode(newMode);
+         }
+      });
+
+      this.$('#sliceButton').click(function() {
+         App.stonehearthClient.subterraneanSetXRayMode(null);
+
          var button = $(this);
          var currentlyClipping = button.hasClass('clip');
 
-         // toggle vision modes
+         // toggle slice modes
          if (currentlyClipping) {
             App.stonehearthClient.subterraneanSetClip(false);
-            button.removeClass('clip');
-            self.$('#palette').hide();
          } else {
             App.stonehearthClient.subterraneanSetClip(true);
-            button.addClass('clip');
-            self.$('#palette').show();
          }
       });
 
@@ -58,7 +82,7 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
       // bit of a hack given that we can't do hotkey="\" in the div
       $(document).keyup(function(e) {
          if(e.keyCode == 220) {
-            self.$('#visionButton').click();
+            self.$('#sliceButton').click();
          }
       });
 

@@ -1,35 +1,60 @@
 #stoneheartTerrainVision {
    position: absolute;
    bottom: 55px;
-   right: 450px;
+   right: 500px;
 
-   #visionButton {
+   #info {
+      .nobr;
+      position: absolute;
+      top: -200px;
+      background: red;
+      display: none;
+   }
+
+   #sliceButton {
       .control;
       position: absolute;
-      right: 0px;
+      left: 0px;
       width: 50px;
       height: 50px;
       background-repeat: no-repeat;
       background-size: 50px 50px;
-      background-image: url(./images/normal.png);
+      background-image: url(./images/slice_off.png);
    }
 
-   #visionButton.normal {
-      background-image: url(./images/normal.png);  
+   #sliceButton.normal {
+      background-image: url(./images/slice_off.png);  
    }
 
-   #visionButton.clip {
-      background-image: url(./images/clip.png);  
+   #sliceButton.clip {
+      background-image: url(./images/slice_on.png);  
    }
 
-   #palette {
+   #xrayButton {
+      .control;
+      position: absolute;
+      left: 50px;
+      width: 50px;
+      height: 50px;
+      background-repeat: no-repeat;
+      background-size: 50px 50px;
+      background-image: url(./images/xray_off.png);
+   }
+
+   #xrayButton.full {
+      background-image: url(./images/xray_on.png);  
+   }
+
+   #xrayButton.flat {
+      background-image: url(./images/xray_on.png);  
+   }
+
+   .palette {
       position: absolute;
       top: -120px;
-      left: -65px;
       text-align: center;
       padding: 4px;
       background: rgba(0,0,0,0.5);
-      height: -150px;
       display: none;
 
       .button {
@@ -37,6 +62,10 @@
          width: 70px;
          height: 31px;
       }
+   }
+
+   #slicePalette {
+      left: -15px;
 
       #depth {
          .controlFont;
@@ -55,5 +84,44 @@
       #clipDown {
          background: url(./images/clip_down.png);
       }
+   }
+
+   #slicePalette.clip {
+      display: block;
+   }
+
+   #slicePalette.noclip {
+      display: none;
+   }
+
+   #xrayPalette {
+      left: 35px;
+      top: -84px;
+      display: none;
+      text-align: center;
+
+      .xrayButton {
+         .control;
+         color: #aaa;
+         font-size: 18px;
+         background: #000;
+         padding-top: 4px;
+      }
+
+      #xrayFull.full {
+         color: #ffc000;
+      }
+
+      #xrayFlat.flat {
+         color: #ffc000;
+      }
+   }
+
+   #xrayPalette.full {
+      display: block;
+   }
+
+   #xrayPalette.flat {
+      display: block;
    }
 } 
