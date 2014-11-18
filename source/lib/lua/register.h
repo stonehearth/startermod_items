@@ -73,7 +73,7 @@ bool WeakPtr_IsValid(std::weak_ptr<T> o)
 }
 
 template<typename T>
-static dm::ObjectId SharedGetObjectId(std::shared_ptr<T> o)
+static dm::ObjectId StrongGetObjectId(std::shared_ptr<T> o)
 {
    if (o) {
       return o->GetObjectId();
@@ -85,7 +85,7 @@ static dm::ObjectId SharedGetObjectId(std::shared_ptr<T> o)
 template<typename T>
 static dm::ObjectId WeakGetObjectId(std::weak_ptr<T> o)
 {
-   return SharedGetObjectId(o.lock());
+   return StrongGetObjectId(o.lock());
 }
 
 template<typename T>
@@ -212,6 +212,11 @@ luabind::class_<T, std::shared_ptr<T>> RegisterTypePtr(const char* name)
       ];
 }
 
+// registers both the shared_ptr and weak_ptr versions of the class methods
+#define REGISTER_DUAL_CLASS_METHODS(name, method_suffix) \
+   .def(name, &Strong ## method_suffix) \
+   .def(name, &Weak ## method_suffix)
+
 template <typename T>
 luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, const char* name)
 {
@@ -228,13 +233,13 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, co
       .def(tostring(luabind::const_self)) 
       .def(luabind::self == luabind::self)
       .def("__get_userdata_type_id", &Type::GetTypeId)
-      .def("__tojson",       &StrongGameObjectToJson<T>)
-      .def("get_id",         &SharedGetObjectId<T>)
+      REGISTER_DUAL_CLASS_METHODS("__tojson", GameObjectToJson<T>)
+      REGISTER_DUAL_CLASS_METHODS("get_id", GetObjectId<T>)
       .def("get_type_id",    &GetTypeHashCode<T>)
       .def("get_type_name",  &GetTypeName<T>)
-      .def("serialize",      &StrongSerializeToJson<T>)
-      .def("trace",          &StrongTraceGameObject<T>)
-      .def("trace",          &StrongTraceGameObjectAsync<T>)
+      REGISTER_DUAL_CLASS_METHODS("serialize", SerializeToJson<T>)
+      REGISTER_DUAL_CLASS_METHODS("trace", TraceGameObject<T>)
+      REGISTER_DUAL_CLASS_METHODS("trace", TraceGameObjectAsync<T>)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
          def("get_type_name", &GetStaticTypeName<T>)
