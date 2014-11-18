@@ -1,8 +1,10 @@
 <script type="text/x-handlebars" data-template-name="stonehearthPlaceItem">
    <div id="stonehearthPlaceItem" class="window buildAndDesignTool">
       <div class="title">Place an Item</div>
-      <div id="items">
-         {{view "App.StonehearthInventoryTrackerView" trackerBinding="view.tracker"}}
-      </div>      
+      {{view "App.StonehearthPlaceItemPalette"}}
    </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="stonehearthPlaceItemPalette">
+   <div id="items"></div>      
 </script>

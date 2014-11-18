@@ -19,6 +19,7 @@ function Inventory:initialize(session)
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
    self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
+   self:add_item_tracker('stonehearth:sellable_item_tracker')
 end
 
 function Inventory:restore()

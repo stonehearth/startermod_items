@@ -38,21 +38,9 @@ function PlaceableItemsView:create_key_for_entity(entity)
    if not entity_forms:is_placeable() then
       return nil
    end
-   --return entity_forms:get_placeable_category()
 
    local iconic_entity = entity_forms:get_iconic_entity()
-   local item = iconic_entity:get_component('item')
-   
-   if not item then
-      return nil
-   end
-
-   local category = item:get_category()
-   if not category or category == '' then
-      return 'nil'
-   end
-
-   return category   
+   return radiant.entities.get_category(iconic_entity)
 end
 
 -- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
@@ -82,6 +70,7 @@ function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_
          display_name = unit_info:get_display_name(),
       }
    end
+   
    tracking_data[uri].items[id] = entity
 
    if not self._sv._entity_id_to_uri[id] then
