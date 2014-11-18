@@ -7,6 +7,7 @@ function job_helper.initialize(sv, entity)
    sv.is_current_class = false
    sv.is_max_level = false
    sv.attained_perks = {}
+   sv.parent_level_requirement = 0
 end
 
 -- Save promotion-related variables common to all classes
@@ -17,6 +18,10 @@ function job_helper.promote(sv, json)
 
    if not sv.is_max_level then
       sv.is_max_level = false
+   end
+
+   if json.parent_level_requirement then
+      sv.parent_level_requirement = json.parent_level_requirement
    end
 
    if json.xp_rewards then

@@ -6,8 +6,7 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(curtains_iconic.json)",
          "ghost_form" : "file(curtains_ghost.json)",
-         "placeable_on_walls" : true,
-         "placeable_category" : "Decoration"
+         "placeable_on_walls" : true
       }
    }
 }

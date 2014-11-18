@@ -6,8 +6,7 @@
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(frostsnap_iconic.json)",
          "ghost_form" : "file(frostsnap_ghost.json)",
-         "placeable_on_ground" : true,
-         "placeable_category" : "Plants"
+         "placeable_on_ground" : true
       },      
       "stonehearth:material" : {
          "tags" :  "plant"

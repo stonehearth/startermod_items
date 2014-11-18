@@ -71,9 +71,6 @@ function EntityFormsComponent:_post_create(json)
       end
    end
    
-   if placeable then
-      self._sv.placeable_category = json.placeable_category or 'uncategorized'
-   end
    self._sv.iconic_entity = iconic_entity
    self._sv.ghost_entity = ghost_entity
    self.__saved_variables:mark_changed()
@@ -167,10 +164,6 @@ function EntityFormsComponent:is_being_placed()
    -- we're being placed.  this avoids some races at load time (e.g. what if
    -- someone asks before we've had the opportunity to create our task?)
    return self._sv.placing_at ~= nil
-end
-
-function EntityFormsComponent:get_placeable_category()
-   return self._sv.placeable_category
 end
 
 function EntityFormsComponent:get_iconic_entity()

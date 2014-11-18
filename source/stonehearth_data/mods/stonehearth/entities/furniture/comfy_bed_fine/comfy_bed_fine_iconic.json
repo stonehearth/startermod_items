@@ -1,6 +1,9 @@
 {
    "mixins": "stonehearth:mixins:item_properties",
    "components": {
+      "item" : {
+         "category" : "furniture"
+      },
       "model_variants": {
          "default": {
             "models": [

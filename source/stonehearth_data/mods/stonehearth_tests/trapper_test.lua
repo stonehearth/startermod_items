@@ -38,6 +38,8 @@ function TrapperTest:__init()
    -- self:place_critter('stonehearth:rabbit', 14, 14, 'critters')
    -- self:place_critter('stonehearth:racoon', 13, 13, 'critters')
    -- self:place_critter('stonehearth:squirrel', 12, 12, 'critters')
+
+   self:place_item('stonehearth:shepherd:crook_talisman', 0, 0)
 end
 
 return TrapperTest

@@ -4,12 +4,13 @@
    "name" : "Shepherd",
    "description" : "Domesticates wild animals and harvests them for food and materials.",
    "controller" : "stonehearth:class:shepherd", 
-   "requirements" : "Shepherd's Crook, crafted by the Carpenter",
+   "requirements" : "3 levels of Trapper and a Shepherd's Crook, crafted by the Carpenter.",
    "talisman_uri" : "stonehearth:shepherd:crook_talisman",
    "default_stance" : "passive",
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
    "parent_job" : "stonehearth:jobs:trapper",
+   "parent_level_requirement" : 1,
 
    "equipment" : {
       "abilities" : "file(shepherd_abilities)",

@@ -64,9 +64,9 @@ bool Physics_IsOccupied(lua_State *L, OctTree &octTree, om::EntityRef entityRef,
    return octTree.GetNavGrid().IsOccupied(entity, csg::ToClosestInt(location));
 }
 
-float Physics_GetMovementCostAt(lua_State *L, OctTree &octTree, csg::Point3f const& location)
+float Physics_GetMovementSpeedAt(lua_State *L, OctTree &octTree, csg::Point3f const& location)
 {
-   return octTree.GetNavGrid().GetMovementCostAt(csg::ToInt(location));
+   return octTree.GetNavGrid().GetMovementSpeedAt(csg::ToInt(location));
 }
 
 csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
@@ -146,7 +146,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
                .def("get_entities_in_region", &Physics_GetEntitiesInRegion)
-               .def("get_movement_cost_at", &Physics_GetMovementCostAt)
+               .def("get_movement_speed_at", &Physics_GetMovementSpeedAt)
             ,
             def("local_to_world",              &Physics_LocalToWorld<csg::Point3f>),
             def("local_to_world",              &Physics_LocalToWorld<csg::Cube3f>),
