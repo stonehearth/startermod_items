@@ -8,7 +8,7 @@ function HarvestTest:__init()
    self:create_world()
 
    -- lotta logs.  let's get these into some stockpiles.
-   self:place_item_cluster('stonehearth:oak_log', 32, 32, 20, 20)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 32, 32, 20, 20)
 
    -- said stockpiles, all with different filters.  now we can't share filter
    -- functions!  NOOOOOOO.

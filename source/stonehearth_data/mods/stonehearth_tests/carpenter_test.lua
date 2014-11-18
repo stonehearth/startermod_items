@@ -44,7 +44,7 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:corn_basket', 11, 11)
 
    -- put some items in the world
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
    self:place_item_cluster('stonehearth:silkweed_bundle', 8, 0, 5, 5)
 

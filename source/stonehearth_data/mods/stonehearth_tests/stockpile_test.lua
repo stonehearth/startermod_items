@@ -5,7 +5,7 @@ function StockpileTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('stonehearth:oak_log', -15, -15, 5, 5);
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -15, -15, 5, 5);
 
    --self:place_citizen(15, 15)
    local worker = self:place_citizen(12, 12)
@@ -16,7 +16,7 @@ function StockpileTest:__init()
    self:place_stockpile_cmd(player_id, -10, -10, 5, 5)
    if true then return end
    
-   --local log = radiant.entities.create_entity('stonehearth:oak_log')
+   --local log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
    --worker:get_component('stonehearth:carry_block'):set_carrying(log)
    
    --local worker = self:place_citizen(2, 4)

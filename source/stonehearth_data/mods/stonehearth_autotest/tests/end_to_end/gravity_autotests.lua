@@ -4,7 +4,7 @@ local gravity_autotests = {}
 
 function gravity_autotests.falling_log(autotest)
    local tree = autotest.env:create_entity(8, 8, 'stonehearth:small_oak_tree')
-   local log = autotest.env:create_entity(8, 8, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(8, 8, 'stonehearth:resources:wood:oak_log')
 
    local falling = false
    local trace = log:get_component('mob'):trace_in_free_motion('autotest')

@@ -50,7 +50,7 @@ local function do_teardown(autotest, cb)
    -- setup the environment for the build
    lrbt_util.create_workers(autotest, 18, 20)
    autotest.env:create_stockpile(-8, 8,  { size = { x = 6, y = 6 }})
-   autotest.env:create_entity_cluster(8, 8, 8, 8, 'stonehearth:oak_log')
+   autotest.env:create_entity_cluster(8, 8, 8, 8, 'stonehearth:resources:wood:oak_log')
 
    local buildings = lrbt_util.create_buildings(autotest, cb)
    for _, building in pairs(buildings) do
@@ -143,7 +143,7 @@ function lrbt.shanty_town(autotest)
    local session = autotest.env:get_player_session()
    local building
 
-   lrbt_util.create_endless_entity(autotest, -31, 0, 1, 8, 'stonehearth:oak_log')
+   lrbt_util.create_endless_entity(autotest, -31, 0, 1, 8, 'stonehearth:resources:wood:oak_log')
    lrbt_util.create_endless_entity(autotest, -30, 0, 1, 8, 'stonehearth:berry_basket')
    lrbt_util.create_workers(autotest)
 
@@ -175,7 +175,7 @@ function lrbt.expensive_building(autotest)
    local session = autotest.env:get_player_session()
    local building
 
-   lrbt_util.create_endless_entity(autotest, 8, 16, 2, 4, 'stonehearth:oak_log')
+   lrbt_util.create_endless_entity(autotest, 8, 16, 2, 4, 'stonehearth:resources:wood:oak_log')
    lrbt_util.create_endless_entity(autotest, -8, 16, 2, 4, 'stonehearth:berry_basket')
    lrbt_util.create_workers(autotest)
 

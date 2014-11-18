@@ -14,7 +14,7 @@ function sh_86.verify_no_restocking_after_dragging_around_items(autotest)
    autotest.env:create_person(4, 2, { job = 'worker' })
    autotest.env:create_person(6, 2, { job = 'worker' })
 
-   autotest.env:create_entity_cluster(4, 4, 4, 4, 'stonehearth:oak_log')
+   autotest.env:create_entity_cluster(4, 4, 4, 4, 'stonehearth:resources:wood:oak_log')
 
    local stockpile = autotest.env:create_stockpile(-6, -6, { size = { x = 2, y = 2 } })
    local buggy_stockpile
@@ -58,7 +58,7 @@ function sh_86.verify_no_restocking_after_recreating_stockpile(autotest)
    autotest.env:create_person(4, 2, { job = 'worker' })
    autotest.env:create_person(6, 2, { job = 'worker' })
 
-   autotest.env:create_entity_cluster(4, 4, 4, 4, 'stonehearth:oak_log')
+   autotest.env:create_entity_cluster(4, 4, 4, 4, 'stonehearth:resources:wood:oak_log')
 
    -- create the first stockpile.  chill a bit.  then destroy it.
    local first_stockpile = autotest.env:create_stockpile(3, 3, { size = { x = 7, y = 7 } } )

@@ -35,9 +35,16 @@
 
    <div class="window bottomButtons">
       <div id="buttons">
-         <button class="green" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
-         <button class="warn removeBuilding">{{i18n stonehearth:remove}}</button>
+         <button class="gold" id="showOverview">{{i18n stonehearth:finished_editing}}</button>
          <button id="saveTemplate">{{i18n stonehearth:save_building_template}}</button>
+         <button class="warn" id="removeBuilding">{{i18n stonehearth:remove}}</button>
+         <button class="green" {{bind-attr class=building.active:pause:start}} id="startBuilding">
+            {{#if building.active }}
+               {{i18n stonehearth:pause_building}}
+            {{else}}
+               {{i18n stonehearth:start_building}}
+            {{/if}}
+         </button>
       </div>
    </div>
 

@@ -6,7 +6,7 @@ function construction_tests.simple_build(autotest)
    autotest.env:create_person(-6, 8, { job = 'worker' })
    autotest.env:create_person(-4, 3, { job = 'carpenter' })
    autotest.env:create_person(-10, 4, { job = 'worker' })
-   autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:resources:wood:oak_log')
    local construction_complete = false
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)

@@ -23,7 +23,7 @@ function SellableItemTracker:create_key_for_entity(entity)
    -- is it sellable?
    local net_worth = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
    if net_worth and net_worth.shop_info and net_worth.shop_info.sellable then
-      return radiant.entities.get_category(entity)
+      return entity:get_uri()
    end
 
    -- nope!
@@ -41,34 +41,29 @@ end
 --1
 function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
    if not tracking_data then
-      tracking_data = {}
-   end
+      -- We're the first object of this type.  Create a new tracking data structure.
 
-   local uri = entity:get_uri()
-   local id = entity:get_id()
-   local net_worth = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
-   local item_cost = net_worth.value_in_gold
-
-   if not tracking_data[uri] then
       local unit_info = entity:add_component('unit_info')      
-      tracking_data[uri] = {
-         uri = uri,
+      tracking_data = {
+         uri = entity:get_uri(),
+         count = 0, 
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
-         icon = unit_info:get_icon(),
+         category = radiant.entities.get_category(entity),
+         cost = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth'),
       }
-   end
+end
 
-   tracking_data[uri].items[id] = entity
-
-   if not self._sv._entity_id_to_uri[id] then
-      self._sv._entity_id_to_uri[id] = uri
-      self.__saved_variables:mark_changed()
+   -- Add the current entity to the tracking data, and return
+   local id = entity:get_id()
+   if not tracking_data.items[id] then
+      tracking_data.count = tracking_data.count + 1
+      tracking_data.items[id] = entity 
    end
-   
    return tracking_data
 end
+
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
@@ -78,17 +73,15 @@ end
 --    @param tracking_data - the tracking data for all entities of the same type
 --
 function SellableItemTracker:remove_entity_from_tracking_data(entity_id, tracking_data)
-   local root_id = self._sv._iconic_id_to_root_id[entity_id]
-   local uri = self._sv._entity_id_to_uri[root_id]
-   if uri then 
-      self._sv._entity_id_to_uri[root_id] = nil
-      
-      tracking_data[uri].items[root_id] = nil
-      if not next(tracking_data[uri]) then
-         tracking_data[uri] = nil
-      end
+   -- If for some reason, there's no existing value for this key, just return
+   if not tracking_data then
+      return nil
+   end
 
-      self.__saved_variables:mark_changed()
+   if tracking_data.items[entity_id] then
+      tracking_data.items[entity_id] = nil
+      tracking_data.count = tracking_data.count - 1
+      assert(tracking_data.count >= 0)
    end
    return tracking_data
 end

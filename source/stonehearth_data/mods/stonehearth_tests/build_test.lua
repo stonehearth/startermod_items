@@ -13,7 +13,7 @@ function BuildTest:__init()
    self:place_citizen(2, 2)
    self:place_citizen(2, 2)
 
-   self:place_item_cluster('stonehearth:oak_log', 8, 8, 7, 7)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
    self:place_item_cluster('stonehearth:hunk_of_stone', -8, 8, 7, 7)
    self:place_item_cluster('stonehearth:portals:wooden_door_2', -2, -2, 2, 2)
    self:place_item_cluster('stonehearth:furniture:wooden_wall_lantern', -10, 10, 2, 2)

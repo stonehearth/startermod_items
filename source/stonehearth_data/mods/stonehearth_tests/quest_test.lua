@@ -13,7 +13,7 @@ function QuestTest:__init()
    self:place_item('stonehearth:medium_juniper_tree', -5, -5)
    self:place_item('stonehearth:small_juniper_tree',  15, -5)
 
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
 
    self:place_citizen(12, 12)
    self:place_citizen(14, 14)

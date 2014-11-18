@@ -11,7 +11,7 @@ function FirePitTest:__init()
    local worker = self:place_citizen(12, 12)
    --local worker2 = self:place_citizen(11, 12)
 
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 3, 3)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 3, 3)
 
    local player_id = radiant.entities.get_player_id(worker)
    self:place_item('stonehearth:firepit', 1, 1, player_id, { force_iconic = false })
