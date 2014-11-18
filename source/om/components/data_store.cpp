@@ -91,30 +91,30 @@ void DataStore::RestoreController(DataStoreRef self)
                               });
 }
 
-void DataStore::RestoreControllerData()
+void DataStore::RestoreControllerData(std::vector<luabind::object>& visitedTables)
 {
    if ((*data_object_).GetNeedsRestoration()) {
       DS_LOG(7) << "begin restore controller data...";
       (*data_object_).SetNeedsRestoration(false);
-      luabind::object data = GetData();
-      luabind::object visited = luabind::newtable(data.interpreter());
-      RestoreControllerDataRecursive(GetData(), visited);
+      RestoreControllerDataRecursive(GetData(), visitedTables);
       DS_LOG(7) << "... end restore controller.";
    }
 }
 
-void DataStore::RestoreControllerDataRecursive(luabind::object o, luabind::object& visited)
+void DataStore::RestoreControllerDataRecursive(luabind::object o, std::vector<luabind::object>& visitedTables)
 {
    if (luabind::type(o) != LUA_TTABLE) {
       DS_LOG(7) << "object is not a table.  skipping.";
       return;
    }
 
-   if (luabind::type(visited[o]) != LUA_TNIL) {
-      DS_LOG(5) << "already visited lua object while restoring datastore.  bailing";
-      return;
+   for (luabind::object v : visitedTables) {
+      if (v == o) {
+         DS_LOG(5) << "already visited lua object while restoring datastore.  bailing";
+         return;
+      }
    }
-   visited[o] = true;
+   visitedTables.emplace_back(o);
 
    for (luabind::iterator i(o), end; i != end; ++i) {
       int t = luabind::type(i.key());
@@ -131,7 +131,7 @@ void DataStore::RestoreControllerDataRecursive(luabind::object o, luabind::objec
 
       if (luabind::type(*i) == LUA_TTABLE) {
          DS_LOG(5) << "restoring table for key " << key;
-         RestoreControllerDataRecursive(*i, visited);
+         RestoreControllerDataRecursive(*i, visitedTables);
          continue;
       }
 

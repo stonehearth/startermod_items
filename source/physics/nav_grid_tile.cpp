@@ -96,10 +96,10 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
+   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   RefreshTileData();
-   return data_->IsMarked<COLLISION>(pt);
+   return data_->IsMarked(COLLISION, pt);
 }
 
 bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
@@ -124,10 +124,10 @@ bool NavGridTile::IsBlocked(csg::Region3 const& region)
  */
 bool NavGridTile::IsSupport(csg::Point3 const& pt)
 {
+   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   RefreshTileData();
-   return data_->IsMarked<COLLISION>(pt) || data_->IsMarked<LADDER>(pt);
+   return data_->IsMarked(COLLISION, pt) || data_->IsMarked(LADDER, pt);
 }
 
 bool NavGridTile::IsSupport(csg::Cube3 const& cube)
@@ -152,10 +152,10 @@ bool NavGridTile::IsSupport(csg::Region3 const& region)
  */
 bool NavGridTile::IsTerrain(csg::Point3 const& pt)
 {
+   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   RefreshTileData();
-   return data_->IsMarked<TERRAIN>(pt);
+   return data_->IsMarked(TERRAIN, pt);
 }
 
 bool NavGridTile::IsTerrain(csg::Cube3 const& cube)
@@ -180,6 +180,7 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Region3 const& regi
 
 bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
 {
+   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
 
@@ -192,22 +193,40 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
 }
 
 /*
- * -- NavGridTile::ClearTileData
+ * -- NavGridTile::FlushDirty
  *
- * Unload the NavGridTileData for this tile.
+ * Re-generates all the tile data.  We don't bother keeping track of what's actually
+ * changed.. just start over from scratch.  The bookkeeping for "proper" change tracking
+ * is more complicated and expensive relative to the cost of generating the bit vector,
+ * so just don't bother.  This updates each of the individual TrackerType vectors first,
+ * then walk through the derived vectors.
+ *
  */
-void NavGridTile::ClearTileData()
+void NavGridTile::FlushDirty(NavGrid& ng)
 {
-   data_.reset(nullptr);
+   ASSERT(data_);
+
+   data_->FlushDirty(ng, trackers_, GetWorldBounds());
 }
 
-void NavGridTile::RefreshTileData()
+/*
+ * -- NavGridTile::SetDataResident
+ *
+ * Load or unload the NavGridTileData for this tile.  In the load case, this only
+ * creates the Data object.  It will be updated lazily when required.
+ *
+ */
+void NavGridTile::SetDataResident(bool value, int expireTime)
 {
-   _expireTime = _ng.NotifyTileResident(this);
-   if (!data_) {
-      data_.reset(new NavGridTileData(*this));
+   if (value && !data_) {
+      data_.reset(new NavGridTileData());
+   } else if (!value && data_) {
+      data_.reset(nullptr);
    }
+   _expireTime = expireTime;
 }
+ 
+
 
 /*
  * -- NavGridTile::MarkDirty
@@ -221,7 +240,7 @@ void NavGridTile::MarkDirty(TrackerType t)
       NG_LOG(7) << "marking grid tile " << _index << " as dirty (tracker type:" << t << ")";
       _ng.SignalTileDirty(_index);
       if (data_) {
-         data_->MarkDirty(t);
+         data_->MarkDirty();
       }
    } else  {
       NG_LOG(7) << "not-marking grid tile " << _index << " as dirty (tracker type:" << t << " not a collision type)";
@@ -372,10 +391,4 @@ csg::Point3 NavGridTile::GetIndex() const
 bool NavGridTile::IsDataResident() const
 {
    return data_.get() != nullptr;
-}
-
-float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
-{
-   RefreshTileData();
-   return data_->GetMovementSpeedBonus(offset);
 }

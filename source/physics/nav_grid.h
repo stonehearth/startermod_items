@@ -69,7 +69,7 @@ class NavGrid {
       void ShowDebugShapes(csg::Point3 const& pt, om::EntityRef pawn, protocol::shapelist* msg);
       core::Guard NotifyTileDirty(std::function<void(csg::Point3 const&)> const& cb);
       bool IsTerrain(csg::Point3 const& location);
-      float GetMovementSpeedAt(csg::Point3 const& point);
+      float GetMovementCostAt(csg::Point3 const& point);
 
       // Maintence.  Not for public consumption
       void RemoveEntity(dm::ObjectId id);
@@ -112,8 +112,9 @@ private:
       friend NavGridTile;
       void SignalTileDirty(csg::Point3 const& index);
 
-      NavGridTile& GridTile(csg::Point3 const& pt);
-      int NotifyTileResident(NavGridTile* tile);
+      NavGridTile& GridTileResident(csg::Point3 const& pt);
+      NavGridTile& GridTileNonResident(csg::Point3 const& pt);
+      NavGridTile& GridTile(csg::Point3 const& pt, bool make_resident);
 
    private: // private types
       typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3::Hash> NavGridTileMap;
@@ -136,7 +137,8 @@ private:
       dm::TraceCategories              trace_category_;
       std::pair<csg::Point3, NavGridTile*> cachedTile_;
       NavGridTileMap                   tiles_;
-      NavGridTileMap::iterator         nextTileToEvict_;
+      std::vector<NavGridTile*>        evictQueue_;
+      uint                             evictQueueIndex_;
       int                              tileExpireTime_;
       int                              now_;
       CollisionTrackerMap              collision_trackers_;

@@ -155,13 +155,13 @@ function FollowPath:_move_one_gameloop()
       local goal = self._points[self._pursuing_index]
       local goal_vector = goal - current_location
       local goal_distance = goal_vector:length()
-      local speed_scale = radiant.terrain.get_movement_speed_at(current_location)
-      local real_move_distance = move_distance * speed_scale
+      local movement_modifier = radiant.terrain.get_movement_cost_at(current_location)
+      local real_move_distance = move_distance / movement_modifier
 
       if goal_distance <= real_move_distance or goal_distance == 0 then
          -- enough movement distance to reach the next point
          new_location = goal
-         move_distance = move_distance - (goal_distance / speed_scale)
+         move_distance = move_distance - (goal_distance * movement_modifier)
          self._pursuing_index = self._pursuing_index + 1
       else
          -- movement distance stops short of the next point

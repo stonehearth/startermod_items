@@ -10,6 +10,8 @@
 
 BEGIN_RADIANT_PHYSICS_NAMESPACE
 
+typedef std::unordered_multimap<dm::ObjectId, CollisionTrackerRef> TrackerMap;
+
 /*
  * -- NavGridTileData
  *
@@ -20,22 +22,16 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 
 class NavGridTileData {
 public:
-   NavGridTileData(NavGridTile& ngt);
+   NavGridTileData();
    ~NavGridTileData();
 
-   template <TrackerType Type> bool IsMarked(csg::Point3 const& offest);
-   void MarkDirty(TrackerType t);
-   float GetMovementSpeedBonus(csg::Point3 const& offset);
+   void FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds);
+   void UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& world_bounds);
+   void MarkDirty();
+   bool IsMarked(TrackerType type, csg::Point3 const& offest);
 
 private:
-   typedef std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE> BitSet;
-
-   template <TrackerType Type> bool IsMarked(int bit_index);
-   template <TrackerType Type> BitSet& GetBitVector();
-   template <TrackerType Type> void UpdateTileData();
-   template <int TrackerMask, TrackerType BitVectorType> void UpdateTileDataForTrackers();
-
-   void UpdateMovementSpeedBonus();
+   bool IsMarked(TrackerType type, int bit_index);
    inline int Offset(int x, int y, int z);
    void UpdateCollisionTracker(CollisionTracker const& tracker, csg::Cube3 const& world_bounds);
    void UpdateCanStand(NavGrid& ng, csg::Cube3 const& world_bounds);
@@ -47,12 +43,11 @@ private:
    };
 
 private:
-   NavGridTile&   _ngt;
-   int            dirty_;
-   BitSet         marked_[NUM_BIT_VECTOR_TRACKERS];
-   float          _movementSpeedBonus[TILE_SIZE*TILE_SIZE*TILE_SIZE];
+   typedef std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE> BitSet;
+private:
+   int      dirty_;
+   BitSet   marked_[NUM_BIT_VECTOR_TRACKERS];
 };
-
 
 END_RADIANT_PHYSICS_NAMESPACE
 

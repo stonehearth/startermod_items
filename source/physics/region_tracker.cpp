@@ -82,6 +82,11 @@ csg::Region3 RegionTracker<BoxedRegion>::GetOverlappingRegion(csg::Cube3 const& 
    if (region) {
       csg::Region3 r = csg::ToInt(region->Get());
 
+      if (GetType() == PLATFORM) {
+         // Just the tops, please
+         r -= r.Translated(-csg::Point3::unitY);
+      }
+
       return LocalToWorld(r, GetEntity()) & bounds;
    }
    return csg::Region3::zero;

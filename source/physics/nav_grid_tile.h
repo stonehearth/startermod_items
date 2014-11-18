@@ -28,8 +28,6 @@ BEGIN_RADIANT_PHYSICS_NAMESPACE
 class NavGridTile;
 DECLARE_SHARED_POINTER_TYPES(NavGridTile)
 
-typedef std::unordered_multimap<dm::ObjectId, CollisionTrackerRef> TrackerMap;
-
 class NavGridTile : public std::enable_shared_from_this<NavGridTile> {
 public:
    NavGridTile(NavGrid& ng, csg::Point3 const& index);
@@ -53,11 +51,11 @@ public:
    bool IsTerrain(csg::Cube3 const& bounds);
    bool IsTerrain(csg::Region3 const& region);
 
-   float GetMovementSpeedBonus(csg::Point3 const& offset);
+   void FlushDirty(NavGrid& ng);
 
-   int GetDataExpireTime() const;
-   void ClearTileData();
    bool IsDataResident() const;
+   void SetDataResident(bool enable, int time);
+   int GetDataExpireTime() const;
 
    csg::Point3 GetIndex() const;
 
@@ -102,7 +100,6 @@ private:
    bool IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube);
 
 private:
-   void RefreshTileData();
    void OnTrackerAdded(CollisionTrackerPtr tracker);
    void PruneExpiredChangeTrackers();
    bool ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb);

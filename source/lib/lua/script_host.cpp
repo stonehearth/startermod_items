@@ -949,8 +949,9 @@ void ScriptHost::LoadGame(om::ModListPtr mods, std::unordered_map<dm::ObjectId, 
    // Now run through all the tables on those datastores and convert the
    // pointers-to-datastore to pointers-to-controllers
    SH_LOG(7) << "restoring datastores controller data";
+   std::vector<luabind::object> visitedTables;
    for (om::DataStorePtr datastore : datastores) {
-      datastore->RestoreControllerData();
+      datastore->RestoreControllerData(visitedTables);
    }
    SH_LOG(7) << "finished restoring datastores controller data";
 
