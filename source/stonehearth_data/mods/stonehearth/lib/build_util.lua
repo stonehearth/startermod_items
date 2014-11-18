@@ -204,6 +204,14 @@ function build_util.is_footprint(entity)
    return entity:get_component('stonehearth:no_construction_zone') ~= nil
 end
 
+function build_util.has_walls(building)
+   for _, child in building:get_component('entity_container'):each_child() do
+     if child:get_component('stonehearth:wall') then
+       return true
+      end
+   end
+   return false
+end
 
 -- return the building the `blueprint` is contained in
 --

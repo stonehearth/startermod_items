@@ -1,5 +1,7 @@
 local build_util = require 'lib.build_util'
 
+local FLOOR = 'stonehearth:floor'
+
 local BuildingClientComponent = class()
 
 function BuildingClientComponent:initialize(entity, json)
@@ -30,6 +32,16 @@ end
 
 function BuildingClientComponent:get_all_structures()
    return self._sv.structures
+end
+
+function BuildingClientComponent:get_floors(floor_type)
+   local result = {}
+   for _, entry in pairs(self._sv.structures[FLOOR]) do
+      if entry.structure:get().category == floor_type or floor_type == nil then
+         table.insert(result, entry.entity)
+      end
+   end
+   return result
 end
 
 function BuildingClientComponent:get_building_footprint()
