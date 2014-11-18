@@ -1,11 +1,8 @@
 local TrapperClass = class() 
+local job_helper = require 'jobs.job_helper'
 
 function TrapperClass:initialize(entity)
-   self._sv._entity = entity
-   self._sv.last_gained_lv = 0
-   self._sv.is_current_class = false
-   self._sv.attained_perks = {}
-
+   job_helper.initialize(self._sv, entity)
    self:restore()
 end
 
@@ -22,21 +19,7 @@ function TrapperClass:restore()
 end
 
 function TrapperClass:promote(json)
-   self._sv.is_current_class = true
-   self._sv.job_name = json.name
-   self._sv.max_level = json.max_level
-
-   if not self._sv.is_max_level then
-      self._sv.is_max_level = false
-   end
-
-   if json.xp_rewards then
-      self._sv.xp_rewards = json.xp_rewards
-   end
-
-   if json.level_data then
-      self._sv.level_data = json.level_data
-   end
+   job_helper.promote(self._sv, json)
 
    self:_create_xp_listeners()
    self.__saved_variables:mark_changed()
@@ -68,6 +51,24 @@ end
 function TrapperClass:has_perk(id)
    return self._sv.attained_perks[id]
 end
+
+-- Called by the job component to do job-specific level up
+-- Increment our levels in this class by 1
+function TrapperClass:level_up()
+   job_helper.level_up(self._sv)
+
+   self.__saved_variables:mark_changed()
+end
+
+--Call when it's time to demote
+function TrapperClass:demote()
+   self:_remove_xp_listeners()
+   self._sv.is_current_class = false
+
+   self.__saved_variables:mark_changed()
+end
+
+--Private functions
 
 function TrapperClass:_create_xp_listeners()
    self._clear_trap_listener = radiant.events.listen(self._sv._entity, 'stonehearth:clear_trap', self, self._on_clear_trap)
@@ -109,20 +110,9 @@ end
 -- We actually want the XP to be gained on harvesting; this is mostly for testing purposes.
 function TrapperClass:_on_set_trap(args)
    --Comment in for testing, or write activation fn for autotests
-   --self._job_component:add_exp(90)
+   self._job_component:add_exp(90)
 end
 
--- Called by the job component to do job-specific level up
--- Increment our levels in this class by 1
-function TrapperClass:level_up()
-   self._sv.last_gained_lv = self._sv.last_gained_lv + 1
-
-   if self._sv.last_gained_lv == self._sv.max_level then
-      self._sv.is_max_level = true
-   end
-
-   self.__saved_variables:mark_changed()
-end
 
 -- Functions for level up
 

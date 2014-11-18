@@ -98,6 +98,7 @@
       
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:crook_talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
+      "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
 
       "trapper:trapping_grounds" : "file(jobs/trapper/trapping_grounds)",
       "trapper:knife" : "file(jobs/trapper/trapper_knife)",
@@ -987,6 +988,14 @@
          "controller" : "file(call_handlers/trapping_call_handler.lua)",
          "endpoint" : "server"
       },
+      "choose_pasture_location": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "create_pasture": {
+         "controller" : "file(call_handlers/shepherd_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "designate_mining_zone": {
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "client"
@@ -1200,6 +1209,7 @@
       "backpack" : "file(components/backpack/backpack_component.lua)",
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
+      "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",
@@ -1235,6 +1245,7 @@
       "fabricator" : "file(renderers/fabricator/fabricator_renderer.lua)",
       "fixture_fabricator" : "file(renderers/fixture_fabricator/fixture_fabricator_renderer.lua)",
       "farmer_field" : "file(renderers/farmer_field/farmer_field_renderer.lua)",
+      "shepherd_pasture" : "file(renderers/shepherd_pasture/shepherd_pasture_renderer.lua)", 
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",

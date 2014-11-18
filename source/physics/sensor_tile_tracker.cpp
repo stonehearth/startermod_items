@@ -89,7 +89,7 @@ void SensorTileTracker::UpdateFlags(int flags)
    if (flagsChanged) {
       // The flags have changed, so we definitely need to change what notifications we're
       // listening on.
-      NavGridTile& tile = navgrid.GridTileNonResident(_index);
+      NavGridTile& tile = navgrid.GridTile(_index);
 
       _ngtChangeGuard = tile.RegisterChangeCb([this](NavGridTile::ChangeNotification const& n) {
          CheckEntity(n.reason, n.entityId, n.tracker ? n.tracker->GetEntity() : nullptr);
@@ -104,7 +104,7 @@ void SensorTileTracker::UpdateFlags(int flags)
    }
 
    // Loop through every tracker on this tile and figure out if it overlaps our sensor bounds.
-   NavGridTile& tile = navgrid.GridTileNonResident(_index);
+   NavGridTile& tile = navgrid.GridTile(_index);
    tile.ForEachTracker([this](CollisionTrackerPtr tracker) {
       om::EntityPtr entity = tracker->GetEntity();
       dm::ObjectId entityId = entity->GetObjectId();
