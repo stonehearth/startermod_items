@@ -12,7 +12,7 @@ function WolfTest:__init()
 
    local civ = self:place_citizen(0, 0)
    local civ = self:place_citizen(1, 1)
-   self:place_item('stonehearth:oak_log', -2, -2)
+   self:place_item('stonehearth:resources:wood:oak_log', -2, -2)
    local player_id = radiant.entities.get_player_id(civ)
    local firepit = self:place_item('stonehearth:fire_pit', 3, 3, player_id)
    firepit:get_component('stonehearth:firepit'):light()

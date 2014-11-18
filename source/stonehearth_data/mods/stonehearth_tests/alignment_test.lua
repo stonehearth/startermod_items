@@ -89,8 +89,8 @@ function AlignmentTest:__init()
    x_start, z_start = col[4], row[1]
    x,z = x_start,z_start; dx,dz = 4,4
    self:_check_item('stonehearth:default_object', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:oak_log', x, z, dx, 0); x=x_start; z=z+dz;
-   self:_check_item('stonehearth:juniper_log', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:resources:wood:oak_log', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:resources:wood:juniper_log', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:wool_bundle', x, z, dx, 0); x=x_start; z=z+dz;
    self:_check_item('stonehearth:cloth_bolt', x, z, dx, 0); x=x_start; z=z+dz;
 

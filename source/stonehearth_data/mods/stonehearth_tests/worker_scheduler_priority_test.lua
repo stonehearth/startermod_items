@@ -9,7 +9,7 @@ function WorkerSchedulerPriorityTest:__init()
    self:create_world()
 
    -- A pile of wood...
-   self:place_item_cluster('stonehearth:oak_log', 5, 5, 4, 4);
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 5, 5, 4, 4);
 
    -- Two workers near the wood...
    local worker = self:place_citizen(13, 13)

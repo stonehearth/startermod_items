@@ -15,7 +15,7 @@
          "description": "An impressive specimen."
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:juniper_log", 
+         "resource": "stonehearth:resources:wood:juniper_log", 
          "durability": 15
       },
       "mob" : {

@@ -14,7 +14,7 @@
          "description": "It radiants a mysterious aura"
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:oak_log", 
+         "resource": "stonehearth:resources:wood:oak_log", 
          "durability": 40
       },
       "mob" : {

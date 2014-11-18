@@ -13,7 +13,7 @@ function WeaverTest:__init()
 
    -- put some items in the world
    self:place_item_cluster('stonehearth:rabbit_pelt', -10, -10, 2, 2)
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
    self:place_item_cluster('stonehearth:silkweed_bundle', 8, 0, 5, 5)
    self:place_item_cluster('stonehearth:cloth_bolt', 8, 5, 3, 3)
    self:place_item_cluster('stonehearth:thread', 12, 5, 3, 3)

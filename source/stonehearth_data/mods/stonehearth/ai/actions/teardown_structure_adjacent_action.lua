@@ -46,7 +46,7 @@ function TeardownStructureAdjacent:run(ai, entity, args)
 
    if fabricator:remove_block(block) then
       if not radiant.entities.increment_carrying(entity) then
-         local oak_log = radiant.entities.create_entity('stonehearth:oak_log')
+         local oak_log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
          local item_component = oak_log:add_component('item')
          item_component:set_stacks(1)
          radiant.entities.pickup_item(entity, oak_log)

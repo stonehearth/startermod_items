@@ -14,7 +14,7 @@ function ScenarioTest:__init()
    radiant.terrain.place_entity(banner_entity, location)
    town:set_banner(banner_entity)
 
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
    --self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
 
    -- Introduce a new person/scenario 

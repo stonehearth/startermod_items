@@ -2,8 +2,8 @@ local stockpile_tests = {}
 
 function stockpile_tests.restock_twice(autotest)
    autotest.env:create_person(2, 2, { job = 'worker' })
-   autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
-   autotest.env:create_entity(4, 5, 'stonehearth:oak_log')
+   autotest.env:create_entity(4, 4, 'stonehearth:resources:wood:oak_log')
+   autotest.env:create_entity(4, 5, 'stonehearth:resources:wood:oak_log')
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local counter = 0

@@ -29,44 +29,40 @@ $.widget( "stonehearth.stonehearthItemPalette", {
       this.element.append(this.palette);
    },
 
-   updateItems: function(data) {
+   updateItems: function(itemMap) {
       var self = this;
 
       // mark all items as not updated
       this.palette.find('.item').attr('updated', 0);   
       this.palette.find('.category').attr('update', 0);
 
-      // for each category
-      $.each(data, function(name, items) {
-         var categoryElement = self._findCategory(name);
-
-         // grab the items in this category and sort them
-         var arr = radiant.map_to_array(items);
-         
-         arr.sort(function(a, b){
-            return a.display_name - b.display_name
-         });
-         
-         $.each(arr, function(i, item) {
-            var itemElement = self._findElementForItem(item)
-            
-            if (!itemElement) {
-               itemElement = self._addItemElement(item);
-               categoryElement.append(itemElement);
-            }
-            self._updateItemElement(itemElement, item);
-
-            itemElement.attr('updated', 1)
-         })
+      // grab the items in this category and sort them
+      var arr = radiant.map_to_array(itemMap);
+      
+      arr.sort(function(a, b){
+         return a.display_name - b.display_name
       });
+
+      $.each(arr, function(i, item) {
+         var categoryElement = self._findCategory(item);
+         var itemElement = self._findElementForItem(item)
+         
+         if (!itemElement) {
+            itemElement = self._addItemElement(item);
+            categoryElement.append(itemElement);
+         }
+         self._updateItemElement(itemElement, item);
+
+         itemElement.attr('updated', 1)
+      })
 
       // anything that is not marked as updated needs to be removed
       self.palette.find('[updated=0]').remove();
       self.palette.find('.item').tooltipster();
    }.observes('inventory'),
 
-   _findCategory: function(name) {
-      var selector = "[category='" + name + "']";      
+   _findCategory: function(item) {
+      var selector = "[category='" + item.category + "']";      
       var match = this.palette.find(selector)[0];
 
       if (match) {
@@ -75,13 +71,13 @@ $.widget( "stonehearth.stonehearthItemPalette", {
 
          // new title element for the category
          $('<h2>')
-            .html(name)
+            .html(item.category)
             .appendTo(this.palette);
 
          // the category container element that items are inserted into
          return $('<div>')
             .addClass('downSection')
-            .attr('category', name)
+            .attr('category', item.category)
             .appendTo(this.palette)
       }
    },

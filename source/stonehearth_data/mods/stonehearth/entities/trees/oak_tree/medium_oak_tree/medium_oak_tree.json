@@ -21,7 +21,7 @@
          "description": "Sturdy, in the prime of life."
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:oak_log", 
+         "resource": "stonehearth:resources:wood:oak_log", 
          "durability": 12
       },
       "mob" : {

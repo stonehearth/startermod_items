@@ -69,7 +69,7 @@ function score_tests.town_score_test(autotest)
          player_id = player_id
       })
    local stockpile = autotest.env:create_stockpile(-2, -2)
-   local log = autotest.env:create_entity(-2, -2, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(-2, -2, 'stonehearth:resources:wood:oak_log')
    local session = {
       player_id = player_id,
    }

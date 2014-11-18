@@ -5,8 +5,8 @@ local stockpile_tests = {}
 -- make sure we can put 2 logs into the stockpile
 function stockpile_tests.restock_twice(autotest)
    autotest.env:create_person(2, 2, { job = 'worker' })
-   autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
-   autotest.env:create_entity(4, 5, 'stonehearth:oak_log')
+   autotest.env:create_entity(4, 4, 'stonehearth:resources:wood:oak_log')
+   autotest.env:create_entity(4, 5, 'stonehearth:resources:wood:oak_log')
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
    local counter = 0
@@ -28,7 +28,7 @@ end
 function stockpile_tests.abort_stockpile_creation(autotest)
    local carry_change_count = 0
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
-   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:resources:wood:oak_log')
    local stockpile = autotest.env:create_stockpile(4, 8)
 
    radiant.events.listen(worker, 'stonehearth:carry_block:carrying_changed', function (e)
@@ -63,7 +63,7 @@ function stockpile_tests.dont_pickup_stocked_items(autotest)
       end)
 
    -- the potentially test killing log!
-   autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
+   autotest.env:create_entity(4, 4, 'stonehearth:resources:wood:oak_log')
 
 
    autotest:sleep(1000)
@@ -82,7 +82,7 @@ function stockpile_tests.restock_items_when_falling_out_of_filter(autotest)
       end)
 
    -- this log's in stockpile_a...
-   autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
+   autotest.env:create_entity(4, 4, 'stonehearth:resources:wood:oak_log')
 
    -- wait a little bit and change a's filter to include nothing.  this should
    -- make the worker pick it up and move it to b
@@ -108,7 +108,7 @@ function stockpile_tests.restock_newly_created_items(autotest)
          autotest:success()
          return radiant.events.UNLISTEN
       end)
-   autotest.env:create_entity(4, 4, 'stonehearth:oak_log')
+   autotest.env:create_entity(4, 4, 'stonehearth:resources:wood:oak_log')
 
    autotest:sleep(1000)
    autotest:fail('worker did not find newly created log')
