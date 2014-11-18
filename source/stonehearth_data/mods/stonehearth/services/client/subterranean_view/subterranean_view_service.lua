@@ -80,7 +80,7 @@ function SubterraneanViewService:_create_interior_region_traces()
 
    self._interior_region_map_trace = terrain_component:trace_interior_tiles('subterranean view', TraceCategories.SYNC_TRACE)
       :on_added(function(index, region3i_boxed)
-            local trace = region3i_boxed:trace_changes('subterranean view', TraceCategories.SYNC_TRACE)
+            local trace = region3i_boxed:trace('subterranean view', TraceCategories.SYNC_TRACE)
                :on_changed(function()
                      self:_mark_dirty(index:to_float())
                   end)
