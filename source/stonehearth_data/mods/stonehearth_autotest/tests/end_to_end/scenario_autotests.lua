@@ -44,7 +44,7 @@ function score_tests.simple_carvan(autotest)
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
 
    local stockpile = autotest.env:create_stockpile(-2, -2)
-   local log = autotest.env:create_entity(3, 3, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(3, 3, 'stonehearth:resources:wood:oak_log')
    local has_taken_object = false
    local has_given_object = false
 

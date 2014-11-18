@@ -5,7 +5,7 @@ function CollisionTest:__init()
    self[MicroWorld]:__init()
    self:create_world()
 
-   self:place_item_cluster('stonehearth:oak_log', 5, -5, 4, 4);
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 5, -5, 4, 4);
    self:place_item_cluster('stonehearth:berry_basket', -5, -5, 4, 4);
 
    local worker = self:place_citizen(13, 13)

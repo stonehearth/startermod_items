@@ -10,11 +10,11 @@
       "expiration_timeout" : "1h",
       "message" : "Hello __town_name__! I come bearing goods for trade. Would you like to give me __your_quantity__ __your_item__(s) in exchange for __my_quantity__ __my_item__(s)?",
       "trades" : {
-         "stonehearth:oak_log" : {
+         "stonehearth:resources:wood:oak_log" : {
             "min" : 2, 
             "max" : 20
          }, 
-         "stonehearth:juniper_log": {
+         "stonehearth:resources:wood:juniper_log": {
             "min" : 2, 
             "max" : 20
          }, 

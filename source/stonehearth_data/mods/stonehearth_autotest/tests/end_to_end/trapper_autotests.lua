@@ -5,7 +5,7 @@ local trapper_tests = {}
 function trapper_tests.basic(autotest)
    local trapping_grounds = autotest.env:create_trapping_grounds(-30, -30, { size = { x = 60, z = 30 }})
    local stockpile = autotest.env:create_stockpile(15, 15, { size = { x = 4, y = 4 }})
-   local log = autotest.env:create_entity(7, 7, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(7, 7, 'stonehearth:resources:wood:oak_log')
    local trapper = autotest.env:create_person(5, 5, { job = 'trapper' })
    local count = 0
 

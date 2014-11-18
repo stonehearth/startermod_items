@@ -169,12 +169,13 @@
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
       
 
-      "oak_log" : "file(entities/trees/oak_tree/oak_log)",
+      "resources:wood:oak_log" : "file(entities/resources/wood/oak_log)",
+      "resources:wood:juniper_log" : "file(entities/resources/wood/juniper_log)",
+
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
       "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
       "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
       "ancient_oak_tree" : "file(entities/trees/oak_tree/ancient_oak_tree)",
-      "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
       "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
       "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
       "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",

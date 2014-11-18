@@ -250,6 +250,13 @@ function XZRegionSelector:_get_hover_brick(x, y)
          if self._allow_select_cursor and not result.entity then
             return true
          end
+
+         if result.entity then
+            local re = _radiant.client.get_render_entity(result.entity)
+            if re and re:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+         end
          return self._find_support_filter_fn(result, self)
       end)
    return brick

@@ -8,7 +8,7 @@ local firepit_autotests = {}
 function firepit_autotests.light_fire(autotest)
    local worker = autotest.env:create_person(10, 10, { job = 'worker' })
    local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit', { force_iconic = false })
-   local wood = autotest.env:create_entity(-5, -5, 'stonehearth:oak_log')
+   local wood = autotest.env:create_entity(-5, -5, 'stonehearth:resources:wood:oak_log')
    radiant.entities.set_player_id(firepit, radiant.entities.get_player_id(worker))
 
    local is_lit_at_night = false
@@ -60,8 +60,8 @@ function firepit_autotests.move_lit_fire(autotest)
    local worker = autotest.env:create_person(10, 10, { job = 'worker' })
    local worker2 = autotest.env:create_person(8, 8, { job = 'worker' })
    local firepit = autotest.env:create_entity(0, 0, 'stonehearth:firepit', { force_iconic = false })
-   local wood = autotest.env:create_entity(-5, -5, 'stonehearth:oak_log')
-   local wood2 = autotest.env:create_entity(-6, -5, 'stonehearth:oak_log')
+   local wood = autotest.env:create_entity(-5, -5, 'stonehearth:resources:wood:oak_log')
+   local wood2 = autotest.env:create_entity(-6, -5, 'stonehearth:resources:wood:oak_log')
    radiant.entities.set_player_id(firepit, radiant.entities.get_player_id(worker))
 
    --Make it night time so they light the fire

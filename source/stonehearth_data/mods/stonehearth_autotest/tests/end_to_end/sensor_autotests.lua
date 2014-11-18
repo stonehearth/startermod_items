@@ -84,7 +84,7 @@ end
 -- make sure a sensor doesn't detect things out of range.
 function sensor_tests.out_of_range(autotest)
    local entity = create_default_sensor(autotest)
-   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:resources:wood:oak_log')
 
    local path = {
       OUTSIDE_SENSOR_2,
@@ -106,7 +106,7 @@ end
 
 function sensor_tests.move_out_of_range(autotest)
    local entity = create_default_sensor(autotest)
-   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:resources:wood:oak_log')
 
    local function move_out_of_range(inside, outside)
       autotest:log('moving %s from inside to outside sensor range (%d, %d -> %d, %d)', log, inside.x, inside.z, outside.x, outside.z)
@@ -124,7 +124,7 @@ end
 
 function sensor_tests.move_into_range(autotest)
    local entity = create_default_sensor(autotest)
-   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:oak_log')
+   local log = autotest.env:create_entity(OUTSIDE_SENSOR_1.x, OUTSIDE_SENSOR_1.z, 'stonehearth:resources:wood:oak_log')
 
    local function move_into_range(outside, inside)
       autotest:log('moving %s from outside to inside sensor range (%d, %d -> %d, %d)', log, outside.x, outside.z, inside.x, inside.z)
@@ -152,7 +152,7 @@ function sensor_tests.moving_sensor(autotest)
             z = z + SENSOR_POS.z
          }
          table.insert(logs, {
-               log = autotest.env:create_entity(position.x, position.z, 'stonehearth:oak_log'),
+               log = autotest.env:create_entity(position.x, position.z, 'stonehearth:resources:wood:oak_log'),
                position = position
             })
       end

@@ -2,8 +2,8 @@ local luabind_tests = {}
 
 -- tests to make sure operator== works on userdata types
 function luabind_tests.equality(autotest)
-   local e0 = autotest.env:create_entity(0, 0, 'stonehearth:oak_log')
-   local f = autotest.env:create_entity(0, 0, 'stonehearth:oak_log')
+   local e0 = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
+   local f = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
    local e1 = radiant.get_object(e0:get_id())
    local e2 = e1
 

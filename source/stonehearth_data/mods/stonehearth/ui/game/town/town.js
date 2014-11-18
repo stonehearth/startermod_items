@@ -93,6 +93,11 @@ App.StonehearthTownView = App.View.extend({
       if (this.radiantTraceJournals) {
          this.radiantTraceJournals.destroy();
       }
+
+      if (this._playerInventoryTrace) {
+         this._playerInventoryTrace.destroy();
+      }
+
       this._super();
    },
 
@@ -101,7 +106,22 @@ App.StonehearthTownView = App.View.extend({
       this._super();
       this._updateUi();
 
-      this.set('tracker', 'stonehearth:basic_inventory_tracker')
+      //inventory tab
+      this._inventoryPalette = this.$('#inventoryPalette').stonehearthItemPalette({
+         cssClass: 'inventoryItem',
+      });
+
+      radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:basic_inventory_tracker')
+         .done(function(response) {
+            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
+               .progress(function(response) {
+                  self._inventoryPalette.stonehearthItemPalette('updateItems', response.tracking_data);
+               });
+         })
+         .fail(function(response) {
+            console.error(response);
+         });
+
       
       this.$('.tab').click(function() {
          var tabPage = $(this).attr('tabPage');

@@ -78,16 +78,13 @@ function Shop:stock_shop()
          local item = shop_item:get_component('item')
          local category = radiant.entities.get_category(shop_item)
 
-         if not self._sv.shop_inventory[category] then
-            self._sv.shop_inventory[category] = {}
-         end
-
-         self._sv.shop_inventory[category][uri] = {
+         self._sv.shop_inventory[uri] = {
             uri = uri,
             display_name = unit_info:get_display_name(),
             icon = unit_info:get_icon(),
             item = shop_item,
             cost = item_cost,
+            category = category,
             num = 99,
          }
       end
@@ -107,14 +104,11 @@ function Shop:buy_item(uri, quantity)
    -- do we have enough gold?
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
    local gold = inventory:get_gold_count()
-
-   local category = radiant.entities.get_category(all_sellable_items[uri])
-
-   local item_cost = self._sv.shop_inventory[category][uri].cost
+   local item_cost = self._sv.shop_inventory[uri].cost
 
    -- can't buy more than what's in the shop
-   if buy_quantity > self._sv.shop_inventory[category][uri].num then
-      buy_quantity = self._sv.shop_inventory[category][uri].num
+   if buy_quantity > self._sv.shop_inventory[uri].num then
+      buy_quantity = self._sv.shop_inventory[uri].num
    end
 
    -- if we can't afford as many as we want, buy fewer
@@ -128,7 +122,7 @@ function Shop:buy_item(uri, quantity)
    local total_cost = item_cost * buy_quantity
 
    -- remove the items from my inventory
-   self._sv.shop_inventory[category][uri].num = self._sv.shop_inventory[category][uri].num - buy_quantity
+   self._sv.shop_inventory[uri].num = self._sv.shop_inventory[uri].num - buy_quantity
    self.__saved_variables:mark_changed()
 
    -- deduct gold from the player

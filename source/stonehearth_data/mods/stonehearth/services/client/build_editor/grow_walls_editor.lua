@@ -27,7 +27,7 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
                return stonehearth.selection.FILTER_IGNORE
             end
             building = build_util.get_building_for(entity)
-            return building ~= nil and not self:_has_walls(building)
+            return building ~= nil and not self:is_road(building) and not build_util.has_walls(building)
          end)
       :done(function(selector, entity)
             log:detail('box selected')
@@ -45,13 +45,19 @@ function GrowWallsEditor:go(response, columns_uri, walls_uri)
    return self
 end
 
-function GrowWallsEditor:_has_walls(building)
-   for _, child in building:get_component('entity_container'):each_child() do
-     if child:get_component('stonehearth:wall') then
-       return true
+-- NOTE: client-side components only!  That's why this is here, and not in build_util.
+-- Iffy.  Right now, my thinking is roads can only be merged with other roads, and roads
+-- cannot have walls grown on them (and therefore no roofs).  Maybe they can have fixtures?
+-- (Lampposts, other doodads.)
+function GrowWallsEditor:is_road(building)
+   for _, floor in pairs(building:get_component('stonehearth:building'):get_floors()) do
+      local floor_type = floor:get_component('stonehearth:floor'):get().category
+      if floor_type == constants.floor_category.ROAD or floor_type == constants.floor_category.CURB then
+         return true
       end
    end
    return false
 end
+
 
 return GrowWallsEditor 

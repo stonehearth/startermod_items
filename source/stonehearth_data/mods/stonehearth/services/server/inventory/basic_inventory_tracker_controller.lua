@@ -44,6 +44,7 @@ function BasicInventoryTracker:add_entity_to_tracking_data(entity, tracking_data
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
+         category = radiant.entities.get_category(entity),
       }
    end
 

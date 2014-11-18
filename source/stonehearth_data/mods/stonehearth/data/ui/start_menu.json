@@ -139,8 +139,7 @@
             "description" : "The shepard will bring animals here to graze.",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/zone_pasture.png",
-            "sticky" : true,
-            "hotkey" : "a"
+            "sticky" : true
          }
       }
    },

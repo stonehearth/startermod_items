@@ -12,6 +12,7 @@ function ZoneRenderer:__init(render_entity, model_collision_check)
    self._items = {}
    self._parent_node = render_entity:get_node()
    self._use_coarse_collision = model_collision_check and 0 or 1
+   self._is_selectable = true
 
    self:set_size(Point2.zero)
    self:_on_ui_mode_changed()
@@ -28,6 +29,12 @@ function ZoneRenderer:destroy()
 
    self:_destroy_designation_node()
    self:_destroy_ground_node()
+end
+
+function ZoneRenderer:set_is_selectable(v)
+   self._is_selectable = v
+
+   self:_update_selectable()
 end
 
 -- size is a Point2
@@ -91,6 +98,11 @@ function ZoneRenderer:set_current_items(current_items)
    return self
 end
 
+function ZoneRenderer:_update_selectable()
+   local ground_selectable = self:_in_hud_mode() and self._is_selectable
+   stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
+end
+
 function ZoneRenderer:_update_item_states(items, ghost_mode)
    for id, item in pairs(items) do
       if item:is_valid() then
@@ -128,7 +140,8 @@ function ZoneRenderer:_on_ui_mode_changed()
       self:_regenerate_designation_node()
       -- no need to regenerate ground node
 
-      local ground_selectable = self:_in_hud_mode()
+      self:_update_selectable()
+      local ground_selectable = self:_in_hud_mode() and self._is_selectable
       stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
    end
 end
