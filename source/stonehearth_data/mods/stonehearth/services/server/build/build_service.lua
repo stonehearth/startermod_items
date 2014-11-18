@@ -542,22 +542,21 @@ function BuildService:_merge_overlapping_floor(existing_floor, floor_uri, new_fl
       end
    end
 
-   -- merge all the floors into the single floor we picked out earlier.
+   -- Merge all the floors into the single floor we picked out earlier.
    for _, old_floor in pairs(existing_floor) do
       if old_floor ~= floor then
          local floor_origin = radiant.entities.get_world_location(old_floor)
          self:_merge_overlapping_floor_trivial(floor, old_floor:get_component('destination'):get_region():get():translated(floor_origin), brush_shape)
+         self:unlink_entity(old_floor)
       end
    end
 
-   -- now unlink all the old buildings.
-   local buildings_to_merge = {}
+   -- Overlapping floors have been merged and unlinked.  Now, merge and unlink those buildings.
    local floor_building = build_util.get_building_for(floor)
    for _, old_floor in pairs(existing_floor) do
       local building = build_util.get_building_for(old_floor)
       if building ~= floor_building then
-         self:unlink_entity(building)
-         self:unlink_entity(old_floor)
+         self:_merge_building_into(floor_building, building)
       end
    end
 
