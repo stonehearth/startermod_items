@@ -1122,6 +1122,7 @@
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
+      "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
@@ -1151,7 +1152,6 @@
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
-      "shop:sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },

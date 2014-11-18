@@ -17,8 +17,8 @@ function ShopTest:__init()
    self:place_item_cluster('stonehearth:loot:gold', -10, 15, 3, 3)
    self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
    
-   --local worker = self:place_citizen(12, 12)
-   --self:place_citizen(14, 14)
+   local worker = self:place_citizen(12, 12)
+   self:place_citizen(14, 14)
    
 
    --Place a banner

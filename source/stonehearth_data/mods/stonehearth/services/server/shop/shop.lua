@@ -96,7 +96,6 @@ function Shop:stock_shop()
    end
 
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
-   self._sv.player_inventory = inventory:add_item_tracker('stonehearth:shop:sellable_item_tracker')
 
    self.__saved_variables:mark_changed()
 end

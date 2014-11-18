@@ -26,35 +26,13 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self._super();
 
 
-      if (this._shopTrace) {
+      if (this.__shopTrace) {
          return;
       }
 
       // build the inventory palettes
-      this._buyPalette = this.$('#buyList').stonehearthItemPalette({
-         cssClass: 'shopItem',
-         itemAdded: function(itemEl, itemData) {
-            itemEl.attr('cost', itemData.cost);
-            itemEl.attr('num', itemData.num);
-
-            $('<div>')
-               .addClass('cost')
-               .html(itemData.cost + 'g')
-               .appendTo(itemEl);
-
-         },
-         click: function(item) {
-            self._updateBuyButtons();
-         }
-      });
-
-
-      self.shopTrace = new StonehearthDataTrace(this.get('context.data.shop'), {});
-
-      self.shopTrace.progress(function(eobj) {
-            self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
-         });
-
+      self._buildBuyPalette();
+      self._buildSellPalette();
 
       self.$().on('click', '#sellList .row', function() {        
          self.$('#sellList .row').removeClass('selected');
@@ -106,6 +84,66 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          }
       })      
 
+   },
+
+   _buildBuyPalette: function() {
+      var self = this;
+
+      this._buyPalette = this.$('#buyList').stonehearthItemPalette({
+         cssClass: 'shopItem',
+         itemAdded: function(itemEl, itemData) {
+            itemEl.attr('cost', itemData.cost);
+            itemEl.attr('num', itemData.num);
+
+            $('<div>')
+               .addClass('cost')
+               .html(itemData.cost + 'g')
+               .appendTo(itemEl);
+
+         },
+         click: function(item) {
+            self._updateBuyButtons();
+         }
+      });
+
+
+      self._shopTrace = new StonehearthDataTrace(this.get('context.data.shop'), {});
+
+      self._shopTrace.progress(function(eobj) {
+            self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
+         });
+   },
+
+   _buildSellPalette: function() {
+      var self = this;
+      
+      this._sellPalette = this.$('#sellList').stonehearthItemPalette({
+         cssClass: 'shopItem',
+         itemAdded: function(itemEl, itemData) {
+            itemEl.attr('cost', itemData.cost);
+            itemEl.attr('num', itemData.num);
+
+            $('<div>')
+               .addClass('cost')
+               .html(itemData.cost + 'g')
+               .appendTo(itemEl);
+
+         },
+         click: function(item) {
+            self._updateSellButtons();
+         }
+      });
+
+      return radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:sellable_item_tracker')
+         .done(function(response) {
+            self._playerInventoryTrace = new StonehearthDataTrace(response.tracker, {})
+               .progress(function(response) {
+                  self._sellPalette.stonehearthItemPalette('updateItems', response.tracking_data);
+               });
+         })
+         .fail(function(response) {
+            console.error(response);
+         })     
    },
 
    _doBuy: function(quantity) {
@@ -200,6 +238,10 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    destroy: function() {
       if (this._shopTrace) {
          this._shopTrace.destroy();
+      }
+
+      if (this._playerInventoryTrace) {
+         this._playerInventoryTrace.destroy();
       }
 
       this._super();
