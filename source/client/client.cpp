@@ -1783,9 +1783,8 @@ void Client::RestoreDatastores()
 
    // Now run through all the tables on those datastores and convert the
    // pointers-to-datastore to pointers-to-controllers
-   std::vector<luabind::object> visitedTables;
    for (om::DataStorePtr d : datastores_to_restore_) {
-      d->RestoreControllerData(visitedTables);
+      d->RestoreControllerData();
    }
    datastores_to_restore_.clear();
 }
