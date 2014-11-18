@@ -146,21 +146,19 @@ void RenderTerrainTile::UpdateGeometry(int clip_height, std::shared_ptr<csg::Reg
             // add any blocks that extend up to the clip plane, but do not cross it
             csg::Region2 residual = plane - cross_section;
             new_plane += residual;
-            //T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << new_plane.GetArea() << ")";
-            //g[pi.reduced_value].AddUnique(new_plane);
+            T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << new_plane.GetArea() << ")";
+            g[pi.reduced_value].AddUnique(new_plane);
          } else {
             csg::Region2 const* clipper = GetClipPlaneFor(pi);
             if (clipper) {
                new_plane = plane - *clipper;
-              // T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << (plane - *clipper).GetArea() << ")";
-               //g[pi.reduced_value].AddUnique(new_plane);
+               T_LOG(9) << "adding clipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << " area: " << new_plane.GetArea() << ")";
+               g[pi.reduced_value].AddUnique(new_plane);
             } else {
-               new_plane = plane;
-               //T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
-               //g[pi.reduced_value].AddUnique(plane);
+               T_LOG(9) << "adding unclipped " << planes[pi.which] << " plane (@: " << coords[pi.reduced_coord] << " == " << pi.reduced_value << ")";
+               g[pi.reduced_value].AddUnique(plane);
             }
          }
-         g[pi.reduced_value].AddUnique(new_plane);
       });
    }
 }
