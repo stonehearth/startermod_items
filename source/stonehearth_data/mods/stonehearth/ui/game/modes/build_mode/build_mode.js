@@ -8,6 +8,12 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
       }      
    },
 
+   // Sigh--keep in sync with mods/stonehearth/constants.lua
+   constants : {
+      ROAD: 2,
+      CURB: 4
+   },
+
    init: function() {
       this._super();
 
@@ -118,7 +124,8 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
    _isRoad: function(entity) {
       return entity['stonehearth:fabricator'] && 
             entity['stonehearth:fabricator'].blueprint['stonehearth:floor'] &&
-            entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == 2;
+            (entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == this.constants.ROAD ||
+             entity['stonehearth:fabricator'].blueprint['stonehearth:floor'].category == this.constants.CURB);
    },
 
    _onStateChanged: function() {
