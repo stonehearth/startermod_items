@@ -68,6 +68,7 @@ private:
    void ImportModMixintoEntry(std::string const& modname, std::string const& name, std::string const& path);
    void ImportModOverrides(std::string const& modname, json::Node const& overrides);
    std::shared_ptr<std::istream> OpenResourceCanonical(std::string const& stream) const;
+   bool IsValidModule(std::string const& modname, std::unique_ptr<IModule> const& module);
 
 private:
    bool                                            _modDirectoryChanged;

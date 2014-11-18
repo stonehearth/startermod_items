@@ -1,6 +1,7 @@
 {
    "info" : {
-      "name" : "Autotest Framework"
+      "name" : "Autotest Framework",
+      "version" : 1
    },
 
    "server_init_script" : "file(autotest_framework_server)",

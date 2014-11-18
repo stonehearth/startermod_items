@@ -7,6 +7,7 @@
 #include "render_component.h"
 #include "h3d_resource_types.h"
 #include "om/om.h"
+#include "om/tiled_region.h"
 #include "dm/dm.h"
 #include "csg/util.h"
 #include "render_node.h"
@@ -28,6 +29,8 @@ public:
    void AddCut(om::Region3fBoxedPtr const& cut);
    void RemoveCut(om::Region3fBoxedPtr const& cut);
    void SetClipHeight(int height);
+   void EnableXrayMode(bool enabled);
+   om::Region3TiledPtr GetXrayTiles();
 
 private:
    void LoadColorMap();
@@ -43,6 +46,8 @@ private:
 
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
 
+   csg::Point3 IndexToLocation(csg::Point3 const& index);
+   csg::Point3 LocationToIndex(csg::Point3 const& location);
    csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
    csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
 
@@ -68,6 +73,9 @@ private:
    std::unordered_map<dm::ObjectId, csg::Region3> _cutToICut;
    std::unordered_map<dm::ObjectId, dm::TracePtr> _cut_trace_map;
    int                  _clip_height;
+   bool                 _enable_xray_mode;
+   std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> _xray_region_tiles;
+   om::Region3TiledPtr _xray_tiles_accessor;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

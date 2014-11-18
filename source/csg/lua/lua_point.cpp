@@ -55,6 +55,12 @@ csg::Point<double, C> Pointf_ToInt(csg::Point<double, C> const& p)
    return csg::ToFloat(csg::ToInt(p));
 }
 
+template <int C>
+csg::Point<double, C> Pointi_ToFloat(csg::Point<int, C> const& p)
+{
+   return csg::ToFloat(p);
+}
+
 // This looks weird, right?  It's the Lua call to "convert this possibly doubleing point number
 // to a grid address, which is an integer whole number".  To do this, we use ToClosestInt.  Then,
 // to push it back into Lua, we have to convert it back into a double!  Crazy!!
@@ -139,6 +145,8 @@ scope LuaPoint::RegisterLuaTypes(lua_State* L)
          .def(const_self * double())
          .def(const_self / double())
          .def("lerp",   (Point3f (*)(Point3f const& a, Point3f const& b, double alpha))&csg::Interpolate),
+      Register3<Point3>(L, "Point3i")
+         .def("to_float",           &Pointi_ToFloat<3>),
       lua::RegisterType<Transform>("Transform")
          .def("lerp",   (Transform (*)(Transform const& a, Transform const& b, double alpha))&csg::Interpolate),
       lua::RegisterType<Color3>("Color3")

@@ -16,12 +16,14 @@ function MiningService:initialize()
 
    self._sv = self.__saved_variables:get_data()
 
-   self:_init_loot_tables()
-
    if not self._sv.initialized then
       self._sv.initialized = true
    else
    end
+
+   self:_init_loot_tables()
+
+   self._interior_tiles = radiant._root_entity:add_component('terrain'):get_interior_tiles()
 end
 
 function MiningService:destroy()
@@ -309,7 +311,9 @@ end
 
 -- temporary location for this function
 function MiningService:mine_point(point)
+   -- TODO: terrain tiles need to be checked for optimization
    radiant.terrain.subtract_point(point)
+   self:_update_interior_region(point)
 end
 
 function MiningService:_insta_mine(region)
@@ -318,6 +322,38 @@ function MiningService:_insta_mine(region)
    for point in terrain_region:each_point() do
       self:mine_point(point)
    end
+end
+
+function MiningService:_update_interior_region(point)
+   local cube = self:_get_interior_column(point)
+
+   if cube then
+      self._interior_tiles:add_cube(cube)
+      self._interior_tiles:optimize_changed_tiles() -- TODO: don't do this every time
+   end
+end
+
+function MiningService:_get_interior_column(point)
+   local y_min = point.y
+   local y_max = y_min + 5 -- TODO: determine limit
+   local test_point = Point3(point)
+
+   for y = y_min, y_max do
+      test_point.y = y
+      if radiant.terrain.is_terrain(test_point) then
+         break
+      end
+   end
+
+   if test_point.y == y_min then
+      -- point was not an interior point
+      -- for clarity, return nil instead of a zero height cube
+      return nil
+   end
+
+   local cube = Cube3(point, point + Point3.one)
+   cube.max.y = test_point.y
+   return cube
 end
 
 return MiningService

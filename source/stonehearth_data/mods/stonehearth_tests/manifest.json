@@ -1,6 +1,7 @@
 {
    "info" :{
-      "name" : "Stonehearth Unit Tests"
+      "name" : "Stonehearth Unit Tests",
+      "version" : 1
    },
 
    "server_init_script" : "file(stonehearth_tests_server)",

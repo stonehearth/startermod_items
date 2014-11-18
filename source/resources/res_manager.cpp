@@ -34,6 +34,8 @@ using namespace ::radiant::res;
 static const std::regex file_macro_regex__("^file\\((.*)\\)$");
 static const std::regex alias_macro_regex__("^([^:\\\\/]+):([^\\\\/]+)$");
 
+#define MODULE_MIN_VERSION    1
+
 // === Helper Functions ======================================================
 
 static std::vector<std::string> SplitPath(std::string const& path)
@@ -151,8 +153,12 @@ void ResourceManager2::LoadModules()
       if (fs::is_directory(path)) {
          std::string const module_name = path.filename().string();
          ASSERT(!stdutil::contains(modules_, module_name));
-         modules_[module_name] = std::unique_ptr<IModule>(new DirectoryModule(path));
-         _modDirectoryChanged = true;
+
+         std::unique_ptr<IModule> module(new DirectoryModule(path));
+         if (IsValidModule(module_name, module)) {
+            modules_[module_name].swap(module);
+            _modDirectoryChanged = true;
+         }
       }
    }
 
@@ -166,7 +172,11 @@ void ResourceManager2::LoadModules()
          if (stdutil::contains(modules_, module_name)) {
             continue;
          }
-         modules_[module_name] = std::unique_ptr<IModule>(new ZipModule(module_name, path));
+         std::unique_ptr<IModule> module(new ZipModule(module_name, path));
+         if (!IsValidModule(module_name, module)) {
+            continue;
+         }
+
          if (!_modDirectoryChanged) {
             std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name), "");
             if (goodhash.empty()) {
@@ -692,4 +702,37 @@ voxel::QubicleFile const* ResourceManager2::LookupQubicleFile(std::string const&
    qubicle_files_[path] = f;
 
    return f.get();
+}
+
+bool ResourceManager2::IsValidModule(std::string const& modname, std::unique_ptr<IModule> const& module)
+{
+   std::shared_ptr<std::istream> is;
+   try {
+      is = module->OpenResource("manifest.json");
+      if (!is) {
+         RES_LOG(1) << "error looking for manifest in " << modname << ": file not found";
+         return false;
+      }
+   } catch (Exception &e) {
+      RES_LOG(1) << "error looking for manifest in " << modname << ": " << e.what();
+      return false;
+   }
+
+   JSONNode node;
+   std::string error;
+   if (!json::ReadJson(*is, node, error)) {
+      RES_LOG(1) << "Error reading manifest of " << modname << ": " << error;
+      return false;
+   }
+   json::Node manifest(node);
+   if (!manifest.has("info.version")) {
+      RES_LOG(1) << "Manifest of " << modname << " is missing \"version\" in \"info\" header.";
+      return false;
+   }
+   int version = manifest.get<int>("info.version", 0);
+   if (version < MODULE_MIN_VERSION) {
+      RES_LOG(1) << "Module " << modname << " version " << version << " is out of data (expected: " << MODULE_MIN_VERSION << ")";
+      return false;
+   }
+   return true;
 }

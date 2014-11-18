@@ -11,9 +11,9 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
-static const csg::Point3 TILE_SIZE(32, 5, 32);
-
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
+
+static const csg::Point3 TILE_SIZE(32, 5, 32);
 
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
@@ -59,7 +59,7 @@ void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clip
    csg::Region3 tesselated = terrainTesselator_.TesselateTerrain(src, clipper);
 
    csg::PartitionRegionIntoChunksSlow(tesselated, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& region) {
-      Region3BoxedPtr tile = GetTile(index);
+      Region3BoxedPtr tile = GetTiles()->GetTile(index);
       tile->Modify([&region](csg::Region3& cursor) {
          cursor += region;
          cursor.OptimizeByMerge();
@@ -106,76 +106,26 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
    return csg::ToFloat(pt);
 }
 
-void Terrain::AddCube(csg::Cube3f const& cube)
+Region3BoxedTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
 {
-   AddRegion(cube);
+   std::shared_ptr<Region3BoxedMapWrapper> wrapper = std::make_shared<Region3BoxedMapWrapper>(tiles);
+   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, wrapper);
 }
 
-void Terrain::AddRegion(csg::Region3f const& r)
+Region3BoxedTiledPtr Terrain::GetTiles()
 {
-   csg::Region3 region = csg::ToInt(r);
-
-   csg::PartitionRegionIntoChunksSlow(region, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& subregion) {
-      Region3BoxedPtr tile = GetTile(index);
-      tile->Modify([&subregion](csg::Region3& cursor) {
-         cursor += subregion;
-      });
-      return false; // don't stop!
-   });
-}
-
-void Terrain::SubtractCube(csg::Cube3f const& cube)
-{
-   SubtractRegion(cube);
-}
-
-void Terrain::SubtractRegion(csg::Region3f const& r)
-{
-   csg::Region3 region = csg::ToInt(r);
-
-   csg::PartitionRegionIntoChunksSlow(region, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& subregion) {
-      Region3BoxedPtr tile = GetTile(index);
-      tile->Modify([&subregion](csg::Region3& cursor) {
-         cursor -= subregion;
-      });
-      return false; // don't stop!
-   });
-}
-
-csg::Region3f Terrain::IntersectCube(csg::Cube3f const& cube)
-{
-   return IntersectRegion(cube);
-}
-
-csg::Region3f Terrain::IntersectRegion(csg::Region3f const& r)
-{
-   csg::Region3 region = csg::ToInt(r);   // we expect r to be simple relative to the terrain tiles
-   csg::Region3f result;
-   csg::Cube3 chunks = csg::GetChunkIndexSlow(csg::ToInt(region.GetBounds()), TILE_SIZE);
-
-   for (csg::Point3 const& index : csg::EachPoint(chunks)) {
-      auto i = tiles_.find(index);
-      if (i != tiles_.end()) {
-         Region3BoxedPtr tile = i->second;
-         csg::Region3 intersection = tile->Get() & region;
-         result.AddUnique(csg::ToFloat(intersection));
-      }
+   if (!tile_accessor_) {
+      tile_accessor_ = CreateTileAccessor(tiles_);
    }
-
-   return result;
+   return tile_accessor_;
 }
 
-Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)
+Region3BoxedTiledPtr Terrain::GetInteriorTiles()
 {
-   Region3BoxedPtr tile;
-   auto i = tiles_.find(index);
-   if (i != tiles_.end()) {
-      tile = i->second;
-   } else {
-      tile = GetStore().AllocObject<Region3Boxed>();
-      tiles_.Add(index, tile);
+   if (!interior_tile_accessor_) {
+      interior_tile_accessor_ = CreateTileAccessor(interior_tiles_);
    }
-   return tile;
+   return interior_tile_accessor_;
 }
 
 csg::Point3 const& Terrain::GetTileSize() const
