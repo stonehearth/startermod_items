@@ -22,9 +22,6 @@ App.StonehearthBuildingDesignerTools = App.StonehearthBuildingDesignerBaseTools.
       this.newTool(GrowRoofTool);
       this.newTool(DrawSlabTool);
 
-      // track placeable items and hand them off to the place item picker (in the html)
-      this.set('tracker', 'stonehearth:placeable_item_inventory_tracker')
-
       // Make sure we call super after adding all the tools!
       this._super();
    }

@@ -20,61 +20,34 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          })
    },
 
-   _expandInventory: function() {
-      var self = this
-
-      var components = 
-         {
-            'inventory' : {
-               '*' : {
-                  'item' : {
-                     'unit_info' : {}
-                  }
-               }
-            },
-            'player_inventory' : {
-               'tracking_data' : {
-                  '*' : {
-                     'item' : {
-                        'unit_info' : {}
-                     }
-                  }               
-               }
-            }
-         };
-
-      var shopUri = this.get('context.data.shop');
-      self.shopTrace = new StonehearthDataTrace(shopUri, components);
-
-      self.shopTrace.progress(function(eobj) {
-            //if (!self.get('inventoryArray')) {
-               var inventoryArray = self._getInventoryArray(eobj.inventory);
-               self.set('inventoryArray', inventoryArray);
-
-               var playerInventoryArray = self._getInventoryArray(eobj.player_inventory.tracking_data);
-               self.set('playerInventoryArray', playerInventoryArray);
-
-            //} else {
-               //self._updateInventoryArray(eobj);
-            //}
-         });
-
-   }.observes('context.data.shop.inventory', 'context.data.shop.player_inventory.tracking_data'),
-
    didInsertElement: function() {
       var self = this;
 
       self._super();
 
-      self.$().on('click', '#buyList .row', function() {        
-         self.$('#buyList .row').removeClass('selected');
-         var row = $(this);
 
-         row.addClass('selected');
-         self._selectedUri = row.attr('uri');
+      if (this._shopTrace) {
+         return;
+      }
 
-         self._updateBuyButtons();
+      // build the inventory palettes
+      this._buyPalette = this.$('#buyList').stonehearthItemPalette({
+         itemAdded: function(itemEl, itemData) {
+            itemEl.attr('cost', itemData.cost);
+            itemEl.attr('num', itemData.num);
+         },
+         click: function(item) {
+            self._updateBuyButtons();
+         }
       });
+
+
+      self.shopTrace = new StonehearthDataTrace(this.get('context.data.shop'), {});
+
+      self.shopTrace.progress(function(eobj) {
+            self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
+         });
+
 
       self.$().on('click', '#sellList .row', function() {        
          self.$('#sellList .row').removeClass('selected');
@@ -131,7 +104,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    _doBuy: function(quantity) {
       var self = this;
       var shop = self.get('context.data.shop');
-      var item = self.$('#buyList .row.selected').attr('uri')
+      var item = self.$('#buyList').find(".selected").attr('uri');
 
       radiant.call_obj(shop, 'buy_item_command', item, quantity)
          .always(function() {
@@ -159,12 +132,12 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    _updateBuyButtons: function() {
       var self = this;
 
-      var row = self.$("[uri='" + self._selectedUri + "']");
+      var item = self.$('#buyList').find(".selected");
 
-      if (row) {
+      if (item) {
          // update the buy buttons
-         var cost = parseInt(row.attr('cost'));
-         var numAvailable = parseInt(row.attr('num'));
+         var cost = parseInt(item.attr('cost'));
+         var numAvailable = parseInt(item.attr('num'));
          var gold = self.get('playerGold');
 
          if (cost <= gold) {
@@ -218,10 +191,11 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    },
 
    destroy: function() {
-      if (this.shopTrace) {
-         this.shopTrace.destroy();
+      if (this._shopTrace) {
+         this._shopTrace.destroy();
       }
 
       this._super();
    },
 });
+

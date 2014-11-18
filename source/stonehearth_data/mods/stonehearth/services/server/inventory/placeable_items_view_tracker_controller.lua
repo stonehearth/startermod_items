@@ -38,7 +38,6 @@ function PlaceableItemsView:create_key_for_entity(entity)
    if not entity_forms:is_placeable() then
       return nil
    end
-   --return entity_forms:get_placeable_category()
 
    local iconic_entity = entity_forms:get_iconic_entity()
    local item = iconic_entity:get_component('item')
