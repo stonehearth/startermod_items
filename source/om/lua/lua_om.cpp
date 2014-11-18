@@ -53,19 +53,6 @@ static void ModifyBoxed(BoxedType& boxed, luabind::object cb)
    });
 }
 
-template <typename BoxedType>
-static lua::TraceWrapperPtr TraceBoxed(BoxedType& boxed, const char* reason, dm::TraceCategories category)
-{
-   dm::TracePtr trace = boxed.TraceObjectChanges(reason, category);
-   return std::make_shared<lua::TraceWrapper>(trace);
-}
-
-template <typename BoxedType>
-static lua::TraceWrapperPtr AsyncTraceBoxed(BoxedType& boxed, const char* reason)
-{
-   return TraceBoxed(boxed, reason, dm::LUA_ASYNC_TRACES);
-}
-
 template <typename T>
 static csg::Point3f TiledRegion_GetTileSize(std::shared_ptr<TiledRegion<T>> tiled_region)
 {
@@ -140,36 +127,28 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterModelLayer(L),
             LuaEntity::RegisterLuaTypes(L),
             LuaDataStore::RegisterLuaTypes(L),
-            lua::RegisterStrongGameObject<Region2Boxed>(L, "Region2Boxed")
+            lua::RegisterStrongGameObject<Region2Boxed>(L, "Region2iBoxed")
                .def("get",                 &Region2Boxed::Get)
                .def("modify",              &ModifyBoxed<Region2Boxed>)
-               .def("trace_changes",       &TraceBoxed<Region2Boxed>)
-               .def("async_trace_changes", &TraceBoxed<Region2Boxed>)
             ,
-            lua::RegisterStrongGameObject<Region2fBoxed>(L, "Region2fBoxed")
+            lua::RegisterStrongGameObject<Region2fBoxed>(L, "Region2Boxed")
                .def("get",                 &Region2fBoxed::Get)
                .def("modify",              &ModifyBoxed<Region2fBoxed>)
-               .def("trace_changes",       &TraceBoxed<Region2fBoxed>)
-               .def("async_trace_changes", &TraceBoxed<Region2fBoxed>)
             ,
-            lua::RegisterStrongGameObject<Region3Boxed>(L, "Region3Boxed")
+            lua::RegisterStrongGameObject<Region3Boxed>(L, "Region3iBoxed")
                .def("get",                 &Region3Boxed::Get)
                .def("modify",              &ModifyBoxed<Region3Boxed>)
-               .def("trace_changes",       &TraceBoxed<Region3Boxed>)
-               .def("async_trace_changes", &TraceBoxed<Region3Boxed>)
             ,
-            lua::RegisterStrongGameObject<Region3fBoxed>(L, "Region3fBoxed")
+            lua::RegisterStrongGameObject<Region3fBoxed>(L, "Region3Boxed")
                .def("get",                 &Region3fBoxed::Get)
                .def("modify",              &ModifyBoxed<Region3fBoxed>)
-               .def("trace_changes",       &TraceBoxed<Region3fBoxed>)
-               .def("async_trace_changes", &TraceBoxed<Region3fBoxed>)
             ,
-            luabind::class_<LuaDeepRegion2Guard, LuaDeepRegion2GuardPtr>("LuaDeepRegion2Guard")
+            luabind::class_<LuaDeepRegion2Guard, LuaDeepRegion2GuardPtr>("LuaDeepRegion2iGuard")
                .def("on_changed",         &LuaDeepRegion2Guard::OnChanged)
                .def("push_object_state",  &LuaDeepRegion2Guard::PushObjectState)
                .def("destroy",            &LuaDeepRegion2Guard::Destroy)
             ,
-            luabind::class_<LuaDeepRegion2fGuard, LuaDeepRegion2fGuardPtr>("LuaDeepRegion2fGuard")
+            luabind::class_<LuaDeepRegion2fGuard, LuaDeepRegion2fGuardPtr>("LuaDeepRegion2Guard")
                .def("on_changed",         &LuaDeepRegion2fGuard::OnChanged)
                .def("push_object_state",  &LuaDeepRegion2fGuard::PushObjectState)
                .def("destroy",            &LuaDeepRegion2fGuard::Destroy)
