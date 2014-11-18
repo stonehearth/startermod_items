@@ -4,6 +4,7 @@
 #include "client/client.h"
 #include "lua_renderer.h"
 #include "csg/point.h"
+#include "om/tiled_region.h"
 #include "h3d_resource_types.h"
 #include "lib/json/core_json.h"
 #include "lib/lua/register.h"
@@ -57,47 +58,89 @@ static csg::Point3f Camera_GetLeft()
    return left;
 }
 
-std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
+std::shared_ptr<RenderTerrain> GetRenderTerrainObject(bool throw_on_error)
 {
    om::EntityPtr root = Client::GetInstance().GetStore().FetchObject<om::Entity>(1);
-   if (!root) { 
-      throw std::logic_error("root entity does not exist yet.");
+   if (!root) {
+      if (throw_on_error) {
+         throw std::logic_error("root entity does not exist yet.");
+      } else {
+         return nullptr;
+      }
    }
    auto rootRenderEntity = Renderer::GetInstance().GetRenderEntity(root);
    if (!rootRenderEntity) {
-      throw std::logic_error("render entity for root not yet created");
+      if (throw_on_error) {
+         throw std::logic_error("render entity for root not yet created");
+      } else {
+         return nullptr;
+      }
    }
    auto renderTerrain = std::static_pointer_cast<RenderTerrain>(rootRenderEntity->GetComponentRenderer("terrain"));
    if (!renderTerrain) {
-      throw std::logic_error("terrain rendering component not yet created");
+      if (throw_on_error) {
+         throw std::logic_error("terrain rendering component not yet created");
+      } else {
+         return nullptr;
+      }
    }
    return renderTerrain;
+}
+
+std::shared_ptr<RenderTerrain> GetRenderTerrainObject()
+{
+   return GetRenderTerrainObject(true);
+}
+
+bool Terrain_RenderTerrainIsAvailable()
+{
+   auto render_terrain = GetRenderTerrainObject(false);
+   return render_terrain;
+}
+
+void Terrain_MarkDirty(csg::Point3f tile_origin)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->MarkDirty(csg::ToInt(tile_origin));
+}
+
+void Terrain_MarkDirtyIndex(csg::Point3f index)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   csg::Point3 tile_origin = csg::ToInt(index).Scaled(renderTerrain->GetTileSize());
+   renderTerrain->MarkDirty(tile_origin);
+}
+
+static void Terrain_SetClipHeight(int height)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->SetClipHeight(height);
 }
 
 static void Terrain_AddClientCut(om::Region3fBoxedPtr cut)
 {
    auto renderTerrain = GetRenderTerrainObject();
-   if (renderTerrain) {
-      renderTerrain->AddCut(cut);
-   }
+   renderTerrain->AddCut(cut);
 }
 
 static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
 {
    try {
       auto renderTerrain = GetRenderTerrainObject();
-      if (renderTerrain) {
-         renderTerrain->RemoveCut(cut);
-      }
+      renderTerrain->RemoveCut(cut);
    } catch (std::exception const&) {}
 }
 
-static void Terrain_SetClipHeight(int height)
+om::Region3TiledPtr Terrain_GetXrayTiles()
 {
    auto renderTerrain = GetRenderTerrainObject();
-   if (renderTerrain) {
-      renderTerrain->SetClipHeight(height);
-   }
+   return renderTerrain->GetXrayTiles();
+}
+
+static void Terrain_EnableXrayMode(bool enabled)
+{
+   auto renderTerrain = GetRenderTerrainObject();
+   renderTerrain->EnableXrayMode(enabled);
 }
 
 static csg::Point3f Camera_GetPosition()
@@ -208,9 +251,14 @@ void LuaRenderer::RegisterType(lua_State* L)
    module(L) [
       namespace_("_radiant") [
          namespace_("renderer") [
+            def("render_terrain_is_available", &Terrain_RenderTerrainIsAvailable),
+            def("mark_dirty", &Terrain_MarkDirty),
+            def("mark_dirty_index", &Terrain_MarkDirtyIndex),
+            def("set_clip_height", &Terrain_SetClipHeight),
             def("add_terrain_cut", &Terrain_AddClientCut),
             def("remove_terrain_cut", &Terrain_RemoveClientCut),
-            def("set_clip_height", &Terrain_SetClipHeight),
+            def("get_xray_tiles", &Terrain_GetXrayTiles),
+            def("enable_xray_mode", &Terrain_EnableXrayMode),
             def("enable_perf_logging", &Renderer_EnablePerfLogging),
             namespace_("camera") [
                def("translate",    &Camera_Translate),

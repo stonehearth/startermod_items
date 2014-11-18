@@ -55,12 +55,12 @@ static scope Register(struct lua_State* L, const char* suffix)
 scope LuaEdgeList::RegisterLuaTypes(lua_State* L)
 {
    return
-      Register<double, 3>(L, "3f"),
-      Register<double, 2>(L, "2f"),
-      Register<double, 1>(L, "1f"),
-      Register<int, 3>(L, "3"),
-      Register<int, 2>(L, "2"),
-      Register<int, 1>(L, "1"),
+      Register<double, 3>(L, "3"),
+      Register<double, 2>(L, "2"),
+      Register<double, 1>(L, "1"),
+      Register<int, 3>(L, "3i"),
+      Register<int, 2>(L, "2i"),
+      Register<int, 1>(L, "1i"),
       def("convert_heightmap_to_region2", &csg::HeightmapToRegion2f)
       ;
 }

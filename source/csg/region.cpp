@@ -268,9 +268,11 @@ Region<S, C> const& Region<S, C>::operator&=(Region const& other)
 
    Validate();
 
-   // the union of all our little rects clipped against the other region
-   for (Cube const& cube : cubes_) {
-      result.AddUnique(cube & other);
+   if (cubes_.size() && other.cubes_.size()) {
+      // the union of all our little rects clipped against the other region
+      for (Cube const& cube : cubes_) {
+         result.AddUnique(cube & other);
+      }
    }
 
    *this = result;
