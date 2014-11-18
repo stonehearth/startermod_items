@@ -386,8 +386,8 @@ function Terrain._get_terrain_tiles()
    return terrain_component:get_tiles()
 end
 
-function Terrain.get_movement_cost_at(point)
-   return _physics:get_movement_cost_at(point)
+function Terrain.get_movement_speed_at(point)
+   return _physics:get_movement_speed_at(point)
 end
 
 function Terrain._initialize_block_types(config_file)
