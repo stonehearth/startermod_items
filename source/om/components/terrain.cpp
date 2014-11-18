@@ -15,61 +15,6 @@ using namespace ::radiant::om;
 
 static const csg::Point3 TILE_SIZE(32, 5, 32);
 
-class Region3BoxedMapWrapper :  public TileMapWrapper<Region3Boxed> {
-public:
-   typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> TileMap;
-
-   Region3BoxedMapWrapper(TileMap& tiles) :
-      _tiles(tiles),
-      _store(tiles.GetStore())
-   {}
-
-   int NumTiles()
-   {
-      return _tiles.Size();
-   }
-
-   Region3BoxedPtr FindTile(csg::Point3 const& index)
-   {
-      Region3BoxedPtr tile = nullptr;
-      auto i = _tiles.find(index);
-      if (i != _tiles.end()) {
-         tile = i->second;
-      }
-      return tile;
-   }
-
-   Region3BoxedPtr GetTile(csg::Point3 const& index)
-   {
-      Region3BoxedPtr tile = FindTile(index);
-      if (!tile) {
-         tile = _store.AllocObject<Region3Boxed>();
-         _tiles.Add(index, tile);
-      }
-      return tile;
-   }
-
-   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
-   {
-      Region3BoxedPtr tile = GetTile(index);
-      tile->Modify(fn);
-   }
-
-   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile)
-   {
-      if (!tile) {
-         ASSERT(false);
-         throw core::Exception("null tile");
-      }
-      return tile->Get();
-   }
-
-private:
-   TileMap& _tiles;
-   dm::Store& _store;
-};
-
-
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
    return (os << "[Terrain]");
@@ -114,7 +59,7 @@ void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clip
    csg::Region3 tesselated = terrainTesselator_.TesselateTerrain(src, clipper);
 
    csg::PartitionRegionIntoChunksSlow(tesselated, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& region) {
-      Region3BoxedPtr tile = GetTile(index);
+      Region3BoxedPtr tile = GetTiles()->GetTile(index);
       tile->Modify([&region](csg::Region3& cursor) {
          cursor += region;
          cursor.OptimizeByMerge();
@@ -161,13 +106,13 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
    return csg::ToFloat(pt);
 }
 
-Region3BoxedPtrTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
+Region3BoxedTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
 {
    std::shared_ptr<Region3BoxedMapWrapper> wrapper = std::make_shared<Region3BoxedMapWrapper>(tiles);
-   return std::make_shared<Region3BoxedPtrTiled>(TILE_SIZE, wrapper);
+   return std::make_shared<Region3BoxedTiled>(TILE_SIZE, wrapper);
 }
 
-Region3BoxedPtrTiledPtr Terrain::GetTiles()
+Region3BoxedTiledPtr Terrain::GetTiles()
 {
    if (!tile_accessor_) {
       tile_accessor_ = CreateTileAccessor(tiles_);
@@ -175,25 +120,12 @@ Region3BoxedPtrTiledPtr Terrain::GetTiles()
    return tile_accessor_;
 }
 
-Region3BoxedPtrTiledPtr Terrain::GetInteriorTiles()
+Region3BoxedTiledPtr Terrain::GetInteriorTiles()
 {
    if (!interior_tile_accessor_) {
       interior_tile_accessor_ = CreateTileAccessor(interior_tiles_);
    }
    return interior_tile_accessor_;
-}
-
-Region3BoxedPtr Terrain::GetTile(csg::Point3 const& index)
-{
-   Region3BoxedPtr tile;
-   auto i = tiles_.find(index);
-   if (i != tiles_.end()) {
-      tile = i->second;
-   } else {
-      tile = GetStore().AllocObject<Region3Boxed>();
-      tiles_.Add(index, tile);
-   }
-   return tile;
 }
 
 csg::Point3 const& Terrain::GetTileSize() const

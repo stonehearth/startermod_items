@@ -67,16 +67,23 @@ static lua::TraceWrapperPtr AsyncTraceBoxed(BoxedType& boxed, const char* reason
 }
 
 template <typename T>
-static std::shared_ptr<T> TiledRegion_FindTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
+static csg::Point3f TiledRegion_GetTileSize(std::shared_ptr<TiledRegion<T>> tiled_region)
 {
-   std::shared_ptr<T> tile = tiled_region->FindTile(csg::ToInt(index));
-   return tile;
+   csg::Point3f tile_size = csg::ToFloat(tiled_region->GetTileSize());
+   return tile_size;
 }
 
 template <typename T>
 static std::shared_ptr<T> TiledRegion_GetTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
 {
    std::shared_ptr<T> tile = tiled_region->GetTile(csg::ToInt(index));
+   return tile;
+}
+
+template <typename T>
+static std::shared_ptr<T> TiledRegion_FindTile(std::shared_ptr<TiledRegion<T>> tiled_region, csg::Point3f const& index)
+{
+   std::shared_ptr<T> tile = tiled_region->FindTile(csg::ToInt(index));
    return tile;
 }
 
@@ -113,8 +120,9 @@ static scope RegisterTiledRegion(const char* name)
       .def("intersect_region",       &TiledRegion<T>::IntersectRegion)
       .def("get_tile_size",          &TiledRegion<T>::GetTileSize)
       .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles)
-      .def("find_tile",              &TiledRegion_FindTile<T>)
+      .def("get_tile_size",          &TiledRegion_GetTileSize<T>)
       .def("get_tile",               &TiledRegion_GetTile<T>)
+      .def("find_tile",              &TiledRegion_FindTile<T>)
       .def("clear_tile",             &TiledRegion_ClearTile<T>);
 }
 
@@ -176,9 +184,9 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
                .def("push_object_state",  &LuaDeepRegion3fGuard::PushObjectState)
                .def("destroy",            &LuaDeepRegion3fGuard::Destroy)
             ,
-            RegisterTiledRegion<Region3Boxed>("Region3BoxedPtrTiled")
+            RegisterTiledRegion<Region3Boxed>("Region3BoxedTiled")
             ,
-            RegisterTiledRegion<csg::Region3>("Region3PtrTiled")
+            RegisterTiledRegion<csg::Region3>("Region3Tiled")
          ]
       ]
    ];

@@ -30,7 +30,7 @@ public:
    void RemoveCut(om::Region3fBoxedPtr const& cut);
    void SetClipHeight(int height);
    void EnableXrayMode(bool enabled);
-   om::Region3PtrTiledPtr GetXrayTiles();
+   om::Region3TiledPtr GetXrayTiles();
 
 private:
    void LoadColorMap();
@@ -75,7 +75,7 @@ private:
    int                  _clip_height;
    bool                 _enable_xray_mode;
    std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> _xray_region_tiles;
-   om::Region3PtrTiledPtr _xray_tiles_accessor;
+   om::Region3TiledPtr _xray_tiles_accessor;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

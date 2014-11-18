@@ -10,8 +10,8 @@ class Terrain(Component):
    bounds = dm.Boxed(csg.Cube3(), get=None, set=None, no_lua_impl = True)
    get_bounds = ridl.Method(csg.Cube3f()).const
 
-   tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None, contains=None)
-   interior_tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='interior_tile', add=None, remove=None, get=None, contains=None)
+   tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None, contains=None, num=None)
+   interior_tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='interior_tile', add=None, remove=None, get=None, contains=None, num=None)
 
    add_tile = ridl.Method(c.void(),
                           ('region', csg.Region3f().const.ref))
@@ -20,8 +20,8 @@ class Terrain(Component):
                           ('clipper', csg.Rect2f().const.ref))
    get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
 
-   get_tiles = ridl.Method(Region3BoxedPtrTiledPtr())
-   get_interior_tiles = ridl.Method(Region3BoxedPtrTiledPtr())
+   get_tiles = ridl.Method(Region3BoxedTiledPtr())
+   get_interior_tiles = ridl.Method(Region3BoxedTiledPtr())
 
    _generate_construct_object = True
 
@@ -40,12 +40,11 @@ class Terrain(Component):
 
    _private = \
    """
-   Region3BoxedPtr GetTile(csg::Point3 const& index);
    void AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper);
-   Region3BoxedPtrTiledPtr CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles);
+   Region3BoxedTiledPtr CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles);
 
-   Region3BoxedPtrTiledPtr tile_accessor_;
-   Region3BoxedPtrTiledPtr interior_tile_accessor_;
+   Region3BoxedTiledPtr tile_accessor_;
+   Region3BoxedTiledPtr interior_tile_accessor_;
    TerrainTesselator terrainTesselator_;
    dm::TracePtr config_file_name_trace_;
    """

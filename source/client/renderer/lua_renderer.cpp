@@ -131,7 +131,7 @@ static void Terrain_RemoveClientCut(om::Region3fBoxedPtr cut)
    } catch (std::exception const&) {}
 }
 
-om::Region3PtrTiledPtr Terrain_GetXrayTiles()
+om::Region3TiledPtr Terrain_GetXrayTiles()
 {
    auto renderTerrain = GetRenderTerrainObject();
    return renderTerrain->GetXrayTiles();

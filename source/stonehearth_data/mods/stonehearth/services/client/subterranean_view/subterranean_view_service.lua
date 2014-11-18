@@ -15,6 +15,12 @@ local function is_terrain(location)
    return _physics:is_terrain(location)
 end
 
+local function point_to_key(point)
+   -- don't assume tostring(point) will return the same string for point3f and point3i
+   local key = string.format('%d,%d,%d', point.x, point.y, point.z)
+   return key
+end
+
 function SubterraneanViewService:initialize()
    local enable_mining = radiant.util.get_config('enable_mining', false)
    if not enable_mining then
@@ -33,6 +39,7 @@ function SubterraneanViewService:initialize()
    end
 
    self._interior_region_traces = {}
+   self._interior_region_tiles = {}
    self._dirty_xray_tiles = {}
 
    self._input_capture = stonehearth.input:capture_input()
@@ -51,6 +58,7 @@ end
 function SubterraneanViewService:_deferred_initialize()
    self._interior_tiles = self:_get_terrain_component():get_interior_tiles()
    self._xray_tiles = _radiant.renderer.get_xray_tiles()
+   self._tile_size = self._interior_tiles:get_tile_size()
 
    self:_create_render_frame_trace()
    self:_create_interior_region_traces()
@@ -76,11 +84,15 @@ function SubterraneanViewService:_create_interior_region_traces()
                :on_changed(function()
                      self:_mark_dirty(index:to_float())
                   end)
-            self._interior_region_traces[tostring(index)] = trace
+            local key = point_to_key(index)
+            self._interior_region_traces[key] = trace
+            self._interior_region_tiles[key] = index:to_float()
          end)
       :on_removed(function(index)
-            self._interior_region_traces[tostring(index)] = nil
-            self._dirty_xray_tiles[tostring(index)] = nil
+            local key = point_to_key(index)
+            self._interior_region_traces[key] = nil
+            self._interior_region_tiles[key] = nil
+            self._dirty_xray_tiles[key] = nil
          end)
       :push_object_state()
 end
@@ -125,7 +137,14 @@ function SubterraneanViewService:_mark_dirty(index)
 
    -- dirty all 3 space adjacents including diagonals
    for point in cube:each_point() do
-      self._dirty_xray_tiles[tostring(point)] = point
+      self._dirty_xray_tiles[point_to_key(point)] = point
+      _radiant.renderer.mark_dirty_index(point)
+   end
+end
+
+function SubterraneanViewService:_mark_all_interior_dirty()
+   for _, index in pairs(self._interior_region_tiles) do
+      self:_mark_dirty(index)
    end
 end
 
@@ -141,6 +160,11 @@ function SubterraneanViewService:_update_dirty_tiles()
       self._xray_tiles:clear_tile(index)
    end
 
+   -- TODO: don't change all these tiles when not necessary
+   -- causes reoptimization below
+   local world_floor = self:_get_world_floor()
+   self._xray_tiles:add_cube(world_floor)
+
    for _, index in pairs(self._dirty_xray_tiles) do
       local interior_region3i_boxed = self._interior_tiles:find_tile(index)
 
@@ -155,12 +179,28 @@ function SubterraneanViewService:_update_dirty_tiles()
             log:error('unknown xray_mode: %s', xray_mode)
             assert(false)
          end
+
+         -- restore any portion of the world floor that was cleared
+         -- local bounds = self:_get_tile_bounds(index)
+         -- local clipped_floor = _radiant.csg.intersect_cube3(world_floor, bounds)
+         -- self._xray_tiles:add_cube(clipped_floor)
       end
    end
 
    self._xray_tiles:optimize_changed_tiles()
 
    self._dirty_xray_tiles = {}
+end
+
+function SubterraneanViewService:_get_tile_bounds(index)
+   local min = Point3(
+      index.x * self._tile_size.x,
+      index.y * self._tile_size.y,
+      index.z * self._tile_size.z
+   )
+   local max = min + self._tile_size
+   local bounds = Cube3(min, max)
+   return bounds
 end
 
 function SubterraneanViewService:_get_visible_cube(interior_cube)
@@ -238,6 +278,7 @@ function SubterraneanViewService:toggle_xray_mode(mode)
       self._sv.xray_mode = nil
    else
       self._sv.xray_mode = mode
+      self:_mark_all_interior_dirty()
    end
    self.__saved_variables:mark_changed()
 
@@ -264,6 +305,11 @@ end
 
 function SubterraneanViewService:move_clip_height_down()
    self:set_clip_height(self._sv.clip_height - constants.mining.Y_CELL_SIZE);
+end
+
+function SubterraneanViewService:toggle_xray_mode_command(sessions, response, mode)
+   self:toggle_xray_mode(mode)
+   return {}
 end
 
 function SubterraneanViewService:set_clip_enabled_command(sessions, response, enabled)
@@ -296,7 +342,7 @@ end
 
 function SubterraneanViewService:_get_world_floor()
    local world_floor = self:_get_terrain_bounds()
-   world_floor.min.y = -1
+   world_floor.min.y = -2
    world_floor.max.y = 0
    return world_floor
 end

@@ -144,27 +144,103 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
    return tile;
 }
 
-#if 0
-template <typename T>
-std::ostream& om::operator<<(std::ostream& out, TiledRegion<T> const& tiled_region)
-{
-   out << tiled_region._tile_wrapper->NumTiles() << " tiles";
-   return out;
-}
-template std::ostream& om::operator<<(std::ostream& out, Region3BoxedPtrTiled const& tiled_region);
-#endif
+//------------------
+// Region3MapWrapper
+//------------------
 
-std::ostream& om::operator<<(std::ostream& out, Region3BoxedPtrTiled const& tiled_region)
+Region3MapWrapper::Region3MapWrapper(Region3MapWrapper::TileMap& tiles) :
+   _tiles(tiles)
+{}
+
+int Region3MapWrapper::NumTiles()
 {
-   out << tiled_region._tile_wrapper->NumTiles() << " tiles";
-   return out;
+   return _tiles.size();
 }
 
-std::ostream& om::operator<<(std::ostream& out, Region3PtrTiled const& tiled_region)
+std::shared_ptr<csg::Region3> Region3MapWrapper::FindTile(csg::Point3 const& index)
 {
-   out << tiled_region._tile_wrapper->NumTiles() << " tiles";
-   return out;
+   std::shared_ptr<csg::Region3> tile = nullptr;
+   auto i = _tiles.find(index);
+   if (i != _tiles.end()) {
+      tile = i->second;
+   }
+   return tile;
 }
 
-template Region3BoxedPtrTiled;
-template Region3PtrTiled;
+std::shared_ptr<csg::Region3> Region3MapWrapper::GetTile(csg::Point3 const& index)
+{
+   std::shared_ptr<csg::Region3> tile = FindTile(index);
+   if (!tile) {
+      tile = std::make_shared<csg::Region3>();
+      _tiles[index] = tile;
+   }
+   return tile;
+}
+
+void Region3MapWrapper::ModifyTile(csg::Point3 const& index, TileMapWrapper::ModifyRegionFn fn)
+{
+   std::shared_ptr<csg::Region3> tile = GetTile(index);
+   fn(*tile);
+}
+
+csg::Region3 const& Region3MapWrapper::GetTileRegion(std::shared_ptr<csg::Region3> tile)
+{
+   if (!tile) {
+      ASSERT(false);
+      throw core::Exception("null tile");
+   }
+   return *tile;
+}
+
+//-----------------------
+// Region3BoxedMapWrapper
+//-----------------------
+
+Region3BoxedMapWrapper::Region3BoxedMapWrapper(Region3BoxedMapWrapper::TileMap& tiles) :
+   _tiles(tiles),
+   _store(tiles.GetStore())
+{}
+
+int Region3BoxedMapWrapper::NumTiles()
+{
+   return _tiles.Size();
+}
+
+Region3BoxedPtr Region3BoxedMapWrapper::FindTile(csg::Point3 const& index)
+{
+   Region3BoxedPtr tile = nullptr;
+   auto i = _tiles.find(index);
+   if (i != _tiles.end()) {
+      tile = i->second;
+   }
+   return tile;
+}
+
+Region3BoxedPtr Region3BoxedMapWrapper::GetTile(csg::Point3 const& index)
+{
+   Region3BoxedPtr tile = FindTile(index);
+   if (!tile) {
+      tile = _store.AllocObject<Region3Boxed>();
+      _tiles.Add(index, tile);
+   }
+   return tile;
+}
+
+void Region3BoxedMapWrapper::ModifyTile(csg::Point3 const& index, TileMapWrapper::ModifyRegionFn fn)
+{
+   Region3BoxedPtr tile = GetTile(index);
+   tile->Modify(fn);
+}
+
+csg::Region3 const& Region3BoxedMapWrapper::GetTileRegion(Region3BoxedPtr tile)
+{
+   if (!tile) {
+      ASSERT(false);
+      throw core::Exception("null tile");
+   }
+   return tile->Get();
+}
+
+// instantiate the common template types
+template Region3Tiled;
+template Region3BoxedTiled;

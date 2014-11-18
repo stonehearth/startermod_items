@@ -23,59 +23,6 @@ using namespace ::radiant::client;
 static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
 static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
-class Region3MapWrapper :  public om::TileMapWrapper<csg::Region3> {
-public:
-   typedef std::shared_ptr<csg::Region3> Region3Ptr;
-   typedef std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> TileMap;
-
-   Region3MapWrapper(TileMap& tiles) :
-      _tiles(tiles)
-   {}
-
-   int NumTiles()
-   {
-      return _tiles.size();
-   }
-
-   Region3Ptr FindTile(csg::Point3 const& index)
-   {
-      Region3Ptr tile = nullptr;
-      auto i = _tiles.find(index);
-      if (i != _tiles.end()) {
-         tile = i->second;
-      }
-      return tile;
-   }
-
-   Region3Ptr GetTile(csg::Point3 const& index)
-   {
-      Region3Ptr tile = FindTile(index);
-      if (!tile) {
-         tile = std::make_shared<csg::Region3>();
-         _tiles[index] = tile;
-      }
-      return tile;
-   }
-
-   void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
-   {
-      Region3Ptr tile = GetTile(index);
-      fn(*tile);
-   }
-
-   csg::Region3 const& GetTileRegion(Region3Ptr tile)
-   {
-      if (!tile) {
-         ASSERT(false);
-         throw core::Exception("null tile");
-      }
-      return *tile;
-   }
-
-private:
-   TileMap& _tiles;
-};
-
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
@@ -112,8 +59,8 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                     })
                                     ->PushObjectState();
 
-   std::shared_ptr<Region3MapWrapper> wrapper = std::make_shared<Region3MapWrapper>(_xray_region_tiles);
-   _xray_tiles_accessor = std::make_shared<om::Region3PtrTiled>(_tileSize, wrapper);
+   std::shared_ptr<om::Region3MapWrapper> wrapper = std::make_shared<om::Region3MapWrapper>(_xray_region_tiles);
+   _xray_tiles_accessor = std::make_shared<om::Region3Tiled>(_tileSize, wrapper);
 }
 
 RenderTerrain::~RenderTerrain()
@@ -459,7 +406,7 @@ RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
    return *j.first->second;
 }
 
-om::Region3PtrTiledPtr RenderTerrain::GetXrayTiles()
+om::Region3TiledPtr RenderTerrain::GetXrayTiles()
 {
    return _xray_tiles_accessor;
 }
