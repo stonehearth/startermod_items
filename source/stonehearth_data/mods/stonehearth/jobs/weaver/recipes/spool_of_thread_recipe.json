@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:thread"
+         "item":"stonehearth:refined:thread"
       }
   ]
 }

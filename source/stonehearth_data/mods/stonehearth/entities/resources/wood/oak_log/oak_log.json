@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "item": {
-         "category" : "resource",
+         "category" : "resources",
          "stacks" : 80
       },
       "stonehearth:material" : {

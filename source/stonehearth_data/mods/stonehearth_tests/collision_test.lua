@@ -6,7 +6,7 @@ function CollisionTest:__init()
    self:create_world()
 
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 5, -5, 4, 4);
-   self:place_item_cluster('stonehearth:berry_basket', -5, -5, 4, 4);
+   self:place_item_cluster('stonehearth:food:berries:berry_basket', -5, -5, 4, 4);
 
    local worker = self:place_citizen(13, 13)
    local player_id = worker:get_component('unit_info'):get_player_id()   

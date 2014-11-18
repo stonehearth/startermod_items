@@ -36,17 +36,17 @@ function CarpenterTest:__init()
    self:place_item('stonehearth:furniture:picket_fence', 3, 3)
    self:place_item('stonehearth:furniture:picket_fence', 4, 3)
    self:place_item('stonehearth:plants:frostsnap', 6, 3)
-   self:place_item('stonehearth:plants:brightbell', 6, 3)
+   self:place_item('stonehearth:decoration:brightbell', 6, 3)
    self:place_item('stonehearth:firepit', 7, 3, player_id)
    self:place_item('stonehearth:firepit', 9, 3, player_id)
 
-   self:place_item('stonehearth:berry_basket', 10, 10)
-   self:place_item('stonehearth:corn_basket', 11, 11)
+   self:place_item('stonehearth:food:berries:berry_basket', 10, 10)
+   self:place_item('stonehearth:food:corn:corn_basket', 11, 11)
 
    -- put some items in the world
    self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
-   self:place_item_cluster('stonehearth:cloth_bolt', 10, 3, 3, 3)
-   self:place_item_cluster('stonehearth:silkweed_bundle', 8, 0, 5, 5)
+   self:place_item_cluster('stonehearth:refined:cloth_bolt', 10, 3, 3, 3)
+   self:place_item_cluster('stonehearth:resources:fiber:silkweed_bundle', 8, 0, 5, 5)
 
    local player_id = carpenter:get_component('unit_info'):get_player_id()
    local town = stonehearth.town:get_town(player_id)

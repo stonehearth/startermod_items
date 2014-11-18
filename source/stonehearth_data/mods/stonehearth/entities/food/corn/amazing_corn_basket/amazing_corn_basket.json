@@ -1,0 +1,46 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "category" : "food",
+         "stacks" : 3,
+         "maxStacks" : 3
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(amazing_corn_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Amazing Basket of Maize",
+         "description": "Super nutritous corn.",
+         "icon" : "file(amazing_corn_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource vegetable food_container corn"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:food:corn:amazing_corn_serving",
+         "stacks_per_serving": 1
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 2000,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"            
+         }
+      }      
+   }
+}

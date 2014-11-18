@@ -11,8 +11,8 @@ function FarmingTest:__init()
    self:create_world()
 
    --place the hoes and board
-   self:place_item('stonehearth:farmer:hoe_talisman', 4, 1)
-   self:place_item('stonehearth:farmer:hoe_talisman', 4, 2)
+   self:place_item('stonehearth:farmer:talisman', 4, 1)
+   self:place_item('stonehearth:farmer:talisman', 4, 2)
    self:place_item('stonehearth:worker:outfit:2', 4, 4)
 
    local farmer = self:place_citizen(-1,2, 'farmer')
@@ -26,7 +26,7 @@ function FarmingTest:__init()
       player_id = radiant.entities.get_player_id(farmer),
    }
 
-   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
+   stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop')
 end
 
 return FarmingTest

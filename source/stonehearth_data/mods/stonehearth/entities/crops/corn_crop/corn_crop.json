@@ -1,0 +1,104 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(corn_4.qb)"
+            ]
+         },
+         "corn_1": {
+            "models": [
+               "file(corn_1.qb)"
+            ]
+         },
+         "corn_2": {
+            "models": [
+               "file(corn_2.qb)"
+            ]
+         },
+         "corn_3": {
+            "models": [
+               "file(corn_3.qb)"
+            ]
+         },
+         "corn_4": {
+            "models": [
+               "file(corn_4.qb)"
+            ]
+         }, 
+          "corn_5": {
+            "models": [
+               "file(corn_5.qb)"
+            ]
+         },
+          "corn_8": {
+            "models": [
+               "file(corn_8.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "unit_info": {
+         "name": "Corn", 
+         "description": "Slow-growning, but super nutritious crop.", 
+         "icon" : "file(icon.png)"
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "corn_3": "stonehearth:food:corn:corn_serving",
+            "corn_4": "stonehearth:food:corn:corn_basket",
+            "corn_5": "stonehearth:food:corn:amazing_corn_basket",
+            "corn_8": ""
+         }, 
+         "harvest_threshhold" : "corn_4", 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "33h",
+         "growth_check_script" : "file(corn.lua)",
+         "growth_stages" : [
+            {
+               "model_name" : "corn_1",
+               "name": "Corn Seedling", 
+               "description": "Slow-mo, high-stakes gambling."
+            },
+            {
+               "model_name" : "corn_2",
+               "name": "Corn Sprout", 
+               "description": "Not edible yet!"
+            },
+            {
+               "model_name" : "corn_3",
+               "name": "Green Corn", 
+               "description": "Extremely unsatisfying to eat."
+            },
+            {
+               "model_name" : "corn_4",
+               "name": "Ripe Corn", 
+               "description": "Eat me! Eat Me!"
+            },
+            {
+               "model_name" : "corn_5",
+               "name": "Amazing Maize", 
+               "description": "Bursting with nutrition"
+            },
+            {},
+            {},
+            {
+               "model_name" : "corn_8",
+               "name": "Corn Husk", 
+               "description": "It's dead."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop corn"
+      }
+   }
+}

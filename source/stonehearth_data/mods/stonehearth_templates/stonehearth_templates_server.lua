@@ -157,7 +157,7 @@ function StonehearthTemplateBuilder:_build_tiny_cottage()
    self:print_walls()  
    self:place_portal_on_wall('((0, 0, -5) - (1, 6, 1))', 'stonehearth:portals:wooden_window_frame', -2, 2)      
    self:place_portal_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:portals:wooden_door', 3, 0)
-   self:place_item_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:furniture:wooden_wall_lantern', 3, 6)
+   self:place_item_on_wall('((0, 0, 0) - (7, 10, 1))', 'stonehearth:decoration:wooden_wall_lantern', 3, 6)
    self:place_item_on_floor('stonehearth:furniture:not_much_of_a_bed', 5, 3, 0)
 end
 
@@ -172,7 +172,7 @@ function StonehearthTemplateBuilder:_build_cottage_for_two()
 
    self:print_walls()  
    self:place_portal_on_wall(5, 'stonehearth:portals:wooden_door', 2, 0)
-   self:place_item_on_wall(5, 'stonehearth:furniture:wooden_wall_lantern', 2, 6)
+   self:place_item_on_wall(5, 'stonehearth:decoration:wooden_wall_lantern', 2, 6)
    self:place_portal_on_wall(9, 'stonehearth:portals:wooden_window_frame', 3, 2)
    self:place_portal_on_wall(1, 'stonehearth:portals:wooden_window_frame', -2, 2)
 
@@ -193,8 +193,8 @@ function StonehearthTemplateBuilder:_build_dining_hall()
 
 
    self:place_portal_on_wall(4, 'stonehearth:portals:wooden_door', 4, 0)
-   self:place_item_on_wall(4, 'stonehearth:furniture:wooden_wall_lantern', 7, 2)
-   self:place_item_on_wall(4, 'stonehearth:furniture:wooden_wall_lantern', 1, 2)
+   self:place_item_on_wall(4, 'stonehearth:decoration:wooden_wall_lantern', 7, 2)
+   self:place_item_on_wall(4, 'stonehearth:decoration:wooden_wall_lantern', 1, 2)
 
    self:place_portal_on_wall(8, 'stonehearth:portals:wooden_window_frame', 4, 2)
 
@@ -233,8 +233,8 @@ function StonehearthTemplateBuilder:_build_sleeping_hall()
    self:print_walls()  
 
    self:place_portal_on_wall(4, 'stonehearth:portals:wooden_door', 4, 0)
-   self:place_item_on_wall(4, 'stonehearth:furniture:wooden_wall_lantern', 7, 2)
-   self:place_item_on_wall(4, 'stonehearth:furniture:wooden_wall_lantern', 1, 2)
+   self:place_item_on_wall(4, 'stonehearth:decoration:wooden_wall_lantern', 7, 2)
+   self:place_item_on_wall(4, 'stonehearth:decoration:wooden_wall_lantern', 1, 2)
 
    self:place_portal_on_wall(6, 'stonehearth:portals:wooden_window_frame', 3, 2)      
    

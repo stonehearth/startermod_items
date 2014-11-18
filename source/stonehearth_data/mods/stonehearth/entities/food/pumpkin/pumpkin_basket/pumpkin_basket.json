@@ -1,0 +1,46 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks" : 6,
+         "max_stacks" : 6,
+         "category" : "food"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(pumpkin_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Pumpkin Basket",
+         "description": "Ready for eating",
+         "icon" : "file(pumpkin_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource vegetable food_container pumpkin"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:food:pumpkin:pumpkin_serving",
+         "stacks_per_serving": 6
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 3,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }      
+   }
+}

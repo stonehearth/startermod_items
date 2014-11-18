@@ -3,8 +3,7 @@
    "components" : {
       "unit_info" : {
          "name" : "Stockpile",
-         "description" : "For storing things",
-         "character_sheet_info" : "file(stockpile_character_sheet_info.json)"
+         "description" : "For storing things"
       },
       "stonehearth:stockpile" : {
       }

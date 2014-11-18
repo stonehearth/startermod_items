@@ -152,12 +152,13 @@ function Shop:sell_item(uri, quantity)
    local sellable_items = inventory:get_items_of_type(uri)
 
    -- "sell" each entity by destroying it, until we've sold the requested amount or run out of entities
-   for uri, entity in pairs(sellable_items) do
+   for uri, entity in pairs(sellable_items.items) do
       if sell_quantity == 0 then
          break
       end
       radiant.entities.destroy_entity(entity)
       total_gold = total_gold + item_cost
+      sell_quantity = sell_quantity - 1
    end
 
    -- deduct gold from the player

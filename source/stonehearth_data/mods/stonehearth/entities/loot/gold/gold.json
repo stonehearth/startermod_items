@@ -3,6 +3,7 @@
    "type": "entity",
    "components": {
       "item": {
+         "category" : "wealth",
          "stacks": 1000
       },
       "unit_info": {

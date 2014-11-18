@@ -12,7 +12,7 @@ function MiningTest:__init()
    local session = self:get_session()
 
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 10, 0, 4, 4)
-   self:place_item_cluster('stonehearth:furniture:wooden_garden_lantern', 10, 5, 2, 2)
+   self:place_item_cluster('stonehearth:decoration:wooden_garden_lantern', 10, 5, 2, 2)
    self:place_item('stonehearth:firepit', 10, 8)
    self:place_item('stonehearth:small_boulder', -1, -1)
 

@@ -1,0 +1,28 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks": 10,
+         "category" : "refined"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(cloth_bolt.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Bolt of Cloth",
+         "description": "Soft and comforting.",
+         "icon" : "file(cloth_bolt.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "cloth resource cloth_asset"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

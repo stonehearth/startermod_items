@@ -1,0 +1,28 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "stacks": 1,
+         "category" : "resources"
+      },
+      "stonehearth:material" : {
+         "tags" : "fiber resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wool_bundle.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Bundle of Wool",
+         "description": "Spinnable into thread",
+         "icon" : "file(wool_bundle.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

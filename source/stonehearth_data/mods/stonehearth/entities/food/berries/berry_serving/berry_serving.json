@@ -1,0 +1,33 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Plate of berries",
+         "description": "TODO: invent whipped cream.",
+         "icon": "file(berry_serving.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "food"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(berry_serving.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:activity_name" : "eating_berries",
+      "stonehearth:food" : {
+         "stonehearth:sitting_on_chair" : {
+            "satisfaction" : 12,
+            "journal_message" : "Mmmm! Berries are delicious!"
+         },
+         "default" : {
+            "satisfaction" : 10,
+            "journal_message" : "Wish I could eat these berries while sitting in a chair..."
+         }
+      }
+   }
+}

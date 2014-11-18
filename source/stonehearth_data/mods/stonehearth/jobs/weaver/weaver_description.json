@@ -5,7 +5,7 @@
    "controller" : "stonehearth:class:weaver", 
    "description" : "The Weaver makes thread, fabrics and hangings from fiber and dye.", 
    "requirements": "Weaver's Spindle, crafted by the Carpenter.",
-   "talisman_uri" : "stonehearth:weaver:spindle_talisman", 
+   "talisman_uri" : "stonehearth:weaver:talisman", 
    "default_stance" : "passive",
    "promotion_activity_name" : "promote_weaver",
 

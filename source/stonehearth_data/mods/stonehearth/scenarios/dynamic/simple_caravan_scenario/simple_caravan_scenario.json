@@ -18,15 +18,15 @@
             "min" : 2, 
             "max" : 20
          }, 
-         "stonehearth:hunk_of_stone" : {
+         "stonehearth:resources:stone:hunk_of_stone" : {
             "min" : 3, 
             "max" : 20
          },
-         "stonehearth:berry_basket" : {
+         "stonehearth:food:berries:berry_basket" : {
             "min" : 1, 
             "max" : 5
          },
-         "stonehearth:farmer:hoe_talisman" : {
+         "stonehearth:farmer:talisman" : {
             "min" : 1, 
             "max" : 2
          }, 
@@ -38,7 +38,7 @@
             "min" : 2, 
             "max" : 10
          },
-         "stonehearth:corn_basket" : {
+         "stonehearth:food:corn:corn_basket" : {
             "min": 3, 
             "max": 10
          }, 

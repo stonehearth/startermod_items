@@ -21,7 +21,7 @@
       },
       "stonehearth:renewable_resource_node": {
          "task_group_name" : "stonehearth:task_group:harvest",
-         "resource" : "stonehearth:wool_bundle",
+         "resource" : "stonehearth:resources:fiber:wool_bundle",
          "renewal_time" : "12h",
          "harvest_command" : "shear_sheep",
          "unripe_description" : "This sheep is still quite naked.",

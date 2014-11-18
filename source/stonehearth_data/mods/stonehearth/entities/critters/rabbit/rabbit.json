@@ -5,8 +5,7 @@
       "unit_info" : {
          "name" : "Rabbit",
          "description" : "Om nom nom",
-         "player_id" : "critters",
-         "character_sheet_info" : "file(rabbit_character_sheet_info.json)"
+         "player_id" : "critters"
       },
       "render_info" : {
          "animation_table" : "file(/data/rigs/critters/rabbit)"
@@ -28,7 +27,7 @@
          },
          "items" : [
             { "uri" : "stonehearth:rabbit_jerky" },
-            { "uri" : "stonehearth:rabbit_pelt"  }
+            { "uri" : "stonehearth:resources:rabbit_pelt"  }
          ]
       }
    }

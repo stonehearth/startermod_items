@@ -149,7 +149,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    _doBuy: function(quantity) {
       var self = this;
       var shop = self.get('context.data.shop');
-      var item = self.$('#buyList').find(".selected").attr('uri');
+      var item = self.$('#buyList .selected').attr('uri');
 
       radiant.call_obj(shop, 'buy_item_command', item, quantity)
          .always(function() {
@@ -163,7 +163,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    _doSell: function(quantity) {
       var self = this;
       var shop = self.get('context.data.shop');
-      var item = self.$('#sellList .row.selected').attr('uri')
+      var item = self.$('#sellList .selected').attr('uri')
 
       radiant.call_obj(shop, 'sell_item_command', item, quantity)
          .always(function() {
@@ -198,7 +198,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       }
    },
 
-   _updateSellButton: function() {
+   _updateSellButtons: function() {
       var self = this;
 
       var row = self.$("[uri='" + self._selectedUri + "']");

@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "item" : {
-         "category" : "furniture"
+         "category" : "construction"
       },
       "model_variants": {
          "default": {

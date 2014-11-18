@@ -4,27 +4,27 @@
          "crop_type" : "fallow"
       },
       {
-         "crop_type" : "stonehearth:turnip_crop",
+         "crop_type" : "stonehearth:crops:turnip_crop",
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_crop",
+         "crop_type" : "stonehearth:crops:corn_crop",
          "quantity" : 5
       },
       {
-         "crop_type" : "stonehearth:pumpkin_crop",
+         "crop_type" : "stonehearth:crops:pumpkin_crop",
          "quantity" : 5
       },
       {
-         "crop_type" : "stonehearth:silkweed_crop",
+         "crop_type" : "stonehearth:crops:silkweed_crop",
          "quantity" : 5
       }, 
       {
-         "crop_type" : "stonehearth:brightbell_crop",
+         "crop_type" : "stonehearth:crops:brightbell_crop",
          "quantity" : 5
       },
       {
-         "crop_type" : "stonehearth:frostsnap_crop",
+         "crop_type" : "stonehearth:crops:frostsnap_crop",
          "quantity" : 5
       }    
    ], 
@@ -33,11 +33,11 @@
          "crop_type" : "fallow"
       },
       {
-         "crop_type" : "stonehearth:turnip_crop",
+         "crop_type" : "stonehearth:crops:turnip_crop",
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_crop",
+         "crop_type" : "stonehearth:crops:corn_crop",
          "quantity" : 5
       }
    ], 
@@ -46,11 +46,11 @@
          "crop_type" : "fallow"
       },
       {
-         "crop_type" : "stonehearth:turnip_crop",
+         "crop_type" : "stonehearth:crops:turnip_crop",
          "quantity" : 10
       },
       {
-         "crop_type" : "stonehearth:corn_crop",
+         "crop_type" : "stonehearth:crops:corn_crop",
          "quantity" : 5
       }
    ], 

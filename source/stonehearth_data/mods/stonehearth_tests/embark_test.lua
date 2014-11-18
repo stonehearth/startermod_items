@@ -57,7 +57,7 @@ function EmbarkTest:__init()
 
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:resources:wood:oak_log'))
-   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:silkweed_bundle'))
+   radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:resources:fiber:silkweed_bundle'))
    radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:footman:wooden_sword_talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw_talisman'))
 
@@ -73,7 +73,7 @@ function EmbarkTest:__init()
       player_id = player_id,
    }
 
-   --stonehearth.farming:add_crop_type(session, 'stonehearth:silkweed_crop')
+   --stonehearth.farming:add_crop_type(session, 'stonehearth:crops:silkweed_crop')
 
 
    -- Introduce a new person

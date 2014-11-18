@@ -85,8 +85,7 @@
       },
       "unit_info" : {
          "name": "Civilian",
-         "description": "Citizen of your town",
-         "character_sheet_info" : "file(/entities/humans/citizen_character_sheet_info.json)"
+         "description": "Citizen of your town"
       },
       "sensor_list": {
          "sensors": {

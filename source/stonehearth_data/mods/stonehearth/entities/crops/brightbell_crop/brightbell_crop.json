@@ -1,0 +1,78 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(../../decoration/brightbell/brightbell.qb)"
+            ]
+         },
+         "brightbell_1": {
+            "models": [
+               "file(brightbell_1.qb)"
+            ]
+         },
+         "brightbell_2": {
+            "models": [
+               "file(brightbell_2.qb)"
+            ]
+         },
+         "brightbell_3": {
+            "models": [
+               "file(brightbell_3.qb)"
+            ]
+         },
+         "brightbell_4": {
+            "models": [
+               "file(brightbell_4.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "unit_info": {
+         "name": "Brightbell Flower", 
+         "description": "Just a flower.", 
+         "icon" : "file(../../decoration/brightbell/brightbell.png)"
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "brightbell_4": "stonehearth:decoration:brightbell"
+         }, 
+         "harvest_threshhold" : "brightbell_4", 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "6h",
+         "growth_stages" : [
+            {
+               "model_name" : "brightbell_1",
+               "name": "Brightbell Seedling", 
+               "description": "Full of potential."
+            },
+            {
+               "model_name" : "brightbell_2",
+               "name": "Brightbell Sprout", 
+               "description": "Stubby."
+            },
+            {
+               "model_name" : "brightbell_3",
+               "name": "Brightbell Bud", 
+               "description": "Awkward, gangly stage."
+            },
+            {
+               "model_name" : "brightbell_4",
+               "name": "Brightbell", 
+               "description": "Beauty is its own reward."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop brightbell"
+      }
+   }
+}

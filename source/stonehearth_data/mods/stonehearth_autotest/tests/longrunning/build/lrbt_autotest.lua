@@ -144,7 +144,7 @@ function lrbt.shanty_town(autotest)
    local building
 
    lrbt_util.create_endless_entity(autotest, -31, 0, 1, 8, 'stonehearth:resources:wood:oak_log')
-   lrbt_util.create_endless_entity(autotest, -30, 0, 1, 8, 'stonehearth:berry_basket')
+   lrbt_util.create_endless_entity(autotest, -30, 0, 1, 8, 'stonehearth:food:berries:berry_basket')
    lrbt_util.create_workers(autotest)
 
    local function create_house(x, y)
@@ -176,7 +176,7 @@ function lrbt.expensive_building(autotest)
    local building
 
    lrbt_util.create_endless_entity(autotest, 8, 16, 2, 4, 'stonehearth:resources:wood:oak_log')
-   lrbt_util.create_endless_entity(autotest, -8, 16, 2, 4, 'stonehearth:berry_basket')
+   lrbt_util.create_endless_entity(autotest, -8, 16, 2, 4, 'stonehearth:food:berries:berry_basket')
    lrbt_util.create_workers(autotest)
 
    autotest.ui:click_dom_element('#startMenu #build_menu')

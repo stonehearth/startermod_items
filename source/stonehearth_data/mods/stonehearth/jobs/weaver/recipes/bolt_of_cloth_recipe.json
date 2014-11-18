@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:cloth_bolt"
+         "item":"stonehearth:refined:cloth_bolt"
       }
   ]
 }

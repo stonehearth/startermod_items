@@ -62,6 +62,13 @@ function PlacementTest:_alias_is_item(path)
       return true
    end
 
+   if json['components'] ~= nil and 
+      json['components']['stonehearth:entity_forms'] ~= nil and
+      ( json['components']['stonehearth:entity_forms']['placeable_on_ground'] or
+        json['components']['stonehearth:entity_forms']['placeable_on_walls']) then
+      return true
+   end
+
    return false
 end
 

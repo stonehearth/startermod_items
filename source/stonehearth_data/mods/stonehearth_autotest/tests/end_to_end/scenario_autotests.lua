@@ -15,11 +15,11 @@ function score_tests.immigration_failure(autotest)
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       local uri = e.entity:get_uri()
-      if uri == 'stonehearth:berry_basket' or 
+      if uri == 'stonehearth:food:berries:berry_basket' or 
          uri == 'stonehearth:turnip_basket' or 
-         uri == 'stonehearth:corn_basket' or 
+         uri == 'stonehearth:food:corn:corn_basket' or 
          uri == 'stonehearth:rabbit_jerky' or 
-         uri == 'stonehearth:farmer:hoe_talisman'
+         uri == 'stonehearth:farmer:talisman'
          then
          autotest:success()
          return radiant.events.UNLISTEN

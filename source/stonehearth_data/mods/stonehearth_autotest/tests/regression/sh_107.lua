@@ -19,7 +19,7 @@ function sh_107.test_fallow_crop(autotest)
       player_id = radiant.entities.get_player_id(farmer),
    }
 
-   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
+   stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop')
 
    local farm_entity = nil
 
@@ -48,7 +48,7 @@ function sh_107.test_fallow_crop(autotest)
 
    --autotest.ui:click_terrain(4, 8)
    autotest.ui:click_dom_element('#farmWindow #addCropLink')
-   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:tester_crop"]')
+   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')

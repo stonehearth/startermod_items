@@ -1,8 +1,8 @@
 {
    "default" : 1,
    "stonehearth:furniture:arch_backed_chair" : 2, 
-   "stonehearth:corn_basket" : 2, 
-   "stonehearth:corn_crop" : 2, 
-   "stonehearth:amazing_corn_basket" : 3, 
+   "stonehearth:food:corn:corn_basket" : 2, 
+   "stonehearth:crops:corn_crop" : 2, 
+   "stonehearth:food:corn:amazing_corn_basket" : 3, 
    "stonehearth:firepit" : 3
 }

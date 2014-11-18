@@ -238,7 +238,7 @@ function Inventory:add_gold(amount)
    item:set_stacks(amount)
 
    local location = radiant.terrain.find_placement_point(drop_origin, 1, 3)
-   radiant.terrain.place_entity(item, location)
+   radiant.terrain.place_entity(gold, location)
 end
 
 function Inventory:subtract_gold(amount)

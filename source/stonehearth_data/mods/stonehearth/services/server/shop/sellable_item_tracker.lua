@@ -51,7 +51,7 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
          category = radiant.entities.get_category(entity),
-         cost = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth'),
+         cost = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold,
       }
 end
 

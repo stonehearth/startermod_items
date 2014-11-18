@@ -16,14 +16,14 @@ function score_tests.eat_food_tests(autotest)
             job = 'worker',
             attributes = { calories = stonehearth.constants.food.MALNOURISHED }
          })
-   local berry_basket = autotest.env:create_entity(-2, -2, 'stonehearth:berry_basket')
+   local berry_basket = autotest.env:create_entity(-2, -2, 'stonehearth:food:berries:berry_basket')
 
    local num_times_40 = 0
    radiant.events.listen(worker, 'stonehearth:score_changed', function(e)
          if e.new_score == 40 then
             num_times_40 = num_times_40 + 1
             if num_times_40 == 2 then
-               autotest.env:create_entity(-2, -2, 'stonehearth:corn_basket')
+               autotest.env:create_entity(-2, -2, 'stonehearth:food:corn:corn_basket')
             end
          end
          if e.new_score == 60 then

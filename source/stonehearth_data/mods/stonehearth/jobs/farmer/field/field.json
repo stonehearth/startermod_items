@@ -3,8 +3,7 @@
    "components" : {
       "unit_info" : {
          "name" : "Farm plot",
-         "description" : "For growing crops",
-         "character_sheet_info" : "file(field_character_sheet_info.json)"
+         "description" : "For growing crops"
       },
       "stonehearth:farmer_field" : {
       }
