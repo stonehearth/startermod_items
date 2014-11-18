@@ -6,49 +6,24 @@
       
       <div id="top">
          <div>
-            <h2 id="shopTitle">Shop inventory</h2>
+            <h1 id="shopTitle">Shop inventory</h2>
          </div>
          <div id="modeButtons">
             <button id="buyButton">Buy</button>
             <button id="sellButton">Sell</button>
          </div>
       </div>
-      <div id="inventory" class="downSection inventory">
-         <div id="content">      
+
+      <div id="inventory">
 
             <!-- shop inventory -->      
-            <table id="buyList" class="list">
-               <tbody>
-               {{#each view.inventoryArray}}
-                  <tr class="row" {{bind-attr uri=this.uri num=this.num cost=this.cost}}>
-                     <td class="itemName">
-                        <img class="icon" {{bind-attr src=this.item.unit_info.icon}} />
-                        <div>{{{this.item.unit_info.name}}}</div>
-                     </td>
-                     <td class="cost goldText">{{this.cost}}</td>
-                     <td class="num">{{this.num}} in stock</td>
-                  </tr>
-               {{/each}}
-               </tbody>
-            </table>
+            <div id="buyList" class="inventoryList">
+            </div>
 
             <!-- player inventory -->
-            <table id="sellList" class="list">
-               <tbody>
-               {{#each view.playerInventoryArray}}
-                  <tr class="row" {{bind-attr uri=this.uri num=this.num cost=this.cost}}>
-                     <td class="itemName">
-                        <img class="icon" {{bind-attr src=this.item.unit_info.icon}} />
-                        <div>{{{this.item.unit_info.name}}}</div>
-                     </td>
-                     <td class="cost">{{this.cost}}</td>
-                     <td class="num">{{this.num}} in stock</td>
-                  </tr>
-               {{/each}}
-               </tbody>
-            </table>
+            <div id="sellList" class="inventoryList">
+            </div>
 
-         </div>
       </div>
 
       <div id="playerGold">

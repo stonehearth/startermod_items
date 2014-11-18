@@ -18,35 +18,46 @@ App.StonehearthPlaceItemView = App.View.extend({
    templateName: 'stonehearthPlaceItem',
    classNames: ['fullScreen', 'flex', "gui"],
    modal: false,
-   components: {
-      'tracking_data' : {
-         '*' : {              // category...    (e.g. Furniture)
-            '*' : {           // uri of items.. (e.g. stonehearth:furniture:comfy_bed)
-               'items' : {    // all the items, keyed by id
-                  '*' : {
-                     'stonehearth:entity_forms' : {}
-                  }
-               }
-            }
-         }
-      }
-   },
+});
+
+App.StonehearthPlaceItemPalette = App.View.extend({
+   templateName: 'stonehearthPlaceItemPalette',
 
    didInsertElement: function() {
       var self = this;
       this._super();
-      this.hide();
+      //this.hide();
 
-      this.set('tracker', 'stonehearth:placeable_item_inventory_tracker')
+      if (this._trace) {
+         return;
+      }
 
-      self.$().on('click', '.item', function() {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} )
-
-         var itemType = $(this).attr('uri');
-         self.$('.item').removeClass('selected');
-         $(this).addClass('selected');
-         App.stonehearthClient.placeItemType(itemType);
+      // build the palette
+      this._palette = this.$('#items').stonehearthItemPalette({
+         click: function(item) {
+            var itemType = item.attr('uri');
+            App.stonehearthClient.placeItemType(itemType);            
+         }
       });
 
+      return radiant.call_obj('stonehearth.inventory', 'get_item_tracker_command', 'stonehearth:placeable_item_inventory_tracker')
+         .done(function(response) {
+            self._trace = new StonehearthDataTrace(response.tracker, {})
+               .progress(function(response) {
+                  //var itemPaletteView = self._getClosestEmberView(self.$('.itemPalette'));
+                  //itemPaletteView.updateItems(response.tracking_data);
+                  self._palette.stonehearthItemPalette('updateItems', response.tracking_data);
+               });
+         })
+         .fail(function(response) {
+            console.error(response);
+         })     
    },
+
+   destroy: function() {
+      if (this._trace) {
+         this._trace.destroy();
+      }
+   },
+
 });

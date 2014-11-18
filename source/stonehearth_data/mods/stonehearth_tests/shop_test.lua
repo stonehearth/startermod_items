@@ -22,14 +22,16 @@ function ShopTest:__init()
    
 
    --Place a banner
-   local player_id = worker:get_component('unit_info'):get_player_id()
+   --local player_id = worker:get_component('unit_info'):get_player_id()
+   local player_id = 'player_1'
    local town = stonehearth.town:get_town(player_id)
    local location = Point3(7, 0, 7)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   radiant.terrain.place_entity(banner_entity, location)
+   radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
 
    self:at(10,  function()
+         self:place_stockpile_cmd(player_id, -8, -8, 0, 0)
          stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
       end)
 end

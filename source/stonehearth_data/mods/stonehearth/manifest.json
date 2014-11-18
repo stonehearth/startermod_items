@@ -1122,6 +1122,7 @@
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
+      "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
@@ -1151,7 +1152,6 @@
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
-      "shop:sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
@@ -1311,7 +1311,6 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
-         "file(ui/game/inventory_tracker/inventory_tracker.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1394,7 +1393,7 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
-         "file(ui/game/inventory_tracker/inventory_tracker.js)",
+         "file(ui/game/item_palette/item_palette.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
@@ -1464,7 +1463,7 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
-         "file(ui/game/inventory_tracker/inventory_tracker.less)",
+         "file(ui/game/item_palette/item_palette.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
          "file(ui/game/tip_popup/tip_popup.less)",
