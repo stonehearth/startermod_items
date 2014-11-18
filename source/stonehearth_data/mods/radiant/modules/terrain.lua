@@ -380,8 +380,8 @@ function Terrain._get_terrain_component()
    return radiant._root_entity:add_component('terrain')
 end
 
-function Terrain.get_movement_cost_at(point)
-   return _physics:get_movement_cost_at(point)
+function Terrain.get_movement_speed_at(point)
+   return _physics:get_movement_speed_at(point)
 end
 
 function Terrain._initialize_block_types(config_file)
