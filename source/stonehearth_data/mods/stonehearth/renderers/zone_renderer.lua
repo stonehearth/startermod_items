@@ -141,8 +141,6 @@ function ZoneRenderer:_on_ui_mode_changed()
       -- no need to regenerate ground node
 
       self:_update_selectable()
-      local ground_selectable = self:_in_hud_mode() and self._is_selectable
-      stonehearth.selection:set_selectable(self._render_entity:get_entity(), ground_selectable)
    end
 end
 
