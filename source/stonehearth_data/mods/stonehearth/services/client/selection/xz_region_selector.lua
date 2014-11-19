@@ -315,6 +315,17 @@ function XZRegionSelector:_compute_p1(p0, p1)
    return self:_compute_p1_loop(p0, p1, coord)
 end
 
+function XZRegionSelector:_clear_selection()
+   self._p0 = nil
+   self._p1 = nil
+   if self._x_ruler then
+      self._x_ruler:hide()
+   end
+   if self._z_ruler then
+      self._z_ruler:hide()
+   end
+end
+
 function XZRegionSelector:_on_mouse_event(event)
    -- cancel on mouse button 2.
    if event and event:up(2) and not event.dragging then
@@ -327,6 +338,8 @@ function XZRegionSelector:_on_mouse_event(event)
    -- if we haven't found a valid p0 and the current brick isn't valid either, install
    -- the invalid cursor object
    if not current_brick and not self._selected_p0 then
+      self:_clear_selection()
+
       if not self._invalid_cursor_obj then
          self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
       end
@@ -371,10 +384,8 @@ function XZRegionSelector:_on_mouse_event(event)
       self._selected_p0 = self._selected_p0 or event:down(1)
    else
       if not self._selected_p0 then
-         self._p0 = nil
-         self._p1 = nil
-      else
-         -- keep the last valid region
+         self:_clear_selection()
+         return
       end
    end
 
