@@ -1,0 +1,18 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Wooden Floor", 
+         "description": "Keeps feet clean"
+      },
+      "stonehearth:construction_data" : {
+         "type" : "floor",
+         "brush": "file(wooden_floor_diagonal.qb)",
+         "needs_scaffolding" : false,
+         "allow_crouching_construction" : true,         
+         "paint_through_blueprint" : true,
+         "material": "wood resource"
+      }
+   }
+}

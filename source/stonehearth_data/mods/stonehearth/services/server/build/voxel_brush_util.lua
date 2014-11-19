@@ -7,6 +7,17 @@ local NineGridBrush = _radiant.voxel.NineGridBrush
 
 local MODEL_OFFSET = Point3(0, 0, 0)
 
+function voxel_brush_util.brush_from_uri(uri)
+   local e = radiant.entities.create_entity(uri)
+   local c = e:get_component('stonehearth:construction_data')
+   assert(c)
+   local brush = c:get_brush()
+   assert(brush)
+   radiant.entities.destroy_entity(e)
+
+   return brush
+end
+
 function voxel_brush_util.create_brush(construction_data)
    assert(construction_data)
 

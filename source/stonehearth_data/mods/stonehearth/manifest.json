@@ -63,7 +63,10 @@
 
       "terrain_block_config" : "file(data/terrain/terrain_blocks.json)",
 
-      "entities:wooden_floor" : "file(entities/build/wooden_floor)",
+      "wooden_floor_solid_light" : "file(entities/build/floor/wooden_floor_solid_light)",
+      "wooden_floor_solid_dark" : "file(entities/build/floor/wooden_floor_solid_dark)",
+      "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
+      "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "cobblestone_wall" : "file(entities/build/cobblestone_wall/cobblestone_wall.json)",
