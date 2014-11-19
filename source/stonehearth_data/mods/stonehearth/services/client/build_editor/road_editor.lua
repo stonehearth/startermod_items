@@ -1,4 +1,5 @@
 local constants = require('constants').construction
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Point2 = _radiant.csg.Point2
@@ -64,7 +65,8 @@ function RoadEditor:__init(build_service)
    _radiant.renderer.add_terrain_cut(self._cut_region)
 end
 
-function RoadEditor:go(response, brush_shape)
+function RoadEditor:go(response, road_uri)
+   local brush_shape = voxel_brush_util.brush_from_uri(road_uri)   
    local brush = _radiant.voxel.create_brush(brush_shape)
 
    stonehearth.selection:select_xz_region()
@@ -88,7 +90,7 @@ function RoadEditor:go(response, brush_shape)
             return node
          end)
       :done(function(selector, box)
-            self:_add_road(response, selector, box, brush_shape)
+            self:_add_road(response, selector, box, road_uri)
          end)
       :fail(function(selector)
             response:reject('no region')            
@@ -104,8 +106,8 @@ function RoadEditor:go(response, brush_shape)
    return self
 end
 
-function RoadEditor:_add_road(response, selector, box, brush_shape)
-   _radiant.call_obj(self._build_service, 'add_road_command', 'stonehearth:entities:wooden_floor', box, brush_shape)
+function RoadEditor:_add_road(response, selector, box, road_uri)
+   _radiant.call_obj(self._build_service, 'add_road_command', road_uri, box)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)
