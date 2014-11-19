@@ -34,14 +34,20 @@ end
 function MiningZoneComponent:initialize(entity, json)
    self._entity = entity
    self._destination_component = self._entity:add_component('destination')
+   self._collision_shape_component = self._entity:add_component('region_collision_shape')
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
+      self._collision_shape_component
+         :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+
       self._destination_component
          :set_region(_radiant.sim.alloc_region3())
          :set_adjacent(_radiant.sim.alloc_region3())
          :set_reserved(_radiant.sim.alloc_region3())
+
       self:set_region(_radiant.sim.alloc_region3())
+
       self._sv.mining_zone_enabled = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
@@ -79,6 +85,10 @@ function MiningZoneComponent:set_region(region)
    self._sv.region = region
    self:_trace_region()
    self.__saved_variables:mark_changed()
+
+   -- have the collision shape use the same region
+   self._collision_shape_component:set_region(self._sv.region)
+
    return self
 end
 
