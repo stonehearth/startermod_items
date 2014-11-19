@@ -324,6 +324,7 @@ function MiningService:_insta_mine(region)
    end
 end
 
+-- currently, a relatively trivial function to determine what is "interior"
 function MiningService:_update_interior_region(point)
    local cube = self:_get_interior_column(point)
 

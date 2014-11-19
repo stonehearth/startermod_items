@@ -148,7 +148,7 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
 // Region3MapWrapper
 //------------------
 
-Region3MapWrapper::Region3MapWrapper(Region3MapWrapper::TileMap& tiles) :
+Region3MapWrapper::Region3MapWrapper(TileMap& tiles) :
    _tiles(tiles)
 {}
 
@@ -177,7 +177,7 @@ std::shared_ptr<csg::Region3> Region3MapWrapper::GetTile(csg::Point3 const& inde
    return tile;
 }
 
-void Region3MapWrapper::ModifyTile(csg::Point3 const& index, TileMapWrapper::ModifyRegionFn fn)
+void Region3MapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
 {
    std::shared_ptr<csg::Region3> tile = GetTile(index);
    fn(*tile);
@@ -196,7 +196,7 @@ csg::Region3 const& Region3MapWrapper::GetTileRegion(std::shared_ptr<csg::Region
 // Region3BoxedMapWrapper
 //-----------------------
 
-Region3BoxedMapWrapper::Region3BoxedMapWrapper(Region3BoxedMapWrapper::TileMap& tiles) :
+Region3BoxedMapWrapper::Region3BoxedMapWrapper(TileMap& tiles) :
    _tiles(tiles),
    _store(tiles.GetStore())
 {}
@@ -226,7 +226,7 @@ Region3BoxedPtr Region3BoxedMapWrapper::GetTile(csg::Point3 const& index)
    return tile;
 }
 
-void Region3BoxedMapWrapper::ModifyTile(csg::Point3 const& index, TileMapWrapper::ModifyRegionFn fn)
+void Region3BoxedMapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
 {
    Region3BoxedPtr tile = GetTile(index);
    tile->Modify(fn);
