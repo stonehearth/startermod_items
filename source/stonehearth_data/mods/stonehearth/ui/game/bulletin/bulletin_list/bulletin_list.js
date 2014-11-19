@@ -8,10 +8,12 @@ App.StonehearthBulletinList = App.View.extend({
    },
 
    didInsertElement: function() {
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'});
       var self = this;
       self._super();
 
       this.$().on('click', '.row', function() {
+         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'});
          var row = $(this);
          var id = row.attr('id');
          var bulletins = self.get('context');
