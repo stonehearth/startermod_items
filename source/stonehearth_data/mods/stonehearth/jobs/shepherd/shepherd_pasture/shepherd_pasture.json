@@ -6,6 +6,19 @@
          "description" : "Shepherds bring animals to these locations and tend to them here."
       }, 
       "stonehearth:shepherd_pasture" : {
+         "default_type" : "stonehearth:sheep",
+         "pasture_data" : {
+            "stonehearth:sheep" : {
+               "name" : "Sheep Pasture",
+               "min_population" : 2,
+               "max_population" : 7
+            }, 
+            "stonehearth:rabbits" : {
+               "name" : "Rabbit Pen",
+               "min_population" : 2,
+               "max_population" : 15
+            }
+         }
       }
    },
    "entity_data" : {

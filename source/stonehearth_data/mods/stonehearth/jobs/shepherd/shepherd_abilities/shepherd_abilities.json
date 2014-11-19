@@ -9,7 +9,12 @@
 
                "stonehearth:actions:town_defense:town_defense_dispatcher",
                "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
-               "stonehearth:actions:town_defense:town_defense_idle_ready"
+               "stonehearth:actions:town_defense:town_defense_idle_ready", 
+
+               "stonehearth:actions:shepherd:herding_dispatcher",
+               "stonehearth:actions:shepherd:claim_animal_for_pasture",
+               "stonehearth:actions:shepherd:collect_animal_for_pasture_from_nearby",
+               "stonehearth:actions:shepherd:collect_animal_for_pasture_from_world"
             ],
             "observers" : [
                "stonehearth:observers:combat_panic",
