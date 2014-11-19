@@ -5,7 +5,7 @@
    "recipe_name" : "Wooden Wall-mounted Lantern",
    "description" : "A simple lantern. Place on buildings to provide light at night.",
    "flavor"      : "So comfortinzzzzzzzz...",
-   "portrait"    : "/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png",
+   "portrait"    : "/stonehearth/entities/decoration/wooden_wall_lantern/wooden_wall_lantern.png",
    "level_requirement" : 1,
    "ingredients": [
       {
