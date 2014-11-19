@@ -8,6 +8,7 @@
          "render_type" : "merge_with_model",
          "injected_ai" : {
             "actions" : [
+               "stonehearth:actions:shepherd:follow_shepherd_action"
             ],
             "observers": [
             ]

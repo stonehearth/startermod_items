@@ -535,6 +535,7 @@
       "actions:shepherd:collect_animal_for_pasture_from_nearby" : "file(ai/actions/collect_animal_for_pasture_from_nearby.lua)", 
       "actions:shepherd:collect_animal_for_pasture_from_world" : "file(ai/actions/collect_animal_for_pasture_from_world.lua)", 
       "actions:shepherd:herding_dispatcher" : "file(ai/actions/herding_dispatcher.lua)",
+      "actions:shepherd:follow_shepherd_action" : "file(ai/actions/follow_shepherd_action.lua)", 
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",

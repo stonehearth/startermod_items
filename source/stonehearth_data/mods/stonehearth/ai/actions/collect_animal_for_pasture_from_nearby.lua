@@ -50,8 +50,7 @@ function CollectAnimalFromNearby:make_filter_fn(animal_type)
    return filter_fn
 end
 
---TODO: put this range into a constant.
---TODO: remember to release the critter from the reservation? Is the reservation necessary?
+--TODO: put this range into a constant?
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CollectAnimalFromNearby)
@@ -63,6 +62,4 @@ return ai:create_compound_action(CollectAnimalFromNearby)
    :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
    :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(2).destination_entity })
    :execute('stonehearth:run_effect', { effect = 'fiddle' })
-
-   --TODO: create a collar (like pet collar, except for pasture)
    :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(4).destination_entity})

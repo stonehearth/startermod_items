@@ -17,7 +17,7 @@ function ClaimAnimalForPasture:run(ai, entity, args)
    equipment_component:equip_item(pasture_collar)
    
    local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
-   shepherded_animal_component:set_following(true)
+   shepherded_animal_component:set_following(true, entity)
    shepherded_animal_component:set_pasture(args.pasture:get_id())
 
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
