@@ -23,7 +23,7 @@ void MovementModifierShape::ConstructObject()
 
 void MovementModifierShape::LoadFromJson(json::Node const& obj)
 {
-   modifier_.Set(obj.get("modifier", 2.0f)); // double the speed!
+   modifier_.Set(obj.get("modifier", 1.0f));
 
    region_ = LoadRegion(obj, GetStore());
 }
