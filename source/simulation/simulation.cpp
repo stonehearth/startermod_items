@@ -1150,3 +1150,8 @@ void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
       SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << name;
    }
 }
+
+bool Simulation::GetEnableJobLogging() const
+{
+   return enable_job_logging_;
+}

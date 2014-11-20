@@ -75,6 +75,7 @@ public:
    lua::ScriptHost& GetScript();
    float GetBaseWalkSpeed() const;
    int GetGameTickInterval() const;
+   bool GetEnableJobLogging() const;
    perfmon::Timeline& GetJobsPerfTimeline();
 
    WorkerScheduler* GetWorkerScheduler();
