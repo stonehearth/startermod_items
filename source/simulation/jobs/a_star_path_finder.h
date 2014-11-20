@@ -72,6 +72,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void RecommendBestPath(std::vector<csg::Point3f> &points) const;
       float EstimateCostToDestination(const csg::Point3 &pt) const;
       float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest) const;
+      float GetMaxMovementModifier(csg::Point3 const& point) const;
 
       PathFinderNode PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3f> &solution, const csg::Point3 &dst) const;

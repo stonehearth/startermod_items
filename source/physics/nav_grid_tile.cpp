@@ -8,6 +8,7 @@
 #include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "nav_grid_tile_data.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -378,4 +379,29 @@ float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
 {
    RefreshTileData();
    return data_->GetMovementSpeedBonus(offset);
+}
+
+float NavGridTile::GetMaxMovementModifier() const
+{
+   float max = 0;
+   for (const auto& i : trackers_) {
+      const CollisionTrackerPtr& tracker = i.second.lock();
+      if (!tracker) {
+         continue;
+      }
+      if (tracker->GetType() != MOVEMENT_MODIFIER) {
+         continue;
+      }
+      om::EntityPtr entity = tracker->GetEntity();
+      if (!entity) {
+         continue;
+      }
+      auto mms = entity->GetComponent<om::MovementModifierShape>();
+      if (!mms) {
+         continue;
+      }
+
+      max = std::max(max, mms.get()->GetModifier());
+   }
+   return max;
 }

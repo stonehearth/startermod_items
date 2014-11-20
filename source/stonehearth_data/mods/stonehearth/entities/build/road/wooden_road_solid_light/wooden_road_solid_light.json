@@ -15,7 +15,7 @@
          "material": "wood resource"
       },
       "movement_modifier_shape" : {
-         "modifier" : 20.0
+         "modifier" : 0.25
       }
    }
 }
