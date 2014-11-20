@@ -392,7 +392,7 @@ function build_util.get_building_bounds(building)
 
    local function measure_bounds(entity)
       if build_util.is_blueprint(entity) then
-         local dst = entity:get_component('region_collision_shape')
+         local dst = entity:get_component('destination')
          if dst then
             local region_bounds = dst:get_region():get():get_bounds()
             region_bounds = radiant.entities.local_to_world(region_bounds, entity)
