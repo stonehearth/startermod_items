@@ -83,8 +83,9 @@ end
 --
 function SharedAStarPathFinder:_start_pathfinder()
    if not self._pathfinder then
+      local description = string.format('%s @ %s', tostring(self._entity), tostring(self._start_location))
       self._log:info("starting astar pathfinder from %s", self._start_location)   
-      self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, string.format('shared astar from %s', tostring(self._start_location)))
+      self._pathfinder = _radiant.sim.create_astar_path_finder(self._entity, description)
                            :set_source(self._start_location)
                            :set_solved_cb(function(path)
                                  return self:_on_solved(path)

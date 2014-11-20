@@ -75,6 +75,7 @@ public:
    lua::ScriptHost& GetScript();
    float GetBaseWalkSpeed() const;
    int GetGameTickInterval() const;
+   perfmon::Timeline& GetJobsPerfTimeline();
 
    WorkerScheduler* GetWorkerScheduler();
    BuildingScheduler* GetBuildingScehduler(dm::ObjectId id);
@@ -133,7 +134,7 @@ private:
 
    void CreateGame();
    void CreateFreeMotionTrace(om::MobPtr mob);
-   void LogAllJobProgress();
+   void LogJobPerfCounters(perfmon::Frame* frame);
 
 private:
    struct FreeMotionTaskMapEntry {
@@ -196,10 +197,12 @@ private:
    rpc::LuaObjectRouterPtr             luaObjectRouter_;
    rpc::TraceObjectRouterPtr           traceObjectRouter_;
    perfmon::Timeline                   perf_timeline_;
+   perfmon::Timeline                   perf_jobs_;
    bool                                enable_job_logging_;
    platform::timer                     log_jobs_timer_;
    platform::timer                     next_counter_push_;
    core::Guard                         on_frame_end_guard_;
+   core::Guard                         jobs_perf_guard_;
    om::ErrorBrowserPtr                 error_browser_;
    om::EntityPtr                       root_entity_;
    om::ModListPtr                      modList_;

@@ -61,7 +61,7 @@ namespace proto = ::radiant::tesseract::protocol;
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
 
-#define MEASURE_TASK_TIME(category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf_timeline_, category);
+#define MEASURE_TASK_TIME(perf, category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf, category);
 
 Simulation::Simulation(std::string const& versionStr) :
    store_(nullptr),
@@ -99,6 +99,12 @@ void Simulation::OneTimeIninitializtion()
       SendReply(r);
    });
    enable_job_logging_ = config.Get<bool>("enable_job_logging", false);
+   if (enable_job_logging_) {
+      perf_jobs_.BeginFrame();
+      jobs_perf_guard_ = perf_jobs_.OnFrameEnd([this](perfmon::Frame* frame) {
+         LogJobPerfCounters(frame);
+      });
+   }
 
    // routes...
    core_reactor_->AddRouteV("radiant:debug_navgrid", [this](rpc::Function const& f) {
@@ -470,7 +476,7 @@ void Simulation::StepPathFinding()
 
 void Simulation::FireLuaTraces()
 {
-   MEASURE_TASK_TIME("lua")
+   MEASURE_TASK_TIME(perf_timeline_, "lua")
 
    SIM_LOG_GAMELOOP(7) << "firing lua traces";
    lua_traces_->Flush();
@@ -478,7 +484,7 @@ void Simulation::FireLuaTraces()
 
 void Simulation::UpdateGameState()
 {
-   MEASURE_TASK_TIME("lua")
+   MEASURE_TASK_TIME(perf_timeline_, "lua")
 
    // Run AI...
    SIM_LOG_GAMELOOP(7) << "calling lua update";
@@ -652,7 +658,7 @@ void Simulation::EncodeDebugShapes(protocol::SendQueuePtr queue)
 
 void Simulation::ProcessTaskList()
 {
-   MEASURE_TASK_TIME("native tasks")
+   MEASURE_TASK_TIME(perf_timeline_, "native tasks")
    SIM_LOG_GAMELOOP(7) << "processing task list";
 
    freeMotion_->ProcessDirtyTiles(game_loop_timer_);
@@ -671,7 +677,7 @@ void Simulation::ProcessTaskList()
 
 void Simulation::ProcessJobList()
 {
-   MEASURE_TASK_TIME("pathfinder")
+   MEASURE_TASK_TIME(perf_timeline_, "pathfinder")
 
    // Pahtfinders down here...
    if (_singleStepPathFinding) {
@@ -835,8 +841,8 @@ void Simulation::Mainloop()
       next_counter_push_.set(500);
    }
    if (enable_job_logging_ && log_jobs_timer_.expired()) {
-      LogAllJobProgress();
-      log_jobs_timer_.set(1000);
+      perf_jobs_.BeginFrame();
+      log_jobs_timer_.set(2000);
    }
 
    // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
@@ -861,7 +867,7 @@ void Simulation::Mainloop()
 
 void Simulation::LuaGC()
 {
-   MEASURE_TASK_TIME("lua gc")
+   MEASURE_TASK_TIME(perf_timeline_, "lua gc")
    SIM_LOG_GAMELOOP(7) << "starting lua gc";
    scriptHost_->GC(game_loop_timer_);
 }
@@ -906,7 +912,7 @@ void Simulation::Idle()
 #endif
 
    if (!noidle_) {
-      MEASURE_TASK_TIME("idle")
+      MEASURE_TASK_TIME(perf_timeline_, "idle")
       SIM_LOG_GAMELOOP(7) << "idling";
       while (!game_loop_timer_.expired()) {
          platform::sleep(1);
@@ -927,7 +933,7 @@ void Simulation::Idle()
 
 void Simulation::SendClientUpdates()
 {
-   MEASURE_TASK_TIME("network send")
+   MEASURE_TASK_TIME(perf_timeline_, "network send")
    SIM_LOG_GAMELOOP(7) << "sending client updates (time left on net timer: " << net_send_timer_.remaining() << ")";
 
    for (std::shared_ptr<RemoteClient> c : _clients) {
@@ -951,7 +957,7 @@ void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
 
 void Simulation::ReadClientMessages()
 {
-   MEASURE_TASK_TIME("network recv")
+   MEASURE_TASK_TIME(perf_timeline_, "network recv")
    SIM_LOG_GAMELOOP(7) << "processing messages";
 
    _io_service->poll();
@@ -1118,17 +1124,29 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
       ->PushObjectState();
 }
 
-void Simulation::LogAllJobProgress()
+perfmon::Timeline& Simulation::GetJobsPerfTimeline()
 {
-   SIM_LOG(1) << "--------- Job Progress ------------------";
-   radiant::stdutil::ForEachPrune<Job>(jobs_, [&](std::shared_ptr<Job> &p) {
-      std::string progress = p->GetProgress();
+   return perf_jobs_;
+}
 
-      std::vector<std::string> lines;
-      boost::split(lines, progress, boost::is_any_of("\n"));
+void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
+{
+   json::Node times(JSONNode(JSON_ARRAY));
+   int totalTime = 0;
 
-      for (std::string const& line : lines) {
-         SIM_LOG(1) << line;
-      }
-   });
+   SIM_LOG(0) << "--- job performance counters --------------------";
+   std::set<std::pair<int, const char*>, std::greater<std::pair<int, const char*>>> counters;
+   for (perfmon::Counter const* counter : frame->GetCounters()) {
+      perfmon::CounterValueType time = counter->GetValue();
+      int ms = perfmon::CounterToMilliseconds(time);
+      const char* name = counter->GetName();
+      counters.insert(std::make_pair(ms, name));
+      totalTime += ms;
+   }
+   for (auto const& entry : counters) {
+      int ms = entry.first;
+      const char*  name = entry.second;
+      int percent = ms * 100 / totalTime;
+      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << name;
+   }
 }

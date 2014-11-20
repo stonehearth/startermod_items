@@ -15,6 +15,7 @@
 #include "om/region.h"
 #include "csg/color.h"
 #include "csg/util.h"
+#include "core/static_string.h"
 
 using namespace ::radiant;
 using namespace ::radiant::simulation;
@@ -408,6 +409,8 @@ void BfsPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 void BfsPathFinder::Work(platform::timer const &timer)
 {
+   MEASURE_JOB_TIME();
+
    BFS_LOG(3) << "entering work function ("
               << " travel distance:" << travel_distance_
               << " explored distance:" << explored_distance_
@@ -586,7 +589,8 @@ std::string BfsPathFinder::GetProgress() const
       ename = BUILD_STRING(*entity);
    }
    int percentExplored = static_cast<int>(search_order_index_ * 100 / SEARCH_ORDER_SIZE);
-   progress << "bfs   " << std::left << std::setw(32) << GetName() << "("
+   progress << "bfs   " << std::left << std::setw(40) << GetName() << "("
+            << "entity:" << std::setw(32) << ename << " "
             << "explored:" << percentExplored << "%" << " "
             << "dist:" << travel_distance_ << " "
             << "items:" << destinationCount_ << " "

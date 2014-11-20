@@ -1,6 +1,4 @@
-local StockpileComponent = require 'components.stockpile.stockpile_component'
 local Entity = _radiant.om.Entity
-
 local Point3 = _radiant.csg.Point3
 
 local WaitForClosestStockpileSpace = class()

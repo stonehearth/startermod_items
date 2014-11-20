@@ -3,13 +3,10 @@
 #include "record_trace.h"
 #include "store.h"
 #include "dm_save_impl.h"
-#include "map_util.h" // xxx: for CStringKeyTransform, which should move to core or something!
 #include "protocols/store.pb.h"
 
 using namespace radiant;
 using namespace radiant::dm;
-
-static SafeCStringTable safeCStrings;
 
 #define TRACE_LOG(level) LOG(dm.trace.record, level) << "[record trace '" << GetReason() << "' id:" << record_.GetObjectId() << "] "
 

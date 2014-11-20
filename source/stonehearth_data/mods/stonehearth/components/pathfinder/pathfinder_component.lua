@@ -11,6 +11,9 @@ local FILTER_RESULT_CACHES = {}
 -- called to initialize the component on creation and loading.
 --
 function PathFinder:initialize(entity, json)
+   self._log = radiant.log.create_logger('pathfinder')
+                            :set_entity(entity)
+
    self._entity = entity
    self._bfs_pathfinders = {}
    self._astar_pathfinders = {}
@@ -63,6 +66,7 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
       -- bfs pathfinder instances.  this listener must be kept on the cache even if there are no
       -- bfs pathfinders currently to avoid missing triggers which affect future pathfinding (liek SH-86).
       local listener = radiant.events.listen(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', function(e)
+            self._log:detail('clearing cache entry for %s', e)
             cache:clear_cache_entry(e:get_id())
          end)
 
@@ -85,7 +89,7 @@ function PathFinder:find_path_to_entity_type(location, filter_fn, description, s
       pf = SharedBfsPathFinder(self._entity, location, entry.cache, function()
                self._bfs_pathfinders[pfkey] = nil
             end)
-      pf:set_description(description)      
+      pf:set_description(description)
       self._bfs_pathfinders[pfkey] = pf
    end
    assert(pf:get_description() == description)
