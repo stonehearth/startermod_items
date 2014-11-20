@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "path.h"
+#include "core/static_string.h"
 #include "a_star_path_finder.h"
 #include "path_finder_src.h"
 #include "path_finder_dst.h"
@@ -346,6 +347,8 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 void AStarPathFinder::Work(const platform::timer &timer)
 {
+   MEASURE_JOB_TIME();
+
    for (int i = 0; i < 8 && !timer.expired(); i++) {
       PF_LOG(7) << "entering work function";
 
@@ -608,6 +611,7 @@ std::string AStarPathFinder::GetProgress() const
                        "entity:" << std::setw(32) << ename << " " << 
                        "id:" << std::setw(3) << GetId() << " " << 
                        "src:" << source_->GetSourceLocation() << " " << 
+                       "#dst:" << destinations_.size() << " " << 
                        "open:" << open_.size() << " " << 
                        "closed:" << closed_.size() << " " <<
                        "idle:\"" << std::setw(16) << (_lastIdleCheckResult ? _lastIdleCheckResult : "not checked") << "\" " <<

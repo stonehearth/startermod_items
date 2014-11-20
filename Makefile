@@ -22,10 +22,11 @@ STEAM_PACKAGE_ROOT = build/steam-package
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
   RUN_ROOT=$(STONEHEARTH_ROOT)/source/stonehearth_data
+  STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
 else
   RUN_ROOT=$(STAGE_ROOT)
+  STONEHEARTH_APP = ../../source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
 endif
-STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
 
 .PHONY: default
 default: submodules configure crash_reporter stonehearth

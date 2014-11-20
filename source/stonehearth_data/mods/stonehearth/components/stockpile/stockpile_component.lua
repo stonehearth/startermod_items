@@ -37,12 +37,14 @@ local function _can_stock_entity(entity, filter)
 
    -- no filter means anything
    if not filter then
+      log:spam('stockpile has no filter.  %s item can be stocked!', entity)
       return true
    end
 
    -- must match at least one material in the filter, or this cannot be stocked
    for i, mat in ipairs(filter) do
       if material:is(mat) then
+         log:spam('%s matches filter "%s" and can be stocked!', entity, mat)
          return true
       end
    end
@@ -150,26 +152,23 @@ function StockpileComponent:destroy()
    self:_destroy_tasks()
 end
 
--- returns the filter key and function used to determine whether an item can
--- be stocked in this stockpile.
-function StockpileComponent:get_filter()
+local function get_restock_filter_fn(filter_key, filter)
    -- all stockpiles with the same filter must use the same filter function
    -- to determine whether or not an item can be stocked.  this function is
    -- uniquely identified by the filter key.  this allows us to use a
    -- shared 'stonehearth:pathfinder' bfs pathfinder to find items which should
    -- go in stockpiles rather than creating 1 bfs pathfinder per-stockpile
    -- per worker (!!)
-
-   local filter_fn = ALL_FILTER_FNS[self._sv._filter_key]
+   local filter_fn = ALL_FILTER_FNS[filter_key]
 
    if not filter_fn then
       -- no function for the current filter has been created yet, so let's make
       -- one.  capture the current value of the filter in the closure so the
       -- implementation won't change when someone changes our filter.
       local captured_filter
-      if self._sv.filter then
+      if filter then
          captured_filter = {}
-         for _, material in ipairs(self._sv.filter) do
+         for _, material in ipairs(filter) do
             table.insert(captured_filter, material)
          end
       end
@@ -178,13 +177,22 @@ function StockpileComponent:get_filter()
       -- implemented in terms of global functions, parameters to the filter
       -- function, and captured local variables.
       filter_fn = function(item)
+         log:detail('calling filter function on %s', item)
          local containing_component = get_stockpile_containing_entity(item)
          local containing_entity = containing_component and containing_component:get_entity()
 
          if containing_entity then
-            local already_stocked = not radiant.entities.is_hostile(self._entity, containing_entity)
+            -- ideally, "restock" would ignore EVERYTHING in other stockpiles.  if someone
+            -- wants to explicitly raid from a stockpile, they can make another action.
+            -- until that happy day, put this extremely weird special case logic
+            log:detail('item:      ', radiant.entities.get_player_id(item))
+            log:detail('stockpile: ', radiant.entities.get_player_id(containing_entity))
+            local already_stocked = not radiant.entities.is_hostile(item, containing_entity)
             if already_stocked then
+               log:detail('already stocked!  returning false from filter function')
                return false
+            else
+               log:detail('item in stockpile, but not one of ourse.')
             end
          end
 
@@ -192,9 +200,18 @@ function StockpileComponent:get_filter()
       end
 
       -- remember the filter function for the future
-      ALL_FILTER_FNS[self._sv._filter_key] = filter_fn
+      ALL_FILTER_FNS[filter_key] = filter_fn
    end
-   return filter_fn
+   return filter_fn   
+end
+
+-- returns the filter key and function used to determine whether an item can
+-- be stocked in this stockpile.
+function StockpileComponent:get_filter()
+   -- this intentionally delegates to a helper function to avoid the use of `self`
+   -- in the filter (which must work for ALL stockpiles sharing that filter, and
+   -- therefore should not capture self or any members of self!)
+   return get_restock_filter_fn(self._sv._filter_key, self._sv.filter)
 end
 
 function StockpileComponent:set_filter(filter)
@@ -504,7 +521,7 @@ function StockpileComponent:_create_worker_tasks()
       local town = stonehearth.town:get_town(self._entity)
       if town then 
          log:debug('creating restock task')
-         self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', {stockpile = self})
+         self._restock_task = town:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:restock_stockpile', { stockpile = self._entity })
                                  :set_source(self._entity)
                                  :set_name('restock task')
                                  :set_priority(stonehearth.constants.priorities.simple_labor.RESTOCK_STOCKPILE)

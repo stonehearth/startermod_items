@@ -12,7 +12,7 @@
 using namespace radiant;
 using namespace radiant::phys;
 
-#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << world_bounds.min)
+#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << worldBounds.min)
 
 /* 
  * -- NavGridTileData::NavGridTileData

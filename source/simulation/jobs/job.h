@@ -9,6 +9,12 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 typedef unsigned int JobId;
 
+// Call back into the Simulation to measure how much time this job is taking
+#define MEASURE_JOB_TIME() \
+   if (GetSim().GetEnableJobLogging()) { \
+      perfmon::TimelineCounterGuard __tg(GetSim().GetJobsPerfTimeline(), core::StaticString(GetName())); \
+   }
+
 class Job {
    public:
       Job(Simulation& sim, std::string const& name);

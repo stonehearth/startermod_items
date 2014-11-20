@@ -21,9 +21,14 @@ $(document).ready(function(){
       },
    });
 
-   radiant.console.register('destroy_entity', {
+   radiant.console.register('destroy', {
       call: function(cmdobjs, fn, args) {
-         var entity = 'object://game/' + args[0]
+         var entity;
+         if (args.length > 0) {
+            entity = 'object://game/' + args[0];
+         } else {
+            entity = selected;
+         }
          return radiant.call('stonehearth:destroy_entity', entity);
       }
    });

@@ -53,7 +53,8 @@ function DropCarryingAdjacent:run(ai, entity, args)
       ai:abort('cannot drop item not carrying one!')
       return
    end
-   if not radiant.entities.is_adjacent_to(entity, location) then
+   local position = radiant.entities.get_world_grid_location(entity)
+   if position ~= location and not radiant.entities.is_adjacent_to(position, location) then
       ai:abort('%s location %s is not adjacent to %s', tostring(entity), tostring(radiant.entities.get_world_grid_location(entity)), tostring(location))
       return
    end

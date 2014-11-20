@@ -176,6 +176,7 @@ void ResourceManager2::LoadModules()
          if (!IsValidModule(module_name, module)) {
             continue;
          }
+         modules_[module_name].swap(module);
 
          if (!_modDirectoryChanged) {
             std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name), "");
