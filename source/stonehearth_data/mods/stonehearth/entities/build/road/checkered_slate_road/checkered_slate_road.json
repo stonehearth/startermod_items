@@ -15,7 +15,7 @@
          "material": "stone resource"
       },
       "movement_modifier_shape" : {
-         "modifier" : 1000.0
+         "modifier" : 20.0
       }
    }
 }

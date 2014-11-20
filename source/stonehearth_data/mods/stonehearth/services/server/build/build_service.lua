@@ -723,9 +723,6 @@ end
 function BuildService:_add_new_road_to_building(building, floor_uri, floor_region, road_type)
    local bp, fab = self:_add_new_floor_to_building(building, floor_uri, floor_region)
    bp:get_component('stonehearth:floor'):set_category(road_type)
-   local fc = fab:get_component('stonehearth:fabricator')
-   local move_mod = fc:get_project():add_component('movement_modifier_shape')
-   move_mod:set_region(fc:get_project():get_component('region_collision_shape'):get_region())
    return bp
 end
 
