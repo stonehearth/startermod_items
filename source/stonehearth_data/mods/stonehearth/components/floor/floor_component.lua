@@ -6,6 +6,7 @@ local Point2 = _radiant.csg.Point2
 local Region3 = _radiant.csg.Region3
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
+local TraceCategories = _radiant.dm.TraceCategories
 
 -- called to initialize the component on creation and loading.
 --
@@ -13,6 +14,11 @@ function Floor:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
    self._entity = entity
    self._sv.category = constants.floor_category.FLOOR
+end
+
+function Floor:destroy()
+   self._mms_trace:destroy()
+   self._mms_trace = nil
 end
 
 function Floor:get_region()
@@ -46,6 +52,23 @@ end
 
 function Floor:set_category(category)
    self._sv.category = category
+
+   if category == constants.floor_category.ROAD and not self._mms_trace then
+
+      local fab = self._entity:get_component('stonehearth:construction_data'):get_fabricator_entity()
+      local fc = fab:get_component('stonehearth:fabricator')
+      local move_mod = fc:get_project():get_component('movement_modifier_shape')
+      move_mod:set_region(_radiant.sim.alloc_region3())
+
+      self._mms_trace = fc:get_project():get_component('region_collision_shape'):trace_region('movement modifier', TraceCategories.SYNC_TRACE)
+         :on_changed(function(region)
+               move_mod:get_region():modify(function(mod_region)
+                     mod_region:copy_region(region:inflated(Point3(0, 1, 0)))
+                     mod_region:optimize_by_merge()
+                  end)
+            end)
+         :push_object_state()
+   end
 end
 
 function Floor:get_category()
