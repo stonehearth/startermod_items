@@ -4,7 +4,7 @@
          <div class="title">Save Game</div>
 
          <div id="saves">
-            {{view stonehearthSaveList}}
+            {{view "App.StonehearthSaveListView"}}
          </div>
          <a href="#" {{action deleteSaveGame target="view"}}><button id="deleteSaveButton">{{i18n stonehearth:save_delete}}</button></a>
          <a href="#" {{action overwriteSaveGame target="view"}}><button id="overwriteSaveButton">{{i18n stonehearth:save_overwrite}}</button></a>
@@ -20,7 +20,7 @@
          <div class="title">Load Game</div>
 
          <div id="saves">
-         {{view stonehearthSaveList }}
+         {{view "App.StonehearthSaveListView" }}
          </div>
          <a href="#" {{action loadGame target="view"}}><button id="loadButton">{{i18n stonehearth:load_game}}</button></a>
       </div>

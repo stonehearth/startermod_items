@@ -20,7 +20,7 @@ App.StonehearthPlaceItemView = App.View.extend({
    modal: false,
 });
 
-App.StonehearthPlaceItemPaletteView = App.View.extend({
+App.StonehearthPlaceItemPalette = App.View.extend({
    templateName: 'stonehearthPlaceItemPalette',
 
    didInsertElement: function() {

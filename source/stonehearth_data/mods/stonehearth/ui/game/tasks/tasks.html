@@ -10,7 +10,7 @@
       <div class="tabPages">
          {{#each groups}}
             <div class="tabPage" {{bind-attr id=this.key}}>
-               {{view stonehearthTasksGroup contextBinding="this"}}
+               {{view "App.StonehearthTasksGroupView" contextBinding="this"}}
             </div>
          {{/each}}
       </div>

@@ -2,8 +2,7 @@ App.StonehearthQuestBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 	templateName: 'questBulletinDialog',
 
    _rewards: function() {
-      var rewards = this.get('context.data.rewards');      
-      this.set('context.data.rewardsArray', radiant.map_to_array('rewards'));
+      this._mapToArray('context.data.rewards', 'context.data.rewardsArray');
    }.observes('context.data.rewards'),
    
 });

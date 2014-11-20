@@ -28,7 +28,7 @@ App.StonehearthBuildingTemplatesView = App.View.extend({
       radiant.call('stonehearth:get_building_templates')
          .done(function(response) {
             self._templatesMap = response
-            self.set('context.templates', radiant.map_to_array(response));
+            self.set('context.templates', self._mapToArrayObject(response));
          });
 
    },
