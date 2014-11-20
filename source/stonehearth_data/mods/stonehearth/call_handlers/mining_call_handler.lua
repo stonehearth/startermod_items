@@ -103,9 +103,8 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
             if selected.entity:get_id() == 1 then
                return true
             end
-            return false
             -- otherwise, keep looking!
-            --return stonehearth.selection.FILTER_IGNORE
+            return stonehearth.selection.FILTER_IGNORE
          end)
       :set_can_contain_entity_filter(function(entity)
             -- TODO
