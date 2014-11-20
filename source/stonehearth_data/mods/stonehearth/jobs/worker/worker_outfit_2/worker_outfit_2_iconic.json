@@ -2,9 +2,13 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "item" : {
+         "category" : "gear"   
+      },
       "unit_info" : {
          "name" :  "Upgraded Worker Outfit",
-         "description" : "Sturdy construction increases workers' productivity"
+         "description" : "Sturdy construction increases workers' productivity",
+         "icon" : "file(worker_outfit_2.png)"
       },
       "model_variants": {
          "default": {

@@ -418,7 +418,7 @@ var StonehearthClient;
       digDown: function() {
          var self = this;
 
-         App.setGameMode('mining');
+         App.setGameMode('build');
          var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
          return this._callTool('digDown', function() {
@@ -437,7 +437,7 @@ var StonehearthClient;
       digOut: function() {
          var self = this;
 
-         App.setGameMode('mining');
+         App.setGameMode('build');
          var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
 
          return this._callTool('digOut', function() {

@@ -192,7 +192,7 @@
       "food:berries:berry_basket" : "file(entities/food/berries/berry_basket)",
       "food:berries:berry_serving" : "file(entities/food/berries/berry_serving)",
       "food:pumpkin:pumpkin_serving" : "file(entities/food/pumpkin/pumpkin_serving)",
-      "food:pumpkin:stonehearth:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
+      "food:pumpkin:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
 
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 

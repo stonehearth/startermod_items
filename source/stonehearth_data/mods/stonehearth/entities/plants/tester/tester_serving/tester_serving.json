@@ -4,7 +4,8 @@
    "components": {
       "unit_info": {
          "name": "A Tester",
-         "description": "Used as shields by princesses."
+         "description": "Used as shields by princesses.",
+         "icon" : "file(icon.png)"
       },      
       "stonehearth:material" : {
          "tags" : "food"
