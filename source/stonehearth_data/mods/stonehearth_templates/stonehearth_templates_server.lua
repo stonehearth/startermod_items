@@ -6,10 +6,9 @@ local Region3 = _radiant.csg.Region3
 
 local StonehearthTemplateBuilder = class()
 
-local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
-local WOODEN_FLOOR_DARK = '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_dark.qb'
-local WOODEN_FLOOR_LIGHT = '/stonehearth/entities/build/wooden_floor/wooden_floor_solid_light.qb'
-local WOODEN_FLOOR_DIAGONAL = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
+local WOODEN_FLOOR_DARK = 'stonehearth:wooden_floor_solid_dark'
+local WOODEN_FLOOR_LIGHT = 'stonehearth:wooden_floor_solid_light'
+local WOODEN_FLOOR_DIAGONAL = 'stonehearth:wooden_floor_diagonal'
 local WOODEN_COLUMN = 'stonehearth:wooden_column'
 local WOODEN_WALL = 'stonehearth:wooden_wall'
 local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
@@ -128,10 +127,10 @@ function StonehearthTemplateBuilder:place_item_on_floor(item_uri, dx, dz, rotati
    end
 end
 
-function StonehearthTemplateBuilder:add_floor(x0, y0, x1, y1, pattern)
+function StonehearthTemplateBuilder:add_floor(x0, y0, x1, y1, uri)
    local p0 = Point3(x0, -1, y0)
    local p1 = Point3(x1,  0, y1)
-   local floor = stonehearth.build:add_floor(self._session, WOODEN_FLOOR, Cube3(p0, p1), pattern)
+   local floor = stonehearth.build:add_floor(self._session, uri, Cube3(p0, p1))
    self._building = build_util.get_building_for(floor)
    radiant.log.write('', 0, "building is %s", self._building)
 end
@@ -147,7 +146,7 @@ end
 -- builds a small house
 --
 function StonehearthTemplateBuilder:_build_tiny_cottage()
-   self:add_floor(0, 0, 7, 6, WOODEN_FLOOR_DIAGONAL)      
+   self:add_floor(0, 0, 7, 6, WOODEN_FLOOR_DIAGONAL)
    self:grow_walls(WOODEN_COLUMN, WOODEN_WALL)
    self:grow_roof(WOODEN_ROOF, {
          nine_grid_gradiant = { 'left', 'right' },
