@@ -16,7 +16,7 @@ int lua_main(int argc, const char** argv)
    // The chromium embedded process is the current executable launched with certain parameters (defined by chrome)
    // CefExecuteProcess returns true to the parent process
    // CefExecuteProcess does not return in the child process
-   if (!CefExecuteProcess(main_args, app, nullptr)) {
+   if (!CefExecuteProcess(main_args, app)) {
       throw std::exception("Chromium embedded failed to start");
    }
 
