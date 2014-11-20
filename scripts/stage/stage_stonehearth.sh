@@ -162,7 +162,7 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u -r $STONEHEARTH_ROOT/source/stonehearth_data/saved_objects $OUTPUT_DIR/saved_objects
 
    echo Copying chromium embedded
-   CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32
+   CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1750.1738_windows32
    cp -u -r $CHROMIUM_ROOT/resources/locales $OUTPUT_DIR/locales
    cp -u $CHROMIUM_ROOT/Release/libcef.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/icudt.dll $OUTPUT_DIR

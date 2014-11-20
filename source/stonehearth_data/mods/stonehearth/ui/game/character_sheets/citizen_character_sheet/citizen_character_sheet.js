@@ -54,7 +54,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          //Make the table of data
          $.each(eobj.jobs, function (index, value) {
             if (value.level_data) {
-               var levelArray = self._mapToArrayObject(value.level_data);
+               var levelArray = radiant.map_to_array(value.level_data);
                value.levelArray = levelArray;
             }
          })

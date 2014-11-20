@@ -45,7 +45,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    _neededToDraw = 0;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
-   int exitCode = CefExecuteProcess(main_args, _app);
+   int exitCode = CefExecuteProcess(main_args, _app, nullptr);
    if (exitCode >= 0) {
       BROWSER_LOG(1) << "Error starting cef process: " << exitCode;
       ASSERT(false);
@@ -53,12 +53,28 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();   
-   settings.log_severity = LOGSEVERITY_DISABLE;
+   CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();
+   std::string severity = core::Config::GetInstance().Get<std::string>("chromium_log_severity", "");
+   if (severity == "verbose") {
+      settings.log_severity = LOGSEVERITY_VERBOSE;
+   } else if (severity == "info") {
+      settings.log_severity = LOGSEVERITY_INFO;
+   } else if (severity == "warning") {
+      settings.log_severity = LOGSEVERITY_WARNING;
+   } else if (severity == "error") {
+      settings.log_severity = LOGSEVERITY_ERROR;
+   } else if (severity == "error_report") {
+      settings.log_severity = LOGSEVERITY_ERROR_REPORT;
+   } else if (severity == "disable") {
+      settings.log_severity = LOGSEVERITY_DISABLE;
+   } else {
+      settings.log_severity = LOGSEVERITY_DEFAULT;      
+   }
+
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 
-   CefInitialize(main_args, settings, _app.get());
+   CefInitialize(main_args, settings, _app.get(), nullptr);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    BROWSER_LOG(1) << "cef started.";
 }
@@ -621,7 +637,7 @@ void Browser::Navigate(std::string const& url)
       browserSettings.java = STATE_DISABLED;
       browserSettings.plugins = STATE_DISABLED;
 
-      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings);
+      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings, nullptr);
    } else {
       CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
       if (frame) {

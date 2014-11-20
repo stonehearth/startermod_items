@@ -162,35 +162,6 @@
       this._setRootTrace(trace);
    }.observes('uri'),
 
-   _mapToArray: function(mapPath, arrayPath) {
-      
-      //var vals = [];
-      var map = this.get(mapPath);
-      var vals = this._mapToArrayObject(map);
-      /*
-      if (map) {
-         $.each(map, function(k ,v) {
-            if(k != "__self" && map.hasOwnProperty(k)) {
-               vals.push(v);
-            }
-         });
-      }
-      */
-      this.set(arrayPath, vals);
-   },
-
-   _mapToArrayObject: function(map) {
-      var vals = [];     
-      if (map) {
-         $.each(map, function(k ,v) {
-            if(k != "__self" && map.hasOwnProperty(k)) {
-               vals.push(v);
-            }
-         });
-      }
-      return vals;
-   },
-
    _getClosestEmberView: function(el) {
      var id = el.closest('.ember-view').attr('id');
      if (!id) return;
