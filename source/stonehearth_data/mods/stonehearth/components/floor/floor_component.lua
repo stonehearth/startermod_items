@@ -17,8 +17,10 @@ function Floor:initialize(entity, json)
 end
 
 function Floor:destroy()
-   self._mms_trace:destroy()
-   self._mms_trace = nil
+   if self._mms_trace then
+      self._mms_trace:destroy()
+      self._mms_trace = nil
+   end
 end
 
 function Floor:get_region()
