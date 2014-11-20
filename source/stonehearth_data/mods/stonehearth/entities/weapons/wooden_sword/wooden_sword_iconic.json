@@ -2,6 +2,9 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+       "item" : {
+         "category" : "tools"
+       },
        "model_variants": {
          "default": {
             "models": [

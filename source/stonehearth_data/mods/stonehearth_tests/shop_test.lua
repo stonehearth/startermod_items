@@ -15,7 +15,7 @@ function ShopTest:__init()
    self:place_item('stonehearth:small_juniper_tree',  15, -5)
 
    self:place_item_cluster('stonehearth:loot:gold', -10, 15, 3, 3)
-   self:place_item_cluster('stonehearth:stonehearth:food:pumpkin:pumpkin_basket', -10, 11, 3, 3)
+   self:place_item_cluster('stonehearth:food:pumpkin:pumpkin_basket', -10, 11, 3, 3)
    
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14)

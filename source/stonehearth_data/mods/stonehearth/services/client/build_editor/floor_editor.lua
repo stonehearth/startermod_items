@@ -1,5 +1,6 @@
 local build_util = require 'lib.build_util'
 local constants = require('constants').construction
+local voxel_brush_util = require 'services.server.build.voxel_brush_util'
 
 local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
@@ -19,7 +20,8 @@ function FloorEditor:__init(build_service)
    self._log = radiant.log.create_logger('builder')
 end
 
-function FloorEditor:go(response, brush_shape, options)
+function FloorEditor:go(response, floor_uri, options)
+   local brush_shape = voxel_brush_util.brush_from_uri(floor_uri)
    log:detail('running')
 
    local brush = _radiant.voxel.create_brush(brush_shape)
@@ -67,7 +69,7 @@ function FloorEditor:go(response, brush_shape, options)
          end)
       :done(function(selector, box)
             log:detail('box selected')
-            self:_add_floor(response, selector, box, brush_shape)
+            self:_add_floor(response, selector, box, floor_uri)
          end)
       :fail(function(selector)
             log:detail('failed to select box')
@@ -85,10 +87,10 @@ function FloorEditor:go(response, brush_shape, options)
    return self
 end
 
-function FloorEditor:_add_floor(response, selector, box, brush_shape)
+function FloorEditor:_add_floor(response, selector, box, floor_uri)
    log:detail('calling server to create floor')
 
-   _radiant.call_obj(self._build_service, 'add_floor_command', 'stonehearth:entities:wooden_floor', box, brush_shape)
+   _radiant.call_obj(self._build_service, 'add_floor_command', floor_uri, box)
       :done(function(r)
             log:detail('server call to create floor finished')
             if r.new_selection then

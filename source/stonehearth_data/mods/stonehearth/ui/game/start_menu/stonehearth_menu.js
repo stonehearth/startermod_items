@@ -48,6 +48,7 @@ $.widget( "stonehearth.stonehearthMenu", {
       });
    },
 
+   /*
    setGameMode: function(mode) {
       if (mode == "normal" && this.getGameMode() != "normal") {
          this.hideMenu();
@@ -68,6 +69,7 @@ $.widget( "stonehearth.stonehearthMenu", {
          }
       });
    },
+   */
 
    getGameMode: function() {
       if (this._currentOpenMenu) {
@@ -99,12 +101,12 @@ $.widget( "stonehearth.stonehearthMenu", {
          // close all open tooltips
          self.menu.find('.menuItem').tooltipster('hide');
 
-         var id = $(this).attr('id');
+         var menuItem = $(this);
+         var id = menuItem.attr('id');
          var nodeData = self._dataToMenuItemMap[id]
 
          if (nodeData.clickSound) {
-            //Sample instance of setting volume: menu sfx is now 100 instead of default 50
-            radiant.call('radiant:play_sound', {'track' : nodeData.clickSound, 'volume' : 100});
+            radiant.call('radiant:play_sound', {'track' : nodeData.clickSound});
          }
 
          // deactivate any tools that are open
@@ -125,6 +127,12 @@ $.widget( "stonehearth.stonehearthMenu", {
             }            
          }
 
+         // show the parent menu for this menu item
+         var parent = menuItem.parent();
+         var grandParentId = parent.attr('parent');
+         if (grandParentId) {
+            self.showMenu(grandParentId);   
+         }
          
          if (self.options.click) {
             self.options.click(id, nodeData);

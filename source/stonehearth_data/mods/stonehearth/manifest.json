@@ -63,7 +63,12 @@
 
       "terrain_block_config" : "file(data/terrain/terrain_blocks.json)",
 
-      "entities:wooden_floor" : "file(entities/build/wooden_floor)",
+      "wooden_floor_solid_light" : "file(entities/build/floor/wooden_floor_solid_light)",
+      "wooden_floor_solid_dark" : "file(entities/build/floor/wooden_floor_solid_dark)",
+      "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
+      "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
+      "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
+      "checkered_slate_road" : "file(entities/build/road/checkered_slate_road)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "cobblestone_wall" : "file(entities/build/cobblestone_wall/cobblestone_wall.json)",
@@ -187,7 +192,7 @@
       "food:berries:berry_basket" : "file(entities/food/berries/berry_basket)",
       "food:berries:berry_serving" : "file(entities/food/berries/berry_serving)",
       "food:pumpkin:pumpkin_serving" : "file(entities/food/pumpkin/pumpkin_serving)",
-      "food:pumpkin:stonehearth:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
+      "food:pumpkin:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
 
       "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
       "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 

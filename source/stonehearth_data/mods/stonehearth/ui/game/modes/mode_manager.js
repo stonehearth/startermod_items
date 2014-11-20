@@ -90,9 +90,11 @@ $(document).ready(function() {
             this._currentMode = mode;
             
             // sync up the menu
+            /*
             if (App.stonehearth.startMenu) {
                App.stonehearth.startMenu.stonehearthMenu('setGameMode', mode);
             }
+            */
 
             // notify the rest of the ui
             $(top).trigger('mode_changed', mode);
