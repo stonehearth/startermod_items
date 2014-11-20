@@ -220,6 +220,15 @@ RenderNodePtr RenderNode::SetTransform(csg::Point3f const& pos, csg::Point3f con
    return shared_from_this();
 }
 
+RenderNodePtr RenderNode::SetPolygonOffset(float x, float y)
+{
+   h3dSetNodeParamI(_node, H3DModel::PolygonOffsetEnabledI, 1);
+   h3dSetNodeParamF(_node, H3DModel::PolygonOffsetF, 0, x);
+   h3dSetNodeParamF(_node, H3DModel::PolygonOffsetF, 1, y);
+
+   return shared_from_this();
+}
+
 RenderNodePtr RenderNode::AddChild(RenderNodePtr r)
 {
    _children[r->GetNode()] = r;

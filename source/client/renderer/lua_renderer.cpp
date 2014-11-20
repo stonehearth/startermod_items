@@ -366,6 +366,7 @@ void LuaRenderer::RegisterType(lua_State* L)
          .def("set_can_query",               &RenderNode::SetCanQuery)
          .def("set_material",                static_cast<RenderNodePtr (RenderNode::*)(std::string const&)>(&RenderNode::SetMaterial))
          .def("destroy",                     &RenderNode::Destroy)
+         .def("set_polygon_offset",          &RenderNode::SetPolygonOffset)
       ,
       def("h3dGetNodeParamStr",              &h3dGetNodeParamStr),
       def("h3dRemoveNode",                   &h3dRemoveNode),

@@ -83,6 +83,7 @@ function RoadEditor:go(response, road_uri)
             end
             local model = brush:paint_through_stencil(road_region)
             local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3(0, 0, 0))
+            node:set_polygon_offset(-5, -5)
             node:set_position(MODEL_OFFSET)
 
             self._cut_region:modify(function(cursor)
