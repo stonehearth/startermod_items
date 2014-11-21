@@ -37,11 +37,11 @@ NavGridTileData::~NavGridTileData()
 template <TrackerType Type>
 bool NavGridTileData::IsMarked(csg::Point3 const& offset)
 {
-   int bitIndex = Offset(offset.x, offset.y, offset.z);
+   const int bitIndex = Offset(offset.x, offset.y, offset.z);
 
    ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
    UpdateTileData<Type>();
-   return marked_[Type][bitIndex];
+   return marked_[Type].test(bitIndex);
 }
 
 float NavGridTileData::GetMovementSpeedBonus(csg::Point3 const& offset)
@@ -51,6 +51,12 @@ float NavGridTileData::GetMovementSpeedBonus(csg::Point3 const& offset)
    ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
    UpdateMovementSpeedBonus();
    return _movementSpeedBonus[bitIndex];
+}
+
+float NavGridTileData::GetMaxMovementSpeedBonus()
+{
+   UpdateMovementSpeedBonus();
+   return _maxMovementSpeedBonus;
 }
 
 
@@ -118,6 +124,7 @@ void NavGridTileData::UpdateMovementSpeedBonus()
       return;
    }
 
+   _maxMovementSpeedBonus = 0;
    memset(_movementSpeedBonus, 0, sizeof _movementSpeedBonus);
 
    csg::Cube3 worldBounds = _ngt.GetWorldBounds();
@@ -135,6 +142,7 @@ void NavGridTileData::UpdateMovementSpeedBonus()
       }
 
       float percentBonus = mms->GetModifier();
+      _maxMovementSpeedBonus = std::max(_maxMovementSpeedBonus, percentBonus);
       csg::Region3 overlap = tracker->GetOverlappingRegion(worldBounds).Translated(-worldBounds.min);
 
       // This code is on the critical path when pathing during construction; so, we avoid using Point3

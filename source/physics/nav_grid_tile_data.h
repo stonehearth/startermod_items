@@ -26,6 +26,7 @@ public:
    template <TrackerType Type> bool IsMarked(csg::Point3 const& offest);
    void MarkDirty(TrackerType t);
    float GetMovementSpeedBonus(csg::Point3 const& offset);
+   float GetMaxMovementSpeedBonus();
 
 private:
    typedef std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE> BitSet;
@@ -51,6 +52,7 @@ private:
    int            dirty_;
    BitSet         marked_[NUM_BIT_VECTOR_TRACKERS];
    float          _movementSpeedBonus[TILE_SIZE*TILE_SIZE*TILE_SIZE];
+   float          _maxMovementSpeedBonus;
 };
 
 

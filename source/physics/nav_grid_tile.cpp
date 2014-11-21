@@ -381,27 +381,8 @@ float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
    return data_->GetMovementSpeedBonus(offset);
 }
 
-float NavGridTile::GetMaxMovementModifier() const
+float NavGridTile::GetMaxMovementModifier()
 {
-   float max = 0;
-   for (const auto& i : trackers_) {
-      const CollisionTrackerPtr& tracker = i.second.lock();
-      if (!tracker) {
-         continue;
-      }
-      if (tracker->GetType() != MOVEMENT_MODIFIER) {
-         continue;
-      }
-      om::EntityPtr entity = tracker->GetEntity();
-      if (!entity) {
-         continue;
-      }
-      auto mms = entity->GetComponent<om::MovementModifierShape>();
-      if (!mms) {
-         continue;
-      }
-
-      max = std::max(max, mms.get()->GetModifier());
-   }
-   return max;
+   RefreshTileData();
+   return data_->GetMaxMovementSpeedBonus();
 }
