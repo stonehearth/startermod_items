@@ -119,17 +119,8 @@ App.StonehearthStartMenuView = App.View.extend({
    },
 
    _onCitizensChanged: function() {
-      var vals = [];
       var citizenMap = this.get('context.citizens');
-     
-      if (citizenMap) {
-         $.each(citizenMap, function(k ,v) {
-            if(k != "__self" && citizenMap.hasOwnProperty(k)) {
-               vals.push(v);
-            }
-         });
-      }
-
+      var vals = radiant.map_to_array(citizenMap);
       this.set('context.citizensArray', vals);
     }.observes('context.citizens.[]'),
 
@@ -138,7 +129,7 @@ App.StonehearthStartMenuView = App.View.extend({
       var citizensArray = this.get('context.citizensArray');
 
       self._foundjobs = {}
-      $.each(citizensArray, function(i, citizen) {
+      radiant.each(citizensArray, function(i, citizen) {
          var job_uri = citizen['stonehearth:job']['job_uri'];
          self._foundjobs[job_uri] = true;
       });

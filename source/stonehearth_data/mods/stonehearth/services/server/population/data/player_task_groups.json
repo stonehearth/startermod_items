@@ -31,6 +31,10 @@
       "stonehearth:task_group:trapping" : {
          "name" : "trapping_task_group",
          "dispatcher" : "stonehearth:trapping"
+      },
+      "stonehearth:task_group:herding" : {
+         "name" : "trapping_task_group",
+         "dispatcher" : "stonehearth:herding"
       }
    }
 }

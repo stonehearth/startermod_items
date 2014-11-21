@@ -87,7 +87,7 @@ App.StonehearthStockpileView = App.View.extend({
             if (!buttonFilter) {
                console.log('button ' + button.attr('id') + " has no filter!")
             } else {
-               $.each(stockpileFilter, function(i, filter) {
+               radiant.each(stockpileFilter, function(i, filter) {
                   if (buttonFilter == filter) {
                      button.addClass('on');
                   }

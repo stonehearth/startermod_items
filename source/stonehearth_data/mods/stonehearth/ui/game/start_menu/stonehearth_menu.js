@@ -8,11 +8,11 @@ $.widget( "stonehearth.stonehearthMenu", {
       data: {},
 
       click: function(item) {
-         console.log('Clicked item: ' + item);
+         // console.log('Clicked item: ' + item);
       },
 
       hide: function() {
-         console.log('menu hidden');
+         // console.log('menu hidden');
       }
    },
 

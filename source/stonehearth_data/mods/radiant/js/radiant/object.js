@@ -227,28 +227,46 @@
       return new Trace(tracer);
    };
 
+   // Iterate through each index or key in an array of map.  Takes special
+   // care to avoid "private" keys, including things that start with "__", like
+   // Radiant's __self and all sorts of stuff throw in by Ember.
+   radiant.each = function(o, fn) {      
+      if (o) {
+         if (Array.isArray(o)) {
+            $.each(o, function(index, value) {
+               fn(index, value);
+            });
+         } else {
+            $.each(o, function(key, value) {
+               if (o.hasOwnProperty(key) && key.indexOf('__') != 0) {
+                  fn(key, value);
+               }
+            });
+         }
+      }
+   },
+
+   // the `filter_fn` is optional.  if specified, will visit each key, value pair
+   // before the value is stuffed into the array.  if the filter returns `false`,
+   // the value will be omitted.  if it returns `undefined` (or simply 'return's)
+   // the origonal (possibly modified) value will be stuffed in the array.  if it
+   // returns any other value, that value will be shoved in the array instead of the
+   // origonal
    radiant.map_to_array = function(map, filter_fn) {
       var array = [];
-      if (map) {
-         $.each(map, function(key, value) {
-            var type = typeof key;
-            if (map.hasOwnProperty(key)) {
-               if (type != 'string' || key.indexOf('__') != 0) {
-                  if (!filter_fn) {
-                     array.push(value);
-                  } else {
-                     var result = filter_fn(key, value);
-                     if (result === false) {                     
-                     } else if (result === true) {
-                        array.push(value);
-                     } else {
-                        array.push(result);
-                     }
-                  }
-               }
+      radiant.each(map, function(key, value) {
+         if (!filter_fn) {
+            array.push(value);
+         } else {
+            var result = filter_fn(key, value);
+            if (result === false) {                     
+            } else if (result === undefined) {
+               array.push(value);
+            } else {
+               array.push(result);
             }
-         });
-      }
+         }
+      });
       return array;      
    };
 })();

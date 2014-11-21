@@ -43,7 +43,7 @@ $.widget( "stonehearth.stonehearthItemPalette", {
          return a.display_name - b.display_name
       });
 
-      $.each(arr, function(i, item) {
+      radiant.each(arr, function(i, item) {
          var categoryElement = self._findCategory(item);
          var itemElement = self._findElementForItem(item)
          

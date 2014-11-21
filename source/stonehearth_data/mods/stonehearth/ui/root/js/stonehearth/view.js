@@ -121,7 +121,7 @@
       if (this._rootTrace) {
          var firstUpdate = true;
          this._rootTrace.progress(function(eobj) {
-               console.log("setting view context for " + self.elementId + " to...", eobj);
+               // console.log("setting view context for " + self.elementId + " to...", eobj);
 
                var modelProperty = self.uriProperty ? self.uriProperty : 'context';
                self.set(modelProperty, eobj);
@@ -132,7 +132,8 @@
                }
             });
       } else {
-         self.set('context', {});
+         var modelProperty = self.uriProperty ? self.uriProperty : 'context';
+         self.set(modelProperty, {});
       }
    },
 
@@ -142,7 +143,7 @@
 
       var trace = null;
       if (this._rootTrace) {
-         console.log("setting view context to deferred object");
+         // console.log("setting view context to deferred object");
          var radiantTrace = new RadiantTrace()
          radiantTrace.userTrace(this.trace, this.components);
       }
@@ -155,41 +156,12 @@
 
       var trace = null;
       if (this.uri) {
-         console.log("setting view context for " + this.uri);
+         // console.log("setting view context for " + this.uri);
          this._radiantTrace = new RadiantTrace()
          trace = this._radiantTrace.traceUri(this.uri, this.components);
       }
       this._setRootTrace(trace);
    }.observes('uri'),
-
-   _mapToArray: function(mapPath, arrayPath) {
-      
-      //var vals = [];
-      var map = this.get(mapPath);
-      var vals = this._mapToArrayObject(map);
-      /*
-      if (map) {
-         $.each(map, function(k ,v) {
-            if(k != "__self" && map.hasOwnProperty(k)) {
-               vals.push(v);
-            }
-         });
-      }
-      */
-      this.set(arrayPath, vals);
-   },
-
-   _mapToArrayObject: function(map) {
-      var vals = [];     
-      if (map) {
-         $.each(map, function(k ,v) {
-            if(k != "__self" && map.hasOwnProperty(k)) {
-               vals.push(v);
-            }
-         });
-      }
-      return vals;
-   },
 
    _getClosestEmberView: function(el) {
      var id = el.closest('.ember-view').attr('id');

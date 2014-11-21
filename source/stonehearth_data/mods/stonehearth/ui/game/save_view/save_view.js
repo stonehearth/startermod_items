@@ -183,17 +183,10 @@ App.StonehearthSaveListView = App.View.extend({
 
       radiant.call("radiant:client:get_save_games")
          .done(function(json) {
-            var vals = [];
-
-            $.each(json, function(k ,v) {
-               if(k != "__self" && json.hasOwnProperty(k)) {
-                  v['key'] = k;
-
-                  if (k == saveKey) {
-                     v['current'] = true;
-                  }
-
-                  vals.push(v);
+            var vals = radiant.map_to_array(json, function(k ,v) {
+               v['key'] = k;
+               if (k == saveKey) {
+                  v['current'] = true;
                }
             });
 

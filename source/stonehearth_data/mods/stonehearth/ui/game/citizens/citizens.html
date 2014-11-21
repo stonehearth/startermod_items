@@ -15,7 +15,7 @@
                      <div class="job">{{this.stonehearth:job.job_uri.name}}</div>
                      <div class="toolbar">
                         {{#each command in stonehearth:commands.commands}}
-                           <a {{bind-attr id=command.name}} href="#" {{action doCommand command target="view"}} class='uisounds'>
+                           <a {{bind-attr id=command.name}} href="#" {{action "doCommand" command target="view"}} class='uisounds'>
                               <button {{bind-attr class=":commandButton enabled:buttonEnabled:buttonDisabled" }}>
                                  {{command.tooltip}}
                               </button>

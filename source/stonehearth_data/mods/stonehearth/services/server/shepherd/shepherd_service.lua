@@ -22,13 +22,11 @@ function ShepherdService:create_new_pasture(session, location, size)
             :set_player_id(session.player_id)
    self:_add_region_components(entity, size)
 
-   radiant.terrain.place_entity(entity, location)
-
-   local town = stonehearth.town:get_town(session.player_id)
-
    local pasture_component = entity:get_component('stonehearth:shepherd_pasture')
    pasture_component:set_size(size.x, size.z)
-   --farmer_field:create_dirt_plots(town, location, size)
+   pasture_component:set_pasture_type()
+
+   radiant.terrain.place_entity(entity, location)
 
    return entity
 

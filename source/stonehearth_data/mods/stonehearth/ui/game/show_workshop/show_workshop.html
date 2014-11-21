@@ -141,26 +141,21 @@
    <div id="orderList">
 
       <div id="orders">
-      {{#each data.stonehearth:workshop.order_list.orders}}
-         {{#if is_crafting}}
-            <div class="orderListItem inProgressOrder" {{bind-attr data-orderId = "id"}}>
+         {{#each data.stonehearth:workshop.order_list.orders}}
+            <div class="orderListItem inProgressOrder" {{bind-attr class="is_crafting:inProgressOrder:normalOrder" }} {{bind-attr data-orderId = "id"}}>
                <label class="craftingLabel">{{../../craftingStatus}}</label>
-         {{else}}
-            <div class="orderListItem normalOrder" {{bind-attr data-orderId = "id"}}>
-               <label class="craftingLabel invisible">{{../../craftingStatus}}</label>
-         {{/if}}
-            <a href="#" {{action select recipe remaining condition.at_least target="view"}}>
-               <img {{bind-attr src = "portrait"}} {{bind-attr title = "recipe.recipe_name"}}>
-            </a>
-            {{#if condition.amount }}
-               <label class="amountLabel">{{condition.remaining}}</label>
-            {{/if}}
-            {{#if condition.at_least }}
-               <label class="amountLabel"> = {{condition.at_least}}</label>
-            {{/if}}
+               <a href="#" {{action "select" recipe remaining condition.at_least target="view"}}>
+                  <img {{bind-attr src = "portrait"}} {{bind-attr title = "recipe.recipe_name"}}>
+               </a>
+               {{#if condition.amount }}
+                  <label class="amountLabel">{{condition.remaining}}</label>
+               {{/if}}
+               {{#if condition.at_least }}
+                  <label class="amountLabel"> = {{condition.at_least}}</label>
+               {{/if}}
                <label class="deleteLabel">{{i18n stonehearth:workshop_remove_confirm}}</label>
             </div>
-      {{/each}}
+         {{/each}}
       </div>
 
       <a id="orderListUpBtn" {{action scrollOrderListUp target="view"}} class='uisounds'><img /></a>

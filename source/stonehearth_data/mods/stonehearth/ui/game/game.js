@@ -47,7 +47,6 @@ App.StonehearthGameUiView = App.ContainerView.extend({
       var views = views || [];
       var self = this;
       $.each(views, function(i, name) {
-         console.log(name);
          var ctor = App[name]
          if (ctor) {
             self.addView(ctor);

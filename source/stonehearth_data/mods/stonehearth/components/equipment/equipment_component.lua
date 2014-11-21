@@ -45,6 +45,18 @@ function EquipmentComponent:get_item_in_slot(slot)
    return self._sv.equipped_items[slot]
 end
 
+--Returns the first item of the type found, returns false otherwise
+function EquipmentComponent:has_item_type(uri)
+   for key, item in pairs(self._sv.equipped_items) do
+      local item_uri = item:get_uri()
+
+      if item_uri == uri then
+         return item
+      end
+   end
+   return false
+end
+
 function EquipmentComponent:equip_item(item)
    local ep
 

@@ -211,29 +211,25 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
    }
 
    csg::Point3 tile_size = _terrain.GetTileSize();
-   bool is_clipped = csg::IsBetween(_location.y, clip_height, _location.y + tile_size.y);
+   bool intersects_clip_plane = (_location.y < clip_height) && (clip_height < _location.y + tile_size.y);
    bool is_cut = !_cutMap.empty();
-   bool is_intersect = xray_tile;
+   bool is_xray = xray_tile;
 
    if (clip_height == _location.y + tile_size.y) {
       // on the upper boundary, the cross section is the bottom clip plane of the top neighbor
-      // BUG: unfortunately, that clip plane is empty, because it was clipped out
-      csg::PlaneInfo3 pi;
-      pi.which = csg::RegionTools3::TOP_PLANE;
-      pi.reduced_value = clip_height;
-      csg::Region2 const* neighbor_clip_plane = GetClipPlaneFor(pi);
+      csg::Region2 const* neighbor_clip_plane = GetClipPlane(csg::RegionTools3::TOP_PLANE);
       if (neighbor_clip_plane) {
          cross_section = *neighbor_clip_plane;
       }
    }
 
-   if (!is_cut && !is_clipped && !is_intersect) {
+   if (!is_cut && !intersects_clip_plane && !is_xray) {
       return region->Get();
    }
 
    storage = region->Get();
 
-   if (is_intersect) {
+   if (is_xray) {
       storage &= *xray_tile;
    }
 
@@ -244,7 +240,7 @@ csg::Region3 const& RenderTerrainTile::ComputeCutTerrainRegion(csg::Region3& sto
    }
 
    // modify the geometry if the clipping plane intersects this tile
-   if (is_clipped) {
+   if (intersects_clip_plane) {
       T_LOG(9) << "removing geometry above clipping plane";
       csg::RegionTools3 tools;
       cross_section = tools.GetCrossSection(storage, 1, clip_height);
