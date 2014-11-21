@@ -39,11 +39,7 @@ App.StonehearthPeoplePickerView = App.View.extend({
       var additional_components = options.additional_components;
 
       if (additional_components) {
-         $.each(additional_components, function(k,v) {
-            if(k == "__self" || !additional_components.hasOwnProperty(k)) {
-               return;
-            }
-
+         radiant.each(additional_components, function(k,v) {
             self.components['citizens']['*'][k] = v;
          });
       }
@@ -58,21 +54,10 @@ App.StonehearthPeoplePickerView = App.View.extend({
    },
 
    _buildPeopleArray: function() {
-      var vals = [];
-      var citizenMap = this.get('context.citizens');
       var self = this;
 
-      if (citizenMap) {
-         $.each(citizenMap, function(k ,v) {
-            if(k == "__self" || !citizenMap.hasOwnProperty(k)) {
-               return;
-            }
-
-            if (self.filterFn(v)) {
-               vals.push(v);
-            }
-         });
-      }
+      var citizenMap = this.get('context.citizens');
+      var vals = radiant.map_to_array(citizenMap, self.filterFn);
 
       this.set('context.citizensArray', vals);
     }.observes('context.citizens.[]'),

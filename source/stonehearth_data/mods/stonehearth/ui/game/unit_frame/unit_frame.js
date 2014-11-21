@@ -49,12 +49,10 @@ App.StonehearthUnitFrameView = App.View.extend({
         var attributeMap = this.get('context.stonehearth:buffs.buffs');
         
         if (attributeMap) {
-           $.each(attributeMap, function(k ,v) {
-              if(k != "__self" && attributeMap.hasOwnProperty(k)) {
-                  //only push public buffs (buffs who have an is_private unset or false)
-                  if (v.invisible_to_player == undefined || !v.invisible_to_player) {
-                     vals.push(v);
-                  }
+           radiant.each(attributeMap, function(k ,v) {
+              //only push public buffs (buffs who have an is_private unset or false)
+              if (v.invisible_to_player == undefined || !v.invisible_to_player) {
+                 vals.push(v);
               }
            });
         }

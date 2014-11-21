@@ -227,7 +227,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 
    _getInventoryArray: function(map) {
       var vals = [];
-      $.each(map, function(k ,v) {
+      radiant.each(map, function(k ,v) {
          if(k != "__self" && map.hasOwnProperty(k)) {
             vals.push(v);
          }

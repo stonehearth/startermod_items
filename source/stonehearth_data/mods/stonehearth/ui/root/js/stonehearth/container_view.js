@@ -32,16 +32,16 @@ App.ContainerView = Ember.ContainerView.extend({
    addView: function(type, options) {
       console.log("adding view " + type);
 
+      var modalOverlay = undefined;
+
       var childView = this.createChildView(type, {
          classNames: ['stonehearth-view']
       });
       childView.setProperties(options);
 
       if (childView.get('modal')) {
-         var modalOverlay = this.addView('StonehearthModalOverlay', { modalView: childView });
+         modalOverlay = this.addView('StonehearthModalOverlay', { modalView: childView });
          childView.modalOverlay = modalOverlay;
-         modalOverlay.ownerView = childView;
-         this.pushObject(modalOverlay);
       } 
 
       if (childView.get('modal') || childView.get('closeOnEsc')) {
@@ -49,7 +49,11 @@ App.ContainerView = Ember.ContainerView.extend({
       }
 
       this._viewLookup[type] = childView;
+      
       this.pushObject(childView);
+      if (modalOverlay) {
+         this.pushObject(modalOverlay);
+      }
       return childView;
    },
 

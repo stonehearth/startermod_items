@@ -52,9 +52,9 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       self._jobPerkTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.jobComponents);
       self._jobPerkTrace.progress(function(eobj){
          //Make the table of data
-         $.each(eobj.jobs, function (index, value) {
+         radiant.each(eobj.jobs, function (index, value) {
             if (value.level_data) {
-               var levelArray = self._mapToArrayObject(value.level_data);
+               var levelArray = radiant.map_to_array(value.level_data);
                value.levelArray = levelArray;
             }
          })
@@ -81,7 +81,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
 
       //show each class that this person has ever been
       var jobs = this.get('context.data.stonehearth:job.job_controllers');
-      $.each(jobs, function(alias, data) {
+      radiant.each(jobs, function(alias, data) {
          if(alias != "__self" && jobs.hasOwnProperty(alias)) {
             var div = self.$("[uri='" + alias + "']");
             
@@ -191,15 +191,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    _buildBuffsArray: function() {
         var vals = [];
         var map = this.get('context.data.stonehearth:buffs.buffs');
-        
-        if (map) {
-           $.each(map, function(k ,v) {
-              if(k != "__self" && map.hasOwnProperty(k)) {
-                 vals.push(v);
-              }
-           });
-        }
-
+        vals = radiant.map_to_array(map);
         this.set('context.data.buffs', vals);
     }.observes('context.data.stonehearth:buffs'),
 
@@ -208,7 +200,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var self = this;
       var slots = ['torso', 'mainhand', 'offhand'];
       var equipment = self.get('context.data.stonehearth:equipment.equipped_items');
-      $.each(slots, function(i, slot) {
+      radiant.each(slots, function(i, slot) {
          var equipmentPiece = equipment[slot];
          /*
          var slotDiv = self.$('#' + slot + 'Slot');
@@ -318,42 +310,40 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       var allBuffs = this.get('context.data.stonehearth:buffs.buffs');
       var buffsByAttribute = {};
       if (allBuffs) {
-         $.each(allBuffs, function(k ,v) {
-            if(k != "__self" && allBuffs.hasOwnProperty(k)) {
-               //If the buff is private don't add it. Public buffs can be undefined or is_private = false
-               if (allBuffs[k].invisible_to_player == undefined || !allBuffs[k].invisible_to_player) {
-                  var modifiers = allBuffs[k].modifiers;
-                  for (var mod in modifiers) {
-                     var new_buff_data = {}
-                     new_buff_data.name = allBuffs[k].name;
-                     new_buff_data.type = allBuffs[k].type;
-                     new_buff_data.icon = allBuffs[k].icon;
-                     new_buff_data.shortDescription = "";
-                     if (allBuffs[k].short_description != undefined) {
-                        new_buff_data.shortDescription = allBuffs[k].short_description;                     
-                     } else {
-                        for (var attrib in modifiers[mod]) {
-                           if (attrib == 'multiply' || attrib == 'divide') {
-                              var number = 1 - modifiers[mod][attrib];
-                              number = number * 100
-                              var rounded = Math.round( number * 10 ) / 10;
-                              rounded = Math.abs(rounded);
-                              new_buff_data.shortDescription += rounded + '% '; 
-                           } else if (attrib == 'add') {
-                              var number = modifiers[mod][attrib];
-                              new_buff_data.shortDescription += '+' + number + ' '; 
-                           } else if (attrib == 'subtract') {
-                              var number = modifiers[mod][attrib];
-                              new_buff_data.shortDescription += '-' + number + ' '; 
-                           }
+         radiant.each(allBuffs, function(k ,v) {
+            //If the buff is private don't add it. Public buffs can be undefined or is_private = false
+            if (allBuffs[k].invisible_to_player == undefined || !allBuffs[k].invisible_to_player) {
+               var modifiers = allBuffs[k].modifiers;
+               for (var mod in modifiers) {
+                  var new_buff_data = {}
+                  new_buff_data.name = allBuffs[k].name;
+                  new_buff_data.type = allBuffs[k].type;
+                  new_buff_data.icon = allBuffs[k].icon;
+                  new_buff_data.shortDescription = "";
+                  if (allBuffs[k].short_description != undefined) {
+                     new_buff_data.shortDescription = allBuffs[k].short_description;                     
+                  } else {
+                     for (var attrib in modifiers[mod]) {
+                        if (attrib == 'multiply' || attrib == 'divide') {
+                           var number = 1 - modifiers[mod][attrib];
+                           number = number * 100
+                           var rounded = Math.round( number * 10 ) / 10;
+                           rounded = Math.abs(rounded);
+                           new_buff_data.shortDescription += rounded + '% '; 
+                        } else if (attrib == 'add') {
+                           var number = modifiers[mod][attrib];
+                           new_buff_data.shortDescription += '+' + number + ' '; 
+                        } else if (attrib == 'subtract') {
+                           var number = modifiers[mod][attrib];
+                           new_buff_data.shortDescription += '-' + number + ' '; 
                         }
                      }
-                     //There are so many ways to modify a buff; let writer pick string
-                     if (buffsByAttribute[mod] == null) {
-                        buffsByAttribute[mod] = [];
-                     }
-                     buffsByAttribute[mod].push(new_buff_data);
                   }
+                  //There are so many ways to modify a buff; let writer pick string
+                  if (buffsByAttribute[mod] == null) {
+                     buffsByAttribute[mod] = [];
+                  }
+                  buffsByAttribute[mod].push(new_buff_data);
                }
             }
          });

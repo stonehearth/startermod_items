@@ -17,8 +17,8 @@ App.StonehearthErrorBrowserView = App.View.extend({
          total: 0,
          entries: [],
       }
-      $.each(self._results, function(_, result) {
-         $.each(result.entries, function(_, entry) {
+      radiant.each(self._results, function(_, result) {
+         radiant.each(result.entries, function(_, entry) {
             data.total += 1;
          });
          data.entries = data.entries.concat(result.entries);

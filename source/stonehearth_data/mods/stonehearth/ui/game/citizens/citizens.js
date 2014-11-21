@@ -94,19 +94,15 @@ App.StonehearthCitizensView = App.View.extend({
 
    _buildCitizensArray: function() {
       var self = this;
-      var vals = [];
       var citizenMap = this.get('context.model.citizens');
 
-      if (citizenMap) {
-         $.each(citizenMap, function(k ,v) {
-            if(k != "__self" && citizenMap.hasOwnProperty(k) && self._citizenFilterFn(v)) {
-               v.set('__id', k);
-
-               vals.push(v);
-            }
-         });
-      }
-
+      var vals = radiant.map_to_array(citizenMap, function(k ,v) {
+         if (!self._citizenFilterFn(v)) {
+            return false;
+         }
+         v.set('__id', k);
+         return true;
+      });
       this.set('context.model.citizensArray', vals);
     },
 

@@ -227,28 +227,37 @@
       return new Trace(tracer);
    };
 
+   radiant.each = function(o, fn) {      
+      if (o) {
+         if (Array.isArray(o)) {
+            $.each(o, function(index, value) {
+               fn(index, value);
+            });
+         } else {
+            $.each(o, function(key, value) {
+               if (o.hasOwnProperty(key) && key.indexOf('__') != 0) {
+                  fn(key, value);
+               }
+            });
+         }
+      }
+   },
+
    radiant.map_to_array = function(map, filter_fn) {
       var array = [];
-      if (map) {
-         $.each(map, function(key, value) {
-            var type = typeof key;
-            if (map.hasOwnProperty(key)) {
-               if (type != 'string' || key.indexOf('__') != 0) {
-                  if (!filter_fn) {
-                     array.push(value);
-                  } else {
-                     var result = filter_fn(key, value);
-                     if (result === false) {                     
-                     } else if (result === true) {
-                        array.push(value);
-                     } else {
-                        array.push(result);
-                     }
-                  }
-               }
+      radiant.each(map, function(key, value) {
+         if (!filter_fn) {
+            array.push(value);
+         } else {
+            var result = filter_fn(key, value);
+            if (result === false) {                     
+            } else if (result === true || result === undefined) {
+               array.push(value);
+            } else {
+               array.push(result);
             }
-         });
-      }
+         }
+      });
       return array;      
    };
 })();
