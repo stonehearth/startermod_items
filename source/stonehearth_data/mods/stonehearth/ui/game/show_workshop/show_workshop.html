@@ -149,7 +149,7 @@
             <div class="orderListItem normalOrder" {{bind-attr data-orderId = "id"}}>
                <label class="craftingLabel invisible">{{../../craftingStatus}}</label>
          {{/if}}
-            <a href="#" {{action select recipe remaining condition.at_least target="view"}}>
+            <a href="#" {{action "select" recipe remaining condition.at_least target="view"}}>
                <img {{bind-attr src = "portrait"}} {{bind-attr title = "recipe.recipe_name"}}>
             </a>
             {{#if condition.amount }}

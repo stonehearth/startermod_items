@@ -2,10 +2,6 @@ App.StonehearthBuildingCostView = App.View.extend({
    templateName: 'buildingCost',
    i18nNamespace: 'stonehearth',
 
-   didInsertElement: function() {
-      console.log(this.get('context'));
-   },
-
    _transformCost: function() {
       var self = this;
       var costArr = [];

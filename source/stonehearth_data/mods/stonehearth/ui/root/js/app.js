@@ -27,8 +27,6 @@ App = Ember.Application.createWithMixins({
 
       radiant.call('radiant:get_modules')
          .done( function(data) {
-             console.log(data);
-
              self._moduleData = data;
 
              deferreds = deferreds.concat(self._loadConstants());
@@ -71,8 +69,6 @@ App = Ember.Application.createWithMixins({
     },
 
     _loadJavaScript: function(url) {
-      console.log('loading js ' + url);
-
       var deferred = $.Deferred();
 
       var script = document.createElement('script');
@@ -150,7 +146,6 @@ App = Ember.Application.createWithMixins({
   				$(response).filter('script[type="text/x-handlebars"]').each(function() {
 	 		    	templateName = $(this).attr('data-template-name');
 			    	Ember.TEMPLATES[templateName] = Ember.Handlebars.compile($(this).html());
-			    	console.log('loaded template:' + templateName)
 			  	});
 	    	}
 	  	});
@@ -173,7 +168,7 @@ App = Ember.Application.createWithMixins({
       var deferred = $.Deferred();
 
       i18n.loadNamespace(namespace, function() {
-        console.log('loaded locale namespace: ' + namespace);
+        //console.log('loaded locale namespace: ' + namespace);
         deferred.resolve();
       });
 

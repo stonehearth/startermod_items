@@ -1,20 +1,3 @@
-console.log('loading keyboard handler...');
-
-$(document).ready(function(){
-
-
-   /*
-   $(top).bind('keyup', function(e){
-      radiant.keyboard.handleKeyEvent(e);
-   });
-
-   radiant.keyboard.setFocus(null);
-   */
-
-});
-
-
-
 (function () {
    var RadiantKeyboardHandler = SimpleClass.extend({
 
@@ -58,5 +41,5 @@ $(document).ready(function(){
       }
 
    });
-   radiant.keyboard = new RadiantKeyboardHandler();
+   radiant.keyboard = new RadiantKeyboardHandler();   
 })();

@@ -20,9 +20,7 @@ App.StonehearthTownView = App.View.extend({
             var numWorkers = 0;
             var numCrafters = 0;
             var numSoldiers = 0;
-            $.each(pop.citizens, function(k, citizen) {
-               console.log(citizen);
-
+            radiant.each(pop.citizens, function(k, citizen) {
                if (!citizen['stonehearth:job']) {
                   return;
                }

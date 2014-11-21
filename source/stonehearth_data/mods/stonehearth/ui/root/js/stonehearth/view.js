@@ -121,7 +121,7 @@
       if (this._rootTrace) {
          var firstUpdate = true;
          this._rootTrace.progress(function(eobj) {
-               console.log("setting view context for " + self.elementId + " to...", eobj);
+               // console.log("setting view context for " + self.elementId + " to...", eobj);
 
                var modelProperty = self.uriProperty ? self.uriProperty : 'context';
                self.set(modelProperty, eobj);
@@ -132,13 +132,8 @@
                }
             });
       } else {
-         // Clear out the context by setting all it's properties to undefined.  The actual
-         // `context` variable is fucking magic and can't be fucked with, so this code
-         // which used to work in Ember 1.5.1 is verboten ==> self.set('context', {});
-         var context = self.get('context');
-         radiant.each(context, function(key, value) {
-            context.set(key, undefined);
-         });
+         var modelProperty = self.uriProperty ? self.uriProperty : 'context';
+         self.set(modelProperty, {});
       }
    },
 
@@ -148,7 +143,7 @@
 
       var trace = null;
       if (this._rootTrace) {
-         console.log("setting view context to deferred object");
+         // console.log("setting view context to deferred object");
          var radiantTrace = new RadiantTrace()
          radiantTrace.userTrace(this.trace, this.components);
       }
@@ -161,7 +156,7 @@
 
       var trace = null;
       if (this.uri) {
-         console.log("setting view context for " + this.uri);
+         // console.log("setting view context for " + this.uri);
          this._radiantTrace = new RadiantTrace()
          trace = this._radiantTrace.traceUri(this.uri, this.components);
       }

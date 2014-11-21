@@ -15,7 +15,6 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       radiant.call('stonehearth:get_game_speed_service')
          .done(function(response){
             var uri = response.game_speed_service;
-            console.log('game speed uri is ', uri);
             self.set('uri', uri);
          });
    },
@@ -23,7 +22,6 @@ App.StonehearthGameSpeedWidget = App.View.extend({
   //When the current speed changes, toggle the buttons to match
    _set_button_by_speed: function() {
       var newSpeed = this.get('context.curr_speed');
-      console.log('game speed changed to ' + newSpeed);
       
       //find currently active button, and unselect it
       this._toggle_button_by_speed(this.currSpeed, false);
@@ -35,10 +33,6 @@ App.StonehearthGameSpeedWidget = App.View.extend({
       this.currSpeed = newSpeed;
       
    }.observes('context.curr_speed'), 
-
-   _contextChanged: function() {
-      console.log('context for pause is being changed');
-   }.observes('context.pauseSelected'),
 
    //Given a speed, and a selected state, make the 
    //correct button match that state
