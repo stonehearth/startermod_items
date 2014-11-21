@@ -277,7 +277,7 @@ void AStarPathFinder::Restart()
    ASSERT(restart_search_);
    ASSERT(!solution_);
 
-   cameFrom_.clear();
+   _solutionNodes.clear();
    closed_.clear();
    closedBounds_ = csg::Cube3::zero;
    open_.clear();
@@ -383,7 +383,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       float mod = 1.0f + GetMaxMovementModifier(current.pt);
 
       PathFinderDst* closest = nullptr;
-      float h = EstimateCostToDestination(current.pt, &closest);
+      float h = EstimateCostToDestination(current.pt, &closest, mod);
 
       if (h == 0) {
          // xxx: be careful!  this may end up being re-entrant (for example, removing
@@ -391,7 +391,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
          ASSERT(closest);
 
          std::vector<csg::Point3f> solution;
-         ReconstructPath(solution, current.pt);
+         ReconstructPath(solution, current);
          if (SolveSearch(solution, closest)) {
             return;
          }
@@ -404,7 +404,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       // If there are no movement modifiers nearby (mod == 1.0), then we're clear to just
       // try to direct path-find to our destination.
-      if (mod == 1.0 && closest && FindDirectPathToDestination(current.pt, closest)) {
+      if (mod == 1.0 && closest && FindDirectPathToDestination(current, closest)) {
          // Found a solution!  Bail.
          return;
       }
@@ -440,52 +440,51 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, float movementCost)
 {
+   if (closed_.find(next) != closed_.end()) {
+      PF_LOG(9) << "       Ignoring edge in closed set from " << current.pt << " to " << next << " cost:" << movementCost;
+      return;
+   }
+
    VERIFY_HEAPINESS();
 
-   if (closed_.find(next) == closed_.end()) {
-      bool update = false;
-      float g = current.g + movementCost;
+   bool update = false;
+   float g = current.g + movementCost;
 
-      uint i, c = open_.size();
-      for (i = 0; i < c; i++) {
-         if (open_[i].pt == next) {
-            break;
-         }
+   uint i;
+   uint c = open_.size();
+   for (i = 0; i < c; i++) {
+      if (open_[i].pt == next) {
+         break;
       }
-      VERIFY_HEAPINESS();
+   }
 
-      if (i == c) {
-         float h = EstimateCostToDestination(next);
-         float f = g + h;
-
-         // not found in the open list. add a brand new node.
-         PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
-         cameFrom_[next] = current.pt;
-         open_.push_back(PathFinderNode(next, f, g));
-         if (!rebuildHeap_) {
-            push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
-         }
-         VERIFY_HEAPINESS();
-      } else {
-         // found. should we update?
-         if (g < open_[i].g) {
-            PathFinderNode &node = open_[i];
-
-            float old_h = node.f - node.g;
-            float old_g = node.g;
-            float f = g + old_h;
-
-            cameFrom_[next] = current.pt;
-            node.g = g;
-            node.f = f;
-            rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
-            PF_LOG(9) << "          Updated " << next << " in open set (f:" << f << " g:" << g << "old_g: " << old_g << ")";
-         } else {
-            PF_LOG(9) << "          Ignoring update to " << next << " to open set (g:" << g << " old_g:" << open_[i].g << ")";
-         }
+   if (i == c) {
+      // not found in the open list. add a brand new node.
+      float h = EstimateCostToDestination(next);
+      float f = g + h;
+      _solutionNodes.push_back(new PathFinderSolutionNode(next, current.solutionNode));
+      PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
+      open_.push_back(PathFinderNode(next, f, g, _solutionNodes.back()));
+      if (!rebuildHeap_) {
+         push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
       }
    } else {
-      PF_LOG(9) << "       Ignoring edge in closed set from " << current.pt << " to " << next << " cost:" << movementCost;
+      // found. should we update?
+      if (g < open_[i].g) {
+         PathFinderNode &node = open_[i];
+
+         float old_h = node.f - node.g;
+         float old_g = node.g;
+         float f = g + old_h;
+
+         node.solutionNode->prev = current.solutionNode;
+         node.g = g;
+         node.f = f;
+         rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
+         PF_LOG(9) << "          Updated " << next << " in open set (f:" << f << " g:" << g << "old_g: " << old_g << ")";
+      } else {
+         PF_LOG(9) << "          Ignoring update to " << next << " to open set (g:" << g << " old_g:" << open_[i].g << ")";
+      }
    }
 
    VERIFY_HEAPINESS();
@@ -516,13 +515,11 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from) const
    return EstimateCostToDestination(from, nullptr);
 }
 
-float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result) const
+float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result, float maxMoveModifier) const
 {
    float hMin = FLT_MAX;
    dm::ObjectId closestId = -1;
    PathFinderDst* closest = nullptr;
-
-   float mod = 1.0f + GetMaxMovementModifier(from);
 
    ASSERT(!restart_search_);
 
@@ -548,7 +545,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    if (hMin != FLT_MAX) {
       hMin = csg::Sqrt(hMin);
       hMin *= 1.25f;       // prefer faster over optimal...
-      hMin /= mod;
+      hMin /= maxMoveModifier;
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
    if (result) {
@@ -575,15 +572,15 @@ PathFinderNode AStarPathFinder::PopClosestOpenNode()
    return result;
 }
 
-void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const csg::Point3 &dst) const
+void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode &dst) const
 {
-   solution.push_back(csg::ToFloat(dst));
+   auto n = dst.solutionNode;
 
-   auto i = cameFrom_.find(dst);
-   while (i != cameFrom_.end()) {
-      solution.push_back(csg::ToFloat(i->second));
-      i = cameFrom_.find(i->second);
+   while (n) {
+      solution.push_back(csg::ToFloat(n->pt));
+      n = n->prev;
    }
+
    // following convention, we include the origin point in the path
    // follow path can decide to skip this point so that we don't run to the origin of the current block first
    std::reverse(solution.begin(), solution.end());
@@ -596,7 +593,7 @@ void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3f> &points) const
       if (rebuildHeap_) {
          const_cast<AStarPathFinder*>(this)->RebuildHeap();
       }
-      ReconstructPath(points, open_.front().pt);
+      ReconstructPath(points, open_.front());
    }
 }
 
@@ -636,7 +633,7 @@ void AStarPathFinder::SetSearchExhausted()
    }
 
    if (!search_exhausted_) {
-      cameFrom_.clear();
+      _solutionNodes.clear();
       closed_.clear();
       closedBounds_ = csg::Cube3::zero;
       open_.clear();
@@ -689,7 +686,7 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       restart_search_ = true;
       search_exhausted_ = false;
       solution_ = nullptr;
-      cameFrom_.clear();
+      _solutionNodes.clear();
       closed_.clear();
       closedBounds_ = csg::Cube3::zero;
       open_.clear();
@@ -803,7 +800,7 @@ float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
 } 
 
 
-bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst*& dst)
+bool AStarPathFinder::FindDirectPathToDestination(PathFinderNode &start, PathFinderDst*& dst)
 {   
    ASSERT(dst);
 
@@ -815,7 +812,7 @@ bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, Path
    MovementHelper mh(LOG_LEVEL(simulation.pathfinder.astar));
    om::EntityPtr entity = entity_.lock();
 
-   csg::Point3f from = csg::ToFloat(start);
+   csg::Point3f from = csg::ToFloat(start.pt);
    csg::Region3f const& dstRegion = dst->GetWorldSpaceAdjacentRegion();
    csg::Point3f to = dstRegion.GetClosestPoint(from);
 
