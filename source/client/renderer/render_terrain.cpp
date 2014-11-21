@@ -250,16 +250,16 @@ void RenderTerrain::SetClipHeight(int height)
 
    csg::Cube3 slice = csg::ToInt(terrainPtr->GetBounds());
 
-   // dirty the tiles intersecting the old clip plane
-   slice.min.y = old_clip_height;
-   slice.max.y = slice.min.y + 1;
+   // dirty the tiles on both sides of the old clip plane
+   slice.min.y = old_clip_height - 1;
+   slice.max.y = old_clip_height + 1;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
    });
 
-   // dirty the tiles intersecting the new clip plane
-   slice.min.y = _clip_height;
-   slice.max.y = slice.min.y + 1;
+   // dirty the tiles on both sides of the new clip plane
+   slice.min.y = _clip_height - 1;
+   slice.max.y = _clip_height + 1;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
    });

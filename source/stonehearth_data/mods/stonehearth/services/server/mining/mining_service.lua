@@ -331,6 +331,7 @@ function MiningService:_update_interior_region(point)
    if cube then
       self._interior_tiles:add_cube(cube)
       self._interior_tiles:optimize_changed_tiles() -- TODO: don't do this every time
+      self._interior_tiles:clear_changed_set()
    end
 end
 

@@ -53,8 +53,11 @@ function SubterraneanViewService:initialize()
             self:_destroy_initialize_listener()
          end
       end)
+
+   -- TODO: set renderer xray_mode on load
 end
 
+-- Remember that the terrain tiles most likely have not been added at this point
 function SubterraneanViewService:_deferred_initialize()
    self._interior_tiles = self:_get_terrain_component():get_interior_tiles()
    self._xray_tiles = _radiant.renderer.get_xray_tiles()
@@ -65,7 +68,7 @@ function SubterraneanViewService:_deferred_initialize()
 
    self._finished_initialization = true
 
-   self:_update()
+   self:_update_clip_height()
 end
 
 function SubterraneanViewService:_create_render_frame_trace()
@@ -138,11 +141,10 @@ function SubterraneanViewService:_mark_dirty(index)
    -- dirty all 3 space adjacents including diagonals
    for point in cube:each_point() do
       self._dirty_xray_tiles[point_to_key(point)] = point
-      _radiant.renderer.mark_dirty_index(point)
    end
 end
 
-function SubterraneanViewService:_mark_all_interior_dirty()
+function SubterraneanViewService:_mark_all_dirty()
    for _, index in pairs(self._interior_region_tiles) do
       self:_mark_dirty(index)
    end
@@ -161,9 +163,9 @@ function SubterraneanViewService:_update_dirty_tiles()
    end
 
    -- TODO: don't change all these tiles when not necessary
-   -- causes reoptimization below
    local world_floor = self:_get_world_floor()
    self._xray_tiles:add_cube(world_floor)
+   self._xray_tiles:clear_changed_set()
 
    for _, index in pairs(self._dirty_xray_tiles) do
       local interior_region3i_boxed = self._interior_tiles:find_tile(index)
@@ -184,11 +186,13 @@ function SubterraneanViewService:_update_dirty_tiles()
          -- local bounds = self:_get_tile_bounds(index)
          -- local clipped_floor = _radiant.csg.intersect_cube3(world_floor, bounds)
          -- self._xray_tiles:add_cube(clipped_floor)
+
+         _radiant.renderer.mark_dirty_index(index)
       end
    end
 
    self._xray_tiles:optimize_changed_tiles()
-
+   self._xray_tiles:clear_changed_set()
    self._dirty_xray_tiles = {}
 end
 
@@ -278,9 +282,12 @@ function SubterraneanViewService:toggle_xray_mode(mode)
       self._sv.xray_mode = nil
    else
       self._sv.xray_mode = mode
-      self:_mark_all_interior_dirty()
+      self:_mark_all_dirty()
    end
    self.__saved_variables:mark_changed()
+
+   -- until we clean up the shared dirty logic, do this before changing modes on the renderer
+   self:_update_dirty_tiles()
 
    -- explicitly check against nil to coerce to boolean type
    local enabled = self._sv.xray_mode ~= nil and self._sv.xray_mode ~= ''
@@ -290,13 +297,13 @@ end
 function SubterraneanViewService:set_clip_enabled(enabled)
    self._sv.clip_enabled = enabled
    self.__saved_variables:mark_changed()
-   self:_update()
+   self:_update_clip_height()
 end
 
 function SubterraneanViewService:set_clip_height(height)
    self._sv.clip_height = height
    self.__saved_variables:mark_changed()
-   self:_update()
+   self:_update_clip_height()
 end
 
 function SubterraneanViewService:move_clip_height_up()
@@ -327,7 +334,7 @@ function SubterraneanViewService:move_clip_height_down_command(session, response
    return {}
 end
 
-function SubterraneanViewService:_update()
+function SubterraneanViewService:_update_clip_height()
    if self._sv.clip_enabled then
       -- tweak the clip_height for some feathering in the renderer
       local tweaked_clip_height = self._sv.clip_height * (1+10*EPSILON)
