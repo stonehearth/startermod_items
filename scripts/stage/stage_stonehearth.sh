@@ -164,6 +164,11 @@ if [ ! -z $STAGE_BIN ]; then
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows32
    cp -u -r $CHROMIUM_ROOT/resources/locales $OUTPUT_DIR/locales
+   cp -u $CHROMIUM_ROOT/resources/icudtl.dat $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/resources/cef.pak $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/resources/cef_100_percent.pak $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/resources/cef_200_percent.pak $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/resources/devtools_resources.pak $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/libcef.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/icudt.dll $OUTPUT_DIR
 
