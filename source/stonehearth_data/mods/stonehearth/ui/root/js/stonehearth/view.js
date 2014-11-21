@@ -132,7 +132,13 @@
                }
             });
       } else {
-         self.set('context', {});
+         // Clear out the context by setting all it's properties to undefined.  The actual
+         // `context` variable is fucking magic and can't be fucked with, so this code
+         // which used to work in Ember 1.5.1 is verboten ==> self.set('context', {});
+         var context = self.get('context');
+         radiant.each(context, function(key, value) {
+            context.set(key, undefined);
+         });
       }
    },
 

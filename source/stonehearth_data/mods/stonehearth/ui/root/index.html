@@ -37,8 +37,8 @@
    <script src="js/libs/jquery.tooltipster.js"></script>
    <script src="js/libs/turn.js"></script>
 
-   <script src="js/libs/handlebars-1.1.2.js"></script>
-   <script src="js/libs/ember-1.5.1.js"></script>
+   <script src="js/libs/handlebars-v1.3.0.js"></script>
+   <script src="js/libs/ember-1.8.1.js"></script>
    <script src="js/sound.js"></script>
    <script src="js/input.js"></script>
 
@@ -86,10 +86,31 @@
          //console.log(e.error.message, "from", e.error.stack);
       });
 
-      Ember.RSVP.configure('onerror', function(e) {
-         console.error(e.message); 
-         console.error(e.stack);
-      });
+      radiant.call('radiant:get_config', 'enable_ember_debugging')
+         .done(function(o) {
+            if (o.enable_ember_debugging) {
+               console.log('"enable_ember_debugging" is true.  Enabling ember debugging support.');
+               
+               // Lets you find the stack when something blows up on the backburner.  To
+               // print it, navigate up the stack to the backburner flush() method from
+               // inside the exception handler and inspect the value of
+               // errorRecordedForStack.stack.
+               Ember.run.backburner.DEBUG = true;
+
+               // Straight from emberjs.com...
+               // There are times when dealing with promises that it seems like any errors
+               // are being 'swallowed', and not properly raised. This makes it extremely
+               // difficult to track down where a given issue is coming from. Thankfully,
+               // RSVP has a solution for this problem built in.
+               // You can provide an onerror function that will be called with the error
+               // details if any errors occur within your promise.
+               Ember.RSVP.on('error', function(e) {
+                  console.error(e.message); 
+                  console.error(e.stack);
+               });
+            }
+         });
+
 
    </script>
 
