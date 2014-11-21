@@ -16,9 +16,9 @@ public:
 
 public:
    // CefBase overrides
-   int AddRef() override;
-   int Release() override;
-   int GetRefCt() override;
+   void AddRef() const override;
+   bool Release() const override;
+   bool HasOneRef() const override;
 
    // CefSchemeHandler overrides
 
@@ -64,7 +64,7 @@ public:
    void Cancel() override;
 
 private:
-   std::atomic_int               _refCount;
+   mutable std::atomic_int       _refCount;
    CefRefPtr<CefRequest>         _request;
    CefRefPtr<CefCallback>        _callback;
    std::string                   _response;

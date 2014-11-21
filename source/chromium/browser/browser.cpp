@@ -612,8 +612,7 @@ void Browser::Navigate(std::string const& url)
 {
    if (!_browser) {
       CefWindowInfo windowInfo;
-      windowInfo.SetAsOffScreen(_parentWindow);
-      windowInfo.SetTransparentPainting(true);
+      windowInfo.SetAsWindowless(_parentWindow, true);
 
       CefBrowserSettings browserSettings;
       browserSettings.Reset();

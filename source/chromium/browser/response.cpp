@@ -19,12 +19,12 @@ Response::~Response()
 {
 }
 
-int Response::AddRef()
+void Response::AddRef() const
 {
-   return ++_refCount;
+   ++_refCount;
 }
 
-int Response::Release() 
+bool Response::Release() const
 {
    // the std::atomic<int> will guaranteed sequential consistency across threads
    // for the -- operation.  store the result on the stack to return, later.
@@ -32,12 +32,12 @@ int Response::Release()
    if (refCount == 0) {
       delete this;
    }
-   return refCount;
+   return refCount == 0;
 }
 
-int Response::GetRefCt()
+bool Response::HasOneRef() const
 { 
-   return _refCount; 
+   return _refCount > 0;
 }
 
 // Begin processing the request. To handle the request return true and call
