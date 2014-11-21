@@ -85,6 +85,7 @@
       "entities:fabricator" : "file(entities/build/fabricator)",
 
       "pet_collar" : "file(entities/critters/collars/pet_collar.json)",
+      "pasture_tag" : "file(entities/critters/collars/pasture_tag.json)",
 
       "carpenter:workbench" : "file(jobs/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(jobs/carpenter/carpenter_outfit)",
@@ -541,6 +542,12 @@
       "actions:mining:mine" : "file(ai/actions/mining/mine_action.lua)",
       "actions:mining:get_block_to_mine" : "file(ai/actions/mining/get_block_to_mine_action.lua)",
       "actions:mining:mine_adjacent" : "file(ai/actions/mining/mine_adjacent_action.lua)",
+
+      "actions:shepherd:claim_animal_for_pasture" : "file(ai/actions/claim_animal_for_pasture.lua)", 
+      "actions:shepherd:collect_animal_for_pasture_from_nearby" : "file(ai/actions/collect_animal_for_pasture_from_nearby.lua)", 
+      "actions:shepherd:collect_animal_for_pasture_from_world" : "file(ai/actions/collect_animal_for_pasture_from_world.lua)", 
+      "actions:shepherd:herding_dispatcher" : "file(ai/actions/herding_dispatcher.lua)",
+      "actions:shepherd:follow_shepherd_action" : "file(ai/actions/follow_shepherd_action.lua)", 
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
@@ -1222,6 +1229,7 @@
       "carry_block" : "file(components/carry_block/carry_block_component.lua)",
       "farmer_field" : "file(components/farmer_field/farmer_field_component.lua)",
       "shepherd_pasture" : "file(components/shepherd_pasture/shepherd_pasture_component.lua)", 
+      "shepherded_animal" : "file(components/shepherd_pasture/shepherded_animal_component.lua)", 
       "growing" : "file(components/growing/growing_component.lua)", 
       "crop" : "file(components/crop/crop_component.lua)", 
       "dirt_plot" : "file(components/farmer_field/dirt_plot_component.lua)",

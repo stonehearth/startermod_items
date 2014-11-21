@@ -1,0 +1,20 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {},
+      "stonehearth:shepherded_animal" : {},
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:shepherd:follow_shepherd_action"
+            ],
+            "observers": [
+            ]
+         },
+         "injected_commands" : [
+         ]
+      }
+   }
+}
