@@ -1,3 +1,4 @@
+local mining_lib = require 'lib.mining.mining_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -10,21 +11,28 @@ local MAX_REACH_DOWN = 1
 local MAX_REACH_UP = 3
 local MAX_DESTINATION_DELTA_Y = 3
 
-local FACE_DIRECTIONS = {
+local DIRECTIONS = {
     Point3.unit_y,
    -Point3.unit_y,
-    Point3.unit_z,
-   -Point3.unit_z,
     Point3.unit_x,
-   -Point3.unit_x
+   -Point3.unit_x,
+    Point3.unit_z,
+   -Point3.unit_z
 }
 
 local NON_TOP_DIRECTIONS = {
-    Point3.unit_z,
-   -Point3.unit_z,
     Point3.unit_x,
    -Point3.unit_x,
+    Point3.unit_z,
+   -Point3.unit_z,
    -Point3.unit_y
+}
+
+local SIDE_DIRECTIONS = {
+    Point3.unit_x,
+   -Point3.unit_x,
+    Point3.unit_z,
+   -Point3.unit_z
 }
 
 function MiningZoneComponent:__init()
@@ -33,14 +41,20 @@ end
 function MiningZoneComponent:initialize(entity, json)
    self._entity = entity
    self._destination_component = self._entity:add_component('destination')
+   self._collision_shape_component = self._entity:add_component('region_collision_shape')
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
+      self._collision_shape_component
+         :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+
       self._destination_component
          :set_region(_radiant.sim.alloc_region3())
          :set_adjacent(_radiant.sim.alloc_region3())
          :set_reserved(_radiant.sim.alloc_region3())
+
       self:set_region(_radiant.sim.alloc_region3())
+
       self._sv.mining_zone_enabled = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
@@ -75,9 +89,17 @@ end
 
 -- region is a boxed region
 function MiningZoneComponent:set_region(region)
+   region:modify(function(cursor)
+         cursor:optimize_by_merge()
+      end)
+
    self._sv.region = region
    self:_trace_region()
    self.__saved_variables:mark_changed()
+
+   -- have the collision shape use the same region
+   self._collision_shape_component:set_region(self._sv.region)
+
    return self
 end
 
@@ -156,117 +178,15 @@ function MiningZoneComponent:_on_reserved_changed()
    self:_update_adjacent()
 end
 
--- invokes callback when a block in the cube is on min_faces or more
--- min_faces = 3 iterates over all the corner blocks
--- min_faces = 2 iterates over all the edge blocks
--- min_faces = 1 iterates over all the face blocks
-local function each_block_in_cube_with_faces(cube, min_faces, cb)
-    -- subtract one because we want the max terrain block, not the bounding grid line
-   local max = cube.max - Point3.one
-   local min = cube.min
-   local x, y, z, x_face, y_face, z_face, num_faces
-   -- reuse this point to avoid inner loop memory allocation
-   local point = Point3()
-
-   local face_count = function(value, min, max)
-      if value == min or value == max then
-         return 1
-      else
-         return 0
-      end
-   end
-
-   -- can't use for loops because lua doesn't respect changes to the loop counter in the optimization check
-   y = min.y
-   while y <= max.y do
-      y_face = face_count(y, min.y, max.y)
-      if y_face + 2 < min_faces then
-         -- optimizaton, jump to opposite face if constraint cannot be met
-         y = max.y
-         y_face = 1
-      end
-
-      z = min.z
-      while z <= max.z do
-         z_face = face_count(z, min.z, max.z)
-         if y_face + z_face + 1 < min_faces then
-            -- optimizaton, jump to opposite face if constraint cannot be met
-            z = max.z
-            z_face = 1
-         end
-
-         x = min.x
-         while x <= max.x do
-            x_face = face_count(x, min.x, max.x)
-            if x_face + y_face + z_face < min_faces then
-               -- optimizaton, jump to opposite face if constraint cannot be met
-               x = max.x
-               x_face = 1
-            end
-
-            num_faces = x_face + y_face + z_face
-
-            if num_faces >= min_faces then
-               point:set(x, y, z)
-               --log:spam('cube iterator: %s', point)
-               cb(point)
-            end
-            x = x + 1
-         end
-         z = z + 1
-      end
-      y = y + 1
-   end   
-end
-
-local function each_corner_block_in_cube(cube, cb)
-   -- block is a corner block when it is part of three or more faces
-   each_block_in_cube_with_faces(cube, 3, cb)
-end
-
-local function each_edge_block_in_cube(cube, cb)
-   -- block is an edge block when it is part of two or more faces
-   each_block_in_cube_with_faces(cube, 2, cb)
-end
-
-local function each_face_block_in_cube(cube, cb)
-   -- block is a face block when it is part of one or more faces
-   each_block_in_cube_with_faces(cube, 1, cb)
-end
-
-local DIMENSIONS = { 'x', 'y', 'z'}
-
-local function get_face(cube, normal)
-   local dim = nil
-
-   for _, d in ipairs(DIMENSIONS) do
-      if normal[d] ~= 0 then
-         dim = d
-         break
-      end
-   end
-   assert(dim)
-
-   local face = Cube3(cube)
-
-   if normal[dim] > 0 then
-      face.min[dim] = face.max[dim] - 1
-   else
-      face.max[dim] = face.min[dim] + 1
-   end
-
-   return face
-end
-
 local function face_is_exposed(point, direction)
    return not radiant.terrain.is_terrain(point + direction)
 end
 
-local function count_open_faces_for_block(point, max)
-   max = max or 2
+local function count_open_faces_for_block(point, directions, max)
+   max = max or 6
    local count = 0
 
-   for _, dir in ipairs(FACE_DIRECTIONS) do
+   for _, dir in ipairs(directions) do
       if not radiant.terrain.is_terrain(point + dir) then
          count = count + 1
          if count >= max then
@@ -278,8 +198,8 @@ local function count_open_faces_for_block(point, max)
    return count
 end
 
-local function has_n_plus_exposed_faces(point, n)
-   local count = count_open_faces_for_block(point, n)
+local function has_n_plus_exposed_faces(point, directions, n)
+   local count = count_open_faces_for_block(point, directions, n)
    return count >= n
 end
 
@@ -328,6 +248,7 @@ function MiningZoneComponent:_update_destination()
    self:_update_adjacent()
 end
 
+-- get the unreserved terrain region that lies inside the zone_cube
 function MiningZoneComponent:_get_working_region(zone_cube, zone_location)
    local reserved_region = self._destination_component:get_reserved():get()
    local zone_region = Region3(zone_cube)
@@ -347,75 +268,121 @@ end
 -- working_region and zone_reserved_region are in world coordinates
 -- destination_region and zone_cube are in local coordinates
 function MiningZoneComponent:_add_destination_blocks(destination_region, zone_cube, zone_location)
+   local up = Point3.unit_y
+   local down = -Point3.unit_y
+   local one = Point3.one
    local world_to_local_translation = -zone_location
    local working_region, zone_reserved_region = self:_get_working_region(zone_cube, zone_location)
-   local bounds = working_region:get_bounds()
+   local working_bounds = working_region:get_bounds()
+   local unsupported_blocks = {}
 
    local add_block = function(point)
-         local block = Cube3(point, point + Point3.one)
+         local block = Cube3(point, point + one)
          block:translate(world_to_local_translation)
          destination_region:add_cube(block)
       end
 
-   -- check top facing blocks
-   for cube in working_region:each_cube() do
-      if cube.max.y >= bounds.max.y - MAX_DESTINATION_DELTA_Y then
-         local top_face = get_face(cube, Point3.unit_y)
-
-         if top_face.max.y == bounds.max.y then
-            for point in cube:each_point() do
-               if face_is_exposed(point, Point3.unit_y) then
-                  add_block(point)
-               end
-            end
+   local try_add_block = function(point)
+         if face_is_exposed(point, down) and face_is_exposed(point, up) then
+            local num_exposed_sides = count_open_faces_for_block(point, SIDE_DIRECTIONS, 3)
+            local block_info = { num_exposed_sides = num_exposed_sides, point = point }
+            table.insert(unsupported_blocks, block_info)
          else
-            for point in cube:each_point() do
-               if face_is_exposed(point, Point3.unit_y) and not has_higher_neighbor(point, 1) then
-                  add_block(point)
-               end
-            end
-         end
-      end
-   end
-
-   -- check side and bottom facing blocks
-   for _, normal in ipairs(NON_TOP_DIRECTIONS) do
-      local face_region = Region3(get_face(bounds, normal))
-      local face_blocks = face_region:intersected(working_region)
-      for point in face_blocks:each_point() do
-         if face_is_exposed(point, normal) then
             add_block(point)
          end
       end
+
+   self:_add_top_facing_blocks(working_region, working_bounds, try_add_block)
+   self:_add_side_and_bottom_blocks(working_region, working_bounds, try_add_block)
+
+   self:_add_unsupported_blocks(unsupported_blocks, add_block)
+
+   if destination_region:empty() then
+      -- fallback condition
+      log:detail('adding all exposed faces to destination')
+      self:_add_all_exposed_faces(working_region, add_block)
    end
 
    if destination_region:empty() then
       -- fallback condition
-      log:warning('adding all exposed faces to destination')
-      for cube in working_region:each_cube() do
-         each_face_block_in_cube(cube, function(point)
-               if has_n_plus_exposed_faces(point, 1) then
-                  add_block(point)
-               end
-            end)
-      end
-   end
-
-  if destination_region:empty() then
-      -- fallback condition
-      log:warning('adding all blocks to destination')
+      log:detail('adding all blocks to destination')
       working_region:translate(world_to_local_translation)
       destination_region:add_region(working_region)
       working_region = nil -- don't reuse, not in world coordinates anymore
-  end
+   end
 
-  -- add the reserved region back, since we excluded it from the working set analysis
-  for point in zone_reserved_region:each_point() do
+   -- add the reserved region back, since we excluded it from the working set analysis
+   for point in zone_reserved_region:each_point() do
       -- point may have been mined, but not yet unreserved
       if radiant.terrain.is_terrain(point) then
          add_block(point)
       end
-  end
+   end
+end
+
+function MiningZoneComponent:_add_top_facing_blocks(working_region, working_bounds, add_block_fn)
+   local up = Point3.unit_y
+
+   for cube in working_region:each_cube() do
+      if cube.max.y >= working_bounds.max.y - MAX_DESTINATION_DELTA_Y then
+         local top_face = mining_lib.get_face(cube, up)
+
+         if top_face.max.y == working_bounds.max.y then
+            for point in cube:each_point() do
+               if face_is_exposed(point, up) then
+                  add_block_fn(point)
+               end
+            end
+         else
+            for point in cube:each_point() do
+               if face_is_exposed(point, up) and not has_higher_neighbor(point, 1) then
+                  add_block_fn(point)
+               end
+            end
+         end
+      end
+   end
+end
+
+function MiningZoneComponent:_add_side_and_bottom_blocks(working_region, working_bounds, add_block_fn)
+   for _, normal in ipairs(NON_TOP_DIRECTIONS) do
+      local face_region = Region3(mining_lib.get_face(working_bounds, normal))
+      local face_blocks = face_region:intersected(working_region)
+      for point in face_blocks:each_point() do
+         if face_is_exposed(point, normal) then
+            add_block_fn(point)
+         end
+      end
+   end
+end
+
+function MiningZoneComponent:_add_unsupported_blocks(unsupported_blocks, add_block_fn)
+   if not next(unsupported_blocks) then
+      return
+   end
+
+   local compare_block = function(a, b)
+      return a.num_exposed_sides > b.num_exposed_sides
+   end
+
+   table.sort(unsupported_blocks, compare_block)
+   local cutoff = math.min(unsupported_blocks[1].num_exposed_sides, 3)
+
+   for _, block_info in ipairs(unsupported_blocks) do
+      if block_info.num_exposed_sides >= cutoff then
+         add_block_fn(block_info.point)
+      end
+   end
+end
+
+function MiningZoneComponent:_add_all_exposed_faces(working_region, add_block_fn)
+   for cube in working_region:each_cube() do
+      mining_lib.each_face_block_in_cube(cube, function(point)
+            if has_n_plus_exposed_faces(point, DIRECTIONS, 1) then
+               add_block_fn(point)
+            end
+         end)
+   end
 end
 
 function MiningZoneComponent:_update_adjacent()

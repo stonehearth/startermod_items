@@ -3,14 +3,14 @@
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:hunk_of_stone", "weight" : 5 }
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 5 }
       ]
    },
    "dirt" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:hunk_of_stone", "weight" : 2 }
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 2 }
       ]
    },
    "grass" : {

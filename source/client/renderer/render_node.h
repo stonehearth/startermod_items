@@ -67,6 +67,7 @@ public:
    RenderNodePtr SetRotation(csg::Point3f const& rot);
    RenderNodePtr SetScale(csg::Point3f const& scale);
    RenderNodePtr SetTransform(csg::Point3f const& pos, csg::Point3f const& rot, csg::Point3f const& scale);
+   RenderNodePtr SetPolygonOffset(float x, float y);
 
    RenderNodePtr AddChild(RenderNodePtr r);
 

@@ -72,10 +72,9 @@ function GoblinBrigands:_attach_listeners()
 end
 
 function GoblinBrigands:_add_restock_task(e)
-   local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
    e:get_component('stonehearth:ai')
       :get_task_group('stonehearth:work')
-      :create_task('stonehearth:restock_stockpile', { stockpile = s_comp })
+      :create_task('stonehearth:restock_stockpile', { stockpile = self._sv._stockpile })
       :set_source(self._sv._stockpile)
       :set_name('stockpile thief task')
       :set_priority(stonehearth.constants.priorities.goblins.HOARD)

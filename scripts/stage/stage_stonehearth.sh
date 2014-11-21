@@ -158,6 +158,9 @@ if [ ! -z $STAGE_BIN ]; then
    LUAJIT_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
    cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR/lua-5.1.5.jit.dll
 
+   echo Copying saved objects
+   cp -u -r $STONEHEARTH_ROOT/source/stonehearth_data/saved_objects $OUTPUT_DIR/saved_objects
+
    echo Copying chromium embedded
    CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.1547.1412_windows32
    cp -u -r $CHROMIUM_ROOT/resources/locales $OUTPUT_DIR/locales

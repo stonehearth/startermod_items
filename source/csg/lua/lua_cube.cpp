@@ -47,6 +47,12 @@ csg::Cube<double, C> Cube_ToInt(csg::Cube<S, C> const& c)
    return csg::ToFloat(csg::ToInt(c));
 }
 
+template <typename S, int C>
+csg::Cube<double, C> Cube_ToFloat(csg::Cube<S, C> const& c)
+{
+   return csg::ToFloat(c);
+}
+
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -89,6 +95,8 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
          .def("each_point",   &EachPointCube3f)
          .def("rotated",      &(Cube3f (*)(Cube3f const&, int))&csg::Rotated)
          .def("project_onto_xz_plane", &ProjectOntoXZPlane),
+      Register<Cube3>(L, "Cube3i")
+         .def("to_float",     &Cube_ToFloat<int, 3>),
       Register<Rect2f>(L,  "Rect2")
          .def("each_point",   &EachPointRect2f),
       Register<Line1f>(L,  "Line1")

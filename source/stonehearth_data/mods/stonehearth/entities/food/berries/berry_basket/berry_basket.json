@@ -1,0 +1,35 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "category" : "food",
+         "stacks" : 3,
+         "maxStacks" : 3
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(berry_basket.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Basket of Berries",
+         "description": "Creme of the caveman diet.",
+         "icon" : "file(berry_basket.png)"
+      },
+      "stonehearth:material" : {
+         "tags" :  "resource fruit food_container berry"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0.05 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:food_container" : {
+         "effect": "fiddle",
+         "food": "stonehearth:food:berries:berry_serving"
+      }
+   }
+}

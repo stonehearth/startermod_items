@@ -31,6 +31,7 @@
                "name" : "end to end tests",
 
                "scripts" : [
+                  "file(end_to_end/construction_autotests.lua)",
                   "file(blackbox/dm_map_autotests.lua)",
                   "file(end_to_end/ai_autotests.lua)",
                   "file(end_to_end/stockpile_autotests.lua)",
@@ -40,7 +41,6 @@
                   "file(end_to_end/trapper_autotests.lua)",
                   "file(end_to_end/luabind_autotests.lua)",
                   "file(end_to_end/farming_autotests.lua)",
-                  "file(end_to_end/construction_autotests.lua)",
                   "file(end_to_end/carpenter_autotests.lua)",
                   "file(end_to_end/harvest_autotests.lua)",
                   "file(end_to_end/promote_autotests.lua)",

@@ -48,7 +48,7 @@ function TeardownLadderAdjacent:run(ai, entity, args)
       builder:shrink_ladder()
 
       if not radiant.entities.increment_carrying(entity) then
-         local oak_log = radiant.entities.create_entity('stonehearth:oak_log')
+         local oak_log = radiant.entities.create_entity('stonehearth:resources:wood:oak_log')
          radiant.entities.pickup_item(entity, oak_log)
          oak_log:add_component('item')
                      :set_stacks(1)

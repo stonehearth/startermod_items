@@ -62,5 +62,9 @@ App.StonehearthMiningView = App.View.extend({
       this.$('#overview').hide();
    },
 
+   destroy: function() {
+      this._super();
+   },
+
 });
 

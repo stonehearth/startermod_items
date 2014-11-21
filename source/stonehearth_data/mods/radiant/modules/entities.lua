@@ -204,6 +204,24 @@ function entities.get_name(entity)
    return unit_info and unit_info:get_display_name() or nil
 end
 
+function entities.get_category(entity)
+   local item = entity:get_component('item')
+   
+   if item and item:get_category() ~= '' then
+      return item:get_category()
+   end
+
+   local entity_forms = entity:get_component('stonehearth:entity_forms')
+
+   if entity_forms then
+      local iconic_entity = entity_forms:get_iconic_entity()
+      return radiant.entities.get_category(iconic_entity)
+   end
+
+   return 'none'
+
+end
+
 function entities.set_name(entity, name)
    local unit_info = entity:get_component('unit_info')
    if unit_info then

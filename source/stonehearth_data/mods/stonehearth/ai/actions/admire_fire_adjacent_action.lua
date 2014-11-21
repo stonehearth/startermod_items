@@ -4,7 +4,7 @@ local rng = _radiant.csg.get_default_rng()
 local AdmireFireAdjacent = class()
 AdmireFireAdjacent.name = 'admire fire adjacent'
 AdmireFireAdjacent.args = {
-   seat = Entity,      -- the firepit seat entity
+   seat = Entity,      -- the firejit seat entity
 }
 AdmireFireAdjacent.does = 'stonehearth:admire_fire_adjacent'
 AdmireFireAdjacent.version = 2

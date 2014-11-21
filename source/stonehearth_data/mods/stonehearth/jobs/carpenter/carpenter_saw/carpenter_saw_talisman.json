@@ -4,8 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter's Saw",
-         "description" : "Promotes a citizen into a Carpenter.",
-         "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
+         "description" : "Promotes a citizen into a Carpenter."
       },
       "item" : {
          "stacks" : 1

@@ -38,8 +38,9 @@ function ReserveEntity:start_thinking(ai, entity, args)
       -- again. -- tony
       -- [/blockquote]
       --
-      ai:get_log():debug('%s cannot acquire ai lease on %s.  halting.', entity, args.entity)
-      ai:halt()
+      local reason = string.format('%s cannot acquire ai lease on %s.', tostring(entity), tostring(args.entity))
+      ai:get_log():debug('halting: ' .. reason)
+      ai:halt(reason)
       return
    end
    ai:set_think_output()

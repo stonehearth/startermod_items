@@ -21,7 +21,7 @@
       "new_crop_confirmation_message" : "Congratulations! You can now plant __crop_name__ in your fields!", 
       "max_days_before_return" : 3, 
       "wants" : {
-         "stonehearth:farmer:hoe_talisman" : {
+         "stonehearth:farmer:talisman" : {
             "min" : 3, 
             "max" : 8
          }, 
@@ -59,12 +59,12 @@
          }
       },
       "rewards" : {
-         "stonehearth:furniture:wooden_garden_lantern" : {
+         "stonehearth:decoration:wooden_garden_lantern" : {
             "type" : "object", 
             "min" : 2, 
             "max" : 6
          }, 
-         "stonehearth:cloth_bolt" : {
+         "stonehearth:refined:cloth_bolt" : {
             "type" : "object", 
             "min" : 2, 
             "max" : 10

@@ -1,10 +1,21 @@
 <script type="text/x-handlebars" data-template-name="stoneheartTerrainVision">
    <div id="stoneheartTerrainVision">
-      <div id="visionButton" hotkey="" class="normal" title="Change terrain vision mode" />
-      <div id="palette">
+      <div id="sliceButton" hotkey="" class="normal" title="Change terrain vision mode" {{bind-attr class=data.clip_enabled:clip:noclip}}/>
+      <div id="xrayButton" hotkey="" class="normal" title="Change terrain X-Ray Mode" {{bind-attr class=data.xray_mode}}/>
+      
+      <div id="slicePalette" class='palette' {{bind-attr class=data.clip_enabled:clip:noclip}}>
          <div class="button" id="clipUp" hotkey="[" />
          <div id="depth">{{data.clip_height}}m</div>
          <div class="button" id="clipDown" hotkey="]"/>
+      </div>
+
+      <div id="xrayPalette" class='palette' {{bind-attr class=data.xray_mode}}>
+         <div id="xrayFull" class='xrayButton button' mode="full" {{bind-attr class=data.xray_mode}}>full</div>
+         <div id="xrayFlat" class='xrayButton button' mode="flat" {{bind-attr class=data.xray_mode}}>flat</div>
+      </div>
+      <div id="info">
+         clip: {{data.clip_enabled}}<br>
+         xray: {{data.xray_mode}}
       </div>
    </div>
 </script>

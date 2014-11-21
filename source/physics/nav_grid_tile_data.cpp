@@ -7,20 +7,22 @@
 #include "nav_grid_tile_data.h"
 #include "collision_tracker.h"
 #include "protocols/radiant.pb.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;
 
-#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << world_bounds.min)
+#define NG_LOG(level)              LOG_CATEGORY(physics.navgrid, level, "physics.navgridtile " << worldBounds.min)
 
 /* 
  * -- NavGridTileData::NavGridTileData
  *
  * Construct a new NavGridTileData.
  */
-NavGridTileData::NavGridTileData() :
+NavGridTileData::NavGridTileData(NavGridTile& ngt) :
+   _ngt(ngt),
    dirty_(ALL_DIRTY_BITS)
-{
+{   
 }
 
 NavGridTileData::~NavGridTileData()
@@ -32,22 +34,127 @@ NavGridTileData::~NavGridTileData()
  *
  * Checks to see if the point for the specified tracker is set.
  */
-bool NavGridTileData::IsMarked(TrackerType type, csg::Point3 const& offset)
+template <TrackerType Type>
+bool NavGridTileData::IsMarked(csg::Point3 const& offset)
 {
-   return IsMarked(type, Offset(offset.x, offset.y, offset.z));
+   int bitIndex = Offset(offset.x, offset.y, offset.z);
+
+   ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
+   UpdateTileData<Type>();
+   return marked_[Type][bitIndex];
 }
 
-/*
- * -- NavGridTileData::IsMarked
- *
- * Like the point version of IsMarked, but accepts an offset into the
- * bitvector rather than a point address.
- */
-bool NavGridTileData::IsMarked(TrackerType type, int bit_index)
+float NavGridTileData::GetMovementSpeedBonus(csg::Point3 const& offset)
 {
-   ASSERT(bit_index >= 0 && bit_index < TILE_SIZE * TILE_SIZE * TILE_SIZE);
-   return marked_[type][bit_index];
+   int bitIndex = Offset(offset.x, offset.y, offset.z);
+
+   ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
+   UpdateMovementSpeedBonus();
+   return _movementSpeedBonus[bitIndex];
 }
+
+
+template <TrackerType DstType>
+void NavGridTileData::UpdateTileData()
+{
+   const int SrcMask = (int)(1 << DstType);
+   UpdateTileDataForTrackers<SrcMask, DstType>();
+}
+
+template <>
+void NavGridTileData::UpdateTileData<COLLISION>()
+{
+   const int SrcMask = (1 << COLLISION) | (1 << TERRAIN);
+   UpdateTileDataForTrackers<SrcMask, COLLISION>();
+}
+
+template <int SrcMask, TrackerType DstType>
+void NavGridTileData::UpdateTileDataForTrackers()
+{
+   int dirtyMask = (1 << DstType);
+   if ((dirty_ & dirtyMask) == 0) {
+      return;
+   }
+
+   BitSet& bits = marked_[DstType];
+   bits.reset();
+
+   csg::Cube3 worldBounds = _ngt.GetWorldBounds();
+   _ngt.ForEachTracker([this, &worldBounds, &bits](CollisionTrackerPtr tracker) {
+      int mask = (1 << tracker->GetType());
+
+      if ((SrcMask & mask) == 0) {
+         return false;     // keep going!
+      }
+      csg::Region3 overlap = tracker->GetOverlappingRegion(worldBounds).Translated(-worldBounds.min);
+
+      // This code is on the critical path when pathing during construction; so, we avoid using Point3
+      // iterators, and duplicate the loops in order to avoid an interior branch.
+      for (csg::Cube3 const& cube : EachCube(overlap)) {
+         for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
+            for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
+               for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
+                  int offset = Offset(x, y, z);
+
+                  DEBUG_ONLY(
+                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                  )
+                  bits.set(offset);
+               }
+            }
+         }
+      }
+      return false;     // keep going!
+   });
+
+   dirty_ &= ~dirtyMask;
+}
+
+
+void NavGridTileData::UpdateMovementSpeedBonus()
+{
+   int dirtyMask = (1 << MOVEMENT_MODIFIER);
+   if ((dirty_ & dirtyMask) == 0) {
+      return;
+   }
+
+   memset(_movementSpeedBonus, 0, sizeof _movementSpeedBonus);
+
+   csg::Cube3 worldBounds = _ngt.GetWorldBounds();
+   _ngt.ForEachTracker([this, &worldBounds](CollisionTrackerPtr tracker) {
+      if (tracker->GetType() != MOVEMENT_MODIFIER) {
+         return false;     // keep going!
+      }
+      om::EntityPtr entity = tracker->GetEntity();
+      if (!entity) {
+         return false;     // keep going!
+      }
+      auto mms = entity->GetComponent<om::MovementModifierShape>();
+      if (!mms) {
+         return false;     // keep going!
+      }
+
+      float percentBonus = mms->GetModifier();
+      csg::Region3 overlap = tracker->GetOverlappingRegion(worldBounds).Translated(-worldBounds.min);
+
+      // This code is on the critical path when pathing during construction; so, we avoid using Point3
+      // iterators, and duplicate the loops in order to avoid an interior branch.
+      for (csg::Cube3 const& cube : EachCube(overlap)) {
+         for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
+            for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
+               for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
+                  int offset = Offset(x, y, z);
+                  _movementSpeedBonus[offset] += percentBonus;
+               }
+            }
+         }
+      }
+      return false;     // keep going!
+   });
+
+   dirty_ &= ~dirtyMask;
+}
+
 
 /*
  * -- NavGridTileData::Offset
@@ -64,105 +171,19 @@ inline int NavGridTileData::Offset(int x, int y, int z)
 }
 
 /*
- * -- NavGridTileData::FlushDirty
- *
- * Re-generates all the tile data.  We don't bother keeping track of what's actually
- * changed.. just start over from scratch.  The bookkeeping for "proper" change tracking
- * is more complicated and expensive relative to the cost of generating the bitvector,
- * so just don't bother.  This updates each of the individual TrackerType vectors first,
- * then walk through the derived vectors.
- */
-void NavGridTileData::FlushDirty(NavGrid& ng, TrackerMap& trackers, csg::Cube3 const& world_bounds)
-{
-   UpdateBaseVectors(trackers, world_bounds);
-   dirty_ = 0;
-}
-
-/*
- * -- NavGridTileData::UpdateBaseVectors
- *
- * Update the base vectors for the navgrid.
- */
-void NavGridTileData::UpdateBaseVectors(TrackerMap& trackers, csg::Cube3 const& world_bounds)
-{
-   if (dirty_ & BASE_VECTORS) {
-      dirty_ &= ~BASE_VECTORS;
-
-      for (BitSet& bs : marked_) {
-         bs.reset();
-      }
-      stdutil::ForEachPrune<dm::ObjectId, CollisionTracker>(trackers, [this, &world_bounds](dm::ObjectId const&, CollisionTrackerPtr tracker) {
-         UpdateCollisionTracker(*tracker, world_bounds);
-      });
-   }
-}
-
-/*
- * -- NavGridTileData::UpdateCollisionTracker
- *
- * Ask the tracker to compute the region which overlaps this tile, and add every point
- * in that region to the bitvector.
- */
-void NavGridTileData::UpdateCollisionTracker(CollisionTracker const& tracker, csg::Cube3 const& world_bounds)
-{
-   // Ask the tracker to compute the overlap with this tile.  world_bounds is stored in
-   // world-coordinates, so translate it back to tile-coordinates when we get it back.
-   TrackerType type = tracker.GetType();
-   if (type < NUM_BIT_VECTOR_TRACKERS) {
-      csg::Region3 overlap = tracker.GetOverlappingRegion(world_bounds).Translated(-world_bounds.min);
-
-      if (type == PLATFORM) {
-         type = COLLISION;
-      }
-
-      // This code is on the critical path when pathing during construction; so, we avoid using Point3
-      // iterators, and duplicate the loops in order to avoid an interior branch.
-      if (type == TERRAIN) {
-         auto& marked_terrain = marked_[TERRAIN];
-         auto& marked_collision = marked_[COLLISION];
-         for (csg::Cube3 const& cube : EachCube(overlap)) {
-            for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
-               for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
-                  for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
-                     int offset = Offset(x, y, z);
-
-                     DEBUG_ONLY(
-                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
-                     )
-                     marked_terrain.set(offset);
-                     marked_collision.set(offset);
-                  }
-               }
-            }
-         }
-      } else {
-         auto& marked_type = marked_[type];
-         for (csg::Cube3 const& cube : EachCube(overlap)) {
-            for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
-               for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
-                  for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
-                     int offset = Offset(x, y, z);
-
-                     DEBUG_ONLY(
-                        NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
-                     )
-                     marked_type.set(offset);
-                  }
-               }
-            }
-         }
-      }
-   }
-}
-
-
-/*
  * -- NavGridTileData::MarkDirty
  *
  * Mark the tile dirty.
  */
-void NavGridTileData::MarkDirty()
+void NavGridTileData::MarkDirty(TrackerType t)
 {
-   dirty_ = ALL_DIRTY_BITS;
+   dirty_ |= (1 << t);
+   if (t == TERRAIN) {
+      dirty_ |= (1 << COLLISION);
+   }
 }
 
+
+template bool NavGridTileData::IsMarked<COLLISION>(csg::Point3 const&);
+template bool NavGridTileData::IsMarked<TERRAIN>(csg::Point3 const&);
+template bool NavGridTileData::IsMarked<LADDER>(csg::Point3 const&);

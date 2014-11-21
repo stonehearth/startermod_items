@@ -56,7 +56,7 @@ function Shop:stock_shop()
    local all_sellable_items = stonehearth.shop:get_sellable_items()
 
    self.sellable_items = {}
-   self._sv.inventory = {}
+   self._sv.shop_inventory = {}
 
    -- Copy the items which pass the filter function into a new table, with buckets for rarity.
    for uri, entity in pairs(all_sellable_items) do
@@ -73,10 +73,18 @@ function Shop:stock_shop()
       for uri, shop_item in pairs(entities) do
          -- Add it to the shop inventory
          local item_cost = radiant.entities.get_entity_data(shop_item, 'stonehearth:net_worth').value_in_gold
-         self._sv.inventory[uri] = {
+
+         local unit_info = shop_item:get_component('unit_info')
+         local item = shop_item:get_component('item')
+         local category = radiant.entities.get_category(shop_item)
+
+         self._sv.shop_inventory[uri] = {
             uri = uri,
+            display_name = unit_info:get_display_name(),
+            icon = unit_info:get_icon(),
             item = shop_item,
             cost = item_cost,
+            category = category,
             num = 99,
          }
       end
@@ -85,22 +93,22 @@ function Shop:stock_shop()
    end
 
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
-   self._sv.player_inventory = inventory:add_item_tracker('stonehearth:shop:sellable_item_tracker')
 
    self.__saved_variables:mark_changed()
 end
 
 function Shop:buy_item(uri, quantity)
    local buy_quantity = quantity or 1
-
+   local all_sellable_items = stonehearth.shop:get_sellable_items()
+   
    -- do we have enough gold?
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
    local gold = inventory:get_gold_count()
-   local item_cost = self._sv.inventory[uri].cost
+   local item_cost = self._sv.shop_inventory[uri].cost
 
    -- can't buy more than what's in the shop
-   if buy_quantity > self._sv.inventory[uri].num then
-      buy_quantity = self._sv.inventory[uri].num
+   if buy_quantity > self._sv.shop_inventory[uri].num then
+      buy_quantity = self._sv.shop_inventory[uri].num
    end
 
    -- if we can't afford as many as we want, buy fewer
@@ -114,7 +122,7 @@ function Shop:buy_item(uri, quantity)
    local total_cost = item_cost * buy_quantity
 
    -- remove the items from my inventory
-   self._sv.inventory[uri].num = self._sv.inventory[uri].num - buy_quantity
+   self._sv.shop_inventory[uri].num = self._sv.shop_inventory[uri].num - buy_quantity
    self.__saved_variables:mark_changed()
 
    -- deduct gold from the player
@@ -144,12 +152,13 @@ function Shop:sell_item(uri, quantity)
    local sellable_items = inventory:get_items_of_type(uri)
 
    -- "sell" each entity by destroying it, until we've sold the requested amount or run out of entities
-   for uri, entity in pairs(sellable_items) do
+   for uri, entity in pairs(sellable_items.items) do
       if sell_quantity == 0 then
          break
       end
       radiant.entities.destroy_entity(entity)
       total_gold = total_gold + item_cost
+      sell_quantity = sell_quantity - 1
    end
 
    -- deduct gold from the player
@@ -214,5 +223,15 @@ end
 
 function Shop:_get_item_cost(entity)
    return radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold
+end
+
+function Shop:_get_category(entity)
+   local item = entity:get_component('item')
+   local category = 'nil'
+
+   if item then
+      category = item:get_category()
+   end
+
 end
 return Shop

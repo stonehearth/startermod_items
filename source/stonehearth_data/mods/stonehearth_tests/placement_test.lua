@@ -19,7 +19,7 @@ function PlacementTest:__init()
    local player_id = citizen:get_component('unit_info'):get_player_id()
    
    self:_place_all_items()
-   self:place_item_cluster('stonehearth:oak_log', 8, 8, 7, 7)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)
    
    self:at(10,  function()
          self:place_stockpile_cmd(player_id, -16, -16, 32, 32)

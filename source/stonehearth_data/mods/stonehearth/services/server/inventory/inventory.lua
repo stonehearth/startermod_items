@@ -19,6 +19,7 @@ function Inventory:initialize(session)
 
    self:add_item_tracker('stonehearth:basic_inventory_tracker')
    self:add_item_tracker('stonehearth:placeable_item_inventory_tracker')
+   self:add_item_tracker('stonehearth:sellable_item_tracker')
 end
 
 function Inventory:restore()
@@ -130,7 +131,7 @@ end
 --- Given the uri of an item and the player_id, get a structure containing items of that type
 --  Uses the basic_inventory_tracker
 --
---  @param item_type : uri of the item (like stonehearth:oak_log)
+--  @param item_type : uri of the item (like stonehearth:resources:wood:oak_log)
 --  @param player_id : id of the player
 --  @returns an object with a count and a map of identity (items).
 --           Iterate through the map to get the data.
@@ -237,7 +238,7 @@ function Inventory:add_gold(amount)
    item:set_stacks(amount)
 
    local location = radiant.terrain.find_placement_point(drop_origin, 1, 3)
-   radiant.terrain.place_entity(item, location)
+   radiant.terrain.place_entity(gold, location)
 end
 
 function Inventory:subtract_gold(amount)

@@ -20,7 +20,7 @@ function FoodTest:__init()
 
    local player_id = worker:get_component('unit_info'):get_player_id()
    
-   --self:place_item('stonehearth:berry_basket', 0, 0)
+   --self:place_item('stonehearth:food:berries:berry_basket', 0, 0)
    
    self:at(10,  function()
          --self:place_stockpile_cmd(player_id, 8, 8, 4, 4)

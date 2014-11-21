@@ -1,0 +1,16 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "decoration"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_garden_lantern_fine.qb)"
+            ]
+         }
+      }
+   }
+}

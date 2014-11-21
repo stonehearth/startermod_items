@@ -3,12 +3,12 @@
       "resources" : {
          "wood resource" : {
             "name" : "Wood log",
-            "icon" : "/stonehearth/entities/trees/oak_tree/oak_log/oak_log.png",
+            "icon" : "/stonehearth/entities/resources/wood/log.png",
             "stacks" : 80
          },
          "stone resource" : {
             "name" : "Stone",
-            "icon" : "/stonehearth/entities/boulders/hunk_of_stone/hunk_of_stone.png",
+            "icon" : "/stonehearth/entities/resources/stone/stone.png",
             "stacks" : 80
          },
          "thread resource" : {
@@ -18,7 +18,7 @@
          },         
          "fiber resource" : {
             "name" : "Bundle of fiber",
-            "icon" : "/stonehearth/entities/plants/silkweed/silkweed_bundle/silkweed_bundle.png",
+            "icon" : "/stonehearth/entities/resources/fiber/fiber.png",
             "stacks" : 1
          },         
          "pelt resource" : {

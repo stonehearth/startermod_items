@@ -34,7 +34,7 @@ function sh_99.verify_moving_placed_item_when_in_use(autotest)
       end)
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-         if e.entity:get_uri() == 'stonehearth:oak_log' then
+         if e.entity:get_uri() == 'stonehearth:resources:wood:oak_log' then
             local constants = stonehearth.calendar:get_constants()
             stonehearth.calendar:set_time_unit_test_only({ hour = constants.start.hour, minute = constants.start.minute })
             autotest:log('restoring game speed of %.1f', current_speed)

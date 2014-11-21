@@ -8,6 +8,7 @@
 #include "nav_grid.h"
 #include "nav_grid_tile.h"
 #include "nav_grid_tile_data.h"
+#include "om/components/movement_modifier_shape.ridl.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -96,10 +97,10 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
-   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   return data_->IsMarked(COLLISION, pt);
+   RefreshTileData();
+   return data_->IsMarked<COLLISION>(pt);
 }
 
 bool NavGridTile::IsBlocked(csg::Cube3 const& cube)
@@ -124,10 +125,10 @@ bool NavGridTile::IsBlocked(csg::Region3 const& region)
  */
 bool NavGridTile::IsSupport(csg::Point3 const& pt)
 {
-   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   return data_->IsMarked(COLLISION, pt) || data_->IsMarked(LADDER, pt);
+   RefreshTileData();
+   return data_->IsMarked<COLLISION>(pt) || data_->IsMarked<LADDER>(pt);
 }
 
 bool NavGridTile::IsSupport(csg::Cube3 const& cube)
@@ -152,10 +153,10 @@ bool NavGridTile::IsSupport(csg::Region3 const& region)
  */
 bool NavGridTile::IsTerrain(csg::Point3 const& pt)
 {
-   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
 
-   return data_->IsMarked(TERRAIN, pt);
+   RefreshTileData();
+   return data_->IsMarked<TERRAIN>(pt);
 }
 
 bool NavGridTile::IsTerrain(csg::Cube3 const& cube)
@@ -180,7 +181,6 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Region3 const& regi
 
 bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
 {
-   ASSERT(data_);
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(cube.min));
    ASSERT(csg::Cube3::one.Scaled(TILE_SIZE+1).Contains(cube.max));
 
@@ -193,40 +193,22 @@ bool NavGridTile::IsMarked(IsMarkedPredicate predicate, csg::Cube3 const& cube)
 }
 
 /*
- * -- NavGridTile::FlushDirty
+ * -- NavGridTile::ClearTileData
  *
- * Re-generates all the tile data.  We don't bother keeping track of what's actually
- * changed.. just start over from scratch.  The bookkeeping for "proper" change tracking
- * is more complicated and expensive relative to the cost of generating the bit vector,
- * so just don't bother.  This updates each of the individual TrackerType vectors first,
- * then walk through the derived vectors.
- *
+ * Unload the NavGridTileData for this tile.
  */
-void NavGridTile::FlushDirty(NavGrid& ng)
+void NavGridTile::ClearTileData()
 {
-   ASSERT(data_);
-
-   data_->FlushDirty(ng, trackers_, GetWorldBounds());
+   data_.reset(nullptr);
 }
 
-/*
- * -- NavGridTile::SetDataResident
- *
- * Load or unload the NavGridTileData for this tile.  In the load case, this only
- * creates the Data object.  It will be updated lazily when required.
- *
- */
-void NavGridTile::SetDataResident(bool value, int expireTime)
+void NavGridTile::RefreshTileData()
 {
-   if (value && !data_) {
-      data_.reset(new NavGridTileData());
-   } else if (!value && data_) {
-      data_.reset(nullptr);
+   _expireTime = _ng.NotifyTileResident(this);
+   if (!data_) {
+      data_.reset(new NavGridTileData(*this));
    }
-   _expireTime = expireTime;
 }
- 
-
 
 /*
  * -- NavGridTile::MarkDirty
@@ -240,7 +222,7 @@ void NavGridTile::MarkDirty(TrackerType t)
       NG_LOG(7) << "marking grid tile " << _index << " as dirty (tracker type:" << t << ")";
       _ng.SignalTileDirty(_index);
       if (data_) {
-         data_->MarkDirty();
+         data_->MarkDirty(t);
       }
    } else  {
       NG_LOG(7) << "not-marking grid tile " << _index << " as dirty (tracker type:" << t << " not a collision type)";
@@ -391,4 +373,35 @@ csg::Point3 NavGridTile::GetIndex() const
 bool NavGridTile::IsDataResident() const
 {
    return data_.get() != nullptr;
+}
+
+float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
+{
+   RefreshTileData();
+   return data_->GetMovementSpeedBonus(offset);
+}
+
+float NavGridTile::GetMaxMovementModifier() const
+{
+   float max = 0;
+   for (const auto& i : trackers_) {
+      const CollisionTrackerPtr& tracker = i.second.lock();
+      if (!tracker) {
+         continue;
+      }
+      if (tracker->GetType() != MOVEMENT_MODIFIER) {
+         continue;
+      }
+      om::EntityPtr entity = tracker->GetEntity();
+      if (!entity) {
+         continue;
+      }
+      auto mms = entity->GetComponent<om::MovementModifierShape>();
+      if (!mms) {
+         continue;
+      }
+
+      max = std::max(max, mms.get()->GetModifier());
+   }
+   return max;
 }

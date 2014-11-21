@@ -23,7 +23,7 @@ void MovementModifierShape::ConstructObject()
 
 void MovementModifierShape::LoadFromJson(json::Node const& obj)
 {
-   modifier_.Set(obj.get("modifier", 9.0f));
+   modifier_.Set(obj.get("modifier", 0.0f));
 
    region_ = LoadRegion(obj, GetStore());
 }

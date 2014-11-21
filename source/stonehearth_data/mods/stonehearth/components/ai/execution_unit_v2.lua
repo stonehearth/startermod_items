@@ -405,7 +405,7 @@ function ExecutionUnitV2:_set_think_output_from_thinking(think_output)
 end
 
 function ExecutionUnitV2:_set_think_output_from_ready(think_output)
-   self._log:info('action called set_think_output from ready state.  using previous think output!')
+   self._log:debug('action called set_think_output from ready state.  using previous think output!')
    return
 end
 
@@ -450,6 +450,7 @@ function ExecutionUnitV2:_run_from_ready()
    self:_do_start()
    self:_set_state(RUNNING)
    self:_do_stop_thinking()
+   self._log:info('calling run')
    self:_call_run()
    self:_destroy_object_monitor()
    self:_set_state(FINISHED)
@@ -461,6 +462,7 @@ function ExecutionUnitV2:_run_from_started()
    assert(self._object_monitor:is_running())
 
    self:_set_state(RUNNING)
+   self._log:info('calling run')
    self:_call_run()
    self:_destroy_object_monitor()   
    self:_set_state(FINISHED)
@@ -867,7 +869,7 @@ function ExecutionUnitV2:_create_object_monitor()
    assert(self._state == THINKING)
 
    if self._action.unprotected_args then
-      self._log:info('not protecting entities on action\'s request')
+      self._log:debug('not protecting entities on action\'s request')
       return ObjectMonitor(self._log)
    end
    
@@ -887,7 +889,7 @@ function ExecutionUnitV2:_create_object_monitor()
       end
    end
    object_monitor:set_destroyed_cb(function()
-         self._log:info('stopping thinking by request of object monitor!')
+         self._log:debug('stopping thinking by request of object monitor!')
          self:_destroy_object_monitor()
          self:_stop_thinking()
       end)

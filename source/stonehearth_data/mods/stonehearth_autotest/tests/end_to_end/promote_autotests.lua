@@ -37,7 +37,7 @@ function promote_tests.progression_test(autotest)
       player_id = radiant.entities.get_player_id(civ),
    }
 
-   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
+   stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop')
 
    --Listen for level up
    radiant.events.listen(civ, 'stonehearth:level_up', function(e)
@@ -71,7 +71,7 @@ function promote_tests.progression_test(autotest)
 
    -- when the farm widget pops up, pick the turnip crop
    autotest.ui:click_dom_element('#farmWindow #addCropLink')
-   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:tester_crop"]')
+   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')

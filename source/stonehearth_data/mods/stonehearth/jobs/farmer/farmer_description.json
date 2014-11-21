@@ -5,7 +5,7 @@
    "controller" : "stonehearth:class:farmer", 
    "description" : "Farmers till fields and harvest crops, providing a consistent food supply and raw materials for baked goods.", 
    "requirements" : "Farmer's Hoe, crafted by the Carpenter.",
-   "talisman_uri" : "stonehearth:farmer:hoe_talisman",
+   "talisman_uri" : "stonehearth:farmer:talisman",
    "default_stance" : "passive",
    
    "equipment" : {
@@ -30,7 +30,7 @@
       "base_exp_per_harvest" : 4, 
       "stonehearth:pumpking_crop" : 10, 
       "stonhearth:corn_crop" : 30, 
-      "stonehearth:tester_crop" : 120
+      "stonehearth:crops:tester_crop" : 120
    },
 
    "max_level" : 6, 

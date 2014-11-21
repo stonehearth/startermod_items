@@ -7,6 +7,9 @@
          "description" : "For spinning fiber into thread",
          "icon" : "file(weaver_spindle.png)"
       },
+      "item" : {
+         "category" : "tools"
+      },     
       "model_variants": {
          "default": {
             "models": [

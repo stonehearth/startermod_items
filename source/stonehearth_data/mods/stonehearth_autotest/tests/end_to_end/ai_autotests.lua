@@ -4,7 +4,7 @@ local ai_autotests = {}
 
 -- setup an environment to run the object monitor autotests
 local function setup_object_monitor_test(autotest, action_script, args)
-   local e = autotest.env:create_entity(0, 0, 'stonehearth:oak_log')
+   local e = autotest.env:create_entity(0, 0, 'stonehearth:resources:wood:oak_log')
    local ai = e:add_component('stonehearth:ai')
    
    ai:_initialize({

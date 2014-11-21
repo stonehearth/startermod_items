@@ -125,6 +125,10 @@ function ConstructionDataComponent:get_type()
    return self._sv.type
 end
 
+function ConstructionDataComponent:get_brush()
+   return self._sv.brush
+end
+
 function ConstructionDataComponent:needs_scaffolding()
    return self._sv.needs_scaffolding
 end

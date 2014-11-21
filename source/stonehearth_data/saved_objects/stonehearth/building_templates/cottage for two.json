@@ -7,7 +7,7 @@
                "name": "Wooden Door", 
                "icon": "/stonehearth/entities/construction/wooden_door/wooden_door.png"
             }, 
-            "stonehearth:furniture:wooden_wall_lantern": {
+            "stonehearth:decoration:wooden_wall_lantern": {
                "count": 1, 
                "name": "Wooden Wall-mounted Lantern", 
                "icon": "/stonehearth/entities/construction/wooden_wall_lantern/wooden_wall_lantern.png"
@@ -399,7 +399,7 @@
                      "loan_scaffolding_to": {}
                   }, 
                   "stonehearth:fixture_fabricator": {
-                     "fixture_uri": "stonehearth:furniture:wooden_wall_lantern", 
+                     "fixture_uri": "stonehearth:decoration:wooden_wall_lantern", 
                      "normal": {
                         "y": 0, 
                         "x": 0, 

@@ -15,21 +15,23 @@ function ShopTest:__init()
    self:place_item('stonehearth:small_juniper_tree',  15, -5)
 
    self:place_item_cluster('stonehearth:loot:gold', -10, 15, 3, 3)
-   self:place_item_cluster('stonehearth:pumpkin_harvest', -10, 11, 3, 3)
+   self:place_item_cluster('stonehearth:food:pumpkin:pumpkin_basket', -10, 11, 3, 3)
    
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14)
    
 
    --Place a banner
-   local player_id = worker:get_component('unit_info'):get_player_id()
+   --local player_id = worker:get_component('unit_info'):get_player_id()
+   local player_id = 'player_1'
    local town = stonehearth.town:get_town(player_id)
    local location = Point3(7, 0, 7)
    local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
-   radiant.terrain.place_entity(banner_entity, location)
+   radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
 
    self:at(10,  function()
+         self:place_stockpile_cmd(player_id, -8, -8, 0, 0)
          stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
       end)
 end

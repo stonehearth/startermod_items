@@ -1,6 +1,7 @@
 {
    "info" :{
-      "name" : "Stonehearth Building Templates"
+      "name" : "Stonehearth Building Templates",
+      "version" : 1
    },
 
    "server_init_script" : "file(stonehearth_templates_server)",

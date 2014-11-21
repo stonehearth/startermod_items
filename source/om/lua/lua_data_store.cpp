@@ -39,9 +39,8 @@ DataStore_Restore(DataStoreRef data_store)
 {
    auto ds = data_store.lock();
    if (ds) {
-      std::vector<luabind::object> visitedTables;
       ds->RestoreController(ds);
-      ds->RestoreControllerData(visitedTables);
+      ds->RestoreControllerData();
    }
 }
 

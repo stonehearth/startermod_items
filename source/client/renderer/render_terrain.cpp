@@ -11,6 +11,7 @@
 #include "csg/meshtools.h"
 #include "lib/perfmon/perfmon.h"
 #include "resources/res_manager.h"
+#include "client/client.h"
 #include "Horde3D.h"
 #include <unordered_map>
 
@@ -20,19 +21,22 @@ using namespace ::radiant::client;
 #define T_LOG(level)      LOG(renderer.terrain, level)
 
 static const csg::Point3 TERRAIN_LAYER_SIZE(128, 5, 128);
-
+static const int MAX_CLIP_HEIGHT = 1000000000; // don't use INT_MAX due to overflow
 
 RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain) :
    entity_(entity),
    terrain_(terrain),
    _tileSize(terrain->GetTileSize()),
-   _clip_height(INT_MAX)
+   _clip_height(MAX_CLIP_HEIGHT),
+   _enable_xray_mode(false)
 {  
    terrain_root_node_ = H3DNodeUnique(h3dAddGroupNode(entity_.GetNode(), "terrain root node"));
    selected_guard_ = Renderer::GetInstance().SetSelectionForNode(terrain_root_node_.get(), entity_.GetEntity());
 
+   // terrain tiles are keyed in index space, but render terrain tiles are keyed in world space
+   // i.e. they differ in scale by _tileSize
    auto on_add_tile = [this](csg::Point3 index, om::Region3BoxedPtr const& region) {
-      csg::Point3 location = index.Scaled(_tileSize);
+      csg::Point3 location = IndexToLocation(index);
 
       ASSERT(region);
       ASSERT(!stdutil::contains(tiles_, location));
@@ -41,8 +45,6 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
       _dirtyNeighbors.insert(location);
       MarkDirty(location);
    };
-
-   auto on_remove_tile = 
 
    tiles_trace_ = terrain->TraceTiles("render", dm::RENDER_TRACES)
                               ->OnAdded(on_add_tile)
@@ -56,6 +58,9 @@ RenderTerrain::RenderTerrain(const RenderEntity& entity, om::TerrainPtr terrain)
                                        LoadColorMap();
                                     })
                                     ->PushObjectState();
+
+   std::shared_ptr<om::Region3MapWrapper> wrapper = std::make_shared<om::Region3MapWrapper>(_xray_region_tiles);
+   _xray_tiles_accessor = std::make_shared<om::Region3Tiled>(_tileSize, wrapper);
 }
 
 RenderTerrain::~RenderTerrain()
@@ -91,11 +96,6 @@ void RenderTerrain::LoadColorMap()
    });
 }
 
-csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
-{
-   return csg::GetChunkIndexSlow(location, TERRAIN_LAYER_SIZE).Scaled(TERRAIN_LAYER_SIZE);
-}
-
 void RenderTerrain::MarkDirty(csg::Point3 const& location)
 {
    // The geometry and contents of the clip planes at this location clearly need to be
@@ -120,6 +120,27 @@ void RenderTerrain::MarkDirty(csg::Point3 const& location)
       });
       ASSERT(!renderer_frame_trace_.Empty());
    }
+}
+
+csg::Point3 RenderTerrain::IndexToLocation(csg::Point3 const& index)
+{
+   csg::Point3 location = index.Scaled(_tileSize);
+   return location;
+}
+
+csg::Point3 RenderTerrain::LocationToIndex(csg::Point3 const& location)
+{
+   csg::Point3 index(
+         location.x / _tileSize.x,
+         location.y / _tileSize.y,
+         location.z / _tileSize.z
+      );
+   return index;
+}
+
+csg::Point3 RenderTerrain::GetLayerAddressForLocation(csg::Point3 const& location)
+{
+   return csg::GetChunkIndexSlow(location, TERRAIN_LAYER_SIZE).Scaled(TERRAIN_LAYER_SIZE);
 }
 
 csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction)
@@ -229,19 +250,32 @@ void RenderTerrain::SetClipHeight(int height)
 
    csg::Cube3 slice = csg::ToInt(terrainPtr->GetBounds());
 
-   // dirty the tiles intersecting the old clip plane
-   slice.min.y = old_clip_height;
-   slice.max.y = slice.min.y + 1;
+   // dirty the tiles on both sides of the old clip plane
+   slice.min.y = old_clip_height - 1;
+   slice.max.y = old_clip_height + 1;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
    });
 
-   // dirty the tiles intersecting the new clip plane
-   slice.min.y = _clip_height;
-   slice.max.y = slice.min.y + 1;
+   // dirty the tiles on both sides of the new clip plane
+   slice.min.y = _clip_height - 1;
+   slice.max.y = _clip_height + 1;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
    });
+}
+
+void RenderTerrain::EnableXrayMode(bool enabled)
+{
+   if (enabled == _enable_xray_mode) {
+      return;
+   }
+   _enable_xray_mode = enabled;
+
+   for (auto const& entry : tiles_) {
+      // suboptimal - this dirties all the neighbors repeatedly
+      MarkDirty(entry.first);
+   }
 }
 
 void RenderTerrain::UpdateNeighbors()
@@ -264,7 +298,15 @@ void RenderTerrain::UpdateClipPlanes()
    for (csg::Point3 const& location : _dirtyClipPlanes) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         int planesChanged = i->second->UpdateClipPlanes(_clip_height);
+         std::shared_ptr<csg::Region3> xray_tile = nullptr;
+
+         if (_enable_xray_mode) {
+            // terrain, interior, and xray tiles are all stored in index space
+            csg::Point3 index = LocationToIndex(location);
+            xray_tile = _xray_tiles_accessor->GetTile(index);
+         }
+
+         int planesChanged = i->second->UpdateClipPlanes(_clip_height, xray_tile);
          for (int d = 0; d < csg::RegionTools3::NUM_PLANES; d++) {
             csg::RegionTools3::Plane direction = static_cast<csg::RegionTools3::Plane>(d);
             if (planesChanged & (1 << d)) {
@@ -278,11 +320,19 @@ void RenderTerrain::UpdateClipPlanes()
 
 
 void RenderTerrain::UpdateGeometry()
-{   
+{
    for (csg::Point3 const& location : _dirtyGeometry) {
       auto i = tiles_.find(location);
       if (i != tiles_.end()) {
-         i->second->UpdateGeometry(_clip_height);
+         std::shared_ptr<csg::Region3> xray_tile = nullptr;
+
+         if (_enable_xray_mode) {
+            // terrain, interior, and xray tiles are all stored in index space
+            csg::Point3 index = LocationToIndex(location);
+            xray_tile = _xray_tiles_accessor->GetTile(index);
+         }
+
+         i->second->UpdateGeometry(_clip_height, xray_tile);
       }
    }
    _dirtyGeometry.clear();
@@ -354,4 +404,9 @@ RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
    }
    auto j = layers_.insert(std::make_pair(location, new RenderTerrainLayer(*this, location)));
    return *j.first->second;
+}
+
+om::Region3TiledPtr RenderTerrain::GetXrayTiles()
+{
+   return _xray_tiles_accessor;
 }

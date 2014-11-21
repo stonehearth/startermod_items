@@ -76,6 +76,12 @@ csg::Region<double, C> Region_ToInt(csg::Region<S, C> const& r)
    return csg::ToFloat(csg::ToInt(r));
 }
 
+template <typename S, int C>
+csg::Region<double, C> Region_ToFloat(csg::Region<S, C> const& r)
+{
+   return csg::ToFloat(r);
+}
+
 template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
@@ -126,7 +132,7 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
    return
       def("intersect_region2", IntersectRegion<Region2f>),
       def("intersect_region3", IntersectRegion<Region3f>),
-      Register<Region3f>(L,  "Region3")
+      Register<Region3f>(L, "Region3")
          .def("each_point",               &EachPointRegion3f)
          .def("get_adjacent",             &GetAdjacent<Region3f>)
          .def("project_onto_xz_plane",    &ProjectOntoXZPlane)
@@ -134,11 +140,14 @@ scope LuaRegion::RegisterLuaTypes(lua_State* L)
          .def("rotate",                   (void (*)(Region3f&, int))&csg::Rotate)
          .def("rotated",                  (Region3f (*)(Region3f const&, int))&csg::Rotated)
       ,
-      Register<Region2f>(L,  "Region2")
+      Register<Region3>(L, "Region3i")
+         .def("to_float",                 &Region_ToFloat<int, 3>)
+      ,
+      Register<Region2f>(L, "Region2")
          .def("each_point",               &EachPointRegion2f)
          .def("get_edge_list",            &RegionGetEdgeList<double, 2>)
          .def("rotate",                   (void (*)(Region2f&, int))&csg::Rotate)
          .def("rotated",                  (Region2f (*)(Region2f const&, int))&csg::Rotated)
       ,
-      Register<Region1f>(L,  "Region1");
+      Register<Region1f>(L, "Region1");
 }

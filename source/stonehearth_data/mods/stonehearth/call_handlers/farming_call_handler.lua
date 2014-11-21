@@ -40,7 +40,7 @@ function FarmingCallHandler:plant_crop(session, response, soil_plot, crop_type, 
    --TODO: remove this when we actually get the correct data from the UI
    local soil_plots = {soil_plot}
    if not crop_type then
-      crop_type = 'stonehearth:turnip_crop'
+      crop_type = 'stonehearth:crops:turnip_crop'
    end
 
    return farming_service:plant_crop(session.player_id, soil_plots, crop_type, player_speficied, auto_plant, auto_harvest, true)

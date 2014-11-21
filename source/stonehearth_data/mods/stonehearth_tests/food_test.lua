@@ -13,7 +13,7 @@ function FoodTest:__init()
    self:place_item('stonehearth:worker:outfit:2', 10, 10)
 
 
-   self:place_item_cluster('stonehearth:wool_bundle', 8, 8, 4, 4)
+   self:place_item_cluster('stonehearth:resources:fiber:wool_bundle', 8, 8, 4, 4)
 
    self:place_item('stonehearth:furniture:arch_backed_chair', 6, 6)
 
@@ -24,8 +24,8 @@ function FoodTest:__init()
 
    local player_id = worker:get_component('unit_info'):get_player_id()
    
-   --self:place_item('stonehearth:berry_basket', 0, 0)
-   --self:place_item('stonehearth:corn_basket', 1, 1)
+   --self:place_item('stonehearth:food:berries:berry_basket', 0, 0)
+   --self:place_item('stonehearth:food:corn:corn_basket', 1, 1)
    
    self:at(10000,  function()
          worker:get_component('stonehearth:attributes'):set_attribute('calories', stonehearth.constants.food.MALNOURISHED)

@@ -4,8 +4,7 @@
    "components" : {
       "unit_info" : {
          "name" :  "Carpenter's Saw",
-         "description" : "Basic level carpenter's saw.",
-         "character_sheet_info" : "file(carpenter_saw_character_sheet_info.json)"
+         "description" : "Basic level carpenter's saw."
       },
       "item" : {
          "stacks" : 1

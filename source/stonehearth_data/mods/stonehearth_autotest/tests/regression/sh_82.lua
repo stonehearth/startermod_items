@@ -10,7 +10,7 @@ local sh_82 = {}
 
 function sh_82.verify_not_on_bench(autotest)
    local carpenter = autotest.env:create_person(2, 2, { job = 'carpenter' })
-   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:oak_log')
+   local wood = autotest.env:create_entity_cluster(-2, -2, 3, 3, 'stonehearth:resources:wood:oak_log')
 
    autotest:sleep(1000)
 

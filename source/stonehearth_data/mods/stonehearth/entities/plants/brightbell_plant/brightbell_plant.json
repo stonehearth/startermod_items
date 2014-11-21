@@ -1,0 +1,37 @@
+{
+   "type" : "entity",
+   "components" : {
+      "render_info" : {
+         "scale" : 0.2
+      },
+      "unit_info" : {
+         "name": "Wild Brightbell", 
+         "description": "A harvestable wild flower"
+      },      
+      "model_variants": {
+         "default": {
+		      "models": [
+			      "file(../../decoration/brightbell/brightbell.qb)"
+		      ]
+   	   }
+      },
+      "stonehearth:resource_node": {
+         "task_group_name" : "stonehearth:task_group:harvest",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/harvest_plant_overlay_effect",
+         "description" : "harvest_plant",
+         "resource": "stonehearth:decoration:brightbell"
+      },
+
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 }
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" :  1, "y" : 1, "z" :  1 }
+            }
+         ]
+      }
+	}
+}

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "path.h"
+#include "core/static_string.h"
 #include "a_star_path_finder.h"
 #include "path_finder_src.h"
 #include "path_finder_dst.h"
@@ -346,6 +347,8 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
 void AStarPathFinder::Work(const platform::timer &timer)
 {
+   MEASURE_JOB_TIME();
+
    for (int i = 0; i < 8 && !timer.expired(); i++) {
       PF_LOG(7) << "entering work function";
 
@@ -377,6 +380,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
       closed_.insert(current.pt);
       WatchWorldPoint(current.pt);
 
+      float mod = 1.0f + GetMaxMovementModifier(current.pt);
+
       PathFinderDst* closest = nullptr;
       float h = EstimateCostToDestination(current.pt, &closest);
 
@@ -397,7 +402,9 @@ void AStarPathFinder::Work(const platform::timer &timer)
       } 
       ASSERT(!restart_search_);
 
-      if (closest && FindDirectPathToDestination(current.pt, closest)) {
+      // If there are no movement modifiers nearby (mod == 1.0), then we're clear to just
+      // try to direct path-find to our destination.
+      if (mod == 1.0 && closest && FindDirectPathToDestination(current.pt, closest)) {
          // Found a solution!  Bail.
          return;
       }
@@ -515,6 +522,8 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    dm::ObjectId closestId = -1;
    PathFinderDst* closest = nullptr;
 
+   float mod = 1.0f + GetMaxMovementModifier(from);
+
    ASSERT(!restart_search_);
 
    auto i = destinations_.begin();
@@ -539,6 +548,7 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    if (hMin != FLT_MAX) {
       hMin = csg::Sqrt(hMin);
       hMin *= 1.25f;       // prefer faster over optimal...
+      hMin /= mod;
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
    if (result) {
@@ -601,6 +611,7 @@ std::string AStarPathFinder::GetProgress() const
                        "entity:" << std::setw(32) << ename << " " << 
                        "id:" << std::setw(3) << GetId() << " " << 
                        "src:" << source_->GetSourceLocation() << " " << 
+                       "#dst:" << destinations_.size() << " " << 
                        "open:" << open_.size() << " " << 
                        "closed:" << closed_.size() << " " <<
                        "idle:\"" << std::setw(16) << (_lastIdleCheckResult ? _lastIdleCheckResult : "not checked") << "\" " <<
@@ -765,6 +776,32 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
       navgrid_guard_.Clear();
    }
 }
+
+
+// Find the max movement modifier in the region just around the supplied point.  We can use this
+// to compute a better pathing heuristic, for example.
+float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
+{
+   phys::OctTree& octTree = GetSim().GetOctTree();
+   phys::NavGrid& ng = octTree.GetNavGrid();
+   csg::Point3 index[4];
+   csg::Point3 offset;
+   csg::GetChunkIndex<phys::TILE_SIZE>(wgl, index[0], offset);
+
+   int xOffset = offset.x >= phys::TILE_SIZE / 2 ? 1 : -1;
+   int zOffset = offset.z >= phys::TILE_SIZE / 2 ? 1 : -1;
+
+   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(0, 0, zOffset * phys::TILE_SIZE), index[1], offset);
+   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(xOffset * phys::TILE_SIZE, 0, zOffset * phys::TILE_SIZE), index[2], offset);
+   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(xOffset * phys::TILE_SIZE, 0, 0), index[3], offset);
+
+   float maxmodifier = 0;
+   for (int i = 0; i < 4; i++) {
+      maxmodifier = std::max(maxmodifier, ng.GridTile(index[i]).GetMaxMovementModifier());
+   }
+   return maxmodifier;
+} 
+
 
 bool AStarPathFinder::FindDirectPathToDestination(csg::Point3 const& start, PathFinderDst*& dst)
 {   

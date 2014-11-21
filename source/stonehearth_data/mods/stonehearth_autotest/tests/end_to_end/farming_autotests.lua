@@ -8,7 +8,7 @@ function farming_tests.grow_one_turnip(autotest)
       player_id = radiant.entities.get_player_id(farmer),
    }
 
-   stonehearth.farming:add_crop_type(session, 'stonehearth:tester_crop')
+   stonehearth.farming:add_crop_type(session, 'stonehearth:crops:tester_crop')
 
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
@@ -24,7 +24,7 @@ function farming_tests.grow_one_turnip(autotest)
 
    -- when the farm widget pops up, pick the turnip crop
    autotest.ui:click_dom_element('#farmWindow #addCropLink')
-   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:tester_crop"]')
+   autotest.ui:click_dom_element('.itemPalette div[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')

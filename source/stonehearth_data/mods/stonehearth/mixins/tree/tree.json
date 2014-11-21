@@ -1,9 +1,6 @@
 {
    "type" : "entity",
    "components" : {
-      "unit_info" : {
-         "character_sheet_info" : "file(tree_character_sheet_info.json)"
-      },
       "render_info" : {
          "scale" : 1
       },

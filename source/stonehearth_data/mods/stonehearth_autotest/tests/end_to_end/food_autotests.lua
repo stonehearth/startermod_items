@@ -28,7 +28,7 @@ function food_tests.eat_food_on_ground(autotest)
 end
 
 function food_tests.eat_food_in_container(autotest)
-   local berry_basket = autotest.env:create_entity(-2, -2, 'stonehearth:berry_basket')
+   local berry_basket = autotest.env:create_entity(-2, -2, 'stonehearth:food:berries:berry_basket')
    berry_basket:get_component('item'):set_stacks(2)
 
    autotest.env:create_person(2, 2, {

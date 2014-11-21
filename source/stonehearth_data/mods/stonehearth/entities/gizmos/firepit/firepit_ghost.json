@@ -5,8 +5,7 @@
          "name": "Fire Pit",
          "description": "Provides warmth and light",
          "icon" : "file(firepit.png)",
-         "portrait": "file(firepit.png)",
-         "character_sheet_info" : "file(firepit_character_sheet_info.json)"
+         "portrait": "file(firepit.png)"
       },
 
       "stonehearth:material" : {

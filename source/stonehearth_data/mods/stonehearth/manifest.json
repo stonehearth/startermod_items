@@ -1,6 +1,7 @@
 {
    "info" : {
-      "name" : "Stonehearth"
+      "name" : "Stonehearth",
+      "version" : 1
    },
 
    "client_init_script" : "file(stonehearth_client)",
@@ -47,7 +48,7 @@
       "mixins:plant" : "file(mixins/plant)",
       "mixins:item_properties" : "file(mixins/item_properties)",
       "mixins:placed_properties" : "file(mixins/placed_properties)",
-      "mixins:resources:jerky" : "file(mixins/resources/jerky)",
+      "mixins:resources:jerky" : "file(mixins/food/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
       
@@ -62,7 +63,12 @@
 
       "terrain_block_config" : "file(data/terrain/terrain_blocks.json)",
 
-      "entities:wooden_floor" : "file(entities/build/wooden_floor)",
+      "wooden_floor_solid_light" : "file(entities/build/floor/wooden_floor_solid_light)",
+      "wooden_floor_solid_dark" : "file(entities/build/floor/wooden_floor_solid_dark)",
+      "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
+      "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
+      "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
+      "checkered_slate_road" : "file(entities/build/road/checkered_slate_road)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "cobblestone_wall" : "file(entities/build/cobblestone_wall/cobblestone_wall.json)",
@@ -94,7 +100,7 @@
       "farmer:outfit" : "file(jobs/farmer/farmer_outfit)",
       "farmer:field" : "file(jobs/farmer/field)",
       "farmer:hoe" : "file(jobs/farmer/farmer_hoe)", 
-      "farmer:hoe_talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
+      "farmer:talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
@@ -113,7 +119,7 @@
       "weaver:workbench" : "file(jobs/weaver/weaver_workbench)",
       "weaver:outfit" : "file(jobs/weaver/weaver_outfit)",
       "weaver:spindle" : "file(jobs/weaver/weaver_spindle)",
-      "weaver:spindle_talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
+      "weaver:talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone.json)",
 
@@ -127,19 +133,18 @@
       "worker_hammer" : "file(entities/tools/worker_hammer)",
       "mining_pick" : "file(entities/tools/mining_pick)",
       "rabbit" : "file(entities/critters/rabbit)",
-      "rabbit_pelt" : "file(entities/critters/rabbit/rabbit_pelt)",
       "rabbit_jerky" : "file(entities/critters/rabbit/rabbit_jerky)",
       "squirrel" : "file(entities/critters/squirrel)",
-      "squirrel_pelt" : "file(entities/critters/squirrel/squirrel_pelt)",
+
       "squirrel_jerky" : "file(entities/critters/squirrel/squirrel_jerky)",
       "racoon" : "file(entities/critters/racoon)",
-      "racoon_pelt" : "file(entities/critters/racoon/racoon_pelt)",
+
       "racoon_jerky" : "file(entities/critters/racoon/racoon_jerky)",
       "red_fox" : "file(entities/critters/red_fox)",
-      "red_fox_pelt" : "file(entities/critters/red_fox/red_fox_pelt)",
+
       "red_fox_jerky" : "file(entities/critters/red_fox/red_fox_jerky)",
       "sheep" : "file(entities/critters/sheep)",
-      "sheep_jerky" : "file(entities/critters/sheep/sheep_jerky)",
+      "sheep_jerky" : "file(entities/food/sheep_jerky)",
       "wolf" : "file(entities/critters/wolf)",
       "wolf:teeth_weapon" : "file(entities/critters/wolf/wolf_teeth.json)",
       "male_1" : "file(entities/humans/male_1)",
@@ -156,9 +161,7 @@
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
 
-      "wool_bundle" : "file(entities/cloth/wool/wool_bundle)",
-      
-      "hunk_of_stone" : "file(entities/boulders/hunk_of_stone)",
+     
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder_1" : "file(entities/boulders/medium_boulder/medium_boulder_1.json)",
       "medium_boulder_2" : "file(entities/boulders/medium_boulder/medium_boulder_2.json)",
@@ -168,13 +171,45 @@
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
       
+      "resources:wood:oak_log" : "file(entities/resources/wood/oak_log)",
+      "resources:wood:juniper_log" : "file(entities/resources/wood/juniper_log)",
+      "resources:stone:hunk_of_stone" : "file(entities/resources/stone/hunk_of_stone)",
+      "resources:fiber:silkweed_bundle" : "file(entities/resources/fiber/silkweed_bundle)",
+      "resources:fiber:wool_bundle" : "file(entities/resources/fiber/wool_bundle)",
+      "resources:red_fox_pelt" : "file(entities/resources/pelt/red_fox_pelt)",
+      "resources:racoon_pelt" : "file(entities/resources/pelt/racoon_pelt)",
+      "resources:squirrel_pelt" : "file(entities/resources/pelt/squirrel_pelt)",
+      "resources:rabbit_pelt" : "file(entities/resources/pelt/rabbit_pelt)",
 
-      "oak_log" : "file(entities/trees/oak_tree/oak_log)",
+
+      "refined:thread" : "file(entities/refined/thread)",
+      "refined:cloth_bolt" : "file(entities/refined/cloth_bolt)",
+      "refined:leather_bolt" : "file(entities/refined/leather_bolt)",
+
+      "food:corn:amazing_corn_basket" : "file(entities/food/corn/amazing_corn_basket)",
+      "food:corn:amazing_corn_serving"    : "file(entities/food/corn/amazing_corn_serving)",
+      "food:corn:corn_basket" : "file(entities/food/corn/corn_basket)",
+      "food:corn:corn_serving"    : "file(entities/food/corn/corn_serving)",
+      "food:berries:berry_basket" : "file(entities/food/berries/berry_basket)",
+      "food:berries:berry_serving" : "file(entities/food/berries/berry_serving)",
+      "food:pumpkin:pumpkin_serving" : "file(entities/food/pumpkin/pumpkin_serving)",
+      "food:pumpkin:pumpkin_basket" : "file(entities/food/pumpkin/pumpkin_basket)",
+
+      "crops:brightbell_crop" : "file(entities/crops/brightbell_crop)", 
+      "crops:frostsnap_crop" : "file(entities/crops/frostsnap_crop)", 
+      "crops:corn_crop"   : "file(entities/crops/corn_crop)",
+      "crops:turnip_crop" : "file(entities/crops/turnip_crop)",
+      "crops:pumpkin_crop" : "file(entities/crops/pumpkin_crop)",
+      "crops:tester_crop" : "file(entities/crops/tester_crop)",
+      "crops:silkweed_crop" : "file(entities/crops/silkweed_crop)", 
+
+      "plants:brightbell" : "file(entities/plants/brightbell_plant)",
+      "plants:frostsnap" : "file(entities/plants/frostsnap_plant)",
+
       "small_oak_tree" : "file(entities/trees/oak_tree/small_oak_tree)",
       "medium_oak_tree" : "file(entities/trees/oak_tree/medium_oak_tree)",
       "large_oak_tree" : "file(entities/trees/oak_tree/large_oak_tree)",
       "ancient_oak_tree" : "file(entities/trees/oak_tree/ancient_oak_tree)",
-      "juniper_log" : "file(entities/trees/juniper_tree/juniper_log)",
       "small_juniper_tree" : "file(entities/trees/juniper_tree/small_juniper_tree)",
       "medium_juniper_tree" : "file(entities/trees/juniper_tree/medium_juniper_tree)",
       "large_juniper_tree" : "file(entities/trees/juniper_tree/large_juniper_tree)",
@@ -182,29 +217,14 @@
 
       "berry_bush" : "file(entities/plants/berry_bush)",
       "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
-      "corn_crop"   : "file(entities/plants/corn/corn_crop)",
-      "corn_basket" : "file(entities/plants/corn/corn_basket)",
-      "amazing_corn_basket" : "file(entities/plants/corn/amazing_corn_basket)",
-      "corn_serving"    : "file(entities/plants/corn/corn_serving)",
-      "amazing_corn_serving"    : "file(entities/plants/corn/amazing_corn_serving)",
-      "turnip_crop" : "file(entities/plants/turnip/turnip_crop)",
+
+      
+
       "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
-      "pumpkin_crop" : "file(entities/plants/pumpkin/pumpkin_crop)",
-      "pumpkin_serving" : "file(entities/plants/pumpkin/pumpkin_serving)",
-      "pumpkin_harvest" : "file(entities/plants/pumpkin/pumpkin_harvest)",
-      "tester_crop" : "file(entities/plants/tester/tester_crop)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
       "tester_basket" : "file(entities/plants/tester/tester_basket)",
-      "silkweed_crop" : "file(entities/plants/silkweed/silkweed_crop)", 
-      "silkweed_bundle" : "file(entities/plants/silkweed/silkweed_bundle)",
-
-      "plants:brightbell" : "file(entities/plants/brightbell)",
-      "plants:brightbell:wild" : "file(entities/plants/brightbell/brightbell_wild.json)",
-      "brightbell_crop" : "file(entities/plants/brightbell/brightbell_crop.json)", 
-      "plants:frostsnap" : "file(entities/plants/frostsnap)",
-      "plants:frostsnap:wild" : "file(entities/plants/frostsnap/frostsnap_wild.json)",
-      "frostsnap_crop" : "file(entities/plants/frostsnap/frostsnap_crop.json)", 
+      
       "plants:silkweed" : "file(entities/plants/silkweed/silkweed)",
 
       "furniture:arch_backed_chair" : "file(entities/furniture/arch_backed_chair)",
@@ -224,10 +244,6 @@
       "furniture:not_much_of_a_bed" : "file(entities/furniture/not_much_of_a_bed)",
       "furniture:picket_fence" : "file(entities/construction/picket_fence)",
       "furniture:picket_fence_gate" : "file(entities/construction/picket_fence_gate)",
-      "furniture:wooden_wall_lantern" : "file(entities/construction/wooden_wall_lantern)",
-      "furniture:wooden_wall_lantern:fine" : "file(entities/construction/wooden_wall_lantern_fine)",
-      "furniture:wooden_garden_lantern" : "file(entities/construction/wooden_garden_lantern)",
-      "furniture:wooden_garden_lantern:fine" : "file(entities/construction/wooden_garden_lantern_fine)",
       "furniture:simple_wooden_chair" : "file(entities/furniture/simple_wooden_chair)",
       "furniture:simple_wooden_chair:fine" : "file(entities/furniture/simple_wooden_chair_fine)",
       "furniture:comfy_chair" : "file(entities/furniture/comfy_chair)",
@@ -239,9 +255,8 @@
       "portals:wooden_window_frame" : "file(entities/construction/wooden_window_frame)",
       "portals:wooden_diamond_window" : "file(entities/construction/wooden_diamond_window)",
 
-      "decoration:berry_hanging" : "file(entities/furniture/simple_hanging/berry_hanging.json)",
-      "decoration:geranium_hanging" : "file(entities/furniture/simple_hanging/geranium_hanging.json)",
-      "decoration:green_hanging" : "file(entities/furniture/simple_hanging/green_hanging.json)",
+      "decoration:brightbell" : "file(entities/decoration/brightbell)",
+      "decoration:frostsnap" : "file(entities/decoration/frostsnap)",
       "decoration:wooden_sign" : "file(entities/decoration/wooden_sign)",
       "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
       "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
@@ -253,6 +268,10 @@
       "decoration:curtains" : "file(entities/decoration/curtains)",
       "decoration:window_box:brightbell" : "file(entities/decoration/window_box_brightbell)",
       "decoration:window_box:frostsnap" : "file(entities/decoration/window_box_frostsnap)",
+      "decoration:wooden_wall_lantern" : "file(entities/decoration/wooden_wall_lantern)",
+      "decoration:wooden_wall_lantern:fine" : "file(entities/decoration/wooden_wall_lantern_fine)",
+      "decoration:wooden_garden_lantern" : "file(entities/decoration/wooden_garden_lantern)",
+      "decoration:wooden_garden_lantern:fine" : "file(entities/decoration/wooden_garden_lantern_fine)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
@@ -260,13 +279,6 @@
       "firepit" : "file(entities/gizmos/firepit)",
       "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
-
-      "berry_basket" : "file(entities/plants/berry_basket)",
-      "berry_plate" : "file(entities/plants/berry_plate)",
-      
-      "thread" : "file(entities/cloth/thread)",
-      "cloth_bolt" : "file(entities/cloth/cloth_bolt)",
-      "leather_bolt" : "file(entities/cloth/leather_bolt)",
       "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
 
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
@@ -1129,6 +1141,7 @@
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",
       "basic_inventory_tracker" : "file(services/server/inventory/basic_inventory_tracker_controller.lua)",
       "placeable_item_inventory_tracker" : "file(services/server/inventory/placeable_items_view_tracker_controller.lua)",
+      "sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
       "gold_tracker" : "file(services/server/inventory/gold_tracker_controller.lua)",
       "equipment_tracker" : "file(services/server/inventory/equipment_tracker_controller.lua)",
       "build_scaffolding_manager" : "file(services/server/build/build_scaffolding_manager.lua)",      
@@ -1158,7 +1171,6 @@
       "patrollable_object" : "file(services/server/town_patrol/patrollable_object.lua)",
 
       "shop" : "file(services/server/shop/shop.lua)",
-      "shop:sellable_item_tracker" : "file(services/server/shop/sellable_item_tracker.lua)",
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
    },
@@ -1304,7 +1316,6 @@
          "file(ui/game/help_camera/help_camera.html)",
          "file(ui/game/build_workshop/build_workshop.html)",
          "file(ui/game/show_workshop/show_workshop.html)",
-         "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.html)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.html)",
          "file(ui/game/clock_widget/clock_widget.html)",
          "file(ui/game/widgets/game_speed/game_speed.html)",
@@ -1319,7 +1330,6 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
-         "file(ui/game/inventory_tracker/inventory_tracker.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1385,8 +1395,6 @@
          "file(ui/game/help_camera/help_camera.js)",
          "file(ui/game/build_workshop/build_workshop.js)",
          "file(ui/game/show_workshop/show_workshop.js)",
-         "file(ui/game/character_sheets/show_character_sheet.js)",
-         "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.js)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.js)",
          "file(ui/game/clock_widget/clock_widget.js)",
          "file(ui/game/widgets/game_speed/game_speed.js)",
@@ -1402,7 +1410,7 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
-         "file(ui/game/inventory_tracker/inventory_tracker.js)",
+         "file(ui/game/item_palette/item_palette.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
          "file(ui/game/tip_popup/tip_popup.js)",
@@ -1456,7 +1464,6 @@
          "file(ui/game/help_camera/help_camera.less)",
          "file(ui/game/build_workshop/build_workshop.less)",
          "file(ui/game/show_workshop/show_workshop.less)",
-         "file(ui/game/character_sheets/simple_character_sheet/simple_character_sheet.less)",
          "file(ui/game/character_sheets/citizen_character_sheet/citizen_character_sheet.less)",
          "file(ui/game/clock_widget/clock_widget.less)",
          "file(ui/game/widgets/game_speed/game_speed.less)",
@@ -1472,7 +1479,7 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
-         "file(ui/game/inventory_tracker/inventory_tracker.less)",
+         "file(ui/game/item_palette/item_palette.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
          "file(ui/game/tip_popup/tip_popup.less)",

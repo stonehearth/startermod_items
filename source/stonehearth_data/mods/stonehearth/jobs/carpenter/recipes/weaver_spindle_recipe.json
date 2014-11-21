@@ -19,7 +19,7 @@
   ],
   "produces": [
       {
-         "item" : "stonehearth:weaver:spindle_talisman"
+         "item" : "stonehearth:weaver:talisman"
       }
   ]
 }

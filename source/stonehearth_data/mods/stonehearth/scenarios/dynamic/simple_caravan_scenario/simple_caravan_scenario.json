@@ -10,23 +10,23 @@
       "expiration_timeout" : "1h",
       "message" : "Hello __town_name__! I come bearing goods for trade. Would you like to give me __your_quantity__ __your_item__(s) in exchange for __my_quantity__ __my_item__(s)?",
       "trades" : {
-         "stonehearth:oak_log" : {
+         "stonehearth:resources:wood:oak_log" : {
             "min" : 2, 
             "max" : 20
          }, 
-         "stonehearth:juniper_log": {
+         "stonehearth:resources:wood:juniper_log": {
             "min" : 2, 
             "max" : 20
          }, 
-         "stonehearth:hunk_of_stone" : {
+         "stonehearth:resources:stone:hunk_of_stone" : {
             "min" : 3, 
             "max" : 20
          },
-         "stonehearth:berry_basket" : {
+         "stonehearth:food:berries:berry_basket" : {
             "min" : 1, 
             "max" : 5
          },
-         "stonehearth:farmer:hoe_talisman" : {
+         "stonehearth:farmer:talisman" : {
             "min" : 1, 
             "max" : 2
          }, 
@@ -38,7 +38,7 @@
             "min" : 2, 
             "max" : 10
          },
-         "stonehearth:corn_basket" : {
+         "stonehearth:food:corn:corn_basket" : {
             "min": 3, 
             "max": 10
          }, 

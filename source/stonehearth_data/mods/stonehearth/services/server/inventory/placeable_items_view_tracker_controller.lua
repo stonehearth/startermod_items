@@ -38,57 +38,34 @@ function PlaceableItemsView:create_key_for_entity(entity)
    if not entity_forms:is_placeable() then
       return nil
    end
-   --return entity_forms:get_placeable_category()
 
    local iconic_entity = entity_forms:get_iconic_entity()
-   local item = iconic_entity:get_component('item')
-   
-   if not item then
-      return nil
-   end
-
-   local category = item:get_category()
-   if not category or category == '' then
-      return 'nil'
-   end
-
-   return category   
+   return iconic_entity:get_uri()
 end
 
--- Part of the inventory tracker interface.  Add an `entity` to the `tracking_data`.
--- Tracking data is the existing data stored for entities sharing the same key as
--- `entity` (see :create_key_for_entity()).  We store both an array of all entities
--- sharing this uri and a total count.
---
---     @param entity - the entity being added to tracking data
---     @param tracking_data - the tracking data for all entities of the same type
---
-function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_data)   
-   if not tracking_data then
-      tracking_data = {}
-   end
-
+function PlaceableItemsView:add_entity_to_tracking_data(iconic_entity, tracking_data)
    local entity = get_root_entity(iconic_entity)
-   local id = entity:get_id()
-   local uri = entity:get_uri()
-   self._sv._iconic_id_to_root_id[iconic_entity:get_id()] = id
 
-   if not tracking_data[uri] then
+   if not tracking_data then
+      -- We're the first object of this type.  Create a new tracking data structure.
+
       local unit_info = entity:add_component('unit_info')      
-      tracking_data[uri] = {
-         uri = uri,
+      tracking_data = {
+         uri = entity:get_uri(),
+         count = 0, 
          items = {},
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
+         category = radiant.entities.get_category(entity),
       }
    end
-   tracking_data[uri].items[id] = entity
 
-   if not self._sv._entity_id_to_uri[id] then
-      self._sv._entity_id_to_uri[id] = uri
-      self.__saved_variables:mark_changed()
+   -- Add the current entity to the tracking data, and return
+   local id = entity:get_id()
+   if not tracking_data.items[id] then
+      tracking_data.count = tracking_data.count + 1
+      tracking_data.items[id] = entity 
    end
-
    return tracking_data
 end
 

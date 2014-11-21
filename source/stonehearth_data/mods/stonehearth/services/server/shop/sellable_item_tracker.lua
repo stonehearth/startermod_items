@@ -1,7 +1,8 @@
 local SellableItemTracker = class()
 
 function SellableItemTracker:initialize()
-   -- nothing to do
+   self._sv._entity_id_to_uri = {}
+   self._sv._iconic_id_to_root_id = {}
 end
 
 function SellableItemTracker:restore()
@@ -22,8 +23,7 @@ function SellableItemTracker:create_key_for_entity(entity)
    -- is it sellable?
    local net_worth = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
    if net_worth and net_worth.shop_info and net_worth.shop_info.sellable then
-      local uri = entity:get_uri()
-      return uri
+      return entity:get_uri()
    end
 
    -- nope!
@@ -40,25 +40,30 @@ end
 --     @param tracking_data - the tracking data for all entities of the same type
 --1
 function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
-
-   local uri = entity:get_uri()
-   local net_worth = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
-   local item_cost = net_worth.value_in_gold
-
    if not tracking_data then
       -- We're the first object of this type.  Create a new tracking data structure.
-      tracking_data = {
-         uri = entity:get_uri(), 
-         item = entity,
-         cost = item_cost,
-         num = 1,
-      }
-   else 
-      tracking_data.num = tracking_data.num + 1
-   end
 
+      local unit_info = entity:add_component('unit_info')      
+      tracking_data = {
+         uri = entity:get_uri(),
+         count = 0, 
+         items = {},
+         icon = unit_info:get_icon(),
+         display_name = unit_info:get_display_name(),
+         category = radiant.entities.get_category(entity),
+         cost = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold,
+      }
+end
+
+   -- Add the current entity to the tracking data, and return
+   local id = entity:get_id()
+   if not tracking_data.items[id] then
+      tracking_data.count = tracking_data.count + 1
+      tracking_data.items[id] = entity 
+   end
    return tracking_data
 end
+
 
 -- Part of the inventory tracker interface.  Remove the entity with `entity_id` from
 -- the `tracking_data`.  Tracking data is the existing data stored for entities sharing 
@@ -75,10 +80,9 @@ function SellableItemTracker:remove_entity_from_tracking_data(entity_id, trackin
 
    if tracking_data.items[entity_id] then
       tracking_data.items[entity_id] = nil
-      tracking_data.num = tracking_data.num - 1
+      tracking_data.count = tracking_data.count - 1
       assert(tracking_data.count >= 0)
    end
-
    return tracking_data
 end
 

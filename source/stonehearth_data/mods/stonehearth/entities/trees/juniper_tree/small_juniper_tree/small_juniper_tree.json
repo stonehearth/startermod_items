@@ -14,7 +14,7 @@
          "description": "Just a sapling."
       }, 
       "stonehearth:resource_node": {
-         "resource": "stonehearth:juniper_log", 
+         "resource": "stonehearth:resources:wood:juniper_log", 
          "durability": 3
       },
       "mob" : {

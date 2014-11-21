@@ -1,0 +1,28 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity", 
+   "components": {
+      "item": {
+         "category" : "resources",
+         "stacks": 80
+      }, 
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(juniper_log.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood resource"
+      },
+      "unit_info": {
+         "name": "Juniper Log", 
+         "description": "A log. Made of wood.",
+         "icon" : "file(../log.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
+   }
+}

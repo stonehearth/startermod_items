@@ -24,10 +24,11 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
    self._log = ai:get_log()
 
    local solved = function(path)
-      self:_destroy_pathfinder()
+      local destination = path:get_destination()
+      self:_destroy_pathfinder('solution is' .. tostring(destination))
       ai:set_think_output({
             path = path,
-            destination = path:get_destination(),
+            destination = destination,
          })
    end
 
@@ -47,14 +48,14 @@ function FindPathToEntityType:start_thinking(ai, entity, args)
 end
 
 function FindPathToEntityType:stop_thinking(ai, entity, args)
-   self:_destroy_pathfinder()
+   self:_destroy_pathfinder('stop_thinking')
 end
 
-function FindPathToEntityType:_destroy_pathfinder()
+function FindPathToEntityType:_destroy_pathfinder(reason)
    if self._pathfinder then
       local count = self._pathfinder:destroy()
       self._pathfinder = nil
-      self._log:info('destroying bfs pathfinder for %s @ %s (%d remaining)', self._description, self._location, count)
+      self._log:info('destroying bfs pathfinder for %s @ %s (%d remaining, reason:%s)', self._description, self._location, count, reason)
    end
 end
 

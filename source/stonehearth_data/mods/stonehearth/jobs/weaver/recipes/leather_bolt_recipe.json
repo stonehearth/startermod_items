@@ -20,7 +20,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:leather_bolt"
+         "item":"stonehearth:refined:leather_bolt"
       }
   ]
 }

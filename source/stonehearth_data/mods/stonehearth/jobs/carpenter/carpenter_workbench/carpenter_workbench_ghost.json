@@ -2,8 +2,7 @@
    "components": {
       "unit_info": {
          "name": "Carpenter Workbench",
-         "description": "Unclaimed",
-         "character_sheet_info" : "file(carpenter_workbench_character_sheet_info.json)"         
+         "description": "Unclaimed"
       },
       "model_variants": {
          "default": {

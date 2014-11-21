@@ -45,7 +45,7 @@ end
 --
 function placement_autotests.place_on_wall(autotest)
    autotest.env:create_person(-8, 8, { job = 'worker' })   
-   autotest.env:create_entity(5, 8, 'stonehearth:oak_log')
+   autotest.env:create_entity(5, 8, 'stonehearth:resources:wood:oak_log')
 
    local stockpile = autotest.env:create_stockpile(4, 8)
    local sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')

@@ -5,7 +5,7 @@
       "unit_info" : {
          "name" :  "Farmer's Hoe",
          "description" : "Promotes a citizen into a Farmer.",
-         "character_sheet_info" : "file(farmer_hoe_character_sheet_info.json)"
+         "icon" : "file(farmer_hoe.png)"
       },
       "item" : {
          "stacks" : 1

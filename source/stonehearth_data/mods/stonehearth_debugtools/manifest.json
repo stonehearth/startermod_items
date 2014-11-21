@@ -1,6 +1,7 @@
 {
    "info" :{
-      "name" : "Stonehearth Debug Tools"
+      "name" : "Stonehearth Debug Tools",
+      "version" : 1
    },
 
    "mixintos_" : {

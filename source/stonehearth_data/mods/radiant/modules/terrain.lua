@@ -340,48 +340,54 @@ function Terrain.find_closest_standable_point_to(location, max_radius, entity)
    return fallback_point, false
 end
 
+-- TODO: we need to check changed tiles for optimization
 function Terrain.add_point(point, tag)
-   Terrain.add_cube(Cube3(point, point + Point3.one, tag))
+   Terrain._get_terrain_tiles():add_point(point, tag)
 end
 
 function Terrain.add_cube(cube)
-   Terrain._get_terrain_component():add_cube(cube)
+   Terrain._get_terrain_tiles():add_cube(cube)
 end
 
 function Terrain.add_region(region)
-   Terrain._get_terrain_component():add_region(region)
+   Terrain._get_terrain_tiles():add_region(region)
 end
 
 function Terrain.subtract_point(point)
-   Terrain.subtract_cube(Cube3(point, point + Point3.one))
+   Terrain._get_terrain_tiles():subtract_point(point)
 end
 
 function Terrain.subtract_cube(cube)
-   Terrain._get_terrain_component():subtract_cube(cube)
+   Terrain._get_terrain_tiles():subtract_cube(cube)
 end
 
 function Terrain.subtract_region(region)
-   Terrain._get_terrain_component():subtract_region(region)
+   Terrain._get_terrain_tiles():subtract_region(region)
 end
 
 function Terrain.intersect_point(point)
-   return Terrain.intersect_cube(Cube3(point, point + Point3.one))
+   return Terrain._get_terrain_tiles():intersect_point(point)
 end
 
 function Terrain.intersect_cube(cube)
-   return Terrain._get_terrain_component():intersect_cube(cube)
+   return Terrain._get_terrain_tiles():intersect_cube(cube)
 end
 
 function Terrain.intersect_region(region)
-   return Terrain._get_terrain_component():intersect_region(region)
+   return Terrain._get_terrain_tiles():intersect_region(region)
 end
 
 function Terrain._get_terrain_component()
    return radiant._root_entity:add_component('terrain')
 end
 
-function Terrain.get_movement_cost_at(point)
-   return _physics:get_movement_cost_at(point)
+function Terrain._get_terrain_tiles()
+   local terrain_component = Terrain._get_terrain_component()
+   return terrain_component:get_tiles()
+end
+
+function Terrain.get_movement_speed_at(point)
+   return _physics:get_movement_speed_at(point)
 end
 
 function Terrain._initialize_block_types(config_file)

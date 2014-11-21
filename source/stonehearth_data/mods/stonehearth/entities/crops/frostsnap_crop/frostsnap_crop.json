@@ -1,0 +1,78 @@
+{
+   "type": "entity", 
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(../../decoration/frostsnap/frostsnap.qb)"
+            ]
+         },
+         "frostsnap_1": {
+            "models": [
+               "file(frostsnap_1.qb)"
+            ]
+         },
+         "frostsnap_2": {
+            "models": [
+               "file(frostsnap_2.qb)"
+            ]
+         },
+         "frostsnap_3": {
+            "models": [
+               "file(frostsnap_3.qb)"
+            ]
+         },
+         "frostsnap_4": {
+            "models": [
+               "file(frostsnap.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.13
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "unit_info": {
+         "name": "Frostsnap Flower", 
+         "description": "It's chill to the touch.", 
+         "icon" : "file(../../decoration/frostsnap/frostsnap.png)"
+      },
+      "stonehearth:crop" : {
+         "resource_pairings" : {
+            "frostsnap_4": "stonehearth:decoration:frostsnap"
+         }, 
+         "harvest_threshhold" : "frostsnap_4", 
+         "plant_overlay_effect" : "/stonehearth/data/effects/plant_crop_overlay_effect/plant_crop_overlay_effect.json" 
+      }, 
+      "stonehearth:growing" : {
+         "growth_period" : "6h",
+         "growth_stages" : [
+            {
+               "model_name" : "frostsnap_1",
+               "name": "Frostsnap Seedling", 
+               "description": "Full of potential."
+            },
+            {
+               "model_name" : "frostsnap_2",
+               "name": "Frostsnap Sprout", 
+               "description": "Stubby."
+            },
+            {
+               "model_name" : "frostsnap_3",
+               "name": "Frostsnap Bud", 
+               "description": "Like a baby snowflake."
+            },
+            {
+               "model_name" : "frostsnap_4",
+               "name": "Frostsnap", 
+               "description": "Mysteriously cool."
+            }
+         ]
+      },
+      "stonehearth:material" : {
+         "tags" :  "crop brightbell"
+      }
+   }
+}

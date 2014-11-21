@@ -12,7 +12,7 @@ local rng = _radiant.csg.get_default_rng()
    This is also a great opportunty to give the town with something significant, like a new 
    recipe or crop to plant. Though this is not currently enabled because silkweed is 
    available from the beginning it can be enabled by adding something like this to the rewards: 
-      "stonehearth:silkweed_crop" : {
+      "stonehearth:crops:silkweed_crop" : {
          "type" : "crop"
       },
 ]]

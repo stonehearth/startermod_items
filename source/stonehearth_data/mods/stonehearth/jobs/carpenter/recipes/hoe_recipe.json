@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-        "item":"stonehearth:farmer:hoe_talisman"
+        "item":"stonehearth:farmer:talisman"
       }
   ]
 }

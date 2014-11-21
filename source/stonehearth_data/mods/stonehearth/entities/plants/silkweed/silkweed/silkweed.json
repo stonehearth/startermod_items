@@ -22,7 +22,7 @@
          }
       },
       "stonehearth:renewable_resource_node": {
-         "resource": "stonehearth:silkweed_bundle",
+         "resource": "stonehearth:resources:fiber:silkweed_bundle",
          "renewal_time" : "22h"
       }
 	}

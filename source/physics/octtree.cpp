@@ -334,9 +334,9 @@ float OctTree::GetSquaredAdjacentMovementCost(const csg::Point3& start, const cs
 {
    float cost = GetSquaredDistanceCost(start, end);
 
-   float movementCost = navgrid_.GetMovementCostAt(start);
+   float speed = navgrid_.GetMovementSpeedAt(start);
 
-   return cost * movementCost;
+   return cost / speed;
 }
 
 void OctTree::EnableSensorTraces(bool enabled)

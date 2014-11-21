@@ -12,13 +12,13 @@ function WeaverTest:__init()
    local player_id = radiant.entities.get_player_id(weaver)
 
    -- put some items in the world
-   self:place_item_cluster('stonehearth:rabbit_pelt', -10, -10, 2, 2)
-   self:place_item_cluster('stonehearth:oak_log', -10, 0, 10, 10)
-   self:place_item_cluster('stonehearth:silkweed_bundle', 8, 0, 5, 5)
-   self:place_item_cluster('stonehearth:cloth_bolt', 8, 5, 3, 3)
-   self:place_item_cluster('stonehearth:thread', 12, 5, 3, 3)
-   self:place_item_cluster('stonehearth:leather_bolt', 8, 8, 3, 3)
-   self:place_item_cluster('stonehearth:rabbit_pelt', 12, 8, 3, 3)
+   self:place_item_cluster('stonehearth:resources:rabbit_pelt', -10, -10, 2, 2)
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 10, 10)
+   self:place_item_cluster('stonehearth:resources:fiber:silkweed_bundle', 8, 0, 5, 5)
+   self:place_item_cluster('stonehearth:refined:cloth_bolt', 8, 5, 3, 3)
+   self:place_item_cluster('stonehearth:refined:thread', 12, 5, 3, 3)
+   self:place_item_cluster('stonehearth:refined:leather_bolt', 8, 8, 3, 3)
+   self:place_item_cluster('stonehearth:resources:rabbit_pelt', 12, 8, 3, 3)
    self:place_item('stonehearth:worker:outfit:2',  -5, 13)
 
 end
