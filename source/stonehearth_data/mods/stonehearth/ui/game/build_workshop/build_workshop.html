@@ -8,7 +8,7 @@
          <div class="scroll" id="page1">
             <center>
                <div class="subtitle">
-                  {{stonehearth:job.job_uri.workshop.name}}
+                  {{model.stonehearth:job.job_uri.workshop.name}}
                </div>
                <div class="subtitle2">
                   Click on the ground to place the workshop
@@ -16,16 +16,16 @@
             </center>
 
             <div class='portrait'>
-               <img {{bind-attr src=stonehearth:job.job_uri.workshop.portrait}} />
+               <img {{bind-attr src=model.stonehearth:job.job_uri.workshop.portrait}} />
             </div>
 
             <div class="description">
                <div class="subtitle2">{{i18n stonehearth:build_workshop_requirements}}</div>
-               {{#each stonehearth:job.job_uri.workshop.ingredients}}
+               {{#each model.stonehearth:job.job_uri.workshop.ingredients}}
                   <div>{{this.count}} {{this.material}}</div>
                {{/each}}
                <p>
-                  {{{stonehearth:job.job_uri.workshop.long_description}}}
+                  {{{model.stonehearth:job.job_uri.workshop.long_description}}}
                </p>
             </div>
          </div>
