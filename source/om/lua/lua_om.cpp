@@ -105,12 +105,13 @@ static scope RegisterTiledRegion(const char* name)
       .def("intersect_point",        &TiledRegion<T>::IntersectPoint)
       .def("intersect_cube",         &TiledRegion<T>::IntersectCube)
       .def("intersect_region",       &TiledRegion<T>::IntersectRegion)
-      .def("get_tile_size",          &TiledRegion<T>::GetTileSize)
-      .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles)
       .def("get_tile_size",          &TiledRegion_GetTileSize<T>)
       .def("get_tile",               &TiledRegion_GetTile<T>)
       .def("find_tile",              &TiledRegion_FindTile<T>)
-      .def("clear_tile",             &TiledRegion_ClearTile<T>);
+      .def("clear_tile",             &TiledRegion_ClearTile<T>)
+      .def("get_changed_set",        &TiledRegion<T>::GetChangedSet, return_stl_iterator)
+      .def("clear_changed_set",      &TiledRegion<T>::ClearChangedSet)
+      .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles);
 }
 
 void radiant::om::RegisterLuaTypes(lua_State* L)

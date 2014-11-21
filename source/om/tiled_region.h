@@ -10,6 +10,9 @@ BEGIN_RADIANT_OM_NAMESPACE
 
 template <typename T> class TileMapWrapper;
 
+// Conventions for this class:
+//   indexes are always Point3
+//   parameters for modifying the region are always [base_type]3f
 template <typename T>
 class TiledRegion {
 public:
@@ -19,6 +22,8 @@ public:
    std::shared_ptr<T> FindTile(csg::Point3 const& index); // returns nulltr if not found
    std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
    void ClearTile(csg::Point3 const& index);
+   std::vector<csg::Point3> const& GetChangedSet() const;
+   void ClearChangedSet();
    void OptimizeChangedTiles();
 
    void AddPoint(csg::Point3f const& point, int tag = 0);
@@ -40,9 +45,12 @@ public:
    }
 
 private:
+   void AddToChangedSet(csg::Point3 const& index);
+
    csg::Point3 _tile_size;
    std::shared_ptr<TileMapWrapper<T>> _tile_wrapper;
-   std::unordered_set<csg::Point3, csg::Point3::Hash> _unoptimized_tiles;
+   std::unordered_set<csg::Point3, csg::Point3::Hash> _changed_set; // could also just use a vector with stdutil
+   std::vector<csg::Point3> _changed_set_as_vector; // helper for lua so we can use return_stl_iterator
 };
 
 // Abstracts operations on tile elements T in a map type

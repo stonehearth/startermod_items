@@ -40,7 +40,7 @@ void TiledRegion<T>::AddRegion(csg::Region3f const& region3f)
       _tile_wrapper->ModifyTile(index, [&subregion](csg::Region3& cursor) {
          cursor += subregion;
       });
-      _unoptimized_tiles.insert(index);
+      AddToChangedSet(index);
       return false; // don't stop!
    });
 }
@@ -66,7 +66,7 @@ void TiledRegion<T>::SubtractRegion(csg::Region3f const& region3f)
       _tile_wrapper->ModifyTile(index, [&subregion](csg::Region3& cursor) {
          cursor -= subregion;
       });
-      _unoptimized_tiles.insert(index);
+      AddToChangedSet(index);
       return false; // don't stop!
    });
 }
@@ -103,18 +103,6 @@ csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f)
    return result;
 }
 
-// The unoptimized set is currently lost on save
-template <typename T>
-void TiledRegion<T>::OptimizeChangedTiles()
-{
-   for (csg::Point3 index : _unoptimized_tiles) {
-      _tile_wrapper->ModifyTile(index, [](csg::Region3& cursor) {
-         cursor.OptimizeByMerge();
-      });
-   }
-   _unoptimized_tiles.clear();
-}
-
 template <typename T>
 void TiledRegion<T>::ClearTile(csg::Point3 const& index)
 {
@@ -142,6 +130,39 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
 {
    std::shared_ptr<T> tile = _tile_wrapper->GetTile(index);
    return tile;
+}
+
+template <typename T>
+void TiledRegion<T>::AddToChangedSet(csg::Point3 const& index)
+{
+   auto result = _changed_set.insert(index);
+   // check if index is a new element
+   if (result.second) {
+      _changed_set_as_vector.push_back(index);
+   }
+}
+
+template <typename T>
+std::vector<csg::Point3> const& TiledRegion<T>::GetChangedSet() const
+{
+   return _changed_set_as_vector;
+}
+
+template <typename T>
+void TiledRegion<T>::ClearChangedSet()
+{
+   _changed_set.clear();
+   _changed_set_as_vector.clear();
+}
+
+template <typename T>
+void TiledRegion<T>::OptimizeChangedTiles()
+{
+   for (csg::Point3 index : _changed_set) {
+      _tile_wrapper->ModifyTile(index, [](csg::Region3& cursor) {
+         cursor.OptimizeByMerge();
+      });
+   }
 }
 
 //------------------
