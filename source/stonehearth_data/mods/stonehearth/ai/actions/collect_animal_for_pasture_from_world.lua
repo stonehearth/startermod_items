@@ -31,8 +31,8 @@ function CollectAnimalFromWorld:start_thinking(ai, entity, args)
       end)
 
       if self._ready_to_run then
-         ai:set_think_output()
          ai._ready_to_run = false
+         ai:set_think_output()
       end
    end
 end
@@ -43,7 +43,7 @@ function CollectAnimalFromWorld:run(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
    if pasture_component then
       -- wander a bunch
-      ai:execute('stonehearth:wander', {radius = 100, radius_min = 50})
+      ai:execute('stonehearth:wander', {radius = 100, radius_min = 30})
 
       -- pop an animal near where we've wandered
       local origin = radiant.entities.get_world_grid_location(entity)
