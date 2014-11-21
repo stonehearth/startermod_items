@@ -102,14 +102,14 @@ App.StonehearthCrafterView = App.View.extend({
       recipes.sort(this._compareByOrdinal);
 
       //For each of the recipes inside each category, sort them by their level_requirement
-      $.each(recipes, function(i, category) {
+      radiant.each(recipes, function(i, category) {
          category.recipes.sort(self._compareByLevelAndAlphabetical);
       });
 
       //Add ingredient images to the recipes
-      $.each(recipes, function(name, category) {
-         $.each(category.recipes, function(i, recipe) {
-            $.each(recipe.ingredients, function(i, ingredient) {
+      radiant.each(recipes, function(name, category) {
+         radiant.each(category.recipes, function(i, recipe) {
+            radiant.each(recipe.ingredients, function(i, ingredient) {
                if (ingredient.material) {
                   var formatting = App.constants.formatting.resources[ingredient.material];
                   if (formatting) {

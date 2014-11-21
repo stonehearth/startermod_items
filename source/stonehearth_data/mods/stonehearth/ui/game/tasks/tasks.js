@@ -18,7 +18,7 @@ App.StonehearthTasksView = App.View.extend({
             radiant.call('stonehearth:get_tasks')
                      .done(function(response) {
                         var groups = [];
-                        $.each(response.groups, function(key, group_uri) {
+                        radiant.each(response.groups, function(key, group_uri) {
                            var name = playerTaskGroups[key].name;
                            var group = {
                               key: name,
@@ -194,7 +194,7 @@ App.StonehearthTasksGroupView = App.View.extend({
             if (stockpile) {
                var size = stockpile.size.x * stockpile.size.y;
                var count = 0;
-               $.each(stockpile.stocked_items, function() { count += 1; });
+               radiant.each(stockpile.stocked_items, function() { count += 1; });
                var percent = Math.floor(count * 100 / size);
                var percentFull = i18n.t('stonehearth:stockpile_percent_full', { percent: percent } );
                task.set('subtext', percentFull);

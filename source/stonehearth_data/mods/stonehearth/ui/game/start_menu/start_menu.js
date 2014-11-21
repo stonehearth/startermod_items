@@ -129,7 +129,7 @@ App.StonehearthStartMenuView = App.View.extend({
       var citizensArray = this.get('context.citizensArray');
 
       self._foundjobs = {}
-      $.each(citizensArray, function(i, citizen) {
+      radiant.each(citizensArray, function(i, citizen) {
          var job_uri = citizen['stonehearth:job']['job_uri'];
          self._foundjobs[job_uri] = true;
       });
