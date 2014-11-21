@@ -208,7 +208,6 @@ App.StonehearthTasksGroupView = App.View.extend({
                });
             }
          }
-         return true;
       });
       this.set('context.tasks', tasksArray);
    }.observes('context.model').on('init'),

@@ -227,6 +227,9 @@
       return new Trace(tracer);
    };
 
+   // Iterate through each index or key in an array of map.  Takes special
+   // care to avoid "private" keys, including things that start with "__", like
+   // Radiant's __self and all sorts of stuff throw in by Ember.
    radiant.each = function(o, fn) {      
       if (o) {
          if (Array.isArray(o)) {
@@ -243,6 +246,12 @@
       }
    },
 
+   // the `filter_fn` is optional.  if specified, will visit each key, value pair
+   // before the value is stuffed into the array.  if the filter returns `false`,
+   // the value will be omitted.  if it returns `undefined` (or simply 'return's)
+   // the origonal (possibly modified) value will be stuffed in the array.  if it
+   // returns any other value, that value will be shoved in the array instead of the
+   // origonal
    radiant.map_to_array = function(map, filter_fn) {
       var array = [];
       radiant.each(map, function(key, value) {
@@ -251,7 +260,7 @@
          } else {
             var result = filter_fn(key, value);
             if (result === false) {                     
-            } else if (result === true || result === undefined) {
+            } else if (result === undefined) {
                array.push(value);
             } else {
                array.push(result);

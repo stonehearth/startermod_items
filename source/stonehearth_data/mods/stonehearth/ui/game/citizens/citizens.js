@@ -101,7 +101,6 @@ App.StonehearthCitizensView = App.View.extend({
             return false;
          }
          v.set('__id', k);
-         return true;
       });
       this.set('context.model.citizensArray', vals);
     },

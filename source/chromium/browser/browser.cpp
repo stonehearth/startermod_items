@@ -45,7 +45,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    _neededToDraw = 0;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
-   int exitCode = CefExecuteProcess(main_args, _app);
+   int exitCode = CefExecuteProcess(main_args, _app, nullptr);
    if (exitCode >= 0) {
       BROWSER_LOG(1) << "Error starting cef process: " << exitCode;
       ASSERT(false);
@@ -58,7 +58,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 
-   CefInitialize(main_args, settings, _app.get());
+   CefInitialize(main_args, settings, _app.get(), nullptr);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    BROWSER_LOG(1) << "cef started.";
 }
@@ -621,7 +621,7 @@ void Browser::Navigate(std::string const& url)
       browserSettings.java = STATE_DISABLED;
       browserSettings.plugins = STATE_DISABLED;
 
-      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings);
+      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings, nullptr);
    } else {
       CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
       if (frame) {
