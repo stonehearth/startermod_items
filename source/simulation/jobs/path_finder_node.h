@@ -16,12 +16,6 @@ struct PathFinderSolutionNode
       pt(p), prev(pr)
    {
    }
-
-   ~PathFinderSolutionNode()
-   {
-      delete prev;
-      prev = nullptr;
-   }
 };
 
 struct PathFinderNode
@@ -40,8 +34,8 @@ struct PathFinderNode
    {
    }
 
-   static inline bool CompareFitness(PathFinderNode const& lhs, PathFinderNode const& rhs) {
-      return lhs.f > rhs.f;
+   static inline bool CompareFitness(std::unique_ptr<PathFinderNode> const& lhs, std::unique_ptr<PathFinderNode> const& rhs) {
+      return lhs->f > rhs->f;
    };
 };
 

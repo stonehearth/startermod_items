@@ -12,6 +12,7 @@
 #include "path_finder_node.h"
 #include <unordered_set>
 #include <boost\container\flat_set.hpp>
+#include <boost\container\flat_map.hpp>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -108,14 +109,18 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       csg::Color4                   debug_color_;
    
       core::Guard                   navgrid_guard_;
-      std::vector<PathFinderNode>   open_;
+      std::vector<std::unique_ptr<PathFinderNode>>   open_;
       csg::Cube3                    closedBounds_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         closed_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::unordered_map<csg::Point3, csg::Point3, csg::Point3::Hash>  cameFrom_;
       std::vector<csg::Point3f>     _directPathCandiate;
-      std::vector<PathFinderSolutionNode*> _solutionNodes;
+      std::vector<std::unique_ptr<PathFinderSolutionNode>> _solutionNodes;
       mutable const char*           _lastIdleCheckResult;
+
+      boost::container::flat_set<int> _closedLookup;
+      boost::container::flat_map<int, PathFinderNode*> _openLookup;
+      csg::Point3::Hash               _hasher;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
