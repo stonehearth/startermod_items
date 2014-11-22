@@ -15,6 +15,8 @@ local DEFAULT_BOX_COLOR = Color4(192, 192, 192, 255)
 local TERRAIN_NODES = 1
 
 function XZRegionSelector:__init()
+   self._success = false
+   self._state = 'start'
    self._mode = 'selection'
    self._require_supported = false
    self._require_unblocked = false
@@ -29,6 +31,8 @@ function XZRegionSelector:__init()
 
    self._get_proposed_points_fn = identity_end_point_transform
    self._get_resolved_points_fn = identity_end_point_transform
+
+   self:_initialize_dispatch_table()
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
@@ -217,6 +221,10 @@ end
 -- filter.
 --
 function XZRegionSelector:_is_valid_location(brick, check_containment_filter)
+   if not brick then
+      return false
+   end
+
    if self._require_unblocked and radiant.terrain.is_blocked(brick) then
       return false
    end
@@ -239,8 +247,8 @@ end
 -- also make sure that all the entities at the specified poit pass the can_contain_entity_filter
 -- filter.
 --
-function XZRegionSelector:_get_hover_brick(x, y)
-   local brick = selector_util.get_selected_brick(x, y, function(result)
+function XZRegionSelector:_get_brick_at(x, y)
+   local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          if self._select_front_brick then
             result.brick = result.brick + result.normal
          end
@@ -259,7 +267,7 @@ function XZRegionSelector:_get_hover_brick(x, y)
          end
          return self._find_support_filter_fn(result, self)
       end)
-   return brick
+   return brick, normal
 end
 
 -- given a candidate p1, compute the p1 which would result in a valid xz region
@@ -326,6 +334,148 @@ function XZRegionSelector:_clear_selection()
    end
 end
 
+function XZRegionSelector:_show_invalid_cursor()
+   if not self._invalid_cursor_obj then
+      self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+   end
+end
+
+function XZRegionSelector:_clear_invalid_cursor()
+   if self._invalid_cursor_obj then
+      self._invalid_cursor_obj:destroy()
+      self._invalid_cursor_obj = nil
+   end
+end
+
+function XZRegionSelector:_initialize_dispatch_table()
+   self._dispatch_table = {
+      start       = self._run_start_state,
+      p0_selected = self._run_p0_selected_state,
+      stop        = self._run_stop_state
+   }
+end
+
+function XZRegionSelector:_user_cancelled(event)
+   local cancelled = event:up(2) and not event.dragging
+   return cancelled
+end
+
+function XZRegionSelector:_cancel_operation()
+   -- any ui updates like removing invalid cursor?
+   self:reject({ error = 'selection cancelled'})
+end
+
+function XZRegionSelector:_update_ui()
+   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
+   self:_notify_progress(selected_cube)
+   self:_update_rulers(self._p0, self._p1)
+   if self._success then
+      self:resolve(selected_cube)
+   end
+end
+
+function XZRegionSelector:_resolve_endpoints(start, finish)
+   local valid_end_points = false
+
+   log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
+
+   start, finish = self._get_proposed_points_fn(start, finish)
+   log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
+
+   if self:_is_valid_location(start, true) then
+      finish = self:_compute_p1(start, finish)
+      start, finish = self._get_resolved_points_fn(start, finish)
+      log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
+      valid_end_points = start and finish
+   end
+
+   if not valid_end_points then
+      start, finish = nil, nil
+   end
+
+   return start, finish
+end
+
+function XZRegionSelector:_on_mouse_event_new(event)
+   local current_brick, normal = self:_get_brick_at(event.x, event.y)
+   local state_transition_fn = self._dispatch_table[self._state]
+   assert(state_transition_fn)
+   local next_state = state_transition_fn(self, event, current_brick, normal)
+
+   self._last_brick = current_brick
+   self._state = next_state
+end
+
+function XZRegionSelector:_run_start_state(event, current_brick, normal)
+   if self:_user_cancelled(event) then
+      self:_cancel_operation()
+      return 'stop'
+   end
+
+   if not current_brick then
+      self:_clear_selection()
+      self:_show_invalid_cursor()
+      self:_update_ui()
+      return 'start'
+   end
+
+   if current_brick == self._last_brick and not event:down(1) then
+      -- don't recalculate if the brick hasn't changed
+      return 'start'
+   end
+
+   local start, finish = self:_resolve_endpoints(current_brick, current_brick)
+
+   if not finish then
+      self:_clear_selection()
+      self:_show_invalid_cursor()
+      self:_update_ui()
+      return 'start'
+   end
+
+   self._p0 = start
+   self._p1 = finish
+   self:_clear_invalid_cursor()
+   self:_update_ui()
+
+   if event:down(1) then
+      return 'p0_selected'
+   else
+      return 'start'
+   end
+end
+
+function XZRegionSelector:_run_p0_selected_state(event, current_brick, normal)
+   if self:_user_cancelled(event) then
+      self:_cancel_operation()
+      return 'stop'
+   end
+
+   if current_brick == self._last_brick and not event:up(1) then
+      -- don't recalculate if the brick hasn't changed
+      return 'p0_selected'
+   end
+
+   local start, finish = self:_resolve_endpoints(self._p0, current_brick)
+
+   if finish then
+      self._p1 = finish
+   end
+
+   if event:up(1) then
+      self._success = true
+      self:_update_ui()
+      return 'stop'
+   else
+      self:_update_ui()
+      return 'p0_selected'
+   end
+end
+
+function XZRegionSelector:_run_stop_state(event, current_brick, normal)
+   return 'stop'
+end
+
 function XZRegionSelector:_on_mouse_event(event)
    -- cancel on mouse button 2.
    if event and event:up(2) and not event.dragging then
@@ -333,31 +483,24 @@ function XZRegionSelector:_on_mouse_event(event)
       return
    end
 
-   local current_brick = self:_get_hover_brick(event.x, event.y)
+   local current_brick, normal = self:_get_brick_at(event.x, event.y)
 
    -- if we haven't found a valid p0 and the current brick isn't valid either, install
    -- the invalid cursor object
    if not current_brick and not self._selected_p0 then
       self:_clear_selection()
-
-      if not self._invalid_cursor_obj then
-         self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
-      end
-      self:_notify_progress(nil)
+      self:_show_invalid_cursor()
+      self:_update_ui()
       return
    end
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
-   end
+   self:_clear_invalid_cursor()
 
-   -- TODO: clean this up
    if not event:up(1) and not event:down(1) then
       -- only recalculate when the brick changes
-      if current_brick == self._last_hover_brick then
+      if current_brick == self._last_brick then
          return
       end
-      self._last_hover_brick = current_brick
+      self._last_brick = current_brick
    end
 
    local valid_end_points = false
@@ -389,9 +532,7 @@ function XZRegionSelector:_on_mouse_event(event)
       end
    end
 
-   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
-   self:_notify_progress(selected_cube)
-   self:_update_rulers(self._p0, self._p1)
+   self:_update_ui()
 
    local done = self._selected_p0 and event:up(1)
    if done then
@@ -474,7 +615,7 @@ function XZRegionSelector:go()
    end
    self._input_capture = stonehearth.input:capture_input()
                            :on_mouse_event(function(e)
-                                 self:_on_mouse_event(e, e)
+                                 self:_on_mouse_event_new(e)
                                  return true
                               end)
    return self
