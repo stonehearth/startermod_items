@@ -1065,12 +1065,14 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
  */
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om::MobPtr const& mob)
 {
-   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-      return IsStandable(location) &&
-               !IsBlocked(location + csg::Point3::unitY) &&
-               !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
-   } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
-      return IsStandable(location);
+   if (mob) {
+      if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+         return IsStandable(location) &&
+                !IsBlocked(location + csg::Point3::unitY) &&
+                !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
+      } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
+         return IsStandable(location);
+      }
    }
 
    csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);

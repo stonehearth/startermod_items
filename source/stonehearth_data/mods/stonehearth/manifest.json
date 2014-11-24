@@ -122,6 +122,7 @@
       "weaver:talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone.json)",
+      "mining_zone_designation" : "file(entities/terrain/mining_zone_designation.json)",
 
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",

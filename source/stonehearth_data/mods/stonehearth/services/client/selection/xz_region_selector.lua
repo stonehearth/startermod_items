@@ -323,11 +323,6 @@ function XZRegionSelector:_initialize_dispatch_table()
    }
 end
 
-function XZRegionSelector:_user_cancelled(event)
-   local cancelled = event:up(2) and not event.dragging
-   return cancelled
-end
-
 function XZRegionSelector:_update()
    if not self._action then
       return
@@ -399,7 +394,7 @@ function XZRegionSelector:_on_mouse_event(event)
 end
 
 function XZRegionSelector:_run_start_state(event, current_brick, normal)
-   if self:_user_cancelled(event) then
+   if event:up(2) then
       self._action = 'reject'
       return 'stop'
    end
@@ -432,7 +427,7 @@ function XZRegionSelector:_run_start_state(event, current_brick, normal)
 end
 
 function XZRegionSelector:_run_p0_selected_state(event, current_brick, normal)
-   if self:_user_cancelled(event) then
+   if event:up(2) then
       self._action = 'reject'
       return 'stop'
    end
