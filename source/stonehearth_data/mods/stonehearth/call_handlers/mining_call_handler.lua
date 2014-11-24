@@ -107,8 +107,11 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
             return stonehearth.selection.FILTER_IGNORE
          end)
       :set_can_contain_entity_filter(function(entity)
-            -- TODO
-            return true
+            -- allow mining zones to overlap when dragging out the region
+            if entity:get_uri() == 'stonehearth:mining_zone_designation' then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+            return stonehearth.selection.designation_can_contain(entity)
          end)
       :use_manual_marquee(function(selector, box)
             local region = self:_get_dig_region(box, mode)
