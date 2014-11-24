@@ -145,17 +145,17 @@ bool OctTree::ValidMove(om::EntityPtr const& entity, bool const reversible,
       return false;
    }
 
-   // check that destination is standable
-   // not checking that source location is standable so that entities can move off of invalid squares (newly invalid, bugged, etc)
-   if (!navgrid_.IsStandable(entity, toLocation)) {
-      return false;
-   }
-
    // check elevation changes
    if (dy != 0) {
       if (!ValidElevationChange(entity, reversible, fromLocation, toLocation)) {
          return false;
       }
+   }
+
+   // check that destination is standable
+   // not checking that source location is standable so that entities can move off of invalid squares (newly invalid, bugged, etc)
+   if (!navgrid_.IsStandable(entity, toLocation)) {
+      return false;
    }
 
    // if diagonal, check diagonal constraints
