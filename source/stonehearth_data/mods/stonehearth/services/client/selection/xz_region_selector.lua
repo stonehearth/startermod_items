@@ -40,8 +40,8 @@ function XZRegionSelector:set_show_rulers(value)
    return self
 end
 
-function XZRegionSelector:select_front_brick(v)
-   self._select_front_brick = v
+function XZRegionSelector:select_front_brick(value)
+   self._select_front_brick = value
    return self
 end
 
