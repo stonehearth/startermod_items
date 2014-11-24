@@ -382,7 +382,7 @@ function XZRegionSelector:_on_mouse_event(event)
 
    local current_brick, normal = self:_get_brick_at(event.x, event.y)
 
-   if self._select_front_brick then
+   if current_brick and self._select_front_brick then
       -- get the brick in front of the stabbed brick
       current_brick = current_brick + normal
    end
