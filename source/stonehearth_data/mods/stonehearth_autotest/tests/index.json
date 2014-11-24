@@ -1,5 +1,19 @@
 {
    "worlds" : {
+      "pathfinder" : {
+         "world_generator" : "file(maze_world.lua)",
+
+         "groups" : {
+            "all" : {
+               "name" : "All pathfinder tests.",
+
+               "scripts" : [
+                  "file(pathfinder/pathfinder_benchmark.lua)"
+               ]
+            }
+         }
+      },
+
       "performance" : {
          "world_generator" : "file(perf_world.lua)",
 

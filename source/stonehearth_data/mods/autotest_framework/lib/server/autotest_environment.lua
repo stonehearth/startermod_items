@@ -14,8 +14,8 @@ function env.create_world(world_generator_script)
    stonehearth.terrain:get_explored_region(env.session.player_id)
 
    local create_world = radiant.mods.load_script(world_generator_script)
-   create_world(env)
    env._reset_camera()
+   env.world = create_world(env)
 
    -- listen for every entity creation event sGo we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
@@ -35,6 +35,10 @@ end
 
 function env.get_player_id()
    return 'player_1'
+end
+
+function env.get_world()
+   return env.world
 end
 
 function env.get_player_session()
@@ -65,8 +69,6 @@ function env.clear()
       radiant.entities.destroy_entity(entity)      
    end
    _all_entities = {}
-
-   env._reset_camera()   
 end
 
 function env.get_town()
