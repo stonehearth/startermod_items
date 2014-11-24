@@ -891,10 +891,7 @@ bool NavGrid::IsStandable(csg::Point3 const& worldPoint)
    if (!bounds_.Contains(worldPoint)) {
       return false;
    }
-   // allow debug builds to inspect variables before returning
-   bool blocked = IsBlocked(worldPoint);
-   bool supported = IsSupported(worldPoint);
-   return !blocked && supported;
+   return !IsBlocked(worldPoint) && IsSupported(worldPoint);
 }
 
 /*
@@ -1080,6 +1077,28 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
    return IsStandable(location);
 }
 
+/*
+   Specialized version that knows the entity has a mob.
+*/
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om::MobPtr const& mob)
+{
+   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
+      return IsStandable(location) &&
+               !IsBlocked(location + csg::Point3::unitY) &&
+               !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
+   } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
+      return IsStandable(location);
+   }
+
+   csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);
+   if (!UseFastCollisionDetection(entity)) {
+      return IsStandable(entity, location, shape);
+   }
+   if (!shape.IsEmpty()) {
+      return IsStandable(csg::ToInt(shape));
+   }
+   return IsStandable(location);
+}
 
 /*
  * -- NavGrid::IsStandable

@@ -31,6 +31,16 @@
          "effect": "fiddle",
          "food": "stonehearth:corn_serving",
          "stacks_per_serving": 3
-      }
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 6,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }            
    }
 }
