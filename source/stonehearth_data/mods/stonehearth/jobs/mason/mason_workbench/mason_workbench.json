@@ -24,7 +24,7 @@
          "skin_class" : "mason",
          "ingredients" : [
             {
-               "material" : "wood resource",
+               "material" : "stone resource",
                "count" : 1
             }
          ],

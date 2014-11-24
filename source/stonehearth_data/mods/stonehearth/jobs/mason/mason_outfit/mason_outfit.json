@@ -3,6 +3,10 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
+         "name" :  "Mason Smock",
+         "description" : "Uniform for all masons",
+         "icon" : "file(mason_outfit.png)"         
+     
       },
       "render_info" : {
       },

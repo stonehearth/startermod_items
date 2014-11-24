@@ -101,7 +101,7 @@ end
 function StructureEraser:_add_tool_selection_capture()
    self._tool_selection_capture = stonehearth.input:capture_input()
                                        :on_mouse_event(function(event)
-                                             if event and event:up(2) and not event.dragging then
+                                             if event and event:up(2) then
                                                 self:reject({ error = 'selection cancelled'})
                                                 return
                                              end                                          
