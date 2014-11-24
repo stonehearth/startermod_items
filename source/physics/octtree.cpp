@@ -260,11 +260,12 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
    static const int diagonalMasks[] = {5, 10, 6, 9};
    int validDiagonals[] = {0, 0, 0, 0};
 
+   const om::MobPtr mob = entity->GetComponent<om::Mob>();
    int bitMask = 1;
    for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (navgrid_.IsStandable(entity, to)) {
+         if (navgrid_.IsStandable(entity, to, mob)) {
             // As we figure out what is standable and what isn't, record those results in a bit-vector.
             // This will help us (drastically!) below with diagonals.
             validDiagonals[-dy + 1] |= bitMask;
@@ -290,7 +291,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
             continue;
          }
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (!navgrid_.IsStandable(entity, to)) {
+         if (!navgrid_.IsStandable(entity, to, mob)) {
             continue;
          }
          cb(to, GetAdjacentMovementCost(from, to));
@@ -301,7 +302,7 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
 
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
-      if (navgrid_.IsStandable(entity, to)) {
+      if (navgrid_.IsStandable(entity, to, mob)) {
          OT_LOG(9) << to << " is standable.  adding to list";
          cb(to, GetAdjacentMovementCost(from, to));
       } else {
