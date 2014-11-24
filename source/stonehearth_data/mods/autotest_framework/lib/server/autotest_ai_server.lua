@@ -1,9 +1,11 @@
 local AutotestAi = class()
 local Deferred = class()
 
-function Deferred:__init(entity, activity)
+local NEXT_UNIQUE_ID = 1
+
+function Deferred:__init(entity, unique_id)
    radiant.events.listen(entity, 'stonehearth:autotest:compel', function(e)
-         if e.activity == activity then
+         if e.unique_id == unique_id then
             if self._done_cb then
                self._done_cb()
                self._done_cb = nil
@@ -35,6 +37,9 @@ function AutotestAi:compel(entity, activity, args)
    CompelAction.version = 2
    CompelAction.priority = 1000 --- that's show em!
 
+   local unique_id = NEXT_UNIQUE_ID
+   NEXT_UNIQUE_ID = NEXT_UNIQUE_ID + 1
+   
    local CompoundAction = stonehearth.ai:create_compound_action(CompelAction)
             :execute(activity, args)
             :execute('stonehearth:trigger_event', {
@@ -42,14 +47,14 @@ function AutotestAi:compel(entity, activity, args)
                   event_name = 'stonehearth:autotest:compel',
                   synchronous = true,
                   event_args = {
-                     activity = activity
+                     unique_id = unique_id
                   }
                })
 
    local ai_component = entity:add_component('stonehearth:ai')
 
    -- remove the action once the compelled action is done
-   Deferred(entity, activity)
+   Deferred(entity, unique_id)
       :done(function()
             ai_component:remove_custom_action(CompoundAction)
          end)
@@ -58,7 +63,7 @@ function AutotestAi:compel(entity, activity, args)
    ai_component:add_custom_action(CompoundAction)
 
    -- return a deferred for the client
-   return Deferred(entity, activity);
+   return Deferred(entity, unique_id);
 end
 
 return AutotestAi
