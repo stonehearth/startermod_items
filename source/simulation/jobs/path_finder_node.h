@@ -9,23 +9,25 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 struct PathFinderNode
 {
+   const PathFinderNode* prev;
    csg::Point3 pt;
    float f, g;
 
    PathFinderNode (csg::Point3 const& p) :
-      pt(p), f(FLT_MAX), g(FLT_MAX)
+      pt(p), f(FLT_MAX), g(FLT_MAX), prev(nullptr)
    {
    }
 
-   PathFinderNode (csg::Point3 const& p, float _f, float _g) :
-      pt(p), f(_f), g(_g)
+   PathFinderNode (csg::Point3 const& p, float _f, float _g, const PathFinderNode* prevNode) :
+      pt(p), f(_f), g(_g), prev(prevNode)
    {
    }
 
-   static inline bool CompareFitness(PathFinderNode const& lhs, PathFinderNode const& rhs) {
-      return lhs.f > rhs.f;
+   static inline bool CompareFitness(std::unique_ptr<PathFinderNode> const& lhs, std::unique_ptr<PathFinderNode> const& rhs) {
+      return lhs->f > rhs->f;
    };
 };
+
 
 typedef std::vector<PathFinderNode> PathFinderNodeList;
 

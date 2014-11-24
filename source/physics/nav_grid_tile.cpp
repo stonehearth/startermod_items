@@ -97,7 +97,9 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   DEBUG_ONLY(
+      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   );
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt);
@@ -125,7 +127,9 @@ bool NavGridTile::IsBlocked(csg::Region3 const& region)
  */
 bool NavGridTile::IsSupport(csg::Point3 const& pt)
 {
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   DEBUG_ONLY(
+      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   );
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt) || data_->IsMarked<LADDER>(pt);
@@ -381,27 +385,8 @@ float NavGridTile::GetMovementSpeedBonus(csg::Point3 const& offset)
    return data_->GetMovementSpeedBonus(offset);
 }
 
-float NavGridTile::GetMaxMovementModifier() const
+float NavGridTile::GetMaxMovementModifier()
 {
-   float max = 0;
-   for (const auto& i : trackers_) {
-      const CollisionTrackerPtr& tracker = i.second.lock();
-      if (!tracker) {
-         continue;
-      }
-      if (tracker->GetType() != MOVEMENT_MODIFIER) {
-         continue;
-      }
-      om::EntityPtr entity = tracker->GetEntity();
-      if (!entity) {
-         continue;
-      }
-      auto mms = entity->GetComponent<om::MovementModifierShape>();
-      if (!mms) {
-         continue;
-      }
-
-      max = std::max(max, mms.get()->GetModifier());
-   }
-   return max;
+   RefreshTileData();
+   return data_->GetMaxMovementSpeedBonus();
 }

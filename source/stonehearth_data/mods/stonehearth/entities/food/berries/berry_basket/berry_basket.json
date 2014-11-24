@@ -30,6 +30,16 @@
       "stonehearth:food_container" : {
          "effect": "fiddle",
          "food": "stonehearth:food:berries:berry_serving"
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 3,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
       }
    }
 }

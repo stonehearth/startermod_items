@@ -257,34 +257,52 @@ void OctTree::ComputeNeighborMovementCost(om::EntityPtr entity, const csg::Point
       csg::Point3( 0, 1, 0 ),
       csg::Point3( 0,-1, 0 ),
    };
+   static const int diagonalMasks[] = {5, 10, 6, 9};
+   int validDiagonals[] = {0, 0, 0, 0};
 
+   const om::MobPtr mob = entity->GetComponent<om::Mob>();
+   int bitMask = 1;
    for (const auto& direction : cardinal_directions) {
       for (int dy = 1; dy >= -2; dy--) {
          csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (navgrid_.IsStandable(entity, to)) {
+         if (navgrid_.IsStandable(entity, to, mob)) {
+            // As we figure out what is standable and what isn't, record those results in a bit-vector.
+            // This will help us (drastically!) below with diagonals.
+            validDiagonals[-dy + 1] |= bitMask;
             cb(to, GetAdjacentMovementCost(from, to));
             break;
          }
       }
+      bitMask = bitMask << 1;
    }
 
+   int maskLookup = 0;
    for (const auto& direction : diagonal_directions) {
+      const int diagMask = diagonalMasks[maskLookup];
+      // The two tiles that are directly adjacent to the diagonal tile--at the height of 
+      // the 'from' point--must be standable.
+      if ((validDiagonals[1] & diagMask) != diagMask) {
+         continue;
+      }
       for (int dy = 1; dy >= -2; dy--) {
-         csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
-         if (!navgrid_.IsStandable(entity, to)) {
+         // The two tiles that are directly adjacent to the diagonal--at the height of
+         // the 'to' point--must be standable.
+         if ((validDiagonals[-dy + 1] & diagMask) != diagMask) {
             continue;
          }
-         if (!ValidDiagonalMove(entity, from, to)) {
+         csg::Point3 to = from + direction + csg::Point3(0, dy, 0);
+         if (!navgrid_.IsStandable(entity, to, mob)) {
             continue;
          }
          cb(to, GetAdjacentMovementCost(from, to));
          break;
       }
+      maskLookup++;
    }
 
    for (const auto& direction : vertical_directions) {
       csg::Point3 to = from + direction;
-      if (navgrid_.IsStandable(entity, to)) {
+      if (navgrid_.IsStandable(entity, to, mob)) {
          OT_LOG(9) << to << " is standable.  adding to list";
          cb(to, GetAdjacentMovementCost(from, to));
       } else {

@@ -73,7 +73,7 @@ public:
 
       // std::hash<int> on Windows is expensive.  we're cheap!
       template <> inline std::size_t hash(int val, int i) const {
-         static const int factors[] = { 73856093, 19349663, 83492791 };
+         static const int factors[] = { 73856093, 19349669, 83492791 };
          //ASSERT(i < ARRAY_SIZE(factors));
          return factors[i] * val;
       }

@@ -17,10 +17,10 @@ function SelectorUtil.get_selected_brick(x, y, filter_fn)
       if filter_result == stonehearth.selection.FILTER_IGNORE then
          -- keep going...
       elseif filter_result == true then
-         return result.brick
+         return result.brick, result.normal
       else
          -- everything else (including false and nil) indicates failure
-         return nil
+         return nil, nil
       end
    end
 end
