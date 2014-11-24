@@ -97,7 +97,9 @@ void NavGridTile::AddCollisionTracker(CollisionTrackerPtr tracker)
 
 bool NavGridTile::IsBlocked(csg::Point3 const& pt)
 {
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   DEBUG_ONLY(
+      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   );
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt);
@@ -125,7 +127,9 @@ bool NavGridTile::IsBlocked(csg::Region3 const& region)
  */
 bool NavGridTile::IsSupport(csg::Point3 const& pt)
 {
-   ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   DEBUG_ONLY(
+      ASSERT(csg::Cube3::one.Scaled(TILE_SIZE).Contains(pt));
+   );
 
    RefreshTileData();
    return data_->IsMarked<COLLISION>(pt) || data_->IsMarked<LADDER>(pt);
