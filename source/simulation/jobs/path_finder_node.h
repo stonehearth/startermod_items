@@ -7,30 +7,19 @@
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
-struct PathFinderSolutionNode
-{
-   csg::Point3 pt;
-   PathFinderSolutionNode *prev;
-
-   PathFinderSolutionNode(csg::Point3 const&p, PathFinderSolutionNode* pr) :
-      pt(p), prev(pr)
-   {
-   }
-};
-
 struct PathFinderNode
 {
-   PathFinderSolutionNode* solutionNode;
+   const PathFinderNode* prev;
    csg::Point3 pt;
    float f, g;
 
    PathFinderNode (csg::Point3 const& p) :
-      pt(p), f(FLT_MAX), g(FLT_MAX), solutionNode(nullptr)
+      pt(p), f(FLT_MAX), g(FLT_MAX), prev(nullptr)
    {
    }
 
-   PathFinderNode (csg::Point3 const& p, float _f, float _g, PathFinderSolutionNode* solNode) :
-      pt(p), f(_f), g(_g), solutionNode(solNode)
+   PathFinderNode (csg::Point3 const& p, float _f, float _g, const PathFinderNode* prevNode) :
+      pt(p), f(_f), g(_g), prev(prevNode)
    {
    }
 

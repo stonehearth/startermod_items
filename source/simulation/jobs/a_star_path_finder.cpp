@@ -277,7 +277,6 @@ void AStarPathFinder::Restart()
    ASSERT(restart_search_);
    ASSERT(!solution_);
 
-   _solutionNodes.clear();
    closed_.clear();
    _closedLookup.clear();
    closedBounds_ = csg::Cube3::zero;
@@ -337,7 +336,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
    for (const auto& pt: closed_) {
       auto coord = msg->add_coords();
-      pt.SaveValue(coord);
+      pt.second->pt.SaveValue(coord);
       csg::Color4(0, 0, 64, 192).SaveValue(coord->mutable_color());
    }
 
@@ -372,20 +371,20 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       VERIFY_HEAPINESS();
-      PathFinderNode current = PopClosestOpenNode();
+      std::shared_ptr<PathFinderNode> current = PopClosestOpenNode();
       if (closed_.empty()) {
-         closedBounds_ = csg::Cube3(current.pt);
+         closedBounds_ = csg::Cube3(current->pt);
       } else {
-         closedBounds_.Grow(current.pt);
+         closedBounds_.Grow(current->pt);
       }
-      _closedLookup.insert(_hasher(current.pt));
-      closed_.insert(current.pt);
-      WatchWorldPoint(current.pt);
+      _closedLookup.insert(_hasher(current->pt));
+      closed_.emplace(current->pt, current);
+      WatchWorldPoint(current->pt);
 
-      float mod = 1.0f + GetMaxMovementModifier(current.pt);
+      float mod = 1.0f + GetMaxMovementModifier(current->pt);
 
       PathFinderDst* closest = nullptr;
-      float h = EstimateCostToDestination(current.pt, &closest, mod);
+      float h = EstimateCostToDestination(current->pt, &closest, mod);
 
       if (h == 0) {
          // xxx: be careful!  this may end up being re-entrant (for example, removing
@@ -393,7 +392,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
          ASSERT(closest);
 
          std::vector<csg::Point3f> solution;
-         ReconstructPath(solution, current);
+         ReconstructPath(solution, current.get());
          if (SolveSearch(solution, closest)) {
             return;
          }
@@ -406,7 +405,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       // If there are no movement modifiers nearby (mod == 1.0), then we're clear to just
       // try to direct path-find to our destination.
-      if (mod == 1.0 && closest && FindDirectPathToDestination(current, closest)) {
+      if (mod == 1.0 && closest && FindDirectPathToDestination(current.get(), closest)) {
          // Found a solution!  Bail.
          return;
       }
@@ -416,7 +415,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
       ASSERT(!restart_search_);
 
-      if (current.g + h > max_cost_to_destination_) {
+      if (current->g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
          SetSearchExhausted();
          return;
@@ -429,9 +428,9 @@ void AStarPathFinder::Work(const platform::timer &timer)
    
       VERIFY_HEAPINESS();
 
-      o.ComputeNeighborMovementCost(entity_.lock(), current.pt, [this, &current](csg::Point3 const& to, float cost) {
+      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, [this, &current](csg::Point3 const& to, float cost) {
          VERIFY_HEAPINESS();
-         AddEdge(current, to, cost);
+         AddEdge(current.get(), to, cost);
          VERIFY_HEAPINESS();
       });
 
@@ -440,26 +439,25 @@ void AStarPathFinder::Work(const platform::timer &timer)
    VERIFY_HEAPINESS();
 }
 
-void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &next, float movementCost)
+void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost)
 {
    const int nextHash = _hasher(next);
    if (_closedLookup.find(nextHash) != _closedLookup.end()) {
-      PF_LOG(9) << "       Ignoring edge in closed set from " << current.pt << " to " << next << " cost:" << movementCost;
+      PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
       return;
    }
 
    VERIFY_HEAPINESS();
 
    bool update = false;
-   float g = current.g + movementCost;
+   float g = current->g + movementCost;
    auto& itr = _openLookup.find(nextHash);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
       float h = EstimateCostToDestination(next);
       float f = g + h;
-      _solutionNodes.push_back(std::unique_ptr<PathFinderSolutionNode>(new PathFinderSolutionNode(next, current.solutionNode)));
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
-      open_.push_back(std::unique_ptr<PathFinderNode>(new PathFinderNode(next, f, g, _solutionNodes.back().get())));
+      open_.emplace_back(new PathFinderNode(next, f, g, current));
       _openLookup.emplace(_hasher(next), open_.back().get());
       if (!rebuildHeap_) {
          push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
@@ -472,7 +470,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode &current, const csg::Point3 &
          float old_g = node->g;
          float f = g + old_h;
 
-         node->solutionNode->prev = current.solutionNode;
+         node->prev = current;
          node->g = g;
          node->f = f;
          rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
@@ -549,29 +547,28 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    return hMin;
 }
 
-PathFinderNode AStarPathFinder::PopClosestOpenNode()
+std::shared_ptr<PathFinderNode> AStarPathFinder::PopClosestOpenNode()
 {
-   auto result = open_.front().get();
-   PathFinderNode rv = *result;
+   std::shared_ptr<PathFinderNode> result;
    for (auto const& entry : open_) {
       PF_LOG(10) << " open node " << entry->pt << " f:" << entry->f << " g:" << entry->g;
    }
 
    VERIFY_HEAPINESS();
    pop_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
+   result = std::move(open_.back());
    open_.pop_back();
    VERIFY_HEAPINESS();
 
    PF_LOG(10) << " PopClosestOpenNode returning " << result->pt << ". " << open_.size() << " points remain in open set";
 
-   _openLookup.erase(_hasher(rv.pt));
-   return rv;
+   _openLookup.erase(_hasher(result->pt));
+   return result;
 }
 
-void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode &dst) const
+void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode *dst) const
 {
-   auto n = dst.solutionNode;
-
+   const PathFinderNode* n = dst;
    while (n) {
       solution.push_back(csg::ToFloat(n->pt));
       n = n->prev;
@@ -589,7 +586,7 @@ void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3f> &points) const
       if (rebuildHeap_) {
          const_cast<AStarPathFinder*>(this)->RebuildHeap();
       }
-      ReconstructPath(points, *open_.front());
+      ReconstructPath(points, open_.front().get());
    }
 }
 
@@ -629,7 +626,6 @@ void AStarPathFinder::SetSearchExhausted()
    }
 
    if (!search_exhausted_) {
-      _solutionNodes.clear();
       closed_.clear();
       _closedLookup.clear();
       closedBounds_ = csg::Cube3::zero;
@@ -684,7 +680,6 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       restart_search_ = true;
       search_exhausted_ = false;
       solution_ = nullptr;
-      _solutionNodes.clear();
       closed_.clear();
       _closedLookup.clear();
       closedBounds_ = csg::Cube3::zero;
@@ -799,7 +794,7 @@ float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
 } 
 
 
-bool AStarPathFinder::FindDirectPathToDestination(PathFinderNode &start, PathFinderDst*& dst)
+bool AStarPathFinder::FindDirectPathToDestination(const PathFinderNode* start, PathFinderDst*& dst)
 {   
    ASSERT(dst);
 
@@ -811,7 +806,7 @@ bool AStarPathFinder::FindDirectPathToDestination(PathFinderNode &start, PathFin
    MovementHelper mh(LOG_LEVEL(simulation.pathfinder.astar));
    om::EntityPtr entity = entity_.lock();
 
-   csg::Point3f from = csg::ToFloat(start.pt);
+   csg::Point3f from = csg::ToFloat(start->pt);
    csg::Region3f const& dstRegion = dst->GetWorldSpaceAdjacentRegion();
    csg::Point3f to = dstRegion.GetClosestPoint(from);
 
