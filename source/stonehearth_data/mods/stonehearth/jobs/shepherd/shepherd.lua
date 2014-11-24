@@ -65,6 +65,39 @@ function ShepherdClass:demote()
    self.__saved_variables:mark_changed()
 end
 
+-- Shepherd related functionality
+
+-- List of all the animals currently following the shepherd
+function ShepherdClass:add_trailing_animal(animal)
+   if not self._sv.trailed_animals then
+      self._sv.trailed_animals = {}
+      self._sv.num_trailed_animals = 0
+   end
+   self._sv.trailed_animals[animal:get_id()] = animal
+   self._sv.num_trailed_animals = self._sv.num_trailed_animals + 1
+
+   --If we have more than 1 animal, make sure we apply the shepherding speed debuf
+   if self._sv.num_trailed_animals == 1 then
+      radiant.entities.set_posture(self._sv._entity, 'stonehearth:patrol')
+      radiant.entities.add_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
+   end 
+end
+
+function ShepherdClass:remove_trailing_animal(animal_id)
+   if not self._sv.trailed_animals then
+      return
+   end
+   self._sv.trailed_animals[animal_id] = nil
+   self._sv.num_trailed_animals = self._sv.num_trailed_animals - 1
+
+   assert(self._sv.num_trailed_animals >= 0, 'shepherd trying to remove animals he does not have')
+
+   --If we have no animals, remove the shepherding speed debuf
+   if self._sv.num_trailed_animals == 0 then
+      radiant.entities.remove_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
+   end 
+end
+
 -- Private Functions
 
 return ShepherdClass
