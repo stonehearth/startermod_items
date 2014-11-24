@@ -1,0 +1,37 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "category" : "refined"
+      },      
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(stone_bricks.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Stack of Stone Bricks",
+         "description": "A key component of stone buildings",
+         "icon" : "file(stone_bricks.png)"
+
+      },
+      "stonehearth:material" : {
+         "tags" :  "stone brick refined"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 4,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }      
+}

@@ -186,6 +186,7 @@
       "refined:thread" : "file(entities/refined/thread)",
       "refined:cloth_bolt" : "file(entities/refined/cloth_bolt)",
       "refined:leather_bolt" : "file(entities/refined/leather_bolt)",
+      "refined:stone_bricks" : "file(entities/refined/stone_bricks)",
 
       "food:corn:amazing_corn_basket" : "file(entities/food/corn/amazing_corn_basket)",
       "food:corn:amazing_corn_serving"    : "file(entities/food/corn/amazing_corn_serving)",
@@ -1430,6 +1431,7 @@
          "file(ui/common/confirm/confirm.less)",
          "file(jobs/carpenter/skin/workshop.less)",
          "file(jobs/weaver/skin/workshop.less)",
+         "file(jobs/mason/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",

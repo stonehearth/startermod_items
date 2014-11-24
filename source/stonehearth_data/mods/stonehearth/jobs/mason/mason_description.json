@@ -36,7 +36,6 @@
       "skin" : "file(./skin/workshop.png)",
       "workbench_type" : "stonehearth:mason:workbench",
       "ingredients": [
-         { "material" : "wood resource", "count" : 1 },
          { "material" : "stone resource", "count" : 1 }
       ]
    },
