@@ -22,13 +22,13 @@ public:
    ~PathFinderSrc();
 
    bool IsIdle() const;
-   void Start(std::vector<std::unique_ptr<PathFinderNode>>& open);
+   void Start(std::vector<PathFinderNode*>& open);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
    void SetSourceOverride(csg::Point3f const& location);
    csg::Point3f GetSourceLocation() const;
 
 private:
-   void InitializeOpenSet(std::vector<std::unique_ptr<PathFinderNode>>& open);
+   void InitializeOpenSet(std::vector<PathFinderNode*>& open);
 
 public:
    std::string                name_;

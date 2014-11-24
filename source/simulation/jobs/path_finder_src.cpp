@@ -45,7 +45,7 @@ void PathFinderSrc::SetSourceOverride(csg::Point3f const& location)
    transform_trace_ = nullptr;
 }
 
-void PathFinderSrc::InitializeOpenSet(std::vector<std::unique_ptr<PathFinderNode>>& open)
+void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode*>& open)
 {
    csg::Point3 start;
    if (use_source_override_) {
@@ -65,7 +65,7 @@ void PathFinderSrc::InitializeOpenSet(std::vector<std::unique_ptr<PathFinderNode
          }
       }
    }
-   open.push_back(std::unique_ptr<PathFinderNode>(new PathFinderNode(start)));
+   open.push_back(new PathFinderNode(start));
    PF_LOG(5) << "initialized open set with entity location " << start;
 }
 
@@ -83,7 +83,7 @@ csg::Point3f PathFinderSrc::GetSourceLocation() const
    return source_location_;
 }
 
-void PathFinderSrc::Start(std::vector<std::unique_ptr<PathFinderNode>>& open)
+void PathFinderSrc::Start(std::vector<PathFinderNode*>& open)
 {
    if (use_source_override_) {
       source_location_ = source_override_;
