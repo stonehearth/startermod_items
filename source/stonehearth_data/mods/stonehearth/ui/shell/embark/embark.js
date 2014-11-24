@@ -48,13 +48,12 @@ App.StonehearthEmbarkView = App.View.extend({
          });
       });
 
-      $(document).on('keyup keydown', function(e) {
-         var escape_key_code = 27;
+      $(document).on('keydown', this._clearSelectionKeyHandler);
+   },
 
-         if (e.keyCode == escape_key_code) {
-            self._clearSelection();
-         }
-      });
+   destroy: function() {
+      $(document).off('keydown', this._clearSelectionKeyHandler);
+      this._super();
    },
 
    _chooseLocation: function(cellX, cellY) {
@@ -161,6 +160,16 @@ App.StonehearthEmbarkView = App.View.extend({
 
       if (self.$('#map').stonehearthMap('suspended')) {
          self.$('#map').stonehearthMap('resume');
+      }
+   },
+
+   _clearSelectionKeyHandler: function(e) {
+      var self = this;
+
+      var escape_key_code = 27;
+
+      if (e.keyCode == escape_key_code) {
+         $('#clearSelectionButton').click();
       }
    },
 
