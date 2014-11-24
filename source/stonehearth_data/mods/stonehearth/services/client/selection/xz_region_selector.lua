@@ -35,8 +35,8 @@ function XZRegionSelector:__init()
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
 end
 
-function XZRegionSelector:allow_select_cursor(allow)
-   self._allow_select_cursor = allow
+function XZRegionSelector:set_show_rulers(value)
+   self._show_rulers = value
    return self
 end
 
@@ -60,6 +60,14 @@ function XZRegionSelector:set_find_support_filter(filter_fn)
    return self
 end
 
+-- set the 'can_contain_entity_filter'.  when growing the xz region,
+-- make sure that it does *not* contain any of the entities for which
+-- this filter returns false
+function XZRegionSelector:set_can_contain_entity_filter(filter_fn)
+   self._can_contain_entity_filter_fn = filter_fn
+   return self
+end
+
 -- used to constrain the selected region
 -- examples include forcing the region to be square, enforcing minimum or maximum sizes,
 -- or quantizing the region to certain step sizes
@@ -69,8 +77,32 @@ function XZRegionSelector:set_end_point_transforms(get_proposed_points_fn, get_r
    return self
 end
 
-function XZRegionSelector:set_show_rulers(value)
-   self._show_rulers = value
+function XZRegionSelector:allow_select_cursor(allow)
+   self._allow_select_cursor = allow
+   return self
+end
+
+function XZRegionSelector:set_cursor(cursor)
+   self._cursor = cursor
+   return self
+end
+
+function XZRegionSelector:use_designation_marquee(color)
+   self._create_node_fn = _radiant.client.create_designation_node
+   self._box_color = color
+   self._line_color = color
+   return self
+end
+
+function XZRegionSelector:use_outline_marquee(box_color, line_color)
+   self._create_node_fn = _radiant.client.create_selection_node
+   self._box_color = box_color
+   self._line_color = line_color
+   return self
+end
+
+function XZRegionSelector:use_manual_marquee(marquee_fn)
+   self._create_marquee_fn = marquee_fn
    return self
 end
 
@@ -169,38 +201,6 @@ function XZRegionSelector:destroy()
    self:reject('destroy')
 end
 
--- set the 'can_contain_entity_filter'.  when growing the xz region,
--- make sure that it does *not* contain any of the entities for which
--- this filter returns false
-function XZRegionSelector:set_can_contain_entity_filter(filter_fn)
-   self._can_contain_entity_filter_fn = filter_fn
-   return self
-end
-
-function XZRegionSelector:set_cursor(cursor)
-   self._cursor = cursor
-   return self
-end
-
-function XZRegionSelector:use_designation_marquee(color)
-   self._create_node_fn = _radiant.client.create_designation_node
-   self._box_color = color
-   self._line_color = color
-   return self
-end
-
-function XZRegionSelector:use_outline_marquee(box_color, line_color)
-   self._create_node_fn = _radiant.client.create_selection_node
-   self._box_color = box_color
-   self._line_color = line_color
-   return self
-end
-
-function XZRegionSelector:use_manual_marquee(marquee_fn)
-   self._create_marquee_fn = marquee_fn
-   return self
-end
-
 -- create the cube for the xz region given endpoints p0 and p1.
 function XZRegionSelector:_create_cube(p0, p1)
    assert(p0 and p1)
@@ -214,11 +214,9 @@ function XZRegionSelector:_create_cube(p0, p1)
 end
 
 -- return whether or not the given location is valid to be used in the creation
--- of the xz region.  if `check_containment_filter` is true, will also make sure
--- that all the entities at the specified poit pass the can_contain_entity_filter
--- filter.
+-- of the xz region.
 --
-function XZRegionSelector:_is_valid_location(brick, check_containment_filter)
+function XZRegionSelector:_is_valid_location(brick)
    if not brick then
       return false
    end
@@ -229,7 +227,7 @@ function XZRegionSelector:_is_valid_location(brick, check_containment_filter)
    if self._require_supported and not radiant.terrain.is_supported(brick) then
       return false
    end
-   if check_containment_filter and self._can_contain_entity_filter_fn then
+   if self._can_contain_entity_filter_fn then
       local entities = radiant.terrain.get_entities_at_point(brick)
       for _, entity in pairs(entities) do
          if not self._can_contain_entity_filter_fn(entity, self) then
@@ -247,10 +245,6 @@ end
 --
 function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
-         if self._select_front_brick then
-            result.brick = result.brick + result.normal
-         end
-
          -- The only case entity should be null is when allowing self-selection of the
          -- cursor.
          if self._allow_select_cursor and not result.entity then
@@ -273,7 +267,7 @@ end
 -- _compute_p1 for more info
 --
 function XZRegionSelector:_compute_p1_loop(p0, p1, i)
-   if not self:_is_valid_location(p0, true) then
+   if not self:_is_valid_location(p0) then
       return nil
    end
 
@@ -286,7 +280,7 @@ function XZRegionSelector:_compute_p1_loop(p0, p1, i)
    while pt[i] ~= p1[i] + di do
       pt[j] = p0[j]
       while pt[j] ~= p1[j] + dj do
-         if not self:_is_valid_location(pt, true) then
+         if not self:_is_valid_location(pt) then
             local go_narrow = pt[i] == p0[i]
             if go_narrow then
                -- make the rect narrower and keep iterating
@@ -321,19 +315,6 @@ function XZRegionSelector:_compute_p1(p0, p1)
    return self:_compute_p1_loop(p0, p1, coord)
 end
 
-function XZRegionSelector:_set_invalid_cursor()
-   if not self._invalid_cursor_obj then
-      self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
-   end
-end
-
-function XZRegionSelector:_clear_invalid_cursor()
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
-   end
-end
-
 function XZRegionSelector:_initialize_dispatch_table()
    self._dispatch_table = {
       start       = self._run_start_state,
@@ -347,48 +328,48 @@ function XZRegionSelector:_user_cancelled(event)
    return cancelled
 end
 
-function XZRegionSelector:_update_cursor(valid_selection)
-   if valid_selection then
-      self:_clear_invalid_cursor()
-   else
-      self:_set_invalid_cursor()
-   end
-end
-
 function XZRegionSelector:_update()
+   if not self._action then
+      return
+   end
+
+   if self._action == 'reject' then
+      self:reject({ error = 'selection cancelled' }) -- is this still the correct argument?
+      return
+   end
+
    local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
 
    self:_update_selected_cube(selected_cube)
    self:_update_rulers(self._p0, self._p1)
    self:_update_cursor(selected_cube ~= nil)
 
-   if self._action then
-      if self._action == 'notify' then
-         self:notify(selected_cube)
-      elseif self._action == 'resolve' then
-         self:resolve(selected_cube)
-      elseif self._action == 'reject' then
-         self:reject({ error = 'selection cancelled' }) -- is this still the correct argument?
-      end
+   if self._action == 'notify' then
+      self:notify(selected_cube)
+   elseif self._action == 'resolve' then
+      self:resolve(selected_cube)
+   else
+      log:error('uknown action: %s', self._action)
+      assert(false)
    end
 end
 
 function XZRegionSelector:_resolve_endpoints(start, finish)
-   local valid_end_points = false
+   local valid_endpoints = false
 
    log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
 
    start, finish = self._get_proposed_points_fn(start, finish)
    log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
 
-   if self:_is_valid_location(start, true) then
+   if self:_is_valid_location(start) then
       finish = self:_compute_p1(start, finish)
       start, finish = self._get_resolved_points_fn(start, finish)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
-      valid_end_points = start and finish
+      valid_endpoints = start and finish
    end
 
-   if not valid_end_points then
+   if not valid_endpoints then
       start, finish = nil, nil
    end
 
@@ -396,17 +377,22 @@ function XZRegionSelector:_resolve_endpoints(start, finish)
 end
 
 function XZRegionSelector:_on_mouse_event(event)
+   -- This is the action that will be taken in _update() unless specified otherwise
    self._action = 'notify'
-   self._skip_update = false
 
    local current_brick, normal = self:_get_brick_at(event.x, event.y)
+
+   if self._select_front_brick then
+      -- get the brick in front of the stabbed brick
+      current_brick = current_brick + normal
+   end
+
    local state_transition_fn = self._dispatch_table[self._state]
    assert(state_transition_fn)
-   local next_state = state_transition_fn(self, event, current_brick, normal)
 
-   if not self._skip_update then
-      self:_update()
-   end
+   -- Given the inputs and the current state, get the next state
+   local next_state = state_transition_fn(self, event, current_brick, normal)
+   self:_update()
 
    self._last_brick = current_brick
    self._state = next_state
@@ -423,8 +409,9 @@ function XZRegionSelector:_run_start_state(event, current_brick, normal)
       return 'start'
    end
 
+   -- avoid spamming recalculcation and update if nothing has changed
    if current_brick == self._last_brick and not event:down(1) then
-      self._skip_update = true
+      self._action = nil
       return 'start'
    end
 
@@ -450,8 +437,9 @@ function XZRegionSelector:_run_p0_selected_state(event, current_brick, normal)
       return 'stop'
    end
 
+   -- avoid spamming recalculcation and update if nothing has changed
    if current_brick == self._last_brick and not event:up(1) then
-      self._skip_update = true
+      self._action = nil
       return 'p0_selected'
    end
 
@@ -534,6 +522,14 @@ function XZRegionSelector:_update_selected_cube(box)
    self._render_node:set_can_query(self._allow_select_cursor)
 end
 
+function XZRegionSelector:_update_cursor(valid_selection)
+   if valid_selection then
+      self:_clear_invalid_cursor()
+   else
+      self:_set_invalid_cursor()
+   end
+end
+
 function XZRegionSelector:go()
    local box_color = self._box_color or DEFAULT_BOX_COLOR
 
@@ -555,6 +551,19 @@ function XZRegionSelector:go()
                                  return true
                               end)
    return self
+end
+
+function XZRegionSelector:_set_invalid_cursor()
+   if not self._invalid_cursor_obj then
+      self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
+   end
+end
+
+function XZRegionSelector:_clear_invalid_cursor()
+   if self._invalid_cursor_obj then
+      self._invalid_cursor_obj:destroy()
+      self._invalid_cursor_obj = nil
+   end
 end
 
 return XZRegionSelector
