@@ -184,6 +184,10 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    actions: {
+      hide: function() {
+         this.destroy();
+      },
+
       select: function(object, remaining, maintainNumber) {
          this.set('currentRecipe', object);
          Ember.run.scheduleOnce('afterRender', this, '_setTooltips');
@@ -242,6 +246,7 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    didInsertElement: function() {
+
       this._super();
    },
 
