@@ -1,10 +1,10 @@
 {
    "job_id": "mason",
    "alias": "stonehearth:jobs:mason",
-   "name": "Mason",      
+   "name": "mason",   
+   "controller" : "stonehearth:class:mason",   
    "description": "The Mason crafts building materials and decorative items from stone.",
-   "requirements": "Mason's Mallet and Chisel, crafted by the Carpenter.",
-   "script": "file(mason.lua)",
+   "requirements": "Mason's Mallet and Chisel, crafted by the mason.",
    "equipment" : {
       "abilities" : "file(mason_abilities)",
       "torso" : "file(mason_outfit)",
@@ -13,12 +13,12 @@
 
    "roles" : "mason_job crafter",
    "talisman_uri" : "stonehearth:mason:chisel_talisman",
-   "promotion_activity_name" : "promote_mason",
-
+   "default_stance" : "passive",
    
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",
-   
+   "promotion_activity_name" : "promote_mason",
+
    "task_groups" : [
       "stonehearth:task_group:restock", 
       "stonehearth:task_group:placement",
@@ -32,12 +32,87 @@
       "name": "Mason's Workshop",
       "description": "insert description here",
       "long_description" : "The Mason crafts building materials and decorative items from stone.",
-      "portrait" : "file(./mason_workbench/mason_workbench.png)",
+      "portrait" : "file(./images/workshop_portrait_level_1.png)",
       "skin" : "file(./skin/workshop.png)",
       "workbench_type" : "stonehearth:mason:workbench",
       "ingredients": [
-         { "material" : "wood resource", "count" : 1 }
+         { "material" : "wood resource", "count" : 1 },
+         { "material" : "stone resource", "count" : 1 }
       ]
    },
-   "parent_job" : "stonehearth:jobs:worker"
+   "parent_job" : "stonehearth:jobs:worker", 
+
+   "xp_rewards" : {
+      "craft_level_0" : 30, 
+      "craft_level_1" : 50, 
+      "craft_level_2" : 75,
+      "craft_level_3" : 100, 
+      "craft_level_4" : 150,
+      "craft_level_5" : 200
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "name" : "Standard Catalog", 
+               "id" : "crafter_recipe_unlock_1", 
+               "icon" : "file(images/standard_catalog.png)", 
+               "description" : "The mason can now make a solid array of basic furniture.", 
+               "level" : 1
+            }
+         ]
+      }, 
+      "2" : {
+         "perks" : [
+            {
+               "name" : "Collaborative Insight", 
+               "id" : "crafter_recipe_unlock_2", 
+               "icon" : "file(images/collaborative_insight.png)", 
+               "description" : "The mason is now skillful enough to use materials created by other crafters.", 
+               "level" : 2
+            }
+         ]
+      },
+      "3" : {
+         "perks" : [
+            {
+               "type" : "set_fine_percentage",
+               "name" : "Artistic Inspiration", 
+               "id" : "crafter_recipe_unlock_3", 
+               "icon" : "file(images/artistic_inspiration.png)", 
+               "description" : "When inspiration strikes, the mason may embellish his works in unexpected ways.",
+               "percent_chance" : 10,  
+               "level" : 3,
+               "demote_fn" : "unset_fine_percentage"
+            }
+         ]
+      },
+      "4" : {
+         "perks" : [
+            {
+               "name" : "Extended Catalog", 
+               "id" : "crafter_recipe_unlock_4", 
+               "icon" : "file(images/masonLv4.png)", 
+               "description" : "The mason now has the courage to try more elaborate projects.", 
+               "level" : 4
+            }
+         ]
+      },
+      "6" : {
+         "title" : "Master mason",
+         "perks" : [
+            {
+               "name" : "10,000 Hours (not implemented)", 
+               "id" : "crafter_recipe_unlock_6", 
+               "icon" : "file(images/masonLv6.png)", 
+               "description" : "The mason's mastery of his trade allows him to come up with completely new ways of using wood.", 
+               "level" : 6
+            }
+         ]
+      }
+   }
 }
+

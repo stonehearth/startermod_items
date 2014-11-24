@@ -1131,6 +1131,7 @@
 
       "class:worker" : "file(jobs/worker/worker.lua)", 
       "class:carpenter" : "file(jobs/carpenter/carpenter.lua)", 
+      "class:mason" : "file(jobs/mason/mason.lua)", 
       "class:footman" : "file(jobs/footman/footman.lua)", 
       "class:farmer" : "file(jobs/farmer/farmer.lua)", 
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
