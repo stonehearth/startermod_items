@@ -88,6 +88,11 @@ ide-only:
 run-autotest:
 	scripts/test/run_autotest.sh
 
+.PHONY: run-pathfinder-benchmark
+run-pathfinder-benchmark:
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_autotest --mods.stonehearth_autotest.options.script=/stonehearth_autotest/tests/pathfinder/pathfinder_benchmark.lua
+	tail $(RUN_ROOT)/stonehearth.log | egrep "solved.*PPS"
+
 run-%-test:
 	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_tests --mods.stonehearth_tests.test=$*_test&
 
