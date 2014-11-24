@@ -432,7 +432,6 @@
       
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
-      "actions:basic_needs:dispatcher" : "file(ai/actions/basic_needs/basic_needs_dispatcher.lua)",
       "actions:free_time:dispatcher" : "file(ai/actions/free_time/free_time_dispatcher.lua)",
       "actions:urgent_actions:dispatcher" : "file(ai/actions/urgent_actions/urgent_actions_dispatcher.lua)",
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
@@ -457,7 +456,6 @@
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
-      "actions:work_task_dispatcher" : "file(ai/actions/work_task_dispatcher.lua)",
       "actions:simple_labor_task_dispatcher" : "file(ai/actions/simple_labor_task_dispatcher.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",

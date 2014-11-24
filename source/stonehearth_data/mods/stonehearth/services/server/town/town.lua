@@ -14,7 +14,7 @@ function Town:initialize(session)
    self._sv.worker_combat_enabled = false
    self._sv.rally_to_battle_standard = false
    self._sv.mining_zones = {}
-   
+
    self._sv.entity = radiant.entities.create_entity()
    
    self.__saved_variables:mark_changed()
@@ -56,22 +56,66 @@ function Town:_on_game_loaded()
    end
 end
 
+-- create a single task dispatcher which delegates the implementation of
+-- parent_activity to info.does at info.priority.  for example:
+--
+--    parent_activity: 'stonehearth:top'
+--    info : { 
+--               does : 'stonehearth:work',
+--               does : 'stonehearth:basic_needs',
+--           }
+--
+function Town:_create_task_dispacher(parent_activity, info)
+   local TaskDispacher = class()
+   TaskDispacher.name = parent_activity .. ' dispatcher'
+   TaskDispacher.does = parent_activity
+   TaskDispacher.args = {}
+   TaskDispacher.version = 2
+   TaskDispacher.priority = info.priority
+
+   return stonehearth.ai:create_compound_action(TaskDispacher)
+                           :execute(info.does, {})
+end
+
+-- create the task dispatchers for an entry in the player_task_groups blob.
+--
+function Town:_create_task_dispatchers(parent_activity, groups)
+   if groups then
+      for name, info in pairs(groups) do
+         local dispatcher = self:_create_task_dispacher(parent_activity, info)
+         self._task_dispachers[name] = dispatcher
+      end
+   end
+end
+
 function Town:_create_task_groups()
    self._scheduler = stonehearth.tasks:create_scheduler(self._sv.player_id)
-                                       :set_counter_name(self._sv.player_id)
+                                          :set_counter_name(self._sv.player_id)
 
    self._task_groups = {}
+   self._task_dispachers = {}
 
    -- Create new task groups
-   local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups').task_groups
+   local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups')
    if task_group_data then
-      for task_group_name, entry in pairs(task_group_data) do
+      for task_group_name, entry in pairs(task_group_data.task_groups) do
 
          local group = self._scheduler:create_task_group(entry.dispatcher, {})
                                           :set_counter_name(entry.name)
 
          self._task_groups[task_group_name] = group
       end
+      self:_create_task_dispatchers('stonehearth:top', task_group_data.task_groups_new_hotness)
+   end
+end
+
+-- inject all the dynamically created task dispatchers for this town's activities
+-- into the specified entity (presumedly a member of the town)
+--
+function Town:inject_task_dispatchers(entity)
+   local ai = entity:get_component('stonehearth:ai')
+   for name, dispatcher in pairs(self._task_dispachers) do
+      ai:add_custom_action(dispatcher)
    end
 end
 
