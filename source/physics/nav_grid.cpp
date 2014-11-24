@@ -1054,7 +1054,7 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   om::MobPtr mob = entity->GetComponent<om::Mob>()
+   om::MobPtr mob = entity->GetComponent<om::Mob>();
    return IsStandable(entity, location, mob);
 }
 
