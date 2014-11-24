@@ -20,7 +20,7 @@
    "entity_data" : {
       "stonehearth:chair" : {},
       "stonehearth:net_worth" : {
-         "value_in_gold" : 5,
+         "value_in_gold" : 20,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   

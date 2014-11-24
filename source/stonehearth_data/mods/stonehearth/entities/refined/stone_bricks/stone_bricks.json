@@ -3,29 +3,28 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "stone",
-         "category": "resources",
-         "stacks": 10
-      },
-      "stonehearth:material" : {
-         "tags" : "stone resource"
-      },
+         "category" : "refined"
+      },      
       "model_variants": {
          "default": {
             "models": [
-               "file(hunk_of_stone.qb)"
+               "file(stone_bricks.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Hunk 'o Stone",
-         "description": "A heavy, ordinary rock.",
-         "icon" : "file(../stone.png)"
+         "name": "Stack of Stone Bricks",
+         "description": "A key component of stone buildings",
+         "icon" : "file(stone_bricks.png)"
+
+      },
+      "stonehearth:material" : {
+         "tags" :  "stone brick refined"
       }
    },
    "entity_data" : {
       "stonehearth:net_worth" : {
-         "value_in_gold" : 2,
+         "value_in_gold" : 4,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   
@@ -34,6 +33,5 @@
             "shopkeeper_type" : "caravan"
          }
       }
-   }   
-
+   }      
 }

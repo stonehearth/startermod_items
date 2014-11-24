@@ -1054,10 +1054,18 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   
    om::MobPtr mob = entity->GetComponent<om::Mob>();
+   return IsStandable(entity, location, mob);
+}
+
+/*
+ * Specialized version that knows the entity has a mob.  This version exists so clients
+ * can cache the result of "entity->GetComponent<om::Mob>()" rather than calling the
+ * previous version repeatedly (matters in tight loops!)
+ */
+bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om::MobPtr const& mob)
+{
    if (mob) {
-      // The super ultra fast path!
       if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
          return IsStandable(location) &&
                 !IsBlocked(location + csg::Point3::unitY) &&
@@ -1065,29 +1073,6 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
       } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
          return IsStandable(location);
       }
-   }
-
-   csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);
-   if (!UseFastCollisionDetection(entity)) {
-      return IsStandable(entity, location, shape);
-   }
-   if (!shape.IsEmpty()) {
-      return IsStandable(csg::ToInt(shape));
-   }
-   return IsStandable(location);
-}
-
-/*
-   Specialized version that knows the entity has a mob.
-*/
-bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om::MobPtr const& mob)
-{
-   if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
-      return IsStandable(location) &&
-               !IsBlocked(location + csg::Point3::unitY) &&
-               !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
-   } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
-      return IsStandable(location);
    }
 
    csg::CollisionShape shape = GetEntityWorldCollisionShape(entity, location);

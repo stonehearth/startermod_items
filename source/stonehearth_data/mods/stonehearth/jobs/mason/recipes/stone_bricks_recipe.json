@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stack of Stone Bricks",
+   "description" : "A key component of stone structures like castles and roads.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/stone_bricks/stone_bricks.png",
+   "level_requirement" : 2,
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:refined:stone_bricks"
+      }
+  ]
+}

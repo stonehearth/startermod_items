@@ -7,5 +7,17 @@
          "name": "Rabbit Pelt",
          "description": "Soft, supple, and quite dead."
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 4,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }      
 }
