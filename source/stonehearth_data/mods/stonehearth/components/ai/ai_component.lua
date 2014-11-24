@@ -375,8 +375,11 @@ function AIComponent:start()
 
    -- ask the town to inject all the dynamic dispatchers into our entity.  this wires
    -- together big sections of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)
-   stonehearth.town:get_town(self._entity)
-                       :inject_task_dispatchers(self._entity)
+   local town = stonehearth.town:get_town(self._entity)
+   if town then
+      town:inject_task_dispatchers(self._entity)
+   end
+
 end
 
 function AIComponent:_create_top_execution_frame()
