@@ -90,7 +90,7 @@ run-autotest:
 
 .PHONY: run-pathfinder-benchmark
 run-pathfinder-benchmark:
-	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_autotest --mods.stonehearth_autotest.options.script=/stonehearth_autotest/tests/pathfinder/pathfinder_benchmark.lua
+	cd $(RUN_ROOT) && $(STONEHEARTH_APP) $(FLAGS) --game.main_mod=stonehearth_autotest --mods.stonehearth_autotest.options.script="stonehearth_autotest/tests/pathfinder/pathfinder_benchmark.lua"
 	tail $(RUN_ROOT)/stonehearth.log | egrep "solved.*PPS"
 
 run-%-test:
