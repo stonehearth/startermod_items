@@ -44,6 +44,9 @@ function CollectAnimalFromWorld:run(ai, entity, args)
    if pasture_component then
       -- wander a bunch
       ai:execute('stonehearth:wander', {radius = 100, radius_min = 30})
+      ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
+
+      --TODO: decrease likelihood of animal popping either after the 1st or on a timer
 
       -- pop an animal near where we've wandered
       local origin = radiant.entities.get_world_grid_location(entity)

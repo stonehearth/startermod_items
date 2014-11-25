@@ -1,7 +1,7 @@
 local ShepherdedAnimalComponent = class()
 
 function ShepherdedAnimalComponent:initialize(entity, json)
-   self._entity = entity
+   self._entity = entity  --this is the pasture tag, not the actual animal
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.pasture_id = nil
@@ -12,6 +12,12 @@ function ShepherdedAnimalComponent:initialize(entity, json)
 end
 
 function ShepherdedAnimalComponent:destroy()
+end
+
+--Remember the animal that this component is following
+--The self._entity is the pasture tag. 
+function ShepherdedAnimalComponent:set_animal(animal_entity)
+   self._sv.animal = animal_entity
 end
 
 function ShepherdedAnimalComponent:set_pasture(pasture_entity_id)
