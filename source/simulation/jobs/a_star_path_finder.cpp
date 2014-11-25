@@ -294,7 +294,6 @@ void AStarPathFinder::Restart()
    ASSERT(!solution_);
 
    ClearClosed();
-   _closedLookup.clear();
    closedBounds_ = csg::Cube3::zero;
    ClearOpen();
    _openLookup.clear();
@@ -393,7 +392,6 @@ void AStarPathFinder::Work(const platform::timer &timer)
       } else {
          closedBounds_.Grow(current->pt);
       }
-      _closedLookup.insert(current->pt);
       closed_.emplace(current->pt, current);
       WatchWorldPoint(current->pt);
 
@@ -457,7 +455,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost)
 {
-   if (_closedLookup.find(next) != _closedLookup.end()) {
+   if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
       return;
    }
@@ -644,7 +642,6 @@ void AStarPathFinder::SetSearchExhausted()
 
    if (!search_exhausted_) {
       ClearClosed();
-      _closedLookup.clear();
       closedBounds_ = csg::Cube3::zero;
       ClearOpen();
       _openLookup.clear();
@@ -698,7 +695,6 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       search_exhausted_ = false;
       solution_ = nullptr;
       ClearClosed();
-      _closedLookup.clear();
       closedBounds_ = csg::Cube3::zero;
       ClearOpen();
       _openLookup.clear();
