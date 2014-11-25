@@ -2,6 +2,9 @@
 #define _RADIANT_CHROMIUM_APP_APP_H
 
 #include "include/cef_app.h"
+// Chromium and radiant both define LOG. Fix the conflict here.
+#undef LOG
+#include "radiant.h"
 #include "chromium/chromium.h"
 
 BEGIN_RADIANT_CHROMIUM_NAMESPACE

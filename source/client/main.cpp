@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "core/config.h"
 #include "client/application.h"
-#include "chromium/app/app.h"
-#include <luabind/luabind.hpp>
 
 // #include "GFx.h"
 
