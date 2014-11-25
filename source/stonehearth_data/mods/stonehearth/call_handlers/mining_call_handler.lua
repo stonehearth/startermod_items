@@ -111,6 +111,7 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       :set_cursor('stonehearth:cursors:harvest')
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :select_front_brick(false)
+      :set_validation_offset(Point3.unit_y)
       :set_find_support_filter(function(selected, selector)
             -- fast check for 'is terrain'
             if selected.entity:get_id() == 1 then
