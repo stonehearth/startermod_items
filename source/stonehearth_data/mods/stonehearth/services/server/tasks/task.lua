@@ -113,6 +113,7 @@ function Task:set_source(source)
 end
 
 function Task:set_priority(priority)
+   assert(priority)
    assert(self._state == PAUSED)
    self._priority = priority
    return self
