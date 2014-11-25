@@ -110,7 +110,7 @@ end
 -- We actually want the XP to be gained on harvesting; this is mostly for testing purposes.
 function TrapperClass:_on_set_trap(args)
    --Comment in for testing, or write activation fn for autotests
-   self._job_component:add_exp(90)
+   --self._job_component:add_exp(90)
 end
 
 

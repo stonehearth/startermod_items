@@ -20,6 +20,7 @@ function XZRegionSelector:__init()
    self._require_unblocked = false
    self._show_rulers = true
    self._select_front_brick = true
+   self._validation_offset = nil
    self._allow_select_cursor = false
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
@@ -40,8 +41,14 @@ function XZRegionSelector:set_show_rulers(value)
    return self
 end
 
-function XZRegionSelector:select_front_brick(v)
-   self._select_front_brick = v
+function XZRegionSelector:select_front_brick(value)
+   self._select_front_brick = value
+   return self
+end
+
+-- ugly parameter used to validate a different region than the selected region
+function XZRegionSelector:set_validation_offset(value)
+   self._validation_offset = value
    return self
 end
 
@@ -333,10 +340,11 @@ function XZRegionSelector:_update()
       return
    end
 
-   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
+   local p0, p1 = self._p0, self._p1
+   local selected_cube = p0 and p1 and self:_create_cube(p0, p1)
 
    self:_update_selected_cube(selected_cube)
-   self:_update_rulers(self._p0, self._p1)
+   self:_update_rulers(p0, p1)
    self:_update_cursor(selected_cube ~= nil)
 
    if self._action == 'notify' then
@@ -349,17 +357,24 @@ function XZRegionSelector:_update()
    end
 end
 
-function XZRegionSelector:_resolve_endpoints(start, finish)
+function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish_normal)
    local valid_endpoints = false
 
    log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
 
-   start, finish = self._get_proposed_points_fn(start, finish)
+   start, finish = self._get_proposed_points_fn(start, finish, start_normal, finish_normal)
    log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
+
+   -- this is ugly
+   start, finish = self:_add_validation_offset(start, finish)
 
    if self:_is_valid_location(start) then
       finish = self:_compute_p1(start, finish)
-      start, finish = self._get_resolved_points_fn(start, finish)
+
+      -- this is ugly
+      start, finish = self:_remove_validation_offset(start, finish)
+
+      start, finish = self._get_resolved_points_fn(start, finish, start_normal, finish_normal)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
       valid_endpoints = start and finish
    end
@@ -371,46 +386,66 @@ function XZRegionSelector:_resolve_endpoints(start, finish)
    return start, finish
 end
 
+function XZRegionSelector:_add_validation_offset(start, finish)
+   local offset = self._validation_offset
+
+   if offset and start and finish then
+      return start + offset, finish + offset
+   else
+      return start, finish
+   end
+end
+
+function XZRegionSelector:_remove_validation_offset(start, finish)
+   local offset = self._validation_offset
+
+   if offset and start and finish then
+      return start - offset, finish - offset
+   else
+      return start, finish
+   end
+end
+
 function XZRegionSelector:_on_mouse_event(event)
    -- This is the action that will be taken in _update() unless specified otherwise
    self._action = 'notify'
 
-   local current_brick, normal = self:_get_brick_at(event.x, event.y)
+   local brick, normal = self:_get_brick_at(event.x, event.y)
 
-   if current_brick and self._select_front_brick then
+   if brick and self._select_front_brick then
       -- get the brick in front of the stabbed brick
-      current_brick = current_brick + normal
+      brick = brick + normal
    end
 
    local state_transition_fn = self._dispatch_table[self._state]
    assert(state_transition_fn)
 
    -- Given the inputs and the current state, get the next state
-   local next_state = state_transition_fn(self, event, current_brick, normal)
+   local next_state = state_transition_fn(self, event, brick, normal)
    self:_update()
 
-   self._last_brick = current_brick
+   self._last_brick = brick
    self._state = next_state
 end
 
-function XZRegionSelector:_run_start_state(event, current_brick, normal)
+function XZRegionSelector:_run_start_state(event, brick, normal)
    if event:up(2) then
       self._action = 'reject'
       return 'stop'
    end
 
-   if not current_brick then
+   if not brick then
       self._p0, self._p1 = nil, nil
       return 'start'
    end
 
    -- avoid spamming recalculcation and update if nothing has changed
-   if current_brick == self._last_brick and not event:down(1) then
+   if brick == self._last_brick and not event:down(1) then
       self._action = nil
       return 'start'
    end
 
-   local start, finish = self:_resolve_endpoints(current_brick, current_brick)
+   local start, finish = self:_resolve_endpoints(brick, brick, normal, normal)
 
    if not start or not finish then
       self._p0, self._p1 = nil, nil
@@ -420,25 +455,26 @@ function XZRegionSelector:_run_start_state(event, current_brick, normal)
    self._p0, self._p1 = start, finish
 
    if event:down(1) then
+      self._p0_normal = normal
       return 'p0_selected'
    else
       return 'start'
    end
 end
 
-function XZRegionSelector:_run_p0_selected_state(event, current_brick, normal)
+function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    if event:up(2) then
       self._action = 'reject'
       return 'stop'
    end
 
    -- avoid spamming recalculcation and update if nothing has changed
-   if current_brick == self._last_brick and not event:up(1) then
+   if brick == self._last_brick and not event:up(1) then
       self._action = nil
       return 'p0_selected'
    end
 
-   local start, finish = self:_resolve_endpoints(self._p0, current_brick)
+   local start, finish = self:_resolve_endpoints(self._p0, brick, self._p0_normal, normal)
 
    if not start or not finish then
       -- the start state should have guaranteed a minimally valid region
@@ -456,7 +492,8 @@ function XZRegionSelector:_run_p0_selected_state(event, current_brick, normal)
    end
 end
 
-function XZRegionSelector:_run_stop_state(event, current_brick, normal)
+function XZRegionSelector:_run_stop_state(event, brick, normal)
+   -- waiting to be destroyed
    return 'stop'
 end
 

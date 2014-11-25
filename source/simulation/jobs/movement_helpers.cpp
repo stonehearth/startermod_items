@@ -169,14 +169,11 @@ bool MovementHelper::TestAdjacentMove(Simulation& sim, om::EntityPtr entity, boo
 
    phys::NavGrid& ng = octTree.GetNavGrid();
 
-
    for (csg::Point3 const& offset : GetElevationOffsets(entity, reversible)) {
       csg::Point3 toCandidate(base + offset);
-      if (ng.IsStandable(entity, toCandidate)) {
-         if (octTree.ValidMove(entity, reversible, from, toCandidate)) {
-            to = toCandidate;
-            return true;
-         }
+      if (octTree.ValidMove(entity, reversible, from, toCandidate)) {
+         to = toCandidate;
+         return true;
       }
    }
    return false;
