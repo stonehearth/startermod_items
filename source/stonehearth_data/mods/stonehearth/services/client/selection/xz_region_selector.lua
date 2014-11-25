@@ -357,12 +357,12 @@ function XZRegionSelector:_update()
    end
 end
 
-function XZRegionSelector:_resolve_endpoints(start, finish)
+function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish_normal)
    local valid_endpoints = false
 
    log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
 
-   start, finish = self._get_proposed_points_fn(start, finish)
+   start, finish = self._get_proposed_points_fn(start, finish, start_normal, finish_normal)
    log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
 
    -- this is ugly
@@ -374,7 +374,7 @@ function XZRegionSelector:_resolve_endpoints(start, finish)
       -- this is ugly
       start, finish = self:_remove_validation_offset(start, finish)
 
-      start, finish = self._get_resolved_points_fn(start, finish)
+      start, finish = self._get_resolved_points_fn(start, finish, start_normal, finish_normal)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
       valid_endpoints = start and finish
    end
@@ -421,14 +421,14 @@ function XZRegionSelector:_on_mouse_event(event)
    assert(state_transition_fn)
 
    -- Given the inputs and the current state, get the next state
-   local next_state = state_transition_fn(self, event, brick)
+   local next_state = state_transition_fn(self, event, brick, normal)
    self:_update()
 
    self._last_brick = brick
    self._state = next_state
 end
 
-function XZRegionSelector:_run_start_state(event, brick)
+function XZRegionSelector:_run_start_state(event, brick, normal)
    if event:up(2) then
       self._action = 'reject'
       return 'stop'
@@ -445,7 +445,7 @@ function XZRegionSelector:_run_start_state(event, brick)
       return 'start'
    end
 
-   local start, finish = self:_resolve_endpoints(brick, brick)
+   local start, finish = self:_resolve_endpoints(brick, brick, normal, normal)
 
    if not start or not finish then
       self._p0, self._p1 = nil, nil
@@ -455,13 +455,14 @@ function XZRegionSelector:_run_start_state(event, brick)
    self._p0, self._p1 = start, finish
 
    if event:down(1) then
+      self._p0_normal = normal
       return 'p0_selected'
    else
       return 'start'
    end
 end
 
-function XZRegionSelector:_run_p0_selected_state(event, brick)
+function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    if event:up(2) then
       self._action = 'reject'
       return 'stop'
@@ -473,7 +474,7 @@ function XZRegionSelector:_run_p0_selected_state(event, brick)
       return 'p0_selected'
    end
 
-   local start, finish = self:_resolve_endpoints(self._p0, brick)
+   local start, finish = self:_resolve_endpoints(self._p0, brick, self._p0_normal, normal)
 
    if not start or not finish then
       -- the start state should have guaranteed a minimally valid region
@@ -491,7 +492,8 @@ function XZRegionSelector:_run_p0_selected_state(event, brick)
    end
 end
 
-function XZRegionSelector:_run_stop_state(event, brick)
+function XZRegionSelector:_run_stop_state(event, brick, normal)
+   -- waiting to be destroyed
    return 'stop'
 end
 

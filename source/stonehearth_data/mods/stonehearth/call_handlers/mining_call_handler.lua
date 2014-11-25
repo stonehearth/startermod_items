@@ -10,7 +10,23 @@ local log = radiant.log.create_logger('mining')
 
 local MiningCallHandler = class()
 
-function MiningCallHandler:designate_mining_zone(session, response, mode)
+function aligned_floor(value, align)
+   return math.floor(value / align) * align
+end
+
+function aligned_ceil(value, align)
+   return math.ceil(value / align) * align
+end
+
+function get_cell_min(value, cell_size)
+   return aligned_floor(value, cell_size)
+end
+
+function get_cell_max(value, cell_size)
+   return get_cell_min(value, cell_size) + cell_size-1
+end
+
+function MiningCallHandler:designate_mining_zone(session, response)
    local enable_mining = radiant.util.get_config('enable_mining', false)
    if not enable_mining then
       response:reject('disabled')
@@ -22,40 +38,13 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
    local y_cell_size = constants.mining.Y_CELL_SIZE
 
-   local aligned_floor = function(value, align)
-      return math.floor(value / align) * align
-   end
-
-   local aligned_ceil = function(value, align)
-      return math.ceil(value / align) * align
-   end
-
-   local get_cell_min = aligned_floor
-
-   local get_cell_max = function(value, cell_size)
-      return get_cell_min(value, cell_size) + cell_size-1
-   end
-
-   local valid_endpoints = function(p0, p1)
-      if not p0 or not p1 then
-         return false
-      end
-
-      -- TODO: ask the world generation service for the y level of the world floor
-      if p0.y <= 0 or p1.y <= 0 then
-         return false
-      end
-
-      return true
-   end
-
-   local get_proposed_points = function(p0, p1)
-      if not valid_endpoints(p0, p1) then
+   local get_proposed_points = function(p0, p1, p0_normal, p1_normal)
+      if not self:_valid_endpoints(p0, p1) then
          return nil, nil
       end
       
-      -- Set the y level to the top of the zone
-      local y_offset = mode == 'out' and -1 or 0
+      local mode = self:_get_mode(p0, p1, p0_normal, p1_normal)
+      local y_offset = self:_get_y_offset(mode)
       local y = get_cell_max(p0.y, y_cell_size) + y_offset
       local q0 = Point3(p0.x, y, p0.z)
       local q1 = Point3(p1.x, y, p1.z)
@@ -75,14 +64,14 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       return q0, q1
    end
 
-   local get_resolved_points = function(p0, p1)
-      if not valid_endpoints(p0, p1) then
+   local get_resolved_points = function(p0, p1, p0_normal, p1_normal)
+      if not self:_valid_endpoints(p0, p1) then
          return nil, nil
       end
       
       assert(p0.y == p1.y)
-      local q0 = Point3(p0.x, p0.y, p0.z)
-      local q1 = Point3(p1.x, p1.y, p1.z)
+      local q0 = Point3(p0)
+      local q1 = Point3(p1)
 
       -- Contract q1 to the largest quantized region that fits inside the validated region.
       -- q0's final location is the same as the proposed location, which must be valid
@@ -107,35 +96,41 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       return q0, q1
    end
 
+   local terrain_suport_filter = function(selected, selector)
+      -- fast check for 'is terrain'
+      if selected.entity:get_id() == 1 then
+         return true
+      end
+      -- otherwise, keep looking!
+      return stonehearth.selection.FILTER_IGNORE
+   end
+
+   local contain_entity_filter = function(entity)
+      -- allow mining zones to overlap when dragging out the region
+      if entity:get_uri() == 'stonehearth:mining_zone_designation' then
+         return stonehearth.selection.FILTER_IGNORE
+      end
+      return stonehearth.selection.designation_can_contain(entity)
+   end
+
+   local draw_region_outline_marquee = function(selector, box)
+      local mode = self:_infer_mode(box)
+      local region = self:_get_dig_region(box, mode)
+      local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
+      return render_node
+   end
+
    stonehearth.selection:select_xz_region()
       :set_cursor('stonehearth:cursors:harvest')
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :select_front_brick(false)
       :set_validation_offset(Point3.unit_y)
-      :set_find_support_filter(function(selected, selector)
-            -- fast check for 'is terrain'
-            if selected.entity:get_id() == 1 then
-               return true
-            end
-            -- otherwise, keep looking!
-            return stonehearth.selection.FILTER_IGNORE
-         end)
-
-      :set_can_contain_entity_filter(function(entity)
-            -- allow mining zones to overlap when dragging out the region
-            if entity:get_uri() == 'stonehearth:mining_zone_designation' then
-               return stonehearth.selection.FILTER_IGNORE
-            end
-            return stonehearth.selection.designation_can_contain(entity)
-         end)
-
-      :use_manual_marquee(function(selector, box)
-            local region = self:_get_dig_region(box, mode)
-            local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
-            return render_node
-         end)
+      :set_find_support_filter(terrain_suport_filter)
+      :set_can_contain_entity_filter(contain_entity_filter)
+      :use_manual_marquee(draw_region_outline_marquee)
 
       :done(function(selector, box)
+            local mode = self:_infer_mode(box)
             local region = self:_get_dig_region(box, mode)
             _radiant.call('stonehearth:add_mining_zone', region, mode)
                :done(function(r)
@@ -158,6 +153,49 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       :go()
 end
 
+function MiningCallHandler:_valid_endpoints(p0, p1)
+   if not p0 or not p1 then
+      return false
+   end
+
+   -- TODO: ask the world generation service for the y level of the world floor
+   if p0.y <= 0 or p1.y <= 0 then
+      return false
+   end
+
+   return true
+end
+
+function MiningCallHandler:_get_y_offset(mode)
+   return mode == 'down' and 0 or -1
+end
+
+function MiningCallHandler:_get_mode(p0, p1, p0_normal, p1_normal)
+   -- if the normal of the staring brick is horizontal, the mode is out
+   if p0_normal.y == 0 then
+      return 'out'
+   end
+
+   -- if the top of the starting brick is aligned, then mode is down
+   if (p0.y + 1) % constants.mining.Y_CELL_SIZE == 0 then
+      return 'down'
+   else
+      return 'out'
+   end
+end
+
+function MiningCallHandler:_infer_mode(box)
+   if box.max.y % constants.mining.Y_CELL_SIZE == 0 then
+      return 'down'
+   else
+      return 'out'
+   end
+end
+
+function MiningCallHandler:_get_aligned_cube(cube)
+   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
+end
+
 function MiningCallHandler:_get_dig_region(selection_box, mode)
    local cube = nil
 
@@ -173,10 +211,6 @@ function MiningCallHandler:_get_dig_region(selection_box, mode)
    else
       return nil
    end
-end
-
-function MiningCallHandler:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 -- test code
