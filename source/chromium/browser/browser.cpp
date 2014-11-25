@@ -53,8 +53,21 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
 
    CefSettings settings;   
 
-   CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();   
-   settings.log_severity = LOGSEVERITY_DISABLE;
+   CefString(&settings.log_file) = (core::System::GetInstance().GetTempDirectory() / "chromium.log").wstring().c_str();
+   std::string logSeverity = core::Config::GetInstance().Get<std::string>("chromium_log_severity", "default");
+   if (logSeverity == "verbose") {
+      settings.log_severity = LOGSEVERITY_VERBOSE;
+   } else if (logSeverity == "info") {
+      settings.log_severity = LOGSEVERITY_INFO;
+   } else if (logSeverity == "warning") {
+      settings.log_severity = LOGSEVERITY_WARNING;
+   } else if (logSeverity == "error") {
+      settings.log_severity = LOGSEVERITY_ERROR;
+   } else if (logSeverity == "disable") {
+      settings.log_severity = LOGSEVERITY_DISABLE;
+   } else {
+      settings.log_severity = LOGSEVERITY_DEFAULT;
+   }
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
 
