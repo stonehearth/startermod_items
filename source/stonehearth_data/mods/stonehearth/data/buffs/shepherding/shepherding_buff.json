@@ -1,0 +1,9 @@
+{
+   "type" : "debuff",
+   "invisible_to_player" : true,
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 0.30
+      }
+   }
+} 

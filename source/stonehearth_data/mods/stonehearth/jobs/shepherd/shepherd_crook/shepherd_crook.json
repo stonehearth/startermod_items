@@ -26,7 +26,7 @@
       "stonehearth:equipment_piece" : {
          "slot" : "mainhand",
          "render_type" : "attach_to_bone",
-         "postures" : [ "stonehearth:combat" ]
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ]
       }
    },
    "entity_data" : {

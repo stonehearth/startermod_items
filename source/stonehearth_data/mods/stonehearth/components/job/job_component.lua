@@ -381,6 +381,10 @@ function JobComponent:get_xp_to_next_lv()
    return self._sv.xp_to_next_lv
 end
 
+function JobComponent:get_curr_job_controller()
+   return self._sv.curr_job_controller
+end
+
 -- Calculate the exp requried to get to the level after this one. 
 function JobComponent:_calculate_xp_to_next_lv()
    local next_level = self._sv.attributes_component:get_attribute('total_level') + 1
