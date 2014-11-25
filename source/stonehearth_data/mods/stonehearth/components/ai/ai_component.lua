@@ -3,6 +3,7 @@ local AIComponent = class()
 local ExecutionFrame = require 'components.ai.execution_frame'
 
 local action_key_to_activity = {}
+local ALL_DISPATCHERS = {}
 
 -- We want the key-to-activity entry to go away when no-one else is referencing it,
 -- so make this table's keys weak.
@@ -30,7 +31,9 @@ function AIComponent:initialize(entity, json)
    if not self._sv._initialized then
       -- wait until the entity is completely initialized before piling all our
       -- observers and actions
+
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
+            self._sv._dispatchers = json.dispatchers
             self:_initialize(json)
 
             -- wait until the very next gameloop to start our thread.  this gives the
@@ -305,9 +308,52 @@ function AIComponent:_initialize(json)
          self:add_observer(uri)
       end
    end
+   self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)
+
+   -- all the dynamic dispatchers into our entity.  this wires together big sections
+   -- of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)   
 
    self._sv._initialized = true
    self.__saved_variables:mark_changed()
+end
+
+
+-- create a single task dispatcher which delegates the implementation of
+-- parent_activity to info.does at info.priority.  for example:
+--
+--    parent_activity: 'stonehearth:top'
+--    info : { 
+--               does : 'stonehearth:work',
+--               does : 'stonehearth:basic_needs',
+--           }
+--
+function AIComponent:_create_task_dispacher(parent_activity, info)
+   local key = string.format('%s -> %s @ %d', parent_activity, info.does, info.priority)
+   local dispatcher = ALL_DISPATCHERS[key]
+   if not dispatcher then      
+      local TaskDispacher = class()
+      TaskDispacher.name = parent_activity .. ' dispatcher'
+      TaskDispacher.does = parent_activity
+      TaskDispacher.args = {}
+      TaskDispacher.version = 2
+      TaskDispacher.priority = info.priority
+
+      dispatcher = stonehearth.ai:create_compound_action(TaskDispacher)
+                                    :execute(info.does, {})
+      ALL_DISPATCHERS[key] = dispatcher
+   end
+   return dispatcher
+end
+
+-- create the task dispatchers for an entry in the player_task_groups blob.
+--
+function AIComponent:_create_task_dispatchers(parent_activity, groups)
+   if groups then
+      for name, info in pairs(groups) do
+         local dispatcher = self:_create_task_dispacher(parent_activity, info)
+         self:add_custom_action(dispatcher)
+      end
+   end
 end
 
 function AIComponent:stop()
@@ -372,14 +418,6 @@ function AIComponent:start()
       end
    end)
    self._thread:start()
-
-   -- ask the town to inject all the dynamic dispatchers into our entity.  this wires
-   -- together big sections of the dispatch tree (eg. top -> work, top -> basic_needs, etc.)
-   local town = stonehearth.town:get_town(self._entity)
-   if town then
-      town:inject_task_dispatchers(self._entity)
-   end
-
 end
 
 function AIComponent:_create_top_execution_frame()

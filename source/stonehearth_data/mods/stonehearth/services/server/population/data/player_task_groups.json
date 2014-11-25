@@ -36,15 +36,5 @@
          "name" : "trapping_task_group",
          "dispatcher" : "stonehearth:herding"
       }
-   },
-   "task_groups_new_hotness" : {
-      "basic_needs" : {
-         "does" : "stonehearth:basic_needs",
-         "priority" : 20
-      },
-      "work" : {
-         "does" : "stonehearth:work",
-         "priority" : 40
-      }
-   }   
+   }
 }

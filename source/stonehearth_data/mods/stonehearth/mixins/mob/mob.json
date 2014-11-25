@@ -5,6 +5,17 @@
          "mob_collision_type" : "humanoid"
       },
       "stonehearth:ai" : {
+         "dispatchers" : {
+            "basic_needs" : {
+               "does" : "stonehearth:basic_needs",
+               "priority" : 20
+            },
+            "work" : {
+               "does" : "stonehearth:work",
+               "priority" : 40
+            }
+         },
+         
          "actions" : [
             "stonehearth:actions:death",
             "stonehearth:actions:die_generic",
