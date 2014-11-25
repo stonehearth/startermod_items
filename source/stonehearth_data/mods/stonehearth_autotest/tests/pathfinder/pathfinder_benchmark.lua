@@ -37,8 +37,8 @@ function pathfinder_benchmark.basic_a_star(autotest)
       local location = Point3(entry.coord.x, 10, entry.coord.z)
       radiant.terrain.place_entity(person, location)
       local start = radiant.entities.get_world_grid_location(person)
-      local function start_pathfinder()
 
+      local function start_pathfinder()
          local job
          if DEBUG_FOLLOW_SHOW_PATHS then
             job = autotest.ai:compel(person, 'stonehearth:goto_entity', {
