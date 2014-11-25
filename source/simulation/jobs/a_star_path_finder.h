@@ -118,9 +118,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       std::vector<csg::Point3f>     _directPathCandiate;
       mutable const char*           _lastIdleCheckResult;
 
-      boost::container::flat_set<int> _closedLookup;
-      boost::container::flat_map<int, PathFinderNode*> _openLookup;
-      csg::Point3::Hash               _hasher;
+      std::unordered_set<csg::Point3, csg::Point3::Hash> _closedLookup;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash> _openLookup;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;

@@ -393,7 +393,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       } else {
          closedBounds_.Grow(current->pt);
       }
-      _closedLookup.insert(_hasher(current->pt));
+      _closedLookup.insert(current->pt);
       closed_.emplace(current->pt, current);
       WatchWorldPoint(current->pt);
 
@@ -457,8 +457,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost)
 {
-   const int nextHash = _hasher(next);
-   if (_closedLookup.find(nextHash) != _closedLookup.end()) {
+   if (_closedLookup.find(next) != _closedLookup.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
       return;
    }
@@ -467,14 +466,14 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
 
    bool update = false;
    float g = current->g + movementCost;
-   auto& itr = _openLookup.find(nextHash);
+   auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
       float h = EstimateCostToDestination(next);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
       open_.emplace_back(new PathFinderNode(next, f, g, current));
-      _openLookup.emplace(_hasher(next), open_.back());
+      _openLookup.emplace(next, open_.back());
       if (!rebuildHeap_) {
          push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
       }
@@ -580,7 +579,7 @@ PathFinderNode* AStarPathFinder::PopClosestOpenNode()
 
    PF_LOG(10) << " PopClosestOpenNode returning " << result->pt << ". " << open_.size() << " points remain in open set";
 
-   _openLookup.erase(_hasher(result->pt));
+   _openLookup.erase(result->pt);
    return result;
 }
 
