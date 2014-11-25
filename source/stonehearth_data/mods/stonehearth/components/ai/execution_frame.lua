@@ -32,17 +32,18 @@ local STOPPED = 'stopped'
 local DEAD = 'dead'
 local HALTED = 'halted'
 
-local debug_info_state_order = {}
-debug_info_state_order[RUNNING] = 0
-debug_info_state_order[STARTING] = 1
-debug_info_state_order[STARTED] = 1
-debug_info_state_order[READY] = 2
-debug_info_state_order[THINKING] = 3
-debug_info_state_order[STARTING_THINKING] = 3
-debug_info_state_order[FINISHED] = 9
-debug_info_state_order[STOPPING] = 9
-debug_info_state_order[STOPPED] = 9
-debug_info_state_order[DEAD] = 9
+local debug_info_state_order = {
+   [RUNNING] = 0,
+   [STARTING] = 1,
+   [STARTED] = 1,
+   [READY] = 2,
+   [THINKING] = 3,
+   [STARTING_THINKING] = 3,
+   [FINISHED] = 9,
+   [STOPPING] = 9,
+   [STOPPED] = 9,
+   [DEAD] = 9,
+}
 
 local INFINITE = 1000000000
 local ABORT_FRAME = ':aborted_frame:'
@@ -391,6 +392,12 @@ function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)
    self._log:debug('_start_thinking_from_stopped')
    
    self._args = args
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.args = stonehearth.ai:format_args(self._args)
+         end)
+   end
+
    self._log:debug('set execution frame arguments to %s %s', self._activity_name, stonehearth.ai.format_args(self._args))
 
    -- errata note 1 : this is actually probably correct, but look at it?  wtf?  this code is extremely
@@ -412,6 +419,10 @@ function ExecutionFrame:_do_destroy()
    if self._carry_listener then
       self._carry_listener:destroy()
       self._carry_listener = nil
+   end
+   if self._debug_info then
+      radiant.destroy_datastore(self._debug_info)
+      self._debug_info = nil
    end
 end
 
@@ -1082,6 +1093,7 @@ function ExecutionFrame:_remove_execution_unit(unit)
          unit:_destroy()
          self._execution_units[key] = nil
          self._saved_think_output[u] = nil
+         self:_update_debug_info()
          return
       end
    end
@@ -1170,6 +1182,7 @@ function ExecutionFrame:_add_execution_unit(key, entry)
    else
       assert(not self._execution_units[key])
       self._execution_units[key] = unit
+      self:_update_debug_info()
    end
    return unit
 end
@@ -1292,34 +1305,42 @@ function ExecutionFrame:_get_best_execution_unit()
    return active_unit
 end
 
-function ExecutionFrame:get_debug_info()
-   local info = {
-      id = 'f:' .. tostring(self._id),
-      state = self:get_state(),
-      activity = {
-         name = self._activity_name,
-      },
-      args = stonehearth.ai:format_args(self._args),
-      execution_units = {
-         n = 0,
-      }
-   }
-
-   for _, unit in pairs(self._execution_units) do
-      table.insert(info.execution_units, unit:get_debug_info())
+function ExecutionFrame:get_debug_info(depth)
+   if not self._debug_info then
+      self._debug_info = radiant.create_datastore({ depth = depth + 1 })
+      self:_update_debug_info()
    end
+   return self._debug_info
+end
 
-   table.sort(info.execution_units,
-      function (a, b)
-         local a_rank = debug_info_state_order[a.state]
-         local b_rank = debug_info_state_order[b.state]
-         if a_rank ~= b_rank then
-            return a_rank < b_rank
+function ExecutionFrame:_update_debug_info()
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+         o.id = 'f:' .. tostring(self._id)
+         o.state = self._state
+         o.activity = {
+            name = self._activity_name,
+         }
+         o.args = stonehearth.ai:format_args(self._args)
+         o.execution_units = {
+            n = 0,
+         }
+         for _, unit in pairs(self._execution_units) do
+            table.insert(o.execution_units, unit:get_debug_info(o.depth))
          end
-         return a.action.name < b.action.name
-      end
-   )
-   return info
+         table.sort(o.execution_units,
+            function (a_datastore, b_datastore)
+               local a, b = a_datastore:get_data(), b_datastore:get_data()
+               local a_rank = debug_info_state_order[a.state]
+               local b_rank = debug_info_state_order[b.state]
+               if a_rank ~= b_rank then
+                  return a_rank < b_rank
+               end
+               return a.name < b.name
+            end
+         )
+      end)
+   end
 end
 
 function ExecutionFrame:_spam_current_state(msg)
@@ -1354,6 +1375,11 @@ function ExecutionFrame:_set_state(state)
    self:_trace_state_change(tostring(self._state), state)
    self._state = state
    
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.state = self._state
+         end)
+   end
    local going_to_frame = self._thread:get_thread_data('stonehearth:unwind_to_frame')
    assert(not going_to_frame)
  

@@ -146,9 +146,9 @@ function ExecutionUnitV2:get_current_entity_state()
    return self._current_entity_state
 end
 
-function ExecutionUnitV2:_get_action_debug_info()
+function ExecutionUnitV2:_get_action_debug_info(depth)
    if self._action.get_debug_info then
-      return self._action:get_debug_info(self, self._entity)
+      return self._action:get_debug_info(depth)
    end
    return {
       name = self._action.name,
@@ -158,20 +158,19 @@ function ExecutionUnitV2:_get_action_debug_info()
    }
 end
 
-function ExecutionUnitV2:get_debug_info()
-   local info = {
-      id = 'u:' .. tostring(self._id),
-      state = self._state,
-      action = self:_get_action_debug_info(),
-      think_output = stonehearth.ai:format_args(self._think_output),
-      execution_frames = {
-         n = 0,
-      }
-   }
-   if self._current_execution_frame then
-      table.insert(info.execution_frames, self._current_execution_frame:get_debug_info())
+function ExecutionUnitV2:get_debug_info(depth)
+   if not self._debug_info then
+      self._debug_info = radiant.create_datastore()
+      self._debug_info:modify(function(o)
+            o.id = 'u:' .. tostring(self._id)
+            o.depth = depth + 1
+            o.state = self._state
+            o.name = self._action.name
+            o.action = self:_get_action_debug_info(o.depth)
+         end)
+      self:_update_debug_info_execution_frame()
    end
-   return info
+   return self._debug_info
 end
 
 function ExecutionUnitV2:_unknown_transition(msg)
@@ -188,7 +187,7 @@ function ExecutionUnitV2:_should_start_thinking(args, entity_state)
       return false
    end
 
-   self._args = args
+   self:_set_args(args)
    self._current_entity_state = entity_state
    self._ai_interface.CURRENT = entity_state
 
@@ -204,7 +203,7 @@ function ExecutionUnitV2:_start_thinking(args, entity_state)
       self:_stop()
       return
    end
-   self._args = args
+   self:_set_args(args)
 
    if self:in_state(DEAD) then
       self._log:detail('ignoring "start_thinking" in state "%s"', self._state)
@@ -499,6 +498,7 @@ function ExecutionUnitV2:_stop_from_running()
    if self._current_execution_frame then
       self._current_execution_frame:stop(true)
       self._current_execution_frame = nil
+      self:_update_debug_info_execution_frame()
    end  
    self:_do_stop()
 end
@@ -506,7 +506,7 @@ end
 function ExecutionUnitV2:_destroy_from_thinking()
    assert(self._thinking)
    assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
    self:_call_stop_thinking()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -515,7 +515,7 @@ end
 function ExecutionUnitV2:_destroy_from_starting()
    assert(self._thinking)
    assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
 
    if self._thinking then
       self:_call_stop_thinking()
@@ -530,7 +530,7 @@ end
 function ExecutionUnitV2:_destroy_from_stopping()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
@@ -538,14 +538,14 @@ end
 function ExecutionUnitV2:_destroy_from_stopped()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
 
 function ExecutionUnitV2:_destroy_from_running()
    assert(not self._thinking)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
    self:_call_stop()
    self:_call_destroy()
    self:_set_state(DEAD)
@@ -554,7 +554,7 @@ end
 function ExecutionUnitV2:_destroy_from_finished()
    assert(not self._thinking)
    assert(not self._current_execution_frame)
-   self:_destroy_execution_frames()
+   self:_destroy_internal_state()
    self:_call_destroy()
    self:_set_state(DEAD)
 end
@@ -638,13 +638,17 @@ function ExecutionUnitV2:_do_stop_thinking()
    self:_call_stop_thinking()
 end
 
-function ExecutionUnitV2:_destroy_execution_frames()
+function ExecutionUnitV2:_destroy_internal_state()
    for _, frame in pairs(self._execution_frames) do
       frame:destroy()
    end
    self._execution_frames = {}
 
    self._current_execution_frame = nil
+   if self._debug_info then
+      radiant.destroy_datastore(self._debug_info)
+      self._debug_info = nil
+   end
 end
 
 function ExecutionUnitV2:__get_log()
@@ -686,9 +690,11 @@ function ExecutionUnitV2:__execute(activity_name, args)
    assert(self._current_execution_frame)
    assert(self._current_execution_frame:get_state() == STOPPED)
 
+   self:_update_debug_info_execution_frame()      
    self._current_execution_frame:run(args or {})
    self._current_execution_frame:stop()
    self._current_execution_frame = nil
+   self:_update_debug_info_execution_frame()      
 end 
 
 function ExecutionUnitV2:__set_think_output(args)
@@ -850,6 +856,12 @@ function ExecutionUnitV2:_set_state(state)
    else
       self._log:debug('cannot transition to %s from DEAD.  remaining dead', state)
    end   
+
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+            o.state = self._state
+         end)
+   end   
 end
 
 function ExecutionUnitV2:_spam_current_state(msg)
@@ -904,5 +916,28 @@ function ExecutionUnitV2:_destroy_object_monitor()
       self._object_monitor = nil
    end
 end
+
+function ExecutionUnitV2:_set_args(args)
+   self._args = args
+   if self._debug_info then
+      self._debug_info:modify(function(o)
+            o.action.args = stonehearth.ai:format_args(self._args)
+         end)
+   end   
+end
+
+function ExecutionUnitV2:_update_debug_info_execution_frame()
+   if self._debug_info then
+      self._debug_info:modify(function(o)
+            o.execution_frames = {
+               n = 0,
+            }
+            if self._current_execution_frame then
+               table.insert(o.execution_frames, self._current_execution_frame:get_debug_info(o.depth))
+            end
+         end)
+   end
+end
+
 
 return ExecutionUnitV2

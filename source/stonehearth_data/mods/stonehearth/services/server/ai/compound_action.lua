@@ -67,6 +67,7 @@ function CompoundAction:_create_execution_frames()
       local frame = self._ai:spawn(activity.name)
       table.insert(self._execution_frames, frame)
    end
+   self:_update_debug_info()
 end
 
 function CompoundAction:_destroy_execution_frames()
@@ -77,6 +78,7 @@ function CompoundAction:_destroy_execution_frames()
       end
       self._execution_frames = nil
    end
+   self:_update_debug_info()   
 end
 
 function CompoundAction:start_thinking(ai, entity, args)
@@ -84,9 +86,9 @@ function CompoundAction:start_thinking(ai, entity, args)
    assert(#self._previous_think_output == 0)
 
    self._ai = ai
-   self._args = args
    self._log = ai:get_log()
    self._action_cost = 0
+   self:_set_args(args)
 
    if not self._execution_frames then
       self:_create_execution_frames()
@@ -289,22 +291,12 @@ function CompoundAction:destroy()
    end
 end
 
-function CompoundAction:get_debug_info()
-   local info = {
-      name = self.name,
-      does = self.does,
-      args = stonehearth.ai:format_args(self._args),
-      priority = self.priority,
-      execution_frames = {
-         n = 0,
-      }
-   }
-   if self._execution_frames then
-      for _, f in ipairs(self._execution_frames) do
-         table.insert(info.execution_frames, f:get_debug_info())
-      end
+function CompoundAction:get_debug_info(depth)
+   if not self._debug_info then
+      self._debug_info = radiant.create_datastore({ depth = depth + 1})
+      self:_update_debug_info()
    end
-   return info
+   return self._debug_info
 end
 
 function CompoundAction:_get_args()
@@ -333,6 +325,34 @@ function CompoundAction:_spam_current_state(format, ...)
       end   
    else
       self._log:spam('  no CURRENT state!')
+   end
+end
+
+function CompoundAction:_set_args(args)
+   self._args = args
+   if self._debug_info then
+      self._debug_info:modify(function(o)
+            args = stonehearth.ai:format_args(self._args)
+         end)
+   end
+end
+
+function CompoundAction:_update_debug_info(args)
+   if self._debug_info then
+      self._debug_info:modify(function(o)
+            o.name = self.name
+            o.does = self.does
+            o.args = stonehearth.ai:format_args(self._args)
+            o.priority = self.priority
+            o.execution_frames = {
+               n = 0,
+            }
+            if self._execution_frames then
+               for _, f in ipairs(self._execution_frames) do
+                  table.insert(o.execution_frames, f:get_debug_info(o.depth))
+               end
+            end
+         end)
    end
 end
 
