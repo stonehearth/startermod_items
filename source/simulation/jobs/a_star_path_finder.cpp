@@ -270,6 +270,22 @@ AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
    return shared_from_this();
 }
 
+void AStarPathFinder::ClearOpen()
+{
+   for (PathFinderNode* n : open_) {
+      delete n;
+   }
+   open_.clear();
+}
+
+void AStarPathFinder::ClearClosed()
+{
+   for (const auto& i : closed_) {
+      delete i.second;
+   }
+   closed_.clear();
+}
+
 void AStarPathFinder::Restart()
 {
    PF_LOG(5) << "restarting search";
@@ -277,10 +293,9 @@ void AStarPathFinder::Restart()
    ASSERT(restart_search_);
    ASSERT(!solution_);
 
-   closed_.clear();
-   _closedLookup.clear();
+   ClearClosed();
    closedBounds_ = csg::Cube3::zero;
-   open_.clear();
+   ClearOpen();
    _openLookup.clear();
    rebuildHeap_ = true;
    restart_search_ = false;
@@ -296,7 +311,7 @@ void AStarPathFinder::Restart()
       entry.second->Start();
    }
 
-   for (std::unique_ptr<PathFinderNode>& node : open_) {
+   for (PathFinderNode* node : open_) {
       float h = EstimateCostToDestination(node->pt);
       node->f = h;
       node->g = 0;
@@ -371,13 +386,12 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       VERIFY_HEAPINESS();
-      std::shared_ptr<PathFinderNode> current = PopClosestOpenNode();
+      PathFinderNode* current = PopClosestOpenNode();
       if (closed_.empty()) {
          closedBounds_ = csg::Cube3(current->pt);
       } else {
          closedBounds_.Grow(current->pt);
       }
-      _closedLookup.insert(_hasher(current->pt));
       closed_.emplace(current->pt, current);
       WatchWorldPoint(current->pt);
 
@@ -392,7 +406,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
          ASSERT(closest);
 
          std::vector<csg::Point3f> solution;
-         ReconstructPath(solution, current.get());
+         ReconstructPath(solution, current);
          if (SolveSearch(solution, closest)) {
             return;
          }
@@ -405,7 +419,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       // If there are no movement modifiers nearby (mod == 1.0), then we're clear to just
       // try to direct path-find to our destination.
-      if (mod == 1.0 && closest && FindDirectPathToDestination(current.get(), closest)) {
+      if (mod == 1.0 && closest && FindDirectPathToDestination(current, closest)) {
          // Found a solution!  Bail.
          return;
       }
@@ -430,7 +444,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
       o.ComputeNeighborMovementCost(entity_.lock(), current->pt, [this, &current](csg::Point3 const& to, float cost) {
          VERIFY_HEAPINESS();
-         AddEdge(current.get(), to, cost);
+         AddEdge(current, to, cost);
          VERIFY_HEAPINESS();
       });
 
@@ -441,8 +455,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost)
 {
-   const int nextHash = _hasher(next);
-   if (_closedLookup.find(nextHash) != _closedLookup.end()) {
+   if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
       return;
    }
@@ -451,14 +464,14 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
 
    bool update = false;
    float g = current->g + movementCost;
-   auto& itr = _openLookup.find(nextHash);
+   auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
       float h = EstimateCostToDestination(next);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
       open_.emplace_back(new PathFinderNode(next, f, g, current));
-      _openLookup.emplace(_hasher(next), open_.back().get());
+      _openLookup.emplace(next, open_.back());
       if (!rebuildHeap_) {
          push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
       }
@@ -547,22 +560,24 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    return hMin;
 }
 
-std::shared_ptr<PathFinderNode> AStarPathFinder::PopClosestOpenNode()
+PathFinderNode* AStarPathFinder::PopClosestOpenNode()
 {
-   std::shared_ptr<PathFinderNode> result;
-   for (auto const& entry : open_) {
-      PF_LOG(10) << " open node " << entry->pt << " f:" << entry->f << " g:" << entry->g;
-   }
+   PathFinderNode* result;
 
+   if (LOG_IS_ENABLED(simulation.pathfinder.astar, 10)) {
+      for (auto const& entry : open_) {
+         PF_LOG(10) << " open node " << entry->pt << " f:" << entry->f << " g:" << entry->g;
+      }
+   }
    VERIFY_HEAPINESS();
    pop_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
-   result = std::move(open_.back());
+   result = open_.back();
    open_.pop_back();
    VERIFY_HEAPINESS();
 
    PF_LOG(10) << " PopClosestOpenNode returning " << result->pt << ". " << open_.size() << " points remain in open set";
 
-   _openLookup.erase(_hasher(result->pt));
+   _openLookup.erase(result->pt);
    return result;
 }
 
@@ -586,7 +601,7 @@ void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3f> &points) const
       if (rebuildHeap_) {
          const_cast<AStarPathFinder*>(this)->RebuildHeap();
       }
-      ReconstructPath(points, open_.front().get());
+      ReconstructPath(points, open_.front());
    }
 }
 
@@ -626,10 +641,9 @@ void AStarPathFinder::SetSearchExhausted()
    }
 
    if (!search_exhausted_) {
-      closed_.clear();
-      _closedLookup.clear();
+      ClearClosed();
       closedBounds_ = csg::Cube3::zero;
-      open_.clear();
+      ClearOpen();
       _openLookup.clear();
       search_exhausted_ = true;
       if (exhausted_cb_) {
@@ -680,10 +694,9 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       restart_search_ = true;
       search_exhausted_ = false;
       solution_ = nullptr;
-      closed_.clear();
-      _closedLookup.clear();
+      ClearClosed();
       closedBounds_ = csg::Cube3::zero;
-      open_.clear();
+      ClearOpen();
       _openLookup.clear();
       world_changed_ = false;
       watching_tiles_.clear();
@@ -849,7 +862,7 @@ void AStarPathFinder::RebuildOpenHeuristics()
    // The value of h for all search points has changed!  That doesn't
    // affect g, though. Go through the whole openset and re-compute
    // f based on the existing g and the new h.
-   for (std::unique_ptr<PathFinderNode>& node : open_) {
+   for (PathFinderNode* node : open_) {
       float h = EstimateCostToDestination(node->pt);      
       node->f = node->g + h;
    }

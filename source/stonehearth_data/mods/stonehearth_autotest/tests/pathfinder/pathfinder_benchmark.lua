@@ -2,7 +2,7 @@ local Point3 = _radiant.csg.Point3
 
 local pathfinder_benchmark = {}
 
-local PATHFINDING_TIME = 10000
+local PATHFINDING_TIME = 20000
 local DEBUG_FOLLOW_SHOW_PATHS = false
 
 function pathfinder_benchmark.basic_a_star(autotest)
@@ -14,11 +14,7 @@ function pathfinder_benchmark.basic_a_star(autotest)
    -- the test
    local current_speed
    if not DEBUG_FOLLOW_SHOW_PATHS then
-      _radiant.call('radiant:game:get_game_speed')
-                  :done(function(o)
-                        current_speed = o.game_speed
-                        _radiant.call('radiant:game:set_game_speed', 0.1)
-                     end)
+      _radiant.call('radiant:game:set_game_speed', 0.1)
       autotest:sleep(100)
    end
 
@@ -39,11 +35,10 @@ function pathfinder_benchmark.basic_a_star(autotest)
    for _, entry in pairs(people) do
       local person = entry.person
       local location = Point3(entry.coord.x, 10, entry.coord.z)
+      radiant.terrain.place_entity(person, location)
+      local start = radiant.entities.get_world_grid_location(person)
 
       local function start_pathfinder()
-         radiant.terrain.place_entity(person, location)
-         local start = radiant.entities.get_world_grid_location(person)
-
          local job
          if DEBUG_FOLLOW_SHOW_PATHS then
             job = autotest.ai:compel(person, 'stonehearth:goto_entity', {

@@ -14,7 +14,7 @@ function Town:initialize(session)
    self._sv.worker_combat_enabled = false
    self._sv.rally_to_battle_standard = false
    self._sv.mining_zones = {}
-   
+
    self._sv.entity = radiant.entities.create_entity()
    
    self.__saved_variables:mark_changed()
@@ -58,14 +58,14 @@ end
 
 function Town:_create_task_groups()
    self._scheduler = stonehearth.tasks:create_scheduler(self._sv.player_id)
-                                       :set_counter_name(self._sv.player_id)
+                                          :set_counter_name(self._sv.player_id)
 
    self._task_groups = {}
 
    -- Create new task groups
-   local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups').task_groups
+   local task_group_data = radiant.resources.load_json('stonehearth:data:player_task_groups')
    if task_group_data then
-      for task_group_name, entry in pairs(task_group_data) do
+      for task_group_name, entry in pairs(task_group_data.task_groups) do
 
          local group = self._scheduler:create_task_group(entry.dispatcher, {})
                                           :set_counter_name(entry.name)

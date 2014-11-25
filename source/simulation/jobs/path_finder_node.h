@@ -23,7 +23,7 @@ struct PathFinderNode
    {
    }
 
-   static inline bool CompareFitness(std::unique_ptr<PathFinderNode> const& lhs, std::unique_ptr<PathFinderNode> const& rhs) {
+   static inline bool CompareFitness(PathFinderNode *& lhs, PathFinderNode *& rhs) {
       return lhs->f > rhs->f;
    };
 };

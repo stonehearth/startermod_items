@@ -76,7 +76,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest, float maxMoveModifier=1.0f) const;
       float GetMaxMovementModifier(csg::Point3 const& point) const;
 
-      std::shared_ptr<PathFinderNode> PopClosestOpenNode();
+      PathFinderNode* PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode* dst) const;
       void AddEdge(const PathFinderNode* current, const csg::Point3 &next, float cost);
       void RebuildHeap();
@@ -89,6 +89,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
       bool CheckIfIdle() const;
+      void ClearOpen();
+      void ClearClosed();
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
@@ -109,16 +111,14 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       csg::Color4                   debug_color_;
    
       core::Guard                   navgrid_guard_;
-      std::vector<std::unique_ptr<PathFinderNode>>   open_;
+      std::vector<PathFinderNode*>   open_;
       csg::Cube3                    closedBounds_;
-      std::unordered_map<csg::Point3, std::shared_ptr<PathFinderNode>, csg::Point3::Hash>         closed_;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash>         closed_;
       std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::vector<csg::Point3f>     _directPathCandiate;
       mutable const char*           _lastIdleCheckResult;
 
-      boost::container::flat_set<int> _closedLookup;
-      boost::container::flat_map<int, PathFinderNode*> _openLookup;
-      csg::Point3::Hash               _hasher;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash> _openLookup;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;

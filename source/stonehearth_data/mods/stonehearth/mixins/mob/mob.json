@@ -5,6 +5,17 @@
          "mob_collision_type" : "humanoid"
       },
       "stonehearth:ai" : {
+         "dispatchers" : {
+            "basic_needs" : {
+               "does" : "stonehearth:basic_needs",
+               "priority" : 20
+            },
+            "work" : {
+               "does" : "stonehearth:work",
+               "priority" : 40
+            }
+         },
+         
          "actions" : [
             "stonehearth:actions:death",
             "stonehearth:actions:die_generic",
@@ -67,7 +78,6 @@
             "stonehearth:actions:find_direct_path_to_location",
             "stonehearth:actions:add_buff",
             "stonehearth:actions:unit_control:dispatcher",
-            "stonehearth:actions:basic_needs:dispatcher",
             "stonehearth:actions:urgent_actions:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher",
             "stonehearth:actions:get_town_banner", 
