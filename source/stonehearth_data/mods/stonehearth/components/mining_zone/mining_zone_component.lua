@@ -53,6 +53,9 @@ function MiningZoneComponent:initialize(entity, json)
          :set_adjacent(_radiant.sim.alloc_region3())
          :set_reserved(_radiant.sim.alloc_region3())
 
+      self._sv.designation_entity = self:_create_designation_entity()
+
+      -- do this last as it fires off the region changed events
       self:set_region(_radiant.sim.alloc_region3())
 
       self._sv.mining_zone_enabled = true
@@ -62,6 +65,7 @@ function MiningZoneComponent:initialize(entity, json)
       self:_restore()
    end
 
+   self:_trace_location()
    self:_trace_reserved()
 
    -- TODO: listen for changes to terrain
@@ -80,6 +84,9 @@ function MiningZoneComponent:destroy()
    self:_destroy_mining_task()
    self:_destroy_region_trace()
    self:_destroy_reserved_trace()
+   self:_destroy_location_trace()
+
+   radiant.entities.destroy_entity(self._sv._designation_entity)
 end
 
 -- region is a boxed region
@@ -155,7 +162,29 @@ function MiningZoneComponent:_on_region_changed()
    self.__saved_variables:mark_changed()
 
    self:_update_destination()
+   self:_update_designation()
    self:_create_mining_task()
+end
+
+function MiningZoneComponent:_trace_location()
+   self:_destroy_location_trace()
+
+   self._location_trace = radiant.entities.trace_location(self._entity, 'mining zone location')
+      :on_changed(function()
+            self:_on_location_changed()
+         end)
+end
+
+function MiningZoneComponent:_destroy_location_trace()
+   if self._location_trace then
+      self._location_trace:destroy()
+      self._location_trace = nil
+   end
+end
+
+function MiningZoneComponent:_on_location_changed()
+   local location = radiant.entities.get_world_location(self._entity)
+   radiant.terrain.place_entity_at_exact_location(self._sv.designation_entity, location)
 end
 
 function MiningZoneComponent:_trace_reserved()
@@ -446,6 +475,28 @@ function MiningZoneComponent:_update_mining_task()
    else
       self:_destroy_mining_task()
    end
+end
+
+function MiningZoneComponent:_create_designation_entity()
+   local entity = radiant.entities.create_entity('stonehearth:mining_zone_designation')
+   local collision_shape_component = entity:add_component('region_collision_shape')
+      :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
+      :set_region(_radiant.sim.alloc_region3())
+   return entity
+end
+
+function MiningZoneComponent:_update_designation()
+   local collision_shape_component = self._sv.designation_entity:add_component('region_collision_shape')
+   collision_shape_component:get_region():modify(function(cursor)
+         cursor:clear()
+
+         -- make designation region extend 1 block above the zone
+         for cube in self._sv.region:get():each_cube() do
+            cursor:add_cube(cube:inflated(Point3.unit_y))
+         end
+
+         cursor:optimize_by_merge()
+      end)
 end
 
 return MiningZoneComponent

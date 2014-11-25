@@ -36,8 +36,21 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
       return get_cell_min(value, cell_size) + cell_size-1
    end
 
-   local get_proposed_points = function(p0, p1)
+   local valid_endpoints = function(p0, p1)
       if not p0 or not p1 then
+         return false
+      end
+
+      -- TODO: ask the world generation service for the y level of the world floor
+      if p0.y <= 0 or p1.y <= 0 then
+         return false
+      end
+
+      return true
+   end
+
+   local get_proposed_points = function(p0, p1)
+      if not valid_endpoints(p0, p1) then
          return nil, nil
       end
       
@@ -63,7 +76,7 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
    end
 
    local get_resolved_points = function(p0, p1)
-      if not p0 or not p1 then
+      if not valid_endpoints(p0, p1) then
          return nil, nil
       end
       
@@ -106,15 +119,21 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
             -- otherwise, keep looking!
             return stonehearth.selection.FILTER_IGNORE
          end)
+
       :set_can_contain_entity_filter(function(entity)
-            -- TODO
-            return true
+            -- allow mining zones to overlap when dragging out the region
+            if entity:get_uri() == 'stonehearth:mining_zone_designation' then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+            return stonehearth.selection.designation_can_contain(entity)
          end)
+
       :use_manual_marquee(function(selector, box)
             local region = self:_get_dig_region(box, mode)
             local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
             return render_node
          end)
+
       :done(function(selector, box)
             local region = self:_get_dig_region(box, mode)
             _radiant.call('stonehearth:add_mining_zone', region, mode)
@@ -128,11 +147,13 @@ function MiningCallHandler:designate_mining_zone(session, response, mode)
                )
          end
       )
+
       :fail(function(selector)
             selector:destroy()
             response:reject('no region')
          end
       )
+
       :go()
 end
 

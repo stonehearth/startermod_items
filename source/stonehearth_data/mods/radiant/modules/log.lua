@@ -120,8 +120,10 @@ function Log.create_logger(sub_category)
 
       write = function(self, level, format, ...)
             local args = {...}
-            for i, arg in ipairs(args) do
-               if type(arg) ~= 'string' then
+            for i=1,#args do
+               local arg = args[i]
+               local t = type(arg)
+               if t ~= 'string' and t ~= 'number' then
                   args[i] = tostring(arg)
                end
             end

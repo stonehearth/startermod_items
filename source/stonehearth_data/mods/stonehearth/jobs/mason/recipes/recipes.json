@@ -1,5 +1,34 @@
 {
    "craftable_recipes" : {
+      "tools_weapons" : {
+         "ordinal" : 1, 
+         "name" : "Tools & Weapons", 
+         "recipes" : {
 
+         }
+      },
+      "building_parts" : {
+         "ordinal" : 2, 
+         "name" : "Building Parts", 
+         "recipes" : {
+            "stone_bricks" : {
+               "uri" : "file(stone_bricks_recipe.json)"
+            }
+         }
+      },
+      "furniture" : {
+         "ordinal" : 3, 
+         "name" : "Furniture", 
+         "recipes" : {
+
+         }
+      },
+      "signage_decoration" : {
+         "ordinal" : 4, 
+         "name" : "Signage & Decoration", 
+         "recipes" : {
+
+         }
+      }
    }
 }
