@@ -354,7 +354,10 @@ float OctTree::GetSquaredAdjacentMovementCost(const csg::Point3& start, const cs
 
    float speed = navgrid_.GetMovementSpeedAt(start);
 
-   return cost / speed;
+   // We bias the cost here so that entities will prefer paths that are fast (i.e. roads) over
+   // paths that optimal, but off-road.  I am sure there will be *no* unintended side-effects
+   // of doing this.
+   return cost / (speed * speed * speed * speed * speed);
 }
 
 void OctTree::EnableSensorTraces(bool enabled)

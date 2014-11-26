@@ -73,12 +73,12 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void WatchTile(csg::Point3 const& index);
       void RecommendBestPath(std::vector<csg::Point3f> &points) const;
       float EstimateCostToDestination(const csg::Point3 &pt) const;
-      float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest, float maxMoveModifier=1.0f) const;
+      float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest, float maxMod) const;
       float GetMaxMovementModifier(csg::Point3 const& point) const;
 
       PathFinderNode* PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode* dst) const;
-      void AddEdge(const PathFinderNode* current, const csg::Point3 &next, float cost);
+      void AddEdge(const PathFinderNode* current, const csg::Point3 &next, float cost, float maxMod);
       void RebuildHeap();
 
       bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst);

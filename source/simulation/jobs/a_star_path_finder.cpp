@@ -312,7 +312,8 @@ void AStarPathFinder::Restart()
    }
 
    for (PathFinderNode* node : open_) {
-      float h = EstimateCostToDestination(node->pt);
+      float maxMod = GetMaxMovementModifier(node->pt);
+      float h = EstimateCostToDestination(node->pt, nullptr, 1.0f + maxMod);
       node->f = h;
       node->g = 0;
 
@@ -395,10 +396,9 @@ void AStarPathFinder::Work(const platform::timer &timer)
       closed_.emplace(current->pt, current);
       WatchWorldPoint(current->pt);
 
-      float mod = 1.0f + GetMaxMovementModifier(current->pt);
-
+      float maxMod = GetMaxMovementModifier(current->pt);
       PathFinderDst* closest = nullptr;
-      float h = EstimateCostToDestination(current->pt, &closest, mod);
+      float h = EstimateCostToDestination(current->pt, &closest, 1.0f + maxMod);
 
       if (h == 0) {
          // xxx: be careful!  this may end up being re-entrant (for example, removing
@@ -416,10 +416,10 @@ void AStarPathFinder::Work(const platform::timer &timer)
          }
       } 
       ASSERT(!restart_search_);
-
-      // If there are no movement modifiers nearby (mod == 1.0), then we're clear to just
-      // try to direct path-find to our destination.
-      if (mod == 1.0 && closest && FindDirectPathToDestination(current, closest)) {
+      // If there are no movement modifiers nearby (maxMod == 0.0), then we're clear to just
+      // try to direct path-find to our destination.  This will fail sometimes (dudes will
+      // direct path near/over a road that's a little ways out.)  For now: too bad!
+      if (maxMod == 0.0 && closest && FindDirectPathToDestination(current, closest)) {
          // Found a solution!  Bail.
          return;
       }
@@ -442,9 +442,9 @@ void AStarPathFinder::Work(const platform::timer &timer)
    
       VERIFY_HEAPINESS();
 
-      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, [this, &current](csg::Point3 const& to, float cost) {
+      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, [this, maxMod, &current](csg::Point3 const& to, float cost) {
          VERIFY_HEAPINESS();
-         AddEdge(current, to, cost);
+         AddEdge(current, to, cost, maxMod);
          VERIFY_HEAPINESS();
       });
 
@@ -453,7 +453,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
    VERIFY_HEAPINESS();
 }
 
-void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost)
+void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost, float maxMod)
 {
    if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
@@ -467,7 +467,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
    auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
-      float h = EstimateCostToDestination(next);
+      float h = EstimateCostToDestination(next, nullptr, 1.0f + maxMod);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
       open_.emplace_back(new PathFinderNode(next, f, g, current));
@@ -518,10 +518,10 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from) const
 {
    ASSERT(!restart_search_);
 
-   return EstimateCostToDestination(from, nullptr);
+   return EstimateCostToDestination(from, nullptr, 1.0f);
 }
 
-float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result, float maxMoveModifier) const
+float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFinderDst** result, float maxMod) const
 {
    float hMin = FLT_MAX;
    dm::ObjectId closestId = -1;
@@ -550,8 +550,14 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    }
    if (hMin != FLT_MAX) {
       hMin = csg::Sqrt(hMin);
-      hMin *= 1.25f;       // prefer faster over optimal...
-      hMin /= maxMoveModifier;
+
+      // When estimating the cost to a destination, we divide by the maximum movement modifier
+      // in the surrounding region, otherwise we'll overestimate the cost and not take roads 
+      // and such.
+      hMin /= maxMod;
+
+      // Chris: Faster pathing means ignoring roads!
+      // hMin *= 1.25f;       // prefer faster over optimal...
    }
    PF_LOG(10) << "    EstimateCostToDestination returning (" << closestId << ") : " << hMin;
    if (result) {
@@ -782,26 +788,22 @@ void AStarPathFinder::EnableWorldWatcher(bool enabled)
 }
 
 
-// Find the max movement modifier in the region just around the supplied point.  We can use this
-// to compute a better pathing heuristic, for example.
+// Find the max movement modifier in the region just around the supplied point.  This is used to
+// modify the distance cost heuristic, but in particular to decide if we should engage the
+// direct pathfinder or not.
 float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
 {
    phys::OctTree& octTree = GetSim().GetOctTree();
    phys::NavGrid& ng = octTree.GetNavGrid();
-   csg::Point3 index[4];
+   csg::Point3 index;
    csg::Point3 offset;
-   csg::GetChunkIndex<phys::TILE_SIZE>(wgl, index[0], offset);
-
-   int xOffset = offset.x >= phys::TILE_SIZE / 2 ? 1 : -1;
-   int zOffset = offset.z >= phys::TILE_SIZE / 2 ? 1 : -1;
-
-   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(0, 0, zOffset * phys::TILE_SIZE), index[1], offset);
-   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(xOffset * phys::TILE_SIZE, 0, zOffset * phys::TILE_SIZE), index[2], offset);
-   csg::GetChunkIndex<phys::TILE_SIZE>(wgl + csg::Point3(xOffset * phys::TILE_SIZE, 0, 0), index[3], offset);
+   csg::GetChunkIndex<phys::TILE_SIZE>(wgl, index, offset);
 
    float maxmodifier = 0;
-   for (int i = 0; i < 4; i++) {
-      maxmodifier = std::max(maxmodifier, ng.GridTile(index[i]).GetMaxMovementModifier());
+   for (int i = -1; i < 2; i++) {
+      for (int j = -1; j < 2; j++) {
+         maxmodifier = std::max(maxmodifier, ng.GridTile(index + csg::Point3(i, 0, j)).GetMaxMovementModifier());
+      }
    }
    return maxmodifier;
 } 
@@ -863,7 +865,8 @@ void AStarPathFinder::RebuildOpenHeuristics()
    // affect g, though. Go through the whole openset and re-compute
    // f based on the existing g and the new h.
    for (PathFinderNode* node : open_) {
-      float h = EstimateCostToDestination(node->pt);      
+      float maxMod = GetMaxMovementModifier(node->pt);
+      float h = EstimateCostToDestination(node->pt, nullptr, 1.0f + maxMod);      
       node->f = node->g + h;
    }
    _rebuildOpenHeuristics = false;
