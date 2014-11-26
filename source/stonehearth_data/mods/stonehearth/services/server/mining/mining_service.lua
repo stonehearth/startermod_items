@@ -59,7 +59,7 @@ function MiningService:dig_region(player_id, region)
       local mining_zone_component = zone:add_component('stonehearth:mining_zone')
       local existing_region = mining_zone_component:get_region():get()
 
-      if existing_region:intersects(translated_inflated_region) then
+      if existing_region:intersects_region(translated_inflated_region) then
          mergable_zones[zone:get_id()] = zone
       end
    end
@@ -187,7 +187,7 @@ function MiningService:resolve_point_of_interest(from, mining_zone)
    -- get the reachable region in local coordinates to the zone
    local reachable_region = self:get_reachable_region(from - location)
    local eligible_region = reachable_region - reserved_region
-   local eligible_destination_region = eligible_region:intersected(destination_region)
+   local eligible_destination_region = eligible_region:intersect_region(destination_region)
    local max
 
    if eligible_destination_region:empty() then
@@ -223,7 +223,7 @@ function MiningService:get_reserved_region_for_poi(poi, from, mining_zone)
       cube.min.y = from.y
    end
    local proposed_region = Region3(cube)
-   local reserved_region = zone_region:intersected(proposed_region)
+   local reserved_region = zone_region:intersect_region(proposed_region)
    -- by convention, all input and output values in the mining service are in world coordiantes
    reserved_region:translate(location)
    return reserved_region

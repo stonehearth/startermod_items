@@ -274,7 +274,7 @@ function ScaffoldingFabricator:_update_ladder_region()
    -- project in the direction of the normal (as the scaffolding itself
    -- is 1 unit away)
    local region = self._entity_dst:get_region():get()
-   local ladder = _radiant.csg.intersect_region3(region, self._ladder_stencil)
+   local ladder = region:intersect_region(self._ladder_stencil)
    ladder:translate(self._sv.normal)
    self._entity_ladder:get_region():modify(function(cursor)
       cursor:copy_region(ladder)

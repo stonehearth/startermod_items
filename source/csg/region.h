@@ -47,19 +47,25 @@ public:
 
 public:
    S GetArea() const;
+   void SetTag(int tag);
+
    bool IsEmpty() const;
+   bool Contains(Point const& pt) const;
    bool Intersects(Cube const& cube) const;
    bool Intersects(Region const& region) const;
-   bool Contains(Point const& pt) const;
+
+   Region<S, C> Intersected(Cube const& cube) const { return *this & cube; }
+   Region<S, C> Intersected(Region const& region) const { return *this & region; }
 
    Point GetClosestPoint(Point const& src) const;
    Cube GetBounds() const;
    Point GetCentroid() const;
+
    int GetRectCount() const { return cubes_.size(); }
    Cube GetRect(int i) const { return cubes_[i]; }
-
    int GetCubeCount() const { return cubes_.size(); }
    Cube const& operator[](int i) const { return cubes_[i]; }
+
    void Translate(Point const& pt);
    Region Translated(Point const& pt) const;
    Region Inflated(Point const& pt) const;
@@ -75,7 +81,6 @@ public:
    void Subtract(Point const& point);
    void Subtract(Cube const& cube);
    void Subtract(Region const& region);
-   void SetTag(int tag);
 
    Region<S, C> operator-(Cube const& cube) const;
    Region<S, C> operator-(Region const& region) const;

@@ -281,7 +281,7 @@ end
 function MiningZoneComponent:_get_working_region(zone_cube, zone_location)
    local reserved_region = self._destination_component:get_reserved():get()
    local zone_region = Region3(zone_cube)
-   local zone_reserved_region = zone_region:intersected(reserved_region)
+   local zone_reserved_region = zone_region:intersect_region(reserved_region)
 
    zone_region:subtract_region(zone_reserved_region)
    zone_region:translate(zone_location)
@@ -376,7 +376,7 @@ end
 function MiningZoneComponent:_add_side_and_bottom_blocks(working_region, working_bounds, add_block_fn)
    for _, normal in ipairs(NON_TOP_DIRECTIONS) do
       local face_region = Region3(mining_lib.get_face(working_bounds, normal))
-      local face_blocks = face_region:intersected(working_region)
+      local face_blocks = face_region:intersect_region(working_region)
       for point in face_blocks:each_point() do
          if face_is_exposed(point, normal) then
             add_block_fn(point)
