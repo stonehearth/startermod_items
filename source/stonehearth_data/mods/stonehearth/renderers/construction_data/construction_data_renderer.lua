@@ -40,6 +40,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
                                        self:_trace_collision_shape()
                                     end)
                                  :push_object_state()
+      self._mode_listener = radiant.events.listen(radiant, 'stonehearth:ui_mode_changed', self, self._on_ui_mode_changed)
    end
 end
 
@@ -64,6 +65,14 @@ function ConstructionDataRenderer:destroy()
       self._render_node:destroy()
       self._render_node = nil
    end
+   if self._mode_listener then
+      self._mode_listener:destroy()
+      self._mode_listener = nil
+   end
+end
+
+function ConstructionDataRenderer:_on_ui_mode_changed()
+   stonehearth.selection:set_selectable(self._entity, stonehearth.renderer:get_ui_mode() ~= 'normal')
 end
 
 function ConstructionDataRenderer:_trace_collision_shape()

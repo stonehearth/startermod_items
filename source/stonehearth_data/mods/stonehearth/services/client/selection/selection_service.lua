@@ -1,7 +1,9 @@
+local constants = require('constants').construction
 local build_util = require 'lib.build_util'
 local EntitySelector = require 'services.client.selection.entity_selector'
 local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
+local Point3 = _radiant.csg.Point3
 
 local log = radiant.log.create_logger('selection_service')
 
@@ -44,7 +46,11 @@ SelectionService.floor_xz_region_selector = function(result, raise_selector)
       local fc = entity:get_component('stonehearth:fabricator')
       if fc then
          local blueprint = build_util.get_blueprint_for(entity)
-         if blueprint:get_component('stonehearth:floor') then
+         local floor = blueprint:get_component('stonehearth:floor')
+         if floor then
+            if raise_selector and floor:get().category == constants.floor_category.CURB then
+               result.brick = result.brick - Point3(0, 1, 0)
+            end
             return true
          end
          -- if we blueprint which is not floor, bail
