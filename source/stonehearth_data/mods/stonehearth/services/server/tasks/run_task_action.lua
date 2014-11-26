@@ -26,6 +26,12 @@ function RunTaskAction:_create_execution_frame(ai)
       self._started_listener = radiant.events.listen(self._task, 'started', self, self._start_stop_thinking)
       self._stopped_listener = radiant.events.listen(self._task, 'stopped', self, self._start_stop_thinking)
       self._work_available_listener = radiant.events.listen(self._task, 'work_available', self, self._start_stop_thinking)
+
+      if self._debug_info then
+         self._debug_info:modify(function(o)
+               o.execution_frames = { self._execution_frame:get_debug_info(o.depth) }
+            end)
+      end
    end
 end
 
@@ -72,20 +78,22 @@ function RunTaskAction:_start_stop_thinking()
    end
 end
 
-function RunTaskAction:get_debug_info(debug_route)
-   local info = {
-      id = self._id,
-      name = self.name,
-      args = stonehearth.ai:format_args(self._activity.args),
-      does = self.does,
-      priority = self.priority
-   }
-   
-   if self._execution_frame then
-      info.execution_frames = { self._execution_frame:get_debug_info() }
+function RunTaskAction:get_debug_info(depth)
+   if not self._debug_info then
+      self._debug_info = radiant.create_datastore()
+      self._debug_info:modify(function(o)
+            o.id = self._id
+            o.depth = depth + 1
+            o.name = self._activity.name
+            o.args = stonehearth.ai:format_args(self._activity.args)
+            o.does = self.does
+            o.priority = self.priority
+            if self._execution_frame then
+               o.execution_frames = { self._execution_frame:get_debug_info(o.depth) }
+            end
+         end)
    end
-   
-   return info
+   return self._debug_info
 end
 
 function RunTaskAction:start_thinking(ai, entity)
@@ -131,6 +139,11 @@ function RunTaskAction:destroy()
    if self._execution_frame then
       self._execution_frame:destroy()
       self._execution_frame = nil
+   end
+   
+   if self._debug_info then
+      radiant.destroy_datastore(self._debug_info)
+      self._debug_info = nil
    end
 
    if self._started_listener then

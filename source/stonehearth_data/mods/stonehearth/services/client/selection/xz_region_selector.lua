@@ -16,11 +16,14 @@ local TERRAIN_NODES = 1
 
 function XZRegionSelector:__init()
    self._state = 'start'
+   self._ruler_color_valid = Color4(0, 0, 0, 128)
+   self._ruler_color_invalid = Color4(255, 0, 0, 128)
    self._require_supported = false
    self._require_unblocked = false
    self._show_rulers = true
+   self._min_size = 0
+   self._max_size = radiant.math.MAX_INT32
    self._select_front_brick = true
-   self._validation_offset = nil
    self._allow_select_cursor = false
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
@@ -34,6 +37,16 @@ function XZRegionSelector:__init()
    self:_initialize_dispatch_table()
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
+end
+
+function XZRegionSelector:set_min_size(value)
+   self._min_size = value
+   return self
+end
+
+function XZRegionSelector:set_max_size(value)
+   self._max_size = value
+   return self
 end
 
 function XZRegionSelector:set_show_rulers(value)
@@ -374,6 +387,8 @@ function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish
       -- this is ugly
       start, finish = self:_remove_validation_offset(start, finish)
 
+      start, finish = self:_limit_dimensions(start, finish)
+
       start, finish = self._get_resolved_points_fn(start, finish, start_normal, finish_normal)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
       valid_endpoints = start and finish
@@ -384,6 +399,27 @@ function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish
    end
 
    return start, finish
+end
+
+function XZRegionSelector:_limit_dimensions(start, finish)
+   if not start or not finish then
+      return nil, nil
+   end
+
+   local new_finish = Point3(finish)
+   local size = self:_create_cube(start, finish):get_size()
+
+   if size.x > self._max_size then
+      local sign = finish.x >= start.x and 1 or -1
+      new_finish.x = start.x + sign*(self._max_size-1)
+   end
+
+   if size.z > self._max_size then
+      local sign = finish.z >= start.z and 1 or -1
+      new_finish.z = start.z + sign*(self._max_size-1)
+   end
+
+   return start, new_finish
 end
 
 function XZRegionSelector:_add_validation_offset(start, finish)
@@ -485,7 +521,11 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    self._p0, self._p1 = start, finish
 
    if event:up(1) then
-      self._action = 'resolve'
+      if self:_are_valid_dimensions(self._p0, self._p1) then
+         self._action = 'resolve'
+      else
+         self._action = 'reject'
+      end
       return 'stop'
    else
       return 'p0_selected'
@@ -497,6 +537,17 @@ function XZRegionSelector:_run_stop_state(event, brick, normal)
    return 'stop'
 end
 
+function XZRegionSelector:_is_valid_length(length)
+   local valid = length >= self._min_size and length <= self._max_size
+   return valid
+end
+
+function XZRegionSelector:_are_valid_dimensions(p0, p1)
+   local size = self:_create_cube(p0, p1):get_size()
+   local valid = self:_is_valid_length(size.x) and self:_is_valid_length(size.z)
+   return valid
+end
+
 function XZRegionSelector:_update_rulers(p0, p1)
    if not self._show_rulers or not self._x_ruler or not self._z_ruler then
       return
@@ -505,25 +556,40 @@ function XZRegionSelector:_update_rulers(p0, p1)
    if p0 and p1 then
       -- if we're selecting the hover brick, the rulers are on the bottom of the selection
       -- if we're selecting the terrain brick, the rulers are on the top of the selection
-      local y_offset = self._select_front_brick and 0 or 1
-      local y = p0.y + y_offset
-      local x_normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
-      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), y, p1.z),
-                               Point3(math.max(p0.x, p1.x), y, p1.z),
-                               x_normal,
-                               string.format('%d\'', math.abs(p1.x - p0.x) + 1))
+      local offset = self._select_front_brick and Point3.zero or Point3.unit_y
+      local q0, q1 = p0 + offset, p1 + offset
+
+      self:_update_ruler(self._x_ruler, q0, q1, 'x')
       self._x_ruler:show()
 
-      local z_normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
-      self._z_ruler:set_points(Point3(p1.x, y, math.min(p0.z, p1.z)),
-                               Point3(p1.x, y, math.max(p0.z, p1.z)),
-                               z_normal,
-                               string.format('%d\'', math.abs(p1.z - p0.z) + 1))
+      self:_update_ruler(self._z_ruler, q0, q1, 'z')
       self._z_ruler:show()
    else
       self._x_ruler:hide()
       self._z_ruler:hide()
    end
+end
+
+function XZRegionSelector:_update_ruler(ruler, p0, p1, dimension)
+   local d = dimension
+   local dn = d == 'x' and 'z' or 'x'
+   local min = math.min(p0[d], p1[d])
+   local max = math.max(p0[d], p1[d])
+   local length = max - min + 1
+   local color = self:_is_valid_length(length) and self._ruler_color_valid or self._ruler_color_invalid
+   ruler:set_color(color)
+
+   local min_point = Point3(p1)
+   min_point[d] = min
+
+   local max_point = Point3(p1)
+   max_point[d] = max
+
+   -- don't use Point3.zero since we need it to be mutable
+   local normal = Point3(0, 0, 0)
+   normal[dn] = p0[dn] <= p1[dn] and 1 or -1
+
+   ruler:set_points(min_point, max_point, normal, string.format('%d\'', length))
 end
 
 function XZRegionSelector:_update_selected_cube(box)

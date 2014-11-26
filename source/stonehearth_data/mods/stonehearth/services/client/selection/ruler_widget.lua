@@ -10,8 +10,8 @@ local ARROW_HEIGHT = 0.5
 local RulerWidget = class()
 
 function RulerWidget:__init()
-   self._padding = 0.8;
-   self._margin = 1.5;
+   self._padding = 1;
+   self._margin = 1;
    self._line_color = Color4(0, 0, 0, 128)
    self._meshNormal = Point3(0, 1, 0)
    self._hidden = false
@@ -32,6 +32,10 @@ function RulerWidget:set_points(start, finish, normal, label)
       self._finish.z = self._finish.z - offset
    end
    self:_recreate_render_node(self._label);
+end
+
+function RulerWidget:set_color(color)
+   self._line_color = color
 end
 
 function RulerWidget:hide()

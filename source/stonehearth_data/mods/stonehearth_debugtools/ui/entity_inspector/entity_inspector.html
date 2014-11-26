@@ -27,8 +27,10 @@
          AI Inspector
       </div>
       <div id="content">
-         {{#if ai.execution_frame}}
-            {{ render "executionFrame" ai.execution_frame }}
+         {{#if view.model.debug_info }}
+            {{#view "stonehearthAiThread" uriBinding="view.model.debug_info" }}
+               {{ view "stonehearthExecutionFrame" uriBinding="view.model.execution_frame" }}
+            {{/view}}
          {{/if}}
       </div>
       <div id="legend">
@@ -46,20 +48,18 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="executionFrame">
-   {{#each unit in execution_units}}
-      {{ render "executionUnit" unit}}
-   {{/each}}
-</script>
-
-<script type="text/x-handlebars" data-template-name="executionUnit">
-   <div class="row" {{bind-attr row_id="id"}}>
-      <span id="state" {{bind-attr class="parsed_state"}} {{bind-attr style="styleOverride"}}> {{{action.name}}} </span>
-      <span id="activity" class="activity"> - {{{action.does}}} </span>
-   </div> 
-   {{#each frame in action.execution_frames}}
-      {{ render "executionFrame" frame}}
-   {{/each}}
-   {{#each frame in execution_frames}}
-      {{ render "executionFrame" frame}}
+   {{#each unit in view.model.execution_units}}
+      {{#view "stonehearthExecutionUnit" uriBinding="unit" }}
+         <div class="row" {{bind-attr row_id="id"}}>
+            <span id="state" {{bind-attr class="view.model.state"}} {{bind-attr style="view.styleOverride"}}> {{{view.model.action.name}}} </span>
+            <span id="activity" class="activity"> - {{{view.model.action.does}}} </span>
+         </div> 
+         {{#each frame in view.model.action.execution_frames}}
+            {{ view "stonehearthExecutionFrame" uriBinding="frame" }}
+         {{/each}}
+         {{#each frame in view.model.execution_frames}}
+            {{ view "stonehearthExecutionFrame" uriBinding="frame" }}
+         {{/each}}
+      {{/view}}
    {{/each}}
 </script>

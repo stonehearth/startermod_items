@@ -160,8 +160,11 @@
          this._radiantTrace = new RadiantTrace()
          trace = this._radiantTrace.traceUri(this.uri, this.components);
       }
-      this._setRootTrace(trace);
-   }.observes('uri'),
+      // if both traces are null, don't call _setRootTrace...
+      if (this._rootTrace || trace) {
+         this._setRootTrace(trace);
+      }
+   }.observes('uri').on('init'),
 
    _getClosestEmberView: function(el) {
      var id = el.closest('.ember-view').attr('id');
