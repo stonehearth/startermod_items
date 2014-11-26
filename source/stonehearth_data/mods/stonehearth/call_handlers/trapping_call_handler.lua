@@ -6,6 +6,8 @@ local TrappingCallHandler = class()
 -- runs on the client!!
 function TrappingCallHandler:choose_trapping_grounds_location(session, response)
    stonehearth.selection:select_designation_region()
+      :set_min_size(10)
+      :set_max_size(50)
       :require_unblocked(false)
       :use_designation_marquee(Color4(122, 40, 0, 255))
       :set_can_contain_entity_filter(function(entity)
