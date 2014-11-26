@@ -158,7 +158,7 @@ function SelectionService:select_designation_region()
                      end
                      local rcs = entity:get_component('region_collision_shape')
                      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
-                        return false
+                        return stonehearth.selection.FILTER_IGNORE
                      end
                      return stonehearth.selection.FILTER_IGNORE
                   end)
