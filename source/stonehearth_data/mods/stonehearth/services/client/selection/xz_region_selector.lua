@@ -7,6 +7,7 @@ local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local Region3 = _radiant.csg.Region3
 
 local log = radiant.log.create_logger('xz_region_selector')
 
@@ -25,6 +26,8 @@ function XZRegionSelector:__init()
    self._max_size = radiant.math.MAX_INT32
    self._select_front_brick = true
    self._allow_select_cursor = false
+   self._valid_region_cache = Region3()
+
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
    local identity_end_point_transform = function(p0, p1)
@@ -235,7 +238,6 @@ end
 
 -- return whether or not the given location is valid to be used in the creation
 -- of the xz region.
---
 function XZRegionSelector:_is_valid_location(brick)
    if not brick then
       return false
@@ -262,7 +264,6 @@ end
 -- for adding to the xz region selector.  if `check_containment_filter` is true, will
 -- also make sure that all the entities at the specified poit pass the can_contain_entity_filter
 -- filter.
---
 function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          -- The only case entity should be null is when allowing self-selection of the
@@ -282,57 +283,85 @@ function XZRegionSelector:_get_brick_at(x, y)
    return brick, normal
 end
 
--- given a candidate p1, compute the p1 which would result in a valid xz region
--- will iterate from p0-p1 in 'i-major' order, where i is 'x' or 'z'.  See
--- _compute_p1 for more info
---
-function XZRegionSelector:_compute_p1_loop(p0, p1, i)
-   if not self:_is_valid_location(p0) then
-      return nil
-   end
-
-   local j = i == 'x' and 'z' or 'x'
-   local di = p1[i] > p0[i] and 1 or -1
-   local dj = p1[j] > p0[j] and 1 or -1
-
-   local pt = Point3(p0.x, p0.y, p0.z)
-
-   while pt[i] ~= p1[i] + di do
-      pt[j] = p0[j]
-      while pt[j] ~= p1[j] + dj do
-         if not self:_is_valid_location(pt) then
-            local go_narrow = pt[i] == p0[i]
-            if go_narrow then
-               -- make the rect narrower and keep iterating
-               p1[j] = pt[j] - dj
-               break
-            else
-               -- go back 1 row and return
-               pt[i] = pt[i] - di
-               pt[j] = p1[j]
-               return pt
-            end
-         end
-         pt[j] = pt[j] + dj
-      end
-      pt[i] = pt[i] + di
-   end
-   return p1
-end
-
--- given a candidate p1, compute the p1 which would result in a valid xz region.
---
+-- Given a candidate p1, compute the 'best' p1 which results in a valid xz region.
+-- The basic algorithm is simple:
+--     1) For each row, scan until you reach an invalid point or the x limit of a previous row.
+--     2) Add each valid point to a region.
+--     3) Return the point in the region closest to p1.
+-- The rest of the code is just optimization and bookkeeping.
 function XZRegionSelector:_compute_p1(p0, p1)
    if not p0 or not p1 then
       return nil
    end
 
-   local lx = math.abs(p1.x - p0.x)
-   local lz = math.abs(p1.z - p0.z)
+   -- if p0 has changed, invalidate our cache
+   if p0 ~= self._valid_region_origin then
+      self._valid_region_cache:clear()
+      self._valid_region_origin = Point3(p0)
+   end
 
-   local coord = lx > lz and 'x' or 'z'
+   -- if the endpoints are already validated, then the whole cube is valid
+   if self._valid_region_cache:contains(p0) and self._valid_region_cache:contains(p1) then
+      return p1
+   end
 
-   return self:_compute_p1_loop(p0, p1, coord)
+   if not self:_is_valid_location(p0) then
+      return nil
+   end
+
+   local dx = p1.x > p0.x and 1 or -1
+   local dz = p1.z > p0.z and 1 or -1
+   local r0 = Point3(p0) -- row start point
+   local r1 = Point3(p0) -- row end point
+   local limit_x = p1.x
+   local valid_x, start_x
+
+   -- iterate over all rows
+   for j = p0.z, p1.z, dz do
+      if not limit_x then
+         -- row is completely obstructed, no further rows can be valid
+         break
+      end
+
+      r0.z = j
+      r1.z = j
+
+      r1.x = limit_x
+      local unverified_region = Region3(self:_create_cube(r0, r1))
+      unverified_region:subtract_region(self._valid_region_cache)
+
+      if not unverified_region:empty() then
+         local valid_x = nil
+         local start_x = unverified_region:get_closest_point(p0).x
+
+         -- if we're not at the row start, valid_x was the previous point
+         if start_x ~= r0.x then
+            valid_x = start_x - dx
+         end
+
+         -- iterate over the untested columns in the row
+         for i = start_x, limit_x, dx do
+            r1.x = i
+            if self:_is_valid_location(r1) then
+               valid_x = i
+            else
+               -- the new limit is the last valid x value
+               limit_x = valid_x
+               break
+            end
+         end
+
+         if valid_x then
+            -- add the row to the valid_region
+            r1.x = valid_x
+            local valid_row = self:_create_cube(r0, r1)
+            self._valid_region_cache:add_cube(valid_row)
+         end
+      end
+   end
+
+   self._valid_region_cache:optimize_by_merge()
+   return self._valid_region_cache:get_closest_point(p1)
 end
 
 function XZRegionSelector:_initialize_dispatch_table()
@@ -513,7 +542,7 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    local start, finish = self:_resolve_endpoints(self._p0, brick, self._p0_normal, normal)
 
    if not start or not finish then
-      -- the start state should have guaranteed a minimally valid region
+      -- maybe the world has changed after we started dragging
       log:error('unable to resolve endpoints: %s, %s', tostring(start), tostring(finish))
       return 'p0_selected'
    end
@@ -521,7 +550,13 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    self._p0, self._p1 = start, finish
 
    if event:up(1) then
-      if self:_are_valid_dimensions(self._p0, self._p1) then
+      -- Make sure our cache still reflects the current state of the world.
+      -- Note we still have a short race condition with the server as the state
+      -- may have changed there which is not yet reflected on the client.
+      self._valid_region_cache:clear()
+      local is_valid_region = self:_compute_p1(self._p0, self._p1) == self._p1
+
+      if is_valid_region and self:_are_valid_dimensions(self._p0, self._p1) then
          self._action = 'resolve'
       else
          self._action = 'reject'
