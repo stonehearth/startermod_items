@@ -664,6 +664,13 @@ std::ostream& operator<<(std::ostream& os, Point<S, C> const& in)
    return in.Print(os);
 }
 
+struct Point3Hash { 
+   inline size_t operator()(const Point3& p) const {
+      return (p.x * 73856093) ^ (p.y * 19349669) ^ (p.z * 83492791);
+   }
+};
+
+
 END_RADIANT_CSG_NAMESPACE
 
 #endif // _RADIANT_CSG_POINT_H

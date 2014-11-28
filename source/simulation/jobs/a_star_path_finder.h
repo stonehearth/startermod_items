@@ -113,12 +113,12 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode*>   open_;
       csg::Cube3                    closedBounds_;
-      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash>         closed_;
-      std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3Hash>         closed_;
+      std::unordered_set<csg::Point3, csg::Point3Hash>         watching_tiles_;
       std::vector<csg::Point3f>     _directPathCandiate;
       mutable const char*           _lastIdleCheckResult;
 
-      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash> _openLookup;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3Hash> _openLookup;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
