@@ -4,6 +4,7 @@
 #include "om/om.h"
 #include "path_finder.h"
 #include "physics/namespace.h"
+#include "physics/octtree.h"
 #include "protocols/radiant.pb.h"
 #include "path.h"
 #include "csg/point.h"
@@ -77,7 +78,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
 
       PathFinderNode* PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode* dst) const;
-      void AddEdge(const PathFinderNode* current, const csg::Point3 &next, float cost, float maxMod);
+      void AddEdge(const csg::Point3 &next, float cost);
       void RebuildHeap();
 
       bool SolveSearch(std::vector<csg::Point3f>& solution, PathFinderDst*& dst);
@@ -121,6 +122,10 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
+
+      phys::OctTree::MovementCostCb _addFn;
+      PathFinderNode* _currentNode;
+      float           _maxMod;
 };
 
 std::ostream& operator<<(std::ostream& o, const AStarPathFinder& pf);

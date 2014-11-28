@@ -90,6 +90,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
 
    _nodePool.reset(new boost::object_pool<PathFinderNode>());
 
+   _addFn = std::bind(&AStarPathFinder::AddEdge, this, std::placeholders::_1, std::placeholders::_2);
    // Watch for dirty navgrid tiles so we can restart the search if necessary
    source_.reset(new PathFinderSrc(entity, GetName(), changed_cb));
 }
@@ -427,44 +428,37 @@ void AStarPathFinder::Work(const platform::timer &timer)
          return;
       }
 
-      VERIFY_HEAPINESS();
-
       // Check each neighbor...
       const auto& o = GetSim().GetOctTree();
    
-      VERIFY_HEAPINESS();
-
-      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, [this, maxMod, &current](csg::Point3 const& to, float cost) {
-         VERIFY_HEAPINESS();
-         AddEdge(current, to, cost, maxMod);
-         VERIFY_HEAPINESS();
-      });
+      _currentNode = current;
+      _maxMod = maxMod;
+      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, _addFn);
 
       direct_path_search_cooldown_--;
    }
    VERIFY_HEAPINESS();
 }
 
-void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &next, float movementCost, float maxMod)
+void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
 {
    if (closed_.find(next) != closed_.end()) {
-      PF_LOG(9) << "       Ignoring edge in closed set from " << current->pt << " to " << next << " cost:" << movementCost;
+      PF_LOG(9) << "       Ignoring edge in closed set from " << _currentNode->pt << " to " << next << " cost:" << movementCost;
       return;
    }
-
    VERIFY_HEAPINESS();
    bool update = false;
-   float g = current->g + movementCost;
+   float g = _currentNode->g + movementCost;
    auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
-      float h = EstimateCostToDestination(next, nullptr, 1.0f + maxMod);
+      float h = EstimateCostToDestination(next, nullptr, 1.0f + _maxMod);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
       PathFinderNode *newNode = _nodePool->malloc();
       newNode->f = f;
       newNode->g = g;
-      newNode->prev = current;
+      newNode->prev = _currentNode;
       newNode->pt = next;
       open_.emplace_back(newNode);
       _openLookup.emplace(next, open_.back());
@@ -479,7 +473,7 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
          float old_g = node->g;
          float f = g + old_h;
 
-         node->prev = current;
+         node->prev = _currentNode;
          node->g = g;
          node->f = f;
          rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
