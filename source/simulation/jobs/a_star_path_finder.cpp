@@ -88,6 +88,8 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
       RestartSearch(reason);
    };
 
+   _nodePool.reset(new boost::object_pool<PathFinderNode>());
+
    // Watch for dirty navgrid tiles so we can restart the search if necessary
    source_.reset(new PathFinderSrc(entity, GetName(), changed_cb));
 }
@@ -270,20 +272,11 @@ AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
    return shared_from_this();
 }
 
-void AStarPathFinder::ClearOpen()
+void AStarPathFinder::ClearNodes()
 {
-   for (PathFinderNode* n : open_) {
-      delete n;
-   }
-   open_.clear();
-}
-
-void AStarPathFinder::ClearClosed()
-{
-   for (const auto& i : closed_) {
-      delete i.second;
-   }
    closed_.clear();
+   open_.clear();
+   _nodePool.reset(new boost::object_pool<PathFinderNode>());
 }
 
 void AStarPathFinder::Restart()
@@ -293,9 +286,8 @@ void AStarPathFinder::Restart()
    ASSERT(restart_search_);
    ASSERT(!solution_);
 
-   ClearClosed();
+   ClearNodes();
    closedBounds_ = csg::Cube3::zero;
-   ClearOpen();
    _openLookup.clear();
    rebuildHeap_ = true;
    restart_search_ = false;
@@ -461,7 +453,6 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
    }
 
    VERIFY_HEAPINESS();
-
    bool update = false;
    float g = current->g + movementCost;
    auto& itr = _openLookup.find(next);
@@ -470,7 +461,12 @@ void AStarPathFinder::AddEdge(const PathFinderNode* current, const csg::Point3 &
       float h = EstimateCostToDestination(next, nullptr, 1.0f + maxMod);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
-      open_.emplace_back(new PathFinderNode(next, f, g, current));
+      PathFinderNode *newNode = _nodePool->malloc();
+      newNode->f = f;
+      newNode->g = g;
+      newNode->prev = current;
+      newNode->pt = next;
+      open_.emplace_back(newNode);
       _openLookup.emplace(next, open_.back());
       if (!rebuildHeap_) {
          push_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
@@ -647,9 +643,8 @@ void AStarPathFinder::SetSearchExhausted()
    }
 
    if (!search_exhausted_) {
-      ClearClosed();
+      ClearNodes();
       closedBounds_ = csg::Cube3::zero;
-      ClearOpen();
       _openLookup.clear();
       search_exhausted_ = true;
       if (exhausted_cb_) {
@@ -700,9 +695,8 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       restart_search_ = true;
       search_exhausted_ = false;
       solution_ = nullptr;
-      ClearClosed();
+      ClearNodes();
       closedBounds_ = csg::Cube3::zero;
-      ClearOpen();
       _openLookup.clear();
       world_changed_ = false;
       watching_tiles_.clear();

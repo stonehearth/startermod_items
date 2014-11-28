@@ -11,8 +11,7 @@
 #include "om/region.h"
 #include "path_finder_node.h"
 #include <unordered_set>
-#include <boost\container\flat_set.hpp>
-#include <boost\container\flat_map.hpp>
+#include <boost/pool/object_pool.hpp>
 
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
@@ -89,8 +88,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
       bool CheckIfIdle() const;
-      void ClearOpen();
-      void ClearClosed();
+      void ClearNodes();
 
    private:
       static std::vector<std::weak_ptr<AStarPathFinder>> all_pathfinders_;
@@ -110,6 +108,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;
    
+      std::unique_ptr<boost::object_pool<PathFinderNode>>  _nodePool;
       core::Guard                   navgrid_guard_;
       std::vector<PathFinderNode*>   open_;
       csg::Cube3                    closedBounds_;
