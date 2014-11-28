@@ -26,6 +26,7 @@ function XZRegionSelector:__init()
    self._max_size = radiant.math.MAX_INT32
    self._select_front_brick = true
    self._allow_select_cursor = false
+   self._invalid_cursor = 'stonehearth:cursors:invalid_hover'
    self._valid_region_cache = Region3()
 
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
@@ -36,6 +37,13 @@ function XZRegionSelector:__init()
 
    self._get_proposed_points_fn = identity_end_point_transform
    self._get_resolved_points_fn = identity_end_point_transform
+
+   self._cursor_fn = function(selected_cube, stabbed_normal)
+      if not selected_cube then
+         return self._invalid_cursor
+      end
+      return self._cursor
+   end
 
    self:_initialize_dispatch_table()
 
@@ -107,6 +115,16 @@ end
 
 function XZRegionSelector:set_cursor(cursor)
    self._cursor = cursor
+   return self
+end
+
+function XZRegionSelector:set_invalid_cursor(invalid_cursor)
+   self._invalid_cursor = invalid_cursor
+   return self
+end
+
+function XZRegionSelector:set_cursor_fn(cursor_fn)
+   self._cursor_fn = cursor_fn
    return self
 end
 
@@ -195,13 +213,10 @@ function XZRegionSelector:_cleanup()
       self._input_capture:destroy()
       self._input_capture = nil
    end
+
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
-   end
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
    end
 
    if self._render_node then
@@ -382,12 +397,11 @@ function XZRegionSelector:_update()
       return
    end
 
-   local p0, p1 = self._p0, self._p1
-   local selected_cube = p0 and p1 and self:_create_cube(p0, p1)
+   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
 
    self:_update_selected_cube(selected_cube)
-   self:_update_rulers(p0, p1)
-   self:_update_cursor(selected_cube ~= nil)
+   self:_update_rulers(self._p0, self._p1)
+   self:_update_cursor(selected_cube, self._stabbed_normal)
 
    if self._action == 'notify' then
       self:notify(selected_cube)
@@ -399,12 +413,12 @@ function XZRegionSelector:_update()
    end
 end
 
-function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish_normal)
+function XZRegionSelector:_resolve_endpoints(start, finish, stabbed_normal)
    local valid_endpoints = false
 
    log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
 
-   start, finish = self._get_proposed_points_fn(start, finish, start_normal, finish_normal)
+   start, finish = self._get_proposed_points_fn(start, finish, stabbed_normal)
    log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
 
    -- this is ugly
@@ -418,7 +432,7 @@ function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish
 
       start, finish = self:_limit_dimensions(start, finish)
 
-      start, finish = self._get_resolved_points_fn(start, finish, start_normal, finish_normal)
+      start, finish = self._get_resolved_points_fn(start, finish, stabbed_normal)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
       valid_endpoints = start and finish
    end
@@ -510,7 +524,7 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
       return 'start'
    end
 
-   local start, finish = self:_resolve_endpoints(brick, brick, normal, normal)
+   local start, finish = self:_resolve_endpoints(brick, brick, normal)
 
    if not start or not finish then
       self._p0, self._p1 = nil, nil
@@ -518,9 +532,9 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
    end
 
    self._p0, self._p1 = start, finish
+   self._stabbed_normal = normal
 
    if event:down(1) then
-      self._p0_normal = normal
       return 'p0_selected'
    else
       return 'start'
@@ -539,7 +553,7 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
       return 'p0_selected'
    end
 
-   local start, finish = self:_resolve_endpoints(self._p0, brick, self._p0_normal, normal)
+   local start, finish = self:_resolve_endpoints(self._p0, brick, self._stabbed_normal)
 
    if not start or not finish then
       -- maybe the world has changed after we started dragging
@@ -655,11 +669,20 @@ function XZRegionSelector:_update_selected_cube(box)
    self._render_node:set_can_query(self._allow_select_cursor)
 end
 
-function XZRegionSelector:_update_cursor(valid_selection)
-   if valid_selection then
-      self:_clear_invalid_cursor()
-   else
-      self:_set_invalid_cursor()
+function XZRegionSelector:_update_cursor(box, stabbed_normal)
+   local cursor = self._cursor_fn and self._cursor_fn(box, stabbed_normal)
+
+   if cursor == self._current_cursor then
+      return
+   end
+
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
+
+   if cursor then
+      self._cursor_obj = _radiant.client.set_cursor(cursor)
    end
 end
 
@@ -684,19 +707,6 @@ function XZRegionSelector:go()
                                  return true
                               end)
    return self
-end
-
-function XZRegionSelector:_set_invalid_cursor()
-   if not self._invalid_cursor_obj then
-      self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
-   end
-end
-
-function XZRegionSelector:_clear_invalid_cursor()
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
-   end
 end
 
 return XZRegionSelector

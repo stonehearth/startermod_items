@@ -38,12 +38,12 @@ function MiningCallHandler:designate_mining_zone(session, response)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
    local y_cell_size = constants.mining.Y_CELL_SIZE
 
-   local get_proposed_points = function(p0, p1, p0_normal, p1_normal)
+   local get_proposed_points = function(p0, p1, normal)
       if not self:_valid_endpoints(p0, p1) then
          return nil, nil
       end
       
-      local mode = self:_get_mode(p0, p1, p0_normal, p1_normal)
+      local mode = self:_get_mode(p0, normal)
       local y_offset = self:_get_y_offset(mode)
       local y = get_cell_max(p0.y, y_cell_size) + y_offset
       local q0 = Point3(p0.x, y, p0.z)
@@ -64,7 +64,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return q0, q1
    end
 
-   local get_resolved_points = function(p0, p1, p0_normal, p1_normal)
+   local get_resolved_points = function(p0, p1, normal)
       if not self:_valid_endpoints(p0, p1) then
          return nil, nil
       end
@@ -120,11 +120,29 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return render_node
    end
 
+   local select_cursor = function(box, normal)
+      if not box then
+         return 'stonehearth:cursors:invalid_hover'
+      end
+
+      local mode = self:_get_mode(box.min, normal)
+
+      if mode == 'down' then
+         return 'stonehearth:cursors:mine_down'
+      end
+
+      if mode == 'out' then
+         return 'stonehearth:cursors:mine_out'
+      end
+
+      assert(false)
+   end
+
    stonehearth.selection:select_xz_region()
-      :set_cursor('stonehearth:cursors:harvest')
-      :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :select_front_brick(false)
       :set_validation_offset(Point3.unit_y)
+      :set_cursor_fn(select_cursor)
+      :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :set_find_support_filter(terrain_suport_filter)
       :set_can_contain_entity_filter(contain_entity_filter)
       :use_manual_marquee(draw_region_outline_marquee)
@@ -170,9 +188,9 @@ function MiningCallHandler:_get_y_offset(mode)
    return mode == 'down' and 0 or -1
 end
 
-function MiningCallHandler:_get_mode(p0, p1, p0_normal, p1_normal)
+function MiningCallHandler:_get_mode(p0, normal)
    -- if the normal of the staring brick is horizontal, the mode is out
-   if p0_normal.y == 0 then
+   if normal.y == 0 then
       return 'out'
    end
 
