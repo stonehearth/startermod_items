@@ -186,9 +186,11 @@ function SubterraneanViewService:_update_dirty_tiles()
          -- local bounds = self:_get_tile_bounds(index)
          -- local clipped_floor = world_floor:intersected(bounds)
          -- self._xray_tiles:add_cube(clipped_floor)
-
-         _radiant.renderer.mark_dirty_index(index)
       end
+   end
+
+   for index in self._xray_tiles:get_changed_set() do
+      _radiant.renderer.mark_dirty_index(index:to_float())
    end
 
    self._xray_tiles:optimize_changed_tiles()
