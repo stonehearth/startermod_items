@@ -77,6 +77,7 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    enabled_(false),
    entity_(entity),
    world_changed_(false),
+   _currentSearchNode(nullptr),
    direct_path_search_cooldown_(0),
    debug_color_(255, 192, 0, 128),
    _lastIdleCheckResult(nullptr),
@@ -87,8 +88,6 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    auto changed_cb = [this](const char* reason) {
       RestartSearch(reason);
    };
-
-   _nodePool.reset(new boost::object_pool<PathFinderNode>());
 
    _addFn = std::bind(&AStarPathFinder::AddEdge, this, std::placeholders::_1, std::placeholders::_2);
    // Watch for dirty navgrid tiles so we can restart the search if necessary
@@ -275,9 +274,14 @@ AStarPathFinderPtr AStarPathFinder::RemoveDestination(dm::ObjectId id)
 
 void AStarPathFinder::ClearNodes()
 {
+   _nodePool.reset(new boost::object_pool<PathFinderNode>());
+
    closed_.clear();
    open_.clear();
-   _nodePool.reset(new boost::object_pool<PathFinderNode>());
+
+   closedBounds_ = csg::Cube3::zero;
+   _openLookup.clear();
+   _currentSearchNode = nullptr;
 }
 
 void AStarPathFinder::Restart()
@@ -288,8 +292,6 @@ void AStarPathFinder::Restart()
    ASSERT(!solution_);
 
    ClearNodes();
-   closedBounds_ = csg::Cube3::zero;
-   _openLookup.clear();
    rebuildHeap_ = true;
    restart_search_ = false;
 
@@ -380,49 +382,51 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       VERIFY_HEAPINESS();
-      PathFinderNode* current = PopClosestOpenNode();
-      if (closed_.empty()) {
-         closedBounds_ = csg::Cube3(current->pt);
-      } else {
-         closedBounds_.Grow(current->pt);
-      }
-      closed_.emplace(current->pt, current);
-      WatchWorldPoint(current->pt);
+      PopClosestOpenNode();
 
-      float maxMod = GetMaxMovementModifier(current->pt);
+      ASSERT(_currentSearchNode);
+      WatchWorldPoint(_currentSearchNode->pt);
+
       PathFinderDst* closest = nullptr;
-      float h = EstimateCostToDestination(current->pt, &closest, 1.0f + maxMod);
+      float maxMod = GetMaxMovementModifier(_currentSearchNode->pt);
+      float h = EstimateCostToDestination(_currentSearchNode->pt, &closest, 1.0f + maxMod);
 
       if (h == 0) {
          // xxx: be careful!  this may end up being re-entrant (for example, removing
          // destinations).
          ASSERT(closest);
+         ASSERT(_currentSearchNode);
 
          std::vector<csg::Point3f> solution;
-         ReconstructPath(solution, current);
+         ReconstructPath(solution, _currentSearchNode);
          if (SolveSearch(solution, closest)) {
             return;
          }
          if (restart_search_) {
             PF_LOG(3) << "restarting search after failed attempt to dispatch solution!";
             Restart();
+            return;
          }
-      } 
+      }
       ASSERT(!restart_search_);
+      ASSERT(_currentSearchNode);
+
       // If there are no movement modifiers nearby (maxMod == 0.0), then we're clear to just
       // try to direct path-find to our destination.  This will fail sometimes (dudes will
       // direct path near/over a road that's a little ways out.)  For now: too bad!
-      if (maxMod == 0.0 && closest && FindDirectPathToDestination(current, closest)) {
+      if (maxMod == 0.0 && closest && FindDirectPathToDestination(closest)) {
          // Found a solution!  Bail.
          return;
       }
       if (restart_search_) {
          PF_LOG(3) << "restarting search after failed attempt to dispatch direct path solution!";
          Restart();
+         return;
       }
       ASSERT(!restart_search_);
+      ASSERT(_currentSearchNode);
 
-      if (current->g + h > max_cost_to_destination_) {
+      if (_currentSearchNode->g + h > max_cost_to_destination_) {
          PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
          SetSearchExhausted();
          return;
@@ -431,9 +435,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
       // Check each neighbor...
       const auto& o = GetSim().GetOctTree();
    
-      _currentNode = current;
-      _maxMod = maxMod;
-      o.ComputeNeighborMovementCost(entity_.lock(), current->pt, _addFn);
+      _currentMaxMovementModifier = maxMod;
+      o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
 
       direct_path_search_cooldown_--;
    }
@@ -443,22 +446,27 @@ void AStarPathFinder::Work(const platform::timer &timer)
 void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
 {
    if (closed_.find(next) != closed_.end()) {
-      PF_LOG(9) << "       Ignoring edge in closed set from " << _currentNode->pt << " to " << next << " cost:" << movementCost;
+      PF_LOG(9) << "       Ignoring edge in closed set from " << _currentSearchNode->pt << " to " << next << " cost:" << movementCost;
       return;
    }
    VERIFY_HEAPINESS();
    bool update = false;
-   float g = _currentNode->g + movementCost;
+   float g = _currentSearchNode->g + movementCost;
    auto& itr = _openLookup.find(next);
    if (itr == _openLookup.end()) {
       // not found in the open list. add a brand new node.
-      float h = EstimateCostToDestination(next, nullptr, 1.0f + _maxMod);
+      float h = EstimateCostToDestination(next, nullptr, 1.0f + _currentMaxMovementModifier);
       float f = g + h;
       PF_LOG(9) << "          Adding " << next << " to open set (f:" << f << " g:" << g << ").";
       PathFinderNode *newNode = _nodePool->malloc();
+      if (!newNode) {
+         PF_LOG(0) << "out of memory allocating new pathfinder node";
+         throw std::bad_alloc();
+      }
+
       newNode->f = f;
       newNode->g = g;
-      newNode->prev = _currentNode;
+      newNode->prev = _currentSearchNode;
       newNode->pt = next;
       open_.emplace_back(newNode);
       _openLookup.emplace(next, open_.back());
@@ -473,7 +481,7 @@ void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
          float old_g = node->g;
          float f = g + old_h;
 
-         node->prev = _currentNode;
+         node->prev = _currentSearchNode;
          node->g = g;
          node->f = f;
          rebuildHeap_ = true; // really?  what if it's "good enough" to not validate heap properties?
@@ -556,9 +564,9 @@ float AStarPathFinder::EstimateCostToDestination(const csg::Point3 &from, PathFi
    return hMin;
 }
 
-PathFinderNode* AStarPathFinder::PopClosestOpenNode()
+void AStarPathFinder::PopClosestOpenNode()
 {
-   PathFinderNode* result;
+   PathFinderNode* node;
 
    if (LOG_IS_ENABLED(simulation.pathfinder.astar, 10)) {
       for (auto const& entry : open_) {
@@ -567,14 +575,25 @@ PathFinderNode* AStarPathFinder::PopClosestOpenNode()
    }
    VERIFY_HEAPINESS();
    pop_heap(open_.begin(), open_.end(), PathFinderNode::CompareFitness);
-   result = open_.back();
+   node = open_.back();
    open_.pop_back();
    VERIFY_HEAPINESS();
 
-   PF_LOG(10) << " PopClosestOpenNode returning " << result->pt << ". " << open_.size() << " points remain in open set";
+   PF_LOG(10) << " PopClosestOpenNode returning " << node->pt << ". " << open_.size() << " points remain in open set";
 
-   _openLookup.erase(result->pt);
-   return result;
+   // Move the point directly into the closed set after removing from the open set.
+   // We do this unconditionally here (and only here) to make it clear that nodes live
+   // exclusively on the open *or* closed list.  Never both or neither!
+   csg::Point3 pt = node->pt;
+   if (closed_.empty()) {
+      closedBounds_ = csg::Cube3(pt);
+   } else {
+      closedBounds_.Grow(pt);
+   }
+   closed_.emplace(pt, node);
+   _openLookup.erase(pt);
+
+   _currentSearchNode = node;
 }
 
 void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode *dst) const
@@ -638,8 +657,6 @@ void AStarPathFinder::SetSearchExhausted()
 
    if (!search_exhausted_) {
       ClearNodes();
-      closedBounds_ = csg::Cube3::zero;
-      _openLookup.clear();
       search_exhausted_ = true;
       if (exhausted_cb_) {
          PF_LOG(5) << "calling lua search exhausted callback";
@@ -690,8 +707,6 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       search_exhausted_ = false;
       solution_ = nullptr;
       ClearNodes();
-      closedBounds_ = csg::Cube3::zero;
-      _openLookup.clear();
       world_changed_ = false;
       watching_tiles_.clear();
       direct_path_search_cooldown_ = 0;
@@ -797,8 +812,11 @@ float AStarPathFinder::GetMaxMovementModifier(csg::Point3 const& wgl) const
 } 
 
 
-bool AStarPathFinder::FindDirectPathToDestination(const PathFinderNode* start, PathFinderDst*& dst)
-{   
+bool AStarPathFinder::FindDirectPathToDestination(PathFinderDst*& dst)
+{
+   PathFinderNode const* start = _currentSearchNode;
+
+   ASSERT(start);
    ASSERT(dst);
 
    if (direct_path_search_cooldown_ > 0) {

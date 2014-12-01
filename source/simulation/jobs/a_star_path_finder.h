@@ -76,7 +76,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       float EstimateCostToDestination(const csg::Point3 &pt, PathFinderDst** closest, float maxMod) const;
       float GetMaxMovementModifier(csg::Point3 const& point) const;
 
-      PathFinderNode* PopClosestOpenNode();
+      void PopClosestOpenNode();
       void ReconstructPath(std::vector<csg::Point3f> &solution, const PathFinderNode* dst) const;
       void AddEdge(const csg::Point3 &next, float cost);
       void RebuildHeap();
@@ -85,7 +85,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void SetSearchExhausted();
       void OnTileDirty(csg::Point3 const& index);
       void EnableWorldWatcher(bool enabled);
-      bool FindDirectPathToDestination(const PathFinderNode* from, PathFinderDst*& dst);
+      bool FindDirectPathToDestination(PathFinderDst*& dst);
       void OnPathFinderDstChanged(PathFinderDst const& dst, const char* reason);
       void RebuildOpenHeuristics();
       bool CheckIfIdle() const;
@@ -109,23 +109,23 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       mutable PathPtr               solution_;
       csg::Color4                   debug_color_;
    
-      std::unique_ptr<boost::object_pool<PathFinderNode>>  _nodePool;
       core::Guard                   navgrid_guard_;
-      std::vector<PathFinderNode*>   open_;
+      std::vector<PathFinderNode*>  open_;
       csg::Cube3                    closedBounds_;
-      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3Hash>         closed_;
-      std::unordered_set<csg::Point3, csg::Point3Hash>         watching_tiles_;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash>         closed_;
+      std::unordered_set<csg::Point3, csg::Point3::Hash>         watching_tiles_;
       std::vector<csg::Point3f>     _directPathCandiate;
       mutable const char*           _lastIdleCheckResult;
 
-      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3Hash> _openLookup;
+      std::unordered_map<csg::Point3, PathFinderNode*, csg::Point3::Hash> _openLookup;
    
       std::unique_ptr<PathFinderSrc>               source_;
       mutable std::unordered_map<dm::ObjectId, std::unique_ptr<PathFinderDst>>  destinations_;
 
       phys::OctTree::MovementCostCb _addFn;
-      PathFinderNode* _currentNode;
-      float           _maxMod;
+      PathFinderNode* _currentSearchNode;
+      float           _currentMaxMovementModifier;
+      std::unique_ptr<boost::object_pool<PathFinderNode>>  _nodePool;
 };
 
 std::ostream& operator<<(std::ostream& o, const AStarPathFinder& pf);

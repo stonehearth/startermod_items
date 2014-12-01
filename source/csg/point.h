@@ -65,29 +65,6 @@ public:
       return result;
    }
 
-   struct Hash { 
-   private:
-      template <typename S> inline std::size_t hash(S val, int i) const {
-         return std::hash<S>()(val) << i;
-      }
-
-      // std::hash<int> on Windows is expensive.  we're cheap!
-      template <> inline std::size_t hash(int val, int i) const {
-         static const int factors[] = { 73856093, 19349669, 83492791 };
-         //ASSERT(i < ARRAY_SIZE(factors));
-         return factors[i] * val;
-      }
-
-   public:
-      inline size_t operator()(const Derived& o) const {
-         size_t result = 0;
-         for (int i = 0; i < C; i++) {
-            result ^= hash(o[i], i);
-         }
-         return result;
-      }
-   };
-
    double Length() const {
       return std::sqrt(static_cast<Derived const&>(*this).LengthSquared());
    }
@@ -162,6 +139,12 @@ public:
 
    static const Point zero;
    static const Point one;
+
+   struct Hash { 
+      inline size_t operator()(Point<S, 1> const& p) const {
+         return std::hash<S>(p.x);
+      }
+   };
 
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
@@ -266,6 +249,12 @@ public:
    static const Point zero;
    static const Point one;
 
+   struct Hash { 
+      inline size_t operator()(Point<S, 2> const& p) const {
+         return static_cast<size_t>(p.x * 73856093) ^
+                static_cast<size_t>(p.y * 19349669);
+      }
+   };
 
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
@@ -387,6 +376,14 @@ public:
    static const Point unitX;
    static const Point unitY;
    static const Point unitZ;
+
+   struct Hash { 
+      inline size_t operator()(Point<S, 3> const& p) const {
+         return static_cast<size_t>(p.x * 73856093) ^
+                static_cast<size_t>(p.y * 19349669) ^
+                static_cast<size_t>(p.z * 83492791);
+      }
+   };
 
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
@@ -526,6 +523,15 @@ public:
    static const Point zero;
    static const Point one;
 
+   struct Hash { 
+      inline size_t operator()(Point<S, 4> const& p) const {
+         return static_cast<size_t>(p.x * 73856093) ^
+                static_cast<size_t>(p.y * 19349669) ^
+                static_cast<size_t>(p.z * 83492791) ^
+                static_cast<size_t>(p.w * 22121887);
+      }
+   };
+
    Point operator/(S amount) const {
       // doubleing point divide by zero does not throw exception (it returns 1.#INF000) so check for it explicitly
       ASSERT(amount != 0);
@@ -663,13 +669,6 @@ std::ostream& operator<<(std::ostream& os, Point<S, C> const& in)
 {
    return in.Print(os);
 }
-
-struct Point3Hash { 
-   inline size_t operator()(const Point3& p) const {
-      return (p.x * 73856093) ^ (p.y * 19349669) ^ (p.z * 83492791);
-   }
-};
-
 
 END_RADIANT_CSG_NAMESPACE
 
