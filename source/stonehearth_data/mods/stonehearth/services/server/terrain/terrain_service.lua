@@ -188,9 +188,9 @@ function TerrainService:_get_terrain_region()
 end
 
 function TerrainService:_get_visible_region(player_id)
-   local terrain_bounds = self:_get_terrain_region()
+   local terrain_region = self:_get_terrain_region()
    if self._enable_full_vision then
-      return terrain_bounds
+      return terrain_region
    end
 
    local visible_region = Region2()
@@ -205,7 +205,7 @@ function TerrainService:_get_visible_region(player_id)
       end
    end
 
-   bounded_visible_region = _radiant.csg.intersect_region2(visible_region, terrain_bounds)
+   bounded_visible_region = visible_region:intersect_region(terrain_region)
 
    return bounded_visible_region
 end
@@ -277,7 +277,7 @@ function TerrainService:_are_equivalent_regions(region_a, region_b)
       return false
    end
 
-   intersection = _radiant.csg.intersect_region2(region_a, region_b)
+   intersection = region_a:intersect_region(region_b)
 
    return intersection:get_area() == area_a
 end

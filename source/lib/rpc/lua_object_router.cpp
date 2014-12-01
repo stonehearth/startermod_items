@@ -40,7 +40,7 @@ ReactorDeferredPtr LuaObjectRouter::Call(Function const& fn)
       } else {
          obj = LookupObjectFromLuaState(fn);
       }
-      if (!obj.is_valid()) {
+      if (!obj.is_valid() || luabind::type(obj) != LUA_TTABLE) {
          return nullptr;
       }
 
@@ -89,23 +89,37 @@ luabind::object LuaObjectRouter::LookupObjectFromLuaState(Function const& fn)
    lua_State* L = store_.GetInterpreter();
 
    try {
-      obj = luabind::globals(L);
       std::vector<std::string> parts = strutil::split(fn.object, ".");
-      for (std::string const& part : parts) {
-         if (luabind::type(obj) != LUA_TTABLE) {
-            LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: prefix is not a table)";
-            return luabind::object();
-         }
-         obj = obj[part];
-         if (luabind::type(obj) == LUA_TNIL) {
-            LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: lookup for '" << part << "' returned nil)";
-            return luabind::object();
+      if (!parts.empty()) {
+         std::string const& globalName = parts.front();
+
+         // Be very very careful when grabbing the first part from the global namespace.
+         // strict.lua will blow up the process (!!) if that part doesn't exist.  use
+         // rawget() to bypass it.
+         luabind::globals(L).push(L);
+         lua_pushstring(L, globalName.c_str());
+         lua_rawget(L, -2);
+         obj = luabind::object(luabind::from_stack(L, -1));
+         lua_pop(L, 2);
+
+         for (uint i = 1; i < parts.size(); i++) {
+            std::string const& part = parts[i];
+            if (luabind::type(obj) != LUA_TTABLE) {
+               LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: prefix is not a table)";
+               return luabind::object();
+            }
+            obj = obj[part];
+            if (luabind::type(obj) == LUA_TNIL) {
+               LOR_LOG(9) << "failed to fetch object in lua interpreter (reason: lookup for '" << part << "' returned nil)";
+               return luabind::object();
+            }
          }
       }
    } catch (std::exception const& e) {
       LOR_LOG(9) << "failed to fetch object in lua interpreter (reason:" << e.what() << ")";
       return luabind::object();
    }
+   LOG_(0) << " result of " << fn.object << " is " << luabind::type(obj);
    return obj;
 }
 

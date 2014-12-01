@@ -103,7 +103,7 @@ void NavGridTileData::UpdateTileDataForTrackers()
                   int offset = Offset(x, y, z);
 
                   DEBUG_ONLY(
-                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << type;
+                     NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << DstType;
                   )
                   bits.set(offset);
                }

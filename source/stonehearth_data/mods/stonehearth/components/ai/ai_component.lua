@@ -78,12 +78,13 @@ function AIComponent:get_entity()
 end
 
 function AIComponent:get_debug_info()
-   if self._execution_frame then
-      return {
-         execution_frame = self._execution_frame:get_debug_info(),
-      } 
+   if not self._debug_info then
+      self._debug_info = radiant.create_datastore()
+      self._debug_info:modify(function (o)
+            o.execution_frame = self._execution_frame:get_debug_info(0)
+         end)
    end
-   return {}
+   return { debug_info = self._debug_info }
 end
 
 function AIComponent:destroy()
@@ -382,7 +383,7 @@ function AIComponent:start()
    self.__saved_variables:mark_changed()
 
    self._thread:set_thread_main(function()
-      self._execution_frame = self:_create_top_execution_frame()
+      self:_create_top_execution_frame()
       while not self._dead do
 
          while not radiant.entities.exists_in_world(self._entity) do
@@ -407,7 +408,7 @@ function AIComponent:start()
          end
 
          if self._execution_frame:get_state() == 'dead' then
-            self._execution_frame = self:_create_top_execution_frame()
+            self:_create_top_execution_frame()
          else
             self._execution_frame:stop()
          end
@@ -424,7 +425,13 @@ function AIComponent:_create_top_execution_frame()
    self._thread:set_thread_data('stonehearth:run_stack', {})
    self._thread:set_thread_data('stonehearth:unwind_to_frame', nil)
    local traceroute = string.format('%s/', 'e' .. tostring(self._entity:get_id()))
-   return self:create_execution_frame('stonehearth:top', '', traceroute)
+
+   self._execution_frame = self:create_execution_frame('stonehearth:top', '', traceroute)
+   if self._debug_info then
+      self._debug_info:modify(function (o)
+         execution_frame = self._execution_frame:get_debug_info(0)
+      end)
+   end
 end
 
 function AIComponent:_terminate_thread()

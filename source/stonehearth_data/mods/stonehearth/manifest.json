@@ -37,6 +37,8 @@
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
       "cursors:erase_floor" : "file(data/cursors/erase_floor.cur)",
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
+      "cursors:mine_down" : "file(data/cursors/mine_down.cur)",
+      "cursors:mine_out" : "file(data/cursors/mine_out.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",

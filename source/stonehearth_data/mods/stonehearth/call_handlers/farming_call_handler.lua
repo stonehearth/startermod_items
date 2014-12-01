@@ -7,6 +7,7 @@ local FarmingCallHandler = class()
 -- runs on the client!!
 function FarmingCallHandler:choose_new_field_location(session, response)
    stonehearth.selection:select_designation_region()
+      :set_max_size(20)
       :use_designation_marquee(Color4(55, 187, 56, 255))
       :set_cursor('stonehearth:cursors:zone_farm')
       :done(function(selector, box)

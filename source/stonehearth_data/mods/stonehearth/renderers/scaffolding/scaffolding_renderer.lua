@@ -106,7 +106,7 @@ function ScaffoldingRenderer:_update_shape(mode)
       -- the draw region (set by the render_tracker)
       if mode == 'rpg' then
          if self._draw_region then
-            show_region = self._draw_region:get():to_int():intersected(solid_region)
+            show_region = self._draw_region:get():to_int():intersect_region(solid_region)
             hide_region = solid_region - show_region
          else
             hide_region = solid_region

@@ -7,6 +7,7 @@ local Cube3 = _radiant.csg.Cube3
 local Point2 = _radiant.csg.Point2
 local Rect2 = _radiant.csg.Rect2
 local Region2 = _radiant.csg.Region2
+local Region3 = _radiant.csg.Region3
 
 local log = radiant.log.create_logger('xz_region_selector')
 
@@ -16,12 +17,18 @@ local TERRAIN_NODES = 1
 
 function XZRegionSelector:__init()
    self._state = 'start'
+   self._ruler_color_valid = Color4(0, 0, 0, 128)
+   self._ruler_color_invalid = Color4(255, 0, 0, 128)
    self._require_supported = false
    self._require_unblocked = false
    self._show_rulers = true
+   self._min_size = 0
+   self._max_size = radiant.math.MAX_INT32
    self._select_front_brick = true
-   self._validation_offset = nil
    self._allow_select_cursor = false
+   self._invalid_cursor = 'stonehearth:cursors:invalid_hover'
+   self._valid_region_cache = Region3()
+
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
    local identity_end_point_transform = function(p0, p1)
@@ -31,9 +38,26 @@ function XZRegionSelector:__init()
    self._get_proposed_points_fn = identity_end_point_transform
    self._get_resolved_points_fn = identity_end_point_transform
 
+   self._cursor_fn = function(selected_cube, stabbed_normal)
+      if not selected_cube then
+         return self._invalid_cursor
+      end
+      return self._cursor
+   end
+
    self:_initialize_dispatch_table()
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
+end
+
+function XZRegionSelector:set_min_size(value)
+   self._min_size = value
+   return self
+end
+
+function XZRegionSelector:set_max_size(value)
+   self._max_size = value
+   return self
 end
 
 function XZRegionSelector:set_show_rulers(value)
@@ -91,6 +115,16 @@ end
 
 function XZRegionSelector:set_cursor(cursor)
    self._cursor = cursor
+   return self
+end
+
+function XZRegionSelector:set_invalid_cursor(invalid_cursor)
+   self._invalid_cursor = invalid_cursor
+   return self
+end
+
+function XZRegionSelector:set_cursor_fn(cursor_fn)
+   self._cursor_fn = cursor_fn
    return self
 end
 
@@ -179,13 +213,10 @@ function XZRegionSelector:_cleanup()
       self._input_capture:destroy()
       self._input_capture = nil
    end
+
    if self._cursor_obj then
       self._cursor_obj:destroy()
       self._cursor_obj = nil
-   end
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
    end
 
    if self._render_node then
@@ -222,7 +253,6 @@ end
 
 -- return whether or not the given location is valid to be used in the creation
 -- of the xz region.
---
 function XZRegionSelector:_is_valid_location(brick)
    if not brick then
       return false
@@ -249,7 +279,6 @@ end
 -- for adding to the xz region selector.  if `check_containment_filter` is true, will
 -- also make sure that all the entities at the specified poit pass the can_contain_entity_filter
 -- filter.
---
 function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          -- The only case entity should be null is when allowing self-selection of the
@@ -269,57 +298,85 @@ function XZRegionSelector:_get_brick_at(x, y)
    return brick, normal
 end
 
--- given a candidate p1, compute the p1 which would result in a valid xz region
--- will iterate from p0-p1 in 'i-major' order, where i is 'x' or 'z'.  See
--- _compute_p1 for more info
---
-function XZRegionSelector:_compute_p1_loop(p0, p1, i)
-   if not self:_is_valid_location(p0) then
-      return nil
-   end
-
-   local j = i == 'x' and 'z' or 'x'
-   local di = p1[i] > p0[i] and 1 or -1
-   local dj = p1[j] > p0[j] and 1 or -1
-
-   local pt = Point3(p0.x, p0.y, p0.z)
-
-   while pt[i] ~= p1[i] + di do
-      pt[j] = p0[j]
-      while pt[j] ~= p1[j] + dj do
-         if not self:_is_valid_location(pt) then
-            local go_narrow = pt[i] == p0[i]
-            if go_narrow then
-               -- make the rect narrower and keep iterating
-               p1[j] = pt[j] - dj
-               break
-            else
-               -- go back 1 row and return
-               pt[i] = pt[i] - di
-               pt[j] = p1[j]
-               return pt
-            end
-         end
-         pt[j] = pt[j] + dj
-      end
-      pt[i] = pt[i] + di
-   end
-   return p1
-end
-
--- given a candidate p1, compute the p1 which would result in a valid xz region.
---
+-- Given a candidate p1, compute the 'best' p1 which results in a valid xz region.
+-- The basic algorithm is simple:
+--     1) For each row, scan until you reach an invalid point or the x limit of a previous row.
+--     2) Add each valid point to a region.
+--     3) Return the point in the region closest to p1.
+-- The rest of the code is just optimization and bookkeeping.
 function XZRegionSelector:_compute_p1(p0, p1)
    if not p0 or not p1 then
       return nil
    end
 
-   local lx = math.abs(p1.x - p0.x)
-   local lz = math.abs(p1.z - p0.z)
+   -- if p0 has changed, invalidate our cache
+   if p0 ~= self._valid_region_origin then
+      self._valid_region_cache:clear()
+      self._valid_region_origin = Point3(p0)
+   end
 
-   local coord = lx > lz and 'x' or 'z'
+   -- if the endpoints are already validated, then the whole cube is valid
+   if self._valid_region_cache:contains(p0) and self._valid_region_cache:contains(p1) then
+      return p1
+   end
 
-   return self:_compute_p1_loop(p0, p1, coord)
+   if not self:_is_valid_location(p0) then
+      return nil
+   end
+
+   local dx = p1.x > p0.x and 1 or -1
+   local dz = p1.z > p0.z and 1 or -1
+   local r0 = Point3(p0) -- row start point
+   local r1 = Point3(p0) -- row end point
+   local limit_x = p1.x
+   local valid_x, start_x
+
+   -- iterate over all rows
+   for j = p0.z, p1.z, dz do
+      if not limit_x then
+         -- row is completely obstructed, no further rows can be valid
+         break
+      end
+
+      r0.z = j
+      r1.z = j
+
+      r1.x = limit_x
+      local unverified_region = Region3(self:_create_cube(r0, r1))
+      unverified_region:subtract_region(self._valid_region_cache)
+
+      if not unverified_region:empty() then
+         local valid_x = nil
+         local start_x = unverified_region:get_closest_point(p0).x
+
+         -- if we're not at the row start, valid_x was the previous point
+         if start_x ~= r0.x then
+            valid_x = start_x - dx
+         end
+
+         -- iterate over the untested columns in the row
+         for i = start_x, limit_x, dx do
+            r1.x = i
+            if self:_is_valid_location(r1) then
+               valid_x = i
+            else
+               -- the new limit is the last valid x value
+               limit_x = valid_x
+               break
+            end
+         end
+
+         if valid_x then
+            -- add the row to the valid_region
+            r1.x = valid_x
+            local valid_row = self:_create_cube(r0, r1)
+            self._valid_region_cache:add_cube(valid_row)
+         end
+      end
+   end
+
+   self._valid_region_cache:optimize_by_merge()
+   return self._valid_region_cache:get_closest_point(p1)
 end
 
 function XZRegionSelector:_initialize_dispatch_table()
@@ -340,12 +397,11 @@ function XZRegionSelector:_update()
       return
    end
 
-   local p0, p1 = self._p0, self._p1
-   local selected_cube = p0 and p1 and self:_create_cube(p0, p1)
+   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
 
    self:_update_selected_cube(selected_cube)
-   self:_update_rulers(p0, p1)
-   self:_update_cursor(selected_cube ~= nil)
+   self:_update_rulers(self._p0, self._p1)
+   self:_update_cursor(selected_cube, self._stabbed_normal)
 
    if self._action == 'notify' then
       self:notify(selected_cube)
@@ -357,12 +413,12 @@ function XZRegionSelector:_update()
    end
 end
 
-function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish_normal)
+function XZRegionSelector:_resolve_endpoints(start, finish, stabbed_normal)
    local valid_endpoints = false
 
    log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
 
-   start, finish = self._get_proposed_points_fn(start, finish, start_normal, finish_normal)
+   start, finish = self._get_proposed_points_fn(start, finish, stabbed_normal)
    log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
 
    -- this is ugly
@@ -374,7 +430,9 @@ function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish
       -- this is ugly
       start, finish = self:_remove_validation_offset(start, finish)
 
-      start, finish = self._get_resolved_points_fn(start, finish, start_normal, finish_normal)
+      start, finish = self:_limit_dimensions(start, finish)
+
+      start, finish = self._get_resolved_points_fn(start, finish, stabbed_normal)
       log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
       valid_endpoints = start and finish
    end
@@ -384,6 +442,27 @@ function XZRegionSelector:_resolve_endpoints(start, finish, start_normal, finish
    end
 
    return start, finish
+end
+
+function XZRegionSelector:_limit_dimensions(start, finish)
+   if not start or not finish then
+      return nil, nil
+   end
+
+   local new_finish = Point3(finish)
+   local size = self:_create_cube(start, finish):get_size()
+
+   if size.x > self._max_size then
+      local sign = finish.x >= start.x and 1 or -1
+      new_finish.x = start.x + sign*(self._max_size-1)
+   end
+
+   if size.z > self._max_size then
+      local sign = finish.z >= start.z and 1 or -1
+      new_finish.z = start.z + sign*(self._max_size-1)
+   end
+
+   return start, new_finish
 end
 
 function XZRegionSelector:_add_validation_offset(start, finish)
@@ -445,7 +524,7 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
       return 'start'
    end
 
-   local start, finish = self:_resolve_endpoints(brick, brick, normal, normal)
+   local start, finish = self:_resolve_endpoints(brick, brick, normal)
 
    if not start or not finish then
       self._p0, self._p1 = nil, nil
@@ -453,9 +532,9 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
    end
 
    self._p0, self._p1 = start, finish
+   self._stabbed_normal = normal
 
    if event:down(1) then
-      self._p0_normal = normal
       return 'p0_selected'
    else
       return 'start'
@@ -474,10 +553,10 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
       return 'p0_selected'
    end
 
-   local start, finish = self:_resolve_endpoints(self._p0, brick, self._p0_normal, normal)
+   local start, finish = self:_resolve_endpoints(self._p0, brick, self._stabbed_normal)
 
    if not start or not finish then
-      -- the start state should have guaranteed a minimally valid region
+      -- maybe the world has changed after we started dragging
       log:error('unable to resolve endpoints: %s, %s', tostring(start), tostring(finish))
       return 'p0_selected'
    end
@@ -485,7 +564,17 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
    self._p0, self._p1 = start, finish
 
    if event:up(1) then
-      self._action = 'resolve'
+      -- Make sure our cache still reflects the current state of the world.
+      -- Note we still have a short race condition with the server as the state
+      -- may have changed there which is not yet reflected on the client.
+      self._valid_region_cache:clear()
+      local is_valid_region = self:_compute_p1(self._p0, self._p1) == self._p1
+
+      if is_valid_region and self:_are_valid_dimensions(self._p0, self._p1) then
+         self._action = 'resolve'
+      else
+         self._action = 'reject'
+      end
       return 'stop'
    else
       return 'p0_selected'
@@ -497,6 +586,17 @@ function XZRegionSelector:_run_stop_state(event, brick, normal)
    return 'stop'
 end
 
+function XZRegionSelector:_is_valid_length(length)
+   local valid = length >= self._min_size and length <= self._max_size
+   return valid
+end
+
+function XZRegionSelector:_are_valid_dimensions(p0, p1)
+   local size = self:_create_cube(p0, p1):get_size()
+   local valid = self:_is_valid_length(size.x) and self:_is_valid_length(size.z)
+   return valid
+end
+
 function XZRegionSelector:_update_rulers(p0, p1)
    if not self._show_rulers or not self._x_ruler or not self._z_ruler then
       return
@@ -505,25 +605,40 @@ function XZRegionSelector:_update_rulers(p0, p1)
    if p0 and p1 then
       -- if we're selecting the hover brick, the rulers are on the bottom of the selection
       -- if we're selecting the terrain brick, the rulers are on the top of the selection
-      local y_offset = self._select_front_brick and 0 or 1
-      local y = p0.y + y_offset
-      local x_normal = Point3(0, 0, p0.z <= p1.z and 1 or -1)
-      self._x_ruler:set_points(Point3(math.min(p0.x, p1.x), y, p1.z),
-                               Point3(math.max(p0.x, p1.x), y, p1.z),
-                               x_normal,
-                               string.format('%d\'', math.abs(p1.x - p0.x) + 1))
+      local offset = self._select_front_brick and Point3.zero or Point3.unit_y
+      local q0, q1 = p0 + offset, p1 + offset
+
+      self:_update_ruler(self._x_ruler, q0, q1, 'x')
       self._x_ruler:show()
 
-      local z_normal = Point3(p0.x <= p1.x and 1 or -1, 0, 0)
-      self._z_ruler:set_points(Point3(p1.x, y, math.min(p0.z, p1.z)),
-                               Point3(p1.x, y, math.max(p0.z, p1.z)),
-                               z_normal,
-                               string.format('%d\'', math.abs(p1.z - p0.z) + 1))
+      self:_update_ruler(self._z_ruler, q0, q1, 'z')
       self._z_ruler:show()
    else
       self._x_ruler:hide()
       self._z_ruler:hide()
    end
+end
+
+function XZRegionSelector:_update_ruler(ruler, p0, p1, dimension)
+   local d = dimension
+   local dn = d == 'x' and 'z' or 'x'
+   local min = math.min(p0[d], p1[d])
+   local max = math.max(p0[d], p1[d])
+   local length = max - min + 1
+   local color = self:_is_valid_length(length) and self._ruler_color_valid or self._ruler_color_invalid
+   ruler:set_color(color)
+
+   local min_point = Point3(p1)
+   min_point[d] = min
+
+   local max_point = Point3(p1)
+   max_point[d] = max
+
+   -- don't use Point3.zero since we need it to be mutable
+   local normal = Point3(0, 0, 0)
+   normal[dn] = p0[dn] <= p1[dn] and 1 or -1
+
+   ruler:set_points(min_point, max_point, normal, string.format('%d\'', length))
 end
 
 function XZRegionSelector:_update_selected_cube(box)
@@ -554,11 +669,20 @@ function XZRegionSelector:_update_selected_cube(box)
    self._render_node:set_can_query(self._allow_select_cursor)
 end
 
-function XZRegionSelector:_update_cursor(valid_selection)
-   if valid_selection then
-      self:_clear_invalid_cursor()
-   else
-      self:_set_invalid_cursor()
+function XZRegionSelector:_update_cursor(box, stabbed_normal)
+   local cursor = self._cursor_fn and self._cursor_fn(box, stabbed_normal)
+
+   if cursor == self._current_cursor then
+      return
+   end
+
+   if self._cursor_obj then
+      self._cursor_obj:destroy()
+      self._cursor_obj = nil
+   end
+
+   if cursor then
+      self._cursor_obj = _radiant.client.set_cursor(cursor)
    end
 end
 
@@ -583,19 +707,6 @@ function XZRegionSelector:go()
                                  return true
                               end)
    return self
-end
-
-function XZRegionSelector:_set_invalid_cursor()
-   if not self._invalid_cursor_obj then
-      self._invalid_cursor_obj = _radiant.client.set_cursor('stonehearth:cursors:invalid_hover')
-   end
-end
-
-function XZRegionSelector:_clear_invalid_cursor()
-   if self._invalid_cursor_obj then
-      self._invalid_cursor_obj:destroy()
-      self._invalid_cursor_obj = nil
-   end
 end
 
 return XZRegionSelector

@@ -48,12 +48,6 @@ std::shared_ptr<T> RegionClip(const T& region, typename T::Cube const& cube)
    return result;
 }
 
-template <typename T>
-T IntersectRegion(T const& lhs, T const& rhs)
-{
-   return lhs & rhs;
-}
-
 Region2f ProjectOntoXZPlane(Region3f const& region)
 {
    Region2f r2;
@@ -102,8 +96,10 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_bounds",         &T::GetBounds)
          .def("optimize_by_oct_tree", &T::OptimizeByOctTree)
          .def("optimize_by_merge",  &T::OptimizeByMerge)
-         .def("intersects",         (bool (T::*)(T const&) const)&T::Intersects)
-         .def("intersects",         (bool (T::*)(typename T::Cube const&) const)&T::Intersects)
+         .def("intersects_region",  (bool (T::*)(T const&) const)&T::Intersects)
+         .def("intersects_cube",    (bool (T::*)(typename T::Cube const&) const)&T::Intersects)
+         .def("intersect_region",   (T (T::*)(T const&) const)&T::Intersected)
+         .def("intersect_cube",     (T (T::*)(typename T::Cube const&) const)&T::Intersected)
          .def("add_region",         (void (T::*)(T const&))&T::Add)
          .def("add_cube",           (void (T::*)(typename T::Cube const&))&T::Add)
          .def("add_point",          (void (T::*)(typename T::Point const&))&T::Add)
@@ -120,7 +116,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("get_closest_point",  &T::GetClosestPoint)
          .def("translate",          &T::Translate)
          .def("translated",         &T::Translated)
-         .def("intersected",        &IntersectRegion<T>)
          .def("inflated",           &T::Inflated)
          .def("contains",           &T::Contains)
          .def("set_tag",            &T::SetTag)
@@ -130,8 +125,6 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
 scope LuaRegion::RegisterLuaTypes(lua_State* L)
 {
    return
-      def("intersect_region2", IntersectRegion<Region2f>),
-      def("intersect_region3", IntersectRegion<Region3f>),
       Register<Region3f>(L, "Region3")
          .def("each_point",               &EachPointRegion3f)
          .def("get_adjacent",             &GetAdjacent<Region3f>)

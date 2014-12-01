@@ -21,7 +21,7 @@ function ReserveEntityDestinationRegion:start(ai, entity, args)
    self._destination_component = target:add_component('destination')
    local reserved_region_boxed = self._destination_component:get_reserved()
 
-   local intersection = proposed_reserved_region:intersected(reserved_region_boxed:get())
+   local intersection = proposed_reserved_region:intersect_region(reserved_region_boxed:get())
    if not intersection:empty() then
       ai:abort('could not reserve region')
    end

@@ -96,7 +96,7 @@ function voxel_brush_util.create_construction_data_node(parent_node, entity, reg
 
          if construction_data:get_paint_through_blueprint() then
             local blueprint = construction_data:get_blueprint_entity()
-            model = blueprint:get_component('destination'):get_region():get():intersected(stencil)
+            model = blueprint:get_component('destination'):get_region():get():intersect_region(stencil)
          else
             local brush = construction_data:create_voxel_brush()
             if brush then

@@ -230,8 +230,8 @@ function StaticScenarioService:_reveal_around_entities()
 end
 
 function StaticScenarioService:_bound_region_by_terrain(region)
-   local terrain_bounds = self:_get_terrain_region()
-   return _radiant.csg.intersect_region2(region, terrain_bounds)
+   local terrain_region = self:_get_terrain_region()
+   return region:intersect_region(terrain_region)
 end
 
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
