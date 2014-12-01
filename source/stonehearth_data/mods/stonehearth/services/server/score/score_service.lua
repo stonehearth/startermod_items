@@ -220,12 +220,7 @@ function ScoreService:update_aggregate_score(player_id)
    local pop = stonehearth.population:get_population(player_id)
    local citizens = pop:get_citizens()
    
-   if not self._sv.player_scores[player_id] then
-      self._sv.player_scores[player_id] = PlayerScoreData()
-      self._sv.player_scores[player_id].__saved_variables = radiant.create_datastore()
-      self._sv.player_scores[player_id]:initialize()
-   end
-
+   self:_create_player_scores(player_id)
    self:_calculate_aggregate(player_id, citizens)
 end
 
@@ -275,7 +270,16 @@ end
 
 
 function ScoreService:get_scores_for_player(player_id)
+   self:_create_player_scores(player_id)
    return self._sv.player_scores[player_id]
+end
+
+function ScoreService:_create_player_scores(player_id)
+   if not self._sv.player_scores[player_id] then
+      self._sv.player_scores[player_id] = PlayerScoreData()
+      self._sv.player_scores[player_id].__saved_variables = radiant.create_datastore()
+      self._sv.player_scores[player_id]:initialize()
+   end
 end
 
 return ScoreService

@@ -76,16 +76,19 @@ end
 
 function PaceKeeper:spawning_scenario(scenario)
    self:controller():spawning_scenario(scenario)
+   return self
 end
 
 function PaceKeeper:penalize_buildup()
    self._sv._buildup = self._sv._buildup * 0.5
    self.__saved_variables:mark_changed()   
+   return self
 end
 
 function PaceKeeper:clear_buildup()
    self._sv._buildup = 0
    self.__saved_variables:mark_changed()
+   return self
 end
 
 return PaceKeeper

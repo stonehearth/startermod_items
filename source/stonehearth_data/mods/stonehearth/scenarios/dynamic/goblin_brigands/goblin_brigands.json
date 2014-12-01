@@ -1,10 +1,8 @@
 {
-   "scenario_types" : {
-      "combat" : {
-         "min_strength" : 22,
-         "max_strength" : 500
-      }
-   },
+   "scenario_type" : "combat",
+   "min_strength" : 22,
+   "max_strength" : 500,
+   
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:goblin_brigands",
    "scenario_data" : {

@@ -1,8 +1,5 @@
 {
-   "scenario_types" : {
-      "population" : {
-      }
-   },
+   "scenario_type" : "population",
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:simple_caravan", 
    "scenario_data" : {

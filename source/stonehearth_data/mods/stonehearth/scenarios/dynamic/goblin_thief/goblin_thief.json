@@ -1,10 +1,8 @@
 {
-   "scenario_types" : {
-   "combat" : {
-     "min_strength" : 0,
-     "max_strength" : 25
-   }
-   },
+   "scenario_type" : "combat",
+   "min_strength" : 0,
+   "max_strength" : 25,
+
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:goblin_thief", 
    "scenario_data" : {

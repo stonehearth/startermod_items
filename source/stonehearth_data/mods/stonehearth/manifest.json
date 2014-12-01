@@ -1156,7 +1156,8 @@
       "combat_pace_keeper" : "file(services/server/dynamic_scenario/combat_pace_keeper.lua)",
       "population_pace_keeper" : "file(services/server/dynamic_scenario/population_pace_keeper.lua)",
       "pace_keeper" : "file(services/server/dynamic_scenario/pace_keeper.lua)",
-      "dynamic_scenario" : "file(services/server/dynamic_scenario/dynamic_scenario.lua)",
+      "generic_scenario_wrapper" : "file(services/server/dynamic_scenario/generic_scenario_wrapper/generic_scenario_wrapper.lua)",
+      "settlement_scenario_wrapper" : "file(services/server/dynamic_scenario/settlement_scenario_wrapper/settlement_scenario_wrapper.lua)",
 
       "scenarios:goblin_thief" : "file(scenarios/dynamic/goblin_thief/goblin_thief.lua)",
       "scenarios:goblin_brigands" : "file(scenarios/dynamic/goblin_brigands/goblin_brigands.lua)",

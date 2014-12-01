@@ -1,8 +1,5 @@
 {
-   "scenario_types" : {
-      "population" : {
-      }
-   },
+   "scenario_type" : "population",
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:immigration", 
    "scenario_data" : {
