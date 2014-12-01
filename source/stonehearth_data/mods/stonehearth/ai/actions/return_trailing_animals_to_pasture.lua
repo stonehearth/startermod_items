@@ -6,7 +6,7 @@ ReturnTrailingAnimalToPasture.args = {}
 ReturnTrailingAnimalToPasture.version = 2
 ReturnTrailingAnimalToPasture.priority = stonehearth.constants.priorities.shepherding_animals.RETURN_TO_PASTURE
 
----> TODO: start here tuesday; multiple pastures, animal creation dropoff, summon to self, etc
+---> TODO: start here tuesday; multiple pastures, animal creation dropoff
 
 --We should only run if we are trailing animals
 function ReturnTrailingAnimalToPasture:start_thinking(ai, entity, args)
@@ -35,6 +35,8 @@ function ReturnTrailingAnimalToPasture:run(ai, entity, args)
 
             --If the animal is still with us
             if shepherded_component then
+               -- Can we wait here till the animal catches up with us? 
+               ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
                ai:execute('stonehearth:goto_entity', {entity = animal})
                ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
                shepherded_component:set_following(false)
