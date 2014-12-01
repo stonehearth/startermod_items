@@ -605,7 +605,7 @@ bool NavGrid::ForEachEntityInShape(csg::CollisionShape const& worldShape, ForEac
 bool NavGrid::ForEachTileInBox(csg::CollisionBox const& worldBox, ForEachTileCb const& cb)
 {
    bool stopped = false;
-   csg::Cube3 clippedWorldBounds = csg::ToInt(worldBox).Intersection(bounds_);
+   csg::Cube3 clippedWorldBounds = csg::ToInt(worldBox).Intersected(bounds_);
    csg::Cube3 indexBounds = csg::GetChunkIndex<TILE_SIZE>(clippedWorldBounds);
 
    csg::Cube3PointIterator i(indexBounds), end;

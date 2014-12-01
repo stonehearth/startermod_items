@@ -62,7 +62,7 @@ public:
    Cube Inflated(Point const& amount) const;
    Cube Scaled(double factor) const { return Cube(min.Scaled(factor), max.Scaled(factor)); }
    Cube ProjectOnto(int axis, S plane) const;
-   Cube Intersection(Cube const& other) const;
+   Cube Intersected(Cube const& other) const;
    Region GetBorder() const;
 
    bool Intersects(Cube const& other) const;

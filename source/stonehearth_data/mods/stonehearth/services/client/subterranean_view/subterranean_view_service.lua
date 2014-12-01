@@ -184,7 +184,7 @@ function SubterraneanViewService:_update_dirty_tiles()
 
          -- restore any portion of the world floor that was cleared
          -- local bounds = self:_get_tile_bounds(index)
-         -- local clipped_floor = _radiant.csg.intersect_cube3(world_floor, bounds)
+         -- local clipped_floor = world_floor:intersected(bounds)
          -- self._xray_tiles:add_cube(clipped_floor)
 
          _radiant.renderer.mark_dirty_index(index)
