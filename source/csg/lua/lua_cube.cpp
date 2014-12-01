@@ -78,6 +78,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("translated",   &T::Translated)
          .def("inflated",     &T::Inflated)
          .def("intersects",   &T::Intersects)
+         .def("intersected",  &T::Intersected)
          .def("get_border",   &T::GetBorder)
          .def("distance_to",  (double (T::*)(T const&) const)&T::DistanceTo)
          .def("distance_to",  (double (T::*)(typename T::Point const&) const)&T::DistanceTo)
@@ -89,8 +90,6 @@ scope LuaCube::RegisterLuaTypes(lua_State* L)
 {
    return
       def("construct_cube3", &Cube3f::Construct),
-      def("intersect_cube3", IntersectCube<Cube3f>),
-      def("intersect_cube2", IntersectCube<Rect2f>),
       Register<Cube3f>(L, "Cube3")
          .def("each_point",   &EachPointCube3f)
          .def("rotated",      &(Cube3f (*)(Cube3f const&, int))&csg::Rotated)

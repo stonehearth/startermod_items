@@ -199,7 +199,7 @@ Cube<S, C> Cube<S, C>::operator-() const
 }
 
 template <typename S, int C>
-Cube<S, C> Cube<S, C>::Intersection(Cube const& other) const
+Cube<S, C> Cube<S, C>::Intersected(Cube const& other) const
 {
    Cube result;
    for (int i = 0; i < C; i++) {
@@ -555,7 +555,7 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
    template double Cls::DistanceTo(const Cls::Point& other) const; \
    template void Cls::Grow(const Cls::Point& other); \
    template void Cls::Grow(const Cls& other); \
-   template Cls Cls::Intersection(Cls const& other) const; \
+   template Cls Cls::Intersected(Cls const& other) const; \
    template bool Cls::CombineWith(const Cls& other); \
    template Cls::Region Cls::GetBorder() const; \
 
