@@ -117,12 +117,12 @@ private:
       int NotifyTileResident(NavGridTile* tile);
 
    private: // private types
-      typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3Hash> NavGridTileMap;
+      typedef std::unordered_map<csg::Point3, NavGridTile*, csg::Point3::Hash> NavGridTileMap;
       typedef boost::container::flat_map<dm::ObjectId, CollisionTrackerPtr> CollisionTrackerFlatMap;
       typedef std::unordered_map<dm::ObjectId, CollisionTrackerFlatMap> CollisionTrackerMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisionTrackerDtorMap;
       typedef std::unordered_map<dm::ObjectId, dm::TracePtr> CollisonTypeTraceMap;
-      typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3Hash> TerrainTileCollisionTrackerMap;
+      typedef std::unordered_map<csg::Point3, CollisionTrackerPtr, csg::Point3::Hash> TerrainTileCollisionTrackerMap;
 
    private:
       void AddComponentTracker(CollisionTrackerPtr tracker, om::ComponentPtr component);
