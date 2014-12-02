@@ -50,7 +50,7 @@ private:
 private:
    NavGridTile&   _ngt;
    int            dirty_;
-   BitSet         marked_[NUM_BIT_VECTOR_TRACKERS];
+   BitSet         marked_[3]; // COLLISION, TERRAIN, and LADDER...
    float          _movementSpeedBonus[TILE_SIZE*TILE_SIZE*TILE_SIZE];
    float          _maxMovementSpeedBonus;
 };

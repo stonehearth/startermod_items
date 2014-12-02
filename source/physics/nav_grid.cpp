@@ -210,6 +210,8 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
          return std::make_shared<RegionCollisionShapeTracker>(*this, COLLISION, entity, regionCollisionShapePtr);
       case om::RegionCollisionShape::RegionCollisionTypes::NONE:
          return std::make_shared<RegionCollisionShapeTracker>(*this, NON_COLLISION, entity, regionCollisionShapePtr);
+      case om::RegionCollisionShape::RegionCollisionTypes::PLATFORM:
+         return std::make_shared<RegionCollisionShapeTracker>(*this, PLATFORM, entity, regionCollisionShapePtr);
    }
    return nullptr;
 }
