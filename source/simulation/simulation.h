@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 
 #include "om/om.h"
+#include "core/static_string.h"
 #include "lib/lua/bind.h"
 #include "physics/octtree.h"
 #include "physics/free_motion.h"
@@ -139,6 +140,7 @@ private:
    void CreateGame();
    void CreateFreeMotionTrace(om::MobPtr mob);
    void LogJobPerfCounters(perfmon::Frame* frame);
+   std::string GetProgressForJob(core::StaticString name) const;
 
 private:
    struct FreeMotionTaskMapEntry {

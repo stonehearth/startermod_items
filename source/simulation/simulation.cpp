@@ -98,7 +98,6 @@ void Simulation::OneTimeIninitializtion()
    });
    enable_job_logging_ = config.Get<bool>("enable_job_logging", false);
    if (enable_job_logging_) {
-      perf_jobs_.BeginFrame();
       jobs_perf_guard_ = perf_jobs_.OnFrameEnd([this](perfmon::Frame* frame) {
          LogJobPerfCounters(frame);
       });
@@ -129,6 +128,7 @@ void Simulation::OneTimeIninitializtion()
       SIM_LOG(0) << msg;
       return msg;
    });
+
    core_reactor_->AddRouteS("radiant:toggle_step_paths", [this](rpc::Function const& f) {
       _singleStepPathFinding = !_singleStepPathFinding;
       std::string msg = BUILD_STRING("single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF"));
@@ -1147,10 +1147,12 @@ void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
       totalTime += ms;
    }
    for (auto const& entry : counters) {
+      bool found = false;
       int ms = entry.first;
-      const char*  name = entry.second;
       int percent = ms * 100 / totalTime;
-      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << name;
+      const char* name = entry.second;
+
+      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << GetProgressForJob(name);
    }
 }
 
@@ -1158,3 +1160,27 @@ bool Simulation::GetEnableJobLogging() const
 {
    return enable_job_logging_;
 }
+
+std::string Simulation::GetProgressForJob(core::StaticString name) const
+{
+   for (std::weak_ptr<Job> const& j : jobs_) {
+      std::shared_ptr<Job> job = j.lock();
+      if (job) {
+         EntityJobSchedulerPtr ejs = std::dynamic_pointer_cast<EntityJobScheduler>(job);
+         if (ejs) {
+            for (auto const& entry : ejs->GetPathFinders()) {
+               PathFinderPtr pf = entry.second.lock();
+               if (pf && core::StaticString(pf->GetName()) == name) {
+                  return pf->GetProgress();
+               }
+            }
+         } else {
+            if (core::StaticString(job->GetName()) == name) {
+               return job->GetProgress();
+            }
+         }
+      }
+   }
+   return BUILD_STRING(name << " (finished...)");
+}
+

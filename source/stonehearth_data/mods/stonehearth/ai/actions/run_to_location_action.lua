@@ -5,6 +5,7 @@ RunToLocation.name = 'run to location'
 RunToLocation.does = 'stonehearth:goto_location'
 RunToLocation.args = {
    location = Point3,
+   reason = 'string',
    stop_when_adjacent = {
       type = 'boolean',   -- whether to stop adjacent to destination
       default = false,
@@ -16,7 +17,7 @@ RunToLocation.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(RunToLocation)
          :execute('stonehearth:create_proxy_entity', {
-            reason = 'goto location',
+            reason = ai.ARGS.reason,
             location = ai.ARGS.location,
             use_default_adjacent_region = ai.ARGS.stop_when_adjacent,
          })

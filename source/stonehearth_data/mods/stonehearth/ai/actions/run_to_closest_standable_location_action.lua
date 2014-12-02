@@ -22,5 +22,6 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(RunToClosestStandableLocation)
          :execute('stonehearth:goto_location', {
+            reason = 'goto closest standable location',
             location = ai.PREV.location,
          })

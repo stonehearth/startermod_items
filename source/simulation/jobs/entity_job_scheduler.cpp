@@ -95,7 +95,7 @@ void EntityJobScheduler::Work(const platform::timer &timer)
  *
  * Return a string summarizing the progress of the job.
  */
-std::string EntityJobScheduler::GetProgress() const
+std::string EntityJobScheduler::GetProgress()
 {
    std::ostringstream s;
 
@@ -182,4 +182,9 @@ void EntityJobScheduler::ResetPathfinderTimes()
 om::EntityRef EntityJobScheduler::GetEntity() const
 {
    return entity_;
+}
+
+EntityJobScheduler::PathFinderMap const& EntityJobScheduler::GetPathFinders() const
+{
+   return pathfinders_;
 }

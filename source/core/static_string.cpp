@@ -10,3 +10,8 @@ StaticString::StaticString(std::string const& s)
 {
    _value = dm::SafeCStringTable()(s.c_str());
 }
+
+StaticString::StaticString(const char* s)
+{
+   _value = dm::SafeCStringTable()(s);
+}

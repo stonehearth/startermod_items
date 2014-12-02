@@ -20,7 +20,7 @@ WalkToEmptySpace.priority = 1
 function WalkToEmptySpace:run(ai, entity, args)
    local origin = radiant.entities.get_world_grid_location(entity)
    local target = radiant.terrain.find_placement_point(origin, args.radius_min, args.radius)
-   ai:execute('stonehearth:goto_location', {location = target})
+   ai:execute('stonehearth:goto_location', { reason = 'walk to empty space', location = target})
 end
 
 return WalkToEmptySpace

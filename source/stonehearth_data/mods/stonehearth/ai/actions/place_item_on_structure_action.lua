@@ -19,6 +19,7 @@ return ai:create_compound_action(PlaceItemOnStructure)
                item = ai.ARGS.item
             })
          :execute('stonehearth:goto_location', {
+               reason = 'place item on structure',
                location = ai.ARGS.location,
                stop_when_adjacent = true,
             })

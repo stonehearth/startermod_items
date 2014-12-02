@@ -19,6 +19,7 @@ class StaticString
 {
 public:
    StaticString(std::string const& s);
+   StaticString(const char* s);
    operator const char*() const { return _value; }
 
 private:

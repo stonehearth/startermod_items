@@ -13,4 +13,4 @@ MoveUnit.priority = stonehearth.constants.priorities.unit_control.MOVE
 
 local ai = stonehearth.ai
 return ai:create_compound_action(MoveUnit)
-         :execute('stonehearth:goto_location', { location = ai.ARGS.location  })
+         :execute('stonehearth:goto_location', { reason = 'move unit', location = ai.ARGS.location  })
