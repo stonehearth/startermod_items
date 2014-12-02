@@ -435,10 +435,12 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       // Check each neighbor...
-      const auto& o = GetSim().GetOctTree();
-   
-      _currentMaxMovementModifier = maxMod;
-      o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
+      {   
+         const auto& o = GetSim().GetOctTree();
+         MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder navgrid");
+         _currentMaxMovementModifier = maxMod;
+         o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
+      }
 
       direct_path_search_cooldown_--;
    }
@@ -447,6 +449,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
 {
+   MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder");
+
    if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << _currentSearchNode->pt << " to " << next << " cost:" << movementCost;
       return;
