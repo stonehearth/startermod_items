@@ -32,6 +32,8 @@ IN_RADIANT_PHYSICS_NAMESPACE(
    class OctTree;
 )
 
+#define MEASURE_TASK_TIME(perf, category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf, category);
+
 BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class RemoteClient;
@@ -76,6 +78,7 @@ public:
    float GetBaseWalkSpeed() const;
    int GetGameTickInterval() const;
    bool GetEnableJobLogging() const;
+   perfmon::Timeline& GetOverviewPerfTimeline();
    perfmon::Timeline& GetJobsPerfTimeline();
 
    WorkerScheduler* GetWorkerScheduler();

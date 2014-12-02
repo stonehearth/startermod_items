@@ -221,6 +221,7 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
       luabind::object solved_cb = luabind::object(cb_thread, unsafe_solved_cb);
  
       pf->SetSolvedCb([solved_cb, cb_thread] (PathPtr path) mutable {
+         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
          try {
             luabind::object result = solved_cb(luabind::object(cb_thread, path));
             if (luabind::type(result) == LUA_TBOOLEAN) {
@@ -243,6 +244,7 @@ std::shared_ptr<T> PathFinder_SetExhaustedCb(std::shared_ptr<T> pf, luabind::obj
       luabind::object exhausted_cb = luabind::object(cb_thread, unsafe_exhausted_cb);
 
       pf->SetSearchExhaustedCb([exhausted_cb, cb_thread]() mutable {
+         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
          try {
             exhausted_cb();
          } catch (std::exception const& e) {
@@ -260,6 +262,7 @@ FilterResultCachePtr FilterResultCache_SetFilterFn(FilterResultCachePtr frc, lua
       luabind::object filter_fn = luabind::object(cb_thread, unsafe_filter_fn);
 
       frc->SetFilterFn([filter_fn, cb_thread](om::EntityPtr e) -> bool {
+         MEASURE_TASK_TIME(GetSim(cb_thread).GetOverviewPerfTimeline(), "lua cb");
          try {
             LOG_CATEGORY(simulation.pathfinder.bfs, 5, "calling filter function on " << *e);
             return luabind::call_function<bool>(filter_fn, om::EntityRef(e));
