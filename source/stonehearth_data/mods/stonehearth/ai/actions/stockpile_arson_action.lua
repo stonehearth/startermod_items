@@ -39,6 +39,6 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(StockpileArson)
-            :execute('stonehearth:goto_location', { location = ai.ARGS.location })
+            :execute('stonehearth:goto_location', { reason = 'stockpile arson', location = ai.ARGS.location })
             :execute('stonehearth:run_effect', { effect = 'light_fire' })
             :execute('stonehearth:call_function', { fn = stockpile_igniter, args = { ai.ARGS.stockpile_comp } })

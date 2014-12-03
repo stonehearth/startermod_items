@@ -107,6 +107,7 @@ function ImmigrationFailure:_create_timer(duration)
       end
    end)
    self._sv.timer_expiration = self._timer:get_expire_time()
+   self.__saved_variables:mark_changed()
 end
 
 --- Once the user has acknowledged the bulletin, add the target reward beside the banner
@@ -128,22 +129,24 @@ end
 --- Only actually spawn the object after the user clicks OK
 -- TODO: verify the bulletin actually goes away?
 function ImmigrationFailure:_on_accepted()
-   self:acknowledge()
-   self._timer:destroy()
    self:_stop_timer()
+   self:acknowledge()
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 
 end
 
 function ImmigrationFailure:_on_declined()
-   self._timer:destroy()
    self:_stop_timer()
    radiant.events.trigger(self, 'stonehearth:dynamic_scenario:finished')
 end
 
 function ImmigrationFailure:_stop_timer()
-   self._timer = nil
-   self._sv.timer_expiration = nil
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
+      self._sv.timer_expiration = nil
+      self.__saved_variables:mark_changed()
+   end
 end
 
 return ImmigrationFailure

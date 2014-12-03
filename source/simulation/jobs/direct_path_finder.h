@@ -23,7 +23,7 @@ public:
 
 private:
    bool GetEndPoints(csg::Point3f& start, csg::Point3f& endLocation) const;
-   csg::Point3f GetPointOfInterest(csg::Point3f const& end) const;
+   bool GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const;
 
    Simulation& sim_;
    csg::Point3f startLocation_;

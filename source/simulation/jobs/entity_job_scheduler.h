@@ -26,11 +26,14 @@ public:
    EntityJobScheduler(Simulation& sim, om::EntityPtr entity);
    virtual ~EntityJobScheduler();
 
+   typedef std::unordered_map<int, PathFinderRef> PathFinderMap;
+
 public:
    typedef std::function<void(std::string const&, int)> GetPathfinderTimesCb;
    void AddPathfinder(PathFinderPtr pathfinder);
    void RemovePathfinder(PathFinderPtr pathfinder);
    void GetPathfinderTimes(GetPathfinderTimesCb cb);
+   PathFinderMap const& GetPathFinders() const;
 
    typedef std::unordered_map<std::string, perfmon::CounterValueType> PathfinderTimeMap;
    void SetRecordPathfinderTimes(bool enabled);
@@ -42,13 +45,12 @@ public: // Job Interface
    bool IsIdle() const override;
    bool IsFinished() const override;
    void Work(const platform::timer &timer) override;
-   std::string GetProgress() const override;
+   std::string GetProgress() override;
    void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
 private:
    PathFinderPtr GetClosestPathfinder() const;
 
-   typedef std::unordered_map<int, PathFinderRef> PathFinderMap;
 private:
    om::EntityRef              entity_;
    mutable PathFinderMap      pathfinders_;

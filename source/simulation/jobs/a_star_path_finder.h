@@ -59,7 +59,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       bool IsIdle() const override;
       bool IsFinished() const override { return false; }
       void Work(const platform::timer &timer) override;
-      std::string GetProgress() const override;
+      std::string GetProgress() override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:

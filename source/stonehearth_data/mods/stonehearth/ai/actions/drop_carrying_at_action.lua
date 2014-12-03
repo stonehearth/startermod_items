@@ -30,6 +30,7 @@ DropCarrying.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(DropCarrying)
          :execute('stonehearth:goto_location', {
+            reason = 'drop carrying at',
             location = ai.ARGS.location,
             stop_when_adjacent = true,
          })

@@ -25,6 +25,7 @@ local ai = stonehearth.ai
 return ai:create_compound_action(SetBaitTrap)
    :execute('stonehearth:drop_carrying_now')
    :execute('stonehearth:goto_location', {
+      reason = 'set bait trap',
       location = ai.ARGS.location,
       stop_when_adjacent = true
    })

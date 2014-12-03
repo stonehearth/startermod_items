@@ -26,7 +26,9 @@ class DirectPathFinder;
 class FilterResultCache;
 class EntityJobScheduler;
 class ApplyFreeMotionTask;
+class EntityJobScheduler;
 
+DECLARE_SHARED_POINTER_TYPES(Job)
 DECLARE_SHARED_POINTER_TYPES(Path)
 DECLARE_SHARED_POINTER_TYPES(PathFinder)
 DECLARE_SHARED_POINTER_TYPES(PathFinderSrc)
@@ -37,6 +39,7 @@ DECLARE_SHARED_POINTER_TYPES(DirectPathFinder)
 DECLARE_SHARED_POINTER_TYPES(FilterResultCache)
 DECLARE_SHARED_POINTER_TYPES(EntityJobScheduler)
 DECLARE_SHARED_POINTER_TYPES(ApplyFreeMotionTask)
+DECLARE_SHARED_POINTER_TYPES(EntityJobScheduler)
 
 END_RADIANT_SIMULATION_NAMESPACE
 

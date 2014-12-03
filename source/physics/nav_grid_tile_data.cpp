@@ -37,6 +37,7 @@ NavGridTileData::~NavGridTileData()
 template <TrackerType Type>
 bool NavGridTileData::IsMarked(csg::Point3 const& offset)
 {
+   static_assert(Type >= 0 && Type < NUM_BIT_VECTOR_TRACKERS, "Type out of range in NavGridTileData");
    const int bitIndex = Offset(offset.x, offset.y, offset.z);
 
    ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
@@ -70,7 +71,7 @@ void NavGridTileData::UpdateTileData()
 template <>
 void NavGridTileData::UpdateTileData<COLLISION>()
 {
-   const int SrcMask = (1 << COLLISION) | (1 << TERRAIN);
+   const int SrcMask = (1 << COLLISION) | (1 << TERRAIN) | (1 << PLATFORM);
    UpdateTileDataForTrackers<SrcMask, COLLISION>();
 }
 
@@ -186,7 +187,7 @@ inline int NavGridTileData::Offset(int x, int y, int z)
 void NavGridTileData::MarkDirty(TrackerType t)
 {
    dirty_ |= (1 << t);
-   if (t == TERRAIN) {
+   if (t == TERRAIN || t == PLATFORM) {
       dirty_ |= (1 << COLLISION);
    }
 }

@@ -61,8 +61,6 @@ namespace proto = ::radiant::tesseract::protocol;
 #define SIM_LOG(level)              LOG(simulation.core, level)
 #define SIM_LOG_GAMELOOP(level)     LOG_CATEGORY(simulation.core, level, "simulation.core (time left: " << game_loop_timer_.remaining() << ")")
 
-#define MEASURE_TASK_TIME(perf, category)  perfmon::TimelineCounterGuard taskman_timer_ ## __LINE__ (perf, category);
-
 Simulation::Simulation(std::string const& versionStr) :
    store_(nullptr),
    paused_(false),
@@ -100,7 +98,6 @@ void Simulation::OneTimeIninitializtion()
    });
    enable_job_logging_ = config.Get<bool>("enable_job_logging", false);
    if (enable_job_logging_) {
-      perf_jobs_.BeginFrame();
       jobs_perf_guard_ = perf_jobs_.OnFrameEnd([this](perfmon::Frame* frame) {
          LogJobPerfCounters(frame);
       });
@@ -131,6 +128,7 @@ void Simulation::OneTimeIninitializtion()
       SIM_LOG(0) << msg;
       return msg;
    });
+
    core_reactor_->AddRouteS("radiant:toggle_step_paths", [this](rpc::Function const& f) {
       _singleStepPathFinding = !_singleStepPathFinding;
       std::string msg = BUILD_STRING("single step path finding turned " << (_singleStepPathFinding ? "ON" : "OFF"));
@@ -810,9 +808,18 @@ void Simulation::main()
 
 void Simulation::Mainloop()
 {
-   perf_timeline_.BeginFrame();
-
    SIM_LOG_GAMELOOP(7) << "starting next gameloop";
+
+   if (next_counter_push_.expired()) {
+      perf_timeline_.BeginFrame();
+      PushPerformanceCounters();
+      next_counter_push_.set(500);
+   }
+   if (enable_job_logging_ && log_jobs_timer_.expired()) {
+      perf_jobs_.BeginFrame();
+      log_jobs_timer_.set(2000);
+   }
+
    ReadClientMessages();
 
    if (begin_loading_) {
@@ -834,15 +841,6 @@ void Simulation::Mainloop()
       octtree_->GetNavGrid().UpdateGameTime(now_, game_tick_interval_);
 
       scriptHost_->Trigger("radiant:gameloop:end");
-   }
-
-   if (next_counter_push_.expired()) {
-      PushPerformanceCounters();
-      next_counter_push_.set(500);
-   }
-   if (enable_job_logging_ && log_jobs_timer_.expired()) {
-      perf_jobs_.BeginFrame();
-      log_jobs_timer_.set(2000);
    }
 
    // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
@@ -1124,6 +1122,11 @@ void Simulation::CreateFreeMotionTrace(om::MobPtr mob)
       ->PushObjectState();
 }
 
+perfmon::Timeline& Simulation::GetOverviewPerfTimeline()
+{
+   return perf_timeline_;
+}
+
 perfmon::Timeline& Simulation::GetJobsPerfTimeline()
 {
    return perf_jobs_;
@@ -1144,10 +1147,12 @@ void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
       totalTime += ms;
    }
    for (auto const& entry : counters) {
+      bool found = false;
       int ms = entry.first;
-      const char*  name = entry.second;
       int percent = ms * 100 / totalTime;
-      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << name;
+      const char* name = entry.second;
+
+      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << GetProgressForJob(name);
    }
 }
 
@@ -1155,3 +1160,27 @@ bool Simulation::GetEnableJobLogging() const
 {
    return enable_job_logging_;
 }
+
+std::string Simulation::GetProgressForJob(core::StaticString name) const
+{
+   for (std::weak_ptr<Job> const& j : jobs_) {
+      std::shared_ptr<Job> job = j.lock();
+      if (job) {
+         EntityJobSchedulerPtr ejs = std::dynamic_pointer_cast<EntityJobScheduler>(job);
+         if (ejs) {
+            for (auto const& entry : ejs->GetPathFinders()) {
+               PathFinderPtr pf = entry.second.lock();
+               if (pf && core::StaticString(pf->GetName()) == name) {
+                  return pf->GetProgress();
+               }
+            }
+         } else {
+            if (core::StaticString(job->GetName()) == name) {
+               return job->GetProgress();
+            }
+         }
+      }
+   }
+   return BUILD_STRING(name << " (finished...)");
+}
+

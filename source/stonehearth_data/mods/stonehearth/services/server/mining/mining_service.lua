@@ -91,7 +91,7 @@ function MiningService:dig_down(player_id, region)
    local aligned_region = self:_transform_cubes_in_region(region, function(cube)
          return self:_get_aligned_cube(cube)
       end)
-   self:dig_region(player_id, aligned_region)
+   return self:dig_region(player_id, aligned_region)
 end
 
 -- Dig out, quantized to the 4x5x4 cells, but preserve the ceiling.
@@ -107,7 +107,7 @@ function MiningService:dig_out(player_id, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, aligned_region)
+   return self:dig_region(player_id, aligned_region)
 end
 
 -- Dig up, quantized to the 4x5x4 cells.
@@ -123,7 +123,7 @@ function MiningService:dig_up(player_id, region)
                Point3(max.x, max.y-1, max.z)
             )
       end)
-   self:dig_region(player_id, aligned_region)
+   return self:dig_region(player_id, aligned_region)
 end
 
 -- Explicitly create a mining zone.

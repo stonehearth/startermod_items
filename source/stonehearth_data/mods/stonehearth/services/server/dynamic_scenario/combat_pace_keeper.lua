@@ -76,7 +76,7 @@ function CombatPaceKeeper:compute_value()
 end
 
 function CombatPaceKeeper:can_spawn_scenario(scenario)
-  local props = scenario.properties.scenario_types.combat
+  local props = scenario.properties
 
   local military_score = stonehearth.score:get_scores_for_player('player_1'):get_score_data().military_strength
   local military_strength = military_score ~= nil and military_score.total_score or 0

@@ -75,6 +75,19 @@ function CombatService:end_assault(context)
    context.assault_active = false
 end
 
+function CombatService:begin_defense(context)
+   context.target_defending = true
+   self:_set_defending(context.target, true)
+end
+
+function CombatService:end_defense(context)
+   if radiant.gamestate.now() < context.impact_time then
+      -- we could just do this unconditionally, but might be useful to have the history recorded in the context
+      context.target_defending = false
+   end
+   self:_set_defending(context.target, false)
+end
+
 -- Notify target that it has been hit by an attack.
 function CombatService:battery(context)
    local attacker = context.attacker
@@ -123,8 +136,7 @@ function CombatService:hit_stun(context)
       return nil
    end
 
-   --TODO: figure out how to make hitstun only happen when not attacking/defending
-   --radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
+   radiant.events.trigger_async(target, 'stonehearth:combat:hit_stun', context)
 end
 
 function CombatService:get_assault_events(target)
@@ -257,6 +269,25 @@ function CombatService:_set_assaulting(entity, assaulting)
 
    local combat_state = self:get_combat_state(entity)
    return combat_state:set_assaulting(assaulting)
+end
+
+function CombatService:get_defending(entity)
+   if not entity or not entity:is_valid() then
+      return false
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:get_defending()
+end
+
+-- external parties should be using the begin_assault and end_assault methods
+function CombatService:_set_defending(entity, defending)
+   if not entity or not entity:is_valid() then
+      return
+   end
+
+   local combat_state = self:get_combat_state(entity)
+   return combat_state:set_defending(defending)
 end
 
 function CombatService:get_stance(entity)

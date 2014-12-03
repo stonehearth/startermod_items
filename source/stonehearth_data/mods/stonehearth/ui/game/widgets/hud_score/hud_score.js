@@ -19,7 +19,9 @@ App.StonehearthHudScoreWidget = App.View.extend({
             self.scoreTrace = new StonehearthDataTrace(response.score, {});
             self.scoreTrace.progress(function(eobj) {
                   self.set('context.score_data', eobj.score_data);
-                  self._convertHappiness(eobj.score_data.happiness);
+                  if (eobj.score_data.happiness) {
+                     self._convertHappiness(eobj.score_data.happiness);
+                  }
                });
          });
 

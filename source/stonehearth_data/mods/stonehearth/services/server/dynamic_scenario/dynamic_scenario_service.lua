@@ -1,4 +1,3 @@
-local DynamicScenario = require 'services.server.dynamic_scenario.dynamic_scenario'
 local log = radiant.log.create_logger('dynamic_scenario_service')
 local rng = _radiant.csg.get_default_rng()
 
@@ -9,14 +8,20 @@ function DynamicScenarioService:initialize()
    if not self._sv.running_scenarios then
       self._sv.running_scenarios = {}
       self._sv.last_spawn_times = {}
-      self._sv._scenarios = {}
-      self:_parse_scenario_index()
    end
+   self:_parse_scenario_index()
 end
 
 
-function DynamicScenarioService:force_spawn_scenario(scenario_uri, params)
-   local new_scenario = self:_create_scenario(scenario_uri, params)
+function DynamicScenarioService:force_spawn_scenario(scenario_uri)
+   local scenario = self._scenarios_by_uri[scenario_uri]
+   assert(type(scenario) == 'table')
+
+   local new_scenario = self:_create_scenario(scenario)
+   if not new_scenario:can_spawn() then
+      radiant.destroy_controller(new_scenario)
+      return
+   end
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
    return new_scenario
@@ -27,70 +32,63 @@ end
 -- through our list of scenarios for that type, and see if we find one that we
 -- can spawn.
 function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
-   if not self._sv._scenarios[scenario_type] then
+   local pace_keeper = pace_keepers[scenario_type]
+
+   -- if we have no scenarios of this type, bail
+   local scenarios = self._scenarios_by_type[scenario_type]
+   if not scenarios then
       return
    end
 
-   local valid_scenarios = {}
-   for _, scenario in pairs(self._sv._scenarios[scenario_type]) do
-      local valid_scenario = true
-
-      -- Check each 'type' that the scenario implements, to ensure that it is
-      -- valid to spawn that scenario.  For example, the DM might want to spawn
-      -- a combat scenario, and foo might be a valid combat scenario, but it might
-      -- also effect the 'wealth' pacer, which isn't ready to run yet.  Or, all
-      -- pacing is satisfied, but the scenario we're looking at is also waiting
-      -- for the combat strength of the player to reach a certain level.
-      for implementing_type,_ in pairs(scenario.properties.scenario_types) do
-         local pace_keeper = pace_keepers[implementing_type]
-         local temp_scenario = self:_create_scenario(scenario)
-
-         if not pace_keeper:willing_to_spawn() or 
-            not pace_keeper:is_valid_scenario(scenario) or
-            not temp_scenario:can_spawn() then
-            valid_scenario = false
-            break
-         end
-         temp_scenario = nil
-      end
-
-      if valid_scenario then
-         local rarity = self:_rarity_to_value(scenario.properties.rarity)
-         if rng:get_int(1, rarity) == 1 then
-            table.insert(valid_scenarios, scenario)
-         else
-            scenario.buildup = scenario.buildup + 1
-         end
-      end
-   end
-
-   if #valid_scenarios < 1 then
+   -- if there's no pace_keeper or it's not willing to spawn this scenario
+   -- type yet, bail.
+   if not pace_keeper or
+      not pace_keeper:willing_to_spawn() then
       return
    end
 
-   -- We now have a list of valid scenarios that have also been randomly chosen according
-   -- to their own rarities.  Now, just pick the one that has been used the least.
-   local best_scenario = valid_scenarios[1]
-   for _, scenario in pairs(valid_scenarios) do
-      if best_scenario.buildup < scenario.buildup then
-         best_scenario = scenario
+   local best_scenario, best_info
+   for _, info in pairs(scenarios) do
+      -- see if we pass the rarity check...
+      local rarity = self:_rarity_to_value(info.properties.rarity)
+      if rng:get_int(1, rarity) == 1 then
+         -- yay!  now create the scenario and see if it's willing to
+         -- spawn at this time.
+         local scenario = self:_create_scenario(info.properties)
+         if scenario:can_spawn() then
+            -- sweet.  if this is the least recently activated of all the
+            -- scenarios that can run, use this one.
+            info.buildup = info.buildup + 1
+            if not best_info or info.buildup > best_info.build_up then
+               if best_scenario then
+                  radiant.destroy_controller(best_scenario)
+               end
+               best_info = info
+               best_scenario = scenario
+            end
+         end
+
+         if scenario ~= best_scenario then
+            radiant.destroy_controller(scenario)
+         end
       end
    end
-   best_scenario.buildup = 0
 
-   -- For each pace-keeper affected by this scenario, let that scenario know that we've spawned
-   -- a scenario of that type.
-   for implementing_type,_ in pairs(best_scenario.properties.scenario_types) do
-      pace_keepers[implementing_type]:clear_buildup()
-      pace_keepers[implementing_type]:spawning_scenario(best_scenario)
+   -- bail if we couldn't find one to activate.
+   if not best_scenario then
+      return
    end
 
-   log:spam('Spawning new %s scenario %s', scenario_type, best_scenario.properties.uri)
+   -- Let the pacekeeper scenario know that we've spawned a scenario.
+   pace_keeper:clear_buildup()
+   pace_keeper:spawning_scenario(best_scenario)
+
+   log:spam('Spawning new %s scenario %s', scenario_type, best_info.properties.uri)
    
-   local new_scenario = self:_create_scenario(best_scenario)
-   new_scenario:start()
-   table.insert(self._sv.running_scenarios, new_scenario)
+   best_info.buildup = 0
+   best_scenario:start()
 
+   table.insert(self._sv.running_scenarios, best_scenario)
    self.__saved_variables:mark_changed()
 end
 
@@ -130,37 +128,39 @@ end
 
 
 function DynamicScenarioService:_parse_scenario_index()
+   self._scenarios_by_uri = {}
+   self._scenarios_by_type = {}
+
    local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
 
    for _, file in pairs(scenario_index.dynamic.scenarios) do
       local properties = radiant.resources.load_json(file)
-      for scenario_type,_ in pairs(properties.scenario_types) do
-         if self._sv._scenarios[scenario_type] == nil then
-            self._sv._scenarios[scenario_type] = {}
-         end
-         local scenario_data = {  
-            uri = properties.uri,
-            properties = properties,
-            buildup = 0
-         }
-         table.insert(self._sv._scenarios[scenario_type], scenario_data)
+      self._scenarios_by_uri[file] = properties
+      
+      local scenario_type = properties.scenario_type
+      if self._scenarios_by_type[scenario_type] == nil then
+         self._scenarios_by_type[scenario_type] = {}
       end
+      local scenario_data = {  
+         uri = properties.uri,
+         properties = properties,
+         buildup = 0
+      }
+      table.insert(self._scenarios_by_type[scenario_type], scenario_data)
    end
 end
 
-function DynamicScenarioService:_create_scenario(scenario, params)
-   local scenario_uri
-   
-   if type(scenario) == 'string' then
-      scenario_uri = scenario
-   else
-      scenario_uri = scenario.uri
+function DynamicScenarioService:_create_scenario(scenario)
+   assert(type(scenario) == 'table')
+   assert(type(scenario.scenario_type) == 'string')
+
+   if scenario.scenario_type == 'settlement' then
+      return radiant.create_controller('stonehearth:settlement_scenario_wrapper', scenario)
    end
 
-   local actual_scenario = radiant.create_controller(scenario_uri, params)
-   local dyn_scenario = radiant.create_controller('stonehearth:dynamic_scenario', actual_scenario)
-
-   return dyn_scenario
+   -- use the generic wrapper for everything else
+   local s = radiant.create_controller(scenario.uri)
+   return radiant.create_controller('stonehearth:generic_scenario_wrapper', s)
 end
 
 return DynamicScenarioService

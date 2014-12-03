@@ -66,4 +66,7 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(FollowEntity)
-         :execute('stonehearth:goto_location', { location = ai.PREV.location })
+         :execute('stonehearth:goto_location', {
+               reason = 'following entity',
+               location = ai.PREV.location,
+            })

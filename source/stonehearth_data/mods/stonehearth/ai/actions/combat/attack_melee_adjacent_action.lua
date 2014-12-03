@@ -112,6 +112,9 @@ function AttackMeleeAdjacent:run(ai, entity, args)
    )
 
    ai:execute('stonehearth:run_effect', { effect = attack_info.name })
+
+   stonehearth.combat:end_assault(self._assault_context)
+   self._assault_context = nil
 end
 
 -- TODO: modify to work with final design
@@ -143,14 +146,14 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)
-   if self._hit_effect ~= nil then
-      if radiant.gamestate.now() < self._assault_context.impact_time then
+   if self._hit_effect then
+      if self._assault_context and radiant.gamestate.now() < self._assault_context.impact_time then
          self._hit_effect:stop()
       end
       self._hit_effect = nil
    end
 
-   if self._timer ~= nil then
+   if self._timer then
       -- cancel the timer if we were pre-empted
       self._timer:destroy()
       self._timer = nil
@@ -158,9 +161,8 @@ function AttackMeleeAdjacent:stop(ai, entity, args)
 
    if self._assault_context then
       stonehearth.combat:end_assault(self._assault_context)
+      self._assault_context = nil
    end
-
-   self._assault_context = nil
 end
 
 return AttackMeleeAdjacent

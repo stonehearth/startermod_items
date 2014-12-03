@@ -345,6 +345,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
       csg::Color4(c, c, c, 255).SaveValue(coord->mutable_color());
    }
 
+#if 0
    for (const auto& pt: closed_) {
       auto coord = msg->add_coords();
       pt.second->pt.SaveValue(coord);
@@ -354,6 +355,7 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
    for (const auto& dst : destinations_) {
       dst.second->EncodeDebugShapes(msg, debug_color_);
    }
+#endif
 }
 
 void AStarPathFinder::Work(const platform::timer &timer)
@@ -361,14 +363,14 @@ void AStarPathFinder::Work(const platform::timer &timer)
    MEASURE_JOB_TIME();
 
    for (int i = 0; i < 8 && !timer.expired(); i++) {
-      PF_LOG(7) << "entering work function";
+      PF_LOG(3) << "entering work function";
 
       if (restart_search_) {
          Restart();
       }
 
       if (open_.empty()) {
-         PF_LOG(7) << "open set is empty!  returning";
+         PF_LOG(2) << "open set is empty!  returning";
          SetSearchExhausted();
          return;
       }
@@ -433,10 +435,12 @@ void AStarPathFinder::Work(const platform::timer &timer)
       }
 
       // Check each neighbor...
-      const auto& o = GetSim().GetOctTree();
-   
-      _currentMaxMovementModifier = maxMod;
-      o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
+      {   
+         const auto& o = GetSim().GetOctTree();
+         MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder navgrid");
+         _currentMaxMovementModifier = maxMod;
+         o.ComputeNeighborMovementCost(entity_.lock(), _currentSearchNode->pt, _addFn);
+      }
 
       direct_path_search_cooldown_--;
    }
@@ -445,6 +449,8 @@ void AStarPathFinder::Work(const platform::timer &timer)
 
 void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
 {
+   MEASURE_TASK_TIME(GetSim().GetOverviewPerfTimeline(), "pathfinder");
+
    if (closed_.find(next) != closed_.end()) {
       PF_LOG(9) << "       Ignoring edge in closed set from " << _currentSearchNode->pt << " to " << next << " cost:" << movementCost;
       return;
@@ -620,20 +626,38 @@ void AStarPathFinder::RecommendBestPath(std::vector<csg::Point3f> &points) const
    }
 }
 
-std::string AStarPathFinder::GetProgress() const
+std::string AStarPathFinder::GetProgress()
 {
-   std::string ename;
+   std::string ename, dstname;
    auto entity = entity_.lock();
    if (entity) {
       ename = BUILD_STRING(*entity);
    }
-   return BUILD_STRING("astar " << std::left << std::setw(40) << GetName() << "(" <<
-                       "entity:" << std::setw(32) << ename << " " << 
-                       "id:" << std::setw(3) << GetId() << " " << 
-                       "src:" << source_->GetSourceLocation() << " " << 
-                       "#dst:" << destinations_.size() << " " << 
-                       "open:" << open_.size() << " " << 
-                       "closed:" << closed_.size() << " " <<
+
+   csg::Point3f srcPt = source_->GetSourceLocation();
+
+   if (!destinations_.empty()) {
+      om::EntityPtr dstEntity = destinations_.begin()->second->GetEntity();
+      if (dstEntity) {
+         om::MobPtr mob = dstEntity->GetComponent<om::Mob>();
+         if (mob) {
+            om::EntityRef re;
+            csg::Point3f dstPt = mob->GetWorldGridLocation(re);
+            dstname = BUILD_STRING(*dstEntity << " @ " << dstPt << "[d=" << ((dstPt - srcPt).Length()) << "]");
+         } else {
+            dstname = BUILD_STRING(*dstEntity);
+         }
+      }
+   }
+
+   return BUILD_STRING("jid:" << std::setw(4) << GetId() << " " <<
+                       "astar entity:" << std::left << std::setw(30) << ename << " " <<
+                       "eta:"    << std::setprecision(1) << std::fixed << std::setw(5) << EstimateCostToSolution() << " " <<
+                       "src:"    << std::setw(20) << BUILD_STRING(srcPt) << " " <<
+                       "dst:"    << std::setw(30) << dstname << " " <<
+                       "#dst:"   << std::setw(2)  << destinations_.size() << " " <<
+                       "open:"   << std::setw(4)  << open_.size() << " " <<
+                       "closed:" << std::setw(4)  << closed_.size() << " " <<
                        "idle:\"" << std::setw(16) << (_lastIdleCheckResult ? _lastIdleCheckResult : "not checked") << "\" " <<
                        ")");
 }
@@ -673,18 +697,27 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
    if (solution.empty()) {
       solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3f dst_point_of_interest = dst->GetPointOfInterest(solution.back());
-   PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
-   PathPtr path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
 
-   PF_LOG(5) << "calling lua solved callback";
-   bool solved = solved_cb_(path);
-   PF_LOG(5) << "finished calling lua solved callback";
+   csg::Point3f poi;
+   bool solved = false;
+   PathPtr path = nullptr;
+   bool is_valid_poi = dst->GetPointOfInterest(solution.back(), poi);
+
+   if (is_valid_poi) {
+      PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
+      path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), poi);
+      PF_LOG(5) << "calling lua solved callback";
+      solved = solved_cb_(path);
+      PF_LOG(5) << "finished calling lua solved callback";
+   } else {
+      PF_LOG(1) << "failed to get point of interest";
+   }
 
    if (solved) {
+      PF_LOG(2) << "solution accepted!";
       solution_  = path;
    } else {
-      PF_LOG(5) << "solved cb said no bueno.  removing destination and continuing search.";
+      PF_LOG(5) << "removing destination and continuing search.";
       RemoveDestination(dstId);
       dst = nullptr;
    }
@@ -702,7 +735,11 @@ PathPtr AStarPathFinder::GetSolution() const
 AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
 {
    if (!restart_search_) {
-      PF_LOG(3) << "requesting search restart: " << reason;
+      if (search_exhausted_) {
+         PF_LOG(2) << "requesting restart of exhausted search: " << reason;
+      } else {
+         PF_LOG(3) << "requesting search restart: " << reason;
+      }
       restart_search_ = true;
       search_exhausted_ = false;
       solution_ = nullptr;

@@ -543,7 +543,7 @@ void BfsPathFinder::AddTileToSearch(csg::Point3 const& index)
 
 
 /*
- * -- BfsPathFinder::EstimateCostToSolution
+ * -- BfsPathFinder::EstimateCostToSolution 
  *
  * Returns the estimated cost (in distance remaining to be traveled) to find a solution or FLT_MAX if
  * no solution exists.  If the AStarPathFinder hasn't found anything to chew on yet, we return
@@ -580,7 +580,7 @@ float BfsPathFinder::EstimateCostToSolution()
  *
  */
 
-std::string BfsPathFinder::GetProgress() const
+std::string BfsPathFinder::GetProgress()
 {
    std::ostringstream progress;
    std::string ename;
@@ -589,13 +589,14 @@ std::string BfsPathFinder::GetProgress() const
       ename = BUILD_STRING(*entity);
    }
    int percentExplored = static_cast<int>(search_order_index_ * 100 / SEARCH_ORDER_SIZE);
-   progress << "bfs   " << std::left << std::setw(40) << GetName() << "("
-            << "entity:" << std::setw(32) << ename << " "
-            << "explored:" << percentExplored << "%" << " "
-            << "dist:" << travel_distance_ << " "
-            << "items:" << destinationCount_ << " "
-            ")\n";
-   progress << pathfinder_->GetProgress();
+   progress << "jid:" << std::setw(4) << GetId() << " " <<
+               "bfs entity:" << std::left << std::setw(30) << ename << " " <<
+               "eta:"        << std::setprecision(1) << std::fixed << std::setw(5) << EstimateCostToSolution() << " " <<
+               "explored:"   << std::setw(3) << percentExplored << "%" << " " <<
+               "dist:"       << std::setw(4) << travel_distance_ << " " <<
+               "items:"      << std::setw(4) << destinationCount_ << " "
+               "a_star_jid:" << std::setw(4) << pathfinder_->GetId() << " "
+               ")";
 
    return progress.str();
 }

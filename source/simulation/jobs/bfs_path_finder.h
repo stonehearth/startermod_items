@@ -57,7 +57,7 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       bool IsIdle() const override;
       bool IsFinished() const override { return false; }
       void Work(platform::timer const& timer) override;
-      std::string GetProgress() const override;
+      std::string GetProgress() override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
 
    private:

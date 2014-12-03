@@ -1,9 +1,11 @@
 local CombatStateComponent = class()
 
+-- The CombatStateComponent is a private component that should not be directly accessed. Use the CombatService API instead.
 function CombatStateComponent:__init()
    -- attacks in progress are not saved, so neither are their assault events
    self._assault_events = {}
    self._assaulting = false
+   self._defending = false
 
    -- cache of the available combat actions
    self._combat_actions = {}
@@ -91,6 +93,14 @@ end
 
 function CombatStateComponent:set_assaulting(assaulting)
    self._assaulting = assaulting
+end
+
+function CombatStateComponent:get_defending()
+   return self._defending
+end
+
+function CombatStateComponent:set_defending(defending)
+   self._defending = defending
 end
 
 -- currently experimental code

@@ -1,0 +1,18 @@
+{
+   "entities" : {
+      "campfire" : {
+         "uri" : "stonehearth:firepit",
+         "force_iconic" : false,
+         "location" : {
+            "x" : 2,
+            "y" : 0,
+            "z" : 2
+         }
+      }
+   },
+   "size" : {
+      "x" : 4,
+      "y" : 1,
+      "z" : 4
+   }
+}

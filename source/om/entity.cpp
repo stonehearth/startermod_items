@@ -18,7 +18,7 @@ std::ostream& ::radiant::om::operator<<(std::ostream& os, Entity const& o)
 
    std::string debug_text = o.GetDebugText();
 
-   os << "(Entity " << o.GetObjectId();
+   os << "(" << o.GetObjectId();
    std::string annotation;
    UnitInfoPtr unit_info = o.GetComponent<UnitInfo>();
    if (unit_info) {
