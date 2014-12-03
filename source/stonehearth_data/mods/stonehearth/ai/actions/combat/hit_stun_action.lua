@@ -11,6 +11,7 @@ function HitStun:start_thinking(ai, entity, args)
    self._entity = entity
    self._log = ai:get_log()
 
+   self._allow_nested_hit_stun = false
    self._think_output_set = false
    self._posture_set = false
 
@@ -70,7 +71,7 @@ function HitStun:on_hit_stun(args)
    else
       -- if a hit stun message comes in while we were already doing a previous hitstun, just
       -- start the effect over.  this can happen when multiple people are ganging up on us!
-      if self._running then
+      if self._running and self._allow_nested_hit_stun then
          self:_start_new_effect()
       end
    end
@@ -106,10 +107,10 @@ end
 function HitStun:run(ai, entity, args)
    self:_start_new_effect()
    ai:suspend('waiting for hit stun effect (or effect chain) to finish')
+   self._running = false
 end
 
 function HitStun:stop(ai, entity, args)
-   self._running = false
    self._ai = nil
    self._entity = nil
    self:_unregister_events()
