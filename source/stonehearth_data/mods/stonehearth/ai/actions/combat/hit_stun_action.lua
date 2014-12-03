@@ -49,6 +49,13 @@ end
 function HitStun:on_hit_stun(args)
    self._log:spam('got hit stun message!')
 
+   local assaulting = stonehearth.combat:get_assaulting(self._entity)
+   local defending = stonehearth.combat:get_defending(self._entity)
+   if assaulting or defending then
+      -- don't interrupt attacks or defenses
+      return
+   end
+
    -- find a better way to do this
    local posture = radiant.entities.get_posture(self._entity)
    if posture == 'stonehearth:cower' then

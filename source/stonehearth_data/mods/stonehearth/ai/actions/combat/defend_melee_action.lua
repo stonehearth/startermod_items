@@ -140,27 +140,28 @@ function DefendMelee:run(ai, entity, args)
       return
    end
 
-   self._assault_context.target_defending = true
-   
    radiant.entities.turn_to_face(entity, self._assault_context.attacker)
 
    stonehearth.combat:start_cooldown(entity, self._defend_info)
+   stonehearth.combat:begin_defense(self._assault_context)
 
    ai:execute('stonehearth:run_effect', {
       effect = self._defend_info.name,
       delay = defend_start_delay
    })
+
+   stonehearth.combat:end_defense(self._assault_context)
+   self._assault_context = nil
 end
 
 function DefendMelee:stop(ai, entity, args)
-   -- signal attacker if the defense was interrupted before the impact time
-   if radiant.gamestate.now() < self._assault_context.impact_time then
-      self._assault_context.target_defending = false
+   if self._assault_context then
+      stonehearth.combat:end_defense(self._assault_context)
+      self._assault_context = nil
    end
 
    self._ai = nil
    self._entity = nil
-   self._assault_context = nil
 end
 
 return DefendMelee
