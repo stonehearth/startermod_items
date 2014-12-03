@@ -6,8 +6,6 @@ ReturnTrailingAnimalToPasture.args = {}
 ReturnTrailingAnimalToPasture.version = 2
 ReturnTrailingAnimalToPasture.priority = stonehearth.constants.priorities.shepherding_animals.RETURN_TO_PASTURE
 
----> TODO: start here tuesday; multiple pastures, animal creation dropoff
-
 --We should only run if we are trailing animals
 function ReturnTrailingAnimalToPasture:start_thinking(ai, entity, args)
    local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
@@ -31,7 +29,12 @@ function ReturnTrailingAnimalToPasture:run(ai, entity, args)
             local pasture_tag = animal:get_component('stonehearth:equipment'):has_item_type('stonehearth:pasture_tag')
             local shepherded_component = pasture_tag:get_component('stonehearth:shepherded_animal')
             local pasture = shepherded_component:get_pasture()
-            ai:execute('stonehearth:goto_entity', {entity = pasture})
+
+            local pasture_component = pasture:get_component('stonehearth:shepherd_pasture')
+            ai:execute('stonehearth:goto_location', {
+               reason = 'dropping off some critters!',
+               location = pasture_component:get_center_point()
+               })
 
             --If the animal is still with us
             if shepherded_component then
