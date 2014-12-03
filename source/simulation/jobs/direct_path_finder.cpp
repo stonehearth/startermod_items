@@ -123,18 +123,20 @@ bool DirectPathFinder::GetEndPoints(csg::Point3f& start, csg::Point3f& end) cons
    }
 }
 
-csg::Point3f DirectPathFinder::GetPointOfInterest(csg::Point3f const& end) const
+bool DirectPathFinder::GetPointOfInterest(csg::Point3f const& end, csg::Point3f& poi) const
 {
-   csg::Point3f poi = end;
-
    if (useEntityForEndPoint_) {
       om::EntityPtr destinationEntity = destinationRef_.lock();
       if (destinationEntity) {
-         poi = MovementHelper(logLevel_).GetPointOfInterest(end, destinationEntity);
+         return MovementHelper(logLevel_).GetPointOfInterest(destinationEntity, end, poi);
+      } else {
+         return false;
       }
+   } else {
+      // we're just pathing to a point, so return that point
+      poi = end;
+      return true;
    }
-
-   return poi;
 }
 
 PathPtr DirectPathFinder::GetPath()
@@ -171,7 +173,12 @@ PathPtr DirectPathFinder::GetPath()
    }
 
    // We have an acceptable path!  Compute the POI.
-   csg::Point3f poi = GetPointOfInterest(end);
+   csg::Point3f poi;
+   bool isValidPoi = GetPointOfInterest(end, poi);
+   if (!isValidPoi) {
+      DPF_LOG(1) << "failed to get point of interest";
+      return nullptr;
+   }
 
    // Create the path object and return
    // destinationRef will be invalid if using a point as the destination

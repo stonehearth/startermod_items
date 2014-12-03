@@ -98,13 +98,10 @@ csg::Region3f MovementHelper::GetRegionAdjacentToEntity(Simulation& sim, om::Ent
    return region;
 }
 
-csg::Point3f MovementHelper::GetPointOfInterest(csg::Point3f const& adjacentPointWorld, om::EntityPtr const& entity) const
+bool MovementHelper::GetPointOfInterest(om::EntityPtr const& entity, csg::Point3f const& from, csg::Point3f& poi) const
 {
-   csg::Point3f adjacentPointLocal = phys::WorldToLocal(adjacentPointWorld, entity);
-   csg::Point3f poiLocal(0, 0, 0);
-   csg::Point3f poiWorld;
-
    om::DestinationPtr dst = entity->GetComponent<om::Destination>();
+   csg::Point3f poiLocal(0, 0, 0);
 
    if (dst) {
       DEBUG_ONLY(
@@ -128,17 +125,21 @@ csg::Point3f MovementHelper::GetPointOfInterest(csg::Point3f const& adjacentPoin
             }
          }
       )
-      poiLocal = dst->GetPointOfInterest(adjacentPointLocal);
+      csg::Point3f fromLocal = phys::WorldToLocal(from, entity);
+      bool isValid = dst->GetPointOfInterest(fromLocal, poiLocal);
+      if (!isValid) {
+         return false;
+      }
    }
 
-   poiWorld = phys::LocalToWorld(poiLocal, entity);
+   poi = phys::LocalToWorld(poiLocal, entity);
 
-   if ((csg::Point2f(adjacentPointWorld.x, adjacentPointWorld.z) - 
-        csg::Point2f(poiWorld.x, poiWorld.z)).LengthSquared() != 1) {
-      MH_LOG(5) << "warning: distance from adjacentPoint " << adjacentPointWorld << " to " << poiWorld << " is not 1.";
+   if ((csg::Point2f(from.x, from.z) - 
+        csg::Point2f(poi.x, poi.z)).LengthSquared() != 1) {
+      MH_LOG(5) << "warning: distance from adjacentPoint " << from << " to " << poi << " is not 1.";
    }
 
-   return poiWorld;
+   return true;
 }
 
 static std::vector<csg::Point3> const& GetElevationOffsets(om::EntityPtr entity, bool reversible)

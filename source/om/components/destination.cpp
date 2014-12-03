@@ -144,13 +144,17 @@ void Destination::Initialize()
    OnAutoUpdateAdjacentChanged();
 }
 
-csg::Point3f Destination::GetBestPointOfInterest(csg::Region3f const& r, csg::Point3f const& pt) const
+csg::Point3f Destination::GetBestPointOfInterest(csg::Region3f const& region, csg::Point3f const& from) const
 {
-   csg::Point3f poi = r.GetClosestPoint(pt);
+   if (region.IsEmpty()) {
+      throw core::Exception("region is empty");
+   }
+
+   csg::Point3f poi = region.GetClosestPoint(from);
 
    // The point of interest should not be the same as the requested point.  If
    // possible, find another one in the region which is adjacent to this point
-   if (poi == pt) {
+   if (poi == from) {
       static const csg::Point3f adjacent[] = {
          csg::Point3f(-1, 0,  0),
          csg::Point3f( 1, 0,  0),
@@ -159,7 +163,7 @@ csg::Point3f Destination::GetBestPointOfInterest(csg::Region3f const& r, csg::Po
       };
       for (csg::Point3f const& delta : adjacent) {
          csg::Point3f candidate = poi + delta;
-         if (r.Contains(candidate)) {
+         if (region.Contains(candidate)) {
             return candidate;
          }
       }
@@ -168,7 +172,7 @@ csg::Point3f Destination::GetBestPointOfInterest(csg::Region3f const& r, csg::Po
    return poi;
 }
 
-csg::Point3f Destination::GetPointOfInterest(csg::Point3f const& pt) const
+bool Destination::GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const
 {
    if (!*region_) {
       throw std::logic_error("destination has no region in GetPointOfInterest");
@@ -180,15 +184,16 @@ csg::Point3f Destination::GetPointOfInterest(csg::Point3f const& pt) const
          csg::Region3f r = (rgn - reserved);
          if (r.IsEmpty()) {
             D_LOG(5) << "region - reserved is empty in get point of interest!";
-            return csg::Point3f(0, 0, 0);
+            return false;
          }
-         return GetBestPointOfInterest(r, pt);
+         poi = GetBestPointOfInterest(r, from);
+         return true;
       }
    }
    if (rgn.IsEmpty()) {
       D_LOG(1) << "region is empty in get point of interest!";
-      return csg::Point3f(0, 0, 0);
+      return false;
    }
-   return GetBestPointOfInterest(rgn, pt);
+   poi = GetBestPointOfInterest(rgn, from);
+   return true;
 }
-

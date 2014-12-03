@@ -14,7 +14,7 @@ public:
 
    bool GetClosestPointAdjacentToEntity(Simulation& sim, csg::Point3f const& from, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity, csg::Point3f& closestPoint) const;
    csg::Region3f GetRegionAdjacentToEntity(Simulation& sim, om::EntityPtr const& srcEntity, om::EntityPtr const& dstEntity) const;
-   csg::Point3f GetPointOfInterest(csg::Point3f const& adjacentPoint, om::EntityPtr const& entity) const;
+   bool GetPointOfInterest(om::EntityPtr const& entity, csg::Point3f const& from, csg::Point3f& poi) const;
    bool GetPathPoints(Simulation& sim, om::EntityPtr const& entity, bool reversible, csg::Point3f const& start, csg::Point3f const& end, std::vector<csg::Point3f> &result) const;
    std::vector<csg::Point3f> PruneCollinearPathPoints(std::vector<csg::Point3f> const& points) const;
    bool TestAdjacentMove(Simulation& sim, om::EntityPtr entity, bool const reversible,

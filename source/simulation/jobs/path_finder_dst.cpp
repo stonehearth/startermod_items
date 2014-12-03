@@ -106,9 +106,9 @@ float PathFinderDst::EstimateMovementCost(csg::Point3f const& start) const
    return sim_.GetOctTree().GetSquaredDistanceCost(csg::ToClosestInt(start), csg::ToClosestInt(end));
 }
 
-csg::Point3f PathFinderDst::GetPointOfInterest(csg::Point3f const& adjacent_pt) const
+bool PathFinderDst::GetPointOfInterest(csg::Point3f const& from, csg::Point3f& poi) const
 {
-   return MovementHelper().GetPointOfInterest(csg::ToFloat(adjacent_pt), GetEntity());
+   return MovementHelper().GetPointOfInterest(GetEntity(), from, poi);
 }
 
 void PathFinderDst::DestroyTraces()

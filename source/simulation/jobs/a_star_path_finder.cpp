@@ -697,19 +697,27 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
    if (solution.empty()) {
       solution.push_back(source_->GetSourceLocation());
    }
-   csg::Point3f dst_point_of_interest = dst->GetPointOfInterest(solution.back());
-   PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
-   PathPtr path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), dst_point_of_interest);
 
-   PF_LOG(5) << "calling lua solved callback";
-   bool solved = solved_cb_(path);
-   PF_LOG(5) << "finished calling lua solved callback";
+   csg::Point3f poi;
+   bool solved = false;
+   PathPtr path = nullptr;
+   bool is_valid_poi = dst->GetPointOfInterest(solution.back(), poi);
+
+   if (is_valid_poi) {
+      PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
+      path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), poi);
+      PF_LOG(5) << "calling lua solved callback";
+      solved = solved_cb_(path);
+      PF_LOG(5) << "finished calling lua solved callback";
+   } else {
+      PF_LOG(1) << "failed to get point of interest";
+   }
 
    if (solved) {
       PF_LOG(2) << "solution accepted!";
       solution_  = path;
    } else {
-      PF_LOG(5) << "solved cb said no bueno.  removing destination and continuing search.";
+      PF_LOG(5) << "removing destination and continuing search.";
       RemoveDestination(dstId);
       dst = nullptr;
    }

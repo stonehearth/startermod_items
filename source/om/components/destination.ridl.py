@@ -12,11 +12,31 @@ class Destination(Component):
    adjacent = dm.Boxed(Region3fBoxedPtr(), set='declare', trace='deep_region')
    auto_update_adjacent = dm.Boxed(c.bool(), set='declare')
    allow_diagonal_adjacency = dm.Boxed(c.bool(), set='declare')
-   get_point_of_interest = ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
+   get_point_of_interest = ridl.Method(c.bool(), ('from', csg.Point3f().const.ref), ('poi', csg.Point3f().ref), no_lua_impl = True).const
    _includes = [
       "om/region.h"
    ]
    _generate_construct_object = True
+
+
+   _lua_impl = """
+
+// returns nil if the entity is not in the world
+luabind::object Destination_GetPointOfInterest(lua_State *L, std::weak_ptr<Destination> o, csg::Point3f const& from)
+{
+   auto instance = o.lock();
+   if (instance) {
+      csg::Point3f poi;
+      bool is_valid = instance->GetPointOfInterest(from, poi);
+      if (is_valid) {
+         return luabind::object(L, poi);
+      } else {
+         return luabind::object();
+      }
+   }
+   throw std::invalid_argument("invalid reference in destination::get_point_of_interest");
+}
+   """
 
    _private = \
    """
@@ -24,7 +44,7 @@ class Destination(Component):
    void Initialize() override;
    void UpdateDerivedValues();
    void ComputeAdjacentRegion(csg::Region3f const& r);
-   csg::Point3f GetBestPointOfInterest(csg::Region3f const& r, csg::Point3f const& pt) const;
+   csg::Point3f GetBestPointOfInterest(csg::Region3f const& region, csg::Point3f const& from) const;
 
 private:
    DeepRegion3fGuardPtr      region_trace_;
