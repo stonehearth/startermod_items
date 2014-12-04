@@ -8,7 +8,7 @@ class EntityContainer(Component):
    add_child = ridl.Method(c.void(), ('child', EntityRef()))
    add_child_to_bone = ridl.Method(c.void(), ('child', EntityRef()), ('bone', std.string().const.ref))
 
-   attached_items = dm.Map(dm.ObjectId(), EntityRef(), add=None, remove=None, iterate=None)
+   attached_items = dm.Map(dm.ObjectId(), EntityRef(), singular_name='attached_item', add=None, remove=None, iterate='define')
 
    _public = """
    void OnLoadObject(dm::SerializationType r) override;

@@ -18,16 +18,29 @@ void EntityContainer::LoadFromJson(json::Node const& obj)
 {
 }
 
+static json::Node MapToJsonNode(dm::Map<dm::ObjectId, std::weak_ptr<Entity>> const& map)
+{
+   json::Node node;
+
+   for (auto const& entry : map) {
+      om::EntityPtr entity = entry.second.lock();
+      if (entity) {
+         node.set(stdutil::ToString(entry.first), entity->GetStoreAddress());
+      }
+   }
+
+   return node;
+}
+
 void EntityContainer::SerializeToJson(json::Node& node) const
 {
    Component::SerializeToJson(node);
 
-   for (auto const& entry : EachChild()) {
-      om::EntityPtr child = entry.second.lock();
-      if (child) {
-         node.set(stdutil::ToString(entry.first), child->GetStoreAddress());
-      }
-   }
+   json::Node children = MapToJsonNode(children_);
+   node.set("children", children);
+
+   json::Node attached_items = MapToJsonNode(attached_items_);
+   node.set("attached_items", attached_items);
 }
 
 void EntityContainer::AddChild(std::weak_ptr<Entity> c)
