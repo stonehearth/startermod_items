@@ -567,7 +567,6 @@ function entities.pickup_item(entity, item)
    end
 
    carry_block:set_carrying(item)
-   entities.move_to(item, Point3.zero)
 
    return true
 end

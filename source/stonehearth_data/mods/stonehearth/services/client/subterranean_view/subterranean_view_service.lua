@@ -65,7 +65,7 @@ function SubterraneanViewService:_deferred_initialize()
 
    self:_create_render_frame_trace()
    self:_create_interior_region_traces()
-   self:_create_location_traces()
+   self:_create_entity_traces()
 
    self._finished_initialization = true
 
@@ -127,44 +127,65 @@ function SubterraneanViewService:_destroy_interior_region_traces()
    self._interior_region_traces = {}
 end
 
-function SubterraneanViewService:_create_location_traces()
-   local root_entity = _radiant.client.get_object(1)
-   local entity_container = root_entity:add_component('entity_container')
+function SubterraneanViewService:_create_entity_traces()
+   local entity_container = self:_get_root_entity_container()
 
-   self._location_traces = {}
+   self._entity_traces = {}
 
    self._entity_container_trace = entity_container:trace_children('subterranean view')
       :on_added(function(id, entity)
-            local trace = radiant.entities.trace_grid_location(entity)
+            if self._entity_traces[id] then
+               -- trace already exists
+               return
+            end
+
+            local location_trace = radiant.entities.trace_grid_location(entity, 'subterranean view')
                :on_changed(function()
                      self:_on_entity_moved(entity)
                   end)
                :push_object_state()
-            self._location_traces[id] = trace
-         end)
-      :on_removed(function(id)
-            self._location_traces[id]:destroy()
-            self._location_traces[id] = nil
+
+            local parent_trace = entity:add_component('mob'):trace_parent('subterranean view')
+               :on_changed(function()
+                     self:_on_entity_parent_changed(entity)
+                  end)
+
+            local destroyed_trace = radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
+                  self:_destroy_entity_traces(e.entity_id)
+               end)
+
+            self._entity_traces[id] = {
+               location = location_trace,
+               parent = parent_trace,
+               destroyed = destroyed_trace
+            }
          end)
       :push_object_state()
 end
 
-function SubterraneanViewService:_destroy_location_traces()
+function SubterraneanViewService:_destroy_all_entity_traces()
    if self._entity_container_trace then
       self._entity_container_trace:destroy()
       self._entity_container_trace = nil
    end
 
-   for id, trace in pairs(self._location_traces) do
+   for id, traces in pairs(self._entity_traces) do
+      self:_destroy_entity_traces(id)
+   end
+end
+
+function SubterraneanViewService:_destroy_entity_traces(id)
+   local traces = self._entity_traces[id]
+   for name, trace in pairs(traces) do
       trace:destroy()
    end
-   self._location_traces = {}
+   self._entity_traces[id] = nil
 end
 
 function SubterraneanViewService:destroy()
    self:_destroy_render_frame_trace()
    self:_destroy_interior_region_traces()
-   self:_destroy_location_traces()
+   self:_destroy_all_entity_traces()
    self:_destroy_initialize_listener()
    self._input_capture:destroy()
 end
@@ -316,20 +337,20 @@ function SubterraneanViewService:_on_keyboard_event(e)
 end
 
 function SubterraneanViewService:_show_all_entities()
-   local entity_container = self:_get_entity_container()
+   local entity_container = self:_get_root_entity_container()
 
-   for id, entity in entity_container:each_child() do
-      self:_set_entity_visible(entity, true)
-   end
+   self:_each_contained_entity(entity_container, function(child)
+         self:_set_entity_tree_visible(child, true)
+      end)
 end
 
 function SubterraneanViewService:_update_entity_visibility()
-   local entity_container = self:_get_entity_container()
+   local entity_container = self:_get_root_entity_container()
 
-   for id, entity in entity_container:each_child() do
-      local visible = self:_is_xray_visible(entity)
-      self:_set_entity_visible(entity, visible)
-   end
+   self:_each_contained_entity(entity_container, function(child)
+         local visible = self:_is_xray_visible(child)
+         self:_set_entity_tree_visible(child, visible)
+      end)
 end
 
 function SubterraneanViewService:_on_entity_moved(entity)
@@ -339,7 +360,19 @@ function SubterraneanViewService:_on_entity_moved(entity)
 
    if self._sv.xray_mode then
       local visible = self:_is_xray_visible(entity)
-      self:_set_entity_visible(entity, visible)
+      self:_set_entity_tree_visible(entity, visible)
+   end
+end
+
+function SubterraneanViewService:_on_entity_parent_changed(entity)
+   if not entity:is_valid() then
+      return
+   end
+
+   if self._sv.xray_mode then
+      local root_mob_entity = self:_get_root_mob_entity(entity)
+      local visible = self:_is_xray_visible(root_mob_entity)
+      self:_set_entity_tree_visible(entity, visible)
    end
 end
 
@@ -348,7 +381,7 @@ function SubterraneanViewService:_is_xray_visible(entity)
    local visible = false
 
    if location then
-      local result = self._xray_tiles:intersect_point(location)
+      local result = self._interior_tiles:intersect_point(location)
       visible = not result:empty()
    end
 
@@ -358,6 +391,15 @@ end
 function SubterraneanViewService:_set_entity_visible(entity, visible)
    local render_entity = _radiant.client.get_render_entity(entity)
    render_entity:set_visible_override(visible)
+end
+
+function SubterraneanViewService:_set_entity_tree_visible(entity, visible)
+   self:_set_entity_visible(entity, visible)
+
+   local entity_container = entity:get_component('entity_container')
+   self:_each_contained_entity(entity_container, function(child)
+         self:_set_entity_tree_visible(child, visible)
+      end)
 end
 
 function SubterraneanViewService:toggle_xray_mode(mode)
@@ -452,9 +494,46 @@ function SubterraneanViewService:_get_terrain_component()
    return root_entity:add_component('terrain')
 end
 
-function SubterraneanViewService:_get_entity_container()
+function SubterraneanViewService:_get_root_entity_container()
    local root_entity = _radiant.client.get_object(1)
    return root_entity:add_component('entity_container')
+end
+
+-- visits all the children and attached items
+function SubterraneanViewService:_each_contained_entity(entity_container, cb)
+   if not entity_container then
+      return
+   end
+
+   for id, entity in entity_container:each_child() do
+      cb(entity)
+   end
+
+   for id, entity in entity_container:each_attached_item() do
+      cb(entity)
+   end
+end
+
+-- get the oldest ancestor that has a mob component
+-- i.e. get the entity that is on the terrain
+function SubterraneanViewService:_get_root_mob_entity(entity)
+   local result = entity
+   local ancestor = entity
+   local mob = ancestor:add_component('mob')
+
+   while true do
+      ancestor = mob:get_parent()
+      if not ancestor then
+         return result
+      end
+
+      mob = ancestor:get_component('mob')
+      if not mob then
+         return result
+      end
+
+      result = ancestor
+   end
 end
 
 return SubterraneanViewService
