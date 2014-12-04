@@ -1,3 +1,4 @@
+local FilteredTrace = require 'modules.filtered_trace'
 local Point3 = _radiant.csg.Point3
  
 local client_entities = {}
@@ -69,6 +70,24 @@ function client_entities.get_location_aligned(entity)
    if entity then
       return entity:add_component('mob'):get_grid_location()
    end
+end
+
+function client_entities.trace_grid_location(entity, reason)
+   local last_location = client_entities.get_world_grid_location(entity)
+   local filter_fn = function()
+         local current_location = client_entities.get_world_grid_location(entity)
+
+         if current_location == last_location then
+            return false
+         else 
+            last_location = current_location
+            return true
+         end
+      end
+
+   local trace_impl = entity:add_component('mob'):trace_transform(reason)
+   local filtered_trace = FilteredTrace(trace_impl, filter_fn)
+   return filtered_trace
 end
 
 function client_entities.get_player_id(entity)

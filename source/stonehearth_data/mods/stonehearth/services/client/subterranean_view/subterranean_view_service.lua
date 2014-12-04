@@ -65,10 +65,18 @@ function SubterraneanViewService:_deferred_initialize()
 
    self:_create_render_frame_trace()
    self:_create_interior_region_traces()
+   self:_create_location_traces()
 
    self._finished_initialization = true
 
    self:_update_clip_height()
+end
+
+function SubterraneanViewService:_destroy_initialize_listener()
+   if self._initialize_listener then
+      self._initialize_listener:destroy()
+      self._initialize_listener = nil
+   end
 end
 
 function SubterraneanViewService:_create_render_frame_trace()
@@ -76,6 +84,13 @@ function SubterraneanViewService:_create_render_frame_trace()
       :on_frame_start('subterranean view', function()
             self:_update_dirty_tiles()
          end)
+end
+
+function SubterraneanViewService:_destroy_render_frame_trace()
+   if self._render_frame_trace then
+      self._render_frame_trace:destroy()
+      self._render_frame_trace = nil
+   end
 end
 
 function SubterraneanViewService:_create_interior_region_traces()
@@ -100,20 +115,6 @@ function SubterraneanViewService:_create_interior_region_traces()
       :push_object_state()
 end
 
-function SubterraneanViewService:destroy()
-   self:_destroy_render_frame_trace()
-   self:_destroy_interior_region_traces()
-   self:_destroy_initialize_listener()
-   self._input_capture:destroy()
-end
-
-function SubterraneanViewService:_destroy_render_frame_trace()
-   if self._render_frame_trace then
-      self._render_frame_trace:destroy()
-      self._render_frame_trace = nil
-   end
-end
-
 function SubterraneanViewService:_destroy_interior_region_traces()
    if self._interior_region_map_trace then
       self._interior_region_map_trace:destroy()
@@ -126,11 +127,46 @@ function SubterraneanViewService:_destroy_interior_region_traces()
    self._interior_region_traces = {}
 end
 
-function SubterraneanViewService:_destroy_initialize_listener()
-   if self._initialize_listener then
-      self._initialize_listener:destroy()
-      self._initialize_listener = nil
+function SubterraneanViewService:_create_location_traces()
+   local root_entity = _radiant.client.get_object(1)
+   local entity_container = root_entity:add_component('entity_container')
+
+   self._location_traces = {}
+
+   self._entity_container_trace = entity_container:trace_children('subterranean view')
+      :on_added(function(id, entity)
+            local trace = radiant.entities.trace_grid_location(entity)
+               :on_changed(function()
+                     self:_on_entity_moved(entity)
+                  end)
+               :push_object_state()
+            self._location_traces[id] = trace
+         end)
+      :on_removed(function(id)
+            self._location_traces[id]:destroy()
+            self._location_traces[id] = nil
+         end)
+      :push_object_state()
+end
+
+function SubterraneanViewService:_destroy_location_traces()
+   if self._entity_container_trace then
+      self._entity_container_trace:destroy()
+      self._entity_container_trace = nil
    end
+
+   for id, trace in pairs(self._location_traces) do
+      trace:destroy()
+   end
+   self._location_traces = {}
+end
+
+function SubterraneanViewService:destroy()
+   self:_destroy_render_frame_trace()
+   self:_destroy_interior_region_traces()
+   self:_destroy_location_traces()
+   self:_destroy_initialize_listener()
+   self._input_capture:destroy()
 end
 
 -- index is the index of the dirty interior tile
@@ -279,6 +315,51 @@ function SubterraneanViewService:_on_keyboard_event(e)
    return false
 end
 
+function SubterraneanViewService:_show_all_entities()
+   local entity_container = self:_get_entity_container()
+
+   for id, entity in entity_container:each_child() do
+      self:_set_entity_visible(entity, true)
+   end
+end
+
+function SubterraneanViewService:_update_entity_visibility()
+   local entity_container = self:_get_entity_container()
+
+   for id, entity in entity_container:each_child() do
+      local visible = self:_is_xray_visible(entity)
+      self:_set_entity_visible(entity, visible)
+   end
+end
+
+function SubterraneanViewService:_on_entity_moved(entity)
+   if not entity:is_valid() then
+      return
+   end
+
+   if self._sv.xray_mode then
+      local visible = self:_is_xray_visible(entity)
+      self:_set_entity_visible(entity, visible)
+   end
+end
+
+function SubterraneanViewService:_is_xray_visible(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
+   local visible = false
+
+   if location then
+      local result = self._xray_tiles:intersect_point(location)
+      visible = not result:empty()
+   end
+
+   return visible
+end
+
+function SubterraneanViewService:_set_entity_visible(entity, visible)
+   local render_entity = _radiant.client.get_render_entity(entity)
+   render_entity:set_visible_override(visible)
+end
+
 function SubterraneanViewService:toggle_xray_mode(mode)
    if self._sv.xray_mode == mode then
       self._sv.xray_mode = nil
@@ -288,7 +369,12 @@ function SubterraneanViewService:toggle_xray_mode(mode)
    end
    self.__saved_variables:mark_changed()
 
-   -- until we clean up the shared dirty logic, do this before changing modes on the renderer
+   if self._sv.xray_mode then
+      self:_update_entity_visibility()
+   else
+      self:_show_all_entities()
+   end
+
    self:_update_dirty_tiles()
 
    -- explicitly check against nil to coerce to boolean type
@@ -364,6 +450,11 @@ end
 function SubterraneanViewService:_get_terrain_component()
    local root_entity = _radiant.client.get_object(1)
    return root_entity:add_component('terrain')
+end
+
+function SubterraneanViewService:_get_entity_container()
+   local root_entity = _radiant.client.get_object(1)
+   return root_entity:add_component('entity_container')
 end
 
 return SubterraneanViewService
