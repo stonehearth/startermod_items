@@ -86,7 +86,7 @@ function MiningZoneComponent:destroy()
    self:_destroy_reserved_trace()
    self:_destroy_location_trace()
 
-   radiant.entities.destroy_entity(self._sv._designation_entity)
+   radiant.entities.destroy_entity(self._sv.designation_entity)
 end
 
 -- region is a boxed region
@@ -492,7 +492,9 @@ function MiningZoneComponent:_update_designation()
 
          -- make designation region extend 1 block above the zone
          for cube in self._sv.region:get():each_cube() do
-            cursor:add_cube(cube:inflated(Point3.unit_y))
+            local extended_cube = Cube3(cube)
+            extended_cube.max.y = extended_cube.max.y + 1
+            cursor:add_cube(extended_cube)
          end
 
          cursor:optimize_by_merge()
