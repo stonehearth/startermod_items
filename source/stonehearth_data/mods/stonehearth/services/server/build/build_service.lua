@@ -646,14 +646,15 @@ function BuildService:_merge_overlapping_roads(existing_roads, new_road_uri, new
    return result_road
 end
 
--- create a new floor of size `box` to `building`.  it is up to the caller
--- to ensure the new floor doesn't overlap with any other floor in the
--- building!
---
+
+-- Add a new floor to an existing building.  You almost certainly don't want to call this directly;
+-- callers need to ensure that the new floor doesn't overlap with any other floors.  Look at
+-- _merge_floor_into_building for more context.  add_floor and add_road both do the required
+-- merging and clipping.
 --    @param building - the building to contain the new floor
 --    @param floor_uri - the uri to type of floor we'd like to add
---    @param box - the area of the new floor segment
---
+--    @param floor_region - the area of the new floor segment
+--    @param floor_type - the type of the floor (road, curb, floor)
 function BuildService:_add_new_floor_to_building(building, floor_uri, floor_region, floor_type)
    local floor_ent = self:_create_blueprint(building, floor_uri, Point3.zero, function(floor)
          floor:add_component('stonehearth:floor'):add_region_to_floor(floor_region)
