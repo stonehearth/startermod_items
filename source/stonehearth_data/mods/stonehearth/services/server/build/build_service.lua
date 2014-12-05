@@ -599,7 +599,9 @@ function BuildService:_merge_floor_into_building(building_ent, floor_type, floor
          return building_floor_ent
       end
    end
-   return self:_add_new_floor_to_building(building_ent, floor_uri, floor_region)
+   local f = self:_add_new_floor_to_building(building_ent, floor_uri, floor_region)
+   f:get_component('stonehearth:floor'):set_category(floor_type)
+   return f
 end
 
 function BuildService:_merge_roads_into_building(roads, parent_building)
