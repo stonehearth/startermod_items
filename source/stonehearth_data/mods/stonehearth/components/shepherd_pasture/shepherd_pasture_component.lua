@@ -19,8 +19,23 @@ function ShepherdPastureComponent:initialize(entity, json)
    else
       --If we're loading, we can just create the tasks
       self:_create_animal_collection_tasks()
-   end
 
+      --also, if there is an outstanding reproduction timer, we should create that
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         self:_create_load_timer()
+         return radiant.events.UNLISTEN
+      end)
+   end
+end
+
+-- Resumes the reproduction timer if it was going while we saved
+function ShepherdPastureComponent:_create_load_timer()
+   if self._sv._expiration_time then
+      local duration = self._sv._expiration_time - stonehearth.calendar:get_elapsed_time()
+      self._reproduction_timer = stonehearth.calendar:set_timer(duration, function() 
+         self:_reproduce_animal()
+      end)
+   end
 end
 
 --On destroying the pasture, nuke the tasks
@@ -186,6 +201,7 @@ function ShepherdPastureComponent:_reproduce_animal()
 
    --Nuke the timer, we're done with it
    self._reproduction_timer = nil
+   self._sv._expiration_time = nil
 
    --start the timer again
    self:_calculate_reproduction_timer()
