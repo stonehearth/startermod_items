@@ -81,7 +81,8 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    direct_path_search_cooldown_(0),
    debug_color_(255, 192, 0, 128),
    _lastIdleCheckResult(nullptr),
-   _rebuildOpenHeuristics(false)
+   _rebuildOpenHeuristics(false),
+   _max_steps(INT_MAX)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -120,6 +121,12 @@ float AStarPathFinder::GetTravelDistance()
       RebuildHeap();
    }
    return open_.front()->g;
+}
+
+AStarPathFinderPtr AStarPathFinder::SetMaxSteps(unsigned int max_steps)
+{
+   _max_steps = max_steps;
+   return shared_from_this();
 }
 
 AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb const& solved_cb)
@@ -365,12 +372,18 @@ void AStarPathFinder::Work(const platform::timer &timer)
    for (int i = 0; i < 8 && !timer.expired(); i++) {
       PF_LOG(3) << "entering work function";
 
+      _num_steps++;
+
       if (restart_search_) {
          Restart();
       }
 
-      if (open_.empty()) {
-         PF_LOG(2) << "open set is empty!  returning";
+      if (open_.empty() || _num_steps > _max_steps) {
+         if (open_.empty()) {
+            PF_LOG(2) << "open set is empty!  returning";
+         } else {
+            PF_LOG(2) << "exceeded max_steps!  returning";
+         }
          SetSearchExhausted();
          return;
       }
@@ -747,6 +760,7 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       world_changed_ = false;
       watching_tiles_.clear();
       direct_path_search_cooldown_ = 0;
+      _num_steps = 0;
 
       EnableWorldWatcher(false);
    }   
