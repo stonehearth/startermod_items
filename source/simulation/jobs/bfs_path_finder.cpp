@@ -378,6 +378,10 @@ void BfsPathFinder::ConsiderAddedEntity(om::EntityPtr entity)
          om::EntityRef entityRoot;
          csg::Point3f src = pathfinder_->GetSourceLocation();
          csg::Point3f dst = mob->GetWorldGridLocation(entityRoot);
+
+         // this method is currently only called when adding entities to the terrain
+         // if this is not the case, check if the entity is in the world first
+         ASSERT(om::IsRootEntity(entityRoot));
          
          if (src.DistanceTo(dst) <= explored_distance_) {
             BFS_LOG(7) << "considering " << *entity << " newly added to root object";

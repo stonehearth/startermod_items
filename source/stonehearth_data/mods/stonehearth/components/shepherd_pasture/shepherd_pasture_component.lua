@@ -1,4 +1,5 @@
 local ShepherdPastureComponent = class()
+local Point3 = _radiant.csg.Point3
 
 function ShepherdPastureComponent:initialize(entity, json)
    self._entity = entity
@@ -9,6 +10,7 @@ function ShepherdPastureComponent:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.pasture_data = json.pasture_data
+
    else
 
       --If we're loading, we can just create the tasks
@@ -29,6 +31,14 @@ end
 function ShepherdPastureComponent:set_size(x, z)
    self._sv.size = { x = x, z = z}
    self.__saved_variables:mark_changed()
+end
+
+-- Returns 
+function ShepherdPastureComponent:get_center_point()
+   local region_shape = self._entity:add_component('region_collision_shape'):get_region():get()
+   local centroid = _radiant.csg.get_region_centroid(region_shape) --returns a point in the middle
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   return Point3(location.x + centroid.x, location.y, location.z + centroid.z) --centroid
 end
 
 --This causes critters of the existing type to be released

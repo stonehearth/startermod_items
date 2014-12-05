@@ -19,7 +19,7 @@ function ClaimAnimalForPasture:run(ai, entity, args)
    local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
    shepherded_animal_component:set_animal(args.animal)
    shepherded_animal_component:set_following(true, entity)
-   shepherded_animal_component:set_pasture(args.pasture:get_id())
+   shepherded_animal_component:set_pasture(args.pasture)
 
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
    pasture_component:add_animal(args.animal)
@@ -28,7 +28,7 @@ function ClaimAnimalForPasture:run(ai, entity, args)
    --or until something kills it/steals it from him
    local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
    if shepherd_class and shepherd_class.add_trailing_animal then
-      shepherd_class:add_trailing_animal(args.animal)
+      shepherd_class:add_trailing_animal(args.animal, args.pasture)
    end
 
    --TODO: action for sheep to follow dude till dude releases him. 

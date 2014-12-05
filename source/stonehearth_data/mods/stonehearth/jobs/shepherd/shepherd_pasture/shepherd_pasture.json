@@ -10,7 +10,7 @@
          "pasture_data" : {
             "stonehearth:sheep" : {
                "name" : "Sheep Pasture",
-               "min_population" : 2,
+               "min_population" : 1,
                "max_population" : 7
             }, 
             "stonehearth:rabbits" : {

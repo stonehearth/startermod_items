@@ -1,5 +1,4 @@
 local FilteredTrace = require 'modules.filtered_trace'
-
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -568,7 +567,6 @@ function entities.pickup_item(entity, item)
    end
 
    carry_block:set_carrying(item)
-   entities.move_to(item, Point3.zero)
 
    return true
 end
@@ -870,9 +868,9 @@ function entities.trace_location(entity, reason)
 end
 
 function entities.trace_grid_location(entity, reason)
-   local last_location = radiant.entities.get_world_grid_location(entity)
+   local last_location = entities.get_world_grid_location(entity)
    local filter_fn = function()
-         local current_location = radiant.entities.get_world_grid_location(entity)
+         local current_location = entities.get_world_grid_location(entity)
 
          if current_location == last_location then
             return false

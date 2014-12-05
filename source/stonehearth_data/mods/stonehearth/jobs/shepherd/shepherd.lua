@@ -62,13 +62,19 @@ end
 function ShepherdClass:demote()
    --self:_remove_xp_listeners()
    self._sv.is_current_class = false
+
+   --Orphan all the animals
+   self:_abandon_following_animals()
+
+
    self.__saved_variables:mark_changed()
+
 end
 
 -- Shepherd related functionality
 
 -- List of all the animals currently following the shepherd
-function ShepherdClass:add_trailing_animal(animal)
+function ShepherdClass:add_trailing_animal(animal, pasture)
    if not self._sv.trailed_animals then
       self._sv.trailed_animals = {}
       self._sv.num_trailed_animals = 0
@@ -77,10 +83,14 @@ function ShepherdClass:add_trailing_animal(animal)
    self._sv.num_trailed_animals = self._sv.num_trailed_animals + 1
 
    --If we have more than 1 animal, make sure we apply the shepherding speed debuf
-   if self._sv.num_trailed_animals == 1 then
+   if self._sv.num_trailed_animals == 1 then   
       radiant.entities.set_posture(self._sv._entity, 'stonehearth:patrol')
       radiant.entities.add_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
    end 
+end
+
+function ShepherdClass:get_trailing_animals()
+   return self._sv.trailed_animals, self._sv.num_trailed_animals
 end
 
 function ShepherdClass:remove_trailing_animal(animal_id)
@@ -94,10 +104,19 @@ function ShepherdClass:remove_trailing_animal(animal_id)
 
    --If we have no animals, remove the shepherding speed debuf
    if self._sv.num_trailed_animals == 0 then
-      radiant.entities.remove_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
+      radiant.entities.remove_buff(self._sv._entity, 'stonehearth:buffs:shepherding')
+      radiant.entities.unset_posture(self._sv._entity, 'stonehearth:patrol')
    end 
 end
 
 -- Private Functions
+
+--Remove their tags
+function ShepherdClass:_abandon_following_animals()
+   for id, animal in pairs(self._sv.trailed_animals) do
+      animal:get_component('stonehearth:equipment'):unequip_item('stonehearth:pasture_tag')
+   end
+   self._sv.trailed_animals = nil
+end
 
 return ShepherdClass
