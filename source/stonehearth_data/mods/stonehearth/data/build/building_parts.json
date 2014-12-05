@@ -31,6 +31,27 @@
       }            
    ],
 
+   "curbPatterns" : [
+      {
+         "category" : "None",
+         "items" : [
+            { "id": "none",    "name": "None", "portrait": "/stonehearth/entities/build/road/wooden_road_solid_light/wooden_road_solid_light.png", "brush":"none" }
+         ]         
+      },
+      {
+         "category" : "Wooden Materials",
+         "items" : [
+            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/road/wooden_road_solid_light/wooden_road_solid_light.png", "brush":"stonehearth:wooden_road_solid_light" }
+         ]         
+      },
+      {
+         "category" : "Stone Materials",
+         "items" : [
+            { "id": "checkered", "name": "Checkered slate road",    "portrait": "/stonehearth/entities/build/road/checkered_slate_road/checkered_slate_road.png", "brush":"stonehearth:checkered_slate_road" }
+         ]         
+      }            
+   ],
+
    "wallPatterns": [
       {
          "category" : "Wooden Materials",

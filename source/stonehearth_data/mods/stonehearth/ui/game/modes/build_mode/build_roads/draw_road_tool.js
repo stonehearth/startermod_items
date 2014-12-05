@@ -4,9 +4,11 @@ var DrawRoadTool;
    DrawRoadTool = SimpleClass.extend({
 
       toolId: 'drawRoadTool',
-      materialClass: 'roadMaterial',
+      roadMaterialClass: 'roadMaterial',
+      curbMaterialClass: 'curbMaterial',
       materialTabId: 'roadMaterialTab',
-      brush: null,
+      roadBrush: null,
+      curbBrush: null,
 
       handlesType: function(type) {
          return type == 'road';
@@ -21,7 +23,7 @@ var DrawRoadTool;
             //.fail() -- anything special to do on failure?  Default deactivates the tool.
             //.repeatOnSuccess(true/false) -- defaults to true.
             .invoke(function() {
-               return App.stonehearthClient.buildRoad(self.brush);
+               return App.stonehearthClient.buildRoad(self.roadBrush, self.curbBrush == 'none' ? null : self.curbBrush);
             });
       },
 
@@ -32,13 +34,25 @@ var DrawRoadTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Road Material', self.materialClass, self.buildingParts.roadPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Road Material', self.roadMaterialClass, self.buildingParts.roadPatterns, 
                   function(brush, material) {
-                     self.brush = brush;
+                     self.roadBrush = brush;
                      self.roadMaterial = material;
 
                      // Remember what we've selected.
                      self.buildingDesigner.saveKey('roadMaterial', self.roadMaterial);
+
+                     // Re/activate the road tool with the new material.
+                     self.buildingDesigner.activateTool(self.buildTool);
+                  }
+               );
+               MaterialHelper.addMaterialPalette(tab, 'Curb Material', self.curbMaterialClass, self.buildingParts.curbPatterns, 
+                  function(brush, material) {
+                     self.curbBrush = brush;
+                     self.curbMaterial = material;
+
+                     // Remember what we've selected.
+                     self.buildingDesigner.saveKey('curbMaterial', self.curbMaterial);
 
                      // Re/activate the road tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
@@ -55,9 +69,14 @@ var DrawRoadTool;
 
       restoreState: function(state) {
          this.roadMaterial = state.roadMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.roadMaterial]);
+         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.roadMaterialClass)[this.roadMaterial]);
          selectedMaterial.addClass('selected');
-         this.brush = selectedMaterial.attr('brush');
+         this.roadBrush = selectedMaterial.attr('brush');
+
+         this.curbMaterial = state.curbMaterial || 0;
+         selectedMaterial = $($('#' + this.materialTabId + ' .' + this.curbMaterialClass)[this.curbMaterial]);
+         selectedMaterial.addClass('selected');
+         this.curbBrush = selectedMaterial.attr('brush');
       }
    });
 })();

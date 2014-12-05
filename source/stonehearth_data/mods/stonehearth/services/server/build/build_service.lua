@@ -132,10 +132,10 @@ function BuildService:add_floor_command(session, response, floor_uri, box)
    end
 end
 
-function BuildService:add_road_command(session, response, road_uri, box)
+function BuildService:add_road_command(session, response, road_uri, curb_uri, box)
    local road
    local success = self:do_command('add_road', response, function()
-         road = self:add_road(session, road_uri, ToCube3(box))
+         road = self:add_road(session, road_uri, curb_uri, ToCube3(box))
       end)
 
    if success then
@@ -264,7 +264,7 @@ function BuildService:_merge_blueprints(box, acceptable_merge_filter_fn)
    return all_overlapping_blueprints, total_region
 end
 
-function BuildService:add_road(session, road_uri, box)
+function BuildService:add_road(session, road_uri, curb_uri, box)
    local road = nil
    local origin = box.min
    local clip_against_curbs = Region3()
@@ -293,16 +293,16 @@ function BuildService:add_road(session, road_uri, box)
       local building = self:_create_new_building(session, origin)
       local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
 
-      if curb_region then
+      if curb_region and curb_uri then
          curb_region:subtract_region(clip_against_curbs)
          -- We might not have a curb (road was too narrow!)
-         self:_add_new_road_to_building(building, road_uri, curb_region, constants.floor_category.CURB)
+         self:_add_new_road_to_building(building, curb_uri, curb_region, constants.floor_category.CURB)
       end
       road = self:_add_new_road_to_building(building, road_uri, road_region, constants.floor_category.ROAD)
    else
       -- we overlapped some pre-existing floor.  merge this box into that floor,
       -- potentially merging multiple buildings together!
-      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, proj_total_region, origin, clip_against_curbs)
+      road = self:_merge_overlapping_roads(all_overlapping_road, road_uri, curb_uri, proj_total_region, origin, clip_against_curbs)
    end
    return road
 end
@@ -559,103 +559,105 @@ function BuildService:_merge_overlapping_floor(existing_floor, new_floor_uri, ne
    return floor
 end
 
--- Merging roads is more complex than floors because we have both curbs and roads, and a new road might only overlap with existing
--- curbs (and so should be merged into an existing entity), but the new road does _not_ overlap and hence should be created and
--- added to the existing building.
-function BuildService:_merge_overlapping_roads(existing_roads, new_road_uri, new_total_road_region, origin, clip_against_curbs)
-   -- Select a road to merge into.
+function _pick_parent_building(roads)
    local road = nil
-   for id, f in pairs(existing_roads) do
+   for id, f in pairs(roads) do
       if not road or id < road:get_id() then
          road = f
       end
    end
 
-   local merge_road_building = build_util.get_building_for(road)
-   local merge_road
-   local merge_curb
-   if road:get_component('stonehearth:floor'):get_category() == constants.floor_category.ROAD then
-      merge_road = road
-      local curbs = merge_road_building:get_component('stonehearth:building'):get_floors(constants.floor_category.CURB)
-      if #curbs > 0 then
-         merge_curb = curbs[1]
-      else
-         merge_curb = self:_add_new_road_to_building(merge_road_building, new_road_uri, Region3(), constants.floor_category.CURB)
-      end
-   else
-      merge_curb = road
-      local roads = merge_road_building:get_component('stonehearth:building'):get_floors(constants.floor_category.ROAD)
-      if #roads > 0 then
-         merge_road = roads[1]
-      else
-         merge_road = self:_add_new_road_to_building(merge_road_building, new_road_uri, Region3(), constants.floor_category.ROAD)
+   return build_util.get_building_for(road)
+end
+
+function BuildService:_subtract_region_from_road_kinds(building_ent, kinds, region)
+   local roads = {}
+
+   for _, kind in pairs(kinds) do
+      for _, r in pairs(building_ent:get_component('stonehearth:building'):get_floors(kind)) do
+         table.insert(roads, r)
       end
    end
+   for _, road in pairs(roads) do
+      road:get_component('stonehearth:floor'):remove_region_from_floor(region)
+   end
+end
 
-   -- At this point, we have the road and curb on the building that we will be adding all the other roads and curbs to.
+function BuildService:_merge_floor_into_building(building_ent, floor_type, floor_region, floor_uri)
+   local bc = building_ent:get_component('stonehearth:building')
+   local building_floors = bc:get_floors(floor_type)
 
-   for _, old_road in pairs(existing_roads) do
-      if old_road ~= merge_road and old_road ~= merge_curb then
+   local new_floor_ent = radiant.entities.create_entity(floor_uri)
+   local new_floor_cd = new_floor_ent:get_component('stonehearth:construction_data')
 
-         -- Find the kind of road/curb this road is, and merge it with the appropriate road in the destination building.
-         local to_merge
-         if old_road:get_component('stonehearth:floor'):get_category() == constants.floor_category.ROAD then
-            to_merge = merge_road
-         else
-            to_merge = merge_curb
-         end
+   for _, building_floor_ent in pairs(building_floors) do
+      local building_floor_cd = building_floor_ent:get_component('stonehearth:construction_data')
 
+      if building_floor_cd:get_material() == new_floor_cd:get_material() then
+         building_floor_ent:add_component('stonehearth:floor')
+                  :add_region_to_floor(floor_region, new_floor_cd:get_brush())
+         return building_floor_ent
+      end
+   end
+   return self:_add_new_floor_to_building(building_ent, floor_uri, floor_region)
+end
+
+function BuildService:_merge_roads_into_building(roads, parent_building)
+   for _, old_road in pairs(roads) do
+      if build_util.get_building_for(old_road) ~= parent_building then
          local road_origin = radiant.entities.get_world_location(old_road)
          local old_region_worldspace = old_road:get_component('destination'):get_region():get():translated(road_origin)
-         self:_merge_overlapping_floor_trivial(merge_road_building, to_merge, old_region_worldspace, old_road:get_uri())
+         self:_merge_floor_into_building(parent_building, old_road:get_component('stonehearth:floor'):get_category(), old_region_worldspace, old_road:get_uri())
          self:unlink_entity(old_road)
       end
    end
 
-
    -- Find and merge the buildings for those roads.  Make sure we don't merge the same building
    -- more than once!
    local unlinked_buildings = {}
-   unlinked_buildings[build_util.get_building_for(road)] = true
-   for _, old_road in pairs(existing_roads) do
+   unlinked_buildings[parent_building] = true
+   for _, old_road in pairs(roads) do
       local building = build_util.get_building_for(old_road)
       if not unlinked_buildings[building] then
-         self:_merge_building_into(merge_road_building, building)
+         self:_merge_building_into(parent_building, building)
          unlinked_buildings[building] = true
       end
    end
+end
 
-   -- At this point, we now have the destination building which has all overlapping roads/columns.
-   -- Time to merge in the new road!
+-- Merging roads is more complex than floors because we have both curbs and roads, and a new road might only overlap with existing
+-- curbs (and so should be merged into an existing entity), but the new road does _not_ overlap and hence should be created and
+-- added to the existing building.
+function BuildService:_merge_overlapping_roads(existing_roads, new_road_uri, new_curb_uri, new_total_road_region, origin, clip_against_curbs)
+   local result_road = nil
 
-   local new_road = radiant.entities.create_entity(new_road_uri)
-   local new_road_brush = new_road:get_component('stonehearth:construction_data'):get_brush()
+   -- Pick a building to be the 'parent' (i.e. we will merge into this building.)
+   local parent_building = _pick_parent_building(existing_roads)
+
+   -- Merge all roads (and their parent buildings) into that building.
+   self:_merge_roads_into_building(existing_roads, parent_building)
+
+   -- Construct the road regions.  FIXME: slightly wrong, should send in params for the curb.
    local new_curb_region, new_road_region = self:_region_to_road_regions(new_total_road_region, origin)
 
-   -- Build a new region that is the road region, extruded up a bit (enough to encompass
-   -- any existing curb).
+   -- Build a new region that is the road region, extruded up a bit (enough to encompass any 
+   -- existing curb).
    local extruded_road = Region3()
    for cube in new_road_region:each_cube() do
       local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
       extruded_road:add_cube(c)
    end
 
-   -- Subtracting the extruded region removes all that area from the existing roads, thus
-   -- making room for the new road.
-   merge_road:get_component('stonehearth:floor'):remove_region_from_floor(extruded_road)
-   merge_curb:get_component('stonehearth:floor'):remove_region_from_floor(extruded_road)
+   -- Subtract that region from all of the roads, to make room for the new road.
+   self:_subtract_region_from_road_kinds(parent_building, {constants.floor_category.ROAD, constants.floor_category.CURB}, extruded_road)
+
+   -- Construct that road, and add it to the parent.
+   result_road = self:_merge_floor_into_building(parent_building, constants.floor_category.ROAD, new_road_region, new_road_uri)
 
 
-   -- Add the road.
-   if merge_road:get_component('stonehearth:construction_data'):get_material() == new_road:get_component('stonehearth:construction_data'):get_material() then
-      merge_road:get_component('stonehearth:floor'):add_region_to_floor(new_road_region, new_road_brush)
-   else
-      self:_add_new_road_to_building(merge_road_building, new_road_uri, new_road_region, constants.floor_category.ROAD)
-   end
-
-   if new_curb_region then
+   if new_curb_region and new_curb_uri then
       -- Make room for the new curb in the old curb.
-      merge_curb:get_component('stonehearth:floor'):remove_region_from_floor(new_curb_region)
+      self:_subtract_region_from_road_kinds(parent_building, {constants.floor_category.CURB}, new_curb_region)
 
       -- The curb is the curb we generated, removing anything that overlaps with existing
       -- road.
@@ -663,25 +665,23 @@ function BuildService:_merge_overlapping_roads(existing_roads, new_road_uri, new
       -- a bit, so that we can eliminate any crossover with the new curb (new curb should NOT
       -- be built on existing road!)
       local extruded_road = Region3()
-      for cube in merge_road:get_component('stonehearth:floor'):get_region():get():each_cube() do
-         local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
-         extruded_road:add_cube(c)
+      local building_roads = parent_building:get_component('stonehearth:building'):get_floors(constants.floor_category.ROAD)
+      
+      for _, old_road in pairs(building_roads) do
+         for cube in old_road:get_component('stonehearth:floor'):get_region():get():each_cube() do
+            local c = Cube3(cube.min, Point3(cube.max.x, cube.max.y + 2, cube.max.z))
+            extruded_road:add_cube(c)
+         end
+         extruded_road:translate(radiant.entities.get_world_grid_location(old_road))
       end
-      extruded_road:translate(radiant.entities.get_world_grid_location(merge_road))
-
       -- Eliminate those bits from the generated curb.
       new_curb_region:subtract_region(extruded_road)
       new_curb_region:subtract_region(clip_against_curbs)
 
-      -- Add the curb.
-      if merge_curb:get_component('stonehearth:construction_data'):get_material() == new_road:get_component('stonehearth:construction_data'):get_material() then
-         merge_curb:get_component('stonehearth:floor'):add_region_to_floor(new_curb_region, new_road_brush)
-      else
-         self:_add_new_road_to_building(merge_road_building, new_road_uri, new_curb_region, constants.floor_category.CURB)
-      end
+      self:_merge_floor_into_building(parent_building, constants.floor_category.CURB, new_curb_region, new_curb_uri)
    end
 
-   return merge_road
+   return result_road
 end
 
 -- add `box` to the `floor` region.  the caller must ensure that the
