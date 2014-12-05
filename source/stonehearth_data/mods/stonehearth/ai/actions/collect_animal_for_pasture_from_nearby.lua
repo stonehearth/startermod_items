@@ -17,7 +17,7 @@ function CollectAnimalFromNearby:start_thinking(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
 
    --Check that the pasture is not full
-   if pasture_component and #pasture_component:get_animals() < pasture_component:get_max_animals() then
+   if pasture_component and pasture_component:get_num_animals() < pasture_component:get_max_animals() then
       
       --Check that there is a nearby animal of the correct type
       local animal_type = pasture_component:get_pasture_type()

@@ -20,7 +20,7 @@ function CollectAnimalFromWorld:start_thinking(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
    if not self._timer and 
       pasture_component and 
-      #pasture_component:get_animals() < pasture_component:get_min_animals() then
+      pasture_component:get_num_animals() < pasture_component:get_min_animals() then
       
       --Wait n min world-time so that if there are existing animals in the world nearby, we
       --have a chance to get to them. If not, run this

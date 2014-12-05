@@ -10,6 +10,8 @@ ClaimAnimalForPasture.args = {
 ClaimAnimalForPasture.version = 2
 ClaimAnimalForPasture.priority = 1
 
+--TODO: consider a universal pause on critters targeted by the shepherd
+
 function ClaimAnimalForPasture:run(ai, entity, args)
    local equipment_component = args.animal:add_component('stonehearth:equipment')
 

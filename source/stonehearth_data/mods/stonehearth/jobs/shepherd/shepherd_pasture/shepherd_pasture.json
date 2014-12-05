@@ -10,13 +10,15 @@
          "pasture_data" : {
             "stonehearth:sheep" : {
                "name" : "Sheep Pasture",
-               "min_population" : 1,
-               "max_population" : 7
+               "min_population" : 2,
+               "max_num_per_10_square_unit" : 2, 
+               "base_reproduction_period" : "1d"
             }, 
             "stonehearth:rabbits" : {
                "name" : "Rabbit Pen",
                "min_population" : 2,
-               "max_population" : 15
+               "max_num_per_10_square_unit" : 6, 
+               "base_reproduction_period" : "12h"
             }
          }
       }
