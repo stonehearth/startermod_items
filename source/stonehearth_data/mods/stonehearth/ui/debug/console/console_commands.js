@@ -78,4 +78,11 @@ $(document).ready(function(){
          return App.stonehearthClient.getCost(building);
       },
    });
+
+   radiant.console.register('spawn_scenario', {
+      call: function(cmdobj, fn, args) {
+         var scenario_uri = args[0];
+         return App.stonehearthClient.spawnScenario(scenario_uri);
+      }
+   });
 });

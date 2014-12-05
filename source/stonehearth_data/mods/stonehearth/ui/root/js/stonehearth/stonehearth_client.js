@@ -683,6 +683,9 @@ var StonehearthClient;
             })
       },
 
+      spawnScenario: function(scenario_uri) {
+         radiant.call('stonehearth:cl_spawn_scenario', scenario_uri );
+      },
    });
    App.stonehearthClient = new StonehearthClient();
 })();
