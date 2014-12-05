@@ -137,6 +137,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: the farmer
       - Name: stonehearth:harvest\_crop
       - Args: crop - the crop that was harvested
+   - **on\_renewable\_resource\_renewed** - triggered when a renewable resource renews itself
+      - Key: the entity being renewed
+      - Name: stonehearth:on\_renewable\_resource\_renewed
+      - Args: target - the thing spawning the resource; available_resource - the type of resource that is now available
 
 ##Crafting
 

@@ -43,6 +43,7 @@ function CollectAnimalFromWorld:run(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
    if pasture_component then
       -- wander a bunch
+      ai:execute('stonehearth:drop_carrying_now', {})
       ai:execute('stonehearth:wander', {radius = 100, radius_min = 30})
       ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
 

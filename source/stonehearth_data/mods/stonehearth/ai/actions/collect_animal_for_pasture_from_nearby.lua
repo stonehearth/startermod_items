@@ -54,9 +54,10 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CollectAnimalFromNearby)
+   :execute('stonehearth:drop_carrying_now', {})
    :execute('stonehearth:goto_entity_type', {
-      filter_fn = ai.PREV.filter_fn,
-      description = ai.PREV.description,
+      filter_fn = ai.BACK(2).filter_fn,
+      description = ai.BACK(2).description,
       range = 30
       })
    :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })

@@ -23,11 +23,24 @@ function RenewableResourceNodeComponent:initialize(entity, json)
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
+
+      --TODO: expand this so we can start with an unharvestable item with a timer to first harvestable
+      
       self._sv.harvestable = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
-      self:_restore()
+      radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         self:_restore()
+         --If we're harvestable on load, fire the harvestable event again,
+         --in case we need to reinitialize tasks and other nonsavables on the event
+         if self._sv.harvestable then
+            radiant.events.trigger(self._entity, 'stonehearth:on_renewable_resource_renewed', {target = self._entity, available_resource = self._resource})
+         end
+         return radiant.events.UNLISTEN
+      end)
+
+      
    end
 end
 
@@ -127,6 +140,10 @@ function RenewableResourceNodeComponent:renew()
    self._entity:get_component('unit_info'):set_description(self._original_description)
 
    self._sv.harvestable = true
+
+   --Let whoever's listening know that we have now respawned our resources
+   radiant.events.trigger(self._entity, 'stonehearth:on_renewable_resource_renewed', {target = self._entity, available_resource = self._resource})
+
    self.__saved_variables:mark_changed()
 end
 

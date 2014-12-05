@@ -18,10 +18,11 @@ function ShepherdPastureComponent:initialize(entity, json)
       self._sv.reproduction_time_interval = nil
    else
       --If we're loading, we can just create the tasks
-      self:_create_animal_collection_tasks()
-
+      
       --also, if there is an outstanding reproduction timer, we should create that
       radiant.events.listen(radiant, 'radiant:game_loaded', function(e)
+         self:_create_animal_collection_tasks()
+         self:_create_animal_listeners()
          self:_create_load_timer()
          return radiant.events.UNLISTEN
       end)
@@ -102,12 +103,21 @@ function ShepherdPastureComponent:get_max_animals()
 end
 
 function ShepherdPastureComponent:add_animal(animal)
-   self._sv.tracked_critters[animal:get_id()] = animal
+   self._sv.tracked_critters[animal:get_id()] = {entity = animal}
    self._sv.num_critters = self._sv.num_critters + 1
    self:_calculate_reproduction_timer()
+   self:_listen_for_renewables(animal)
+   self:_create_harvest_task(animal)
 end
 
 function ShepherdPastureComponent:remove_animal(animal_id)
+   --remove events associated with it
+   local renew_event = self._sv.tracked_critters[animal:get_id()].renew_event
+   if renew_event then
+      renew_event:destroy()
+      renew_event = nil
+   end
+
    self._sv.tracked_critters[animal_id] = nil
    self._sv.num_critters = self._sv.num_critters - 1
 
@@ -116,6 +126,43 @@ function ShepherdPastureComponent:remove_animal(animal_id)
 end
 
 --------- Private functions
+
+--When loading, refresh all the listeners on the animals
+function ShepherdPastureComponent:_create_animal_listeners()
+   for id, data in pairs(self._sv.tracked_critters) do 
+      if data and data.entity then
+         self:_listen_for_renewables(data.entity)
+      end
+   end
+end
+
+function ShepherdPastureComponent:_listen_for_renewables(animal)
+   local event = radiant.events.listen(animal, 'stonehearth:on_renewable_resource_renewed', self, self._on_animal_renewable_renewed)
+   self._sv.tracked_critters[animal:get_id()].renew_event = event
+end
+
+--When a renewable has come back, send the shepherds to go farm it
+function ShepherdPastureComponent:_on_animal_renewable_renewed(args)
+   self:_create_harvest_task(args.target)
+end
+
+--Create a one-time harvest task for the renewable resource
+function ShepherdPastureComponent:_create_harvest_task(target)
+   local renewable_resource_component = target:get_component('stonehearth:renewable_resource_node')
+   if renewable_resource_component and renewable_resource_component:is_harvestable() then
+      local town = stonehearth.town:get_town(self._entity)
+      town:create_task_for_group(
+         'stonehearth:task_group:herding', 
+         'stonehearth:harvest_plant',
+         {plant = target})
+         :set_source(target)
+         :set_name('harvesting')
+         :once()
+         :set_priority(stonehearth.constants.priorities.shepherding_animals.HARVEST)
+         :start()
+   end
+end
+
 
 function ShepherdPastureComponent:_release_existing_animals()
    --TODO: undo all their leashes or whatever
