@@ -55,12 +55,16 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(CollectAnimalFromNearby)
    :execute('stonehearth:drop_carrying_now', {})
-   :execute('stonehearth:goto_entity_type', {
-      filter_fn = ai.BACK(2).filter_fn,
-      description = ai.BACK(2).description,
-      range = 30
-      })
-   :execute('stonehearth:reserve_entity', { entity = ai.PREV.destination_entity })
-   :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(2).destination_entity })
+   :execute('stonehearth:find_path_to_entity_type', {
+            filter_fn = ai.BACK(2).filter_fn,
+            description = ai.BACK(2).description,
+            range = 30
+         })
+   :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.PREV.path:get_destination()})
+   :execute('stonehearth:follow_path', {
+            path = ai.BACK(2).path,
+         })
+   :execute('stonehearth:reserve_entity', { entity = ai.BACK(3).path:get_destination() })
+   :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(4).path:get_destination() })
    :execute('stonehearth:run_effect', { effect = 'fiddle' })
-   :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(4).destination_entity})
+   :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(6).path:get_destination()})

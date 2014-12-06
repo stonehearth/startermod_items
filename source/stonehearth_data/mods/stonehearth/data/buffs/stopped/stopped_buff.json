@@ -1,0 +1,11 @@
+{
+   "type" : "debuff",
+   "name" : "Stopped",
+   "description" : "Put this buff on someone who needs to stop, right now.",
+   "invisible_to_player" : true,
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 0
+      }
+   }
+} 
