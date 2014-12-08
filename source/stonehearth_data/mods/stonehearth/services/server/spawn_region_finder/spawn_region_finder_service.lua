@@ -54,7 +54,7 @@ function _generate_random_point_outside_perimeter(perimeter, distance)
       if p1:dot(normal) > d and p2:dot(normal) <= d then
          -- Compute the intersection of the hull and that direction.
          local perimeter_line = p2 - p1
-         local perimeter_normal = Point3(perimeter_line.z, 0, perimeter_line.x)
+         local perimeter_normal = Point3(perimeter_line.z, 0, -perimeter_line.x)
          perimeter_normal:normalize()
 
          local hull_point = radiant.math.intersect_plane_with_line(hull_center, dir, p1, perimeter_normal)
