@@ -181,7 +181,7 @@ function GoblinThief:_item_added(e)
             stockpile_comp = s_comp, 
             location = self._sv._stockpile:get_component('mob'):get_grid_location()
          })
-         :set_priority(stonehearth.constants.priorities.top.WORK)
+         :set_priority(stonehearth.constants.priorities.top.URGENT_ACTIONS)
          :once()
          :start()
       self.__saved_variables:mark_changed()
