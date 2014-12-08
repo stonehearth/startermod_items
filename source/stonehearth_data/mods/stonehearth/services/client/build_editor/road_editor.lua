@@ -65,10 +65,17 @@ function RoadEditor:__init(build_service)
    _radiant.renderer.add_terrain_cut(self._cut_region)
 end
 
-function RoadEditor:go(response, road_uri)
-   local brush_shape = voxel_brush_util.brush_from_uri(road_uri)   
-   local brush = _radiant.voxel.create_brush(brush_shape)
+function RoadEditor:go(response, road_uri, curb_uri)
+   local road_brush_shape = voxel_brush_util.brush_from_uri(road_uri)
+   local road_brush = _radiant.voxel.create_brush(road_brush_shape)
 
+   local curb_brush_shape = nil
+   local curb_brush = nil
+
+   if curb_uri then
+      curb_brush_shape = voxel_brush_util.brush_from_uri(curb_uri)
+      curb_brush = _radiant.voxel.create_brush(curb_brush_shape)
+   end
    stonehearth.selection:select_xz_region()
       :require_unblocked(false)
       :select_front_brick(false)
@@ -78,11 +85,11 @@ function RoadEditor:go(response, road_uri)
       :use_manual_marquee(function(selector, box)
             local proj_region = Region3(box):project_onto_xz_plane():to_int()
             local curb_region, road_region = self:_region_to_road_regions(proj_region, box.min)
-            if curb_region then
-              road_region:add_region(curb_region)
+            local model_region = road_brush:paint_through_stencil(road_region)
+            if curb_region and curb_uri then
+               model_region:add_region(curb_brush:paint_through_stencil(curb_region))
             end
-            local model = brush:paint_through_stencil(road_region)
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3(0, 0, 0))
+            local node =  _radiant.client.create_voxel_node(1, model_region, 'materials/blueprint.material.xml', Point3(0, 0, 0))
             node:set_polygon_offset(-5, -5)
             node:set_position(MODEL_OFFSET)
 
@@ -92,7 +99,7 @@ function RoadEditor:go(response, road_uri)
             return node
          end)
       :done(function(selector, box)
-            self:_add_road(response, selector, box, road_uri)
+            self:_add_road(response, selector, box, road_uri, curb_uri)
          end)
       :fail(function(selector)
             response:reject('no region')            
@@ -108,8 +115,8 @@ function RoadEditor:go(response, road_uri)
    return self
 end
 
-function RoadEditor:_add_road(response, selector, box, road_uri)
-   _radiant.call_obj(self._build_service, 'add_road_command', road_uri, box)
+function RoadEditor:_add_road(response, selector, box, road_uri, curb_uri)
+   _radiant.call_obj(self._build_service, 'add_road_command', road_uri, curb_uri, box)
       :done(function(r)
             if r.new_selection then
                stonehearth.selection:select_entity(r.new_selection)

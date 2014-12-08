@@ -81,7 +81,9 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    direct_path_search_cooldown_(0),
    debug_color_(255, 192, 0, 128),
    _lastIdleCheckResult(nullptr),
-   _rebuildOpenHeuristics(false)
+   _rebuildOpenHeuristics(false),
+   _max_steps(INT_MAX),
+   _num_steps(0)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -120,6 +122,12 @@ float AStarPathFinder::GetTravelDistance()
       RebuildHeap();
    }
    return open_.front()->g;
+}
+
+AStarPathFinderPtr AStarPathFinder::SetMaxSteps(unsigned int max_steps)
+{
+   _max_steps = max_steps;
+   return shared_from_this();
 }
 
 AStarPathFinderPtr AStarPathFinder::SetSolvedCb(SolvedCb const& solved_cb)
@@ -292,6 +300,7 @@ void AStarPathFinder::Restart()
    ASSERT(!solution_);
 
    ClearNodes();
+   _num_steps = 0;
    rebuildHeap_ = true;
    restart_search_ = false;
 
@@ -365,12 +374,18 @@ void AStarPathFinder::Work(const platform::timer &timer)
    for (int i = 0; i < 8 && !timer.expired(); i++) {
       PF_LOG(3) << "entering work function";
 
+      _num_steps++;
+
       if (restart_search_) {
          Restart();
       }
 
-      if (open_.empty()) {
-         PF_LOG(2) << "open set is empty!  returning";
+      if (open_.empty() || _num_steps > _max_steps) {
+         if (open_.empty()) {
+            PF_LOG(2) << "open set is empty!  returning";
+         } else {
+            PF_LOG(2) << "exceeded max_steps(" << _max_steps << ")!  returning";
+         }
          SetSearchExhausted();
          return;
       }
@@ -681,6 +696,7 @@ void AStarPathFinder::SetSearchExhausted()
 
    if (!search_exhausted_) {
       ClearNodes();
+      _num_steps = 0;
       search_exhausted_ = true;
       if (exhausted_cb_) {
          PF_LOG(5) << "calling lua search exhausted callback";
@@ -747,6 +763,7 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
       world_changed_ = false;
       watching_tiles_.clear();
       direct_path_search_cooldown_ = 0;
+      _num_steps = 0;
 
       EnableWorldWatcher(false);
    }   
@@ -923,3 +940,43 @@ om::EntityRef AStarPathFinder::GetEntity() const
 {
    return entity_;
 }
+
+bool AStarPathFinder::OpenSetContains(csg::Point3 const& pt)
+{
+   return stdutil::contains(_openLookup, pt);
+}
+
+void AStarPathFinder::GetPathFinderInfo(json::Node& info)
+{
+   info.set("id", GetId());
+   info.set("eta", EstimateCostToSolution());
+   info.set("source", json::encode(source_->GetSourceLocation()));
+   info.set("open_count", open_.size());
+   info.set("closed_count", closed_.size());
+
+   auto entity = entity_.lock();
+   if (entity) {
+      info.set("entity", BUILD_STRING(*entity));
+   }
+
+   json::Node destinations(JSON_ARRAY);
+   for (auto const& entry : destinations_) {
+      PathFinderDst const* dst = entry.second.get();
+      om::EntityPtr dstEntity = dst->GetEntity();
+      if (dstEntity) {
+         om::MobPtr mob = dstEntity->GetComponent<om::Mob>();
+         if (mob) {
+            om::EntityRef root;
+            csg::Point3 location = csg::ToInt(mob->GetWorldGridLocation(root));
+            if (!root.expired()) {
+               json::Node dinfo;
+               dinfo.set("entity",     BUILD_STRING(*dstEntity));
+               dinfo.set("location",   location);
+               destinations.add(dinfo);
+            }
+         }
+      }
+   }
+   info.set("destinations", destinations);
+}
+

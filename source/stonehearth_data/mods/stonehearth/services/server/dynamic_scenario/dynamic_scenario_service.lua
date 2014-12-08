@@ -59,7 +59,7 @@ function DynamicScenarioService:try_spawn_scenario(scenario_type, pace_keepers)
             -- sweet.  if this is the least recently activated of all the
             -- scenarios that can run, use this one.
             info.buildup = info.buildup + 1
-            if not best_info or info.buildup > best_info.build_up then
+            if not best_info or info.buildup > best_info.buildup then
                if best_scenario then
                   radiant.destroy_controller(best_scenario)
                end

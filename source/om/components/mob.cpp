@@ -88,7 +88,7 @@ void Mob::TurnTo(float angle)
 
 void Mob::TurnToFacePoint(csg::Point3f const& location)
 {
-   om::EntityRef entityRoot;
+   EntityRef entityRoot;
    csg::Point3f position = GetWorldLocation(entityRoot);
    csg::Point3f v = location - position;
    csg::Point3f forward(0, 0, -1);
@@ -117,7 +117,7 @@ csg::Point3f Mob::GetLocation() const
    return (*transform_).position;
 }
 
-csg::Point3f Mob::GetWorldLocation(om::EntityRef& entityRoot) const
+csg::Point3f Mob::GetWorldLocation(EntityRef& entityRoot) const
 {
    csg::Point3f location = GetWorldTransform(entityRoot).position;
    if (!IsRootEntity(entityRoot)) {
@@ -126,13 +126,13 @@ csg::Point3f Mob::GetWorldLocation(om::EntityRef& entityRoot) const
    return location;
 }
 
-csg::Transform Mob::GetWorldTransform(om::EntityRef& entityRoot) const
+csg::Transform Mob::GetWorldTransform(EntityRef& entityRoot) const
 {
    EntityPtr parent = (*parent_).lock();
    MobPtr mob;
    
    if (parent) {
-      mob = parent->GetComponent<om::Mob>();
+      mob = parent->GetComponent<Mob>();
       entityRoot = parent;
    }
    if (!mob) {
@@ -148,7 +148,7 @@ csg::Transform Mob::GetWorldTransform(om::EntityRef& entityRoot) const
    return world;
 }
 
-csg::Point3f Mob::GetWorldGridLocation(om::EntityRef& entityRoot) const
+csg::Point3f Mob::GetWorldGridLocation(EntityRef& entityRoot) const
 {
    return csg::ToFloat(csg::ToClosestInt(GetWorldLocation(entityRoot)));
 }
@@ -241,7 +241,7 @@ void Mob::SerializeToJson(json::Node& node) const
    node.set("interpolate_movement", GetInterpolateMovement());
    node.set("in_free_motion", GetInFreeMotion());
    node.set("mob_collision_type", __type_to_str[GetMobCollisionType()]);
-   om::EntityPtr parent = GetParent().lock();
+   EntityPtr parent = GetParent().lock();
    if (parent) {
       node.set("parent", parent->GetStoreAddress());
    }

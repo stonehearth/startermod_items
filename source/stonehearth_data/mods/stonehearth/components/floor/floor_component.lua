@@ -30,7 +30,8 @@ end
 -- adds the `region` in world coordinates to the floor
 --    @param region - the region to add to the floor, in world coordinates
 --
-function Floor:add_region_to_floor(region, brush_shape)
+function Floor:add_region_to_floor(region)
+   local brush_shape = self._entity:get_component('stonehearth:construction_data'):get_brush()
    local building = self._entity:get_component('mob'):get_parent()
    local origin = radiant.entities.get_world_grid_location(building)
    local brush = _radiant.voxel.create_brush(brush_shape)

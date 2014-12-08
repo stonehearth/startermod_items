@@ -45,6 +45,9 @@ function XZRegionSelector:__init()
       return self._cursor
    end
 
+   self._last_ignored_entities = {}
+   self._ignored_entities = {}
+
    self:_initialize_dispatch_table()
 
    self:use_outline_marquee(DEFAULT_BOX_COLOR, DEFAULT_BOX_COLOR)
@@ -96,6 +99,11 @@ end
 -- this filter returns false
 function XZRegionSelector:set_can_contain_entity_filter(filter_fn)
    self._can_contain_entity_filter_fn = filter_fn
+   return self
+end
+
+function XZRegionSelector:set_ghost_ignored_entity_filter(filter_fn)
+   self._ghost_ignored_entity_filter_fn = filter_fn
    return self
 end
 
@@ -204,6 +212,8 @@ end
 function XZRegionSelector:_cleanup()
    stonehearth.selection:register_tool(self, false)
 
+   self:_restore_ignored_entities()
+
    self._fail_cb = nil
    self._progress_cb = nil
    self._done_cb = nil
@@ -281,19 +291,30 @@ end
 -- filter.
 function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
+         local entity = result.entity
+
          -- The only case entity should be null is when allowing self-selection of the
          -- cursor.
-         if self._allow_select_cursor and not result.entity then
+         if self._allow_select_cursor and not entity then
             return true
          end
 
-         if result.entity then
-            local re = _radiant.client.get_render_entity(result.entity)
+         if entity then
+            local re = _radiant.client.get_render_entity(entity)
             if re and re:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
                return stonehearth.selection.FILTER_IGNORE
             end
          end
-         return self._find_support_filter_fn(result, self)
+
+         local valid_support = self._find_support_filter_fn(result, self)
+
+         if valid_support == stonehearth.selection.FILTER_IGNORE then
+            if self._ghost_ignored_entity_filter_fn and self._ghost_ignored_entity_filter_fn(entity) then
+               self:_add_to_ignored_entities(entity)            
+            end
+         end
+
+         return valid_support
       end)
    return brick, normal
 end
@@ -402,6 +423,7 @@ function XZRegionSelector:_update()
    self:_update_selected_cube(selected_cube)
    self:_update_rulers(self._p0, self._p1)
    self:_update_cursor(selected_cube, self._stabbed_normal)
+   self:_update_ignored_entities()
 
    if self._action == 'notify' then
       self:notify(selected_cube)
@@ -684,6 +706,77 @@ function XZRegionSelector:_update_cursor(box, stabbed_normal)
    if cursor then
       self._cursor_obj = _radiant.client.set_cursor(cursor)
    end
+end
+
+function XZRegionSelector:_update_ignored_entities()
+   if not self._ghost_ignored_entity_filter_fn then
+      return
+   end
+
+   -- ghost entities that are new to the ignored_entities set
+   self:_each_item_not_in_map(self._ignored_entities, self._last_ignored_entities, function(item)
+         self:_set_ghost_mode(item.entity)
+      end)
+
+   -- unghost entities that have left the ignored_entities set
+   self:_each_item_not_in_map(self._last_ignored_entities, self._ignored_entities, function(item)
+         self:_set_entity_material(item.entity, item.material)
+      end)
+
+   self._last_ignored_entities = self._ignored_entities
+   self._ignored_entities = {}
+end
+
+-- calls fn for each item in map that is not in the reference_map
+function XZRegionSelector:_each_item_not_in_map(map, reference_map, fn)
+   for id, item in pairs(map) do
+      if not reference_map[id] then
+         fn(item)
+      end
+   end
+end
+
+function XZRegionSelector:_add_to_ignored_entities(entity)
+   local id = entity:get_id()
+   local value = self._last_ignored_entities[id]
+
+   if not value then
+      local render_entity = _radiant.client.get_render_entity(entity)
+      local material = render_entity:get_material_override()
+      value = {
+         entity = entity,
+         material = material
+      }
+   end
+
+   self._ignored_entities[id] = value
+end
+
+function XZRegionSelector:_restore_ignored_entities()
+   for id, item in pairs(self._last_ignored_entities) do
+      self:_set_entity_material(item.entity, item.material)
+   end
+end
+
+function XZRegionSelector:_set_ghost_mode(entity, ghost_mode)
+   if not entity:is_valid() then
+      return
+   end
+
+   local render_entity = _radiant.client.get_render_entity(entity)
+   local material = render_entity:get_material_path('hud')
+   if material and material ~= '' then
+      render_entity:set_material_override(material)
+   end
+end
+
+function XZRegionSelector:_set_entity_material(entity, material)
+   if not entity:is_valid() then
+      return
+   end
+
+   local render_entity = _radiant.client.get_render_entity(entity)
+   render_entity:set_material_override(material)
 end
 
 function XZRegionSelector:go()

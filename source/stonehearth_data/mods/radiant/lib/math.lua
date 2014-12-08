@@ -75,4 +75,15 @@ function RadiantMath.random_xz_unit_vector(rng)
    return RadiantMath.rotate_about_y_axis(Point3.unit_x, angle)
 end
 
+function RadiantMath.intersect_plane_with_line(line_start, line_dir, plane_point, plane_normal)
+   local n_dot_l = line_dir:dot(plane_normal)
+   if n_dot_l == 0 then
+      return nil
+   end
+
+   local t = (line_start - plane_point):dot(plane_normal) / n_dot_l
+
+   return line_start + (line_dir * t)
+end
+
 return RadiantMath

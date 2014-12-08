@@ -79,11 +79,26 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
          App.stonehearthClient.subterraneanMoveDown();
       });
 
-      // bit of a hack given that we can't do hotkey="\" in the div
+      // bit of a hack given that we can't do hotkey="\", "[", or "]" in the div
       $(document).keyup(function(e) {
-         if(e.keyCode == 220) {
+         // '\'
+         if (e.keyCode == 220) {
             self.$('#sliceButton').click();
+            return;
          }
+
+         // ']'
+         if (e.keyCode == 221) {
+            self.$('#clipUp').click();
+            return;
+         }
+
+         // '['
+         if (e.keyCode == 219) {
+            self.$('#clipDown').click();
+            return;
+         }
+
       });
 
       this.$('[title]').tooltipster();

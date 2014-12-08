@@ -37,6 +37,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
    local face_color = Color4(255, 255, 0, 16)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
    local y_cell_size = constants.mining.Y_CELL_SIZE
+   local clip_enabled = stonehearth.subterranean_view:clip_enabled()
 
    local get_proposed_points = function(p0, p1, normal)
       if not self:_valid_endpoints(p0, p1) then
@@ -96,7 +97,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return q0, q1
    end
 
-   local terrain_suport_filter = function(selected, selector)
+   local terrain_support_filter = function(selected, selector)
       -- fast check for 'is terrain'
       if selected.entity:get_id() == 1 then
          return true
@@ -125,17 +126,21 @@ function MiningCallHandler:designate_mining_zone(session, response)
          return 'stonehearth:cursors:invalid_hover'
       end
 
-      local mode = self:_get_mode(box.min, normal)
+      return 'stonehearth:cursors:mine'
+   end
 
-      if mode == 'down' then
-         return 'stonehearth:cursors:mine_down'
+   local ghost_ignored_entity_filter = function(entity)
+      if not clip_enabled then
+         return false
       end
 
-      if mode == 'out' then
-         return 'stonehearth:cursors:mine_out'
+      local collision_shape_component = entity:get_component('region_collision_shape')
+      if not collision_shape_component then
+         return false
       end
-
-      assert(false)
+      
+      local region = collision_shape_component:get_region():get()
+      return not region:empty()
    end
 
    stonehearth.selection:select_xz_region()
@@ -143,8 +148,9 @@ function MiningCallHandler:designate_mining_zone(session, response)
       :set_validation_offset(Point3.unit_y)
       :set_cursor_fn(select_cursor)
       :set_end_point_transforms(get_proposed_points, get_resolved_points)
-      :set_find_support_filter(terrain_suport_filter)
+      :set_find_support_filter(terrain_support_filter)
       :set_can_contain_entity_filter(contain_entity_filter)
+      :set_ghost_ignored_entity_filter(ghost_ignored_entity_filter)
       :use_manual_marquee(draw_region_outline_marquee)
 
       :done(function(selector, box)

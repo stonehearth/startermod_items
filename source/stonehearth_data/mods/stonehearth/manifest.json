@@ -37,8 +37,7 @@
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
       "cursors:erase_floor" : "file(data/cursors/erase_floor.cur)",
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
-      "cursors:mine_down" : "file(data/cursors/mine_down.cur)",
-      "cursors:mine_out" : "file(data/cursors/mine_out.cur)",
+      "cursors:mine" : "file(data/cursors/mine.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
@@ -70,7 +69,9 @@
       "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
       "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
       "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
-      "checkered_slate_road" : "file(entities/build/road/checkered_slate_road)",
+      "stone_paved_road" : "file(entities/build/road/stone_paved_road)",
+      "brick_paved_road" : "file(entities/build/road/brick_paved_road)",
+      "stone_curb" : "file(entities/build/road/stone_curb)",
       "wooden_wall" : "file(entities/build/wooden_wall)",
       "plastered_wooden_wall" : "file(entities/build/wooden_wall/plastered_wooden_wall.json)",
       "cobblestone_wall" : "file(entities/build/cobblestone_wall/cobblestone_wall.json)",
@@ -1128,6 +1129,14 @@
       "spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "query_pathfinder": {
+         "controller": "file(call_handlers/selection_call_handler.lua)",
+         "endpoint": "client"
+      },
+      "cl_spawn_scenario": {
+         "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
+         "endpoint" : "client"
       }
    },
    

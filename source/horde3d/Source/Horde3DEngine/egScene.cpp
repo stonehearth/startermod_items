@@ -637,7 +637,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                continue;
             }
 
-            if (verticalClipMax < node->_bBox.max().y) {
+            if (verticalClipMax <= node->_bBox.min().y) {
                continue;
             }
 
@@ -1308,7 +1308,7 @@ void SceneManager::fastCastRayInternal(int userFlags)
             continue;
          }
 
-         if (Modules::renderer().getVerticalClipMax() < sn->getBBox().max().y) {
+         if (Modules::renderer().getVerticalClipMax() <= sn->getBBox().min().y) {
             continue;
          }
          Vec3f intsPos, intsNorm;
@@ -1351,7 +1351,7 @@ void SceneManager::castRayInternal( SceneNode &node, int userFlags )
    if( !(node._accumulatedFlags & SceneNodeFlags::NoRayQuery) )
 	{
 		Vec3f intsPos, intsNorm;
-      if((Modules::renderer().getVerticalClipMax() >= node.getBBox().max().y) && (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayOrigin + _rayDirection, _rayDirection, intsPos, intsNorm ) )
+      if((Modules::renderer().getVerticalClipMax() > node.getBBox().min().y) && (node._userFlags & userFlags) == userFlags && node.checkIntersection( _rayOrigin, _rayOrigin + _rayDirection, _rayDirection, intsPos, intsNorm ) )
 		{
 			float dist = (intsPos - _rayOrigin).length();
 
