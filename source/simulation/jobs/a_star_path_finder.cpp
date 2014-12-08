@@ -923,3 +923,51 @@ om::EntityRef AStarPathFinder::GetEntity() const
 {
    return entity_;
 }
+
+// This is amazingly slow (well, O(n)), but is only used in a debugging
+// utility capacity, so let's know worry too much about that.
+//
+bool AStarPathFinder::OpenSetContains(csg::Point3 const& pt)
+{
+   for (PathFinderNode const& node : open_) {
+      if (node.pt == pt) {
+         return true;
+      }
+   }
+   return false;
+}
+
+void AStarPathFinder::GetPathFinderInfo(json::Node& info)
+{
+   info.set("id", GetId());
+   info.set("eta", EstimateCostToSolution());
+   info.set("source", json::encode(source_->GetSourceLocation()));
+   info.set("open_count", open_.size());
+   info.set("closed_count", closed_.size());
+
+   auto entity = entity_.lock();
+   if (entity) {
+      info.set("entity", BUILD_STRING(*entity));
+   }
+
+   json::Node destinations(JSON_ARRAY);
+   for (auto const& entry : destinations_) {
+      PathFinderDst const* dst = entry.second.get();
+      om::EntityPtr dstEntity = dst->GetEntity();
+      if (dstEntity) {
+         om::MobPtr mob = dstEntity->GetComponent<om::Mob>();
+         if (mob) {
+            om::EntityRef root;
+            csg::Point3 location = csg::ToInt(mob->GetWorldGridLocation(root));
+            if (!root.expired()) {
+               json::Node dinfo;
+               dinfo.set("entity",     BUILD_STRING(*dstEntity));
+               dinfo.set("location",   location);
+               destinations.add(dinfo);
+            }
+         }
+      }
+   }
+   info.set("destinations", destinations);
+}
+

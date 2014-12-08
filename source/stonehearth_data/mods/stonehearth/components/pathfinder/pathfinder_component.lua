@@ -22,7 +22,7 @@ end
 
 -- find a path from `location` to `item`, calling `solved_cb` when finished.
 --
-function PathFinder:find_path_to_entity(location, item, solved_cb)
+function PathFinder:find_path_to_entity(location, item, solved_cb, exhausted_cb)
    local pfkey = string.format('%s', tostring(location))
    local pf = self._astar_pathfinders[pfkey]
    if not pf then
@@ -33,9 +33,9 @@ function PathFinder:find_path_to_entity(location, item, solved_cb)
    end
 
    local id = item:get_id()
-   pf:add_destination(item, solved_cb)
+   pf:add_destination(item, solved_cb, exhausted_cb)
    return radiant.lib.Destructor(function()
-         return pf:remove_destination(id, solved_cb)
+         return pf:remove_destination(id, solved_cb, exhausted_cb)
       end)
 end
 

@@ -5,6 +5,11 @@ local XZRegionSelector = require 'services.client.selection.xz_region_selector'
 local LocationSelector = require 'services.client.selection.location_selector'
 local Point3 = _radiant.csg.Point3
 
+local Cube3 = _radiant.csg.Cube3
+local Point3 = _radiant.csg.Point3
+local Region3 = _radiant.csg.Region3
+local INFINITE = 10000000
+
 local log = radiant.log.create_logger('selection_service')
 
 local SelectionService = class()
@@ -238,4 +243,62 @@ function SelectionService:_on_mouse_input(e)
    return false
 end
 
+-- asks the simulation for all pathfinders whose open sets intersect the
+-- selected point.
+--
+function SelectionService:query_pathfinder_command(session, response)
+   local debug_nodes = {}
+   -- destroy all the debug nodes created to visualize the pathfindersf
+   local function destroy_debug_nodes()
+      for _, node in pairs(debug_nodes) do
+         node:destroy()
+      end
+      debug_nodes = {}
+   end
+   -- create a new debug column rooted at `location` using `color`
+   local function create_debug_node(location, color)
+      local pt = Point3(location.x, 0, location.z)
+      local region = Region3(Cube3(Point3(-1, -INFINITE, -1), Point3(1, INFINITE, 1), color))
+      local node = _radiant.client.create_voxel_node(1, region, 'materials/voxel.material.xml', Point3.zero)
+                                       :set_position(pt)
+                                       :set_scale(Point3(0.1, 0.1, 0.1))
+
+      table.insert(debug_nodes, node)
+   end
+   -- create all the debug nodes to visualize the pathfinders in `info`
+   local function create_debug_nodes(info)
+      if info.pathfinders then
+         for _, pf in pairs(info.pathfinders) do
+            create_debug_node(pf.source, 255) -- red...
+            for _, dst in pairs(pf.destinations) do
+               create_debug_node(dst.location, 255 * (256 * 256)) -- blue...
+            end
+         end
+      end
+   end
+
+   local function start_selector()
+      response:notify({ 'pick a point...' })
+      stonehearth.selection:select_location()
+                     :set_cursor('stonehearth:cursors:arrow')
+                     :progress(function(selector, pt)
+                           response:notify({pt = pt})
+                        end)
+                     :done(function(selector, pt)
+                           destroy_debug_nodes()
+                           _radiant.call('radiant:query_pathfinder_info', pt)
+                              :done(function(o)
+                                    create_debug_nodes(o)
+                                    response:notify(o)
+                                 end)
+                              :fail(function(o)
+                                    response:notify(o)
+                                 end)
+                              start_selector()
+                        end)
+                     :always(destroy_debug_nodes)
+                     :go()
+   end
+   start_selector()
+end
 return SelectionService

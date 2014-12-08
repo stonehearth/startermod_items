@@ -21,9 +21,12 @@ function FindPathToEntity:start_thinking(ai, entity, args)
       ai:set_think_output({ path = path })
       return true
    end
+   local on_exhausted = function()
+      ai:get_log():warning('search exhausted!')
+   end
 
    self._pathfinder = entity:add_component('stonehearth:pathfinder')
-                                 :find_path_to_entity(ai.CURRENT.location, args.destination, on_success)
+                                 :find_path_to_entity(ai.CURRENT.location, args.destination, on_success, on_exhausted)
 end
 
 function FindPathToEntity:stop_thinking(ai, entity, args)

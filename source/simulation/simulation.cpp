@@ -122,6 +122,25 @@ void Simulation::OneTimeIninitializtion()
       }
    });
 
+   core_reactor_->AddRouteJ("radiant:query_pathfinder_info", [this](rpc::Function const& f) {
+      json::Node args(f.args);
+      json::Node pathfinders(JSON_ARRAY);
+
+      csg::Point3 pt = args.get<csg::Point3>(0);
+      ForEachPathFinder([this, &pt, &pathfinders](PathFinderPtr const& pf) mutable {
+         if (pf->OpenSetContains(pt)) {
+            json::Node entry;
+            pf->GetPathFinderInfo(entry);
+            pathfinders.add(entry);
+         }
+      });
+      json::Node result;
+      result.set("pathfinders", pathfinders);
+      SIM_LOG(0) << "-- radiant:query_pathfinder_info result -------------------";
+      SIM_LOG(0) << result.write_formatted();
+      return result;
+   });
+
    core_reactor_->AddRouteS("radiant:toggle_debug_nodes", [this](rpc::Function const& f) {
       _showDebugNodes = !_showDebugNodes;
       std::string msg = BUILD_STRING("debug nodes turned " << (_showDebugNodes ? "ON" : "OFF"));
@@ -1137,7 +1156,7 @@ void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
    json::Node times(JSONNode(JSON_ARRAY));
    int totalTime = 0;
 
-   SIM_LOG(0) << "--- job performance counters --------------------";
+   SIM_LOG(1) << "--- job performance counters --------------------";
    std::set<std::pair<int, const char*>, std::greater<std::pair<int, const char*>>> counters;
    for (perfmon::Counter const* counter : frame->GetCounters()) {
       perfmon::CounterValueType time = counter->GetValue();
@@ -1152,7 +1171,7 @@ void Simulation::LogJobPerfCounters(perfmon::Frame* frame)
       int percent = ms * 100 / totalTime;
       const char* name = entry.second;
 
-      SIM_LOG(0) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << GetProgressForJob(name);
+      SIM_LOG(1) << std::setw(3) << percent << "% (" << std::setw(4) << ms << " ms) : " << GetProgressForJob(name);
    }
 }
 
@@ -1182,5 +1201,21 @@ std::string Simulation::GetProgressForJob(core::StaticString name) const
       }
    }
    return BUILD_STRING(name << " (finished...)");
+}
+
+void Simulation::ForEachPathFinder(std::function<void(PathFinderPtr const&)> cb)
+{
+   for (std::weak_ptr<Job> const& j : jobs_) {
+      std::shared_ptr<Job> job = j.lock();
+      if (job) {
+         EntityJobSchedulerPtr ejs = std::dynamic_pointer_cast<EntityJobScheduler>(job);
+         if (ejs) {
+            for (auto const& entry : ejs->GetPathFinders()) {
+               PathFinderPtr pf = entry.second.lock();
+               cb(pf);
+            }
+         }
+      }
+   }
 }
 

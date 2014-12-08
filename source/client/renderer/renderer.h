@@ -195,7 +195,7 @@ class Renderer
       void BuildLoadingScreen();
       void SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled);
       void OnWindowResized(int newWidth, int newHeight);
-      void OnKey(int key, int down);
+      void OnKey(int key, int down, int mods);
       void OnMouseWheel(double value);
       void OnMouseMove(double x, double y);
       void OnMouseButton(int button, int press);

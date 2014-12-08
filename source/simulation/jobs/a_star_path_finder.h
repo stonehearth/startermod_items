@@ -61,6 +61,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       void Work(const platform::timer &timer) override;
       std::string GetProgress() override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
+      bool OpenSetContains(csg::Point3 const& pt) override;
+      void GetPathFinderInfo(json::Node& info) override;
 
    private:
       friend PathFinderSrc;

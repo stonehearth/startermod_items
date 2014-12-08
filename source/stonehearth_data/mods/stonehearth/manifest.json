@@ -1125,6 +1125,10 @@
       "spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "query_pathfinder": {
+         "controller": "file(call_handlers/selection_call_handler.lua)",
+         "endpoint": "client"
       }
    },
    

@@ -78,4 +78,10 @@ $(document).ready(function(){
          return App.stonehearthClient.getCost(building);
       },
    });
+
+   radiant.console.register('query_pf', {
+      call: function(cmdobj, fn, args) {
+         return radiant.call_obj('stonehearth.selection', 'query_pathfinder_command');
+      },
+   });
 });

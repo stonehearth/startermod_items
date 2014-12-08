@@ -222,7 +222,7 @@ void Renderer::SetupGlfwHandlers()
    });
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
-      Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT)); 
+      Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT), mods); 
    });
 
    glfwSetCursorEnterCallback(window, [](GLFWwindow *window, int entered) {
@@ -1490,13 +1490,16 @@ void Renderer::CallMouseInputCallbacks()
    DispatchInputEvent();
 }
 
-void Renderer::OnKey(int key, int down)
+void Renderer::OnKey(int key, int down, int mods)
 {
    bool handled = false, uninstall = false;
 
    input_.type = Input::KEYBOARD;
    input_.keyboard.down = down != 0;
    input_.keyboard.key = key;
+   input_.keyboard.shift = (mods & GLFW_MOD_SHIFT) != 0;
+   input_.keyboard.ctrl = (mods & GLFW_MOD_CONTROL) != 0;
+   input_.keyboard.alt = (mods & GLFW_MOD_ALT) != 0;
 
    auto isKeyDown = [](WPARAM arg) {
       return (GetKeyState(arg) & 0x8000) != 0;
