@@ -7,6 +7,7 @@
       }, 
       "stonehearth:shepherd_pasture" : {
          "default_type" : "stonehearth:sheep",
+         "check_for_strays_interval" : "6h",
          "pasture_data" : {
             "stonehearth:sheep" : {
                "name" : "Sheep Pasture",

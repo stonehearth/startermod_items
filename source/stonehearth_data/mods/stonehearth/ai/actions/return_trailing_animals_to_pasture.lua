@@ -42,7 +42,7 @@ function ReturnTrailingAnimalToPasture:run(ai, entity, args)
                ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
                ai:execute('stonehearth:goto_entity', {entity = animal})
                ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
-               shepherded_component:set_following(false)
+               shepherded_component:set_following(false, nil)
                shepherd_class:remove_trailing_animal(animal:get_id())
             end
 

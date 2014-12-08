@@ -16,6 +16,7 @@ function ShepherdPastureComponent:initialize(entity, json)
       self._sv.tracked_critters = {}
       self._sv.num_critters = 0
       self._sv.reproduction_time_interval = nil
+      self._sv.check_for_strays_interval = json.check_for_strays_interval
    else
       --If we're loading, we can just create the tasks
       
@@ -24,6 +25,7 @@ function ShepherdPastureComponent:initialize(entity, json)
          self:_create_animal_collection_tasks()
          self:_create_animal_listeners()
          self:_create_load_timer()
+         self:_create_stray_timer()
          return radiant.events.UNLISTEN
       end)
    end
@@ -42,6 +44,8 @@ end
 --On destroying the pasture, nuke the tasks
 function ShepherdPastureComponent:destroy()
    self:_destroy_animal_collection_tasks()
+   --TODO: do I also need to destroy the 1-time tasks?
+   --test deleting pastures
 end
 
 
@@ -77,6 +81,7 @@ function ShepherdPastureComponent:set_pasture_type(new_animal_type)
    end
    self._sv.pasture_type = new_animal_type
    self:_create_animal_collection_tasks()
+   self:_create_stray_timer()
 end
 
 function ShepherdPastureComponent:get_pasture_type()
@@ -188,6 +193,38 @@ function ShepherdPastureComponent:_destroy_animal_collection_tasks()
    if self._till_task then
       self._till_task = nil
       self._till_task:destroy()
+   end
+end
+
+--Given the interval, find the strays
+function ShepherdPastureComponent:_create_stray_timer()
+   self._stray_interval_timer = stonehearth.calendar:set_interval(self._sv.check_for_strays_interval, function()
+      self:_collect_strays()
+   end)
+end
+
+--Iterate through the critters in the pasture. If they are out of bounds, then fire off a task to bring them home
+function ShepherdPastureComponent:_collect_strays()
+   for id, critter_data in pairs(self._sv.tracked_critters) do
+      local critter = critter_data.entity
+      local critter_location = radiant.entities.get_world_grid_location(critter)
+      local region_shape = self._entity:add_component('region_collision_shape'):get_region():get()
+      
+      local pasture_location = radiant.entities.get_world_grid_location(self._entity)
+      local world_region_shape = region_shape:translated(pasture_location)
+
+      if not world_region_shape:contains(critter_location) then
+         local town = stonehearth.town:get_town(self._entity)
+         town:create_task_for_group(
+            'stonehearth:task_group:herding', 
+            'stonehearth:find_stray_animal', 
+            {animal = critter, pasture = self._entity})
+            :set_source(critter)
+            :set_name('return strays to pasture')
+            :set_priority(stonehearth.constants.priorities.shepherding_animals.RETURN_TO_PASTURE)
+            :once()
+            :start()
+      end
    end
 end
 
