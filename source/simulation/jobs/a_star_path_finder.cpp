@@ -82,7 +82,8 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    debug_color_(255, 192, 0, 128),
    _lastIdleCheckResult(nullptr),
    _rebuildOpenHeuristics(false),
-   _max_steps(INT_MAX)
+   _max_steps(INT_MAX),
+   _num_steps(0)
 {
    PF_LOG(3) << "creating pathfinder";
 
@@ -299,6 +300,7 @@ void AStarPathFinder::Restart()
    ASSERT(!solution_);
 
    ClearNodes();
+   _num_steps = 0;
    rebuildHeap_ = true;
    restart_search_ = false;
 
@@ -382,7 +384,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
          if (open_.empty()) {
             PF_LOG(2) << "open set is empty!  returning";
          } else {
-            PF_LOG(2) << "exceeded max_steps!  returning";
+            PF_LOG(2) << "exceeded max_steps(" << _max_steps << ")!  returning";
          }
          SetSearchExhausted();
          return;
@@ -694,6 +696,7 @@ void AStarPathFinder::SetSearchExhausted()
 
    if (!search_exhausted_) {
       ClearNodes();
+      _num_steps = 0;
       search_exhausted_ = true;
       if (exhausted_cb_) {
          PF_LOG(5) << "calling lua search exhausted callback";
