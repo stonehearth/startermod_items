@@ -6,7 +6,6 @@
    "description" : "A key component of stone structures like castles and roads.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/refined/stone_bricks/stone_bricks.png",
-   "level_requirement" : 2,
 
    "ingredients": [
       {

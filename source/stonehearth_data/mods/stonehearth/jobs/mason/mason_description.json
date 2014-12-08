@@ -32,7 +32,7 @@
       "name": "Mason's Workshop",
       "description": "insert description here",
       "long_description" : "The Mason crafts building materials and decorative items from stone.",
-      "portrait" : "file(./images/workshop_portrait_level_1.png)",
+      "portrait" : "file(/jobs/mason/mason_workbench/mason_workbench.png)",
       "skin" : "file(./skin/workshop.png)",
       "workbench_type" : "stonehearth:mason:workbench",
       "ingredients": [
