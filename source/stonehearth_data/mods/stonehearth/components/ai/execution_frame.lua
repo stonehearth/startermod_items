@@ -45,6 +45,13 @@ local debug_info_state_order = {
    [DEAD] = 9,
 }
 
+-- the max roam distance is intentionally set really really really high to avoid
+-- creating and re-creating many, many pathfinders while doing ambient behaviors
+-- which may move the entity small distances (e.g. idle while bored) or paths
+-- which are ultimately equivalent (e.g. pathfinders created for higher priority
+-- tasks by a worker currently working on a wall).
+--
+local MAX_ROAM_DISTANCE = 32
 local INFINITE = 1000000000
 local ABORT_FRAME = ':aborted_frame:'
 local UNWIND_NEXT_FRAME = ':unwind_next_frame:'
@@ -105,7 +112,7 @@ end
 function ExecutionFrame:_on_position_changed()
    if self._last_captured_location then
       local distance = radiant.entities.distance_between(self._entity, self._last_captured_location)
-      if distance > 3 then
+      if distance > MAX_ROAM_DISTANCE then
          -- we're currently on the script host callback thread servicing a trace...
          -- _restart_thinking does all sorts of nasty things to the stack (e.g. if a unit becomes ready
          -- in the middle of restart_thinking in the running state, it will try to unwind the stack and
