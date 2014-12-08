@@ -7,10 +7,10 @@ function SpawnRegionFinderService:initialize()
 end
 
 
-function _compute_and_check_points(point, entities)
+function _compute_and_check_points(point, entities, displacements)
    local results = { point }
    for i = 2,#entities do
-      local p2 = radiant.terrain.get_standable_point(entities[i], p + displacements[i])
+      local p2 = radiant.terrain.get_standable_point(entities[i], point + displacements[i])
 
       local direct_path_finder = _radiant.sim.create_direct_path_finder(entities[i])
                                     :set_start_location(p2)
@@ -81,14 +81,14 @@ function SpawnRegionFinderService:find_standable_points_outside_civ_perimeter(en
       return nil
    end
 
-   return _compute_and_check_points(p, entities)
+   return _compute_and_check_points(p, entities, displacements)
 end
 
 
 function SpawnRegionFinderService:find_standable_points_outside_civ_perimeter_astar(entities, destination, displacements, distance, max_attempts, max_steps, success_cb, fail_cb)
    assert(displacements[1] == Point3(0, 0, 0))
    local p = self:find_point_outside_civ_perimeter_for_entity_astar(entities[1], destination, distance, max_attempts, max_steps, function(p)
-         local results = _compute_and_check_points(p, entities)
+         local results = _compute_and_check_points(p, entities, displacements)
          if results then
             success_cb(results)
          else
