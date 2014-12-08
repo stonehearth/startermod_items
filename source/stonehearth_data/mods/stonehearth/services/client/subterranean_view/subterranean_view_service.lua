@@ -380,7 +380,7 @@ function SubterraneanViewService:_is_visible(entity)
    local visible = true
 
    if self._sv.xray_mode then
-      local visible = self:_is_xray_visible(root_mob_entity)
+      visible = self:_is_xray_visible(root_mob_entity)
    end
 
    if visible and self._sv.clip_enabled then
