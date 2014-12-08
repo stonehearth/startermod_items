@@ -659,3 +659,15 @@ om::EntityRef BfsPathFinder::GetEntity() const
    return entity_;
 }
 
+bool BfsPathFinder::OpenSetContains(csg::Point3 const& pt)
+{
+   return pathfinder_ && pathfinder_->OpenSetContains(pt);
+}
+
+void BfsPathFinder::GetPathFinderInfo(json::Node& info)
+{
+   if (pathfinder_) {
+      pathfinder_->GetPathFinderInfo(info);
+   }
+}
+

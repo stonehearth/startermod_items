@@ -940,3 +940,43 @@ om::EntityRef AStarPathFinder::GetEntity() const
 {
    return entity_;
 }
+
+bool AStarPathFinder::OpenSetContains(csg::Point3 const& pt)
+{
+   return stdutil::contains(_openLookup, pt);
+}
+
+void AStarPathFinder::GetPathFinderInfo(json::Node& info)
+{
+   info.set("id", GetId());
+   info.set("eta", EstimateCostToSolution());
+   info.set("source", json::encode(source_->GetSourceLocation()));
+   info.set("open_count", open_.size());
+   info.set("closed_count", closed_.size());
+
+   auto entity = entity_.lock();
+   if (entity) {
+      info.set("entity", BUILD_STRING(*entity));
+   }
+
+   json::Node destinations(JSON_ARRAY);
+   for (auto const& entry : destinations_) {
+      PathFinderDst const* dst = entry.second.get();
+      om::EntityPtr dstEntity = dst->GetEntity();
+      if (dstEntity) {
+         om::MobPtr mob = dstEntity->GetComponent<om::Mob>();
+         if (mob) {
+            om::EntityRef root;
+            csg::Point3 location = csg::ToInt(mob->GetWorldGridLocation(root));
+            if (!root.expired()) {
+               json::Node dinfo;
+               dinfo.set("entity",     BUILD_STRING(*dstEntity));
+               dinfo.set("location",   location);
+               destinations.add(dinfo);
+            }
+         }
+      }
+   }
+   info.set("destinations", destinations);
+}
+

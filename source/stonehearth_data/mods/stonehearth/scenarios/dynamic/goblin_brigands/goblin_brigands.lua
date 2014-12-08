@@ -140,25 +140,25 @@ function GoblinBrigands:_on_spawn()
       end
    end
 
-   local spawn_points = stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter(
-      self._sv._squad:get_all_entities(), self._sv._squad:get_squad_start_displacements(), 80)
+   local camp_standard = stonehearth.town:get_town(self._sv.player_id):get_banner()
+   stonehearth.spawn_region_finder:find_standable_points_outside_civ_perimeter_astar(
+      self._sv._squad:get_all_entities(), camp_standard, self._sv._squad:get_squad_start_displacements(), 80, 5, 7500,
+         function(spawn_points)
+            self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=1, y=1})
+            local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
+            --TODO: right now the filter is broken. Why???
+            --s_comp:set_filter({'resource wood'})
 
-   if not spawn_points then
-      -- Couldn't find a spawn point, so reschedule to try again later.
-      self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
-      return
-   end
+            self._sv._squad:place_squad(spawn_points[1])
 
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_points[1], {x=1, y=1})
-   local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
-   --TODO: right now the filter is broken. Why???
-   --s_comp:set_filter({'resource wood'})
-
-   self._sv._squad:place_squad(spawn_points[1])
-
-   self:_attach_listeners()
-   self:_add_restock_task(self._sv._thief)
-   self.__saved_variables:mark_changed()
+            self:_attach_listeners()
+            self:_add_restock_task(self._sv._thief)
+            self.__saved_variables:mark_changed()
+         end,
+         function()
+            -- Couldn't find a spawn point, so reschedule to try again later.
+            self:_schedule_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
+         end)
 end
 
 function GoblinBrigands:_squad_killed(e)
@@ -225,7 +225,7 @@ function GoblinBrigands:_item_added(e)
             stockpile_comp = s_comp, 
             location = self._sv._stockpile:get_component('mob'):get_grid_location()
          })
-         :set_priority(stonehearth.constants.priorities.top.WORK)
+         :set_priority(stonehearth.constants.priorities.top.URGENT_ACTIONS)
          :once()
          :start()
       self.__saved_variables:mark_changed()

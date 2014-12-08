@@ -79,6 +79,12 @@ $(document).ready(function(){
       },
    });
 
+   radiant.console.register('query_pf', {
+      call: function(cmdobj, fn, args) {
+         return radiant.call_obj('stonehearth.selection', 'query_pathfinder_command');
+      },
+   });
+
    radiant.console.register('spawn_scenario', {
       call: function(cmdobj, fn, args) {
          var scenario_uri = args[0];

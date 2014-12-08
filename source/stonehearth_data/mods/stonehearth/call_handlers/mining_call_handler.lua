@@ -126,17 +126,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
          return 'stonehearth:cursors:invalid_hover'
       end
 
-      local mode = self:_get_mode(box.min, normal)
-
-      if mode == 'down' then
-         return 'stonehearth:cursors:mine_down'
-      end
-
-      if mode == 'out' then
-         return 'stonehearth:cursors:mine_out'
-      end
-
-      assert(false)
+      return 'stonehearth:cursors:mine'
    end
 
    local ghost_ignored_entity_filter = function(entity)

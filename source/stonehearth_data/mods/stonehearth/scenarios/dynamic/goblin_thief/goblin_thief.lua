@@ -93,27 +93,28 @@ end
 function GoblinThief:_on_spawn_jerk()
    self._sv._goblin = self:_create_goblin_thief()
 
-   local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(self._sv._goblin, 80)
 
-   if not spawn_point then
-      -- Couldn't find a spawn point, so reschedule to try again later.
-      radiant.entities.destroy_entity(self._sv._goblin)
-      self._sv._goblin = nil
-      self:_schedule_next_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
-      return
-   end
+   local camp_standard = stonehearth.town:get_town(self._sv.player_id):get_banner()
+   stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity_astar(self._sv._goblin, camp_standard, 80, 5, 7500,
+      function(spawn_point)
+            --TODO: How do we make sure the whole stockpile is in empty space?
+            self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=1, y=1})
+            local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
+            --TODO: Right now the filter is broken Why???
+            --s_comp:set_filter({'resource wood'})
 
-   --TODO: How do we make sure the whole stockpile is in empty space?
-   self._sv._stockpile = self._inventory:create_stockpile(spawn_point, {x=1, y=1})
-   local s_comp = self._sv._stockpile:get_component('stonehearth:stockpile')
-   --TODO: Right now the filter is broken Why???
-   --s_comp:set_filter({'resource wood'})
+            radiant.terrain.place_entity(self._sv._goblin, spawn_point)
 
-   radiant.terrain.place_entity(self._sv._goblin, spawn_point)
-
-   self:_attach_listeners()
-   self:_add_restock_task()
-   self.__saved_variables:mark_changed()
+            self:_attach_listeners()
+            self:_add_restock_task()
+            self.__saved_variables:mark_changed()
+         end,
+      function()
+            -- Couldn't find a spawn point, so reschedule to try again later.
+            radiant.entities.destroy_entity(self._sv._goblin)
+            self._sv._goblin = nil
+            self:_schedule_next_spawn(rng:get_int(3600 * 0.5, 3600 * 1))
+         end)
 end
 
 function GoblinThief:_create_goblin_thief()
@@ -181,7 +182,7 @@ function GoblinThief:_item_added(e)
             stockpile_comp = s_comp, 
             location = self._sv._stockpile:get_component('mob'):get_grid_location()
          })
-         :set_priority(stonehearth.constants.priorities.top.WORK)
+         :set_priority(stonehearth.constants.priorities.top.URGENT_ACTIONS)
          :once()
          :start()
       self.__saved_variables:mark_changed()

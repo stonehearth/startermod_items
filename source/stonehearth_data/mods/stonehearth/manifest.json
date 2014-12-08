@@ -37,8 +37,7 @@
       "cursors:over_selection" : "file(data/cursors/over_selection.cur)",
       "cursors:erase_floor" : "file(data/cursors/erase_floor.cur)",
       "cursors:erase_fixture" : "file(data/cursors/erase_fixture.cur)",
-      "cursors:mine_down" : "file(data/cursors/mine_down.cur)",
-      "cursors:mine_out" : "file(data/cursors/mine_out.cur)",
+      "cursors:mine" : "file(data/cursors/mine.cur)",
 
       "mixins:mob" : "file(mixins/mob)",
       "mixins:monster" : "file(mixins/monster)",
@@ -1128,6 +1127,10 @@
       "spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",
          "endpoint" : "server"
+      },
+      "query_pathfinder": {
+         "controller": "file(call_handlers/selection_call_handler.lua)",
+         "endpoint": "client"
       },
       "cl_spawn_scenario": {
          "controller" : "file(call_handlers/dynamic_scenario_call_handler.lua)",

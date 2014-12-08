@@ -59,6 +59,8 @@ class BfsPathFinder : public std::enable_shared_from_this<BfsPathFinder>,
       void Work(platform::timer const& timer) override;
       std::string GetProgress() override;
       void EncodeDebugShapes(protocol::shapelist *msg) const override;
+      bool OpenSetContains(csg::Point3 const& pt) override;
+      void GetPathFinderInfo(json::Node& info) override;
 
    private:
       void ExploreNextNode(csg::Point3 const& src);

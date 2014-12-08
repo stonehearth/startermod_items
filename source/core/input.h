@@ -23,6 +23,7 @@ namespace radiant {
    struct KeyboardInput {
       bool        shift;
       bool        ctrl;
+      bool        alt;
       bool        down;
       int         key;
    };
