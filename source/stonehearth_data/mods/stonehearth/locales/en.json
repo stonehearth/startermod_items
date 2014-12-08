@@ -286,6 +286,8 @@
    "doodad_tip_description" : "Right click to exit",
    "draw_template_title" : "Click to build template", 
    "draw_template_description": "Rotate with , and . keys",
+   "build_road_tip_title" : "Click and drag to build road", 
+   "build_road_tip_description" : "Right click to exit", 
 
    "beleaguered_leader" : "Beleaguered Leader",
    "hopeless_optimist" : "Hopeless Optimist",

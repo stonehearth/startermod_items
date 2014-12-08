@@ -46,4 +46,6 @@ MaterialHelper.addMaterialPalette = function(el, tabTitle, materialClass, materi
 
       clickHandler($(this).attr('brush'), material);
    });
+
+   el.find("[title]").tooltipster();
 };

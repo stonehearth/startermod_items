@@ -65,7 +65,7 @@ $(document).ready(function(){
       },
    });
 
-   radiant.console.register('instabuild', {
+   radiant.console.register('ib', {
       call: function(cmdobj, fn, args) {
          var building = args[0] || selected;
          return radiant.call_obj('stonehearth.build', 'instabuild_command', building);
