@@ -1,7 +1,6 @@
 local SpawnRegionFinderService = class()
 local rng = _radiant.csg.get_default_rng()
 local Point3 = _radiant.csg.Point3
-local Point3 = _radiant.csg.Point3
 local log = radiant.log.create_logger('spawn_svc')
 
 function SpawnRegionFinderService:initialize()
@@ -23,6 +22,54 @@ function _compute_and_check_points(point, entities)
       table.insert(results, p2)
    end
    return results
+end
+
+function _center_of_hull(perimeter)
+   -- Compute the center of the hull.
+   local center = Point3(0, 0, 0)
+   for _, p in pairs(perimeter) do
+      center = center + p
+   end
+
+   return Point3(center.x / #perimeter, center.y / #perimeter, center.z / #perimeter)
+end
+
+function _generate_random_point_outside_perimeter(perimeter, distance)
+   if #perimeter < 3 then
+      return nil
+   end
+   -- Generate a random direction that will point in the direction of our generated point.
+   local dir = radiant.math.random_xz_unit_vector()
+   local normal = Point3(dir.z, 0, -dir.x)
+   local hull_center = _center_of_hull(perimeter)
+   local d = normal:dot(hull_center)
+   for idx, _ in pairs(perimeter) do
+      local p1 = perimeter[idx]
+      local idx2 = (idx + 1) % (#perimeter + 1)
+      if idx2 == 0 then idx2 = 1 end
+      local p2 = perimeter[idx2]
+
+      -- Look for the first pair of consecutive perimeter points that straddle the
+      -- generated direction.
+      if p1:dot(normal) > d and p2:dot(normal) <= d then
+         -- Compute the intersection of the hull and that direction.
+         local perimeter_line = p2 - p1
+         local perimeter_normal = Point3(perimeter_line.z, 0, perimeter_line.x)
+         perimeter_normal:normalize()
+
+         local hull_point = radiant.math.intersect_plane_with_line(hull_center, dir, p1, perimeter_normal)
+
+         -- Inside a convex hull, we should always be able to intersect our line.
+         assert(hull_point)
+
+         -- Generate the point!
+         return hull_point + (dir * distance)
+      end
+   end
+
+   -- This should never happen.
+   assert(false)
+   return nil
 end
 
 function SpawnRegionFinderService:find_standable_points_outside_civ_perimeter(entities, displacements, distance)
@@ -111,31 +158,20 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity_as
    -- Consult the convex hull of points that the civs have travelled.
    local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')
 
-   if #player_perimeter < 1 then
+   if #player_perimeter < 3 then
       return nil
    end
-
-   -- Compute the center of the hull.
-   local center = Point3(0, 0, 0)
-   for _, p in pairs(player_perimeter) do
-      center = center + p
-   end
-
-   center = Point3(center.x / #player_perimeter, center.y / #player_perimeter, center.z / #player_perimeter)
 
    local remaining_tries = max_attempts
 
    local function try_spawn()
       log:spam('Looking for spawn location')
 
-      local rand_perimeter_point = player_perimeter[rng:get_int(1, #player_perimeter)]
+      local candidate_point = _generate_random_point_outside_perimeter(player_perimeter, distance)
 
-      local spawn_dir_i = rand_perimeter_point - center
-      local spawn_dir = Point3(spawn_dir_i.x, spawn_dir_i.y, spawn_dir_i.z)
-      spawn_dir:normalize()
-      spawn_dir:scale(distance)
-      local scaled_spawn_dir = Point3(spawn_dir.x, spawn_dir.y, spawn_dir.z)
-      local candidate_point = rand_perimeter_point + scaled_spawn_dir
+      if not candidate_point then
+         fail_cb()
+      end
 
       candidate_point = radiant.terrain.get_standable_point(entity, candidate_point)
 
