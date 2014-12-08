@@ -65,7 +65,7 @@ $(document).ready(function(){
       },
    });
 
-   radiant.console.register('instabuild', {
+   radiant.console.register('ib', {
       call: function(cmdobj, fn, args) {
          var building = args[0] || selected;
          return radiant.call_obj('stonehearth.build', 'instabuild_command', building);
@@ -83,5 +83,12 @@ $(document).ready(function(){
       call: function(cmdobj, fn, args) {
          return radiant.call_obj('stonehearth.selection', 'query_pathfinder_command');
       },
+   });
+
+   radiant.console.register('spawn_scenario', {
+      call: function(cmdobj, fn, args) {
+         var scenario_uri = args[0];
+         return App.stonehearthClient.spawnScenario(scenario_uri);
+      }
    });
 });

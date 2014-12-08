@@ -19,6 +19,9 @@ function HarvestTest:__init()
    self:place_item('stonehearth:small_boulder',    15, 5)
        :add_component('mob'):turn_to(90)
 
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 2, 2)
+   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 10, 2, 2)
+
    self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
    

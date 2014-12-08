@@ -77,7 +77,8 @@ local constants = {
       },
 
       shepherding_animals = {
-         GATHER_ANIMALS = 1
+         GATHER_ANIMALS = 2, 
+         RETURN_TO_PASTURE = 1 
       },
 
       mining = {

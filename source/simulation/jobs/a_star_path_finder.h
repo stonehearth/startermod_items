@@ -38,6 +38,7 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       AStarPathFinderPtr SetSource(csg::Point3f const& source);
       AStarPathFinderPtr SetSolvedCb(SolvedCb const& solved);
       AStarPathFinderPtr SetSearchExhaustedCb(ExhaustedCb const& exhausted);
+      AStarPathFinderPtr SetMaxSteps(unsigned int max_steps);
       AStarPathFinderPtr RestartSearch(const char* reason);
       AStarPathFinderPtr Start();
       AStarPathFinderPtr Stop();
@@ -101,6 +102,8 @@ class AStarPathFinder : public std::enable_shared_from_this<AStarPathFinder>,
       ExhaustedCb                   exhausted_cb_;
       bool                          search_exhausted_;
       float                         max_cost_to_destination_;
+      unsigned int                  _max_steps;
+      unsigned int                  _num_steps;
       int                           costToDestination_;
       bool                          rebuildHeap_;
       bool                          restart_search_;

@@ -18,15 +18,25 @@
 
    "roadPatterns" : [
       {
-         "category" : "Wooden Materials",
+         "category" : "Stone Materials",
          "items" : [
-            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/road/wooden_road_solid_light/wooden_road_solid_light.png", "brush":"stonehearth:wooden_road_solid_light" }
+            { "id": "stone_paved", "name": "Stone paved road",    "portrait": "/stonehearth/entities/build/road/stone_paved_road/stone_paved_road.png", "brush":"stonehearth:stone_paved_road" },
+            { "id": "brick_paved", "name": "Brick paved road",    "portrait": "/stonehearth/entities/build/road/brick_paved_road/brick_paved_road.png", "brush":"stonehearth:brick_paved_road" }
+         ]         
+      }            
+   ],
+
+   "curbPatterns" : [
+      {
+         "category" : "None",
+         "items" : [
+            { "id": "none",    "name": "None", "portrait": "/stonehearth/entities/build/none/none.png", "brush":"none" }
          ]         
       },
       {
          "category" : "Stone Materials",
          "items" : [
-            { "id": "checkered", "name": "Checkered slate road",    "portrait": "/stonehearth/entities/build/road/checkered_slate_road/checkered_slate_road.png", "brush":"stonehearth:checkered_slate_road" }
+            { "id": "checkered", "name": "Checkered slate road",    "portrait": "/stonehearth/entities/build/road/stone_curb/stone_curb.png", "brush":"stonehearth:stone_curb" }
          ]         
       }            
    ],

@@ -112,9 +112,9 @@ function BuildEditorService:erase_structure(session, response, brush_shape)
          :go(response)
 end
 
-function BuildEditorService:place_new_road(session, response, brush_shape)
+function BuildEditorService:place_new_road(session, response, road_brush_shape, curb_brush_shape)
    RoadEditor(self._build_service)
-         :go(response, brush_shape)
+         :go(response, road_brush_shape, curb_brush_shape)
 end
 
 function BuildEditorService:place_template(session, response, template_name)

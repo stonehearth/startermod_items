@@ -14,7 +14,8 @@
                "stonehearth:actions:shepherd:herding_dispatcher",
                "stonehearth:actions:shepherd:claim_animal_for_pasture",
                "stonehearth:actions:shepherd:collect_animal_for_pasture_from_nearby",
-               "stonehearth:actions:shepherd:collect_animal_for_pasture_from_world"
+               "stonehearth:actions:shepherd:collect_animal_for_pasture_from_world",
+               "stonehearth:actions:shepherd:return_animal_to_pasture"
             ],
             "observers" : [
                "stonehearth:observers:combat_panic",

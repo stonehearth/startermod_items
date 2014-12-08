@@ -4,7 +4,7 @@ function ShepherdedAnimalComponent:initialize(entity, json)
    self._entity = entity  --this is the pasture tag, not the actual animal
    if not self._sv.initialized then
       self._sv.initialized = true
-      self._sv.pasture_id = nil
+      self._sv.pasture = nil
       self._sv.shouldFollowShepherd = false
       self._sv.last_shepherd_entity = false
    else
@@ -20,8 +20,8 @@ function ShepherdedAnimalComponent:set_animal(animal_entity)
    self._sv.animal = animal_entity
 end
 
-function ShepherdedAnimalComponent:set_pasture(pasture_entity_id)
-   self._sv.pasture_id = pasture_entity_id
+function ShepherdedAnimalComponent:set_pasture(pasture_entity)
+   self._sv.pasture = pasture_entity
 end
 
 -- Whether the critter should follow a shepherd around
@@ -38,6 +38,10 @@ end
 
 function ShepherdedAnimalComponent:get_last_shepherd()
    return self._sv.last_shepherd_entity
+end
+
+function ShepherdedAnimalComponent:get_pasture()
+   return self._sv.pasture
 end
 
 return ShepherdedAnimalComponent

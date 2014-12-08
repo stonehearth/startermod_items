@@ -543,13 +543,13 @@ var StonehearthClient;
          }, precall);
       },
 
-      buildRoad: function(roadBrush) {
+      buildRoad: function(roadBrush, curbBrush) {
          var self = this;
 
          return function() {
             var tip = self.showTip('stonehearth:build_road_tip_title', 'stonehearth:build_road_tip_description', { i18n: true });
 
-            return radiant.call_obj(self._build_editor, 'place_new_road', roadBrush)
+            return radiant.call_obj(self._build_editor, 'place_new_road', roadBrush, curbBrush)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                })
@@ -683,6 +683,9 @@ var StonehearthClient;
             })
       },
 
+      spawnScenario: function(scenario_uri) {
+         radiant.call('stonehearth:cl_spawn_scenario', scenario_uri );
+      },
    });
    App.stonehearthClient = new StonehearthClient();
 })();

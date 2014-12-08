@@ -1,0 +1,21 @@
+{
+   "mixins": "stonehearth:mixins:align_to_grid",   
+   "components": {
+      "unit_info": {
+         "icon": "...", 
+         "name": "Stone Curb", 
+         "description": "Keeps feet clean"
+      },
+      "stonehearth:construction_data" : {
+         "type" : "floor",
+         "brush" : "file(stone_curb.qb)",
+         "needs_scaffolding" : false,
+         "allow_crouching_construction" : true,
+         "paint_through_blueprint" : true,
+         "material": "stone resource"
+      },
+      "movement_modifier_shape" : {
+         "modifier" : 0.25
+      }
+   }
+}
