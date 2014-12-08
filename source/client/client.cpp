@@ -197,7 +197,7 @@ void Client::OneTimeIninitializtion()
    }
 
    if (config.Get("enable_debug_keys", false)) {
-      _commands[GLFW_KEY_F1] = [this]() {
+      _commands[GLFW_KEY_F1] = [this](KeyboardInput const& kb) {
          enable_debug_cursor_ = !enable_debug_cursor_;
          CLIENT_LOG(0) << "debug cursor " << (enable_debug_cursor_ ? "ON" : "OFF");
          if (!enable_debug_cursor_) {
@@ -206,28 +206,28 @@ void Client::OneTimeIninitializtion()
             core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
          }
       };
-      _commands[GLFW_KEY_F2] = [=]() { EnableDisableLifetimeTracking(); };
-      _commands[GLFW_KEY_F3] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
-      _commands[GLFW_KEY_F4] = [=]() { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F5] = [=]() { RequestReload(); };
-      _commands[GLFW_KEY_F6] = [=]() { SaveGame("hotkey_save", json::Node()); };
-      _commands[GLFW_KEY_F7] = [=]() { LoadGame("hotkey_save"); };
-      //_commands[GLFW_KEY_F8] = [=]() { EnableDisableSaveStressTest(); };
-      _commands[GLFW_KEY_F9] = [=]() { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
-      _commands[GLFW_KEY_F10] = [&renderer, this]() {
+      _commands[GLFW_KEY_F2] = [=](KeyboardInput const& kb) { EnableDisableLifetimeTracking(); };
+      _commands[GLFW_KEY_F3] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
+      _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
+      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) { RequestReload(); };
+      _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame("hotkey_save", json::Node()); };
+      _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame("hotkey_save"); };
+      //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
+      _commands[GLFW_KEY_F9] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_debug_nodes")); };
+      _commands[GLFW_KEY_F10] = [&renderer, this](KeyboardInput const& kb) {
          perf_hud_shown_ = !perf_hud_shown_;
          renderer.ShowPerfHud(perf_hud_shown_);
       };
-      _commands[GLFW_KEY_F11] = [&renderer]() {
+      _commands[GLFW_KEY_F11] = [&renderer](KeyboardInput const& kb) {
          // Toggling this causes large memory leak in malloc (30 MB per toggle in a 25 tile world)
          renderer.SetShowDebugShapes(!renderer.ShowDebugShapes());
       };
-      _commands[GLFW_KEY_PAUSE] = []() {
+      _commands[GLFW_KEY_PAUSE] = [](KeyboardInput const& kb) {
          // throw an exception that is not caught by Client::OnInput
          throw std::string("User hit crash key");
       };
-      _commands[GLFW_KEY_NUM_LOCK] = [=]() { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
-      _commands[GLFW_KEY_KP_ENTER] = [=]() { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
+      _commands[GLFW_KEY_NUM_LOCK] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:profile_next_lua_upate")); };
+      _commands[GLFW_KEY_KP_ENTER] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:write_lua_memory_profile")); };
       // _commands[VK_NUMPAD0] = std::shared_ptr<command>(new command_build_blueprint(*_proxy_manager, *_renderer, 500));
    }
 
@@ -1208,7 +1208,7 @@ void Client::OnKeyboardInput(Input const& input)
    if (input.keyboard.down) {
       auto i = _commands.find(input.keyboard.key);
       if (i != _commands.end()) {
-         i->second();
+         i->second(input.keyboard);
          return;
       }
    }

@@ -141,6 +141,7 @@ private:
    void CreateFreeMotionTrace(om::MobPtr mob);
    void LogJobPerfCounters(perfmon::Frame* frame);
    std::string GetProgressForJob(core::StaticString name) const;
+   void ForEachPathFinder(std::function<void(PathFinderPtr const&)> cb);
 
 private:
    struct FreeMotionTaskMapEntry {

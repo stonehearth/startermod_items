@@ -83,7 +83,7 @@ class Client : public core::Singleton<Client> {
    private:
       NO_COPY_CONSTRUCTOR(Client);
 
-      typedef std::function<void()>  CommandFn;
+      typedef std::function<void(KeyboardInput const& kb)>  CommandFn;
       typedef std::function<void(std::vector<om::Selection>)> CommandMapperFn;
 
       void ProcessReadQueue();
