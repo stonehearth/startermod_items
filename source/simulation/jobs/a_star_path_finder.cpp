@@ -941,17 +941,9 @@ om::EntityRef AStarPathFinder::GetEntity() const
    return entity_;
 }
 
-// This is amazingly slow (well, O(n)), but is only used in a debugging
-// utility capacity, so let's know worry too much about that.
-//
 bool AStarPathFinder::OpenSetContains(csg::Point3 const& pt)
 {
-   for (PathFinderNode const& node : open_) {
-      if (node.pt == pt) {
-         return true;
-      }
-   }
-   return false;
+   return stdutil::contains(_openLookup, pt);
 }
 
 void AStarPathFinder::GetPathFinderInfo(json::Node& info)
