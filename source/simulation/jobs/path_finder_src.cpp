@@ -45,7 +45,7 @@ void PathFinderSrc::SetSourceOverride(csg::Point3f const& location)
    transform_trace_ = nullptr;
 }
 
-void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode*>& open)
+void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode*>& open, boost::object_pool<PathFinderNode> &nodePool)
 {
    csg::Point3 start;
    if (use_source_override_) {
@@ -64,8 +64,14 @@ void PathFinderSrc::InitializeOpenSet(std::vector<PathFinderNode*>& open)
             PF_LOG(0) << "source entity is not in the world";
          }
       }
-   }
-   open.push_back(new PathFinderNode(start));
+   }   
+   PathFinderNode *node = nodePool.malloc();
+   node->f = 0;
+   node->g = 0;
+   node->prev = nullptr;
+   node->pt = start;
+   open.push_back(node);
+
    PF_LOG(5) << "initialized open set with entity location " << start;
 }
 
@@ -83,7 +89,7 @@ csg::Point3f PathFinderSrc::GetSourceLocation() const
    return source_location_;
 }
 
-void PathFinderSrc::Start(std::vector<PathFinderNode*>& open)
+void PathFinderSrc::Start(std::vector<PathFinderNode*>& open, boost::object_pool<PathFinderNode> &nodePool)
 {
    if (use_source_override_) {
       source_location_ = source_override_;
@@ -100,5 +106,5 @@ void PathFinderSrc::Start(std::vector<PathFinderNode*>& open)
          }
       }
    }
-   InitializeOpenSet(open);
+   InitializeOpenSet(open, nodePool);
 }
