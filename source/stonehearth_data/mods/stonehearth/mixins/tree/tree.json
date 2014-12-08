@@ -13,6 +13,10 @@
       }   
 	},
    "entity_data" : {
+      "stonehearth:render_materials" : {
+         "default" : "materials/voxel.material.xml",
+         "hud" : "materials/ghost_item.xml"
+      },
       "on_destroy" : {
          "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
       }      
