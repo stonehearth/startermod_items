@@ -308,6 +308,7 @@
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
       "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
       "buffs:shepherding" : "file(data/buffs/shepherding/shepherding_buff.json)",
+      "buffs:stopped" : "file(data/buffs/stopped/stopped_buff.json)", 
 
       "buffs:trapper:speed_1" : "file(jobs/trapper/trapper_buffs/speed_1_buff)", 
       "buffs:footman:dmg_1" : "file(jobs/footman/footman_buffs/damage_1_buff.json)",
@@ -553,6 +554,7 @@
       "actions:shepherd:herding_dispatcher" : "file(ai/actions/herding_dispatcher.lua)",
       "actions:shepherd:follow_shepherd_action" : "file(ai/actions/follow_shepherd_action.lua)", 
       "actions:shepherd:return_animal_to_pasture" : "file(ai/actions/return_trailing_animals_to_pasture.lua)",
+      "actions:shepherd:find_stray_animal" : "file(ai/actions/find_stray_animal_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",

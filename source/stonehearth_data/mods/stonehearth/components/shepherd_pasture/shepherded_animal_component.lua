@@ -5,7 +5,7 @@ function ShepherdedAnimalComponent:initialize(entity, json)
    if not self._sv.initialized then
       self._sv.initialized = true
       self._sv.pasture = nil
-      self._sv.shouldFollowShepherd = false
+      self._sv.should_follow = false
       self._sv.last_shepherd_entity = false
    else
    end

@@ -11,6 +11,14 @@ SubterraneanViewService = class()
 local EPSILON = 0.000001
 local MAX_CLIP_HEIGHT = 1000000000
 
+local function aligned_floor(value, align)
+   return math.floor(value / align) * align
+end
+
+local function aligned_ceil(value, align)
+   return math.ceil(value / align) * align
+end
+
 local function is_terrain(location)
    return _physics:is_terrain(location)
 end
@@ -33,7 +41,7 @@ function SubterraneanViewService:initialize()
    if not self._sv.initialized then
       self._sv.xray_mode = nil
       self._sv.clip_enabled = false
-      self._sv.clip_height = 25
+      self._sv.clip_height = 24
       self._sv.initialized = true
    else
    end
@@ -55,6 +63,10 @@ function SubterraneanViewService:initialize()
       end)
 
    -- TODO: set renderer xray_mode on load
+end
+
+function SubterraneanViewService:clip_enabled()
+   return self._sv.clip_enabled
 end
 
 -- Remember that the terrain tiles most likely have not been added at this point
@@ -141,13 +153,17 @@ function SubterraneanViewService:_create_entity_traces()
 
             local location_trace = radiant.entities.trace_grid_location(entity, 'subterranean view')
                :on_changed(function()
-                     self:_on_entity_moved(entity)
+                     if self._sv.xray_mode or self._sv.clip_enabled then
+                        self:_update_visiblity(entity)
+                     end
                   end)
                :push_object_state()
 
             local parent_trace = entity:add_component('mob'):trace_parent('subterranean view')
                :on_changed(function()
-                     self:_on_entity_parent_changed(entity)
+                     if self._sv.xray_mode or self._sv.clip_enabled then
+                        self:_update_visiblity(entity)
+                     end
                   end)
 
             local destroyed_trace = radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
@@ -336,44 +352,42 @@ function SubterraneanViewService:_on_keyboard_event(e)
    return false
 end
 
-function SubterraneanViewService:_show_all_entities()
+function SubterraneanViewService:_update_all_entities_visibility()
    local entity_container = self:_get_root_entity_container()
 
-   self:_each_contained_entity(entity_container, function(child)
-         self:_set_entity_tree_visible(child, true)
-      end)
+   if self._sv.xray_mode or self._sv.clip_enabled then
+      self:_each_contained_entity(entity_container, function(child)
+            self:_update_visiblity(child)
+         end)
+   else
+      self:_each_contained_entity(entity_container, function(child)
+            self:_set_entity_tree_visible(child, true)
+         end)
+   end
 end
 
-function SubterraneanViewService:_update_entity_visibility()
-   local entity_container = self:_get_root_entity_container()
-
-   self:_each_contained_entity(entity_container, function(child)
-         local visible = self:_is_xray_visible(child)
-         self:_set_entity_tree_visible(child, visible)
-      end)
-end
-
-function SubterraneanViewService:_on_entity_moved(entity)
+function SubterraneanViewService:_update_visiblity(entity)
    if not entity:is_valid() then
       return
    end
 
-   if self._sv.xray_mode then
-      local visible = self:_is_xray_visible(entity)
-      self:_set_entity_tree_visible(entity, visible)
-   end
+   local visible = self:_is_visible(entity)
+   self:_set_entity_tree_visible(entity, visible)
 end
 
-function SubterraneanViewService:_on_entity_parent_changed(entity)
-   if not entity:is_valid() then
-      return
-   end
+function SubterraneanViewService:_is_visible(entity)
+   local root_mob_entity = self:_get_root_mob_entity(entity)
+   local visible = true
 
    if self._sv.xray_mode then
-      local root_mob_entity = self:_get_root_mob_entity(entity)
-      local visible = self:_is_xray_visible(root_mob_entity)
-      self:_set_entity_tree_visible(entity, visible)
+      visible = self:_is_xray_visible(root_mob_entity)
    end
+
+   if visible and self._sv.clip_enabled then
+      visible = self:_is_clip_mode_visible(root_mob_entity)
+   end
+
+   return visible
 end
 
 function SubterraneanViewService:_is_xray_visible(entity)
@@ -383,6 +397,17 @@ function SubterraneanViewService:_is_xray_visible(entity)
    if location then
       local result = self._interior_tiles:intersect_point(location)
       visible = not result:empty()
+   end
+
+   return visible
+end
+
+function SubterraneanViewService:_is_clip_mode_visible(entity)
+   local location = radiant.entities.get_world_grid_location(entity)
+   local visible = false
+
+   if location then
+      visible = location.y <= self._sv.clip_height
    end
 
    return visible
@@ -411,11 +436,7 @@ function SubterraneanViewService:toggle_xray_mode(mode)
    end
    self.__saved_variables:mark_changed()
 
-   if self._sv.xray_mode then
-      self:_update_entity_visibility()
-   else
-      self:_show_all_entities()
-   end
+   self:_update_all_entities_visibility()
 
    self:_update_dirty_tiles()
 
@@ -466,15 +487,18 @@ end
 
 function SubterraneanViewService:_update_clip_height()
    if self._sv.clip_enabled then
-      -- tweak the clip_height for some feathering in the renderer
-      local tweaked_clip_height = self._sv.clip_height * (1+10*EPSILON)
-      -- -1 to remove the ceiling
-      _radiant.renderer.set_clip_height(tweaked_clip_height-1)
-      h3dSetVerticalClipMax(tweaked_clip_height)
+      local clip_height = self._sv.clip_height
+      _radiant.renderer.set_clip_height(clip_height)
+
+      -- clip height for the scene node test
+      local scene_node_clip_height = aligned_ceil(clip_height, constants.mining.Y_CELL_SIZE)
+      h3dSetVerticalClipMax(scene_node_clip_height)
    else
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
       h3dClearVerticalClipMax()
    end
+
+   self:_update_all_entities_visibility()
 end
 
 function SubterraneanViewService:_get_world_floor()
