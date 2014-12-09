@@ -530,7 +530,7 @@ function XZRegionSelector:_on_mouse_event(event)
 end
 
 function XZRegionSelector:_run_start_state(event, brick, normal)
-   if event:up(2) then
+   if stonehearth.selection.user_cancelled(event) then
       self._action = 'reject'
       return 'stop'
    end
@@ -564,7 +564,7 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
 end
 
 function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
-   if event:up(2) then
+   if stonehearth.selection.user_cancelled(event) then
       self._action = 'reject'
       return 'stop'
    end
