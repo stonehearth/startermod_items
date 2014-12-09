@@ -310,7 +310,7 @@ void AStarPathFinder::Restart()
 
    max_cost_to_destination_ = GetSim().GetOctTree().GetDistanceCost(csg::Point3::zero, csg::Point3::unitX) * 64;   
 
-   source_->Start(open_);
+   source_->Start(open_, *_nodePool);
    for (auto const& entry : destinations_) {
       entry.second->Start();
    }
@@ -489,6 +489,7 @@ void AStarPathFinder::AddEdge(const csg::Point3 &next, float movementCost)
       newNode->g = g;
       newNode->prev = _currentSearchNode;
       newNode->pt = next;
+
       open_.emplace_back(newNode);
       _openLookup.emplace(next, open_.back());
       if (!rebuildHeap_) {
@@ -621,9 +622,19 @@ void AStarPathFinder::ReconstructPath(std::vector<csg::Point3f> &solution, const
 {
    const PathFinderNode* n = dst;
    while (n) {
-      solution.push_back(csg::ToFloat(n->pt));
+      // In the field, we've found situations where we run out of memory attempting to rewind the
+      // path due to cycles in the back-pointer list (e.g. see https://bugs/browse/SHC-3913).
+      // If we find a cycle, abort path reconstruction and go with what we have.  This will have to
+      // due until the original problem which led to cycles in the back-pointer list can be fixed.
+      csg::Point3f from = csg::ToFloat(n->pt);
+      if (stdutil::contains(solution, from)) {
+         PF_LOG(0) << "cycle detected while reversing path (duplicate pt: " << from << ")";
+         goto finished;
+      }
+      solution.push_back(from);
       n = n->prev;
    }
+finished:
 
    // following convention, we include the origin point in the path
    // follow path can decide to skip this point so that we don't run to the origin of the current block first

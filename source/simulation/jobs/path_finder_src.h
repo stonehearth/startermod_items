@@ -1,6 +1,7 @@
 #ifndef _RADIANT_SIMULATION_JOBS_PATH_FINDER_SRC_H
 #define _RADIANT_SIMULATION_JOBS_PATH_FINDER_SRC_H
 
+#include <boost/pool/object_pool.hpp>
 #include "om/om.h"
 #include "job.h"
 #include "physics/namespace.h"
@@ -22,13 +23,13 @@ public:
    ~PathFinderSrc();
 
    bool IsIdle() const;
-   void Start(std::vector<PathFinderNode*>& open);
+   void Start(std::vector<PathFinderNode*>& open, boost::object_pool<PathFinderNode> &nodePool);
    void EncodeDebugShapes(protocol::shapelist *msg) const;
    void SetSourceOverride(csg::Point3f const& location);
    csg::Point3f GetSourceLocation() const;
 
 private:
-   void InitializeOpenSet(std::vector<PathFinderNode*>& open);
+   void InitializeOpenSet(std::vector<PathFinderNode*>& open, boost::object_pool<PathFinderNode> &nodePool);
 
 public:
    std::string                name_;
