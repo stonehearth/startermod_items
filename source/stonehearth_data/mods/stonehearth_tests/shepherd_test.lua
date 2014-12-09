@@ -15,6 +15,7 @@ function ShepherdTest:__init()
 
    self:place_citizen(-1,5)
    self:place_citizen(-1,2, 'shepherd')
+   self:place_citizen(-1,7, 'trapper')
    
    self:place_item('stonehearth:sheep', -3, -6)
 
