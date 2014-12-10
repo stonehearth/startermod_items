@@ -15,10 +15,12 @@ function ReturnTrailingAnimalToPasture:start_thinking(ai, entity, args)
          ai:set_think_output()
       end
    end
+   --TODO: confirm this is working after it exits once?
 end
 
 --Go to the pasture associated with the first entity
 --Drop off the sheep there.
+--TODO: fix so goto location is instead inside a compound action
 function ReturnTrailingAnimalToPasture:run(ai, entity, args)
    local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
    if shepherd_class and shepherd_class.add_trailing_animal then
@@ -40,9 +42,9 @@ function ReturnTrailingAnimalToPasture:run(ai, entity, args)
             if shepherded_component then
                -- Can we wait here till the animal catches up with us? 
                ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
-               ai:execute('stonehearth:goto_entity', {entity = animal})
+               --ai:execute('stonehearth:goto_entity', {entity = animal})
                ai:execute('stonehearth:run_effect', { effect = 'fiddle' })
-               shepherded_component:set_following(false, nil)
+               shepherded_component:set_following(false)
                shepherd_class:remove_trailing_animal(animal:get_id())
             end
 
