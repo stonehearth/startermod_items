@@ -25,14 +25,18 @@ function XZRegionSelector:__init()
    self._min_size = 0
    self._max_size = radiant.math.MAX_INT32
    self._select_front_brick = true
+   self._validation_offset = Point3(0, 0, 0)
    self._allow_select_cursor = false
    self._invalid_cursor = 'stonehearth:cursors:invalid_hover'
    self._valid_region_cache = Region3()
 
    self._find_support_filter_fn = stonehearth.selection.find_supported_xz_region_filter
 
-   local identity_end_point_transform = function(p0, p1)
-      return p0, p1
+   local identity_end_point_transform = function(q0, q1)
+      if not q0 or not q1 then
+         return nil, nil
+      end
+      return Point3(q0), Point3(q1)   -- return a copy to be safe
    end
 
    self._get_proposed_points_fn = identity_end_point_transform
@@ -325,35 +329,35 @@ end
 --     2) Add each valid point to a region.
 --     3) Return the point in the region closest to p1.
 -- The rest of the code is just optimization and bookkeeping.
-function XZRegionSelector:_compute_p1(p0, p1)
-   if not p0 or not p1 then
+function XZRegionSelector:_compute_endpoint(q0, q1)
+   if not q0 or not q1 then
       return nil
    end
 
-   -- if p0 has changed, invalidate our cache
-   if p0 ~= self._valid_region_origin then
+   -- if q0 has changed, invalidate our cache
+   if q0 ~= self._valid_region_origin then
       self._valid_region_cache:clear()
-      self._valid_region_origin = Point3(p0)
+      self._valid_region_origin = Point3(q0)
    end
 
    -- if the endpoints are already validated, then the whole cube is valid
-   if self._valid_region_cache:contains(p0) and self._valid_region_cache:contains(p1) then
-      return p1
+   if self._valid_region_cache:contains(q0) and self._valid_region_cache:contains(q1) then
+      return q1
    end
 
-   if not self:_is_valid_location(p0) then
+   if not self:_is_valid_location(q0) then
       return nil
    end
 
-   local dx = p1.x > p0.x and 1 or -1
-   local dz = p1.z > p0.z and 1 or -1
-   local r0 = Point3(p0) -- row start point
-   local r1 = Point3(p0) -- row end point
-   local limit_x = p1.x
+   local dx = q1.x > q0.x and 1 or -1
+   local dz = q1.z > q0.z and 1 or -1
+   local r0 = Point3(q0) -- row start point
+   local r1 = Point3(q0) -- row end point
+   local limit_x = q1.x
    local valid_x, start_x
 
    -- iterate over all rows
-   for j = p0.z, p1.z, dz do
+   for j = q0.z, q1.z, dz do
       if not limit_x then
          -- row is completely obstructed, no further rows can be valid
          break
@@ -368,7 +372,7 @@ function XZRegionSelector:_compute_p1(p0, p1)
 
       if not unverified_region:empty() then
          local valid_x = nil
-         local start_x = unverified_region:get_closest_point(p0).x
+         local start_x = unverified_region:get_closest_point(q0).x
 
          -- if we're not at the row start, valid_x was the previous point
          if start_x ~= r0.x then
@@ -397,7 +401,28 @@ function XZRegionSelector:_compute_p1(p0, p1)
    end
 
    self._valid_region_cache:optimize_by_merge()
-   return self._valid_region_cache:get_closest_point(p1)
+   local resolved_q1 = self._valid_region_cache:get_closest_point(q1)
+   return resolved_q1
+end
+
+function XZRegionSelector:_find_valid_region(q0, q1)
+   if not q0 or not q1 then
+      return nil, nil
+   end
+
+   -- validation offset is an annoying hack used to validate regions that are offset from the selected region
+   -- used for things like mining zones, roads, and floors
+   local offset = self._validation_offset
+   local v0, v1 = q0 + offset, q1 + offset
+
+   v1 = self:_compute_endpoint(v0, v1)
+   if not v1 then
+      return nil, nil
+   end
+   
+   q1 = v1 - offset
+
+   return q0, q1
 end
 
 function XZRegionSelector:_initialize_dispatch_table()
@@ -435,76 +460,47 @@ function XZRegionSelector:_update()
    end
 end
 
-function XZRegionSelector:_resolve_endpoints(start, finish, stabbed_normal)
-   local valid_endpoints = false
+function XZRegionSelector:_resolve_endpoints(q0, q1, stabbed_normal)
+   --log:spam('selected endpoints: %s, %s', tostring(q0), tostring(q1))
 
-   log:spam('selected bricks: %s, %s', tostring(start), tostring(finish))
+   q0, q1 = self._get_proposed_points_fn(q0, q1, stabbed_normal)
+   --log:spam('proposed endpoints: %s, %s', tostring(q0), tostring(q1))
 
-   start, finish = self._get_proposed_points_fn(start, finish, stabbed_normal)
-   log:spam('proposed bricks: %s, %s', tostring(start), tostring(finish))
+   q0, q1 = self:_find_valid_region(q0, q1)
+   --log:spam('validated endpoints: %s, %s', tostring(q0), tostring(q1))
 
-   -- this is ugly
-   start, finish = self:_add_validation_offset(start, finish)
+   q0, q1 = self:_limit_dimensions(q0, q1)
+   --log:spam('bounded endpoints: %s, %s', tostring(q0), tostring(q1))
 
-   if self:_is_valid_location(start) then
-      finish = self:_compute_p1(start, finish)
+   q0, q1 = self._get_resolved_points_fn(q0, q1, stabbed_normal)
+   --log:spam('resolved endpoints: %s, %s', tostring(q0), tostring(q1))
 
-      -- this is ugly
-      start, finish = self:_remove_validation_offset(start, finish)
-
-      start, finish = self:_limit_dimensions(start, finish)
-
-      start, finish = self._get_resolved_points_fn(start, finish, stabbed_normal)
-      log:spam('resolved bricks: %s, %s', tostring(start), tostring(finish))
-      valid_endpoints = start and finish
-   end
-
-   if not valid_endpoints then
-      start, finish = nil, nil
-   end
-
-   return start, finish
-end
-
-function XZRegionSelector:_limit_dimensions(start, finish)
-   if not start or not finish then
+   if not q0 or not q1 then
       return nil, nil
    end
 
-   local new_finish = Point3(finish)
-   local size = self:_create_cube(start, finish):get_size()
+   return q0, q1
+end
+
+function XZRegionSelector:_limit_dimensions(q0, q1)
+   if not q0 or not q1 then
+      return nil, nil
+   end
+
+   local new_q1 = Point3(q1)
+   local size = self:_create_cube(q0, q1):get_size()
 
    if size.x > self._max_size then
-      local sign = finish.x >= start.x and 1 or -1
-      new_finish.x = start.x + sign*(self._max_size-1)
+      local sign = q1.x >= q0.x and 1 or -1
+      new_q1.x = q0.x + sign*(self._max_size-1)
    end
 
    if size.z > self._max_size then
-      local sign = finish.z >= start.z and 1 or -1
-      new_finish.z = start.z + sign*(self._max_size-1)
+      local sign = q1.z >= q0.z and 1 or -1
+      new_q1.z = q0.z + sign*(self._max_size-1)
    end
 
-   return start, new_finish
-end
-
-function XZRegionSelector:_add_validation_offset(start, finish)
-   local offset = self._validation_offset
-
-   if offset and start and finish then
-      return start + offset, finish + offset
-   else
-      return start, finish
-   end
-end
-
-function XZRegionSelector:_remove_validation_offset(start, finish)
-   local offset = self._validation_offset
-
-   if offset and start and finish then
-      return start - offset, finish - offset
-   else
-      return start, finish
-   end
+   return q0, new_q1
 end
 
 function XZRegionSelector:_on_mouse_event(event)
@@ -530,7 +526,7 @@ function XZRegionSelector:_on_mouse_event(event)
 end
 
 function XZRegionSelector:_run_start_state(event, brick, normal)
-   if event:up(2) then
+   if stonehearth.selection.user_cancelled(event) then
       self._action = 'reject'
       return 'stop'
    end
@@ -546,14 +542,14 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
       return 'start'
    end
 
-   local start, finish = self:_resolve_endpoints(brick, brick, normal)
+   local q0, q1 = self:_resolve_endpoints(brick, brick, normal)
 
-   if not start or not finish then
+   if not q0 or not q1 then
       self._p0, self._p1 = nil, nil
       return 'start'
    end
 
-   self._p0, self._p1 = start, finish
+   self._p0, self._p1 = q0, q1
    self._stabbed_normal = normal
 
    if event:down(1) then
@@ -564,7 +560,7 @@ function XZRegionSelector:_run_start_state(event, brick, normal)
 end
 
 function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
-   if event:up(2) then
+   if stonehearth.selection.user_cancelled(event) then
       self._action = 'reject'
       return 'stop'
    end
@@ -575,22 +571,23 @@ function XZRegionSelector:_run_p0_selected_state(event, brick, normal)
       return 'p0_selected'
    end
 
-   local start, finish = self:_resolve_endpoints(self._p0, brick, self._stabbed_normal)
+   local q0, q1 = self:_resolve_endpoints(self._p0, brick, self._stabbed_normal)
 
-   if not start or not finish then
+   if not q0 or not q1 then
       -- maybe the world has changed after we started dragging
-      log:error('unable to resolve endpoints: %s, %s', tostring(start), tostring(finish))
+      log:error('unable to resolve endpoints: %s, %s', tostring(q0), tostring(q1))
       return 'p0_selected'
    end
 
-   self._p0, self._p1 = start, finish
+   self._p0, self._p1 = q0, q1
 
    if event:up(1) then
       -- Make sure our cache still reflects the current state of the world.
       -- Note we still have a short race condition with the server as the state
       -- may have changed there which is not yet reflected on the client.
       self._valid_region_cache:clear()
-      local is_valid_region = self:_compute_p1(self._p0, self._p1) == self._p1
+      local q0, q1 = self:_find_valid_region(self._p0, self._p1)
+      local is_valid_region = q0 == self._p0 and q1 == self._p1
 
       if is_valid_region and self:_are_valid_dimensions(self._p0, self._p1) then
          self._action = 'resolve'

@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stone Table",
+   "description" : "It's considerable weight gives it a sense of gravitas. For serious business only.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/furniture/stone_table/stone_table.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:stone_table"
+      }
+  ]
+}

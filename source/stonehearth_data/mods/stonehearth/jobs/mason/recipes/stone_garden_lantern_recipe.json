@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stone Garden Lantern",
+   "description" : "An ancient-looking lantern with great ambiance.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/stone_garden_lantern/stone_garden_lantern.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:stone_garden_lantern"
+      }
+  ]
+}

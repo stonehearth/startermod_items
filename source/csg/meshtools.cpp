@@ -172,6 +172,11 @@ Mesh::Mesh() :
 {
 }
 
+bool Mesh::IsEmpty() const
+{
+   return vertices.size() == 0;
+}
+
 Mesh& Mesh::SetColor(csg::Color4 const& color)
 {
    color_ = csg::Color4(color.r, color.g, color.b, color.a);

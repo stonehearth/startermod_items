@@ -303,7 +303,6 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
                radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:trash'} );
                radiant.call('stonehearth:set_building_teardown', building_entity.__self, true)
                self.set('context.selection', null);
-               $(top).trigger('stonehearth_building_templates');
             }
          }
 

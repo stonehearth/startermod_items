@@ -15,7 +15,8 @@ CollectAnimalFromWorld.priority = 1
 -- TODO: wander into the part of the world that is appropriate for this animal type
 -- Generate an animal of the appropriate type near me
 -- At this point the other, higher-priority "collect animal for pasture from nearby" should take over
-
+-- TODO: refactor so that these guys listen on num animals, and react thereby (see pattern from return animals to pasture)
+-- Current implementation works but relies on AI getting reset by higher priority items
 function CollectAnimalFromWorld:start_thinking(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
    if not self._timer and 

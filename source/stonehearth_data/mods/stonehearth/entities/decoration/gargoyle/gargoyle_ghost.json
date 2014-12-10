@@ -1,0 +1,26 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(gargoyle.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },      
+      "render_info" : {
+         "scale" : 0.10
+      },     
+      "unit_info": {
+         "name": "Wall Mounted Decorative Gargoyle",
+         "description": "Gothic-style carving to decorate your walls.",
+         "icon" : "file(gargoyle.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      }
+   }
+}

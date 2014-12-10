@@ -30,6 +30,10 @@ end
 function ShepherdedAnimalComponent:set_following(should_follow, shepherd)
    self._sv.should_follow = should_follow
    self._sv.last_shepherd_entity = shepherd
+
+   radiant.events.trigger(self._sv.animal, 'stonehearth:shepherded_animal_follow_status_change', 
+      {should_follow = self._sv.should_follow, 
+       shepherd = shepherd})
 end
 
 function ShepherdedAnimalComponent:get_following()

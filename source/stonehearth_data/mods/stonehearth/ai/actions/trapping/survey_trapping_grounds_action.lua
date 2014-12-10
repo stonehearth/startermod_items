@@ -13,6 +13,7 @@ SurveyTrappingGrounds.priority = 1
 
 local ai = stonehearth.ai
 return ai:create_compound_action(SurveyTrappingGrounds)
+   :execute('stonehearth:drop_carrying_now', {})
    :execute('stonehearth:goto_entity', {
       entity = ai.ARGS.trapping_grounds
    })

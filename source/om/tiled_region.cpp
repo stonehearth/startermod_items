@@ -135,24 +135,13 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
 template <typename T>
 void TiledRegion<T>::AddToChangedSet(csg::Point3 const& index)
 {
-   auto result = _changed_set.insert(index);
-   // check if index is a new element
-   if (result.second) {
-      _changed_set_as_vector.push_back(index);
-   }
-}
-
-template <typename T>
-std::vector<csg::Point3> const& TiledRegion<T>::GetChangedSet() const
-{
-   return _changed_set_as_vector;
+   _changed_set.insert(index);
 }
 
 template <typename T>
 void TiledRegion<T>::ClearChangedSet()
 {
    _changed_set.clear();
-   _changed_set_as_vector.clear();
 }
 
 template <typename T>

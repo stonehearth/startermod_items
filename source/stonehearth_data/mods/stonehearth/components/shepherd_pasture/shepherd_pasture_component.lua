@@ -203,7 +203,9 @@ function ShepherdPastureComponent:_create_stray_timer()
    end)
 end
 
---Iterate through the critters in the pasture. If they are out of bounds, then fire off a task to bring them home
+-- Iterate through the critters in the pasture.
+-- If they are out of bounds AND not currently following a shepherd
+-- then fire off a task to bring them home
 function ShepherdPastureComponent:_collect_strays()
    for id, critter_data in pairs(self._sv.tracked_critters) do
       local critter = critter_data.entity
@@ -213,7 +215,11 @@ function ShepherdPastureComponent:_collect_strays()
       local pasture_location = radiant.entities.get_world_grid_location(self._entity)
       local world_region_shape = region_shape:translated(pasture_location)
 
-      if not world_region_shape:contains(critter_location) then
+      local equipment_component = critter_data.entity:get_component('stonehearth:equipment')
+      local pasture_collar = equipment_component:has_item_type('stonehearth:pasture_tag')
+      local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
+
+      if not world_region_shape:contains(critter_location) and not shepherded_animal_component:get_following() then
          local town = stonehearth.town:get_town(self._entity)
          town:create_task_for_group(
             'stonehearth:task_group:herding', 

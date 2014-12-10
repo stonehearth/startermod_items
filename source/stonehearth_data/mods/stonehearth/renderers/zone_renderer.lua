@@ -159,7 +159,7 @@ function ZoneRenderer:_regenerate_designation_node()
    self:_destroy_designation_node()
 
    if self._designation_color_interior and self._designation_color_border then
-      if self:_in_hud_mode() then
+      if self:_in_hud_mode() and not self._region:empty() then
          self._designation_node = _radiant.client.create_designation_node(self._parent_node, self._region,
                                   self._designation_color_interior, self._designation_color_border, self._use_coarse_collision)
       end

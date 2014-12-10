@@ -478,6 +478,15 @@ static bool MouseEvent_GetDown(MouseInput const& me, int button)
    return false;
 }
 
+static bool MouseEvent_GetButton(MouseInput const& me, int button)
+{
+   button--;
+   if (button >= 0 && button < sizeof(me.down)) {
+      return me.buttons[button];
+   }
+   return false;
+}
+
 IMPLEMENT_TRIVIAL_TOSTRING(Client)
 IMPLEMENT_TRIVIAL_TOSTRING(CaptureInputPromise)
 IMPLEMENT_TRIVIAL_TOSTRING(TraceRenderFramePromise)
@@ -613,6 +622,7 @@ void lua::client::open(lua_State* L)
                .def_readonly("in_client_area", &MouseInput::in_client_area)
                .def("up",               &MouseEvent_GetUp)
                .def("down",             &MouseEvent_GetDown)
+               .def("button",           &MouseEvent_GetButton)
                .def_readonly("dragging",&MouseInput::dragging)
                .enum_("constants") [
                   value("MOUSE_BUTTON_1",    GLFW_MOUSE_BUTTON_1),

@@ -162,14 +162,9 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
       } else if (t == LUA_TBOOLEAN) {
          return JSONNode("", object_cast<bool>(obj));
       } else if (t == LUA_TNIL) {
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         // XXXX: THIS SHOULD BE NULL!!
-         return JSONNode("", false);
+         JSONNode n("", 0);
+         n.nullify();
+         return n;
       } else if (t == LUA_TFUNCTION) {
          return JSONNode("", "function");
       }
@@ -208,6 +203,8 @@ luabind::object ScriptHost::JsonToLua(JSONNode const& json)
       return object(L_, json.as_float());
    } else if (json.type() == JSON_BOOL) {
       return object(L_, json.as_bool());
+   } else if (json.type() == JSON_NULL) {
+      return object();
    }
 
    return object();

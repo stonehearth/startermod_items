@@ -13,8 +13,14 @@ function ShepherdTest:__init()
    --place the hoes and board
    self:place_item('stonehearth:shepherd:crook_talisman', 4, 2)
 
+   local bush = self:place_item('stonehearth:berry_bush', 4, 4)
+   local bush = self:place_item('stonehearth:berry_bush', -1, -1)
+   local bush = self:place_item('stonehearth:berry_bush', -4, 4)
+   local bush = self:place_item('stonehearth:berry_bush', 4, -4)
+
    self:place_citizen(-1,5)
    self:place_citizen(-1,2, 'shepherd')
+   self:place_citizen(-1,7, 'trapper')
    
    self:place_item('stonehearth:sheep', -3, -6)
 

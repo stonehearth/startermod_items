@@ -30,11 +30,6 @@ local function point_to_key(point)
 end
 
 function SubterraneanViewService:initialize()
-   local enable_mining = radiant.util.get_config('enable_mining', false)
-   if not enable_mining then
-      return
-   end
-
    self._finished_initialization = false
    self._sv = self.__saved_variables:get_data()
 
@@ -262,7 +257,7 @@ function SubterraneanViewService:_update_dirty_tiles()
       end
    end
 
-   for index in self._xray_tiles:get_changed_set() do
+   for index in self._xray_tiles:each_changed_index() do
       _radiant.renderer.mark_dirty_index(index:to_float())
    end
 
@@ -415,7 +410,9 @@ end
 
 function SubterraneanViewService:_set_entity_visible(entity, visible)
    local render_entity = _radiant.client.get_render_entity(entity)
-   render_entity:set_visible_override(visible)
+   if render_entity then
+      render_entity:set_visible_override(visible)
+   end
 end
 
 function SubterraneanViewService:_set_entity_tree_visible(entity, visible)

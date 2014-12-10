@@ -12,7 +12,11 @@
             },
             "wooden_sword" : {
                "uri" : "file(wooden_sword_recipe.json)"
-            }            
+            },
+            "shepherd_crook" : {
+               "uri" : "file(shepherds_crook_recipe.json)"
+            }  
+            
          }
       },
       "building_parts" : {
