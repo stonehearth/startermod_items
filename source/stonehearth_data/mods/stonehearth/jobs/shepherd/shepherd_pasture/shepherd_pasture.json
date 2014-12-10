@@ -7,13 +7,13 @@
       }, 
       "stonehearth:shepherd_pasture" : {
          "default_type" : "stonehearth:sheep",
-         "check_for_strays_interval" : "12h",
+         "check_for_strays_interval" : "2h",
          "pasture_data" : {
             "stonehearth:sheep" : {
                "name" : "Sheep Pasture",
                "min_population" : 2,
                "max_num_per_10_square_unit" : 2, 
-               "base_reproduction_period" : "12h"
+               "base_reproduction_period" : "36h"
             }, 
             "stonehearth:rabbits" : {
                "name" : "Rabbit Pen",

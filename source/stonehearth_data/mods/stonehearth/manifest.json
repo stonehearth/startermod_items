@@ -557,7 +557,10 @@
       "actions:shepherd:collect_animal_for_pasture_from_world" : "file(ai/actions/collect_animal_for_pasture_from_world.lua)", 
       "actions:shepherd:herding_dispatcher" : "file(ai/actions/herding_dispatcher.lua)",
       "actions:shepherd:follow_shepherd_action" : "file(ai/actions/follow_shepherd_action.lua)", 
+      "actions:shepherd:select_shepherd_action" : "file(ai/actions/select_shepherd_action.lua)",
       "actions:shepherd:return_animal_to_pasture" : "file(ai/actions/return_trailing_animals_to_pasture.lua)",
+      "actions:shepherd:wait_for_trailing_animal" : "file(ai/actions/wait_for_trailing_animal_action.lua)", 
+      "actions:shepherd:leave_animal_in_pasture" : "file(ai/actions/leave_animal_in_pasture_action.lua)",
       "actions:shepherd:find_stray_animal" : "file(ai/actions/find_stray_animal_action.lua)",
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",

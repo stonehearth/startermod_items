@@ -58,7 +58,7 @@ function EmbarkTest:__init()
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:resources:wood:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:resources:fiber:silkweed_bundle'))
-   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:footman:wooden_sword_talisman'))
+   radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:knife_talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:saw_talisman'))
 
    --Place a banner

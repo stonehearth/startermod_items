@@ -112,6 +112,11 @@ function SelectionService.designation_can_contain(entity)
    if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
       return false
    end
+
+   if entity:get_component('terrain') then
+      return false
+   end
+   
    return true
 end
 

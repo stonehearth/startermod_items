@@ -73,7 +73,7 @@ end
 
 -- Shepherd related functionality
 
--- List of all the animals currently following the shepherd
+-- Add an animal to the list following the shepherd
 function ShepherdClass:add_trailing_animal(animal, pasture)
    if not self._sv.trailed_animals then
       self._sv.trailed_animals = {}
@@ -87,6 +87,9 @@ function ShepherdClass:add_trailing_animal(animal, pasture)
       radiant.entities.set_posture(self._sv._entity, 'stonehearth:patrol')
       radiant.entities.add_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
    end 
+
+   --Fire an event saying that we've collected an animal
+   radiant.events.trigger(self._sv._entity, 'stonehearth:add_trailing_animal', {animal = animal, pasture = pasture})
 end
 
 function ShepherdClass:get_trailing_animals()

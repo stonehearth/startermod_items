@@ -43,8 +43,8 @@
       },
       "stonehearth:crop" : {
          "resource_pairings" : {
-            "pumpkin_3": "stonehearth:pumpkin",
-            "pumpkin_4": "stonehearth:pumpkin_harvest", 
+            "pumpkin_3": "stonehearth:food:pumpkin_serving",
+            "pumpkin_4": "stonehearth:food:pumpkin:pumpkin_basket", 
             "pumpkin_12": ""
          },
          "harvest_threshhold" : "pumpkin_4",

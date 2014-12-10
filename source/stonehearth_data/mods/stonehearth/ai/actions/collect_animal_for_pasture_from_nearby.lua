@@ -13,6 +13,7 @@ ALL_FILTER_FNS = {}
 
 -- In order to start, the pasture must not be full and  
 -- there should be a free animal of the appropriate type nearby
+-- TODO: refactor so that these guys listen on num animals, and react thereby
 function CollectAnimalFromNearby:start_thinking(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
 
