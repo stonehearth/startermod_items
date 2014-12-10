@@ -410,7 +410,9 @@ end
 
 function SubterraneanViewService:_set_entity_visible(entity, visible)
    local render_entity = _radiant.client.get_render_entity(entity)
-   render_entity:set_visible_override(visible)
+   if render_entity then
+      render_entity:set_visible_override(visible)
+   end
 end
 
 function SubterraneanViewService:_set_entity_tree_visible(entity, visible)

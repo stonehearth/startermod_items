@@ -416,6 +416,10 @@ function XZRegionSelector:_find_valid_region(q0, q1)
    local v0, v1 = q0 + offset, q1 + offset
 
    v1 = self:_compute_endpoint(v0, v1)
+   if not v1 then
+      return nil, nil
+   end
+   
    q1 = v1 - offset
 
    return q0, q1
