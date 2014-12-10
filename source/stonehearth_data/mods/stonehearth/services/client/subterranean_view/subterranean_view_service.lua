@@ -30,11 +30,6 @@ local function point_to_key(point)
 end
 
 function SubterraneanViewService:initialize()
-   local enable_mining = radiant.util.get_config('enable_mining', false)
-   if not enable_mining then
-      return
-   end
-
    self._finished_initialization = false
    self._sv = self.__saved_variables:get_data()
 

@@ -27,12 +27,6 @@ function get_cell_max(value, cell_size)
 end
 
 function MiningCallHandler:designate_mining_zone(session, response)
-   local enable_mining = radiant.util.get_config('enable_mining', false)
-   if not enable_mining then
-      response:reject('disabled')
-      return
-   end
-
    local edge_color = Color4(255, 255, 0, 128)
    local face_color = Color4(255, 255, 0, 16)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
