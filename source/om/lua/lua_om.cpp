@@ -4,6 +4,7 @@
 #include "lua_entity.h"
 #include "lua_region.h"
 #include "lua_data_store.h"
+#include "lua_std_map_iterator_wrapper.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/script_host.h"
 #include "lib/lua/register.h"
@@ -80,18 +81,6 @@ static void TiledRegion_ClearTile(std::shared_ptr<TiledRegion<T>> tiled_region, 
    tiled_region->ClearTile(csg::ToInt(index));
 }
 
-#define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
-OM_ALL_COMPONENTS
-#undef OM_OBJECT
-scope RegisterEffect(lua_State* L);
-scope RegisterSensor(lua_State* L);
-scope RegisterModelLayer(lua_State* L);
-
-scope RegisterLuaComponents(lua_State *L)
-{
-   return scope();
-}
-
 template <typename T>
 static scope RegisterTiledRegion(const char* name)
 {
@@ -109,10 +98,17 @@ static scope RegisterTiledRegion(const char* name)
       .def("get_tile",               &TiledRegion_GetTile<T>)
       .def("find_tile",              &TiledRegion_FindTile<T>)
       .def("clear_tile",             &TiledRegion_ClearTile<T>)
-      .def("get_changed_set",        &TiledRegion<T>::GetChangedSet, return_stl_iterator)
+      .def("each_changed_index",     &TiledRegion<T>::GetChangedSet, return_stl_iterator)
       .def("clear_changed_set",      &TiledRegion<T>::ClearChangedSet)
       .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles);
 }
+
+#define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
+OM_ALL_COMPONENTS
+#undef OM_OBJECT
+scope RegisterEffect(lua_State* L);
+scope RegisterSensor(lua_State* L);
+scope RegisterModelLayer(lua_State* L);
 
 void radiant::om::RegisterLuaTypes(lua_State* L)
 {

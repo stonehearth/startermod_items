@@ -262,7 +262,7 @@ function SubterraneanViewService:_update_dirty_tiles()
       end
    end
 
-   for index in self._xray_tiles:get_changed_set() do
+   for index in self._xray_tiles:each_changed_index() do
       _radiant.renderer.mark_dirty_index(index:to_float())
    end
 
