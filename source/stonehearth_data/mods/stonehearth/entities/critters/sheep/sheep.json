@@ -4,8 +4,7 @@
    "components": {
       "unit_info" : {
         "name": "A sheep",
-        "description": "So fluffy!",
-        "player_id" : "critters"
+        "description": "So fluffy!"
       },
       "model_variants": {
          "default": {
@@ -34,6 +33,14 @@
             "stonehearth:actions:wander_when_bored",
             "stonehearth:actions:choose_point_around_leash"
          ]
+      },
+      "sensor_list": {
+         "sensors": {
+            "sight": {
+               "type": "sensor",
+               "radius": 15
+            }
+         }
       },
       "stonehearth:attributes": {
          "health": {

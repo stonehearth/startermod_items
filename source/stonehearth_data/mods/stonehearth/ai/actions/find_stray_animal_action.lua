@@ -23,27 +23,13 @@ function FindStrayAnimal:start_thinking(ai, entity, args)
    end
 end
 
---every X hours, pasture checks all animals
---if an animal is outside the pasture, the pasture fires this task on the shepherd
---the action ends with the sheep following the shepherd; the return trailing animals to pasture should then kick in
+local ai = stonehearth.ai
+return ai:create_compound_action(FindStrayAnimal)
+   :execute('stonehearth:drop_carrying_now', {})
+   :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.ARGS.animal})
+   :execute('stonehearth:goto_entity', {entity = ai.ARGS.animal})
+   :execute('stonehearth:reserve_entity', { entity = ai.ARGS.animal })
+   :execute('stonehearth:turn_to_face_entity', { entity =  ai.ARGS.animal })
+   :execute('stonehearth:run_effect', { effect = 'fiddle' })
+   :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.ARGS.animal})
 
-function FindStrayAnimal:run(ai, entity, args)
-   ai:execute('stonehearth:drop_carrying_now', {})
-   ai:execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = args.animal})
-   ai:execute('stonehearth:goto_entity', {entity = args.animal})
-   --TODO: can we have a "Holler" animation here, so it looks like the shepherd is calling the critter?
-
-   local equipment_component = args.animal:add_component('stonehearth:equipment')
-   local pasture_collar = equipment_component:has_item_type('stonehearth:pasture_tag')
-   if pasture_collar then
-      local shepherded_animal_component = pasture_collar:get_component('stonehearth:shepherded_animal')
-      shepherded_animal_component:set_following(true, entity)
-   end
-
-   local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
-   if shepherd_class and shepherd_class.add_trailing_animal then
-      shepherd_class:add_trailing_animal(args.animal, args.pasture)
-   end
-end
-
-return FindStrayAnimal
