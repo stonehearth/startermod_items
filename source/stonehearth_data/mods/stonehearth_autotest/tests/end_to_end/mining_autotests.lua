@@ -28,13 +28,11 @@ function mining_tests.down_and_out_tunnel(autotest)
    local location = radiant.entities.get_world_grid_location(mining_zone)
    local mining_zone_component = mining_zone:add_component('stonehearth:mining_zone')
    local mining_bounds = mining_zone_component:get_region():get():translated(location)
-   local saved_terrain = radiant.terrain.intersect_region(mining_bounds)
 
    autotest.ui:click_dom_element('#xrayButton')
 
    radiant.events.listen(mining_zone, 'radiant:entity:pre_destroy', function()
          autotest.ui:click_dom_element('#xrayButton')
-         radiant.terrain.add_region(saved_terrain)
          autotest:success()
       end)
 
