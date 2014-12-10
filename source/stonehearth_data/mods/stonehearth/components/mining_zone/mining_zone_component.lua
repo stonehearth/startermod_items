@@ -59,6 +59,7 @@ function MiningZoneComponent:initialize(entity, json)
       self:set_region(_radiant.sim.alloc_region3())
 
       self._sv.mining_zone_enabled = true
+      self._sv.selectable = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -124,6 +125,10 @@ function MiningZoneComponent:mine_point(point)
    return loot
 end
 
+function MiningZoneComponent:get_mining_zone_enabled()
+   return self._sv.mining_zone_enabled
+end
+
 function MiningZoneComponent:set_mining_zone_enabled(enabled)
    if self._sv.mining_zone_enabled == enabled then
       return
@@ -133,8 +138,12 @@ function MiningZoneComponent:set_mining_zone_enabled(enabled)
    self:_update_mining_task()
 end
 
-function MiningZoneComponent:get_mining_zone_enabled()
-   return self._sv.mining_zone_enabled
+function MiningZoneComponent:get_selectable()
+   return self._sv.selectable
+end
+
+function MiningZoneComponent:set_selectable(selectable)
+   self._sv.selectable = selectable
 end
 
 function MiningZoneComponent:_trace_region()
