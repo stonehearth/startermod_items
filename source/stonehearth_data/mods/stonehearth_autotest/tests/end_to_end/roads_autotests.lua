@@ -47,7 +47,7 @@ function roads_autotests.follow_road(autotest)
    local tripped_3 = false
    local elapsed_time = 0
    while (not tripped_1 or not tripped_2 or not tripped_3) and elapsed_time < 20000 do
-      autotest:sleep(500)
+      autotest:sleep(100)
       elapsed_time = elapsed_time + 500
 
       tripped_1 = tripped_1 or _check_sensor_for_entity(sensor1, person)
