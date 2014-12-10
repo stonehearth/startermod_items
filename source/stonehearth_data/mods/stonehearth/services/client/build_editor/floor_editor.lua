@@ -36,6 +36,7 @@ function FloorEditor:go(response, floor_uri, options)
       -- the cursor is under.  we want to sink into the terrain, so return the
       -- actual brink we're pointing to instead
       selector:select_front_brick(false)
+      selector:set_validation_offset(Point3.unit_y)
 
       -- we need to be able to intersect our cursor in the query function to make
       -- sure we get points on a plane.  if we're not sinking, though, we want to
@@ -52,6 +53,7 @@ function FloorEditor:go(response, floor_uri, options)
    selector
       :set_cursor('stonehearth:cursors:create_floor')
       :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_filter())
+      :set_can_contain_entity_filter(stonehearth.selection.designation_can_contain)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)

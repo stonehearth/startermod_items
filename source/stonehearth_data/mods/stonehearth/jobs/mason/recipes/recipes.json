@@ -4,7 +4,6 @@
          "ordinal" : 1, 
          "name" : "Tools & Weapons", 
          "recipes" : {
-
          }
       },
       "building_parts" : {
@@ -20,14 +19,30 @@
          "ordinal" : 3, 
          "name" : "Furniture", 
          "recipes" : {
-
+            "stone_chair" : {
+               "uri" : "file(stone_chair_recipe.json)" 
+            },
+            "stone_table" : {
+               "uri" : "file(stone_table_recipe.json)" 
+            },
+            "stone_bench" : {
+               "uri" : "file(stone_bench_recipe.json)" 
+            }
          }
       },
       "signage_decoration" : {
          "ordinal" : 4, 
-         "name" : "Signage & Decoration", 
+         "name" : "Signage & Decoration",
          "recipes" : {
-
+            "bird_bath" : {
+               "uri" : "file(bird_bath_recipe.json)" 
+            },
+            "stone_garden_lantern" : {
+               "uri" : "file(stone_garden_lantern_recipe.json)" 
+            },
+            "gargoyle" : {
+               "uri" : "file(gargoyle_recipe.json)" 
+            }
          }
       }
    }

@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Wall Mounted Decorative Gargoyle",
+   "description" : "Gothic-style carving to decorate your walls.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/gargoyle/gargoyle.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:gargoyle"
+      }
+  ]
+}

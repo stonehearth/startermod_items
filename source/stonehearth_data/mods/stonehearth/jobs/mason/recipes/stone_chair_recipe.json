@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stone Chair",
+   "description" : "Not horribly comforable, but a symbol of status.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/furniture/stone_chair/stone_chair.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:stone_chair"
+      }
+  ]
+}

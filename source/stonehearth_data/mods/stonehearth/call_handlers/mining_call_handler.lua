@@ -27,12 +27,6 @@ function get_cell_max(value, cell_size)
 end
 
 function MiningCallHandler:designate_mining_zone(session, response)
-   local enable_mining = radiant.util.get_config('enable_mining', false)
-   if not enable_mining then
-      response:reject('disabled')
-      return
-   end
-
    local edge_color = Color4(255, 255, 0, 128)
    local face_color = Color4(255, 255, 0, 16)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
@@ -98,8 +92,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
    end
 
    local terrain_support_filter = function(selected, selector)
-      -- fast check for 'is terrain'
-      if selected.entity:get_id() == 1 then
+      if selected.entity:get_component('terrain') then
          return true
       end
       -- otherwise, keep looking!
@@ -111,7 +104,19 @@ function MiningCallHandler:designate_mining_zone(session, response)
       if entity:get_uri() == 'stonehearth:mining_zone_designation' then
          return stonehearth.selection.FILTER_IGNORE
       end
-      return stonehearth.selection.designation_can_contain(entity)
+
+      -- reject other designations
+      if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
+         return false
+      end
+
+      -- reject solid entities
+      local rcs = entity:get_component('region_collision_shape')
+      if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+         return false
+      end
+
+      return true
    end
 
    local draw_region_outline_marquee = function(selector, box)
