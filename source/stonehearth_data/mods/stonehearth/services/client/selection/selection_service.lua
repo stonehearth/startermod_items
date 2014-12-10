@@ -115,6 +115,25 @@ function SelectionService.designation_can_contain(entity)
    return true
 end
 
+function SelectionService.user_cancelled(event)
+   if not event then
+      return false
+   end
+   
+   if event:up(2) then
+      if event:button(1) then
+         -- we've activated a selection, cancel the whole operation
+         return true
+      end
+
+      -- cancel if this was not a camera rotation gesture
+      local camera_rotation = event.dragging
+      return not camera_rotation
+   end
+
+   return false
+end
+
 function SelectionService:initialize()
    self._all_tools = {}
    self._input_capture = stonehearth.input:capture_input()

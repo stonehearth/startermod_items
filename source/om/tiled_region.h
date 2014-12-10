@@ -16,13 +16,15 @@ template <typename T> class TileMapWrapper;
 template <typename T>
 class TiledRegion {
 public:
+   typedef std::unordered_set<csg::Point3, csg::Point3::Hash> IndexSet;
+
    TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMapWrapper<T>> tile_wrapper);
 
    csg::Point3 GetTileSize() const;
    std::shared_ptr<T> FindTile(csg::Point3 const& index); // returns nulltr if not found
    std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
    void ClearTile(csg::Point3 const& index);
-   std::vector<csg::Point3> const& GetChangedSet() const;
+   IndexSet const& GetChangedSet() const { return _changed_set; }
    void ClearChangedSet();
    void OptimizeChangedTiles();
 
@@ -49,8 +51,7 @@ private:
 
    csg::Point3 _tile_size;
    std::shared_ptr<TileMapWrapper<T>> _tile_wrapper;
-   std::unordered_set<csg::Point3, csg::Point3::Hash> _changed_set; // could also just use a vector with stdutil
-   std::vector<csg::Point3> _changed_set_as_vector; // helper for lua so we can use return_stl_iterator
+   IndexSet _changed_set;
 };
 
 // Abstracts operations on tile elements T in a map type

@@ -222,7 +222,8 @@ void NavGridTile::RefreshTileData()
  */
 void NavGridTile::MarkDirty(TrackerType t)
 {
-   if (t < NUM_BIT_VECTOR_TRACKERS) {
+   // MOVEMENT_MODIFIER isn't a bit-vector, but sure dirties like one!
+   if (t < NUM_BIT_VECTOR_TRACKERS || t == MOVEMENT_MODIFIER) {
       NG_LOG(7) << "marking grid tile " << _index << " as dirty (tracker type:" << t << ")";
       _ng.SignalTileDirty(_index);
       if (data_) {
