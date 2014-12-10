@@ -15,6 +15,7 @@
 #include "om/components/destination.ridl.h"
 #include "om/components/vertical_pathing_region.ridl.h"
 #include "om/components/region_collision_shape.ridl.h"
+#include "om/components/movement_guard_shape.ridl.h"
 #include "om/components/movement_modifier_shape.ridl.h"
 #include "mob_tracker.h"
 #include "terrain_tracker.h"
@@ -22,6 +23,7 @@
 #include "destination_tracker.h"
 #include "vertical_pathing_region_tracker.h"
 #include "region_collision_shape_tracker.h"
+#include "movement_guard_shape_tracker.h"
 #include "movement_modifier_shape_tracker.h"
 #include "protocols/radiant.pb.h"
 #include "physics_util.h"
@@ -136,7 +138,12 @@ void NavGrid::TrackComponent(om::ComponentPtr component)
       }
       case om::MovementModifierShapeObjectType: {
          auto mms = std::static_pointer_cast<om::MovementModifierShape>(component);
-         tracker = CreateMovementModifierShapeTracker(mms);
+         tracker = std::make_shared<MovementModifierShapeTracker>(*this, entity, mms);
+         break;
+      }
+      case om::MovementGuardShapeObjectType: {
+         auto mgs = std::static_pointer_cast<om::MovementGuardShape>(component);
+         tracker = std::make_shared<MovementGuardShapeTracker>(*this, entity, mgs);
          break;
       }
       case om::DestinationObjectType: {
@@ -199,7 +206,7 @@ void NavGrid::RemoveComponentTracker(dm::ObjectId entityId, dm::ObjectId compone
  *
  * Create a tracker for the RegionCollisionShape based on the RegionCollisionType.
  */
-CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr)
+CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(om::RegionCollisionShapePtr regionCollisionShapePtr)
 {
    om::EntityPtr entity = regionCollisionShapePtr->GetEntityPtr();
    auto regionCollisionType = regionCollisionShapePtr->GetRegionCollisionType();
@@ -217,29 +224,16 @@ CollisionTrackerPtr NavGrid::CreateRegionCollisonShapeTracker(std::shared_ptr<om
 }
 
 /*
- * -- NavGrid::CreateMovementModifierShapeTracker
- *
- * Create a tracker for the MovementModifierShape.
- */
-MovementModifierShapeTrackerPtr NavGrid::CreateMovementModifierShapeTracker(std::shared_ptr<om::MovementModifierShape> movementModifierShapePtr)
-{
-   om::EntityPtr entity = movementModifierShapePtr->GetEntityPtr();
-
-   NG_LOG(7) << "creating MovementModifierShapeTracker for " << *entity;
-   return std::make_shared<MovementModifierShapeTracker>(*this, entity, movementModifierShapePtr);
-}
-
-/*
  * -- NavGrid::CreateCollisionTypeTrace
  *
  * Create and add the trace for the RegionCollisionType.
  */
-void NavGrid::CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr)
+void NavGrid::CreateCollisionTypeTrace(om::RegionCollisionShapePtr regionCollisionShapePtr)
 {
    dm::ObjectId componentId = regionCollisionShapePtr->GetObjectId();
    NG_LOG(7) << "creating trace for RegionCollisionType on component " << componentId;
    auto trace = regionCollisionShapePtr->TraceRegionCollisionType("nav grid", GetTraceCategory());
-   std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef = regionCollisionShapePtr;
+   om::RegionCollisionShapeRef regionCollisionShapeRef = regionCollisionShapePtr;
 
    trace->OnModified([this, regionCollisionShapeRef]() {
       OnCollisionTypeChanged(regionCollisionShapeRef);
@@ -256,9 +250,9 @@ void NavGrid::CreateCollisionTypeTrace(std::shared_ptr<om::RegionCollisionShape>
  *
  * Called when the RegionCollisionType changes.
  */
-void NavGrid::OnCollisionTypeChanged(std::weak_ptr<om::RegionCollisionShape> regionCollisionShapeRef)
+void NavGrid::OnCollisionTypeChanged(om::RegionCollisionShapeRef regionCollisionShapeRef)
 {
-   std::shared_ptr<om::RegionCollisionShape> regionCollisionShapePtr = regionCollisionShapeRef.lock();
+   om::RegionCollisionShapePtr regionCollisionShapePtr = regionCollisionShapeRef.lock();
 
    if (regionCollisionShapePtr) {
       dm::ObjectId componentId = regionCollisionShapePtr->GetObjectId();
@@ -1056,8 +1050,7 @@ bool NavGrid::RegionIsSupported(csg::Region3 const& r)
 
 bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location)
 {
-   om::MobPtr mob = entity->GetComponent<om::Mob>();
-   return IsStandable(entity, location, mob);
+   return IsStandable(entity, location, entity->GetComponent<om::Mob>());
 }
 
 /*
@@ -1070,10 +1063,11 @@ bool NavGrid::IsStandable(om::EntityPtr entity, csg::Point3 const& location, om:
    if (mob) {
       if (mob->GetMobCollisionType() == om::Mob::HUMANOID) {
          return IsStandable(location) &&
+                CanPassThrough(entity, location) &&
                 !IsBlocked(location + csg::Point3::unitY) &&
                 !IsBlocked(location + csg::Point3::unitY + csg::Point3::unitY);
       } else if (mob->GetMobCollisionType() == om::Mob::TINY) {
-         return IsStandable(location);
+         return IsStandable(location) && CanPassThrough(entity, location);
       }
    }
 
@@ -1285,4 +1279,12 @@ bool NavGrid::IsTerrain(csg::Point3 const& location)
 void NavGrid::SetRootEntity(om::EntityPtr root)
 {
    rootEntity_ = root;
+}
+
+
+bool NavGrid::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& worldPoint)
+{
+   csg::Point3 index, offset;
+   csg::GetChunkIndex<TILE_SIZE>(worldPoint, index, offset);
+   return GridTile(index).CanPassThrough(entity, offset);
 }

@@ -21,6 +21,7 @@ class NavGrid;
 class NavGridTile;
 class NavGridTileData;
 class CollisionTracker;
+class MovementGuardShapeTracker;
 class MovementModifierShapeTracker;
 class TerrainTracker;
 class TerrainTileTracker;
@@ -28,6 +29,7 @@ class MobTracker;
 class SensorTracker;
 class SensorTileTracker;
 
+DECLARE_SHARED_POINTER_TYPES(MovementGuardShapeTracker)
 DECLARE_SHARED_POINTER_TYPES(MovementModifierShapeTracker)
 DECLARE_SHARED_POINTER_TYPES(CollisionTracker)
 DECLARE_SHARED_POINTER_TYPES(TerrainTracker)
@@ -64,9 +66,10 @@ enum TrackerType {
    NUM_BIT_VECTOR_TRACKERS,
 
    MOB,
+   MOVEMENT_GUARD,
+   MOVEMENT_MODIFIER,
    DESTINATION,
    NON_COLLISION,
-   MOVEMENT_MODIFIER,
    MAX_TRACKER_TYPES,
 };
 

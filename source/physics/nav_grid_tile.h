@@ -41,6 +41,8 @@ public:
 
    void OnTrackerRemoved(dm::ObjectId entityId, TrackerType t);
 
+   bool CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& pt);
+
    bool IsBlocked(csg::Point3 const& pt);
    bool IsBlocked(csg::Cube3 const& bounds);
    bool IsBlocked(csg::Region3 const& region);

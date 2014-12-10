@@ -7,8 +7,7 @@ local lrbt_util = {}
 
 local WOODEN_COLUMN = 'stonehearth:wooden_column'
 local WOODEN_WALL = 'stonehearth:wooden_wall'
-local WOODEN_FLOOR = 'stonehearth:entities:wooden_floor'
-local WOODEN_FLOOR_PATTERN = '/stonehearth/entities/build/wooden_floor/wooden_floor_diagonal.qb'
+local WOODEN_FLOOR = 'stonehearth:wooden_floor_solid_light'
 local WOODEN_ROOF = 'stonehearth:wooden_peaked_roof'
 
 function lrbt_util.create_workers(autotest, x, y)
@@ -81,7 +80,7 @@ function lrbt_util.count_structures(building)
 end
 
 function lrbt_util.create_wooden_floor(session, cube)
-   return stonehearth.build:add_floor(session, WOODEN_FLOOR, cube, WOODEN_FLOOR_PATTERN)
+   return stonehearth.build:add_floor(session, WOODEN_FLOOR, cube)
 end
 
 function lrbt_util.erase_floor(session, cube)

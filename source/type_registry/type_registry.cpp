@@ -59,6 +59,7 @@ using namespace radiant;
    OBJECT_TYPE(om::ModelVariantsRef,         om::ModelVariants::DmType,             RegisterGameObjectType) \
    OBJECT_TYPE(om::RegionCollisionShapeRef,  om::RegionCollisionShape::DmType,      RegisterGameObjectType) \
    OBJECT_TYPE(om::MovementModifierShapeRef, om::MovementModifierShape::DmType,     RegisterGameObjectType) \
+   OBJECT_TYPE(om::MovementGuardShapeRef,    om::MovementGuardShape::DmType,        RegisterGameObjectType) \
    OBJECT_TYPE(om::TerrainRef,               om::Terrain::DmType,                   RegisterGameObjectType) \
    OBJECT_TYPE(om::VerticalPathingRegionRef, om::VerticalPathingRegion::DmType,     RegisterGameObjectType) \
    OBJECT_TYPE(om::EffectListRef,            om::EffectList::DmType,                RegisterGameObjectType) \
