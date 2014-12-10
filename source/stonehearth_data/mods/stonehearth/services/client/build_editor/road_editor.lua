@@ -11,12 +11,12 @@ local MODEL_OFFSET = Point3(-0.5, 0, -0.5)
 local RoadEditor = class()
 
 
-function RoadEditor:_region_to_road_regions(total_region, origin)
+function RoadEditor:_region_to_road_regions(total_region, origin, build_curb)
    local proj_curb_region = Region2()
    local road_region = Region3()
    local curb_region = nil
 
-   if total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
+   if build_curb and total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
       -- If we're big enough, add a curb along the edge.
       local edges = total_region:get_edge_list()
       curb_region = Region3()
@@ -84,7 +84,7 @@ function RoadEditor:go(response, road_uri, curb_uri)
       :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_filter())
       :use_manual_marquee(function(selector, box)
             local proj_region = Region3(box):project_onto_xz_plane():to_int()
-            local curb_region, road_region = self:_region_to_road_regions(proj_region, box.min)
+            local curb_region, road_region = self:_region_to_road_regions(proj_region, box.min, curb_uri ~= nil)
             local model_region = road_brush:paint_through_stencil(road_region)
             if curb_region and curb_uri then
                model_region:add_region(curb_brush:paint_through_stencil(curb_region))

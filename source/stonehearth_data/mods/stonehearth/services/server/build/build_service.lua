@@ -172,11 +172,11 @@ end
 
 -- Given a Region2 total_region, convert that into a road region, return both the curb
 -- and the road.
-function BuildService:_region_to_road_regions(total_region, origin)
+function BuildService:_region_to_road_regions(total_region, origin, build_curb)
    local proj_curb_region = Region2()
    local road_region = Region3()
    local curb_region = nil
-   if total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
+   if build_curb and total_region:get_bounds():width() >= 3 and total_region:get_bounds():height() >= 3 then
       local edges = total_region:get_edge_list()
       curb_region = Region3()
       for edge in edges:each_edge() do
@@ -291,7 +291,7 @@ function BuildService:add_road(session, road_uri, curb_uri, box)
 
    if not next(all_overlapping_road) then
       local building = self:_create_new_building(session, origin)
-      local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin)
+      local curb_region, road_region = self:_region_to_road_regions(proj_total_region, origin, curb_uri ~= nil)
 
       if curb_region and curb_uri then
          curb_region:subtract_region(clip_against_curbs)
@@ -600,7 +600,7 @@ function BuildService:_merge_overlapping_roads(existing_roads, new_road_uri, new
    self:_merge_floors_into_building(existing_roads, parent_building)
 
    -- Construct the road regions.  FIXME: slightly wrong, should send in params for the curb.
-   local new_curb_region, new_road_region = self:_region_to_road_regions(new_total_road_region, origin)
+   local new_curb_region, new_road_region = self:_region_to_road_regions(new_total_road_region, origin, new_curb_uri ~= nil)
 
    -- Build a new region that is the road region, extruded up a bit (enough to encompass any 
    -- existing curb).
