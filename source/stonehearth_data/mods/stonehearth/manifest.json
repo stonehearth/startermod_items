@@ -223,8 +223,6 @@
       "berry_bush" : "file(entities/plants/berry_bush)",
       "tilled_dirt" : "file(entities/terrain/tilled_dirt)",
 
-      
-
       "turnip_serving" : "file(entities/plants/turnip/turnip_serving)",
       "turnip_basket" : "file(entities/plants/turnip/turnip_basket)",
       "tester_serving" : "file(entities/plants/tester/tester_serving)",
@@ -253,6 +251,9 @@
       "furniture:simple_wooden_chair:fine" : "file(entities/furniture/simple_wooden_chair_fine)",
       "furniture:comfy_chair" : "file(entities/furniture/comfy_chair)",
       "furniture:comfy_chair:fine" : "file(entities/furniture/comfy_chair_fine)",
+      "furniture:stone_chair" : "file(entities/furniture/stone_chair)",
+      "furniture:stone_table" : "file(entities/furniture/stone_table)",
+      "furniture:stone_bench" : "file(entities/furniture/stone_bench)",
 
       "portals:wooden_door" : "file(entities/construction/wooden_door)",
       "portals:wooden_door_2" : "file(entities/construction/wooden_door_2)",
@@ -277,6 +278,9 @@
       "decoration:wooden_wall_lantern:fine" : "file(entities/decoration/wooden_wall_lantern_fine)",
       "decoration:wooden_garden_lantern" : "file(entities/decoration/wooden_garden_lantern)",
       "decoration:wooden_garden_lantern:fine" : "file(entities/decoration/wooden_garden_lantern_fine)",
+      "decoration:bird_bath" : "file(entities/decoration/bird_bath)",
+      "decoration:stone_garden_lantern" : "file(entities/decoration/stone_garden_lantern)",
+      "decoration:gargoyle" : "file(entities/decoration/gargoyle)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",

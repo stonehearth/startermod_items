@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Bird Bath",
+   "description" : "A decorative stone vase with water for the birdies.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/bird_bath/bird_bath.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:bird_bath"
+      }
+  ]
+}

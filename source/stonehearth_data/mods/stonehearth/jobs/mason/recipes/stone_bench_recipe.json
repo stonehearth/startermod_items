@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stone Bench",
+   "description" : "Outdoor seating for moments of relaxation.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/furniture/stone_bench/stone_bench.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:stone_bench"
+      }
+  ]
+}

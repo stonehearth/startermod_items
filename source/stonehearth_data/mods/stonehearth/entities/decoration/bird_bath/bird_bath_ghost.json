@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(bird_bath.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Bird Bath",
+         "description": "Tranquil.",
+         "icon" : "file(bird_bath.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone decoration crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}
