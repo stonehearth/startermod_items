@@ -43,6 +43,8 @@ struct Mesh {
    Mesh& FlipFaces();
    Mesh& AddVertices(Mesh const& other);
 
+   bool IsEmpty() const;
+
    // This is the one, true add face.  move over to it...
    template <class S> void AddRegion(Region<S, 2> const& region, PlaneInfo<S, 3> const& pi);
    template <class S> void AddRect(Cube<S, 2> const& region, PlaneInfo<S, 3> const& pi);

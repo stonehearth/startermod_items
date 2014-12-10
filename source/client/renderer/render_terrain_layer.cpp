@@ -65,7 +65,11 @@ void RenderTerrainLayer::EndUpdate()
       which += 2;
    }
 
-   _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
-                           ->SetMaterial("materials/terrain.material.xml")
-                           ->SetUserFlags(UserFlags::Terrain);
+   if (mesh.IsEmpty()) {
+      _node.reset();
+   } else {
+      _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
+                              ->SetMaterial("materials/terrain.material.xml")
+                              ->SetUserFlags(UserFlags::Terrain);
+   }
 }
