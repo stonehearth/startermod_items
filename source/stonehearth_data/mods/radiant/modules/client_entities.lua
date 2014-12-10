@@ -39,11 +39,11 @@ function client_entities.destroy_entity(entity)
       if entity_forms then
          local iconic_entity = entity_forms:get_iconic_entity()
          if iconic_entity then
-             _radiant.client.destroy_authoring_entity(iconic_entity)
+             _radiant.client.destroy_authoring_entity(iconic_entity:get_id())
          end
          local ghost_entity = entity_forms:get_ghost_entity()
          if ghost_entity then
-             _radiant.client.destroy_authoring_entity(ghost_entity)
+             _radiant.client.destroy_authoring_entity(ghost_entity:get_id())
          end
       end
       --If we're the little one, call destroy on the big one and exit
