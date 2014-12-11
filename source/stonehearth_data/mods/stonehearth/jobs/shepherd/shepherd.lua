@@ -1,10 +1,13 @@
 local ShepherdClass = class()
 local job_helper = require 'jobs.job_helper'
+local rng = _radiant.csg.get_default_rng()
 
 --- Public functions, required for all classes
 
 function ShepherdClass:initialize(entity)
    job_helper.initialize(self._sv, entity)
+   self._sv.last_found_critter_time = nil
+
    self:restore()
 end
 
@@ -105,11 +108,41 @@ function ShepherdClass:remove_trailing_animal(animal_id)
 
    assert(self._sv.num_trailed_animals >= 0, 'shepherd trying to remove animals he does not have')
 
-   --If we have no animals, remove the shepherding speed debuf
+--If we have no animals, remove the shepherding speed debuf
    if self._sv.num_trailed_animals == 0 then
       radiant.entities.remove_buff(self._sv._entity, 'stonehearth:buffs:shepherding')
       radiant.entities.unset_posture(self._sv._entity, 'stonehearth:patrol')
    end 
+end
+
+--Returns true if the shepherd was able to find an animal, false otherwise
+--Depends on % bonus chance that increases as Shepherd levels, and time since last
+--critter was found. 
+--Starting shepherd: 100% chance if we've never found a critter before
+--0% chance if we JUST found another critter
+--100% chance if 24 in game hours have past since the last critter
+--As shepherd levels up, bonus is added to % chance
+function ShepherdClass:can_find_animal_in_world()
+   local curr_elapsed_time = stonehearth.calendar:get_elapsed_time()
+   local constants = stonehearth.calendar:get_constants()
+   if not self._sv.last_found_critter_time then
+      self._sv.last_found_critter_time = curr_elapsed_time
+      return true
+   else
+      --Calc difference between curr time and last found critter time
+      local elapsed_difference = curr_elapsed_time - self._sv.last_found_critter_time
+      --convert ms to hours
+      local elapsed_hours = elapsed_difference / (constants.seconds_per_minute*constants.minutes_per_hour)
+      local percent_chance = (elapsed_hours / constants.hours_per_day) * 100
+      --TODO: 
+      --percent_chance = percent_chance + self._sv.bonus
+      local roll = rng:get_int(1, 100)  
+      if roll < percent_chance then
+         self._sv.last_found_critter_time = curr_elapsed_time
+         return true
+      end
+   end
+   return false
 end
 
 -- Private Functions

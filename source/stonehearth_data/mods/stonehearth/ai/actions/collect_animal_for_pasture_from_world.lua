@@ -48,15 +48,18 @@ function CollectAnimalFromWorld:run(ai, entity, args)
       ai:execute('stonehearth:wander', {radius = 100, radius_min = 30})
       ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
 
-      --TODO: decrease likelihood of animal popping either after the 1st or on a timer
-
-      -- pop an animal near where we've wandered
-      local origin = radiant.entities.get_world_grid_location(entity)
-      local placementPoint = radiant.terrain.find_placement_point(origin, 1, 20)
-      if placementPoint then
-         local animal_type = pasture_component:get_pasture_type()
-         local animal = radiant.entities.create_entity(animal_type)
-         radiant.terrain.place_entity(animal, placementPoint)
+      local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
+      if shepherd_class and shepherd_class.can_find_animal_in_world then
+         if shepherd_class:can_find_animal_in_world() then
+            -- pop an animal near where we've wandered
+            local origin = radiant.entities.get_world_grid_location(entity)
+            local placementPoint = radiant.terrain.find_placement_point(origin, 1, 20)
+            if placementPoint then
+               local animal_type = pasture_component:get_pasture_type()
+               local animal = radiant.entities.create_entity(animal_type)
+               radiant.terrain.place_entity(animal, placementPoint)
+            end
+         end
       end
    end
    --At this point, hopefully the other function should take over
