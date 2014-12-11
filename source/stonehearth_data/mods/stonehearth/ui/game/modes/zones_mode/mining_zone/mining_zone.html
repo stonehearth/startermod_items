@@ -2,16 +2,21 @@
    <div id="miningZoneWindow" class="gui">
       <div class="window">
          <div class="title">
-            <input id="name" onClick="this.select();" type="text" {{bind-attr value=unit_info.name}} /> <div class="closeButton"></div>
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=view.model.unit_info.name}} /> <div class="closeButton"></div>
          </div>
 
          <p>{{i18n stonehearth:mining_zone_help}}</p>
-         <center>
-            
-         </center>
 
          <button class="warn">{{i18n stonehearth:remove}}</button>
-         <button id="disableButton">{{i18n stonehearth:mining_zone_disable}}</button>
+
+         <button id="disableButton">
+            {{#if view.model.stonehearth:mining_zone.enabled}}
+               {{i18n stonehearth:mining_zone_disable}}
+            {{else}}
+               {{i18n stonehearth:mining_zone_enable}}
+            {{/if}}
+         </button>
+
          <button class="ok"></button>
       </div>
    </div>

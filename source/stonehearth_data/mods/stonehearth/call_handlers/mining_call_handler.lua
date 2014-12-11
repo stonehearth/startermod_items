@@ -259,16 +259,4 @@ function MiningCallHandler:add_mining_zone(session, response, region_table, mode
    return { mining_zone = mining_zone }
 end
 
-function MiningCallHandler:get_mining_zone_enabled(session, response, mining_zone)
-   local mining_zone_component = mining_zone:add_component('stonehearth:mining_zone')
-   local enabled = mining_zone_component:get_mining_zone_enabled()
-   return { enabled = enabled }
-end
-
-function MiningCallHandler:set_mining_zone_enabled(session, response, mining_zone, enabled)
-   local mining_zone_component = mining_zone:add_component('stonehearth:mining_zone')
-   mining_zone_component:set_mining_zone_enabled(enabled)
-   return {}   
-end
-
 return MiningCallHandler
