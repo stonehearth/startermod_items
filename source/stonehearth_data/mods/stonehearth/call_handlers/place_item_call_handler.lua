@@ -89,7 +89,21 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             if radiant.terrain.is_blocked(cursor, location) then
                -- if the space occupied by the cursor is blocked, we definitely can't
                -- place the item there
-               return nil
+               return false
+            end
+
+            local designation = radiant.entities.get_entity_data(entity, 'stonehearth:designation')
+            if designation then
+               if designation.allow_placed_items then
+                  return stonehearth.selection.FILTER_IGNORE
+               else
+                  return false
+               end
+            end
+
+            local rcs = entity:get_component('region_collision_shape')
+            if rcs and rcs:get_region_collision_type() == _radiant.om.RegionCollisionShape.NONE then
+               return stonehearth.selection.FILTER_IGNORE
             end
 
             local wall_ok = entity_forms:is_placeable_on_wall() and normal.y == 0 
