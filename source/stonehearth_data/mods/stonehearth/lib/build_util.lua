@@ -6,6 +6,8 @@ local Quaternion = _radiant.csg.Quaternion
 
 local build_util = {}
 
+local roation_eps = 0.01
+
 local SAVED_COMPONENTS = {
    ['stonehearth:wall'] = true,
    ['stonehearth:column'] = true,
@@ -40,16 +42,16 @@ function build_util.normal_to_rotation(normal)
 end
 
 function build_util.rotation_to_normal(rotation)
-   if rotation == 0 then
+   if math.abs(rotation) < roation_eps then
       return Point3(0, 0, -1)
-   elseif rotation == 90 then
+   elseif math.abs(rotation - 90) < roation_eps then
       return Point3(-1, 0, 0)
-   elseif rotation == 180 then
+   elseif math.abs(rotation - 180) < roation_eps then
       return Point3(0, 0, 1)
-   elseif rotation == 270 then
+   elseif math.abs(rotation - 270) < roation_eps then
       return Point3(1, 0, 0)
    end
-   assert(false, string.format('non-aligned rotation %.2f in rotation_to_normal()', rotation))
+   assert(false, string.format('non-aligned rotation %f in rotation_to_normal()', rotation))
 end
 
 local function for_each_child(entity, fn)
