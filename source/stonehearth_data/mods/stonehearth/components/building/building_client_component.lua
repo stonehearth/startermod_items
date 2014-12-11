@@ -49,5 +49,7 @@ function BuildingClientComponent:get_building_footprint()
                                        :get_region()
 end
 
+function BuildingClientComponent:finish_restoring_template()
+end
 
 return BuildingClientComponent

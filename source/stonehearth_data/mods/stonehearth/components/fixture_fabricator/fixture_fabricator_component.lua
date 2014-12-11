@@ -251,23 +251,27 @@ function FixtureFabricator:save_to_template()
 end
 
 function FixtureFabricator:load_from_template(template, options, entity_map)  
+   self._template = template
+end
 
-   radiant.events.listen_once(entity_map, 'finished_loading', function()
-         local normal = Point3(template.normal.x, template.normal.y, template.normal.z)
-         local rotation = template.rotation
-         
-         if self._post_load_rotation then
-            normal = normal:rotated(self._post_load_rotation)
-            if rotation then
-               rotation = build_util.rotated_degrees(rotation, self._post_load_rotation)
-            end
-            self._post_load_rotation = nil
-         end
-         stonehearth.build:add_fixture_fabricator(self._entity,
-                                                  template.fixture_uri,
-                                                  normal,
-                                                  rotation)
-      end)
+function FixtureFabricator:finish_restoring_template()
+   local template = self._template
+   self._template = nil
+   
+   local normal = Point3(template.normal.x, template.normal.y, template.normal.z)
+   local rotation = template.rotation
+   
+   if self._post_load_rotation then
+      normal = normal:rotated(self._post_load_rotation)
+      if rotation then
+         rotation = build_util.rotated_degrees(rotation, self._post_load_rotation)
+      end
+      self._post_load_rotation = nil
+   end
+   stonehearth.build:add_fixture_fabricator(self._entity,
+                                            template.fixture_uri,
+                                            normal,
+                                            rotation)
 end
 
 function FixtureFabricator:rotate_structure(degrees)

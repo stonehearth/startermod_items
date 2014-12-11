@@ -351,8 +351,8 @@ function build_util.restore_template(building, template_name, options)
       rotate_entity(building)
    end
 
-   -- intentionally synchronous trigger
-   radiant.events.trigger(entity_map, 'finished_loading')
+   building:get_component('stonehearth:building')
+               :finish_restoring_template()
 
    if options.mode ~= 'preview' then
       local roof
