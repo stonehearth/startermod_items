@@ -1037,14 +1037,6 @@
          "controller" : "file(call_handlers/mining_call_handler.lua)",
          "endpoint" : "server"
       },
-      "get_mining_zone_enabled": {
-         "controller" : "file(call_handlers/mining_call_handler.lua)",
-         "endpoint" : "server"
-      },
-      "set_mining_zone_enabled": {
-         "controller" : "file(call_handlers/mining_call_handler.lua)",
-         "endpoint" : "server"
-      },
       "get_build_editor": {
          "controller" : "file(call_handlers/build_call_handler.lua)",
          "endpoint" : "client"

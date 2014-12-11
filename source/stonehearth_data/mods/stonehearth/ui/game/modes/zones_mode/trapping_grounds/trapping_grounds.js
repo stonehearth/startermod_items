@@ -1,5 +1,6 @@
 App.StonehearthTrappingGroundsView = App.View.extend({
    templateName: 'stonehearthTrappingGrounds',
+   uriProperty: 'model',
    closeOnEsc: true,
 
    components: {
