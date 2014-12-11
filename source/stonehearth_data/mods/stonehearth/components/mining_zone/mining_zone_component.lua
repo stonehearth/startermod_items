@@ -58,7 +58,8 @@ function MiningZoneComponent:initialize(entity, json)
       -- do this last as it fires off the region changed events
       self:set_region(_radiant.sim.alloc_region3())
 
-      self._sv.mining_zone_enabled = true
+      self._sv.enabled = true
+      self._sv.selectable = true
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -124,17 +125,33 @@ function MiningZoneComponent:mine_point(point)
    return loot
 end
 
-function MiningZoneComponent:set_mining_zone_enabled(enabled)
-   if self._sv.mining_zone_enabled == enabled then
+function MiningZoneComponent:get_enabled()
+   return self._sv.enabled
+end
+
+function MiningZoneComponent:set_enabled(enabled)
+   if self._sv.enabled == enabled then
       return
    end
 
-   self._sv.mining_zone_enabled = enabled
+   self._sv.enabled = enabled
+   self.__saved_variables:mark_changed()
+
    self:_update_mining_task()
 end
 
-function MiningZoneComponent:get_mining_zone_enabled()
-   return self._sv.mining_zone_enabled
+function MiningZoneComponent:set_enabled_command(session, response, enabled)
+   self:set_enabled(enabled)
+   return {}
+end
+
+function MiningZoneComponent:get_selectable()
+   return self._sv.selectable
+end
+
+function MiningZoneComponent:set_selectable(selectable)
+   self._sv.selectable = selectable
+   self.__saved_variables:mark_changed()
 end
 
 function MiningZoneComponent:_trace_region()
@@ -470,7 +487,7 @@ function MiningZoneComponent:_destroy_mining_task()
 end
 
 function MiningZoneComponent:_update_mining_task()
-   if self._sv.mining_zone_enabled then
+   if self._sv.enabled then
       self:_create_mining_task()
    else
       self:_destroy_mining_task()

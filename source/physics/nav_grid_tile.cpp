@@ -116,6 +116,12 @@ bool NavGridTile::IsBlocked(csg::Region3 const& region)
 }
 
 
+bool NavGridTile::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& offset)
+{
+   RefreshTileData();
+   return data_->CanPassThrough(entity, offset);
+}
+
 /*
  * -- NavGridTile::IsSupport
  *
@@ -222,15 +228,12 @@ void NavGridTile::RefreshTileData()
  */
 void NavGridTile::MarkDirty(TrackerType t)
 {
-   // MOVEMENT_MODIFIER isn't a bit-vector, but sure dirties like one!
-   if (t < NUM_BIT_VECTOR_TRACKERS || t == MOVEMENT_MODIFIER) {
+   if (t < NUM_BIT_VECTOR_TRACKERS) {
       NG_LOG(7) << "marking grid tile " << _index << " as dirty (tracker type:" << t << ")";
       _ng.SignalTileDirty(_index);
-      if (data_) {
-         data_->MarkDirty(t);
-      }
-   } else  {
-      NG_LOG(7) << "not-marking grid tile " << _index << " as dirty (tracker type:" << t << " not a collision type)";
+   }
+   if (data_) {
+      data_->MarkDirty(t);
    }
 }
 

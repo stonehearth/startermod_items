@@ -576,6 +576,7 @@ function Fabricator:_update_mining_region()
    local mining_zone = stonehearth.mining:dig_region(player_id, world_region)
    
    if mining_zone and not self._mining_zones[mining_zone] then
+      mining_zone:add_component('stonehearth:mining_zone'):set_selectable(false)
       local mining_dst = mining_zone:get_component('destination')
       self._mining_zones[mining_zone] = mining_dst
 

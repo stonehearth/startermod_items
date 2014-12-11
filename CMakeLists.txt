@@ -137,6 +137,9 @@ IF(VTUNE_PATH)
    MESSAGE(" **    libs:    ${VTune_LIBRARIES}  **")
 ENDIF()
 
+# Add /LTCG to speed up builds with WPO.
+SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+
 add_subdirectory(source)
 
 

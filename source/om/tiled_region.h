@@ -23,6 +23,7 @@ public:
    csg::Point3 GetTileSize() const;
    std::shared_ptr<T> FindTile(csg::Point3 const& index); // returns nulltr if not found
    std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
+   void Clear();
    void ClearTile(csg::Point3 const& index);
    IndexSet const& GetChangedSet() const { return _changed_set; }
    void ClearChangedSet();
@@ -61,6 +62,7 @@ public:
    typedef std::function<void(csg::Region3&)> ModifyRegionFn;
 
    TileMapWrapper() {}
+   virtual void Clear() = 0;
    virtual int NumTiles() = 0;
    virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) = 0; // returns nulltr if not found
    virtual std::shared_ptr<T> GetTile(csg::Point3 const& index) = 0; // creates tile if not found
@@ -74,6 +76,8 @@ public:
    typedef std::unordered_map<csg::Point3, std::shared_ptr<csg::Region3>, csg::Point3::Hash> TileMap;
 
    Region3MapWrapper(TileMap& tiles);
+
+   void Clear();
    int NumTiles();
    std::shared_ptr<csg::Region3> FindTile(csg::Point3 const& index);
    std::shared_ptr<csg::Region3> GetTile(csg::Point3 const& index);
@@ -90,6 +94,8 @@ public:
    typedef dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash> TileMap;
 
    Region3BoxedMapWrapper(TileMap& tiles);
+
+   void Clear();
    int NumTiles();
    Region3BoxedPtr FindTile(csg::Point3 const& index);
    Region3BoxedPtr GetTile(csg::Point3 const& index);

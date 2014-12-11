@@ -56,3 +56,12 @@ om::Region3fBoxedPtr MovementModifierShapeTracker::GetRegion() const
    }
    return nullptr;
 }
+
+float MovementModifierShapeTracker::GetPercentBonus()
+{
+   om::MovementModifierShapePtr mms = mms_.lock();
+   if (mms) {
+      return mms->GetModifier();
+   }
+   return 0;
+}

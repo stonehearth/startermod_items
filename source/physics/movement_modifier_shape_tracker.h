@@ -12,6 +12,7 @@ public:
    virtual ~MovementModifierShapeTracker();
 
    void Initialize() override;   
+   float GetPercentBonus();
 
 protected: // RegionTracker implementation
    om::Region3fBoxedPtr GetRegion() const override;

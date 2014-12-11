@@ -15,7 +15,9 @@ function PlacementTest:__init()
    local citizen = self:place_citizen(12, 12)
    local citizen = self:place_citizen(12, 12)
    local citizen = self:place_citizen(12, 12)
-   
+
+   self:place_item('stonehearth:sheep', 6, 6)
+
    local player_id = citizen:get_component('unit_info'):get_player_id()
    
    self:_place_all_items()

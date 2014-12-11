@@ -85,6 +85,7 @@ template <typename T>
 static scope RegisterTiledRegion(const char* name)
 {
    return lua::RegisterTypePtr_NoTypeInfo<TiledRegion<T>>(name)
+      .def("clear",                  &TiledRegion<T>::Clear)
       .def("add_point",              &TiledRegion<T>::AddPoint)
       .def("add_cube",               &TiledRegion<T>::AddCube)
       .def("add_region",             &TiledRegion<T>::AddRegion)

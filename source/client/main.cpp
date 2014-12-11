@@ -11,13 +11,12 @@ int lua_main(int argc, const char** argv)
    CefRefPtr<CefApp> app = new chromium::App;
    CefMainArgs main_args(GetModuleHandle(NULL));
 
-   // The chromium embedded process is the current executable launched with certain parameters (defined by chrome)
-   // CefExecuteProcess returns true to the parent process
-   // CefExecuteProcess does not return in the child process
-   if (!CefExecuteProcess(main_args, app, nullptr)) {
-      throw std::exception("Chromium embedded failed to start");
+   // CefExecuteProcess returns -1 if we're the main app (i.e. the browser process).
+   // All the sample code and documentation uses >= 0 to verify this, so that's
+   // what I'm doing too.
+   int exitcode = CefExecuteProcess(main_args, app, nullptr);
+   if (exitcode >= 0) {
+      return exitcode;
    }
-
-   // Child process never gets here
    return radiant::client::Application().Run(argc, argv);
 }

@@ -27,16 +27,21 @@ public:
    void MarkDirty(TrackerType t);
    float GetMovementSpeedBonus(csg::Point3 const& offset);
    float GetMaxMovementSpeedBonus();
+   bool CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& offset);
 
 private:
+   enum {
+      NUM_BITSETS = 3, // COLLISION, TERRAIN, and LADDER...
+   };
    typedef std::bitset<TILE_SIZE*TILE_SIZE*TILE_SIZE> BitSet;
 
    template <TrackerType Type> bool IsMarked(int bit_index);
-   template <TrackerType Type> BitSet& GetBitVector();
-   template <TrackerType Type> void UpdateTileData();
-   template <int TrackerMask, TrackerType BitVectorType> void UpdateTileDataForTrackers();
+   template <TrackerType Type> __forceinline BitSet& GetBitVector();
+   template <TrackerType Type> __forceinline void UpdateTileData();
+   template <int TrackerMask, TrackerType BitVectorType> __forceinline void UpdateTileDataForTrackers();
 
    void UpdateMovementSpeedBonus();
+   void UpdateMovementGuardMap();
    inline int Offset(int x, int y, int z);
    void UpdateCollisionTracker(CollisionTracker const& tracker, csg::Cube3 const& world_bounds);
    void UpdateCanStand(NavGrid& ng, csg::Cube3 const& world_bounds);
@@ -50,9 +55,11 @@ private:
 private:
    NavGridTile&   _ngt;
    int            dirty_;
-   BitSet         marked_[3]; // COLLISION, TERRAIN, and LADDER...
+   BitSet         marked_[NUM_BITSETS];
    float          _movementSpeedBonus[TILE_SIZE*TILE_SIZE*TILE_SIZE];
    float          _maxMovementSpeedBonus;
+   BitSet         _movementGuardBits;
+   std::vector<MovementGuardShapeTrackerRef> _movementGuardTrackers;
 };
 
 

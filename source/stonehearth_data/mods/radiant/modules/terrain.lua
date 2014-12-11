@@ -381,6 +381,10 @@ function Terrain._get_terrain_component()
    return radiant._root_entity:add_component('terrain')
 end
 
+function Terrain.clear()
+   Terrain._get_terrain_tiles():clear()
+end
+
 function Terrain._get_terrain_tiles()
    local terrain_component = Terrain._get_terrain_component()
    return terrain_component:get_tiles()

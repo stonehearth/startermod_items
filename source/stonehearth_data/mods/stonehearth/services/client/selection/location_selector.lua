@@ -267,6 +267,10 @@ function LocationSelector:_on_keyboard_event(e)
       if deltaRot ~= 0 then
          local new_rotation = (self._rotation + deltaRot) % 360
          self:set_rotation(new_rotation)
+
+         -- remember the last rotation for the next time we bring up another
+         -- LocationSelector.
+         LocationSelector.last_rotation = new_rotation
       end
    end
 end
@@ -282,7 +286,7 @@ function LocationSelector:go()
       self._cursor_obj = _radiant.client.set_cursor(self._cursor)
    end
    
-   self._rotation = 0
+   self._rotation = LocationSelector.last_rotation or 0
    self._invalid_cursor = nil
    stonehearth.selection:register_tool(self, true)
 

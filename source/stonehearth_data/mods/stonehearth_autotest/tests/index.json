@@ -63,6 +63,7 @@
                   "file(end_to_end/food_autotests.lua)",
                   "file(end_to_end/placement_autotests.lua)",
                   "file(end_to_end/sensor_autotests.lua)",
+                  "file(end_to_end/roads_autotests.lua)",
                   "file(end_to_end/gravity_autotests.lua)"
                ]
             },
@@ -106,7 +107,8 @@
                "name" : "blackbox tests",
                "scripts" : [
                   "file(blackbox/region_autotests.lua)",
-                  "file(blackbox/calendar_autotests.lua)"
+                  "file(blackbox/calendar_autotests.lua)",
+                  "file(blackbox/pathfinder_autotests.lua)"
                ]
             },
 

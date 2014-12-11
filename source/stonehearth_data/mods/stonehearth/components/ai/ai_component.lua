@@ -333,7 +333,7 @@ function AIComponent:_create_task_dispacher(parent_activity, info)
    local dispatcher = ALL_DISPATCHERS[key]
    if not dispatcher then      
       local TaskDispacher = class()
-      TaskDispacher.name = parent_activity .. ' dispatcher'
+      TaskDispacher.name = info.does .. ' dispatcher'
       TaskDispacher.does = parent_activity
       TaskDispacher.args = {}
       TaskDispacher.version = 2

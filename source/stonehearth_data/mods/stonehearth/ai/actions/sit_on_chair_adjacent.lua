@@ -10,20 +10,25 @@ SitOnChairAdjacent.version = 2
 SitOnChairAdjacent.priority = 1
 
 function SitOnChairAdjacent:run(ai, entity, args)
+   local mob = entity:get_component('mob')
    local chair = args.chair
 
-   self._current_location = entity:get_component('mob'):get_location()
-   entity:get_component('mob'):move_to(chair:get_component('mob'):get_location())
-   
-   local q = chair:get_component('mob'):get_rotation()
-   entity:get_component('mob'):set_rotation(q)
+   local chair_location = radiant.entities.get_world_grid_location(chair)
+   local chair_rotation = chair:get_component('mob')
+                                 :get_rotation()
+
+   self._current_location = radiant.entities.get_world_grid_location(entity)
+
+   mob:set_rotation(chair_rotation)
+      :move_to(chair_location)
 
    radiant.entities.set_posture(entity, 'stonehearth:sitting_on_chair')
 end
 
 function SitOnChairAdjacent:stop(ai, entity, args)
    if self._current_location then
-      entity:get_component('mob'):move_to(self._current_location)
+      entity:get_component('mob')
+               :move_to(self._current_location)
       self._current_location = nil
    end
    radiant.entities.unset_posture(entity, 'stonehearth:sitting_on_chair')

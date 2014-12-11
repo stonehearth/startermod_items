@@ -14,6 +14,7 @@ add_library(physics STATIC
             sensor_tracker.cpp
             sensor_tile_tracker.cpp
             destination_tracker.cpp
+            movement_guard_shape_tracker.cpp
             movement_modifier_shape_tracker.cpp
             region_collision_shape_tracker.cpp
             vertical_pathing_region_tracker.cpp

@@ -646,10 +646,22 @@ function Building:load_from_template(template, options, entity_map)
    self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
 
    self.__saved_variables:mark_changed()
+end
 
-   radiant.events.listen_once(entity_map, 'finished_loading', function()
-         self:_restore_structure_traces()
-      end)
+function Building:finish_restoring_template()
+   self:_restore_structure_traces()
+
+   self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
+                              :finish_restoring_template()
+
+   for _, structures in pairs(self._sv.structures) do
+      for _, entry in pairs(structures) do
+         local cp = entry.entity:get_component('stonehearth:construction_progress')
+         if cp then
+            cp:finish_restoring_template()
+         end
+      end
+   end
 end
 
 return Building
