@@ -269,7 +269,7 @@ function Building:_trace_entity(entity, loading)
       end)
 
    if entity:get_component('stonehearth:roof') then
-      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof')
+      local trace = entity:get_component('stonehearth:construction_data'):trace_data('layout roof', TraceCategories.SYNC_TRACE)
                               :on_changed(function()
                                     self:layout_roof(entity)
                                  end)
