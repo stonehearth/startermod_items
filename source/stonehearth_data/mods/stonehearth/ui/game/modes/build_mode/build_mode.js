@@ -10,8 +10,8 @@ App.StonehearthBuildModeView = App.ContainerView.extend({
 
    // Sigh--keep in sync with mods/stonehearth/constants.lua
    constants : {
-      ROAD: 2,
-      CURB: 4
+      ROAD: 'road',
+      CURB: 'curb'
    },
 
    init: function() {
