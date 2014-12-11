@@ -104,6 +104,12 @@ csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f)
 }
 
 template <typename T>
+void TiledRegion<T>::Clear()
+{
+   _tile_wrapper->Clear();
+}
+
+template <typename T>
 void TiledRegion<T>::ClearTile(csg::Point3 const& index)
 {
    // avoid creating the tile if it doesn't already exist
@@ -162,6 +168,14 @@ Region3MapWrapper::Region3MapWrapper(TileMap& tiles) :
    _tiles(tiles)
 {}
 
+
+void Region3MapWrapper::Clear()
+{
+   for (auto const& entry : _tiles) {
+      entry.second->Clear();
+   }
+}
+
 int Region3MapWrapper::NumTiles()
 {
    return _tiles.size();
@@ -210,6 +224,15 @@ Region3BoxedMapWrapper::Region3BoxedMapWrapper(TileMap& tiles) :
    _tiles(tiles),
    _store(tiles.GetStore())
 {}
+
+void Region3BoxedMapWrapper::Clear()
+{
+   for (auto const& entry : _tiles) {
+      entry.second->Modify([](csg::Region3& cursor) {
+         cursor.Clear();
+      });
+   }
+}
 
 int Region3BoxedMapWrapper::NumTiles()
 {

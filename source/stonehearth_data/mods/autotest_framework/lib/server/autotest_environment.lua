@@ -1,9 +1,13 @@
+local Cube3 = _radiant.csg.Cube3
 local Point3  = _radiant.csg.Point3
 
 local _all_entities = {}
 
 local env = {}
-function env.create_world(world_generator_script)
+
+function env.set_world_generator_script(world_generator_script)
+   env.create_world_fn = radiant.mods.load_script(world_generator_script)
+
    env.session = {
       player_id = 'player_1',
    }
@@ -12,10 +16,14 @@ function env.create_world(world_generator_script)
    stonehearth.population:add_population(env.session, 'stonehearth:kingdoms:ascendancy')
    stonehearth.terrain:get_visible_region(env.session.player_id)
    stonehearth.terrain:get_explored_region(env.session.player_id)
+   env.town = stonehearth.town:get_town(env.session.player_id)
 
-   local create_world = radiant.mods.load_script(world_generator_script)
-   env._reset_camera()
-   env.world = create_world(env)
+   local session = {
+      player_id = 'enemy',
+   }
+   stonehearth.inventory:add_inventory(session)
+   stonehearth.town:add_town(session)
+   stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')      
 
    -- listen for every entity creation event sGo we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)
@@ -27,10 +35,12 @@ function env.create_world(world_generator_script)
    radiant.events.listen(radiant, 'radiant:entity:post_destroy', function(e)
          _all_entities[e.entity_id] = nil
       end)
+end
 
-   env.town = stonehearth.town:get_town(env.session.player_id)
-
-   env.create_enemy_kingdom()
+function env.create_world(world_generator_script)
+   radiant.terrain.clear()
+   env.world = env.create_world_fn(env)
+   env._reset_camera()
 end
 
 function env.get_player_id()
@@ -43,16 +53,6 @@ end
 
 function env.get_player_session()
    return env.session
-end
-
-function env.create_enemy_kingdom()
-   local session = {
-      player_id = 'enemy',
-   }
-
-   stonehearth.inventory:add_inventory(session)
-   stonehearth.town:add_town(session)
-   stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
 end
 
 function env.clear()

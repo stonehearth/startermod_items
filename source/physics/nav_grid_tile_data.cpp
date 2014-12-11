@@ -7,7 +7,8 @@
 #include "nav_grid_tile_data.h"
 #include "collision_tracker.h"
 #include "protocols/radiant.pb.h"
-#include "om/components/movement_modifier_shape.ridl.h"
+#include "movement_modifier_shape_tracker.h"
+#include "movement_guard_shape_tracker.h"
 
 using namespace radiant;
 using namespace radiant::phys;
@@ -37,7 +38,7 @@ NavGridTileData::~NavGridTileData()
 template <TrackerType Type>
 bool NavGridTileData::IsMarked(csg::Point3 const& offset)
 {
-   static_assert(Type >= 0 && Type < NUM_BIT_VECTOR_TRACKERS, "Type out of range in NavGridTileData");
+   static_assert(Type >= 0 && Type < NUM_BITSETS, "Type out of range in NavGridTileData");
    const int bitIndex = Offset(offset.x, offset.y, offset.z);
 
    ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
@@ -97,12 +98,11 @@ void NavGridTileData::UpdateTileDataForTrackers()
 
       // This code is on the critical path when pathing during construction; so, we avoid using Point3
       // iterators, and duplicate the loops in order to avoid an interior branch.
-      for (csg::Cube3 const& cube : EachCube(overlap)) {
+      for (csg::Cube3 const& cube : csg::EachCube(overlap)) {
          for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
             for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
                   int offset = Offset(x, y, z);
-
                   DEBUG_ONLY(
                      NG_LOG(9) << "marking (" << x << ", " << y << ", " << z << ") in vector " << DstType;
                   )
@@ -124,6 +124,7 @@ void NavGridTileData::UpdateMovementSpeedBonus()
    if ((dirty_ & dirtyMask) == 0) {
       return;
    }
+   dirty_ &= ~dirtyMask;
 
    _maxMovementSpeedBonus = 0;
    memset(_movementSpeedBonus, 0, sizeof _movementSpeedBonus);
@@ -133,22 +134,12 @@ void NavGridTileData::UpdateMovementSpeedBonus()
       if (tracker->GetType() != MOVEMENT_MODIFIER) {
          return false;     // keep going!
       }
-      om::EntityPtr entity = tracker->GetEntity();
-      if (!entity) {
-         return false;     // keep going!
-      }
-      auto mms = entity->GetComponent<om::MovementModifierShape>();
-      if (!mms) {
-         return false;     // keep going!
-      }
 
-      float percentBonus = mms->GetModifier();
+      float percentBonus = std::static_pointer_cast<MovementModifierShapeTracker>(tracker)->GetPercentBonus();
       _maxMovementSpeedBonus = std::max(_maxMovementSpeedBonus, percentBonus);
       csg::Region3 overlap = tracker->GetOverlappingRegion(worldBounds).Translated(-worldBounds.min);
 
-      // This code is on the critical path when pathing during construction; so, we avoid using Point3
-      // iterators, and duplicate the loops in order to avoid an interior branch.
-      for (csg::Cube3 const& cube : EachCube(overlap)) {
+      for (csg::Cube3 const& cube : csg::EachCube(overlap)) {
          for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
             for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
                for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
@@ -158,10 +149,9 @@ void NavGridTileData::UpdateMovementSpeedBonus()
             }
          }
       }
+
       return false;     // keep going!
    });
-
-   dirty_ &= ~dirtyMask;
 }
 
 
@@ -187,9 +177,74 @@ inline int NavGridTileData::Offset(int x, int y, int z)
 void NavGridTileData::MarkDirty(TrackerType t)
 {
    dirty_ |= (1 << t);
+
+   // Why do we need to do this? UpdateTileData<COLLISION>() already checks
+   // all 3 bits... - tony
    if (t == TERRAIN || t == PLATFORM) {
       dirty_ |= (1 << COLLISION);
    }
+}
+
+bool NavGridTileData::CanPassThrough(om::EntityPtr const& entity, csg::Point3 const& offset)
+{
+   UpdateMovementGuardMap();
+   if (_movementGuardTrackers.empty()) {
+      return true;
+   }
+
+   const int bitIndex = Offset(offset.x, offset.y, offset.z);
+   ASSERT(bitIndex >= 0 && bitIndex < TILE_SIZE * TILE_SIZE * TILE_SIZE);
+   if (!_movementGuardBits.test(bitIndex)) {
+      return true;
+   }
+
+   csg::Point3 location = _ngt.GetWorldBounds().min + offset;
+
+   for (MovementGuardShapeTrackerRef m : _movementGuardTrackers) {
+      MovementGuardShapeTrackerPtr tracker = m.lock();
+      if (tracker && !tracker->CanPassThrough(entity, location)) {
+         return false;
+      }
+   }
+   return true;
+}
+
+void NavGridTileData::UpdateMovementGuardMap()
+{
+   int dirtyMask = (1 << MOVEMENT_GUARD);
+   if ((dirty_ & dirtyMask) == 0) {
+      return;
+   }
+   dirty_ &= ~dirtyMask;
+
+   _movementGuardBits.reset();
+   _movementGuardTrackers.clear();
+
+   csg::Cube3 worldBounds = _ngt.GetWorldBounds();
+   _ngt.ForEachTracker([this, &worldBounds](CollisionTrackerPtr tracker) {
+      if (tracker->GetType() != MOVEMENT_GUARD) {
+         return false;  // keep going!
+      }
+
+      _movementGuardTrackers.push_back(std::static_pointer_cast<MovementGuardShapeTracker>(tracker));
+
+      csg::Region3 overlap = tracker->GetOverlappingRegion(worldBounds).Translated(-worldBounds.min);
+    
+      // This code is on the critical path when pathing during construction; so, we avoid using Point3
+      // iterators, and duplicate the loops in order to avoid an interior branch.
+      for (csg::Cube3 const& cube : csg::EachCube(overlap)) {
+         for (int y = cube.GetMin().y; y < cube.GetMax().y; y++) {
+            for (int x = cube.GetMin().x; x < cube.GetMax().x; x++) {
+               for (int z = cube.GetMin().z; z < cube.GetMax().z; z++) {
+                  int offset = Offset(x, y, z);
+                  _movementGuardBits.set(offset);
+               }
+            }
+         }
+      }
+
+      return false;     // keep going!
+   });
 }
 
 

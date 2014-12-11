@@ -61,6 +61,14 @@ _server.on[commands.SET_CAMERA_PATH_TYPE] = function(path_type, path_args)
    end
 end
 
+_server.on[commands.BEGIN_TEST] = function()
+   stonehearth.renderer:set_building_vision_mode('normal')
+end
+
+_server.on[commands.SET_BUILDING_VISION_MODE] = function(mode)
+   stonehearth.renderer:set_building_vision_mode(mode)
+end
+
 local ui_client = {}
 function ui_client._connect_browser_to_client(session, response)
    _browser:set_response(response)

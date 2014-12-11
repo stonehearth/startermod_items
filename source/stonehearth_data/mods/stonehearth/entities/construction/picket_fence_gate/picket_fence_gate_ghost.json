@@ -26,21 +26,23 @@
          "tags" : "wood defenses crafted"
       },
       
-      "mob" : {
-         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
-      },
-
-      "sensor_list": {
-         "sensors": {
-         "door_sensor": {
-               "type": "sensor",
-               "radius": 4
+      "stonehearth:portal" : {
+         "cutter" : [
+            {
+               "min": {
+                  "x" : -1,
+                  "y" : 0
+               },
+               "max" : {
+                  "x" : 2,
+                  "y" : 2
+               }
             }
-         }
+         ]
       },
-      "stonehearth:door" : {
-         "sensor" : "door_sensor"
-      }
 
+     "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      }
    }
 }

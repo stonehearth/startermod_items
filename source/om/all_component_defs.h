@@ -7,6 +7,7 @@
       OM_OBJECT(Mob,                   mob) \
       OM_OBJECT(ModelVariants,         model_variants) \
       OM_OBJECT(RegionCollisionShape,  region_collision_shape) \
+      OM_OBJECT(MovementGuardShape,    movement_guard_shape) \
       OM_OBJECT(MovementModifierShape, movement_modifier_shape) \
       OM_OBJECT(Terrain,               terrain) \
       OM_OBJECT(VerticalPathingRegion, vertical_pathing_region) \

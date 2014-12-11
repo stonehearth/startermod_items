@@ -56,7 +56,7 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
             radiant.exit(errorcode)
          end)
 
-      autotest_framework.env.create_world(world.world_generator)
+      autotest_framework.env.set_world_generator_script(world.world_generator)
 
       radiant.set_realtime_timer(3000, function()
          if group then

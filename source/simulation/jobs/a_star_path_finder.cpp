@@ -88,7 +88,9 @@ AStarPathFinder::AStarPathFinder(Simulation& sim, std::string const& name, om::E
    PF_LOG(3) << "creating pathfinder";
 
    auto changed_cb = [this](const char* reason) {
-      RestartSearch(reason);
+      // This is REALLY expensive, right?  How about we not do this and see how it
+      // goes.  If Lua really cares, let *it* restart the search.
+      //RestartSearch(reason);
    };
 
    _addFn = std::bind(&AStarPathFinder::AddEdge, this, std::placeholders::_1, std::placeholders::_2);
@@ -352,6 +354,14 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 
       node->pt.SaveValue(coord);
       csg::Color4(c, c, c, 255).SaveValue(coord->mutable_color());
+   }
+
+   if (solution_) {
+      for (csg::Point3f const& pt : solution_->GetPoints()) {
+         auto coord = msg->add_coords();
+         csg::ToInt(pt).SaveValue(coord);
+         csg::Color4(0, 255, 0, 255).SaveValue(coord->mutable_color());
+      }
    }
 
 #if 0

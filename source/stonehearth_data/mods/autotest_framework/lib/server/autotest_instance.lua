@@ -123,6 +123,8 @@ function AutotestInstance:run()
    self._thread = stonehearth.threads:create_thread()
                      :set_thread_data('autotest_framework:is_autotest_thread', true)
                      :set_thread_main(function()
+                           autotest_framework.env.create_world()
+                           autotest_framework.ui.begin_test()
                            self._fn(self)
                         end)
 

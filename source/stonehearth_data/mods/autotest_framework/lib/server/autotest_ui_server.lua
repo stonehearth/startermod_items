@@ -71,4 +71,12 @@ function ui_server.stress_ui_performance_hard()
    _send(commands.STRESS_UI_PERFORMANCE_HARD)
 end
 
+function ui_server.set_building_vision_mode(mode)
+   _send(commands.SET_BUILDING_VISION_MODE, mode)
+end
+
+function ui_server.begin_test(mode)
+   _send(commands.BEGIN_TEST, mode)
+end
+
 return ui_server
