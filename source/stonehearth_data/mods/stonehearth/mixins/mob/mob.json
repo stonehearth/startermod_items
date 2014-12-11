@@ -8,11 +8,11 @@
          "dispatchers" : {
             "basic_needs" : {
                "does" : "stonehearth:basic_needs",
-               "priority" : 20
+               "priority" : 40
             },
             "work" : {
                "does" : "stonehearth:work",
-               "priority" : 40
+               "priority" : 20
             }
          },
          

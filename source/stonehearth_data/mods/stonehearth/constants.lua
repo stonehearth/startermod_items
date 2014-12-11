@@ -138,10 +138,10 @@ local constants = {
       STOREY_HEIGHT = 6,
       MAX_WALL_SPAN = 16,
       floor_category = {
-         FLOOR = 1,
-         ROAD = 2,
-         SLAB = 3,
-         CURB = 4
+         FLOOR = 'floor',
+         ROAD = 'road',
+         SLAB = 'slab',
+         CURB = 'curb'
       }
    },
 

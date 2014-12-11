@@ -288,12 +288,6 @@ function NoConstructionZoneComponent:load_from_template(template, options, entit
                   :set_region(self._region)
 
    self.__saved_variables:mark_changed()
-
-   radiant.events.listen_once(entity_map, 'finished_loading', function()
-         for id, entry in pairs(self._sv.structures) do
-            self:_trace_structure(id, entry.structure)
-         end
-      end)
 end
 
 function NoConstructionZoneComponent:rotate_structure(degrees)
@@ -303,6 +297,12 @@ function NoConstructionZoneComponent:rotate_structure(degrees)
       cursor:rotate(degrees)
       cursor:translate(origin)
    end)
+end
+
+function NoConstructionZoneComponent:finish_restoring_template(degrees)
+   for id, entry in pairs(self._sv.structures) do
+      self:_trace_structure(id, entry.structure)
+   end
 end
 
 return NoConstructionZoneComponent

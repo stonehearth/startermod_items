@@ -68,6 +68,12 @@
       "wooden_floor_solid_dark" : "file(entities/build/floor/wooden_floor_solid_dark)",
       "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
       "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
+
+      "wooden_slab_solid_light" : "file(entities/build/slab/wooden_slab_solid_light)",
+      "wooden_slab_solid_dark" : "file(entities/build/slab/wooden_slab_solid_dark)",
+      "wooden_slab_diagonal" : "file(entities/build/slab/wooden_slab_diagonal)",
+      "checkered_slate_slab" : "file(entities/build/slab/checkered_slate_slab)",
+
       "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
       "stone_paved_road" : "file(entities/build/road/stone_paved_road)",
       "brick_paved_road" : "file(entities/build/road/brick_paved_road)",
