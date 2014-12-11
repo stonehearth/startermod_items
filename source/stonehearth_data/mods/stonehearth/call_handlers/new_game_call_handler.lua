@@ -32,10 +32,12 @@ function NewGameCallHandler:set_game_options(session, response, options)
    return true
 end
 
-function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed)
+function NewGameCallHandler:new_game(session, response, num_tiles_x, num_tiles_y, seed, options)
    local wgs = stonehearth.world_generation
    local blueprint
    local tile_margin
+
+   self:set_game_options(session, response, options)
 
    wgs:create_new_game(seed, true)
 

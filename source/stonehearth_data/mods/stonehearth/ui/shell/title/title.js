@@ -161,7 +161,8 @@ App.StonehearthTitleScreenView = App.View.extend({
          
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:embark'} );
          App.shellView.addView(App.StonehearthLoadingScreenView);
-         radiant.call('stonehearth:new_game', width, height, seed)
+
+         radiant.call('stonehearth:new_game', width, height, seed, {enable_enemies : true})
             .done(function(e) {
                var map = e.map;
 
@@ -195,7 +196,6 @@ App.StonehearthTitleScreenView = App.View.extend({
             .fail(function(e) {
                console.error('new_game failed:', e)
             });
-
       },
 
       exit: function() {
