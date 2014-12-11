@@ -286,9 +286,12 @@ function LocationSelector:go()
       self._cursor_obj = _radiant.client.set_cursor(self._cursor)
    end
    
-   self._rotation = LocationSelector.last_rotation or 0
    self._invalid_cursor = nil
    stonehearth.selection:register_tool(self, true)
+
+   if self._rotation == nil then
+      self:set_rotation(LocationSelector.last_rotation or 0)
+   end
 
    -- capture the mouse.  Call our _on_mouse_event each time, passing in
    -- the entity that we're supposed to create whenever the user clicks.
