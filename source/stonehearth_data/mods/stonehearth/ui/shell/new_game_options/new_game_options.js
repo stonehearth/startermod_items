@@ -8,23 +8,19 @@ App.StonehearthNewGameOptions = App.View.extend({
       var self = this;
 
       this.$('.newGameButton').click(function() {
-         var enemies = true
-         if ($(this).attr('id') == 'enemiesOn') {
-            enemies = true
-         } else {
-            enemies = false
+         var options = {
+            enable_enemies: true
+         };
+         if ($(this).attr('id') != 'enemiesOn') {
+            options.enable_enemies = false
          }
 
-         radiant.call('stonehearth:set_game_options', {
-               enable_enemies: enemies
-            }).done(function() {
-               // show the embark view
-               App.shellView.addView(App.StonehearthEmbarkView);
+         // show the embark view
+         App.shellView.addView(App.StonehearthEmbarkView, {options: options});
 
-               // hide the title screen so it doesn't flicker later.
-               App.shellView.getView(App.StonehearthTitleScreenView).$().hide();
-               self.destroy();
-            });
+         // hide the title screen so it doesn't flicker later.
+         App.shellView.getView(App.StonehearthTitleScreenView).$().hide();
+         self.destroy();
       });
    }
 

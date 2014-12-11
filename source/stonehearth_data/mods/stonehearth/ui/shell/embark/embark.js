@@ -4,6 +4,9 @@ App.StonehearthEmbarkView = App.View.extend({
 
    classNames: ['flex', 'fullScreen', 'embarkBackground'],
 
+   // Game options (such as peaceful mode, etc.)
+   options: {},
+
    init: function() {
       this._super();
       var self = this;
@@ -90,7 +93,7 @@ App.StonehearthEmbarkView = App.View.extend({
       var self = this;
       var seed = self._generate_seed();
 
-      radiant.call('stonehearth:new_game', 12, 8, seed)
+      radiant.call('stonehearth:new_game', 12, 8, seed, self.options)
          .done(function(e) {
             self._map_info = e.map_info
             fn(e);
