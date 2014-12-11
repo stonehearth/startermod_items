@@ -281,8 +281,12 @@ function SelectionService:query_pathfinder_command(session, response)
    end
    -- create a new debug column rooted at `location` using `color`
    local function create_debug_node(location, color)
-      local pt = Point3(location.x, 0, location.z)
-      local region = Region3(Cube3(Point3(-1, -INFINITE, -1), Point3(1, INFINITE, 1), color))
+      local pt = Point3(location.x, location.y, location.z)
+      local region = Region3()
+      region:add_cube(Cube3(Point3(-1, -INFINITE, -1), Point3(1, INFINITE, 1), color))
+      region:add_cube(Cube3(Point3(-20, -1, -1), Point3(20, 1, 1), color))
+      region:add_cube(Cube3(Point3(-1, -1, -20), Point3(1, 1, 20), color))
+
       local node = _radiant.client.create_voxel_node(1, region, 'materials/voxel.material.xml', Point3.zero)
                                        :set_position(pt)
                                        :set_scale(Point3(0.1, 0.1, 0.1))
