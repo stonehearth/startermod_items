@@ -260,6 +260,8 @@
       "furniture:stone_chair" : "file(entities/furniture/stone_chair)",
       "furniture:stone_table" : "file(entities/furniture/stone_table)",
       "furniture:stone_bench" : "file(entities/furniture/stone_bench)",
+      "furniture:cobblestone_fence" : "file(entities/construction/cobblestone_fence)",
+      "furniture:cobblestone_fence_gate" : "file(entities/construction/cobblestone_fence_gate)",
 
       "portals:wooden_door" : "file(entities/construction/wooden_door)",
       "portals:wooden_door_2" : "file(entities/construction/wooden_door_2)",

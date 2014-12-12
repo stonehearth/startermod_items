@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Cobblestone Fence Gate",
+   "description" : "It's thick stone walls grant a sense of security.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/construction/cobblestone_fence_gate/cobblestone_fence_gate.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+       "material" : "stone resource",
+         "count" : 1
+      },
+      {
+       "material" : "wood resource",
+         "count" : 1
+      },
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:cobblestone_fence_gate"
+      }
+  ]
+}

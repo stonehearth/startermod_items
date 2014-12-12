@@ -11,19 +11,19 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(picket_fence_gate.qb)"
+               "file(cobblestone_fence_gate.qb)"
             ]
          }
       },
 
       "unit_info": {
-         "name": "Picket Fence Gate",
-         "description": "Don't like your neighbors? Don't install.",
-         "icon" : "file(picket_fence_gate.png)"
+         "name": "Cobblestone Fence Gate",
+         "description": "It's thick stone walls grant a sense of security.",
+         "icon" : "file(cobblestone_fence_gate.png)"
       },
 
       "stonehearth:material" : {
-         "tags" : "wood defenses crafted"
+         "tags" : "stone defenses crafted"
       },
       
       "stonehearth:portal" : {

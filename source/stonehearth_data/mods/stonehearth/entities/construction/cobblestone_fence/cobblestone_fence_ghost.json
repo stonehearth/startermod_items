@@ -1,0 +1,23 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(cobblestone_fence.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Cobblestone Fence",
+         "description": "A rustic, sturdy wall segment.",
+         "icon" : "file(cobblestone_fence.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone defenses crafted"
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}
