@@ -1190,9 +1190,9 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
       // So, nudge inside the voxel and round to the center
       brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01));
       brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01));
-      // For y, the intersection is a whole integer coordiante
-      // So, nudge inside the voxel and floor to the bottom face which defines the voxel coordinate
-      brick.y = (int)std::floor(intersection.y - (normal.y * 0.01));
+      // For y, the intersection is a whole integer coordinate + potential polygon offset
+      // So, round to the nearest integer, nudge inside the voxel, and floor to the bottom face which defines the voxel coordinate
+      brick.y = (int)std::floor(csg::ToClosestInt(intersection.y) - (normal.y * 0.01));
       result.AddResult(intersection, normal, brick, entity);
    });
 

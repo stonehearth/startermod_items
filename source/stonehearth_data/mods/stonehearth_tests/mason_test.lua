@@ -21,9 +21,12 @@ function HarvestTest:__init()
 
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 2, 2)
    self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 10, 2, 2)
+   self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
+   self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
 
    self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
+   self:place_citizen(14, 14, 'shepherd')
    
    self:at(10,  function()
          --self:place_stockpile_cmd(player_id, 12, 12, 4, 4)

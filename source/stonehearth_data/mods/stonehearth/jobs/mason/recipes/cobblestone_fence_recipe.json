@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Cobblestone Fence",
+   "description" : "A rustic, sturdy wall segment.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/construction/cobblestone_fence/cobblestone_fence.png",
+   "level_requirement" : 0,
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:furniture:cobblestone_fence"
+      }
+  ]
+}

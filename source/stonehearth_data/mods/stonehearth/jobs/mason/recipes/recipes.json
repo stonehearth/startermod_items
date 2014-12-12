@@ -12,6 +12,12 @@
          "recipes" : {
             "stone_bricks" : {
                "uri" : "file(stone_bricks_recipe.json)"
+            },
+            "cobblestone_fence" : {
+               "uri" : "file(cobblestone_fence_recipe.json)"
+            },
+            "cobblestone_fence_gate" : {
+               "uri" : "file(cobblestone_fence_gate_recipe.json)"
             }
          }
       },

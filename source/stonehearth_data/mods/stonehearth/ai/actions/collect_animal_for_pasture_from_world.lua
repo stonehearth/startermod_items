@@ -28,13 +28,21 @@ function CollectAnimalFromWorld:start_thinking(ai, entity, args)
       --When the timer finishes, it sets a bit; on next execution, will get the critter.
       self._timer = stonehearth.calendar:set_timer('5m', function()
          self._timer = nil
-         self._ready_to_run = true
+         --self._ready_to_run = true
+         ai:set_think_output()
       end)
 
-      if self._ready_to_run then
-         ai._ready_to_run = false
-         ai:set_think_output()
-      end
+      --if self._ready_to_run then
+      --   ai._ready_to_run = false
+      --   ai:set_think_output()
+      --end
+   end
+end
+
+function CollectAnimalFromWorld:stop_thinking()
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
    end
 end
 
@@ -48,15 +56,18 @@ function CollectAnimalFromWorld:run(ai, entity, args)
       ai:execute('stonehearth:wander', {radius = 100, radius_min = 30})
       ai:execute('stonehearth:run_effect', {effect = 'idle_look_around'})
 
-      --TODO: decrease likelihood of animal popping either after the 1st or on a timer
-
-      -- pop an animal near where we've wandered
-      local origin = radiant.entities.get_world_grid_location(entity)
-      local placementPoint = radiant.terrain.find_placement_point(origin, 1, 20)
-      if placementPoint then
-         local animal_type = pasture_component:get_pasture_type()
-         local animal = radiant.entities.create_entity(animal_type)
-         radiant.terrain.place_entity(animal, placementPoint)
+      local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
+      if shepherd_class and shepherd_class.can_find_animal_in_world then
+         if shepherd_class:can_find_animal_in_world() then
+            -- pop an animal near where we've wandered
+            local origin = radiant.entities.get_world_grid_location(entity)
+            local placementPoint = radiant.terrain.find_placement_point(origin, 1, 20)
+            if placementPoint then
+               local animal_type = pasture_component:get_pasture_type()
+               local animal = radiant.entities.create_entity(animal_type)
+               radiant.terrain.place_entity(animal, placementPoint)
+            end
+         end
       end
    end
    --At this point, hopefully the other function should take over

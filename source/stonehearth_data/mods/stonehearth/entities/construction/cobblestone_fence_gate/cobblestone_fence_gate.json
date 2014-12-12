@@ -1,0 +1,38 @@
+{
+   "type" : "entity",
+   "mixins" : "file(cobblestone_fence_gate_ghost.json)",
+   
+   "components": {
+
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(cobblestone_fence_gate_iconic.json)",
+         "ghost_form" : "file(cobblestone_fence_gate_ghost.json)",
+         "placeable_on_ground" : true
+      },
+
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -1.75, "y" : 0, "z" : 0.25 },
+               "max" : { "x" : -1.25, "y" : 2, "z" : 0.75 }
+            },
+            {
+               "min" : { "x" :  2.25, "y" : 0, "z" : 0.25 },
+               "max" : { "x" :  2.75, "y" : 2, "z" : 0.75 }
+            }            
+         ]
+      },
+
+      "sensor_list": {
+         "sensors": {
+         "door_sensor": {
+               "type": "sensor",
+               "radius": 4
+            }
+         }
+      },
+      "stonehearth:door" : {
+         "sensor" : "door_sensor"
+      }
+   }
+}
