@@ -28,13 +28,21 @@ function CollectAnimalFromWorld:start_thinking(ai, entity, args)
       --When the timer finishes, it sets a bit; on next execution, will get the critter.
       self._timer = stonehearth.calendar:set_timer('5m', function()
          self._timer = nil
-         self._ready_to_run = true
+         --self._ready_to_run = true
+         ai:set_think_output()
       end)
 
-      if self._ready_to_run then
-         ai._ready_to_run = false
-         ai:set_think_output()
-      end
+      --if self._ready_to_run then
+      --   ai._ready_to_run = false
+      --   ai:set_think_output()
+      --end
+   end
+end
+
+function CollectAnimalFromWorld:stop_thinking()
+   if self._timer then
+      self._timer:destroy()
+      self._timer = nil
    end
 end
 
