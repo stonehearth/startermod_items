@@ -15,6 +15,9 @@ end
 
 function DynamicScenarioService:force_spawn_scenario(scenario_uri)
    local scenario = self._scenarios_by_uri[scenario_uri]
+   if scenario == nil then
+      scenario = radiant.resources.load_json(scenario_uri)
+   end
    assert(type(scenario) == 'table')
 
    local new_scenario = self:_create_scenario(scenario)
@@ -22,6 +25,7 @@ function DynamicScenarioService:force_spawn_scenario(scenario_uri)
       radiant.destroy_controller(new_scenario)
       return
    end
+   
    new_scenario:start()
    table.insert(self._sv.running_scenarios, new_scenario)
    return new_scenario

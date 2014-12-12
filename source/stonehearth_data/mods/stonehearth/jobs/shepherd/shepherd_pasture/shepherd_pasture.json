@@ -25,6 +25,8 @@
       }
    },
    "entity_data" : {
-      "stonehearth:designation" : {}
+      "stonehearth:designation" : {
+         "allow_placed_items" : true
+      }
    }
 }

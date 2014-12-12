@@ -201,13 +201,13 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
    activateTool: function(tool) {
       var self = this;
-      this.tools[toolId].restoreState(this._state);
+      this.tools[tool.toolId].restoreState(this._state);
 
       var activeTool = this._lastTool()[1];
 
       // activate the tool
       this.$('.toolButton').removeClass('active');
-      this.$('#' + toolId).addClass('active');
+      this.$('#' + tool.toolId).addClass('active');
 
       this._doToolCall(tool);
    },
@@ -248,7 +248,7 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
          self.$('.tabPage').hide();
          tab.show();
          
-         toolId = tool.attr('id');
+         var toolId = tool.attr('id');
          if (self.actions[toolId]) {
             self.activateTool(self.actions[toolId]);
          }

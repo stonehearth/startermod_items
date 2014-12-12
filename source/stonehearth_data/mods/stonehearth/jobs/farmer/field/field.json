@@ -9,7 +9,9 @@
       }
    },
    "entity_data" : {
-      "stonehearth:designation" : {},
+      "stonehearth:designation" : {
+         "allow_placed_items" : false
+      },
       "stonehearth:town_patrol" : {
          "auto_patrol" : true,
          "patrol_pattern" : "perimeter"

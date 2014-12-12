@@ -3,7 +3,7 @@ local rng = _radiant.csg.get_default_rng()
 
 
 function GoblinThief:can_spawn()
-   return false --true
+   return true
 end
 
 --[[ 

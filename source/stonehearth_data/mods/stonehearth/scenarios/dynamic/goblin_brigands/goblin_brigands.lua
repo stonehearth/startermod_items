@@ -4,7 +4,7 @@ local Point3 = _radiant.csg.Point3
 local rng = _radiant.csg.get_default_rng()
 
 function GoblinBrigands:can_spawn()
-   return false --true
+   return true
 end
 
 --[[ 
