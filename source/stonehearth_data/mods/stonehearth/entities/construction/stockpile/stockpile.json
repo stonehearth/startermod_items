@@ -4,8 +4,6 @@
       "unit_info" : {
          "name" : "Stockpile",
          "description" : "For storing things"
-      },
-      "stonehearth:stockpile" : {
       }
    },
    "entity_data" : {

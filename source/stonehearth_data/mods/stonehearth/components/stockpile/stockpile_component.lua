@@ -93,16 +93,15 @@ function StockpileComponent:initialize(entity, json)
       self._sv.size = Point2(0, 0)
       self._sv.stocked_items = {}
       self._sv.item_locations = {}
-      self._sv._filter_key = 'stockpile nofilter'
+      self._sv.player_id = nil
+      self:_assign_to_player()
+      self._sv._filter_key = 'stockpile nofilter+' .. self._sv.player_id
       self._destination = entity:add_component('destination')
       self._destination:set_region(_radiant.sim.alloc_region3())
                        :set_reserved(_radiant.sim.alloc_region3())
                        :set_auto_update_adjacent(true)
 
-      radiant.events.listen(entity, 'radiant:entity:post_create', function(e)
-         self:_finish_initialization()
-         return radiant.events.UNLISTEN
-      end)
+      self:_install_traces()
    else
       -- loading...
       self._destination = entity:get_component('destination')
@@ -111,7 +110,7 @@ function StockpileComponent:initialize(entity, json)
 
       --Don't start listening on created items until after we load
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
-            self:_finish_initialization()
+            self:_install_traces()
          end)   
    end
         
@@ -152,7 +151,7 @@ function StockpileComponent:destroy()
    self:_destroy_tasks()
 end
 
-local function get_restock_filter_fn(filter_key, filter)
+local function get_restock_filter_fn(filter_key, filter, player_id)
    -- all stockpiles with the same filter must use the same filter function
    -- to determine whether or not an item can be stocked.  this function is
    -- uniquely identified by the filter key.  this allows us to use a
@@ -185,14 +184,15 @@ local function get_restock_filter_fn(filter_key, filter)
             -- ideally, "restock" would ignore EVERYTHING in other stockpiles.  if someone
             -- wants to explicitly raid from a stockpile, they can make another action.
             -- until that happy day, put this extremely weird special case logic
-            log:detail('item:      ', radiant.entities.get_player_id(item))
-            log:detail('stockpile: ', radiant.entities.get_player_id(containing_entity))
-            local already_stocked = not radiant.entities.is_hostile(item, containing_entity)
+            local containing_stockpile_owner_id = radiant.entities.get_player_id(containing_entity)
+            log:detail('item:      %s', radiant.entities.get_player_id(item))
+            log:detail('stockpile: %s', containing_stockpile_owner_id)
+            local already_stocked = not radiant.entities.are_players_hostile(player_id, containing_stockpile_owner_id)
             if already_stocked then
                log:detail('already stocked!  returning false from filter function')
                return false
             else
-               log:detail('item in stockpile, but not one of ourse.')
+               log:detail('item in stockpile, but not one of ours.')
             end
          end
 
@@ -211,7 +211,7 @@ function StockpileComponent:get_filter()
    -- this intentionally delegates to a helper function to avoid the use of `self`
    -- in the filter (which must work for ALL stockpiles sharing that filter, and
    -- therefore should not capture self or any members of self!)
-   return get_restock_filter_fn(self._sv._filter_key, self._sv.filter)
+   return get_restock_filter_fn(self._sv._filter_key, self._sv.filter, self._sv.player_id)
 end
 
 function StockpileComponent:set_filter(filter)
@@ -225,6 +225,7 @@ function StockpileComponent:set_filter(filter)
    else
       self._sv._filter_key = 'stockpile nofilter'
    end
+   self._sv._filter_key = self._sv._filter_key .. '+' .. self._sv.player_id
    self.__saved_variables:mark_changed()
 
    -- for items that no longer match the filter, 
@@ -247,8 +248,7 @@ function StockpileComponent:set_filter(filter)
    return self
 end
 
--- xxx: the 'fire one when i'm constructed' pattern again...
-function StockpileComponent:_finish_initialization()
+function StockpileComponent:_install_traces()
    local ec = radiant.entities.get_root_entity():get_component('entity_container')
 
    self._ec_trace = ec:trace_children('tracking stockpile')
@@ -270,8 +270,6 @@ function StockpileComponent:_finish_initialization()
                                        :on_changed(function()
                                              self:_assign_to_player()
                                           end)
-      
-   self:_assign_to_player()
 end
 
 function StockpileComponent:get_items()
@@ -391,12 +389,7 @@ function StockpileComponent:_add_item_to_stock(entity)
    self._sv.stocked_items[id] = entity
    self.__saved_variables:mark_changed()
 
-   -- add the item to the inventory 
-   -- sometimes this happens before the player_id is assigned (why?)
-   if self._sv.player_id then
-      stonehearth.inventory:get_inventory(self._sv.player_id)
-                              :add_item(entity)
-   end
+   stonehearth.inventory:get_inventory(self._sv.player_id):add_item(entity)
    
    radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    
