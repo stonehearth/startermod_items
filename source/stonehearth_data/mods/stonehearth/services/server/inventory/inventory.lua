@@ -28,8 +28,6 @@ end
 function Inventory:create_stockpile(location, size)
    local entity = radiant.entities.create_entity('stonehearth:stockpile')   
    radiant.terrain.place_entity(entity, location)
-   entity:get_component('stonehearth:stockpile')
-            :set_size(size.x, size.y)
 
    entity:add_component('region_collision_shape')
             :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
@@ -42,6 +40,9 @@ function Inventory:create_stockpile(location, size)
    entity:get_component('unit_info')
             :set_display_name('Stockpile No.' .. self._sv.next_stockpile_no)
             :set_player_id(self._sv.player_id)
+
+   entity:add_component('stonehearth:stockpile')
+            :set_size(size.x, size.y)
 
    self._sv.next_stockpile_no = self._sv.next_stockpile_no + 1
    self.__saved_variables:mark_changed()
