@@ -7,28 +7,27 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-template <typename T>
+// consider refactoring this with the map_iterator_wrapper
+template <typename M>
 class StdMapIteratorWrapper
 {
 private:
    template <typename V>
-   struct AdvanceIterator {
-      void operator()(T const& map, typename T::const_iterator& i) {
-         ++i;
+   struct ValidEntry {
+      bool operator()(typename M::const_iterator& i) {
+         return true;
       }
    };
 
    template <typename V>
-   struct AdvanceIterator<std::weak_ptr<V>> {
-      void operator()(T const& map, typename T::const_iterator& i) {
-         do {
-            ++i;
-         } while (i != map.end() && i->second.expired());
+   struct ValidEntry<std::weak_ptr<V>> {
+      bool operator()(typename M::const_iterator& i) {
+         return !i->second.expired();
       }
    };
 
 public:
-   StdMapIteratorWrapper(T const& map) : map_(map), i_(map.begin())
+   StdMapIteratorWrapper(M const& map) : map_(map), i_(map.begin())
    {
    }
 
@@ -39,12 +38,20 @@ public:
    }
 
    int Next(lua_State *L) {
+      // if the current entry is invalid, find the next valid entry
+      while (i_ != map_.end() && !ValidEntry<typename M::value_type>()(i_)) {
+         ++i_;
+      }
+
       if (i_ == map_.end()) {
          return 0;
       }
+
       luabind::object(L, i_->first).push(L);
       luabind::object(L, i_->second).push(L);
-      AdvanceIterator<typename T::value_type>()(map_, i_);
+
+      // point to the next entry
+      ++i_;
       return 2;
    }
 
@@ -52,8 +59,8 @@ private:
    NO_COPY_CONSTRUCTOR(StdMapIteratorWrapper)
 
 private:
-   T const&                   map_;
-   typename T::const_iterator i_;
+   M const&                   map_;
+   typename M::const_iterator i_;
 };
 
 END_RADIANT_OM_NAMESPACE
