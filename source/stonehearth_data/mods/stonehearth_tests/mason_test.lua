@@ -26,7 +26,7 @@ function HarvestTest:__init()
 
    self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
-   self:place_citizen(14, 14, 'shepherd')
+   self:place_citizen(14, 14, 'carpenter')
    
    self:at(10,  function()
          --self:place_stockpile_cmd(player_id, 12, 12, 4, 4)

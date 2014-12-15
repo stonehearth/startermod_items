@@ -14,7 +14,7 @@ end
 
 function promote_tests.promote_to_carpenter(autotest)
    local worker = autotest.env:create_person(2, 2, { job = 'worker' })
-   local saw = autotest.env:create_entity(1, 1, 'stonehearth:carpenter:saw_talisman')
+   local saw = autotest.env:create_entity(1, 1, 'stonehearth:carpenter:talisman')
   
    autotest:sleep(500)
    
@@ -30,7 +30,7 @@ end
 -- Start as a farmer, level up, promote to carpenter, check the exp to next level is correct
 function promote_tests.progression_test(autotest)
    local civ = autotest.env:create_person(2, 2, { job = 'farmer' })
-   local saw = autotest.env:create_entity(1, 1, 'stonehearth:carpenter:saw_talisman')
+   local saw = autotest.env:create_entity(1, 1, 'stonehearth:carpenter:talisman')
 
    --Add a fast-harvest test crop
    local session = {

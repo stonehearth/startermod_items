@@ -5,7 +5,7 @@
    "controller" : "stonehearth:class:trapper", 
    "description": "The Trapper's snares capture and (ahem) \"harvest\" small critters for a reliable source of food and supplies.",
    "requirements": "Trapper's Knife, a bone knife hewn by the Mason",
-   "talisman_uri" : "stonehearth:trapper:knife_talisman",
+   "talisman_uri" : "stonehearth:trapper:talisman",
    "default_stance" : "defensive",
 
    "equipment" : {

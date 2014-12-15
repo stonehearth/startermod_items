@@ -12,7 +12,7 @@
    },
 
    "roles" : "mason_job crafter",
-   "talisman_uri" : "stonehearth:mason:chisel_talisman",
+   "talisman_uri" : "stonehearth:mason:talisman",
    "default_stance" : "passive",
    
    "icon" : "file(images/icon.png)",
