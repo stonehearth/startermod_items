@@ -111,6 +111,7 @@ private:
    void CreateModules(om::ModListPtr mods);
    luabind::object CreateModule(om::ModListPtr mods, std::string const& mod_name);
    luabind::object GetModuleList() const;
+   JSONNode LuaToJsonImpl(luabind::object obj);
 
 private:
    luabind::object LoadScript(std::string const& path);
