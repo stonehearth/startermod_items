@@ -4,7 +4,8 @@
    "components": {
       "unit_info" : {
         "name": "A sheep",
-        "description": "So fluffy!"
+        "description": "So fluffy!", 
+        "player_id" : "animals"
       },
       "model_variants": {
          "default": {

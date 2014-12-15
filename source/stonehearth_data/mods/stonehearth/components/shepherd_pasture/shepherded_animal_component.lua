@@ -18,6 +18,7 @@ end
 --The self._entity is the pasture tag. 
 function ShepherdedAnimalComponent:set_animal(animal_entity)
    self._sv.animal = animal_entity
+   self._sv.original_player_id = radiant.entities.get_player_id(animal_entity)
 end
 
 function ShepherdedAnimalComponent:set_pasture(pasture_entity)
@@ -30,6 +31,15 @@ end
 function ShepherdedAnimalComponent:set_following(should_follow, shepherd)
    self._sv.should_follow = should_follow
    self._sv.last_shepherd_entity = shepherd
+
+   --If we're following a shepherd, make our animal's player_id equal to his player ID
+   if should_follow then
+      local shepherd_player_id = radiant.entities.get_player_id(shepherd)
+      radiant.entities.set_player_id(self._sv.animal, shepherd_player_id)
+   else
+   --If we're not following, set it back
+      radiant.entities.set_player_id(self._sv.animal, self._sv.original_player_id)
+   end
 
    radiant.events.trigger(self._sv.animal, 'stonehearth:shepherded_animal_follow_status_change', 
       {should_follow = self._sv.should_follow, 
