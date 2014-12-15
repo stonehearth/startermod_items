@@ -1013,7 +1013,7 @@ end
  
 function ExecutionFrame:_add_action_from_thinking(key, entry)
    local unit = self:_add_execution_unit(key, entry)
-   local current_state = self:_create_entity_state()
+   local current_state = self:_clone_entity_state('new speculation for unit')
    unit:_start_thinking(self._args, current_state)
 end
 
