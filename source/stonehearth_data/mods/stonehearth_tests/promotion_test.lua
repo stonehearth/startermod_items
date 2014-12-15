@@ -11,7 +11,7 @@ function PromoteTest:__init()
    self:create_world()
 
    --Create the saw 
-   local saw = self:place_item('stonehearth:carpenter:saw_talisman', 10, 10)
+   local saw = self:place_item('stonehearth:carpenter:talisman', 10, 10)
    local saw = self:place_item('stonehearth:footman:wooden_sword_talisman', 12, 1)
 
    self:place_citizen(-1,2)

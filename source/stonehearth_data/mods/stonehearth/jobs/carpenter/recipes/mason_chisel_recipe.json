@@ -1,0 +1,25 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Masoon's Hammer & Chisel",
+   "description" : "Promotes a citizen into a Mason.",
+   "portrait"    : "/stonehearth/jobs/mason/mason_chisel/mason_chisel.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      },
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+        "item":"stonehearth:mason:talisman"
+      }
+  ]
+}
