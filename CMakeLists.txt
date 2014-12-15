@@ -11,6 +11,12 @@ SET(CMAKE_C_FLAGS   " /Zm200${CMAKE_C_FLAGS}")
 SET(CMAKE_CXX_FLAGS " /Zm200${CMAKE_CXX_FLAGS}")
 MESSAGE(flags are ${CMAKE_CXX_FLAGS_DEBUG})
 
+if (DISABLE_WHOLE_PROGRAM_OPTIMIZATION)
+   MESSAGE("whole program optimization is disabled")
+else()
+   MESSAGE("whole program optimization is enabled")
+endif()   
+
 ## See http://connect.microsoft.com/VisualStudio/feedback/details/746718/frequently-get-c1027-from-vc-100-compiler-after-installing-vs-2012-rc
 SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x20000000 ")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x20000000 ")
