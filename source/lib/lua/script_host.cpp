@@ -92,7 +92,18 @@ void ScriptHost::AddJsonToLuaConverter(JsonToLuaFn const& fn)
    to_lua_converters_.emplace_back(fn);
 }
 
-JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
+JSONNode ScriptHost::LuaToJson(luabind::object obj)
+{
+   try {
+      return LuaToJsonImpl(obj);
+   } catch (std::exception const& e) {
+      json::Node result;
+      result.set("error", e.what());
+      return result;
+   }
+}
+
+JSONNode ScriptHost::LuaToJsonImpl(luabind::object current_obj)
 {
    std::vector<luabind::object> visited;
 
@@ -104,7 +115,7 @@ JSONNode ScriptHost::LuaToJson(luabind::object current_obj)
       if (t == LUA_TTABLE) {
          for (luabind::object const& o : visited) {
             if (current_obj == o) {
-               return JSONNode("", "visited node");
+               throw std::logic_error("Cannot convert lua object with graph structure to JSON");
             }
          }
          visited.push_back(current_obj);

@@ -79,30 +79,29 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
    _updateJobsAndPerks : function() {
       var self = this;
 
+      //Hide all the job divs before selectively showing the ones for the current
+      //character.
+      self.$('.jobData').hide();
+      
       //show each class that this person has ever been
       var jobs = this.get('context.model.stonehearth:job.job_controllers');
       radiant.each(jobs, function(alias, data) {
-         if(alias != "__self" && alias != "stonehearth:jobs:worker" && jobs.hasOwnProperty(alias)) {
+         if (alias != "stonehearth:jobs:worker") {
             var div = self.$("[uri='" + alias + "']");
             
             //For each, figure out which perks should be unlocked
             self._unlockPerksToLevel(div, data.last_gained_lv)
-
-            //special case: if the alias is worker, then hide the 
-            if (alias == 'stonehearth:jobs:worker') {
-               $(div).find('.progressionSummary').hide();
-            }
 
             $(div).show();
          }
       });
 
       //Highlight current class, since it needs to be 100% up to date
-      $('.activeClassNameHeader').removeClass('activeClassNameHeader');
-      $('.className').addClass('retiredClassNameHeader');
-      $('.jobData').addClass('retiredEffect');
+      self.$('.activeClassNameHeader').removeClass('activeClassNameHeader');
+      self.$('.className').addClass('retiredClassNameHeader');
+      self.$('.jobData').addClass('retiredEffect');
       var currClassAlias = this.get('context.model.stonehearth:job.job_uri');
-      var $currClass = $("[uri='" + currClassAlias + "']");
+      var $currClass = self.$("[uri='" + currClassAlias + "']");
       $currClass.prependTo("#citizenCharacterSheet #abilitiesTab");
       $currClass.find('.className').removeClass('retiredClassNameHeader').addClass('activeClassNameHeader');
       $currClass.removeClass('retiredEffect');

@@ -8,6 +8,10 @@ PlaceItemOnStructureAdjacent.args = {
    location = Point3,      -- where to take it.  the ghost should already be there   
    rotation = 'number',    -- rotation to apply to the item
    structure = Entity,     -- the structure
+   ignore_gravity = {      -- turn off gravity when placing
+      type = 'boolean',
+      default = false,
+   },
 }
 PlaceItemOnStructureAdjacent.version = 2
 PlaceItemOnStructureAdjacent.priority = 2
@@ -37,6 +41,10 @@ function PlaceItemOnStructureAdjacent:run(ai, entity, args)
                         :set_location_grid_aligned(position)
                         :turn_to(args.rotation)
 
+   if args.ignore_gravity then
+      entity:get_component('mob')
+               :set_ignore_gravity(true)
+   end
 end
 
 return PlaceItemOnStructureAdjacent

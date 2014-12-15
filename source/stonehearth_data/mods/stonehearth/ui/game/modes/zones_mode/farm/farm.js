@@ -7,21 +7,6 @@ App.StonehearthFarmView = App.View.extend({
       "stonehearth:farmer_field" : {}
    },
 
-   init: function() {
-      var self = this;
-      this._super();
-
-      $('#addCropButton').prop('disabled', true);
-
-      //Get the crops available for this farm
-      radiant.call('stonehearth:get_all_crops')
-         .done(function(o){
-            console.log('stonehearth crops:', o);
-            self.set('all_crops', o.all_crops);
-            $('#addCropButton').prop('disabled', false);
-         });
-   },
-
    didInsertElement: function() {
       this._super();
       var self = this;
@@ -93,7 +78,7 @@ App.StonehearthFarmCropPalette = App.View.extend({
       //Get the crops available for this farm
       radiant.call('stonehearth:get_all_crops')
          .done(function(o){
-            self.set('context.crops', o.all_crops);
+            self.set('crops', o.all_crops);
          });
    },
 

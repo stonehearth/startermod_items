@@ -31,11 +31,7 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth:workshop": {
          "crafter": {
             "unit_info" : {},
-            "stonehearth:crafter": {
-               "craftable_recipes" : {
-                  "recipes" : []
-               }
-            }, 
+            "stonehearth:crafter": {}, 
             'stonehearth:job' : {
                'curr_job_controller' : {}
             }
@@ -50,8 +46,6 @@ App.StonehearthCrafterView = App.View.extend({
 
    modal: true,
 
-   //alias for stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes
-   recipes: null,
    initialized: false,
    currentRecipe: null,
    isPaused: false,
@@ -90,48 +84,60 @@ App.StonehearthCrafterView = App.View.extend({
       self.destroy();
    },
 
-   _addIngredientImages: function() {
+   _buildRecipeArray: function() {
       var self = this;
-      var recipes = self.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
-      
-      if (this.get('formatted_recipes')) {
-         return;
-      }
+      var recipes = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list');
+      var recipe_categories = [];
 
-      //Sort the recipe categories by ordinal
-      recipes.sort(this._compareByOrdinal);
+      radiant.each(recipes, function(_, category) {
+         var recipe_array = [];
+         radiant.each(category.recipes, function(recipe_name, recipe_info) {
+            var recipe = recipe_info.recipe;
 
-      //For each of the recipes inside each category, sort them by their level_requirement
-      radiant.each(recipes, function(i, category) {
-         category.recipes.sort(self._compareByLevelAndAlphabetical);
-      });
-
-      //Add ingredient images to the recipes
-      radiant.each(recipes, function(name, category) {
-         radiant.each(category.recipes, function(i, recipe) {
+            //Add ingredient images to the recipes
+            var formatted_ingredients = [];
             radiant.each(recipe.ingredients, function(i, ingredient) {
+               var formatted_ingredient = {}
                if (ingredient.material) {
                   var formatting = App.constants.formatting.resources[ingredient.material];
-                  if (formatting) {
-                     ingredient.name = formatting.name;
-                     ingredient.icon = formatting.icon;
+                  if (formatting) {                     
+                     formatted_ingredient.name = formatting.name;
+                     formatted_ingredient.icon = formatting.icon;
                   } else {
                      // XXX, roll back to some generic icon
-                     ingredient.name = ingredient.material;
+                     formatted_ingredient.name = ingredient.material;
                   }
                } else {
                   radiant.trace(ingredient.uri)
-                     .progress(function(json) {
-                        ingredient.icon = json.components.unit_info.icon;
-                        ingredient.name = json.components.unit_info.name;
-                     });
+                                    .progress(function(json) {
+                                       formatted_ingredient.icon = json.components.unit_info.icon;
+                                       formatted_ingredient.name = json.components.unit_info.name;
+                                    });
                }
-            })
-         })
-      })
+               formatted_ingredients.push(formatted_ingredient);
+            });
+            recipe.formatted_ingredients = formatted_ingredients
+            recipe_array.push(recipe);
+         });
+         
+         //For each of the recipes inside each category, sort them by their level_requirement
+         recipe_array.sort(self._compareByLevelAndAlphabetical);
 
-      self.set('formatted_recipes', recipes);
-   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes'),
+         if (recipe_array.length > 0) {
+            var ui_category = {
+               category: category.name,
+               ordinal:  category.ordinal,
+               recipes:  recipe_array,
+            };
+            recipe_categories.push(ui_category)
+         }
+      });
+
+      //Sort the recipe categories by ordinal
+      recipe_categories.sort(this._compareByOrdinal);
+
+      self.set('formatted_recipes', recipe_categories);
+   }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list'),
 
    //Something with an ordinal of 1 should have precedence
    _compareByOrdinal: function(a, b) {
@@ -254,16 +260,16 @@ App.StonehearthCrafterView = App.View.extend({
    // care about.
    _contentChanged: function() {
       Ember.run.scheduleOnce('afterRender', this, '_build_workshop_ui');
-    }.observes('context.data'),
+    }.observes('formatted_recipes'),
 
     
     _orderCompleted:function() {
-      if(this.currentRecipe) {
+      if (this.currentRecipe) {
 
          //Arrr!! If you try to assign the context at selection, it won't update
          //when the data updates. So when the data updates, check if we should update the context
          //If anyone knows how to do this better with Ember's actual data binding, kill this code!
-         var catArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.craftable_recipes');
+         var catArr = this.get('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list');
          var catLen = catArr.length;
          for (var i = 0; i < catLen; i++) {
             var recipeArr = catArr[i].recipes;

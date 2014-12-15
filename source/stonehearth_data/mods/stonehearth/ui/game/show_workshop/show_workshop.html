@@ -76,7 +76,7 @@
       <div id="description">
          <div id="ingredients">
             <h2>{{i18n stonehearth:craft_ingredients}}</h2>
-            {{#each view.currentRecipe.ingredients}}
+            {{#each view.currentRecipe.formatted_ingredients}}
                <div class="ingredient">
                   <img {{bind-attr src=icon title=name}} />
                   <div class="count">{{count}}</div>

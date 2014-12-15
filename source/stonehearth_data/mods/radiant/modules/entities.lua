@@ -281,6 +281,10 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
+   if entity:get_id() == 1 then
+      return Point3(0, 0, 0)
+   end
+   
    local mob = entity:get_component('mob')
    local location = mob and mob:get_world_grid_location()
    return location
@@ -762,6 +766,10 @@ end
 function entities.is_adjacent_to(subject, target)
    if radiant.util.is_a(subject, Entity) then
       subject = entities.get_world_grid_location(subject)
+      if not subject then
+         -- target is not actually in the world at the moment
+         return false
+      end
    end
    if radiant.util.is_a(target, Entity) then
       local destination = target:get_component('destination')
@@ -778,6 +786,10 @@ function entities.is_adjacent_to(subject, target)
          end
       end
       target = entities.get_world_grid_location(target)
+      if not target then
+         -- target is not actually in the world at the moment
+         return false
+      end
    end
    radiant.check.is_a(subject, Point3)
    radiant.check.is_a(target, Point3)

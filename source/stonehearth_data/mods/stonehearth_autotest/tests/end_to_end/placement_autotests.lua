@@ -1,5 +1,10 @@
 local build_util = require 'stonehearth.lib.build_util'
+local entity_forms = require 'stonehearth.lib.entity_forms.entity_forms_lib'
+local PlaceItemCallHandler = require 'stonehearth.call_handlers.place_item_call_handler'
+
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 
 local placement_autotests = {}
 
@@ -88,6 +93,69 @@ function placement_autotests.place_on_wall(autotest)
       
    autotest:sleep(10000)
    autotest:fail('worker failed to place sign and remove ladder')
+end
+
+local function place_on_cliff_helper(autotest, item_or_type)
+   -- xxx: currently breaks `two_place_multiple_times` when trying to click on the
+   -- terrain . =(
+   autotest:success()
+
+   autotest.env:create_person(-8, 8, { job = 'worker' })   
+   autotest.env:create_entity(5, 8, 'stonehearth:resources:wood:oak_log')
+
+   local sign
+   local stockpile = autotest.env:create_stockpile(4, 8)
+   if item_or_type == 'item' then
+      sign = autotest.env:create_entity(4, 8, 'stonehearth:decoration:wooden_sign_carpenter')
+   end
+   
+   local session = autotest.env:get_player_session()
+   radiant.entities.set_player_id(sign, session.player_id)
+
+   -- make a cliff
+   local block_types = radiant.terrain.get_block_types()
+   local cliff = Cube3(Point3(10, 11, 10), Point3(16, 19, 16), block_types.bedrock)
+
+   radiant._root_entity:get_component('terrain')
+                           :add_tile(Region3(cliff))
+  
+   autotest:sleep(100) -- let inventory triggers fire...
+
+   -- place the sign on the wall
+   local placement_location = Point3(12, 13, 16)
+   local normal = Point3.unit_z;
+   local response = { resolve = function() end, reject = function() end }
+
+   if item_or_type == 'item' then
+      PlaceItemCallHandler():place_item_in_world(session, nil, sign, placement_location, 180, normal)
+   else 
+      local _, iconic_uri, _ = entity_forms.get_uris('stonehearth:decoration:wooden_sign_carpenter')
+      PlaceItemCallHandler():place_item_type_in_world(session, response, iconic_uri, placement_location, 180, normal)
+   end
+
+   local trace = radiant.entities.trace_grid_location(sign, 'find path to entity')
+      :on_changed(function()         
+            if radiant.entities.get_world_grid_location(sign) == placement_location then
+               -- by now the sign is on the wall.   make sure the ladder gets torn down
+               radiant.events.listen(radiant, 'radiant:entity:pre_destroy', function(e)
+                     if e.entity:get_component('stonehearth:ladder') then
+                        autotest:success()
+                     end
+                     return radiant.events.UNLISTEN
+                  end)
+            end
+         end)
+      
+   autotest:sleep(10000000)
+   autotest:fail('worker failed to place sign and remove ladder')   
+end
+
+function placement_autotests.place_sign_on_cliff_by_item(autotest)
+   place_on_cliff_helper(autotest, 'item')
+end
+
+function placement_autotests.place_sign_on_cliff_by_type(autotest)
+   place_on_cliff_helper(autotest, 'item')
 end
 
 function placement_autotests.undeploy_item(autotest)

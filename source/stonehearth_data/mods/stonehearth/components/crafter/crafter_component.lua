@@ -17,14 +17,9 @@ function CrafterComponent:initialize(entity, json)
       self._sv.work_effect = json.work_effect
       self._sv.fine_percentage = 0
 
-      local craftable_recipes = {}
-      self._sv._recipe_index = {}
       if json.recipe_list then
-         craftable_recipes = self:_build_craftable_recipe_list(json.recipe_list)
+         self:_build_craftable_recipe_list(json.recipe_list)
       end
-
-      -- parts of our save state used by the ui.  careful modifying these     
-      self._sv.craftable_recipes = craftable_recipes
    else
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function()
             local o = self._sv._create_workshop_args
@@ -77,27 +72,12 @@ end
 --- Build the list sent to the UI from the json
 --  Load each recipe's data and add it to the table
 function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
-   self._sv.recipe_index = radiant.resources.load_json(recipe_index_url).craftable_recipes
+   self._sv.recipe_list = radiant.resources.load_json(recipe_index_url).craftable_recipes
    local craftable_recipes = {}
-   for category, category_data in pairs(self._sv.recipe_index) do
-      local recipe_array = {}
+   for category, category_data in pairs(self._sv.recipe_list) do
       for recipe_name, recipe_data in pairs(category_data.recipes) do
-         local recipe_data = radiant.resources.load_json(recipe_data.uri)
-         self:_initialize_recipe_data(recipe_data)
-         table.insert(recipe_array, 1, recipe_data)
-      end
-      if #recipe_array > 0 then
-         --TODO: remove the flat array, and compose it in javascript
-         -- https://bugs/browse/SH-162
-         --Make an entry in the recipe table for the UI
-         local category_ui_info = {}
-         category_ui_info.category = category_data.name
-         category_ui_info.ordinal = category_data.ordinal
-         category_ui_info.recipes = recipe_array
-         --Make sure we have a pointer to the recipe data for fast access/edit'
-         category_data.ui_info = category_ui_info
-         --table.insert(self._sv.craftable_recipes, category_ui_info)
-         table.insert(craftable_recipes, 1, category_ui_info)
+         recipe_data.recipe = radiant.resources.load_json(recipe_data.recipe)
+         self:_initialize_recipe_data(recipe_data.recipe)
       end
    end
    return craftable_recipes

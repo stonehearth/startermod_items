@@ -5,13 +5,13 @@
          "name" : "Crafting Materials", 
          "recipes" : {
             "thread" : {
-               "uri" : "file(thread_recipe.json)"
+               "recipe" : "file(thread_recipe.json)"
             },
             "cloth_bolt" : {
-               "uri" : "file(cloth_bolt_recipe.json)"
+               "recipe" : "file(cloth_bolt_recipe.json)"
             },
             "leather_bolt" : {
-               "uri" : "file(leather_bolt_recipe.json)"
+               "recipe" : "file(leather_bolt_recipe.json)"
             }            
          }
       },
@@ -20,13 +20,13 @@
          "name" : "Clothing & Armor",
          "recipes" : {
             "worker_outfit_2" : {
-               "uri" : "file(worker_outfit_2_recipe.json)"
+               "recipe" : "file(worker_outfit_2_recipe.json)"
             },
             "cloth_padded_vest" : {
-               "uri" : "file(cloth_padded_vest_recipe.json)"
+               "recipe" : "file(cloth_padded_vest_recipe.json)"
             },
             "leather_vest" : {
-               "uri" : "file(leather_vest_recipe.json)"
+               "recipe" : "file(leather_vest_recipe.json)"
             }            
          }
       },
@@ -35,22 +35,22 @@
          "name" : "Decorations", 
          "recipes" : {
             "banner_wall_big" : {
-               "uri" : "file(banner_wall_big_recipe.json)"
+               "recipe" : "file(banner_wall_big_recipe.json)"
             },
             "banner_wall_small" : {
-               "uri" : "file(banner_wall_small_recipe.json)"
+               "recipe" : "file(banner_wall_small_recipe.json)"
             },
             "tapestry_wall" : {
-               "uri" : "file(tapestry_wall_recipe.json)"
+               "recipe" : "file(tapestry_wall_recipe.json)"
             },
             "curtains" : {
-               "uri" : "file(curtains_recipe.json)"
+               "recipe" : "file(curtains_recipe.json)"
             },
             "throw_rug" : {
-               "uri" : "file(throw_rug_recipe.json)"
+               "recipe" : "file(throw_rug_recipe.json)"
             },
             "fur_rug" : {
-               "uri" : "file(fur_rug_recipe.json)"
+               "recipe" : "file(fur_rug_recipe.json)"
             }
          }
       },
@@ -59,7 +59,7 @@
          "name" : "Toys", 
          "recipes" : {
             "plushie_toy_rabbit" : {
-               "uri" : "file(plushie_toy_rabbit_recipe.json)"
+               "recipe" : "file(plushie_toy_rabbit_recipe.json)"
             }            
          }
       }

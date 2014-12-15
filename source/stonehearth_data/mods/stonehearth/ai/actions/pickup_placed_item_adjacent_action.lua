@@ -46,15 +46,20 @@ function PickupPlacedItemAdjacent:run(ai, entity, args)
    -- best the terrain or a wall, depending on how we were placed
    local parent = item:get_component('mob'):get_parent()
    if parent then
+
       radiant.entities.remove_child(parent, item)
-      radiant.entities.move_to(item, Point3.zero)                              
+      radiant.entities.move_to(item, Point3.zero)
    end
+   -- gravity may have been turned off when placed.  turn it back on
+   item:get_component('mob')
+            :set_ignore_gravity(false)
+
    radiant.terrain.place_entity(self._iconic_entity, location)
    
    --sometimes the location of the parent object is not adjacent to the
    --entity. In that case, walk over to the placed item.
    ai:execute('stonehearth:goto_entity', { entity = self._iconic_entity })
-   ai:execute('stonehearth:pickup_item_adjacent', { item = self._iconic_entity })
+   ai:execute('stonehearth:pickup_item_adjacent', { item = self._iconic_entity })   
 end
 
 return PickupPlacedItemAdjacent

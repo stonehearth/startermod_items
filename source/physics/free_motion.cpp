@@ -69,7 +69,7 @@ void FreeMotion::UnstickEntity(om::EntityPtr entity)
    LOG(physics.free_motion, 4) << "Unsticking entity " << *entity;
 
 
-   if (mob && !mob->GetInFreeMotion()) {
+   if (mob && !mob->GetInFreeMotion() && !mob->GetIgnoreGravity()) {
       om::Mob::MobCollisionTypes type = mob->GetMobCollisionType();
 
       if (type != om::Mob::NONE) {

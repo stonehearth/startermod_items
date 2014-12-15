@@ -33,7 +33,7 @@
       <div class="window flat">
          <div class="title">Choose a Crop</div>
          <div class="itemPalette">
-            {{#each crops}}
+            {{#each view.crops}}
                <div class="item uisounds" {{bind-attr crop=crop_type title=crop_info.name description=crop_info.description}}>
                   <img class="image" {{bind-attr src=crop_info.icon}} />
                </div>

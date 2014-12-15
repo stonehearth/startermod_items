@@ -33,10 +33,14 @@ var RadiantTrace;
          }
       },
 
-      _log : function(level, str, obj) {
+      _log : function() {
          if (!this._debug) {
             return;
          }
+         var args = Array.prototype.slice.call(arguments);
+         var level = args[0];
+         var str = args[1]
+         args.splice(0, 2); // remove 2 elements from index 0
 
          var indent = '';
          var level = level ? level : 0;
@@ -44,11 +48,8 @@ var RadiantTrace;
             indent += '   ';
          }
          str = indent + str;
-         if (obj) {
-            console.log(level, str, obj);
-         } else {
-            console.log(level, str);
-         }
+         args.splice(0, 0, level, str) // stick level and indented str at the front
+         console.log.apply(console, args);
       },
 
       _destroyAllTraces: function() {
@@ -161,6 +162,8 @@ var RadiantTrace;
                self._log(level, 'notifying parent of progress!');
                deferred.notify(eobj);
                ok_to_update = false;
+            } else {
+               self._log(level, 'not yet notifying parent of progress!', 'ok_to_update:', ok_to_update, 'pending_object_keys', Object.keys(pending));
             }
          };
 
