@@ -15,7 +15,7 @@
   ],
   "produces": [
       {
-        "item":"stonehearth:shepherd:crook_talisman"
+        "item":"stonehearth:shepherd:talisman"
       }
   ]
 }

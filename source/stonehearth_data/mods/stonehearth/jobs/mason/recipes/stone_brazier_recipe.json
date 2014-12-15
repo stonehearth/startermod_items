@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Stone Brazier",
+   "description" : "A small fire pit that provides comfort and warmth at night.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/stone_brazier/stone_brazier.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:stone_brazier"
+      }
+  ]
+}

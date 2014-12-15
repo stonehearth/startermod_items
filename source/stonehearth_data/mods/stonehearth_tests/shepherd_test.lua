@@ -11,7 +11,7 @@ function ShepherdTest:__init()
    self:create_world()
 
    --place the hoes and board
-   self:place_item('stonehearth:shepherd:crook_talisman', 4, 2)
+   self:place_item('stonehearth:shepherd:talisman', 4, 2)
 
    local bush = self:place_item('stonehearth:berry_bush', 4, 4)
    local bush = self:place_item('stonehearth:berry_bush', -1, -1)

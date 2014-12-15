@@ -48,7 +48,13 @@
             },
             "gargoyle" : {
                "uri" : "file(gargoyle_recipe.json)" 
-            }
+            },
+            "stone_brazier" : {
+               "uri" : "file(stone_brazier_recipe.json)" 
+            },
+            "tower_brazier" : {
+               "uri" : "file(tower_brazier_recipe.json)" 
+            }            
          }
       }
    }

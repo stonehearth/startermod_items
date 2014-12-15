@@ -93,15 +93,15 @@
       {
          "category" : "Wooden Materials",
          "items" : [
-            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/slab/wooden_slab_solid_light/wooden_slab_solid_light.png", "brush":"stonehearth:wooden_slab_solid_light" },
-            { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/slab/wooden_slab_solid_dark/wooden_slab_solid_dark.png", "brush":"stonehearth:wooden_slab_solid_dark" },
-            { "id": "diagonal", "name": "Diagonal wooden pattern",    "portrait": "/stonehearth/entities/build/slab/wooden_slab_diagonal/wooden_slab_diagonal.png", "brush":"stonehearth:wooden_slab_diagonal" }
+            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_light/wooden_floor_solid_light.png", "brush":"stonehearth:wooden_floor_solid_light" },
+            { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_dark/wooden_floor_solid_dark.png", "brush":"stonehearth:wooden_floor_solid_dark" },
+            { "id": "diagonal", "name": "Diagonal wooden pattern",    "portrait": "/stonehearth/entities/build/floor/wooden_floor_diagonal/wooden_floor_diagonal.png", "brush":"stonehearth:wooden_floor_diagonal" }
          ]         
       },
       {
          "category" : "Stone Materials",
          "items" : [
-            { "id": "checkered", "name": "Checkered slate slab",    "portrait": "/stonehearth/entities/build/slab/checkered_slate_slab/checkered_slate_slab.png", "brush":"stonehearth:checkered_slate_slab" }
+            { "id": "checkered", "name": "Checkered slate floor",    "portrait": "/stonehearth/entities/build/floor/checkered_slate_floor/checkered_slate_floor.png", "brush":"stonehearth:checkered_slate_floor" }
          ]         
       }            
    ],

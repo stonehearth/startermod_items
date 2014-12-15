@@ -10,6 +10,9 @@
             "hoe" : {
                "uri" : "file(hoe_recipe.json)"
             },
+            "mason_chisel" : {
+               "uri" : "file(mason_chisel_recipe.json)"
+            },
             "wooden_sword" : {
                "uri" : "file(wooden_sword_recipe.json)"
             },

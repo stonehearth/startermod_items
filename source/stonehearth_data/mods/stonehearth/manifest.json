@@ -87,6 +87,7 @@
       "thatch_peaked_roof" : "file(entities/build/roof/thatch_peaked_roof)",
       "blue_slate_peaked_roof" : "file(entities/build/roof/blue_slate_peaked_roof)",
       "red_slate_peaked_roof" : "file(entities/build/roof/red_slate_peaked_roof)",
+      "castle_roof" : "file(entities/build/roof/castle_roof)",
       "scaffolding" : "file(entities/build/scaffolding)",
       "wooden_ladder" : "file(entities/build/wooden_ladder)",
       "models:arrow" : "file(data/models/arrow.obj)",
@@ -99,12 +100,12 @@
       "carpenter:workbench" : "file(jobs/carpenter/carpenter_workbench)",
       "carpenter:outfit" : "file(jobs/carpenter/carpenter_outfit)",
       "carpenter:saw" : "file(jobs/carpenter/carpenter_saw)",
-      "carpenter:saw_talisman" : "file(jobs/carpenter/carpenter_saw/carpenter_saw_talisman.json)",
+      "carpenter:talisman" : "file(jobs/carpenter/carpenter_saw/carpenter_saw_talisman.json)",
 
       "mason:workbench" : "file(jobs/mason/mason_workbench)",
       "mason:outfit" : "file(jobs/mason/mason_outfit)",
       "mason:chisel" : "file(jobs/mason/mason_chisel)",
-      "mason:chisel_talisman" : "file(jobs/mason/mason_chisel/mason_chisel_talisman.json)",
+      "mason:talisman" : "file(jobs/mason/mason_chisel/mason_chisel_talisman.json)",
 
       "farmer:outfit" : "file(jobs/farmer/farmer_outfit)",
       "farmer:field" : "file(jobs/farmer/field)",
@@ -113,12 +114,12 @@
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
-      "shepherd:crook_talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
+      "shepherd:talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
       "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
 
       "trapper:trapping_grounds" : "file(jobs/trapper/trapping_grounds)",
       "trapper:knife" : "file(jobs/trapper/trapper_knife)",
-      "trapper:knife_talisman" : "file(jobs/trapper/trapper_knife/trapper_knife_talisman.json)",
+      "trapper:talisman" : "file(jobs/trapper/trapper_knife/trapper_knife_talisman.json)",
       "trapper:outfit" : "file(jobs/trapper/trapper_outfit)",
       "trapper:snare_trap" : "file(jobs/trapper/snare_trap)",
       "trapper:pet_treat_bag" : "file(jobs/trapper/trapper_equipment/pet_treat_bag.json)", 
@@ -289,6 +290,8 @@
       "decoration:bird_bath" : "file(entities/decoration/bird_bath)",
       "decoration:stone_garden_lantern" : "file(entities/decoration/stone_garden_lantern)",
       "decoration:gargoyle" : "file(entities/decoration/gargoyle)",
+      "decoration:stone_brazier" : "file(entities/decoration/stone_brazier)",
+      "decoration:tower_brazier" : "file(entities/decoration/tower_brazier)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",

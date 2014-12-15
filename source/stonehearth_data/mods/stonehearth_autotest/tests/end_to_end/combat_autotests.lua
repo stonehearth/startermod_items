@@ -138,10 +138,10 @@ function combat_tests.talsman_drop(autotest)
    local num_talismans = 0
 
    radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
-      if e.entity:get_uri() == 'stonehearth:carpenter:saw_talisman' or 
+      if e.entity:get_uri() == 'stonehearth:carpenter:talisman' or 
          e.entity:get_uri() == 'stonehearth:weaver:talisman' or 
          e.entity:get_uri() == 'stonehearth:farmer:talisman' or
-         e.entity:get_uri() == 'stonehearth:trapper:knife_talisman' or
+         e.entity:get_uri() == 'stonehearth:trapper:talisman' or
          e.entity:get_uri() == 'stonehearth:footman:wooden_sword_talisman' then
          num_talismans = num_talismans + 1
       end

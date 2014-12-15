@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Tower Brazier",
+   "description" : "Fashioned after a castle tower, it provides a strong beacon at night.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/tower_brazier/tower_brazier.png",
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:tower_brazier"
+      }
+  ]
+}
