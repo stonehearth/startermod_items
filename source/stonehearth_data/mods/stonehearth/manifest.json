@@ -290,6 +290,8 @@
       "decoration:bird_bath" : "file(entities/decoration/bird_bath)",
       "decoration:stone_garden_lantern" : "file(entities/decoration/stone_garden_lantern)",
       "decoration:gargoyle" : "file(entities/decoration/gargoyle)",
+      "decoration:stone_brazier" : "file(entities/decoration/stone_brazier)",
+      "decoration:tower_brazier" : "file(entities/decoration/tower_brazier)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",

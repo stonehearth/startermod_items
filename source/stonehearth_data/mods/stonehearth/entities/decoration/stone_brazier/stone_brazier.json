@@ -1,0 +1,28 @@
+{
+   "type" : "entity",
+   "mixins": "file(stone_brazier_ghost.json)",
+
+   "components" : {
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0, "z" : 0 },
+               "max" : { "x" : 1, "y" : 2, "z" : 1 }
+            }
+         ]
+      },
+      "stonehearth:lamp" : {
+         "light_effect" : "/stonehearth/data/effects/brazier_effect"
+      },
+
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(stone_brazier_iconic.json)",
+         "ghost_form" : "file(stone_brazier_ghost.json)",
+         "placeable_on_ground" : true
+      }
+   }
+}
