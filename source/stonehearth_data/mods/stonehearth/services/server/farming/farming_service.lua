@@ -111,6 +111,13 @@ end
 
 --- Add a new crop type to a specific player
 function FarmingService:add_crop_type(session, new_crop_type, quantity)
+   for i, crop_data in ipairs(self:_get_crop_list(session)) do
+      if crop_data.crop_type == new_crop_type then
+         crop_data.quantity = crop_data.quantity + quantity
+         return
+      end
+   end
+
    local crop_list = self:_get_crop_list(session)
    local crop_data = {
             crop_type = new_crop_type,
