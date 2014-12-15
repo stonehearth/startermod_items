@@ -9,7 +9,7 @@ local log = radiant.log.create_logger('call_handlers.place_item')
 -- these are quite annoying.  we can get rid of them by implementing and using
 -- LuaToProto <-> ProtoToLua in the RPC layer (see lib/typeinfo/dispatcher.h)
 local function ToPoint3(pt)
-   return Point3(pt.x, pt.y, pt.z)
+   return pt and Point3(pt.x, pt.y, pt.z) or nil
 end
 
 -- Client side object to place an item in the world. The item exists as an icon first

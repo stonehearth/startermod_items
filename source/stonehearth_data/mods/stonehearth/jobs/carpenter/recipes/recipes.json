@@ -5,19 +5,19 @@
          "name" : "Tools & Weapons", 
          "recipes" : {
             "weaver_spindle" : {
-               "uri" : "file(weaver_spindle_recipe.json)"
+               "recipe" : "file(weaver_spindle_recipe.json)"
             },
             "hoe" : {
-               "uri" : "file(hoe_recipe.json)"
+               "recipe" : "file(hoe_recipe.json)"
             },
             "mason_chisel" : {
-               "uri" : "file(mason_chisel_recipe.json)"
+               "recipe" : "file(mason_chisel_recipe.json)"
             },
             "wooden_sword" : {
-               "uri" : "file(wooden_sword_recipe.json)"
+               "recipe" : "file(wooden_sword_recipe.json)"
             },
             "shepherd_crook" : {
-               "uri" : "file(shepherds_crook_recipe.json)"
+               "recipe" : "file(shepherds_crook_recipe.json)"
             }  
             
          }
@@ -27,31 +27,31 @@
          "name" : "Building Parts", 
          "recipes" : {
             "wooden_door" : {
-               "uri" : "file(wooden_door_recipe.json)"
+               "recipe" : "file(wooden_door_recipe.json)"
             }, 
             "wooden_door_2" : {
-               "uri" : "file(wooden_door_2_recipe.json)"
+               "recipe" : "file(wooden_door_2_recipe.json)"
             }, 
             "wooden_double_door" : {
-               "uri" : "file(wooden_double_door_recipe.json)"
+               "recipe" : "file(wooden_double_door_recipe.json)"
             }, 
             "wooden_window_frame" : {
-               "uri" : "file(wooden_window_frame_recipe.json)"
+               "recipe" : "file(wooden_window_frame_recipe.json)"
             }, 
             "wooden_diamond_window" : {
-               "uri" : "file(wooden_diamond_window_recipe.json)"
+               "recipe" : "file(wooden_diamond_window_recipe.json)"
             }, 
             "wooden_wall_lantern" : {
-               "uri" : "file(wooden_wall_lantern_recipe.json)"
+               "recipe" : "file(wooden_wall_lantern_recipe.json)"
             },
             "wooden_garden_lantern" : {
-               "uri" : "file(wooden_garden_lantern_recipe.json)"
+               "recipe" : "file(wooden_garden_lantern_recipe.json)"
             },
             "picket_fence" : {
-               "uri" : "file(picket_fence_recipe.json)"
+               "recipe" : "file(picket_fence_recipe.json)"
             },
             "picket_fence_gate" : {
-               "uri" : "file(picket_fence_gate_recipe.json)"
+               "recipe" : "file(picket_fence_gate_recipe.json)"
             }            
          }
       },
@@ -60,34 +60,34 @@
          "name" : "Furniture", 
          "recipes" : {
             "simple_wooden_chair" : {
-            "uri" : "file(simple_wooden_chair_recipe.json)"
+            "recipe" : "file(simple_wooden_chair_recipe.json)"
             }, 
             "comfy_chair" : {
-               "uri" : "file(comfy_chair_recipe.json)"
+               "recipe" : "file(comfy_chair_recipe.json)"
             }, 
             "arch_backed_chair" : {
-               "uri" : "file(arch_backed_chair_recipe.json)"
+               "recipe" : "file(arch_backed_chair_recipe.json)"
             },
             "table_for_one" : {
-               "uri" : "file(table_for_one_recipe.json)" 
+               "recipe" : "file(table_for_one_recipe.json)" 
             },
             "dining_table" : {
-               "uri" : "file(dining_table_recipe.json)" 
+               "recipe" : "file(dining_table_recipe.json)" 
             },
             "mean_bed" : {
-               "uri" : "file(not_much_of_a_bed_recipe.json)"
+               "recipe" : "file(not_much_of_a_bed_recipe.json)"
             },
             "comfy_bed" : {
-               "uri" : "file(comfy_bed_recipe.json)" 
+               "recipe" : "file(comfy_bed_recipe.json)" 
             },
             "park_bench" : {
-               "uri" : "file(park_bench_recipe.json)" 
+               "recipe" : "file(park_bench_recipe.json)" 
             },
             "dresser" : {
-               "uri" : "file(dresser_recipe.json)" 
+               "recipe" : "file(dresser_recipe.json)" 
             },
             "writing_desk" : {
-               "uri" : "file(writing_desk_recipe.json)" 
+               "recipe" : "file(writing_desk_recipe.json)" 
             }
          }
       },
@@ -96,19 +96,19 @@
          "name" : "Signage & Decoration", 
          "recipes" : {
             "wooden_sign" : {
-               "uri" : "file(wooden_sign_recipe.json)" 
+               "recipe" : "file(wooden_sign_recipe.json)" 
             },
             "wooden_sign_carpenter" : {
-               "uri" : "file(wooden_sign_carpenter_recipe.json)" 
+               "recipe" : "file(wooden_sign_carpenter_recipe.json)" 
             },
             "wooden_sign_weaver" : {
-               "uri" : "file(wooden_sign_weaver_recipe.json)" 
+               "recipe" : "file(wooden_sign_weaver_recipe.json)" 
             },
             "window_box_brightbell" : {
-               "uri" : "file(window_box_brightbell_recipe.json)" 
+               "recipe" : "file(window_box_brightbell_recipe.json)" 
             },
             "window_box_frostsnap" : {
-               "uri" : "file(window_box_frostsnap_recipe.json)" 
+               "recipe" : "file(window_box_frostsnap_recipe.json)" 
             }         
          }
       }

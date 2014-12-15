@@ -27,7 +27,7 @@
    ],
    "crafter" : {
       "work_effect": "fiddle",
-      "recipe_list": "/stonehearth/jobs/weaver/recipes"
+      "recipe_list": "/stonehearth/jobs/weaver/recipes/recipes.json"
    },
    "workshop" : {
       "name": "Weaver's Workshop",

@@ -11,13 +11,13 @@
          "name" : "Building Parts", 
          "recipes" : {
             "stone_bricks" : {
-               "uri" : "file(stone_bricks_recipe.json)"
+               "recipe" : "file(stone_bricks_recipe.json)"
             },
             "cobblestone_fence" : {
-               "uri" : "file(cobblestone_fence_recipe.json)"
+               "recipe" : "file(cobblestone_fence_recipe.json)"
             },
             "cobblestone_fence_gate" : {
-               "uri" : "file(cobblestone_fence_gate_recipe.json)"
+               "recipe" : "file(cobblestone_fence_gate_recipe.json)"
             }
          }
       },
@@ -26,13 +26,13 @@
          "name" : "Furniture", 
          "recipes" : {
             "stone_chair" : {
-               "uri" : "file(stone_chair_recipe.json)" 
+               "recipe" : "file(stone_chair_recipe.json)" 
             },
             "stone_table" : {
-               "uri" : "file(stone_table_recipe.json)" 
+               "recipe" : "file(stone_table_recipe.json)" 
             },
             "stone_bench" : {
-               "uri" : "file(stone_bench_recipe.json)" 
+               "recipe" : "file(stone_bench_recipe.json)" 
             }
          }
       },
@@ -41,19 +41,19 @@
          "name" : "Signage & Decoration",
          "recipes" : {
             "bird_bath" : {
-               "uri" : "file(bird_bath_recipe.json)" 
+               "recipe" : "file(bird_bath_recipe.json)" 
             },
             "stone_garden_lantern" : {
-               "uri" : "file(stone_garden_lantern_recipe.json)" 
+               "recipe" : "file(stone_garden_lantern_recipe.json)" 
             },
             "gargoyle" : {
-               "uri" : "file(gargoyle_recipe.json)" 
+               "recipe" : "file(gargoyle_recipe.json)" 
             },
             "stone_brazier" : {
-               "uri" : "file(stone_brazier_recipe.json)" 
+               "recipe" : "file(stone_brazier_recipe.json)" 
             },
             "tower_brazier" : {
-               "uri" : "file(tower_brazier_recipe.json)" 
+               "recipe" : "file(tower_brazier_recipe.json)" 
             }            
          }
       }

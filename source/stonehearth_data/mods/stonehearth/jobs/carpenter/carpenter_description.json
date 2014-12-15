@@ -26,7 +26,7 @@
    ],
    "crafter" : {
       "work_effect": "saw",
-      "recipe_list": "/stonehearth/jobs/carpenter/recipes"
+      "recipe_list": "/stonehearth/jobs/carpenter/recipes/recipes.json"
    },
    "workshop" : {
       "name": "Carpenter's Workshop",
