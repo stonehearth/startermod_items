@@ -33,7 +33,7 @@ function HarvestTest:__init()
    self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
    
    self:at(200,  function()
-         --stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
+         stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
          --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
          --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')   
       end)
