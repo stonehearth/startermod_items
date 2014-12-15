@@ -1,0 +1,22 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(stone_brazier.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.15
+      },     
+      "unit_info": {
+         "name": "Stone Brazier",
+         "description": "Provides warm and cozy fire at night",
+         "icon" : "file(stone_brazier.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "light_source crafted"
+      }
+   }
+}
