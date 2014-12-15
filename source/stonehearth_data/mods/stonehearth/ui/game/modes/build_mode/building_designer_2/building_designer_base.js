@@ -281,16 +281,16 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
          App.gameView.addView(App.StonehearthConfirmView, 
             { 
-               title : "Really start building?",
-               message : "Once you begin building this structure it cannot be edited. Are you sure you want to build now?",
+               title : i18n.t('start_building_confirm_title'),
+               message : i18n.t('start_building_confirm'),
                buttons : [
                   { 
                      id: 'confirmBuilding',
-                     label: "Yes, start building!",
+                     label: i18n.t('start_building_yes'),
                      click: doStartBuilding
                   },
                   {
-                     label: "Not yet, I have more edits"
+                     label: i18n.t('start_building_no')
                   }
                ] 
             });         
@@ -308,15 +308,15 @@ App.StonehearthBuildingDesignerBaseTools = App.View.extend({
 
          App.gameView.addView(App.StonehearthConfirmView, 
             { 
-               title : "Really remove this building",
-               message : "Are you sure you want to remove this entire building?",
+               title : i18n.t('remove_building_title'),
+               message : i18n.t('remove_building'), 
                buttons : [
                   { 
                      id: 'confirmRemove',
-                     label: "Keep this building"
+                     label: i18n.t('remove_building_yes')
                   },
                   {
-                     label: "Remove this building",
+                     label: i18n.t('remove_building_no'),
                      click: doRemoveBuilding
                   }
                ] 
