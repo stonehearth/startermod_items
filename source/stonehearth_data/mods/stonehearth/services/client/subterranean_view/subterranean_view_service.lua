@@ -56,8 +56,6 @@ function SubterraneanViewService:initialize()
             self:_destroy_initialize_listener()
          end
       end)
-
-   -- TODO: set renderer xray_mode on load
 end
 
 function SubterraneanViewService:clip_enabled()
@@ -76,7 +74,9 @@ function SubterraneanViewService:_deferred_initialize()
 
    self._finished_initialization = true
 
+   self:_update_xray_mode()
    self:_update_clip_height()
+   self:_update_all_entities_visibility()
 end
 
 function SubterraneanViewService:_destroy_initialize_listener()
@@ -433,10 +433,12 @@ function SubterraneanViewService:toggle_xray_mode(mode)
    end
    self.__saved_variables:mark_changed()
 
+   self:_update_xray_mode()
    self:_update_all_entities_visibility()
-
    self:_update_dirty_tiles()
+end
 
+function SubterraneanViewService:_update_xray_mode()
    -- explicitly check against nil to coerce to boolean type
    local enabled = self._sv.xray_mode ~= nil and self._sv.xray_mode ~= ''
    _radiant.renderer.enable_xray_mode(enabled)
@@ -446,12 +448,14 @@ function SubterraneanViewService:set_clip_enabled(enabled)
    self._sv.clip_enabled = enabled
    self.__saved_variables:mark_changed()
    self:_update_clip_height()
+   self:_update_all_entities_visibility()
 end
 
 function SubterraneanViewService:set_clip_height(height)
    self._sv.clip_height = height
    self.__saved_variables:mark_changed()
    self:_update_clip_height()
+   self:_update_all_entities_visibility()
 end
 
 function SubterraneanViewService:move_clip_height_up()
@@ -494,8 +498,6 @@ function SubterraneanViewService:_update_clip_height()
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
       h3dClearVerticalClipMax()
    end
-
-   self:_update_all_entities_visibility()
 end
 
 function SubterraneanViewService:_get_world_floor()

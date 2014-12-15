@@ -71,16 +71,6 @@ function GoblinThief:_add_restock_task()
       :set_priority(stonehearth.constants.priorities.goblins.HOARD)
       :start()
 
-   local town = stonehearth.town:get_town(self._sv.player_id)
-   --local banner = town:get_banner()
-   self._sv._goblin:get_component('stonehearth:ai')
-      :get_task_group('stonehearth:work')
-      :create_task('stonehearth:goto_town_center', { town = town })
-      :set_name('introduce self task')
-      :set_priority(stonehearth.constants.priorities.goblins.RUN_TOWARDS_SETTLEMENT)
-      :once()
-      :start()
-
    self.__saved_variables:mark_changed()
 end
 
