@@ -82,7 +82,7 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
       //show each class that this person has ever been
       var jobs = this.get('context.model.stonehearth:job.job_controllers');
       radiant.each(jobs, function(alias, data) {
-         if(alias != "__self" && jobs.hasOwnProperty(alias)) {
+         if(alias != "__self" && alias != "stonehearth:jobs:worker" && jobs.hasOwnProperty(alias)) {
             var div = self.$("[uri='" + alias + "']");
             
             //For each, figure out which perks should be unlocked
