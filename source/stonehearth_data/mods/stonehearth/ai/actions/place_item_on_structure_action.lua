@@ -9,6 +9,10 @@ PlaceItemOnStructure.args = {
    location = Point3,   -- where to take it.  the ghost should already be there
    rotation = 'number', -- the rotation
    structure = Entity,  -- the structure
+   ignore_gravity = {      -- turn off gravity when placing
+      type = 'boolean',
+      default = false,
+   }
 }
 PlaceItemOnStructure.version = 2
 PlaceItemOnStructure.priority = 1
@@ -26,5 +30,6 @@ return ai:create_compound_action(PlaceItemOnStructure)
          :execute('stonehearth:place_carrying_on_structure_adjacent', {
                location = ai.ARGS.location,
                rotation = ai.ARGS.rotation,
-               structure = ai.ARGS.structure
+               structure = ai.ARGS.structure,
+               ignore_gravity = ai.ARGS.ignore_gravity,
             })
