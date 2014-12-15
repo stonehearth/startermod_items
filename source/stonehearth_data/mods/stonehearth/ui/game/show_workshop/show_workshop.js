@@ -95,24 +95,28 @@ App.StonehearthCrafterView = App.View.extend({
             var recipe = recipe_info.recipe;
 
             //Add ingredient images to the recipes
+            var formatted_ingredients = [];
             radiant.each(recipe.ingredients, function(i, ingredient) {
+               var formatted_ingredient = {}
                if (ingredient.material) {
                   var formatting = App.constants.formatting.resources[ingredient.material];
-                  if (formatting) {
-                     ingredient.name = formatting.name;
-                     ingredient.icon = formatting.icon;
+                  if (formatting) {                     
+                     formatted_ingredient.name = formatting.name;
+                     formatted_ingredient.icon = formatting.icon;
                   } else {
                      // XXX, roll back to some generic icon
-                     ingredient.name = ingredient.material;
+                     formatted_ingredient.name = ingredient.material;
                   }
                } else {
                   radiant.trace(ingredient.uri)
-                           .progress(function(json) {
-                              ingredient.icon = json.components.unit_info.icon;
-                              ingredient.name = json.components.unit_info.name;
-                           });
+                                    .progress(function(json) {
+                                       formatted_ingredient.icon = json.components.unit_info.icon;
+                                       formatted_ingredient.name = json.components.unit_info.name;
+                                    });
                }
+               formatted_ingredients.push(formatted_ingredient);
             });
+            recipe.formatted_ingredients = formatted_ingredients
             recipe_array.push(recipe);
          });
          
