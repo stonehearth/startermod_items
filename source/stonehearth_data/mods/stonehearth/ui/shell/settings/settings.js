@@ -2,6 +2,7 @@ App.StonehearthSettingsView = App.View.extend({
    templateName: 'settings',
    classNames: ['flex', 'fullScreen'],
    closeOnEsc: true,
+   modal: true,
 
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
