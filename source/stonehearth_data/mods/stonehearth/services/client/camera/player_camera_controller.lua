@@ -326,7 +326,7 @@ function PlayerCameraController:_calculate_drag(e)
     local root = radiant.entities.get_entity(1)
     local terrain_comp = root:get_component('terrain')
     local bounds = terrain_comp:get_bounds()
-    if not bounds:contains(self._drag_start) then
+    if not bounds:contains_inclusive(self._drag_start) then
       self._dragging = false
     end
   elseif not drag_key_down and self._dragging then

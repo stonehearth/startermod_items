@@ -67,6 +67,7 @@ public:
 
    bool Intersects(Cube const& other) const;
    bool Contains(Point const& pt) const;
+   bool ContainsInclusive(Point const& pt) const;
    Point GetClosestPoint(Point const& other) const;
    Point GetSize() const { return GetMax() - GetMin(); }
    inline double SquaredDistanceTo(Point const& other) const;
