@@ -87,6 +87,8 @@ function CrafterComponent:_build_craftable_recipe_list(recipe_index_url)
          table.insert(recipe_array, 1, recipe_data)
       end
       if #recipe_array > 0 then
+         --TODO: remove the flat array, and compose it in javascript
+         -- https://bugs/browse/SH-162
          --Make an entry in the recipe table for the UI
          local category_ui_info = {}
          category_ui_info.category = category_data.name
