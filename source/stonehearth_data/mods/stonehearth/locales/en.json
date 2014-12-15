@@ -266,6 +266,7 @@
    "trapper_zone_tip_description" : "Trappers catch critters for food and resources in this zone", 
    "shepherd_zone_tip_title" : "Click and drag to create an animal pasture", 
    "shepherd_zone_tip_description" : "Shepherds bring animals to this region and tend to their needs here.", 
+   "pasture_help" : "Shepherds bring animals to this region and tend to their needs here.", 
    "mine_down_tip_title" : "Click and drag to dig downward", 
    "mine_down_tip_description" : "Right click to exit", 
    "mine_out_tip_title" : "Click and drag dig within this layer", 

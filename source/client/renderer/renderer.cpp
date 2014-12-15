@@ -222,7 +222,10 @@ void Renderer::SetupGlfwHandlers()
    });
 
    glfwSetKeyCallback(window, [](GLFWwindow *window, int key, int scancode, int action, int mods) { 
-      Renderer::GetInstance().OnKey(key, (action == GLFW_PRESS) || (action == GLFW_REPEAT), mods); 
+      if (action == GLFW_REPEAT) {
+         return;
+      }
+      Renderer::GetInstance().OnKey(key, action == GLFW_PRESS, mods); 
    });
 
    glfwSetCursorEnterCallback(window, [](GLFWwindow *window, int entered) {

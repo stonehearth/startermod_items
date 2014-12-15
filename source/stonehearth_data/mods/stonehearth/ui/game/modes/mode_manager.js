@@ -162,10 +162,7 @@ $(document).ready(function() {
          if (entity['stonehearth:fabricator'] ||
              entity['stonehearth:construction_data'] ||
              entity['stonehearth:construction_progress']) {
-            if (this._currentMode == this.modes.ZONES ||
-                this._currentMode == this.modes.BUILD ) {
-               return this.modes.BUILD;
-            }
+            return this.modes.BUILD;
          }
          return this.modes.NORMAL;
       }
