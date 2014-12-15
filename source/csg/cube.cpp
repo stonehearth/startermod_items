@@ -409,6 +409,12 @@ bool Cube<S, C>::Contains(Point const& pt) const
    return IsBetween(min, pt, max);
 }
 
+template <typename S, int C>
+bool Cube<S, C>::ContainsInclusive(Point const& pt) const
+{
+   return IsBetweenInc(min, pt, max);
+}
+
 template <class S, int C>
 void GrowFn(Cube<S, C>& cube, Point<S, C> const& pt);
 
@@ -550,6 +556,7 @@ Point<double, C> csg::GetCentroid(Cube<S, C> const& cube)
    template Cls::Region Cls::operator-(const Cls& other) const; \
    template Cls::Region Cls::operator-(const Cls::Region& other) const; \
    template bool Cls::Contains(const Cls::Point& other) const; \
+   template bool Cls::ContainsInclusive(const Cls::Point& other) const; \
    template Cls::Point Cls::GetClosestPoint(const Cls::Point& other) const; \
    template double Cls::DistanceTo(const Cls& other) const; \
    template double Cls::DistanceTo(const Cls::Point& other) const; \
