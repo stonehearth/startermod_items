@@ -1,0 +1,18 @@
+<script type="text/x-handlebars" data-template-name="stonehearthPasture">
+   <div id="pastureWindow" class="gui">
+      <div class="window">
+         <div class="title">
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=view.model.unit_info.name}} /> <div class="closeButton"></div>
+         </div>
+
+         <p>{{i18n stonehearth:pasture_help}}</p>
+         <center>
+            <img id="trapImage" />
+         </center>
+
+         <button class="warn">{{i18n stonehearth:remove}}</button>
+         <!-- <button id="disableButton">{{i18n stonehearth:disable}}</button>-->
+         <button class="ok"></button>
+      </div>
+   </div>
+</script>
