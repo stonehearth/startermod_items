@@ -766,6 +766,10 @@ end
 function entities.is_adjacent_to(subject, target)
    if radiant.util.is_a(subject, Entity) then
       subject = entities.get_world_grid_location(subject)
+      if not subject then
+         -- target is not actually in the world at the moment
+         return false
+      end
    end
    if radiant.util.is_a(target, Entity) then
       local destination = target:get_component('destination')
@@ -782,6 +786,10 @@ function entities.is_adjacent_to(subject, target)
          end
       end
       target = entities.get_world_grid_location(target)
+      if not target then
+         -- target is not actually in the world at the moment
+         return false
+      end
    end
    radiant.check.is_a(subject, Point3)
    radiant.check.is_a(target, Point3)
