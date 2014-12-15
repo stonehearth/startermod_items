@@ -68,6 +68,8 @@ App.StonehearthZonesModeView = App.View.extend({
          this._showTrappingGroundsUi(entity);
       } else if (entity['stonehearth:mining_zone']) {
          this._showMiningZoneUi(entity);
+      } else if (entity['stonehearth:shepherd_pasture']) {
+         this._showPastureUi(entity);
       }
    },
 
@@ -80,15 +82,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { 
-            uri: uri,
-            position_hide: {
-               my : 'center bottom',
-               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-               of : $(document),
-               collision : 'fit'
-            }
-         });
+      this._propertyView = App.gameView.addView(App.StonehearthStockpileView, { uri: uri });
    },
 
    _showFarmUi: function(entity) {
@@ -100,15 +94,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
 
-      this._propertyView = App.gameView.addView(App.StonehearthFarmView, { 
-            uri: uri,
-            position_hide: {
-               my : 'center bottom',
-               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-               of : $(document),
-               collision : 'fit'
-            }
-      });
+      this._propertyView = App.gameView.addView(App.StonehearthFarmView, { uri: uri });
    },
 
    _showTrappingGroundsUi: function(entity) {
@@ -120,15 +106,7 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
 
-      this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { 
-            uri: uri,
-            position_hide: {
-               my : 'center bottom',
-               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-               of : $(document),
-               collision : 'fit'
-            }
-         });
+      this._propertyView = App.gameView.addView(App.StonehearthTrappingGroundsView, { uri: uri });
    },
 
    _showMiningZoneUi: function(entity) {
@@ -140,14 +118,19 @@ App.StonehearthZonesModeView = App.View.extend({
 
       var uri = typeof(entity) == 'string' ? entity : entity.__self;
       
-      this._propertyView = App.gameView.addView(App.StonehearthMiningZoneView, { 
-            uri: uri,
-            position_hide: {
-               my : 'center bottom',
-               at : 'left+' + App.stonehearthClient.mouseX + " " + 'top+' + (App.stonehearthClient.mouseY - 10),
-               of : $(document),
-               collision : 'fit'
-            }
-         });
+      this._propertyView = App.gameView.addView(App.StonehearthMiningZoneView, { uri: uri });
+   },
+
+   _showPastureUi: function(entity) {
+      var self = this;
+
+      if (this._propertyView) {
+         this._propertyView.destroy();
+      };
+
+      var uri = typeof(entity) == 'string' ? entity : entity.__self;
+      
+      this._propertyView = App.gameView.addView(App.StonehearthPastureView, { uri: uri });
    }
+
 });
