@@ -91,6 +91,33 @@ template <typename S> static inline bool IsBetween(Point<S, 3> const& a, Point<S
           IsBetween(a.z, b.z, c.z);
 }
 
+
+template <typename S> static inline bool IsBetweenInc(S a, S b, S c)
+{
+   return a <= b && b <= c;
+}
+
+template <typename S, int C> static inline bool IsBetweenInc(Point<S, C> const& a, Point<S, C> const& b, Point<S, C> const& c);
+
+template <typename S> static inline bool IsBetweenInc(Point<S, 1> const& a, Point<S, 1> const& b, Point<S, 1> const& c)
+{
+   return IsBetweenInc(a.x, b.x, c.x);
+}
+
+template <typename S> static inline bool IsBetweenInc(Point<S, 2> const& a, Point<S, 2> const& b, Point<S, 2> const& c)
+{
+   return IsBetweenInc(a.x, b.x, c.x) &&
+          IsBetweenInc(a.y, b.y, c.y);
+}
+
+template <typename S> static inline bool IsBetweenInc(Point<S, 3> const& a, Point<S, 3> const& b, Point<S, 3> const& c)
+{
+   return IsBetweenInc(a.x, b.x, c.x) &&
+          IsBetweenInc(a.y, b.y, c.y) &&
+          IsBetweenInc(a.z, b.z, c.z);
+}
+
+
 template <typename S> Point<S, 2> ProjectOntoXY(Point<S, 3> const& pt);
 template <typename S> Point<S, 2> ProjectOntoXZ(Point<S, 3> const& pt);
 template <typename S> Point<S, 2> ProjectOntoYZ(Point<S, 3> const& pt);

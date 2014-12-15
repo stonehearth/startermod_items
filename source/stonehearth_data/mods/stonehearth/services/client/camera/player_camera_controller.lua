@@ -36,6 +36,7 @@ function PlayerCameraController:restore()
    self._mouse_dead_zone_x = 0
    self._mouse_dead_zone_y = 0
 
+   self._drag_cursor = nil
    self._orbiting = false
    self._dragging = false
    self._drag_start = Vec3(0, 0, 0)
@@ -166,12 +167,11 @@ end
 function PlayerCameraController:_on_keyboard_input(e)
   local drag_key_down = _radiant.client.is_key_down(_radiant.client.KeyboardInput.KEY_SPACE)
   
-  if drag_key_down then
+  if drag_key_down and not self._drag_cursor then
     self._drag_cursor = _radiant.client.set_cursor('stonehearth:cursors:camera_pan')
-  else 
-    if self._drag_cursor then
-      self._drag_cursor:destroy()  
-    end
+  elseif not drag_key_down and self._drag_cursor then
+    self._drag_cursor:destroy()
+    self._drag_cursor = nil
   end
 end
 
@@ -326,7 +326,7 @@ function PlayerCameraController:_calculate_drag(e)
     local root = radiant.entities.get_entity(1)
     local terrain_comp = root:get_component('terrain')
     local bounds = terrain_comp:get_bounds()
-    if not bounds:contains(self._drag_start) then
+    if not bounds:contains_inclusive(self._drag_start) then
       self._dragging = false
     end
   elseif not drag_key_down and self._dragging then
