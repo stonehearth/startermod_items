@@ -94,10 +94,6 @@ App.StonehearthCrafterView = App.View.extend({
          radiant.each(category.recipes, function(recipe_name, recipe_info) {
             var recipe = recipe_info.recipe;
 
-            if (!recipe.level_requirement) {
-               recipe.level_requirement = 0;
-            }
-
             //Add ingredient images to the recipes
             radiant.each(recipe.ingredients, function(i, ingredient) {
                if (ingredient.material) {
