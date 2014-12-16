@@ -337,14 +337,14 @@ end
 
 function SubterraneanViewService:_on_keyboard_event(e)
    if e.down then
-      if e.key == _radiant.client.KeyboardInput.KEY_X then
-         self:toggle_xray_mode('full')
-         return true
-      end
-      if e.key == _radiant.client.KeyboardInput.KEY_Z then
-         self:toggle_xray_mode('flat')
-         return true
-      end
+      -- if e.key == _radiant.client.KeyboardInput.KEY_X then
+      --    self:toggle_xray_mode('full')
+      --    return true
+      -- end
+      -- if e.key == _radiant.client.KeyboardInput.KEY_Z then
+      --    self:toggle_xray_mode('flat')
+      --    return true
+      -- end
    end
    return false
 end
