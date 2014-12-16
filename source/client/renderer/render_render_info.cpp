@@ -23,18 +23,6 @@ using namespace ::radiant::client;
 
 #define RI_LOG(level)      LOG(renderer.render_info, level)
 
-void RenderRenderInfo::SetDirtyBits(int flags)
-{
-   dirty_ |= flags;
-
-   if (renderer_frame_guard_.Empty()) {
-      renderer_frame_guard_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
-         perfmon::TimelineCounterGuard tcg("update render_info");
-         Update();
-      });
-   }
-}
-
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
@@ -67,11 +55,26 @@ RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr rende
       material_trace_ = render_info->TraceMaterial("render", dm::RENDER_TRACES)->OnModified(set_model_dirty_bit);
    }
 
-   SetDirtyBits(-1);
+   // Manually update immediately on construction.
+   dirty_ = -1;
+   Update();
 }
 
 RenderRenderInfo::~RenderRenderInfo()
 {
+}
+
+
+void RenderRenderInfo::SetDirtyBits(int flags)
+{
+   dirty_ |= flags;
+
+   if (renderer_frame_guard_.Empty()) {
+      renderer_frame_guard_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
+         perfmon::TimelineCounterGuard tcg("update render_info");
+         Update();
+      });
+   }
 }
 
 void RenderRenderInfo::AccumulateModelVariant(ModelMap& m, om::ModelLayerPtr layer)
