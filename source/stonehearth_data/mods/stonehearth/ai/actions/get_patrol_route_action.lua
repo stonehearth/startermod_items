@@ -4,7 +4,7 @@ local Path = _radiant.sim.Path
 local log = radiant.log.create_logger('town_patrol')
 
 local GetPatrolPoint = class()
-GetPatrolPoint.name = 'get patrol point'
+GetPatrolPoint.name = 'get patrol route'
 GetPatrolPoint.does = 'stonehearth:get_patrol_route'
 GetPatrolPoint.args = {}
 GetPatrolPoint.think_output = {
@@ -32,15 +32,12 @@ function GetPatrolPoint:stop_thinking(ai, entity, args)
       self._patrol_listener = nil
    end
 
-   if self._proxy_entity then
-      radiant.entities.destroy_entity(self._proxy_entity)
-      self._proxy_entity = nil
-   end
-
    if self._pathfinder then
       self._pathfinder:destroy()
       self._pathfinder = nil
    end
+
+   self:_destroy_proxy_entity()
 
    self._patrollable_object = nil
    self._entity = nil
@@ -87,33 +84,37 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    -- find the "best" order of traversal
    PatrolHelpers.order_waypoints(self._entity, start_location, waypoints)
 
-   -- the proxy target for the pathfinder, since the a* pathfinder requires an entity destination
-   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
+   find_next_path = function(start, finish)
+      local on_success = function(path)
+         log:debug('found path from %s to %s', start, finish)
 
-   -- doesn't matter where it we place it, we'll move it later
-   radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)
+         -- record the solved path segment
+         table.insert(paths, path)
 
-   local on_success = function (path)
-      -- record the solved path segment
-      table.insert(paths, path)
+         -- prepare for next segment
+         local next_start_location = path:get_finish_point()
+         waypoint_index = waypoint_index + 1
 
-      -- prepare for next segment
-      local next_start_location = path:get_finish_point()
-      waypoint_index = waypoint_index + 1
-
-      if waypoint_index <= #waypoints then
-         -- find path to the next waypoint
-         find_next_path(next_start_location, waypoints[waypoint_index])
-      else
-         -- done! all paths solved
-         self:_set_think_output(paths)
+         if waypoint_index <= #waypoints then
+            -- find path to the next waypoint
+            find_next_path(next_start_location, waypoints[waypoint_index])
+         else
+            -- done! all paths solved
+            log:debug('all paths solved')
+            self:_set_think_output(paths)
+         end
       end
-   end
 
-   find_next_path = function (start, finish)
-      radiant.entities.move_to(self._proxy_entity, finish)
+      local on_exhausted = function()
+         log:debug('could not find path from %s to %s', start, finish)
+      end
+
+      -- reusing the proxy entity is causing issues with the shared pathfinder,
+      -- so create a new one each time
+      self:_create_proxy_entity(finish)
+
       self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
-                                          :find_path_to_entity(start, self._proxy_entity, on_success)
+                                          :find_path_to_entity(start, self._proxy_entity, on_success, on_exhausted)
    end
 
    -- find the first path segment in the chain
@@ -126,6 +127,19 @@ function GetPatrolPoint:_set_think_output(paths)
       path = combined_path,
       patrollable_object = self._patrollable_object,
    })
+end
+
+function GetPatrolPoint:_create_proxy_entity(location)
+   self:_destroy_proxy_entity()
+   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
+   radiant.terrain.place_entity_at_exact_location(self._proxy_entity, location)
+end
+
+function GetPatrolPoint:_destroy_proxy_entity()
+   if self._proxy_entity then
+      radiant.entities.destroy_entity(self._proxy_entity)
+      self._proxy_entity = nil
+   end
 end
 
 return GetPatrolPoint

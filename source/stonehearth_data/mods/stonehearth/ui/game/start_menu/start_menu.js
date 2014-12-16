@@ -92,8 +92,6 @@ App.StonehearthStartMenuView = App.View.extend({
             radiant.call('radiant:get_config', 'show_in_progress_ui')
                .done(function(response) {
                   if (!response.show_in_progress_ui) {
-                     self.$('#mining_menu').hide();
-                     self.$('#build_road').hide();
                      self.$('#tasks_manager').hide();
                   }
                })
