@@ -1065,6 +1065,7 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
       if (rootEntity) {
          rootEntity_ = rootEntity;
          Renderer::GetInstance().SetRootEntity(rootEntity);
+         Renderer::GetInstance().ConstructAllRenderEntities();
          octtree_->SetRootEntity(rootEntity);
       }
    }

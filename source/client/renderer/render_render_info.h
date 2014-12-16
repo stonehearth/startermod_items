@@ -73,6 +73,7 @@ private:
 private:
    RenderEntity&           entity_;
    int                     dirty_;
+   float                   scale_;
    om::RenderInfoRef       render_info_;
    core::Guard             renderer_frame_guard_;
    dm::TracePtr            variant_trace_;

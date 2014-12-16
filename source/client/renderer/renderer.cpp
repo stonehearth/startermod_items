@@ -973,6 +973,20 @@ bool Renderer::SetExploredRegion(std::string const& explored_region_uri)
    return false;
 }
 
+void Renderer::ConstructAllRenderEntities()
+{
+   while (!_newRenderEntities.empty()) {
+      std::vector<std::weak_ptr<RenderEntity>> renderEntities = _newRenderEntities;
+      _newRenderEntities.clear();
+      for (std::weak_ptr<RenderEntity> re : renderEntities) {
+         std::shared_ptr<RenderEntity> r = re.lock();
+         if (r) {
+            r->FinishConstruction();
+         }
+      }
+   }
+}
+
 void Renderer::RenderOneFrame(int now, float alpha)
 {
    ASSERT(now >= last_render_time_);
