@@ -324,11 +324,21 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       return
    end
 
-   if entity_state then
-      self:_set_current_entity_state(entity_state)
-   else
-      self:_capture_entity_state()
+   local state_to_set = entity_state
+   if not state_to_set then
+      self._log:debug('_capture_entity_state')
+      state_to_set = self:_create_entity_state()
    end
+
+   -- If we're top, then set our 'top_location' to be where the entity currently is.
+   -- This can be used by pathfinders, to see if the entity has moved substantially since the
+   -- entity started thinking.
+   if self._activity_name == 'stonehearth:top' then
+      state_to_set.top_location = radiant.entities.get_world_grid_location(self._entity)
+   end
+
+   self:_set_current_entity_state(state_to_set)
+
 
    -- if any of our filters don't want to run this sub-tree, just bail.
    for _, unit in pairs(self._execution_filters) do
@@ -1217,6 +1227,7 @@ function ExecutionFrame:_clone_entity_state(name)
    local cloned = {
       location = s.location and Point3(s.location.x, s.location.y, s.location.z),
       carrying = s.carrying,
+      top_location = s.top_location
    }
    self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))
 
@@ -1230,13 +1241,6 @@ function ExecutionFrame:_create_entity_state()
    }
    self:_spam_entity_state(state, 'capturing current entity state')
    return state
-end
-
-function ExecutionFrame:_capture_entity_state()
-   self._log:debug('_capture_entity_state')
-   
-   local state = self:_create_entity_state()
-   self:_set_current_entity_state(state)
 end
 
 -- *strictly* better.  no run-offs for latecomers.

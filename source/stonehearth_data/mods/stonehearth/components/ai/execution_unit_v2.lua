@@ -21,6 +21,7 @@ local ObjectMonitor = require 'components.ai.object_monitor'
 local ENTITY_STATE_FIELDS = {
    location = true,
    carrying = true,
+   top_location = true,
 }
 
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
@@ -364,7 +365,7 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    -- this action.
    self._object_monitor = self:_create_object_monitor()
    if not self._object_monitor then
-      self._log:detail('failed to monitor all entities in args.  bailing.')
+      self._log:error('failed to monitor all entities in args.  bailing.')
       self:_set_state(STOPPED)
       return
    end
