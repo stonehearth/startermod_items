@@ -63,7 +63,7 @@ namespace proto = ::radiant::tesseract::protocol;
 
 Simulation::Simulation(std::string const& versionStr) :
    store_(nullptr),
-   paused_(false),
+   waiting_for_client_(true),
    noidle_(false),
    _tcp_acceptor(nullptr),
    _showDebugNodes(false),
@@ -739,6 +739,7 @@ void Simulation::PostCommandRequest(proto::PostCommandRequest const& request)
 
 void Simulation::FinishedUpdate(proto::FinishedUpdate const& msg)
 {
+   waiting_for_client_ = false;
    for (std::shared_ptr<RemoteClient> c : _clients) {
       // xxx: when we do multiplayer, this needs to be keyed by session
       c->AckSequenceNumber(msg.sequence_number());
@@ -842,11 +843,12 @@ void Simulation::Mainloop()
    ReadClientMessages();
 
    if (begin_loading_) {
+      waiting_for_client_ = true;
       begin_loading_ = false;
       Load();
    }
 
-   if (!paused_) {
+   if (!waiting_for_client_) {
       int interval = static_cast<int>(game_speed_ * game_tick_interval_);
       now_ = now_ + interval;
       clock_->SetTime(now_);

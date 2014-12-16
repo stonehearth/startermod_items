@@ -26,6 +26,7 @@ using namespace ::radiant::client;
 RenderRenderInfo::RenderRenderInfo(RenderEntity& entity, om::RenderInfoPtr render_info) :
    entity_(entity),
    render_info_(render_info),
+   scale_(1.0),
    dirty_(-1)
 {
    auto set_scale_dirty_bit = [=]() {
@@ -137,18 +138,23 @@ void RenderRenderInfo::CheckVisible(om::RenderInfoPtr render_info)
 void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
 {
    float scale = render_info ? render_info->GetScale() : 1.0f;
-   Skeleton& skeleton = entity_.GetSkeleton();
-   skeleton.SetScale(scale);
 
-   for (auto const& entry : nodes_) {
-      H3DNode node = entry.second.node->GetNode();
-      float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+   if (scale != scale_) {
+      scale_ = scale;
 
-      h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
-      tx *= (scale / sx);
-      ty *= (scale / sy);
-      tz *= (scale / sz);
-      h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
+      Skeleton& skeleton = entity_.GetSkeleton();
+      skeleton.SetScale(scale);
+
+      for (auto const& entry : nodes_) {
+         H3DNode node = entry.second.node->GetNode();
+         float tx, ty, tz, rx, ry, rz, sx, sy, sz;
+
+         h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+         tx *= (scale / sx);
+         ty *= (scale / sy);
+         tz *= (scale / sz);
+         h3dSetNodeTransform(node, tx, ty, tz, rx, ry, rz, scale, scale, scale);
+      }
    }
 }
 
@@ -302,7 +308,6 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
       }
    };
 
-   float scale = render_info->GetScale();
    H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone);
 
    RenderNodePtr node = RenderNode::CreateSharedCsgMeshNode(parent, key, generate_matrix);
@@ -310,7 +315,7 @@ void RenderRenderInfo::AddModelNode(om::RenderInfoPtr render_info, std::string c
    h3dSetNodeParamI(node->GetNode(), H3DModel::PolygonOffsetEnabledI, 1);
    h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 0, polygon_offset * 0.04f);
    h3dSetNodeParamF(node->GetNode(), H3DModel::PolygonOffsetF, 1, polygon_offset * 10.0f);
-   h3dSetNodeTransform(node->GetNode(), 0, 0, 0, 0, 0, 0, scale, scale, scale);
+   h3dSetNodeTransform(node->GetNode(), 0, 0, 0, 0, 0, 0, scale_, scale_, scale_);
    nodes_[bone] = NodeMapEntry(matrices, node);
 }
 

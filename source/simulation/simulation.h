@@ -186,7 +186,7 @@ private:
    dm::TracerBufferedPtr   lua_traces_;
    dm::StoreTracePtr       store_trace_;
 
-   bool           paused_;
+   bool           waiting_for_client_;
    bool           noidle_;
    boost::asio::io_service*            _io_service;
    tcp::acceptor*                      _tcp_acceptor;
