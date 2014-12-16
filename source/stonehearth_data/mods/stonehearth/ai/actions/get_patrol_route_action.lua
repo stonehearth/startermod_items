@@ -4,7 +4,7 @@ local Path = _radiant.sim.Path
 local log = radiant.log.create_logger('town_patrol')
 
 local GetPatrolPoint = class()
-GetPatrolPoint.name = 'get patrol point'
+GetPatrolPoint.name = 'get patrol route'
 GetPatrolPoint.does = 'stonehearth:get_patrol_route'
 GetPatrolPoint.args = {}
 GetPatrolPoint.think_output = {
@@ -93,27 +93,34 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
    -- doesn't matter where it we place it, we'll move it later
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, Point3.zero)
 
-   local on_success = function (path)
-      -- record the solved path segment
-      table.insert(paths, path)
+   find_next_path = function(start, finish)
+      local on_success = function(path)
+         log:debug('found path from %s to %s', start, finish)
 
-      -- prepare for next segment
-      local next_start_location = path:get_finish_point()
-      waypoint_index = waypoint_index + 1
+         -- record the solved path segment
+         table.insert(paths, path)
 
-      if waypoint_index <= #waypoints then
-         -- find path to the next waypoint
-         find_next_path(next_start_location, waypoints[waypoint_index])
-      else
-         -- done! all paths solved
-         self:_set_think_output(paths)
+         -- prepare for next segment
+         local next_start_location = path:get_finish_point()
+         waypoint_index = waypoint_index + 1
+
+         if waypoint_index <= #waypoints then
+            -- find path to the next waypoint
+            find_next_path(next_start_location, waypoints[waypoint_index])
+         else
+            -- done! all paths solved
+            log:debug('all paths solved')
+            self:_set_think_output(paths)
+         end
       end
-   end
 
-   find_next_path = function (start, finish)
+      local on_exhausted = function()
+         log:debug('could not find path from %s to %s', start, finish)
+      end
+
       radiant.entities.move_to(self._proxy_entity, finish)
       self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
-                                          :find_path_to_entity(start, self._proxy_entity, on_success)
+                                          :find_path_to_entity(start, self._proxy_entity, on_success, on_exhausted)
    end
 
    -- find the first path segment in the chain
