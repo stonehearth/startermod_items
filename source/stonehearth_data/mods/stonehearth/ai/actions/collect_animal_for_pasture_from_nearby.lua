@@ -19,20 +19,20 @@ function CollectAnimalFromNearby:start_thinking(ai, entity, args)
    local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
 
    --Check that the pasture is not full
-   if pasture_component and pasture_component:get_num_animals() < pasture_component:get_max_animals() then
+   --if pasture_component and pasture_component:get_num_animals() < pasture_component:get_max_animals() then
       
-      --Check that there is a nearby animal of the correct type
-      local animal_type = pasture_component:get_pasture_type()
-      local filter_fn = ALL_FILTER_FNS[animal_type]
-      if not filter_fn then
-         filter_fn = self:make_filter_fn(animal_type)
-      end
-
-      ai:set_think_output({
-         filter_fn = filter_fn,
-         description = animal_type
-         })
+   --Check that there is a nearby animal of the correct type
+   local animal_type = pasture_component:get_pasture_type()
+   local filter_fn = ALL_FILTER_FNS[animal_type]
+   if not filter_fn then
+      filter_fn = self:make_filter_fn(animal_type)
    end
+
+   ai:set_think_output({
+      filter_fn = filter_fn,
+      description = animal_type
+      })
+   --end
 end
 
 --The filter fn should check if the animal is of the right type
@@ -56,10 +56,11 @@ end
 
 local ai = stonehearth.ai
 return ai:create_compound_action(CollectAnimalFromNearby)
+   :execute('stonehearth:wait_for_pasture_vacancy', {pasture = ai.ARGS.pasture})
    :execute('stonehearth:drop_carrying_now', {})
    :execute('stonehearth:find_path_to_entity_type', {
-            filter_fn = ai.BACK(2).filter_fn,
-            description = ai.BACK(2).description,
+            filter_fn = ai.BACK(3).filter_fn,
+            description = ai.BACK(3).description,
             range = 30
          })
    :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.PREV.path:get_destination()})
@@ -68,5 +69,5 @@ return ai:create_compound_action(CollectAnimalFromNearby)
          })
    :execute('stonehearth:reserve_entity', { entity = ai.BACK(3).path:get_destination() })
    :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(4).path:get_destination() })
-   :execute('stonehearth:run_effect', { effect = 'fiddle' })
+   :execute('stonehearth:run_effect', { effect = 'whistle' })
    :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.BACK(6).path:get_destination()})

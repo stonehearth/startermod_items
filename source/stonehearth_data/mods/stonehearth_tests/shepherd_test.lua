@@ -7,7 +7,7 @@ local ShepherdTest = class(MicroWorld)
 ]]
 
 function ShepherdTest:__init()
-   self[MicroWorld]:__init(128)
+   self[MicroWorld]:__init(256)
    self:create_world()
 
    --place the hoes and board
@@ -23,9 +23,6 @@ function ShepherdTest:__init()
    self:place_citizen(-1,7, 'trapper')
    
    self:place_item('stonehearth:sheep', -3, -6)
-
-   local tree = self:place_tree(-8, 0)
-   local tree2 = self:place_tree(-8, 8)
 
    self:place_item_cluster('stonehearth:furniture:picket_fence', -10, 0, 10, 10)
    self:place_item('stonehearth:furniture:picket_fence_gate', 1, 3)

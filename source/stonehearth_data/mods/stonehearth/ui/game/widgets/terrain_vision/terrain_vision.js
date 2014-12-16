@@ -51,10 +51,12 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
          var currentMode = self.get('context.data.xray_mode')
          var newMode = $(this).attr('mode');
 
-         if (newMode != currentMode) {
-            self._lastMode = newMode
-            App.stonehearthClient.subterraneanSetXRayMode(newMode);
+         if (newMode == currentMode) {
+            newMode = null;
          }
+
+         self._lastMode = newMode
+         App.stonehearthClient.subterraneanSetXRayMode(newMode);
       });
 
       this.$('#sliceButton').click(function() {
@@ -98,7 +100,6 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
             self.$('#clipDown').click();
             return;
          }
-
       });
 
       this.$('[title]').tooltipster();

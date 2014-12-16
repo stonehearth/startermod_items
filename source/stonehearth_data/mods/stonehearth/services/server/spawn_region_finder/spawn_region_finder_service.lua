@@ -154,6 +154,13 @@ end
 
 -- Find a point 'distance' units outside the perimeter of the explored area of the civilization 
 -- to spawn an entity.
+-- @param entity - the entity that we want to spawn
+-- @param destination - the entity that the first entity should be able to path to
+-- @param distance - the number of units outside the explored perimeter to spawn the critter
+-- @param tries - how many times will we try before giving up?
+-- @param max_steps - num "steps" the pathfinder is allowed to use to try to get this solution
+-- @param success_cb - fn to run when we find a point, passes in the the spawn location
+-- @param fail_cb - fn to run if we can't find a point
 function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity_astar(entity, destination_ent, distance, max_attempts, max_steps, success_cb, fail_cb)
    -- Consult the convex hull of points that the civs have travelled.
    local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')

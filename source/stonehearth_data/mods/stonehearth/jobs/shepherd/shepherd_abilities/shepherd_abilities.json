@@ -15,6 +15,8 @@
                "stonehearth:actions:shepherd:claim_animal_for_pasture",
                "stonehearth:actions:shepherd:collect_animal_for_pasture_from_nearby",
                "stonehearth:actions:shepherd:collect_animal_for_pasture_from_world",
+               "stonehearth:actions:shepherd:wait_for_pasture_vacancy",
+               "stonehearth:actions:shepherd:create_animal_for_pasture",
                "stonehearth:actions:shepherd:return_animal_to_pasture",
                "stonehearth:actions:shepherd:leave_animal_in_pasture",
                "stonehearth:actions:shepherd:wait_for_trailing_animal",
