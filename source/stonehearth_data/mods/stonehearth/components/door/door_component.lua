@@ -49,13 +49,6 @@ function DoorComponent:_add_collision_shape()
                cursor:add_unique_cube(Cube3(Point3(rect.min.x, rect.min.y,  0),
                                             Point3(rect.max.x, rect.max.y,  1)))
             end
-            radiant.log.write('', 0, 'door is facing %g, positioned @ %s', mob:get_facing(), mob:get_location())
-            --radiant.log.write('', 0, 'bounds pre-rotate : %s', cursor:get_bounds())
-            --local origin = Point3(0.5, 0, 0.5)
-            --cursor:translate(-origin)
-            --cursor:rotate(mob:get_facing())
-            --cursor:translate(origin)
-            radiant.log.write('', 0, 'bounds post-rotate: %s', cursor:get_bounds())
          end)
 
       mgs:set_guard_cb(function(entity, location)
