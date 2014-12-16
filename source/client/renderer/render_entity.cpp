@@ -46,6 +46,7 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    initialized_(false),
    skeleton_(*this),
    visible_override_(true),
+   visible_override_ref_count_(0),
    _parentOverride(false)
 {
    ASSERT(parent);
@@ -377,9 +378,20 @@ void RenderEntity::SetMaterialOverride(std::string const& material)
    SetRenderInfoDirtyBits(RenderRenderInfo::MATERIAL_DIRTY);
 }
 
+// The visible_override_ref_count_ indicates the number of outstanding requests to hide the entity.
+// Consider renaming the method to make it clear what the behavior is.
 void RenderEntity::SetVisibleOverride(bool visible)
 {
-   visible_override_ = visible;
+   if (visible) {
+      if (visible_override_ref_count_ > 0) {
+         visible_override_ref_count_--;
+      }
+   } else {
+      if (visible_override_ref_count_ < UINT32_MAX) {
+         visible_override_ref_count_++;
+      }
+   }
+   visible_override_ = visible_override_ref_count_ == 0;
    SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
 }
 

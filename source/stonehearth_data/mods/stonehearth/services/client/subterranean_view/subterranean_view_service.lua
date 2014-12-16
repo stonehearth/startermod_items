@@ -138,6 +138,7 @@ function SubterraneanViewService:_create_entity_traces()
    local entity_container = self:_get_root_entity_container()
 
    self._entity_traces = {}
+   self._entity_visibility = {}
 
    self._entity_container_trace = entity_container:trace_children('subterranean view')
       :on_added(function(id, entity)
@@ -191,6 +192,7 @@ function SubterraneanViewService:_destroy_entity_traces(id)
       trace:destroy()
    end
    self._entity_traces[id] = nil
+   self._entity_visibility[id] = nil
 end
 
 function SubterraneanViewService:destroy()
@@ -356,18 +358,26 @@ function SubterraneanViewService:_update_all_entities_visibility()
          end)
    else
       self:_each_contained_entity(entity_container, function(child)
-            self:_set_entity_tree_visible(child, true)
+            self:_update_visiblity(child, true)
          end)
    end
 end
 
-function SubterraneanViewService:_update_visiblity(entity)
+function SubterraneanViewService:_update_visiblity(entity, visible)
    if not entity:is_valid() then
       return
    end
 
-   local visible = self:_is_visible(entity)
-   self:_set_entity_tree_visible(entity, visible)
+   local id = entity:get_id()
+
+   if visible == nil then
+      visible = self:_is_visible(entity)
+   end
+
+   if visible ~= self._entity_visibility[id] then
+      self._entity_visibility[id] = visible
+      self:_set_entity_tree_visible(entity, visible)
+   end
 end
 
 function SubterraneanViewService:_is_visible(entity)
@@ -445,17 +455,21 @@ function SubterraneanViewService:_update_xray_mode()
 end
 
 function SubterraneanViewService:set_clip_enabled(enabled)
-   self._sv.clip_enabled = enabled
-   self.__saved_variables:mark_changed()
-   self:_update_clip_height()
-   self:_update_all_entities_visibility()
+   if enabled ~= self._sv.clip_enabled then
+      self._sv.clip_enabled = enabled
+      self.__saved_variables:mark_changed()
+      self:_update_clip_height()
+      self:_update_all_entities_visibility()
+   end
 end
 
 function SubterraneanViewService:set_clip_height(height)
-   self._sv.clip_height = height
-   self.__saved_variables:mark_changed()
-   self:_update_clip_height()
-   self:_update_all_entities_visibility()
+   if height ~= self._sv.clip_height then
+      self._sv.clip_height = height
+      self.__saved_variables:mark_changed()
+      self:_update_clip_height()
+      self:_update_all_entities_visibility()
+   end
 end
 
 function SubterraneanViewService:move_clip_height_up()
