@@ -110,9 +110,9 @@ function RunTaskAction:stop_thinking(ai, entity)
    self:_start_stop_thinking()
 end
 
-function RunTaskAction:start(ai)
+function RunTaskAction:start(ai, entity)
    self._starting = true
-   if not self._task:__action_try_start(self) then
+   if not self._task:__action_try_start(self, entity) then
       ai:abort('task would not allow us to start (max running reached?)')
       return
    end
@@ -125,11 +125,11 @@ function RunTaskAction:run(...)
    self._task:__action_completed(self)
 end
 
-function RunTaskAction:stop()
+function RunTaskAction:stop(ai, entity)
    if self._execution_frame then
       self._execution_frame:stop()
    end
-   self._task:__action_stopped(self)
+   self._task:__action_stopped(self, entity)
 end
 
 function RunTaskAction:destroy()

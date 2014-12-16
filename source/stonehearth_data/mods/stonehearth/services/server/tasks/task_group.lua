@@ -346,23 +346,36 @@ function TaskGroup:_greedy_prioritize_tasks()
    return ptasks
 end
 
+function TaskGroup:_get_worker_score_for_task(worker_entry_id, worker_entry, task)
+   -- ignore tasks that the worker is already doing
+   if worker_entry.all_fed_tasks[task] then
+      return
+   end
+
+   -- ignore dead workers...
+   local worker = worker_entry.worker
+   if not worker:is_valid() then
+      self:remove_worker(worker_entry_id)
+      return
+   end
+
+   -- obey task affinity
+   if not task:check_worker_against_task_affinity(worker) then
+      return
+   end
+
+   -- prefer workers who are closer...
+   return task:_estimate_task_distance(worker)
+end
+
 function TaskGroup:_find_best_worker_for(task)
-   local best_worker, best_d
+   local best_worker, best_d, best_feeding_count
 
    for id, entry in pairs(self._workers) do
-      -- ignore tasks that we're already doing
-      local ignore = entry.all_fed_tasks[task]
-
-      if not ignore then
-         local worker = entry.worker
-         if not worker:is_valid() then
-            self:remove_worker(id)
-         else
-            -- prefer workers who are closer...
-            local d = task:_estimate_task_distance(worker)
-            if not best_d or d < best_d then
-               best_worker, best_d = worker, d
-            end
+      local d = self:_get_worker_score_for_task(id, entry, task)
+      if d then
+         if not best_d or d < best_d then
+            best_worker, best_d = entry.worker, d
          end
       end
    end

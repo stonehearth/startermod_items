@@ -8,6 +8,14 @@ function radiant.keys(t)
    return keys
 end
 
+function radiant.size(t)
+   local c = 0
+   for _, _ in pairs(t) do
+      c = c + 1
+   end
+   return c
+end
+
 function radiant.alloc_region3()
    if _radiant.client then
       return _radiant.client.alloc_region3()
