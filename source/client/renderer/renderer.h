@@ -109,6 +109,7 @@ class Renderer
       lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
       void RenderOneFrame(int now, float alpha);
+      void ConstructAllRenderEntities();
       void LoadResources();
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);

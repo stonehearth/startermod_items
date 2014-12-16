@@ -230,7 +230,7 @@ std::shared_ptr<T> PathFinder_SetSolvedCb(lua_State* L, std::shared_ptr<T> pf, l
          } catch (std::exception const& e) {
             lua::ScriptHost::ReportCStackException(cb_thread, e);
          }
-         return false;
+         return true;
       });
    }
    return pf;

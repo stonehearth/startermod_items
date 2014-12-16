@@ -60,7 +60,6 @@ function FindPathToEntity:_start_pathfinder(ai)
       self._search_exhausted_count = 0
       self._log:info('found solution: %s', path)
       ai:set_think_output({ path = path })
-      return true
    end
    local on_exhausted = function()
       self._search_exhausted_count = self._search_exhausted_count + 1

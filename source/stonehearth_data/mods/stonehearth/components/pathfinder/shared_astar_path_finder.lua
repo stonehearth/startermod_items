@@ -125,10 +125,8 @@ function SharedAStarPathFinder:_on_solved(path)
    -- now run through each solved cb...
    for _, cb in ipairs(local_solved_cbs) do
       if solved_cbs[cb] then
-         local finished = cb(path)
-         if finished then
-            self:remove_destination(id, cb)
-         end
+         cb(path)
+         self:remove_destination(id, cb)
       end
    end
 
