@@ -6,6 +6,7 @@
    "description" : "Fashioned after a castle tower, it provides a strong beacon at night.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/decoration/tower_brazier/tower_brazier.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

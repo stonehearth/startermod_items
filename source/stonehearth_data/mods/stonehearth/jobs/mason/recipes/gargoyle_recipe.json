@@ -6,6 +6,7 @@
    "description" : "Gothic-style carving to decorate your walls.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/decoration/gargoyle/gargoyle.png",
+   "level_requirement" : 4,
 
    "ingredients": [
       {
