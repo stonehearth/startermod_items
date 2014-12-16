@@ -2,7 +2,7 @@
    "type":"recipe",
 
    "work_units"  : 3,
-   "recipe_name" : "Masoon's Hammer & Chisel",
+   "recipe_name" : "Mason's Hammer & Chisel",
    "description" : "Promotes a citizen into a Mason.",
    "portrait"    : "/stonehearth/jobs/mason/mason_chisel/mason_chisel.png",
    "level_requirement" : 1,

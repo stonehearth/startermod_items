@@ -1171,7 +1171,6 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
    RaycastResult result(csg::Ray3(origin, direction));
 
    CastRay(origin, direction, userFlags, [this, &result](csg::Point3f const& intersection, csg::Point3f const& normal, H3DNode node) {
-
       // find the entity for the node that the ray hit.  walk up the hierarchy of nodes
       // until we find one that has an Entity associated with it.
       om::EntityRef entity;
@@ -1185,17 +1184,21 @@ RaycastResult Renderer::QuerySceneRay(const csg::Point3f& origin, const csg::Poi
          n = h3dGetNodeParent(n);
       }
 
-      // Figure out the world voxel coordination of the intersection
+      // Figure out the world voxel coordination of the intersection.
       // Recall that terrain aligned voxels go from -0.5 to +0.5 of the xz coordinate
-      // but go from 0 to 1 of the y coordiante
+      // but go from 0 to 1 of the y coordiante.
       csg::Point3 brick;
-      // For x,z the intersection is a face with a half-integer (0.5) coordinate
-      // So, nudge inside the voxel and round to the center
-      brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.01));
-      brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.01));
-      // For y, the intersection is a whole integer coordinate + potential polygon offset
-      // So, round to the nearest integer, nudge inside the voxel, and floor to the bottom face which defines the voxel coordinate
-      brick.y = (int)std::floor(csg::ToClosestInt(intersection.y) - (normal.y * 0.01));
+      // For (x,z), side face intersections are a face with a half-integer (0.5) coordinate
+      // so, nudge inside the voxel and round to the center.
+      // For top/bottom intersections, normal.x and normal.z will be zero.
+      brick.x = csg::ToClosestInt(intersection.x - (normal.x * 0.1));
+      brick.z = csg::ToClosestInt(intersection.z - (normal.z * 0.1));
+      // For y, top/bottom intersections are a whole integer coordinate + potential polygon offset
+      // so, nudge inside the voxel, and floor to the bottom face which defines the voxel coordinate.
+      // These nudge coefficients are quite large to overcome any polygon offsets. This is ok as long
+      // as they are < 0.5.
+      // For side intersections, normal.y will be zero.
+      brick.y = (int)std::floor(intersection.y - (normal.y * 0.1));
       result.AddResult(intersection, normal, brick, entity);
    });
 

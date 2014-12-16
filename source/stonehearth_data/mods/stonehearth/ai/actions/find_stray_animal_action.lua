@@ -3,6 +3,7 @@ local Entity = _radiant.om.Entity
 local FindStrayAnimal = class()
 
 FindStrayAnimal.name = 'find stray animal'
+FindStrayAnimal.status_text = 'finding strays'
 FindStrayAnimal.does = 'stonehearth:find_stray_animal'
 FindStrayAnimal.args = {
    animal = Entity, 

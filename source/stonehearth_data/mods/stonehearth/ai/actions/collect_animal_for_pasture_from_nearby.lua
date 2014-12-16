@@ -2,6 +2,7 @@ local Entity = _radiant.om.Entity
 local CollectAnimalFromNearby = class()
 
 CollectAnimalFromNearby.name = 'collect animal for pasture from nearby'
+CollectAnimalFromNearby.status_text = 'claiming animal'
 CollectAnimalFromNearby.does = 'stonehearth:collect_animals_for_pasture'
 CollectAnimalFromNearby.args = {
    pasture = Entity   --the pasture entity that yearns for this animal

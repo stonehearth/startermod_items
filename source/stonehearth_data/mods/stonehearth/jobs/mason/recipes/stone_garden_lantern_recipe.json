@@ -6,6 +6,7 @@
    "description" : "An ancient-looking lantern with great ambiance.",
    "flavor"      : "",
    "portrait"    : "/stonehearth/entities/decoration/stone_garden_lantern/stone_garden_lantern.png",
+   "level_requirement" : 1,
 
    "ingredients": [
       {

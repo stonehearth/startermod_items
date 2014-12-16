@@ -10,7 +10,7 @@
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
    "parent_job" : "stonehearth:jobs:trapper",
-   "parent_level_requirement" : 1,
+   "parent_level_requirement" : 3,
 
    "equipment" : {
       "abilities" : "file(shepherd_abilities)",
