@@ -7,7 +7,7 @@ local ShepherdTest = class(MicroWorld)
 ]]
 
 function ShepherdTest:__init()
-   self[MicroWorld]:__init(128)
+   self[MicroWorld]:__init(256)
    self:create_world()
 
    --place the hoes and board
