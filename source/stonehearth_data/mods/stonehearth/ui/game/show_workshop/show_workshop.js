@@ -92,13 +92,14 @@ App.StonehearthCrafterView = App.View.extend({
       radiant.each(recipes, function(_, category) {
          var recipe_array = [];
          radiant.each(category.recipes, function(recipe_name, recipe_info) {
-            var recipe = recipe_info.recipe;
+            var recipe = recipe_info.recipe
+            var formatted_recipe = radiant.shallow_copy(recipe);
 
             //Add ingredient images to the recipes
-            var formatted_ingredients = [];
+            formatted_recipe.ingredients = []
             radiant.each(recipe.ingredients, function(i, ingredient) {
-               var formatted_ingredient = {}
-               if (ingredient.material) {
+               var formatted_ingredient = radiant.shallow_copy(ingredient);
+               if (formatted_ingredient.material) {
                   var formatting = App.constants.formatting.resources[ingredient.material];
                   if (formatting) {                     
                      formatted_ingredient.name = formatting.name;
@@ -114,10 +115,9 @@ App.StonehearthCrafterView = App.View.extend({
                                        formatted_ingredient.name = json.components.unit_info.name;
                                     });
                }
-               formatted_ingredients.push(formatted_ingredient);
+               formatted_recipe.ingredients.push(formatted_ingredient);
             });
-            recipe.formatted_ingredients = formatted_ingredients
-            recipe_array.push(recipe);
+            recipe_array.push(formatted_recipe);
          });
          
          //For each of the recipes inside each category, sort them by their level_requirement
@@ -136,7 +136,7 @@ App.StonehearthCrafterView = App.View.extend({
       //Sort the recipe categories by ordinal
       recipe_categories.sort(this._compareByOrdinal);
 
-      self.set('formatted_recipes', recipe_categories);
+      self.set('recipes', recipe_categories);
    }.observes('context.data.stonehearth:workshop.crafter.stonehearth:crafter.recipe_list'),
 
    //Something with an ordinal of 1 should have precedence
@@ -203,7 +203,6 @@ App.StonehearthCrafterView = App.View.extend({
             this._setRadioButtons(remaining, maintainNumber);
             //TODO: make the selected item visually distinct
             this.preview();
-            console.log(object.ingredients[0]);
          }
       },
 
@@ -260,7 +259,7 @@ App.StonehearthCrafterView = App.View.extend({
    // care about.
    _contentChanged: function() {
       Ember.run.scheduleOnce('afterRender', this, '_build_workshop_ui');
-    }.observes('formatted_recipes'),
+    }.observes('recipes'),
 
     
     _orderCompleted:function() {

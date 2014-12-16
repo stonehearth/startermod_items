@@ -227,6 +227,14 @@
       return new Trace(tracer);
    };
 
+   radiant.shallow_copy = function(o) {
+      var shallow = {}
+      radiant.each(o, function(k, v) {
+         shallow[k] = v;
+      });
+      return shallow;
+   },
+
    // Iterate through each index or key in an array of map.  Takes special
    // care to avoid "private" keys, including things that start with "__", like
    // Radiant's __self and all sorts of stuff throw in by Ember.
