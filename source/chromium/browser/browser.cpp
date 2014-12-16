@@ -98,11 +98,6 @@ bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
 
 void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-   if (_browser == nullptr) {
-      _browser = browser;
-      _browser->GetHost()->NotifyScreenInfoChanged();
-      //browser_->SetSize(PET_VIEW, uiWidth_, uiHeight_);
-   }
 }
 
 bool Browser::RunModal(CefRefPtr<CefBrowser> browser) 
@@ -633,7 +628,10 @@ void Browser::Navigate(std::string const& url)
       browserSettings.java = STATE_DISABLED;
       browserSettings.plugins = STATE_DISABLED;
 
-      CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings, nullptr);
+      _browser = CefBrowserHost::CreateBrowserSync(windowInfo, this, url, browserSettings, nullptr);
+      CefRefPtr<CefBrowserHost> host = _browser->GetHost();
+      host->NotifyScreenInfoChanged();
+      host->SendFocusEvent(true);
    } else {
       CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
       if (frame) {
