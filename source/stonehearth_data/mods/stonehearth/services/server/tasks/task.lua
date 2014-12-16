@@ -9,7 +9,7 @@ local PAUSED = 'paused'
 local COMPLETED = 'completed'
 local DESTROYED = 'destroyed'
 
-local INFINITE = 999999 -- infinite enough?
+local INFINITE = 1000000000 -- infinite enough?
 
 local Task = class()
 
@@ -27,6 +27,7 @@ function Task:__init(task_group, activity)
    self:set_name(activity.name)
    self._complete_count = 0
    self._running_actions = {}
+   self._worker_affinity_timeout = {}
    self._entity_effect_names = {}
    self._effects = {}
    self._priority = 1
@@ -90,6 +91,55 @@ end
 
 function Task:get_priority()
    return self._priority
+end
+
+function Task:set_affinity_timeout(timeout)
+   if timeout ~= nil then
+      local calendar_timeout = stonehearth.calendar:realtime_to_calendar_time(timeout)
+      self._log:debug('setting affinity timeout to %d calendar seconds (%d realtime seconds)', calendar_timeout, timeout)
+      self._affinity_timeout = calendar_timeout
+   else
+      self._affinity_timeout = nil
+   end
+   return self
+end
+
+function Task:get_affinity_timeout()
+   return self._affinity_timeout
+end
+
+function Task:check_worker_against_task_affinity(worker)
+   if not self._affinity_timeout then
+      -- task has not been configured with worker affinity.
+      return true
+   end
+
+   local now = stonehearth.calendar:get_elapsed_time()
+   local existing_timeout = self._worker_affinity_timeout[worker:get_id()]
+   if existing_timeout then
+      if existing_timeout < now then
+         -- worker restarted this task before his affinity timeout expired.  definitely
+         -- let him through.
+         self._log:debug('%s resuming task %s with %d ticks left', worker, self._name, (existing_timeout - now))
+         return true
+      else
+         self._log:debug('%s lost affinity to ask task %s with (%d ticks behind)', worker, self._name, (now - existing_timeout))
+      end
+   end
+
+   -- count the number of non-expired timeouts we have left...
+   local still_bound_count = 0
+   for id, timeout in pairs(self._worker_affinity_timeout) do
+      if timeout < now then
+         self._worker_affinity_timeout[id] = nil
+         self._log:debug('%s did not resume task %s in time.  breaking affinity', worker, self._name)
+      else
+         still_bound_count = still_bound_count + 1
+      end
+   end
+
+   -- if there's room for more workers, we're good.
+   return still_bound_count < self._max_workers
 end
 
 function Task:set_name(format, ...)
@@ -235,12 +285,14 @@ function Task:_feed_worker(worker)
    -- if the worker is in the list of workers to remove the run_task_action
    -- from, go ahead and remove it.  this will leave the current action there
    -- undisturbed.  otherwise, inject a new run_task_action into the worker.
-   if self._workers_pending_unfeed[worker:get_id()] then
+   local id = worker:get_id()
+   if self._workers_pending_unfeed[id] then
       self._log:debug('removing pending unfeed worker run task action from %s', worker)
-      self._workers_pending_unfeed[worker:get_id()] = nil
+      self._workers_pending_unfeed[id] = nil
    else
       self._log:debug('injecting run task action into %s', worker)
-      worker:get_component('stonehearth:ai'):add_custom_action(self._action_ctor)
+      worker:get_component('stonehearth:ai')
+               :add_custom_action(self._action_ctor)
    end
 end
 
@@ -453,7 +505,7 @@ end
 
 -- this protects races from many actions simultaneously trying to start at
 -- the same time.
-function Task:__action_try_start(action)
+function Task:__action_try_start(action, worker)
    local entity = action:get_entity()
 
    self:_log_state(string.format('entering __action_try_start (entity:%s)', tostring(entity)))
@@ -477,7 +529,14 @@ function Task:__action_try_start(action)
    end
    
    self._running_actions[action] = true
-   
+
+   -- set the worker affinity timeout to something abnormally large.  this will make
+   -- sure the worker remains bound to this task as we continue feeding it, no matter
+   -- how long actually running this action takes.
+   if self._affinity_timeout then
+      self._worker_affinity_timeout[worker:get_id()] = INFINITE
+   end
+
    -- if this is the last guy to get a job, signal everyone else to let them know
    -- that they don't have a shot (this may trigger them to stop_thinking)
    if not self:_is_work_available() then
@@ -509,10 +568,15 @@ function Task:__action_destroyed(action)
    self:_log_state('exiting __action_destroyed')
 end
 
-function Task:__action_stopped(action)
+function Task:__action_stopped(action, worker)
    self:_log_state('entering __action_stopped')
 
    self._running_actions[action] = nil
+   if self._affinity_timeout then
+      -- reset the affinty timeout clock.  if the worker isn't fed before the
+      -- timeout expires, it will lose it's affinity.
+      self._worker_affinity_timeout[worker:get_id()] = stonehearth.calendar:get_elapsed_time() + self._affinity_timeout
+   end
 
    if self._state ~= DESTROYED then
       if self:_is_work_available() then

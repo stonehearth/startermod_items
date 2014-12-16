@@ -77,6 +77,12 @@ function CalendarService:get_elapsed_time()
    return radiant.gamestate.now() / self._constants.ticks_per_second
 end
 
+-- returns the amount of stonehearth time as reported by the calendar :get_elapsed_time()
+-- needs to pass for the equivalent number of realtime `seconds`.
+function CalendarService:realtime_to_calendar_time(seconds)
+   return (seconds * 1000) / self._constants.ticks_per_second
+end
+
 -- returns the number of game seconds until time
 function CalendarService:get_seconds_until(time)
    local duration = time - stonehearth.calendar:get_elapsed_time()

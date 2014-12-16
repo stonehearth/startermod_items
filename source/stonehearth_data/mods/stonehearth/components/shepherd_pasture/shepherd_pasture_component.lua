@@ -113,6 +113,8 @@ function ShepherdPastureComponent:add_animal(animal)
    self:_calculate_reproduction_timer()
    self:_listen_for_renewables(animal)
    self:_create_harvest_task(animal)
+
+   radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
 end
 
 function ShepherdPastureComponent:remove_animal(animal_id)
@@ -128,6 +130,8 @@ function ShepherdPastureComponent:remove_animal(animal_id)
 
    assert(self._sv.num_critters >= 0)
    self:_calculate_reproduction_timer()
+
+   radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
 end
 
 --------- Private functions

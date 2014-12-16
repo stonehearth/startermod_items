@@ -141,6 +141,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: the entity being renewed
       - Name: stonehearth:on\_renewable\_resource\_renewed
       - Args: target - the thing spawning the resource; available_resource - the type of resource that is now available
+   - **on\_pasture\_animals\_changed** - triggered when the # of animals in the pasture changes
+      - Key: the pasture
+      - Name: stonehearth:on\_pasture\_animals\_changed
+      - Args: none
 
 ##Crafting
 
