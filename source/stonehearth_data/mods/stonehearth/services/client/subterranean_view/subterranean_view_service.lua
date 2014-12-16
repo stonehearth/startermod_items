@@ -376,20 +376,31 @@ function SubterraneanViewService:_update_visiblity(entity, visible)
 
    if visible ~= self._entity_visibility[id] then
       self._entity_visibility[id] = visible
-      self:_set_entity_tree_visible(entity, visible)
+      self:_set_entity_visible(entity, visible)
    end
 end
 
 function SubterraneanViewService:_is_visible(entity)
-   local root_mob_entity = self:_get_root_mob_entity(entity)
+   local parent = entity:add_component('mob'):get_parent()
+   if not parent then
+      -- not in the world, just default to true
+      return true
+   end
+
+   if not parent:get_component('terrain') then
+      -- not a child of the terrain, let our ancestors decide visibility
+      return true
+   end
+
+   -- our parent is the terrain entity, test to see if we're on a visible block
    local visible = true
 
    if self._sv.xray_mode then
-      visible = self:_is_xray_visible(root_mob_entity)
+      visible = self:_is_xray_visible(entity)
    end
 
    if visible and self._sv.clip_enabled then
-      visible = self:_is_clip_mode_visible(root_mob_entity)
+      visible = self:_is_clip_mode_visible(entity)
    end
 
    return visible
@@ -423,15 +434,6 @@ function SubterraneanViewService:_set_entity_visible(entity, visible)
    if render_entity then
       render_entity:set_visible_override(visible)
    end
-end
-
-function SubterraneanViewService:_set_entity_tree_visible(entity, visible)
-   self:_set_entity_visible(entity, visible)
-
-   local entity_container = entity:get_component('entity_container')
-   self:_each_contained_entity(entity_container, function(child)
-         self:_set_entity_tree_visible(child, visible)
-      end)
 end
 
 function SubterraneanViewService:toggle_xray_mode(mode)
@@ -548,28 +550,6 @@ function SubterraneanViewService:_each_contained_entity(entity_container, cb)
 
    for id, entity in entity_container:each_attached_item() do
       cb(entity)
-   end
-end
-
--- get the oldest ancestor that has a mob component
--- i.e. get the entity that is on the terrain
-function SubterraneanViewService:_get_root_mob_entity(entity)
-   local result = entity
-   local ancestor = entity
-   local mob = ancestor:add_component('mob')
-
-   while true do
-      ancestor = mob:get_parent()
-      if not ancestor then
-         return result
-      end
-
-      mob = ancestor:get_component('mob')
-      if not mob then
-         return result
-      end
-
-      result = ancestor
    end
 end
 
