@@ -29,14 +29,6 @@ function DoorComponent:destroy()
       self._close_effect:stop()
       self._close_effect = nil
    end
-   if self._parent_trace then
-      self._parent_trace:destroy()
-      self._parent_trace = nil
-   end
-   if self._facing_trace then
-      self._facing_trace:destroy()
-      self._facing_trace = nil
-   end
 end
 
 function DoorComponent:_add_collision_shape()
@@ -51,26 +43,24 @@ function DoorComponent:_add_collision_shape()
          region3 = radiant.alloc_region3()
          mgs:set_region(region3)
       end
+      region3:modify(function(cursor)
+            cursor:clear()
+            for rect in region2:each_cube() do
+               cursor:add_unique_cube(Cube3(Point3(rect.min.x, rect.min.y,  0),
+                                            Point3(rect.max.x, rect.max.y,  1)))
+            end
+            radiant.log.write('', 0, 'door is facing %g, positioned @ %s', mob:get_facing(), mob:get_location())
+            --radiant.log.write('', 0, 'bounds pre-rotate : %s', cursor:get_bounds())
+            --local origin = Point3(0.5, 0, 0.5)
+            --cursor:translate(-origin)
+            --cursor:rotate(mob:get_facing())
+            --cursor:translate(origin)
+            radiant.log.write('', 0, 'bounds post-rotate: %s', cursor:get_bounds())
+         end)
 
       mgs:set_guard_cb(function(entity, location)
             return radiant.entities.is_friendly(self._entity, entity)
          end)
-
-      local function update_shape()
-            region3:modify(function(cursor)
-                  cursor:clear()
-                  for rect in region2:each_cube() do
-                     cursor:add_unique_cube(Cube3(Point3(rect.min.x, rect.min.y,  0),
-                                                  Point3(rect.max.x, rect.max.y,  1)))
-                  end
-                  cursor = cursor:rotated(mob:get_facing())
-               end)
-         end
-
-      self._parent_trace = mob:trace_parent('update collision shape')
-                                 :on_changed(update_shape)
-      self._facing_trace = mob:trace_transform('update collision shape')
-                                 :on_changed(update_shape)
    end
 end
 

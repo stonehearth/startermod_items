@@ -22,6 +22,7 @@ function pathfinder_tests.check_movement_guard(autotest)
                               :get_all_structures()
          local id, entry = next(structures['stonehearth:wall'])
          id, entry = next(structures['stonehearth:wall'], id)
+         id, entry = next(structures['stonehearth:wall'], id)
 
          local wall = entry.entity
          local normal = wall:get_component('stonehearth:construction_data')
@@ -40,6 +41,7 @@ function pathfinder_tests.check_movement_guard(autotest)
          end
          stonehearth.build:add_fixture(wall, 'stonehearth:portals:wooden_door', location, normal)
       end)
+
    for _, building in pairs(buildings) do
       stonehearth.build:instabuild(building)
    end
