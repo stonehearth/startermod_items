@@ -78,6 +78,7 @@
       ADD_CATEGORY(destination) \
       ADD_CATEGORY(mob) \
       ADD_CATEGORY(data_store) \
+      ADD_CATEGORY(effects_list) \
    END_GROUP(om) \
    \
    BEGIN_GROUP(dm) \
