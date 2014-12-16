@@ -1,6 +1,10 @@
 {
    "type": "entity",
    "components": {
+      "mob" : {
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      },
+      
       "unit_info": {
          "name": "Wooden Door",
          "description": "Privacy at last!",

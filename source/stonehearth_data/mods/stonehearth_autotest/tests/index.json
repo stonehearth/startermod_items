@@ -92,9 +92,7 @@
                "name" : "broken end to end tests =(.  fix this and move them back into end to end!!",
                "scripts" : [
                   "file(end_to_end/scenario_autotests.lua)",
-                  "file(end_to_end/score_autotests.lua)",
-                  "file(blackbox/pathfinder_autotests.lua)"
-
+                  "file(end_to_end/score_autotests.lua)"
                ]
             },
 
@@ -108,6 +106,7 @@
             "blackbox" : {
                "name" : "blackbox tests",
                "scripts" : [
+                  "file(blackbox/pathfinder_autotests.lua)",
                   "file(blackbox/region_autotests.lua)",
                   "file(blackbox/calendar_autotests.lua)"
                ]

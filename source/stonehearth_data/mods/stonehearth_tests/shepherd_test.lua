@@ -24,9 +24,6 @@ function ShepherdTest:__init()
    
    self:place_item('stonehearth:sheep', -3, -6)
 
-   local tree = self:place_tree(-8, 0)
-   local tree2 = self:place_tree(-8, 8)
-
    self:place_item_cluster('stonehearth:furniture:picket_fence', -10, 0, 10, 10)
    self:place_item('stonehearth:furniture:picket_fence_gate', 1, 3)
    self:place_item('stonehearth:food:berries:berry_basket', 10, 10)
