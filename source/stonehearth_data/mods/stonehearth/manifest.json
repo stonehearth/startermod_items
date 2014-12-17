@@ -732,6 +732,7 @@
       "sounds:level_up" : "file(data/sounds/effects/sh_level_up.wav)",
       "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
       "sounds:tree_fall" : "file(data/sounds/effects/sh_treefall.wav)",
+      "sounds:shepherd_whistle" : "file(data/sounds/effects/sh_shepherd_whistle.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
