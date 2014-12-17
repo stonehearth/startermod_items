@@ -9,6 +9,10 @@ function CollectStartingResourcesScenario:initialize()
    self:restore()
 end
 
+function CollectStartingResourcesScenario:can_spawn()
+   return true
+end
+
 function CollectStartingResourcesScenario:restore()
   self._scenario_data = radiant.resources.load_json('stonehearth:quests:collect_starting_resources').scenario_data
 end

@@ -1,4 +1,6 @@
 {
+   "scenario_type" : "tutorial",
+   "uri" : "stonehearth:quests:collect_starting_resources",
    "scenario_data" : {
       "title" : "Town Advisory: Initial Supplies",
       "message" : "If we're going to get this town off the ground, we'll need wood, and lots of it! Chop down some nearby trees and make a stockpile to store their logs.",

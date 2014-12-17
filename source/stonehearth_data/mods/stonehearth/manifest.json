@@ -105,6 +105,7 @@
       "mason:workbench" : "file(jobs/mason/mason_workbench)",
       "mason:outfit" : "file(jobs/mason/mason_outfit)",
       "mason:chisel" : "file(jobs/mason/mason_chisel)",
+      "mason:hammer" : "file(jobs/mason/mason_hammer)",
       "mason:talisman" : "file(jobs/mason/mason_chisel/mason_chisel_talisman.json)",
 
       "farmer:outfit" : "file(jobs/farmer/farmer_outfit)",

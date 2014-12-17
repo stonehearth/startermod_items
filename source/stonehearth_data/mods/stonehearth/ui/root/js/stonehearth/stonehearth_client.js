@@ -173,6 +173,7 @@ var StonehearthClient;
             // do nothing         
          } else {
             self._destroyCurrentTip();   
+            description = description || '';
             self._currentTip = App.gameView.addView(App.StonehearthTipPopup, 
                { 
                   title: title,
