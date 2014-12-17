@@ -47,7 +47,7 @@ end
 
 function FindPathToEntity:_start_pathfinder(ai)
    local on_success = function (path)
-      if ai.CURRENT.top_location and ai.CURRENT.top_location == ai.CURRENT.location then
+      --[[if ai.CURRENT.top_location and ai.CURRENT.top_location == ai.CURRENT.location then
          -- Assume it's the first move (wrong!) Check to see
          -- if we're too far from the start to do a proper path.
          local cur_loc = radiant.entities.get_world_grid_location(self._entity)
@@ -55,7 +55,7 @@ function FindPathToEntity:_start_pathfinder(ai)
             self._log:info('rejecting old solution (we\'ve gone too far!): started: %s, current: %s', ai.CURRENT.top_location, cur_loc)
             return false
          end
-      end
+      end]]
 
       self._search_exhausted_count = 0
       self._log:info('found solution: %s', path)
