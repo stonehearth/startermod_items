@@ -11,6 +11,13 @@ MiningService = class()
 local MAX_REACH_UP = 3
 local MAX_REACH_DOWN = 1
 
+local SIDE_DIRECTIONS = {
+    Point3.unit_x,
+   -Point3.unit_x,
+    Point3.unit_z,
+   -Point3.unit_z
+}
+
 function MiningService:initialize()
    self._enable_insta_mine = radiant.util.get_config('enable_insta_mine', false)
 
@@ -239,20 +246,46 @@ end
 
 -- Return all the locations that can reach the block at point.
 function MiningService:get_adjacent_for_destination_block(point)
-   local y_min = point.y - MAX_REACH_UP
-   local y_max
+   local top_blocked = radiant.terrain.is_terrain(point + Point3.unit_y)
+   local region = Region3()
 
-   if radiant.terrain.is_terrain(point + Point3.unit_y) then
-      -- block above is terrain, can't mine down on it
-      y_max = point.y
-   else
-      -- we can strike down on the adjacent block if nothing is on top of it
-      y_max = point.y + MAX_REACH_DOWN
+   local add_xz_column = function(region, adjacent_point, top_blocked)
+      local side_blocked = radiant.terrain.is_terrain(adjacent_point)
+      local dy_min, dy_max
+
+      if side_blocked then
+         -- we know dy == 0 is blocked, so use 1 to avoid retesting below
+         dy_min = 1
+      else
+         -- we can strike up on the point if the side is not blocked
+         dy_min = -MAX_REACH_UP
+      end
+
+      if top_blocked then
+         -- can't strike down on the point
+         dy_max = 0
+      else
+         -- we can strike down on the point if the top is not blocked
+         dy_max = MAX_REACH_DOWN
+      end
+
+      local temp_y = adjacent_point.y
+      local y_min = temp_y + dy_min
+      local y_max = temp_y + dy_max
+      local test_point = Point3(adjacent_point)
+
+      for y = y_min, y_max do
+         test_point.y = y
+         if not radiant.terrain.is_terrain(test_point) then
+            region:add_point(test_point)
+         end
+      end
    end
 
-   local region = self:_create_adjacent_columns(point, y_min, y_max, function(block)
-         return not radiant.terrain.is_terrain(block)
-      end)
+   for _, direction in ipairs(SIDE_DIRECTIONS) do
+      add_xz_column(region, point + direction, top_blocked)
+   end
+
    return region
 end
 
@@ -271,23 +304,20 @@ function MiningService:_get_aligned_cube(cube)
    return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
-function MiningService:_create_adjacent_columns(point, y_min, y_max, block_filter)
+function MiningService:_create_adjacent_columns(point, y_min, y_max)
    local region = Region3()
-   local block = Point3()
 
-   local add_xz_column = function(x, z, y_min, y_max)
-      for y = y_min, y_max do
-         block:set(x, y, z)
-         if not block_filter or block_filter(block) then
-            region:add_point(block)
-         end
-      end
+   local add_xz_column = function(region, x, z, y_min, y_max)
+      region:add_cube(Cube3(
+            Point3(x,   y_min,   z),
+            Point3(x+1, y_max+1, z+1)
+         ))
    end
 
-   add_xz_column(point.x-1, point.z,   y_min, y_max)
-   add_xz_column(point.x+1, point.z,   y_min, y_max)
-   add_xz_column(point.x,   point.z-1, y_min, y_max)
-   add_xz_column(point.x,   point.z+1, y_min, y_max)
+   add_xz_column(region, point.x-1, point.z,   y_min, y_max)
+   add_xz_column(region, point.x+1, point.z,   y_min, y_max)
+   add_xz_column(region, point.x,   point.z-1, y_min, y_max)
+   add_xz_column(region, point.x,   point.z+1, y_min, y_max)
 
    return region
 end
