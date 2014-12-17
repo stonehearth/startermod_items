@@ -1,7 +1,7 @@
 local MicroWorld = require 'lib.micro_world'
-local HarvestTest = class(MicroWorld)
+local MasonTest = class(MicroWorld)
 
-function HarvestTest:__init()
+function MasonTest:__init()
    self[MicroWorld]:__init(64)
    self:create_world()
 
@@ -21,24 +21,24 @@ function HarvestTest:__init()
 
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 2, 2)
    self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 10, 2, 2)
-   --self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
-   --self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
+   self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
+   self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
-   self:place_citizen(14, 14, 'carpenter')
+   --self:place_citizen(14, 14, 'carpenter')
 
    local player_id = radiant.entities.get_player_id(worker)
    self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })
    self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
    
-   self:at(200,  function()
-         stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
+   self:at(2000,  function()
+         --stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
          --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
-         --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:skeleton_invasion')   
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')   
       end)
 
 end
 
-return HarvestTest
+return MasonTest
 

@@ -25,7 +25,7 @@
       "stonehearth:task_group:build"
    ],
    "crafter" : {
-      "work_effect": "saw",
+      "work_effect": "chisel",
       "recipe_list": "/stonehearth/jobs/mason/recipes/recipes.json"
    },
    "workshop" : {
