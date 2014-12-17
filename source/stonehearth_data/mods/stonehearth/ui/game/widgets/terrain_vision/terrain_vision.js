@@ -23,23 +23,14 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
 
       var self = this;
       
-      // hide menus that are in development
-      radiant.call('radiant:get_config', 'show_in_progress_ui')
-         .done(function(response) {
-            if (!response.show_in_progress_ui) {
-               self.destroy();
-               return;
-            }
-         })      
-
       this.$('#xrayButton').click(function() {
+         App.stonehearthClient.subterraneanSetClip(false);
+
          var currentMode = self.get('context.data.xray_mode')
          var newMode;
 
          if (!currentMode) {
             newMode = self._lastMode || 'full';
-
-            App.stonehearthClient.subterraneanSetClip(false);
          } else {
             newMode = null;
          }
@@ -48,6 +39,8 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
       });
 
       this.$('.xrayButton').click(function() {
+         App.stonehearthClient.subterraneanSetClip(false);
+
          var currentMode = self.get('context.data.xray_mode')
          var newMode = $(this).attr('mode');
 
@@ -74,10 +67,12 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
       });
 
       this.$('#clipUp').click(function() {
+         App.stonehearthClient.subterraneanSetXRayMode(null);
          App.stonehearthClient.subterraneanMoveUp();
       });
 
       this.$('#clipDown').click(function() {
+         App.stonehearthClient.subterraneanSetXRayMode(null);
          App.stonehearthClient.subterraneanMoveDown();
       });
 
