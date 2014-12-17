@@ -119,7 +119,7 @@ end
 
 function ShepherdPastureComponent:remove_animal(animal_id)
    --remove events associated with it
-   local renew_event = self._sv.tracked_critters[animal:get_id()].renew_event
+   local renew_event = self._sv.tracked_critters[animal_id].renew_event
    if renew_event then
       renew_event:destroy()
       renew_event = nil

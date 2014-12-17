@@ -44,6 +44,7 @@ function WaitForPastureVacancy:_on_pasture_count_changed()
          self._timer = stonehearth.calendar:set_timer('5m', function()
             self._timer = nil
             if self:pasture_check() then
+               --TODO: I've seent this fire from a "finished" state. 
                self._ai:set_think_output()
             end
          end)
@@ -53,6 +54,15 @@ end
 
 --If we have a timer or a listener destroy them
 function WaitForPastureVacancy:stop_thinking()
+   self:_destroy_loose_ends()
+end
+
+--Do it here too in case it skips stop_thinking
+function WaitForPastureVacancy:stop()
+   self:_destroy_loose_ends()
+end
+
+function WaitForPastureVacancy:_destroy_loose_ends()
    if self._timer then
       self._timer:destroy()
       self._timer = nil

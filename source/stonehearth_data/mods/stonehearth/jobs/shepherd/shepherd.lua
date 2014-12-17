@@ -69,6 +69,7 @@ function ShepherdClass:demote()
    --Orphan all the animals
    self:_abandon_following_animals()
 
+   --remove posture
 
    self.__saved_variables:mark_changed()
 
@@ -134,7 +135,7 @@ function ShepherdClass:can_find_animal_in_world()
       --convert ms to hours
       local elapsed_hours = elapsed_difference / (constants.seconds_per_minute*constants.minutes_per_hour)
       local percent_chance = (elapsed_hours / constants.hours_per_day) * 100
-      --TODO: 
+      --TODO: increase percent_chance based on shepherd level
       --percent_chance = percent_chance + self._sv.bonus
       local roll = rng:get_int(1, 100)  
       if roll < percent_chance then
@@ -147,10 +148,19 @@ end
 
 -- Private Functions
 
---Remove their tags
+--Remove their tags and make sure they are free from their pasture
 function ShepherdClass:_abandon_following_animals()
    for id, animal in pairs(self._sv.trailed_animals) do
-      animal:get_component('stonehearth:equipment'):unequip_item('stonehearth:pasture_tag')
+      local equipment_component = animal:get_component('stonehearth:equipment')
+      local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
+      local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+      local pasture = shepherded_animal_component:get_pasture()
+      if pasture then 
+         local pasture_component = pasture:get_component('stonehearth:shepherd_pasture')
+         pasture_component:remove_animal(id)
+      end
+      equipment_component:unequip_item('stonehearth:pasture_tag')
+      self:remove_trailing_animal(id)
    end
    self._sv.trailed_animals = nil
 end
