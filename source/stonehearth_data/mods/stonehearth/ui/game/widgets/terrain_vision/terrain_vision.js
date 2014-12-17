@@ -33,13 +33,13 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
          })      
 
       this.$('#xrayButton').click(function() {
+         App.stonehearthClient.subterraneanSetClip(false);
+
          var currentMode = self.get('context.data.xray_mode')
          var newMode;
 
          if (!currentMode) {
             newMode = self._lastMode || 'full';
-
-            App.stonehearthClient.subterraneanSetClip(false);
          } else {
             newMode = null;
          }
@@ -48,6 +48,8 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
       });
 
       this.$('.xrayButton').click(function() {
+         App.stonehearthClient.subterraneanSetClip(false);
+
          var currentMode = self.get('context.data.xray_mode')
          var newMode = $(this).attr('mode');
 
@@ -74,10 +76,12 @@ App.StonehearthTerrainVisionWidget = App.View.extend({
       });
 
       this.$('#clipUp').click(function() {
+         App.stonehearthClient.subterraneanSetXRayMode(null);
          App.stonehearthClient.subterraneanMoveUp();
       });
 
       this.$('#clipDown').click(function() {
+         App.stonehearthClient.subterraneanSetXRayMode(null);
          App.stonehearthClient.subterraneanMoveDown();
       });
 
