@@ -606,6 +606,19 @@ DLLEXP void h3dGetNodeTransform( NodeHandle node, float *tx, float *ty, float *t
 	if( sx != 0x0 ) *sx = scale.x; if( sy != 0x0 ) *sy = scale.y; if( sz != 0x0 ) *sz = scale.z;
 }
 
+DLLEXP void h3dGetNodeTransformFast( NodeHandle node, float *tx, float *ty, float *tz,
+                                 float *rx, float *ry, float *rz, float *sx, float *sy, float *sz )
+{
+	SceneNode *sn = Modules::sceneMan().resolveNodeHandle( node );
+	APIFUNC_VALIDATE_NODE( sn, "h3dGetNodeTransformFast", APIFUNC_RET_VOID );
+	
+	Vec3f trans, rot, scale;
+	sn->getTransformFast( trans, rot, scale );
+
+	if( tx != 0x0 ) *tx = trans.x; if( ty != 0x0 ) *ty = trans.y; if( tz != 0x0 ) *tz = trans.z;
+	if( rx != 0x0 ) *rx = rot.x; if( ry != 0x0 ) *ry = rot.y; if( rz != 0x0 ) *rz = rot.z;
+	if( sx != 0x0 ) *sx = scale.x; if( sy != 0x0 ) *sy = scale.y; if( sz != 0x0 ) *sz = scale.z;
+}
 
 DLLEXP bool h3dSetNodeTransform( NodeHandle node, float tx, float ty, float tz,
                                  float rx, float ry, float rz, float sx, float sy, float sz )

@@ -149,7 +149,7 @@ void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
          H3DNode node = entry.second.node->GetNode();
          float tx, ty, tz, rx, ry, rz, sx, sy, sz;
 
-         h3dGetNodeTransform(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
+         h3dGetNodeTransformFast(node, &tx, &ty, &tz, &rx, &ry, &rz, &sx, &sy, &sz);
          tx *= (scale / sx);
          ty *= (scale / sy);
          tz *= (scale / sz);

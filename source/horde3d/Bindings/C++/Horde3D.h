@@ -1614,6 +1614,8 @@ DLL bool h3dCheckNodeTransFlag( H3DNode node, bool reset );
 DLL void h3dGetNodeTransform( H3DNode node, float *tx, float *ty, float *tz,
                               float *rx, float *ry, float *rz, float *sx, float *sy, float *sz );
 
+DLL void h3dGetNodeTransformFast( H3DNode node, float *tx, float *ty, float *tz,
+                              float *rx, float *ry, float *rz, float *sx, float *sy, float *sz );
 /* Function: h3dSetNodeTransform
 		Sets the relative transformation of a node.
 	

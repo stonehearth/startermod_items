@@ -78,6 +78,13 @@ void SceneNode::getTransform( Vec3f &trans, Vec3f &rot, Vec3f &scale )
 	rot.z = radToDeg( rot.z );
 }
 
+void SceneNode::getTransformFast( Vec3f &trans, Vec3f &rot, Vec3f &scale ) const
+{
+	_relTrans.decompose( trans, rot, scale );
+	rot.x = radToDeg( rot.x );
+	rot.y = radToDeg( rot.y );
+	rot.z = radToDeg( rot.z );
+}
 
 void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
 {
