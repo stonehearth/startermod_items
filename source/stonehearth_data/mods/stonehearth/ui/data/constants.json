@@ -13,7 +13,7 @@
          },
          "thread resource" : {
             "name" : "Thread",
-            "icon" : "/stonehearth/entities/cloth/thread/thread.png",
+            "icon" : "/stonehearth/entities/refined/thread/thread.png",
             "stacks" : 1
          },         
          "fiber resource" : {
@@ -28,12 +28,12 @@
          },         
          "cloth resource" : {
             "name" : "Bolt of cloth",
-            "icon" : "/stonehearth/entities/cloth/cloth_bolt/cloth_bolt.png",
+            "icon" : "/stonehearth/entities/refined/cloth_bolt/cloth_bolt.png",
             "stacks" : 1
          },         
          "leather resource" : {
             "name" : "Bolt of leather",
-            "icon" : "/stonehearth/entities/cloth/leather_bolt/leather_bolt.png",
+            "icon" : "/stonehearth/entities/refined/leather_bolt/leather_bolt.png",
             "stacks" : 1
          }         
       }
