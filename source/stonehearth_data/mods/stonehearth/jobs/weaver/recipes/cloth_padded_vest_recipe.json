@@ -12,6 +12,10 @@
       {
          "material" : "cloth resource",
          "count" : 2
+      },
+      {
+         "material" : "thread resource",
+         "count" : 1
       }
   ],
   "produces": [
