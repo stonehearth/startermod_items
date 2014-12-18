@@ -46,6 +46,9 @@
             "stone_garden_lantern" : {
                "recipe" : "file(stone_garden_lantern_recipe.json)" 
             },
+            "stone_wall_lantern" : {
+               "recipe" : "file(stone_wall_lantern_recipe.json)" 
+            },            
             "gargoyle" : {
                "recipe" : "file(gargoyle_recipe.json)" 
             },
