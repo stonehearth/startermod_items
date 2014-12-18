@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Mason's Wall-Mounted Sign",
+   "description" : "A sign with the mark of the Mason, to be placed on buildings.",
+   "portrait"    : "/stonehearth/entities/decoration/wooden_sign_mason/wooden_sign_mason.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:decoration:wooden_sign_mason"
+      }
+  ]
+}
