@@ -44,7 +44,6 @@ function SleepInBedAdjacent:run(ai, entity, args)
    entity:get_component('mob'):set_rotation(q)
 
    -- goto sleep  
-   radiant.entities.think(entity, '/stonehearth/data/effects/thoughts/sleepy',  stonehearth.constants.think_priorities.SLEEPY)
    radiant.entities.add_buff(entity, 'stonehearth:buffs:sleeping');
 
    ai:execute('stonehearth:run_effect', { effect = 'goto_sleep' })
@@ -58,7 +57,6 @@ function SleepInBedAdjacent:stop(ai, entity, args)
       radiant.entities.move_to(entity, self._restore_location)
       self._restore_location = nil
    end
-   radiant.entities.unthink(entity, '/stonehearth/data/effects/thoughts/sleepy')
    radiant.entities.remove_buff(entity, 'stonehearth:buffs:sleeping');   
 end
 

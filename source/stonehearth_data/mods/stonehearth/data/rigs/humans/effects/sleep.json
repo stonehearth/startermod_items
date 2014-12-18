@@ -7,6 +7,16 @@
          "animation": "sleep.json",
          "loop": true
       },
+      "unit_status_effect": {
+         "type": "unit_status_effect",
+         "material": "materials/thoughts/sleeping/sleeping_material.xml",
+         "duration": 1500,
+         "width": 1.5,
+         "height": 2.55,
+         "xOffset": 0,
+         "yOffset": 0.5,
+         "bone": "head"
+     },
      "sound": {
          "type": "sound_effect",
          "loop" : true,
