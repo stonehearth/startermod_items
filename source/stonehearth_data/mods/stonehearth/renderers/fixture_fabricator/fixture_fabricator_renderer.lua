@@ -11,7 +11,8 @@ function FixtureFabricatorRenderer:initialize(render_entity, fixture_fabricator)
    self._ui_mode_visible = false
    self._fixture_visible = false
    self._render_entity = render_entity
-   
+   self._visibility_handle = render_entity:get_visibility_override_handle()
+
    self._render_tracker = ConstructionRenderTracker(render_entity:get_entity())
                            :set_visible_ui_modes('hud')
                            :set_visible_changed_cb(function(visible)
@@ -39,10 +40,16 @@ end
 -- Destroy the renderer
 --
 function FixtureFabricatorRenderer:destroy()
+   if self._visibility_handle then
+      self._visibility_handle:destroy()
+      self._visibility_handle = nil
+   end
+
    if self._ff_trace then
       self._ff_trace:destroy()
       self._ff_trace = nil
    end
+   
    if self._render_tracker then
       self._render_tracker:destroy()
       self._render_tracker = nil
@@ -53,7 +60,7 @@ end
 --
 function FixtureFabricatorRenderer:_update_render_state()
    local visible = self._fixture_visible and self._ui_mode_visible
-   self._render_entity:set_visible_override(visible)
+   self._visibility_handle:set_visible(visible)
 end
 
 return FixtureFabricatorRenderer

@@ -15,6 +15,12 @@ function PortalEditor:destroy()
       radiant.entities.destroy_entity(self._fixture_blueprint)
       self._fixture_blueprint = nil
    end
+
+   if self._fixture_blueprint_visibility_handle then
+      self._fixture_blueprint_visibility_handle:destroy()
+      self._fixture_blueprint_visibility_handle = nil
+   end
+
    if self._cursor then
       self._cursor:destroy()         
       self._cursor = nil
@@ -57,7 +63,9 @@ function PortalEditor:go()
 
    self._fixture_blueprint_render_entity = _radiant.client.create_render_entity(1, self._fixture_blueprint)
    self._fixture_blueprint_render_entity:set_parent_override(false)
-   self._fixture_blueprint_render_entity:set_visible_override(false)
+
+   self._fixture_blueprint_visibility_handle = self._fixture_blueprint_render_entity:get_visibility_override_handle()
+   self._fixture_blueprint_visibility_handle:set_visible(false)
       
    return self
 end
@@ -84,7 +92,7 @@ function PortalEditor:_position_fixture(location)
                            :get_component('stonehearth:wall')
                               :compute_fixture_placement(self._fixture_blueprint, location)
 
-   self._fixture_blueprint_render_entity:set_visible_override(location ~= nil)
+   self._fixture_blueprint_visibility_handle:set_visible(location ~= nil)
 
    local proxy_blueprint = self:get_proxy_blueprint()
    if location then

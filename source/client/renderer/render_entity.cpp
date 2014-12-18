@@ -44,10 +44,11 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    entity_(entity),
    entity_id_(entity->GetObjectId()),
    initialized_(false),
+   destroyed_(false),
    skeleton_(*this),
    visible_override_(true),
    visible_override_ref_count_(0),
-   _parentOverride(false)
+   parentOverride_(false)
 {
    ASSERT(parent);
 
@@ -65,6 +66,11 @@ RenderEntity::RenderEntity(H3DNode parent, om::EntityPtr entity) :
    selection_guard_ = Renderer::GetInstance().SetSelectionForNode(node_, entity);
 
    query_flags_ = 0;
+}
+
+bool RenderEntity::IsValid() const
+{
+   return initialized_ && !destroyed_;
 }
 
 void RenderEntity::FinishConstruction()
@@ -95,7 +101,8 @@ void RenderEntity::FinishConstruction()
    // Make sure we always have a RenderRenderInfo component, since that's where things like material
    // override and visible override get resolved.  If someone on the server later adds a render_info
    // component, this copy will get blown away (which is just fine!).
-   if (!components_["render_info"]) {
+   auto i = components_.find("render_info");
+   if (i == components_.end()) {
       components_["render_info"] = std::make_shared<RenderRenderInfo>(*this, nullptr);
    }
 
@@ -117,6 +124,7 @@ RenderEntity::~RenderEntity()
 
 void RenderEntity::Destroy()
 {
+   destroyed_ = true;
    lua::ScriptHost* script = Renderer::GetInstance().GetScriptHost();
 
    // xxx: share this with render_lua_component!!
@@ -164,12 +172,12 @@ void RenderEntity::SetParent(H3DNode parent)
  */
 void RenderEntity::SetParentOverride(bool enabled)
 {
-   _parentOverride = enabled;
+   parentOverride_ = enabled;
 }
 
 bool RenderEntity::GetParentOverride() const
 {
-   return _parentOverride;
+   return parentOverride_;
 }
 
 
@@ -360,8 +368,9 @@ dm::ObjectId RenderEntity::GetObjectId() const
 
 void RenderEntity::SetRenderInfoDirtyBits(int bits)
 {
-   std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(components_["render_info"]);
-   if (ri) {
+   auto i = components_.find("render_info");
+   if (i != components_.end()) {
+      std::shared_ptr<RenderRenderInfo> ri = std::static_pointer_cast<RenderRenderInfo>(i->second);
       ri->SetDirtyBits(bits);
    }
 }
@@ -376,23 +385,6 @@ void RenderEntity::SetMaterialOverride(std::string const& material)
 {
    material_override_ = material;
    SetRenderInfoDirtyBits(RenderRenderInfo::MATERIAL_DIRTY);
-}
-
-// The visible_override_ref_count_ indicates the number of outstanding requests to hide the entity.
-// Consider renaming the method to make it clear what the behavior is.
-void RenderEntity::SetVisibleOverride(bool visible)
-{
-   if (visible) {
-      if (visible_override_ref_count_ > 0) {
-         visible_override_ref_count_--;
-      }
-   } else {
-      if (visible_override_ref_count_ < UINT32_MAX) {
-         visible_override_ref_count_++;
-      }
-   }
-   visible_override_ = visible_override_ref_count_ == 0;
-   SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
 }
 
 std::string const RenderEntity::GetMaterialPathFromKind(std::string const& matKind) const
@@ -481,8 +473,71 @@ std::string const& RenderEntity::GetModelVariantOverride() const
    return model_variant_override_;
 }
 
+// Returns true if all visibility requests are true.
 bool RenderEntity::GetVisibleOverride() const
 {
    return visible_override_;
 }
 
+// The visible_override_ref_count_ indicates the number of outstanding requests to hide the entity.
+// Consider renaming the method to make it clear what the behavior is.
+void RenderEntity::SetVisibleOverride(bool visible)
+{
+   if (visible) {
+      if (visible_override_ref_count_ > 0) {
+         visible_override_ref_count_--;
+      }
+   } else {
+      if (visible_override_ref_count_ < UINT32_MAX) {
+         visible_override_ref_count_++;
+      }
+   }
+   visible_override_ = visible_override_ref_count_ == 0;
+   SetRenderInfoDirtyBits(RenderRenderInfo::VISIBLE_DIRTY);
+}
+
+// Returns a handle used to request visibility changes to the entity.
+// The entity is visible if all requestors set visible to true
+RenderEntity::VisibilityHandlePtr RenderEntity::GetVisibilityOverrideHandle()
+{
+   om::EntityPtr entityPtr = entity_.lock();
+   if (entityPtr) {
+      RenderEntityPtr renderEntityPtr = Renderer::GetInstance().GetRenderEntity(entityPtr);
+      ASSERT(renderEntityPtr.get() == this);
+      RenderEntity::VisibilityHandlePtr handle = std::make_shared<VisibilityHandle>(renderEntityPtr);
+      return handle;
+   }
+   return nullptr;
+}
+
+RenderEntity::VisibilityHandle::VisibilityHandle(RenderEntityRef renderEntityRef) :
+   renderEntityRef_(renderEntityRef),
+   visible_(true)
+{
+}
+
+RenderEntity::VisibilityHandle::~VisibilityHandle()
+{
+   Destroy();
+}
+
+void RenderEntity::VisibilityHandle::SetVisible(bool visible)
+{
+   if (visible != visible_) {
+      visible_ = visible;
+      RenderEntityPtr renderEntityPtr = renderEntityRef_.lock();
+      if (renderEntityPtr && renderEntityPtr->IsValid()) {
+         renderEntityPtr->SetVisibleOverride(visible);
+      }
+   }
+}
+
+bool RenderEntity::VisibilityHandle::GetVisible()
+{
+   return visible_;
+}
+
+void RenderEntity::VisibilityHandle::Destroy()
+{
+   SetVisible(true);
+}

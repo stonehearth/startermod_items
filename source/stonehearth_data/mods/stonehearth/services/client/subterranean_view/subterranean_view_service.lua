@@ -138,7 +138,7 @@ function SubterraneanViewService:_create_entity_traces()
    local entity_container = self:_get_root_entity_container()
 
    self._entity_traces = {}
-   self._entity_visibility = {}
+   self._entity_visibility_handles = {}
 
    self._entity_container_trace = entity_container:trace_children('subterranean view')
       :on_added(function(id, entity)
@@ -188,11 +188,18 @@ end
 
 function SubterraneanViewService:_destroy_entity_traces(id)
    local traces = self._entity_traces[id]
-   for name, trace in pairs(traces) do
-      trace:destroy()
+   if traces then
+      for name, trace in pairs(traces) do
+         trace:destroy()
+      end
+      self._entity_traces[id] = nil
    end
-   self._entity_traces[id] = nil
-   self._entity_visibility[id] = nil
+
+   local visibility_handle = self._entity_visibility_handles[id]
+   if visibility_handle then
+      visibility_handle:destroy()
+      self._entity_visibility_handles[id] = nil
+   end
 end
 
 function SubterraneanViewService:destroy()
@@ -374,10 +381,7 @@ function SubterraneanViewService:_update_visiblity(entity, visible)
       visible = self:_is_visible(entity)
    end
 
-   if visible ~= self._entity_visibility[id] then
-      self._entity_visibility[id] = visible
-      self:_set_entity_visible(entity, visible)
-   end
+   self:_set_entity_visible(entity, visible)
 end
 
 function SubterraneanViewService:_is_visible(entity)
@@ -430,10 +434,26 @@ function SubterraneanViewService:_is_clip_mode_visible(entity)
 end
 
 function SubterraneanViewService:_set_entity_visible(entity, visible)
-   local render_entity = _radiant.client.get_render_entity(entity)
-   if render_entity then
-      render_entity:set_visible_override(visible)
+   local visibility_handle = self:_get_visibility_handle(entity)
+
+   if visibility_handle then
+      visibility_handle:set_visible(visible)
    end
+end
+
+function SubterraneanViewService:_get_visibility_handle(entity)
+   local id = entity:get_id()
+   local visibility_handle = self._entity_visibility_handles[id]
+
+   if not visibility_handle then
+      local render_entity = _radiant.client.get_render_entity(entity)
+      if render_entity then
+         visibility_handle = render_entity:get_visibility_override_handle()
+         self._entity_visibility_handles[id] = visibility_handle
+      end
+   end
+
+   return visibility_handle
 end
 
 function SubterraneanViewService:toggle_xray_mode(mode)
