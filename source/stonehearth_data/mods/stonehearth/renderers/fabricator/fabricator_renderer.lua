@@ -12,6 +12,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
    self._entity = render_entity:get_entity()
    self._parent_node = render_entity:get_node()
    self._render_entity = render_entity
+   self._visibility_handle = render_entity:get_visibility_override_handle()
 
    local blueprint = fabricator:get_data().blueprint
    assert(blueprint)
@@ -42,7 +43,7 @@ function FabricatorRenderer:initialize(render_entity, fabricator)
                                           end
                                        end
 
-                                       self._render_entity:set_visible_override(visible)
+                                       self._visibility_handle:set_visible(visible)
                                     end)
                                  :start()
 
@@ -93,6 +94,11 @@ function FabricatorRenderer:destroy()
 
    self._sub_sel_listener:destroy()
    self._sub_sel_listener = nil
+
+   if self._visibility_handle then
+      self._visibility_handle:destroy()
+      self._visibility_handle = nil
+   end
 
    if self._render_tracker then
       self._render_tracker:destroy()

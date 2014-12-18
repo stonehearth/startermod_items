@@ -16,6 +16,16 @@ function StructureEditor:destroy()
    self:_release_current_proxies()
 
    radiant.entities.destroy_entity(self._building_container)
+
+   if self._fabriator_visibility_handle then
+      self._fabriator_visibility_handle:destroy()
+      self._fabriator_visibility_handle = nil
+   end
+
+   if self._project_visibility_handle then
+      self._project_visibility_handle:destroy()
+      self._project_visibility_handle = nil
+   end
 end
 
 function StructureEditor:_release_current_proxies()
@@ -40,6 +50,9 @@ function StructureEditor:begin_editing(fabricator, blueprint, project, structure
    self._fabricator = fabricator
    self._blueprint = blueprint
    self._project = project
+
+   self._fabriator_visibility_handle = self:_get_visibility_handle(self._fabricator)
+   self._project_visibility_handle = self:_get_visibility_handle(self._project)
 
    local building = build_util.get_building_for(blueprint)
    --TODO: why is this sometimes nil?   
@@ -97,14 +110,17 @@ function StructureEditor:_initialize_proxies(blueprint_uri, structure_type)
    self:_show_editing_objects(false)
 end
 
+function StructureEditor:_get_visibility_handle(entity)
+   local render_entity = _radiant.client.get_render_entity(entity)
+   return render_entity and render_entity:get_visibility_override_handle()
+end
+
 function StructureEditor:_show_editing_objects(visible)
    if self._fabricator and self._fabricator:is_valid() then
-      _radiant.client.get_render_entity(self._fabricator)
-                        :set_visible_override(visible)
+      self._fabriator_visibility_handle:set_visible(visible)
    end
    if self._blueprint then
-      _radiant.client.get_render_entity(self._project)
-                        :set_visible_override(visible)
+      self._project_visibility_handle:set_visible(visible)
    end   
 end
 
