@@ -148,6 +148,10 @@ void AnimatedLightNode::init()
    h3dSetNodeParamF(_lightNode, H3DLight::FovF, 0, 360);
    h3dSetNodeParamI(_lightNode, H3DLight::ShadowMapCountI, 0);
    h3dSetNodeParamI(_lightNode, H3DLight::DirectionalI, 0);
+   h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 0, 0.0f);
+   h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 1, 0.0f);
+   h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 2, 0.0f);
+   h3dSetNodeParamF(_lightNode, H3DLight::RadiusF, 0, 0.0f);
 }
 
 AnimatedLightNode::~AnimatedLightNode()

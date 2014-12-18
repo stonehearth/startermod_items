@@ -276,6 +276,7 @@
       "decoration:wooden_sign" : "file(entities/decoration/wooden_sign)",
       "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
       "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
+      "decoration:wooden_sign_mason" : "file(entities/decoration/wooden_sign_mason)",
       "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
       "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
       "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",

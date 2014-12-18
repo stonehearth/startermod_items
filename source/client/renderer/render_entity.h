@@ -15,10 +15,29 @@ BEGIN_RADIANT_CLIENT_NAMESPACE
 
 class Renderer;
 class RenderAspect;
+class RenderEntity;
+
+typedef std::shared_ptr<RenderEntity> RenderEntityPtr;
+typedef std::weak_ptr<RenderEntity> RenderEntityRef;
 
 class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 {
    public:
+      class VisibilityHandle
+      {
+         public:
+            VisibilityHandle(RenderEntityRef renderEntityRef);
+            ~VisibilityHandle();
+            void SetVisible(bool visible);
+            bool GetVisible();
+            void Destroy();
+
+         private:
+            RenderEntityRef renderEntityRef_;
+            bool visible_;
+      };
+      typedef std::shared_ptr<VisibilityHandle> VisibilityHandlePtr;
+
       enum QueryFlags {
          UNSELECTABLE = (1 << 0)
       };
@@ -27,6 +46,7 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
       RenderEntity(H3DNode parent, om::EntityPtr obj);
       ~RenderEntity();
 
+      bool IsValid() const;
       void FinishConstruction();
       void Destroy();
 
@@ -58,15 +78,17 @@ class RenderEntity : public std::enable_shared_from_this<RenderEntity>
 
       void ForAllSceneNodes(std::function<void(H3DNode node)> const& fn);
 
+      std::string const& GetModelVariantOverride() const;
       void SetModelVariantOverride(std::string const& variant);
+
+      std::string const& GetMaterialOverride() const;
       void SetMaterialOverride(std::string const& overrideKind);
-      void SetVisibleOverride(bool visible);
 
       bool GetVisibleOverride() const;
-      std::string const& GetMaterialOverride() const;
-      std::string const& GetModelVariantOverride() const;
+      VisibilityHandlePtr GetVisibilityOverrideHandle();
 
    private:
+      void SetVisibleOverride(bool visible);
       void LoadAspects(om::EntityPtr obj);
       void Move(bool snap);
       void ModifyContents();
@@ -97,6 +119,7 @@ protected:
       ComponentMap      components_;
       LuaComponentMap   lua_invariants_;
       bool              initialized_;
+      bool              destroyed_;
       core::Guard       selection_guard_;
       dm::TracePtr      components_trace_;
       dm::TracePtr      lua_components_trace_;
@@ -105,11 +128,8 @@ protected:
       std::string       material_override_;
       bool              visible_override_;
       uint32            visible_override_ref_count_;
-      bool              _parentOverride;
+      bool              parentOverride_;
 };
-
-typedef std::shared_ptr<RenderEntity>  RenderEntityPtr;
-typedef std::weak_ptr<RenderEntity>  RenderEntityRef;
 
 END_RADIANT_CLIENT_NAMESPACE
 

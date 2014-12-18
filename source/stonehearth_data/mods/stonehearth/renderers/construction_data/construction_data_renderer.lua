@@ -13,6 +13,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
    self._render_entity = render_entity
    self._parent_node = render_entity:get_node()
    self._construction_data = construction_data
+   self._visibility_handles = {}
    
    if not self._construction_data:get_use_custom_renderer() then
 
@@ -26,7 +27,7 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
                                        self:_update_region(region, mode)
                                     end)
                                  :set_visible_changed_cb(function(visible)
-                                       self._render_entity:set_visible_override(visible)
+                                       self:_set_visibility(self._entity, visible)
                                     end)
                                  :start()
 
@@ -45,6 +46,13 @@ function ConstructionDataRenderer:initialize(render_entity, construction_data)
 end
 
 function ConstructionDataRenderer:destroy()
+   if self._visibility_handles then
+      for id, handle in pairs(self._visibility_handles) do
+         handle:destroy()
+      end
+      self._visibility_handles = nil
+   end
+
    if self._render_tracker then
       self._render_tracker:destroy()
       self._render_tracker = nil   
@@ -127,8 +135,30 @@ function ConstructionDataRenderer:_update_child_visibility(entity)
       visible = location.y == 0
    end
 
-   _radiant.client.get_render_entity(entity)
-                     :set_visible_override(visible)
+   self:_set_visibility(entity, visible)
+end
+
+function ConstructionDataRenderer:_set_visibility(entity, visible)
+   local visibility_handle = self:_get_visibility_handle(entity)
+
+   if visibility_handle then
+      visibility_handle:set_visible(visible)
+   end
+end
+
+function ConstructionDataRenderer:_get_visibility_handle(entity)
+   local id = entity:get_id()
+   local visibility_handle = self._visibility_handles[id]
+
+   if not visibility_handle then
+      local render_entity = _radiant.client.get_render_entity(entity)
+      if render_entity then
+         visibility_handle = render_entity:get_visibility_override_handle()
+         self._visibility_handles[id] = visibility_handle
+      end
+   end
+
+   return visibility_handle
 end
 
 return ConstructionDataRenderer

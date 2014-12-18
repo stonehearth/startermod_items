@@ -10,6 +10,11 @@ App.StonehearthEmbarkView = App.View.extend({
    init: function() {
       this._super();
       var self = this;
+   },
+
+   didInsertElement: function() {
+      this._super();
+      var self = this;
 
       self._newGame(function(e) {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:paper_menu'} );
@@ -25,13 +30,7 @@ App.StonehearthEmbarkView = App.View.extend({
                self._updateScroll(map[cellY][cellX]);
             }
          });
-
       });
-   },
-
-   didInsertElement: function() {
-      this._super();
-      var self = this;
 
       $('body').on( 'click', '#embarkButton', function() {
          self._embark(self._selectedX, self._selectedY);
