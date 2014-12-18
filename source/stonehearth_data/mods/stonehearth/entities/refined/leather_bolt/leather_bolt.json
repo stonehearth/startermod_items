@@ -19,7 +19,7 @@
          "icon" : "file(leather_bolt.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "leather animal_part refined"
+         "tags" :  "leather animal_part resource"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
