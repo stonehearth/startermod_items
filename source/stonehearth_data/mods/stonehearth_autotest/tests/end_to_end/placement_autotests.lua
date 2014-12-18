@@ -91,7 +91,7 @@ function placement_autotests.place_on_wall(autotest)
             end
          end)
       
-   autotest:sleep(10000)
+   autotest:sleep(20000)
    autotest:fail('worker failed to place sign and remove ladder')
 end
 
