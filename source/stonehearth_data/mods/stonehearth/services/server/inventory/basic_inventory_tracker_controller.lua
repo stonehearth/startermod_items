@@ -73,7 +73,9 @@ function BasicInventoryTracker:remove_entity_from_tracking_data(entity_id, track
    if tracking_data.items[entity_id] then
       tracking_data.items[entity_id] = nil
       tracking_data.count = tracking_data.count - 1
-      assert(tracking_data.count >= 0)
+      if tracking_data.count <= 0 then
+         return nil
+      end 
    end
    return tracking_data
 end

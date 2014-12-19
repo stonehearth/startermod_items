@@ -42,10 +42,16 @@ function ShepherdPastureComponent:_create_load_timer()
 end
 
 --On destroying the pasture, nuke the tasks
+--Release all the animals
 function ShepherdPastureComponent:destroy()
    self:_destroy_animal_collection_tasks()
-   --TODO: do I also need to destroy the 1-time tasks?
-   --test deleting pastures
+
+   if self._stray_interval_timer then
+      self._stray_interval_timer:destroy()
+      self._stray_interval_timer = nil
+   end
+
+   self:_release_existing_animals()
 end
 
 
@@ -172,9 +178,29 @@ function ShepherdPastureComponent:_create_harvest_task(target)
    end
 end
 
-
+--TODO: consider centralizing all the "animal not connected to pasture, unbind from pasture" code
 function ShepherdPastureComponent:_release_existing_animals()
-   --TODO: undo all their leashes or whatever
+   for id, animal_data in pairs(self._sv.tracked_critters) do
+      --If the animal is following a shepherd, remove it from the shepherd's folloq queue
+      local animal = animal_data.entity
+      local equipment_component = animal:get_component('stonehearth:equipment')
+      local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
+      local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+
+      if shepherded_animal_component:get_following() then
+         local shepherd = shepherded_animal:get_last_shepherd()
+         local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
+         if shepherd_class and shepherd_class.remove_trailing_animal then
+            shepherd_class:remove_trailing_animal(id)
+         end
+      end
+      --unequip its pasture tags
+      equipment_component:unequip_item('stonehearth:pasture_tag')
+      
+      --Remove it from the pasture
+      self:remove_animal(id)
+   end
+
    self._sv.tracked_critters = {}
 end
 
@@ -194,9 +220,9 @@ function ShepherdPastureComponent:_create_animal_collection_tasks()
 end
 
 function ShepherdPastureComponent:_destroy_animal_collection_tasks()
-   if self._till_task then
-      self._till_task = nil
-      self._till_task:destroy()
+   if self._animal_collection_task then
+      self._animal_collection_task:destroy()
+      self._animal_collection_task = nil
    end
 end
 
