@@ -383,9 +383,7 @@ void LuaRenderer::RegisterType(lua_State* L)
       def("h3dSetNodeFlags",                 &h3dSetNodeFlags),
       def("h3dGetNodeFlags",                 &h3dGetNodeFlags),
       def("h3dSetGlobalUniform",             &h3dSetGlobalUniformFloat),
-      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag),
-      def("h3dSetVerticalClipMax",           &h3dSetVerticalClipMax),
-      def("h3dClearVerticalClipMax",         &h3dClearVerticalClipMax)
+      def("h3dSetGlobalShaderFlag",          &h3dSetGlobalShaderFlag)
    ];
    globals(L)["H3DRootNode"] = H3DRootNode;
 };

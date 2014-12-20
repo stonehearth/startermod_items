@@ -23,6 +23,11 @@ RenderTerrainLayer::~RenderTerrainLayer()
    T_LOG(5) << "destroying layer";
 }
 
+RenderNodePtr RenderTerrainLayer::GetNode()
+{
+   return _node;
+}
+
 void RenderTerrainLayer::BeginUpdate()
 {
    for (int i = 0; i < csg::RegionTools3::NUM_PLANES; i++) {
