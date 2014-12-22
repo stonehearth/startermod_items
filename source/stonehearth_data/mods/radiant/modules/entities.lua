@@ -878,7 +878,7 @@ end
 
 -- we'll use a mapping table later to determine alliances / hostilities
 function entities._is_neutral_player(player)
-   return player == nil or player == '' or player == 'critters'
+   return player == nil or player == '' or player == 'critters' or player == 'animals'
 end
 
 function entities.get_world_speed(entity)

@@ -42,14 +42,22 @@ private:
    void UpdateLayers();
    void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
-   void EachTileIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainTile* tile)> cb);
 
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
+   bool LayerIsVisible(csg::Point3 const& location) const;
+   void SetLayerVisible(RenderTerrainLayer& layer, bool visible);
 
    csg::Point3 IndexToLocation(csg::Point3 const& index);
    csg::Point3 LocationToIndex(csg::Point3 const& location);
    csg::Point3 GetNeighborAddress(csg::Point3 const& location, csg::RegionTools3::Plane direction);
    csg::Point3 GetLayerAddressForLocation(csg::Point3 const& location);
+
+   void EachTileIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainTile* tile)> cb);
+   void EachLayerIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainLayer* tile)> cb);
+
+   template <typename T>
+   void EachEntryIn(csg::Cube3 const& bounds, T const& map, csg::Point3 const& chunkSize,
+                    std::function<void(csg::Point3 const& location, typename T::mapped_type value)> cb);
 
 private:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> DirtySet;
@@ -81,3 +89,4 @@ private:
 END_RADIANT_CLIENT_NAMESPACE
 
 #endif //  _RADIANT_CLIENT_RENDER_TERRAIN_H
+

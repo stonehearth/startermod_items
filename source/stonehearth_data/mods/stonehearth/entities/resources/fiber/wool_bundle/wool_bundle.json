@@ -7,7 +7,7 @@
          "category" : "resources"
       },
       "stonehearth:material" : {
-         "tags" : "fiber resource"
+         "tags" : "fiber resource animal_part"
       },
       "model_variants": {
          "default": {

@@ -3,7 +3,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(wooden_wall_lantern.qb)"
+               "file(stone_wall_lantern.qb)"
             ]
          }
       },
@@ -15,12 +15,12 @@
          "scale" : 0.15
       },     
       "unit_info": {
-         "name": "Wooden Wall-mounted Lantern",
+         "name": "Stone Wall-mounted Lantern",
          "description": "Easily attached to walls",
-         "icon" : "file(wooden_wall_lantern.png)"
+         "icon" : "file(stone_wall_lantern.png)"
       },
       "stonehearth:material" : {
-         "tags" : "light_source crafted wood"
+         "tags" : "light_source crafted stone"
       }
    }
 }

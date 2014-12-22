@@ -159,13 +159,25 @@ csg::Point3 RenderTerrain::GetNeighborAddress(csg::Point3 const& location, csg::
 
 void RenderTerrain::EachTileIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainTile* tile)> cb)
 {
-   csg::Cube3 regionChunks = csg::GetChunkIndexSlow(bounds, _tileSize);
+   EachEntryIn(bounds, tiles_, _tileSize, cb);
+}
 
-   for (csg::Point3 const& cursor : csg::EachPoint(regionChunks)) {
-      csg::Point3 tilePoint = cursor * _tileSize;
-      auto i = tiles_.find(tilePoint);
-      if (i != tiles_.end()) {
-         cb(tilePoint, i->second);
+void RenderTerrain::EachLayerIn(csg::Cube3 const& bounds, std::function<void(csg::Point3 const& location, RenderTerrainLayer* tile)> cb)
+{
+   EachEntryIn(bounds, layers_, TERRAIN_LAYER_SIZE, cb);
+}
+
+template <typename T>
+void RenderTerrain::EachEntryIn(csg::Cube3 const& bounds, T const& map, csg::Point3 const& chunkSize,
+                                std::function<void(csg::Point3 const& location, typename T::mapped_type value)> cb)
+{
+   csg::Cube3 chunkIndicies = csg::GetChunkIndexSlow(bounds, chunkSize);
+
+   for (csg::Point3 const& cursor : csg::EachPoint(chunkIndicies)) {
+      csg::Point3 location = cursor * chunkSize;
+      auto i = map.find(location);
+      if (i != map.end()) {
+         cb(location, i->second);
       }
    }
 }
@@ -262,6 +274,15 @@ void RenderTerrain::SetClipHeight(int height)
    slice.max.y = _clip_height + 1;
    EachTileIn(slice, [this](csg::Point3 const& cursor, RenderTerrainTile* tile) {
       MarkDirty(cursor);
+   });
+
+   // change visibility of all tiles between the clip heights
+   int terrain_max_y = (int)terrainPtr->GetBounds().max.y;
+   slice.min.y = std::min(_clip_height, old_clip_height);
+   slice.max.y = std::min(std::max(_clip_height, old_clip_height), terrain_max_y);
+   bool visible = _clip_height > old_clip_height;
+   EachLayerIn(slice, [this, visible](csg::Point3 const& cursor, RenderTerrainLayer* layer) {
+      SetLayerVisible(*layer, visible);
    });
 }
 
@@ -361,6 +382,9 @@ void RenderTerrain::UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& lo
       }
    }
    layer.EndUpdate();
+
+   bool visible = LayerIsVisible(location);
+   SetLayerVisible(layer, visible);
 }
 
 void RenderTerrain::UpdateLayers()
@@ -404,6 +428,21 @@ RenderTerrainLayer& RenderTerrain::GetLayer(csg::Point3 const& location)
    }
    auto j = layers_.insert(std::make_pair(location, new RenderTerrainLayer(*this, location)));
    return *j.first->second;
+}
+
+bool RenderTerrain::LayerIsVisible(csg::Point3 const& location) const
+{
+   bool visible = location.y < _clip_height;
+   return visible;
+}
+
+void RenderTerrain::SetLayerVisible(RenderTerrainLayer& layer, bool visible)
+{
+   RenderNodePtr node = layer.GetNode();
+   // node is null when the mesh is empty
+   if (node) {
+      node->SetVisible(visible);
+   }
 }
 
 om::Region3TiledPtr RenderTerrain::GetXrayTiles()

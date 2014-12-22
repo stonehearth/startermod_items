@@ -526,13 +526,8 @@ function SubterraneanViewService:_update_clip_height()
    if self._sv.clip_enabled then
       local clip_height = self._sv.clip_height
       _radiant.renderer.set_clip_height(clip_height)
-
-      -- clip height for the scene node test
-      local scene_node_clip_height = aligned_ceil(clip_height, constants.mining.Y_CELL_SIZE)
-      h3dSetVerticalClipMax(scene_node_clip_height)
    else
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
-      h3dClearVerticalClipMax()
    end
 end
 

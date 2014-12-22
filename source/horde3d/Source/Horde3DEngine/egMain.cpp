@@ -1141,16 +1141,6 @@ DLLEXP void h3dSetCurrentRenderTime( float time )
    Modules::renderer().setCurrentTime(time);
 }
 
-DLLEXP void h3dSetVerticalClipMax(float value)
-{
-   Modules::renderer().setVerticalClipMax(value);
-}
-
-DLLEXP void h3dClearVerticalClipMax()
-{
-   Modules::renderer().clearVerticalClipMax();
-}
-
 // =================================================================================================
 // DLL entry point
 // =================================================================================================

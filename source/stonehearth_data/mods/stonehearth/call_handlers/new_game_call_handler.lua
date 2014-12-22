@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local Array2D = require 'services.server.world_generation.array_2D'
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
@@ -171,6 +172,9 @@ function NewGameCallHandler:choose_camp_location(session, response)
    stonehearth.selection:select_location()
       :use_ghost_entity_cursor('stonehearth:camp_standard_ghost')
       :done(function(selector, location, rotation)
+         local clip_height = self:_get_starting_clip_height(location)
+         stonehearth.subterranean_view:set_clip_height(clip_height)
+
          _radiant.call('stonehearth:create_camp', location)
             :done( function(o)
                   response:resolve({result = true, townName = o.random_town_name })
@@ -187,6 +191,14 @@ function NewGameCallHandler:choose_camp_location(session, response)
             response:reject('no location')
          end)
       :go()
+end
+
+function NewGameCallHandler:_get_starting_clip_height(starting_location)
+   local step_size = constants.mining.Y_CELL_SIZE
+   local quantized_height = math.floor(starting_location.y / step_size) * step_size
+   local next_step = quantized_height + step_size
+   local clip_height = next_step - 1 -- -1 to remove the ceiling
+   return clip_height
 end
 
 function NewGameCallHandler:create_camp(session, response, pt)

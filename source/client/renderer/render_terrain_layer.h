@@ -16,6 +16,8 @@ public:
    RenderTerrainLayer(RenderTerrain& terrain, csg::Point3 const& location);
    ~RenderTerrainLayer();
 
+   RenderNodePtr GetNode();
+
    void BeginUpdate();
    void AddGeometry(csg::RegionTools3::Plane plane, RenderTerrainTile::Geometry const& g);
    void EndUpdate();

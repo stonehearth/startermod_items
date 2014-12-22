@@ -297,17 +297,18 @@ function XZRegionSelector:_get_brick_at(x, y)
    local brick, normal = selector_util.get_selected_brick(x, y, function(result)
          local entity = result.entity
 
-         -- The only case entity should be null is when allowing self-selection of the
-         -- cursor.
+         -- The only case entity should be null is when allowing self-selection of the cursor.
          if self._allow_select_cursor and not entity then
             return true
          end
 
-         if entity then
-            local re = _radiant.client.get_render_entity(entity)
-            if re and re:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
-               return stonehearth.selection.FILTER_IGNORE
-            end
+         if not entity then
+            return stonehearth.selection.FILTER_IGNORE 
+         end
+
+         local render_entity = _radiant.client.get_render_entity(entity)
+         if render_entity and render_entity:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
+            return stonehearth.selection.FILTER_IGNORE
          end
 
          local valid_support = self._find_support_filter_fn(result, self)

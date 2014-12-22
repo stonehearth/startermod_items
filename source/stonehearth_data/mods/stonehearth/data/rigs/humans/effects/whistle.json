@@ -22,8 +22,8 @@
          "loop" : false,
          "start_time" : 700,
          "min_distance": 60,
-         "falloff" : 22,
-         "volume": 30,
+         "falloff" : 3.2,
+         "volume": 40,
          "track" : "stonehearth:sounds:shepherd_whistle"
       }     
   }

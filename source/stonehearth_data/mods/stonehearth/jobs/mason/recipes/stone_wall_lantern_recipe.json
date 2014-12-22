@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name": "Stone Wall-mounted Lantern",
+   "description": "Attaches to the walls of buildings, providing light",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/decoration/stone_wall_lantern/stone_wall_lantern.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:decoration:stone_wall_lantern"
+      }
+  ]
+}

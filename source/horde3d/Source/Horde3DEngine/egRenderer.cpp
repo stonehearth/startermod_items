@@ -76,7 +76,6 @@ Renderer::Renderer()
 	_smSize = 0;
    _materialOverride = 0x0;
    _curPipeline = 0x0;
-   _verticalClipMax = 999999999.0f;
 
 	_shadowRB = 0;
 	_vlPosOnly = 0;
@@ -619,21 +618,6 @@ void Renderer::setShaderComb( ShaderCombination *sc )
 
 		_curShader = sc;
 	}
-}
-
-void Renderer::setVerticalClipMax(float value)
-{
-   _verticalClipMax = value;
-}
-
-void Renderer::clearVerticalClipMax()
-{
-   _verticalClipMax = 999999999.0f;
-}
-
-float Renderer::getVerticalClipMax() const
-{
-   return _verticalClipMax;
 }
 
 void Renderer::commitGlobalUniforms()

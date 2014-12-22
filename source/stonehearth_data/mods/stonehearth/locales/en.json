@@ -183,6 +183,7 @@
    "stockpile_gear" : "Weapons & Armor",
    "stockpile_food_and_drink" : "Food & Drink",
    "stockpile_wealth" : "Wealth",
+   "stockpile_tooltip_tools" : "Tools",
    "stockpile_tooltip_wood" : "wood",
    "stockpile_tooltip_stone" : "stone",
    "stockpile_tooltip_ore" : "ore",

@@ -1,0 +1,12 @@
+{
+   "type" : "entity",
+   "mixins" : "file(wooden_sign_mason_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_sign_mason_iconic.json)",
+         "ghost_form" : "file(wooden_sign_mason_ghost.json)",
+         "placeable_on_walls" : true
+      }
+   }
+}

@@ -381,6 +381,7 @@ void RenderEntity::SetModelVariantOverride(std::string const& variant)
    SetRenderInfoDirtyBits(RenderRenderInfo::MODEL_DIRTY);
 }
 
+// This should probably operate like a stack where callers can push and pop a material override onto the stack.
 void RenderEntity::SetMaterialOverride(std::string const& material)
 {
    material_override_ = material;
