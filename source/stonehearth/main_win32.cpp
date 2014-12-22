@@ -1,6 +1,11 @@
 #if defined(ENABLE_MEMPRO)
+#pragma warning(push)
+#pragma warning(disable:4005)
+
 #define OVERRIDE_NEW_DELETE
 #include "C:\\Program Files\\PureDevSoftware\\MemPro\\MemProLib\\src_combined\MemPro.cpp"
+
+#pragma warning(pop)
 #endif
 
 #include <signal.h>
