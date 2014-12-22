@@ -296,7 +296,7 @@ void AStarPathFinder::ClearNodes()
 
 void AStarPathFinder::Restart()
 {
-   PF_LOG(5) << "restarting search";
+   PF_LOG(5) << "restarting search after " << _num_steps << " steps";
 
    ASSERT(restart_search_);
    ASSERT(!solution_);
@@ -380,9 +380,9 @@ void AStarPathFinder::EncodeDebugShapes(radiant::protocol::shapelist *msg) const
 void AStarPathFinder::Work(const platform::timer &timer)
 {
    MEASURE_JOB_TIME();
+   PF_LOG(3) << "working";
 
    for (int i = 0; i < 8 && !timer.expired(); i++) {
-      PF_LOG(3) << "entering work function";
 
       _num_steps++;
 
@@ -454,7 +454,7 @@ void AStarPathFinder::Work(const platform::timer &timer)
       ASSERT(_currentSearchNode);
 
       if (_currentSearchNode->g + h > max_cost_to_destination_) {
-         PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded. marking search as exhausted.";
+         PF_LOG(3) << "max cost to destination " << max_cost_to_destination_ << " exceeded (" << _currentSearchNode->g + h << "). marking search as exhausted after " << _num_steps << " steps";
          SetSearchExhausted();
          return;
       }
@@ -741,7 +741,7 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
    bool is_valid_poi = dst->GetPointOfInterest(solution.back(), poi);
 
    if (is_valid_poi) {
-      PF_LOG(5) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ")";
+      PF_LOG(3) << "found solution to destination " << dst->GetEntityId() << " (last point is " << solution.back() << ") after " << _num_steps << " steps";
       path = std::make_shared<Path>(solution, entity_.lock(), dst->GetEntity(), poi);
       PF_LOG(5) << "calling lua solved callback";
       solved = solved_cb_(path);
@@ -751,7 +751,7 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
    }
 
    if (solved) {
-      PF_LOG(2) << "solution accepted!";
+      PF_LOG(2) << "solution accepted by callback!";
       solution_  = path;
    } else {
       PF_LOG(5) << "removing destination and continuing search.";
