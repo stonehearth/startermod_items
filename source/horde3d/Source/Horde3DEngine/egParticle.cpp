@@ -558,8 +558,8 @@ void EmitterNode::onPostUpdate()
 {	
 	if( _timeDelta == 0 || _effectRes == 0x0 ) return;
 	
-	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
-	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
+	if( Modules::config().gatherTimeStats ) timer->Start();
 
    _bBox;
 	
@@ -678,7 +678,7 @@ void EmitterNode::onPostUpdate()
 	_timeDelta = 0;
 	_prevAbsTrans = _absTrans;
 
-	timer->setEnabled( false );
+	timer->Stop();
 }
 
 }  // namespace

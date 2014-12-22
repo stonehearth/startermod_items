@@ -77,15 +77,14 @@ void EntityJobScheduler::Work(const platform::timer &timer)
    if (p) {
       perfmon::CounterValueType time;
       if (_recordPathfinderTimes) {
-         time = perfmon::Timer::GetCurrentTime();
+         time = perfmon::Timer::GetCurrentCounterValueType();
       }
 
       E_LOG(7) << "pumping pathfinder " << p->GetName() << " : " << p->GetProgress();
       p->Work(timer);
 
       if (_recordPathfinderTimes) {
-         time = perfmon::Timer::GetCurrentTime() - time;
-         _pathfinderTimes[p->GetName()] += time;
+         _pathfinderTimes[p->GetName()] += perfmon::Timer::GetCurrentCounterValueType() - time;
       }
    }
 }

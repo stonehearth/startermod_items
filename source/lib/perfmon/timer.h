@@ -5,6 +5,8 @@
 
 BEGIN_RADIANT_PERFMON_NAMESPACE
 
+void Timer_Init();
+
 class Timer
 {
 public:
@@ -12,17 +14,23 @@ public:
    ~Timer();
 
    void Start();
-   CounterValueType GetElapsed();
+   CounterValueType GetElapsed() const;
    CounterValueType Stop();
    CounterValueType Restart();
+   void Reset();
 
-   static CounterValueType GetCurrentTime();
+   static CounterValueType GetCurrentCounterValueType();
    static uint64 GetCurrentTimeMs();
 
 private:
+   bool            started_;
    CounterValueType    start_time_;
    CounterValueType    elapsed_;
 };
+
+uint CounterToMilliseconds(CounterValueType value);
+CounterValueType MillisecondsToCounter(uint value);
+
 
 END_RADIANT_PERFMON_NAMESPACE
 

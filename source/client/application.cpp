@@ -6,6 +6,7 @@
 #include "application.h"
 #include "resources/res_manager.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/timer.h"
 #include "lib/analytics/analytics.h"
 #include "core/config.h"
 #include "core/system.h"
@@ -148,6 +149,7 @@ int Application::Run(int argc, const char** argv)
       });
       APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR;
 
+      perfmon::Timer_Init();
    } catch (std::exception const& e) {
       std::string const error_message = BUILD_STRING("Error starting application:\n\n" << e.what());
       try {

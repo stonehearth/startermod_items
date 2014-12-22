@@ -49,6 +49,7 @@
 #include "core/profiler.h"
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
+#include "lib/perfmon/namespace.h"
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1

@@ -339,8 +339,8 @@ bool ModelNode::updateGeometry()
 	if( _geometryRes == 0x0 || _geometryRes->getVertPosData() == 0x0 ||
 		_geometryRes->getVertTanData() == 0x0 || _geometryRes->getVertStaticData() == 0x0 ) return false;
 	
-	Timer *timer = Modules::stats().getTimer( EngineStats::GeoUpdateTime );
-	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::GeoUpdateTime );
+	if( Modules::config().gatherTimeStats ) timer->Start();
 	
 	// Reset vertices to base data
 	memcpy( _geometryRes->getVertPosData(), _baseGeoRes->getVertPosData(),
@@ -427,7 +427,7 @@ bool ModelNode::updateGeometry()
 	// Upload geometry
 	_geometryRes->updateDynamicVertData();
 
-	timer->setEnabled( false );
+	timer->Stop();
 
 	return true;
 }

@@ -60,7 +60,6 @@ set(HORDE3D_SOURCES
 	egShader.h
 	egTexture.h
 	utImage.h
-	utTimer.h
 	utOpenGL.h
 	../../Bindings/C++/Horde3D.h
 

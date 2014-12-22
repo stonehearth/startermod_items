@@ -328,8 +328,8 @@ bool VoxelModelNode::updateVoxelGeometry()
 	if( _baseVoxelGeoRes == 0x0 || _baseVoxelGeoRes->getVertexData() == 0x0) return false;
 	if( _geometryRes == 0x0 || _geometryRes->getVertexData() == 0x0) return false;
 	
-	Timer *timer = Modules::stats().getTimer( EngineStats::GeoUpdateTime );
-	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::GeoUpdateTime );
+	if( Modules::config().gatherTimeStats ) timer->Start();
 	
 	// Reset vertices to base data
 	memcpy( _geometryRes->getVertexData(), _baseVoxelGeoRes->getVertexData(),
@@ -416,7 +416,7 @@ bool VoxelModelNode::updateVoxelGeometry()
 	// Upload geometry
 	_geometryRes->updateDynamicVertData();
 
-	timer->setEnabled( false );
+	timer->Stop();
 
 	return true;
 }

@@ -562,8 +562,8 @@ void CubemitterNode::onPostUpdate()
 {	
    if( _timeDelta <= 0 || !_wasVisible /*|| _effectRes == 0x0*/ ) return;
 	
-	Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
-	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::ParticleSimTime );
+	if( Modules::config().gatherTimeStats ) timer->Start();
 	
    CubemitterData d = _cubemitterRes.getPtr()->emitterData;
 
@@ -581,7 +581,7 @@ void CubemitterNode::onPostUpdate()
    
    _timeDelta = 0.0f;
    _wasVisible = false;
-   timer->setEnabled(false);
+   timer->Stop();
 }
 
 void CubemitterNode::updateAndSpawnCubes(int numToSpawn) 

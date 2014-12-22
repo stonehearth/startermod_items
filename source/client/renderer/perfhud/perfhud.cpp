@@ -2,6 +2,7 @@
 #include "radiant.h"
 #include "perfhud.h"
 #include "lib/perfmon/perfmon.h"
+#include "lib/perfmon/timer.h"
 #include "client/renderer/renderer.h"
 
 using namespace ::radiant;

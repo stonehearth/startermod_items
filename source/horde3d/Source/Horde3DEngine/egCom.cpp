@@ -275,7 +275,7 @@ void EngineLog::dumpMessages()
 
 EngineLog::EngineLog(std::string const& logFilePath)
 {
-	_timer.setEnabled( true );
+   _timer.Start();
 	_maxNumMessages = 512;
 	// Reset log file
 	_outf.setf( std::ios::fixed );
@@ -287,7 +287,7 @@ EngineLog::EngineLog(std::string const& logFilePath)
 
 void EngineLog::pushMessage( int level, const char *msg, va_list args )
 {
-	float time = _timer.getElapsedTimeMS() / 1000.0f;
+   float time = radiant::perfmon::CounterToMilliseconds(_timer.GetElapsed()) / 1000.0f;
 
 #if defined( PLATFORM_WIN )
 #pragma warning( push )
@@ -466,16 +466,16 @@ float StatManager::getStat( int param, bool reset )
       value = sum / c;
       return value;
 	case EngineStats::AnimationTime:
-		value = _animTimer.getElapsedTimeMS();
-		if( reset ) _animTimer.reset();
+      value = (float)radiant::perfmon::CounterToMilliseconds(_animTimer.GetElapsed());
+      if( reset ) _animTimer.Reset();
 		return value;
 	case EngineStats::GeoUpdateTime:
-		value = _geoUpdateTimer.getElapsedTimeMS();
-		if( reset ) _geoUpdateTimer.reset();
+      value = (float)radiant::perfmon::CounterToMilliseconds(_geoUpdateTimer.GetElapsed());
+		if( reset ) _geoUpdateTimer.Reset();
 		return value;
 	case EngineStats::ParticleSimTime:
-		value = _particleSimTimer.getElapsedTimeMS();
-		if( reset ) _particleSimTimer.reset();
+      value = (float)radiant::perfmon::CounterToMilliseconds(_particleSimTimer.GetElapsed());
+		if( reset ) _particleSimTimer.Reset();
 		return value;
 	case EngineStats::TextureVMem:
 		return (gRDI->getTextureMem() / 1024) / 1024.0f;
@@ -521,7 +521,7 @@ void StatManager::incStat( int param, float value )
 }
 
 
-Timer *StatManager::getTimer( int param )
+radiant::perfmon::Timer *StatManager::getTimer( int param )
 {
 	switch( param )
 	{

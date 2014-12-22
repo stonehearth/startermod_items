@@ -75,17 +75,3 @@ core::Guard perfmon::OnFrameEnd(std::function<void(Frame*)> const& fn)
 {
    return GetThreadTimeline().OnFrameEnd(fn);
 }
-
-uint perfmon::CounterToMilliseconds(CounterValueType value)
-{
-   LARGE_INTEGER li;
-   QueryPerformanceFrequency(&li);  // counts per second...
-   return static_cast<uint>(ceil(1000 * value / li.QuadPart));
-}
-
-CounterValueType perfmon::MillisecondsToCounter(uint value)
-{
-   LARGE_INTEGER li;
-   QueryPerformanceFrequency(&li);  // counts per second...
-   return value * li.QuadPart / 1000;
-}

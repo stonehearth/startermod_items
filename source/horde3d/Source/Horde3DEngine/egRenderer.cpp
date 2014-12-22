@@ -304,9 +304,9 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
 	finishRendering();
 
 	// Start frame timer
-	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
-	timer->setEnabled( true );
+	timer->Start();
 	
 	return true;
 }
@@ -3488,15 +3488,15 @@ void Renderer::finalizeFrame()
 {
 	++_frameID;
 	// Reset frame timer
-	Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
+	radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::FrameTime );
 	ASSERT( timer != 0x0 );
 
    _instanceDataCache.clear();
    gRDI->clearBufferCache();
    Modules::stats().getStat( EngineStats::FrameTime, true );  // Reset
-	Modules::stats().incStat( EngineStats::FrameTime, timer->getElapsedTimeMS() );
+   Modules::stats().incStat( EngineStats::FrameTime, (float)radiant::perfmon::CounterToMilliseconds(timer->GetElapsed()));
    logPerformanceData();
-	timer->reset();
+	timer->Restart();
    Modules::sceneMan().clearQueryCache();
    gRDI->_frameDebugInfo.endFrame();
 }

@@ -21,8 +21,8 @@
 #include <iostream>
 #include <fstream>
 #include <functional>
-#include "utTimer.h"
 #include "om/error_browser/error_browser.h"
+#include "lib/perfmon/timer.h"
 
 namespace Horde3D {
 
@@ -137,7 +137,7 @@ protected:
 	void pushMessage( int level, const char *msg, va_list ap );
 
 protected:
-	Timer                     _timer;
+   radiant::perfmon::Timer   _timer;
 	char                      _textBuf[2048];
 	uint32                    _maxNumMessages;
 	std::queue< LogMessage >  _messages;
@@ -180,17 +180,17 @@ public:
 	
 	float getStat( int param, bool reset );
 	void incStat( int param, float value );
-	Timer *getTimer( int param );
+	radiant::perfmon::Timer *getTimer( int param );
 
 protected:
 	uint32    _statTriCount;
 	uint32    _statBatchCount;
 	uint32    _statLightPassCount;
 
-	Timer     _frameTimer;
-	Timer     _animTimer;
-	Timer     _geoUpdateTimer;
-	Timer     _particleSimTimer;
+	radiant::perfmon::Timer     _frameTimer;
+	radiant::perfmon::Timer     _animTimer;
+	radiant::perfmon::Timer     _geoUpdateTimer;
+	radiant::perfmon::Timer     _particleSimTimer;
 	float     _frameTime;
    float     _frameTimes[100];
    int       _curFrame;

@@ -385,8 +385,8 @@ bool AnimationController::animate()
 	Quaternion nodeRotQuat;
 	Vec3f nodeTransVec, nodeScaleVec;
 	
-	Timer *timer = Modules::stats().getTimer( EngineStats::AnimationTime );
-	if( Modules::config().gatherTimeStats ) timer->setEnabled( true );
+   radiant::perfmon::Timer *timer = Modules::stats().getTimer( EngineStats::AnimationTime );
+   if( Modules::config().gatherTimeStats ) timer->Start();
 	
 	// Animate
 	for( size_t i = 0, si = _nodeList.size(); i < si; ++i )
@@ -522,7 +522,7 @@ bool AnimationController::animate()
 		}
 	}
 
-	timer->setEnabled( false );
+   timer->Stop();
 
 	_dirty = false;
 	return true;

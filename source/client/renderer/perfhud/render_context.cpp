@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Horde3DUtils.h"
 #include "render_context.h"
+#include "lib/perfmon/timer.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
