@@ -31,8 +31,6 @@ function Idle:run(ai, entity)
          -- still carrying?  we must be doomed!  go ahead and drop it.
          ai:execute('stonehearth:wander_within_leash', { radius = 3 })
          ai:execute('stonehearth:drop_carrying_now')
-      else
-         ai:execute('stonehearth:idle:bored')
       end
       ai:execute('stonehearth:idle:bored')
    end

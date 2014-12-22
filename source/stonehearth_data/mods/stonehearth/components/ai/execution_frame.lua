@@ -309,6 +309,7 @@ function ExecutionFrame:_remove_action(unit)
    self:_unknown_transition('remove_action')
 end
 
+-- Returns true iff a child unit is active (and is different from the previously active unit)
 function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    self._log:detail('_restart_thinking (reason:%s, state:%s)', debug_reason, self._state)
    self._aitrace:spam('@r@%s@%s', self._state, debug_reason)
@@ -321,7 +322,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
 
    if not self:in_state('thinking', 'starting_thinking', 'ready', 'running') then
       self._log:spam('_restart_thinking returning without doing anything.(state:%s)', self._state)
-      return
+      return false
    end
 
    local state_to_set = entity_state
@@ -356,12 +357,10 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
    local current_active_unit = self._active_unit
 
    for unit, entity_state in pairs(rethinking_units) do
-      if self:_is_strictly_better_than_active(unit) then
-         self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
-                           unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
-         assert(unit:in_state('stopped', 'thinking', 'ready'))
-         unit:_start_thinking(self._args, entity_state)
-      end
+      self._log:detail('calling start_thinking on unit "%s" (u:%d state:%s ai.CURRENT.location:%s actual_location:%s).',
+                        unit:get_name(), unit:get_id(), unit:get_state(), entity_state.location, entity_location)
+      assert(unit:in_state('stopped', 'thinking', 'ready'))
+      unit:_start_thinking(self._args, entity_state)
 
       -- if units bail or abort, the current pcall should have been interrupted.
       -- verify that this is so
@@ -373,7 +372,7 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
                      current_active_unit and current_active_unit:get_name() or '-none-',
                      self._active_unit and self._active_unit:get_name() or '-none-')
       assert(self._state == 'running')
-      return
+      return false
    end
    
    self._log:spam('choosing best execution unit of candidates...')
@@ -394,7 +393,8 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       self:_set_active_unit(unit, think_output)
       self:_set_state(READY)
       return true
-   end   
+   end
+   return false
 end
 
 function ExecutionFrame:_start_thinking_from_stopped(args, entity_state)   
@@ -1383,19 +1383,6 @@ function ExecutionFrame:_update_debug_info()
       end)
    end
 end
-
-function ExecutionFrame:_spam_current_state(msg)
-   self._log:spam(msg)
-   if self._current_entity_state then
-      self._log:spam('  CURRENT is %s', tostring(self._current_entity_state))
-      for key, value in pairs(self._current_entity_state) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
-      end   
-   else
-      self._log:spam('  no CURRENT state!')
-   end
-end
-
 
 function ExecutionFrame:in_state(...)
    local states = { ... }

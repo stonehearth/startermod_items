@@ -865,18 +865,6 @@ function ExecutionUnitV2:_set_state(state)
    end   
 end
 
-function ExecutionUnitV2:_spam_current_state(msg)
-   self._log:spam(msg)
-   if self._current_entity_state then
-      self._log:spam('  CURRENT is %s', tostring(self._current_entity_state))
-      for key, value in pairs(self._current_entity_state) do      
-         self._log:spam('  CURRENT.%s = %s', key, tostring(value))
-      end   
-   else
-      self._log:spam('  no CURRENT state!')
-   end
-end
-
 function ExecutionUnitV2:_create_object_monitor()
    assert(self._args)
    assert(self._state == THINKING)

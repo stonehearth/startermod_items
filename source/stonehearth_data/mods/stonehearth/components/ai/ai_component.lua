@@ -200,7 +200,6 @@ end
 
 function AIComponent:create_execution_frame(activity_name, debug_route, trace_route)
    local frame = ExecutionFrame(self._thread, self._entity, self._action_index, activity_name, debug_route, trace_route)
-   local frames = self._all_execution_frames[activity_name]
    self:_register_execution_frame(activity_name, frame)
    return frame
 end

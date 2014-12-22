@@ -43,7 +43,7 @@ end
 --    @param solved_cb - a callback to call when a solution is found
 --
 function SharedAStarPathFinder:add_destination(dst, solved_cb, exhausted_cb)
-   self:_start_pathfinder();
+   self:_start_pathfinder()
 
    self._log:info("adding %s to search (solved_cb:%s)", tostring(dst), tostring(solved_cb))
    local id = dst:get_id()
