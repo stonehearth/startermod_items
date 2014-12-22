@@ -329,14 +329,6 @@ function ExecutionFrame:_restart_thinking(entity_state, debug_reason)
       self._log:debug('_capture_entity_state')
       state_to_set = self:_create_entity_state()
    end
-
-   -- If we're top, then set our 'top_location' to be where the entity currently is.
-   -- This can be used by pathfinders, to see if the entity has moved substantially since the
-   -- entity started thinking.
-   if self._activity_name == 'stonehearth:top' then
-      state_to_set.top_location = radiant.entities.get_world_grid_location(self._entity)
-   end
-
    self:_set_current_entity_state(state_to_set)
 
 
@@ -1224,21 +1216,59 @@ end
 function ExecutionFrame:_clone_entity_state(name)
    assert(self._current_entity_state)
    local s = self._current_entity_state
-   local cloned = {
-      location = s.location and Point3(s.location.x, s.location.y, s.location.z),
-      carrying = s.carrying,
-      top_location = s.top_location
-   }
+   local cloned = _make_entity_state_table()
+
+   cloned.location = s.location and Point3(s.location.x, s.location.y, s.location.z)
+   cloned.carrying = s.carrying
+   cloned.future = s.future
+
    self:_spam_entity_state(cloned, 'cloning current state %s to %s %s', tostring(self._current_entity_state), name, tostring(cloned))
 
    return cloned
 end
 
-function ExecutionFrame:_create_entity_state()
+function _make_entity_state_table()
    local state = {
-      location = radiant.entities.get_world_grid_location(self._entity),
-      carrying = radiant.entities.get_carrying(self._entity),
    }
+
+   local _state = state
+
+   state = {
+      __location_writes = -1
+   }
+
+   local meta_state = {
+      __newindex = function(t, k, v)
+         if k == 'location' then
+            -- The very first time an AI writes to 'location', ought to be the initialization of the entity_state.
+            -- The _next_ time it gets written, ought to be because it's thinking about the future.
+            state.__location_writes = state.__location_writes + 1
+            if state.__location_writes >= 1 then
+               _state.future = true
+            end
+         end
+         _state[k] = v
+      end,
+
+      __index = function(t, k)
+         return _state[k]
+      end,
+
+      __next = function(t, k)
+         return next(_state, k)
+      end
+   }
+   setmetatable(state, meta_state)
+
+   return state
+end
+
+function ExecutionFrame:_create_entity_state()
+   local state = _make_entity_state_table()
+   state.carrying = radiant.entities.get_carrying(self._entity)
+   state.location = radiant.entities.get_world_grid_location(self._entity)
+   state.future = false
+
    self:_spam_entity_state(state, 'capturing current entity state')
    return state
 end

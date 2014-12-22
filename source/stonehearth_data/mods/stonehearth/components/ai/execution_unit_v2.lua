@@ -21,7 +21,7 @@ local ObjectMonitor = require 'components.ai.object_monitor'
 local ENTITY_STATE_FIELDS = {
    location = true,
    carrying = true,
-   top_location = true,
+   future = true,
 }
 
 function ExecutionUnitV2:__init(frame, thread, debug_route, entity, injecting_entity, action, action_index, trace_route)
