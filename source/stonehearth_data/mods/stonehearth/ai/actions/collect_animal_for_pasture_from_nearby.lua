@@ -66,6 +66,7 @@ return ai:create_compound_action(CollectAnimalFromNearby)
    :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.PREV.path:get_destination()})
    :execute('stonehearth:follow_path', {
             path = ai.BACK(2).path,
+            stop_distance = 3
          })
    :execute('stonehearth:reserve_entity', { entity = ai.BACK(3).path:get_destination() })
    :execute('stonehearth:turn_to_face_entity', { entity = ai.BACK(4).path:get_destination() })
