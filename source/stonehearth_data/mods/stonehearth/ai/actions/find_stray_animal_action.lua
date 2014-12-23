@@ -28,9 +28,9 @@ local ai = stonehearth.ai
 return ai:create_compound_action(FindStrayAnimal)
    :execute('stonehearth:drop_carrying_now', {})
    :execute('stonehearth:add_buff', {buff = 'stonehearth:buffs:stopped', target = ai.ARGS.animal})
-   :execute('stonehearth:goto_entity', {entity = ai.ARGS.animal})
+   :execute('stonehearth:goto_entity', {entity = ai.ARGS.animal, stop_distance = 5})
    :execute('stonehearth:reserve_entity', { entity = ai.ARGS.animal })
    :execute('stonehearth:turn_to_face_entity', { entity =  ai.ARGS.animal })
-   :execute('stonehearth:run_effect', { effect = 'fiddle' })
+   :execute('stonehearth:run_effect', { effect = 'whistle' })
    :execute('stonehearth:claim_animal_for_pasture', {pasture = ai.ARGS.pasture, animal = ai.ARGS.animal})
 
