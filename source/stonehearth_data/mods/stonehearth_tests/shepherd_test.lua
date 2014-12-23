@@ -26,7 +26,7 @@ function ShepherdTest:__init()
 
    self:place_item_cluster('stonehearth:furniture:picket_fence', -10, 0, 10, 10)
    self:place_item('stonehearth:furniture:picket_fence_gate', 1, 3)
-   self:place_item('stonehearth:food:berries:berry_basket', 10, 10)
+   self:place_item('stonehearth:trapper:talisman', 10, 10)
 end
 
 return ShepherdTest
