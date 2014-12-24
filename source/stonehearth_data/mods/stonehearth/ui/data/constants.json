@@ -20,7 +20,7 @@
             "name" : "Bundle of fiber",
             "icon" : "/stonehearth/entities/resources/fiber/fiber.png",
             "stacks" : 1
-         },         
+         },
          "pelt resource" : {
             "name" : "Fur Pelt",
             "icon" : "/stonehearth/mixins/resources/fur_pelt/fur_pelt.png",

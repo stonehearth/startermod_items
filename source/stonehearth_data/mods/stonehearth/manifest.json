@@ -140,6 +140,7 @@
 
       "worker:outfit" : "file(jobs/worker/worker_outfit)",
       "worker:outfit:2" : "file(jobs/worker/worker_outfit_2)",
+      "worker:outfit:winter" : "file(jobs/worker/winter_worker_outfit)",
 
       "worker_axe" : "file(entities/tools/worker_axe)",
       "worker_hammer" : "file(entities/tools/worker_hammer)",
