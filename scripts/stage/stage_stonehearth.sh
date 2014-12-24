@@ -171,6 +171,11 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CHROMIUM_ROOT/resources/devtools_resources.pak $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/libcef.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/icudt.dll $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/Release/libEGL.dll $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/Release/libGLESv2.dll $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/Release/ffmpegsumo.dll $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/Release/d3dcompiler_43.dll $OUTPUT_DIR
+   cp -u $CHROMIUM_ROOT/Release/d3dcompiler_46.dll $OUTPUT_DIR
 
    echo Copying sfml 
    SFML_ROOT=$STONEHEARTH_ROOT/modules/sfml
