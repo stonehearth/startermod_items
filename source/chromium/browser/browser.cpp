@@ -70,15 +70,35 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    }
    settings.single_process = false; // single process mode eats nearly the entire frame time
    settings.remote_debugging_port = debug_port;
+   settings.multi_threaded_message_loop = true;
+   settings.windowless_rendering_enabled = false;
 
    CefInitialize(main_args, settings, _app.get(), nullptr);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    BROWSER_LOG(1) << "cef started.";
+
+   CefWindowInfo windowInfo;
+   windowInfo.SetAsWindowless(_parentWindow, true);
+
+   CefBrowserSettings browserSettings;
+   browserSettings.Reset();
+   // browserSettings.developer_tools = STATE_ENABLED;
+   browserSettings.java = STATE_DISABLED;
+   browserSettings.plugins = STATE_DISABLED;
+   browserSettings.webgl = STATE_DISABLED;
+
+   if (!CefBrowserHost::CreateBrowser(windowInfo, this, "", browserSettings, nullptr)) {
+      BROWSER_LOG(1) << "Could not create browser";
+   }
 }
 
 void Browser::Work()
 {
-   CefDoMessageLoopWork();
+   MSG msg;
+   while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+      TranslateMessage(&msg);
+      DispatchMessage(&msg);
+   }
 }
 
 Browser::~Browser()
@@ -98,6 +118,7 @@ bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
 
 void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+   _browser = browser;
 }
 
 bool Browser::RunModal(CefRefPtr<CefBrowser> browser) 
@@ -619,23 +640,14 @@ void Browser::GetBrowserSize(int& w, int& h)
 void Browser::Navigate(std::string const& url)
 {
    if (!_browser) {
-      CefWindowInfo windowInfo;
-      windowInfo.SetAsWindowless(_parentWindow, true);
-
-      CefBrowserSettings browserSettings;
-      browserSettings.Reset();
-      // browserSettings.developer_tools = STATE_ENABLED;
-      browserSettings.java = STATE_DISABLED;
-      browserSettings.plugins = STATE_DISABLED;
-
-      _browser = CefBrowserHost::CreateBrowserSync(windowInfo, this, url, browserSettings, nullptr);
-      CefRefPtr<CefBrowserHost> host = _browser->GetHost();
-      host->NotifyScreenInfoChanged();
-      host->SendFocusEvent(true);
+      BROWSER_LOG(1) << "Navigate called without an existing browser!";
    } else {
       CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
       if (frame) {
          frame->LoadURL(url);
+         CefRefPtr<CefBrowserHost> host = _browser->GetHost();
+         host->NotifyScreenInfoChanged();
+         host->SendFocusEvent(true);
       }
    }
 }
