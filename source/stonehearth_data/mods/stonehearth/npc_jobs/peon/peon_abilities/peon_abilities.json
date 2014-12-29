@@ -1,0 +1,44 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "stonehearth:actions:combat:flee",
+               "stonehearth:actions:combat:cower",
+               "stonehearth:actions:town_defense:town_defense_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_dispatcher",
+               "stonehearth:actions:town_defense:town_defense_idle_ready",
+               "stonehearth:actions:place_item",
+               "stonehearth:actions:place_item_on_structure",
+               "stonehearth:actions:place_carrying_on_structure_adjacent",
+               "stonehearth:actions:light_firepit",               
+               "stonehearth:actions:shear_sheep_action",
+               "stonehearth:actions:replace_proxy_with_item",
+               "stonehearth:actions:build_ladder",
+               "stonehearth:actions:build_ladder_down",
+               "stonehearth:actions:build_ladder_adjacent",
+               "stonehearth:actions:teardown_ladder",
+               "stonehearth:actions:teardown_ladder_adjacent",
+               "stonehearth:actions:fabricate_structure",
+               "stonehearth:actions:fabricate_structure_adjacent",
+               "stonehearth:actions:teardown_structure",
+               "stonehearth:actions:teardown_structure_adjacent",
+               "stonehearth:actions:mining_dispatcher",
+               "stonehearth:actions:mining:mine",
+               "stonehearth:actions:mining:get_block_to_mine",
+               "stonehearth:actions:mining:mine_adjacent"
+            ],
+            "observers" : [
+               "stonehearth:observers:combat_panic",
+               "stonehearth:observers:avoid_threatening_entities"
+            ]
+         },
+         "injected_commands" : [
+         ]         
+      }
+   },
+   "entity_data" : {
+      "stonehearth:panic_threshold" : 0.75
+   }
+}

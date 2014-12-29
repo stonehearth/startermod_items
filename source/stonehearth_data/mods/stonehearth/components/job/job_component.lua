@@ -51,6 +51,15 @@ function JobComponent:destroy()
    self._kill_listener = nil
 end
 
+function JobComponent:_call_job(method_name, ...)
+   local controller = self._sv.curr_job_controller
+   local fn = controller[method_name]
+   if fn then
+      return fn(controller, ...)
+   end
+   return nil
+end
+
 --When we've been killed, dump our talisman on the ground
 function JobComponent:_on_kill_event()
    self:_drop_talisman()
@@ -69,11 +78,7 @@ function JobComponent:_drop_talisman()
 
       for id, obj in pairs(items) do
          if obj:get_component('stonehearth:promotion_talisman') then
-            if self._sv.curr_job_controller and
-               self._sv.curr_job_controller.associate_entities_to_talisman then
-               
-               self._sv.curr_job_controller:associate_entities_to_talisman(obj)
-            end
+            self:_call_job('associate_entities_to_talisman', obj)
             return obj
          end
       end
@@ -94,10 +99,8 @@ end
 function JobComponent:_get_current_job_title(job_json)
    local new_title = self:_get_title_for_level(job_json)
    if not new_title then
-      new_title = self:_compose_default_job_name(
-         job_json,
-         self._sv.curr_job_controller:get_job_level(), 
-         job_json.name)
+      local level = self:_call_job('get_job_level') or 0
+      new_title = self:_compose_default_job_name(job_json, level, job_json.name)
    end
    return new_title
 end
@@ -106,7 +109,7 @@ end
 -- see if there is a specific title for that level
 -- if so, return it, if not, return nil. 
 function JobComponent:_get_title_for_level(job_json)
-   local curr_level = self._sv.curr_job_controller:get_job_level()
+   local curr_level = self:_call_job('get_job_level') or 0
 
    if job_json.level_data then
       local lv_data = job_json.level_data[tostring(curr_level)]
@@ -167,7 +170,7 @@ function JobComponent:promote_to(job_uri, talisman_entity)
             radiant.create_controller(self._job_json.controller, self._entity)
       end
       self._sv.curr_job_controller = self._sv.job_controllers[self._sv.job_uri]
-      self._sv.curr_job_controller:promote(self._job_json, talisman_entity)
+      self:_call_job('promote', self._job_json, talisman_entity)
       self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
       self:_set_unit_info(self._sv.curr_job_name)
 
@@ -194,12 +197,12 @@ end
 
 --- Given the ID of a perk, find out of the current class has unlocked that perk. 
 function JobComponent:curr_job_has_perk(id)
-   return self._sv.curr_job_controller:has_perk(id)
+   return self:_call_job('has_perk', id) or false
 end
 
 --If we've been this class before, re-apply any perks we've gained
 function JobComponent:_apply_existing_perks()
-   local last_gained_lv = self._sv.curr_job_controller:get_job_level()
+   local last_gained_lv = self:_call_job('get_job_level') or 0
    if last_gained_lv == 0 then 
       return
    end
@@ -212,13 +215,14 @@ end
 -- Given a level, apply all perks relevant to that job
 -- Uses the current job controller's functions to do this. 
 function JobComponent:_apply_perk_for_level(target_level)
-   local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(target_level)]
+   local level_data = self:_call_job('get_level_data') or {}
+   local job_updates_for_level = level_data[tostring(target_level)]
    local perk_descriptions = {}
    if job_updates_for_level then
       for i, perk_data in ipairs(job_updates_for_level.perks) do
-         self._sv.curr_job_controller:unlock_perk(perk_data.id)
+         self:_call_job('unlock_perk', perk_data.id)
          if perk_data.type then
-            self._sv.curr_job_controller[perk_data.type](self._sv.curr_job_controller, perk_data)
+            self:_call_job('perk_data.type', perk_data)
          end
 
          --Collect text about the perk
@@ -238,17 +242,18 @@ function JobComponent:_remove_all_perks()
    if not self._sv.curr_job_controller then
       return
    end
-   local last_gained_lv = self._sv.curr_job_controller:get_job_level()
+   local last_gained_lv = self:_call_job('get_job_level') or 0
    if last_gained_lv == 0 then
       return
    end
 
+   local level_data = self:_call_job('get_level_data') or {}
    for i=1, last_gained_lv do
-      local job_updates_for_level = self._sv.curr_job_controller:get_level_data()[tostring(i)]
+      local job_updates_for_level = level_data[tostring(i)]
       if job_updates_for_level then
          for i, perk_data in ipairs(job_updates_for_level.perks) do
             if perk_data.demote_fn then
-               self._sv.curr_job_controller[perk_data.demote_fn]( self._sv.curr_job_controller, perk_data)
+               self:_call_job(perk_data.demote_fn, perk_data)
             end
          end
       end
@@ -265,7 +270,7 @@ function JobComponent:demote()
 
 
    if self._sv.curr_job_controller then
-      self._sv.curr_job_controller:demote()
+      self:_call_job('demote')
       self._sv.curr_job_controller = nil
    end
 
@@ -285,7 +290,13 @@ end
 -- If there is leftover XP after the level(s), that should be the new amount of XP
 -- that is stored in self._sv.current_level_exp
 function JobComponent:add_exp(value)
-   if self._sv.curr_job_controller:is_max_level() then
+   if not self._sv.xp_equation then
+      -- no xp_equation means this race cannot level up.  ignore.
+      return
+   end
+
+   local max_level = self:_call_job('is_max_level')
+   if max_level == true or max_level == nil then
       return
    end
 
@@ -309,10 +320,10 @@ function JobComponent:_level_up()
 
    --Add all the universal level dependent buffs/bonuses, etc
 
-   self._sv.curr_job_controller:level_up()
+   self:_call_job('level_up')
    self._sv.curr_job_name = self:_get_current_job_title(self._job_json)
    self:_set_unit_info(self._sv.curr_job_name)   
-   local new_level = self._sv.curr_job_controller:get_job_level()
+   local new_level = self:_call_job('get_job_level') or 0
    local job_name = self._job_json.name
    local class_perk_descriptions = self:_apply_perk_for_level(new_level)
    local has_class_perks = false
@@ -387,6 +398,9 @@ end
 
 -- Calculate the exp requried to get to the level after this one. 
 function JobComponent:_calculate_xp_to_next_lv()
+   if not self._sv.xp_equation then
+      return nil
+   end
    local next_level = self._sv.attributes_component:get_attribute('total_level') + 1
    local equation = string.gsub(self._sv.xp_equation, 'next_level', next_level)
    local fn = loadstring('return ' .. equation)

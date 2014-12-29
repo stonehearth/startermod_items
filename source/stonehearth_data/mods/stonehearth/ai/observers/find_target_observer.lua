@@ -15,6 +15,9 @@ function FindTargetObserver:initialize(entity)
    self._retaliation_window = 5000
    self._task = nil
    self._listening_target_pre_destroy = false
+   self._log = radiant.log.create_logger('combat')
+                           :set_prefix('find_target_obs')
+                           :set_entity(self._entity)
 
    self:_subscribe_to_events()
    self:_check_for_target()
@@ -125,6 +128,7 @@ function FindTargetObserver:_check_for_target()
    end
 
    if self:_do_not_disturb() then
+      self._log:spam('DND is set.  skipping target check...')
       -- don't interrupt an assault in progress
       return
    end
@@ -143,7 +147,7 @@ function FindTargetObserver:_check_for_target()
 
       -- terminate task so we can initiate a new task with the preferred target
       if target and target:is_valid() and self._target and self._target:is_valid() then
-         log:info('%s switching targets from %s to %s', self._entity, self._target, target)
+         self._log:info('switching targets from %s to %s', self._target, target)
       end
 
       self._task:destroy()
@@ -160,6 +164,8 @@ end
 
 function FindTargetObserver:_attack_target(target)
    assert(not self._task)
+
+   self._log:info('setting target to %s', tostring(target))
 
    if target ~= self._target then
       self:_unlisten_from_target_pre_destroy()
@@ -194,6 +200,7 @@ function FindTargetObserver:_find_target()
 
    if stance == 'passive' then
       -- don't attack
+      self._log:info('stance is passive.  returning nil target.')
       return nil
    end
 
@@ -206,6 +213,8 @@ function FindTargetObserver:_find_target()
       target = self:_calculate_target_cost_benefit()
    end
 
+   self._log:info('stance is %s.  returning %s as target.', stance, tostring(target))
+   
    if target ~= nil and target:is_valid() then
       return target
    end

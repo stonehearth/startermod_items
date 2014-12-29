@@ -20,8 +20,14 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
    local target = args.target
    local weapon = stonehearth.combat:get_melee_weapon(entity)
 
+   if not self._log then
+      self._log = radiant.log.create_logger('combat')
+                              :set_prefix('create_engage_callback')
+                              :set_entity(self._entity)
+   end
+   
    if weapon == nil or not weapon:is_valid() then
-      log:warning('%s has no weapon', entity)
+      self._log:warning('no weapon equipped.')
       return
    end
 
@@ -38,9 +44,13 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
       local distance = radiant.entities.distance_between(entity, target)
 
       if distance < engage_range_max then
+         self._log:spam('engaging %s.', target)
+
          -- consider sending engage message just once?
          local context = EngageContext(entity, target)
          stonehearth.combat:engage(context)
+      else
+         self._log:spam('%s is too far away.  ignoring (%f < %f).', target, distance, engage_range_max)
       end
    end
 

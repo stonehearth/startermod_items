@@ -481,7 +481,6 @@
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
-      "actions:simple_labor_task_dispatcher" : "file(ai/actions/simple_labor_task_dispatcher.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
@@ -797,6 +796,7 @@
       "jobs:weaver" : "file(jobs/weaver/weaver_description.json)",
       "jobs:weaponsmith" : "file(jobs/weaponsmith/weaponsmith_description.json)",
       "jobs:worker" : "file(jobs/worker/worker_description.json)",
+      "npc_jobs:peon" : "file(npc_jobs/peon/peon_description.json)",
 
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
    },
@@ -1171,6 +1171,8 @@
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
       "class:weaver" : "file(jobs/weaver/weaver.lua)",
       "class:shepherd" : "file(jobs/shepherd/shepherd.lua)", 
+
+      "class:peon" : "file(npc_jobs/peon/peon.lua)", 
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",

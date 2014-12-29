@@ -17,7 +17,7 @@
             "y" : 0,
             "z" : 5
          },
-         "job" : "worker"
+         "job" : "stonehearth:npc_jobs:peon"
       },
       "worker_2" : {
          "location" : {
@@ -25,7 +25,7 @@
             "y" : 0,
             "z" : -3
          },
-         "job" : "worker"
+         "job" : "stonehearth:npc_jobs:peon"
       },
       "worker_3" : {
          "location" : {
@@ -33,7 +33,7 @@
             "y" : 0,
             "z" : -3
          },
-         "job" : "worker"
+         "job" : "stonehearth:npc_jobs:peon"
       }
    },
    "size" : {

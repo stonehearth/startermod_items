@@ -1,4 +1,5 @@
 local build_util = require 'lib.build_util'
+local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local priorities = require('constants').priorities.worker_task
 local Entity = _radiant.om.Entity
 local Point3 = _radiant.csg.Point3

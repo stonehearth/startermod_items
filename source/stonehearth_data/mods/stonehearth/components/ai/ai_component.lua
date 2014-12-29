@@ -327,31 +327,31 @@ end
 --               does : 'stonehearth:basic_needs',
 --           }
 --
-function AIComponent:_create_task_dispacher(parent_activity, info)
-   local key = string.format('%s -> %s @ %d', parent_activity, info.does, info.priority)
+function AIComponent:_create_task_dispacher(parent_activity, activity_name, info)
+   local key = string.format('%s -> %s @ %d', parent_activity, activity_name, info.priority)
    local dispatcher = ALL_DISPATCHERS[key]
    if not dispatcher then      
       local TaskDispacher = class()
-      TaskDispacher.name = info.does .. ' dispatcher'
+      TaskDispacher.name = activity_name .. ' dispatcher'
       TaskDispacher.does = parent_activity
       TaskDispacher.args = {}
       TaskDispacher.version = 2
       TaskDispacher.priority = info.priority
 
       dispatcher = stonehearth.ai:create_compound_action(TaskDispacher)
-                                    :execute(info.does, {})
+                                    :execute(activity_name, {})
       ALL_DISPATCHERS[key] = dispatcher
    end
-   return dispatcher
+   self:add_custom_action(dispatcher)
+   self:_create_task_dispatchers(activity_name, info.dispatchers)
 end
 
 -- create the task dispatchers for an entry in the player_task_groups blob.
 --
 function AIComponent:_create_task_dispatchers(parent_activity, groups)
    if groups then
-      for name, info in pairs(groups) do
-         local dispatcher = self:_create_task_dispacher(parent_activity, info)
-         self:add_custom_action(dispatcher)
+      for activity_name, info in pairs(groups) do
+         self:_create_task_dispacher(parent_activity, activity_name, info)
       end
    end
 end
