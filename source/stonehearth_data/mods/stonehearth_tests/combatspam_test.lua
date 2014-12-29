@@ -84,13 +84,7 @@ function CombatSpamTest:on_goblin_died()
 end
 
 function CombatSpamTest:create_enemy_kingdom()
-   local session = {
-      player_id = 'goblins',
-   }
-
-   stonehearth.inventory:add_inventory(session)
-   stonehearth.town:add_town(session)
-   self._enemy_population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
+   self._enemy_population = stonehearth.population:get_population('goblins')
 end
 
 function CombatSpamTest:equip_weapon(entity, weapon_uri)

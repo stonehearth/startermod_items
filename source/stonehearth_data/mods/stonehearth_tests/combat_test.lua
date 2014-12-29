@@ -50,13 +50,7 @@ function CombatTest:place_units()
 end
 
 function CombatTest:create_enemy_kingdom()
-   local session = {
-      player_id = 'goblins',
-   }
-
-   stonehearth.inventory:add_inventory(session)
-   stonehearth.town:add_town(session)
-   self._enemy_population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
+   self._enemy_population = stonehearth.population:get_population('goblins')
 end
 
 function CombatTest:place_enemy(x, z, weapon)

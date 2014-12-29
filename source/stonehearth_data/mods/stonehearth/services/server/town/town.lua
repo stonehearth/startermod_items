@@ -7,8 +7,8 @@ local CreateWorkshop = require 'services.server.town.orchestrators.create_worksh
 
 local Town = class()
 
-function Town:initialize(session)
-   self._sv.player_id = session.player_id
+function Town:initialize(player_id)
+   self._sv.player_id = player_id
    self._sv._saved_calls = {}
    self._sv._next_saved_call_id = 1
    self._sv.worker_combat_enabled = false

@@ -4,16 +4,21 @@ stonehearth = {
 }
 
 local service_creation_order = {
+   'threads',
    'ai',
    'events',
    'calendar',
    'game_speed',
+   'tasks',
+   'terrain',
    'score',
    'combat',
    'substitution',
    'personality',
    'inventory',
    'population',
+   'town',
+   'player',
    'spawn_region_finder',
    'dm',
    'static_scenario',
@@ -22,11 +27,7 @@ local service_creation_order = {
    'build',
    'game_master',
    'analytics',
-   'tasks',
-   'terrain',
    'mining',
-   'threads',
-   'town',
    'town_patrol',
    'bulletin_board',
    'linear_combat',
@@ -60,7 +61,7 @@ radiant.events.listen(stonehearth, 'radiant:init', function()
       stonehearth._sv = stonehearth.__saved_variables:get_data()
       for _, name in ipairs(service_creation_order) do
          create_service(name)
-      end
+      end      
    end)
 
 return stonehearth

@@ -13,13 +13,13 @@ function TownService:initialize()
    end
 end
 
-function TownService:add_town(session)
-   radiant.check.is_string(session.player_id)
+function TownService:add_town(player_id)
+   radiant.check.is_string(player_id)
 
-   assert(not self._sv.towns[session.player_id])
+   assert(not self._sv.towns[player_id])
 
-   local town = radiant.create_controller('stonehearth:town', session)
-   self._sv.towns[session.player_id] = town
+   local town = radiant.create_controller('stonehearth:town', player_id)
+   self._sv.towns[player_id] = town
    self.__saved_variables:mark_changed()
    return town
 end

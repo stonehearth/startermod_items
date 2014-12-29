@@ -9,9 +9,9 @@ local Inventory = class()
 function Inventory:__init()
 end
 
-function Inventory:initialize(session)   
+function Inventory:initialize(player_id)   
    self._sv.next_stockpile_no = 1
-   self._sv.player_id = session.player_id
+   self._sv.player_id = player_id
    self._sv.stockpiles = {}
    self._sv.items = {}
    self._sv.trackers = {}

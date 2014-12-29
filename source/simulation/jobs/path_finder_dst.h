@@ -47,7 +47,6 @@ public:
    ChangedCb                  changed_cb_;
    om::DeepRegion3fGuardPtr   region_guard_;
    csg::Region3f              world_space_adjacent_region_;
-   dm::TracePtr               moving_trace_;
    dm::TracePtr               transform_trace_;
 };
 

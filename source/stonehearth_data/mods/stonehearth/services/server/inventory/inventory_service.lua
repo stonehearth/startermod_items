@@ -26,15 +26,15 @@ function InventoryService:initialize()
    self:_register_score_functions()
 end
 
-function InventoryService:add_inventory(session)
-   radiant.check.is_string(session.player_id)
+function InventoryService:add_inventory(player_id)
+   radiant.check.is_string(player_id)
 
-   assert(not self._sv.inventories[session.player_id])
+   assert(not self._sv.inventories[player_id])
 
-   local inventory = radiant.create_controller('stonehearth:inventory', session)
+   local inventory = radiant.create_controller('stonehearth:inventory', player_id)
    assert(inventory)
    
-   self._sv.inventories[session.player_id] = inventory
+   self._sv.inventories[player_id] = inventory
    self.__saved_variables:mark_changed()
    return inventory
 end

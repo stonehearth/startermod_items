@@ -754,6 +754,8 @@
       "skeletons:humanoid:male" : "file(/data/rigs/humans/skeletons/male.json)",
       "skeletons:humanoid:female" : "file(/data/rigs/humans/skeletons/female.json)",
 
+      "data:npc_index" : "file(data/npc_index.json)",
+      
       "scenarios:scenario_index" : "file(scenarios/scenario_index.json)",
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
       "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.json)",
