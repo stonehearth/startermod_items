@@ -45,7 +45,7 @@ App.StonehearthLoadingScreenView = App.View.extend({
       var self = this;
 
       $.getJSON('/stonehearth/ui/data/tips.json', function(data) {
-         var random =  Math.ceil(Math.random() * (data.tips.length - 1));
+         var random =  Math.floor(Math.random() * data.tips.length);
          self.set('tips', data.tips[random]);
       });
    },
