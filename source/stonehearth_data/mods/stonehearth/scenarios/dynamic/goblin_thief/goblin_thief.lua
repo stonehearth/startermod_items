@@ -35,21 +35,8 @@ function GoblinThief:restore()
 end
 
 function GoblinThief:start()
-   -- Begin hack #1: We want some reasonable place to put faction initialization; in some random scenario
-   -- is likely not the correct place.
-   local session = {
-      player_id = 'goblins',
-   }
-   if stonehearth.town:get_town(session.player_id) == nil then
-      stonehearth.town:add_town(session)
-      self._inventory = stonehearth.inventory:add_inventory(session)
-      self._population = stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')
-      self._population:create_town_name()
-   else
-      self._inventory = stonehearth.inventory:get_inventory(session.player_id)
-      self._population = stonehearth.population:get_population(session.player_id)
-   end
-   -- End hack
+   self._inventory = stonehearth.inventory:get_inventory('goblins')
+   self._population = stonehearth.population:get_population('goblins')
 
    self:_schedule_next_spawn(1)
 end

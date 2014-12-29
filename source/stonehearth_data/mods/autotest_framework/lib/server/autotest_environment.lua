@@ -8,22 +8,12 @@ local env = {}
 function env.set_world_generator_script(world_generator_script)
    env.create_world_fn = radiant.mods.load_script(world_generator_script)
 
+   local player_id = 'player_1'
    env.session = {
-      player_id = 'player_1',
+      player_id = player_id,
    }
-   stonehearth.town:add_town(env.session)
-   stonehearth.inventory:add_inventory(env.session)
-   stonehearth.population:add_population(env.session, 'stonehearth:kingdoms:ascendancy')
-   stonehearth.terrain:get_visible_region(env.session.player_id)
-   stonehearth.terrain:get_explored_region(env.session.player_id)
-   env.town = stonehearth.town:get_town(env.session.player_id)
-
-   local session = {
-      player_id = 'enemy',
-   }
-   stonehearth.inventory:add_inventory(session)
-   stonehearth.town:add_town(session)
-   stonehearth.population:add_population(session, 'stonehearth:kingdoms:goblin')      
+   stonehearth.player:add_player(player_id, 'stonehearth:kingdoms:ascendancy')
+   env.town = stonehearth.town:get_town(player_id)
 
    -- listen for every entity creation event sGo we can tear them all down between tests
    radiant.events.listen(radiant, 'radiant:entity:post_create', function(e)

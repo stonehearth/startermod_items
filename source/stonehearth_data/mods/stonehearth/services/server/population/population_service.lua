@@ -13,14 +13,14 @@ function PopulationService:initialize()
    end
 end
 
-function PopulationService:add_population(session, kingdom)
-   radiant.check.is_string(session.player_id)
+function PopulationService:add_population(player_id, kingdom)
+   radiant.check.is_string(player_id)
    radiant.check.is_string(kingdom)
 
-   assert(not self._sv.populations[session.player_id])
+   assert(not self._sv.populations[player_id])
 
-   local pop = PopulationFaction(session, kingdom, radiant.create_datastore())
-   self._sv.populations[session.player_id] = pop
+   local pop = PopulationFaction(player_id, kingdom, radiant.create_datastore())
+   self._sv.populations[player_id] = pop
    return pop
 end
 

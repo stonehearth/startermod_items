@@ -12,9 +12,11 @@
       "max" : 1
    },
 
-   "settlement_pieces" : [
-      "file(../settlement_pieces/campfire_settlement_piece.json)"
-   ],
+   "settlement_player_id" : "goblins",
+
+   "settlement_pieces" : {
+      "campfire" : "file(../settlement_pieces/campfire_settlement_piece.json)"
+   },
 
    "uri" : "file(raiding_camp.lua)", 
    "scenario_data" : {

@@ -60,6 +60,9 @@ function SettlementScenario:_spawn_settlement()
    local theta = rng:get_real(0, math.pi * 2)
    local offset = Point3(d * math.sin(theta), 0, d * math.cos(theta))
 
+   self._sv.population = stonehearth.population:get_population(data.settlement_player_id)
+
+
    self._sv.origin = spawn_point + offset:to_closest_int()
    for _, uri in pairs(data.settlement_pieces) do
       self:_add_settlement_piece(uri)
@@ -73,6 +76,11 @@ function SettlementScenario:_add_settlement_piece(uri)
       local entity = radiant.entities.create_entity(info.uri)
       local offset = Point3(info.location.x, info.location.y, info.location.z)
       radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
+   end
+   for name, info in pairs(piece.citizens) do
+      local citizen = self._sv.population:create_new_citizen()
+      local offset = Point3(info.location.x, info.location.y, info.location.z)
+      radiant.terrain.place_entity(citizen, origin + offset)
    end
 end
 

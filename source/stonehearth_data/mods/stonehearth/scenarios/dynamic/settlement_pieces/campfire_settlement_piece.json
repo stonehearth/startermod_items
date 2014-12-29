@@ -10,6 +10,32 @@
          }
       }
    },
+   "citizens" : {
+      "worker_1" : {
+         "location" : {
+            "x" : 5,
+            "y" : 0,
+            "z" : 5
+         },
+         "job" : "worker"
+      },
+      "worker_2" : {
+         "location" : {
+            "x" : -3,
+            "y" : 0,
+            "z" : -3
+         },
+         "job" : "worker"
+      },
+      "worker_3" : {
+         "location" : {
+            "x" : -5,
+            "y" : 0,
+            "z" : -3
+         },
+         "job" : "worker"
+      }
+   },
    "size" : {
       "x" : 4,
       "y" : 1,

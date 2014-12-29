@@ -11,9 +11,9 @@ function combat_tests.battle_royale(autotest)
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person(  7, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -1, 15, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person(  7, 15, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword' }),
    }
 
    local any_valid_entities = function(entities)
@@ -70,8 +70,8 @@ function combat_tests.worker_defense(autotest)
    }
 
    local enemies = {
-      autotest.env:create_person( -9, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
-      autotest.env:create_person( -1, 15, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -9, 15, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword' }),
+      autotest.env:create_person( -1, 15, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword' }),
    }
 
    local any_valid_entities = function(entities)
@@ -124,14 +124,14 @@ function combat_tests.talsman_drop(autotest)
    ]]
 
    ---[[
-   autotest.env:create_person( -9, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
-   autotest.env:create_person( -5, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
-   autotest.env:create_person( 1, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
-   autotest.env:create_person( 3, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
-   autotest.env:create_person( 5, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
-   autotest.env:create_person( -12, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
-   autotest.env:create_person( 6, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
-   autotest.env:create_person( 0, 0, { player_id = 'enemy', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( -9, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( -5, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 1, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( 3, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 5, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( -12, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100}  })
+   autotest.env:create_person( 6, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
+   autotest.env:create_person( 0, 0, { player_id = 'goblins', weapon = 'stonehearth:weapons:wooden_sword', attributes = { body = 100} })
    --]]
 
 

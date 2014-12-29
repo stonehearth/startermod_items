@@ -3,12 +3,12 @@ local PopulationFaction = class()
 local rng = _radiant.csg.get_default_rng()
 local personality_service = stonehearth.personality
 
-function PopulationFaction:__init(session, kingdom, saved_variables)
+function PopulationFaction:__init(player_id, kingdom, saved_variables)
    self.__saved_variables = saved_variables
    self._sv = self.__saved_variables:get_data()
-   if session then
+   if player_id then
       self._sv.kingdom = kingdom
-      self._sv.player_id = session.player_id
+      self._sv.player_id = player_id
       self._sv.citizens = {}
       self._sv.citizen_scores = {}
       self._sv.notifications = {}
