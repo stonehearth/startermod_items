@@ -53,5 +53,21 @@ function entity_forms_lib.get_forms(entity)
    end
 end
 
+function entity_forms_lib.get_root_entity(entity)
+   local entity_forms = entity:get_component('stonehearth:entity_forms')
+   if entity_forms then
+      return entity
+   end
+
+   local iconic_form = entity:get_component('stonehearth:iconic_form')
+   if iconic_form then
+      return iconic_form:get_root_entity()
+   end
+
+   local ghost_form = entity:get_component('stonehearth:ghost_form')
+   if ghost_form then
+      return ghost_form:get_root_entity()
+   end
+end
 
 return entity_forms_lib

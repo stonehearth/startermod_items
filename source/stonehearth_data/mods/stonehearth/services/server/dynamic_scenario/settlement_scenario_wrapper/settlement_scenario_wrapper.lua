@@ -79,6 +79,10 @@ function SettlementScenario:_add_settlement_piece(uri)
    end
    for name, info in pairs(piece.citizens) do
       local citizen = self._sv.population:create_new_citizen()
+      if info.job then
+         citizen:add_component('stonehearth:job')
+                     :promote_to(info.job)
+      end
       local offset = Point3(info.location.x, info.location.y, info.location.z)
       radiant.terrain.place_entity(citizen, origin + offset)
    end

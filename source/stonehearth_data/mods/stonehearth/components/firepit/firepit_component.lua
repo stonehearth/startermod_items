@@ -160,7 +160,7 @@ function FirepitComponent:_init_gather_wood_task()
       self._light_task = nil
    end
 
-    local town = stonehearth.town:get_town(self._entity)
+   local town = stonehearth.town:get_town(self._entity)
 
    self._light_task = town:create_task_for_group('stonehearth:task_group:maintenance','stonehearth:light_firepit', { firepit = self })
                                    :set_name('light firepit')

@@ -15,6 +15,9 @@ function CombatStateComponent:initialize(entity, json)
    self._entity = entity
    self._sv = self.__saved_variables:get_data()
 
+   self._log = radiant.log.create_logger('combat')
+                          :set_entity(self._entity)
+
    if not self._sv.initialized then
       self._sv.cooldowns = {}
       self._sv.panicking = false
@@ -70,11 +73,13 @@ function CombatStateComponent:get_cooldown_end_time(name)
 end
 
 function CombatStateComponent:add_assault_event(context)
+   self._log:debug('adding assult event (attacker:%s target:%s)', context.attacker, context.target)
    table.insert(self._assault_events, context)
    self.__saved_variables:mark_changed()
 end
 
 function CombatStateComponent:remove_assault_event(context)
+   self._log:debug('removing assult event (attacker:%s target:%s)', context.attacker, context.target)
    for index, value in pairs(self._assault_events) do
       if value == context then
          table.remove(self._assault_events, index)
@@ -92,6 +97,7 @@ function CombatStateComponent:get_assaulting()
 end
 
 function CombatStateComponent:set_assaulting(assaulting)
+   self._log:debug('setting defending to %s', assaulting)
    self._assaulting = assaulting
 end
 
@@ -100,6 +106,7 @@ function CombatStateComponent:get_defending()
 end
 
 function CombatStateComponent:set_defending(defending)
+   self._log:debug('setting defending to %s', defending)
    self._defending = defending
 end
 
@@ -110,6 +117,8 @@ end
 
 function CombatStateComponent:set_primary_target(target)
    if target ~= self._sv.primary_target then
+      self._log:debug('changing primary target to %s', tostring(target))
+
       self._sv.primary_target = target
       self.__saved_variables:mark_changed()
       radiant.events.trigger_async(self._entity, 'stonehearth:combat:primary_target_changed')

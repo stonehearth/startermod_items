@@ -6,13 +6,16 @@
       },
       "stonehearth:ai" : {
          "dispatchers" : {
-            "basic_needs" : {
-               "does" : "stonehearth:basic_needs",
+            "stonehearth:basic_needs" : {
                "priority" : 40
             },
-            "work" : {
-               "does" : "stonehearth:work",
-               "priority" : 20
+            "stonehearth:work" : {
+               "priority" : 20,
+               "dispatchers" : {
+                   "stonehearth:simple_labor" : {
+                      "priority" : 1
+                   }
+               }
             }
          },
          
