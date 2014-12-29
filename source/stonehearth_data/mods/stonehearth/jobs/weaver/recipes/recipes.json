@@ -22,6 +22,9 @@
             "worker_outfit_2" : {
                "recipe" : "file(worker_outfit_2_recipe.json)"
             },
+            "worker_outfit_winter" : {
+               "recipe" : "file(worker_outfit_winter_recipe.json)"
+            },
             "cloth_padded_vest" : {
                "recipe" : "file(cloth_padded_vest_recipe.json)"
             },

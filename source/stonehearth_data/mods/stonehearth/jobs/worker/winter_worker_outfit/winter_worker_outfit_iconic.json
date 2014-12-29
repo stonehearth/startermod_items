@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "gear"   
+      },
+      "unit_info" : {
+         "name" :  "Winter Worker Outfit",
+         "description" : "So warm...",
+         "icon" : "file(winter_worker_outfit.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(winter_worker_outfit_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:material" : {
+         "tags" : "cloth armor"
+      }
+   }
+}

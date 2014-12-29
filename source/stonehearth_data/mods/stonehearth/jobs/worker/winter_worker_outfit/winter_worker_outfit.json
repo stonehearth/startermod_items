@@ -1,0 +1,39 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Winter Worker Outfit",
+         "description" : "A heavy wool coat, for cold winter nights",
+         "icon" : "file(winter_worker_outfit.png)"
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(winter_worker_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(winter_worker_outfit_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" :  "armor light_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(winter_worker_outfit_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "torso",
+         "render_type" : "merge_with_model",
+         "roles" : "worker_job",
+         "ilevel" : 2,
+         "injected_buffs" : [ "stonehearth:buffs:devoted" ],
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   }
+}

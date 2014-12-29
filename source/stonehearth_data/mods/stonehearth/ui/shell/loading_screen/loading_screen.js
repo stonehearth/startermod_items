@@ -23,6 +23,8 @@ App.StonehearthLoadingScreenView = App.View.extend({
    },
 
    didInsertElement: function() {
+      this._loadTipOfTheDay();
+
       this._progressbar = $("#progressbar")
       this._progressbar.progressbar({
          value: 0
@@ -37,6 +39,15 @@ App.StonehearthLoadingScreenView = App.View.extend({
          this.$('#text').show();
       }
 
+   },
+
+   _loadTipOfTheDay: function() {
+      var self = this;
+
+      $.getJSON('/stonehearth/ui/data/tips.json', function(data) {
+         var random =  Math.floor(Math.random() * data.tips.length);
+         self.set('tips', data.tips[random]);
+      });
    },
 
    updateProgress: function(result) {

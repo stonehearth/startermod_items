@@ -1,6 +1,6 @@
 App.StonehearthCitizensView = App.View.extend({
 	templateName: 'citizens',
-   classNames: ['exclusive'],
+   //classNames: ['exclusive'],
    closeOnEsc: true,
 
    init: function() {
@@ -14,7 +14,7 @@ App.StonehearthCitizensView = App.View.extend({
       this._trace =  new StonehearthPopulationTrace();
 
       this._trace.progress(function(pop) {
-            self.set('context.model', pop);
+            self.set('model', pop);
             self._buildCitizensArray();
          })
    },
@@ -43,11 +43,13 @@ App.StonehearthCitizensView = App.View.extend({
 
          // focus the camera to the selected citizen
          var citizen = self._rowToCitizen(row);
+         
          if (citizen) {
             radiant.call('stonehearth:camera_look_at_entity', citizen.__self);
             radiant.call('stonehearth:select_entity', citizen.__self);
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:focus' });
          }
+         
          event.stopPropagation();
       });
 
@@ -87,14 +89,14 @@ App.StonehearthCitizensView = App.View.extend({
    _rowToCitizen: function(row) {
       var self = this;
       var id = row.attr('id');
-      var pop = self.get('context.model');
+      var pop = self.get('model');
       var citizen = pop.citizens[id];
       return citizen;
    },
 
    _buildCitizensArray: function() {
       var self = this;
-      var citizenMap = this.get('context.model.citizens');
+      var citizenMap = this.get('model.citizens');
 
       var vals = radiant.map_to_array(citizenMap, function(k ,v) {
          if (!self._citizenFilterFn(v)) {
@@ -102,7 +104,7 @@ App.StonehearthCitizensView = App.View.extend({
          }
          v.set('__id', k);
       });
-      this.set('context.model.citizensArray', vals);
+      this.set('model.citizensArray', vals);
     },
 
     _citizenFilterFn: function (citizen) {
