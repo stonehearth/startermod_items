@@ -5,7 +5,7 @@
       <div class="populationContainer">
          <table class="list">
             <tbody>
-            {{#each model.citizensArray}}
+            {{#each view.model.citizensArray}}
                <tr class="row" {{bind-attr job=this.stonehearth:job.job_uri.alias id=this.__id}}>
                   <td>
                      <div class="name">
