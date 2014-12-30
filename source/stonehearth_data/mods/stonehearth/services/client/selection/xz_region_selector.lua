@@ -797,6 +797,10 @@ function XZRegionSelector:go()
                                  self:_on_mouse_event(e)
                                  return true
                               end)
+
+   -- TODO: want to be able to call this
+   -- self._input_capture:push_object_state()
+
    return self
 end
 

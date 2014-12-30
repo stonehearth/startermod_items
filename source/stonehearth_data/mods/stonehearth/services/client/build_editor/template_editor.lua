@@ -1,8 +1,7 @@
 local constants = require('constants').construction
 local build_util = require 'lib.build_util'
+local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local Point3 = _radiant.csg.Point3
-local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Quaternion = _radiant.csg.Quaternion
 
@@ -96,6 +95,9 @@ function TemplateEditor:go(response, template_name)
                end
                if overlap:get_component('stonehearth:no_construction_zone') then
                   -- don't overlap the footprint of any other building.
+                  return stonehearth.selection.FILTER_IGNORE
+               end
+               if radiant.entities.get_entity_data(overlap, 'stonehearth:designation') then
                   return stonehearth.selection.FILTER_IGNORE
                end
             end

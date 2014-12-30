@@ -107,6 +107,11 @@ function SelectionService.designation_can_contain(entity)
    if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
       return false
    end
+
+   local ncz = entity:get_component('stonehearth:no_construction_zone')
+   if ncz then
+      return false
+   end
    
    -- designations cannot contain other designation, either
    if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then

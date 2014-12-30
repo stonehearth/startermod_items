@@ -1,5 +1,6 @@
 local constants = require 'constants'
 local mining_lib = require 'lib.mining.mining_lib'
+local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -110,7 +111,14 @@ function MiningCallHandler:designate_mining_zone(session, response)
          return false
       end
 
-      -- reject solid entities
+      -- reject entities under construction
+      -- TODO: make this more general
+      local ncz = entity:get_component('stonehearth:no_construction_zone')
+      if ncz then
+         return false
+      end
+
+      -- reject solid entities that are not terrain
       local rcs = entity:get_component('region_collision_shape')
       if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
          return false
