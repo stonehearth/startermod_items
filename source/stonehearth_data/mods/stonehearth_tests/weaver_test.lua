@@ -17,10 +17,10 @@ function WeaverTest:__init()
    self:place_item_cluster('stonehearth:resources:fiber:silkweed_bundle', 8, 0, 5, 5)
    self:place_item_cluster('stonehearth:refined:cloth_bolt', 8, 5, 3, 3)
    self:place_item_cluster('stonehearth:refined:thread', 12, 5, 3, 3)
-   self:place_item_cluster('stonehearth:refined:leather_bolt', 8, 8, 3, 3)
+   self:place_item_cluster('stonehearth:resources:fiber:wool_bundle', 8, 8, 3, 3)
    self:place_item_cluster('stonehearth:resources:rabbit_pelt', 12, 8, 3, 3)
-   self:place_item('stonehearth:worker:outfit:2',  -5, 13)
 
+   self:place_item_cluster('stonehearth:worker:outfit:winter', -12, 12, 3, 3)
 end
 
 return WeaverTest

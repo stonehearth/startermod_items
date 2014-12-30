@@ -464,17 +464,17 @@ void MaterialResource::updateSamplerAnimation(int samplerNum, float animTime)
    if (samplerNum >= (int)_samplers.size()) {
       return;
    }
-   if (_samplers[samplerNum].animatedTextures.size() == 0) {
+   MatSampler &sampler = _samplers[samplerNum];
+   if (sampler.animatedTextures.size() == 0) {
       return;
    }
-   float totalLen = _samplers[samplerNum].animatedTextures.size() * (1.0f / _samplers[samplerNum].animationRate);
-   _samplers[samplerNum].currentAnimationTime = animTime;
-   while (_samplers[samplerNum].currentAnimationTime >= totalLen) {
-      _samplers[samplerNum].currentAnimationTime -= totalLen;
-   }
 
-   int curFrame = (int)(_samplers[samplerNum].currentAnimationTime * _samplers[samplerNum].animationRate);
-   setElemParamI(MaterialResData::SamplerElem, samplerNum, MaterialResData::SampTexResI, _samplers[samplerNum].animatedTextures[curFrame]->getHandle());
+   float totalLen = sampler.animatedTextures.size() * (1.0f / sampler.animationRate);
+   sampler.currentAnimationTime = fmod(animTime, totalLen);
+
+   unsigned int curFrame = (unsigned int)(sampler.currentAnimationTime * sampler.animationRate);
+   curFrame = std::min(curFrame, sampler.animatedTextures.size() - 1);
+   setElemParamI(MaterialResData::SamplerElem, samplerNum, MaterialResData::SampTexResI, sampler.animatedTextures[curFrame]->getHandle());
 }
 
 const char *MaterialResource::getElemParamStr( int elem, int elemIdx, int param )
