@@ -21,16 +21,39 @@ function WallLoopEditor:go(column_uri, wall_uri, response)
    local last_location
    local last_column_editor
    local current_column_editor = self:_create_column_editor(column_uri)
+
    self._selector = stonehearth.selection:select_location()
       :allow_shift_queuing(true)
       :set_min_locations_count(2)
       :set_filter_fn(function(result)
-            if result.entity == current_column_editor:get_proxy_fabricator() then
+            local proxy_fabricator = current_column_editor:get_proxy_fabricator()
+
+            if result.entity == proxy_fabricator then
                return stonehearth.selection.FILTER_IGNORE
             end
+
             if result.entity:get_component('stonehearth:building') then
                return stonehearth.selection.FILTER_IGNORE
             end
+
+            local location = result.brick
+            local rcs = proxy_fabricator:add_component('region_collision_shape')
+            local collision_region = rcs:get_region():get():translated(location)
+
+            -- make sure the column is not blocked
+            local overlapping_entities = radiant.terrain.get_entities_in_region(collision_region)
+            for _, entity in pairs(overlapping_entities) do
+               if radiant.entities.is_solid_entity(entity) then
+                  return stonehearth.selection.FILTER_IGNORE
+               end
+            end
+
+            -- make sure point below is supported
+            -- can happen when stabbing the side of a block
+            if not radiant.terrain.is_standable(location) then
+               return stonehearth.selection.FILTER_IGNORE
+            end
+            
             return result.entity:get_component('terrain') ~= nil
          end)
       :progress(function(selector, location, rotation)
