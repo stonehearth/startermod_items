@@ -137,7 +137,7 @@ function Building:add_structure(entity)
    -- this building from a template.
    if not self._sv.envelope_entity then
       self._sv.envelope_entity = radiant.entities.create_entity()    
-      self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+      self._sv.envelope_entity:set_debug_text(string.format('envelope for %s', tostring(self._entity)))
       self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
                                  :set_building_entity(self._entity)
       radiant.entities.add_child(self._entity, self._sv.envelope_entity)
@@ -643,7 +643,7 @@ function Building:load_from_template(template, options, entity_map)
       end
    end
    self._sv.envelope_entity = build_util.unpack_entity(template.envelope_entity, entity_map)
-   self._sv.envelope_entity:set_debug_text(string.format('envelop for %s', tostring(self._entity)))
+   self._sv.envelope_entity:set_debug_text(string.format('envelope for %s', tostring(self._entity)))
 
    self.__saved_variables:mark_changed()
 end

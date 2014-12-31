@@ -1674,7 +1674,7 @@ void Client::SaveClientState(boost::filesystem::path const& savedir)
 
 void Client::LoadClientState(boost::filesystem::path const& savedir)
 {
-   CLIENT_LOG(0) << "starting loadin... " << savedir;
+   CLIENT_LOG(0) << "starting loading... " << savedir;
 
    // shutdown and initialize.  we need to initialize before creating the new streamers.  otherwise,
    // we won't have the new store for them.

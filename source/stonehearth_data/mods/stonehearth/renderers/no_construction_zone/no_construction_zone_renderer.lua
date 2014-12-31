@@ -61,7 +61,7 @@ function NoConstructionZoneRenderer:destroy()
 end
 
 function NoConstructionZoneRenderer:_update_shape()
-   -- flatten the envelop for the reserved space for construction into the
+   -- flatten the envelope for the reserved space for construction into the
    -- footprint so we can create a designation at the base of the building
    local region2 = Region2()
    for cube in self._region:get():each_cube() do
