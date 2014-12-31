@@ -1,0 +1,15 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "demand_tribute",
+   "rarity" : "common",
+
+   "in_edge"  : "shakedown",
+
+   "demand_tribute_info" : {
+      "out_edges" : {
+         "refuse" : "fight",
+         "fail" : "fight",
+         "success" : "campaign:exit"
+      }
+   }
+}

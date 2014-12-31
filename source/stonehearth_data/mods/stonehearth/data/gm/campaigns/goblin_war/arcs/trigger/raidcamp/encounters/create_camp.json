@@ -1,0 +1,26 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "start",
+   "out_edge" : "shakedown",
+
+   "create_camp_info" : {
+      "player_id" : "goblins",
+      "spawn_range" : {
+         "min" : 10,
+         "max" : 20
+      },     
+      "required_pieces" : {
+         "boss" : "file(camp_pieces/boss.json)"
+      },
+      "optional_pieces" : {
+         "budget_min" : 1,
+         "budget_max" : 1,
+         "pieces" : {
+            "campfire" : "file(create_camp/campfire.json)"
+         }
+      }
+   }
+}

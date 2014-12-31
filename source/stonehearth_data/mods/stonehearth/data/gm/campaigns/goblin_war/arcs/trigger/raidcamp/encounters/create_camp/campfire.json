@@ -1,0 +1,44 @@
+{
+   "entities" : {
+      "campfire" : {
+         "uri" : "stonehearth:firepit",
+         "force_iconic" : false,
+         "location" : {
+            "x" : 2,
+            "y" : 0,
+            "z" : 2
+         }
+      }
+   },
+   "citizens" : {
+      "worker_1" : {
+         "location" : {
+            "x" : 5,
+            "y" : 0,
+            "z" : 5
+         },
+         "job" : "stonehearth:npc_jobs:peon"
+      },
+      "worker_2" : {
+         "location" : {
+            "x" : -3,
+            "y" : 0,
+            "z" : -3
+         },
+         "job" : "stonehearth:npc_jobs:peon"
+      },
+      "worker_3" : {
+         "location" : {
+            "x" : -5,
+            "y" : 0,
+            "z" : -3
+         },
+         "job" : "stonehearth:npc_jobs:peon"
+      }
+   },
+   "size" : {
+      "x" : 4,
+      "y" : 1,
+      "z" : 4
+   }
+}

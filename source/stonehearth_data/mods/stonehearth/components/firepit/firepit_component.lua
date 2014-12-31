@@ -105,11 +105,6 @@ end
 --- Reused between this and when we check to see if we should
 -- light the fire after place.
 function FirepitComponent:_start_or_stop_firepit()
-   --Make sure we're not calling after the entity has been gc'd.
-   if not self then
-      return
-   end
-
    --Only light fires after dark
    local time_constants = stonehearth.calendar:get_constants()
    local curr_time = stonehearth.calendar:get_time_and_date()
@@ -199,7 +194,11 @@ function FirepitComponent:_light()
       self:_add_seats()
    end
    self._sv.is_lit = true
-   radiant.events.trigger_async(stonehearth.events, 'stonehearth:fire:lit', { lit = true, player_id = radiant.entities.get_player_id(self._entity), entity = self._entity })
+   radiant.events.trigger_async(stonehearth.events, 'stonehearth:fire:lit', {
+         lit = true,
+         entity = self._entity,
+         player_id = radiant.entities.get_player_id(self._entity),
+      })
    self.__saved_variables:mark_changed()
 
 end

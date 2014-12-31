@@ -48,7 +48,7 @@
       "mixins:boulder" : "file(mixins/boulder)",
       "mixins:plant" : "file(mixins/plant)",
       "mixins:item_properties" : "file(mixins/item_properties)",
-"mixins:placed_properties" : "file(mixins/placed_properties)",
+      "mixins:placed_properties" : "file(mixins/placed_properties)",
       "mixins:resources:jerky" : "file(mixins/food/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
@@ -753,8 +753,9 @@
       "skeletons:humanoid:male" : "file(/data/rigs/humans/skeletons/male.json)",
       "skeletons:humanoid:female" : "file(/data/rigs/humans/skeletons/female.json)",
 
-      "data:npc_index" : "file(data/npc_index.json)",
-      
+      "data:npc_index" : "file(data/npc_index.json)",      
+      "data:gm_index" : "file(data/gm/gm_index.json)",
+
       "scenarios:scenario_index" : "file(scenarios/scenario_index.json)",
       "scenarios:simple_caravan" : "file(scenarios/dynamic/simple_caravan_scenario/simple_caravan_scenario.json)",
       "scenarios:caravan_shop" : "file(scenarios/dynamic/caravan_shop_scenario/caravan_shop_scenario.json)",
@@ -1210,7 +1211,14 @@
 
       "shop" : "file(services/server/shop/shop.lua)",
 
-      "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)"
+      "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)",
+
+      "game_master:nodelist" : "file(services/server/game_master/controllers/nodelist.lua)",
+      "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
+      "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
+      "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
+      "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp.lua)",
+      "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)"
    },
 
    "client_controllers" :  {

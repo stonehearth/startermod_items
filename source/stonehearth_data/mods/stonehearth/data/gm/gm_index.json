@@ -1,0 +1,7 @@
+{
+   "campaigns" : {
+      "combat" : {
+         "goblin_war" : "file(campaigns/goblin_war/goblin_war_campaign.json)"
+      }
+   }
+}

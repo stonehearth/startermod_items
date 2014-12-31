@@ -1,0 +1,9 @@
+{
+   "type" : "arc",
+   "rarity" : "common",
+
+   "encounters" : {
+      "create_camp" : "file(encounters/create_camp.json)",
+      "shakedown" : "file(encounters/shakedown.json)"
+   }
+}

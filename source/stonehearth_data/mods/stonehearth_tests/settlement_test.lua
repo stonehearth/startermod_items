@@ -8,7 +8,7 @@ function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
 
-   --self:place_citizen(2, 2)
+   self:place_citizen(2, 2)
 
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard')
@@ -20,10 +20,14 @@ function SettlementTest:__init()
    local location = Point3(-4, 1, -4)
    local size = Point2(4, 4 )
 
-   stonehearth.inventory:get_inventory('goblins')
-                           :create_stockpile(location, size)
 
-   stonehearth.dynamic_scenario:force_spawn_scenario('/stonehearth/scenarios/dynamic/settlement_scenarios/raiding_camp.json')
+   stonehearth.game_master:start()
+   
+   -- just for fun...
+   radiant.set_realtime_timer(2000, function()
+         stonehearth.inventory:get_inventory('goblins')
+                                 :create_stockpile(location, size)
+      end)
 
    if true then return end
 
