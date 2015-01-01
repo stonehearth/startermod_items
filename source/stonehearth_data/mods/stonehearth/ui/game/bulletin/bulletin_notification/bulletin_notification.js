@@ -1,5 +1,6 @@
 App.StonehearthBulletinNotification = App.View.extend({
 	templateName: 'bulletinNotification',
+   uriProperty: 'model',
 
    init: function() {
       this._super();
@@ -14,7 +15,7 @@ App.StonehearthBulletinNotification = App.View.extend({
 
       self.$('#bulletinNotification').pulse();
 
-      var bulletin = this.get('context');
+      var bulletin = this.get('model');
 
       if (!bulletin.sticky) {
          setTimeout(function() {
@@ -31,13 +32,13 @@ App.StonehearthBulletinNotification = App.View.extend({
 
       self.$('#popup').click(function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:page_down'});
-         var bulletin = self.get('context');
+         var bulletin = self.get('model');
          App.bulletinBoard.zoomToLocation(bulletin);
          App.bulletinBoard.showDialogView(bulletin);
          self.destroy();
       });
 
-      if (this.get('context.type') == 'alert') {
+      if (this.get('model.type') == 'alert') {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:alert'} );
       } else {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:caravan'} );   
@@ -47,7 +48,7 @@ App.StonehearthBulletinNotification = App.View.extend({
 
    willDestroyElement: function() {
       var self = this;
-      var bulletin = self.get('context');
+      var bulletin = self.get('model');
       App.bulletinBoard.onNotificationViewDestroyed(bulletin);
       this._super();
    }

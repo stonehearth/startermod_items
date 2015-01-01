@@ -43,7 +43,14 @@ function BulletinBoardService:post_bulletin(player_id)
    return bulletin
 end
 
-function BulletinBoardService:remove_bulletin(bulletin_id)
+function BulletinBoardService:remove_bulletin(bulletin)
+   local bulletin_id
+   if type(bulletin) == 'number' then
+      bulletin_id = bulletin
+   else
+      bulletin_id = bulletin:get_id()
+   end
+
    local player_id = self._sv.bulletin_to_player_map[bulletin_id]
 
    if not player_id then

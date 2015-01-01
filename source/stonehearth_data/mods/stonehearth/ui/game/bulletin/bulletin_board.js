@@ -33,6 +33,7 @@ var StonehearthBulletinBoard;
          self._bulletinBoardTrace = self._radiantTrace.traceUri(self._bulletinBoardUri, self.components)
             .progress(function(bulletinBoard) {
                if (bulletinBoard.bulletins) {
+                  self._bulletins = bulletinBoard.bulletins
                   var list = radiant.map_to_array(bulletinBoard.bulletins);
 
                   list.sort(function (a, b) {
@@ -42,11 +43,30 @@ var StonehearthBulletinBoard;
                   self._orderedBulletins.clear();
                   self._orderedBulletins.pushObjects(list);
 
+                  self._destroyMissingView('_bulletinDialogView');
+                  self._destroyMissingView('_bulletinNotificationView');
                   self._tryShowNextBulletin();
                }
             });
 
          this._initCompleteDeferred.resolve();
+      },
+
+      _destroyMissingView: function(viewName) {
+         // Remove the view referenced by `viewName` if it is no longer in the model
+         var self = this;        
+         var view = self[viewName];
+         if (!view) {
+            return;
+         }
+         var id = view.get('model.id');
+         if (!id) {
+            return;
+         }
+         if (!self._bulletins[id]) {
+            self[viewName] = null;
+            view.destroy();
+         }
       },
 
       _tryShowNextBulletin: function() {

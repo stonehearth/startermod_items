@@ -107,7 +107,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       });
 
 
-      self._shopTrace = new StonehearthDataTrace(this.get('context.data.shop'), {});
+      self._shopTrace = new StonehearthDataTrace(this.get('model.data.shop'), {});
 
       self._shopTrace.progress(function(eobj) {
             self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
@@ -148,7 +148,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 
    _doBuy: function(quantity) {
       var self = this;
-      var shop = self.get('context.data.shop');
+      var shop = self.get('model.data.shop');
       var item = self.$('#buyList .selected').attr('uri');
 
       radiant.call_obj(shop, 'buy_item_command', item, quantity)
@@ -162,7 +162,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
 
    _doSell: function(quantity) {
       var self = this;
-      var shop = self.get('context.data.shop');
+      var shop = self.get('model.data.shop');
       var item = self.$('#sellList .selected').attr('uri')
 
       radiant.call_obj(shop, 'sell_item_command', item, quantity)

@@ -10,6 +10,24 @@
          "refuse" : "fight",
          "fail" : "fight",
          "success" : "campaign:exit"
-      }
+      },
+      "introduction" : {
+         "bulletin" : {
+            "title" : "The great Orc Leader approahces",
+            "message" : "This doesn't look good for you..."
+         }
+      },
+      "shakedown" : {
+         "bulletin" : {
+            "title" : "The orc leader wants your stuff!!",
+            "message" : "Give me this stuff or die!"
+         }
+      },
+      "shakedown_refused" : {
+         "bulletin" : {
+            "title" : "The orc looks mad",
+            "message" : "You will regret your insolence!!"
+         }
+      }      
    }
 }

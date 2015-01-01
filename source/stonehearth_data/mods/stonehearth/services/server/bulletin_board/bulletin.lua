@@ -74,6 +74,16 @@ function Bulletin:set_close_on_handle(close_on_handle)
    return self
 end
 
+-- keeps the dialog open while the user is interacting with it.
+-- otherwise, the dialog automatically closes when the user clicks
+-- the ok button (or accept, decline, etc.)
+--
+function Bulletin:set_keep_open(keep_open)
+   self._sv.keep_open = keep_open
+   self.__saved_variables:mark_changed()
+   return self
+end
+
 function Bulletin:get_data()
    return self._sv.data
 end
