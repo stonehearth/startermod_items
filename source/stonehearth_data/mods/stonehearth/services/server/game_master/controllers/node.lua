@@ -23,15 +23,11 @@ function Node:_create_nodelist(expected_type, list)
    return radiant.create_controller('stonehearth:game_master:nodelist', self._sv.name, expected_type, list)
 end
 
--- make a shallow copy of self._sv.ctx.  useful for giving each of our child nodes
+-- make a shallow copy `ctx`.  useful for giving each of our child nodes
 -- a unique context.
 --
-function Node:_copy_ctx()
-   local copy = {}
-   for k, v in pairs(self._sv.ctx) do
-      copy[k] = v
-   end
-   return copy
+function Node:_copy_ctx(ctx)
+   return radiant.shallow_copy(ctx)
 end
 
 -- xxx: consider moving everything below to a different class

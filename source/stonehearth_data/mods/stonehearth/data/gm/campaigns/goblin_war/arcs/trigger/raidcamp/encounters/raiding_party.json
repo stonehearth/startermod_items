@@ -1,0 +1,23 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "city_raid",
+   "rarity" : "common",
+
+   "in_edge"  : "fight",
+   "out_edge" : "fight",
+
+   "city_raid_info" : {
+      "parties" : {
+         "raiders" : {
+            "role" : "raid_stockpiles",
+            "offset" : { "x" : 0, "y" : 0, "z" : 0 },
+            "members" : {
+               "thief_a" : "stonehearth:npc_jobs:peon",
+               "thief_b" : "stonehearth:npc_jobs:peon",
+               "escort_a" : "stonehearth:jobs:footman",
+               "escort_b" : "stonehearth:jobs:footman"
+            }
+         }
+      }
+   }
+}

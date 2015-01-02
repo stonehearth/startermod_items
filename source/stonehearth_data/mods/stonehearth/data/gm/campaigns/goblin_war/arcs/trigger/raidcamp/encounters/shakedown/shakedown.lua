@@ -2,7 +2,8 @@ local rng = _radiant.csg.get_default_rng()
 
 local ShakeDown = class()
 
-function ShakeDown:initialize()
+function ShakeDown:initialize(ctx)
+   self._sv.ctx = ctx
    self._sv.max_tries = 4
    self._sv.tribute_value = 100
    self:_construct()
@@ -29,7 +30,8 @@ end
 -- return a table containing the tribute information needed for the
 -- demand tribute encounter
 --
-function ShakeDown:get_tribute_demand(ctx)
+function ShakeDown:get_tribute_demand()
+   local ctx = self._sv.ctx
    local player_id = ctx.player_id
 
    local inventory = stonehearth.inventory:get_inventory(player_id)

@@ -5,10 +5,12 @@ local CreateCamp = class()
 
 function CreateCamp:start(ctx, info)
    self._sv.info = info
+   self._sv.ctx = ctx
 
+   ctx.enemy_player_id = info.player_id
    self:_compute_camp_origin(ctx)
 
-   local population = stonehearth.population:get_population(info.player_id)
+   local population = stonehearth.population:get_population(ctx.enemy_player_id)
    if info.optional_pieces then
       for _, uri in pairs(info.optional_pieces.pieces) do
          self:_add_piece(population, uri)
@@ -34,13 +36,13 @@ function CreateCamp:_compute_camp_origin(ctx)
    local offset = Point3(d * math.sin(theta), 0, d * math.cos(theta))
 
    -- store the origin
-   self._sv.origin = spawn_point + offset:to_closest_int()
+   ctx.enemy_location = spawn_point + offset:to_closest_int()
 end
 
 function CreateCamp:_add_piece(population, uri)
    local piece = radiant.resources.load_json(uri)
-   local origin = self._sv.origin
    local player_id = self:_get_player_id()
+   local origin = self._sv.ctx.enemy_location
 
    -- add all the entities.
    for name, info in pairs(piece.entities) do
@@ -49,7 +51,7 @@ function CreateCamp:_add_piece(population, uri)
       radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
       radiant.entities.set_player_id(entity, player_id)
    end
-   
+
    -- add all the people.
    for name, info in pairs(piece.citizens) do
       local citizen = population:create_new_citizen()

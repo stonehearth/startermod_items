@@ -39,6 +39,8 @@ function Encounter:start(ctx)
    local etype = self._sv.info.encounter_type
    local einfo = self._sv.info[etype .. '_info']
    local ename = 'stonehearth:game_master:encounters:' .. etype   
+   
+   assert(einfo)
    self._sv.script = radiant.create_controller(ename)
    self._sv.script:start(ctx, einfo)
 end
