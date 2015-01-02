@@ -14,13 +14,13 @@ function DemandTribute:start(ctx, info)
    assert(info.shakedown.bulletin)
    assert(info.script)
 
-   local script = radiant.create_controller(info.script)
+   local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script
 
    assert(script)
    assert(script.get_tribute_demand)
 
-   self._sv.demand = self._sv.script:get_tribute_demand(self._sv.ctx)
+   self._sv.demand = self._sv.script:get_tribute_demand()
    self:_show_introduction()
 end
 
@@ -90,7 +90,6 @@ end
 -- in the arc (after setting the 'refuse' out_edge)
 --
 function DemandTribute:_on_refused_threat_ok()
-   radiant.log.write('', 0, 'got ok')
    self:_finish_encounter('refuse')
 end
 
@@ -98,10 +97,12 @@ end
 -- `result`.  `result` must be one of 'success', 'fail', or 'reject'
 --
 function DemandTribute:_finish_encounter(result)
+   assert(result)
    self:_destroy_bulletin()
 
-   assert(out_edge)
    local out_edge = self._sv.info.out_edges[result]
+   assert(out_edge)
+   
    self._sv.resolved_out_edge = out_edge
    self.__saved_variables:mark_changed()
 
@@ -127,7 +128,7 @@ function DemandTribute:_update_bulletin(new_bulletin_data, opt)
       self._sv.bulletin = bulletin
    end
 
-   self._sv.bulletin_data = radiant.copy_table(new_bulletin_data)
+   self._sv.bulletin_data = radiant.shallow_copy(new_bulletin_data)
    self.__saved_variables:mark_changed()
 
    bulletin:set_data(self._sv.bulletin_data)

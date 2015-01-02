@@ -1226,7 +1226,9 @@
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp.lua)",
-      "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)"
+      "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)",
+      "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid.lua)",
+      "game_master:npc_parties:raid_stockpiles" : "file(services/server/game_master/controllers/npc_parties/raid_stockpiles_party.lua)"
    },
 
    "client_controllers" :  {

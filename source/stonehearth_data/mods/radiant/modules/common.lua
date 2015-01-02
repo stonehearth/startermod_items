@@ -23,7 +23,7 @@ function radiant.alloc_region3()
    return _radiant.sim.alloc_region3()
 end
 
-function radiant.copy_table(t)
+function radiant.shallow_copy(t)
    local copy = {}
    for k, v in pairs(t) do
       copy[k] = v
