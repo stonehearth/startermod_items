@@ -91,4 +91,11 @@ $(document).ready(function(){
          return App.stonehearthClient.spawnScenario(scenario_uri);
       }
    });
+
+   radiant.console.register('set_time', {
+      call: function(cmdobj, fn, args) {
+         var time = JSON.parse(args[0]);
+         return App.stonehearthClient.setTime(time);
+      }
+   });
 });

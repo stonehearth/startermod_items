@@ -54,4 +54,14 @@ function CalendarCallHandler:dm_resume_game(session, request)
    return {}
 end
 
+function CalendarCallHandler:cl_set_time(session, request, t)
+   _radiant.call('stonehearth:set_time', t)
+   return true
+end
+
+function CalendarCallHandler:set_time(session, request, t)
+   calendar:set_time_unit_test_only(t)
+   return true
+end
+
 return CalendarCallHandler
