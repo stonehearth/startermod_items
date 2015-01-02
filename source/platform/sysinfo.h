@@ -18,6 +18,7 @@ public:
    static ByteCount GetCurrentMemoryUsage();
    static void GetVirtualAddressSpaceUsage(ByteCount& total, ByteCount& avail);
    static ByteCount GetTotalSystemMemory();
+   static void LogMemoryStatistics(const char* reason, uint level);
 };
 
 END_RADIANT_PLATFORM_NAMESPACE

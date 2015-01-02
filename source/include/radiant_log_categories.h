@@ -8,6 +8,7 @@
    ADD_CATEGORY(client) \
    ADD_CATEGORY(app) \
    ADD_CATEGORY(resources) \
+   ADD_CATEGORY(sysinfo) \
    ADD_CATEGORY(analytics) \
    ADD_CATEGORY(audio) \
    ADD_CATEGORY(rpc) \

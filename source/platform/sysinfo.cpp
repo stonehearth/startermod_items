@@ -13,6 +13,8 @@ HMODULE psapiDll;
 typedef BOOL (*GetProcessMemoryInfoFn)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
 static GetProcessMemoryInfoFn GetProcessMemoryInfof;
 
+#define SI_LOG(level)              LOG(sysinfo, level)
+
 struct LoadGetProcessMemoryInfo {
    LoadGetProcessMemoryInfo() {
       psapiDll = LoadLibrary("psapi.dll");
@@ -163,4 +165,35 @@ std::string SysInfo::GetOSName()
       return value;
    }
    return "";
+}
+
+
+void SysInfo::LogMemoryStatistics(const char* reason, uint level)
+{
+   platform::SysInfo::ByteCount va_total, va_avail;
+   platform::SysInfo::GetVirtualAddressSpaceUsage(va_total, va_avail);
+
+   static auto logMemoryUsage = [level](const char* str, platform::SysInfo::ByteCount memory) {
+      static const char* suffix[] = {
+         "B",
+         "KB",
+         "MB",
+         "GB",
+         "TB",
+         "PB", // HA!
+      };
+      int i = 0;
+      double friendly = static_cast<double>(memory);
+      while (friendly > 1024 && i < ARRAY_SIZE(suffix) - 1) {
+         friendly /= 1024;
+         i++;
+      }
+      SI_LOG(level) << " " << str << std::setprecision(3) << std::fixed << friendly << " " << suffix[i] << " (" << memory << " bytes)";
+   };
+   SI_LOG(level) << "Memory Stats: " << reason;
+   logMemoryUsage("Total System Memory:     ", platform::SysInfo::GetTotalSystemMemory());
+   logMemoryUsage("Current Memory Usage:    ", platform::SysInfo::GetCurrentMemoryUsage());
+   logMemoryUsage("Total Address Space:     ", va_total);
+   logMemoryUsage("Available Address Space: ", va_avail);
+   logMemoryUsage("Used Address Space:      ", va_total - va_avail);
 }
