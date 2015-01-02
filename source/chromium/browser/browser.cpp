@@ -43,6 +43,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    _browserFB.resize(_uiWidth * _uiHeight);
    _drawCount = 0;
    _neededToDraw = 0;
+   _app = this;
 
    CefMainArgs main_args(GetModuleHandle(NULL));
    int exitCode = CefExecuteProcess(main_args, _app, nullptr);
@@ -73,7 +74,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    settings.multi_threaded_message_loop = true;
    settings.windowless_rendering_enabled = false;
 
-   CefInitialize(main_args, settings, _app.get(), nullptr);
+   CefInitialize(main_args, settings, _app, nullptr);
    CefRegisterSchemeHandlerFactory("http", "radiant", this);
    BROWSER_LOG(1) << "cef started.";
 
@@ -86,6 +87,7 @@ Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int h
    browserSettings.java = STATE_DISABLED;
    browserSettings.plugins = STATE_DISABLED;
    browserSettings.webgl = STATE_DISABLED;
+   browserSettings.windowless_frame_rate = core::Config::GetInstance().Get<int>("browser_frame_rate", 30);
 
    if (!CefBrowserHost::CreateBrowser(windowInfo, this, "", browserSettings, nullptr)) {
       BROWSER_LOG(1) << "Could not create browser";
@@ -106,6 +108,13 @@ Browser::~Browser()
    CefShutdown();
 }
 
+void Browser::OnBeforeCommandLineProcessing(CefString const& process_type, CefRefPtr<CefCommandLine> command_line)
+{
+   if (core::Config::GetInstance().Get<bool>("disable_browser_gpu", true)) {
+      command_line->AppendArgument("disable-gpu");
+   }
+}
+
 bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
                              const CefPopupFeatures& popupFeatures,
                              CefWindowInfo& windowInfo,
@@ -119,6 +128,12 @@ bool Browser::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
 void Browser::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
    _browser = browser;
+
+   if (_bufferedNavigateUrl != "") {
+      BROWSER_LOG(2) << "Doing a buffered navigation....";
+      Navigate(_bufferedNavigateUrl);
+      _bufferedNavigateUrl = "";
+   }
 }
 
 bool Browser::RunModal(CefRefPtr<CefBrowser> browser) 
@@ -640,7 +655,11 @@ void Browser::GetBrowserSize(int& w, int& h)
 void Browser::Navigate(std::string const& url)
 {
    if (!_browser) {
-      BROWSER_LOG(1) << "Navigate called without an existing browser!";
+      BROWSER_LOG(2) << "Navigate called without an existing browser!";
+      if (_bufferedNavigateUrl != "") {
+         BROWSER_LOG(1) << "Navigate called without an existing browser AND was already buffered!";
+      }
+      _bufferedNavigateUrl = url;
    } else {
       CefRefPtr<CefFrame> frame = _browser->GetMainFrame();
       if (frame) {

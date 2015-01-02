@@ -8,6 +8,7 @@ BEGIN_RADIANT_CHROMIUM_NAMESPACE
 
 class Browser : public IBrowser,
                 public CefClient,
+                public CefApp,
                 public CefLifeSpanHandler,
                 public CefSchemeHandlerFactory,
                 public CefLoadHandler,
@@ -50,6 +51,9 @@ public:
    CefRefPtr<CefLoadHandler> GetLoadHandler() override { return this; }
    CefRefPtr<CefDisplayHandler> GetDisplayHandler() override { return this; }
    CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
+
+   // CefApp overrides
+   void OnBeforeCommandLineProcessing(CefString const& process_type, CefRefPtr<CefCommandLine> command_line) override;
 
    // CefLifeSpanHandler overrides
    bool OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
@@ -150,6 +154,7 @@ private:
    int                           _neededToDraw;
    bool                          _dirty;
    csg::Region2                  _dirtyRegion;
+   std::string                   _bufferedNavigateUrl;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE
