@@ -50,6 +50,7 @@
 #include "remote_client.h"
 #include "lib/perfmon/frame.h"
 #include "lib/perfmon/namespace.h"
+#include "platform/sysinfo.h"
 
 // Uncomment this to only profile the pathfinding path in VTune
 // #define PROFILE_ONLY_PATHFINDING 1
@@ -1102,6 +1103,16 @@ void Simulation::Load()
       c->FlushSendQueue();
    }
    SIM_LOG(0) << "Done loading.";
+   platform::SysInfo::ByteCount va_total, va_avail;
+   platform::SysInfo::GetVirtualAddressSpaceUsage(va_total, va_avail);
+
+   SIM_LOG(0) << "Memory Usage:";
+   SIM_LOG(0) << "Total System Memory:     " << platform::SysInfo::GetTotalSystemMemory();
+   SIM_LOG(0) << "Current Memory Usage:    " << platform::SysInfo::GetCurrentMemoryUsage();
+   SIM_LOG(0) << "Total Address Space:     " << va_total;
+   SIM_LOG(0) << "Available Address Space: " << va_avail;
+   SIM_LOG(0) <<  "Used Address Space:      " << va_total - va_avail;
+
 }
 
 void Simulation::Reset()

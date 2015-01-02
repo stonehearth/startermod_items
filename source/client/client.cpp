@@ -1718,7 +1718,16 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    initialUpdate_ = true;
 
 
-   CLIENT_LOG(0) << "done loadin...";
+   CLIENT_LOG(0) << "Done loading.";
+   platform::SysInfo::ByteCount va_total, va_avail;
+   platform::SysInfo::GetVirtualAddressSpaceUsage(va_total, va_avail);
+
+   CLIENT_LOG(0) << "Memory Usage:";
+   CLIENT_LOG(0) << "Total System Memory:     " << platform::SysInfo::GetTotalSystemMemory();
+   CLIENT_LOG(0) << "Current Memory Usage:    " << platform::SysInfo::GetCurrentMemoryUsage();
+   CLIENT_LOG(0) << "Total Address Space:     " << va_total;
+   CLIENT_LOG(0) << "Available Address Space: " << va_avail;
+   CLIENT_LOG(0) <<  "Used Address Space:      " << va_total - va_avail;
 }
 
 void Client::CreateGame()
