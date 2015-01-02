@@ -251,9 +251,9 @@ protected:
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
    void drawLodGeometry( std::string const& shaderContext, std::string const& theClass,
-                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel);
+                         RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
    void drawGeometry( std::string const& shaderContext, std::string const& theClass,
-	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1);
+	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(std::string const& shaderContext, uint32 userFlags );
 	void drawLightGeometry( std::string const& shaderContext, std::string const& theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );

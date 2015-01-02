@@ -615,7 +615,16 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    Modules::sceneMan().updateNodes();
 
    for (auto const& ge : _gridElements) {
-      if (qFrustum.cullBox(ge.second.bounds) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(ge.second.bounds))) {
+      if (!qFrustum.cullBox(ge.second.bounds)) {
+         // First frustum can see the cell.
+         if(qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(ge.second.bounds)) {
+            // Second frustum cannot see the cell.  Don't draw
+            continue;
+         }
+      } else {
+         // Even if it's visible in the secondary, don't draw.  We don't run into funny stuff with
+         // shadows because shadow frustums are correctly built beforehand to encompass the appropriate
+         // geometry.
          continue;
       }
 
@@ -643,7 +652,13 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                continue;
             }
 
-            if (qFrustum.cullBox(node->_bBox) && (qSecondaryFrustum == 0x0 || qSecondaryFrustum->cullBox(node->_bBox))) {
+            if (!qFrustum.cullBox(node->_bBox)) {
+               // First frustum can see the object.
+               if(qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox)) {
+                  // Second frustum cannot see the object.  Don't draw
+                  continue;
+               }
+            } else {
                continue;
             }
 

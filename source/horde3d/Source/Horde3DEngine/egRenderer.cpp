@@ -1953,7 +1953,7 @@ void Renderer::updateLodUniform(int lodLevel, float lodDist1, float lodDist2)
 }
 
 void Renderer::drawLodGeometry(std::string const& shaderContext, std::string const& theClass,
-                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel)
+                             RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus)
 {
    // These two magic values represent the normalized distances to the end of the first LOD level,
    // and the beginning of the second LOD level.  A larger first value implies an overlap between
@@ -1972,7 +1972,7 @@ void Renderer::drawLodGeometry(std::string const& shaderContext, std::string con
 
    R_LOG(7) << "updating geometry queue";
 
-   Modules::sceneMan().updateQueues("drawing geometry", f, 0x0, order, SceneNodeFlags::NoDraw, 
+   Modules::sceneMan().updateQueues("drawing geometry", f, lightFrus, order, SceneNodeFlags::NoDraw, 
       filterRequried, false, true );
 	
 	setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
@@ -1981,12 +1981,12 @@ void Renderer::drawLodGeometry(std::string const& shaderContext, std::string con
 
 
 void Renderer::drawGeometry( std::string const& shaderContext, std::string const& theClass,
-                             RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel )
+                             RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel, Frustum const* lightFrus)
 {
    R_LOG(5) << "drawing geometry (shader:" << shaderContext << " class:" << theClass << " lod:" << forceLodLevel << ")";
 
    if (forceLodLevel >= 0) {
-      drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, frustStart, frustEnd, forceLodLevel);
+      drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, frustStart, frustEnd, forceLodLevel, lightFrus);
    } else {
       if (forceLodLevel == -1) {
          _lod_polygon_offset_x = 0.0;
@@ -1996,13 +1996,13 @@ void Renderer::drawGeometry( std::string const& shaderContext, std::string const
       float fStart = std::max(frustStart, 0.0f);
       float fEnd = std::min(0.41f, frustEnd);
       if (fStart < fEnd) {
-         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 0);
+         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 0, lightFrus);
       }
 
       fStart = std::max(frustStart, 0.39f);
       fEnd = std::min(1.0f, frustEnd);
       if (fStart < fEnd) {
-         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 1);
+         drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 1, lightFrus);
       }
 
       _lod_polygon_offset_x = 0.0;
@@ -2171,43 +2171,6 @@ void Renderer::drawLightGeometry( std::string const& shaderContext, std::string 
 
 		// Check if light is not visible
 		if( lightFrus && _curCamera->getFrustum().cullFrustum( *lightFrus ) ) continue;
-
-		// Check if light is occluded
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)_curLight->_occQueries.size() - 1 )
-			{
-				_curLight->_occQueries.resize( occSet + 1, 0 );
-				_curLight->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( _curLight->_occQueries[occSet] == 0 )
-			{
-				_curLight->_occQueries[occSet] = gRDI->createOcclusionQuery();
-				_curLight->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( _curLight->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					_curLight->_lastVisited[occSet] = Modules::renderer().getFrameID();
-				
-					Vec3f bbMin, bbMax;
-					lightFrus->calcAABB( bbMin, bbMax );
-					
-					// Check that viewer is outside light bounds
-					if( nearestDistToAABB( _curCamera->getFrustum().getOrigin(), bbMin, bbMax ) > 0 )
-					{
-						Modules::renderer().pushOccProxy( 1, bbMin, bbMax, _curLight->_occQueries[occSet] );
-
-						// Check query result from previous frame
-						if( gRDI->getQueryResult( _curLight->_occQueries[occSet] ) < 1 )
-						{
-							continue;
-						}
-					}
-				}
-			}
-		}
 	
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
@@ -2236,7 +2199,7 @@ void Renderer::drawLightGeometry( std::string const& shaderContext, std::string 
       std::ostringstream reason;
       reason << "drawing light geometry for light " << _curLight->getName();
 
-      drawGeometry(_curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0);
+      drawGeometry(_curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
 
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
 
@@ -2444,10 +2407,10 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 	GeometryResource *curGeoRes = 0x0;
 	MaterialResource *curMatRes = 0x0;
 
-        R_LOG(9) << "drawing meshes (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
+   R_LOG(9) << "drawing meshes (shader:" << shaderContext << " class:" << theClass << " lod:" << lodLevel << ")";
 
 
-         Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
+   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
 	// Loop over mesh queue
 	for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::Mesh) )
 	{
@@ -2468,42 +2431,6 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 		
       bool modelChanged = true;
 		uint32 queryObj = 0;
-
-		// Occlusion culling
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)meshNode->_occQueries.size() - 1 )
-			{
-				meshNode->_occQueries.resize( occSet + 1, 0 );
-				meshNode->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( meshNode->_occQueries[occSet] == 0 )
-			{
-				queryObj = gRDI->createOcclusionQuery();
-				meshNode->_occQueries[occSet] = queryObj;
-				meshNode->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( meshNode->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
-				
-					// Check query result (viewer must be outside of bounding box)
-					if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
-					                       meshNode->getBBox().max() ) > 0 &&
-						gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
-					{
-						Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
-						                                  meshNode->_occQueries[occSet] );
-                  RENDER_LOG() << "camera is inside bounding box.  ignoring.";
-						continue;
-					}
-					else
-						queryObj = meshNode->_occQueries[occSet];
-				}
-			}
-		}
 		
 		// Bind geometry
       RENDER_LOG() << "binding geometry...";
@@ -2680,45 +2607,6 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          continue;
       }
 
-      uint32 queryObj = 0;
-
-      // Occlusion culling
-      if( occSet >= 0 )
-      {
-         if( occSet > (int)meshNode->_occQueries.size() - 1 )
-         {
-            meshNode->_occQueries.resize( occSet + 1, 0 );
-            meshNode->_lastVisited.resize( occSet + 1, 0 );
-         }
-         if( meshNode->_occQueries[occSet] == 0 )
-         {
-            queryObj = gRDI->createOcclusionQuery();
-            meshNode->_occQueries[occSet] = queryObj;
-            meshNode->_lastVisited[occSet] = 0;
-         }
-         else
-         {
-            if( meshNode->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-            {
-               meshNode->_lastVisited[occSet] = Modules::renderer().getFrameID();
-
-               // Check query result (viewer must be outside of bounding box)
-               if( nearestDistToAABB( frust1->getOrigin(), meshNode->getBBox().min(),
-                  meshNode->getBBox().max() ) > 0 &&
-                  gRDI->getQueryResult( meshNode->_occQueries[occSet] ) < 1 )
-               {
-                  Modules::renderer().pushOccProxy( 0, meshNode->getBBox().min(), meshNode->getBBox().max(),
-                     meshNode->_occQueries[occSet] );
-
-                  RENDER_LOG() << "viewer is insided bounding box.  ignoring.";
-                  continue;
-               }
-               else
-                  queryObj = meshNode->_occQueries[occSet];
-            }
-         }
-      }
-
       // Bind geometry
       RENDER_LOG() << "binding geometry...";
       if( curVoxelGeoRes != modelNode->getVoxelGeometryResource() )
@@ -2805,9 +2693,6 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          gRDI->setShaderConst( curShader->uni_nodeId, CONST_FLOAT, &id );
       }
 
-      if( queryObj )
-         gRDI->beginQuery( queryObj );
-
       float lodOffsetX = Modules::renderer()._lod_polygon_offset_x;
       float lodOffsetY = Modules::renderer()._lod_polygon_offset_y;
       // Shadow offsets will always win against the custom model offsets (which we don't care about
@@ -2832,9 +2717,6 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
          meshNode->getVertRStart(lodLevel), meshNode->getVertREnd(lodLevel) - meshNode->getVertRStart(lodLevel) + 1 );
       Modules::stats().incStat( EngineStats::BatchCount, 1 );
       Modules::stats().incStat( EngineStats::TriCount, meshNode->getBatchCount(lodLevel) / 3.0f );
-
-      if( queryObj )
-         gRDI->endQuery( queryObj );
 
 #undef RENDER_LOG
    }
