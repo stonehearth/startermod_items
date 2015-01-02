@@ -135,7 +135,7 @@ void lua::Initialize(bool enableJit)
    jitEnabled = enableJit;
    luadll = LoadLibraryExW(enableJit ? L"lua-5.1.5.jit.dll" : L"lua-5.1.5.dll", NULL, 0);
 
-   LOG(lua.data, 0) << "lua git is " << (enableJit ? "enabled" : "disabled");
+   LOG(lua.data, 0) << "lua jit is " << (enableJit ? "enabled" : "disabled");
 
    lua_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lua_newstate");
    lua_close_fn = (void(*)(lua_State *L))LoadSymbol("lua_close");
