@@ -11,6 +11,9 @@
          "fail" : "fight",
          "success" : "campaign:exit"
       },
+
+      "script" : "file(shakedown/shakedown.lua)",
+
       "introduction" : {
          "bulletin" : {
             "title" : "The great Orc Leader approahces",

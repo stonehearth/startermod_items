@@ -35,6 +35,22 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       }
    },
 
+   // if the ui_view value changes while we're up, ask App.bulletinBoard
+   // to re-create a new view and destory us when that view becomes visible.
+   _checkView : function() {
+      var self = this;
+      var bulletin = self.get('model')
+      var viewClassName = String(self.constructor);
+      if ('App.' + bulletin.ui_view != viewClassName) {
+         // set a flag to prevent calling back into the bulletin board
+         // on destroy.  Otherwise, the board gets confused when it tries
+         // to make sure it creates the new view for this bulletin before
+         // this one has a chance to die (see recreateDialogVIew)
+         self._dontNotifyDestroy = true;
+         App.bulletinBoard.recreateDialogVIew(bulletin);
+      }
+   }.observes('model.ui_view'),
+
    _callCallback: function(callback_key) {
       var self = this;
       var bulletin = self.get('model');
@@ -60,8 +76,10 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
 
    willDestroyElement: function() {
       var self = this;
-      var bulletin = self.get('model');
-      App.bulletinBoard.onDialogViewDestroyed(bulletin);
+      if (!self._dontNotifyDestroy) {
+         var bulletin = self.get('model'); 
+         App.bulletinBoard.onDialogViewDestroyed(bulletin);
+      }
       this._super();
    }
 });

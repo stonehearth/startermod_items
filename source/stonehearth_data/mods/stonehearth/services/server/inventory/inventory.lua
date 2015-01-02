@@ -129,11 +129,10 @@ function Inventory:get_item_tracker(controller_name)
 end
 
 
---- Given the uri of an item and the player_id, get a structure containing items of that type
+--- Given the uri of an item get a structure containing items of that type
 --  Uses the basic_inventory_tracker
 --
 --  @param item_type : uri of the item (like stonehearth:resources:wood:oak_log)
---  @param player_id : id of the player
 --  @returns an object with a count and a map of identity (items).
 --           Iterate through the map to get the data.
 --           If entity is nil, that item in the map is now invalid. If the data is nil, there was

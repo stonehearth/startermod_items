@@ -181,8 +181,8 @@ DataStore::GetControllerUri()
       });
       return result;
    }
-   // xxx: throw an exception...
-   return "";
+   // assume the name is the direct path to the script
+   return name;
 }
 
 luabind::object DataStore::GetController() const

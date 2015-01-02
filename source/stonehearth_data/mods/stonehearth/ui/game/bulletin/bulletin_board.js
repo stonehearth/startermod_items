@@ -143,6 +143,20 @@ var StonehearthBulletinBoard;
          self._tryShowNextBulletin();
       },
 
+      recreateDialogVIew: function(bulletin) {
+         var self = this;
+         if (self._bulletinDialogView) {
+            var oldDialogView = self._bulletinDialogView
+            // defer the destruction of the old dialog until after render
+            // to prevent flickering between views...
+            Ember.run.scheduleOnce('afterRender', this, function() {
+               oldDialogView.destroy()
+            });
+            self._bulletinDialogView = null;
+            self.showDialogView(bulletin);
+         }
+      },
+
       markBulletinHandled: function(bulletin) {
          var self = this;
          var bulletins = self._orderedBulletins;

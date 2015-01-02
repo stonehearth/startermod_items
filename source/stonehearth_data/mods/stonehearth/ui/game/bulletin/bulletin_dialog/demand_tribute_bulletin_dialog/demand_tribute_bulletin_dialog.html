@@ -1,0 +1,26 @@
+<script type="text/x-handlebars" data-template-name="demandTributeBulletinDialog">
+<div id="demandTributeBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      <div id="scroll" class="parchment">
+         <div id="content">
+            <div id="title">{{{ view.model.data.title }}}</div>
+
+            <ul class="demand_list">
+               {{#each view.demands}}
+                  <li>{{ this.count }} {{ this.display_name }}</li>
+               {{/each}}            
+            </ul>
+
+            <div class="message">{{{ view.model.data.message }}}</div>
+         </div>
+      </div>
+      {{#if view.model.data.accepted_callback }}
+         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+      {{/if}}
+      {{#if view.model.data.declined_callback }}
+         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+      {{/if}}
+   </div>
+</div>
+</script>
