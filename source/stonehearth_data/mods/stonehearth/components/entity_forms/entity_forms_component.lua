@@ -121,6 +121,8 @@ function EntityFormsComponent:_update_restock_info()
          self._overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
       end
 
+      self:_create_pick_up_ladder_task()
+
       -- trace the item's position. When it's position becomes nil, we know the item has changed
       -- forms, so if necessary we'll clear the undeploy setting
       if not self._position_trace then
@@ -231,7 +233,8 @@ function EntityFormsComponent:place_item_on_structure(location, structure_entity
    local structure_cp = structure_entity:get_component('stonehearth:construction_progress')
    assert(structure_cp:get_finished())
 
-   self:_create_ladder_tasks(location, normal)
+   self:_create_pick_up_ladder_task()
+   self:_create_put_down_ladder_task(location, normal)
 
    -- finally create a placement task to move the item from one spot to another
    local item = self:_get_form_in_world()
@@ -259,7 +262,8 @@ function EntityFormsComponent:place_item_on_ground(location, rotation, normal)
    local item = self:_get_form_in_world()
    assert(item, 'neither entity nor iconic form is in world')
 
-   self:_create_ladder_tasks(location, normal)
+   self:_create_pick_up_ladder_task()
+   self:_create_put_down_ladder_task(location, normal)
 
    radiant.terrain.place_entity_at_exact_location(self._sv.ghost_entity, location)
    radiant.entities.turn_to(self._sv.ghost_entity, rotation)
@@ -286,11 +290,30 @@ function EntityFormsComponent:_get_form_in_world()
    return nil
 end
 
-function EntityFormsComponent:_create_ladder_tasks(location, normal)
+-- creates a ladder for picking up the item
+function EntityFormsComponent:_create_pick_up_ladder_task()
    if self._climb_to_item then
       self._climb_to_item:destroy()
       self._climb_to_item = nil
    end
+
+   -- if the item is on a structure, we may need to build a ladder to pick ourselves up.
+   -- request that now.   
+   local mob = self._entity:add_component('mob')
+   local parent = mob:get_parent()
+   if parent then
+      -- the ladder has to move over by our normal to the wall, which
+      -- we can compute based on the rotation.
+      local rotation = mob:get_facing()
+      local pickup_normal = build_util.rotation_to_normal(rotation)
+      local pickup_location = radiant.entities.get_world_grid_location(self._entity)
+      pickup_location = pickup_location - Point3.unit_y + pickup_normal
+      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, pickup_normal)
+   end
+end
+
+-- creates a ladder for putting down the item
+function EntityFormsComponent:_create_put_down_ladder_task(location, normal)
    if self._climb_to_destination then
       self._climb_to_destination:destroy()
       self._climb_to_destination = nil
@@ -301,25 +324,8 @@ function EntityFormsComponent:_create_ladder_tasks(location, normal)
       return
    end
 
-   -- if we're currently on a structure, we may need to build a ladder to pick ourselves up.
-   -- request that now.   
-   local mob = self._entity:add_component('mob')
-   local parent = mob:get_parent()
-   if parent then
-      -- the ladder has to move over by our normal to the wall, which
-      -- we can compute based on the rotation.
-      local rotation = mob:get_facing()
-      local pickup_normal = build_util.rotation_to_normal(rotation)
-      local pickup_location = radiant.entities.get_world_grid_location(self._entity)
-      pickup_location = pickup_location + pickup_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, pickup_normal)
-   end
-
-   -- create another ladder request to climb up to the placement point.
-   if normal and normal.y == 0 then
-      local climb_to = normal + location - Point3.unit_y
-      self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
-   end
+   local climb_to = location - Point3.unit_y + normal
+   self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
 end
 
 function EntityFormsComponent:_create_task(args)
@@ -351,8 +357,8 @@ end
 function EntityFormsComponent:_on_position_changed()
    if radiant.entities.get_world_grid_location(self._entity) == nil then
       self:set_should_restock(false)
+      self:_destroy_placement_task()
    end
 end
-
 
 return EntityFormsComponent
