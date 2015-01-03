@@ -1,5 +1,6 @@
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
+local Region3 = _radiant.csg.Region3
 
 local mining_lib = {}
 
@@ -118,6 +119,24 @@ function mining_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
       end
       y = y + 1
    end   
+end
+
+function mining_lib.create_adjacent_columns(point, y_min, y_max)
+   local region = Region3()
+
+   local add_xz_column = function(region, x, z, y_min, y_max)
+      region:add_cube(Cube3(
+            Point3(x,   y_min, z),
+            Point3(x+1, y_max, z+1)
+         ))
+   end
+
+   add_xz_column(region, point.x-1, point.z,   y_min, y_max)
+   add_xz_column(region, point.x+1, point.z,   y_min, y_max)
+   add_xz_column(region, point.x,   point.z-1, y_min, y_max)
+   add_xz_column(region, point.x,   point.z+1, y_min, y_max)
+
+   return region
 end
 
 return mining_lib

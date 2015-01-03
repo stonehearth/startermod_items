@@ -108,27 +108,6 @@ bool MovementHelper::GetPointOfInterest(om::EntityPtr const& entity, csg::Point3
    csg::Point3f poiLocal(0, 0, 0);
 
    if (dst) {
-      DEBUG_ONLY(
-         csg::Region3f rgn = **dst->GetRegion();
-         if (dst->GetReserved()) {
-            rgn -= **dst->GetReserved();
-         }
-
-         if (dst->GetAutoUpdateAdjacent()) {
-            csg::Region3f const& adjacent = **dst->GetAdjacent();
-
-            //ASSERT(world_space_adjacent_region_.GetArea() <= adjacent.GetArea());
-            for (csg::Point3 const& p : EachPoint(adjacent)) {
-               csg::Point3f pt = csg::ToFloat(p);
-               csg::Point3f closest = rgn.GetClosestPoint(pt);
-               csg::Point3f d = closest - pt;
-               // cubes adjacent to one rect in the region might actually be contained
-               // in another rect in the region!  therefore, just ensure that the distance
-               // from the adjacent to the non-adjacent is <= 1 (not exactly 1)...
-               ASSERT(d.LengthSquared() <= 1);
-            }
-         }
-      )
       csg::Point3f fromLocal = phys::WorldToLocal(from, entity);
       bool isValid = dst->GetPointOfInterest(fromLocal, poiLocal);
       if (!isValid) {

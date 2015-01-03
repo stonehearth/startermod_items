@@ -28,8 +28,8 @@ function PlaceItemOnStructureAdjacent:start_thinking(ai, entity, args)
 end
 
 function PlaceItemOnStructureAdjacent:run(ai, entity, args)
-
    assert(self._root_entity:is_valid())
+   ai:execute('stonehearth:turn_to_face_point', { point = args.location })
    ai:execute('stonehearth:run_effect', { effect = 'work' })
    radiant.effects.run_effect(entity, '/stonehearth/data/effects/place_item')
 
