@@ -2133,7 +2133,7 @@ Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farP
 }
 
 
-void Renderer::drawLightGeometry( std::string const& shaderContext, std::string const& theClass,
+void Renderer::doForwardLightPass( std::string const& shaderContext, std::string const& theClass,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly )
 {
 	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
@@ -3325,7 +3325,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 			break;
 
 			case PipelineCommands::DoForwardLightLoop:
-				drawLightGeometry( pc.params[0].getString(), pc.params[1].getString(),
+				doForwardLightPass( pc.params[0].getString(), pc.params[1].getString(),
                pc.params[2].getBool() || !drawShadows, (RenderingOrder::List)pc.params[3].getInt(),
                                _curCamera->_occSet, pc.params[4].getBool() );
 				break;

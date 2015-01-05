@@ -255,7 +255,7 @@ protected:
    void drawGeometry( std::string const& shaderContext, std::string const& theClass,
 	                   RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel=-1, Frustum const* lightFrus=0x0);
    void drawProjections(std::string const& shaderContext, uint32 userFlags );
-	void drawLightGeometry( std::string const& shaderContext, std::string const& theClass,
+	void doForwardLightPass( std::string const& shaderContext, std::string const& theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
 	void drawLightShapes( std::string const& shaderContext, bool noShadows, int occSet );
 	
