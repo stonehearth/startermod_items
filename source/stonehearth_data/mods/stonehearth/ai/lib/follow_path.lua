@@ -8,36 +8,11 @@ function FollowPath:__init(entity, speed, path)
 
    self._entity = entity
    self._speed = speed
-   self._path = path
    self._stop_distance = 0
    self._mob = self._entity:add_component('mob')
 
-   -- path:get_points and path:get_pruned_points return lua base 1 arrays
-   self._points = self._path:get_pruned_points()
-   self._num_points = #self._points
-   self._last_index = self._num_points
-   self._poi = self._path:get_destination_point_of_interest()
-   self._finish_point = self._path:get_finish_point()
-   self._destination_y = self._finish_point.y
-   assert(self._finish_point == self._points[self._last_index])
-
-   self._pursuing_index = self:_calculate_start_index()
-   self._stop_index = self:_calculate_stop_index()
-
-   self._contiguous_points = self._path:get_points()
-   self._contiguous_index = 1
-   assert(self:_is_contiguous_path(self._contiguous_points))
-
-   -- our convention is to have the starting point as the first point in the path
-   if self._mob:get_world_grid_location() ~= self._points[1] then
-      log:info('mob location %s does not match path start location %s', self._mob:get_world_grid_location(), self._points[1])
-      -- this can happen when we ai:execute a goto_location/entity from inside a run of a larger compound action
-      -- e.g. see place_item_action
-      -- TODO: decide how to handle cases when entities are bumped from their path
-   end
-
-   log:debug('%s following path: start_index: %d, stop_index: %d, num_points: %d',
-             self._entity, self._pursuing_index, self._stop_index, self._num_points)
+   local full_path = self:_get_full_path(path)
+   self:_initialize_path(full_path)
 end
 
 function FollowPath:set_speed(speed)
@@ -61,6 +36,11 @@ function FollowPath:set_aborted_cb(aborted_cb)
 end
 
 function FollowPath:start()
+   if not self._path then
+      self:_do_aborted()
+      return self
+   end
+
    self:_check_ignore_stop_distance()
    if self:_arrived() then
       self:_do_arrived()
@@ -76,6 +56,33 @@ function FollowPath:stop()
       self._gameloop_listener = nil
    end
    return self
+end
+
+function FollowPath:_initialize_path(path)
+   self._path = path
+
+   if not self._path then
+      return
+   end
+
+   -- path:get_points and path:get_pruned_points return lua base 1 arrays
+   self._points = self._path:get_pruned_points()
+   self._num_points = #self._points
+   self._last_index = self._num_points
+   self._poi = self._path:get_destination_point_of_interest()
+   self._finish_point = self._path:get_finish_point()
+   self._destination_y = self._finish_point.y
+   assert(self._finish_point == self._points[self._last_index])
+
+   self._contiguous_points = self._path:get_points()
+   self._contiguous_index = 1
+   assert(self:_is_contiguous_path(self._contiguous_points))
+
+   self._pursuing_index = self:_calculate_start_index()
+   self._stop_index = self:_calculate_stop_index()
+
+   log:debug('%s following path: start_index: %d, stop_index: %d, num_points: %d',
+             self._entity, self._pursuing_index, self._stop_index, self._num_points)
 end
 
 function FollowPath:_do_arrived()
@@ -127,7 +134,7 @@ function FollowPath:_check_ignore_stop_distance()
       local finish_point_to_poi_distance = self._finish_point:distance_to(self._poi)
 
       if finish_point_to_poi_distance > location_to_poi_distance then
-         log:info('Start location closer than stop_distance from the poi. Ignoring stop_distance and going to the finish point.')
+         log:info('%s Start location closer than stop_distance from the poi. Ignoring stop_distance and going to the finish point.', self._entity)
          self._stop_distance = 0
          self._stop_index = self._last_index
       end
@@ -171,7 +178,7 @@ function FollowPath:_move_one_gameloop()
 
       -- verify that the move is still valid because the the terrain may have changed from when we found the path
       if not self:_is_valid_move(current_location, new_location) then
-         log:info('Follow path aborting because terrain/nav_grid has changed and move is no longer valid')
+         log:info('%s Follow path aborting because terrain/nav_grid has changed and move is no longer valid', self._entity)
          self:_do_aborted()
          break
       end
@@ -207,7 +214,6 @@ function FollowPath:_is_valid_move(from, to)
       end
       
       current_point = next_point
-      log:info('%s has skipped points on the contiguous path', self._entity)
    end
 
    return true
@@ -301,6 +307,76 @@ function FollowPath:_is_contiguous_path(points)
    end
 
    return true
+end
+
+function FollowPath:_get_full_path(path)
+   local location = self._mob:get_world_grid_location()
+   local start_point = path:get_start_point()
+
+   if location == start_point then
+      return path
+   end
+
+   -- TODO: consider aborting if the distance to the start_point is too far
+   log:info('%s not at start point %s. finding intercept path...', self._entity, start_point)
+
+   local original_points = path:get_points()
+   local intercept_point, intercept_index = self:_find_closest_point_on_path(original_points, location)
+
+   -- find a direct path to the closest point on the main path
+   local intercept_path = self:_find_direct_path(location, intercept_point)
+
+   if not intercept_path then
+      -- blocked? then try to find a path to the original starting location
+      -- this is usually open since we just recently moved from there to here
+      intercept_point = start_point
+      intercept_index = 1
+      intercept_path = self:_find_direct_path(location, intercept_point)
+   end
+
+   if intercept_path then
+      log:info('%s adding intercept path from %s to %s', self._entity, location, intercept_point)
+
+      local finish_index = #original_points
+      local remainder_path = _radiant.sim.create_path_subset(path, intercept_index, finish_index)
+      local full_path =  _radiant.sim.combine_paths({ intercept_path, remainder_path })
+      return full_path
+   else
+      log:warning('%s unable to reach main path', self._entity)
+      -- we could try harder, but best to just abort and defer back to a*
+      return nil
+   end
+end
+
+function FollowPath:_find_closest_point_on_path(path_points, from)
+   local closest_point, closest_index, closest_distance
+
+   for index, point in ipairs(path_points) do
+      local distance = from:distance_to(point)
+
+      if closest_distance and distance > closest_distance then
+         -- exit once we find start getting farther away from the path
+         -- note that this might miss an even closer point that occurs later, but is good enough for our purposes
+         break
+      end
+
+      closest_point = point
+      closest_index = index
+      closest_distance = distance
+   end
+
+   return closest_point, closest_index
+end
+
+function FollowPath:_find_direct_path(from, to)
+   local direct_path_finder = _radiant.sim.create_direct_path_finder(self._entity)
+                              :set_start_location(from)
+                              :set_end_location(to)
+                              :set_allow_incomplete_path(false)
+                              :set_reversible_path(false)
+
+   local path = direct_path_finder:get_path()
+   return path
 end
 
 return FollowPath

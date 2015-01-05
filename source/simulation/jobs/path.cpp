@@ -82,7 +82,7 @@ csg::Point3f Path::GetSourceLocation() const
    return csg::Point3f::zero;
 }
 
-PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
+PathPtr Path::CombinePaths(std::vector<PathPtr> const& paths)
 {
    if (paths.empty()) {
       return nullptr;
@@ -125,4 +125,16 @@ PathPtr radiant::simulation::CombinePaths(std::vector<PathPtr> const& paths)
       combinedPoints, firstPath->GetSource(), lastPath->GetDestination(), lastPath->GetDestinationPointOfInterest()
    );
    return combinedPath;
+}
+
+PathPtr Path::CreatePathSubset(PathPtr path, int startIndex, int finishIndex)
+{
+   auto startPos = path->GetPoints().begin() + startIndex;
+   auto finishPos = path->GetPoints().begin() + finishIndex + 1;
+   std::vector<csg::Point3f> subsetPoints;
+
+   subsetPoints.insert(subsetPoints.begin(), startPos, finishPos);
+
+   PathPtr subsetPath = std::make_shared<Path>(subsetPoints, path->GetSource(), path->GetDestination(), path->GetDestinationPointOfInterest());
+   return subsetPath;
 }
