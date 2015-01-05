@@ -25,8 +25,10 @@ function SettlementTest:__init()
    
    -- just for fun...
    radiant.set_realtime_timer(2000, function()
+      --[[
          stonehearth.inventory:get_inventory('goblins')
                                  :create_stockpile(location, size)
+         ]]                                 
          stonehearth.calendar:set_time_unit_test_only({ hour = 24, minute = 38 })
       end)
 

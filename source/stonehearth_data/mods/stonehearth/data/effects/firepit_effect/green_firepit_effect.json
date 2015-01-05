@@ -1,0 +1,13 @@
+{
+   "mixins" : "file(firepit_effect.json)",
+   "type" : "effect",
+   "tracks": {
+       "cubemitter": {
+          "cubemitter": "particles/fire/fire.green.cubemitter.json"
+       },
+       "light": {
+          "type": "light",
+          "light": "animatedlights/fire/fire.green.animatedlight.json"
+       }
+   }
+}

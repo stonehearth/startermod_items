@@ -302,12 +302,14 @@
       "decoration:gargoyle" : "file(entities/decoration/gargoyle)",
       "decoration:stone_brazier" : "file(entities/decoration/stone_brazier)",
       "decoration:tower_brazier" : "file(entities/decoration/tower_brazier)",
+      "decoration:firepit" : "file(entities/decoration/firepit)",
+      "decoration:firepit_seat" : "file(entities/decoration/firepit/firepit_seat.json)",
+      "decoration:firepit_skulls" : "file(entities/decoration/firepit_skulls)",
+
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
       "tombstone" : "file(entities/furniture/tombstone)",
-      "firepit" : "file(entities/gizmos/firepit)",
-      "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
       "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
 

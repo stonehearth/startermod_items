@@ -12,6 +12,7 @@ function FirepitComponent:initialize(entity, json)
    self._entity = entity
 
    self._light_task = nil
+   self._fire_effect = json.fire_effect
    self._curr_fire_effect = nil
    --self._am_lighting_fire = false
 
@@ -140,7 +141,7 @@ function FirepitComponent:_add_seats()
 end
 
 function FirepitComponent:_add_one_seat(seat_number, location)
-   local seat = radiant.entities.create_entity('stonehearth:firepit_seat')
+   local seat = radiant.entities.create_entity('stonehearth:decoration:firepit_seat')
    local seat_comp = seat:get_component('stonehearth:center_of_attention_spot')
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._sv.seats[seat_number] = seat
@@ -187,8 +188,9 @@ function FirepitComponent:_light()
    log:debug('lighting the fire')
 
    if not self._curr_fire_effect then
+      local effect_file = self._fire_effect or '/stonehearth/data/effects/firepit_effect'
       self._curr_fire_effect =
-         radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/firepit_effect')
+         radiant.effects.run_effect(self._entity, effect_file)
    end
    if not self._sv.seats then
       self:_add_seats()

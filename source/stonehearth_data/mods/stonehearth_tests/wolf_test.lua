@@ -15,7 +15,7 @@ function WolfTest:__init()
    self:place_item('stonehearth:resources:wood:oak_log', -2, -2)
    local player_id = radiant.entities.get_player_id(civ)
    local firepit = self:place_item('stonehearth:fire_pit', 3, 3, player_id)
-   firepit:get_component('stonehearth:firepit'):light()
+   firepit:get_component('stonehearth:decoration:firepit'):light()
    
    --self:place_tree(12, 16)
    --radiant.effects.run_effect(civ, '/stonehearth/data/effects/hit_sparks/blood_effect.json')

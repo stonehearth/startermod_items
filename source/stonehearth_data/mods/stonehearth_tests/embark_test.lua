@@ -53,7 +53,7 @@ function EmbarkTest:__init()
    
    local player_id = worker:get_component('unit_info'):get_player_id()
 
-   self:place_item('stonehearth:firepit', 0, 11, player_id, { force_iconic = false })
+   self:place_item('stonehearth:decoration:firepit', 0, 11, player_id, { force_iconic = false })
 
    local pop = stonehearth.population:get_population(player_id)
    radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:resources:wood:oak_log'))

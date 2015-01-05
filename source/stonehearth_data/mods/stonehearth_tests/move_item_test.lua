@@ -17,7 +17,7 @@ function MoveItemTest:__init()
 
    --local bed = self:place_item('stonehearth:furniture:comfy_bed', 0, 0)
    self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 3, 3)
-   local bed = self:place_item('stonehearth:firepit', 0, 0, player_id)
+   local bed = self:place_item('stonehearth:decoration:firepit', 0, 0, player_id)
 
    local calendar = stonehearth.calendar
    calendar:set_time(21, 59, 0)
