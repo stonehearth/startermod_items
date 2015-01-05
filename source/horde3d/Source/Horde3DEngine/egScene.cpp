@@ -645,7 +645,15 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
             continue;
          }
 
-         if (qUseLightQueue && node->_type == SceneNodeTypes::Light) {		 
+         if (qUseLightQueue && node->_type == SceneNodeTypes::Light) {
+            LightNode *n = (LightNode*) node;
+
+            // Only lights that are NOT directional can be culled.
+            if (!n->getParamI(LightNodeParams::DirectionalI)) {
+               if (qFrustum.cullBox(node->_bBox) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox))) {
+                  continue;
+               }
+            }
             lightQueue.push_back(node);
          } else if (qUseRenderableQueue) {
             if (!node->_renderable) {

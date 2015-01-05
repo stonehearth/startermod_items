@@ -110,6 +110,8 @@ int LightNode::getParamI( int param )
 	{
 	case LightNodeParams::ShadowMapCountI:
 		return _shadowMapCount;
+   case LightNodeParams::DirectionalI:
+      return _directional ? 1 : 0;
 	}
 
 	return SceneNode::getParamI( param );
