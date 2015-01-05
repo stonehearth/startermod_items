@@ -1,0 +1,25 @@
+{
+   "type": "entity",
+   "mixins": "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Blacksmith's Hammer",
+         "description" : "Tools of the trade for a blacksmith."
+      },
+      "item" : {
+         "stacks" : 1
+      },
+       "stonehearth:material" : {
+         "tags" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(blacksmith_hammer.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+   }
+}

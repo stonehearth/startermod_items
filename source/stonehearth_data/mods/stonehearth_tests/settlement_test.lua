@@ -8,7 +8,7 @@ function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
 
-   self:place_citizen(2, 2)
+   --self:place_citizen(2, 2)
 
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard')
@@ -27,6 +27,7 @@ function SettlementTest:__init()
    radiant.set_realtime_timer(2000, function()
          stonehearth.inventory:get_inventory('goblins')
                                  :create_stockpile(location, size)
+         stonehearth.calendar:set_time_unit_test_only({ hour = 24, minute = 38 })
       end)
 
    if true then return end
