@@ -1,7 +1,7 @@
 {
    "entities" : {
       "campfire" : {
-         "uri" : "stonehearth:firepit",
+         "uri" : "stonehearth:decoration:firepit",
          "force_iconic" : false,
          "location" : {
             "x" : 2,

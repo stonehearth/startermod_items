@@ -39,7 +39,7 @@ end
 
 function FearFire:on_added_to_sensor(entity_id)
    local entity = radiant.entities.get_entity(entity_id)
-   local firepit_component = entity:get_component('stonehearth:firepit')
+   local firepit_component = entity:get_component('stonehearth:decoration:firepit')
 
    if firepit_component and firepit_component:is_lit() then
       table.insert(self._fires, entity_id)

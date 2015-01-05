@@ -1,0 +1,31 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name" :  "Blacksmith Overalls",
+         "description" : "Uniform for all blacksmiths",
+         "icon" : "file(blacksmith_outfit.png)"         
+      },
+      "render_info" : {
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(blacksmith_outfit.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(blacksmith_outfit_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "torso",
+         "render_type" : "merge_with_model"
+      }
+   }
+}
