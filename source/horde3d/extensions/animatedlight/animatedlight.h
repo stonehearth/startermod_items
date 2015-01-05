@@ -69,6 +69,7 @@ public:
    animatedlight::RadiusData radius;
    float duration;
    bool loops;
+   int importance;
 };
 
 // =================================================================================================

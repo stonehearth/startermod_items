@@ -228,6 +228,18 @@ function Town:get_banner()
    return self._sv.banner
 end
 
+function Town:get_centroid()
+   if not self._sv.banner then
+      return
+   end
+   local centroid = radiant.entities.get_world_grid_location(self._sv.banner)
+   if not centroid then
+      return
+   end
+   centroid = radiant.terrain.get_point_on_terrain(centroid + Point3.unit_z)
+   return centroid
+end
+
 function Town:set_battle_standard(entity)
    self._sv.battle_standard = entity
    self.__saved_variables:mark_changed()

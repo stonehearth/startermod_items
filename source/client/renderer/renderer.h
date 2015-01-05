@@ -64,6 +64,7 @@ struct RendererConfig {
    RendererConfigEntry<bool> enable_gl_logging;
    RendererConfigEntry<int>  num_msaa_samples;
    RendererConfigEntry<int>  shadow_resolution;
+   RendererConfigEntry<int>  max_lights;
    RendererConfigEntry<float> draw_distance;
    RendererConfigEntry<bool> use_fast_hilite;
 

@@ -17,8 +17,8 @@ function AggroObserver:_add_sensor_trace()
    assert(self._sensor)
 
    self._trace = self._sensor:trace_contents('trace allies')
-      :on_added(function (id)
-            self:_on_added_to_sensor(id)
+      :on_added(function (id, entity)
+            self:_on_added_to_sensor(id, entity)
          end)
       :on_removed(function (id)
             self:_on_removed_from_sensor(id)
@@ -27,9 +27,7 @@ function AggroObserver:_add_sensor_trace()
 end
 
 -- this may be called more than once for an entity, so make sure we can handle duplicates
-function AggroObserver:_on_added_to_sensor(id)
-   local other_entity = radiant.entities.get_entity(id)
-
+function AggroObserver:_on_added_to_sensor(id, other_entity)
    if not other_entity or not other_entity:is_valid() then
       return
    end
@@ -38,10 +36,10 @@ function AggroObserver:_on_added_to_sensor(id)
    -- TODO: only observe units, not structures that have factions
    if radiant.entities.is_friendly(other_entity, self._entity) then
       self:_observe_ally(other_entity)
-   else
-      if radiant.entities.is_hostile(other_entity, self._entity) then
-         self:_add_hostile_to_aggro_table(other_entity)
-      end
+      return
+   end
+   if radiant.entities.is_hostile(other_entity, self._entity) then
+      self:_add_hostile_to_aggro_table(other_entity)
    end
 end
 

@@ -50,7 +50,8 @@ struct EngineOptions
 		GatherTimeStats,
       EnableShadows,
       EnableStatsLogging,
-      DisablePinnedMemory
+      DisablePinnedMemory,
+      MaxLights
 	};
 };
 
@@ -84,6 +85,7 @@ public:
    float overlayAspect;
    bool  enableStatsLogging;
    bool  disablePinnedMemory;
+   int   maxLights;
    std::set<std::string> shaderFlags;
 };
 

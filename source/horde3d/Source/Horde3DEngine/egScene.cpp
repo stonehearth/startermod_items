@@ -452,7 +452,7 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
       return;
    }
 
-   if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
+   if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[nh] = &sceneNode;
    } else {
       auto &iter = _nodeGridLookup.find(nh);
@@ -645,7 +645,15 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
             continue;
          }
 
-         if (qUseLightQueue && node->_type == SceneNodeTypes::Light) {		 
+         if (qUseLightQueue && node->_type == SceneNodeTypes::Light) {
+            LightNode *n = (LightNode*) node;
+
+            // Only lights that are NOT directional can be culled.
+            if (!n->getParamI(LightNodeParams::DirectionalI)) {
+               if (qFrustum.cullBox(node->_bBox) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox))) {
+                  continue;
+               }
+            }
             lightQueue.push_back(node);
          } else if (qUseRenderableQueue) {
             if (!node->_renderable) {
@@ -1518,6 +1526,14 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
          continue;
       }
       if (r.query.order != query.order)
+      {
+         continue;
+      }
+      if (r.query.useLightQueue != query.useLightQueue)
+      {
+         continue;
+      }
+      if (r.query.useRenderableQueue != query.useRenderableQueue)
       {
          continue;
       }

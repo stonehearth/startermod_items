@@ -69,7 +69,7 @@ end
 function SkyRenderer:add_celestial(name, colors, angles, ambient_colors, depth_offsets)
    local new_celestial = {
       name = name,
-      node = h3dAddLightNode(H3DRootNode, name, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP"),
+      node = h3dAddLightNode(H3DRootNode, name, "DIRECTIONAL_LIGHTING", "DIRECTIONAL_SHADOWMAP", true),
       colors = colors,
       ambient_colors = ambient_colors,
       angles = angles,
@@ -81,7 +81,6 @@ function SkyRenderer:add_celestial(name, colors, angles, ambient_colors, depth_o
    h3dSetNodeParamF(new_celestial.node, H3DLight.RadiusF, 0, 10000)
    h3dSetNodeParamF(new_celestial.node, H3DLight.FovF, 0, 360)
    h3dSetNodeParamI(new_celestial.node, H3DLight.ShadowMapCountI, 4)
-   h3dSetNodeParamI(new_celestial.node, H3DLight.DirectionalI, 1)
    h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowSplitLambdaF, 0, 0.95)
    h3dSetNodeParamF(new_celestial.node, H3DLight.ShadowMapBiasF, 0, 0.001)
 
