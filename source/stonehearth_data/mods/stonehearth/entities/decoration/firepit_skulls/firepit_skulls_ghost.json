@@ -1,0 +1,31 @@
+{
+   "type": "entity",
+   "components": {
+      "unit_info": {
+         "name": "Wicked Fire Pit",
+         "description": "Are those....ew.",
+         "icon" : "file(firepit_skulls.png)",
+         "portrait": "file(firepit_skulls.png)"
+      },
+
+      "stonehearth:material" : {
+         "tags" : "light"
+      },
+
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(firepit_skulls.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": 0, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:hide_child_entities_from_pathfinder" : true
+   }
+}
+ 

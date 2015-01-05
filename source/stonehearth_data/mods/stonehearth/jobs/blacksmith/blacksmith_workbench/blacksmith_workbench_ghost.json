@@ -1,0 +1,18 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "Blacksmith Anvil",
+         "description": "Unclaimed"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(blacksmith_workbench.qb)"
+            ]
+         }
+      }
+   },
+   "entity_data" : {
+      "stonehearth:hide_child_entities_from_pathfinder" : true
+   }
+}

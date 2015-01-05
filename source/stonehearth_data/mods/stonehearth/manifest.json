@@ -108,6 +108,11 @@
       "mason:hammer" : "file(jobs/mason/mason_hammer)",
       "mason:talisman" : "file(jobs/mason/mason_chisel/mason_chisel_talisman.json)",
 
+      "blacksmith:workbench" : "file(jobs/blacksmith/blacksmith_workbench)",
+      "blacksmith:outfit" : "file(jobs/blacksmith/blacksmith_outfit)",
+      "blacksmith:hammer" : "file(jobs/blacksmith/blacksmith_hammer)",
+      "blacksmith:talisman" : "file(jobs/blacksmith/blacksmith_hammer/blacksmith_hammer_talisman.json)",
+
       "farmer:outfit" : "file(jobs/farmer/farmer_outfit)",
       "farmer:field" : "file(jobs/farmer/field)",
       "farmer:hoe" : "file(jobs/farmer/farmer_hoe)", 
@@ -278,6 +283,7 @@
       "decoration:wooden_sign_carpenter" : "file(entities/decoration/wooden_sign_carpenter)",
       "decoration:wooden_sign_weaver" : "file(entities/decoration/wooden_sign_weaver)",
       "decoration:wooden_sign_mason" : "file(entities/decoration/wooden_sign_mason)",
+      "decoration:wooden_sign_blacksmith" : "file(entities/decoration/wooden_sign_blacksmith)",
       "decoration:banner_wall_big" : "file(entities/decoration/banner_wall_big)",
       "decoration:banner_wall_small" : "file(entities/decoration/banner_wall_small)",
       "decoration:tapestry_wall" : "file(entities/decoration/tapestry_wall)",
@@ -296,12 +302,14 @@
       "decoration:gargoyle" : "file(entities/decoration/gargoyle)",
       "decoration:stone_brazier" : "file(entities/decoration/stone_brazier)",
       "decoration:tower_brazier" : "file(entities/decoration/tower_brazier)",
+      "decoration:firepit" : "file(entities/decoration/firepit)",
+      "decoration:firepit_seat" : "file(entities/decoration/firepit/firepit_seat.json)",
+      "decoration:firepit_skulls" : "file(entities/decoration/firepit_skulls)",
+
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
       "tombstone" : "file(entities/furniture/tombstone)",
-      "firepit" : "file(entities/gizmos/firepit)",
-      "firepit_seat" : "file(entities/gizmos/firepit/firepit_seat.json)",
 
       "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
 
@@ -347,6 +355,7 @@
       "actions:run_toward_entity" : "file(ai/actions/run_toward_entity_action.lua)",
       "actions:run_toward_location" : "file(ai/actions/run_toward_location_action.lua)",
       "actions:run_to_closest_standable_location" : "file(ai/actions/run_to_closest_standable_location_action.lua)",
+      "actions:get_entity_location" : "file(ai/actions/get_entity_location_action.lua)",
       "actions:bump_entity" : "file(ai/actions/bump_entity_action.lua)",
       "actions:bump_against_entity" : "file(ai/actions/bump_against_entity_action.lua)",
       "actions:bump_allies" : "file(ai/actions/bump_allies_action.lua)",
@@ -356,6 +365,7 @@
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
       "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
+      "actions:set_hangable_adjacent" : "file(ai/actions/set_hangable_adjacent_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
       "actions:start_effect" : "file(ai/actions/start_effect.lua)",
@@ -399,6 +409,7 @@
       "actions:follow_path_action" : "file(ai/actions/follow_path_action.lua)",
       "actions:pickup_item" : "file(ai/actions/pickup_item_action.lua)",
       "actions:pickup_item_trivial" : "file(ai/actions/pickup_item_trivial.lua)",
+      "actions:pickup_hangable_item" : "file(ai/actions/pickup_hangable_item_action.lua)",
       "actions:pickup_item_adjacent" : "file(ai/actions/pickup_item_adjacent_action.lua)",
       "actions:pickup_placed_item_adjacent" : "file(ai/actions/pickup_placed_item_adjacent_action.lua)",
       "actions:pickup_placed_item_adjacent_trivial" : "file(ai/actions/pickup_placed_item_adjacent_trivial.lua)",
@@ -1175,6 +1186,7 @@
       "class:worker" : "file(jobs/worker/worker.lua)", 
       "class:carpenter" : "file(jobs/carpenter/carpenter.lua)", 
       "class:mason" : "file(jobs/mason/mason.lua)", 
+      "class:blacksmith" : "file(jobs/blacksmith/blacksmith.lua)", 
       "class:footman" : "file(jobs/footman/footman.lua)", 
       "class:farmer" : "file(jobs/farmer/farmer.lua)", 
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
@@ -1228,7 +1240,11 @@
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp.lua)",
       "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)",
       "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid.lua)",
-      "game_master:npc_parties:raid_stockpiles" : "file(services/server/game_master/controllers/npc_parties/raid_stockpiles_party.lua)"
+      "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
+
+      "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
+      "unit_control:party" : "file(services/server/unit_control/party.lua)",
+      "unit_control:party_command" : "file(services/server/unit_control/party_command.lua)"
    },
 
    "client_controllers" :  {
@@ -1489,6 +1505,7 @@
          "file(jobs/carpenter/skin/workshop.less)",
          "file(jobs/weaver/skin/workshop.less)",
          "file(jobs/mason/skin/workshop.less)",
+         "file(jobs/blacksmith/skin/workshop.less)",
          "file(ui/common/modal_overlay/modal_overlay.less)",
          "file(ui/shell/shell.less)",
          "file(ui/shell/title/title.less)",

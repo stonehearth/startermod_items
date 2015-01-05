@@ -240,7 +240,9 @@ end
 function MiningService:get_reachable_region(location)
    local y_min = location.y - MAX_REACH_DOWN
    local y_max = location.y + MAX_REACH_UP
-   local region = self:_create_adjacent_columns(location, y_min, y_max)
+
+   -- +1 to y_max to convert from voxel index to cube bounds
+   local region = mining_lib.create_adjacent_columns(location, y_min, y_max+1)
    return region
 end
 
@@ -302,24 +304,6 @@ end
 
 function MiningService:_get_aligned_cube(cube)
    return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
-end
-
-function MiningService:_create_adjacent_columns(point, y_min, y_max)
-   local region = Region3()
-
-   local add_xz_column = function(region, x, z, y_min, y_max)
-      region:add_cube(Cube3(
-            Point3(x,   y_min,   z),
-            Point3(x+1, y_max+1, z+1)
-         ))
-   end
-
-   add_xz_column(region, point.x-1, point.z,   y_min, y_max)
-   add_xz_column(region, point.x+1, point.z,   y_min, y_max)
-   add_xz_column(region, point.x,   point.z-1, y_min, y_max)
-   add_xz_column(region, point.x,   point.z+1, y_min, y_max)
-
-   return region
 end
 
 function MiningService:_init_loot_tables()

@@ -7,8 +7,8 @@
    "out_edge" : "fight",
 
    "city_raid_info" : {
-      "parties" : {
-         "raiders" : {
+      "missions" : {
+         "raid_stockpiles" : {
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
             "members" : {

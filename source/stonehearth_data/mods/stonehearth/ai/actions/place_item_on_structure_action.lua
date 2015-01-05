@@ -22,10 +22,16 @@ return ai:create_compound_action(PlaceItemOnStructure)
          :execute('stonehearth:pickup_item', {
                item = ai.ARGS.item
             })
-         :execute('stonehearth:goto_location', {
-               reason = 'place item on structure',
+         :execute('stonehearth:create_proxy_entity', {
                location = ai.ARGS.location,
-               stop_when_adjacent = true,
+               reason = 'place item on structure',
+               use_default_adjacent_region = true,
+            })
+         :execute('stonehearth:set_hangable_adjacent', {
+               item = ai.BACK(1).entity,
+            })
+         :execute('stonehearth:goto_entity', {
+               entity = ai.BACK(2).entity,
             })
          :execute('stonehearth:place_carrying_on_structure_adjacent', {
                location = ai.ARGS.location,

@@ -85,9 +85,8 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
             end
             local normal = result.normal:to_int()
             local location = result.brick:to_int()
-            local cursor = selector:get_cursor_entity()
 
-            if radiant.terrain.is_blocked(cursor, location) then
+            if radiant.terrain.is_blocked(placement_test_entity, location) then
                -- if the space occupied by the cursor is blocked, we definitely can't
                -- place the item there
                return false
@@ -141,7 +140,7 @@ function PlaceItemCallHandler:choose_place_item_location(session, response, item
                end
             end
               
-            if ground_ok and radiant.terrain.is_standable(cursor, location) then
+            if ground_ok and radiant.terrain.is_standable(placement_test_entity, location) then
                -- we're directly placeable on the ground and didn't find and structures
                -- directly underneath us.  just place right away!
                return true

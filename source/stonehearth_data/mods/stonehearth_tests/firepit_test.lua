@@ -14,14 +14,16 @@ function FirePitTest:__init()
    self:place_item_cluster('stonehearth:resources:wood:oak_log', -10, 0, 3, 3)
 
    local player_id = radiant.entities.get_player_id(worker)
-   self:place_item('stonehearth:firepit', 1, 1, player_id, { force_iconic = false })
-   local firepit = self:place_item('stonehearth:firepit', 8, 8, player_id)
+   self:place_item('stonehearth:decoration:firepit', 1, 1, player_id, { force_iconic = false })
+   local firepit = self:place_item('stonehearth:decoration:firepit', 8, 8, player_id)
+   self:at(1000,  function()
+         --radiant.entities.destroy_entity(firepit)
+         stonehearth.calendar:set_time_unit_test_only({ hour = 24, minute = 38 })
+      end)
+
    --[[
    radiant.events.trigger_async(stonehearth.calendar, 'stonehearth:hourly')
-   --firepit:get_component('stonehearth:firepit'):_init_gather_wood_task()
-   self:at(20000,  function()
-         radiant.entities.destroy_entity(firepit)
-      end)
+   --firepit:get_component('stonehearth:decoration:firepit'):_init_gather_wood_task()
    ]]
    
 end
