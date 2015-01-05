@@ -36,6 +36,7 @@ local service_creation_order = {
    'shepherd',
    'shop',
    'tutorial',
+   'unit_control'
 }
 
 local function create_service(name)
@@ -48,6 +49,7 @@ local function create_service(name)
       stonehearth._sv[name] = saved_variables
    end
    service.__saved_variables = saved_variables
+   service._sv = saved_variables:get_data()
    saved_variables:set_controller(service)
    service:initialize()
    stonehearth[name] = service
