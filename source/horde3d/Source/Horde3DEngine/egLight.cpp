@@ -316,10 +316,18 @@ void LightNode::onPostUpdate()
 	_absPos = Vec3f( _absTrans.c[3][0], _absTrans.c[3][1], _absTrans.c[3][2] );
 
 	// Generate frustum
-	if( _fov < 180 )
+	if( _fov < 180 ) {
 		_frustum.buildViewFrustum( _absTrans, _fov, 1.0f, 0.1f, _radius );
-	else
+   } else {
 		_frustum.buildBoxFrustum( _absTrans, -_radius, _radius, -_radius, _radius, _radius, -_radius );
+   }
+   if (!_directional) {
+      _bBox.clear();
+      Vec3f mins, maxs;
+      _frustum.calcAABB(mins, maxs);
+      _bBox.addPoint(mins);
+      _bBox.addPoint(maxs);
+   }
 }
 
 }  // namespace

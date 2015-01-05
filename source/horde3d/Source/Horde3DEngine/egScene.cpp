@@ -1529,6 +1529,14 @@ int SceneManager::_checkQueryCache(const SpatialQuery& query)
       {
          continue;
       }
+      if (r.query.useLightQueue != query.useLightQueue)
+      {
+         continue;
+      }
+      if (r.query.useRenderableQueue != query.useRenderableQueue)
+      {
+         continue;
+      }
       if (query.secondaryFrustum != nullptr && r.query.secondaryFrustum != nullptr)
       {
          if (*query.secondaryFrustum != *r.query.secondaryFrustum)
