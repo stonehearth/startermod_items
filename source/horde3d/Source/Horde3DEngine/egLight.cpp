@@ -37,6 +37,8 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	_shadowSplitLambda = lightTpl.shadowSplitLambda;
 	_shadowMapBias = lightTpl.shadowMapBias;
    _importance = lightTpl.importance;
+
+   setFlags(SceneNodeFlags::NoRayQuery, false);
 }
 
 
