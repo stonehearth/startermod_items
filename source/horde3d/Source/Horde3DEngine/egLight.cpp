@@ -122,10 +122,6 @@ void LightNode::setParamI( int param, int value )
 {
 	switch( param )
 	{
-	case LightNodeParams::DirectionalI:
-		_directional = (value != 0);
-		markDirty(SceneNodeDirtyKind::Ancestors);
-		return;
 	case LightNodeParams::ShadowMapCountI:
 		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 )
 			_shadowMapCount = (uint32)value;

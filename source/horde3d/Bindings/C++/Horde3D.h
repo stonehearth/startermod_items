@@ -2111,12 +2111,13 @@ DLL H3DNode h3dAddJointNode( H3DNode parent, const char *name, int jointIndex );
 		name             - name of the node
 		lightingContext  - name of the shader context used for doing light calculations
 		shadowContext    - name of the shader context used for doing shadow map rendering
+      directional      - true iff the light is a directional light.
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name,
-                             const char *lightingContext, const char *shadowContext );
+                             const char *lightingContext, const char *shadowContext, bool directional );
 
 
 /* Group: Camera-specific scene graph functions */

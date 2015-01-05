@@ -452,7 +452,7 @@ void GridSpatialGraph::addNode(SceneNode const& sceneNode)
       return;
    }
 
-   if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
+   if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights[nh] = &sceneNode;
    } else {
       auto &iter = _nodeGridLookup.find(nh);
