@@ -105,6 +105,8 @@ bool AnimatedLightResource::load( const char *data, int size )
       lightData.radius = parseRadius(root.get_node("radius"));
    }
 
+   lightData.importance = root.get("importance", (int)H3DLightImportance::High);
+
    lightData.loops = root.get("loops", true);
 
    lightData.duration = root.get("duration", 5.0f);
@@ -226,6 +228,8 @@ void AnimatedLightNode::onPostUpdate()
 void AnimatedLightNode::updateLight()
 {
    AnimatedLightData d = _animatedLightRes.getPtr()->lightData;
+
+   h3dSetNodeParamI(_lightNode, H3DLight::ImportanceI, d.importance);
 
    if (_lightTime >= d.duration)
    {

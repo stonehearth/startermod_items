@@ -618,6 +618,7 @@ struct H3DLight
 		ShadowMapBiasF      - Bias value for shadow mapping to reduce shadow acne (default: 0.005)
 		LightingContextStr  - Name of shader context used for computing lighting
 		ShadowContextStr    - Name of shader context used for generating shadow map
+      ImportanceI         - Importance of the light
 	*/
 	enum List
 	{
@@ -633,7 +634,18 @@ struct H3DLight
 		LightingContextStr,
 		ShadowContextStr,
       DirectionalI,
+      ImportanceI,
 	};
+};
+
+struct H3DLightImportance
+{
+   enum List
+   {
+      Required = 0x0,
+      High     = 0x1,
+      Low      = 0x2
+   };
 };
 
 struct H3DCamera

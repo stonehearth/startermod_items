@@ -2132,14 +2132,89 @@ Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farP
    return result;
 }
 
+struct LightImportanceSortPred
+{
+   Matrix4f clipMat;
+   LightImportanceSortPred(Matrix4f& m) {
+      clipMat = m;
+   }
+
+	bool operator()( LightNode*const& a, LightNode*const& b ) const
+   {
+      float x, y, w, h;
+      float aArea = 1.0, bArea = 1.0;
+      
+      if (!a->getParamI(LightNodeParams::DirectionalI)) {
+         a->calcScreenSpaceAABB(clipMat, x, y, w, h);
+         aArea = w * h;
+      }
+
+      if (!b->getParamI(LightNodeParams::DirectionalI)) {
+         b->calcScreenSpaceAABB(clipMat, x, y, w, h);
+         bArea = w * h;
+      }
+
+      return aArea > bArea;
+   }
+};
+
+
+void Renderer::prioritizeLights(std::vector<LightNode*>* lights)
+{
+   std::vector<LightNode*> high, low;
+
+   unsigned int maxLights = (unsigned int)Modules::config().maxLights;
+   // Light prioritization:
+   // All required lights must be included, regardless of their size/distance from the viewer.
+   // As many high-importance lights as can fit, in order of f(screen_area, distance_from_viewer).
+   // As many low-importance lights as can fit, in order of f(screen_area, distance_from_viewer).
+   // Right now, we don't worry about distance to the viewer; let's see how it looks....
+
+	for(auto const& entry : Modules::sceneMan().getLightQueue())
+	{
+		LightNode* curLight = (LightNode*)entry;
+      if (curLight->_importance == LightNodeImportance::Required) {
+         // Just add all required lights, immediately, regardless of the maxLight cap.
+         lights->push_back(curLight);
+      } else if (curLight->_importance == LightNodeImportance::High) {
+         high.push_back(curLight);
+      } else {
+         low.push_back(curLight);
+      }
+   }
+
+   Matrix4f clipMat = _curCamera->getProjMat() * _curCamera->getViewMat();
+   
+   // Sort high importance lights.
+   std::sort(high.begin(), high.end(), LightImportanceSortPred(clipMat));
+   for (auto const& entry : high) {
+      if (lights->size() >= maxLights) {
+         return;
+      }
+      lights->push_back(entry);
+   }
+
+
+   // Sort low importance lights.
+   std::sort(low.begin(), low.end(), LightImportanceSortPred(clipMat));
+   for (auto const& entry : low) {
+      if (lights->size() >= maxLights) {
+         return;
+      }
+      lights->push_back(entry);
+   }
+}
 
 void Renderer::doForwardLightPass( std::string const& shaderContext, std::string const& theClass,
                                   bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly )
 {
 	Modules::sceneMan().updateQueues("drawing light geometry", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                 SceneNodeFlags::NoDraw, 0, true, false );
+
+   std::vector<LightNode*> prioritizedLights;
+   prioritizeLights(&prioritizedLights);
 	
-	for( const auto& entry : Modules::sceneMan().getLightQueue() )
+	for( const auto& entry : prioritizedLights)
 	{
 		_curLight = (LightNode *)entry;
       const Frustum* lightFrus;
@@ -2170,7 +2245,9 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
       }
 
 		// Check if light is not visible
-		if( lightFrus && _curCamera->getFrustum().cullFrustum( *lightFrus ) ) continue;
+		if (lightFrus && _curCamera->getFrustum().cullFrustum(*lightFrus)) {
+         continue;
+      }
 	
 		// Update shadow map
 		if( !noShadows && _curLight->_shadowMapCount > 0 )
@@ -2208,13 +2285,6 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
 	}
 
 	_curLight = 0x0;
-
-	// Draw occlusion proxies
-	if( occSet >= 0 )
-	{
-		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-		Modules::renderer().drawOccProxies( 1 );
-	}
 }
 
 

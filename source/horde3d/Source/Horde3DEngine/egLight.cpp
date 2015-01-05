@@ -36,6 +36,7 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	_shadowMapCount = lightTpl.shadowMapCount;
 	_shadowSplitLambda = lightTpl.shadowSplitLambda;
 	_shadowMapBias = lightTpl.shadowMapBias;
+   _importance = lightTpl.importance;
 }
 
 
@@ -110,6 +111,8 @@ int LightNode::getParamI( int param )
 	{
 	case LightNodeParams::ShadowMapCountI:
 		return _shadowMapCount;
+   case LightNodeParams::ImportanceI:
+      return _importance;
    case LightNodeParams::DirectionalI:
       return _directional ? 1 : 0;
 	}
@@ -128,6 +131,9 @@ void LightNode::setParamI( int param, int value )
 		else
 			Modules::setError( "Invalid value in h3dSetNodeParamI for H3DLight::ShadowMapCountI" );
 		return;
+   case LightNodeParams::ImportanceI:
+      _importance = value;
+      return;
 	}
 
 	return SceneNode::setParamI( param, value );
