@@ -119,7 +119,8 @@ struct H3DOptions
 		GatherTimeStats,
       EnableShadows,
       EnableStatsLogging,
-      DisablePinnedMemory
+      DisablePinnedMemory,
+      MaxLights
 	};
 };
 
