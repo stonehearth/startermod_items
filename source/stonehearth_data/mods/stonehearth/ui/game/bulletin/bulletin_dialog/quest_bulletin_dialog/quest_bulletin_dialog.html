@@ -4,14 +4,14 @@
       <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
       <div id="scroll" class="parchment">
          <div id="content">
-            <div id="title">{{{ data.title }}}</div>
-            <div>{{{ data.progress }}}</div>
+            <div id="title">{{{ view.model.data.title }}}</div>
+            <div>{{{ view.model.data.progress }}}</div>
             <h2>Description</h2>
-            <div>{{{ data.message }}}</div>
-            {{#if data.rewards}}
+            <div>{{{ view.model.data.message }}}</div>
+            {{#if view.model.data.rewards}}
                <h2>Rewards</h2>
                <div>
-                  {{#each data.rewardsArray}}
+                  {{#each view.rewardsArray}}
                      {{this.label}}
                   {{/each}}
                </div>
@@ -19,13 +19,13 @@
          </div>
       </div>
 
-      {{#if data.ok_callback }}
+      {{#if view.model.data.ok_callback }}
          <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
       {{/if}}
-      {{#if data.accepted_callback }}
+      {{#if view.model.data.accepted_callback }}
          <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
       {{/if}}
-      {{#if data.declined_callback }}
+      {{#if view.model.data.declined_callback }}
          <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
       {{/if}}
    </div>

@@ -1,13 +1,13 @@
 <script type="text/x-handlebars" data-template-name="lvUpBulletinDialog">
 <div id="lvUpBulletinDialog" class="gui bulletinDialog">
    <div class="window">
-      <div class="title">{{data.char_name}} {{i18n stonehearth:bulletin_dialog_level_title}}<div class="closeButton"></div></div>
+      <div class="title">{{view.model.data.char_name}} {{i18n stonehearth:bulletin_dialog_level_title}}<div class="closeButton"></div></div>
       <div id="scroll" class="parchment">
          <div id="content">
-            <div id="title">{{{ data.title }}}</div>
+            <div id="title">{{{ view.model.data.title }}}</div>
 
-            {{#if data.has_class_perks}}   
-               {{#each data.class_perks}}
+            {{#if view.model.data.has_class_perks}}   
+               {{#each view.model.data.class_perks}}
                   <div class="perk">
                      <div class="icon">
                         <img {{bind-attr src=this.icon}}/>
@@ -19,8 +19,8 @@
                   </div>
                {{/each}}
             {{/if}}
-            {{#if data.has_race_perks}}
-                  {{#each data.race_perks}}
+            {{#if view.model.data.has_race_perks}}
+                  {{#each view.model.data.race_perks}}
                      <div class="perk">
                         <div class="icon">
                            <img {{bind-attr src=this.icon}}/>
