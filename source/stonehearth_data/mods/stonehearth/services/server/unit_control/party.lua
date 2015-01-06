@@ -19,14 +19,14 @@ function Party:get_id()
 end
 
 function Party:add_member(member)
+   local id = member:get_id()
    local pc = member:add_component('stonehearth:party_member')
    local old_party = pc:get_party()
    if old_party then
-      old_party:remove_member()
+      old_party:remove_member(id)
    end
    pc:set_party(self)
    
-   local id = member:get_id()
    local party_abilities = radiant.entities.create_entity('stonehearth:party:party_abilities')
 
    local party_task = member:get_component('stonehearth:ai')
