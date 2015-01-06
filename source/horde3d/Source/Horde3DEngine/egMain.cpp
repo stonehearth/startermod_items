@@ -1006,7 +1006,7 @@ DLLEXP NodeHandle h3dAddJointNode( NodeHandle parent, const char *name, int join
 
 
 DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
-                                   const char *lightingContext, const char *shadowContext )
+                                   const char *lightingContext, const char *shadowContext, bool directional )
 {
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE( parentNode, "h3dAddLightNode", 0 );
@@ -1014,6 +1014,7 @@ DLLEXP NodeHandle h3dAddLightNode( NodeHandle parent, const char *name,
 	//Modules::log().writeInfo( "Adding Light node '%s'", safeStr( name ).c_str() );
 	LightNodeTpl tpl( safeStr( name, 0 ),
 	                  safeStr( lightingContext, 1 ), safeStr( shadowContext, 2 ) );
+   tpl.directional = directional;
 	SceneNode *sn = Modules::sceneMan().findType( SceneNodeTypes::Light )->factoryFunc( tpl );
 	return Modules::sceneMan().addNode( sn, *parentNode );
 }

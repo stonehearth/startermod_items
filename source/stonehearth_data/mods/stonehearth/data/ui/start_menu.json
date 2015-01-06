@@ -153,11 +153,11 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "dead_button" : {
-      "name" : "TBD",
-      "description" : "We have one slot to use. Ideas?",
+   "squad_manager" : {
+      "name" : "Squads",
+      "description" : "Organize your troops into groups",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dead.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/squads.png",
       "hotkey" : "7",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",

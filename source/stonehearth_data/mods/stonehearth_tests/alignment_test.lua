@@ -53,7 +53,7 @@ function AlignmentTest:__init()
 
    self:_check_item('stonehearth:furniture:picket_fence', x, z, dx, 0, false); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:firepit', x, z, dx, 0, false); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:firepit', x, z, dx, 0, false); x=x_start; z=z+dz;
 
    x_start, z_start = col[3], row[1]
    x,z = x_start,z_start; dx,dz = 4,8
@@ -77,7 +77,7 @@ function AlignmentTest:__init()
 
    self:_check_item('stonehearth:furniture:picket_fence', x, z, dx, 0); x=x_start; z=z+dz;
 
-   self:_check_item('stonehearth:firepit', x, z, dx, 0); x=x_start; z=z+dz;
+   self:_check_item('stonehearth:decoration:firepit', x, z, dx, 0); x=x_start; z=z+dz;
 
 --
 

@@ -1,14 +1,14 @@
 
 local CityRaid = class()
 
-local PARTY_CONTROLLER = 'stonehearth:game_master:npc_parties:'
+local MISSION_CONTROLLER = 'stonehearth:game_master:missions:'
 
 function CityRaid:start(ctx, info)
    assert(ctx.enemy_location)
 
    self._sv.ctx = ctx
    self._sv.info = info
-   self._sv.parties = {}
+   self._sv.missions = {}
 
    self:_create_raid(info)
 end
@@ -20,15 +20,15 @@ end
 function CityRaid:_create_raid(info)
    local ctx = self._sv.ctx
    
-   assert(info.parties) 
-   for name, party_info in pairs(info.parties) do
-      assert(party_info.role)
-      local controller_name = PARTY_CONTROLLER .. party_info.role
+   assert(info.missions)
+   for name, info in pairs(info.missions) do
+      assert(info.role)
+      local controller_name = MISSION_CONTROLLER .. info.role
       
-      local party = radiant.create_controller(controller_name, ctx, party_info)
-      assert(party)
+      local mission = radiant.create_controller(controller_name, ctx, info)
+      assert(mission)
 
-      self._sv.parties[name] = party
+      self._sv.missions[name] = mission
    end
 end
 

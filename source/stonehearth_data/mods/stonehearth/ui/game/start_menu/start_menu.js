@@ -54,6 +54,9 @@ App.StonehearthStartMenuView = App.View.extend({
       citizen_manager: function() {
          App.stonehearthClient.showCitizenManager();
       },
+      squad_manager: function() {
+         App.stonehearthClient.showSquadManager();
+      },
       tasks_manager: function() {
          App.stonehearthClient.showTasksManager();
       },

@@ -307,8 +307,14 @@ PathPtr Path_CombinePaths(luabind::object const& table)
       paths.push_back(luabind::object_cast<PathPtr>(*i));
    }
    
-   PathPtr combinedPath = CombinePaths(paths);
+   PathPtr combinedPath = Path::CombinePaths(paths);
    return combinedPath;
+}
+
+PathPtr Path_CreatePathSubset(PathPtr path, int startIndex, int finishIndex)
+{
+   // convert indices from base 1 to base 0
+   return Path::CreatePathSubset(path, startIndex-1, finishIndex-1);
 }
 
 DEFINE_INVALID_JSON_CONVERSION(Path);
@@ -408,7 +414,8 @@ void lua::sim::open(lua_State* L, Simulation* sim)
             ,
             lua::RegisterTypePtr_NoTypeInfo<LuaJob>("LuaJob")
             ,
-            def("combine_paths", &Path_CombinePaths)
+            def("combine_paths", &Path_CombinePaths),
+            def("create_path_subset", &Path_CreatePathSubset)
          ]
       ]
    ];

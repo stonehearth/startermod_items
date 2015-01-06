@@ -40,8 +40,20 @@ struct LightNodeParams
 		LightingContextStr,
 		ShadowContextStr,
       DirectionalI,
+      ImportanceI,
 	};
 };
+
+struct LightNodeImportance
+{
+   enum List
+   {
+      Required = 0x0,
+      High     = 0x1,
+      Low      = 0x2
+   };
+};
+
 
 // =================================================================================================
 
@@ -55,6 +67,7 @@ struct LightNodeTpl : public SceneNodeTpl
 	float              shadowSplitLambda;
 	float              shadowMapBias;
    bool               directional;
+   int                importance;
 
 	LightNodeTpl( std::string const& name,
 	              std::string const& lightingContext, std::string const& shadowContext ) :
@@ -62,7 +75,7 @@ struct LightNodeTpl : public SceneNodeTpl
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
       ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 
-      shadowMapBias( 0.005f ), directional(false)
+      shadowMapBias( 0.005f ), directional(false), importance(0)
 	{
 	}
 };
@@ -105,6 +118,7 @@ private:
 	Vec3f                  _ambientCol;
 	float                  _diffuseColMult;
 	uint32                 _shadowMapCount;
+   int                    _importance;
 	float                  _shadowSplitLambda, _shadowMapBias;
 
 	std::vector< uint32 >  _occQueries;

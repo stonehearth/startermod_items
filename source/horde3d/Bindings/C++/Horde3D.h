@@ -119,7 +119,8 @@ struct H3DOptions
 		GatherTimeStats,
       EnableShadows,
       EnableStatsLogging,
-      DisablePinnedMemory
+      DisablePinnedMemory,
+      MaxLights
 	};
 };
 
@@ -618,6 +619,7 @@ struct H3DLight
 		ShadowMapBiasF      - Bias value for shadow mapping to reduce shadow acne (default: 0.005)
 		LightingContextStr  - Name of shader context used for computing lighting
 		ShadowContextStr    - Name of shader context used for generating shadow map
+      ImportanceI         - Importance of the light
 	*/
 	enum List
 	{
@@ -633,7 +635,18 @@ struct H3DLight
 		LightingContextStr,
 		ShadowContextStr,
       DirectionalI,
+      ImportanceI,
 	};
+};
+
+struct H3DLightImportance
+{
+   enum List
+   {
+      Required = 0x0,
+      High     = 0x1,
+      Low      = 0x2
+   };
 };
 
 struct H3DCamera
@@ -2111,12 +2124,13 @@ DLL H3DNode h3dAddJointNode( H3DNode parent, const char *name, int jointIndex );
 		name             - name of the node
 		lightingContext  - name of the shader context used for doing light calculations
 		shadowContext    - name of the shader context used for doing shadow map rendering
+      directional      - true iff the light is a directional light.
 		
 	Returns:
 		handle to the created node or 0 in case of failure
 */
 DLL H3DNode h3dAddLightNode( H3DNode parent, const char *name,
-                             const char *lightingContext, const char *shadowContext );
+                             const char *lightingContext, const char *shadowContext, bool directional );
 
 
 /* Group: Camera-specific scene graph functions */

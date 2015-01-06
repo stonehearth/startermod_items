@@ -23,7 +23,7 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
    if not self._log then
       self._log = radiant.log.create_logger('combat')
                               :set_prefix('create_engage_callback')
-                              :set_entity(self._entity)
+                              :set_entity(entity)
    end
    
    if weapon == nil or not weapon:is_valid() then
@@ -50,7 +50,7 @@ function CreateEngageCallback:start_thinking(ai, entity, args)
          local context = EngageContext(entity, target)
          stonehearth.combat:engage(context)
       else
-         self._log:spam('%s is too far away.  ignoring (%f < %f).', target, distance, engage_range_max)
+         self._log:spam('%s is too far away to engage.  ignoring (%f > %f).', target, distance, engage_range_max)
       end
    end
 

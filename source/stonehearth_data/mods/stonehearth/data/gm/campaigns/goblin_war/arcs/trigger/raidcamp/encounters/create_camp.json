@@ -9,8 +9,8 @@
    "create_camp_info" : {
       "player_id" : "goblins",
       "spawn_range" : {
-         "min" : 10,
-         "max" : 20
+         "min" : 80,
+         "max" : 90
       },     
       "required_pieces" : {
          "boss" : "file(camp_pieces/boss.json)"
