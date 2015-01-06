@@ -512,6 +512,7 @@ void Client::OneTimeIninitializtion()
          node.set("yres", makeRendererConfigNode(cfg.screen_height));
          node.set("fullscreen", makeRendererConfigNode(cfg.enable_fullscreen));
          node.set("shadow_res", makeRendererConfigNode(cfg.shadow_resolution));
+         node.set("max_lights", makeRendererConfigNode(cfg.max_lights));
          node.set("draw_distance", makeRendererConfigNode(cfg.draw_distance));
          node.set("gfx_card_renderer", Renderer::GetInstance().GetStats().gpu_renderer);
          node.set("gfx_card_driver", Renderer::GetInstance().GetStats().gl_version);
@@ -537,6 +538,7 @@ void Client::OneTimeIninitializtion()
          newCfg.use_shadows.value = params.get<bool>("shadows", oldCfg.use_shadows.value);
          newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
          newCfg.shadow_resolution.value = params.get<int>("shadow_res", oldCfg.shadow_resolution.value);
+         newCfg.max_lights.value = params.get<int>("max_lights", oldCfg.max_lights.value);
          newCfg.enable_fullscreen.value = params.get<bool>("fullscreen", oldCfg.enable_fullscreen.value);
          newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
          newCfg.draw_distance.value = params.get<float>("draw_distance", oldCfg.draw_distance.value);

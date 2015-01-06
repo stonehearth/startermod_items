@@ -9,7 +9,7 @@ BEGIN_RADIANT_SIMULATION_NAMESPACE
 
 class Path {
    public:
-      Path(const std::vector<csg::Point3f>& points, om::EntityRef source, om::EntityRef destination, csg::Point3f const& poi);
+      Path(std::vector<csg::Point3f> const& points, om::EntityRef source, om::EntityRef destination, csg::Point3f const& poi);
 
       std::vector<csg::Point3f> const& GetPoints() const {
          return points_;
@@ -24,7 +24,11 @@ class Path {
       csg::Point3f GetStartPoint() const;
       csg::Point3f GetFinishPoint() const;
       csg::Point3f GetDestinationPointOfInterest() const { return poi_; }
+
       std::ostream& Format(std::ostream& os) const;
+
+      static PathPtr CombinePaths(std::vector<PathPtr> const& paths);
+      static PathPtr CreatePathSubset(PathPtr path, int startIndex, int finishIndex);
 
    private:
       csg::Point3f GetSourceLocation() const;
@@ -40,8 +44,6 @@ class Path {
 
 typedef std::weak_ptr<Path> PathRef;
 typedef std::shared_ptr<Path> PathPtr;
-
-PathPtr CombinePaths(std::vector<PathPtr> const& paths);
 
 std::ostream& operator<<(std::ostream& os, const Path& in);
 

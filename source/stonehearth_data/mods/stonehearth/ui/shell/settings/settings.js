@@ -41,10 +41,6 @@ App.StonehearthSettingsView = App.View.extend({
 
    },
 
-   reloadableSettingDidChange : function() {
-      this.applyConfig(false);
-   },
-
    didInsertElement : function() {
       var self = this;
 
@@ -67,13 +63,6 @@ App.StonehearthSettingsView = App.View.extend({
 
          self.$('#' + tabPage).show();
       });
-
-      var reloadableCallback = function() {
-         self.reloadableSettingDidChange();
-      };
-
-      self.$('#opt_numSamples').change(reloadableCallback);
-      self.$('#opt_shadowRes').change(reloadableCallback);
 
       self.$('#applyButton').click(function() {
          self.applySettings();
@@ -118,6 +107,7 @@ App.StonehearthSettingsView = App.View.extend({
                "shadows" : o.shadows.value,
                "vsync" : o.vsync.value,
                "shadow_res" : o.shadow_res.value,
+               "max_lights" : o.max_lights.value,
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
                "draw_distance" : o.draw_distance.value,
@@ -132,6 +122,8 @@ App.StonehearthSettingsView = App.View.extend({
             self.set('context.shadows_enabled', o.shadows.value);
 
             self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value, o.shadows.value))
+
+            self.set('context.max_lights', o.max_lights.value)
 
             self.set('context.vsync_enabled', o.vsync.value);
 
@@ -184,6 +176,18 @@ App.StonehearthSettingsView = App.View.extend({
             });
             $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + self.get('context.shadow_res')));
 
+            $('#maxLightsSlider').slider({
+               value: self.get('context.max_lights'),
+               min: 1,
+               max: 250,
+               step: 1,
+               slide: function( event, ui ) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
+                  $('#maxLightsDescription').html(ui.value);
+               }
+            });
+            $('#maxLightsDescription').html(self.get('context.max_lights'));
+
             $('#drawDistSlider').slider({
                value: self.get('context.draw_distance'),
                min: 500,
@@ -195,7 +199,6 @@ App.StonehearthSettingsView = App.View.extend({
                }
             });
             $('#drawDistDescription').html(self.get('context.draw_distance'));
-
          });
 
    },
@@ -207,6 +210,7 @@ App.StonehearthSettingsView = App.View.extend({
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
          "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
          "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
+         "max_lights" :  $( "#maxLightsSlider" ).slider( "value" ),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),
          "use_fast_hilite" : $('#opt_useFastHilite').is(':checked'),

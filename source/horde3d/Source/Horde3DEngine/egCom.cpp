@@ -49,6 +49,7 @@ EngineConfig::EngineConfig()
    overlayAspect = 1.0;
    enableStatsLogging = false;
    disablePinnedMemory = false;
+   maxLights = 32;
 }
 
 
@@ -93,6 +94,8 @@ float EngineConfig::getOption( EngineOptions::List param )
       return enableStatsLogging ? 1.0f : 0.0f;
    case EngineOptions::DisablePinnedMemory:
       return disablePinnedMemory ? 1.0f : 0.0f;
+   case EngineOptions::MaxLights:
+      return (float)maxLights;
 	default:
 		Modules::setError( "Invalid param for h3dGetOption" );
 		return Math::NaN;
@@ -133,6 +136,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 	case EngineOptions::FastAnimation:
 		fastAnimation = (value != 0);
 		return true;
+   case EngineOptions::MaxLights:
+      maxLights = (int)value;
+      return true;
 	case EngineOptions::ShadowMapSize:
       if (!enableShadows || !rendererCaps.ShadowsSupported) {
          return true;

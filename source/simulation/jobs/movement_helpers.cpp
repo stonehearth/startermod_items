@@ -342,7 +342,7 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
 // This algorithm inverts Bresenham by estimating the true line from the points provided.
 // The first point anchors one point of the line segment, and each additional point puts bounds
 // on the set of slopes that can satisfy all points (being within 0.5 units of the line).
-// So, a point can be part of the line segment if its slope bounds have a non-zero intersection,
+// So, a point can be part of the line segment if its slope bounds have a non-zero intersection
 // with the aggregate slope bounds and we add its bounding constraints to the aggregate.
 // However, it cannot end the segment unless the point falls inside the aggregate bounds.
 // i.e. there are points that can be part of the line segment, but cannot terminate the segment.

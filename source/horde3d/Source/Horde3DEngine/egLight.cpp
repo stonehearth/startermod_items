@@ -36,6 +36,9 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	_shadowMapCount = lightTpl.shadowMapCount;
 	_shadowSplitLambda = lightTpl.shadowSplitLambda;
 	_shadowMapBias = lightTpl.shadowMapBias;
+   _importance = lightTpl.importance;
+
+   setFlags(SceneNodeFlags::NoRayQuery, false);
 }
 
 
@@ -110,6 +113,10 @@ int LightNode::getParamI( int param )
 	{
 	case LightNodeParams::ShadowMapCountI:
 		return _shadowMapCount;
+   case LightNodeParams::ImportanceI:
+      return _importance;
+   case LightNodeParams::DirectionalI:
+      return _directional ? 1 : 0;
 	}
 
 	return SceneNode::getParamI( param );
@@ -120,16 +127,15 @@ void LightNode::setParamI( int param, int value )
 {
 	switch( param )
 	{
-	case LightNodeParams::DirectionalI:
-		_directional = (value != 0);
-		markDirty(SceneNodeDirtyKind::Ancestors);
-		return;
 	case LightNodeParams::ShadowMapCountI:
 		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 )
 			_shadowMapCount = (uint32)value;
 		else
 			Modules::setError( "Invalid value in h3dSetNodeParamI for H3DLight::ShadowMapCountI" );
 		return;
+   case LightNodeParams::ImportanceI:
+      _importance = value;
+      return;
 	}
 
 	return SceneNode::setParamI( param, value );
@@ -318,10 +324,18 @@ void LightNode::onPostUpdate()
 	_absPos = Vec3f( _absTrans.c[3][0], _absTrans.c[3][1], _absTrans.c[3][2] );
 
 	// Generate frustum
-	if( _fov < 180 )
+	if( _fov < 180 ) {
 		_frustum.buildViewFrustum( _absTrans, _fov, 1.0f, 0.1f, _radius );
-	else
+   } else {
 		_frustum.buildBoxFrustum( _absTrans, -_radius, _radius, -_radius, _radius, _radius, -_radius );
+   }
+   if (!_directional) {
+      _bBox.clear();
+      Vec3f mins, maxs;
+      _frustum.calcAABB(mins, maxs);
+      _bBox.addPoint(mins);
+      _bBox.addPoint(maxs);
+   }
 }
 
 }  // namespace
