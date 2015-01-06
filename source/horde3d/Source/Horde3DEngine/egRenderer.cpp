@@ -68,7 +68,6 @@ Renderer::Renderer()
 	_quadIdxBuf = 0;
 	_particleVBO = 0;
 	_curCamera = 0x0;
-	_curLight = 0x0;
 	_curShader = 0x0;
 	_curRenderTarget = 0x0;
 	_curShaderUpdateStamp = 1;
@@ -668,6 +667,34 @@ void Renderer::commitGlobalUniforms()
 }
 
 
+void Renderer::commitLightUniforms(LightNode const* light)
+{
+   float data[4];
+   if (light == nullptr) {
+      return;
+   }
+
+   data[0] = light->_absPos.x; data[1] = light->_absPos.y; data[2] = light->_absPos.z; data[3] = light->_radius;
+   setGlobalUniform("lightPos", UniformType::VEC4, data);
+
+   data[0] = light->_spotDir.x; data[1] = light->_spotDir.y; data[2] = light->_spotDir.z; data[3] = cosf(degToRad(light->_fov / 2.0f));
+   setGlobalUniform("lightDir", UniformType::VEC4, data);
+
+   Vec3f col = light->_diffuseCol * light->_diffuseColMult;
+   setGlobalUniform("lightColor", UniformType::VEC3, &col.x);
+
+   setGlobalUniform("lightAmbientColor", UniformType::VEC3, &light->_ambientCol.x);
+
+   setGlobalUniform("shadowSplitDists", UniformType::VEC4, &_splitPlanes[1]);
+
+   setGlobalUniform("shadowMats", UniformType::MAT44_ARRAY, &_lightMats[0].x[0], 4);
+
+   setGlobalUniform("shadowMapSize", UniformType::FLOAT, &_smSize);
+
+   setGlobalUniform("shadowBias", UniformType::FLOAT, &light->_shadowMapBias);
+}
+
+
 void Renderer::commitGeneralUniforms()
 {
 	ASSERT( _curShader != 0x0 );
@@ -783,48 +810,6 @@ void Renderer::commitGeneralUniforms()
          Matrix4f m = _projectorMat.inverted();
          gRDI->setShaderConst( _curShader->uni_projectorMat, CONST_FLOAT44, m.x);
       }
-		// Light params
-		if( _curLight != 0x0 )
-		{
-			if( _curShader->uni_lightPos >= 0 )
-			{
-				float data[4] = { _curLight->_absPos.x, _curLight->_absPos.y,
-				                  _curLight->_absPos.z, _curLight->_radius };
-				gRDI->setShaderConst( _curShader->uni_lightPos, CONST_FLOAT4, data );
-			}
-			
-			if( _curShader->uni_lightDir >= 0 )
-			{
-				float data[4] = { _curLight->_spotDir.x, _curLight->_spotDir.y,
-				                  _curLight->_spotDir.z, cosf( degToRad( _curLight->_fov / 2.0f ) ) };
-				gRDI->setShaderConst( _curShader->uni_lightDir, CONST_FLOAT4, data );
-			}
-			
-			if( _curShader->uni_lightColor >= 0 )
-			{
-				Vec3f col = _curLight->_diffuseCol * _curLight->_diffuseColMult;
-				gRDI->setShaderConst( _curShader->uni_lightColor, CONST_FLOAT3, &col.x );
-			}
-			
-			if( _curShader->uni_lightAmbientColor >= 0 )
-			{
-				Vec3f col = _curLight->_ambientCol;
-				gRDI->setShaderConst( _curShader->uni_lightAmbientColor, CONST_FLOAT3, &col.x );
-			}
-
-         if( _curShader->uni_shadowSplitDists >= 0 )
-				gRDI->setShaderConst( _curShader->uni_shadowSplitDists, CONST_FLOAT4, &_splitPlanes[1] );
-
-			if( _curShader->uni_shadowMats >= 0 )
-				gRDI->setShaderConst( _curShader->uni_shadowMats, CONST_FLOAT44, &_lightMats[0].x[0], 4 );
-			
-			if( _curShader->uni_shadowMapSize >= 0 )
-				gRDI->setShaderConst( _curShader->uni_shadowMapSize, CONST_FLOAT, &_smSize );
-			
-			if( _curShader->uni_shadowBias >= 0 )
-				gRDI->setShaderConst( _curShader->uni_shadowBias, CONST_FLOAT, &_curLight->_shadowMapBias );
-		}
-
 		_curShader->lastUpdateStamp = _curShaderUpdateStamp;
 	}
 }
@@ -1271,12 +1256,12 @@ void Renderer::releaseShadowRB()
 }
 
 
-void Renderer::setupShadowMap( bool noShadows )
+void Renderer::setupShadowMap(LightNode const* light, bool noShadows)
 {
 	uint32 sampState = SS_FILTER_BILINEAR | SS_ANISO1 | SS_ADDR_CLAMPCOL | SS_COMP_LEQUAL;
 	
 	// Bind shadow map
-	if( !noShadows && _curLight->_shadowMapCount > 0 )
+	if( !noShadows && light->_shadowMapCount > 0 )
 	{
       gRDI->setTexture( 12, gRDI->getRenderBufferTex( _shadowRB, 32 ), sampState );
 		_smSize = (float)Modules::config().shadowMapSize;
@@ -1334,7 +1319,7 @@ Matrix4f Renderer::calcCropMatrix(Frustum const& frustSlice, Vec3f const& lightP
    }
 
 	// Find post-projective space AABB of frustum slice if light is not inside
-	if( frustSlice.cullSphere( _curLight->_absPos, 0 ) )
+	if( frustSlice.cullSphere( lightPos, 0 ) )
 	{
 		// Get frustum in post-projective space
 		for( uint32 i = 0; i < 8; ++i )
@@ -1549,9 +1534,11 @@ void Renderer::computeLightFrustumNearFar(const BoundingBox& worldBounds, const 
 }
 
 
-void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist)
+void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist)
 {
-	if( _curLight == 0x0 ) return;
+	if (light == 0x0) {
+      return;
+   }
 	
 	uint32 prevRendBuf = gRDI->_curRendBuf;
 	int prevVPX = gRDI->_vpX, prevVPY = gRDI->_vpY, prevVPWidth = gRDI->_vpWidth, prevVPHeight = gRDI->_vpHeight;
@@ -1571,7 +1558,7 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 	BoundingBox litAabb;
 
    std::ostringstream reason;
-   reason << "update shadowmap for light " << _curLight->getName();
+   reason << "update shadowmap for light " << light->getName();
 
 	Modules::sceneMan().updateQueues(reason.str().c_str(), *lightFrus, 0x0,
 		RenderingOrder::None, SceneNodeFlags::NoDraw | SceneNodeFlags::NoCastShadow, 0, false, true, true );
@@ -1587,8 +1574,8 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
    // Calculate split distances using PSSM scheme
    const float nearDist = minDist;
    const float farDist = maxf( maxDist, minDist + 0.01f );
-   const uint32 numMaps = _curLight->_shadowMapCount;
-   const float lambda = _curLight->_shadowSplitLambda;
+   const uint32 numMaps = light->_shadowMapCount;
+   const float lambda = light->_shadowSplitLambda;
 	
 	_splitPlanes[0] = nearDist;
    _splitPlanes[numMaps] = farDist;
@@ -1631,19 +1618,19 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
-      Matrix4f lightViewMat = _curLight->getViewMat();
+      Matrix4f lightViewMat = light->getViewMat();
       Vec3f lightAbsPos;
-      if ( !_curLight->_directional ) {
-		   float ymax = _curCamera->_frustNear * tanf( degToRad( _curLight->_fov / 2 ) );
+      if (!light->_directional) {
+		   float ymax = _curCamera->_frustNear * tanf( degToRad( light->_fov / 2 ) );
 		   float xmax = ymax * 1.0f;  // ymax * aspect
-         lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, _curCamera->_frustNear, _curLight->_radius );
-         lightAbsPos = _curLight->_absPos;
+         lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, _curCamera->_frustNear, light->_radius );
+         lightAbsPos = light->_absPos;
 
          Matrix4f lightViewProjMat = lightProjMat * lightViewMat;
 		   lightProjMat = calcCropMatrix( frustum, lightAbsPos, lightViewProjMat ) * lightProjMat;
       } else {
          lightAbsPos = (litAabb.min() + litAabb.max()) * 0.5f;
-         lightViewMat = Matrix4f(_curLight->getViewMat());
+         lightViewMat = Matrix4f(light->getViewMat());
          lightViewMat.x[12] = lightAbsPos.x;
          lightViewMat.x[13] = lightAbsPos.y;
          lightViewMat.x[14] = lightAbsPos.z;
@@ -1677,14 +1664,15 @@ void Renderer::updateShadowMap(const Frustum* lightFrus, float minDist, float ma
       _lightMats[i] = lightProjMat * lightViewMat;
 		setupViewMatrices( lightViewMat, lightProjMat );
 		
+      commitLightUniforms(light);
 		// Render at lodlevel = 1 (don't need the higher poly count for shadows, yay!)
-		drawRenderables( _curLight->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1 );
+		drawRenderables( light->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1 );
 	}
 
 	// Map from post-projective space [-1,1] to texture space [0,1]
 	for( uint32 i = 0; i < numMaps; ++i )
 	{
-      if (!_curLight->_directional) {
+      if (!light->_directional) {
 		   _lightMats[i].scale( 0.5f, 0.5f, 1.0f );
 		   _lightMats[i].translate( 0.5f, 0.5f, 0.0f );
       } else {
@@ -2124,7 +2112,7 @@ void Renderer::computeTightCameraBounds(float* minDist, float* maxDist)
 }
 
 
-Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist)
+Frustum Renderer::computeDirectionalLightFrustum(LightNode const* light, float nearPlaneDist, float farPlaneDist) const
 {
    Frustum result;
    // Construct a tighter camera frustum, given the supplied far plane value.
@@ -2137,7 +2125,7 @@ Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farP
    BoundingBox bb;
    for (int i = 0; i < 8; i++)
    {
-      bb.addPoint(_curLight->getViewMat() * tightCamFrust.getCorner(i));
+      bb.addPoint(light->getViewMat() * tightCamFrust.getCorner(i));
    }
 
    // Ten-thousand units ought to be enough for anyone.  (This value is how far our light is from
@@ -2145,7 +2133,7 @@ Frustum Renderer::computeDirectionalLightFrustum(float nearPlaneDist, float farP
    // shadow-map construction to a tight bound over the light-visible geometry.)
    bb.addPoint(Vec3f(bb.min().x, bb.min().y, 10000));
 
-   result.buildBoxFrustum(_curLight->getViewMat().inverted(), bb.min().x, bb.max().x, bb.min().y, bb.max().y, bb.max().z, bb.min().z);
+   result.buildBoxFrustum(light->getViewMat().inverted(), bb.min().x, bb.max().x, bb.min().y, bb.max().y, bb.max().z, bb.min().z);
 
    return result;
 }
@@ -2232,9 +2220,8 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
    std::vector<LightNode*> prioritizedLights;
    prioritizeLights(&prioritizedLights);
 	
-	for( const auto& entry : prioritizedLights)
+	for( const auto& curLight : prioritizedLights)
 	{
-		_curLight = (LightNode *)entry;
       const Frustum* lightFrus;
       Frustum dirLightFrus;
 
@@ -2242,16 +2229,16 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
       float maxDist = _curCamera->_frustFar;
       float minDist = _curCamera->_frustNear;
 
-      if (!noShadows && _curLight->_shadowMapCount > 0)
+      if (!noShadows && curLight->_shadowMapCount > 0)
       {
          computeTightCameraBounds(&minDist, &maxDist);
       }
 
-      if (_curLight->_directional)
+      if (curLight->_directional)
       {
          if (!noShadows)
          {
-            dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
+            dirLightFrus = computeDirectionalLightFrustum(curLight, minDist, maxDist);
             lightFrus = &dirLightFrus;
          } else {
             // If we're a directional light, and no shadows are to be cast, then just light
@@ -2259,7 +2246,7 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
             lightFrus = 0x0;
          }
       } else {
-         lightFrus = &(_curLight->getFrustum());
+         lightFrus = &(curLight->getFrustum());
       }
 
 		// Check if light is not visible
@@ -2267,20 +2254,19 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
          continue;
       }
 	
-		// Update shadow map
-		if( !noShadows && _curLight->_shadowMapCount > 0 )
+
+      // Update shadow map
+		if( !noShadows && curLight->_shadowMapCount > 0 )
 		{
-			updateShadowMap(lightFrus, minDist, maxDist);
-			setupShadowMap( false );
-		}
-		else
-		{
-			setupShadowMap( true );
+			updateShadowMap(curLight, lightFrus, minDist, maxDist);
+			setupShadowMap(curLight, false);
+		} else {
+			setupShadowMap(curLight, true);
 		}
 		
 		// Calculate light screen space position
 		float bbx, bby, bbw, bbh;
-		_curLight->calcScreenSpaceAABB( _curCamera->getProjMat() * _curCamera->getViewMat(),
+		curLight->calcScreenSpaceAABB( _curCamera->getProjMat() * _curCamera->getViewMat(),
 		                                bbx, bby, bbw, bbh );
 
 		// Set scissor rectangle
@@ -2292,17 +2278,16 @@ void Renderer::doForwardLightPass( std::string const& shaderContext, std::string
 		}
 		// Render
       std::ostringstream reason;
-      reason << "drawing light geometry for light " << _curLight->getName();
+      reason << "drawing light geometry for light " << curLight->getName();
 
-      drawGeometry(_curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+      commitLightUniforms(curLight);
+      drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
 
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
 
 		// Reset
 		glDisable( GL_SCISSOR_TEST );
 	}
-
-	_curLight = 0x0;
 }
 
 
@@ -2315,10 +2300,10 @@ void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows
 		
 	for( const auto& entry : Modules::sceneMan().getLightQueue() )
 	{
-		_curLight = (LightNode *)entry;
+		LightNode* curLight = (LightNode *)entry;
 
 		// Check if light is not visible
-      if( !_curLight->_directional && _curCamera->getFrustum().cullFrustum( _curLight->getFrustum() ) ) {
+      if( !curLight->_directional && _curCamera->getFrustum().cullFrustum( curLight->getFrustum() ) ) {
          continue;
       }
 
@@ -2329,85 +2314,45 @@ void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows
       float maxDist = _curCamera->_frustFar;
       float minDist = _curCamera->_frustNear;
 
-      if (!noShadows && _curLight->_shadowMapCount > 0)
+      if (!noShadows && curLight->_shadowMapCount > 0)
       {
          computeTightCameraBounds(&minDist, &maxDist);
       }
 
-      if (_curLight->_directional)
+      if (curLight->_directional)
       {
-         dirLightFrus = computeDirectionalLightFrustum(minDist, maxDist);
+         dirLightFrus = computeDirectionalLightFrustum(curLight, minDist, maxDist);
          lightFrus = &dirLightFrus;
       } else {
-         lightFrus = &(_curLight->getFrustum());
+         lightFrus = &(curLight->getFrustum());
       }
 		
-		// Check if light is occluded
-		if( occSet >= 0 )
-		{
-			if( occSet > (int)_curLight->_occQueries.size() - 1 )
-			{
-				_curLight->_occQueries.resize( occSet + 1, 0 );
-				_curLight->_lastVisited.resize( occSet + 1, 0 );
-			}
-			if( _curLight->_occQueries[occSet] == 0 )
-			{
-				_curLight->_occQueries[occSet] = gRDI->createOcclusionQuery();
-				_curLight->_lastVisited[occSet] = 0;
-			}
-			else
-			{
-				if( _curLight->_lastVisited[occSet] != Modules::renderer().getFrameID() )
-				{
-					_curLight->_lastVisited[occSet] = Modules::renderer().getFrameID();
-				
-					Vec3f bbMin, bbMax;
-					lightFrus->calcAABB( bbMin, bbMax );
-					
-					// Check that viewer is outside light bounds
-					if( nearestDistToAABB( _curCamera->getFrustum().getOrigin(), bbMin, bbMax ) > 0 )
-					{
-						Modules::renderer().pushOccProxy( 1, bbMin, bbMax, _curLight->_occQueries[occSet] );
-
-						// Check query result from previous frame
-						if( gRDI->getQueryResult( _curLight->_occQueries[occSet] ) < 1 )
-						{
-							continue;
-						}
-					}
-				}
-			}
-		}
-		
 		// Update shadow map
-		if( !noShadows && _curLight->_shadowMapCount > 0 )
+		if( !noShadows && curLight->_shadowMapCount > 0 )
 		{	
-         updateShadowMap(lightFrus, minDist, maxDist);
-			setupShadowMap( false );
+         updateShadowMap(curLight, lightFrus, minDist, maxDist);
+			setupShadowMap(curLight, false);
 			curMatRes = 0x0;
 		}
 		else
 		{
-			setupShadowMap( true );
+			setupShadowMap(curLight, true);
 		}
 
 		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
 
-      // TODO(klochek): wait, what?  Pretty sure this is bogus, now.
-      if (!_curLight->_directional) {
-			commitGeneralUniforms();
-      }
+		commitLightUniforms(curLight);
 
 		glCullFace( GL_FRONT );
 		glDisable( GL_DEPTH_TEST );
 
-		if (_curLight->_directional) {
-         drawFSQuad(curMatRes, _curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
-      } else if (_curLight->_fov < 180) {
-			float r = _curLight->_radius * tanf( degToRad( _curLight->_fov / 2 ) );
-			drawCone( _curLight->_radius, r, _curLight->_absTrans );
+		if (curLight->_directional) {
+         drawFSQuad(curMatRes, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
+      } else if (curLight->_fov < 180) {
+			float r = curLight->_radius * tanf( degToRad( curLight->_fov / 2 ) );
+			drawCone( curLight->_radius, r, curLight->_absTrans );
 		} else {
-			drawSphere( _curLight->_absPos, _curLight->_radius );
+			drawSphere( curLight->_absPos, curLight->_radius );
 		}
 
 		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
@@ -2415,15 +2360,6 @@ void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows
 		// Reset
 		glEnable( GL_DEPTH_TEST );
 		glCullFace( GL_BACK );
-	}
-
-	_curLight = 0x0;
-
-	// Draw occlusion proxies
-	if( occSet >= 0 )
-	{
-		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-		Modules::renderer().drawOccProxies( 1 );
 	}
 }
 
@@ -3387,7 +3323,7 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
                }
                if (rendBuf == _shadowRB) {
                   // unbind the shadow texture
-                  setupShadowMap( true );
+                  setupShadowMap(nullptr, true);
                }
 				   bindPipeBuffer( rendBuf, pc.params[1].getString(), (uint32)pc.params[2].getInt() );
             }

@@ -238,14 +238,15 @@ protected:
 	bool setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext, ShaderResource *shaderRes );
    void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
-	void setupShadowMap( bool noShadows );
-	Matrix4f calcCropMatrix( const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
+   void commitLightUniforms(LightNode const* light);
+   void setupShadowMap(LightNode const* light, bool noShadows);
+   Matrix4f calcCropMatrix( const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
    Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
    void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
    void computeTightCameraBounds(float* minDist, float* maxDist);
-   Frustum computeDirectionalLightFrustum(float nearPlaneDist, float farPlaneDist);
+   Frustum computeDirectionalLightFrustum(LightNode const* light, float nearPlaneDist, float farPlaneDist) const;
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
-   void updateShadowMap(const Frustum* lightFrus, float minDist, float maxDist);
+   void updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist);
 
 	void drawOverlays( std::string const& shaderContext );
 
@@ -303,7 +304,6 @@ protected:
    PipelineResource                   *_curPipeline;
 	MaterialResource                   *_curStageMatLink;
 	CameraNode                         *_curCamera;
-	LightNode                          *_curLight;
 	ShaderCombination                  *_curShader;
 	RenderTarget                       *_curRenderTarget;
 	uint32                             _curShaderUpdateStamp;

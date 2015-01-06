@@ -239,7 +239,7 @@ void LightNode::setParamStr( int param, const char *value )
 }
 
 
-void LightNode::calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h )
+void LightNode::calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h ) const
 {
 	uint32 numPoints = 0;
 	Vec3f points[8];

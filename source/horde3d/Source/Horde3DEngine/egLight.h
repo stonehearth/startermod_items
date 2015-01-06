@@ -95,10 +95,10 @@ public:
 	const char *getParamStr( int param );
 	void setParamStr( int param, const char *value );
 
-	void calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h );
+	void calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h ) const;
 
-	const Frustum &getFrustum() { return _frustum; }
-	const Matrix4f &getViewMat() { return _viewMat; }
+	const Frustum &getFrustum() const { return _frustum; }
+	const Matrix4f &getViewMat() const { return _viewMat; }
 
 private:
 	LightNode( const LightNodeTpl &lightTpl );
