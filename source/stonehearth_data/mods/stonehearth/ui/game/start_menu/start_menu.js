@@ -14,7 +14,7 @@ App.StonehearthStartMenuView = App.View.extend({
    _foundjobs : {},
 
    menuActions: {
-      harvest_menu: function () {
+      harvest: function () {
          App.stonehearthClient.boxHarvestResources();
       },
       create_stockpile: function () {
