@@ -41,6 +41,10 @@ function HarvestPlantsAction:run(ai, entity, args)
 
       radiant.events.trigger_async(stonehearth.personality, 'stonehearth:journal_event', 
                                   {entity = entity, description = 'gathering_supplies'})
+
+      --trigger an event on the entity that they've harvested something, and what they're harvesting
+      radiant.events.trigger_async(entity, 'stonehearth:gather_renewable_resource',
+         {harvested_target = plant, spawned_item = spawned_item})
    end   
 end
 

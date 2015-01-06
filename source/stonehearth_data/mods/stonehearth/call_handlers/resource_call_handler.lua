@@ -42,6 +42,7 @@ function ResourceCallHandler:server_box_harvest_resources(session, response, box
    end
 end
 
+--Call this one if you want to harvest as renewably as possible
 function ResourceCallHandler:harvest_entity(session, response, entity)
    local town = stonehearth.town:get_town(session.player_id)
 
@@ -51,6 +52,15 @@ function ResourceCallHandler:harvest_entity(session, response, entity)
       town:harvest_resource_node(entity)
    elseif entity:get_component('stonehearth:crop') then
       town:harvest_crop(entity, '/stonehearth/data/effects/chop_overlay_effect')
+   end
+end
+
+--Call this one if you want to destroy the entity permanently
+function ResourceCallHandler:permanently_harvest_entity(session, response, entity)
+   local town = stonehearth.town:get_town(session.player_id)
+
+   if entity:get_component('stonehearth:resource_node') then
+      town:harvest_resource_node(entity)
    end
 end
 

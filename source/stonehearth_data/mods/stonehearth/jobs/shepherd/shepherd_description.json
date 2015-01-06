@@ -7,6 +7,7 @@
    "requirements" : "3 levels of Trapper and a Shepherd's Crook, crafted by the Carpenter.",
    "talisman_uri" : "stonehearth:shepherd:talisman",
    "default_stance" : "passive",
+
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
    "parent_job" : "stonehearth:jobs:trapper",
@@ -23,7 +24,30 @@
 
    "task_groups" : [
       "stonehearth:task_group:restock", 
+      "stonehearth:task_group:placement", 
       "stonehearth:task_group:herding"
-   ]
+   ], 
+
+   "xp_rewards" : {
+      "tame_animal" : 75, 
+      "harvest_animal_resources" : 50, 
+      "harvest_animal" : 50
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "3" : {
+         "perks" : [
+            {
+               "name" : "Extra Bonuses",
+               "id" : "shepherd_extra_bonuses", 
+               "icon" : "file(images/level_3.png)",
+               "description" : "The shepherd's skill produces greater yields in animal products.",
+               "level" : 3                
+            }
+         ]
+      }
+   }
 
 }

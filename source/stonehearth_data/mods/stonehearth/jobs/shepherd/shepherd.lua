@@ -24,7 +24,7 @@ end
 
 function ShepherdClass:promote(json)
    job_helper.promote(self._sv, json)
-   --self:_create_xp_listeners()
+   self:_create_xp_listeners()
 
    self.__saved_variables:mark_changed()
 end
@@ -63,7 +63,7 @@ function ShepherdClass:level_up()
 end
 
 function ShepherdClass:demote()
-   --self:_remove_xp_listeners()
+   self:_remove_xp_listeners()
    self._sv.is_current_class = false
 
    --Orphan all the animals
@@ -109,7 +109,7 @@ function ShepherdClass:remove_trailing_animal(animal_id)
 
    assert(self._sv.num_trailed_animals >= 0, 'shepherd trying to remove animals he does not have')
 
---If we have no animals, remove the shepherding speed debuf
+   --If we have no animals, remove the shepherding speed debuf
    if self._sv.num_trailed_animals == 0 then
       radiant.entities.remove_buff(self._sv._entity, 'stonehearth:buffs:shepherding')
       radiant.entities.unset_posture(self._sv._entity, 'stonehearth:patrol')
@@ -147,21 +147,44 @@ function ShepherdClass:can_find_animal_in_world()
 end
 
 -- Private Functions
+function ShepherdClass:_create_xp_listeners()
+   self._find_animal_listener = radiant.events.listen(self._sv._entity, 'stonehearth:tame_animal', self, self._on_animal_tamed)
+   self._harvest_renwable_resources_listener = radiant.events.listen(self._sv._entity, 'stonehearth:gather_renewable_resource', self, self._on_renewable_resource_gathered)
+end
+
+function ShepherdClass:_remove_xp_listeners()
+   self._find_animal_listener:destroy()
+   self._find_animal_listener = nil
+
+   self._harvest_renwable_resources_listener:destroy()
+   self._harvest_renwable_resources_listener = nil
+end
+
+-- When we tame an animal, grant some XP
+-- TODO: maybe vary the XP based on the kind of animal?
+function ShepherdClass:_on_animal_tamed(args)
+   self._job_component:add_exp(self._sv.xp_rewards['tame_animal'])
+end
+
+--Grant some XP if we harvest renwable resources off an animal
+function ShepherdClass:_on_renewable_resource_gathered(args)
+   if args.harvested_target then
+      local equipment_component = args.harvested_target:get_component('stonehearth:equipment')
+      if equipment_component and equipment_component:has_item_type('stonehearth:pasture_tag') then
+         self._job_component:add_exp(self._sv.xp_rewards['harvest_animal_resources'])
+      end
+   end
+end
 
 --Remove their tags and make sure they are free from their pasture
 function ShepherdClass:_abandon_following_animals()
    if self._sv.trailed_animals then
       for id, animal in pairs(self._sv.trailed_animals) do
+         --Free self from pasture and tag
          local equipment_component = animal:get_component('stonehearth:equipment')
          local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
          local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
-         local pasture = shepherded_animal_component:get_pasture()
-         if pasture then 
-            local pasture_component = pasture:get_component('stonehearth:shepherd_pasture')
-            pasture_component:remove_animal(id)
-         end
-         equipment_component:unequip_item('stonehearth:pasture_tag')
-         self:remove_trailing_animal(id)
+         shepherded_animal_component:free_animal()
       end
       self._sv.trailed_animals = nil
    end

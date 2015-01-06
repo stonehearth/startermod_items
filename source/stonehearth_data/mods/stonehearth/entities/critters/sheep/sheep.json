@@ -26,7 +26,15 @@
          "harvest_command" : "shear_sheep",
          "unripe_description" : "This sheep is still quite naked.",
          "renew_effect" : "/stonehearth/data/effects/fursplosion_effect/growing_wool_effect.json"
-      },      
+      },
+      "stonehearth:resource_node": {
+         "task_group_name" : "stonehearth:task_group:herding",
+         "harvest_tool" : "stonehearth:axe",
+         "harvest_overlay_effect" : "/stonehearth/data/effects/chop_overlay_effect",
+         "harvester_effect" : "fiddle",
+         "description" : "harvest_animal", 
+         "resource": "stonehearth:sheep_jerky"
+      },
       "stonehearth:ai" : {
          "actions" : [
             "stonehearth:actions:wander",

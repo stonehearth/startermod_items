@@ -971,6 +971,10 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
+       "permanently_harvest_entity" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "shear_sheep" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
