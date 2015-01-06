@@ -810,7 +810,9 @@
       "jobs:worker" : "file(jobs/worker/worker_description.json)",
       "npc_jobs:peon" : "file(npc_jobs/peon/peon_description.json)",
 
-      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
+      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
+
+      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {

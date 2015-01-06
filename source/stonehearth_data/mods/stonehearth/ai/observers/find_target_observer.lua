@@ -9,12 +9,22 @@ end
 function FindTargetObserver:initialize(entity)
    self._entity = entity
    self._sight_sensor = self:_get_sight_sensor()
+
+   self._sight_sensor_trace = self._sight_sensor:trace_contents('find target obs')
+                                                   :on_added(function (id, entity)
+                                                         self:_check_for_target()
+                                                      end)
+                                                   :on_removed(function (id)
+                                                         self:_check_for_target()
+                                                      end)
+
    self._target = nil
    self._last_attacker = nil
    self._last_attacked_time = 0
    self._retaliation_window = 5000
    self._task = nil
    self._listening_target_pre_destroy = false
+
    self._log = radiant.log.create_logger('combat')
                            :set_prefix('find_target_obs')
                            :set_entity(self._entity)
@@ -45,6 +55,9 @@ function FindTargetObserver:_subscribe_to_events()
 end
 
 function FindTargetObserver:_unsubscribe_from_events()
+   self._sight_sensor_trace:destroy()
+   self._sight_sensor_trace = nil
+
    self._stance_change_listener:destroy()
    self._stance_change_listener = nil
 
@@ -226,7 +239,6 @@ function FindTargetObserver:_can_see_target(target)
    if not target or not target:is_valid() then
       return false
    end
-
    local visible = self._sight_sensor:contains_contents(target:get_id())
    return visible
 end
@@ -246,6 +258,9 @@ function FindTargetObserver:_calculate_target_cost_benefit()
             best_target = target
             best_score = score
          end
+         self._log:spam('considering target %s (aggro:%.2f distance:%.2f score:%2.f)', target, aggro, distance, score)
+      else
+         self._log:spam('considering target %s (aggro:%.2f .. cannot see!  ignoring)', target, aggro)
       end
    end
 

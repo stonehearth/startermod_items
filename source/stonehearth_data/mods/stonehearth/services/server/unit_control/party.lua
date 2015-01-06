@@ -1,4 +1,9 @@
+local Point3 = _radiant.csg.Point3
+
 local Party = class()
+local PartyGuardAction = require 'services.server.unit_control.actions.party_guard_action'
+
+local DX = -6
 
 function Party:initialize(unit_controller, id)
    self._sv.id = id
@@ -14,8 +19,40 @@ end
 
 function Party:add_member(member)
    local id = member:get_id()
-   self._sv.members[id] = member
+   local party_abilities = radiant.entities.create_entity('stonehearth:party:party_abilities')
+
+   local party_task = member:get_component('stonehearth:ai')
+                           :get_task_group('stonehearth:party')
+                              :create_task('stonehearth:follow_party_orders', { party = self })
+                                 :start()
+
+   member:add_component('stonehearth:equipment')
+            :equip_item(party_abilities)
+
+   self._sv.members[id] = {
+      entity = member,
+      party_task = party_task,
+      party_abilities = party_abilities,
+      formation_offset = Point3(DX, 0, 0)
+   }
+   DX = DX + 3
+
    self.__saved_variables:mark_changed()
+end
+
+function Party:get_formation_location_for(member)
+   local location = self._sv.party_location
+   if not location then
+      return
+   end
+
+   local id = member:get_id()
+   local entry = self._sv.members[id]
+   if not entry then
+      return
+   end
+
+   return entry.formation_offset + location
 end
 
 function Party:create_command(action, target)
@@ -35,29 +72,9 @@ end
 function Party:_start_command(cmd)
    assert(not self._sv.current_command)
    self._sv.current_command = cmd
+   self._sv.party_location = cmd:get_target()
+   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
    self.__saved_variables:mark_changed()
-
-   self._travel_tasks = {}
-   for id, member in pairs(self._sv.members) do
-      local task = member:get_component('stonehearth:ai')
-                           :get_task_group('stonehearth:party_commands')
-                              :create_task('stonehearth:goto_location', { 
-                                       reason = 'party command',
-                                       location = cmd:get_target(),
-                                    })
-                                 :notify_completed(function()
-                                       self:_on_arrived(id, member)
-                                    end)
-                                 :once()
-                                 :start()
-      self._travel_tasks[id] = task
-   end
-
-   return self
-end
-
-function Party:_on_arrived(id, member)
-   self._travel_tasks[id] = nil      
 end
 
 return Party

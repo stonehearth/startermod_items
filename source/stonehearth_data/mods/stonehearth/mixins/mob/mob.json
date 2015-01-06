@@ -15,7 +15,7 @@
                    "stonehearth:simple_labor" : {
                       "priority" : 1
                    },
-                   "stonehearth:party_commands" : {
+                   "stonehearth:party" : {
                       "priority" : 10
                    }
                }

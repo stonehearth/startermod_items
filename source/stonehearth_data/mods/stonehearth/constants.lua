@@ -122,6 +122,10 @@ local constants = {
          CAST_SPELL = 100
       },
 
+      party = {
+         HOLD_PARTY_FORMATION = 1,
+      },
+
       compelled_behavior = {
          STRUGGLE = 4,
          HIT_STUN = 100,
