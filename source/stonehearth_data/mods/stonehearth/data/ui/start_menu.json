@@ -153,9 +153,9 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "dead_button" : {
-      "name" : "TBD",
-      "description" : "We have one slot to use. Ideas?",
+   "party_manager" : {
+      "name" : "Manage Parties",
+      "description" : "Manage your parties",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dead.png",
       "hotkey" : "7",

@@ -47,4 +47,8 @@ function PopulationService:get_friendly_populations(player_id)
    return result
 end
 
+function PopulationService:get_population_command(session, response)
+   return { uri = self:get_population(session.player_id) }
+end
+
 return PopulationService

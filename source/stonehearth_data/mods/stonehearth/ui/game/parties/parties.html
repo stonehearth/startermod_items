@@ -1,0 +1,43 @@
+<script type="text/x-handlebars" data-template-name="parties">
+   <div id="partiesManagement" class="gui managerWindow partyTable">
+      <div class="window">
+         <div class="title">{{ view.title }} <div class="closeButton"></div></div>
+         <div class="partyContainer">
+            <div class="toolbar">
+               <a href="#" {{action "createParty" command target="view"}} class='uisounds'>
+                  <button {{bind-attr class="buttonEnabled" }}>
+                     {{i18n stonehearth:create_party}}
+                  </button>
+               </a>
+            </div>
+            <table class="list">
+               <tbody>
+               {{#each party in view.partiesArray}}
+                  {{ view "stonehearthPartiesRow" uriBinding="party" }}
+               {{/each}}
+               </tbody>
+            </table>
+         </div>
+      </div>
+
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="partiesRow">
+   <td>
+      <div class="name">
+         <img class="banner button" {{bind-attr src=this.stonehearth:job.job_uri.bannerIcon}}/>
+         {{view.model.name}}
+      </div>
+      <div class="job">{{this.stonehearth:job.job_uri.name}}</div>
+   </td>
+   </td>
+      <a href="#" {{action "editParty" view.model.__self target="view"}} class='uisounds'>
+         <button {{bind-attr class="buttonEnabled" }}>
+            {{i18n stonehearth:edit_party}}
+         </button>
+      </a>
+   </td>
+   <td><a href="#" class="moveCameraButton">{{this.stonehearth:ai.status_text}}</a></td>
+   <!-- <td><img class="moveCameraButton button"/></td> -->
+</script>

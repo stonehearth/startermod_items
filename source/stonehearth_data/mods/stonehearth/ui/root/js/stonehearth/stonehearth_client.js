@@ -213,6 +213,17 @@ var StonehearthClient;
          }
       },
 
+      _partyEditor: null,
+      showPartyEditor: function(party) {
+         if (this._partyEditor != null && !this._partyEditor.isDestroyed) {
+            this._partyEditor.set('uri', party);
+            //this._partyEditor.destroy();
+            //this._partyEditor = null;
+         } else {
+            this._partyEditor = App.gameView.addView(App.StonehearthPartyEditorView, { uri: party });
+         }
+      },
+
       // item is a reference to an actual entity, not a class of entities like stonehearth:furniture:comfy_bed
       placeItem: function(item) {
          var self = this;
@@ -653,6 +664,19 @@ var StonehearthClient;
             this._citizenManager.destroy();
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_close' });
             this._citizenManager = null;
+         }
+      },
+
+      _partyManager: null,
+      showPartyManager: function() {
+         // toggle the partyManager
+         if (!this._partyManager || this._partyManager.isDestroyed) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_open' });
+            this._partyManager = App.gameView.addView(App.StonehearthPartiesView);
+         } else {
+            this._partyManager.destroy();
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_close' });
+            this._partyManager = null;
          }
       },
 
