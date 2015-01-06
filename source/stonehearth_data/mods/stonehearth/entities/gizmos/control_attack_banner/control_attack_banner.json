@@ -1,0 +1,20 @@
+{
+   "components": {
+      "unit_info": {
+         "name": "Attack Banner",
+         "description": "Attack!!!!"
+      },
+
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(control_attack_banner.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}
