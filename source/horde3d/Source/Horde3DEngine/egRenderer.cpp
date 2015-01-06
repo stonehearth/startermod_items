@@ -639,12 +639,30 @@ void Renderer::commitGlobalUniforms()
       }
    }
 
+   for (auto& e : _uniformVec3s)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         Vec3f& v = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT3, &v);
+      }
+   }
+
    for (auto& e : _uniformMats)
    {
       int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
       if (loc >= 0) {
          Matrix4f& m = e.second;
          gRDI->setShaderConst(loc, CONST_FLOAT44, m.x);
+      }
+   }
+
+   for (auto& e : _uniformMatArrays)
+   {
+      int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
+      if (loc >= 0) {
+         std::vector<float>& m = e.second;
+         gRDI->setShaderConst(loc, CONST_FLOAT44, m.data(), m.size() / 16);
       }
    }
 }
@@ -2414,7 +2432,7 @@ void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows
 // Scene Node Rendering Functions
 // =================================================================================================
 
-void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* value)
+void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void const* value, int num)
 {
    float *f = (float*)value;
    if (kind == UniformType::FLOAT) {
@@ -2423,6 +2441,15 @@ void Renderer::setGlobalUniform(const char* str, UniformType::List kind, void* v
       _uniformVecs[std::string(str)] = Vec4f(f[0], f[1], f[2], f[3]);
    } else if (kind == UniformType::MAT44) {
       _uniformMats[std::string(str)] = Matrix4f(f);
+   } else if (kind == UniformType::VEC3) {
+      _uniformVec3s[std::string(str)] = Vec3f(f[0], f[1], f[2]);
+   } else if (kind == UniformType::MAT44_ARRAY) {
+      std::vector<float>& vs = _uniformMatArrays[std::string(str)];
+      vs.clear();
+      vs.reserve(num * 16);
+      for (int i = 0; i < 16 * num; i++) {
+         vs.push_back(f[i]);
+      }
    }
 }
 

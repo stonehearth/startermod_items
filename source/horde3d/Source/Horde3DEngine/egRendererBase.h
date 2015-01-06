@@ -384,7 +384,7 @@ public:
 
 	int getShaderConstLoc( uint32 shaderId, const char *name );
 	int getShaderSamplerLoc( uint32 shaderId, const char *name );
-	void setShaderConst( int loc, RDIShaderConstType type, void *values, uint32 count = 1 );
+	void setShaderConst( int loc, RDIShaderConstType type, void const* values, uint32 count = 1 );
 	void setShaderSampler( int loc, uint32 texUnit );
 
 	// Renderbuffers

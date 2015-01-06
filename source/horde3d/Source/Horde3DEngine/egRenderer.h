@@ -149,7 +149,9 @@ struct UniformType
    {
       FLOAT = 1,
       VEC4  = 2,
-      MAT44 = 3
+      MAT44 = 3,
+      VEC3 = 4,
+      MAT44_ARRAY = 5
    };
 };
 
@@ -223,7 +225,7 @@ public:
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
-   void setGlobalUniform(const char* uniName, UniformType::List kind, void* value);
+   void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
 protected:
    ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
@@ -284,7 +286,9 @@ protected:
 
    std::unordered_map<std::string, float> _uniformFloats;
    std::unordered_map<std::string, Vec4f> _uniformVecs;
+   std::unordered_map<std::string, Vec3f> _uniformVec3s;
    std::unordered_map<std::string, Matrix4f> _uniformMats;
+   std::unordered_map<std::string, std::vector<float>> _uniformMatArrays;
 	
 	std::vector< OverlayBatch >        _overlayBatches;
 	OverlayVert                        *_overlayVerts;

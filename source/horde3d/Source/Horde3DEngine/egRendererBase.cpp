@@ -846,7 +846,7 @@ int RenderDevice::getShaderSamplerLoc( uint32 shaderId, const char *name )
 }
 
 
-void RenderDevice::setShaderConst( int loc, RDIShaderConstType type, void *values, uint32 count )
+void RenderDevice::setShaderConst( int loc, RDIShaderConstType type, void const* values, uint32 count )
 {
 	switch( type )
 	{
