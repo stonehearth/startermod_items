@@ -468,7 +468,7 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
 {
    radiant::perfmon::TimelineCounterGuard un("gsg:removeNode");
    NodeHandle h = sceneNode.getHandle();
-   if (sceneNode.getType() == SceneNodeTypes::Light && sceneNode.getParamI(LightNodeParams::DirectionalI)) {
+   if (sceneNode.getType() == SceneNodeTypes::Light && ((LightNode*)&sceneNode)->getParamI(LightNodeParams::DirectionalI)) {
       _directionalLights.erase(h);
    } else {
       // Find all old references and remove them.
