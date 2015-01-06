@@ -50,15 +50,15 @@ animatedlight::RadiusData parseRadius(Node& n)
 // AnimatedLightResource
 // *************************************************************************************************
 
-AnimatedLightResource::AnimatedLightResource( std::string const& name, int flags ) :
-   Resource( RT_AnimatedLightResource, name, flags )
+AnimatedLightResource::AnimatedLightResource(std::string const& name, int flags) :
+   Resource(RT_AnimatedLightResource, name, flags)
 {
-	initDefault();	
+   initDefault();	
 }
 
 AnimatedLightResource::~AnimatedLightResource()
 {
-	release();
+   release();
 }
 
 void AnimatedLightResource::initDefault()
@@ -69,23 +69,26 @@ void AnimatedLightResource::release()
 {
 }
 
-bool AnimatedLightResource::raiseError( std::string const& msg, int line )
+bool AnimatedLightResource::raiseError(std::string const& msg, int line)
 {
-	// Reset
-	release();
-	initDefault();
+   // Reset
+   release();
+   initDefault();
 
-	if( line < 0 )
-		Modules::log().writeError( "AnimatedLight resource '%s': %s", _name.c_str(), msg.c_str() );
-	else
-		Modules::log().writeError( "AnimatedLight resource '%s' in line %i: %s", _name.c_str(), line, msg.c_str() );
-	
-	return false;
+   if (line < 0) {
+      Modules::log().writeError("AnimatedLight resource '%s': %s", _name.c_str(), msg.c_str());
+   } else {
+      Modules::log().writeError("AnimatedLight resource '%s' in line %i: %s", _name.c_str(), line, msg.c_str());
+   }
+
+   return false;
 }
 
-bool AnimatedLightResource::load( const char *data, int size )
+bool AnimatedLightResource::load(const char *data, int size)
 {
-	if( !Resource::load( data, size ) ) return false;
+   if (!Resource::load(data, size)) {
+      return false;
+   }
 
    std::string jsonData(data, size);
    Node root(libjson::parse(jsonData));
@@ -94,7 +97,7 @@ bool AnimatedLightResource::load( const char *data, int size )
    {
       lightData.intensity = parseIntensity(root.get_node("intensity"));
    }
-   
+
    if (root.has("color"))
    {
       lightData.color = parseColor(root.get_node("color"));
@@ -114,19 +117,19 @@ bool AnimatedLightResource::load( const char *data, int size )
    return true;
 }
 
-int AnimatedLightResource::getElemCount( int elem )
+int AnimatedLightResource::getElemCount(int elem)
 {
-	return Resource::getElemCount( elem );
+   return Resource::getElemCount(elem);
 }
 
-float AnimatedLightResource::getElemParamF( int elem, int elemIdx, int param, int compIdx )
+float AnimatedLightResource::getElemParamF(int elem, int elemIdx, int param, int compIdx)
 {
-	return Resource::getElemParamF( elem, elemIdx, param, compIdx );
+   return Resource::getElemParamF(elem, elemIdx, param, compIdx);
 }
 
-void AnimatedLightResource::setElemParamF( int elem, int elemIdx, int param, int compIdx, float value )
+void AnimatedLightResource::setElemParamF(int elem, int elemIdx, int param, int compIdx, float value)
 {
-	Resource::setElemParamF( elem, elemIdx, param, compIdx, value );
+   Resource::setElemParamF(elem, elemIdx, param, compIdx, value);
 }
 
 // *************************************************************************************************
@@ -134,8 +137,8 @@ void AnimatedLightResource::setElemParamF( int elem, int elemIdx, int param, int
 // *************************************************************************************************
 
 
-AnimatedLightNode::AnimatedLightNode( const AnimatedLightNodeTpl &animatedLightTpl ) :
-	SceneNode( animatedLightTpl )
+AnimatedLightNode::AnimatedLightNode(const AnimatedLightNodeTpl &animatedLightTpl) :
+   SceneNode(animatedLightTpl)
 {
    _renderable = false;
    _animatedLightRes = animatedLightTpl._animatedLightRes;
@@ -157,56 +160,56 @@ void AnimatedLightNode::init()
 
 AnimatedLightNode::~AnimatedLightNode()
 {
-	for( uint32 i = 0; i < _occQueries.size(); ++i )
-	{
-		if( _occQueries[i] != 0 )
-			gRDI->destroyQuery( _occQueries[i] );
-   }
    h3dRemoveNode(_lightNode);
+   _lightNode = 0x0;
+   _animatedLightRes = 0x0;
+   _active = false;
 }
 
 
-SceneNodeTpl *AnimatedLightNode::parsingFunc( std::map< std::string, std::string > &attribs )
+SceneNodeTpl *AnimatedLightNode::parsingFunc(std::map< std::string, std::string > &attribs)
 {
    return nullptr;
 }
 
 
-SceneNode *AnimatedLightNode::factoryFunc( const SceneNodeTpl &nodeTpl )
+SceneNode *AnimatedLightNode::factoryFunc(const SceneNodeTpl &nodeTpl)
 {
-	if( nodeTpl.type != SNT_AnimatedLightNode ) return 0x0;
+   if (nodeTpl.type != SNT_AnimatedLightNode) {
+      return 0x0;
+   }
 
-	return new AnimatedLightNode( *(AnimatedLightNodeTpl *)&nodeTpl );
+   return new AnimatedLightNode(*(AnimatedLightNodeTpl *)&nodeTpl);
 }
 
 
-int AnimatedLightNode::getParamI( int param ) const
+int AnimatedLightNode::getParamI(int param) const
 {
-	return SceneNode::getParamI( param );
+   return SceneNode::getParamI(param);
 }
 
 
-void AnimatedLightNode::setParamI( int param, int value )
+void AnimatedLightNode::setParamI(int param, int value)
 {
-	SceneNode::setParamI( param, value );
+   SceneNode::setParamI(param, value);
 }
 
 
-float AnimatedLightNode::getParamF( int param, int compIdx )
+float AnimatedLightNode::getParamF(int param, int compIdx)
 {
-	return SceneNode::getParamF( param, compIdx );
+   return SceneNode::getParamF(param, compIdx);
 }
 
 
-void AnimatedLightNode::setParamF( int param, int compIdx, float value )
+void AnimatedLightNode::setParamF(int param, int compIdx, float value)
 {
-	SceneNode::setParamF( param, compIdx, value );
+   SceneNode::setParamF(param, compIdx, value);
 }
 
 
-void AnimatedLightNode::advanceTime( float timeDelta )
+void AnimatedLightNode::advanceTime(float timeDelta)
 {
-	_timeDelta += timeDelta;
+   _timeDelta += timeDelta;
    _lightTime += timeDelta;
 
    markDirty(SceneNodeDirtyKind::Ancestors);
@@ -215,7 +218,7 @@ void AnimatedLightNode::advanceTime( float timeDelta )
 
 bool AnimatedLightNode::hasFinished()
 {
-      return !_active;
+   return !_active;
 }
 
 void AnimatedLightNode::onPostUpdate()
@@ -240,8 +243,7 @@ void AnimatedLightNode::updateLight()
          d.color.over_lifetime_r->init();
          d.color.over_lifetime_g->init();
          d.color.over_lifetime_b->init();
-      } else 
-      {
+      } else {
          _active = false;
          return;
       }
