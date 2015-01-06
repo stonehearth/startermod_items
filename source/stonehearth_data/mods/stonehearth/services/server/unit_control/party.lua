@@ -5,9 +5,10 @@ local PartyGuardAction = require 'services.server.unit_control.actions.party_gua
 
 local DX = -6
 
-function Party:initialize(unit_controller, id)
+function Party:initialize(unit_controller, id, ord)
+   self._sv._next_id = 2
    self._sv.id = id
-   self._sv.next_id = 2
+   self._sv.name = string.format('Party No.%d', ord) -- i18n hazard. =(
    self._sv.unit_controller = unit_controller
    self._sv.commands = {}
    self._sv.members = {}
@@ -18,6 +19,13 @@ function Party:get_id()
 end
 
 function Party:add_member(member)
+   local pc = member:add_component('stonehearth:party_member')
+   local old_party = pc:get_party()
+   if old_party then
+      old_party:remove_member()
+   end
+   pc:set_party(self)
+   
    local id = member:get_id()
    local party_abilities = radiant.entities.create_entity('stonehearth:party:party_abilities')
 
@@ -38,6 +46,19 @@ function Party:add_member(member)
    DX = DX + 3
 
    self.__saved_variables:mark_changed()
+end
+
+function Party:remove_member(id)
+   local entry = self._sv.members[id]
+   if entry then
+      local member = entry.entity
+      if member and member:is_valid() then
+         member:add_component('stonehearth:party_member')
+                  :set_party(nil)
+      end
+      self._sv.members[id] = nil
+      self.__saved_variables:mark_changed()
+   end
 end
 
 function Party:get_formation_location_for(member)
@@ -64,8 +85,8 @@ function Party:create_command(action, target)
 end
 
 function Party:_get_next_id()
-   local id = self._sv.next_id
-   self._sv.next_id = id + 1
+   local id = self._sv._next_id
+   self._sv._next_id = id + 1
    return id
 end
 
@@ -76,5 +97,22 @@ function Party:_start_command(cmd)
    radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
    self.__saved_variables:mark_changed()
 end
+
+function Party:set_name_command(session, response, name)
+   self._sv.name = name
+   self.__saved_variables:mark_changed()
+   return true
+end
+
+function Party:add_member_command(session, response, member)
+   self:add_member(member)
+   return true
+end
+
+function Party:remove_member_command(session, response, member)
+   self:remove_member(member:get_id())
+   return true
+end
+
 
 return Party

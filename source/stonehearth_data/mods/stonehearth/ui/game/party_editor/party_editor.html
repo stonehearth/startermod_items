@@ -1,0 +1,96 @@
+<script type="text/x-handlebars" data-template-name="partyEditor">
+   <div id="partyEditor" class="gui citizenTable">
+      <div class="window">
+         <div class="title">
+            <input id="name" onClick="this.select();" type="text" {{bind-attr value=view.model.name}} /> <div class="closeButton"></div>
+         </div>
+         <table class="list">
+            <tbody>
+            {{#each member in view.membersArray}}
+               {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
+            {{/each}}
+            </tbody>
+         </table>         
+         <div class="toolbar">
+            <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
+               <button {{bind-attr class="buttonEnabled" }}>
+                  {{i18n stonehearth:add_party_member}}
+               </button>
+            </a>
+         </div>
+      </div>
+   </div>
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="partyMemberRow">
+   <td>
+      <div class="name">
+         <img class="banner button" {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/>
+         {{view.model.unit_info.name}}
+      </div>
+      <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
+   </td>
+   <td>
+      <a {{bind-attr id=command.name}} href="#" {{action "removePartyMember" view.model target="view"}} class='uisounds'>
+         <button {{bind-attr class="buttonEnabled" }}>
+            {{i18n stonehearth:remove_party_member_button}}
+         </button>
+      </a>
+   </td>
+</script>
+
+<script type="text/x-handlebars" data-template-name="partyEditorEditRoster">
+   <div id="partyEditorEditRoster" class="gui citizenTable">
+      <div class="window">
+         <div class="title">{{i18n stonehearth:add_party_member_title}}<div class="closeButton"></div></div>
+         <table class="list">
+            <tbody>
+            {{#each citizen in view.citizensArray}}
+               {{ view "stonehearthPartyEditorEditRosterRow" party=view.party uriBinding="citizen" }}
+            {{/each}}
+            </tbody>
+         </table>         
+         <div class="toolbar">
+            <a href="#" {{action "close" command target="view"}} class='uisounds'>
+               <button {{bind-attr class="buttonEnabled" }}>
+                  {{i18n stonehearth:done_adding_members}}
+               </button>
+            </a>
+         </div>
+      </div>
+   </div>
+</script>
+
+
+<script type="text/x-handlebars" data-template-name="partyEditorEditRosterRow">
+   <td>
+      <div class="name">
+         <img class="banner button" {{bind-attr src=view.model.stonehearth:job.job_uri.bannerIcon}}/>
+         {{view.model.unit_info.name}}
+      </div>
+      <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
+   </td>
+   <td><a href="#" class="moveCameraButton">
+      {{#if view.model.stonehearth:party_member.party }}
+         {{ view.model.stonehearth:party_member.party.name }}
+      {{else}}
+         {{i18n stonehearth:not_in_party}}
+      {{/if}}   
+   </a></td>
+   <td>
+      {{#if view.in_current_party }}
+         <a {{bind-attr id=command.name}} href="#" {{action "removePartyMember" view.model target="view"}} class='uisounds'>
+            <button {{bind-attr class="buttonEnabled" }}>
+               {{i18n stonehearth:remove_party_member_button}}
+            </button>
+         </a>
+      {{else}}
+         <a {{bind-attr id=command.name}} href="#" {{action "addPartyMember" view.model target="view"}} class='uisounds'>
+            <button {{bind-attr class="buttonEnabled" }}>
+               {{i18n stonehearth:add_party_member_button}}
+            </button>
+         </a>
+      {{/if}}   
+   </td>
+</script>
