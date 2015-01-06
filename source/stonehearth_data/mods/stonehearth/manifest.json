@@ -1321,7 +1321,8 @@
       "roof" : "file(components/roof/roof_component.lua)",
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
       "ladder" : "file(components/ladder/ladder_component.lua)",
-      "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)"
+      "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
+      "party_member" : "file(components/party_member/party_member_component.lua)"
    },
    "client_components" : {
       "building" : "file(components/building/building_client_component.lua)",
@@ -1410,7 +1411,8 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
-         "file(ui/game/squads/squads.html)",
+         "file(ui/game/parties/parties.html)",
+         "file(ui/game/party_editor/party_editor.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1493,7 +1495,8 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
-         "file(ui/game/squads/squads.js)",
+         "file(ui/game/parties/parties.js)",
+         "file(ui/game/party_editor/party_editor.js)",
          "file(ui/game/item_palette/item_palette.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
@@ -1567,7 +1570,8 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
-         "file(ui/game/squads/squads.less)",
+         "file(ui/game/parties/parties.less)",
+         "file(ui/game/party_editor/party_editor.less)",
          "file(ui/game/item_palette/item_palette.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
@@ -1583,4 +1587,5 @@
       ]
    }
 }
+
 

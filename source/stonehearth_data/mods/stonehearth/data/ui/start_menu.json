@@ -153,11 +153,11 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "squad_manager" : {
-      "name" : "Squads",
-      "description" : "Organize your troops into groups",
+   "party_manager" : {
+      "name" : "Manage Parties",
+      "description" : "Manage your parties",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/squads.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dead.png",
       "hotkey" : "7",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",

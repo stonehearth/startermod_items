@@ -427,5 +427,14 @@
    "resume_stockpile" : "Resume",
    "stockpile_percent_full" : "__percent__ Percent Full",
    "stockpile_active" : "active",
-   "stockpile_paused" : "paused"
+   "stockpile_paused" : "paused",
+
+   "create_party" : "Create Party",
+   "edit_party" : "Edit",
+   "add_party_member" : "Manage Roster",
+   "add_party_member_title" : "Manage Roster",
+   "done_adding_members" : "Done",
+   "add_party_member_button" : "Add",
+   "remove_party_member_button" : "Remove",
+   "not_in_party" : "No party"
 }
