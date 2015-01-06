@@ -335,6 +335,7 @@
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
       "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
       "buffs:shepherding" : "file(data/buffs/shepherding/shepherding_buff.json)",
+      "buffs:shepherd:speed_1" : "file(data/buffs/shepherding/shepherding_speed_bonus.json)", 
       "buffs:stopped" : "file(data/buffs/stopped/stopped_buff.json)", 
 
       "buffs:trapper:speed_1" : "file(jobs/trapper/trapper_buffs/speed_1_buff)", 

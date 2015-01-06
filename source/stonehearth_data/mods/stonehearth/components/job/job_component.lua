@@ -222,7 +222,7 @@ function JobComponent:_apply_perk_for_level(target_level)
       for i, perk_data in ipairs(job_updates_for_level.perks) do
          self:_call_job('unlock_perk', perk_data.id)
          if perk_data.type then
-            self:_call_job('perk_data.type', perk_data)
+            self:_call_job(perk_data.type, perk_data)
          end
 
          --Collect text about the perk

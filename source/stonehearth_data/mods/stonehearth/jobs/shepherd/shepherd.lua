@@ -92,6 +92,11 @@ function ShepherdClass:add_trailing_animal(animal, pasture)
       radiant.entities.add_buff(self._sv._entity, 'stonehearth:buffs:shepherding');
    end 
 
+   --If we have the shepherd_speed_buff, make sure the added critter gets the buff too
+   if self:has_perk('shepherd_speed_up_1') then
+      radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:speed_1');
+   end
+
    --Fire an event saying that we've collected an animal
    radiant.events.trigger(self._sv._entity, 'stonehearth:add_trailing_animal', {animal = animal, pasture = pasture})
 end
@@ -100,10 +105,17 @@ function ShepherdClass:get_trailing_animals()
    return self._sv.trailed_animals, self._sv.num_trailed_animals
 end
 
+--Remove the animal from the shepherd's list. 
 function ShepherdClass:remove_trailing_animal(animal_id)
    if not self._sv.trailed_animals then
       return
    end
+
+   --If the animal had the speed buff, remove it
+   if self._sv.trailed_animals[animal_id] and self:has_perk('shepherd_speed_up_1') then
+      radiant.entities.remove_buff(self._sv.trailed_animals[animal_id], 'stonehearth:buffs:shepherd:speed_1')
+   end
+
    self._sv.trailed_animals[animal_id] = nil
    self._sv.num_trailed_animals = self._sv.num_trailed_animals - 1
 
@@ -135,8 +147,9 @@ function ShepherdClass:can_find_animal_in_world()
       --convert ms to hours
       local elapsed_hours = elapsed_difference / (constants.seconds_per_minute*constants.minutes_per_hour)
       local percent_chance = (elapsed_hours / constants.hours_per_day) * 100
-      --TODO: increase percent_chance based on shepherd level
-      --percent_chance = percent_chance + self._sv.bonus
+      if self:has_perk('shepherd_improved_find_rate') then
+         percent_chance = percent_chance * 2
+      end
       local roll = rng:get_int(1, 100)  
       if roll < percent_chance then
          self._sv.last_found_critter_time = curr_elapsed_time
@@ -174,6 +187,16 @@ function ShepherdClass:_on_renewable_resource_gathered(args)
          self._job_component:add_exp(self._sv.xp_rewards['harvest_animal_resources'])
       end
    end
+   if args.spawned_item and self:has_perk('shepherd_extra_bonuses') then
+      local spawned_uri = args.spawned_item:get_uri()
+      local source_location = radiant.entities.get_world_grid_location(self._sv._entity)
+      local placement_point = radiant.terrain.find_placement_point(source_location, 1, 5)
+      if not placement_point then
+         placement_point = source_location
+      end
+      local extra_harvest = radiant.entities.create_entity(spawned_uri)
+      radiant.terrain.place_entity(extra_harvest, placement_point)
+   end
 end
 
 --Remove their tags and make sure they are free from their pasture
@@ -189,5 +212,24 @@ function ShepherdClass:_abandon_following_animals()
       self._sv.trailed_animals = nil
    end
 end
+
+-- apply the buff. If the buff is one that applies to all trailing animals too, apply it
+function ShepherdClass:apply_buff(args)
+   radiant.entities.add_buff(self._sv._entity, args.buff_name)
+
+   if self:has_perk('shepherd_speed_up_1') then
+      if self._sv.trailed_animals then
+         for id, animal in pairs(self._sv.trailed_animals) do
+            --Free self from pasture and tag
+            radiant.entities.add_buff(animal, 'stonehearth:buffs:shepherd:speed_1')
+         end
+      end
+   end
+end
+
+function ShepherdClass:remove_buff(args)
+   radiant.entities.remove_buff(self._sv._entity, args.buff_name)
+end
+
 
 return ShepherdClass
