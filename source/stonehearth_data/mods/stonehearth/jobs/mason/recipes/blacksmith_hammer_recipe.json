@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Blacksmith's Hammer",
+   "description" : "Promotes a citizen into a Blacksmith.",
+   "portrait"    : "/stonehearth/jobs/blacksmith/blacksmith_hammer/blacksmith_hammer.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "stone resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+        "item":"stonehearth:blacksmith:talisman"
+      }
+  ]
+}

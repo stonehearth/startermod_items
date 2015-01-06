@@ -4,6 +4,9 @@
          "ordinal" : 1, 
          "name" : "Tools & Weapons", 
          "recipes" : {
+            "blacksmith_hammner" : {
+               "recipe" : "file(blacksmith_hammer_recipe.json)"
+            }
          }
       },
       "building_parts" : {

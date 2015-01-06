@@ -656,6 +656,19 @@ var StonehearthClient;
          }
       },
 
+      _squadManager: null,
+      showSquadManager: function() {
+         // toggle the squadManager
+         if (!this._squadManager || this._squadManager.isDestroyed) {
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_open' });
+            this._squadManager = App.gameView.addView(App.StonehearthSquadsView);
+         } else {
+            this._squadManager.destroy();
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:jobs_close' });
+            this._squadManager = null;
+         }
+      },
+
       _tasksManager: null,
       showTasksManager: function(show) {
          // toggle the tasksManager
