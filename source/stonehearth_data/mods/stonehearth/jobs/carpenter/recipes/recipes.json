@@ -60,7 +60,7 @@
          "name" : "Furniture", 
          "recipes" : {
             "simple_wooden_chair" : {
-            "recipe" : "file(simple_wooden_chair_recipe.json)"
+               "recipe" : "file(simple_wooden_chair_recipe.json)"
             }, 
             "comfy_chair" : {
                "recipe" : "file(comfy_chair_recipe.json)"

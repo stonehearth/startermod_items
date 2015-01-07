@@ -208,6 +208,10 @@
       "refined:cloth_bolt" : "file(entities/refined/cloth_bolt)",
       "refined:leather_bolt" : "file(entities/refined/leather_bolt)",
       "refined:stone_bricks" : "file(entities/refined/stone_bricks)",
+      "refined:copper_ingot" : "file(entities/refined/copper_ingot)",
+      "refined:iron_ingot" : "file(entities/refined/iron_ingot)",
+      "refined:gold_ingot" : "file(entities/refined/gold_ingot)",
+      "refined:steel_ingot" : "file(entities/refined/steel_ingot)",
 
       "food:corn:amazing_corn_basket" : "file(entities/food/corn/amazing_corn_basket)",
       "food:corn:amazing_corn_serving"    : "file(entities/food/corn/amazing_corn_serving)",

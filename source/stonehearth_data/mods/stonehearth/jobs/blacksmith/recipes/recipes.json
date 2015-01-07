@@ -1,4 +1,22 @@
 {
    "craftable_recipes" : {
+      "goods" : {
+         "ordinal" : 3, 
+         "name" : "Goods", 
+         "recipes" : {
+            "copper_ingot" : {
+               "recipe" : "file(copper_ingot_recipe.json)"
+            },
+            "iron_ingot" : {
+               "recipe" : "file(iron_ingot_recipe.json)"
+            },
+            "gold_ingot" : {
+               "recipe" : "file(gold_ingot_recipe.json)"
+            },
+            "steel_ingot" : {
+               "recipe" : "file(steel_ingot_recipe.json)"
+            }
+         }
+      }
    }
 }

@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 2,
+   "recipe_name" : "Iron Ingot",
+   "description": "A bar of pure Iron. A suitable material for crafted goods.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/iron_ingot/iron_ingot.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:resources:iron:ore",
+         "count" : 4
+      }
+   ],
+  "produces": [
+      {
+         "item" : "stonehearth:refined:iron_ingot"
+      }
+  ]
+}

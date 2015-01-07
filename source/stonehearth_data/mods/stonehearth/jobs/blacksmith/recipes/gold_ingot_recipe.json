@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 2,
+   "recipe_name" : "Gold Ingot",
+   "description": "A bar of pure gold. A suitable material for crafted goods.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/gold_ingot/gold_ingot.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:resources:gold:ore",
+         "count" : 4
+      }
+   ],
+  "produces": [
+      {
+         "item" : "stonehearth:refined:gold_ingot"
+      }
+  ]
+}
