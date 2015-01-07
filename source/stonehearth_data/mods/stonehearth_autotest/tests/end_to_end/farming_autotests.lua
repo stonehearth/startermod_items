@@ -19,7 +19,7 @@ function farming_tests.grow_one_turnip(autotest)
       end)
    
    -- create a 1x1 farm
-   autotest.ui:click_dom_element('#startMenu div[hotkey="f"]')
+   autotest.ui:click_dom_element('#startMenu #create_farm') --div[hotkey="f"]')
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
 
    -- when the farm widget pops up, pick the turnip crop
