@@ -172,6 +172,7 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		return true;
    case EngineOptions::EnableShadows:
       enableShadows = (value != 0);
+      Modules::renderer().reallocateShadowBuffers(shadowMapQuality);
       setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
       return true;
    case EngineOptions::EnableStatsLogging:
