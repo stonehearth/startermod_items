@@ -9,20 +9,12 @@ function BlacksmithTest:__init()
    self:place_item('stonehearth:medium_oak_tree', -5, -25)
    self:place_item('stonehearth:small_oak_tree',  15, -25)
 
-   self:place_item('stonehearth:large_boulder_1',  -25, 5)
-   self:place_item('stonehearth:medium_boulder_1', -15, 5)
-   
 
-   self:place_item('stonehearth:small_boulder',    5, 5)
-       :add_component('mob'):turn_to(90)
-
-   self:place_item('stonehearth:small_boulder',    15, 5)
-       :add_component('mob'):turn_to(90)
-
-   self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 2, 2)
-   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 10, 2, 2)
-   self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
-   self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
+   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 14, 2, 2)
+   self:place_item_cluster('stonehearth:resources:copper:ore', -4, 8, 4, 4)
+   self:place_item_cluster('stonehearth:resources:iron:ore', 0, 8, 4, 4)
+   self:place_item_cluster('stonehearth:resources:gold:ore', 4, 8, 4, 4)
+   self:place_item_cluster('stonehearth:resources:coal:lump_of_coal', 8, 8, 4, 4)
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'blacksmith')
