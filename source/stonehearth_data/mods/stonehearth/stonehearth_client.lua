@@ -14,6 +14,7 @@ local service_creation_order = {
    'hilight',
    'build_editor',
    'subterranean_view',
+   'party_editor',
 }
 
 local function create_service(name)
@@ -27,6 +28,7 @@ local function create_service(name)
    end
    service.__saved_variables = saved_variables
    saved_variables:set_controller(service)
+   service._sv = saved_variables:get_data()
    service:initialize()
    stonehearth[name] = service
 end

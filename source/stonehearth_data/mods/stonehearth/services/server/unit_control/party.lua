@@ -5,6 +5,10 @@ local PartyGuardAction = require 'services.server.unit_control.actions.party_gua
 
 local DX = -6
 
+local function ToPoint3(pt)
+   return pt and Point3(pt.x, pt.y, pt.z) or nil
+end
+
 function Party:initialize(unit_controller, id, ord)
    self._sv._next_id = 2
    self._sv.id = id
@@ -19,14 +23,14 @@ function Party:get_id()
 end
 
 function Party:add_member(member)
+   local id = member:get_id()
    local pc = member:add_component('stonehearth:party_member')
    local old_party = pc:get_party()
    if old_party then
-      old_party:remove_member()
+      old_party:remove_member(id)
    end
    pc:set_party(self)
    
-   local id = member:get_id()
    local party_abilities = radiant.entities.create_entity('stonehearth:party:party_abilities')
 
    local party_task = member:get_component('stonehearth:ai')
@@ -114,5 +118,13 @@ function Party:remove_member_command(session, response, member)
    return true
 end
 
+function Party:create_attack_order_command(session, response, location, rotation)
+   location = ToPoint3(location)
+   self:create_command('guard', location)
+               :set_travel_stance('defensive')
+               :set_arrived_stance('aggressive')
+               :go()
+   return true
+end
 
 return Party

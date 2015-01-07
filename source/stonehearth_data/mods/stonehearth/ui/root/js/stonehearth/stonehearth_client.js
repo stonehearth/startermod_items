@@ -368,6 +368,12 @@ var StonehearthClient;
          });
       },
 
+      setPartyAttackOrder: function(party) {
+         return this._callTool('setPartyAttackOrder', function() {
+            return radiant.call_obj('stonehearth.party_editor', 'set_attack_order_command', party);
+         });
+      },
+
       //TODO: make this available ONLY after a farmer has been created
       createFarm: function() {
          var self = this;
