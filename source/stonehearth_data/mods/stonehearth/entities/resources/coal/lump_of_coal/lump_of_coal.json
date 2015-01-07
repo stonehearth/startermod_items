@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "coal",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "coal resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(lump_of_coal.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Lump 'o Coal",
+         "description": "A sizable chunk of solid coal.",
+         "icon" : "file(lump_of_coal.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 1,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}
