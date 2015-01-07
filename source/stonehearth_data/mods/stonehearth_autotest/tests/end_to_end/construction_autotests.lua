@@ -41,7 +41,7 @@ function construction_tests.simple_build(autotest)
    autotest:sleep(1000)
    
    autotest.ui:click_dom_element('#startMenu #build_menu')
-   autotest.ui:click_dom_element('#startMenu div[hotkey="b"]')
+   autotest.ui:click_dom_element('#startMenu img[hotkey="b"]')
    autotest.ui:click_dom_element('#customBuildingButton')
    autotest.ui:click_dom_element('#drawWallTool')
 
