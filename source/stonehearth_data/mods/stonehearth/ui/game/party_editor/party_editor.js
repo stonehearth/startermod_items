@@ -38,6 +38,13 @@ App.StonehearthPartyEditorView = App.View.extend({
          return v.entity;
       });
    }.property('model.members'),
+
+   _hideMemberView: function() {
+      if (this._addMemberView && !this._addMemberView.isDestroyed) {
+         this._addMemberView.destroy();
+      }
+   }.observes('uri'),
+
 });
 
 

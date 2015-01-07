@@ -184,10 +184,11 @@ $.widget( "stonehearth.stonehearthMenu", {
          var description = node.description;
          var name = node.name;
 
-         var item = $('<div>')
+         var item = $('<img>')
                      .attr('id', key)
                      .attr('hotkey', hotkey)
-                     .css({ 'background-image' : 'url(' + node.icon + ')' })
+                     .attr('src', node.icon)
+                     //.css({ 'background-image' : 'url(' + node.icon + ')' })
                      .addClass('menuItem')
                      .addClass('button')
                      .addClass(node.class)
