@@ -64,5 +64,11 @@ App.StonehearthPartiesRowView = App.View.extend({
       editParty: function(party) {
          App.stonehearthClient.showPartyEditor(party);
       },
+      setAttackOrder: function(party) {
+         App.stonehearthClient.setPartyAttackOrder(party);
+      },
+      setDefendOrder: function(party) {
+         App.stonehearthClient.setPartyDefendOrder(party);
+      },
    },
 });

@@ -5,6 +5,10 @@ local PartyGuardAction = require 'services.server.unit_control.actions.party_gua
 
 local DX = -6
 
+local function ToPoint3(pt)
+   return pt and Point3(pt.x, pt.y, pt.z) or nil
+end
+
 function Party:initialize(unit_controller, id, ord)
    self._sv._next_id = 2
    self._sv.id = id
@@ -114,5 +118,13 @@ function Party:remove_member_command(session, response, member)
    return true
 end
 
+function Party:create_attack_order_command(session, response, location, rotation)
+   location = ToPoint3(location)
+   self:create_command('guard', location)
+               :set_travel_stance('defensive')
+               :set_arrived_stance('aggressive')
+               :go()
+   return true
+end
 
 return Party
