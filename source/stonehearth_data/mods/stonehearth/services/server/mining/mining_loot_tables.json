@@ -2,15 +2,15 @@
    "rock" : {
       "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 4 }
+         { "uri" : "", "weight" : 1000 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 20 }
       ]
    },
    "dirt" : {
       "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 2 }
+         { "uri" : "", "weight" : 1000 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 5 }
       ]
    },
    "grass" : {
