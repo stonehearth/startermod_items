@@ -171,6 +171,9 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
 		gatherTimeStats = (value != 0);
 		return true;
    case EngineOptions::EnableShadows:
+      if (!rendererCaps.ShadowsSupported) {
+         return true;
+      }
       enableShadows = (value != 0);
       Modules::renderer().reallocateShadowBuffers(shadowMapQuality);
       setGlobalShaderFlag("DISABLE_SHADOWS", !enableShadows);
