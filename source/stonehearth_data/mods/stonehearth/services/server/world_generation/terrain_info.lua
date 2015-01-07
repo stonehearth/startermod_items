@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 
@@ -8,28 +9,28 @@ function TerrainInfo:__init()
    self.tile_size = 256
    self.macro_block_size = 32
    self.feature_size = 16
-   self.slice_size = 5
+   self.slice_size = constants.mining.Y_CELL_SIZE
    assert(self.tile_size % self.macro_block_size == 0)
    assert(self.macro_block_size / self.feature_size == 2)
 
    -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
-   plains_info.mean_height = 20
+   plains_info.mean_height = 40
    plains_info.std_dev = 6
-   plains_info.max_height = 20
+   plains_info.max_height = 40
    self[TerrainType.plains] = plains_info
 
    local foothills_info = {}
    foothills_info.step_size = 10
-   foothills_info.mean_height = 36
+   foothills_info.mean_height = 56
    foothills_info.std_dev = 12
-   foothills_info.max_height = 40
+   foothills_info.max_height = 60
    self[TerrainType.foothills] = foothills_info
 
    local mountains_info = {}
    mountains_info.step_size = 15
-   mountains_info.mean_height = 85
+   mountains_info.mean_height = 105
    mountains_info.std_dev = 80
    self[TerrainType.mountains] = mountains_info
 
@@ -49,10 +50,18 @@ function TerrainInfo:__init()
    plains_info.base_height = plains_info.valley_height - plains_info.step_size
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
+
+   local max_mountains_steps = 10
+   mountains_info.max_height = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
+
    self.min_height = plains_info.valley_height
+   self.max_height = mountains_info.max_height
 
    local centroids = self:_get_quantization_centroids()
    self.quantizer = NonUniformQuantizer(centroids)
+
+   local mountain_centroids = self:_get_mountain_quantization_centroids()
+   self.mountains_quantizer = NonUniformQuantizer(mountain_centroids)
 end
 
 function TerrainInfo:get_terrain_type(height)
@@ -85,7 +94,6 @@ function TerrainInfo:get_terrain_code(height)
 end
 
 function TerrainInfo:_get_quantization_centroids()
-   local max_mountains_steps = 10
    local plains_info = self[TerrainType.plains]
    local foothills_info = self[TerrainType.foothills]
    local mountains_info = self[TerrainType.mountains]
@@ -95,25 +103,39 @@ function TerrainInfo:_get_quantization_centroids()
    min = plains_info.base_height + plains_info.step_size
    max = plains_info.max_height
    step_size = plains_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    min = foothills_info.base_height + foothills_info.step_size
    max = foothills_info.max_height
    step_size = foothills_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    min = mountains_info.base_height + mountains_info.step_size
-   max = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
+   max = mountains_info.max_height
    step_size = mountains_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    return centroids
+end
+
+-- used to quantize the underground mountains
+function TerrainInfo:_get_mountain_quantization_centroids()
+   local mountains_info = self[TerrainType.mountains]
+   local centroids = {}
+   local min, max, step_size
+
+   min = mountains_info.base_height % mountains_info.step_size
+   max = mountains_info.max_height
+   step_size = mountains_info.step_size
+   self:_append_lattice(centroids, min, max, step_size)
+
+   return centroids
+end
+
+function TerrainInfo:_append_lattice(array, min, max, step_size)
+   for value = min, max, step_size do
+      table.insert(array, value)
+   end
 end
 
 return TerrainInfo

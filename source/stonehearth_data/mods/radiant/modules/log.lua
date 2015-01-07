@@ -104,13 +104,11 @@ function Log.create_logger(sub_category)
 
       set_prefix = function (self, prefix)
             self._prefix = prefix
-            self._log_prefix = compute_log_prefix(self._prefix, self._entity)
             return self
          end,
 
       set_entity = function (self, entity)
             self._entity = entity
-            self._log_prefix = compute_log_prefix(self._prefix, self._entity)
             return self
          end,
 
@@ -127,7 +125,8 @@ function Log.create_logger(sub_category)
                   args[i] = tostring(arg)
                end
             end
-            _host:log(self._category, level, self._log_prefix .. string.format(format, unpack(args)))
+            local prefix = compute_log_prefix(self._prefix, self._entity)
+            _host:log(self._category, level, prefix .. string.format(format, unpack(args)))
          end,
 
       get_log_level = function(self)

@@ -1,0 +1,15 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "file(actions/follow_party_order_action.lua)",
+               "file(actions/hold_formation_action.lua)"
+            ],
+            "observers" : [
+            ]
+         }
+      }
+   }
+}

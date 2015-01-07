@@ -3,7 +3,12 @@
    "type": "entity",
    "components": {
       "unit_info": {
-         "name": "Mutton jerky"
+         "name": "Rack of Mutton"
+      },
+      "item": {
+         "category" : "food",
+         "stacks" : 30,
+         "maxStacks" : 30
       }
    }
 }

@@ -123,22 +123,6 @@ function ShepherdPastureComponent:add_animal(animal)
    radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
 end
 
-function ShepherdPastureComponent:remove_animal(animal_id)
-   --remove events associated with it
-   local renew_event = self._sv.tracked_critters[animal_id].renew_event
-   if renew_event then
-      renew_event:destroy()
-      renew_event = nil
-   end
-
-   self._sv.tracked_critters[animal_id] = nil
-   self._sv.num_critters = self._sv.num_critters - 1
-
-   assert(self._sv.num_critters >= 0)
-   self:_calculate_reproduction_timer()
-
-   radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
-end
 
 --------- Private functions
 
@@ -178,31 +162,56 @@ function ShepherdPastureComponent:_create_harvest_task(target)
    end
 end
 
---TODO: consider centralizing all the "animal not connected to pasture, unbind from pasture" code
+--If the pasture is deleted, we need to go through all the animals and remove their
+--ties to the shepherd and their pasture tags.
 function ShepherdPastureComponent:_release_existing_animals()
    for id, animal_data in pairs(self._sv.tracked_critters) do
       --If the animal is following a shepherd, remove it from the shepherd's folloq queue
       local animal = animal_data.entity
-      local equipment_component = animal:get_component('stonehearth:equipment')
+      local equipment_component = animal:add_component('stonehearth:equipment')
       local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
-      local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+      if pasture_tag then
+         local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+         shepherded_animal_component:free_animal()
+         
+         --if shepherded_animal_component:get_following() then
+         --   local shepherd = shepherded_animal_component:get_last_shepherd()
+         --   local shepherd_class = shepherd:get_component('stonehearth:job'):get_curr_job_controller()
+         --   if shepherd_class and shepherd_class.remove_trailing_animal then
+         --      shepherd_class:remove_trailing_animal(id)
+         --   end
+         --end
+         --unequip its pasture tags
+         --equipment_component:unequip_item('stonehearth:pasture_tag')
+   end
 
-      if shepherded_animal_component:get_following() then
-         local shepherd = shepherded_animal:get_last_shepherd()
-         local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
-         if shepherd_class and shepherd_class.remove_trailing_animal then
-            shepherd_class:remove_trailing_animal(id)
-         end
-      end
-      --unequip its pasture tags
-      equipment_component:unequip_item('stonehearth:pasture_tag')
-      
-      --Remove it from the pasture
-      self:remove_animal(id)
+   --Remove it from the pasture
+   --self:_remove_animal(id)
    end
 
    self._sv.tracked_critters = {}
 end
+
+--Removes the animal from the pasture, but only once
+function ShepherdPastureComponent:remove_animal(animal_id)
+   --remove events associated with it
+   local renew_event = self._sv.tracked_critters[animal_id].renew_event
+   if renew_event then
+      renew_event:destroy()
+      renew_event = nil
+   end
+
+   if self._sv.tracked_critters[animal_id] then
+      self._sv.tracked_critters[animal_id] = nil
+      self._sv.num_critters = self._sv.num_critters - 1
+
+      assert(self._sv.num_critters >= 0)
+      self:_calculate_reproduction_timer()
+
+      radiant.events.trigger(self._entity, 'stonehearth:on_pasture_animals_changed', {})
+   end
+end
+
 
 -- Destroy any existing animal collection tasks, and make some new ones
 function ShepherdPastureComponent:_create_animal_collection_tasks()

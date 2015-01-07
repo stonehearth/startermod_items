@@ -10,7 +10,7 @@
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:workshop_bench"
+               "stonehearth:sounds:mason_bench"
                 ]
             }
         }

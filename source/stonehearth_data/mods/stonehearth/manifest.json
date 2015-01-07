@@ -309,6 +309,7 @@
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
+      "attack_order_banner" : "file(entities/gizmos/control_attack_banner)",
       "tombstone" : "file(entities/furniture/tombstone)",
 
       "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
@@ -335,6 +336,7 @@
       "buffs:combat_basics" : "file(data/buffs/combat_basics/combat_basics.json)",
       "buffs:patrolling" : "file(data/buffs/patrolling/patrolling_buff.json)",
       "buffs:shepherding" : "file(data/buffs/shepherding/shepherding_buff.json)",
+      "buffs:shepherd:speed_1" : "file(data/buffs/shepherding/shepherding_speed_bonus.json)", 
       "buffs:stopped" : "file(data/buffs/stopped/stopped_buff.json)", 
 
       "buffs:trapper:speed_1" : "file(jobs/trapper/trapper_buffs/speed_1_buff)", 
@@ -667,6 +669,8 @@
       "sounds:ui:scenarios:alert" : "file(data/sounds/ui/scenarios/sh_ui_alert.wav)",
       "sounds:ui:scenarios:redalert" : "file(data/sounds/ui/scenarios/sh_ui_redalert.wav)",
       "sounds:ui:scenarios:redalert_off" : "file(data/sounds/ui/scenarios/sh_ui_redalert_off.wav)",
+      "sounds:ui:mason_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_mason_menu_open.wav)",
+      "sounds:ui:weaver_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_weaver_menu_open.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -707,6 +711,7 @@
       "sounds:rooster_call" : "file(data/sounds/effects/sh_rooster_call.wav)",
       "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
       "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
+      "sounds:mason_bench" : "file(data/sounds/effects/sh_mason_bench.wav)",
       "sounds:sleeping_lullaby" : "file(data/sounds/effects/sh_sleeping_lullaby.wav)",
       "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
       "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
@@ -747,6 +752,8 @@
       "sounds:harp_loop" : "file(data/sounds/effects/sh_harp_loop.wav)",
       "sounds:tree_fall" : "file(data/sounds/effects/sh_treefall.wav)",
       "sounds:shepherd_whistle" : "file(data/sounds/effects/sh_shepherd_whistle.wav)",
+      "sounds:mason_hammer_01" : "file(data/sounds/effects/sh_mason_hammer_01.wav)",
+      "sounds:mason_hammer_02" : "file(data/sounds/effects/sh_mason_hammer_02.wav)",
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
@@ -810,7 +817,9 @@
       "jobs:worker" : "file(jobs/worker/worker_description.json)",
       "npc_jobs:peon" : "file(npc_jobs/peon/peon_description.json)",
 
-      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)"
+      "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
+
+      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {
@@ -970,6 +979,10 @@
          "endpoint" : "server"
       },
       "harvest_entity" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+       "permanently_harvest_entity" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -1314,7 +1327,8 @@
       "roof" : "file(components/roof/roof_component.lua)",
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
       "ladder" : "file(components/ladder/ladder_component.lua)",
-      "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)"
+      "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
+      "party_member" : "file(components/party_member/party_member_component.lua)"
    },
    "client_components" : {
       "building" : "file(components/building/building_client_component.lua)",
@@ -1403,6 +1417,8 @@
          "file(ui/game/start_menu/start_menu.html)",
          "file(ui/game/town/town.html)",
          "file(ui/game/citizens/citizens.html)",
+         "file(ui/game/parties/parties.html)",
+         "file(ui/game/party_editor/party_editor.html)",
          "file(ui/game/tasks/tasks.html)",
          "file(ui/game/promotion_tree/promotion_tree.html)",
          "file(ui/game/tip_popup/tip_popup.html)",
@@ -1485,6 +1501,8 @@
          "file(ui/game/start_menu/stonehearth_menu.js)",
          "file(ui/game/town/town.js)",
          "file(ui/game/citizens/citizens.js)",
+         "file(ui/game/parties/parties.js)",
+         "file(ui/game/party_editor/party_editor.js)",
          "file(ui/game/item_palette/item_palette.js)",
          "file(ui/game/tasks/tasks.js)",
          "file(ui/game/promotion_tree/promotion_tree.js)",
@@ -1558,6 +1576,8 @@
          "file(ui/game/start_menu/stonehearth_menu.less)",
          "file(ui/game/town/town.less)",
          "file(ui/game/citizens/citizens.less)",
+         "file(ui/game/parties/parties.less)",
+         "file(ui/game/party_editor/party_editor.less)",
          "file(ui/game/item_palette/item_palette.less)",
          "file(ui/game/tasks/tasks.less)",
          "file(ui/game/promotion_tree/promotion_tree.less)",
@@ -1573,4 +1593,5 @@
       ]
    }
 }
+
 

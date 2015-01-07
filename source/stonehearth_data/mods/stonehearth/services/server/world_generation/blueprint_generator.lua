@@ -66,7 +66,7 @@ function BlueprintGenerator:get_empty_blueprint(width, height, terrain_type)
    return blueprint
 end
 
-function BlueprintGenerator:store_micro_map(blueprint, full_micro_map, macro_blocks_per_tile)
+function BlueprintGenerator:store_micro_map(blueprint, key, full_micro_map, macro_blocks_per_tile)
    local local_micro_map
 
    for j=1, blueprint.height do
@@ -78,7 +78,8 @@ function BlueprintGenerator:store_micro_map(blueprint, full_micro_map, macro_blo
             (i-1)*macro_blocks_per_tile+1, (j-1)*macro_blocks_per_tile+1,
             macro_blocks_per_tile+1, macro_blocks_per_tile+1)
 
-         blueprint:get(i, j).micro_map = local_micro_map
+         local e = blueprint:get(i, j)
+         e[key] = local_micro_map
       end
    end
 end

@@ -3,6 +3,10 @@ local log = radiant.log.create_logger('combat')
 local AggroObserver = class()
 
 function AggroObserver:initialize(entity)
+   self._log = radiant.log.create_logger('combat')
+                           :set_prefix('aggro_observer')
+                           :set_entity(entity)
+
    self._entity = entity
    self._observed_allies = {}
    self._observed_allies_listeners = {}
@@ -31,6 +35,7 @@ function AggroObserver:_on_added_to_sensor(id, other_entity)
    if not other_entity or not other_entity:is_valid() then
       return
    end
+   self._log:spam('%s entered sight sensor', other_entity)
 
    -- TODO: eventually, we should listen for alliance change if a unit changes from ally to hostile or the reverse
    -- TODO: only observe units, not structures that have factions
@@ -49,6 +54,7 @@ function AggroObserver:_on_removed_from_sensor(id)
    if not other_entity or not other_entity:is_valid() then
       return
    end
+   self._log:spam('%s left sight sensor', other_entity)
 
    self:_unobserve_ally(other_entity)
 end

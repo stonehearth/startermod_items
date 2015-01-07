@@ -8,8 +8,7 @@ function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
 
-   --self:place_citizen(2, 2)
-
+   self:place_citizen(2, 2)
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(banner, Point3.zero, { force_iconic = false })

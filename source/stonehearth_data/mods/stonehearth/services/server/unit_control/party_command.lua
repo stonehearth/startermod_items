@@ -28,7 +28,7 @@ function PartyCommand:set_target(target)
    return self
 end
 
-function PartyCommand:get_target(target)
+function PartyCommand:get_target()
    return self._sv.target
 end
 
@@ -38,7 +38,7 @@ function PartyCommand:set_travel_stance(cs)
    return self
 end
 
-function PartyCommand:get_travel_stance(target)
+function PartyCommand:get_travel_stance()
    return self._sv.travel_stance
 end
 
@@ -48,10 +48,18 @@ function PartyCommand:set_arrived_stance(cs)
    return self
 end
 
+function PartyCommand:get_arrived_stance()
+   return self._sv.arrived_stance
+end
+
 function PartyCommand:set_action(action)
    assert(VALID_ACTIONS[action])
    self._sv.action = action
    return self   
+end
+
+function PartyCommand:get_action()
+   return self._sv.action
 end
 
 function PartyCommand:go()
@@ -61,11 +69,6 @@ end
 
 function PartyCommand:destroy()
    radiant.not_yet_implemented()
-end
-
-function PartyCommand:_set_state(state)
-   self._sv.state = state
-   self.__saved_variables:mark_changed()
 end
 
 return PartyCommand

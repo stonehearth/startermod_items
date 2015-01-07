@@ -59,6 +59,20 @@ function TerrainGenerator:generate_tile(micro_map)
    return tile_map
 end
 
+function TerrainGenerator:generate_underground_tile(underground_micro_map)
+   local oversize_map = self._oversize_map_buffer
+   local underground_tile_map
+
+   self:_create_oversize_map_from_micro_map(oversize_map, underground_micro_map)
+   self:_yield()
+
+   -- copy the offset tile map from the oversize map
+   underground_tile_map = self:_extract_tile_map(oversize_map)
+   self:_yield()
+
+   return underground_tile_map
+end
+
 function TerrainGenerator:_create_oversize_map_from_micro_map(oversize_map, micro_map)
    local i, j, value
    local micro_width = micro_map.width

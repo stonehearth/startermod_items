@@ -15,5 +15,16 @@ function UnitControlService:get_controller(player_id)
    return unit_controller
 end
 
+function UnitControlService:get_controller_command(session, response)
+   return { uri = self:get_controller(session.player_id) }
+end
+
+function UnitControlService:create_party_command(session, response)
+   local party = self:get_controller(session.player_id)
+                        :create_party()
+                        
+   return { party = party }
+end
+
 return UnitControlService
 

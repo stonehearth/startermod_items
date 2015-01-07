@@ -104,7 +104,18 @@ int call(lua_State* L)
 
 int call_obj(lua_State* L)
 {
-   return call_impl(L, 3, luaL_checkstring(L, 1), luaL_checkstring(L, 2));
+   std::string obj_address;
+   luabind::object obj = luabind::object(luabind::from_stack(L, 1));
+   int type = luabind::type(obj);
+   if (type == LUA_TSTRING) {
+      obj_address = luabind::object_cast<std::string>(obj);
+   } else if (type == LUA_TUSERDATA) {
+      obj_address = luabind::object_cast<std::string>(obj["get_address"](obj));
+   }
+   if (obj_address.empty()) {
+      throw std::logic_error("unxpected type in argument 1 of call_obj");
+   }
+   return call_impl(L, 3, obj_address.c_str(), luaL_checkstring(L, 2));
 }
 
 IMPLEMENT_TRIVIAL_TOSTRING(CoreReactor);

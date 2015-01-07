@@ -254,7 +254,7 @@ function AIComponent:add_observer(uri)
       return
    end
 
-   local ctor = radiant.mods.load_script(uri)   
+   local ctor = radiant.mods.load_script(uri)
    local observer = ctor(self._entity)
    
    if not self._sv._observer_datastores[uri] then

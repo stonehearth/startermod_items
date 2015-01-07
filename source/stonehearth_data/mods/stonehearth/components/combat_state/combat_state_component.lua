@@ -16,6 +16,7 @@ function CombatStateComponent:initialize(entity, json)
    self._sv = self.__saved_variables:get_data()
 
    self._log = radiant.log.create_logger('combat')
+                          :set_prefix('combat_state')
                           :set_entity(self._entity)
 
    if not self._sv.initialized then

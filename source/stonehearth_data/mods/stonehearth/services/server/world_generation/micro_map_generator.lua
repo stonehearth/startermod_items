@@ -54,6 +54,59 @@ function MicroMapGenerator:generate_micro_map(blueprint)
    return micro_map, elevation_map
 end
 
+-- given a surface micro map, generate the underground micro map that indicates rock elevations
+function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
+   local mountains_info = self._terrain_info[TerrainType.mountains]
+   local mountains_base_height = mountains_info.base_height
+   local mountains_step_size = mountains_info.step_size
+   local rock_line = mountains_step_size
+   local width, height = surface_micro_map:get_dimensions()
+   local size = width*height
+   local unfiltered_map = Array2D(width, height)
+   local underground_micro_map = Array2D(width, height)
+
+   -- seed the map using the above ground mountains
+   for i=1, size do
+      local surface_elevation = surface_micro_map[i]
+      local value = surface_elevation > mountains_base_height and surface_elevation or rock_line
+      unfiltered_map[i] = value
+   end
+
+   -- filter the map to generate the underground height map
+   FilterFns.filter_2D_0125(underground_micro_map, unfiltered_map, width, height, 10)
+
+   local quantizer = self._terrain_info.mountains_quantizer
+
+   -- quantize the height map
+   for i=1, size do
+      local surface_elevation = surface_micro_map[i]
+      local rock_elevation
+
+      if surface_elevation > mountains_base_height then
+         -- just clip the underground micro map if the mountain breaks the surface
+         rock_elevation = mountains_base_height
+      else
+         -- quantize the filtered value
+         rock_elevation = quantizer:quantize(underground_micro_map[i])
+
+         -- make sure we have a layer of rock beneath everything
+         if rock_elevation <= 0 then
+            rock_elevation = rock_line
+         end
+      end
+
+      -- make sure the sides of the rock faces stay beneath the surface
+      -- e.g. we don't want a drop in an adjacent foothills block to expose the rock
+      if rock_elevation > surface_elevation - mountains_step_size then
+         rock_elevation = rock_elevation - mountains_step_size
+      end
+
+      underground_micro_map[i] = rock_elevation
+   end
+
+   return underground_micro_map
+end
+
 function MicroMapGenerator:generate_noise_map(blueprint)
    local terrain_info = self._terrain_info
    local rng = self._rng

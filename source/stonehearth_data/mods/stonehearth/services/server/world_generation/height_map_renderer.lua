@@ -57,25 +57,64 @@ function HeightMapRenderer:add_region_to_terrain(region3, offset_x, offset_y)
    self._terrain:add_tile_clipped(region3, clipper)
 end
 
-function HeightMapRenderer:render_height_map_to_region(region3, height_map)
+function HeightMapRenderer:render_height_map_to_region(region3, height_map, underground_height_map)
    assert(height_map.width == self._tile_size)
    assert(height_map.height == self._tile_size)
+   assert(underground_height_map.width == self._tile_size)
+   assert(underground_height_map.height == self._tile_size)
 
+   local surface_region = self:_convert_height_map_to_region3(height_map, self._add_land_to_region)
+   region3:add_region(surface_region)
+
+   -- will overwrite some cubes from the surface region
+   local underground_region = self:_convert_height_map_to_region3(underground_height_map, self._add_mountains_to_region)
+   region3:add_region(underground_region)
+
+   local bedrock_region = self:_get_bedrock_region(height_map, 4)
+   region3:add_region(bedrock_region)
+
+   region3:optimize_by_merge()
+end
+
+function HeightMapRenderer:_convert_height_map_to_region3(height_map, add_fn)
+   local region3 = Region3()
    local region2 = Region2()
-   local height
 
    self:_convert_height_map_to_region2(region2, height_map)
 
-   self:_add_bedrock_to_region(region3, height_map, 4)
+   for rect in region2:each_cube() do
+      local height = rect.tag
+      if height > 0 then
+         add_fn(self, region3, rect, height)
+      end
+   end
+
+   return region3
+end
+
+function HeightMapRenderer:_add_surface_to_region(region3, height_map)
+   local region2 = Region2()
+   self:_convert_height_map_to_region2(region2, height_map)
 
    for rect in region2:each_cube() do
-      height = rect.tag
+      local height = rect.tag
       if height > 0 then
          self:_add_land_to_region(region3, rect, height);
       end
    end
+end
 
-   region3:optimize_by_merge()
+function HeightMapRenderer:_add_underground_to_region(region3, underground_height_map)
+   local region3 = Region3()
+   local region2 = Region2()
+   self:_convert_height_map_to_region2(region2, height_map)
+
+   for rect in region2:each_cube() do
+      local height = rect.tag
+      if height > 0 then
+         self:_add_land_to_region(region3, rect, height);
+      end
+   end
 end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
@@ -98,12 +137,16 @@ function HeightMapRenderer:_copy_heightmap_to_CPP(height_map_cpp, height_map)
    end
 end
 
-function HeightMapRenderer:_add_bedrock_to_region(region3, height_map, thickness)
+function HeightMapRenderer:_get_bedrock_region(height_map, thickness)
+   local region3 = Region3()
+
    region3:add_unique_cube(Cube3(
          Point3(0, -thickness, 0),
          Point3(height_map.width, 0, height_map.height),
          self._block_types.bedrock
       ))
+
+   return region3
 end
 
 function HeightMapRenderer:_add_land_to_region(region3, rect, height)

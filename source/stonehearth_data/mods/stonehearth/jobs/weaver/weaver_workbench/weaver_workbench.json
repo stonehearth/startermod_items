@@ -22,6 +22,8 @@
       "stonehearth:workshop": {
          "job_name" : "Weaver",
          "skin_class" : "weaver",
+         "open_sound" : "stonehearth:sounds:ui:weaver_menu:menu_open",
+         "close_sound" : "stonehearth:sounds:ui:carpenter_menu:menu_closed",
          "promotion_talisman" : {
             "entity" : "stonehearth:weaver:spindle",
             "offset" : { "x" : 0, "y" : 3, "z" : 0 }

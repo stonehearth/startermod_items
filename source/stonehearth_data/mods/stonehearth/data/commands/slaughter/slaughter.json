@@ -1,0 +1,14 @@
+{
+   "type" : "command",
+
+   "name": "slaughter",
+   "tooltip": "Harvest for Meat",
+   "description": "Harvest this animal for its meat.",
+   "icon": "file(slaughter.png)",
+
+   "action": "call",
+   "function": "stonehearth:permanently_harvest_entity",
+   "args": [
+      "{{self}}"
+   ]
+}

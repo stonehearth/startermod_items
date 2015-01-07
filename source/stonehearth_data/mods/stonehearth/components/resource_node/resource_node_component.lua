@@ -61,7 +61,7 @@ function ResourceNodeComponent:spawn_resource(owner, collect_location)
    self._sv.durability = self._sv.durability - 1
 
    if self._sv.durability <= 0 then
-      radiant.entities.destroy_entity(self._entity)
+      radiant.entities.kill_entity(self._entity)
    end
 
    self.__saved_variables:mark_changed()

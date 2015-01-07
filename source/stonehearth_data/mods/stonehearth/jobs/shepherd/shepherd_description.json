@@ -7,6 +7,7 @@
    "requirements" : "3 levels of Trapper and a Shepherd's Crook, crafted by the Carpenter.",
    "talisman_uri" : "stonehearth:shepherd:talisman",
    "default_stance" : "passive",
+
    "icon" : "file(images/icon.png)",
    "bannerIcon" : "file(images/banner.png)",   
    "parent_job" : "stonehearth:jobs:trapper",
@@ -23,7 +24,55 @@
 
    "task_groups" : [
       "stonehearth:task_group:restock", 
+      "stonehearth:task_group:placement", 
       "stonehearth:task_group:herding"
-   ]
+   ], 
+
+   "xp_rewards" : {
+      "tame_animal" : 40, 
+      "harvest_animal_resources" : 50, 
+      "harvest_animal" : 50
+   },
+
+   "max_level" : 6, 
+
+   "level_data" : {
+      "1" : {
+         "perks" : [
+            {
+               "type" : "apply_buff", 
+               "name" : "Speed Up 10%", 
+               "id" : "shepherd_speed_up_1", 
+               "icon" : "file(images/level_1.png)", 
+               "buff_name" : "stonehearth:buffs:shepherd:speed_1",
+               "description" : "The shepherd is now more adept at getting the flock to walk a tiny bit faster.", 
+               "level" : 1, 
+               "demote_fn" : "remove_buff"
+            }
+         ]
+      }, 
+      "3" : {
+         "perks" : [
+            {
+               "name" : "Extra Bonuses",
+               "id" : "shepherd_extra_bonuses", 
+               "icon" : "file(images/level_3.png)",
+               "description" : "The shepherd's skill produces greater yields in animal products.",
+               "level" : 3                
+            }
+         ]
+      }, 
+      "4" : {
+         "perks" : [
+            {
+               "name" : "Animal Magnetism",
+               "id" : "shepherd_improved_find_rate", 
+               "icon" : "file(images/level_4.png)",
+               "description" : "Wild animals are more likely to appear whenever the shepherd is looking for them.",
+               "level" : 4              
+            }
+         ]
+      }
+   }
 
 }
