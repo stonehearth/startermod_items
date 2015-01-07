@@ -2,7 +2,7 @@
    <div id="partiesManagement" class="gui managerWindow partyTable">
       <div class="window">
          <div class="title">{{ view.title }} <div class="closeButton"></div></div>
-
+         <div class="help">{{i18n stonehearth:party_help}}</div>
          <div class="toolbar">
             <a href="#" {{action "createParty" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
