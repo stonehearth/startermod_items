@@ -22,6 +22,8 @@
       "stonehearth:workshop": {
          "job_name" : "mason",
          "skin_class" : "mason",
+         "open_sound" : "stonehearth:sounds:ui:mason_menu:menu_open",
+         "close_sound" : "stonehearth:sounds:ui:carpenter_menu:menu_closed",
          "ingredients" : [
             {
                "material" : "stone resource",

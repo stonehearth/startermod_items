@@ -34,7 +34,7 @@ function sh_107.test_fallow_crop(autotest)
       end)
    
    -- create a 1x1 farm
-   autotest.ui:click_dom_element('#startMenu div[hotkey="f"]')
+   autotest.ui:click_dom_element('#startMenu img[hotkey="f"]')
    autotest.ui:set_next_designation_region(4, 8, 1, 1)
 
    -- when the farm widget pops up, pick the fallow crop

@@ -24,16 +24,15 @@
       "sound": {
          "type": "sound_effect",
          "duration": 500,
-         "start_time": 0,
+         "start_time": 50,
          "min_distance": 25,
-         "falloff" : 7,
-         "volume": 70,
+         "falloff" : 3.5,
+         "volume": 90,
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:saw_light_01_sound",
-               "stonehearth:sounds:saw_light_02_sound",
-               "stonehearth:sounds:saw_light_03_sound"
+               "stonehearth:sounds:mason_hammer_01",
+               "stonehearth:sounds:mason_hammer_02"
             ]    
          }
       }
