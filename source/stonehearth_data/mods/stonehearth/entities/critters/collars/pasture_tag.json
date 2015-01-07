@@ -15,6 +15,7 @@
             ]
          },
          "injected_commands" : [
+            "file(/data/commands/slaughter)"
          ]
       }
    }
