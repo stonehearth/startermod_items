@@ -5,7 +5,6 @@ $(document).ready(function(){
       if (App.stonehearth.showWorkshopView) {
          App.stonehearth.showWorkshopView.hide();
       } else {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_open'} );
          App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.entity });         
       }
    });
@@ -14,7 +13,6 @@ $(document).ready(function(){
       if (App.stonehearth.showWorkshopView) {
          App.stonehearth.showWorkshopView.hide();
       } else {
-         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_open'} );
          App.stonehearth.showWorkshopView = App.gameView.addView(App.StonehearthCrafterView, { uri: e.event_data.workshop });
       }
    });
@@ -71,7 +69,12 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    hide: function() {
-      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:carpenter_menu:menu_closed'} );
+      var sound = this.get('context.data.stonehearth:workshop.close_sound');
+
+      if (sound) {
+         radiant.call('radiant:play_sound', {'track' : sound} );   
+      }
+
       var self = this;
       /* the animation is causing races between when the rest of the UI thinks the view should be destroyed and when it is actually destroyed (at the end of the animation)
       self.$("#craftWindow")
@@ -251,9 +254,16 @@ App.StonehearthCrafterView = App.View.extend({
    },
 
    didInsertElement: function() {
-
       this._super();
    },
+
+   _playOpenSound: function() {
+      var sound = this.get('context.data.stonehearth:workshop.open_sound');
+
+      if (sound) {
+         radiant.call('radiant:play_sound', {'track' : sound} );   
+      }
+   }.observes('context.data.stonehearth:workshop.open_sound'),
 
    // Fires whenever the workshop changes, but the first update is all we really
    // care about.
