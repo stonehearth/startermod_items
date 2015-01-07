@@ -49,10 +49,18 @@ function TerrainInfo:__init()
    plains_info.base_height = plains_info.valley_height - plains_info.step_size
    foothills_info.base_height = plains_info.max_height
    mountains_info.base_height = foothills_info.max_height
+
+   local max_mountains_steps = 10
+   mountains_info.max_height = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
+
    self.min_height = plains_info.valley_height
+   self.max_height = mountains_info.max_height
 
    local centroids = self:_get_quantization_centroids()
    self.quantizer = NonUniformQuantizer(centroids)
+
+   local mountain_centroids = self:_get_mountain_quantization_centroids()
+   self.mountains_quantizer = NonUniformQuantizer(mountain_centroids)
 end
 
 function TerrainInfo:get_terrain_type(height)
@@ -85,7 +93,6 @@ function TerrainInfo:get_terrain_code(height)
 end
 
 function TerrainInfo:_get_quantization_centroids()
-   local max_mountains_steps = 10
    local plains_info = self[TerrainType.plains]
    local foothills_info = self[TerrainType.foothills]
    local mountains_info = self[TerrainType.mountains]
@@ -95,25 +102,40 @@ function TerrainInfo:_get_quantization_centroids()
    min = plains_info.base_height + plains_info.step_size
    max = plains_info.max_height
    step_size = plains_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    min = foothills_info.base_height + foothills_info.step_size
    max = foothills_info.max_height
    step_size = foothills_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    min = mountains_info.base_height + mountains_info.step_size
-   max = mountains_info.base_height + mountains_info.step_size*max_mountains_steps
+   max = mountains_info.max_height
    step_size = mountains_info.step_size
-   for value = min, max, step_size do
-      table.insert(centroids, value)
-   end
+   self:_append_lattice(centroids, min, max, step_size)
 
    return centroids
+end
+
+-- used to quantize the underground mountains
+function TerrainInfo:_get_mountain_quantization_centroids()
+   local mountains_info = self[TerrainType.mountains]
+   local centroids = {}
+   local min, max, step_size
+
+   -- make sure we have a quantization centroid at or below zero
+   min = mountains_info.base_height % mountains_info.step_size - mountains_info.step_size
+   max = mountains_info.max_height
+   step_size = mountains_info.step_size
+   self:_append_lattice(centroids, min, max, step_size)
+
+   return centroids
+end
+
+function TerrainInfo:_append_lattice(array, min, max, step_size)
+   for value = min, max, step_size do
+      table.insert(array, value)
+   end
 end
 
 return TerrainInfo
