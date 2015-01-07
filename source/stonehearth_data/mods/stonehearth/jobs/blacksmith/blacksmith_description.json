@@ -36,7 +36,6 @@
       "description": "",
       "long_description" : "The Blacksmith refines raw ore into metal bars, then uses those bars to craft weapons, armor, and building parts like gates.",
       "portrait" : "file(/jobs/blacksmith/blacksmith_workbench/blacksmith_workbench.png)",
-      "skin" : "file(./skin/workshop.png)",
       "workbench_type" : "stonehearth:blacksmith:workbench",
       "ingredients": [
          { "material" : "stone resource", "count" : 1 }
