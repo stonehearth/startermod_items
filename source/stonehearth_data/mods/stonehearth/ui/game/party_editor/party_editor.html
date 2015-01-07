@@ -4,13 +4,9 @@
          <div class="title">
             <input id="name" onClick="this.select();" type="text" {{bind-attr value=view.model.name}} /> <div class="closeButton"></div>
          </div>
-         <table class="list">
-            <tbody>
-            {{#each member in view.membersArray}}
-               {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
-            {{/each}}
-            </tbody>
-         </table>         
+         <div class="help">
+            {{i18n stonehearth:party_editor_help}}
+         </div>
          <div class="toolbar">
             <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
@@ -18,6 +14,13 @@
                </button>
             </a>
          </div>
+         <table class="list">
+            <tbody>
+            {{#each member in view.membersArray}}
+               {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
+            {{/each}}
+            </tbody>
+         </table>         
       </div>
    </div>
 </script>
