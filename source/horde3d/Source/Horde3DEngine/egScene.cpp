@@ -929,6 +929,10 @@ void SceneManager::shutdown()
       delete entry.second;
    }
    _nodes.clear();
+
+   for (auto &entry : _registry) {
+      entry.second.nodes.clear();
+   }
 }
 
 void SceneManager::initialize()
