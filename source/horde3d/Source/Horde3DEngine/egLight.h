@@ -41,6 +41,7 @@ struct LightNodeParams
 		ShadowContextStr,
       DirectionalI,
       ImportanceI,
+      ShadowMapQualityI
 	};
 };
 
@@ -68,6 +69,7 @@ struct LightNodeTpl : public SceneNodeTpl
 	float              shadowMapBias;
    bool               directional;
    int                importance;
+   uint32             shadowMapQuality;
 
 	LightNodeTpl( std::string const& name,
 	              std::string const& lightingContext, std::string const& shadowContext ) :
@@ -75,7 +77,7 @@ struct LightNodeTpl : public SceneNodeTpl
 		lightingContext( lightingContext ), shadowContext( shadowContext ),
 		radius( 100 ), fov( 90 ), col_R( 1 ), col_G( 1 ), col_B( 1 ), colMult( 1 ),
       ambCol_R( 0 ), ambCol_G( 0 ), ambCol_B( 0 ), shadowMapCount( 0 ), shadowSplitLambda( 0.5f ), 
-      shadowMapBias( 0.005f ), directional(false), importance(0)
+      shadowMapBias( 0.005f ), directional(false), importance(0), shadowMapQuality(0)
 	{
 	}
 };
@@ -99,6 +101,10 @@ public:
 
 	const Frustum &getFrustum() const { return _frustum; }
 	const Matrix4f &getViewMat() const { return _viewMat; }
+   void reallocateShadowBuffer(int size);
+
+protected:
+   uint32 getShadowBuffer() const { return _shadowMapBuffer; }
 
 private:
 	LightNode( const LightNodeTpl &lightTpl );
@@ -118,11 +124,10 @@ private:
 	Vec3f                  _ambientCol;
 	float                  _diffuseColMult;
 	uint32                 _shadowMapCount;
+   uint32                 _shadowMapBuffer;
    int                    _importance;
 	float                  _shadowSplitLambda, _shadowMapBias;
-
-	std::vector< uint32 >  _occQueries;
-	std::vector< uint32 >  _lastVisited;
+   uint32                 _shadowMapQuality, _shadowMapSize;
 
 	friend class SceneManager;
 	friend class Renderer;

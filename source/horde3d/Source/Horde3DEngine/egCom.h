@@ -42,7 +42,7 @@ struct EngineOptions
 		SRGBLinearization,
 		LoadTextures,
 		FastAnimation,
-		ShadowMapSize,
+		ShadowMapQuality,
 		SampleCount,
 		WireframeMode,
 		DebugViewMode,
@@ -70,7 +70,7 @@ public:
 public:
 	int   maxLogLevel;
 	int   maxAnisotropy;
-	int   shadowMapSize;
+	int   shadowMapQuality;
 	int   sampleCount;
 	bool  texCompression;
 	bool  sRGBLinearization;

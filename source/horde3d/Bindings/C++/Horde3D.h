@@ -90,7 +90,7 @@ struct H3DOptions
 		LoadTextures        - Enables or disables loading of textures referenced by materials; this can be useful to reduce
 		                      loading times for testing. (Values: 0, 1; Default: 1)
 		FastAnimation       - Disables or enables inter-frame interpolation for animations. (Values: 0, 1; Default: 1)
-		ShadowMapSize       - Sets the size of the shadow map buffer (Values: 128, 256, 512, 1024, 2048; Default: 1024)
+		ShadowMapQuality    - Sets the quality of the shadow map buffer (Values: [1..5])
 		SampleCount         - Maximum number of samples used for multisampled render targets; only affects pipelines
 		                      that are loaded after setting the option. (Values: 0, 2, 4, 8, 16; Default: 0)
 		WireframeMode       - Enables or disables wireframe rendering
@@ -111,7 +111,7 @@ struct H3DOptions
 		SRGBLinearization,
 		LoadTextures,
 		FastAnimation,
-		ShadowMapSize,
+		ShadowMapQuality,
 		SampleCount,
 		WireframeMode,
 		DebugViewMode,
@@ -620,6 +620,7 @@ struct H3DLight
 		LightingContextStr  - Name of shader context used for computing lighting
 		ShadowContextStr    - Name of shader context used for generating shadow map
       ImportanceI         - Importance of the light
+      ShadowMapQualityI   - Quality of the shadow map.
 	*/
 	enum List
 	{
@@ -636,6 +637,7 @@ struct H3DLight
 		ShadowContextStr,
       DirectionalI,
       ImportanceI,
+      ShadowMapQualityI
 	};
 };
 

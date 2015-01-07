@@ -8,11 +8,7 @@ App.StonehearthSettingsView = App.View.extend({
       if (!shadowsEnabled) {
          return 0;
       }
-      return (Math.log(shadowRes) / Math.log(2)) - 8;
-   },
-
-   fromValToRes : function(shadowVal) {
-      return Math.pow(2, shadowVal + 8);
+      return shadowRes;
    },
 
    fromSamplesToVal : function(msaaSamples, msaaEnabled) {
@@ -106,7 +102,7 @@ App.StonehearthSettingsView = App.View.extend({
             self.oldConfig = {
                "shadows" : o.shadows.value,
                "vsync" : o.vsync.value,
-               "shadow_res" : o.shadow_res.value,
+               "shadow_quality" : o.shadow_quality.value,
                "max_lights" : o.max_lights.value,
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
@@ -121,7 +117,7 @@ App.StonehearthSettingsView = App.View.extend({
             }
             self.set('context.shadows_enabled', o.shadows.value);
 
-            self.set('context.shadow_res', self.fromResToVal(o.shadow_res.value, o.shadows.value))
+            self.set('context.shadow_quality', self.fromResToVal(o.shadow_quality.value, o.shadows.value))
 
             self.set('context.max_lights', o.max_lights.value)
 
@@ -164,7 +160,7 @@ App.StonehearthSettingsView = App.View.extend({
             $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + self.get('context.num_msaa_samples')));
 
             $('#shadowResSlider').slider({
-               value: self.get('context.shadow_res'),
+               value: self.get('context.shadow_quality'),
                min: 0,
                max: 5,
                step: 1,
@@ -174,7 +170,7 @@ App.StonehearthSettingsView = App.View.extend({
                   $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + ui.value));
                }
             });
-            $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + self.get('context.shadow_res')));
+            $('#shadowResDescription').html(i18n.t('stonehearth:settings_shadow_' + self.get('context.shadow_quality')));
 
             $('#maxLightsSlider').slider({
                value: self.get('context.max_lights'),
@@ -209,7 +205,7 @@ App.StonehearthSettingsView = App.View.extend({
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
          "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
-         "shadow_res" :  this.fromValToRes($( "#shadowResSlider" ).slider( "value" )),
+         "shadow_quality" :  $( "#shadowResSlider" ).slider( "value" ),
          "max_lights" :  $( "#maxLightsSlider" ).slider( "value" ),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),

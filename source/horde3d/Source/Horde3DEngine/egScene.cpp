@@ -615,16 +615,10 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
    Modules::sceneMan().updateNodes();
 
    for (auto const& ge : _gridElements) {
-      if (!qFrustum.cullBox(ge.second.bounds)) {
-         // First frustum can see the cell.
-         if(qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(ge.second.bounds)) {
-            // Second frustum cannot see the cell.  Don't draw
-            continue;
-         }
-      } else {
-         // Even if it's visible in the secondary, don't draw.  We don't run into funny stuff with
-         // shadows because shadow frustums are correctly built beforehand to encompass the appropriate
-         // geometry.
+
+      // If the bounds are culled by either frustum, then ignore.  (Don't worry about shadows; as long as their frustums
+      // are built correctly, this works fine).
+      if (qFrustum.cullBox(ge.second.bounds) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(ge.second.bounds))) {
          continue;
       }
 
@@ -660,13 +654,9 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
                continue;
             }
 
-            if (!qFrustum.cullBox(node->_bBox)) {
-               // First frustum can see the object.
-               if(qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox)) {
-                  // Second frustum cannot see the object.  Don't draw
-                  continue;
-               }
-            } else {
+            // If the bounds are culled by either frustum, then ignore.  (Don't worry about shadows; as long as their frustums
+            // are built correctly, this works fine).
+            if (qFrustum.cullBox(node->_bBox) || (qSecondaryFrustum != 0x0 && qSecondaryFrustum->cullBox(node->_bBox))) {
                continue;
             }
 
@@ -770,6 +760,7 @@ void GridSpatialGraph::query(SpatialQuery const& query, RenderableQueues& render
       }
    }
 }
+
 // =================================================================================================
 // Class SpatialGraph
 // =================================================================================================
@@ -1448,26 +1439,6 @@ int SceneManager::checkNodeVisibility( SceneNode &node, CameraNode &cam, bool ch
 	// Note: This function is a bit hacky with all the hard-coded node types
 	
    if( node._dirty != SceneNodeDirtyState::Clean ) updateNodes();
-
-	// Check occlusion
-	if( checkOcclusion && cam._occSet >= 0 )
-	{
-		if( node.getType() == SceneNodeTypes::Mesh && cam._occSet < (int)((MeshNode *)&node)->_occQueries.size() )
-		{
-			if( gRDI->getQueryResult( ((MeshNode *)&node)->_occQueries[cam._occSet] ) < 1 )
-				return -1;
-		}
-		else if( node.getType() == SceneNodeTypes::Emitter && cam._occSet < (int)((EmitterNode *)&node)->_occQueries.size() )
-		{
-			if( gRDI->getQueryResult( ((EmitterNode *)&node)->_occQueries[cam._occSet] ) < 1 )
-				return -1;
-		}
-		else if( node.getType() == SceneNodeTypes::Light && cam._occSet < (int)((LightNode *)&node)->_occQueries.size() )
-		{
-			if( gRDI->getQueryResult( ((LightNode *)&node)->_occQueries[cam._occSet] ) < 1 )
-				return -1;
-		}
-	}
 	
 	// Frustum culling
 	if( cam.getFrustum().cullBox( node.getBBox() ) )

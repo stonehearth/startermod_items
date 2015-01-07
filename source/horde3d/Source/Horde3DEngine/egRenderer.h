@@ -182,8 +182,8 @@ public:
    void commitGlobalUniforms();
 	bool setMaterial( MaterialResource *materialRes, std::string const& shaderContext );
 	
-	bool createShadowRB( uint32 width, uint32 height );
-	void releaseShadowRB();
+   uint32 calculateShadowBufferSize(LightNode const* node) const;
+   void reallocateShadowBuffers(int quality);
 
 	int registerOccSet();
 	void unregisterOccSet( int occSet );
@@ -221,7 +221,6 @@ public:
    uint32 getPosColTexLayout() { return _vlPosColTex; }
 
    void setCurrentTime(float time) { _currentTime = time; }
-   uint32 getShadowRendBuf() const { return _shadowRB; }
 
    void getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const;
 
@@ -241,8 +240,8 @@ protected:
    void commitLightUniforms(LightNode const* light);
    void setupShadowMap(LightNode const* light, bool noShadows);
    Matrix4f calcCropMatrix( const Frustum &frustSlice, Vec3f const& lightPos, const Matrix4f &lightViewProjMat );
-   Matrix4f calcDirectionalLightShadowProj(const BoundingBox& worldBounds, const Frustum& frustSlice, const Matrix4f& lightViewMat, int numShadowMaps);
-   void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV);
+   Matrix4f calcDirectionalLightShadowProj(LightNode const* light, BoundingBox const& worldBounds, Frustum const& frustSlice, Matrix4f const& lightViewMat) const;
+   void computeLightFrustumNearFar(const BoundingBox& worldBounds, const Matrix4f& lightViewMat, const Vec3f& lightMin, const Vec3f& lightMax, float* nearV, float* farV) const;
    void computeTightCameraBounds(float* minDist, float* maxDist);
    Frustum computeDirectionalLightFrustum(LightNode const* light, float nearPlaneDist, float farPlaneDist) const;
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
@@ -295,7 +294,6 @@ protected:
 	OverlayVert                        *_overlayVerts;
 	uint32                             _overlayVB;
 	
-	uint32                             _shadowRB;
 	uint32                             _frameID;
 	uint32                             _defShadowMap;
 	uint32                             _quadIdxBuf;
@@ -309,7 +307,6 @@ protected:
 	uint32                             _curShaderUpdateStamp;
 	
 	uint32                             _maxAnisoMask;
-	float                              _smSize;
 	float                              _splitPlanes[5];
 	Matrix4f                           _lightMats[4];
    Vec4f                              _lodValues;

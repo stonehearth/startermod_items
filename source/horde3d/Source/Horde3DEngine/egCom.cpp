@@ -39,7 +39,7 @@ EngineConfig::EngineConfig()
 	sRGBLinearization = false;
 	loadTextures = true;
 	fastAnimation = true;
-	shadowMapSize = 256;
+	shadowMapQuality = 1;
 	sampleCount = 0;
 	wireframeMode = false;
 	debugViewMode = false;
@@ -76,8 +76,8 @@ float EngineConfig::getOption( EngineOptions::List param )
 		return loadTextures ? 1.0f : 0.0f;
 	case EngineOptions::FastAnimation:
 		return fastAnimation ? 1.0f : 0.0f;
-	case EngineOptions::ShadowMapSize:
-		return (float)shadowMapSize;
+	case EngineOptions::ShadowMapQuality:
+		return (float)shadowMapQuality;
 	case EngineOptions::SampleCount:
 		return (float)sampleCount;
 	case EngineOptions::WireframeMode:
@@ -139,37 +139,22 @@ bool EngineConfig::setOption( EngineOptions::List param, float value )
    case EngineOptions::MaxLights:
       maxLights = (int)value;
       return true;
-	case EngineOptions::ShadowMapSize:
+	case EngineOptions::ShadowMapQuality:
       if (!enableShadows || !rendererCaps.ShadowsSupported) {
          return true;
       }
-		size = ftoi_r( value );
+		size = ftoi_r(value);
 
-		if( size == shadowMapSize ) return true;
-
-      if ( size <= 512 ) {
-         size = 512;
+		if (size == shadowMapQuality) {
+         return true;
       }
 
-      size = (int)pow(2, floor(log(size) / log(2.0)));
+      shadowMapQuality = size;
 
-      size = std::min(size, gRDI->getCaps().maxTextureSize);
-
-		// Update shadow map
-		Modules::renderer().releaseShadowRB();
+		// Update shadow maps
+      Modules::renderer().reallocateShadowBuffers(shadowMapQuality);
 		
-		if( !Modules::renderer().createShadowRB( size, size ) )
-		{
-			Modules::log().writeError( "Failed to create shadow map" );
-			// Restore old buffer
-			Modules::renderer().createShadowRB( shadowMapSize, shadowMapSize );
-			return false;
-		}
-		else
-		{
-			shadowMapSize = size;
-			return true;
-		}
+		return true;
 	case EngineOptions::SampleCount:
       sampleCount = gRDI->getCaps().rtMultisampling ? ftoi_r( value ) : 0;
 		return true;

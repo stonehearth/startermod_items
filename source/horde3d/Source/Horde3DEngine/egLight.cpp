@@ -13,6 +13,7 @@
 #include "egLight.h"
 #include "egMaterial.h"
 #include "egModules.h"
+#include "egCom.h"
 #include "egRenderer.h"
 
 #include "utDebug.h"
@@ -37,18 +38,38 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
 	_shadowSplitLambda = lightTpl.shadowSplitLambda;
 	_shadowMapBias = lightTpl.shadowMapBias;
    _importance = lightTpl.importance;
+   _shadowMapQuality = lightTpl.shadowMapQuality;
+   _shadowMapBuffer = 0;
+   _shadowMapSize = 0;
+
+   reallocateShadowBuffer(gRenderer->calculateShadowBufferSize(this));
 
    setFlags(SceneNodeFlags::NoRayQuery, false);
 }
 
+void LightNode::reallocateShadowBuffer(int size)
+{
+   if (_shadowMapBuffer) {
+      gRDI->destroyRenderBuffer(_shadowMapBuffer);
+      _shadowMapBuffer = 0;
+   }
+
+   _shadowMapSize = size;
+   if (Modules::config().getOption(EngineOptions::EnableShadows)) {
+      _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
+      if (!_shadowMapBuffer)
+	   {
+		   Modules::log().writeError("Failed to create shadow map");
+	   }
+   }
+}
 
 LightNode::~LightNode()
 {
-	for( uint32 i = 0; i < _occQueries.size(); ++i )
-	{
-		if( _occQueries[i] != 0 )
-			gRDI->destroyQuery( _occQueries[i] );
-	}
+   if (_shadowMapBuffer) {
+      gRDI->destroyRenderBuffer(_shadowMapBuffer);
+      _shadowMapBuffer = 0;
+   }
 }
 
 
@@ -117,6 +138,8 @@ int LightNode::getParamI( int param )
       return _importance;
    case LightNodeParams::DirectionalI:
       return _directional ? 1 : 0;
+   case LightNodeParams::ShadowMapQualityI:
+      return _shadowMapQuality;
 	}
 
 	return SceneNode::getParamI( param );
@@ -135,6 +158,10 @@ void LightNode::setParamI( int param, int value )
 		return;
    case LightNodeParams::ImportanceI:
       _importance = value;
+      return;
+   case LightNodeParams::ShadowMapQualityI:
+      _shadowMapQuality = value;
+      reallocateShadowBuffer(gRenderer->calculateShadowBufferSize(this));
       return;
 	}
 

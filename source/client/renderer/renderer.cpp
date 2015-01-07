@@ -546,7 +546,7 @@ void Renderer::GetConfigOptions()
    config_.num_msaa_samples.value = config.Get("renderer.msaa_samples", 0);
 
    // "Sets the square resolution of the shadow maps."
-   config_.shadow_resolution.value = config.Get("renderer.shadow_resolution", 2048);
+   config_.shadow_quality.value = config.Get("renderer.shadow_quality", 3);
 
    config_.max_lights.value = config.Get("renderer.max_lights", 50);
 
@@ -604,7 +604,7 @@ void Renderer::PersistConfig()
    config.Set("renderer.enable_shadows", config_.use_shadows.value);
    config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
 
-   config.Set("renderer.shadow_resolution", config_.shadow_resolution.value);
+   config.Set("renderer.shadow_quality", config_.shadow_quality.value);
 
    config.Set("renderer.max_lights", config_.max_lights.value);
 
@@ -639,7 +639,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
    int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
 
    h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapSize, (float)config_.shadow_resolution.value);
+   h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
    h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
    h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
    h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);

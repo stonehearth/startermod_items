@@ -132,13 +132,9 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 			
          int rendBuf = 0;
          RenderTarget *renderTarget = nullptr;
-         if (strcmp(sourceRT, "shadowMap") == 0) {
-            rendBuf = gRenderer->getShadowRendBuf();
-         } else {
-			   renderTarget = findRenderTarget(sourceRT);
-			   if (!renderTarget) {
-               return "Reference to undefined render target in BindBuffer";
-            }
+			renderTarget = findRenderTarget(sourceRT);
+			if (!renderTarget) {
+            return "Reference to undefined render target in BindBuffer";
          }
 			
 			stage->commands.push_back( PipelineCommand( PipelineCommands::BindBuffer ) );
