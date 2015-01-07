@@ -1,12 +1,30 @@
 {
    "harvest_menu" : {
       "name" : "Harvest",
-      "description" : "Harvest resources from the ground, like wood, stone, and ore.",
+      "description" : "Harvest resources or mine into the earth.",
       "class" : "dock",
       "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
       "hotkey" : "1",
       "game_mode" : "normal",
-      "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup"
+      "clickSound": "stonehearth:sounds:ui:start_menu:harvest_pickup",
+      "items" : {
+         "harvest" : {
+            "name" : "Harvest Plants",
+            "description" : "Harvest trees and plants from the surface",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/dock_harvest.png",
+            "sticky" : true,
+            "hotkey" : "h"
+         },
+         "mining_ui" : {
+            "name" : "Mine",
+            "description" : "Mine out tunnels and caves",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "m"
+         }
+      }
    },
    "build_menu" : {
       "name" : "Build & Design",
@@ -18,7 +36,7 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:wash_out",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:wash_in",
       "items" : {
-      "building_templates" : {
+         "building_templates" : {
             "name" : "Construct a Building",
             "description" : "Construct buildings like houses and towers",
             "class" : "button",
@@ -52,54 +70,6 @@
          }
       }
    },
-   "mining_menu" : {
-      "name" : "Mine & Landscape",
-      "description" : "Change the shape of the terrain, with mines and landscaping",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_mine.png",
-      "hotkey" : "3",
-      "game_mode" : "mining",
-      "clickSound": "stonehearth:sounds:ui:start_menu:trigger_click",
-      "items" : {
-         "mining_ui" : {
-            "name" : "Mine",
-            "description" : "Mine out tunnels and caves",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
-            "sticky" : true,
-            "hotkey" : "m"
-         }
-      }
-   },   
-   "fight_menu" : {
-      "name" : "Fight & Defend",
-      "description" : "Manage your combat forces",
-      "class" : "dock",
-      "hotkey" : "6",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
-      "game_mode" : "normal",
-      "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
-      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
-      "items" : {
-         "red_alert" : {
-            "name" : "Red Alert!",
-            "description" : "Rally workers to defend the town!",
-            "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
-            "sticky" : true,
-            "hotkey" : "r"
-         }
-      }
-   },   
-   "town_menu" : {
-      "name" : "Town Info",
-      "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
-      "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
-      "hotkey" : "i",
-      "game_mode" : "normal",
-      "clickSound": "stonehearth:sounds:banner_grab"
-   },   
    "zone_menu" : {
       "name" : "Designate Zones",
       "description" : "Designate areas of the ground for storage, farming, etc.",
@@ -142,23 +112,72 @@
             "sticky" : true
          }
       }
-   },
+   },      
+   "fight_menu" : {
+      "name" : "Fight & Defend",
+      "description" : "Manage your combat forces",
+      "class" : "dock",
+      "hotkey" : "6",
+      "icon" : "/stonehearth/ui/game/start_menu/images/dock_defend.png",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
+      "items" : {
+         "red_alert" : {
+            "name" : "Red Alert!",
+            "description" : "Rally workers to defend the town!",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
+            "sticky" : true,
+            "hotkey" : "r"
+         }
+      }
+   },   
+   "town_menu" : {
+      "name" : "Town Info",
+      "description" : "General information about your town, how your citizens are feeling, and the wealth you've accumulated!",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/town_banner.png",
+      "hotkey" : "i",
+      "game_mode" : "normal",
+      "clickSound": "stonehearth:sounds:banner_grab"
+   },   
    "citizen_manager" : {
-      "name" : "Manage Citizen",
+      "name" : "Hearthlings",
       "description" : "Manage your settlers and promote them to new jobs.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/citizens.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/manage_citizens.png",
       "hotkey" : "5",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
    },
-   "dead_button" : {
-      "name" : "TBD",
-      "description" : "We have one slot to use. Ideas?",
+   "workshop_manager" : {
+      "name" : "Workshops",
+      "description" : "Manage your workshops",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/dead.png",
-      "hotkey" : "7",
+      "icon" : "/stonehearth/ui/game/start_menu/images/manage_workshops.png",
+      "hotkey" : "",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
+   },
+   "party_manager" : {
+      "name" : "Parties",
+      "description" : "Organize your troops into groups",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/manage_parties.png",
+      "hotkey" : "",
+      "game_mode" : "normal",
+      "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
+      "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
+   },
+   "bulletin_manager" : {
+      "name" : "Bulletins",
+      "description" : "Important notifications about the world and your town",
+      "class" : "dock",
+      "icon" : "/stonehearth/ui/game/start_menu/images/manage_bulletins.png",
+      "hotkey" : "",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:jobs_open"
@@ -167,7 +186,7 @@
       "name" : "Manage Tasks",
       "description" : "Do task stuff.",
       "class" : "dock",
-      "icon" : "/stonehearth/ui/game/start_menu/images/tasks.png",
+      "icon" : "/stonehearth/ui/game/start_menu/images/manage_tasks.png",
       "hotkey" : "7",
       "game_mode" : "normal",
       "menuHideSound": "stonehearth:sounds:ui:start_menu:jobs_close",

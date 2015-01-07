@@ -89,6 +89,22 @@ static dm::ObjectId WeakGetObjectId(std::weak_ptr<T> o)
 }
 
 template<typename T>
+static std::string StrongGetObjectAddress(std::shared_ptr<T> o)
+{
+   if (o) {
+      return o->GetStoreAddress();
+   }
+   throw std::invalid_argument("invalid reference in native get_address");
+   return "";
+}
+
+template<typename T>
+static std::string WeakGetObjectAddress(std::weak_ptr<T> o)
+{
+   return StrongGetObjectAddress(o.lock());
+}
+
+template<typename T>
 static luabind::object StrongSerializeToJson(lua_State* L, std::shared_ptr<T> obj)
 {
    luabind::object result;
@@ -235,11 +251,12 @@ luabind::class_<T, std::shared_ptr<T>> RegisterStrongGameObject(lua_State* L, co
       .def("__get_userdata_type_id", &Type::GetTypeId)
       REGISTER_DUAL_CLASS_METHODS("__tojson", GameObjectToJson<T>)
       REGISTER_DUAL_CLASS_METHODS("get_id", GetObjectId<T>)
-      .def("get_type_id",    &GetTypeHashCode<T>)
-      .def("get_type_name",  &GetTypeName<T>)
+      REGISTER_DUAL_CLASS_METHODS("get_address", GetObjectAddress<T>)
       REGISTER_DUAL_CLASS_METHODS("serialize", SerializeToJson<T>)
       REGISTER_DUAL_CLASS_METHODS("trace", TraceGameObject<T>)
       REGISTER_DUAL_CLASS_METHODS("trace", TraceGameObjectAsync<T>)
+      .def("get_type_id",    &GetTypeHashCode<T>)
+      .def("get_type_name",  &GetTypeName<T>)
       .scope [
          def("get_type_id",   &GetClassTypeId<T>),
          def("get_type_name", &GetStaticTypeName<T>)
@@ -264,6 +281,7 @@ luabind::class_<T, std::weak_ptr<T>> RegisterWeakGameObject(lua_State* L, const 
       .def("__get_userdata_type_id", &Type::GetTypeId)
       .def("__tojson",       &WeakGameObjectToJson<T>)
       .def("get_id",         &WeakGetObjectId<T>)
+      .def("get_address",    &WeakGetObjectAddress<T>)
       .def("get_type_id",    &GetTypeHashCode<T>)
       .def("get_type_name",  &GetTypeName<T>)
       .def("serialize",      &WeakSerializeToJson<T>)
@@ -296,6 +314,7 @@ luabind::class_<Derived, Base, std::weak_ptr<Derived>> RegisterWeakGameObjectDer
       .def("__get_userdata_type_id", &Type::GetTypeId)
       .def("__tojson",       &WeakGameObjectToJson<Derived>)
       .def("get_id",         &WeakGetObjectId<Derived>)
+      .def("get_address",    &WeakGetObjectAddress<Derived>)
       .def("get_type_id",    &GetTypeHashCode<Derived>)
       .def("get_type_name",  &GetTypeName<Derived>)
       .def("serialize",      &WeakSerializeToJson<Derived>)

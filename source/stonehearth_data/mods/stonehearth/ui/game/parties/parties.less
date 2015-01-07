@@ -1,21 +1,5 @@
-.managerWindow {
 
-   .window {
-      position: absolute;
-      right: 10px;
-      top: 300px;
-      width: 550px;
-      height: 560px;
-      max-height: 560px;
-   }
-
-   .populationContainer {
-      overflow-y: auto;
-      height: 510px;
-   }
-}
-
-.citizenTable {
+.partyTable {
 
    table {
 
@@ -52,29 +36,9 @@
          vertical-align: top;
       }
 
-      /*
-      tr.row {
-         &:hover {
-            height: 70px;
-
-            .toolbar {
-               display: block;
-            }
-         }
-      }
-      */
-
       tr.row {
          .handCursor;
          transition: all 0.3s;
-      }
-
-      tr.row.selected {
-         height: 70px;
-
-         .toolbar {
-            display: block;
-         }
       }
 
       .banner {
@@ -88,16 +52,6 @@
          content: url(images/move_camera.png);
       }
 
-      .toolbar {
-         position: relative;
-         top: 4px;
-         left: 0px;
-         display: none;
-         width: 10px;
-         padding-top: 4px;
-         z-index: 3;
-      }
-      
       button {
          .control;
          .outlined(#c6ab6e);
