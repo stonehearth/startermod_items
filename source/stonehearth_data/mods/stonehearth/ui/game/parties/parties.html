@@ -38,6 +38,16 @@
          </button>
       </a>
    </td>
+   <td>
+      <a href="#" {{action "setAttackOrder" view.model.__self target="view"}} class='uisounds'>
+         <button {{bind-attr class="buttonEnabled" }}>A</button>
+      </a>
+   </td>
+   <td>
+      <a href="#" {{action "setDefendOrder" view.model.__self target="view"}} class='uisounds'>
+         <button {{bind-attr class="buttonEnabled" }}>D</button>
+      </a>
+   </td>
    <td><a href="#" class="moveCameraButton">{{this.stonehearth:ai.status_text}}</a></td>
    <!-- <td><img class="moveCameraButton button"/></td> -->
 </script>

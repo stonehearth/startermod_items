@@ -26,7 +26,7 @@ function MasonTest:__init()
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
-   --self:place_citizen(14, 14, 'carpenter')
+   self:place_citizen(14, 14)
 
    local player_id = radiant.entities.get_player_id(worker)
    self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })

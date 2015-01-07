@@ -32,6 +32,8 @@ function ClaimAnimalForPasture:run(ai, entity, args)
 
       local pasture_component = args.pasture:get_component('stonehearth:shepherd_pasture')
       pasture_component:add_animal(args.animal)
+
+      radiant.events.trigger_async(entity, 'stonehearth:tame_animal', {animal = args.animal})
    end
 
    shepherded_animal_component:set_following(true, entity)

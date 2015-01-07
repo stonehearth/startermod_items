@@ -47,7 +47,7 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
          // to make sure it creates the new view for this bulletin before
          // this one has a chance to die (see recreateDialogVIew)
          self._dontNotifyDestroy = true;
-         App.bulletinBoard.recreateDialogVIew(bulletin);
+         App.bulletinBoard.recreateDialogView(bulletin);
       }
    }.observes('model.ui_view'),
 

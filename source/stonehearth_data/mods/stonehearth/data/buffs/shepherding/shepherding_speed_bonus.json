@@ -1,0 +1,11 @@
+{
+   "type" : "buff",
+   "name" : "Herd Speed Increase +10%",
+   "description" : "The shepherd is now more adept at getting the flock to walk a tiny bit faster.",
+   "icon" : "file(shepherd_speed_buff.png)",
+   "modifiers" : {
+      "speed" : {
+         "multiply" : 1.10
+      }
+   }
+} 
