@@ -19,7 +19,7 @@
          "icon" : "file(cloth_bolt.png)"
       },
       "stonehearth:material" : {
-         "tags" :  "cloth resource cloth_asset"
+         "tags" :  "cloth resource refined refined_cloth"
       },
       "mob" : {
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }

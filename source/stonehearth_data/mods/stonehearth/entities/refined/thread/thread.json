@@ -19,7 +19,7 @@
 
       },
       "stonehearth:material" : {
-         "tags" :  "thread resource cloth_asset"
+         "tags" :  "thread resource refined refined_cloth"
       }
    },
    "entity_data" : {
