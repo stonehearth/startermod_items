@@ -17,7 +17,7 @@
       font-size: 18px;
       margin-bottom: 4px;
       margin-top: 14px;
-   }
+   } 
 
    .window {
       background-color: #312f2f;
@@ -50,6 +50,12 @@
       h2 {
          font-size: 14px;
       }
+   }
+
+   .help {
+      .controlFont;
+      color: #bca058;
+      font-size: 16px;
    }
 
    .downSection {
@@ -89,6 +95,15 @@
       border-width: 9px 9px 13px 9px;
       border-image: url(images/gui/title.png) 9 9 13 9 repeat;
 
+      input {
+         .controlFont;
+         background: rgba(0,0,0,0.0);
+         border: 0px;
+         padding: 0px;
+         margin: 0px;
+         width: 100%;
+      }
+
       .closeButton, .closeDivButton {
          .control;
          position: absolute;
@@ -125,22 +140,34 @@
    }
 
    button.warn {
-      .outlined(#cd4848);
-      background: #b33131;
-      border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat;
+      .outlined(#cd4848) !important;
+      background: #b33131 !important;
+      border-image: url(images/gui/button_warn.png) 9 9 13 9 repeat !important;
    }
 
    button.green {
-      .outlined(#41c565);
-      background-color: #31b349;
-      border-image: url(images/gui/button_ok.png) 9 9 13 9 repeat;
+      .outlined(#41c565) !important;
+      background-color: #31b349 !important;
+      border-image: url(images/gui/button_ok.png) 9 9 13 9 repeat !important;
    }
 
    button.gold {
-      .outlined(#efd764);
-      background-color: #d5bd4c;
-      border-image: url(images/gui/button_gold.png) 9 9 13 9 repeat;
+      .outlined(#efd764) !important;
+      background-color: #d5bd4c !important;
+      border-image: url(images/gui/button_gold.png) 9 9 13 9 repeat !important;
    }
+
+   button.red {
+      .outlined(#722828) !important;
+      background-color: #591f1f !important;
+      border-image: url(images/gui/button_red.png) 9 9 13 9 repeat !important;
+   }
+
+   button.blue {
+      .outlined(#2c598a) !important;
+      background-color: #254a72 !important;
+      border-image: url(images/gui/button_blue.png) 9 9 13 9 repeat !important;
+   }      
 
    button.ok {
       .outlined(#41c565);
@@ -189,15 +216,33 @@
    }
 
    .list {      
+
+      tr:nth-child(even) {
+         background-color: #403b35;
+      }
+
       .row {
-         .handCursor;
          &:hover {
             background-color: rgba(143, 120, 70, 0.3);
+         }
+
+         td {
+            vertical-align: middle;
          }
       }
 
       .row.selected {
          background-color: rgba(143, 120, 70, 1.0);
+      }
+
+      button {
+         .outlined(#c6ab6e);
+         color: #000;
+         background: #9c8451;
+         border-width: 5px 5px 9px 5px;
+         border-image: url(images/gui/button_brown.png) 5 5 9 5 repeat;
+         font-size: 15px;
+         padding: 8px;
       }
    }
 

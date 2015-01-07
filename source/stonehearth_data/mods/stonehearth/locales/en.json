@@ -436,5 +436,6 @@
    "done_adding_members" : "Done",
    "add_party_member_button" : "Add",
    "remove_party_member_button" : "Remove",
-   "not_in_party" : "No party"
+   "not_in_party" : "No party",
+   "party_editor_help" : "Party members will travel together and can be directed on the battlefield"   
 }
