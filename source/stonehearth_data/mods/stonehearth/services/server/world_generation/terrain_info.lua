@@ -1,3 +1,4 @@
+local constants = require 'constants'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 
@@ -8,28 +9,28 @@ function TerrainInfo:__init()
    self.tile_size = 256
    self.macro_block_size = 32
    self.feature_size = 16
-   self.slice_size = 5
+   self.slice_size = constants.mining.Y_CELL_SIZE
    assert(self.tile_size % self.macro_block_size == 0)
    assert(self.macro_block_size / self.feature_size == 2)
 
    -- elevation constants
    local plains_info = {}
    plains_info.step_size = 2
-   plains_info.mean_height = 20
+   plains_info.mean_height = 40
    plains_info.std_dev = 6
-   plains_info.max_height = 20
+   plains_info.max_height = 40
    self[TerrainType.plains] = plains_info
 
    local foothills_info = {}
    foothills_info.step_size = 10
-   foothills_info.mean_height = 36
+   foothills_info.mean_height = 56
    foothills_info.std_dev = 12
-   foothills_info.max_height = 40
+   foothills_info.max_height = 60
    self[TerrainType.foothills] = foothills_info
 
    local mountains_info = {}
    mountains_info.step_size = 15
-   mountains_info.mean_height = 85
+   mountains_info.mean_height = 105
    mountains_info.std_dev = 80
    self[TerrainType.mountains] = mountains_info
 
@@ -123,8 +124,7 @@ function TerrainInfo:_get_mountain_quantization_centroids()
    local centroids = {}
    local min, max, step_size
 
-   -- make sure we have a quantization centroid at or below zero
-   min = mountains_info.base_height % mountains_info.step_size - mountains_info.step_size
+   min = mountains_info.base_height % mountains_info.step_size
    max = mountains_info.max_height
    step_size = mountains_info.step_size
    self:_append_lattice(centroids, min, max, step_size)
