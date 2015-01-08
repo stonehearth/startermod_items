@@ -2,7 +2,7 @@
    "type" : "debuff",
    
    "name" : "Starving",
-   "description" : "Starving citizen needs food badly!",
+   "description" : "Starving hearthling needs food badly!",
    "short_description" : "20%",
    "icon" : "file(starving_buff.png)",
 

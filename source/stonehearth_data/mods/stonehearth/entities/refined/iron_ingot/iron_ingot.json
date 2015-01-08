@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "iron ingot",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "iron ingot resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(iron_ingot.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Iron Ingot",
+         "description": "A bar of pure iron.",
+         "icon" : "file(iron_ingot.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 20,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}

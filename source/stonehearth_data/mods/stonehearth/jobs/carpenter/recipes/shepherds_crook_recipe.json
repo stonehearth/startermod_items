@@ -3,7 +3,7 @@
 
    "work_units"  : 3,
    "recipe_name" : "Shepherd's Crook",
-   "description" : "Promotes a citizen into a Shepherd.",
+   "description" : "Promotes a hearthling into a Shepherd.",
    "flavor"      : "Can you tell me another story about The Shepard?",
    "portrait"    : "/stonehearth/jobs/shepherd/shepherd_crook/shepherd_crook.png",
    "level_requirement" : 1,

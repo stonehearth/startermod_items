@@ -32,7 +32,8 @@
             "type": "one_of",
             "items": [
                "stonehearth:sounds:mason_hammer_01",
-               "stonehearth:sounds:mason_hammer_02"
+               "stonehearth:sounds:mason_hammer_02",
+               "stonehearth:sounds:mason_hammer_03"
             ]    
          }
       }

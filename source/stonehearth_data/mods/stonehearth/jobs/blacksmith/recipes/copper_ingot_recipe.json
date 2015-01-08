@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 2,
+   "recipe_name" : "Copper Ingot",
+   "description": "A bar of pure copper. A suitable material for crafted goods.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/copper_ingot/copper_ingot.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:resources:copper:ore",
+         "count" : 4
+      }
+   ],
+  "produces": [
+      {
+         "item" : "stonehearth:refined:copper_ingot"
+      }
+  ]
+}

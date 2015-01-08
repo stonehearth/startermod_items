@@ -245,7 +245,7 @@
    "build_workshop_create_stockpile_description" : "The crafter will store crafted goods in this stockpile.<p>You probably want to place it near the workbench, but hey, it's your decision.",
    "promote_scroll_title": "Promotion to ",
    "promote_scroll_text_1" : "In honor of steadfast efforts and resilience, we hereby advance",
-   "promote_scroll_choose": "choose a citizen...",
+   "promote_scroll_choose": "choose a hearthling...",
    "promote_scroll_text_2": "this day of, __date__",
    "promote_scroll_approve": "APPROVE",
    "promote_scroll_approved": "APPROVED",
@@ -324,7 +324,7 @@
    "citizens_choose_job_title" : "Choose a Job",
    "citizens_choose_job_subtitle" : "Available Jobs",
    "citizens_confirm_job_title" : "Choose a Job",
-   "citizens_choose_job_description" : "Here are the jobs available to your citizens. Craft tools to unlock new jobs!",
+   "citizens_choose_job_description" : "Here are the jobs available to your hearthlings. Craft tools to unlock new jobs!",
 
    "backpack_title" : "Backpack",
    "backpack_description" : "The backpack can hold items for safe-keeping while you're away from town.",
@@ -437,5 +437,6 @@
    "add_party_member_button" : "Add",
    "remove_party_member_button" : "Remove",
    "not_in_party" : "No party",
-   "party_editor_help" : "Party members will travel together and can be directed on the battlefield"   
+   "party_help" : "Party members will travel together and can be directed on the battlefield.",
+   "party_editor_help" : "Use this screen to add and remove hearthlings to the party."   
 }

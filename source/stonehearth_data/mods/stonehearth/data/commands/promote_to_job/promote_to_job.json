@@ -3,7 +3,7 @@
 
    "name": "promote_to_job",
    "tooltip": "Change Jobs",
-   "description" : "Give this citizen a new job.",
+   "description" : "Give this hearthling a new job.",
    "icon": "file(promote_to_job.png)",
 
    "action": "fire_event",

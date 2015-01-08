@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "gold ore",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "gold ore resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(gold_ore.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Gold Ore",
+         "description": "A chunk of raw gold",
+         "icon" : "file(gold_ore.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 10,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}
