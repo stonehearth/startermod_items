@@ -1,4 +1,4 @@
-local mining_lib = require 'lib.mining.mining_lib'
+local csg_lib = require 'lib.csg.csg_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -32,7 +32,7 @@ function SetHangableAdjacent:start_thinking(ai, entity, args)
       end)
 
    adjacent_region:modify(function(cursor)
-         local adjacent_region = mining_lib.create_adjacent_columns(Point3.zero, -(entity_height-1), 1)
+         local adjacent_region = csg_lib.create_adjacent_columns(Point3.zero, -(entity_height-1), 1)
          cursor:add_region(adjacent_region)
       end)
 

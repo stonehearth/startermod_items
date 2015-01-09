@@ -142,7 +142,7 @@ public:
 
    struct Hash { 
       inline size_t operator()(Point<S, 1> const& p) const {
-         return std::hash<S>(p.x);
+         return std::hash<S>()(p.x);
       }
    };
 

@@ -1,9 +1,11 @@
 local constants = require 'constants'
-local mining_lib = require 'lib.mining.mining_lib'
+local csg_lib = require 'lib.csg.csg_lib'
 local LootTable = require 'lib.loot_table.loot_table'
+local OreGenerator = require 'services.server.mining.ore_generator'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local log = radiant.log.create_logger('mining')
 
 MiningService = class()
@@ -242,7 +244,7 @@ function MiningService:get_reachable_region(location)
    local y_max = location.y + MAX_REACH_UP
 
    -- +1 to y_max to convert from voxel index to cube bounds
-   local region = mining_lib.create_adjacent_columns(location, y_min, y_max+1)
+   local region = csg_lib.create_adjacent_columns(location, y_min, y_max+1)
    return region
 end
 
@@ -303,7 +305,7 @@ function MiningService:_transform_cubes_in_region(region, cube_transform)
 end
 
 function MiningService:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
+   return csg_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 function MiningService:_init_loot_tables()
@@ -328,6 +330,23 @@ function MiningService:mine_point(point)
    -- TODO: terrain tiles need to be checked for optimization
    radiant.terrain.subtract_point(point)
    self:_update_interior_region(point)
+end
+
+function MiningService:create_ore_network(location, block_type)
+   local game_seed = stonehearth.world_generation:get_seed()
+   local rng = nil
+
+   if game_seed then
+      -- make sure the ore network has the same geometry across game loads
+      -- using Point2 has an integer pair hash
+      local ore_seed = Point2(game_seed, location:hash()):hash()
+      rng = RandomNumberGenerator(ore_seed)
+   end
+
+   local ore_generator = OreGenerator(rng)
+   local ore_region = ore_generator:create_ore_network(block_type)
+   ore_region:translate(location)
+   return ore_region
 end
 
 function MiningService:_insta_mine(region)
