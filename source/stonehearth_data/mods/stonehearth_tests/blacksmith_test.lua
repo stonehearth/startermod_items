@@ -18,11 +18,12 @@ function BlacksmithTest:__init()
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'blacksmith')
-   --self:place_citizen(14, 14, 'carpenter')
+   self:place_citizen(14, 14, 'mason')
 
    local player_id = radiant.entities.get_player_id(worker)
-   self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })
-   self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
+   --self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })
+   --self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:blacksmith:forge', 5, 1, player_id, { force_iconic = false })
    
    self:at(2000,  function()
          --stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
