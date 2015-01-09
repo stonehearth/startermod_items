@@ -53,7 +53,7 @@ function FloorEditor:go(response, floor_uri, options)
    selector
       :set_cursor('stonehearth:cursors:create_floor')
       :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_filter())
-      :set_can_contain_entity_filter(stonehearth.selection.designation_can_contain)
+      :set_can_contain_entity_filter(stonehearth.selection.floor_can_contain)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
