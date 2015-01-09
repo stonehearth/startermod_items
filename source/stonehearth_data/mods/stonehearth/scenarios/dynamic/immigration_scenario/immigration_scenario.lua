@@ -25,6 +25,9 @@ local Point3 = _radiant.csg.Point3
 -- > score is at least 100 
 -- (all these are set in immigration.json)
 function Immigration:can_spawn()
+   return true
+
+   --[[
    local immigration_data = self._immigration_data
    local score_data = stonehearth.score:get_scores_for_player('player_1'):get_score_data()
 
@@ -56,6 +59,7 @@ function Immigration:can_spawn()
    end
 
    return true
+   ]]
 end
 
 function Immigration:initialize()

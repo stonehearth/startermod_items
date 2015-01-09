@@ -119,6 +119,8 @@
       "farmer:talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
+      "interval_data" : "file(services/server/interval/data/interval_data.json)", 
+
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
       "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
