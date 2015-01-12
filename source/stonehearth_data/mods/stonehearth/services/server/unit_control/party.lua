@@ -22,7 +22,7 @@ function Party:initialize(unit_controller, id, ord)
    self._party_tg = scheduler:create_task_group('stonehearth:party', {})
 end
 
-function Party:destroy
+function Party:destroy()
    if self._hold_formation_task then
       self._hold_formation_task:destroy()
       self._hold_formation_task = nil
