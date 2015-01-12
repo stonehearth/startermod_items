@@ -32,14 +32,15 @@
          "volume": 70,
          "track" : "stonehearth:sounds:firepit_loop_sound"        
      },
-     "light": {
+      "light": {
          "type": "light",
          "light": "animatedlights/fire/fire.animatedlight.json",
          "transforms": {
             "x":0,
             "y":3,
             "z":0
-        }
-     }
+         },
+         "shadows": true
+      }
    }
 }

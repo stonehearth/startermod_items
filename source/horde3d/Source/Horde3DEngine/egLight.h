@@ -90,7 +90,7 @@ public:
 	static SceneNodeTpl *parsingFunc( std::map<std::string, std::string > &attribs );
 	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 	
-	int getParamI( int param );
+	int getParamI( int param ) const ;
 	void setParamI( int param, int value );
 	float getParamF( int param, int compIdx );
 	void setParamF( int param, int compIdx, float value );

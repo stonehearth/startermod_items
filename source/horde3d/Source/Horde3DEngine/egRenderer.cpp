@@ -1241,7 +1241,7 @@ void Renderer::setupShadowMap(LightNode const* light, bool noShadows)
          gRDI->setTexture(12, gRDI->getRenderBufferTex(light->getShadowBuffer(), 32), sampState);
       } else {
          // Cube-map shadows are light-distances stored in the color channel.
-         uint32 sampState = SS_FILTER_BILINEAR | SS_ANISO1 | SS_ADDR_CLAMPCOL;
+         uint32 sampState = SS_FILTER_BILINEAR | SS_ANISO1 | SS_ADDR_CLAMP;
          gRDI->setTexture(12, gRDI->getRenderBufferTex(light->getShadowBuffer(), 0), sampState);
       }
    } else {
@@ -2268,9 +2268,15 @@ void Renderer::doForwardLightPass(std::string const& shaderContext, std::string 
             drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
          } else {
             Matrix4f lightPosMat = curLight->getAbsTrans();
-            static const int cubenums[6] = { GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, GL_TEXTURE_CUBE_MAP_POSITIVE_Z,GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,GL_TEXTURE_CUBE_MAP_POSITIVE_Y,GL_TEXTURE_CUBE_MAP_NEGATIVE_X,GL_TEXTURE_CUBE_MAP_POSITIVE_X };
+            static const int cubenums[6] = { 
+               GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 
+               GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+               GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+               GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+               GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+               GL_TEXTURE_CUBE_MAP_POSITIVE_X };
             static const float xRot[6] = { 0, 0, degToRad(90), degToRad(-90), 0, 0};
-            static const float yRot[6] = { 0, degToRad(180), 0, 0, degToRad(-90), degToRad(90)};
+            static const float yRot[6] = { 0, degToRad(180), 0, degToRad(180), degToRad(-90), degToRad(90)};
             Matrix4f lightView;
 
             // Omni lights require a pass/binding for each side of the cubemap into which they render.
