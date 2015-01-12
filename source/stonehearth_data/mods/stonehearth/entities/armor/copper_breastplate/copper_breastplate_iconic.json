@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "gear"   
+      },
+      "unit_info" : {
+         "name": "Thick Leather Vest",
+         "description": "Hardened leather provides study protection against light arms.",
+         "icon" : "file(leather_vest.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(leather_vest_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:material" : {
+         "tags" : "leather armor"
+      }
+   }
+}
