@@ -684,6 +684,7 @@
       "sounds:ui:scenarios:redalert_off" : "file(data/sounds/ui/scenarios/sh_ui_redalert_off.wav)",
       "sounds:ui:mason_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_mason_menu_open.wav)",
       "sounds:ui:weaver_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_weaver_menu_open.wav)",
+      "sounds:ui:blacksmith_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_blacksmith_menu_open.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -725,6 +726,7 @@
       "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
       "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
       "sounds:mason_bench" : "file(data/sounds/effects/sh_mason_bench.wav)",
+      "sounds:blacksmith_bench" : "file(data/sounds/effects/sh_blacksmith_bench.wav)",
       "sounds:sleeping_lullaby" : "file(data/sounds/effects/sh_sleeping_lullaby.wav)",
       "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
       "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
