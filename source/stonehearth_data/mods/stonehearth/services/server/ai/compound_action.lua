@@ -52,7 +52,12 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
             self:_start_thinking_on_frame(1)
          end,
          clear_think_output = function(_)
-            local msg = string.format('compound action became unready.  aborting')
+            if self._thinking then
+               self._log:debug('compound action called clear_think_output while thinking.  restarting thinking.')
+               self:_restart_thinking()
+               return
+            end
+            local msg = string.format('compound action became unready in non-think state.  aborting')
             self._log:debug(msg)
             self._ai:abort(msg)
          end,
@@ -81,6 +86,25 @@ function CompoundAction:_destroy_execution_frames()
    self:_update_debug_info()   
 end
 
+function CompoundAction:_restart_thinking()
+   assert(self._thinking)  -- we start in the thinking state...
+
+   -- stop thinking on all the frames which may have given us results
+   self._previous_think_output = {}
+   for i=#self._execution_frames, 1, -1 do
+      self._execution_frames[i]:stop_thinking() -- must be synchronous!
+      self._execution_frames[i]:set_think_progress_cb(nil)
+   end
+
+   -- the compound action itself is already thinking, so there's no reason
+   -- to call :start_thinking() on it.
+   if not self._action.start_thinking then
+      self:_start_thinking_on_frame(1)
+   end
+
+   assert(self._thinking)  -- we remain in the thinking state...
+end
+
 function CompoundAction:start_thinking(ai, entity, args)
    assert(not self._thinking)
    assert(#self._previous_think_output == 0)
@@ -104,7 +128,10 @@ function CompoundAction:start_thinking(ai, entity, args)
       self._restart_after_halt_timer = nil
    end
 
-   -- start thinking for real!
+   -- starts the first call to :start_thinking() of everyone who needs to get a result before
+   -- we notify the ai that thinking is done.  this is either the registering compound action
+   -- itself, or the first execute frame in its chain.
+   --
    self._thinking = true
    if self._action.start_thinking then
       self:_spam_current_state('start_thinking (compound action)')
