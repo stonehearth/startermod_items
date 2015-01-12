@@ -22,6 +22,8 @@
       "stonehearth:workshop": {
          "job_name" : "blacksmith",
          "skin_class" : "blacksmith",
+         "open_sound" : "stonehearth:sounds:ui:blacksmith_menu:menu_open",
+         "close_sound" : "stonehearth:sounds:ui:carpenter_menu:menu_closed",
          "ingredients" : [
             {
                "material" : "stone resource",
