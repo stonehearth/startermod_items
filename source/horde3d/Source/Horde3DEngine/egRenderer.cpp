@@ -1241,7 +1241,7 @@ void Renderer::setupShadowMap(LightNode const* light, bool noShadows)
          gRDI->setTexture(12, gRDI->getRenderBufferTex(light->getShadowBuffer(), 32), sampState);
       } else {
          // Cube-map shadows are light-distances stored in the color channel.
-         uint32 sampState = SS_FILTER_BILINEAR | SS_ANISO1 | SS_ADDR_CLAMPCOL;
+         uint32 sampState = SS_FILTER_BILINEAR | SS_ANISO1 | SS_ADDR_CLAMP;
          gRDI->setTexture(12, gRDI->getRenderBufferTex(light->getShadowBuffer(), 0), sampState);
       }
    } else {
