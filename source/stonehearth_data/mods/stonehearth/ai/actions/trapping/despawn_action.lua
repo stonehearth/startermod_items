@@ -2,7 +2,12 @@ local Despawn = class()
 
 Despawn.name = 'despawn'
 Despawn.does = 'stonehearth:idle:bored'
-Despawn.args = {}
+Despawn.args = {
+   hold_position = {    -- is the unit allowed to move around in the action?
+      type = 'boolean',
+      default = false,
+   }   
+}
 Despawn.version = 2
 Despawn.priority = 100
 

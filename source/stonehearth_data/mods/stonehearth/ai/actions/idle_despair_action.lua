@@ -2,7 +2,12 @@ local IdleDespairAction = class()
 
 IdleDespairAction.name = 'despair'
 IdleDespairAction.does = 'stonehearth:idle:bored'
-IdleDespairAction.args = { }
+IdleDespairAction.args = {
+   hold_position = {    -- is the unit allowed to move around in the action?
+      type = 'boolean',
+      default = false,
+   }
+}
 IdleDespairAction.version = 2
 IdleDespairAction.priority = 1
 IdleDespairAction.weight = 3

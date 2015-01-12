@@ -480,7 +480,6 @@
       "actions:compelled_behaviors:dispatcher" : "file(ai/actions/compelled_behaviors/compelled_behavior_dispatcher.lua)",
       "actions:compelled_behaviors:struggle" : "file(ai/actions/compelled_behaviors/struggle_action.lua)",
       "actions:free_time:dispatcher" : "file(ai/actions/free_time/free_time_dispatcher.lua)",
-      "actions:urgent_actions:dispatcher" : "file(ai/actions/urgent_actions/urgent_actions_dispatcher.lua)",
       "actions:unit_control:dispatcher" : "file(ai/actions/unit_control/unit_control_dispatcher.lua)",
       "actions:unit_control:move_unit_to_location" : "file(ai/actions/unit_control/move_unit_to_location_action.lua)",
 
@@ -1266,8 +1265,7 @@
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
-      "unit_control:party" : "file(services/server/unit_control/party.lua)",
-      "unit_control:party_command" : "file(services/server/unit_control/party_command.lua)"
+      "unit_control:party" : "file(services/server/unit_control/party.lua)"
    },
 
    "client_controllers" :  {

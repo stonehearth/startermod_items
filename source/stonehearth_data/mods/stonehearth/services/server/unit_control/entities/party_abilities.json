@@ -4,8 +4,9 @@
       "stonehearth:equipment_piece" : {
          "injected_ai" : {
             "actions" : [
-               "file(actions/follow_party_order_action.lua)",
-               "file(actions/hold_formation_action.lua)"
+               "file(actions/hold_formation_action.lua)",
+               "file(actions/idle_in_formation_action.lua)",
+               "file(actions/return_to_formation_action.lua)"
             ],
             "observers" : [
             ]

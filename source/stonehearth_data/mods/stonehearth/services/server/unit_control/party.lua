@@ -14,8 +14,23 @@ function Party:initialize(unit_controller, id, ord)
    self._sv.id = id
    self._sv.name = string.format('Party No.%d', ord) -- i18n hazard. =(
    self._sv.unit_controller = unit_controller
-   self._sv.commands = {}
    self._sv.members = {}
+
+   local player_id = unit_controller:get_player_id()
+   local scheduler = stonehearth.tasks:create_scheduler(player_id)   
+
+   self._party_tg = scheduler:create_task_group('stonehearth:party', {})
+end
+
+function Party:destroy
+   if self._hold_formation_task then
+      self._hold_formation_task:destroy()
+      self._hold_formation_task = nil
+   end
+   if self._party_tg then
+      self._party_tg:destroy()
+      self._party_tg = nil
+   end
 end
 
 function Party:get_id()
@@ -31,20 +46,13 @@ function Party:add_member(member)
    end
    pc:set_party(self)
    
-   local party_abilities = radiant.entities.create_entity('stonehearth:party:party_abilities')
-
-   local party_task = member:get_component('stonehearth:ai')
-                           :get_task_group('stonehearth:party')
-                              :create_task('stonehearth:follow_party_orders', { party = self })
-                                 :start()
-
    member:add_component('stonehearth:equipment')
-            :equip_item(party_abilities)
+            :equip_item('stonehearth:party:party_abilities')
+
+   self._party_tg:add_worker(member)
 
    self._sv.members[id] = {
       entity = member,
-      party_task = party_task,
-      party_abilities = party_abilities,
       formation_offset = Point3(DX, 0, 0)
    }
    DX = DX + 3
@@ -59,6 +67,9 @@ function Party:remove_member(id)
       if member and member:is_valid() then
          member:add_component('stonehearth:party_member')
                   :set_party(nil)
+         member:add_component('stonehearth:equipment')
+                  :unequip_item('stonehearth:party:party_abilities')
+         self._party_tg:remove_worker(member:get_id())
       end
       self._sv.members[id] = nil
       self.__saved_variables:mark_changed()
@@ -76,30 +87,27 @@ function Party:get_formation_location_for(member)
    if not entry then
       return
    end
-
    return entry.formation_offset + location
 end
 
-function Party:create_command(action, target)
-   local cmd_id = self:_get_next_id()
-   local cmd = radiant.create_controller('stonehearth:unit_control:party_command', self, cmd_id, action, target)
-   self._sv.commands[cmd_id] = cmd
-   self.__saved_variables:mark_changed()
-   return cmd
+function Party:create_attack_order(location, rotation)
+   if self._hold_formation_task then
+      self._hold_formation_task:destroy()
+      self._hold_formation_task = nil
+   end
+
+   self._sv.party_location = location
+   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
+
+   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
+                                                :start()
 end
+
 
 function Party:_get_next_id()
    local id = self._sv._next_id
    self._sv._next_id = id + 1
    return id
-end
-
-function Party:_start_command(cmd)
-   assert(not self._sv.current_command)
-   self._sv.current_command = cmd
-   self._sv.party_location = cmd:get_target()
-   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
-   self.__saved_variables:mark_changed()
 end
 
 function Party:set_name_command(session, response, name)
@@ -119,11 +127,7 @@ function Party:remove_member_command(session, response, member)
 end
 
 function Party:create_attack_order_command(session, response, location, rotation)
-   location = ToPoint3(location)
-   self:create_command('guard', location)
-               :set_travel_stance('defensive')
-               :set_arrived_stance('aggressive')
-               :go()
+   self:create_attack_order(ToPoint3(location), rotation)
    return true
 end
 

@@ -456,9 +456,9 @@ function Town:enable_worker_combat()
 
          -- xxx: let's do this by given them an item with a buff.  tasks are expensive.
          local task = citizen:add_component('stonehearth:ai')
-            :get_task_group('stonehearth:urgent_actions')
+            :get_task_group('stonehearth:urgent')
             :create_task('stonehearth:town_defense:dispatcher')
-            :set_priority(stonehearth.constants.priorities.urgent_actions.TOWN_DEFENSE)
+            :set_priority(stonehearth.constants.priorities.urgent.TOWN_DEFENSE)
             :start()
 
          self._worker_combat_tasks[citizen:get_id()] = task
@@ -484,46 +484,6 @@ function Town:disable_worker_combat()
    end
    self._worker_combat_tasks = {}
    self._sv.worker_combat_enabled = false
-   self.__saved_variables:mark_changed()
-end
-
------ Rally to battle standard methods -----
-
-local military_jobs = {
-   ['stonehearth:jobs:footman'] = true,
-}
-
--- TODO: listen for new citizens or citizens that are promoted to a military job
-function Town:enable_rally_to_battle_standard()
-   local battle_standard = self:get_battle_standard()
-   local citizens = self:get_citizens()
-
-   for _, citizen in pairs(citizens) do
-      if self:_is_in_job_map(citizen, military_jobs) then
-         local task = citizen:add_component('stonehearth:ai')
-            :get_task_group('stonehearth:urgent_actions')
-            :create_task('stonehearth:follow_entity', {
-               target = battle_standard,
-               follow_distance = 4,
-               settle_distance = 4
-            })
-            :set_priority(stonehearth.constants.priorities.urgent_actions.RALLY)
-            :start()
-
-         self._rally_tasks[citizen:get_id()] = task
-      end
-   end
-
-   self._sv.rally_to_battle_standard = true
-   self.__saved_variables:mark_changed()
-end
-
-function Town:disable_rally_to_battle_standard()
-   for _, task in pairs(self._rally_tasks) do
-      task:destroy()
-   end
-   self._rally_tasks = {}
-   self._sv.rally_to_battle_standard = false
    self.__saved_variables:mark_changed()
 end
 
