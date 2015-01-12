@@ -106,7 +106,7 @@ local constants = {
          PANIC = 20,
       },
 
-      urgent_actions = {
+      urgent = {
          TOWN_DEFENSE = 1,
          RALLY = 2,
       },
@@ -123,7 +123,13 @@ local constants = {
       },
 
       party = {
-         HOLD_PARTY_FORMATION = 1,
+         IDLE = 1,
+         HOLD_FORMATION = 10,
+
+         hold_formation = {
+            IDLE_IN_FORMATION = 1,
+            RETURN_TO_FORMATION = 10
+         }
       },
 
       compelled_behavior = {

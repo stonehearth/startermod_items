@@ -5,6 +5,8 @@ function LampComponent:initialize(entity, json)
    self._tracked_entities = {}
    self._render_info = self._entity:add_component('render_info')
    
+   self._sv.light_policy = json.light_policy or nil
+
    self._sv = self.__saved_variables:get_data()
    if not self._sv.light_effect then
       self._sv.light_effect = json.light_effect  
@@ -13,8 +15,10 @@ function LampComponent:initialize(entity, json)
 
    self:_check_light()
 
-   self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
-   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
+   if not self._sv.on then
+      self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
+      self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
+   end
 end
 
 function LampComponent:destroy()
@@ -37,6 +41,10 @@ function LampComponent:_check_light()
    local should_light = curr_time.hour >= time_constants.event_times.sunset or
                         curr_time.hour < time_constants.event_times.sunrise 
 
+   if self._sv.light_policy == "always_on" then
+      should_light = true
+   end
+   
    if should_light then
       self:_light_on()
    else

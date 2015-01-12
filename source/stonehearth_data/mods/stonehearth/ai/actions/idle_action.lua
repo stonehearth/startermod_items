@@ -4,11 +4,16 @@ local Idle = class()
 Idle.name = 'idle'
 Idle.does = 'stonehearth:idle'
 Idle.status_text = 'idle'
-Idle.args = { }
+Idle.args = {
+   hold_position = {    -- is the unit allowed to move around in the action?
+      type = 'boolean',
+      default = false,
+   }
+}
 Idle.version = 2
 Idle.priority = 1
 
-function Idle:run(ai, entity)
+function Idle:run(ai, entity, args)
    while true do
       local delay = rng:get_int(1, 2)
 
@@ -29,10 +34,14 @@ function Idle:run(ai, entity)
 
       if radiant.entities.is_carrying(entity) then
          -- still carrying?  we must be doomed!  go ahead and drop it.
-         ai:execute('stonehearth:wander_within_leash', { radius = 3 })
+         if not args.hold_position then
+            ai:execute('stonehearth:wander_within_leash', { radius = 3 })
+         end
          ai:execute('stonehearth:drop_carrying_now')
       end
-      ai:execute('stonehearth:idle:bored')
+      ai:execute('stonehearth:idle:bored', {
+            hold_position = args.hold_position
+         })
    end
 end
 

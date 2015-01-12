@@ -2,7 +2,12 @@ local IdleSwayAction = class()
 
 IdleSwayAction.name = 'sway'
 IdleSwayAction.does = 'stonehearth:idle:bored'
-IdleSwayAction.args = { }
+IdleSwayAction.args = {
+   hold_position = {    -- is the unit allowed to move around in the action?
+      type = 'boolean',
+      default = false,
+   }   
+}
 IdleSwayAction.version = 2
 IdleSwayAction.priority = 1
 IdleSwayAction.weight = 1

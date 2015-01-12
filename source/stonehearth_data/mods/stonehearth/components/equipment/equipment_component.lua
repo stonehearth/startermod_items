@@ -60,6 +60,11 @@ end
 function EquipmentComponent:equip_item(item)
    local ep
 
+   -- if someone passes the uri, create an entity
+   if type(item) == 'string' then
+      item = radiant.entities.create_entity(item)
+   end
+
    -- if someone tries to equip a proxy, equip the full-sized item instead
    assert(radiant.check.is_entity(item))
    local proxy = item:get_component('stonehearth:iconic_form')

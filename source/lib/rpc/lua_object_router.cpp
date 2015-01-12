@@ -119,7 +119,6 @@ luabind::object LuaObjectRouter::LookupObjectFromLuaState(Function const& fn)
       LOR_LOG(9) << "failed to fetch object in lua interpreter (reason:" << e.what() << ")";
       return luabind::object();
    }
-   LOG_(0) << " result of " << fn.object << " is " << luabind::type(obj);
    return obj;
 }
 

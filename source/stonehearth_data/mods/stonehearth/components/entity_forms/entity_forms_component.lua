@@ -277,6 +277,7 @@ function EntityFormsComponent:place_item_on_ground(location, rotation, normal)
 end
 
 function EntityFormsComponent:_get_form_in_world()
+   local mob = self._entity:get_component('mob')
    local parent = self._entity:get_component('mob'):get_parent()
    if parent then
       return self._entity

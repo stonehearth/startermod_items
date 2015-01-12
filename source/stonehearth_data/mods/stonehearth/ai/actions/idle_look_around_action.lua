@@ -2,7 +2,12 @@ local IdleLookAround = class()
 
 IdleLookAround.name = 'look around'
 IdleLookAround.does = 'stonehearth:idle:bored'
-IdleLookAround.args = { }
+IdleLookAround.args = { 
+   hold_position = {    -- is the unit allowed to move around in the action?
+      type = 'boolean',
+      default = false,
+   }
+}
 IdleLookAround.version = 2
 IdleLookAround.priority = 1
 IdleLookAround.weight = 1
