@@ -106,7 +106,7 @@ local constants = {
          PANIC = 20,
       },
 
-      urgent_actions = {
+      urgent = {
          TOWN_DEFENSE = 1,
          RALLY = 2,
       },

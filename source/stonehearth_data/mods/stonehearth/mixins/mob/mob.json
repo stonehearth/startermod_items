@@ -6,18 +6,23 @@
       },
       "stonehearth:ai" : {
          "dispatchers" : {
-            "stonehearth:basic_needs" : {
-               "priority" : 40
-            },
             "stonehearth:work" : {
                "priority" : 20,
                "dispatchers" : {
-                   "stonehearth:simple_labor" : {
-                      "priority" : 1
-                   },
-                   "stonehearth:party" : {
-                      "priority" : 10
-                   }
+                  "stonehearth:simple_labor" : {
+                     "priority" : 1
+                  }
+               }
+            },
+            "stonehearth:basic_needs" : {
+               "priority" : 40
+            },
+            "stonehearth:urgent" : {
+               "priority" : 80,
+               "dispatchers" : {
+                  "stonehearth:party" : {
+                     "priority" : 10
+                  }
                }
             }
          },
@@ -87,7 +92,6 @@
             "stonehearth:actions:find_direct_path_to_location",
             "stonehearth:actions:add_buff",
             "stonehearth:actions:unit_control:dispatcher",
-            "stonehearth:actions:urgent_actions:dispatcher",
             "stonehearth:actions:compelled_behaviors:dispatcher",
             "stonehearth:actions:get_town_banner", 
             "stonehearth:actions:goto_town_banner",

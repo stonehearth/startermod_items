@@ -1,7 +1,9 @@
 local UnitControlService = class()
 
 function UnitControlService:initialize()
-   self._sv.unit_controllers = {}
+   if not self._sv.unit_controllers then
+      self._sv.unit_controllers = {}
+   end
 end
 
 function UnitControlService:get_controller(player_id)
@@ -22,7 +24,6 @@ end
 function UnitControlService:create_party_command(session, response)
    local party = self:get_controller(session.player_id)
                         :create_party()
-                        
    return { party = party }
 end
 

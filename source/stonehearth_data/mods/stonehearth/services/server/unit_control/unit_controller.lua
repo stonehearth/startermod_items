@@ -13,8 +13,8 @@ function UnitController:create_party()
 
    local party = radiant.create_controller('stonehearth:unit_control:party', self, party_id, party_ord)
    self._sv.parties[party_id] = party
-   
    self.__saved_variables:mark_changed()
+   
    return party
 end
 
