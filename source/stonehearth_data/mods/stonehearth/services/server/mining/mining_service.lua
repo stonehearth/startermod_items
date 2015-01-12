@@ -1,7 +1,7 @@
 local constants = require 'constants'
 local csg_lib = require 'lib.csg.csg_lib'
+local ore_generator = require 'services.server.mining.ore_generator'
 local LootTable = require 'lib.loot_table.loot_table'
-local OreGenerator = require 'services.server.mining.ore_generator'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -332,19 +332,18 @@ function MiningService:mine_point(point)
    self:_update_interior_region(point)
 end
 
-function MiningService:create_ore_network(location, block_type)
+function MiningService:create_ore_network(location, kind)
    local game_seed = stonehearth.world_generation:get_seed()
    local rng = nil
 
    if game_seed then
       -- make sure the ore network has the same geometry across game loads
-      -- using Point2 has an integer pair hash
+      -- using Point2 as an integer pair hash
       local ore_seed = Point2(game_seed, location:hash()):hash()
       rng = RandomNumberGenerator(ore_seed)
    end
 
-   local ore_generator = OreGenerator(rng)
-   local ore_region = ore_generator:create_ore_network(block_type)
+   local ore_region = ore_generator.create_ore_network(kind, rng)
    ore_region:translate(location)
    return ore_region
 end
