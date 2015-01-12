@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 3,
+   "recipe_name" : "Blacksmith's Wall-Mounted Sign",
+   "description" : "A sign with the mark of the blacksmith, to be placed on buildings.",
+   "portrait"    : "/stonehearth/entities/decoration/wooden_sign_blacksmith/wooden_sign_blacksmith.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item": "stonehearth:decoration:wooden_sign_blacksmith"
+      }
+  ]
+}

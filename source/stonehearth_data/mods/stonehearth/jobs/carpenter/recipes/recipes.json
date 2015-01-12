@@ -107,6 +107,9 @@
             "wooden_sign_mason" : {
                "recipe" : "file(wooden_sign_mason_recipe.json)" 
             },
+            "wooden_sign_blacksmith" : {
+               "recipe" : "file(wooden_sign_blacksmith_recipe.json)" 
+            },
             "window_box_brightbell" : {
                "recipe" : "file(window_box_brightbell_recipe.json)" 
             },
