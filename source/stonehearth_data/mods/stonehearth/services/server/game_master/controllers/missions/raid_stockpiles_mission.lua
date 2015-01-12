@@ -4,16 +4,19 @@ local RaidStockpilesMission = class()
 mixin_class(RaidStockpilesMission, Mission)
 
 function RaidStockpilesMission:initialize(ctx, info)
+   assert(ctx)
    assert(ctx.enemy_location)
+   assert(info)
 
    self._sv.party = self:_create_party(ctx, info)
    self:_start_raid(ctx)
 end
 
 function RaidStockpilesMission:_start_raid(ctx)
-   local stockpile = self:_find_closest_stockpile()
+   local stockpile = self:_find_closest_stockpile(ctx.enemy_location, ctx.player_id)
    if stockpile then
       radiant.not_yet_implemented()
+      return
    end
    self:_raise_havoc(ctx)
 end

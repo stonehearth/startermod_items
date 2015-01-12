@@ -30,3 +30,9 @@ function radiant.shallow_copy(t)
    end
    return copy
 end
+
+function radiant.not_yet_implemented(fmt, ...)
+   local info = debug.getinfo(2, 'Sfl')
+   local tail = fmt and (': ' .. string.format(fmt, ...)) or ''
+   error(string.format('NOT YET IMPLEMENTED (%s:%d)', info.source, info.currentline) .. tail)
+end
