@@ -1,3 +1,4 @@
+local csg_lib = require 'lib.csg.csg_lib'
 local selector_util = require 'services.client.selection.selector_util'
 local RulerWidget = require 'services.client.selection.ruler_widget'
 local XZRegionSelector = class()
@@ -253,18 +254,6 @@ function XZRegionSelector:destroy()
    self:reject('destroy')
 end
 
--- create the cube for the xz region given endpoints p0 and p1.
-function XZRegionSelector:_create_cube(p0, p1)
-   assert(p0 and p1)
-   local min, max = Point3(p0), Point3(p1)
-   for _, comp in ipairs({ 'x', 'y', 'z'}) do
-      if min[comp] > max[comp] then
-         min[comp], max[comp] = max[comp], min[comp]
-      end
-   end
-   return Cube3(min, max + Point3.one)
-end
-
 -- return whether or not the given location is valid to be used in the creation
 -- of the xz region.
 function XZRegionSelector:_is_valid_location(brick)
@@ -368,7 +357,7 @@ function XZRegionSelector:_compute_endpoint(q0, q1)
       r1.z = j
 
       r1.x = limit_x
-      local unverified_region = Region3(self:_create_cube(r0, r1))
+      local unverified_region = Region3(csg_lib.create_cube(r0, r1))
       unverified_region:subtract_region(self._valid_region_cache)
 
       if not unverified_region:empty() then
@@ -395,7 +384,7 @@ function XZRegionSelector:_compute_endpoint(q0, q1)
          if valid_x then
             -- add the row to the valid_region
             r1.x = valid_x
-            local valid_row = self:_create_cube(r0, r1)
+            local valid_row = csg_lib.create_cube(r0, r1)
             self._valid_region_cache:add_cube(valid_row)
          end
       end
@@ -444,7 +433,7 @@ function XZRegionSelector:_update()
       return
    end
 
-   local selected_cube = self._p0 and self._p1 and self:_create_cube(self._p0, self._p1)
+   local selected_cube = self._p0 and self._p1 and csg_lib.create_cube(self._p0, self._p1)
 
    self:_update_selected_cube(selected_cube)
    self:_update_rulers(self._p0, self._p1)
@@ -489,7 +478,7 @@ function XZRegionSelector:_limit_dimensions(q0, q1)
    end
 
    local new_q1 = Point3(q1)
-   local size = self:_create_cube(q0, q1):get_size()
+   local size = csg_lib.create_cube(q0, q1):get_size()
 
    if size.x > self._max_size then
       local sign = q1.x >= q0.x and 1 or -1
@@ -612,7 +601,7 @@ function XZRegionSelector:_is_valid_length(length)
 end
 
 function XZRegionSelector:_are_valid_dimensions(p0, p1)
-   local size = self:_create_cube(p0, p1):get_size()
+   local size = csg_lib.create_cube(p0, p1):get_size()
    local valid = self:_is_valid_length(size.x) and self:_is_valid_length(size.z)
    return valid
 end

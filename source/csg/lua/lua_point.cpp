@@ -71,6 +71,19 @@ csg::Point<double, C> Pointf_ToClosestInt(csg::Point<double, C> const& p)
    return csg::ToFloat(csg::ToClosestInt(p));
 }
 
+// Returns a hash of the INTEGER coordinates of the point
+template <typename T>
+int Point_Hash(T const& p)
+{
+   // The current implementation of Point<S, C>::Hash is poorly defined when S is floating point
+   // and the values are large. We'll need to use a different hash function if we care about
+   // hashing fractional coordinates into different buckets.
+   auto cpp_hash = Point<int, T::Dimension>::Hash()(csg::ToInt(p));
+   // Integer serialization to lua rolls over to negative numbers above int32 max
+   int lua_hash = cpp_hash % std::numeric_limits<int32>::max();
+   return lua_hash;
+}
+
 template <typename T>
 static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
 {
@@ -95,8 +108,8 @@ static luabind::class_<T> RegisterCommon(struct lua_State* L, const char* name)
          .def("scaled",             static_cast<T (T::*)(double) const>(&T::Scaled))
          .def("translated",         &T::Translated)
          .def("key_value",          &Point_KeyValue<T>)
+         .def("hash",               &Point_Hash<T>)
          ;
-
 }
 
 template <typename T>

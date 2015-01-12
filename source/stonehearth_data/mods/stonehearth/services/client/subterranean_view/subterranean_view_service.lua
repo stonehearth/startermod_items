@@ -1,5 +1,5 @@
 local constants = require 'constants'
-local mining_lib = require 'lib.mining.mining_lib'
+local csg_lib = require 'lib.csg.csg_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -330,7 +330,7 @@ function SubterraneanViewService:_update_flat_xray_view(interior_region3i)
    for cube3i in interior_region3i:each_cube() do
       local cube = cube3i:to_float()
       local check_height = cube.max.y - 1
-      local bottom_face = mining_lib.get_face(cube, down)
+      local bottom_face = csg_lib.get_face(cube, down)
       for point in bottom_face:each_point() do
          if show_adjacent(point, check_height) then
             local visible_cube = self:_get_visible_cube(Cube3(point, point + Point3.one))

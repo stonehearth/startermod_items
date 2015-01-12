@@ -1,4 +1,4 @@
-local mining_lib = require 'lib.mining.mining_lib'
+local csg_lib = require 'lib.csg.csg_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -371,7 +371,7 @@ function MiningZoneComponent:_add_top_facing_blocks(working_region, working_boun
 
    for cube in working_region:each_cube() do
       if cube.max.y >= working_bounds.max.y - MAX_DESTINATION_DELTA_Y then
-         local top_face = mining_lib.get_face(cube, up)
+         local top_face = csg_lib.get_face(cube, up)
 
          if top_face.max.y == working_bounds.max.y then
             for point in cube:each_point() do
@@ -392,7 +392,7 @@ end
 
 function MiningZoneComponent:_add_side_and_bottom_blocks(working_region, working_bounds, add_block_fn)
    for _, normal in ipairs(NON_TOP_DIRECTIONS) do
-      local face_region = Region3(mining_lib.get_face(working_bounds, normal))
+      local face_region = Region3(csg_lib.get_face(working_bounds, normal))
       local face_blocks = face_region:intersect_region(working_region)
       for point in face_blocks:each_point() do
          if face_is_exposed(point, normal) then
@@ -423,7 +423,7 @@ end
 
 function MiningZoneComponent:_add_all_exposed_faces(working_region, add_block_fn)
    for cube in working_region:each_cube() do
-      mining_lib.each_face_block_in_cube(cube, function(point)
+      csg_lib.each_face_block_in_cube(cube, function(point)
             if has_n_plus_exposed_faces(point, DIRECTIONS, 1) then
                add_block_fn(point)
             end

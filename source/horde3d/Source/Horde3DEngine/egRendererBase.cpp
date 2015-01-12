@@ -883,7 +883,7 @@ void RenderDevice::setShaderSampler( int loc, uint32 texUnit )
 // =================================================================================================
 
 uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFormats::List format,
-                                         bool depth, uint32 numColBufs, uint32 samples, uint32 numMips )
+                                         bool depth, uint32 numColBufs, uint32 samples, uint32 numMips, bool cubeMap)
 {
 	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F) && !_caps.texFloat )
 	{
@@ -905,10 +905,11 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		Modules::log().writeWarning( "GPU does not support desired multisampling quality for render target" );
 	}
 
-	RDIRenderBuffer rb;
-	rb.width = width;
-	rb.height = height;
-	rb.samples = samples;
+   RDIRenderBuffer rb;
+   rb.cubeMap = cubeMap;
+   rb.width = width;
+   rb.height = height;
+   rb.samples = samples;
 
 	// Create framebuffers
 	glGenFramebuffersEXT( 1, &rb.fbo );
@@ -925,13 +926,24 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
 			// Create a color texture
 
-			uint32 texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, format, numMips > 0 ? true : false, numMips > 0 ? true : false, false, false );
-			ASSERT( texObj != 0 );
-			uploadTextureData( texObj, 0, 0, 0x0 );
-			rb.colTexs[j] = texObj;
-			RDITexture &tex = _textures.getRef( texObj );
-			// Attach the texture
-			glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, tex.glObj, 0 );
+         uint32 texObj = createTexture( cubeMap ? TextureTypes::TexCube : TextureTypes::Tex2D, rb.width, rb.height, 1, format, numMips > 0 ? true : false, numMips > 0 ? true : false, false, false );
+         ASSERT( texObj != 0 );
+         rb.colTexs[j] = texObj;
+         RDITexture &tex = _textures.getRef( texObj );
+
+         if (cubeMap) {
+            for (int i = 0; i < 6; i++) {
+               uploadTextureData(texObj, i, 0, nullptr);
+            }
+            // We shouldn't attach the texture to the framebuffer, because we won't know what to use until bind-time, but
+            // we also want to have _some_ validation when creating this render buffer, so just arbitrarily bind a face 
+            // of the cube.  When binding a cube for rendering, you are required to set the appropriate cube side.
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, tex.glObj, 0);
+         } else {
+            uploadTextureData(texObj, 0, 0, nullptr);
+            // Attach the texture
+            glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, tex.glObj, 0 );
+         }
 
 			if( samples > 0 )
 			{
@@ -1123,7 +1135,7 @@ void RenderDevice::resolveRenderBuffer( uint32 rbObj )
 }
 
 
-void RenderDevice::setRenderBuffer( uint32 rbObj )
+void RenderDevice::setRenderBuffer(uint32 rbObj, int cubeFace)
 {
 	// Resolve render buffer if necessary
 	if(_curRendBuf != 0)
@@ -1159,6 +1171,12 @@ void RenderDevice::setRenderBuffer( uint32 rbObj )
 		RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 
 		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fboMS != 0 ? rb.fboMS : rb.fbo );
+
+      if (rb.cubeMap) {
+         // Let's just assume you only ever want to bind to the 0th color attachment! :-P
+         glFramebufferTexture2DEXT(GL_DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, cubeFace, _textures.getRef(rb.colTexs[0]).glObj, 0);
+      }
+
       int status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 
       if (status != GL_FRAMEBUFFER_COMPLETE_EXT)

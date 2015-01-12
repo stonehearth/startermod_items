@@ -2,20 +2,49 @@
    "rock" : {
       "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 1000 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 20 }
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 2 }
       ]
    },
    "dirt" : {
       "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 1000 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 5 }
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 0.5 }
       ]
    },
    "grass" : {
       "num_rolls" : 0,
       "items" : [
+         { "uri" : "", "weight" : 100 },
+      ]
+   },
+   "copper_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:copper:ore", "weight" : 20 }
+      ]
+   },
+   "iron_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:iron:ore", "weight" : 20 }
+      ]
+   },
+   "gold_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:gold:ore", "weight" : 20 }
+      ]
+   },
+   "coal" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 20 }
       ]
    }
 }
