@@ -49,7 +49,7 @@ function DropCarryingIntoEntityAdjacent:run(ai, entity, args)
    radiant.entities.turn_to_face(entity, container)
    ai:execute('stonehearth:run_effect', { effect =  self._drop_effect})  
    radiant.entities.put_carrying_into_entity(entity, container)
-   carrying:add_component('mob'):set_location_grid_aligned(self._drop_offset)
+   carrying:add_component('mob'):move_to(self._drop_offset)
 end
 
 return DropCarryingIntoEntityAdjacent

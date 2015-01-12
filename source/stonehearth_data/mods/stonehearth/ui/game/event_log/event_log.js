@@ -42,9 +42,6 @@ App.StonehearthEventLogView = App.View.extend({
          .fadeOut(2000, function() {
             $(this).remove();
          })
-         
-      //this._container.find(':nth-child(-n+5)').addClass('wtf')
-
    },
 
    reverse: function(){

@@ -30,7 +30,7 @@ sampler2D ssaoImage = sampler_state
 
 context OMNI_LIGHTING_FORWARD
 {
-  VertexShader = compile GLSL VS_GENERAL;
+  VertexShader = compile GLSL VS_GENERAL_SHADOWS;
   PixelShader = compile GLSL FS_OMNI_LIGHTING_FORWARD;
   
   ZWriteEnable = false;
@@ -155,6 +155,7 @@ void main( void )
 // =================================================================================================
 
 #include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/omni_shadows.shader"
 
 uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
@@ -167,9 +168,8 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-  vec3 normal = tsbNormal;
-  vec3 newPos = pos.xyz;
-  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo, 1.0);
+  float shadowTerm = getOmniShadowValue(lightPos.xyz, pos.xyz);
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo * shadowTerm, 1.0);
 }
 
 
@@ -283,9 +283,7 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-  vec3 normal = tsbNormal;
-  vec3 newPos = pos.xyz;
-  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, newPos, normalize(normal)) * albedo, 1.0);
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo, 1.0);
 }
 
 

@@ -56,7 +56,11 @@ void LightNode::reallocateShadowBuffer(int size)
 
    _shadowMapSize = size;
    if (Modules::config().getOption(EngineOptions::EnableShadows)) {
-      _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
+      if (_directional) {
+         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
+      } else {
+         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::RGBA32F, true, 1, 0, 0, true);
+      }
       if (!_shadowMapBuffer)
 	   {
 		   Modules::log().writeError("Failed to create shadow map");

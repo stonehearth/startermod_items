@@ -12,17 +12,20 @@ local HabitatManager = require 'services.server.world_generation.habitat_manager
 local OverviewMap = require 'services.server.world_generation.overview_map'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
+local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 
 local WorldGenerationService = class()
 local log = radiant.log.create_logger('world_generation')
 
-function WorldGenerationService:__init()
-end
-
 function WorldGenerationService:initialize()
-   log:write(0, 'initialize not implemented for world generation service!')
+   self._sv = self.__saved_variables:get_data()
+
+   if not self._sv.initialized then
+      self._sv.initialized = true
+   else
+   end
 end
 
 function WorldGenerationService:create_new_game(seed, async)
@@ -59,8 +62,14 @@ end
 
 function WorldGenerationService:set_seed(seed)
    log:info('WorldGenerationService using seed %d', seed)
-   self._seed = seed
-   self._rng = RandomNumberGenerator(self._seed)
+   self._sv.seed = seed
+   self.__saved_variables:mark_changed()
+
+   self._rng = RandomNumberGenerator(self._sv.seed)
+end
+
+function WorldGenerationService:get_seed()
+   return self._sv.seed
 end
 
 function WorldGenerationService:_report_progress(progress)
@@ -326,8 +335,10 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, off
 end
 
 function WorldGenerationService:_get_tile_seed(x, y)
-   local tile_hash = radiant.math.point_hash(x, y)
-   return (self._seed + tile_hash) % radiant.math.MAX_UINT32
+   local location_hash = Point2(x, y):hash()
+   -- using Point2 as an integer pair hash
+   local tile_seed = Point2(self._sv.seed, location_hash):hash()
+   return tile_seed
 end
 
 function WorldGenerationService:_build_tile_order_list(map)

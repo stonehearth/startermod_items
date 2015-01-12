@@ -4,6 +4,9 @@
          "name": "Blacksmith Anvil",
          "description": "Unclaimed"
       },
+      "render_info" : {
+         "scale" : 0.15
+      },     
       "model_variants": {
          "default": {
             "models": [

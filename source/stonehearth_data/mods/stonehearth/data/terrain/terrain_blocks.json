@@ -15,7 +15,12 @@
       "dirt_edge_1" :  { "tag" : 211, "color" : "#918154", "kind" : "dirt" },
       "grass" :        { "tag" : 300, "color" : "#75b370", "kind" : "grass" },
       "grass_edge_1" : { "tag" : 301, "color" : "#99ce7c", "kind" : "grass" },
-      "grass_edge_2" : { "tag" : 302, "color" : "#87c076", "kind" : "grass" }
+      "grass_edge_2" : { "tag" : 302, "color" : "#87c076", "kind" : "grass" },
+      "copper_ore" :   { "tag" : 410, "color" : "#c87533", "kind" : "copper_ore" },
+      "tin_ore" :      { "tag" : 420, "color" : "#adb2bd", "kind" : "tin_ore" },
+      "iron_ore" :     { "tag" : 430, "color" : "#e6e7e8", "kind" : "iron_ore" },
+      "gold_ore" :     { "tag" : 440, "color" : "#ffd700", "kind" : "gold_ore" },
+      "coal" :         { "tag" : 500, "color" : "#021c24", "kind" : "coal" }
    },
 
    "ring_tesselation" : {

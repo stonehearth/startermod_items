@@ -2,26 +2,26 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
-local mining_lib = {}
+local csg_lib = {}
 
-function mining_lib.get_aligned_cube(cube, xz_cell_size, y_cell_size)
-   local min, max = cube.min, cube.max
-   local aligned_min = Point3(
-         math.floor(min.x / xz_cell_size) * xz_cell_size,
-         math.floor(min.y / y_cell_size)  * y_cell_size,
-         math.floor(min.z / xz_cell_size) * xz_cell_size
-      )
-   local aligned_max = Point3(
-         math.ceil(max.x / xz_cell_size) * xz_cell_size,
-         math.ceil(max.y / y_cell_size)  * y_cell_size,
-         math.ceil(max.z / xz_cell_size) * xz_cell_size
-      )
-   return Cube3(aligned_min, aligned_max)
+-- create a cube that spans p0 and p1 inclusive
+function csg_lib.create_cube(p0, p1, tag)
+   assert(p0 and p1)
+   local min, max = Point3(p0), Point3(p1)
+   tag = tag or 0
+
+   for _, d in ipairs({ 'x', 'y', 'z'}) do
+      if min[d] > max[d] then
+         min[d], max[d] = max[d], min[d]
+      end
+   end
+
+   return Cube3(min, max + Point3.one, tag)
 end
 
 local DIMENSIONS = { 'x', 'y', 'z'}
 
-function mining_lib.get_face(cube, normal)
+function csg_lib.get_face(cube, normal)
    local dim = nil
 
    for _, d in ipairs(DIMENSIONS) do
@@ -43,26 +43,26 @@ function mining_lib.get_face(cube, normal)
    return face
 end
 
-function mining_lib.each_corner_block_in_cube(cube, cb)
+function csg_lib.each_corner_block_in_cube(cube, cb)
    -- block is a corner block when it is part of three or more faces
-   mining_lib.each_block_in_cube_with_faces(cube, 3, cb)
+   csg_lib.each_block_in_cube_with_faces(cube, 3, cb)
 end
 
-function mining_lib.each_edge_block_in_cube(cube, cb)
+function csg_lib.each_edge_block_in_cube(cube, cb)
    -- block is an edge block when it is part of two or more faces
-   mining_lib.each_block_in_cube_with_faces(cube, 2, cb)
+   csg_lib.each_block_in_cube_with_faces(cube, 2, cb)
 end
 
-function mining_lib.each_face_block_in_cube(cube, cb)
+function csg_lib.each_face_block_in_cube(cube, cb)
    -- block is a face block when it is part of one or more faces
-   mining_lib.each_block_in_cube_with_faces(cube, 1, cb)
+   csg_lib.each_block_in_cube_with_faces(cube, 1, cb)
 end
 
 -- invokes callback when a block in the cube is on min_faces or more
 -- min_faces = 3 iterates over all the corner blocks
 -- min_faces = 2 iterates over all the edge blocks
 -- min_faces = 1 iterates over all the face blocks
-function mining_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
+function csg_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
     -- subtract one because we want the max terrain block, not the bounding grid line
    local max = cube.max - Point3.one
    local min = cube.min
@@ -121,7 +121,22 @@ function mining_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
    end   
 end
 
-function mining_lib.create_adjacent_columns(point, y_min, y_max)
+function csg_lib.get_aligned_cube(cube, xz_cell_size, y_cell_size)
+   local min, max = cube.min, cube.max
+   local aligned_min = Point3(
+         math.floor(min.x / xz_cell_size) * xz_cell_size,
+         math.floor(min.y / y_cell_size)  * y_cell_size,
+         math.floor(min.z / xz_cell_size) * xz_cell_size
+      )
+   local aligned_max = Point3(
+         math.ceil(max.x / xz_cell_size) * xz_cell_size,
+         math.ceil(max.y / y_cell_size)  * y_cell_size,
+         math.ceil(max.z / xz_cell_size) * xz_cell_size
+      )
+   return Cube3(aligned_min, aligned_max)
+end
+
+function csg_lib.create_adjacent_columns(point, y_min, y_max)
    local region = Region3()
 
    local add_xz_column = function(region, x, z, y_min, y_max)
@@ -139,4 +154,4 @@ function mining_lib.create_adjacent_columns(point, y_min, y_max)
    return region
 end
 
-return mining_lib
+return csg_lib

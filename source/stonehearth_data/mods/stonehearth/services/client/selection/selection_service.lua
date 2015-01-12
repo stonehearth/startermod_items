@@ -125,6 +125,29 @@ function SelectionService.designation_can_contain(entity)
    return true
 end
 
+function SelectionService.floor_can_contain(entity)
+   local rcs = entity:get_component('region_collision_shape')
+   if rcs and rcs:get_region_collision_type() ~= _radiant.om.RegionCollisionShape.NONE then
+      return false
+   end
+
+   if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then
+      return false
+   end
+
+   if entity:get_component('terrain') then
+      return false
+   end
+
+   -- explicitly allow no_construction_zones
+   local ncz = entity:get_component('stonehearth:no_construction_zone')
+   if ncz then
+      return true
+   end
+   
+   return true
+end
+
 function SelectionService.user_cancelled(event)
    if not event then
       return false

@@ -17,6 +17,11 @@
             ]
          }
       },
+      "effect_list" : {
+         "effects" : [
+            "stonehearth:effects:treasure_glow"
+         ]  
+      },     
       "unit_info": {
          "name": "Gold Ingot",
          "description": "A bar of pure gold. A suitable material for crafted goods.",

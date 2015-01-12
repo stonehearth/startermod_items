@@ -245,7 +245,7 @@ protected:
    void computeTightCameraBounds(float* minDist, float* maxDist);
    Frustum computeDirectionalLightFrustum(LightNode const* light, float nearPlaneDist, float farPlaneDist) const;
    void quantizeShadowFrustum(const Frustum& frustSlice, int shadowMapSize, Vec3f* min, Vec3f* max);
-   void updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist);
+   void updateShadowMap(LightNode const* light, Frustum const* lightFrus, float minDist, float maxDist, int cubeFace=0);
 
 	void drawOverlays( std::string const& shaderContext );
 

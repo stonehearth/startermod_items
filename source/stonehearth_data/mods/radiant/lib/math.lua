@@ -41,29 +41,8 @@ function RadiantMath.in_bounds(value, min, max)
 	return true
 end
 
-function RadiantMath.point_hash(x, y)
-   -- from Effective Java (2nd edition)
-   local prime = 51
-   local value = (prime + RadiantMath.int_hash(y)) * prime + RadiantMath.int_hash(x)
-   value = value + prime -- don't hash (0,0) to 0
-   local hash = value % (RadiantMath.MAX_UINT32+1)
-   return hash
-end
-
-function RadiantMath.int_hash(x)
-   local unsigned
-
-   if x >= 0 then unsigned = x
-   else           unsigned = RadiantMath.MAX_UINT32+1 + x -- recall x is negative
-   end
-
-   -- simple hash function from Knuth
-   local hash = unsigned*2654435761 % (RadiantMath.MAX_UINT32+1)
-   return hash
-end
-
 function RadiantMath.rotate_about_y_axis(point, degrees)
-   local radians = degrees / 180 * math.pi
+   local radians = math.rad(degrees)
    local q = Quaternion(Point3.unit_y, radians)
    return q:rotate(point)
 end

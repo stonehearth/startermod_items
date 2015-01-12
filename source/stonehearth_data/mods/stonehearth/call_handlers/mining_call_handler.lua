@@ -1,5 +1,5 @@
 local constants = require 'constants'
-local mining_lib = require 'lib.mining.mining_lib'
+local csg_lib = require 'lib.csg.csg_lib'
 local build_util = require 'lib.build_util'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -230,7 +230,7 @@ function MiningCallHandler:_infer_mode(box)
 end
 
 function MiningCallHandler:_get_aligned_cube(cube)
-   return mining_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
+   return csg_lib.get_aligned_cube(cube, constants.mining.XZ_CELL_SIZE, constants.mining.Y_CELL_SIZE)
 end
 
 function MiningCallHandler:_get_dig_region(selection_box, mode)
