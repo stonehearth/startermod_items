@@ -15,11 +15,16 @@ function ReturnToFormationAction:start_thinking(ai, entity, args)
    self._entity = entity
    self._location = args.location
 
+   -- we are almost certainly too far away.  check once before creating the trace.
+   if self:_check_position() then
+      return
+   end
+   
+   -- no?  ok, set_think_output whenever we get there   
    self._trace = radiant.entities.trace_grid_location(entity, 'hold formation')
                      :on_changed(function()
                            self:_check_position()
                         end)
-                     :push_object_state()
 end
 
 
@@ -31,16 +36,17 @@ function ReturnToFormationAction:stop_thinking()
 end
 
 function ReturnToFormationAction:_check_position()
-   if self._location then
-      local location = radiant.entities.get_world_grid_location(self._entity)
-      if location:distance_to(self._location) >= 2 then
-         self._ai:set_think_output({
-               location = self._location,
-            })
-         return
-      end
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   if location:distance_to(self._location) <= 2 then
+      return false
    end
-   self._ai:clear_think_output()
+   
+   if self._trace then
+      self._trace:destroy()
+      self._trace = nil
+   end
+   self._ai:set_think_output({ location = self._location })
+   return true
 end
 
 local ai = stonehearth.ai
