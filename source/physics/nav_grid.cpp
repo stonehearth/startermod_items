@@ -1141,6 +1141,20 @@ csg::Point3 NavGrid::GetStandablePoint(om::EntityPtr entity, csg::Point3 const& 
    return location;
 }
 
+csg::Point3 NavGrid::GetStandablePoint(csg::Point3 const& pt)
+{
+   csg::Point3 location = bounds_.GetClosestPoint(csg::ToClosestInt(pt));
+   csg::Point3 direction(0, IsBlocked(pt) ? 1 : -1, 0);
+
+   while (bounds_.Contains(location)) {
+      if (IsStandable(location)) {
+         break;
+      }
+      location += direction;
+   }
+   return location;
+}
+
 float NavGrid::GetMovementSpeedAt(csg::Point3 const& worldPoint)
 {
    csg::Point3 index, offset;

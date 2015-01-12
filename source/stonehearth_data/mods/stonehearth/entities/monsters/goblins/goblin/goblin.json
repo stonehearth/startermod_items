@@ -93,7 +93,8 @@
             "stonehearth:actions:free_time:dispatcher",
             "stonehearth:actions:equip_carrying",
             "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade"
+            "stonehearth:actions:find_equipment_upgrade",
+            "stonehearth:actions:party:destroy_items_in_stockpile"
          ],
          "observers": [
             "stonehearth:observers:aggro",

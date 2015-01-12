@@ -16,10 +16,15 @@ function Party:initialize(unit_controller, id, ord)
    self._sv.unit_controller = unit_controller
    self._sv.members = {}
 
-   local player_id = unit_controller:get_player_id()
+   self:restore()
+end
+
+function Party:restore()
+   local player_id = self._sv.unit_controller:get_player_id()
    local scheduler = stonehearth.tasks:create_scheduler(player_id)   
 
    self._party_tg = scheduler:create_task_group('stonehearth:party', {})
+   self._party_priorities = stonehearth.constants.priorities.party
 end
 
 function Party:destroy()
@@ -91,16 +96,24 @@ function Party:get_formation_location_for(member)
 end
 
 function Party:create_attack_order(location, rotation)
-   if self._hold_formation_task then
-      self._hold_formation_task:destroy()
-      self._hold_formation_task = nil
-   end
+   self:_set_formation_location(loction, rotation)
+end
 
-   self._sv.party_location = location
-   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
+function Party:raid(stockpile)
+   -- the formation should be the center of the stockpile
+   local location = stockpile:get_component('stonehearth:stockpile')
+                              :get_bounds()
+                                 :get_centroid()
 
-   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
-                                                :start()
+   local task = self._party_tg:create_task('stonehearth:party:raid_stockpile', {
+         party = self,
+         stockpile = stockpile,
+      })
+
+   task:set_priority(self._party_priorities.RAID_STOCKPILE)
+       :start()
+
+   self:_set_formation_location(location)
 end
 
 
@@ -110,6 +123,21 @@ function Party:_get_next_id()
    return id
 end
 
+function Party:_set_formation_location(location, rotation)
+   if self._hold_formation_task then
+      self._hold_formation_task:destroy()
+      self._hold_formation_task = nil
+   end
+
+   location = radiant.terrain.get_standable_point(location)
+
+   self._sv.party_location = location
+   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
+
+   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
+                                                :set_priority(self._party_priorities.HOLD_FORMATION)
+                                                :start()
+end
 function Party:set_name_command(session, response, name)
    self._sv.name = name
    self.__saved_variables:mark_changed()

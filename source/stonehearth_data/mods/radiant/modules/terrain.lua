@@ -78,8 +78,12 @@ function Terrain.remove_entity(entity)
 end
 
 function Terrain.get_standable_point(entity, pt)
-   local start_point = Terrain.get_point_on_terrain(pt)
-   return _physics:get_standable_point(entity, start_point)
+   if pt == nil then
+      -- was called like get_standable_point(Point3.zero)
+      pt = entity
+      return _physics:get_standable_point(pt)
+   end
+   return _physics:get_standable_point(entity, pt)
 end
 
 -- returns the Point3 of the highest terrain voxel at (x, z)

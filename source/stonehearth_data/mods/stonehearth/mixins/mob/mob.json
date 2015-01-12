@@ -97,7 +97,10 @@
             "stonehearth:actions:goto_town_banner",
             "stonehearth:actions:goto_town_center",
             "stonehearth:actions:get_town_center", 
-            "stonehearth:actions:walk_to_empty_space"
+            "stonehearth:actions:walk_to_empty_space",
+            "stonehearth:actions:choose_item_in_stockpile",
+            "stonehearth:actions:smash_item",
+            "stonehearth:actions:smash_item_adjacent"
          ]
       }
    }

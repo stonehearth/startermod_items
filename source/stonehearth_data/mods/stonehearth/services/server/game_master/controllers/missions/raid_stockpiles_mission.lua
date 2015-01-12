@@ -15,13 +15,18 @@ end
 function RaidStockpilesMission:_start_raid(ctx)
    local stockpile = self:_find_closest_stockpile(ctx.enemy_location, ctx.player_id)
    if stockpile then
-      radiant.not_yet_implemented()
+      self:_raid_stockpile(stockpile)
       return
    end
-   self:_raise_havoc(ctx)
+   self:_attack_town_center(ctx)
 end
 
-function RaidStockpilesMission:_raise_havoc(ctx)
+function RaidStockpilesMission:_raid_stockpile(stockpile)
+   local location = radiant.entities.get_world_grid_location(stockpile)
+   self._sv.party:raid(stockpile)
+end
+
+function RaidStockpilesMission:_attack_town_center(ctx)
    local town = stonehearth.town:get_town(ctx.player_id)
    if not town then
       return
