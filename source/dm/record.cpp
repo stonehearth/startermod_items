@@ -7,6 +7,8 @@
 #include "dbg_indenter.h"
 #include "streamer.h"
 
+#define REC_LOG(level)  LOG(dm.record, level)
+
 using namespace ::radiant;
 using namespace ::radiant::dm;
 
@@ -52,6 +54,14 @@ void Record::LoadValue(SerializationType r, Protocol::Value const& msg)
       }
       registerOffset_ = 0;
       InitializeRecordFields();
+
+      if (registerOffset_ != fields_.size()) {
+         // Something went wrong.  Let's log the fields; maybe we'll learn something?
+         REC_LOG(1) << "Fatal error loading record (expected " << fields_.size() << " fields, but initialized " << registerOffset_ << ") instead.";
+         REC_LOG(1) << "Dumping fields....";
+         REC_LOG(1) << msg.DebugString();
+      }
+
       ASSERT(registerOffset_ == fields_.size());
    }
 }

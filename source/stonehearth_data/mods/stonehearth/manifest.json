@@ -109,6 +109,7 @@
       "mason:talisman" : "file(jobs/mason/mason_chisel/mason_chisel_talisman.json)",
 
       "blacksmith:workbench" : "file(jobs/blacksmith/blacksmith_workbench)",
+      "blacksmith:forge" : "file(jobs/blacksmith/blacksmith_forge)",
       "blacksmith:outfit" : "file(jobs/blacksmith/blacksmith_outfit)",
       "blacksmith:hammer" : "file(jobs/blacksmith/blacksmith_hammer)",
       "blacksmith:talisman" : "file(jobs/blacksmith/blacksmith_hammer/blacksmith_hammer_talisman.json)",
