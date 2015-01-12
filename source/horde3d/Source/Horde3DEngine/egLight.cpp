@@ -59,7 +59,7 @@ void LightNode::reallocateShadowBuffer(int size)
       if (_directional) {
          _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
       } else {
-         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::RGBA32F, true, 1, 0, 0, true);
+         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::R32, true, 1, 0, 0, true);
       }
       if (!_shadowMapBuffer)
 	   {
