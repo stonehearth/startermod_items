@@ -14,7 +14,7 @@
             "rz":0
          }
       },
-     "sound": {
+      "sound": {
          "type": "sound_effect",
          "duration": 500,
          "start_time": 0,
@@ -22,8 +22,8 @@
          "falloff" : 3,
          "volume": 60,
          "track" : "stonehearth:sounds:firepit_ignite_sound"
-     },
-     "sound": {
+      },
+      "sound": {
          "type": "sound_effect",
          "loop" : true,
          "start_time": 400,
@@ -31,15 +31,16 @@
          "falloff" : 2.5,
          "volume": 70,
          "track" : "stonehearth:sounds:firepit_loop_sound"        
-     },
-     "light": {
+      },
+      "light": {
          "type": "light",
          "light": "animatedlights/fire/small_fire.animatedlight.json",
          "transforms": {
             "x":0,
-            "y":3,
+            "y":1.50,
             "z":0
-        }
-     }
+         },
+         "shadows": true
+      }
    }
 }
