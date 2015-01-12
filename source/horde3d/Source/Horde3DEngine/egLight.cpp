@@ -132,7 +132,7 @@ SceneNode *LightNode::factoryFunc( const SceneNodeTpl &nodeTpl )
 }
 
 
-int LightNode::getParamI( int param )
+int LightNode::getParamI( int param ) const
 {
 	switch( param )
 	{
