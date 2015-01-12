@@ -14,7 +14,11 @@ function SettlementTest:__init()
    radiant.terrain.place_entity(banner, Point3.zero, { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
+   stonehearth.inventory:get_inventory('player_1')
+                           :create_stockpile(Point3(4, 1, 4), Point2(4, 4))
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 4, 4, 4, 4)
                      
+
    stonehearth.game_master:start()
    
    -- just for fun...
