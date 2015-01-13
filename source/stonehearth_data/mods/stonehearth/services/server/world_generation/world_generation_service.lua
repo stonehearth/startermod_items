@@ -10,10 +10,14 @@ local HeightMapRenderer = require 'services.server.world_generation.height_map_r
 local HabitatType = require 'services.server.world_generation.habitat_type'
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
+local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 
 local WorldGenerationService = class()
@@ -42,13 +46,11 @@ function WorldGenerationService:create_new_game(seed, async)
    self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng, self._async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
-
-   self._scenario_service = stonehearth.static_scenario
-   self._scenario_service:create_new_game(self._feature_size, seed)
-
-   stonehearth.dynamic_scenario:create_new_game()
-
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
+
+   self._surface_scenario_selector = SurfaceScenarioSelector(self._feature_size, seed)
+   stonehearth.static_scenario:create_new_game(self._feature_size, seed)
+   stonehearth.dynamic_scenario:create_new_game()
 
    self.blueprint_generator = BlueprintGenerator()
    self.overview_map = OverviewMap(self._terrain_info, self._landscaper)
@@ -130,9 +132,18 @@ end
 
 function WorldGenerationService:set_starting_location(location)
    self._starting_location = location
-   self._scenario_service:set_starting_location(location)
-
    self:_place_scenarios_on_generated_tiles()
+
+   local exclusion_radius = stonehearth.static_scenario:get_reveal_distance()
+   local starting_region = Region2(Rect2(
+         Point2(location.x - exclusion_radius,   location.y - exclusion_radius),
+         Point2(location.x + exclusion_radius+1, location.y + exclusion_radius+1)
+      ))
+
+   -- clear the starting location of all revealed scenarios
+   stonehearth.static_scenario:reveal_region(starting_region, function(properties)
+         return false
+      end)
 end
 
 function WorldGenerationService:_place_scenarios_on_generated_tiles()
@@ -149,7 +160,7 @@ function WorldGenerationService:_place_scenarios_on_generated_tiles()
             habitat_map = tile_info.habitat_map
             elevation_map = tile_info.elevation_map
 
-            self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+            self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
          end
       end
    end
@@ -320,12 +331,12 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, off
 
    local seconds = Timer.measure(
       function()
-         self._scenario_service:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+         self._surface_scenario_selector:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
          if self._starting_location then
             -- add scenarios as tiles are generated
             -- if this is before the starting location is determined, we will add them when set_starting_location is called
-            self._scenario_service:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+            self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
          end
       end
    )
