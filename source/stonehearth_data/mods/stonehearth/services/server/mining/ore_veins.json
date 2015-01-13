@@ -8,7 +8,25 @@
       "mother_lode_radius_min" : 2,
       "mother_lode_radius_max" : 4
    },
+   "tin_ore" : {
+      "num_veins_min" : 2,
+      "num_veins_max" : 5,
+      "vein_length_min" : 32,
+      "vein_length_max" : 64,
+      "vein_radius" : 1,
+      "mother_lode_radius_min" : 2,
+      "mother_lode_radius_max" : 4
+   },
    "iron_ore" : {
+      "num_veins_min" : 2,
+      "num_veins_max" : 5,
+      "vein_length_min" : 32,
+      "vein_length_max" : 64,
+      "vein_radius" : 1,
+      "mother_lode_radius_min" : 2,
+      "mother_lode_radius_max" : 4
+   },
+   "silver_ore" : {
       "num_veins_min" : 2,
       "num_veins_max" : 5,
       "vein_length_min" : 32,
