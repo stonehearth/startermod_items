@@ -1,0 +1,53 @@
+<script type="text/x-handlebars" data-template-name="immigrationReportBulletinDialog">
+<div id="immigrationReportBulletinDialog" class="gui bulletinDialog">
+   <div class="window">
+      <div class="title">Daily Update(L)<div class="closeButton"></div></div>
+      <div id="scroll" class="parchment">
+         <div id="content">
+            <div id="title">Immigration Report(L)</div>
+            <span id="date">{{view.model.data.message.date}}</span>
+            <span id="population">{{view.model.data.message.town_name}} population:(L) {{view.model.data.message.town_size}} </span>
+            <span id="requirementsLabel">Next hearthling requirements... (L)</span>
+            <div id="requirementsDiv">
+               <div id="foodBlock" class="requirementBlock">
+                  <span class="requirementLabel">{{view.model.data.message.food_data.label}}</span>
+                  <span class="requirementDetails">
+                     {{view.model.data.message.food_data.available}}
+                     &#47;
+                     {{view.model.data.message.food_data.target}}
+                  </span>
+               </div>
+               <div id="moraleBlock" class="requirementBlock">
+                  <span class="requirementLabel">{{view.model.data.message.morale_data.label}}</span>
+                  <span class="requirementDetails">
+                     {{view.model.data.message.morale_data.available}}
+                     &#47;
+                     {{view.model.data.message.morale_data.target}}
+                  </span>
+               </div>
+               <div id="netWorthBlock" class="requirementBlock">
+                  <span class="requirementLabel">{{view.model.data.message.net_worth_data.label}}</span>
+                  <span class="requirementDetails">
+                     {{view.model.data.message.net_worth_data.available}}
+                     &#47;
+                     {{view.model.data.message.net_worth_data.target}}
+                  </span>
+               </div>
+            </div>
+            <div id="conclusionDiv">{{view.model.data.conclusion}}</div>
+         </div>
+      </div>
+
+      {{#if view.model.data.ok_callback }}
+         <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+      {{/if}}
+      {{#if view.model.data.accepted_callback }}
+         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+      {{/if}}
+      {{#if view.model.data.declined_callback }}
+         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+      {{/if}}
+
+   </div>
+</div>
+</script>

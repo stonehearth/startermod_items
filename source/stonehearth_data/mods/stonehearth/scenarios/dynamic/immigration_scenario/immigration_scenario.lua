@@ -51,21 +51,23 @@ function Immigration:start()
    local message, success = self:_compose_town_report()
    if success then
       self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-         :set_ui_view('StonehearthGenericBulletinDialog')
+         :set_ui_view('StonehearthImmigrationReportDialog')
          :set_callback_instance(self)
          :set_data({
             title = self._immigration_data.update_title,
             message = message,
+            conclusion = self._immigration_data.conclusion_positive,
             accepted_callback = "_on_accepted",
             declined_callback = "_on_declined",
          })
    else
       self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-         :set_ui_view('StonehearthGenericBulletinDialog')
+         :set_ui_view('StonehearthImmigrationReportDialog')
          :set_callback_instance(self)
          :set_data({
             title = self._immigration_data.update_title,
             message = message,
+            conclusion = self._immigration_data.conclusion_negative,
             ok_callback = "_on_declined",
          })
    end
@@ -88,11 +90,20 @@ function Immigration:_compose_town_report()
 
    local summation = self:_eval_requirement(num_citizens)
 
-   local message = population_line .. ' ' .. summation.food_string .. ' ' .. summation.morale_string .. ' ' .. summation.net_worth_string
-   local success = summation.success
+   local message = {
+      date = stonehearth.calendar:format_date(), 
+      town_name = town_name,
+      town_size = num_citizens,
+      food_data = summation.food_data, 
+      morale_data = summation.morale_data, 
+      net_worth_data = summation.net_worth_data
 
+   }
+   local success = summation.success
    return message, success
 end
+
+
 
 function Immigration:_eval_requirement(num_citizens)
    local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
@@ -102,26 +113,26 @@ function Immigration:_eval_requirement(num_citizens)
    if score_data.resources and score_data.resources.edibles then
       available_food = score_data.resources.edibles
    end 
-   local food_success, food_string = self:_find_requirments_by_type_and_pop(available_food, 'food', num_citizens)
+   local food_success, food_data = self:_find_requirments_by_type_and_pop(available_food, 'food', num_citizens)
 
    --Get data for morale
    local morale_score = 0
    if score_data.happiness and score_data.happiness.happiness then
       morale_score = score_data.happiness.happiness/10
    end
-   local morale_success, morale_string = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
+   local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
 
    --Get dat for net worth
    local curr_score = 0
    if score_data.net_worth and score_data.net_worth.total_score then
       curr_score = score_data.net_worth.total_score
    end
-   local net_worth_success, net_worth_string = self:_find_requirments_by_type_and_pop(curr_score, 'net_worth', num_citizens)
+   local net_worth_success, net_worth_data = self:_find_requirments_by_type_and_pop(curr_score, 'net_worth', num_citizens)
 
    local summation = {
-      food_string = self._immigration_data.food_label .. ' ' .. food_string, 
-      morale_string = self._immigration_data.morale_label .. ' ' .. morale_string, 
-      net_worth_string = self._immigration_data.worth_label .. ' ' .. net_worth_string, 
+      food_data = food_data, 
+      morale_data = morale_data, 
+      net_worth_data = net_worth_data, 
       success = food_success and morale_success and net_worth_success
    }
 
@@ -132,10 +143,15 @@ function Immigration:_find_requirments_by_type_and_pop(available, type, num_citi
    local equation = self._immigration_data.growth_requirements[type]
    local equation = string.gsub(equation, 'num_citizens', num_citizens)
    local target = self:_evaluate_equation(equation)
+   local label = self._immigration_data[type .. '_label']
 
-   local string_results = available .. '/' .. target
+   local data = {
+      label = label,
+      available = available, 
+      target = target
+   }
    local success = available >= target
-   return success, string_results
+   return success, data
 end
 
 function Immigration:_evaluate_equation(equation)

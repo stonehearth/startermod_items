@@ -13,7 +13,7 @@
       "requirements_line" : "Next hearthling requirements...",
       "food_label" : "Food ", 
       "morale_label" : "Morale ",
-      "worth_label" : "Net Worth ",
+      "net_worth_label" : "Net Worth ",
       "conclusion_positive" : "A new settler would like to join your town!",   
       "conclusion_negative" : "The road remains empty. Maybe tomorrow!",
       "title" : "A traveller approaches your town.",
@@ -27,7 +27,7 @@
       "outcome_statement" : " A __job__ would like to join __town_name__!", 
       "growth_requirements" : {
          "food" : "num_citizens * 50",
-         "morale" : "num_citizens / 2",
+         "morale" : "4",
          "net_worth" : "num_citizens * 100"
       }
    }
