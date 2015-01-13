@@ -390,7 +390,9 @@ LightEffectTrack::LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const 
    RenderEffectTrack(e, effect->GetEffectId(), "light effect"),
    lightNode_(0)
 {
-   auto animatedLightFileName = node["light"].as_string();
+   json::Node o(node);
+
+   std::string animatedLightFileName = o.get("light", "");
    H3DRes lightRes = h3dAddResource(RT_AnimatedLightResource, animatedLightFileName.c_str(), 0);
    H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes);
 
@@ -399,7 +401,8 @@ LightEffectTrack::LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const 
    parseTransforms(node["transforms"], &x, &y, &z);
    h3dSetNodeTransform(l, x, y, z, 0, 0, 0, 1, 1, 1);
 
-   h3dSetNodeParamI(l, H3DLight::ShadowMapCountI, node["shadows"].as_bool() ? 1 : 0);
+   bool use_shadows = o.get("shadows", false);
+   h3dSetNodeParamI(l, H3DLight::ShadowMapCountI, use_shadows ? 1 : 0);
 
    lightNode_ = H3DNodeUnique(l);
 }
