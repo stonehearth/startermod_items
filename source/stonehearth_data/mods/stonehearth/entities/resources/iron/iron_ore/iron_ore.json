@@ -13,6 +13,7 @@
       "model_variants": {
          "default": {
             "models": [
+               "file(../../shared/ore_rock.qb)",
                "file(iron_ore.qb)"
             ]
          }

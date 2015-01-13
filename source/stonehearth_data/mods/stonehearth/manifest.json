@@ -775,6 +775,10 @@
       "sounds:mason_hammer_01" : "file(data/sounds/effects/sh_mason_hammer_01.wav)",
       "sounds:mason_hammer_02" : "file(data/sounds/effects/sh_mason_hammer_02.wav)",
       "sounds:mason_hammer_03" : "file(data/sounds/effects/sh_mason_hammer_03.wav)",
+      "sounds:blacksmith_hammer_01" : "file(data/sounds/effects/sh_blacksmith_hammer_01.wav)",
+      "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
+      "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
+
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
