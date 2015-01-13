@@ -5,19 +5,19 @@
       "unit_info" : {
          "name": "Thick Leather Vest",
          "description": "Hardened leather provides sturdy protection.",
-         "icon" : "file(leather_vest.png)"         
+         "icon" : "file(copper_breastplate.png)"         
       },
       "model_variants": {
          "default": {
             "layer": "clothing",
             "models": [
-               "file(leather_vest.qb)"
+               "file(copper_breastplate.qb)"
             ]
          },
          "female" : {
             "layer": "clothing",
             "models": [
-               "file(leather_vest_female.qb)"
+               "file(copper_breastplate_female.qb)"
             ]
          }
       },
@@ -25,7 +25,7 @@
          "tags" :  "armor light_armor"
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(leather_vest_iconic.json)"
+         "iconic_form" : "file(copper_breastplate_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",

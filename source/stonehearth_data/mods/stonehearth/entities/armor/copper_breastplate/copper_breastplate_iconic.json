@@ -8,12 +8,12 @@
       "unit_info" : {
          "name": "Thick Leather Vest",
          "description": "Hardened leather provides study protection against light arms.",
-         "icon" : "file(leather_vest.png)"
+         "icon" : "file(copper_breastplate.png)"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(leather_vest_iconic.qb)"
+               "file(copper_breastplate_iconic.qb)"
             ]
          }
       },

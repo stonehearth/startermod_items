@@ -15,10 +15,12 @@ function BlacksmithTest:__init()
    self:place_item_cluster('stonehearth:resources:iron:ore', 0, 8, 4, 4)
    self:place_item_cluster('stonehearth:resources:gold:ore', 4, 8, 4, 4)
    self:place_item_cluster('stonehearth:resources:coal:lump_of_coal', 8, 8, 4, 4)
+   self:place_item_cluster('stonehearth:refined:thread', 0, 8, 2, 2)
+   self:place_item_cluster('stonehearth:refined:leather_bolt', 0, 12, 2, 2)
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'blacksmith')
-   self:place_citizen(14, 14, 'mason')
+   --self:place_citizen(14, 14, 'mason')
 
    local player_id = radiant.entities.get_player_id(worker)
    --self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })

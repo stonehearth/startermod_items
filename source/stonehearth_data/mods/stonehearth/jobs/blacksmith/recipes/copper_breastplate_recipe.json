@@ -1,0 +1,29 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Copper Breastplate",
+   "description" : "Roughly fashioned, but tough enough to deflect a blow.",
+   "portrait"    : "/stonehearth/entities/armor/copper_breastplate/copper_breastplate.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:copper_ingot",
+         "count" : 4
+      },
+      {
+         "material" : "leather resource",
+         "count" : 1
+      },
+      {
+         "material" : "thread resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:armor:copper_breastplate"
+      }
+  ]
+}

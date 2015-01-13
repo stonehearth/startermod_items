@@ -1,5 +1,14 @@
 {
    "craftable_recipes" : {
+       "armor" : {
+         "ordinal" : 2, 
+         "name" : "Armor",
+         "recipes" : {
+            "copper_breastplate" : {
+               "recipe" : "file(copper_breastplate_recipe.json)"
+            }            
+         }
+      },
       "goods" : {
          "ordinal" : 3, 
          "name" : "Goods", 

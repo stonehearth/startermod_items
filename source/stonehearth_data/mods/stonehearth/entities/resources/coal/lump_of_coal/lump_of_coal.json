@@ -8,7 +8,7 @@
          "stacks": 40
       },
       "stonehearth:material" : {
-         "tags" : "coal resource"
+         "tags" : "coal ore resource"
       },
       "model_variants": {
          "default": {
