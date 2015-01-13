@@ -101,9 +101,15 @@ void SceneNode::setTransform( Vec3f trans, Vec3f rot, Vec3f scale )
 	
    SCENE_LOG(9) << "setting relative transform for node " << _name << " to " << "(" << trans.x << ", " << trans.y << ", " << trans.z << ")";
 
-	_relTrans = Matrix4f::ScaleMat( scale.x, scale.y, scale.z );
-	_relTrans.rotate( degToRad( rot.x ), degToRad( rot.y ), degToRad( rot.z ) );
-	_relTrans.translate( trans.x, trans.y, trans.z );
+	Matrix4f newRelTrans = Matrix4f::ScaleMat( scale.x, scale.y, scale.z );
+	newRelTrans.rotate( degToRad( rot.x ), degToRad( rot.y ), degToRad( rot.z ) );
+	newRelTrans.translate( trans.x, trans.y, trans.z );
+
+   if (newRelTrans == _relTrans) {
+      return;
+   }
+
+   _relTrans = newRelTrans;
 
    if (_relTrans.c[3][0] != 0.0f && !(_relTrans.c[3][0] < 0.0f) && !(_relTrans.c[3][0] > 0.0f)) {
       Modules::log().writeDebugInfo( "Invalid transform! Zero edition.");
@@ -128,6 +134,9 @@ void SceneNode::setTransform( const Matrix4f &mat )
 		((MeshNode *)this)->_ignoreAnim = true;
 	}
 	
+   if (_relTrans == mat) {
+      return;
+   }
 	_relTrans = mat;
 
    if (_relTrans.c[3][0] != 0.0f && !(_relTrans.c[3][0] < 0.0f) && !(_relTrans.c[3][0] > 0.0f)) {

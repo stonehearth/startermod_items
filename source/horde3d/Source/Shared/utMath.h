@@ -638,6 +638,16 @@ public:
 		c[2][3] = 0;              c[3][3] = 1;
 	}
 
+   bool operator==(const Matrix4f &m) const
+   {
+      for (int i = 0; i < 16; i++) {
+         if (x[i] != m.x[i]) {
+            return false;
+         }
+      }
+      return true;
+   }
+
 	// ----------
 	// Matrix sum
 	// ----------
