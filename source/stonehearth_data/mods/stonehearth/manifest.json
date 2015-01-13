@@ -329,6 +329,7 @@
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
       "armor:leather_vest" : "file(entities/armor/leather_vest)",
       "armor:copper_breastplate" : "file(entities/armor/copper_breastplate)",
+      "armor:iron_mail" : "file(entities/armor/iron_mail)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 

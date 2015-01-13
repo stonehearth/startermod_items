@@ -6,14 +6,14 @@
          "category" : "gear"   
       },
       "unit_info" : {
-         "name": "Copper Breastplate",
-         "description": "Armor",
-         "icon" : "file(copper_breastplate.png)"
+         "name": "Iron Mail",
+         "description": "A full suit of iron armor",
+         "icon" : "file(iron_mail.png)"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(copper_breastplate_iconic.qb)"
+               "file(iron_mail_iconic.qb)"
             ]
          }
       },
@@ -21,7 +21,7 @@
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       },
       "stonehearth:material" : {
-         "tags" : "copper armor heavy_armor"
+         "tags" : "iron armor heavy_armor"
       }
    }
 }

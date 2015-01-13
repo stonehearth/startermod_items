@@ -3,41 +3,41 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name": "Thick Leather Vest",
-         "description": "Hardened leather provides sturdy protection.",
-         "icon" : "file(copper_breastplate.png)"         
+         "name": "Iron Mail",
+         "description": "A full suit of iron armor",
+         "icon" : "file(iron_mail.png)"         
       },
       "model_variants": {
          "default": {
             "layer": "clothing",
             "models": [
-               "file(copper_breastplate.qb)"
+               "file(iron_mail.qb)"
             ]
          },
          "female" : {
             "layer": "clothing",
             "models": [
-               "file(copper_breastplate_female.qb)"
+               "file(iron_mail_female.qb)"
             ]
          }
       },
       "stonehearth:material" : {
-         "tags" : "copper armor heavy_armor"
+         "tags" : "iron armor heavy_armor"
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(copper_breastplate_iconic.json)"
+         "iconic_form" : "file(iron_mail_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
          "render_type" : "merge_with_model",
          "slot" : "torso",
-         "ilevel" : 4,
+         "ilevel" : 6,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/level_up"
       }
    },
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
-         "base_damage_reduction" : 5
+         "base_damage_reduction" : 7
       }
    }   
 }
