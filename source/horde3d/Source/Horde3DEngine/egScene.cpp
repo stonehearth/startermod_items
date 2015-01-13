@@ -942,6 +942,8 @@ void SceneManager::shutdown()
    for (auto &entry : _registry) {
       entry.second.nodes.clear();
    }
+
+   _nodeTrackers.clear();
 }
 
 void SceneManager::initialize()
@@ -999,6 +1001,13 @@ void SceneManager::updateNodes()
 {
    radiant::perfmon::TimelineCounterGuard un("updateNodes");
 	getRootNode().update();
+}
+
+
+void SceneManager::updateSpatialNode(SceneNode const& node) 
+{ 
+   _spatialGraph->updateNode(node);
+   updateNodeTrackers(&node);
 }
 
 
@@ -1246,6 +1255,8 @@ void SceneManager::removeNode( SceneNode &node )
 		node._children.clear();
       node.markDirty(SceneNodeDirtyKind::All);
 	}
+
+   updateNodeTrackers(nodeAddr);
 }
 
 
@@ -1282,6 +1293,32 @@ bool SceneManager::relocateNode( SceneNode &node, SceneNode &parent )
    oldParent->markDirty(SceneNodeDirtyKind::Ancestors);
 	
 	return true;
+}
+
+
+void SceneManager::registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)> nodeChangedCb)
+{
+   _nodeTrackers[tracker] = nodeChangedCb;
+}
+
+
+void SceneManager::clearNodeTracker(SceneNode const* tracker)
+{
+   auto &i = _nodeTrackers.find(tracker);
+
+   if (i != _nodeTrackers.end()) {
+      _nodeTrackers.erase(i);
+   }
+}
+
+
+void SceneManager::updateNodeTrackers(SceneNode const* node)
+{
+   for (auto const& i : _nodeTrackers) {
+      if (i.first->getBBox().intersects(node->getBBox())) {
+         i.second(node);
+      }
+   }
 }
 
 

@@ -41,7 +41,8 @@ struct LightNodeParams
 		ShadowContextStr,
       DirectionalI,
       ImportanceI,
-      ShadowMapQualityI
+      ShadowMapQualityI,
+      DirtyShadowsI
 	};
 };
 
@@ -52,6 +53,19 @@ struct LightNodeImportance
       Required = 0x0,
       High     = 0x1,
       Low      = 0x2
+   };
+};
+
+struct LightCubeFace
+{
+   enum List
+   {
+      POSITIVE_X = 0,
+      NEGATIVE_X = 1,
+      POSITIVE_Y = 2,
+      NEGATIVE_Y = 3,
+      POSITIVE_Z = 4,
+      NEGATIVE_Z = 5
    };
 };
 
@@ -87,50 +101,64 @@ struct LightNodeTpl : public SceneNodeTpl
 class LightNode : public SceneNode
 {
 public:
-	static SceneNodeTpl *parsingFunc( std::map<std::string, std::string > &attribs );
-	static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
+   static SceneNodeTpl *parsingFunc( std::map<std::string, std::string > &attribs );
+   static SceneNode *factoryFunc( const SceneNodeTpl &nodeTpl );
 	
-	int getParamI( int param ) const ;
-	void setParamI( int param, int value );
-	float getParamF( int param, int compIdx );
-	void setParamF( int param, int compIdx, float value );
-	const char *getParamStr( int param );
-	void setParamStr( int param, const char *value );
+   int getParamI( int param ) const ;
+   void setParamI( int param, int value );
+   float getParamF( int param, int compIdx );
+   void setParamF( int param, int compIdx, float value );
+   const char *getParamStr( int param );
+   void setParamStr( int param, const char *value );
 
-	void calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h ) const;
+   void calcScreenSpaceAABB( const Matrix4f &mat, float &x, float &y, float &w, float &h ) const;
 
-	const Frustum &getFrustum() const { return _frustum; }
-	const Matrix4f &getViewMat() const { return _viewMat; }
+   Frustum const& getFrustum() const { return _frustum; }
+   Matrix4f const& getViewMat() const { return _viewMat; }
+   
+   Frustum const& getCubeFrustum(LightCubeFace::List faceNum) const { return _cubeFrustums[faceNum]; }
+   Matrix4f const& getCubeViewMat(LightCubeFace::List faceNum) const { return _cubeViewMats[faceNum]; }
+   
    void reallocateShadowBuffer(int size);
 
 protected:
    uint32 getShadowBuffer() const { return _shadowMapBuffer; }
 
 private:
-	LightNode( const LightNodeTpl &lightTpl );
-	~LightNode();
+   LightNode( const LightNodeTpl &lightTpl );
+   ~LightNode();
 
-	void onPostUpdate();
+   void registerForNodeTracking();
+   void onPostUpdate();
+   void dirtyCubeFrustums();
 
 private:
-	Frustum                _frustum;
-	Matrix4f               _viewMat;
-	Vec3f                  _absPos, _spotDir;
+   // Frustum for the entire light.  For a directional light, this frustum is re-calculated every
+   // rendering occurs, as it is a function of the camera's frustum.
+   Frustum                _frustum;
+   // This is the view matrix of the entire light.
+   Matrix4f               _viewMat;
 
-	std::string            _lightingContext, _shadowContext;
-	float                  _radius, _fov;
+   Frustum                _cubeFrustums[6];
+   Matrix4f               _cubeViewMats[6];
+
+   Vec3f                  _absPos, _spotDir;
+
+   std::string            _lightingContext, _shadowContext;
+   float                  _radius, _fov;
    bool                   _directional;
-	Vec3f                  _diffuseCol;
-	Vec3f                  _ambientCol;
-	float                  _diffuseColMult;
-	uint32                 _shadowMapCount;
+   Vec3f                  _diffuseCol;
+   Vec3f                  _ambientCol;
+   float                  _diffuseColMult;
+   uint32                 _shadowMapCount;
    uint32                 _shadowMapBuffer;
    int                    _importance;
-	float                  _shadowSplitLambda, _shadowMapBias;
+   float                  _shadowSplitLambda, _shadowMapBias;
    uint32                 _shadowMapQuality, _shadowMapSize;
+   bool                   _dirtyShadows[6];
 
-	friend class SceneManager;
-	friend class Renderer;
+   friend class SceneManager;
+   friend class Renderer;
 };
 
 }
