@@ -439,7 +439,7 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 	if( mode > 0 )
 	{
 		// InfoBox
-		beginInfoBox( 0.03f, 0.03f, 0.32f, 4, "Frame Stats", fontMaterialRes, boxMaterialRes );
+		beginInfoBox( 0.03f, 0.03f, 0.32f, 5, "Frame Stats", fontMaterialRes, boxMaterialRes );
 		
 		// FPS
 		text.str( "" );
@@ -460,6 +460,10 @@ DLLEXP void h3dutShowFrameStats( H3DRes fontMaterialRes, H3DRes boxMaterialRes, 
 		text.str( "" );
 		text << (int)h3dGetStat( H3DStats::LightPassCount, false );
 		addInfoBoxRow( "Lights", text.str().c_str() );
+
+      text.str( "" );
+      text << (int)h3dGetStat( H3DStats::ShadowPassCount, false );
+      addInfoBoxRow( "Shadow Passes", text.str().c_str() );
 	}
 
 	if( mode > 1 )

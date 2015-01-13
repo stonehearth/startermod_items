@@ -168,7 +168,8 @@ struct EngineStats
 		TextureVMem,
 		GeometryVMem,
       AverageFrameTime,
-      AvailableGpuMemory
+      AvailableGpuMemory,
+      ShadowPassCount
 	};
 };
 
@@ -188,6 +189,7 @@ protected:
 	uint32    _statTriCount;
 	uint32    _statBatchCount;
 	uint32    _statLightPassCount;
+   uint32    _statShadowPassCount;
 
 	radiant::perfmon::Timer     _frameTimer;
 	radiant::perfmon::Timer     _animTimer;

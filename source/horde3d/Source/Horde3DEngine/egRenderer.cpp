@@ -1652,6 +1652,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
       commitLightUniforms(light);
 		// Render at lodlevel = 1 (don't need the higher poly count for shadows, yay!)
 		drawRenderables(light->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1);
+      Modules().stats().incStat(EngineStats::ShadowPassCount, 1);
 	}
 
 	// Map from post-projective space [-1,1] to texture space [0,1]
