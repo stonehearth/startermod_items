@@ -1,51 +1,62 @@
 <script type="text/x-handlebars" data-template-name="immigrationReportBulletinDialog">
 <div id="immigrationReportBulletinDialog" class="gui bulletinDialog">
    <div class="window">
-      <div class="title">Daily Update(L)<div class="closeButton"></div></div>
-      <div id="scroll" class="parchment">
+      <div class="title">{{i18n stonehearth:daily_update_title}}<div class="closeButton"></div></div>
+      <div id="scrollDiv" class="parchment">
          <div id="content">
-            <div id="title">Immigration Report(L)</div>
-            <span id="date">{{view.model.data.message.date}}</span>
-            <span id="population">{{view.model.data.message.town_name}} population:(L) {{view.model.data.message.town_size}} </span>
-            <span id="requirementsLabel">Next hearthling requirements... (L)</span>
-            <div id="requirementsDiv">
-               <div id="foodBlock" class="requirementBlock">
-                  <span class="requirementLabel">{{view.model.data.message.food_data.label}}</span>
-                  <span class="requirementDetails">
-                     {{view.model.data.message.food_data.available}}
-                     &#47;
-                     {{view.model.data.message.food_data.target}}
-                  </span>
+            <h1 id="title">{{i18n stonehearth:immigration_report_title}}</h1>
+            <h2 id="date">{{view.model.data.message.date}}</h2>
+
+            <div id="requirementsSectionDiv">
+               <h1 id="population">{{view.model.data.message.town_name}} {{i18n stonehearth:population_label}}: <span id="populationNumberLabel">{{view.model.data.message.town_size}}</span></h1>
+               <h1 id="requirementsLabel">{{i18n stonehearth:next_requirements_label}}</h1>
+               
+               <div id="specificRequirementsDiv">
+                  <div id="foodBlock" class="requirementBlock">
+                     <div id="foodImageDiv" class="requirementImage"></div>
+                     <div id="foodStatusDiv" class="statusDiv"></div>
+                     <h3 class="requirementLabel">{{view.model.data.message.food_data.label}}</h3> 
+                     <h3 class="requirementDetails">
+                        <span class="possessedSpan">{{view.model.data.message.food_data.available}}</span>
+                        &#47;
+                        {{view.model.data.message.food_data.target}}
+                     </h3>
+                  </div>
+                  <div id="moraleBlock" class="requirementBlock">
+                     <div id="moraleImageDiv" class="requirementImage"></div>
+                     <div id="moraleStatusDiv" class="statusDiv"></div>
+                     <h3 class="requirementLabel">{{view.model.data.message.morale_data.label}}</h3> 
+                     <h3 class="requirementDetails">
+                        <span class="possessedSpan">{{view.model.data.message.morale_data.available}}</span>
+                        &#47;
+                        {{view.model.data.message.morale_data.target}}
+                     </h3>
+                  </div>
+                  <div id="netWorthBlock" class="requirementBlock">
+                     <div id="netWorthImageDiv"  class="requirementImage"></div>
+                     <div id="netWorthStatusDiv" class="statusDiv"></div>
+                     <h3 class="requirementLabel">{{view.model.data.message.net_worth_data.label}}</h3>
+                     <h3 class="requirementDetails">
+                        <span class="possessedSpan">{{view.model.data.message.net_worth_data.available}}</span>
+                        &#47;
+                        {{view.model.data.message.net_worth_data.target}}
+                     </h3>
+                  </div>
                </div>
-               <div id="moraleBlock" class="requirementBlock">
-                  <span class="requirementLabel">{{view.model.data.message.morale_data.label}}</span>
-                  <span class="requirementDetails">
-                     {{view.model.data.message.morale_data.available}}
-                     &#47;
-                     {{view.model.data.message.morale_data.target}}
-                  </span>
-               </div>
-               <div id="netWorthBlock" class="requirementBlock">
-                  <span class="requirementLabel">{{view.model.data.message.net_worth_data.label}}</span>
-                  <span class="requirementDetails">
-                     {{view.model.data.message.net_worth_data.available}}
-                     &#47;
-                     {{view.model.data.message.net_worth_data.target}}
-                  </span>
-               </div>
+            
             </div>
-            <div id="conclusionDiv">{{view.model.data.conclusion}}</div>
+            <h2 id="conclusionDiv">{{view.model.data.conclusion}}</h2>
          </div>
       </div>
 
       {{#if view.model.data.ok_callback }}
-         <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+         <button id="okButton" class="callbackButton">{{i18n stonehearth:ok}}</button>
       {{/if}}
       {{#if view.model.data.accepted_callback }}
-         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+         <button id="acceptButton" class="callbackButton">{{i18n stonehearth:accept}}</button>
       {{/if}}
       {{#if view.model.data.declined_callback }}
-         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+         <button id="declineButton" class="callbackButton">{{i18n stonehearth:decline}}</button>
       {{/if}}
 
    </div>

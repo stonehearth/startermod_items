@@ -87,11 +87,12 @@ function Immigration:_compose_town_report()
    population_line = string.gsub(population_line, '__town_name__', town_name)
    local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
    population_line = population_line .. num_citizens
-
    local summation = self:_eval_requirement(num_citizens)
+   local date = stonehearth.calendar:format_date()
+   date = (date:gsub("^%l", string.upper))
 
    local message = {
-      date = stonehearth.calendar:format_date(), 
+      date = date, 
       town_name = town_name,
       town_size = num_citizens,
       food_data = summation.food_data, 
@@ -121,8 +122,9 @@ function Immigration:_eval_requirement(num_citizens)
       morale_score = score_data.happiness.happiness/10
    end
    local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
+   morale_data.available =  radiant.math.round(morale_data.available*10)*0.1
 
-   --Get dat for net worth
+   --Get data for net worth
    local curr_score = 0
    if score_data.net_worth and score_data.net_worth.total_score then
       curr_score = score_data.net_worth.total_score
