@@ -371,6 +371,16 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
    google::protobuf::io::FileInputStream fis(fd);
    google::protobuf::io::CodedInputStream cis(&fis);
 
+   // From: https://developers.google.com/protocol-buffers/docs/reference/cpp/google.protobuf.io.coded_stream
+   //
+   // To prevent integer overflows in the protocol buffers implementation, as well as to prevent
+   // servers from allocating enormous amounts of memory to hold parsed messages, the maximum message
+   // length should be limited to the shortest length that will not harm usability. The theoretical
+   // shortest message that could cause integer overflows is 512MB. The default limit is 64MB
+   //
+   static const int limit = 512 * 1024 * 1024;
+   cis.SetTotalBytesLimit(limit, limit);
+
    bool result = LoadStoreHeader(cis, error) &&
                  LoadAllocedObjectsList(cis, error, objects) &&
                  LoadObjects(cis, error, cb);
