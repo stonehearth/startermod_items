@@ -27,7 +27,10 @@
             },
             "iron_mail" : {
                "recipe" : "file(iron_mail_recipe.json)"
-            }
+            },
+            "steel_mail" : {
+               "recipe" : "file(steel_mail_recipe.json)"
+            }            
          }
       }
    }

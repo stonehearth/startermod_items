@@ -1,0 +1,30 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Full Platemail",
+   "description" : "A full suit of heavy, durable steel armor.",
+   "flavor" : "Full Metal Jacket",
+   "portrait"    : "/stonehearth/entities/armor/steel_mail/steel_mail.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:steel_ingot",
+         "count" : 4
+      },
+      {
+         "material" : "leather resource",
+         "count" : 1
+      },
+      {
+         "material" : "thread resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:armor:steel_mail"
+      }
+  ]
+}

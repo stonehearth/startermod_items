@@ -3,7 +3,7 @@
 
    "work_units"  : 5,
    "recipe_name" : "Iron Mail",
-   "description" : "A full suite of heavy, durable iron armor.",
+   "description" : "A full suit of heavy, durable iron armor.",
    "portrait"    : "/stonehearth/entities/armor/iron_mail/iron_mail.png",
    "level_requirement" : 1,
 

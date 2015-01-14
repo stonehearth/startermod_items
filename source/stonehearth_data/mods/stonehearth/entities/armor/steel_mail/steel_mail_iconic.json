@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "gear"   
+      },
+      "unit_info" : {
+         "name": "Full Platemail",
+         "description": "A full suit of steel armor",
+         "icon" : "file(steel_mail.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(steel_mail_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:material" : {
+         "tags" : "steel armor heavy_armor"
+      }
+   }
+}
