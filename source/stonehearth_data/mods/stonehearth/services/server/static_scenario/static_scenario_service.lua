@@ -40,32 +40,23 @@ function StaticScenarioService:get_reveal_distance()
    return self._reveal_distance
 end
 
-function StaticScenarioService:mark_scenario_map(value, offset_x, offset_y, width, length)
-   local feature_x, feature_y, feature_width, feature_length, key
-
-   feature_x, feature_y = self:_get_feature_space_coords(offset_x, offset_y)
-   feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
-
-   -- i, j are offsets so use base 0
-   for j=0, feature_length-1 do
-      for i=0, feature_width-1 do
-         -- dormant scenarios could also be implemented with nested tables
-         key = self:_get_coordinate_key(feature_x + i, feature_y + j)
-         self._sv.dormant_scenarios[key] = value
-      end
+-- The properties object should have a 'script' field that points to a lua file.
+-- The class returned by the script should support an initialize(properties, services) method.
+-- The properties argument is the properties that are passed in here.
+-- The services argument will be a ScenarioModderServices object.
+function StaticScenarioService:add_scenario(properties, x, y, width, length, activate_now)
+   if activate_now then
+      self:_activate_scenario(properties, x, y)
+   else
+      local scenario_info = {
+         properties = properties,
+         x = x,
+         y = y,
+         width = width,
+         length = length
+      }
+      self:_mark_scenario_map(scenario_info, x, y, width, length)
    end
-end
-
--- TODO: randomize orientation in place_entity
-function StaticScenarioService:activate_scenario(properties, offset_x, offset_y)
-   local services, scenario_script
-
-   services = ScenarioModderServices(self._sv.rng)
-   services:_set_scenario_properties(properties, offset_x, offset_y)
-
-   scenario_script = radiant.mods.load_script(properties.script)
-   scenario_script()
-   scenario_script:initialize(properties, services)
 end
 
 function StaticScenarioService:_register_events()
@@ -97,12 +88,12 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
             key = self:_get_coordinate_key(i, j)
 
             scenario_info = self._sv.dormant_scenarios[key]
-            if scenario_info ~= nil then
+            if scenario_info then
                properties = scenario_info.properties
 
-               self:mark_scenario_map(nil,
-                                      scenario_info.offset_x, scenario_info.offset_y,
-                                      properties.size.width, properties.size.length)
+               self:_mark_scenario_map(nil,
+                                      scenario_info.x, scenario_info.y,
+                                      scenario_info.width, scenario_info.length)
 
                -- hack until we make place non-static scenarios after banner placement
                local activate = true
@@ -112,7 +103,7 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
                if activate then
                   local seconds = Timer.measure(
                      function()
-                        self:activate_scenario(properties, scenario_info.offset_x, scenario_info.offset_y)
+                        self:_activate_scenario(properties, scenario_info.x, scenario_info.y)
                      end
                   )
                   log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
@@ -154,6 +145,33 @@ function StaticScenarioService:_reveal_around_entities()
    end
 
    self:reveal_region(region)
+end
+
+function StaticScenarioService:_mark_scenario_map(scenario_info, x, y, width, length)
+   local feature_x, feature_y, feature_width, feature_length, key
+
+   feature_x, feature_y = self:_get_feature_space_coords(x, y)
+   feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
+
+   -- i, j are offsets so use base 0
+   for j=0, feature_length-1 do
+      for i=0, feature_width-1 do
+         key = self:_get_coordinate_key(feature_x + i, feature_y + j)
+         self._sv.dormant_scenarios[key] = scenario_info
+      end
+   end
+end
+
+-- TODO: randomize orientation in place_entity
+function StaticScenarioService:_activate_scenario(properties, x, y)
+   local services, scenario_script
+
+   services = ScenarioModderServices(self._sv.rng)
+   services:_set_scenario_properties(properties, x, y)
+
+   scenario_script = radiant.mods.load_script(properties.script)
+   scenario_script()
+   scenario_script:initialize(properties, services)
 end
 
 function StaticScenarioService:_bound_region_by_terrain(region)
