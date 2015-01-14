@@ -51,45 +51,31 @@ end
 
 function SurfaceScenarioSelector:place_immediate_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local scenarios = self:_select_scenarios(habitat_map, ScenarioActivationType.immediate)
-
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
-      function (scenario_info)
-         local si = scenario_info
-         stonehearth.static_scenario:activate_scenario(si.properties, si.offset_x, si.offset_y)
-      end
-   )
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, true)
 end
 
 function SurfaceScenarioSelector:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
    local scenarios = self:_select_scenarios(habitat_map, ScenarioActivationType.revealed)
-
-   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y,
-      function (scenario_info)
-         local properties = scenario_info.properties
-         stonehearth.static_scenario:mark_scenario_map(scenario_info,
-                                                       scenario_info.offset_x, scenario_info.offset_y,
-                                                       properties.size.width, properties.size.length)
-      end
-   )
+   self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, false)
 end
 
-function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, place_fn)
+function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, activate_now)
    local rng = self._rng
    local feature_size = self._feature_size
-   local feature_width, feature_length, voxel_width, voxel_length
+   local feature_width, feature_length
+   local feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
    local site, sites, num_sites, roll, habitat_types, residual_x, residual_y
-   local offset_x, offset_y, feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
-   local scenario_info
+   local x, y, width, length
 
    for _, properties in pairs(scenarios) do
       habitat_types = properties.habitat_types
 
       -- dimensions of the scenario in voxels
-      voxel_width = properties.size.width
-      voxel_length = properties.size.length
+      width = properties.size.width
+      length = properties.size.length
 
       -- get dimensions of the scenario in feature cells
-      feature_width, feature_length = self:_get_dimensions_in_feature_units(voxel_width, voxel_length)
+      feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
 
       -- get a list of valid locations
       sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
@@ -102,23 +88,17 @@ function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevat
          feature_offset_x = (site.i-1)*feature_size
          feature_offset_y = (site.j-1)*feature_size
 
-         residual_x = feature_width*feature_size - voxel_width
-         residual_y = feature_length*feature_size - voxel_length
+         residual_x = feature_width*feature_size - width
+         residual_y = feature_length*feature_size - length
 
          intra_cell_offset_x = rng:get_int(0, residual_x)
          intra_cell_offset_y = rng:get_int(0, residual_y)
 
          -- these are in C++ base 0 array coordinates
-         offset_x = tile_offset_x + feature_offset_x + intra_cell_offset_x
-         offset_y = tile_offset_y + feature_offset_y + intra_cell_offset_y
+         x = tile_offset_x + feature_offset_x + intra_cell_offset_x
+         y = tile_offset_y + feature_offset_y + intra_cell_offset_y
 
-         scenario_info = {
-            properties = properties,
-            offset_x = offset_x,
-            offset_y = offset_y
-         }
-
-         place_fn(scenario_info)
+         stonehearth.static_scenario:add_scenario(properties, x, y, width, length, activate_now)
 
          self:_mark_habitat_map(habitat_map, site.i, site.j, feature_width, feature_length)
 
