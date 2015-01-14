@@ -11,7 +11,7 @@
          "track" : {
             "type": "one_of",
             "items": [
-               "stonehearth:sounds:workshop_bench"
+               "stonehearth:sounds:blacksmith_bench"
                 ]
             }
         }

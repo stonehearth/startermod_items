@@ -8,17 +8,19 @@ function SettlementTest:__init()
    self[MicroWorld]:__init(1024)
    self:create_world()
 
-   self:place_citizen(2, 2)
+   -- build the player camp
+   self:place_citizen(4, 4)
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard')
-   radiant.terrain.place_entity(banner, Point3.zero, { force_iconic = false })
+   radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
    stonehearth.inventory:get_inventory('player_1')
-                           :create_stockpile(Point3(4, 1, 4), Point2(4, 4))
-   self:place_item_cluster('stonehearth:resources:wood:oak_log', 4, 4, 4, 4)
+                           :create_stockpile(Point3(14, 1, 14), Point2(4, 4))
+   self:place_item_cluster('stonehearth:resources:wood:oak_log', 14, 14, 4, 4)
                      
 
+   -- send in the goblins!!
    stonehearth.game_master:start()
    
    -- just for fun...

@@ -313,6 +313,7 @@ typedef uint64          GLuint64;
 #define GL_RGB10_A2                       0x8059
 #define GL_RGBA12                         0x805A
 #define GL_RGBA16                         0x805B
+#define GL_R32F                           0x822E
 
 #define GL_PROXY_TEXTURE_1D               0x8063
 #define GL_PROXY_TEXTURE_2D               0x8064

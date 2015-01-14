@@ -1,0 +1,29 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info" : {
+         "name": "A banner",
+         "description": ""
+      },      
+      "render_info" : {
+         "scale" : 0.1
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(banner.qb)"
+            ]
+         }
+      },
+      "mob" : {
+      },
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : 0, "y" : 0,  "z" : 0 },
+               "max" : { "x" :  1, "y" : 3, "z" :  1 }
+            }
+         ]
+      }      
+   }
+}

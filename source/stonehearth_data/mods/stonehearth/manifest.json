@@ -177,6 +177,8 @@
 
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
+      "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
+      "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -316,7 +318,8 @@
       "decoration:firepit" : "file(entities/decoration/firepit)",
       "decoration:firepit_seat" : "file(entities/decoration/firepit/firepit_seat.json)",
       "decoration:firepit_skulls" : "file(entities/decoration/firepit_skulls)",
-
+      "decoration:loot_chest" : "file(entities/decoration/loot_chest)",
+      "decoration:crate" : "file(entities/decoration/crate)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
@@ -327,6 +330,8 @@
 
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
       "armor:leather_vest" : "file(entities/armor/leather_vest)",
+      "armor:copper_breastplate" : "file(entities/armor/copper_breastplate)",
+      "armor:iron_mail" : "file(entities/armor/iron_mail)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
@@ -420,6 +425,8 @@
       "actions:wait_for_attribute_below" : "file(ai/actions/wait_for_attribute_below.lua)",
       "actions:choose_point_around_leash" : "file(ai/actions/choose_point_around_leash.lua)",
       "actions:follow_path_action" : "file(ai/actions/follow_path_action.lua)",
+      "actions:smash_item" : "file(ai/actions/smash_item_action.lua)",
+      "actions:smash_item_adjacent" : "file(ai/actions/smash_item_adjacent_action.lua)",      
       "actions:pickup_item" : "file(ai/actions/pickup_item_action.lua)",
       "actions:pickup_item_trivial" : "file(ai/actions/pickup_item_trivial.lua)",
       "actions:pickup_hangable_item" : "file(ai/actions/pickup_hangable_item_action.lua)",
@@ -437,6 +444,7 @@
       "actions:place_carrying_on_structure_adjacent" : "file(ai/actions/place_carrying_on_structure_adjacent_action.lua)",
       "actions:place_item_type" : "file(ai/actions/place_item_type_action.lua)",
       "actions:wait_for_closest_stockpile_space" : "file(ai/actions/wait_for_closest_stockpile_space.lua)",
+      "actions:choose_item_in_stockpile" : "file(ai/actions/choose_item_in_stockpile_action.lua)",
       "actions:drop_item_near_workshop" : "file(ai/actions/drop_item_near_workshop.lua)", 
 
       "actions:pickup_item_into_backpack" : "file(ai/actions/pickup_item_into_backpack_action.lua)",
@@ -602,6 +610,8 @@
       "actions:shepherd:wait_for_pasture_vacancy" : "file(ai/actions/wait_for_pasture_vacancy.lua)",
       "actions:shepherd:create_animal_for_pasture" : "file(ai/actions/create_animal_for_pasture.lua)",  
 
+      "actions:party:destroy_items_in_stockpile" : "file(ai/actions/party/destroy_items_in_stockpile_action.lua)",  
+
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
@@ -681,6 +691,7 @@
       "sounds:ui:scenarios:redalert_off" : "file(data/sounds/ui/scenarios/sh_ui_redalert_off.wav)",
       "sounds:ui:mason_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_mason_menu_open.wav)",
       "sounds:ui:weaver_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_weaver_menu_open.wav)",
+      "sounds:ui:blacksmith_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_blacksmith_menu_open.wav)",
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -722,6 +733,7 @@
       "sounds:workshop_bench" : "file(data/sounds/effects/sh_workshop_bench.wav)",
       "sounds:weaver_bench" : "file(data/sounds/effects/sh_weaver_bench.wav)",
       "sounds:mason_bench" : "file(data/sounds/effects/sh_mason_bench.wav)",
+      "sounds:blacksmith_bench" : "file(data/sounds/effects/sh_blacksmith_bench.wav)",
       "sounds:sleeping_lullaby" : "file(data/sounds/effects/sh_sleeping_lullaby.wav)",
       "sounds:eating" : "file(data/sounds/effects/sh_eating.wav)",
       "sounds:twinkle" : "file(data/sounds/effects/sh_twinkle.wav)",
@@ -765,6 +777,10 @@
       "sounds:mason_hammer_01" : "file(data/sounds/effects/sh_mason_hammer_01.wav)",
       "sounds:mason_hammer_02" : "file(data/sounds/effects/sh_mason_hammer_02.wav)",
       "sounds:mason_hammer_03" : "file(data/sounds/effects/sh_mason_hammer_03.wav)",
+      "sounds:blacksmith_hammer_01" : "file(data/sounds/effects/sh_blacksmith_hammer_01.wav)",
+      "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
+      "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
+
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",

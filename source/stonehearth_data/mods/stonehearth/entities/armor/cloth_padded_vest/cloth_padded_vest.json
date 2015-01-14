@@ -34,5 +34,10 @@
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/level_up"
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 3
+      }
+   }   
 }

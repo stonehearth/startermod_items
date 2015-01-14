@@ -273,7 +273,7 @@ function StockpileComponent:_install_traces()
 end
 
 function StockpileComponent:get_items()
-   return self._sv.stocked_items;
+   return self._sv.stocked_items
 end
 
 function StockpileComponent:_get_bounds()

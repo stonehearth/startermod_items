@@ -589,7 +589,9 @@ template <> Cube3f csg::ConvertTo(Cube3 const& cube) { return ToFloat(cube); }
 template <> Cube3 csg::ConvertTo(Cube3f const& cube) { return ToInt(cube); }
 
 // define centroid methods
+template Point1f csg::GetCentroid(Line1 const& rect);
+template Point1f csg::GetCentroid(Line1f const& rect);
 template Point2f csg::GetCentroid(Rect2 const& rect);
-template Point3f csg::GetCentroid(Cube3 const& cube);
 template Point2f csg::GetCentroid(Rect2f const& rect);
+template Point3f csg::GetCentroid(Cube3 const& cube);
 template Point3f csg::GetCentroid(Cube3f const& cube);

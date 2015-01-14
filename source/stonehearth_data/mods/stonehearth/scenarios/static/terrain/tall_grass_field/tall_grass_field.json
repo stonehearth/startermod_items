@@ -7,9 +7,6 @@
       "length" : 8
    },
    "weight" : 10,
-   "difficulty" : {
-      "min" : 0
-   },
    "unique" : false,
    "script" : "file(tall_grass_field.lua)",
 

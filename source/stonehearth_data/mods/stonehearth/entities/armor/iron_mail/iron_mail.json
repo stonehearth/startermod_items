@@ -1,0 +1,43 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Iron Mail",
+         "description": "A full suit of iron armor",
+         "icon" : "file(iron_mail.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(iron_mail.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(iron_mail_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "iron armor heavy_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(iron_mail_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "slot" : "torso",
+         "ilevel" : 6,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 7
+      }
+   }   
+}

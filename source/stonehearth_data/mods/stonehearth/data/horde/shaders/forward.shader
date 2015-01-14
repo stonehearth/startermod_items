@@ -38,6 +38,16 @@ context OMNI_LIGHTING_FORWARD
   CullMode = Back;
 }
 
+context OMNI_LIGHTING_NO_SHADOW_FORWARD
+{
+  VertexShader = compile GLSL VS_GENERAL_SHADOWS;
+  PixelShader = compile GLSL FS_OMNI_LIGHTING_FORWARD_NO_SHADOW;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = Back;
+}
+
 context DIRECTIONAL_LIGHTING_FORWARD
 {
   VertexShader = compile GLSL VS_GENERAL_SHADOWS;
@@ -170,6 +180,26 @@ void main( void )
 {
   float shadowTerm = getOmniShadowValue(lightPos.xyz, pos.xyz);
   gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo * shadowTerm, 1.0);
+}
+
+
+[[FS_OMNI_LIGHTING_FORWARD_NO_SHADOW]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo, 1.0);
 }
 
 

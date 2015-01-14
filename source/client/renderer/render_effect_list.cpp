@@ -367,6 +367,7 @@ void CubemitterEffectTrack::Update(FrameStartInfo const& info, bool& finished)
          H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
 
+         h3dSetNodeFlags(c, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
          h3dSetNodeTransform(cubemitterNode_.get(),
                              (float)pos_.x, (float)pos_.y, (float)pos_.z,
                              (float)rot_.x, (float)rot_.y, (float)rot_.z,
@@ -390,8 +391,9 @@ LightEffectTrack::LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const 
    RenderEffectTrack(e, effect->GetEffectId(), "light effect"),
    lightNode_(0)
 {
-   auto animatedLightFileName = node["light"].as_string();
-   // TODO: for just a moment, hardcode some light values.
+   json::Node o(node);
+
+   std::string animatedLightFileName = o.get("light", "");
    H3DRes lightRes = h3dAddResource(RT_AnimatedLightResource, animatedLightFileName.c_str(), 0);
    H3DNode l = h3dRadiantAddAnimatedLightNode(e.GetNode(), "ln", lightRes);
 
@@ -399,6 +401,9 @@ LightEffectTrack::LightEffectTrack(RenderEntity& e, om::EffectPtr effect, const 
 
    parseTransforms(node["transforms"], &x, &y, &z);
    h3dSetNodeTransform(l, x, y, z, 0, 0, 0, 1, 1, 1);
+
+   bool use_shadows = o.get("shadows", false);
+   h3dSetNodeParamI(l, H3DLight::ShadowMapCountI, use_shadows ? 1 : 0);
 
    lightNode_ = H3DNodeUnique(l);
 }

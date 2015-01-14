@@ -27,7 +27,7 @@
    ],
 
    "crafter" : {
-      "work_effect": "work",
+      "work_effect": "smith",
       "recipe_list": "/stonehearth/jobs/blacksmith/recipes/recipes.json"
    },
 

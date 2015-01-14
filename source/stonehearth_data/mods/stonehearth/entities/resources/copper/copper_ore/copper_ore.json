@@ -13,6 +13,7 @@
       "model_variants": {
          "default": {
             "models": [
+               "file(../../shared/ore_rock.qb)",
                "file(copper_ore.qb)"
             ]
          }

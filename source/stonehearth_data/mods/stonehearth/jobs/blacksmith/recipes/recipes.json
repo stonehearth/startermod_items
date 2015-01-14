@@ -1,8 +1,8 @@
 {
    "craftable_recipes" : {
-      "goods" : {
-         "ordinal" : 3, 
-         "name" : "Goods", 
+      "smelt" : {
+         "ordinal" : 1, 
+         "name" : "Smelting", 
          "recipes" : {
             "copper_ingot" : {
                "recipe" : "file(copper_ingot_recipe.json)"
@@ -15,6 +15,18 @@
             },
             "steel_ingot" : {
                "recipe" : "file(steel_ingot_recipe.json)"
+            }
+         }
+      },
+       "armor" : {
+         "ordinal" : 2, 
+         "name" : "Armor",
+         "recipes" : {
+            "copper_breastplate" : {
+               "recipe" : "file(copper_breastplate_recipe.json)"
+            },
+            "iron_mail" : {
+               "recipe" : "file(iron_mail_recipe.json)"
             }
          }
       }

@@ -53,6 +53,7 @@ class NavGrid {
       bool IsStandable(csg::Region3 const& worldRegion);
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt);
       bool IsStandable(om::EntityPtr entity, csg::Point3 const& pt, om::MobPtr const& mob);
+      csg::Point3 GetStandablePoint(csg::Point3 const& pt);
       csg::Point3 GetStandablePoint(om::EntityPtr entity, csg::Point3 const& pt);
 
       // Occupied Queries.  Is any entity of any kind here?

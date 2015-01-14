@@ -69,13 +69,19 @@ float Physics_GetMovementSpeedAt(lua_State *L, OctTree &octTree, csg::Point3f co
    return octTree.GetNavGrid().GetMovementSpeedAt(csg::ToInt(location));
 }
 
-csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
+csg::Point3f Physics_GetStandable(lua_State *L, OctTree &octTree, om::EntityRef entityRef, csg::Point3f const& location)
 {
    om::EntityPtr entity = entityRef.lock();
    if (!entity) {
       throw std::logic_error("invalid entity reference in get_standable_point");
    }
    csg::Point3 standable = octTree.GetNavGrid().GetStandablePoint(entity, csg::ToClosestInt(location));
+   return csg::ToFloat(standable);
+}
+
+csg::Point3f Physics_GetStandablePoint(lua_State *L, OctTree &octTree, csg::Point3f const& location)
+{
+   csg::Point3 standable = octTree.GetNavGrid().GetStandablePoint(csg::ToClosestInt(location));
    return csg::ToFloat(standable);
 }
 
@@ -143,6 +149,7 @@ void lua::phys::open(lua_State* L, OctTree& octtree)
                .def("is_terrain",           &Physics_IsTerrain)
                .def("is_occupied",          &Physics_IsOccupied)
                .def("is_occupied",          &Physics_IsOccupiedPoint)
+               .def("get_standable_point",  &Physics_GetStandable)
                .def("get_standable_point",  &Physics_GetStandablePoint)
                .def("get_entities_in_cube", &Physics_GetEntitiesInCube)
                .def("get_entities_in_region", &Physics_GetEntitiesInRegion)

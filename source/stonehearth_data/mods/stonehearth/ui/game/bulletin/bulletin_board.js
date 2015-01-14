@@ -143,7 +143,7 @@ var StonehearthBulletinBoard;
          self._tryShowNextBulletin();
       },
 
-      recreateDialogVIew: function(bulletin) {
+      recreateDialogView: function(bulletin) {
          var self = this;
          if (self._bulletinDialogView) {
             var oldDialogView = self._bulletinDialogView

@@ -142,7 +142,29 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
       total_damage = dmg_to_add + total_damage
    end
 
-   return total_damage
+   --Get the damage reduction from armor
+   local total_armor = self:_calculate_total_armor(entity)
+
+   return math.max(total_damage - total_armor, 0)
+end
+
+-- TODO: take different damage types into effect
+function AttackMeleeAdjacent:_calculate_total_armor(entity)
+   local equipment_component = entity:get_component('stonehearth:equipment')
+   local total_armor = 0
+
+   if equipment_component then
+      local items = equipment_component:get_all_items()
+      
+      for _, item in pairs(items) do
+         local item_armor = radiant.entities.get_entity_data(item, 'stonehearth:combat:armor_data')
+         if item_armor and item_armor.base_damage_reduction then
+            total_armor = total_armor + item_armor.base_damage_reduction
+         end
+      end
+   end
+
+   return total_armor
 end
 
 function AttackMeleeAdjacent:stop(ai, entity, args)

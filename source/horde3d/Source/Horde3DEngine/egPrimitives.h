@@ -159,6 +159,20 @@ struct BoundingBox
 		return changed;
 	}
 
+   bool intersects(BoundingBox const& b) const
+   {
+      if (b._min.x > _max.x || _min.x > b._max.x) {
+         return false;
+      }
+      if (b._min.z > _max.z || _min.z > b._max.z) {
+         return false;
+      }
+      if (b._min.y > _max.y || _min.y > b._max.y) {
+         return false;
+      }
+      return true;
+   }
+
    void feather()
    {
       ASSERT_VALID_BOX

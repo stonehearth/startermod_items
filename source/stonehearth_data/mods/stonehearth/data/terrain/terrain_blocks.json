@@ -19,7 +19,8 @@
       "copper_ore" :   { "tag" : 410, "color" : "#c87533", "kind" : "copper_ore" },
       "tin_ore" :      { "tag" : 420, "color" : "#adb2bd", "kind" : "tin_ore" },
       "iron_ore" :     { "tag" : 430, "color" : "#e6e7e8", "kind" : "iron_ore" },
-      "gold_ore" :     { "tag" : 440, "color" : "#ffd700", "kind" : "gold_ore" },
+      "silver_ore" :   { "tag" : 440, "color" : "#cccccc", "kind" : "silver_ore" },
+      "gold_ore" :     { "tag" : 450, "color" : "#ffd700", "kind" : "gold_ore" },
       "coal" :         { "tag" : 500, "color" : "#021c24", "kind" : "coal" }
    },
 

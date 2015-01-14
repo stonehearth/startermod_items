@@ -10,7 +10,7 @@
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 0.5 }
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 1 }
       ]
    },
    "grass" : {
@@ -26,11 +26,25 @@
          { "uri" : "stonehearth:resources:copper:ore", "weight" : 20 }
       ]
    },
+   "tin_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:tin:ore", "weight" : 20 }
+      ]
+   },
    "iron_ore" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
          { "uri" : "stonehearth:resources:iron:ore", "weight" : 20 }
+      ]
+   },
+   "silver_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:silver:ore", "weight" : 20 }
       ]
    },
    "gold_ore" : {

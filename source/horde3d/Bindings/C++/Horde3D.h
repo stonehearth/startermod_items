@@ -152,7 +152,8 @@ struct H3DStats
 		TextureVMem,
 		GeometryVMem,
       AverageFrameTime,
-      AvailableGpuMemory
+      AvailableGpuMemory,
+      ShadowPassCount
 	};
 };
 
@@ -621,6 +622,7 @@ struct H3DLight
 		ShadowContextStr    - Name of shader context used for generating shadow map
       ImportanceI         - Importance of the light
       ShadowMapQualityI   - Quality of the shadow map.
+      DirtyShadowsI       - Whether or not the shadows of this light are dirty.
 	*/
 	enum List
 	{
@@ -637,7 +639,8 @@ struct H3DLight
 		ShadowContextStr,
       DirectionalI,
       ImportanceI,
-      ShadowMapQualityI
+      ShadowMapQualityI,
+      DirtyShadowsI
 	};
 };
 

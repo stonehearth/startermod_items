@@ -54,6 +54,12 @@ csg::Cube<double, C> Cube_ToFloat(csg::Cube<S, C> const& c)
 }
 
 template <typename T>
+csg::Point<double, T::Dimension> Cube_GetCentroid(T const &c)
+{
+   return csg::GetCentroid(c);
+}
+
+template <typename T>
 static luabind::class_<T> Register(struct lua_State* L, const char* name)
 {
    return
@@ -69,6 +75,7 @@ static luabind::class_<T> Register(struct lua_State* L, const char* name)
          .def("load",         &LoadCube<T>)
          .def("get_area",     &T::GetArea)
          .def("get_size",     &T::GetSize)
+         .def("get_centroid", &Cube_GetCentroid<T>)
          .def("contains",     &T::Contains)
          .def("contains_inclusive", &T::ContainsInclusive)
          .def("width",        &T::GetWidth) 

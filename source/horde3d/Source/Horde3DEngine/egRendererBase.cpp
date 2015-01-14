@@ -413,6 +413,8 @@ uint32 RenderDevice::calcTextureSize( TextureFormats::List format, int width, in
 		return width * height * depth * 16;
    case TextureFormats::A8:
       return width * height * depth;
+   case TextureFormats::R32:
+      return width * height * depth * 4 * 2;  // 32-bit depth + 32-bit fp R channel.
 	default:
 		return 0;
 	}
@@ -457,6 +459,9 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 	case TextureFormats::A8:
 		tex.glFmt = GL_INTENSITY8;
 		break;
+   case TextureFormats::R32:
+      tex.glFmt = GL_R32F;
+      break;
 	default:
 		ASSERT( 0 );
 		break;
@@ -509,7 +514,7 @@ void RenderDevice::copyTextureDataFromPbo( uint32 texObj, uint32 pboObj, int xOf
          break;
       case TextureFormats::A8:
         inputFormat = GL_LUMINANCE;
-         break;
+        break;
    };
 
    ASSERT(width <= tex.width);
@@ -567,6 +572,10 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
       break;
    case TextureFormats::A8:
       inputFormat = GL_LUMINANCE;
+      break;
+   case TextureFormats::R32:
+      inputFormat = GL_RED;
+      inputType = GL_FLOAT;
       break;
 	};
 	
@@ -885,7 +894,7 @@ void RenderDevice::setShaderSampler( int loc, uint32 texUnit )
 uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFormats::List format,
                                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips, bool cubeMap)
 {
-	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F) && !_caps.texFloat )
+	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F || format == TextureFormats::R32) && !_caps.texFloat )
 	{
 		return 0;
 	}

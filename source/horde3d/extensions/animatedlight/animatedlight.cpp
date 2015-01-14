@@ -149,7 +149,9 @@ AnimatedLightNode::AnimatedLightNode(const AnimatedLightNodeTpl &animatedLightTp
 
 void AnimatedLightNode::init()
 {
-   _lightNode = h3dAddLightNode(this->getHandle(), "ln", "OMNI_LIGHTING", "", false);
+   // Create with out any shadows; the update loop will set the appropriate contexts.  That way, we
+   // can turn shadows on/off at run-time.
+   _lightNode = h3dAddLightNode(this->getHandle(), "ln", "OMNI_LIGHTING_NO_SHADOW", "", false);
    h3dSetNodeParamF(_lightNode, H3DLight::FovF, 0, 360);
    h3dSetNodeParamI(_lightNode, H3DLight::ShadowMapCountI, 0);
    h3dSetNodeParamF(_lightNode, H3DLight::ColorF3, 0, 0.0f);
@@ -191,6 +193,11 @@ int AnimatedLightNode::getParamI(int param) const
 
 void AnimatedLightNode::setParamI(int param, int value)
 {
+   switch(param) {
+   case H3DLight::ShadowMapCountI:
+      h3dSetNodeParamI(_lightNode, H3DLight::ShadowMapCountI, value);
+      return;
+   }
    SceneNode::setParamI(param, value);
 }
 
@@ -232,7 +239,11 @@ void AnimatedLightNode::updateLight()
 {
    AnimatedLightData d = _animatedLightRes.getPtr()->lightData;
 
+   bool shadows = h3dGetNodeParamI(_lightNode, H3DLight::ShadowMapCountI) > 0;
+
    h3dSetNodeParamI(_lightNode, H3DLight::ImportanceI, d.importance);
+   h3dSetNodeParamStr(_lightNode, H3DLight::LightingContextStr, shadows ? "OMNI_LIGHTING" : "OMNI_LIGHTING_NO_SHADOW");
+   h3dSetNodeParamStr(_lightNode, H3DLight::ShadowContextStr, shadows ? "OMNI_SHADOWMAP" : "");
 
    if (_lightTime >= d.duration)
    {
