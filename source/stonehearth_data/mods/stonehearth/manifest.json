@@ -693,6 +693,11 @@
       "sounds:ui:mason_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_mason_menu_open.wav)",
       "sounds:ui:weaver_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_weaver_menu_open.wav)",
       "sounds:ui:blacksmith_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_blacksmith_menu_open.wav)",
+      "sounds:ui:immigration_menu:immigration_pass" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_pass.wav)",
+      "sounds:ui:immigration_menu:immigration_fail" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_fail.wav)",
+      "sounds:ui:immigration_menu:immigration_negative" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_negative.wav)",
+      "sounds:ui:immigration_menu:immigration_positive" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_positive.wav)",
+
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",

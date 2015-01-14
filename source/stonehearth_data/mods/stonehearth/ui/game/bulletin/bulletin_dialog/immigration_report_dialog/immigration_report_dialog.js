@@ -15,9 +15,9 @@ App.StonehearthImmigrationReportDialog = App.StonehearthBaseBulletinDialog.exten
          this.$('#immigrationReportBulletinDialog #conclusionDiv').css('visibility', 'visible')
          this.$('#immigrationReportBulletinDialog #conclusionDiv').pulse();
          if (self.get('model.data.accepted_callback')) {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'} );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:immigration_menu:immigration_positive'} );
          } else {
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:alert'} );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:immigration_menu:immigration_negative'} );
          }
       }, 3500);
 
@@ -38,14 +38,14 @@ App.StonehearthImmigrationReportDialog = App.StonehearthBaseBulletinDialog.exten
             $targetElement.addClass("passed");
             $possessedSpan.removeClass("failedText");
             $possessedSpan.addClass("successText");
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:stamp'} );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:immigration_menu:immigration_pass'} );
 
          } else {
             $targetElement.removeClass("passed");
             $targetElement.addClass("failed");
             $possessedSpan.removeClass("successText");
             $possessedSpan.addClass("failedText");
-            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:scenarios:alert'} );
+            radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:immigration_menu:immigration_fail'} );
          }
          $targetElement.pulse();    
 

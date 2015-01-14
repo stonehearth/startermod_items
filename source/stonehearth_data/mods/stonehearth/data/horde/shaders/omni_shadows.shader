@@ -16,7 +16,7 @@ float getOmniShadowValue(const vec3 lightPos, const vec3 worldSpace_fragmentPos)
 
   float dist = textureCube(shadowMap, lightDir).r;
   // 0.3 is a nice term to simulate some light bouncing....
-  shadowTerm = (dist >= lightDist - 0.01 ) ? 1.0 : 0.3;
+  shadowTerm = (dist >= lightDist - 0.1 ) ? 1.0 : 0.3;
 #endif
 
   return shadowTerm;
