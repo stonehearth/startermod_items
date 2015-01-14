@@ -23,6 +23,9 @@ function LeaveAnimalInPasture:run(ai, entity, args)
 
       local shepherd_class = entity:get_component('stonehearth:job'):get_curr_job_controller()
       shepherd_class:remove_trailing_animal(args.animal:get_id())
+
+      --Fire an event to let people know the animal has been returned to the pasture
+      radiant.events.trigger_async(entity, 'stonehearth:leave_animal_in_pasture', {animal = args.animal})
    end
 end
 

@@ -4,57 +4,17 @@ local Point3 = _radiant.csg.Point3
 
 --[[
    Immigration Synopsis
+
+   Once a day, we run this scenario. It pops up a dialog showing your settlemet's core stats. 
    If your settlement meets certain conditions, cool people might want to join up. 
-   The job of the person who joins may change as your town's happiness score increases.
 
-   Details: the jobs available are defined in immigration.json. Each job has
-   a rating (1 is low, N is high) and a # of shares. The jobs are entered into a table.
-   jobs with high share values appear in the table multiple times. 
+   The people who join are now always workers. 
 
-   When the scenario runs, we check the town's happines score. The score determines the number
-   of "random drawings" we do out of the job table, so happy towns will have lots of drawings.
-   The job with the highest rating is selected to join the town. 
-
-   This way, the list of jobs is extensible, but your changes of getting a rare specialist
-   go up as your town's happiness increases.
+   TODO: improve the UI
 ]]
 
---Returns true if: 
--- > the town's happiness level is > 4 
--- > there's at least 10 food items
--- > score is at least 100 
--- (all these are set in immigration.json)
+--The scenario always spawns when it is called by the interval_service, once per day. 
 function Immigration:can_spawn()
-   local immigration_data = self._immigration_data
-   local score_data = stonehearth.score:get_scores_for_player('player_1'):get_score_data()
-
-   local happiness_threshold = immigration_data.happiness_threshold
-   local happiness_score = 0
-   if score_data.happiness and score_data.happiness.happiness then
-      happiness_score = score_data.happiness.happiness/10
-   end
-   if happiness_score < happiness_threshold then
-      return false
-   end
-
-   local food_threshold = immigration_data.food_threshold
-   local available_food = 0
-   if score_data.resources and score_data.resources.edibles then
-      available_food = score_data.resources.edibles
-   end 
-   if available_food < food_threshold then
-      return false
-   end
-   
-   local score_threshold = immigration_data.score_threshold
-   local curr_score = 0
-   if score_data.net_worth and score_data.net_worth.total_score then
-      curr_score = score_data.net_worth.total_score
-   end
-   if curr_score < score_threshold then
-      return false
-   end
-
    return true
 end
 
@@ -83,76 +43,122 @@ end
 
 function Immigration:_load_trade_data()
    self._immigration_data =  radiant.resources.load_json('stonehearth:scenarios:immigration').scenario_data
-   
-   --Create a table with all the possible jobs.
-   --Each job is entered into the table n times, where n is the number of "shares"
-   --that job has. Higher shares means a higher chance of being selected
-   self._possibility_table = {}
-   for job, data in pairs(self._immigration_data.jobs) do
-      for i=0, data.shares do
-         table.insert(self._possibility_table, job)
-      end
-   end
 end
 
 -- Make a citizen and propose his approach
 function Immigration:start()
-
-   --Make the new citizen
-   local target_job = self:_pick_immigrant_job()
-
-   --Compose the message
-   local message = self:_compose_message(target_job)
-
-   --Get the data ready to send to the bulletin
-   self._sv.notice = {
-      title = self._immigration_data.title,
-      message = message, 
-      target_job = target_job
-   }
-
-   --Send the notice to the bulletin service.
-   self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
-           :set_ui_view('StonehearthGenericBulletinDialog')
-           :set_callback_instance(self)
-           :set_data({
-               title = self._immigration_data.title,
-               message = message,
-               accepted_callback = "_on_accepted",
-               declined_callback = "_on_declined",
-           })
+   --Show a bulletin with food/morale/net worth stats
+   local message, success = self:_compose_town_report()
+   if success then
+      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+         :set_ui_view('StonehearthImmigrationReportDialog')
+         :set_callback_instance(self)
+         :set_data({
+            title = self._immigration_data.update_title,
+            message = message,
+            conclusion = self._immigration_data.conclusion_positive,
+            accepted_callback = "_on_accepted",
+            declined_callback = "_on_declined",
+         })
+   else
+      self._sv.immigration_bulletin = stonehearth.bulletin_board:post_bulletin(self._sv.player_id)
+         :set_ui_view('StonehearthImmigrationReportDialog')
+         :set_callback_instance(self)
+         :set_data({
+            title = self._immigration_data.update_title,
+            message = message,
+            conclusion = self._immigration_data.conclusion_negative,
+            ok_callback = "_on_declined",
+         })
+   end
 
    --Make sure it times out if we don't get to it
    local wait_duration = self._immigration_data.expiration_timeout
    self:_create_timer(wait_duration)
 
    --Add something to the event log:
-   stonehearth.events:add_entry(self._immigration_data.title .. ': ' .. message)
+   --stonehearth.events:add_entry(self._immigration_data.title .. ': ' .. message)
 end
 
---- Get a random target job out of the table
--- Make a number of drawings out of the job table based on the happiness of the town
--- Use the highest rated job as the new job. 
--- @returns job name
-function Immigration:_pick_immigrant_job()
-   local score_data = stonehearth.score:get_scores_for_player('player_1'):get_score_data()
-   local happiness_score = 0
-   if score_data.happiness and score_data.happiness.happiness then
-      happiness_score = score_data.happiness.happiness/10 - 2
-   end
 
-   local best_job = 'stonehearth:jobs:worker'
-   local best_job_value = 1
-   for i=1, happiness_score do
-      local random_index = rng:get_int(1, #self._possibility_table)
-      local target_job = self._possibility_table[random_index]
-      local target_job_value = self._immigration_data.jobs[target_job].rating
-      if target_job_value > best_job_value then
-         best_job = target_job
-         best_job_value = target_job_value
-      end
+function Immigration:_compose_town_report()
+   local town_name = stonehearth.town:get_town(self._sv.player_id):get_town_name()
+   local population_line = self._immigration_data.town_line
+   population_line = string.gsub(population_line, '__town_name__', town_name)
+   local num_citizens = stonehearth.population:get_population_size(self._sv.player_id)
+   population_line = population_line .. num_citizens
+   local summation = self:_eval_requirement(num_citizens)
+   local date = stonehearth.calendar:format_date()
+   date = (date:gsub("^%l", string.upper))
+
+   local message = {
+      date = date, 
+      town_name = town_name,
+      town_size = num_citizens,
+      food_data = summation.food_data, 
+      morale_data = summation.morale_data, 
+      net_worth_data = summation.net_worth_data
+
+   }
+   local success = summation.success
+   return message, success
+end
+
+
+
+function Immigration:_eval_requirement(num_citizens)
+   local score_data = stonehearth.score:get_scores_for_player(self._sv.player_id):get_score_data()
+
+   --Get data for food
+   local available_food = 0
+   if score_data.resources and score_data.resources.edibles then
+      available_food = score_data.resources.edibles
+   end 
+   local food_success, food_data = self:_find_requirments_by_type_and_pop(available_food, 'food', num_citizens)
+
+   --Get data for morale
+   local morale_score = 0
+   if score_data.happiness and score_data.happiness.happiness then
+      morale_score = score_data.happiness.happiness/10
    end
-   return best_job
+   local morale_success, morale_data = self:_find_requirments_by_type_and_pop(morale_score, 'morale', num_citizens) 
+   morale_data.available =  radiant.math.round(morale_data.available*10)*0.1
+
+   --Get data for net worth
+   local curr_score = 0
+   if score_data.net_worth and score_data.net_worth.total_score then
+      curr_score = score_data.net_worth.total_score
+   end
+   local net_worth_success, net_worth_data = self:_find_requirments_by_type_and_pop(curr_score, 'net_worth', num_citizens)
+
+   local summation = {
+      food_data = food_data, 
+      morale_data = morale_data, 
+      net_worth_data = net_worth_data, 
+      success = food_success and morale_success and net_worth_success
+   }
+
+   return summation
+end
+
+function Immigration:_find_requirments_by_type_and_pop(available, type, num_citizens)
+   local equation = self._immigration_data.growth_requirements[type]
+   local equation = string.gsub(equation, 'num_citizens', num_citizens)
+   local target = self:_evaluate_equation(equation)
+   local label = self._immigration_data[type .. '_label']
+
+   local data = {
+      label = label,
+      available = available, 
+      target = target
+   }
+   local success = available >= target
+   return success, data
+end
+
+function Immigration:_evaluate_equation(equation)
+   local fn = loadstring('return ' .. equation)
+   return fn()
 end
 
 function Immigration:_compose_message(job)
@@ -167,6 +173,8 @@ function Immigration:_compose_message(job)
    outcome_statement = string.gsub(outcome_statement, '__town_name__', town_name)
    return message .. ' ' .. outcome_statement
 end
+
+
 
 function Immigration:place_citizen(citizen)
    local spawn_point = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity(citizen, 80)
@@ -211,18 +219,7 @@ end
 function Immigration:_on_accepted()
    local pop = stonehearth.population:get_population(self._sv.player_id)
    local citizen = pop:create_new_citizen()
-   pop:promote_citizen(citizen, self._sv.notice.target_job)
-
-   --If they have equipment, put it on them
-   if self._immigration_data.jobs[self._sv.notice.target_job].equipment then
-      local equipment_uri = self._immigration_data.jobs[self._sv.notice.target_job].equipment
-      local equipment_entity = radiant.entities.create_entity(equipment_uri)
-      local equipment_component = citizen:add_component('stonehearth:equipment')
-      equipment_component:equip_item(equipment_entity)
-
-      --Hack: remove glow?
-       equipment_entity:remove_component('effect_list')
-   end
+   pop:promote_citizen(citizen, 'stonehearth:jobs:worker')
 
    self:place_citizen(citizen)
    if self._timer then

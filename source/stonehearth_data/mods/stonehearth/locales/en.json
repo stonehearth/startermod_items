@@ -429,6 +429,11 @@
    "stockpile_active" : "active",
    "stockpile_paused" : "paused",
 
+   "daily_update_title" : "Daily Update",
+   "immigration_report_title" : "Immigration Report", 
+   "population_label" : "population", 
+   "next_requirements_label" : "Next hearthling requirements...", 
+
    "create_party" : "Create Party",
    "edit_party" : "Edit",
    "add_party_member" : "Manage Roster",
