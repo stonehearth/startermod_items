@@ -228,8 +228,8 @@ DLL H3DNode h3dRadiantAddCubemitterNode(H3DNode parent, const char* nam, H3DRes 
 	SceneNode *parentNode = Modules::sceneMan().resolveNodeHandle( parent );
 	APIFUNC_VALIDATE_NODE(parentNode, "h3dRadiantAddCubemitterNode", 0);
 
-   H3DRes matResHandle = h3dAddResource(H3DResTypes::Material, "materials/cubemitter.material.xml", 0);
    CubemitterResource *cubeRes = (CubemitterResource *)Modules::resMan().resolveResHandle(cubemitter);
+   H3DRes matResHandle = h3dAddResource(H3DResTypes::Material, cubeRes->materialPath.c_str(), 0);
    MaterialResource *matRes = (MaterialResource *)Modules::resMan().resolveResHandle(matResHandle);
    
    APIFUNC_VALIDATE_RES_TYPE(matRes, ResourceTypes::Material, "h3dRadiantAddCubemitterNode", 0);
