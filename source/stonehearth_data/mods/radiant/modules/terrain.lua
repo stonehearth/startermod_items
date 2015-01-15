@@ -381,6 +381,10 @@ function Terrain.intersect_region(region)
    return Terrain._get_terrain_tiles():intersect_region(region)
 end
 
+function Terrain.contains_point(point)
+   return Terrain._get_terrain_tiles():contains_point(point)
+end
+
 function Terrain._get_terrain_component()
    return radiant._root_entity:add_component('terrain')
 end

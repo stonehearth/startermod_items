@@ -28,6 +28,7 @@ function StaticScenarioService:create_new_game(feature_size, seed)
    self._sv.feature_size = feature_size
    self._sv.rng = RandomNumberGenerator(seed)
    self._sv.dormant_scenarios = {}
+   self._sv.next_id = 1
    self._sv.revealed_region = Region2()
    self._sv.last_optimized_rect_count = 10
    self._sv._initialized = true
@@ -49,13 +50,17 @@ function StaticScenarioService:add_scenario(properties, x, y, width, length, act
       self:_activate_scenario(properties, x, y)
    else
       local scenario_info = {
-         properties = properties,
+         id = self._sv.next_id,
          x = x,
          y = y,
          width = width,
-         length = length
+         length = length,
+         properties = properties
       }
-      self:_mark_scenario_map(scenario_info, x, y, width, length)
+      self._sv.next_id = self._sv.next_id + 1
+      self.__saved_variables:mark_changed()
+
+      self:_add_to_scenario_map(scenario_info)
    end
 end
 
@@ -75,7 +80,7 @@ end
 function StaticScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._sv.revealed_region
    local bounded_world_space_region, unrevealed_region, new_region
-   local key, scenario_info, properties
+   local key, scenarios, properties
 
    bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
    new_region = self:_region_to_habitat_space(bounded_world_space_region)
@@ -85,28 +90,22 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
    for rect in unrevealed_region:each_cube() do
       for j = rect.min.y, rect.max.y-1 do
          for i = rect.min.x, rect.max.x-1 do
-            key = self:_get_coordinate_key(i, j)
+            key = self:_get_key(i, j)
+            scenarios = self._sv.dormant_scenarios[key]
 
-            scenario_info = self._sv.dormant_scenarios[key]
-            if scenario_info then
-               properties = scenario_info.properties
+            if scenarios then
+               for id, scenario_info in pairs(scenarios) do
+                  properties = scenario_info.properties
 
-               self:_mark_scenario_map(nil,
-                                      scenario_info.x, scenario_info.y,
-                                      scenario_info.width, scenario_info.length)
+                  self:_remove_from_scenario_map(scenario_info)
 
-               -- hack until we make place non-static scenarios after banner placement
-               local activate = true
-               if activation_filter then
-                  activate = activation_filter(properties)
-               end
-               if activate then
-                  local seconds = Timer.measure(
-                     function()
-                        self:_activate_scenario(properties, scenario_info.x, scenario_info.y)
-                     end
-                  )
-                  log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+                  local activate = not activation_filter or activation_filter(properties)
+                  if activate then
+                     local seconds = Timer.measure(function()
+                           self:_activate_scenario(properties, scenario_info.x, scenario_info.y)
+                        end)
+                     log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
+                  end
                end
             end
          end
@@ -122,6 +121,8 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
       revealed_region:optimize_by_oct_tree(8)
       self._sv.last_optimized_rect_count = revealed_region:get_num_rects()
    end
+
+   self.__saved_variables:mark_changed()
 end
 
 function StaticScenarioService:_reveal_around_entities()
@@ -147,17 +148,51 @@ function StaticScenarioService:_reveal_around_entities()
    self:reveal_region(region)
 end
 
-function StaticScenarioService:_mark_scenario_map(scenario_info, x, y, width, length)
-   local feature_x, feature_y, feature_width, feature_length, key
+function StaticScenarioService:_add_to_scenario_map(scenario_info)
+   self:_each_key_in(scenario_info.x, scenario_info.y, scenario_info.width, scenario_info.length,
+      function(key)
+         local scenarios = self._sv.dormant_scenarios[key]
 
-   feature_x, feature_y = self:_get_feature_space_coords(x, y)
-   feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
+         -- create the list if it doesn't exist
+         if not scenarios then
+            scenarios = {}
+            self._sv.dormant_scenarios[key] = scenarios
+         end
+
+         -- add to the list of scenarios at this location
+         scenarios[scenario_info.id] = scenario_info
+      end)
+
+   self.__saved_variables:mark_changed()
+end
+
+function StaticScenarioService:_remove_from_scenario_map(scenario_info)
+   self:_each_key_in(scenario_info.x, scenario_info.y, scenario_info.width, scenario_info.length,
+      function(key)
+         local scenarios = self._sv.dormant_scenarios[key]
+         if scenarios then
+            -- clear the scenario from the list
+            scenarios[scenario_info.id] = nil
+
+            -- remove the list if it is empty
+            if not next(scenarios) then
+               self._sv.dormant_scenarios[key] = nil
+            end
+         end
+      end)
+
+   self.__saved_variables:mark_changed()
+end
+
+function StaticScenarioService:_each_key_in(x, y, width, length, fn)
+   local feature_x, feature_y = self:_get_feature_space_coords(x, y)
+   local feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
 
    -- i, j are offsets so use base 0
    for j=0, feature_length-1 do
       for i=0, feature_width-1 do
-         key = self:_get_coordinate_key(feature_x + i, feature_y + j)
-         self._sv.dormant_scenarios[key] = scenario_info
+         local key = self:_get_key(feature_x+i, feature_y+j)
+         fn(key)
       end
    end
 end
@@ -172,6 +207,8 @@ function StaticScenarioService:_activate_scenario(properties, x, y)
    scenario_script = radiant.mods.load_script(properties.script)
    scenario_script()
    scenario_script:initialize(properties, services)
+
+   self.__saved_variables:mark_changed()
 end
 
 function StaticScenarioService:_bound_region_by_terrain(region)
@@ -229,7 +266,7 @@ function StaticScenarioService:_get_feature_space_coords(x, y)
           math.floor(y/feature_size)
 end
 
-function StaticScenarioService:_get_coordinate_key(x, y)
+function StaticScenarioService:_get_key(x, y)
    return string.format('%d,%d', x, y)
 end
 

@@ -41,6 +41,8 @@ public:
    csg::Region3f IntersectCube(csg::Cube3f const& cube);
    csg::Region3f IntersectRegion(csg::Region3f const& region);
 
+   bool ContainsPoint(csg::Point3f const& point);
+
    // keeping this inline as it gets messy otherwise
    friend std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region) {
       out << tiled_region._tile_wrapper->NumTiles() << " tiles";

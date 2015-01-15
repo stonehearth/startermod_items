@@ -8,7 +8,7 @@
    "unique" : false,
    "script" : "file(entity_cluster.lua)",
 
-   "scenario_info" : {
+   "data" : {
       "entity_footprint_length" : 1,
       "quantity" : {
          "min" : 2,

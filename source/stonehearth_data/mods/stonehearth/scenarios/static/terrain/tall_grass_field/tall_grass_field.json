@@ -10,7 +10,7 @@
    "unique" : false,
    "script" : "file(tall_grass_field.lua)",
 
-   "scenario_info" : {
+   "data" : {
       "entity_type" : [ "stonehearth:terrain:tall_grass" ]
    }
 }

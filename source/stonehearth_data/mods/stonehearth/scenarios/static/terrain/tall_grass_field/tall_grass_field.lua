@@ -4,8 +4,8 @@ function PlantField:__init()
 end
 
 function PlantField:initialize(properties, services)
-   local info = properties.scenario_info
-   local uris = info.entity_type
+   local data = properties.data
+   local uris = data.entity_type
    local width = properties.size.width
    local height = properties.size.length
 

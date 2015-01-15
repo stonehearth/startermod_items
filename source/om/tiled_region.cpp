@@ -104,6 +104,14 @@ csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f)
 }
 
 template <typename T>
+bool TiledRegion<T>::ContainsPoint(csg::Point3f const& point3f)
+{
+   csg::Region3f intersection = IntersectPoint(point3f);
+   bool contains = !intersection.IsEmpty();
+   return contains;
+}
+
+template <typename T>
 void TiledRegion<T>::Clear()
 {
    _tile_wrapper->Clear();
