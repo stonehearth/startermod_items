@@ -128,11 +128,9 @@ function SurfaceScenarioSelector:_find_valid_sites(habitat_map, elevation_map, h
             -- check if block is flat
             elevation = elevation_map:get(i, j)
 
-            is_flat = elevation_map:visit_block(i, j, width, length,
-               function (value)
+            is_flat = elevation_map:visit_block(i, j, width, length, function(value)
                   return value == elevation
-               end
-            )
+               end)
 
             if is_flat then
                num_sites = num_sites + 1

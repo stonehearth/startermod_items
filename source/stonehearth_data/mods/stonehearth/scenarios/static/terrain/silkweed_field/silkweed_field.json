@@ -10,7 +10,7 @@
    "weight" : 20,
    "habitat_types" : ["plains", "foothills"],
 
-   "scenario_info" : {
+   "data" : {
       "entity_type" : [ "stonehearth:plants:silkweed" ],
       "entity_footprint_length" : 1,
       "quantity" : {

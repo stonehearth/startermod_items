@@ -10,7 +10,7 @@
    "weight" : 2,
    "habitat_types" : ["plains", "foothills"],
 
-   "scenario_info" : {
+   "data" : {
       "entity_type" : [ "stonehearth:plants:frostsnap" ],
       "entity_footprint_length" : 2,
       "quantity" : {

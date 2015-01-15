@@ -8,7 +8,7 @@
    },
    "weight" : 5,
    "habitat_types" : ["plains", "foothills"],
-   "scenario_info" : {
+   "data" : {
       "entity_type" : [
          "stonehearth:medium_boulder_1",
          "stonehearth:medium_boulder_2",

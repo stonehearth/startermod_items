@@ -10,7 +10,7 @@
    "unique" : false,
    "script" : "file(critter_nest.lua)",
 
-   "scenario_info" : {
+   "data" : {
       "critter_length" : 1,
       "num_critters" : {
          "min" : 1,

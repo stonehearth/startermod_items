@@ -3,7 +3,7 @@
    "name" : "squirrel_nest",
    "habitat_types" : ["forest"],
    "weight" : 3,
-   "scenario_info" : {
+   "data" : {
       "critter_type" : [ "stonehearth:squirrel" ]
    }
 }
