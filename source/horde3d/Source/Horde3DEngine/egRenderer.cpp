@@ -130,6 +130,8 @@ void Renderer::setGpuCompatibility()
    // TODO: Eventually, we get to a nice big matrix of manufacturer/driver.
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
 
+   gpuCompatibility_.canDoOmniShadows = gpuCompatibility_.canDoShadows && gRDI->getCaps().texFloat;
+
    // SSAO: arbitrarily gate SSAO with gl version >= 4.0
    gpuCompatibility_.canDoSsao = glVer >= 40;
 }
@@ -159,7 +161,12 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
       Modules::log().writeWarning("Renderer: disabling shadows.");
    }
 
-	// Check capabilities
+   if (!gpuCompatibility_.canDoOmniShadows)
+   {
+      Modules::log().writeWarning("Renderer: disabling omni-directional shadows.");
+   }
+
+   // Check capabilities
 	if( !gRDI->getCaps().texFloat )
 		Modules::log().writeWarning( "Renderer: No floating point texture support available" );
 	if( !gRDI->getCaps().texNPOT )
@@ -1525,7 +1532,11 @@ uint32 Renderer::calculateShadowBufferSize(LightNode const* node) const
    if (node->_directional) {
       return (uint32)pow(2, Modules::config().shadowMapQuality + 8);
    } else {
-      return (uint32)pow(2, Modules::config().shadowMapQuality + 4);
+      if (!gpuCompatibility_.canDoOmniShadows) {
+         return 0;
+      }
+      int quality = std::max(Modules::config().shadowMapQuality + 3, 6);
+      return (uint32)pow(2, quality);
    }
 }
 

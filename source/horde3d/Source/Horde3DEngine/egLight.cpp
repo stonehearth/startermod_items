@@ -95,11 +95,17 @@ void LightNode::reallocateShadowBuffer(int size)
    }
 
    _shadowMapSize = size;
+
+   if (_shadowMapSize == 0) {
+      _shadowMapCount = 0;
+      return;
+   }
+
    if (Modules::config().getOption(EngineOptions::EnableShadows)) {
       if (_directional) {
-         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
+         _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::BGRA8, true, 0, 0);
       } else {
-         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::R32, true, 1, 0, 0, true);
+         _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::R32, true, 1, 0, 0, true);
          dirtyCubeFrustums();
       }
       if (!_shadowMapBuffer)

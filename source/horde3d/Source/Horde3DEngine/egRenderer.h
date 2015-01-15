@@ -133,6 +133,7 @@ struct PipeSamplerBinding
 };
 
 struct GpuCompatibility {
+   bool canDoOmniShadows;
    bool canDoShadows;
    bool canDoSsao;
 };
