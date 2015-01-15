@@ -21,15 +21,18 @@ function MasonTest:__init()
 
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 2, 2)
    self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 10, 2, 2)
-   self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
-   self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
+   --self:place_item_cluster('stonehearth:furniture:cobblestone_fence', 0, 0, 4, 8)
+   --   "mixins": "stonehearth:mixins:align_to_grid",self:place_item_cluster('stonehearth:furniture:cobblestone_fence_gate', -4, -4, 2, 2)
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
    self:place_citizen(14, 14)
 
    local player_id = radiant.entities.get_player_id(worker)
-   self:place_item('stonehearth:decoration:stone_brazier', 1, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:decoration:loot_chest', 1, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:decoration:crate', 6, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:monsters:goblins:skull_stake', 9, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:monsters:goblins:banner',11, 1, player_id, { force_iconic = false })
    self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
    
    self:at(2000,  function()
