@@ -412,24 +412,13 @@ end
 
 function SubterraneanViewService:_is_xray_visible(entity)
    local location = radiant.entities.get_world_grid_location(entity)
-   local visible = false
-
-   if location then
-      local result = self._interior_tiles:intersect_point(location)
-      visible = not result:empty()
-   end
-
+   local visible = location and self._interior_tiles:contains_point(location)
    return visible
 end
 
 function SubterraneanViewService:_is_clip_mode_visible(entity)
    local location = radiant.entities.get_world_grid_location(entity)
-   local visible = false
-
-   if location then
-      visible = location.y <= self._sv.clip_height
-   end
-
+   local visible = location and location.y <= self._sv.clip_height
    return visible
 end
 

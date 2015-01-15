@@ -79,31 +79,33 @@ csg::Cube3f Terrain::GetBounds() const
    return csg::ToFloat(*bounds_);
 }
 
-csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location) const
+// TODO: optimize this
+csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
 {
-   csg::Point3 pt = csg::ToClosestInt(location);
-   if (!(*bounds_).Contains(pt)) {
-      pt = (*bounds_).GetClosestPoint(pt);
+   csg::Point3f point;
+
+   { // scope for point3
+      csg::Point3 point3 = csg::ToClosestInt(location);
+      if (!(*bounds_).Contains(point3)) {
+         point3 = (*bounds_).GetClosestPoint(point3);
+      }
+      point = csg::ToFloat(point3);
    }
 
-   for (;;) {
-      if (!(*bounds_).Contains(pt)) {
-         // must have gone outside the top of the box.  no worries!
+   Region3BoxedTiledPtr tiles = GetTiles();
+   bool blocked = tiles->ContainsPoint(point);
+   csg::Point3f direction = blocked ? csg::Point3f::unitY : -csg::Point3f::unitY;
+
+   while ((*bounds_).Contains(csg::ToInt(point))) {
+      // if we started blocked, keep going up until open
+      // if we started open, keep going down until blocked
+      if (blocked != tiles->ContainsPoint(point)) {
          break;
       }
-
-      csg::Point3 index, offset;
-      csg::GetChunkIndexSlow(pt, TILE_SIZE, index, offset);
-      auto i = tiles_.find(index);
-      if (i != tiles_.end()) {
-         csg::Region3 const& region = i->second->Get();
-         if (!region.Contains(pt) && region.Contains(pt - csg::Point3::unitY)) {
-            break;
-         }
-      }
-      pt.y++;
+      point += direction;
    }
-   return csg::ToFloat(pt);
+
+   return point;
 }
 
 Region3BoxedTiledPtr Terrain::CreateTileAccessor(Region3BoxedMapWrapper::TileMap& tiles)
