@@ -103,6 +103,13 @@ context DEPTH_LINEAR_BACK
   CullMode = Front;
 }
 
+context BLOOM
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_BLOOM;
+  CullMode = Back;
+}
+
 
 [[VS_GENERAL]]
 #include "shaders/utilityLib/vertCommon.glsl"
@@ -436,4 +443,11 @@ void main(void)
 void main(void)
 {
   gl_FragData[0].a = toLinearDepth(gl_FragCoord.z);
+}
+
+[[FS_BLOOM]]
+
+void main(void)
+{
+  gl_FragColor = vec4(0.0);
 }

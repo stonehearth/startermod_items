@@ -16,6 +16,15 @@ context FSQUAD_COPY
 	ZWriteEnable = false;
 }
 
+context ADD
+{
+	VertexShader = compile GLSL VS_FSQUAD;
+	PixelShader = compile GLSL FS_FSQUAD_COPY;
+
+	BlendMode = Add;	
+	ZWriteEnable = false;
+}
+
 [[VS_FSQUAD]]
 
 uniform mat4 projMat;

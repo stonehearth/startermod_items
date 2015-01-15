@@ -6,12 +6,21 @@
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
+      <RenderTarget id="BloomTemp" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
+      <RenderTarget id="BloomFinal" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
+      <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/>      
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
       <Stage id="Init">
          <SwitchTarget target="GBuffers" />
          <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+
+         <SwitchTarget target="Bloom" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+
+         <SwitchTarget target="BloomFinal" />
+         <ClearTarget colBuf0="true"/>
 
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" />
@@ -76,12 +85,34 @@
          <UnbindBuffers />
       </Stage>
 
+      <Stage id="Bloom">
+         <SwitchTarget target="Bloom" />
+         <DrawGeometry context="BLOOM" />
+
+         <SwitchTarget target="BloomTemp" />
+         <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
+         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_X" />
+
+         <SwitchTarget target="BloomFinal" />
+         <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
+         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_Y" />
+
+         <UnbindBuffers/>
+         <SwitchTarget target="" />
+      </Stage>
+
       <Stage id="Translucent">
          <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="DrawBloom">
+         <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
+         <DrawQuad material="materials/fullscreen_quad.material.xml" context="ADD" />
+         <UnbindBuffers/>
       </Stage>
 
       <Stage id="Selected">
