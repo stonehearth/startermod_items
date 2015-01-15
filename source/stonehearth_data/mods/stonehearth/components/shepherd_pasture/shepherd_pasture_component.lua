@@ -169,26 +169,14 @@ function ShepherdPastureComponent:_release_existing_animals()
       --If the animal is following a shepherd, remove it from the shepherd's folloq queue
       local animal = animal_data.entity
       local equipment_component = animal:add_component('stonehearth:equipment')
-      local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
-      if pasture_tag then
-         local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
-         shepherded_animal_component:free_animal()
-         
-         --if shepherded_animal_component:get_following() then
-         --   local shepherd = shepherded_animal_component:get_last_shepherd()
-         --   local shepherd_class = shepherd:get_component('stonehearth:job'):get_curr_job_controller()
-         --   if shepherd_class and shepherd_class.remove_trailing_animal then
-         --      shepherd_class:remove_trailing_animal(id)
-         --   end
-         --end
-         --unequip its pasture tags
-         --equipment_component:unequip_item('stonehearth:pasture_tag')
+      if equipment_component then
+         local pasture_tag = equipment_component:has_item_type('stonehearth:pasture_tag')
+         if pasture_tag then
+            local shepherded_animal_component = pasture_tag:get_component('stonehearth:shepherded_animal')
+            shepherded_animal_component:free_animal()
+         end
+      end       
    end
-
-   --Remove it from the pasture
-   --self:_remove_animal(id)
-   end
-
    self._sv.tracked_critters = {}
 end
 
