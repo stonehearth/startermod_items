@@ -83,8 +83,8 @@ function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
       local rock_elevation
 
       if surface_elevation > mountains_base_height then
-         -- just clip the underground micro map if the mountain breaks the surface
-         rock_elevation = mountains_base_height
+         -- if the mountain breaks the surface just use its height
+         rock_elevation = surface_elevation
       else
          -- quantize the filtered value
          rock_elevation = quantizer:quantize(underground_micro_map[i])
@@ -104,7 +104,9 @@ function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
       underground_micro_map[i] = rock_elevation
    end
 
-   return underground_micro_map
+   local underground_elevation_map = self:_convert_to_elevation_map(underground_micro_map)
+
+   return underground_micro_map, underground_elevation_map
 end
 
 function MicroMapGenerator:generate_noise_map(blueprint)

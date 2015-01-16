@@ -1,5 +1,5 @@
+local ScenarioIndex = require 'services.server.world_generation.scenario_index'
 local HabitatType = require 'services.server.world_generation.habitat_type'
-local ScenarioActivationType = require 'services.server.world_generation.scenario_activation_type'
 local ScenarioSelector = require 'services.server.world_generation.scenario_selector'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local log = radiant.log.create_logger('surface_scenario_selector')
@@ -9,53 +9,16 @@ local SurfaceScenarioSelector = class()
 function SurfaceScenarioSelector:__init(feature_size, seed)
    self._feature_size = feature_size
    self._rng = RandomNumberGenerator(seed)
-
-   self:_parse_scenario_index()
-end
-
-function SurfaceScenarioSelector:_parse_scenario_index()
-   local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
-   local categories = {}
-   local properties, category, error_message
-
-   -- load all the categories
-   for name, properties in pairs(scenario_index.static.categories) do
-      -- parse activation type
-      if not ScenarioActivationType.is_valid(properties.activation_type) then
-         log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
-      end
-      categories[name] = ScenarioSelector(properties.frequency, properties.priority, properties.activation_type, self._rng)
-   end
-
-   -- load the scenarios into the categories
-   for _, file in pairs(scenario_index.static.scenarios) do
-      properties = radiant.resources.load_json(file)
-
-      -- parse category
-      category = categories[properties.category]
-      if category then
-         category:add(properties)
-      else
-         log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
-      end
-
-      -- parse habitat types
-      error_message = self:_parse_habitat_types(properties)
-      if error_message then
-         log:error('Error parsing "%s": "%s"', file, error_message)
-      end
-   end
-
-   self._categories = categories
+   self._scenario_index = ScenarioIndex(self._rng)
 end
 
 function SurfaceScenarioSelector:place_immediate_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, ScenarioActivationType.immediate)
+   local scenarios = self:_select_scenarios(habitat_map, 'immediate')
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, true)
 end
 
 function SurfaceScenarioSelector:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, ScenarioActivationType.revealed)
+   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, false)
 end
 
@@ -145,15 +108,12 @@ end
 
 -- get a list of scenarios from all the categories
 function SurfaceScenarioSelector:_select_scenarios(habitat_map, activation_type)
-   local categories = self._categories
    local selected_scenarios = {}
-   local selector, list
+   local category, selector, list
 
-   for key, _ in pairs(categories) do
-      selector = categories[key]
-
-      if selector.activation_type == activation_type then
-         list = selector:select_scenarios(habitat_map)
+   for name, category in pairs(self._scenario_index:get_categories()) do
+      if category.location_type == 'surface' and category.activation_type == activation_type then
+         list = category.selector:select_scenarios(habitat_map)
 
          for _, properties in pairs(list) do
             table.insert(selected_scenarios, properties)
@@ -168,12 +128,13 @@ end
 
 -- order first by priority, then by area, then by weight
 function SurfaceScenarioSelector:_sort_scenarios(scenarios)
+   local categories = self._scenario_index:get_categories()
+
    local comparator = function(a, b)
       local category_a = a.category
       local category_b = b.category
 
       if category_a ~= category_b then
-         local categories = self._categories
          local priority_a = categories[category_a].priority
          local priority_b = categories[category_b].priority
          -- higher priority sorted to lower index
@@ -194,44 +155,21 @@ function SurfaceScenarioSelector:_sort_scenarios(scenarios)
 end
 
 function SurfaceScenarioSelector:_remove_scenario_from_selector(properties)
-   local name = properties.name
-   local category = properties.category
+   local scenario_name = properties.name
+   local category_name = properties.category
 
    -- just remove from future selection, don't remove from master index
-   self._categories[category]:remove(name)
+   local categories = self._scenario_index:get_categories()
+   categories[category_name].selector:remove(scenario_name)
 end
 
 function SurfaceScenarioSelector:_mark_habitat_map(habitat_map, i, j, width, length)
-   habitat_map:set_block(i, j, width, length, HabitatType.occupied)
+   habitat_map:set_block(i, j, width, length, 'occupied')
 end
 
 function SurfaceScenarioSelector:_get_dimensions_in_feature_units(width, length)
    local feature_size = self._feature_size
    return math.ceil(width/feature_size), math.ceil(length/feature_size)
-end
-
--- parse the habitat_types array into a set so we can index by the habitat_type
-function SurfaceScenarioSelector:_parse_habitat_types(properties)
-   local strings = properties.habitat_types
-   local habitat_type
-   local habitat_types = {}
-   local error_message = nil
-
-   for _, value in pairs(strings) do
-      if HabitatType.is_valid(value) then
-         habitat_types[value] = value
-      else
-         -- concatenate multiple errors into a single string
-         if error_message == nil then
-            error_message = ''
-         end
-         error_message = string.format('%s Invalid habitat type "%s".', error_message, tostring(value))
-      end
-   end
-
-   properties.habitat_types = habitat_types
-
-   return error_message
 end
 
 return SurfaceScenarioSelector

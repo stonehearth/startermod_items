@@ -10,6 +10,7 @@ local HeightMapRenderer = require 'services.server.world_generation.height_map_r
 local HabitatType = require 'services.server.world_generation.habitat_type'
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
+local UndergroundScenarioSelector = require 'services.server.world_generation.underground_scenario_selector'
 local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
@@ -48,6 +49,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
+   self._underground_scenario_selector = UndergroundScenarioSelector(self._feature_size, seed)
    self._surface_scenario_selector = SurfaceScenarioSelector(self._feature_size, seed)
    stonehearth.static_scenario:create_new_game(self._feature_size, seed)
    stonehearth.dynamic_scenario:create_new_game()
@@ -90,10 +92,10 @@ function WorldGenerationService:set_blueprint(blueprint)
          local micro_map_generator = self._micro_map_generator
          local landscaper = self._landscaper
          local full_micro_map, full_underground_micro_map
-         local full_elevation_map, full_feature_map, full_habitat_map
+         local full_elevation_map, full_underground_elevation_map, full_feature_map, full_habitat_map
 
          full_micro_map, full_elevation_map = micro_map_generator:generate_micro_map(blueprint)
-         full_underground_micro_map = micro_map_generator:generate_underground_micro_map(full_micro_map)
+         full_underground_micro_map, full_underground_elevation_map = micro_map_generator:generate_underground_micro_map(full_micro_map)
 
          full_feature_map = Array2D(full_elevation_map.width, full_elevation_map.height)
 
@@ -107,9 +109,13 @@ function WorldGenerationService:set_blueprint(blueprint)
 
          -- shard the maps and store in the blueprint
          -- micro_maps are overlapping so they need a different sharding function
+         -- these maps are at macro_block_size resolution (32x32)
          blueprint_generator:store_micro_map(blueprint, "micro_map", full_micro_map, macro_blocks_per_tile)
          blueprint_generator:store_micro_map(blueprint, "underground_micro_map", full_underground_micro_map, macro_blocks_per_tile)
+
+         -- these maps are at feature_size resolution (16x16)
          blueprint_generator:shard_and_store_map(blueprint, "elevation_map", full_elevation_map)
+         blueprint_generator:shard_and_store_map(blueprint, "underground_elevation_map", full_underground_elevation_map)
          blueprint_generator:shard_and_store_map(blueprint, "feature_map", full_feature_map)
          blueprint_generator:shard_and_store_map(blueprint, "habitat_map", full_habitat_map)
 
@@ -132,38 +138,28 @@ end
 
 function WorldGenerationService:set_starting_location(location)
    self._starting_location = location
-   self:_place_scenarios_on_generated_tiles()
 
    local exclusion_radius = stonehearth.static_scenario:get_reveal_distance()
-   local starting_region = Region2(Rect2(
-         Point2(location.x - exclusion_radius,   location.y - exclusion_radius),
-         Point2(location.x + exclusion_radius+1, location.y + exclusion_radius+1)
+   local exclusion_region = Region2(Rect2(
+         Point2(-exclusion_radius,  -exclusion_radius),
+         Point2( exclusion_radius+1, exclusion_radius+1)
       ))
+   exclusion_region:translate(self._starting_location)
 
    -- clear the starting location of all revealed scenarios
-   stonehearth.static_scenario:reveal_region(starting_region, function(properties)
-         return false
-      end)
-end
+   -- stonehearth.static_scenario:reveal_region(exclusion_region, function(properties) -- CHECKCHECK
+   --       return false
+   --    end)
 
-function WorldGenerationService:_place_scenarios_on_generated_tiles()
-   assert(self._blueprint)
-   local blueprint = self._blueprint
-   local tile_info, habitat_map, elevation_map, offset_x, offset_y
+   -- CHECKCHECK
+   local ore_location = radiant.terrain.get_point_on_terrain(Point3(location.x, 0, location.y)) + Point3(0, -5, 0)
+   local properties = {}
+   properties.script = '/stonehearth/scenarios/static/terrain/ore_vein/ore_vein.lua'
+   properties.location = ore_location
+   properties.kind = 'gold_ore'
+   stonehearth.static_scenario:add_scenario(properties, location.x-64, location.y-64, 129, 129)
 
-   for j=1, blueprint.height do
-      for i=1, blueprint.width do
-         tile_info = blueprint:get(i, j)
-
-         if tile_info.generated then
-            offset_x, offset_y = self:get_tile_origin(i, j, blueprint)
-            habitat_map = tile_info.habitat_map
-            elevation_map = tile_info.elevation_map
-
-            self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
-         end
-      end
-   end
+   stonehearth.static_scenario:reveal_region(exclusion_region)
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)
@@ -253,7 +249,7 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    local tile_size = self._tile_size
    local tile_map, underground_tile_map, tile_info, tile_seed
    local micro_map, underground_micro_map
-   local elevation_map, feature_map, habitat_map
+   local elevation_map, underground_elevation_map, feature_map, habitat_map
    local offset_x, offset_y
 
    tile_info = blueprint:get(i, j)
@@ -272,6 +268,7 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    micro_map = tile_info.micro_map
    underground_micro_map = tile_info.underground_micro_map
    elevation_map = tile_info.elevation_map
+   underground_elevation_map = tile_info.underground_elevation_map
    feature_map = tile_info.feature_map
    habitat_map = tile_info.habitat_map
 
@@ -292,7 +289,7 @@ function WorldGenerationService:_generate_tile_internal(i, j)
    self:_place_flora(tile_map, feature_map, offset_x, offset_y)
 
    -- place scenarios
-   self:_place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+   self:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
 
    tile_info.generated = true
 end
@@ -324,7 +321,7 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, of
    self:_yield()
 end
 
-function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, offset_x, offset_y)
+function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
    if not self._enable_scenarios then
       return
    end
@@ -333,11 +330,8 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, off
       function()
          self._surface_scenario_selector:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
-         if self._starting_location then
-            -- add scenarios as tiles are generated
-            -- if this is before the starting location is determined, we will add them when set_starting_location is called
-            self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
-         end
+         self._underground_scenario_selector:place_revealed_scenarios(underground_elevation_map, offset_x, offset_y)
+         self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
       end
    )
 

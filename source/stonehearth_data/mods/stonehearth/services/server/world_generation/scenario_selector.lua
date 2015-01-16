@@ -8,10 +8,8 @@ local log = radiant.log.create_logger('scenario_service')
 -- frequency - The probability or expected number of scenarios in the category
 --             that will (attempt to) be placed in a tile. Frequencies > 1.00 are supported.
 -- priority - The order in which the scenarios will be placed (lower priorites may not find a site).
-function ScenarioSelector:__init(frequency, priority, activation_type, rng)
+function ScenarioSelector:__init(frequency, rng)
    self.frequency = frequency
-   self.priority = priority
-   self.activation_type = activation_type
    self._rng = rng
    self._scenarios = {}
 end

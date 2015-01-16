@@ -1,10 +1,21 @@
 local Array2D = require 'services.server.world_generation.array_2D'
 local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
-local HabitatType = require 'services.server.world_generation.habitat_type'
 local log = radiant.log.create_logger('world_generation')
 
 local HabitatManager = class()
+
+local habitat_types = {
+   occupied  = true,
+   plains    = true,
+   foothills = true,
+   mountains = true,
+   forest    = true
+}
+
+function HabitatManager.is_valid_habitat_type(habitat_type)
+   return habitat_types[habitat_type]
+end
 
 function HabitatManager:__init(terrain_info, landscaper)
    self._terrain_info = terrain_info
@@ -34,22 +45,22 @@ end
 -- This is likely to change
 function HabitatManager:_get_habitat_type(terrain_type, feature_name)
    if terrain_type == TerrainType.mountains then
-      return HabitatType.mountains
+      return 'mountains'
    end
    if self._landscaper:is_forest_feature(feature_name) then
-      return HabitatType.forest
+      return 'forest'
    end
    if feature_name ~= nil then
-      return HabitatType.occupied
+      return 'occupied'
    end
    if terrain_type == TerrainType.plains then
-      return HabitatType.plains
+      return 'plains'
    end
    if terrain_type == TerrainType.foothills then
-      return HabitatType.foothills
+      return 'foothills'
    end
-   log:error('Unable to deduce HabitatType')
-   return HabitatType.occupied
+   log:error('Unable to derive HabitatType')
+   return 'occupied'
 end
 
 return HabitatManager
