@@ -1,0 +1,9 @@
+{
+   "skeleton" : {
+      "forge": [0,0,0],
+      "bellowTop": [-10.987,0,5.98158],
+      "bellowsBottom": [-11.0162,0,3.00174]
+    },
+   "animation_root" : "file(animations)",
+   "effects_root" : "file(effects)"
+}
