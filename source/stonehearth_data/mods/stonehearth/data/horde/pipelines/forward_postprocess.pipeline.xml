@@ -87,7 +87,7 @@
 
       <Stage id="Bloom">
          <SwitchTarget target="Bloom" />
-         <DrawGeometry context="BLOOM" />
+         <DrawGeometry context="BLOOM" forceLodLevel="1" />
 
          <SwitchTarget target="BloomTemp" />
          <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
