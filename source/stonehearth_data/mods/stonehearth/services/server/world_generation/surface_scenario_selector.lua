@@ -1,5 +1,4 @@
 local ScenarioIndex = require 'services.server.world_generation.scenario_index'
-local HabitatType = require 'services.server.world_generation.habitat_type'
 local ScenarioSelector = require 'services.server.world_generation.scenario_selector'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local log = radiant.log.create_logger('surface_scenario_selector')

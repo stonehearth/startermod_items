@@ -7,7 +7,6 @@ local MicroMapGenerator = require 'services.server.world_generation.micro_map_ge
 local Landscaper = require 'services.server.world_generation.landscaper'
 local TerrainGenerator = require 'services.server.world_generation.terrain_generator'
 local HeightMapRenderer = require 'services.server.world_generation.height_map_renderer'
-local HabitatType = require 'services.server.world_generation.habitat_type'
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
 local UndergroundScenarioSelector = require 'services.server.world_generation.underground_scenario_selector'
@@ -147,19 +146,9 @@ function WorldGenerationService:set_starting_location(location)
    exclusion_region:translate(self._starting_location)
 
    -- clear the starting location of all revealed scenarios
-   -- stonehearth.static_scenario:reveal_region(exclusion_region, function(properties) -- CHECKCHECK
-   --       return false
-   --    end)
-
-   -- CHECKCHECK
-   local ore_location = radiant.terrain.get_point_on_terrain(Point3(location.x, 0, location.y)) + Point3(0, -5, 0)
-   local properties = {}
-   properties.script = '/stonehearth/scenarios/static/terrain/ore_vein/ore_vein.lua'
-   properties.location = ore_location
-   properties.kind = 'gold_ore'
-   stonehearth.static_scenario:add_scenario(properties, location.x-64, location.y-64, 129, 129)
-
-   stonehearth.static_scenario:reveal_region(exclusion_region)
+   stonehearth.static_scenario:reveal_region(exclusion_region, function(properties)
+         return false
+      end)
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)

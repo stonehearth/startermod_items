@@ -1,4 +1,3 @@
-local HabitatType = require 'services.server.world_generation.habitat_type'
 local WeightedSet = require 'lib.algorithms.weighted_set'
 local Histogram = require 'lib.algorithms.histogram'
 

@@ -20,7 +20,7 @@
             "activation_type" : "immediate"
          },
          "wildlife" : {
-            "frequency" : 300.0,
+            "frequency" : 3.0,
             "priority" : 0,
             "location_type" : "surface",
             "activation_type" : "revealed"

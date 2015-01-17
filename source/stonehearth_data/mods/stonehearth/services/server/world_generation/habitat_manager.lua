@@ -59,7 +59,7 @@ function HabitatManager:_get_habitat_type(terrain_type, feature_name)
    if terrain_type == TerrainType.foothills then
       return 'foothills'
    end
-   log:error('Unable to derive HabitatType')
+   log:error('Unable to derive habitat_type')
    return 'occupied'
 end
 
