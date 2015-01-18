@@ -147,7 +147,7 @@ function Array2D:clone_to_nested_arrays()
    return dst
 end
 
-function Array2D:fill_ij(fn)
+function Array2D:fill(fn)
    local offset = 1
 
    for j=1, self.height do
@@ -173,10 +173,13 @@ function Array2D:set_block(x, y, block_width, block_height, value)
 end
 
 function Array2D:process(fn)
-   local size = self.width * self.height
+   local offset = 1
 
-   for i=1, size do
-      self[i] = fn(self[i])
+   for j=1, self.height do
+      for i=1, self.width do
+         self[offset] = fn(self[offset], i, j)
+         offset = offset + 1
+      end
    end
 end
 
@@ -193,21 +196,26 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
+-- TODO: continue if fn(x) returns nil/false instead of true
 -- returns true if fn(x) returns true for all elements, false otherwise
 -- terminates early if fn(x) returns false on an element
 function Array2D:visit(fn)
-   local size = self.width * self.height
+   local offset = 1
    local continue
 
-   for i=1, size do
-      continue = fn(self[i])
-      if not continue then
-         return false
+   for j=1, self.height do
+      for i=1, self.width do
+         continue = fn(self[offset], i, j)
+         if not continue then
+            return false
+         end
+         offset = offset + 1
       end
    end
    return true
 end
 
+-- TODO: continue if fn(x) returns nil/false instead of true
 -- returns true if fn(x) returns true for all elements, false otherwise
 -- terminates early if fn(x) returns false on an element
 function Array2D:visit_block(x, y, block_width, block_height, fn)

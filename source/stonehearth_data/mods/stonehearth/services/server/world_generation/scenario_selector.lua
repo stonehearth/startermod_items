@@ -21,7 +21,7 @@ function ScenarioSelector:remove(name)
    self._scenarios[properties.name] = nil
 end
 
-function ScenarioSelector:select_scenarios(habitat_map)
+function ScenarioSelector:select_scenarios()
    local rng = self._rng
    local frequency = self.frequency
    local selected = {}

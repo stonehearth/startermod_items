@@ -1,4 +1,3 @@
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
@@ -7,9 +6,9 @@ local Wavelet = require 'services.server.world_generation.filter.wavelet'
 local WaveletFns = require 'services.server.world_generation.filter.wavelet_fns'
 local TerrainDetailer = require 'services.server.world_generation.terrain_detailer'
 local Timer = require 'services.server.world_generation.timer'
+local log = radiant.log.create_logger('world_generation')
 
 local TerrainGenerator = class()
-local log = radiant.log.create_logger('world_generation')
 
 -- Definitions
 -- Block = atomic unit of terrain that cannot be subdivided
@@ -112,7 +111,7 @@ function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
 
          local terrain_info = self._terrain_info
          -- disable fancy mode for plains
-         if quantized_value <= terrain_info[TerrainType.plains].max_height then
+         if quantized_value <= terrain_info.plains.max_height then
             return quantized_value
          end
 

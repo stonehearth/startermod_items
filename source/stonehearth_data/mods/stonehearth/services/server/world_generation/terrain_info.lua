@@ -1,5 +1,4 @@
 local constants = require 'constants'
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 
 local TerrainInfo = class()
@@ -19,20 +18,20 @@ function TerrainInfo:__init()
    plains_info.mean_height = 40
    plains_info.std_dev = 6
    plains_info.max_height = 40
-   self[TerrainType.plains] = plains_info
+   self.plains = plains_info
 
    local foothills_info = {}
    foothills_info.step_size = 10
    foothills_info.mean_height = 56
    foothills_info.std_dev = 12
    foothills_info.max_height = 60
-   self[TerrainType.foothills] = foothills_info
+   self.foothills = foothills_info
 
    local mountains_info = {}
    mountains_info.step_size = 15
    mountains_info.mean_height = 105
    mountains_info.std_dev = 80
-   self[TerrainType.mountains] = mountains_info
+   self.mountains = mountains_info
 
    assert(plains_info.max_height % self.slice_size == 0)
    assert(foothills_info.max_height % self.slice_size == 0)
@@ -65,15 +64,15 @@ function TerrainInfo:__init()
 end
 
 function TerrainInfo:get_terrain_type(height)
-   if height <= self[TerrainType.plains].max_height then
-      return TerrainType.plains
+   if height <= self.plains.max_height then
+      return 'plains'
    end
 
-   if height <= self[TerrainType.foothills].max_height then
-      return TerrainType.foothills
+   if height <= self.foothills.max_height then
+      return 'foothills'
    end
 
-   return TerrainType.mountains
+   return 'mountains'
 end
 
 -- takes quantized height values
@@ -94,9 +93,9 @@ function TerrainInfo:get_terrain_code(height)
 end
 
 function TerrainInfo:_get_quantization_centroids()
-   local plains_info = self[TerrainType.plains]
-   local foothills_info = self[TerrainType.foothills]
-   local mountains_info = self[TerrainType.mountains]
+   local plains_info = self.plains
+   local foothills_info = self.foothills
+   local mountains_info = self.mountains
    local centroids = {}
    local min, max, step_size
    
@@ -120,7 +119,7 @@ end
 
 -- used to quantize the underground mountains
 function TerrainInfo:_get_mountain_quantization_centroids()
-   local mountains_info = self[TerrainType.mountains]
+   local mountains_info = self.mountains
    local centroids = {}
    local min, max, step_size
 

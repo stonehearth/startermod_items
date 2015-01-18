@@ -1,5 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local log = radiant.log.create_logger('world_generation')
 
@@ -152,7 +151,7 @@ function OverviewMap:_get_wildlife_density(i, j, elevation_map)
       for a=start_a, start_a+width-1 do
          elevation = elevation_map:get(a, b)
          terrain_type = terrain_info:get_terrain_type(elevation)
-         if terrain_type ~= TerrainType.mountains then
+         if terrain_type ~= 'mountains' then
             -- basic plains and foothills are average density (0.5 out of 1)
             sum = sum + 0.5
          end

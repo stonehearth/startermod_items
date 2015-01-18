@@ -12,6 +12,7 @@ function WeightedSet:clear()
 end
 
 function WeightedSet:add(item, weight)
+   assert(weight >= 0)
    self._map[item] = weight
    self._total_is_valid = false
 end
@@ -22,6 +23,10 @@ end
 
 function WeightedSet:remove(item)
    self:add(item, nil)
+end
+
+function WeightedSet:get_weight(item)
+   return self._map[item]
 end
 
 function WeightedSet:get_probability(item)

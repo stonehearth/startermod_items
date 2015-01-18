@@ -17,20 +17,72 @@ local location_types = {
 function ScenarioIndex:__init(rng)
    self._rng = rng
 
-   self:_parse_scenario_index()
+   local json = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
+   self._categories = self:_parse_scenario_index(json)
 end
 
-function ScenarioIndex:get_categories()
-   return self._categories
+-- get a list of scenarios from all the categories
+function ScenarioIndex:select_scenarios(location_type, activation_type)
+   local selected_scenarios = {}
+   local category, selector, list
+
+   for name, category in pairs(self._categories) do
+      if category.location_type == location_type and category.activation_type == activation_type then
+         list = category.selector:select_scenarios()
+
+         for _, properties in pairs(list) do
+            table.insert(selected_scenarios, properties)
+         end
+      end
+   end
+
+   self:_sort_scenarios(selected_scenarios)
+
+   return selected_scenarios
 end
 
-function ScenarioIndex:_parse_scenario_index()
-   local scenario_index = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
+function ScenarioIndex:remove_scenario(properties)
+   local scenario_name = properties.name
+   local category_name = properties.category
+
+   -- just remove from future selection, don't remove from master index
+   self._categories[category_name].selector:remove(scenario_name)
+end
+
+-- order first by priority, then by area, then by weight
+function ScenarioIndex:_sort_scenarios(scenarios)
+   local categories = self._categories
+
+   local comparator = function(a, b)
+      local category_a = a.category
+      local category_b = b.category
+
+      if category_a ~= category_b then
+         local priority_a = categories[category_a].priority
+         local priority_b = categories[category_b].priority
+         -- higher priority sorted to lower index
+         return priority_a > priority_b
+      end
+
+      local area_a = a.size.width * a.size.length
+      local area_b = b.size.width * b.size.length
+      if area_a ~= area_b then
+         -- larger area sorted to lower index
+         return area_a > area_b 
+      end
+
+      return a.weight > b.weight
+   end
+
+   table.sort(scenarios, comparator)
+end
+
+function ScenarioIndex:_parse_scenario_index(json)
    local categories = {}
    local properties, category, error_message
 
    -- load all the categories
-   for name, properties in pairs(scenario_index.static.categories) do
+   for name, properties in pairs(json.static.categories) do
       -- parse activation type
       if not self:_is_valid_activation_type(properties.activation_type) then
          log:error('Error parsing "%s": Invalid activation_type "%s".', file, tostring(properties.activation_type))
@@ -49,7 +101,7 @@ function ScenarioIndex:_parse_scenario_index()
    end
 
    -- load the scenarios into the categories
-   for _, file in pairs(scenario_index.static.scenarios) do
+   for _, file in pairs(json.static.scenarios) do
       properties = radiant.resources.load_json(file)
 
       -- parse category
@@ -67,7 +119,7 @@ function ScenarioIndex:_parse_scenario_index()
       end
    end
 
-   self._categories = categories
+   return categories
 end
 
 -- parse the habitat_types array into a set so we can index by the habitat_type

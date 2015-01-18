@@ -1,6 +1,5 @@
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local MicroMapGenerator = require 'services.server.world_generation.micro_map_generator'
@@ -9,6 +8,7 @@ local TerrainGenerator = require 'services.server.world_generation.terrain_gener
 local HeightMapRenderer = require 'services.server.world_generation.height_map_renderer'
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
+local ScenarioIndex = require 'services.server.world_generation.scenario_index'
 local UndergroundScenarioSelector = require 'services.server.world_generation.underground_scenario_selector'
 local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
 local Timer = require 'services.server.world_generation.timer'
@@ -19,9 +19,9 @@ local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
+local log = radiant.log.create_logger('world_generation')
 
 local WorldGenerationService = class()
-local log = radiant.log.create_logger('world_generation')
 
 function WorldGenerationService:initialize()
    self._sv = self.__saved_variables:get_data()
@@ -29,6 +29,8 @@ function WorldGenerationService:initialize()
    if not self._sv.initialized then
       self._sv.initialized = true
    else
+      -- TODO: support tile generation after load
+      -- TODO: make sure all rngs dependent on the tile seed
    end
 end
 
@@ -48,8 +50,9 @@ function WorldGenerationService:create_new_game(seed, async)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
-   self._underground_scenario_selector = UndergroundScenarioSelector(self._feature_size, seed)
-   self._surface_scenario_selector = SurfaceScenarioSelector(self._feature_size, seed)
+   self._scenario_index = ScenarioIndex(self._rng)
+   self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._feature_size, self._rng)
+   self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._feature_size, self._rng)
    stonehearth.static_scenario:create_new_game(self._feature_size, seed)
    stonehearth.dynamic_scenario:create_new_game()
 
@@ -149,6 +152,17 @@ function WorldGenerationService:set_starting_location(location)
    stonehearth.static_scenario:reveal_region(exclusion_region, function(properties)
          return false
       end)
+
+   -- test code CHECKCHECK
+   if radiant.util.get_config('enable_ore', false) then
+      local exclusion_radius = 10000
+      local exclusion_region = Region2(Rect2(
+            Point2(-exclusion_radius,  -exclusion_radius),
+            Point2( exclusion_radius+1, exclusion_radius+1)
+         ))
+      exclusion_region:translate(self._starting_location)
+      stonehearth.static_scenario:reveal_region(exclusion_region)
+   end
 end
 
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)

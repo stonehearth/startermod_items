@@ -1,13 +1,12 @@
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local ValleyShapes = require 'services.server.world_generation.valley_shapes'
 local Timer = require 'services.server.world_generation.timer'
+local log = radiant.log.create_logger('world_generation')
 
 local MicroMapGenerator = class()
-local log = radiant.log.create_logger('world_generation')
 
 function MicroMapGenerator:__init(terrain_info, rng)
    self._terrain_info = terrain_info
@@ -56,7 +55,7 @@ end
 
 -- given a surface micro map, generate the underground micro map that indicates rock elevations
 function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
-   local mountains_info = self._terrain_info[TerrainType.mountains]
+   local mountains_info = self._terrain_info.mountains
    local mountains_base_height = mountains_info.base_height
    local mountains_step_size = mountains_info.step_size
    local rock_line = mountains_step_size
@@ -125,16 +124,16 @@ function MicroMapGenerator:generate_noise_map(blueprint)
          mean = terrain_info[terrain_type].mean_height
          std_dev = terrain_info[terrain_type].std_dev
 
-         if terrain_type == TerrainType.mountains then
-            if self:_surrounded_by_terrain(TerrainType.mountains, blueprint, i, j) then
-               mean = mean + terrain_info[TerrainType.mountains].step_size
+         if terrain_type == 'mountains' then
+            if self:_surrounded_by_terrain('mountains', blueprint, i, j) then
+               mean = mean + terrain_info.mountains.step_size
             end
-         elseif terrain_type == TerrainType.foothills then
-            if self:_surrounded_by_terrain(TerrainType.foothills, blueprint, i, j) then
+         elseif terrain_type == 'foothills' then
+            if self:_surrounded_by_terrain('foothills', blueprint, i, j) then
                std_dev = std_dev * 1.20
             end
-         else -- terrain_type == TerrainType.plains
-            -- if self:_surrounded_by_terrain(TerrainType.plains, blueprint, i, j) then
+         else -- terrain_type == 'plains'
+            -- if self:_surrounded_by_terrain('plains', blueprint, i, j) then
             -- end
          end
 
@@ -204,7 +203,7 @@ end
 
 function MicroMapGenerator:_quantize(micro_map)
    local quantizer = self._terrain_info.quantizer
-   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+   local plains_max_height = self._terrain_info.plains.max_height
 
    micro_map:process(
       function (value)
@@ -428,7 +427,7 @@ function MicroMapGenerator:_add_plains_valleys(micro_map)
    local rng = self._rng
    local shape_width = self._valley_shapes.shape_width
    local shape_height = self._valley_shapes.shape_height
-   local plains_info = self._terrain_info[TerrainType.plains]
+   local plains_info = self._terrain_info.plains
    local noise_map = Array2D(micro_map.width, micro_map.height)
    local filtered_map = Array2D(micro_map.width, micro_map.height)
    local plains_max_height = plains_info.max_height
@@ -448,7 +447,7 @@ function MicroMapGenerator:_add_plains_valleys(micro_map)
       return 1
    end
 
-   noise_map:fill_ij(noise_fn)
+   noise_map:fill(noise_fn)
 
    FilterFns.filter_2D_0125(filtered_map, noise_map, noise_map.width, noise_map.height, 10)
 
@@ -478,8 +477,8 @@ end
 
 function MicroMapGenerator:_place_valley(micro_map, i, j)
    local terrain_info = self._terrain_info
-   local plateau_height = terrain_info[TerrainType.plains].max_height
-   local valley_height = terrain_info[TerrainType.plains].valley_height
+   local plateau_height = terrain_info.plains.max_height
+   local valley_height = terrain_info.plains.valley_height
    local block
 
    block = self._valley_shapes:get_random_shape(valley_height, plateau_height)
@@ -488,7 +487,7 @@ function MicroMapGenerator:_place_valley(micro_map, i, j)
 end
 
 function MicroMapGenerator:_is_high_plains(micro_map, i, j, width, height)
-   local plains_height = self._terrain_info[TerrainType.plains].max_height
+   local plains_height = self._terrain_info.plains.max_height
 
    local fn = function (value)
       if value == plains_height then
@@ -503,7 +502,7 @@ end
 ----- stashed code below
 
 function MicroMapGenerator:_consolidate_mountain_blocks(micro_map)
-   local max_foothills_height = self._terrain_info[TerrainType.foothills].max_height
+   local max_foothills_height = self._terrain_info.foothills.max_height
    local start_x = 1
    local start_y = 1
    local i, j, value

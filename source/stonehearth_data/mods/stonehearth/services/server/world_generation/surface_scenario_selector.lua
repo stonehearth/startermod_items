@@ -1,23 +1,21 @@
-local ScenarioIndex = require 'services.server.world_generation.scenario_index'
 local ScenarioSelector = require 'services.server.world_generation.scenario_selector'
-local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
 local log = radiant.log.create_logger('surface_scenario_selector')
 
 local SurfaceScenarioSelector = class()
 
-function SurfaceScenarioSelector:__init(feature_size, seed)
+function SurfaceScenarioSelector:__init(scenario_index, feature_size, rng)
    self._feature_size = feature_size
-   self._rng = RandomNumberGenerator(seed)
-   self._scenario_index = ScenarioIndex(self._rng)
+   self._rng = rng
+   self._scenario_index = scenario_index
 end
 
 function SurfaceScenarioSelector:place_immediate_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'immediate')
+   local scenarios = self._scenario_index:select_scenarios('surface', 'immediate')
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, true)
 end
 
 function SurfaceScenarioSelector:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self:_select_scenarios(habitat_map, 'revealed')
+   local scenarios = self._scenario_index:select_scenarios('surface', 'revealed')
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, false)
 end
 
@@ -65,7 +63,7 @@ function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevat
          self:_mark_habitat_map(habitat_map, site.i, site.j, feature_width, feature_length)
 
          if properties.unique then
-            self:_remove_scenario_from_selector(properties)
+            self._scenario_index:remove_scenario(properties)
          end
       end
    end
@@ -103,63 +101,6 @@ function SurfaceScenarioSelector:_find_valid_sites(habitat_map, elevation_map, h
    end
 
    return sites, num_sites
-end
-
--- get a list of scenarios from all the categories
-function SurfaceScenarioSelector:_select_scenarios(habitat_map, activation_type)
-   local selected_scenarios = {}
-   local category, selector, list
-
-   for name, category in pairs(self._scenario_index:get_categories()) do
-      if category.location_type == 'surface' and category.activation_type == activation_type then
-         list = category.selector:select_scenarios(habitat_map)
-
-         for _, properties in pairs(list) do
-            table.insert(selected_scenarios, properties)
-         end
-      end
-   end
-
-   self:_sort_scenarios(selected_scenarios)
-
-   return selected_scenarios
-end
-
--- order first by priority, then by area, then by weight
-function SurfaceScenarioSelector:_sort_scenarios(scenarios)
-   local categories = self._scenario_index:get_categories()
-
-   local comparator = function(a, b)
-      local category_a = a.category
-      local category_b = b.category
-
-      if category_a ~= category_b then
-         local priority_a = categories[category_a].priority
-         local priority_b = categories[category_b].priority
-         -- higher priority sorted to lower index
-         return priority_a > priority_b
-      end
-
-      local area_a = a.size.width * a.size.length
-      local area_b = b.size.width * b.size.length
-      if area_a ~= area_b then
-         -- larger area sorted to lower index
-         return area_a > area_b 
-      end
-
-      return a.weight > b.weight
-   end
-
-   table.sort(scenarios, comparator)
-end
-
-function SurfaceScenarioSelector:_remove_scenario_from_selector(properties)
-   local scenario_name = properties.name
-   local category_name = properties.category
-
-   -- just remove from future selection, don't remove from master index
-   local categories = self._scenario_index:get_categories()
-   categories[category_name].selector:remove(scenario_name)
 end
 
 function SurfaceScenarioSelector:_mark_habitat_map(habitat_map, i, j, width, length)
