@@ -70,37 +70,54 @@ function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevat
 end
 
 function SurfaceScenarioSelector:_find_valid_sites(habitat_map, elevation_map, habitat_types, width, length)
-   local i, j, is_habitat_type, is_flat, elevation
    local sites = {}
    local num_sites = 0
-
-   local is_target_habitat_type = function(value)
-      local found = habitat_types[value]
-      return found
-   end
-
+   
    for j=1, habitat_map.height-(length-1) do
       for i=1, habitat_map.width-(width-1) do
-         -- check if block meets habitat requirements
-         is_habitat_type = habitat_map:visit_block(i, j, width, length, is_target_habitat_type)
+         local is_suitable_habitat = self:_is_suitable_habitat(habitat_map, habitat_types, i, j, width, length)
 
-         if is_habitat_type then
-            -- check if block is flat
-            elevation = elevation_map:get(i, j)
-
-            is_flat = elevation_map:visit_block(i, j, width, length, function(value)
-                  return value == elevation
-               end)
+         if is_suitable_habitat then
+            local is_flat = self:_is_flat(elevation_map, i, j, width, length)
 
             if is_flat then
                num_sites = num_sites + 1
-               sites[num_sites] = { i = i, j = j}
+               sites[num_sites] = { i = i, j = j }
             end
          end
       end
    end
 
    return sites, num_sites
+end
+
+function SurfaceScenarioSelector:_is_suitable_habitat(habitat_map, habitat_types, i, j, width, length)
+   local is_suitable_habitat = true
+
+   habitat_map:visit_block(i, j, width, length, function(value)
+         if not habitat_types[value] then
+            is_suitable_habitat = false
+            -- return true to terminate iteration
+            return true
+         end
+      end)
+
+   return is_suitable_habitat
+end
+
+function SurfaceScenarioSelector:_is_flat(elevation_map, i, j, width, length)
+   local is_flat = true
+   local elevation = elevation_map:get(i, j)
+
+   elevation_map:visit_block(i, j, width, length, function(value)
+         if value ~= elevation then
+            is_flat = false
+            -- return true to terminate iteration
+            return true
+         end
+      end)
+
+   return is_flat
 end
 
 function SurfaceScenarioSelector:_mark_habitat_map(habitat_map, i, j, width, length)

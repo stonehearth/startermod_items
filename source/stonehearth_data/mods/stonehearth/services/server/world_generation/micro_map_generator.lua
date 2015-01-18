@@ -412,14 +412,16 @@ function MicroMapGenerator:_grow_peak(micro_map, x, y)
 end
 
 function MicroMapGenerator:_not_lower_than_elevation(elevation, micro_map, x, y, width, height)
-   local result = micro_map:visit_block(x, y, width, height,
-      function (value)
+   local result = true
+
+   micro_map:visit_block(x, y, width, height, function(value)
          if value < elevation then
-            return false
+            result = false
+            -- return true to terminate iteration
+            return true
          end
-         return true
-      end
-   )
+      end)
+
    return result
 end
 
@@ -488,15 +490,17 @@ end
 
 function MicroMapGenerator:_is_high_plains(micro_map, i, j, width, height)
    local plains_height = self._terrain_info.plains.max_height
+   local result = true
 
-   local fn = function (value)
-      if value == plains_height then
-         return true
-      end
-      return false
-   end
+   micro_map:visit_block(i, j, width, height, function(value)
+         if value ~= plains_height then
+            result = false
+            -- return true to terminate iteration
+            return true
+         end
+      end)
 
-   return micro_map:visit_block(i, j, width, height, fn)
+   return result
 end
 
 ----- stashed code below

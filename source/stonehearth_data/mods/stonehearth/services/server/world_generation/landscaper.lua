@@ -563,11 +563,13 @@ function Landscaper:_is_flat(tile_map, x, y, distance)
    local height = tile_map:get(x, y)
    local is_flat = true
 
-   is_flat = tile_map:visit_block(start_x, start_y, block_width, block_height,
-      function (value)
-         return value == height
-      end
-   )
+   tile_map:visit_block(start_x, start_y, block_width, block_height, function(value)
+         if value ~= height then
+            is_flat = false
+            -- return true to terminate iteration
+            return true
+         end
+      end)
 
    return is_flat
 end

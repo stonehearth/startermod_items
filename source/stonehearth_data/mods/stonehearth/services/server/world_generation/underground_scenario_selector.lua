@@ -26,14 +26,13 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
             local index = { i = i, j = j }
             weighted_set:add(index, weight)
          end
-         return true
       end)
 
    if not radiant.util.get_config('enable_ore', false) then
       return
    end
    -- test code CHECKCHECK
-   local num = 100
+   local num = 0
    for i=1, num do
       local index = weighted_set:choose_random()
       if not index then
@@ -77,7 +76,6 @@ function UndergroundScenarioSelector:_create_placement_map(underground_elevation
          if elevation > max_elevation then
             max_elevation = elevation
          end
-         return true
       end)
 
    local max_slice = self:_elevation_to_slice_index(max_elevation)
@@ -98,17 +96,20 @@ end
 function UndergroundScenarioSelector:_is_unoccupied(placement_map, i, j, width, length, min_slice, max_slice)
    for k = min_slice, max_slice do
       local occupied = false
+
       placement_map[k]:visit_block(i, j, width, height, function(value)
             if value then
                occupied = true
-               return false
+               -- return true to terminate iteration
+               return true
             end
-            return true
          end)
+
       if occupied then
          return false
       end
    end
+
    return true
 end
 

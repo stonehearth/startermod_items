@@ -123,14 +123,11 @@ function OverviewMap:_get_forest_density(i, j, feature_map)
    local count = 0
 
    -- count the 4 feature blocks in this macro block
-   feature_map:visit_block(i, j, 2, 2,
-      function (value)
+   feature_map:visit_block(i, j, 2, 2, function(value)
          if landscaper:is_forest_feature(value) then
             count = count + 1
          end
-         return true
-      end
-   )
+      end)
 
    return count
 end
@@ -172,15 +169,12 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
 
    start_a, start_b, width, height = feature_map:bound_block(i-radius, j-radius, length, length)
 
-   feature_map:visit_block(start_a, start_b, width, height,
-      function (value)
+   feature_map:visit_block(start_a, start_b, width, height, function(value)
          if landscaper:is_tree_name(value) then
             -- 1.25 to account for thinned out trees
             sum = sum + 1.25
          end
-         return true
-      end
-   )
+      end)
 
    score = radiant.math.round(sum / (width*height) * (num_quanta-1))
    return score

@@ -53,12 +53,9 @@ end
 function ScenarioSelector:_calculate_habitat_areas(habitat_map)
    local habitat_areas = Histogram()
 
-   habitat_map:visit(
-      function (habitat_type)
+   habitat_map:visit(function(habitat_type)
          habitat_area:increment(habitat_type)
-         return true
-      end
-   )
+      end)
 
    return habitat_areas
 end
