@@ -67,7 +67,14 @@ function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
    -- seed the map using the above ground mountains
    for i=1, size do
       local surface_elevation = surface_micro_map[i]
-      local value = surface_elevation > mountains_base_height and surface_elevation or rock_line
+      local value
+
+      if surface_elevation > mountains_base_height then
+         value = surface_elevation
+      else
+         value = math.max(surface_elevation - mountains_step_size*2, rock_line)
+      end
+
       unfiltered_map[i] = value
    end
 
