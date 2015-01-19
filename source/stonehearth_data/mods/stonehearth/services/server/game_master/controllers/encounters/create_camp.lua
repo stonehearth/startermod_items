@@ -137,6 +137,7 @@ function CreateCamp:_choose_spots(used_spots, w, h, count)
    end
 
    for i, spot in ipairs(spots) do
+      spot = spot - 1
       local x = math.floor(spot / w)
       local y = spot - (x * w)
       spots[i] = { x=x, y=y }
