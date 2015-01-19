@@ -9,7 +9,8 @@ function BlacksmithTest:__init()
    self:place_item('stonehearth:medium_oak_tree', -5, -25)
    self:place_item('stonehearth:small_oak_tree',  15, -25)
 
-
+   self:place_item_cluster('stonehearth:resources:tin:ore', 4, 14, 2, 2)
+   self:place_item_cluster('stonehearth:resources:silver:ore', 0, 14, 2, 2)
    self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 14, 2, 2)
    self:place_item_cluster('stonehearth:resources:copper:ore', -4, 8, 4, 4)
    self:place_item_cluster('stonehearth:resources:iron:ore', 0, 8, 4, 4)
@@ -29,7 +30,7 @@ function BlacksmithTest:__init()
    self:place_item('stonehearth:blacksmith:forge', 5, 1, player_id, { force_iconic = false })
    
    self:at(2000,  function()
-         --stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
+         --stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
          --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
          --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')   
       end)

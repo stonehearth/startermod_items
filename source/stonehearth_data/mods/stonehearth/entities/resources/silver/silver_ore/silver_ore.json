@@ -3,30 +3,30 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "copper ore",
+         "material": "silver ore",
          "category": "resources",
          "stacks": 40
       },
       "stonehearth:material" : {
-         "tags" : "copper ore resource"
+         "tags" : "silver ore resource"
       },
       "model_variants": {
          "default": {
             "models": [
                "file(../../shared/ore_rock.qb)",
-               "file(copper_ore.qb)"
+               "file(silver_ore.qb)"
             ]
          }
       },
       "unit_info": {
-         "name": "Copper Ore",
-         "description": "A chunk of raw copper",
-         "icon" : "file(copper_ore.png)"
+         "name": "Silver Ore",
+         "description": "A chunk of raw silver",
+         "icon" : "file(silver_ore.png)"
       }
    },
    "entity_data" : {
       "stonehearth:net_worth" : {
-         "value_in_gold" : 7,
+         "value_in_gold" : 5,
          "rarity" : "common",
          "shop_info" : {
             "buyable" : true,   

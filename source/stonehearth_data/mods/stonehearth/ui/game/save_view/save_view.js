@@ -68,6 +68,10 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
          var gameTime = App.gameView.getDate().time;
          var key = String(this.getListView().getSelectedKey());
 
+         if (!key || key == '') {
+            return
+         }
+         
          App.gameView.addView(App.StonehearthConfirmView, 
             { 
                title : "Confirm Save Overwrite",

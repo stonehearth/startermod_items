@@ -12,7 +12,11 @@
       {
          "uri" : "stonehearth:resources:copper:ore",
          "count" : 4
-      }
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }      
    ],
   "produces": [
       {
