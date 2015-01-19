@@ -6,19 +6,12 @@
          "description": "Made from crudely-sewn animal hides"
       },      
       "render_info" : {
-         "scale" : 0.5
+         "scale" : 0.6
       },
       "model_variants": {
          "default": {
             "models": [
-               {
-                  "type": "one_of",
-                  "items": [
-                     "file(goblin_tent_1.qb)", 
-                     "file(goblin_tent_2.qb)", 
-                     "file(goblin_tent_3.qb)"
-                  ]
-               }
+               "file(goblin_tent.qb)"
             ]
          }
       },
