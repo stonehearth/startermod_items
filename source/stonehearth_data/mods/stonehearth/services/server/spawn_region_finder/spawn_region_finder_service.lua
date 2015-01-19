@@ -109,6 +109,7 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity(en
    local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')
 
    if #player_perimeter < 1 then
+      log:warning('player perimeter point list is empty.  returning.')
       return nil
    end
 
@@ -162,23 +163,21 @@ end
 -- @param success_cb - fn to run when we find a point, passes in the the spawn location
 -- @param fail_cb - fn to run if we can't find a point
 function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity_astar(entity, destination_ent, distance, max_attempts, max_steps, success_cb, fail_cb)
-   -- Consult the convex hull of points that the civs have travelled.
-   local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')
-
-   if #player_perimeter < 3 then
-      return nil
-   end
-
    local remaining_tries = max_attempts
-
    local function try_spawn()
       log:spam('Looking for spawn location')
 
-      local candidate_point = _generate_random_point_outside_perimeter(player_perimeter, distance)
-
-      if not candidate_point then
-         fail_cb()
+      -- Consult the convex hull of points that the civs have travelled.
+      local player_perimeter = stonehearth.terrain:get_player_perimeter('civ')
+      local candidate_point
+      if #player_perimeter > 3 then
+         candidate_point = _generate_random_point_outside_perimeter(player_perimeter, distance)
+      else
+         local theta = rng:get_real(0, math.pi * 2)
+         local offset = Point3(distance * math.sin(theta), 0, distance * math.cos(theta))
+         candidate_point = radiant.entities.get_world_grid_location(destination_ent) + offset:to_closest_int()
       end
+      assert(candidate_point)
 
       candidate_point = radiant.terrain.get_standable_point(entity, candidate_point)
 
@@ -216,7 +215,6 @@ function SpawnRegionFinderService:find_point_outside_civ_perimeter_for_entity_as
          end)
       path_finder:start()
    end
-
    try_spawn()
 end
 
