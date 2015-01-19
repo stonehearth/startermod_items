@@ -40,10 +40,6 @@ function WorldGenerationService:create_new_game(seed, async)
    self._enable_scenarios = radiant.util.get_config('enable_scenarios', true)
 
    self._terrain_info = TerrainInfo()
-   self._tile_size = self._terrain_info.tile_size
-   self._macro_block_size = self._terrain_info.macro_block_size
-   self._feature_size = self._terrain_info.feature_size
-
    self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._rng)
    self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng, self._async)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
@@ -51,9 +47,9 @@ function WorldGenerationService:create_new_game(seed, async)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self._scenario_index = ScenarioIndex(self._rng)
-   self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._feature_size, self._rng)
-   self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._feature_size, self._rng)
-   stonehearth.static_scenario:create_new_game(self._feature_size, seed)
+   self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
+   self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
+   stonehearth.static_scenario:create_new_game(self._terrain_info, seed)
    stonehearth.dynamic_scenario:create_new_game()
 
    self.blueprint_generator = BlueprintGenerator()
@@ -88,8 +84,8 @@ end
 function WorldGenerationService:set_blueprint(blueprint)
    local seconds = Timer.measure(
       function()
-         local tile_size = self._tile_size
-         local macro_blocks_per_tile = self._tile_size / self._macro_block_size
+         local tile_size = self._terrain_info.tile_size
+         local macro_blocks_per_tile = tile_size / self._terrain_info.macro_block_size
          local blueprint_generator = self.blueprint_generator
          local micro_map_generator = self._micro_map_generator
          local landscaper = self._landscaper
@@ -154,7 +150,7 @@ function WorldGenerationService:set_starting_location(location)
       end)
 
    if radiant.util.get_config('enable_full_vision', false) then
-      local radius = radiant.math.MAX_INT32
+      local radius = radiant.math.MAX_INT32-1
       local region = Region2(Rect2(
             Point2(-radius,  -radius),
             Point2( radius+1, radius+1)
@@ -167,7 +163,7 @@ end
 -- get the (i,j) index of the blueprint tile for the world coordinates (x,y)
 function WorldGenerationService:get_tile_index(x, y)
    local blueprint = self._blueprint
-   local tile_size = self._tile_size
+   local tile_size = self._terrain_info.tile_size
    local i = math.floor((x + blueprint.origin_x) / tile_size) + 1
    local j = math.floor((y + blueprint.origin_y) / tile_size) + 1
    return i, j
@@ -176,7 +172,7 @@ end
 -- get the world coordinates of the origin (top-left corner) of the tile
 function WorldGenerationService:get_tile_origin(i, j, blueprint)
    local x, y
-   local tile_size = self._tile_size
+   local tile_size = self._terrain_info.tile_size
 
    x = (i-1)*tile_size - blueprint.origin_x
    y = (j-1)*tile_size - blueprint.origin_y
@@ -248,7 +244,7 @@ end
 
 function WorldGenerationService:_generate_tile_internal(i, j)
    local blueprint = self._blueprint
-   local tile_size = self._tile_size
+   local tile_size = self._terrain_info.tile_size
    local tile_map, underground_tile_map, tile_info, tile_seed
    local micro_map, underground_micro_map
    local elevation_map, underground_elevation_map, feature_map, habitat_map

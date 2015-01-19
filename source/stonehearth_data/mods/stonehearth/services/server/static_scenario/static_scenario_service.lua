@@ -24,8 +24,8 @@ function StaticScenarioService:initialize()
    end
 end
 
-function StaticScenarioService:create_new_game(feature_size, seed)
-   self._sv.feature_size = feature_size
+function StaticScenarioService:create_new_game(terrain_info, seed)
+   self._sv.terrain_info = terrain_info
    self._sv.rng = RandomNumberGenerator(seed)
    self._sv.dormant_scenarios = {}
    self._sv.next_id = 1
@@ -81,7 +81,7 @@ end
 function StaticScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._sv.revealed_region
    local bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
-   local new_region = self:_region_to_habitat_space(bounded_world_space_region)
+   local new_region = self._sv.terrain_info:region_to_feature_space(bounded_world_space_region)
    local unrevealed_region = new_region - revealed_region
 
    for rect in unrevealed_region:each_cube() do
@@ -183,8 +183,8 @@ function StaticScenarioService:_remove_from_scenario_map(scenario_info)
 end
 
 function StaticScenarioService:_each_key_in(x, y, width, length, fn)
-   local feature_x, feature_y = self:_get_feature_space_coords(x, y)
-   local feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
+   local feature_x, feature_y = self._sv.terrain_info:get_feature_index(x, y)
+   local feature_width, feature_length = self._sv.terrain_info:get_feature_dimensions(width, length)
 
    -- i, j are offsets so use base 0
    for j=0, feature_length-1 do
@@ -218,50 +218,6 @@ end
 function StaticScenarioService:_get_terrain_bounds()
    local bounds = self._terrain_component:get_bounds():project_onto_xz_plane()
    return Region2(bounds)
-end
-
-function StaticScenarioService:_region_to_habitat_space(region)
-   local new_region = Region2()
-   local num_rects = region:get_num_rects()
-   local rect, new_rect
-
-   -- use c++ base 0 array indexing
-   for i=0, num_rects-1 do
-      rect = region:get_rect(i)
-      new_rect = self:_rect_to_habitat_space(rect)
-      -- can't use add_unique_cube because of quantization to reduced coordinate space
-      new_region:add_cube(new_rect)
-   end
-
-   return new_region
-end
-
-function StaticScenarioService:_rect_to_habitat_space(rect)
-   local feature_size = self._sv.feature_size
-   local min, max
-
-   min = Point2(math.floor(rect.min.x/feature_size),
-                math.floor(rect.min.y/feature_size))
-
-   if rect:get_area() == 0 then
-      max = min
-   else
-      max = Point2(math.ceil(rect.max.x/feature_size),
-                   math.ceil(rect.max.y/feature_size))
-   end
-
-   return Rect2(min, max)
-end
-
-function StaticScenarioService:_get_dimensions_in_feature_units(width, length)
-   local feature_size = self._sv.feature_size
-   return math.ceil(width/feature_size), math.ceil(length/feature_size)
-end
-
-function StaticScenarioService:_get_feature_space_coords(x, y)
-   local feature_size = self._sv.feature_size
-   return math.floor(x/feature_size),
-          math.floor(y/feature_size)
 end
 
 function StaticScenarioService:_get_key(x, y)

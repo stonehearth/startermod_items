@@ -3,8 +3,8 @@ local log = radiant.log.create_logger('surface_scenario_selector')
 
 local SurfaceScenarioSelector = class()
 
-function SurfaceScenarioSelector:__init(scenario_index, feature_size, rng)
-   self._feature_size = feature_size
+function SurfaceScenarioSelector:__init(scenario_index, terrain_info, rng)
+   self._terrain_info = terrain_info
    self._rng = rng
    self._scenario_index = scenario_index
 end
@@ -21,7 +21,7 @@ end
 
 function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, activate_now)
    local rng = self._rng
-   local feature_size = self._feature_size
+   local feature_size = self._terrain_info.feature_size
    local feature_width, feature_length
    local feature_offset_x, feature_offset_y, intra_cell_offset_x, intra_cell_offset_y
    local site, sites, num_sites, roll, habitat_types, residual_x, residual_y
@@ -35,7 +35,7 @@ function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevat
       length = properties.size.length
 
       -- get dimensions of the scenario in feature cells
-      feature_width, feature_length = self:_get_dimensions_in_feature_units(width, length)
+      feature_width, feature_length = self._terrain_info:get_feature_dimensions(width, length)
 
       -- get a list of valid locations
       sites, num_sites = self:_find_valid_sites(habitat_map, elevation_map, habitat_types, feature_width, feature_length)
@@ -122,11 +122,6 @@ end
 
 function SurfaceScenarioSelector:_mark_habitat_map(habitat_map, i, j, width, length)
    habitat_map:set_block(i, j, width, length, 'occupied')
-end
-
-function SurfaceScenarioSelector:_get_dimensions_in_feature_units(width, length)
-   local feature_size = self._feature_size
-   return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
 return SurfaceScenarioSelector
