@@ -1,0 +1,17 @@
+{
+   "type" : "camp_piece",
+   "size" : "medium",
+
+   "script" : "file(loot_chest.lua)",
+   
+   "entities" : {
+      "loot_chest" : {
+         "uri" : "stonehearth:decoration:loot_chest",
+         "location" : {
+            "x" : 0,
+            "y" : 0,
+            "z" : 0
+         }
+      }
+   }
+}

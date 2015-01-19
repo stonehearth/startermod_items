@@ -31,6 +31,31 @@ function radiant.shallow_copy(t)
    return copy
 end
 
+function radiant.map_to_array(t, xform)
+   local n = 1
+   local array = {}
+   for k, v in pairs(t) do
+      if not xform then
+         array[n] = v
+         n = n + 1
+      else
+         local nv = xform(k, v)
+         if nv == false then
+            -- skip it
+         elseif nv == nil then
+            -- use v
+            array[n] = n
+            n = n + 1            
+         else
+            -- use nv
+            array[n] = nv
+            n = n + 1            
+         end
+      end
+   end
+   return array
+end
+
 function radiant.not_yet_implemented(fmt, ...)
    local info = debug.getinfo(2, 'Sfl')
    local tail = fmt and (': ' .. string.format(fmt, ...)) or ''

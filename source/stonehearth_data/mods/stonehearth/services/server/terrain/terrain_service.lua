@@ -8,7 +8,7 @@ local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local _terrain = radiant._root_entity:add_component('terrain')
-local log = radiant.log.create_logger('visibility')
+local log = radiant.log.create_logger('terrain')
 
 local INFINITE = 1000000
 
@@ -60,6 +60,7 @@ function TerrainService:_update_convex_hull()
    end
 
    if #new_points < 1 then
+      log:info('no points while updating convex hull.')
       return
    end
 
@@ -96,6 +97,7 @@ function TerrainService:_update_convex_hull()
       new_hull_point = endpoint
    until endpoint == new_hull[1]
 
+   log:info('convex hull has %d points', #new_hull)
    self._sv._convex_hull = new_hull
 end
 
@@ -142,7 +144,7 @@ function TerrainService:_update_regions()
             function (region2)
                region2:clear()
                region2:add_region(new_visible_region)
-               --log:info('Server visibility rects: %d', region2:get_num_rects())
+               log:info('server visibility rects: %d', region2:get_num_rects())
             end
          )
 

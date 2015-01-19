@@ -4,22 +4,29 @@
    "rarity" : "common",
 
    "in_edge"  : "start",
-   "out_edge" : "shakedown",
+   "out_edge" : "fight",
 
    "create_camp_info" : {
       "player_id" : "goblins",
       "spawn_range" : {
          "min" : 80,
          "max" : 90
-      },     
-      "required_pieces" : {
-         "boss" : "file(camp_pieces/boss.json)"
       },
-      "optional_pieces" : {
-         "budget_min" : 1,
-         "budget_max" : 1,
-         "pieces" : {
-            "campfire" : "file(create_camp/campfire.json)"
+      "pieces" : {
+         "campfire" : {
+            "min" : 1,
+            "max" : 1,
+            "info" : "file(create_camp/campfire.json)"
+         },
+         "small_hut" : {
+            "min" : 4,
+            "max" : 6,
+            "info" : "file(create_camp/small_hut.json)"
+         },
+         "loot_chest" : {
+            "min" : 1,
+            "max" : 1,
+            "info" : "file(create_camp/loot_chest.json)"
          }
       }
    }
