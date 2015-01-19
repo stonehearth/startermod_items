@@ -3,7 +3,7 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "opper ore",
+         "material": "copper ore",
          "category": "resources",
          "stacks": 40
       },

@@ -7,10 +7,9 @@ local log = radiant.log.create_logger('underground_scenario_selector')
 
 local UndergroundScenarioSelector = class()
 
-function UndergroundScenarioSelector:__init(scenario_index, terrain_info, feature_size, rng)
+function UndergroundScenarioSelector:__init(scenario_index, terrain_info, rng)
    self._scenario_index = scenario_index
    self._terrain_info = terrain_info
-   self._feature_size = feature_size
    self._rng = rng
    self._y_cell_size = constants.mining.Y_CELL_SIZE
    self._min_elevation = self._terrain_info.mountains.step_size + self._y_cell_size
@@ -56,7 +55,7 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
 end
 
 function UndergroundScenarioSelector:_calculate_location(tile_offset_x, tile_offset_y, feature_index_x, feature_index_y, slice_index)
-   local feature_size = self._feature_size
+   local feature_size = self._terrain_info.feature_size
    local feature_middle = math.floor(feature_size*0.5)
 
    local x = tile_offset_x + (feature_index_x-1)*feature_size + feature_middle
@@ -113,11 +112,6 @@ function UndergroundScenarioSelector:_is_unoccupied(placement_map, i, j, width, 
    end
 
    return true
-end
-
-function UndergroundScenarioSelector:_get_dimensions_in_feature_units(width, length)
-   local feature_size = self._feature_size
-   return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
 return UndergroundScenarioSelector

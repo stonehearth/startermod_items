@@ -1,0 +1,40 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "silver ore",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "silver ore resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(../../shared/ore_rock.qb)",
+               "file(silver_ore.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Silver Ore",
+         "description": "A chunk of raw silver",
+         "icon" : "file(silver_ore.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 5,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}

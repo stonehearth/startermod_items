@@ -1,0 +1,30 @@
+{
+   "components": {
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/weaver_spinning_wheel/weaver_spinning_wheel.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/weaver_spinning_wheel/effects/work.json)"
+      },
+
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(weaver_spinning_wheel.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.1
+      },     
+      "unit_info": {
+         "name": "Spinning Wheel",
+         "description": "A skilled Weaver uses this to spin fiber into thread",
+         "icon" : "file(weaver_spinning_wheel.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood tool"
+      }
+   }
+}

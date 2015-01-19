@@ -1,0 +1,40 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "tin ore",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "tin ore resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(../../shared/ore_rock.qb)",
+               "file(tin_ore.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Tin Ore",
+         "description": "A chunk of raw tin",
+         "icon" : "file(tin_ore.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 1,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}

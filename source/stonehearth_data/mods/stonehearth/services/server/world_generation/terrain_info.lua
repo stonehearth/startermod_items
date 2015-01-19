@@ -1,5 +1,8 @@
 local constants = require 'constants'
 local NonUniformQuantizer = require 'services.server.world_generation.math.non_uniform_quantizer'
+local Point2 = _radiant.csg.Point2
+local Rect2 = _radiant.csg.Rect2
+local Region2 = _radiant.csg.Region2
 
 local TerrainInfo = class()
 
@@ -90,6 +93,53 @@ function TerrainInfo:get_terrain_code(height)
    local terrain_type, step = self:get_terrain_type_and_step(height)
 
    return string.format('%s_%d', terrain_type, step)
+end
+
+-- convert world coordinates to the index of the feature cell
+function TerrainInfo:get_feature_index(x, y)
+   local feature_size = self.feature_size
+   return math.floor(x/feature_size),
+          math.floor(y/feature_size)
+end
+
+-- convert world dimensions into feature dimensions
+function TerrainInfo:get_feature_dimensions(width, length)
+   local feature_size = self.feature_size
+   return math.ceil(width/feature_size),
+          math.ceil(length/feature_size)
+end
+
+function TerrainInfo:region_to_feature_space(region)
+   local new_region = Region2()
+   local num_rects = region:get_num_rects()
+   local rect, new_rect
+
+   -- use c++ base 0 array indexing
+   for i=0, num_rects-1 do
+      rect = region:get_rect(i)
+      new_rect = self:rect_to_feature_space(rect)
+      -- can't use add_unique_cube because of quantization to reduced coordinate space
+      new_region:add_cube(new_rect)
+   end
+
+   return new_region
+end
+
+function TerrainInfo:rect_to_feature_space(rect)
+   local feature_size = self.feature_size
+   local min, max
+
+   min = Point2(math.floor(rect.min.x/feature_size),
+                math.floor(rect.min.y/feature_size))
+
+   if rect:get_area() == 0 then
+      max = min
+   else
+      max = Point2(math.ceil(rect.max.x/feature_size),
+                   math.ceil(rect.max.y/feature_size))
+   end
+
+   return Rect2(min, max)
 end
 
 function TerrainInfo:_get_quantization_centroids()

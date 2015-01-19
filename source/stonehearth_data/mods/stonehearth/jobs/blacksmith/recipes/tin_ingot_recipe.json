@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 2,
+   "recipe_name" : "Tin Ingot",
+   "description": "A bar of pure tin. A suitable material for crafted goods.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/tin_ingot/tin_ingot.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:resources:tin:ore",
+         "count" : 4
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+   ],
+  "produces": [
+      {
+         "item" : "stonehearth:refined:tin_ingot"
+      }
+  ]
+}

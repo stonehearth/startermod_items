@@ -1,12 +1,16 @@
 {
+   "type" : "camp_piece",
+
+   "size" : "large",
+
    "entities" : {
       "campfire" : {
          "uri" : "stonehearth:decoration:firepit_skulls",
          "force_iconic" : false,
          "location" : {
-            "x" : 2,
+            "x" : 0,
             "y" : 0,
-            "z" : 2
+            "z" : 0
          }
       }
    },
@@ -35,10 +39,5 @@
          },
          "job" : "stonehearth:npc_jobs:peon"
       }
-   },
-   "size" : {
-      "x" : 4,
-      "y" : 1,
-      "z" : 4
    }
 }

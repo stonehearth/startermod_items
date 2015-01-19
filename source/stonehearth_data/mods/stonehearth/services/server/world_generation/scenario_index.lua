@@ -14,7 +14,8 @@ local location_types = {
    underground = true
 }
 
-function ScenarioIndex:__init(rng)
+function ScenarioIndex:__init(terrain_info, rng)
+   self._terrain_info = terrain_info
    self._rng = rng
 
    local json = radiant.resources.load_json('stonehearth:scenarios:scenario_index')
@@ -22,13 +23,13 @@ function ScenarioIndex:__init(rng)
 end
 
 -- get a list of scenarios from all the categories
-function ScenarioIndex:select_scenarios(location_type, activation_type)
+function ScenarioIndex:select_scenarios(location_type, activation_type, habitat_volumes)
    local selected_scenarios = {}
    local category, selector, list
 
    for name, category in pairs(self._categories) do
       if category.location_type == location_type and category.activation_type == activation_type then
-         list = category.selector:select_scenarios()
+         list = category.selector:select_scenarios(category.density, habitat_volumes)
 
          for _, properties in pairs(list) do
             table.insert(selected_scenarios, properties)
@@ -91,12 +92,15 @@ function ScenarioIndex:_parse_scenario_index(json)
          log:error('Error parsing "%s": Invalid location_type "%s".', file, tostring(properties.location_type))
       end
       local category = {
-         selector = ScenarioSelector(properties.frequency, self._rng)
+         selector = ScenarioSelector(self._terrain_info, self._rng)
       }
       -- propagate the other category properties into the category
       for key, value in pairs(properties) do
          category[key] = value
       end
+      -- convert density from percent
+      category.density = category.density / 100
+
       categories[name] = category
    end
 

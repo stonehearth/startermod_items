@@ -20,25 +20,25 @@
       ],
       "categories" : {
          "terrain" : {
-            "frequency" : 30.0,
+            "density" : 12,
             "priority" : 0,
             "location_type" : "surface",
             "activation_type" : "immediate"
          },
          "wildlife" : {
-            "frequency" : 3.0,
+            "density" : 1,
             "priority" : 0,
             "location_type" : "surface",
             "activation_type" : "revealed"
          },
          "ruins" : {
-            "frequency" : 0.20,
+            "density" : 0.1,
             "priority" : 3,
             "location_type" : "surface",
             "activation_type" : "revealed"
          },
          "ore" : {
-            "frequency" : 3.0,
+            "density" : 10,
             "priority" : 0,
             "location_type" : "underground",
             "activation_type" : "revealed"

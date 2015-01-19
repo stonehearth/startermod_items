@@ -12,8 +12,10 @@ function WeightedSet:clear()
 end
 
 function WeightedSet:add(item, weight)
-   assert(weight >= 0)
+   assert(not weight or weight >= 0)
    self._map[item] = weight
+
+   -- could perform incremental update, but be aware of floating point error accumulation
    self._total_is_valid = false
 end
 
@@ -34,6 +36,12 @@ function WeightedSet:get_probability(item)
 
    local item_weight = self._map[item]
    return item_weight / self._total_weight
+end
+
+function WeightedSet:get_total_weight()
+   self:_calculate_total_weight()
+
+   return self._total_weight
 end
 
 -- current implementation is O(n)
