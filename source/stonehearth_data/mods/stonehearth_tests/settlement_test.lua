@@ -9,7 +9,7 @@ function SettlementTest:__init()
    self:create_world()
 
    -- build the player camp
-   self:place_citizen(4, 4)
+   --self:place_citizen(4, 4)
 
    local banner = radiant.entities.create_entity('stonehearth:camp_standard')
    radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
