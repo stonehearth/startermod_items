@@ -9,10 +9,6 @@ function Histogram:clear()
    self._total = 0
 end
 
-function Histogram:get_total()
-   return self._total
-end
-
 function Histogram:increment(key, count)
    if count == nil then
       count = 1
@@ -41,6 +37,14 @@ end
 
 function Histogram:get_probability(key)
    return self:get_count(key) / self._total
+end
+
+function Histogram:get_total()
+   return self._total
+end
+
+function Histogram:get_counts()
+   return self._counts
 end
 
 function Histogram:print(logger, order, format_string)
