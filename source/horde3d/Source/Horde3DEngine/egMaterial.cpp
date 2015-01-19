@@ -56,7 +56,6 @@ Resource *MaterialResource::clone()
 void MaterialResource::initDefault()
 {
 	_shaderRes = 0x0;
-	_matLink = 0x0;
    _parentMaterial = 0x0;
 	_class.clear();
 }
@@ -65,7 +64,6 @@ void MaterialResource::initDefault()
 void MaterialResource::release()
 {
 	_shaderRes = 0x0;
-	_matLink = 0x0;
    _parentMaterial = 0x0;
 	for( uint32 i = 0; i < _samplers.size(); ++i ) _samplers[i].texRes = 0x0;
 
@@ -115,16 +113,6 @@ bool MaterialResource::load( const char *data, int size )
    // For the sake of efficiency (since we don't want to do substrings in the middle of
    // rendering a model), compute the '~class' string just once, here.
    _notClass = std::string("~") + _class;
-
-	// Link
-	if( strcmp( rootNode.getAttribute( "link", "" ), "" ) != 0 )
-	{
-		uint32 mat = Modules::resMan().addResource(
-			ResourceTypes::Material, rootNode.getAttribute( "link" ), 0, false );
-		_matLink = (MaterialResource *)Modules::resMan().resolveResHandle( mat );
-		if( _matLink == this )
-			return raiseError( "Illegal self link in material, causing infinite link loop" );
-	}
 
     // Shader
 	XMLNode node1 = rootNode.getFirstChild( "Shader" );
@@ -315,8 +303,6 @@ int MaterialResource::getElemParamI( int elem, int elemIdx, int param )
 	case MaterialResData::MaterialElem:
 		switch( param )
 		{
-		case MaterialResData::MatLinkI:
-			return _matLink != 0x0 ? _matLink->getHandle() : 0;		
 		case MaterialResData::MatShaderI:
 			return _shaderRes != 0x0 ? _shaderRes->getHandle() : 0;
 		}
@@ -344,22 +330,6 @@ void MaterialResource::setElemParamI( int elem, int elemIdx, int param, int valu
 	case MaterialResData::MaterialElem:
 		switch( param )
 		{
-		case MaterialResData::MatLinkI:
-			if( value == 0 )
-			{	
-				_matLink = 0x0;
-				return;
-			}
-			else
-			{
-				Resource *res = Modules::resMan().resolveResHandle( value );
-				if( res != 0x0 && res->getType() == ResourceTypes::Material )
-					_matLink = (MaterialResource *)res;
-				else
-					Modules::setError( "Invalid handle in h3dSetResParamI for H3DMatRes::MatLinkI" );
-				return;
-			}
-			break;
 		case MaterialResData::MatShaderI:
 			if( value == 0 )
 			{	

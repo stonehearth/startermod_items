@@ -298,7 +298,6 @@ struct H3DMatRes
 		SamplerElem   - Sampler element
 		UniformElem   - Uniform element
 		MatClassStr   - Material class
-		MatLinkI      - Material resource that is linked to this material
 		MatShaderI    - Shader resource
 		SampNameStr   - Name of sampler [read-only]
 		SampTexResI   - Texture resource bound to sampler
@@ -311,7 +310,6 @@ struct H3DMatRes
 		SamplerElem,
 		UniformElem,
 		MatClassStr,
-		MatLinkI,
 		MatShaderI,
 		SampNameStr,
 		SampTexResI,

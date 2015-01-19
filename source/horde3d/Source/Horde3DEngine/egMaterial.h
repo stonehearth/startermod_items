@@ -33,7 +33,6 @@ struct MaterialResData
 		SamplerElem,
 		UniformElem,
 		MatClassStr,
-		MatLinkI,
 		MatShaderI,
 		SampNameStr,
 		SampTexResI,
@@ -110,7 +109,6 @@ private:
 	std::vector< MatSampler >   _samplers;
 	std::vector< MatUniform >   _uniforms;
 	std::vector< std::string >  _shaderFlags;
-	PMaterialResource           _matLink;
 
 	friend class ResourceManager;
 	friend class Renderer;
