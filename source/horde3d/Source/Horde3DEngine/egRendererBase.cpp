@@ -894,7 +894,7 @@ void RenderDevice::setShaderSampler( int loc, uint32 texUnit )
 uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFormats::List format,
                                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips, bool cubeMap)
 {
-	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F) && !_caps.texFloat )
+	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F || format == TextureFormats::R32) && !_caps.texFloat )
 	{
 		return 0;
 	}

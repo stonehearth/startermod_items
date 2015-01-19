@@ -1,0 +1,30 @@
+{
+   "components": {
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/weaver_loom/weaver_loom.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/weaver_loom/effects/work.json)"
+      },
+
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(weaver_loom.qb)"
+            ]
+         }
+      },
+      "render_info" : {
+         "scale" : 0.1
+      },     
+      "unit_info": {
+         "name": "Loom",
+         "description": "A skilled Weaver uses this to weave thread into cloth",
+         "icon" : "file(weaver_loom.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "wood tool"
+      }
+   }
+}

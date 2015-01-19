@@ -367,6 +367,7 @@ void CubemitterEffectTrack::Update(FrameStartInfo const& info, bool& finished)
          H3DNode c = h3dRadiantAddCubemitterNode(parent_, "cu", cubeRes);
          cubemitterNode_ = H3DCubemitterNodeUnique(c);
 
+         h3dSetNodeFlags(c, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery, true);
          h3dSetNodeTransform(cubemitterNode_.get(),
                              (float)pos_.x, (float)pos_.y, (float)pos_.z,
                              (float)rot_.x, (float)rot_.y, (float)rot_.z,

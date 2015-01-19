@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "tin ingot",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "tin ingot resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(tin_ingot.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Tin Ingot",
+         "description": "A bar of pure tin.  ",
+         "icon" : "file(tin_ingot.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 14,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}

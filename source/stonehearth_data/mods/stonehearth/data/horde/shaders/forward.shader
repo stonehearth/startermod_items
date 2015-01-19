@@ -68,6 +68,16 @@ context OMNI_LIGHTING_FORWARD_POSTPROCESS
   CullMode = Back;
 }
 
+context OMNI_LIGHTING_NO_SHADOW_FORWARD_POSTPROCESS
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_OMNI_LIGHTING_POSTPROCESS_NO_SHADOW;
+  
+  ZWriteEnable = false;
+  BlendMode = Add;
+  CullMode = Back;
+}
+
 context DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS
 {
   VertexShader = compile GLSL VS_GENERAL_SHADOWS;
@@ -91,6 +101,13 @@ context DEPTH_LINEAR_BACK
   PixelShader = compile GLSL FS_DEPTH_LINEAR_BACK;
   ColorWriteMask = A;
   CullMode = Front;
+}
+
+context BLOOM
+{
+  VertexShader = compile GLSL VS_GENERAL;
+  PixelShader = compile GLSL FS_BLOOM;
+  CullMode = Back;
 }
 
 
@@ -297,7 +314,7 @@ void main( void )
 
 
 
-[[FS_OMNI_LIGHTING_POSTPROCESS]]
+[[FS_OMNI_LIGHTING_POSTPROCESS_NO_SHADOW]]
 // =================================================================================================
 
 #include "shaders/utilityLib/fragLighting.glsl" 
@@ -314,6 +331,28 @@ varying vec3 tsbNormal;
 void main( void )
 {
   gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo, 1.0);
+}
+
+
+[[FS_OMNI_LIGHTING_POSTPROCESS]]
+// =================================================================================================
+
+#include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/omni_shadows.shader"
+
+uniform vec3 viewerPos;
+uniform vec4 matDiffuseCol;
+uniform vec4 matSpecParams;
+
+varying vec4 pos;
+varying vec4 vsPos;
+varying vec3 albedo;
+varying vec3 tsbNormal;
+
+void main( void )
+{
+  float shadowTerm = getOmniShadowValue(lightPos.xyz, pos.xyz);
+  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo * shadowTerm, 1.0);
 }
 
 
@@ -404,4 +443,11 @@ void main(void)
 void main(void)
 {
   gl_FragData[0].a = toLinearDepth(gl_FragCoord.z);
+}
+
+[[FS_BLOOM]]
+
+void main(void)
+{
+  gl_FragColor = vec4(0.0);
 }

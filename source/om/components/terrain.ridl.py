@@ -18,7 +18,7 @@ class Terrain(Component):
    add_tile_clipped = ridl.Method(c.void(),
                           ('region', csg.Region3f().const.ref),
                           ('clipper', csg.Rect2f().const.ref))
-   get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref)).const
+   get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref))
 
    get_tiles = ridl.Method(Region3BoxedTiledPtr())
    get_interior_tiles = ridl.Method(Region3BoxedTiledPtr())

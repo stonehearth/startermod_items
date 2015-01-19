@@ -1,5 +1,6 @@
 {
     "name": "fire",
+    "material": "materials/cubemitter_bloom.material.xml",
     "duration": 20,
     "particle": {
         "lifetime": {

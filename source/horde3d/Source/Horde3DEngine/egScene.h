@@ -426,7 +426,7 @@ public:
 	NodeRegEntry *findType( std::string const& typeString );
 	
 	void updateNodes();
-	void updateSpatialNode( SceneNode const& node ) { _spatialGraph->updateNode( node ); }
+	void updateSpatialNode(SceneNode const& node);
 	void updateQueues( const char* reason, const Frustum &frustum1, const Frustum *frustum2,
 	                   RenderingOrder::List order, uint32 filterIgnore, uint32 filterRequired, bool lightQueue, bool renderableQueue, bool forceNoInstancing=false, 
                       uint32 userFlags=0 );
@@ -454,6 +454,9 @@ public:
 
    void clearQueryCache();
 
+   void registerNodeTracker(SceneNode const* tracker, std::function<void(SceneNode const* updatedNode)>);
+   void clearNodeTracker(SceneNode const* tracker);
+
 protected:
 	void _findNodes( SceneNode &startNode, std::string const& name, int type );
    int _checkQueryCache(const SpatialQuery& query);
@@ -463,6 +466,7 @@ protected:
         void initialize();
 	void castRayInternal( SceneNode &node, int userFlags );
    void fastCastRayInternal(int userFlags);
+   void updateNodeTrackers(SceneNode const* n);
 
 protected:
         uint32                         _nextNodeHandle;
@@ -480,6 +484,8 @@ protected:
    SpatialQueryResult             _queryCache[QueryCacheSize];
    int                            _queryCacheCount;
    int                            _currentQuery;
+
+   std::unordered_map<SceneNode const*, std::function<void(SceneNode const*)>> _nodeTrackers;
 
 	friend class Renderer;
 };

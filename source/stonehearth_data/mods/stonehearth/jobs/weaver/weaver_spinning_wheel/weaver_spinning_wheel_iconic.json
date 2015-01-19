@@ -1,0 +1,16 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "tool"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(weaver_spinning_wheel_iconic.qb)"
+            ]
+         }
+      }
+   }
+}

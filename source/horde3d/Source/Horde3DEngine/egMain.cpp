@@ -189,6 +189,7 @@ DLLEXP void h3dResetStats()
    Modules::stats().getStat(EngineStats::FrameTime, true);
    Modules::stats().getStat(EngineStats::GeoUpdateTime, true);
    Modules::stats().getStat(EngineStats::LightPassCount, true);
+   Modules::stats().getStat(EngineStats::ShadowPassCount, true);
    Modules::stats().getStat(EngineStats::ParticleSimTime, true);
    Modules::stats().getStat(EngineStats::TriCount, true);
 }

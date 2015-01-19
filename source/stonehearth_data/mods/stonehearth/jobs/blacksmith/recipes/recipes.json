@@ -7,8 +7,17 @@
             "copper_ingot" : {
                "recipe" : "file(copper_ingot_recipe.json)"
             },
+            "tin_ingot" : {
+               "recipe" : "file(tin_ingot_recipe.json)"
+            },
+            "bronze_ingot" : {
+               "recipe" : "file(bronze_ingot_recipe.json)"
+            },           
             "iron_ingot" : {
                "recipe" : "file(iron_ingot_recipe.json)"
+            },
+            "silver_ingot" : {
+               "recipe" : "file(silver_ingot_recipe.json)"
             },
             "gold_ingot" : {
                "recipe" : "file(gold_ingot_recipe.json)"
@@ -18,7 +27,19 @@
             }
          }
       },
-       "armor" : {
+      "tools_weapons" : {
+         "ordinal" : 1, 
+         "name" : "Tools & Weapons", 
+         "recipes" : {
+            "carpenter_saw" : {
+               "recipe" : "file(carpenter_saw_recipe.json)"
+            },
+            "trapper_knife" : {
+               "recipe" : "file(trapper_knife_recipe.json)"
+            }  
+         }
+      },      
+      "armor" : {
          "ordinal" : 2, 
          "name" : "Armor",
          "recipes" : {
@@ -27,7 +48,10 @@
             },
             "iron_mail" : {
                "recipe" : "file(iron_mail_recipe.json)"
-            }
+            },
+            "steel_mail" : {
+               "recipe" : "file(steel_mail_recipe.json)"
+            }            
          }
       }
    }

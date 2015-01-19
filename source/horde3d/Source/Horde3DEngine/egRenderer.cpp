@@ -130,6 +130,8 @@ void Renderer::setGpuCompatibility()
    // TODO: Eventually, we get to a nice big matrix of manufacturer/driver.
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
 
+   gpuCompatibility_.canDoOmniShadows = gpuCompatibility_.canDoShadows && gRDI->getCaps().texFloat;
+
    // SSAO: arbitrarily gate SSAO with gl version >= 4.0
    gpuCompatibility_.canDoSsao = glVer >= 40;
 }
@@ -159,7 +161,12 @@ bool Renderer::init(int glMajor, int glMinor, bool msaaWindowSupported, bool ena
       Modules::log().writeWarning("Renderer: disabling shadows.");
    }
 
-	// Check capabilities
+   if (!gpuCompatibility_.canDoOmniShadows)
+   {
+      Modules::log().writeWarning("Renderer: disabling omni-directional shadows.");
+   }
+
+   // Check capabilities
 	if( !gRDI->getCaps().texFloat )
 		Modules::log().writeWarning( "Renderer: No floating point texture support available" );
 	if( !gRDI->getCaps().texNPOT )
@@ -1525,7 +1532,11 @@ uint32 Renderer::calculateShadowBufferSize(LightNode const* node) const
    if (node->_directional) {
       return (uint32)pow(2, Modules::config().shadowMapQuality + 8);
    } else {
-      return (uint32)pow(2, Modules::config().shadowMapQuality + 4);
+      if (!gpuCompatibility_.canDoOmniShadows) {
+         return 0;
+      }
+      int quality = std::max(Modules::config().shadowMapQuality + 3, 6);
+      return (uint32)pow(2, quality);
    }
 }
 
@@ -1540,7 +1551,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 	int prevVPX = gRDI->_vpX, prevVPY = gRDI->_vpY, prevVPWidth = gRDI->_vpWidth, prevVPHeight = gRDI->_vpHeight;
    RDIRenderBuffer &shadowRT = gRDI->_rendBufs.getRef(light->getShadowBuffer());
 	gRDI->setViewport(0, 0, shadowRT.width, shadowRT.height);
-   gRDI->setRenderBuffer(light->getShadowBuffer(), cubeFace);
+   gRDI->setRenderBuffer(light->getShadowBuffer(), cubeFace + GL_TEXTURE_CUBE_MAP_POSITIVE_X);
 	
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_TRUE);
@@ -1591,7 +1602,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 		
 		// Get light projection matrix
 		Matrix4f lightProjMat;
-      Matrix4f lightViewMat = light->getViewMat();
+      Matrix4f lightViewMat;
       Vec3f lightAbsPos;
       if (light->_directional) {
 	      // Find AABB of lit geometry
@@ -1621,6 +1632,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
 		   float ymax = 0.1f * tanf(degToRad(45.0f));
 		   float xmax = ymax * 1.0f;  // ymax * aspect
          lightProjMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, light->_radius );
+         lightViewMat = light->getCubeViewMat((LightCubeFace::List)cubeFace);
       }
 
 		// Generate render queue with shadow casters for current slice
@@ -1652,6 +1664,7 @@ void Renderer::updateShadowMap(LightNode const* light, Frustum const* lightFrus,
       commitLightUniforms(light);
 		// Render at lodlevel = 1 (don't need the higher poly count for shadows, yay!)
 		drawRenderables(light->_shadowContext, "", false, &frustum, 0x0, RenderingOrder::None, -1, 1);
+      Modules().stats().incStat(EngineStats::ShadowPassCount, 1);
 	}
 
 	// Map from post-projective space [-1,1] to texture space [0,1]
@@ -2267,26 +2280,12 @@ void Renderer::doForwardLightPass(std::string const& shaderContext, std::string 
 
             drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
          } else {
-            Matrix4f lightPosMat = curLight->getAbsTrans();
-            static const int cubenums[6] = { 
-               GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 
-               GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-               GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-               GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-               GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-               GL_TEXTURE_CUBE_MAP_POSITIVE_X };
-            static const float xRot[6] = { 0, 0, degToRad(90), degToRad(-90), 0, 0};
-            static const float yRot[6] = { 0, degToRad(180), 0, degToRad(180), degToRad(-90), degToRad(90)};
-            Matrix4f lightView;
-
             // Omni lights require a pass/binding for each side of the cubemap into which they render.
             for (int i = 0; i < 6; i++) {
-               lightView.toIdentity();
-               lightView.rotate(xRot[i], yRot[i], 0);
-               lightView = lightPosMat * lightView;
-               lightView = lightView.inverted();
-               curLight->_viewMat = lightView;
-               updateShadowMap(curLight, lightFrus, minDist, maxDist, cubenums[i]);
+               if (curLight->_dirtyShadows[i]) {
+                  curLight->_dirtyShadows[i] = false;
+                  updateShadowMap(curLight, lightFrus, minDist, maxDist, i);
+               }
             }
 
             setupShadowMap(curLight, false);

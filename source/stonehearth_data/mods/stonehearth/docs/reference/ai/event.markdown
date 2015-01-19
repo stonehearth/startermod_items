@@ -149,6 +149,10 @@ Note: times of day (midnight, sunrise, noon, sunset are defined in calendar cons
       - Key: the shepherd
       - Name: stonehearth:tame\_animal
       - Args: animal - the animal entity tamed
+   - **leave\_animal\_in\_pasture** - triggered when the shepherd leaves an animal in the pasture
+      - Key: the shepherd
+      - Name: stonehearth:leave\_animal\_in\_pasture
+      - Args: animal - the animal entity tamed
    - **gather\_renewable\_resource** - triggered when someone grabs a renewable resource
       - Key: the entity who harvests
       - Name: stonehearth:gather\_renewable\_resource

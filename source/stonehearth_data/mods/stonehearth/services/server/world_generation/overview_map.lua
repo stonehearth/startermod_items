@@ -1,5 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local log = radiant.log.create_logger('world_generation')
 
@@ -124,14 +123,11 @@ function OverviewMap:_get_forest_density(i, j, feature_map)
    local count = 0
 
    -- count the 4 feature blocks in this macro block
-   feature_map:visit_block(i, j, 2, 2,
-      function (value)
+   feature_map:visit_block(i, j, 2, 2, function(value)
          if landscaper:is_forest_feature(value) then
             count = count + 1
          end
-         return true
-      end
-   )
+      end)
 
    return count
 end
@@ -152,7 +148,7 @@ function OverviewMap:_get_wildlife_density(i, j, elevation_map)
       for a=start_a, start_a+width-1 do
          elevation = elevation_map:get(a, b)
          terrain_type = terrain_info:get_terrain_type(elevation)
-         if terrain_type ~= TerrainType.mountains then
+         if terrain_type ~= 'mountains' then
             -- basic plains and foothills are average density (0.5 out of 1)
             sum = sum + 0.5
          end
@@ -173,15 +169,12 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
 
    start_a, start_b, width, height = feature_map:bound_block(i-radius, j-radius, length, length)
 
-   feature_map:visit_block(start_a, start_b, width, height,
-      function (value)
+   feature_map:visit_block(start_a, start_b, width, height, function(value)
          if landscaper:is_tree_name(value) then
             -- 1.25 to account for thinned out trees
             sum = sum + 1.25
          end
-         return true
-      end
-   )
+      end)
 
    score = radiant.math.round(sum / (width*height) * (num_quanta-1))
    return score

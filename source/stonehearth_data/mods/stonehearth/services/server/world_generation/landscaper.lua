@@ -1,12 +1,10 @@
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local PerturbationGrid = require 'services.server.world_generation.perturbation_grid'
 local BoulderGenerator = require 'services.server.world_generation.boulder_generator'
-local log = radiant.log.create_logger('world_generation')
-
 local Point3 = _radiant.csg.Point3
+local log = radiant.log.create_logger('world_generation')
 
 local mod_name = 'stonehearth'
 local mod_prefix = mod_name .. ':'
@@ -39,9 +37,9 @@ function Landscaper:__init(terrain_info, rng, async)
    self._async = async
 
    self._boulder_probabilities = {
-      [TerrainType.plains]    = 0.02,
-      [TerrainType.foothills] = 0.02,
-      [TerrainType.mountains] = 0.02
+      plains    = 0.02,
+      foothills = 0.02,
+      mountains = 0.02
    }
 
    self._boulder_generator = BoulderGenerator(self._terrain_info, self._rng)
@@ -134,7 +132,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
       local elevation = elevation_map:get(i, j)
       local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
-      if terrain_type == TerrainType.mountains then
+      if terrain_type == 'mountains' then
          if step <= 2 then
             -- place a ring of trees around mountains by making mountains attractors
             -- trees on mountains themselves will be thinned out below
@@ -143,7 +141,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
          else
             std_dev = std_dev * 0.30
          end
-      elseif terrain_type == TerrainType.plains then
+      elseif terrain_type == 'plains' then
          if step == 2 then
             -- sparse groves with large trees in the middle
             mean = mean - 5
@@ -153,7 +151,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
             std_dev = 0
          end
       else
-         -- TerrainType.foothills
+         -- 'foothills'
          if step == 2 then
             -- lots of continuous forest with low variance
             mean = mean + 5
@@ -168,7 +166,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill_ij(noise_fn)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_0125(density_map, noise_map, noise_map.width, noise_map.height, 10)
 
    for j=1, density_map.height do
@@ -184,7 +182,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
                tree_type = self:_get_tree_type(terrain_type, step)
 
                -- TODO: clean up this code
-               if terrain_type ~= TerrainType.mountains then
+               if terrain_type ~= 'mountains' then
                   tree_density = normal_tree_density
                else
                   -- forests on mountains are shorter and thinner
@@ -200,7 +198,7 @@ function Landscaper:mark_trees(elevation_map, feature_map)
                tree_size = self:_get_tree_size(value)
                tree_name = get_tree_name(tree_type, tree_size)
 
-               if terrain_type ~= TerrainType.mountains then
+               if terrain_type ~= 'mountains' then
                   if tree_size ~= small then
                      if rng:get_real(0, 1) >= tree_density then
                         -- thin out the tree but still mark as occupied
@@ -225,15 +223,15 @@ function Landscaper:_get_tree_type(terrain_type, step)
    local high_foothills_juniper_chance = 0.75
    local low_foothills_juniper_chance = 0.25
 
-   if terrain_type == TerrainType.plains then
+   if terrain_type == 'plains' then
       return oak
    end
 
-   if terrain_type == TerrainType.mountains then
+   if terrain_type == 'mountains' then
       return juniper
    end
 
-   -- terrain_type == TerrainType.foothills
+   -- terrain_type == 'foothills'
    if step == 2 then 
       if rng:get_real(0, 1) < high_foothills_juniper_chance then
          return juniper
@@ -286,7 +284,7 @@ function Landscaper:_place_small_tree(feature_name, i, j, tile_map, place_item)
    local center = self._feature_size * 0.5
    local elevation = tile_map:get(x+center, y+center)
    local terrain_type = self._terrain_info:get_terrain_type(elevation)
-   if terrain_type == TerrainType.mountains then
+   if terrain_type == 'mountains' then
       return self:_place_normal_tree(feature_name, i, j, tile_map, place_item)
    end
 
@@ -356,14 +354,14 @@ function Landscaper:mark_berry_bushes(elevation_map, feature_map)
       -- local elevation = elevation_map:get(i, j)
       -- local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
-      -- if terrain_type == TerrainType.foothills and step == 2 then
+      -- if terrain_type == 'foothills' and step == 2 then
       --    mean = mean + 20
       -- end
 
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill_ij(noise_fn)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_050(density_map, noise_map, noise_map.width, noise_map.height, 6)
 
    for j=1, density_map.height do
@@ -377,7 +375,7 @@ function Landscaper:mark_berry_bushes(elevation_map, feature_map)
                elevation = elevation_map:get(i, j)
                terrain_type = terrain_info:get_terrain_type(elevation)
 
-               if terrain_type ~= TerrainType.mountains then
+               if terrain_type ~= 'mountains' then
                   feature_map:set(i, j, berry_bush_name)
                end
             end
@@ -396,7 +394,7 @@ function Landscaper:_place_berry_bush(feature_name, i, j, tile_map, place_item)
    local try_place_item = function(x, y)
       local elevation = tile_map:get(x, y)
       local terrain_type = terrain_info:get_terrain_type(elevation)
-      if terrain_type == TerrainType.mountains then
+      if terrain_type == 'mountains' then
          return false
       end
       place_item(feature_name, x, y)
@@ -446,7 +444,7 @@ function Landscaper:mark_flowers(elevation_map, feature_map)
       local elevation = elevation_map:get(i, j)
       local terrain_type, step = terrain_info:get_terrain_type_and_step(elevation)
 
-      if terrain_type == TerrainType.plains and step == 1 then
+      if terrain_type == 'plains' and step == 1 then
          -- avoid depressions
          mean = mean - 200
       end
@@ -454,7 +452,7 @@ function Landscaper:mark_flowers(elevation_map, feature_map)
       return rng:get_gaussian(mean, std_dev)
    end
 
-   noise_map:fill_ij(noise_fn)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_025(density_map, noise_map, noise_map.width, noise_map.height, 8)
 
    for j=1, density_map.height do
@@ -565,11 +563,13 @@ function Landscaper:_is_flat(tile_map, x, y, distance)
    local height = tile_map:get(x, y)
    local is_flat = true
 
-   is_flat = tile_map:visit_block(start_x, start_y, block_width, block_height,
-      function (value)
-         return value == height
-      end
-   )
+   tile_map:visit_block(start_x, start_y, block_width, block_height, function(value)
+         if value ~= height then
+            is_flat = false
+            -- return true to terminate iteration
+            return true
+         end
+      end)
 
    return is_flat
 end

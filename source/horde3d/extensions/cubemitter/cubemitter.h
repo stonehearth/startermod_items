@@ -240,7 +240,9 @@ public:
 	int getElemCount( int elem );
 	float getElemParamF( int elem, int elemIdx, int param, int compIdx );
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
+   
    CubemitterData emitterData;
+   std::string materialPath;
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );

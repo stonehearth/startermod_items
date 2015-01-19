@@ -20,12 +20,12 @@
             {
                "min" : { "x" : 0, "y" : 0, "z" : 0 },
                "max" : { "x" : 1, "y" : 1, "z" : 1 }
-            }
+         }
          ]
       },
       "stonehearth:lamp" : {
          "light_effect" : "/stonehearth/data/effects/brazier_effect",
-         "light_policy" : "always_on"
+         "__light_policy" : "always_on"
       },
 
       "stonehearth:entity_forms" : {

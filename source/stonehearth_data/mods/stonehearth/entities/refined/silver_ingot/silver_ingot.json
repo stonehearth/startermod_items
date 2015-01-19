@@ -1,0 +1,39 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item": {
+         "material": "silver ingot",
+         "category": "resources",
+         "stacks": 40
+      },
+      "stonehearth:material" : {
+         "tags" : "silver ingot resource"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(silver_ingot.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Silver Ingot",
+         "description": "A bar of pure silver.",
+         "icon" : "file(silver_ingot.png)"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 16,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }   
+
+}

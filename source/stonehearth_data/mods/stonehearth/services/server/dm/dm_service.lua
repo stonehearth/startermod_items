@@ -9,10 +9,6 @@ function DmService:initialize()
 
    self._enable_scenarios = radiant.util.get_config('enable_dynamic_scenarios', true)
 
-   self._starting_location_exclusion_radius = radiant.util.get_config('scenario.starting_location_exclusion_radius', 64)
-   self._difficulty_increment_distance = radiant.util.get_config('scenario.difficulty_increment_distance', 256)
-   assert(self._starting_location_exclusion_radius < self._difficulty_increment_distance)
-   
    if self._sv._initialized then
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function (e)
          radiant.events.listen(radiant, 'stonehearth:minute_poll', self, self._on_think)
@@ -74,31 +70,6 @@ function DmService:_on_think()
          best_keeper:penalize_buildup()
       end
    end
-end
-
-function DmService:derive_difficulty_map(habitat_map, tile_offset_x, tile_offset_y, feature_size, starting_location)
-   local difficulty_increment_distance = self._difficulty_increment_distance
-   local cell_center = feature_size/2
-   local difficulty_map = Array2D(habitat_map.width, habitat_map.height)
-
-   difficulty_map:fill_ij(
-      function (i, j)
-         local x = tile_offset_x + (i-1)*feature_size + cell_center
-         local y = tile_offset_y + (j-1)*feature_size + cell_center
-         local tile_center = Point2(x, y)
-         local distance = starting_location:distance_to(tile_center)
-
-         if distance < self._starting_location_exclusion_radius then
-            -- sentinel that excludes placement
-            return 'x'
-         end
-
-         local difficulty = math.floor(distance/difficulty_increment_distance)
-         return difficulty
-      end
-   )
-
-   return difficulty_map
 end
 
 return DmService

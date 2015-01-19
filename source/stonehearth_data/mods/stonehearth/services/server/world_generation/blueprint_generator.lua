@@ -1,11 +1,10 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
 local Histogram = require 'lib.algorithms.histogram'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
+local log = radiant.log.create_logger('world_generation')
 
 local BlueprintGenerator = class()
-local log = radiant.log.create_logger('world_generation')
 
 function BlueprintGenerator:__init()
 end
@@ -28,18 +27,18 @@ function BlueprintGenerator:generate_blueprint(width, height, seed)
       return rng:get_gaussian(55, 50)
    end
 
-   noise_map:fill_ij(noise_fn)
+   noise_map:fill(noise_fn)
    FilterFns.filter_2D_050(height_map, noise_map, noise_map.width, noise_map.height, 6)
 
    for j=1, height do
       for i=1, width do
          value = height_map:get(i, j)
          if value >= mountains_threshold then
-            terrain_type = TerrainType.mountains
+            terrain_type = 'mountains'
          elseif value >= foothills_threshold then
-            terrain_type = TerrainType.foothills
+            terrain_type = 'foothills'
          else
-            terrain_type = TerrainType.plains
+            terrain_type = 'plains'
          end
          blueprint:get(i, j).terrain_type = terrain_type
       end
@@ -49,7 +48,7 @@ function BlueprintGenerator:generate_blueprint(width, height, seed)
 end
 
 function BlueprintGenerator:get_empty_blueprint(width, height, terrain_type)
-   if terrain_type == nil then terrain_type = TerrainType.plains end
+   if terrain_type == nil then terrain_type = 'plains' end
 
    local blueprint = Array2D(width, height)
    local i, j, tile_info

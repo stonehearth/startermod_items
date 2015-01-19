@@ -120,23 +120,31 @@ void Renderer::MakeRendererResources()
    fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
    panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
 
-   H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+   H3DRendererCaps caps;
+   h3dGetCapabilities(&caps, nullptr);
 
-   csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
-   float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-   for (int i = 0; i < 16; i++)
-   {
-      float x = rng.GetReal(-1.0f, 1.0f);
-      float y = rng.GetReal(-1.0f, 1.0f);
-      float z = rng.GetReal(-1.0f, 1.0f);
-      Horde3D::Vec3f v(x,y,z);
-      v.normalize();
+   if (caps.SsaoSupported) {
+      H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
 
-      data2[(i * 4) + 0] = v.x;
-      data2[(i * 4) + 1] = v.y;
-      data2[(i * 4) + 2] = v.z;
+      csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
+      float *data2 = (float *)h3dMapResStream(veclookup, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+
+      if (data2) {
+         for (int i = 0; i < 16; i++)
+         {
+            float x = rng.GetReal(-1.0f, 1.0f);
+            float y = rng.GetReal(-1.0f, 1.0f);
+            float z = rng.GetReal(-1.0f, 1.0f);
+            Horde3D::Vec3f v(x,y,z);
+            v.normalize();
+
+            data2[(i * 4) + 0] = v.x;
+            data2[(i * 4) + 1] = v.y;
+            data2[(i * 4) + 2] = v.z;
+         }
+         h3dUnmapResStream(veclookup, 0);
+      }
    }
-   h3dUnmapResStream(veclookup, 0);
 
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
 

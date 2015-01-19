@@ -2,7 +2,7 @@
    "mixins" : "file(../critter_nest)",
    "name" : "fox_nest",
    "habitat_types" : ["forest"],
-   "scenario_info" : {
+   "data" : {
       "critter_type" : [ "stonehearth:red_fox" ]
    }
 }

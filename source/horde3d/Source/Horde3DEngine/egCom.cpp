@@ -410,6 +410,7 @@ StatManager::StatManager()
 	_statTriCount = 0;
 	_statBatchCount = 0;
 	_statLightPassCount = 0;
+   _statShadowPassCount = 0;
 
    _curFrame = 0;
 	_frameTime = 0;
@@ -447,6 +448,10 @@ float StatManager::getStat( int param, bool reset )
 	case EngineStats::LightPassCount:
 		value = (float)_statLightPassCount;
 		if( reset ) _statLightPassCount = 0;
+		return value;
+	case EngineStats::ShadowPassCount:
+		value = (float)_statShadowPassCount;
+		if( reset ) _statShadowPassCount = 0;
 		return value;
 	case EngineStats::FrameTime:
 		value = _frameTime;
@@ -505,6 +510,9 @@ void StatManager::incStat( int param, float value )
 		break;
 	case EngineStats::LightPassCount:
 		_statLightPassCount += ftoi_r( value );
+		break;
+	case EngineStats::ShadowPassCount:
+		_statShadowPassCount += ftoi_r( value );
 		break;
 	case EngineStats::FrameTime:
 		_frameTime += value;

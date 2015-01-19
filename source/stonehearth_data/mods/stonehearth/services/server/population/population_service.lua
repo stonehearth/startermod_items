@@ -30,6 +30,20 @@ function PopulationService:get_population(player_id)
    return self._sv.populations[player_id]
 end
 
+function PopulationService:get_population_size(player_id)
+   radiant.check.is_string(player_id)
+   assert(self._sv.populations[player_id])
+   local pop_faction = self._sv.populations[player_id]
+   local citizens = pop_faction:get_citizens()
+   local num_citizens = 0
+   for id, citizen in pairs(citizens) do
+      if citizen then 
+         num_citizens = num_citizens + 1
+      end
+   end 
+   return num_citizens
+end
+
 function PopulationService:get_all_populations()
    return self._sv.populations
 end

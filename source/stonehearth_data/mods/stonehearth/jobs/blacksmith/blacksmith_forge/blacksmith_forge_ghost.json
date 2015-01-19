@@ -1,5 +1,13 @@
 {
    "components": {
+      "render_info" : {
+         "animation_table" : "file(/data/rigs/blacksmith_forge/blacksmith_forge.json)"
+      },
+
+      "effect_list" : {
+         "default" : "file(/data/rigs/blacksmith_forge/effects/work.json)"
+      },
+
       "model_variants": {
          "default": {
             "models": [

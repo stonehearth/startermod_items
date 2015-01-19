@@ -120,6 +120,8 @@
       "farmer:talisman" : "file(jobs/farmer/farmer_hoe/farmer_hoe_talisman.json)", 
       "farmer:initial_crops" : "file(services/server/farming/data/initial_crops.json)",
       
+      "interval_data" : "file(services/server/interval/data/interval_data.json)", 
+
       "shepherd:crook" : "file(jobs/shepherd/shepherd_crook)", 
       "shepherd:talisman" : "file(jobs/shepherd/shepherd_crook/shepherd_crook_talisman.json)", 
       "shepherd:shepherd_pasture" : "file(jobs/shepherd/shepherd_pasture)", 
@@ -137,6 +139,8 @@
       "weaver:outfit" : "file(jobs/weaver/weaver_outfit)",
       "weaver:spindle" : "file(jobs/weaver/weaver_spindle)",
       "weaver:talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
+      "weaver:spinning_wheel" : "file(jobs/weaver/weaver_spinning_wheel/weaver_spinning_wheel.json)",
+      "weaver:loom" : "file(jobs/weaver/weaver_loom/weaver_loom.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone.json)",
       "mining_zone_designation" : "file(entities/terrain/mining_zone_designation.json)",
@@ -199,6 +203,8 @@
       "resources:iron:ore" : "file(entities/resources/iron/iron_ore)",
       "resources:copper:ore" : "file(entities/resources/copper/copper_ore)",
       "resources:gold:ore" : "file(entities/resources/gold/gold_ore)",
+      "resources:silver:ore" : "file(entities/resources/silver/silver_ore)",
+      "resources:tin:ore" : "file(entities/resources/tin/tin_ore)",
       "resources:fiber:silkweed_bundle" : "file(entities/resources/fiber/silkweed_bundle)",
       "resources:fiber:wool_bundle" : "file(entities/resources/fiber/wool_bundle)",
       "resources:red_fox_pelt" : "file(entities/resources/pelt/red_fox_pelt)",
@@ -212,9 +218,12 @@
       "refined:leather_bolt" : "file(entities/refined/leather_bolt)",
       "refined:stone_bricks" : "file(entities/refined/stone_bricks)",
       "refined:copper_ingot" : "file(entities/refined/copper_ingot)",
+      "refined:tin_ingot" : "file(entities/refined/tin_ingot)",
       "refined:iron_ingot" : "file(entities/refined/iron_ingot)",
       "refined:gold_ingot" : "file(entities/refined/gold_ingot)",
+      "refined:silver_ingot" : "file(entities/refined/silver_ingot)",
       "refined:steel_ingot" : "file(entities/refined/steel_ingot)",
+      "refined:bronze_ingot" : "file(entities/refined/bronze_ingot)",
 
       "food:corn:amazing_corn_basket" : "file(entities/food/corn/amazing_corn_basket)",
       "food:corn:amazing_corn_serving"    : "file(entities/food/corn/amazing_corn_serving)",
@@ -330,6 +339,7 @@
       "armor:leather_vest" : "file(entities/armor/leather_vest)",
       "armor:copper_breastplate" : "file(entities/armor/copper_breastplate)",
       "armor:iron_mail" : "file(entities/armor/iron_mail)",
+      "armor:steel_mail" : "file(entities/armor/steel_mail)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
@@ -690,6 +700,11 @@
       "sounds:ui:mason_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_mason_menu_open.wav)",
       "sounds:ui:weaver_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_weaver_menu_open.wav)",
       "sounds:ui:blacksmith_menu:menu_open" : "file(data/sounds/ui/carpenter_menu/sh_blacksmith_menu_open.wav)",
+      "sounds:ui:immigration_menu:immigration_pass" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_pass.wav)",
+      "sounds:ui:immigration_menu:immigration_fail" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_fail.wav)",
+      "sounds:ui:immigration_menu:immigration_negative" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_negative.wav)",
+      "sounds:ui:immigration_menu:immigration_positive" : "file(data/sounds/ui/immigration_menu/sh_ui_immigration_positive.wav)",
+
 
       "sounds:banner_plant" : "file(data/sounds/effects/sh_banner_plant.wav)",
       "sounds:banner_grab" : "file(data/sounds/effects/sh_banner_grab.wav)",
@@ -775,6 +790,10 @@
       "sounds:mason_hammer_01" : "file(data/sounds/effects/sh_mason_hammer_01.wav)",
       "sounds:mason_hammer_02" : "file(data/sounds/effects/sh_mason_hammer_02.wav)",
       "sounds:mason_hammer_03" : "file(data/sounds/effects/sh_mason_hammer_03.wav)",
+      "sounds:blacksmith_hammer_01" : "file(data/sounds/effects/sh_blacksmith_hammer_01.wav)",
+      "sounds:blacksmith_hammer_02" : "file(data/sounds/effects/sh_blacksmith_hammer_02.wav)",
+      "sounds:blacksmith_hammer_03" : "file(data/sounds/effects/sh_blacksmith_hammer_03.wav)",
+
                
       "music:title_screen"    : "file(data/music/startmenumusic.ogg)",
       "music:levelmusic_spring_day_01"     : "file(data/music/levelmusic_spring_day_01.ogg)",
@@ -1447,6 +1466,7 @@
          "file(ui/game/bulletin/bulletin_dialog/quest_bulletin_dialog/quest_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
@@ -1535,6 +1555,7 @@
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1608,6 +1629,7 @@
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.less)",
          "file(ui/game/event_log/event_log.less)"
       ]

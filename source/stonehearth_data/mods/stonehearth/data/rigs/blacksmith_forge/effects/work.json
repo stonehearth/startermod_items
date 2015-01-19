@@ -1,0 +1,24 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "animation": {
+         "type": "animation_effect",
+         "start_time": 0,
+         "animation": "work.json",
+         "loop": true
+      },
+      "cubemitter": {
+         "type": "cubemitter",
+         "cubemitter": "particles/fire/small_fire.cubemitter.json",
+         "loop": true,
+         "transforms": {
+            "x":0,
+            "y":0.5,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      }      
+   }
+}

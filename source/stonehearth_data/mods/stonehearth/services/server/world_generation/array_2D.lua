@@ -147,7 +147,7 @@ function Array2D:clone_to_nested_arrays()
    return dst
 end
 
-function Array2D:fill_ij(fn)
+function Array2D:fill(fn)
    local offset = 1
 
    for j=1, self.height do
@@ -173,10 +173,13 @@ function Array2D:set_block(x, y, block_width, block_height, value)
 end
 
 function Array2D:process(fn)
-   local size = self.width * self.height
+   local offset = 1
 
-   for i=1, size do
-      self[i] = fn(self[i])
+   for j=1, self.height do
+      for i=1, self.width do
+         self[offset] = fn(self[offset], i, j)
+         offset = offset + 1
+      end
    end
 end
 
@@ -193,38 +196,37 @@ function Array2D:process_block(x, y, block_width, block_height, fn)
    end
 end
 
--- returns true if fn(x) returns true for all elements, false otherwise
--- terminates early if fn(x) returns false on an element
+-- terminates early if fn(x) returns true on any element
 function Array2D:visit(fn)
-   local size = self.width * self.height
-   local continue
+   local offset = 1
+   local stop
 
-   for i=1, size do
-      continue = fn(self[i])
-      if not continue then
-         return false
+   for j=1, self.height do
+      for i=1, self.width do
+         stop = fn(self[offset], i, j)
+         if stop then
+            return
+         end
+         offset = offset + 1
       end
    end
-   return true
 end
 
--- returns true if fn(x) returns true for all elements, false otherwise
--- terminates early if fn(x) returns false on an element
+-- terminates early if fn(x) returns true on any element
 function Array2D:visit_block(x, y, block_width, block_height, fn)
-   local index, continue
+   local index, stop
    local offset = self:get_offset(x, y)-1
 
    for j=1, block_height do
       for i=1, block_width do
          index = offset+i
-         continue = fn(self[index])
-         if not continue then
-            return false
+         stop = fn(self[index])
+         if stop then
+            return
          end
       end
       offset = offset + self.width
    end
-   return true
 end
 
 function Array2D:load(array)

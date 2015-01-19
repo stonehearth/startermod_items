@@ -1,0 +1,30 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 2,
+   "recipe_name" : "Bronze Ingot",
+   "description": "A bar of pure bronze. A suitable material for crafted goods.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/refined/bronze_ingot/bronze_ingot.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:copper_ingot",
+         "count" : 1
+      },
+      {
+         "uri" : "stonehearth:refined:tin_ingot",
+         "count" : 1
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+   ],
+  "produces": [
+      {
+         "item" : "stonehearth:refined:bronze_ingot"
+      }
+  ]
+}

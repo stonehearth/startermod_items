@@ -12,6 +12,10 @@
       {
          "uri" : "stonehearth:resources:gold:ore",
          "count" : 4
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
       }
    ],
   "produces": [

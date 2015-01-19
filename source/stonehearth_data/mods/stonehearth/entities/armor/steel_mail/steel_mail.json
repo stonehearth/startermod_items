@@ -1,0 +1,43 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Full Platemail",
+         "description": "A full suit of steel armor",
+         "icon" : "file(steel_mail.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(steel_mail.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(steel_mail_female.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "steel armor heavy_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(steel_mail_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "slot" : "torso",
+         "ilevel" : 9,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 9
+      }
+   }   
+}

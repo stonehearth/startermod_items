@@ -42,10 +42,50 @@ LightNode::LightNode( const LightNodeTpl &lightTpl ) :
    _shadowMapBuffer = 0;
    _shadowMapSize = 0;
 
+   if (!_directional && _shadowMapCount > 0) {
+      registerForNodeTracking();
+   }
+
    reallocateShadowBuffer(gRenderer->calculateShadowBufferSize(this));
 
    setFlags(SceneNodeFlags::NoRayQuery, false);
 }
+
+void LightNode::registerForNodeTracking()
+{
+   Modules::sceneMan().registerNodeTracker(this, [this](SceneNode const*n) {
+      for (int i = 0; i < 6; i++) {
+         if (_dirtyShadows[i]) {
+            continue;
+         }
+
+         if (n->getFlags() & SceneNodeFlags::NoCastShadow) {
+            continue;
+         }
+
+         const int nodeType = n->getType();
+         if (nodeType == SceneNodeTypes::Camera || nodeType == SceneNodeTypes::Group ||
+            nodeType == SceneNodeTypes::HudElement || nodeType == SceneNodeTypes::Joint ||
+            nodeType == SceneNodeTypes::Light || nodeType == SceneNodeTypes::ProjectorNode)
+         {
+            continue;
+         }
+
+         if (!getCubeFrustum((LightCubeFace::List)i).cullBox(n->getBBox())) {
+            _dirtyShadows[i] = true;
+         }
+      }
+   });
+}
+
+
+void LightNode::dirtyCubeFrustums()
+{
+   for (int i = 0; i < 6; i++) {
+      _dirtyShadows[i] = true;
+   }
+}
+
 
 void LightNode::reallocateShadowBuffer(int size)
 {
@@ -55,11 +95,18 @@ void LightNode::reallocateShadowBuffer(int size)
    }
 
    _shadowMapSize = size;
+
+   if (_shadowMapSize == 0) {
+      _shadowMapCount = 0;
+      return;
+   }
+
    if (Modules::config().getOption(EngineOptions::EnableShadows)) {
       if (_directional) {
-         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::BGRA8, true, 0, 0);
+         _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::BGRA8, true, 0, 0);
       } else {
-         _shadowMapBuffer = gRDI->createRenderBuffer(size, size, TextureFormats::R32, true, 1, 0, 0, true);
+         _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::R32, true, 1, 0, 0, true);
+         dirtyCubeFrustums();
       }
       if (!_shadowMapBuffer)
 	   {
@@ -74,6 +121,7 @@ LightNode::~LightNode()
       gRDI->destroyRenderBuffer(_shadowMapBuffer);
       _shadowMapBuffer = 0;
    }
+   Modules::sceneMan().clearNodeTracker(this);
 }
 
 
@@ -155,10 +203,17 @@ void LightNode::setParamI( int param, int value )
 	switch( param )
 	{
 	case LightNodeParams::ShadowMapCountI:
-		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 )
+		if( value == 0 || value == 1 || value == 2 || value == 3 || value == 4 ) {
+         if (_shadowMapCount == 0 && value != 0) {
+            registerForNodeTracking();
+         } else if (value == 0) {
+            Modules::sceneMan().clearNodeTracker(this);
+         }
 			_shadowMapCount = (uint32)value;
-		else
+         reallocateShadowBuffer(gRenderer->calculateShadowBufferSize(this));
+      } else {
 			Modules::setError( "Invalid value in h3dSetNodeParamI for H3DLight::ShadowMapCountI" );
+      }
 		return;
    case LightNodeParams::ImportanceI:
       _importance = value;
@@ -193,6 +248,8 @@ float LightNode::getParamF( int param, int compIdx )
 		return _shadowSplitLambda;
 	case LightNodeParams::ShadowMapBiasF:
 		return _shadowMapBias;
+   case LightNodeParams::DirtyShadowsI:
+      return _dirtyShadows[compIdx] ? 1.0f : 0.0f;
 	}
 
 	return SceneNode::getParamF( param, compIdx );
@@ -262,6 +319,9 @@ void LightNode::setParamStr( int param, const char *value )
 		_lightingContext = value;
 		return;
 	case LightNodeParams::ShadowContextStr:
+      if (_shadowContext != value) {
+         dirtyCubeFrustums();
+      }
 		_shadowContext = value;
 		return;
 	}
@@ -352,13 +412,34 @@ void LightNode::onPostUpdate()
 	m.c[3][0] = 0; m.c[3][1] = 0; m.c[3][2] = 0;
 	_spotDir = m * Vec3f( 0, 0, -1 );
 	_spotDir.normalize();
-	_absPos = Vec3f( _absTrans.c[3][0], _absTrans.c[3][1], _absTrans.c[3][2] );
+
+   Vec3f newPos = Vec3f( _absTrans.c[3][0], _absTrans.c[3][1], _absTrans.c[3][2] );
+   bool lightMoved = newPos != _absPos;
+	_absPos = newPos;
 
 	// Generate frustum
 	if( _fov < 180 ) {
 		_frustum.buildViewFrustum( _absTrans, _fov, 1.0f, 0.1f, _radius );
    } else {
 		_frustum.buildBoxFrustum( _absTrans, -_radius, _radius, -_radius, _radius, _radius, -_radius );
+
+      if (lightMoved) {
+		   float ymax = 0.1f * tanf(degToRad(45.0f));
+		   float xmax = ymax * 1.0f;  // ymax * aspect
+         Matrix4f projMat = Matrix4f::PerspectiveMat(-xmax, xmax, -ymax, ymax, 0.1f, _radius);
+
+         static const float xRot[6] = { 0, 0, degToRad(-90), degToRad(90), 0, 0};
+         static const float yRot[6] = { degToRad(90), degToRad(-90), degToRad(180), 0, degToRad(180), 0};
+         Matrix4f lightView;
+         for (int i = 0; i < 6; i++) {
+            lightView.toIdentity();
+            lightView.rotate(xRot[i], yRot[i], 0);
+            lightView = _absTrans * lightView;
+            _cubeViewMats[i] = lightView.inverted();
+            _cubeFrustums[i].buildViewFrustum(_cubeViewMats[i], projMat);
+            _dirtyShadows[i] = true;
+         }
+      }
    }
    if (!_directional) {
       _bBox.clear();
