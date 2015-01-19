@@ -57,7 +57,6 @@ void MaterialResource::initDefault()
 {
 	_shaderRes = 0x0;
    _parentMaterial = 0x0;
-	_class.clear();
 }
 
 
@@ -69,7 +68,6 @@ void MaterialResource::release()
 
 	_samplers.clear();
 	_uniforms.clear();
-	_shaderFlags.clear();
 }
 
 
@@ -106,13 +104,6 @@ bool MaterialResource::load( const char *data, int size )
       uint32 mat = Modules::resMan().addResource(ResourceTypes::Material, parentName, 0, false);
       _parentMaterial = (MaterialResource*)Modules::resMan().resolveResHandle(mat);
    }
-
-	// Class
-   _class = rootNode.getAttribute( "class", "" );
-
-   // For the sake of efficiency (since we don't want to do substrings in the middle of
-   // rendering a model), compute the '~class' string just once, here.
-   _notClass = std::string("~") + _class;
 
     // Shader
 	XMLNode node1 = rootNode.getFirstChild( "Shader" );
@@ -241,42 +232,6 @@ bool MaterialResource::setArrayUniform( std::string const& name, float* data, in
 	}
 
 	return false;
-}
-
-
-bool MaterialResource::isOfClass( std::string const& theClass )
-{
-	static std::string theClass2;
-
-	if( !theClass.empty() )
-	{
-		if( theClass[0]	!= '~' )
-		{
-			if( _class.find( theClass, 0 ) != 0 ) return false;
-			if( _class.length() > theClass.length() && _class[theClass.length()] != '.' ) return false;
-		}
-		else	// Not operator
-		{
-			if( _notClass.find( theClass, 0 ) == 0 )
-			{
-				if( _notClass.length() == theClass2.length() )
-				{
-					return false;
-				}
-				else
-				{
-					if( _notClass[theClass.length()] == '.' ) return false;
-				}
-			}
-		}
-	}
-	else
-	{
-		// Special name which is hidden when drawing objects of "all classes"
-		if( _class == "_DEBUG_" ) return false;
-	}
-
-	return true;
 }
 
 
@@ -451,13 +406,6 @@ const char *MaterialResource::getElemParamStr( int elem, int elemIdx, int param 
 {
 	switch( elem )
 	{
-	case MaterialResData::MaterialElem:
-		switch( param )
-		{
-		case MaterialResData::MatClassStr:
-			return _class.c_str();
-		}
-		break;
 	case MaterialResData::SamplerElem:
 		if( (unsigned)elemIdx < _samplers.size() )
 		{
@@ -486,18 +434,6 @@ const char *MaterialResource::getElemParamStr( int elem, int elemIdx, int param 
 
 void MaterialResource::setElemParamStr( int elem, int elemIdx, int param, const char *value )
 {
-	switch( elem )
-	{
-	case MaterialResData::MaterialElem:
-		switch( param )
-		{
-		case MaterialResData::MatClassStr:
-			_class = value;
-			return;
-		}
-		break;
-	}
-	
 	Resource::setElemParamStr( elem, elemIdx, param, value );
 }
 

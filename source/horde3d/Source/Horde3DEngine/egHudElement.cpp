@@ -77,11 +77,6 @@ WorldspaceLineHudElement::WorldspaceLineHudElement(NodeHandle parentNode, int wi
 
 void WorldspaceLineHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;
@@ -166,11 +161,6 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 
 void ScreenspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;
@@ -292,11 +282,6 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, fl
 
 void WorldspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;

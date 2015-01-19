@@ -88,7 +88,6 @@ public:
 	bool load( const char *data, int size );
 	bool setUniform( std::string const& name, float a, float b, float c, float d );
    bool setArrayUniform( std::string const& name, float* data, int dataCount);
-	bool isOfClass( std::string const& theClass );
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -105,10 +104,8 @@ private:
 private:
    PMaterialResource           _parentMaterial;
 	PShaderResource             _shaderRes;
-	std::string                 _class, _notClass;
 	std::vector< MatSampler >   _samplers;
 	std::vector< MatUniform >   _uniforms;
-	std::vector< std::string >  _shaderFlags;
 
 	friend class ResourceManager;
 	friend class Renderer;

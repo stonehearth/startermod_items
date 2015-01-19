@@ -1187,14 +1187,6 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       }
    }
 
-   // Handle link of material resource
-   if( materialRes->_matLink != 0x0 ) {
-      if (!setMaterialRec( materialRes->_matLink, shaderContext, shaderRes )) {
-         MAT_LOG(7) << "failed to install material link " << _curStageMatLink->getName() << " in setMaterialRec.";
-         result = false;
-      }
-   }   
-
    return result;
 }
 
@@ -2512,8 +2504,6 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 		
 		if( !debugView )
 		{
-			if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) continue;
-			
 			// Set material
 			if( curMatRes != meshNode->getMaterialRes() )
 			{
@@ -2688,11 +2678,6 @@ void Renderer::drawVoxelMeshes(std::string const& shaderContext, std::string con
             }
             curMatRes = Modules::renderer()._materialOverride;
          } else {
-            if( !meshNode->getMaterialRes()->isOfClass( theClass ) ) {
-               RENDER_LOG() << "does not match material class " << theClass << ".  ignoring.";
-               continue;
-            }
-
             // Set material
             if( curMatRes != meshNode->getMaterialRes() )
             {
@@ -2843,8 +2828,6 @@ void Renderer::drawVoxelMeshes_Instances(std::string const& shaderContext, std::
 				}
 				curMatRes = Modules::renderer()._materialOverride;
          } else {
-            if( !instanceKey.matResource->isOfClass( theClass ) ) continue;
-			
 			   // Set material
 			   //if( curMatRes != instanceKey.matResource )
 			   //{
@@ -3016,11 +2999,6 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
 	   {
 		   InstanceNode* in = (InstanceNode *)entry.node;
 
-		   if( !in->_matRes->isOfClass( theClass ) ) {
-            RENDER_LOG() << "does not match class " << theClass << ".  ignoring.";
-            continue;
-         }
-
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setVertexBuffer( 1, in->_instanceBufObj, 0, 16 * sizeof(float) );
          gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
@@ -3045,11 +3023,6 @@ void Renderer::drawInstanceNode(std::string const& shaderContext, std::string co
       for( const auto& entry : Modules::sceneMan().getRenderableQueue(SceneNodeTypes::InstanceNode) )
 	   {
 		   InstanceNode* in = (InstanceNode *)entry.node;
-
-		   if( !in->_matRes->isOfClass( theClass ) ) {
-            RENDER_LOG() << "does not match class " << theClass << ".  ignoring.";
-            continue;
-         }
 
          gRDI->setVertexBuffer( 0, in->_geoRes->getVertexBuf(), 0, sizeof( VoxelVertexData ) );
          gRDI->setIndexBuffer( in->_geoRes->getIndexBuf(), in->_geoRes->_16BitIndices ? IDXFMT_16 : IDXFMT_32 );
@@ -3099,7 +3072,6 @@ void Renderer::drawParticles( std::string const& shaderContext, std::string cons
 		EmitterNode *emitter = (EmitterNode *)entry.node;
 		
 		if( emitter->_particleCount == 0 ) continue;
-		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
 		// Occlusion culling
 		uint32 queryObj = 0;

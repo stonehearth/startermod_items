@@ -158,7 +158,7 @@ void ToastNode::renderFunc(std::string const& shaderContext, std::string const& 
    for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
-      if (!fontMaterial_ || !fontMaterial_->isOfClass(theClass)) {
+      if (!fontMaterial_) {
          continue;
       }
 		if (!Modules::renderer().setMaterial(fontMaterial_, shaderContext)) {
