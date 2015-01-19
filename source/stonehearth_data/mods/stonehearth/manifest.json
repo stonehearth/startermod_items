@@ -139,6 +139,8 @@
       "weaver:outfit" : "file(jobs/weaver/weaver_outfit)",
       "weaver:spindle" : "file(jobs/weaver/weaver_spindle)",
       "weaver:talisman" : "file(jobs/weaver/weaver_spindle/weaver_spindle_talisman.json)",
+      "weaver:spinning_wheel" : "file(jobs/weaver/weaver_spinning_wheel/weaver_spinning_wheel.json)",
+      "weaver:loom" : "file(jobs/weaver/weaver_loom/weaver_loom.json)",
 
       "mining_zone" : "file(entities/terrain/mining_zone.json)",
       "mining_zone_designation" : "file(entities/terrain/mining_zone_designation.json)",

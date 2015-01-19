@@ -20,6 +20,9 @@ function WeaverTest:__init()
    self:place_item_cluster('stonehearth:resources:fiber:wool_bundle', 8, 8, 3, 3)
    self:place_item_cluster('stonehearth:resources:rabbit_pelt', 12, 8, 3, 3)
 
+   self:place_item('stonehearth:weaver:spinning_wheel', 5, 1, player_id, { force_iconic = false })
+   self:place_item('stonehearth:weaver:loom', 5, 5, player_id, { force_iconic = false })
+
    self:place_item_cluster('stonehearth:worker:outfit:winter', -12, 12, 3, 3)
 end
 
