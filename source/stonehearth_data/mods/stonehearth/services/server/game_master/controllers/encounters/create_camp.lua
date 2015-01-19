@@ -1,8 +1,7 @@
 local Point3 = _radiant.csg.Point3
-local Array2D = require 'services.server.world_generation.array_2D'
-local PerturbationGrid = require 'services.server.world_generation.perturbation_grid'
 
 local rng = _radiant.csg.get_default_rng()
+local log = radiant.log.create_logger('game_master')
 
 local CAMP_SIZE = 3
 local LARGE_SPOT_COUNT = 9
@@ -30,9 +29,17 @@ function CreateCamp:start(ctx, info)
    self._sv.ctx = ctx
 
    ctx.enemy_player_id = info.player_id -- xxx: should be 'npc_enemy_id'
-   self._population = stonehearth.population:get_population(ctx.enemy_player_id)
+   self:_search_for_camp_location()
+end
 
-   self:_compute_camp_origin(ctx, info)
+function CreateCamp:_create_camp()
+   local ctx = self._sv.ctx
+   local info = self._sv.info
+
+   assert(ctx.enemy_player_id)
+   assert(ctx.enemy_location)
+
+   self._population = stonehearth.population:get_population(ctx.enemy_player_id)
 
    local pieces = {
       large = {},
@@ -130,6 +137,7 @@ function CreateCamp:_choose_spots(used_spots, w, h, count)
    end
 
    for i, spot in ipairs(spots) do
+      spot = spot - 1
       local x = math.floor(spot / w)
       local y = spot - (x * w)
       spots[i] = { x=x, y=y }
@@ -137,24 +145,65 @@ function CreateCamp:_choose_spots(used_spots, w, h, count)
    return spots
 end
 
+function CreateCamp:_destroy_find_location_timer()
+   if self._find_location_timer then
+      self._find_location_timer:destroy()
+      self._find_location_timer = nil
+   end
+end
 
-function CreateCamp:_compute_camp_origin(ctx, info)
-   -- get the location of the town banner
-   local town = stonehearth.town:get_town(ctx.player_id)
-   local player_banner = town:get_banner()
-   local spawn_point = radiant.entities.get_world_location(player_banner)
-   local camp_radius = math.floor(CAMP_SIZE * LARGE_PIECE_RADIUS)
+function CreateCamp:_start_find_location_timer()
+   self:_destroy_find_location_timer()
+   self._find_location_timer = radiant.set_realtime_timer(15000, function()
+         self:_search_for_camp_location()
+      end)
+end
 
-   -- pick a random point and go in that direction
+function CreateCamp:_search_for_camp_location()
+   self:_destroy_find_location_timer()
+
+   local ctx = self._sv.ctx
    local info = self._sv.info
+
+   -- choose a distance and start looking for a place to put the camp
+   local player_banner = stonehearth.town:get_town(ctx.player_id)
+                                             :get_banner()
    local min = info.spawn_range.min
    local max = info.spawn_range.max
-   local d = rng:get_int(min, max) + camp_radius
-   local theta = rng:get_real(0, math.pi * 2)
-   local offset = Point3(d * math.sin(theta), 0, d * math.cos(theta))
+   local d = rng:get_int(min, max)
 
-   -- store the origin
-   ctx.enemy_location = spawn_point + offset:to_closest_int()
+   -- we use a goblin for pathfinding.  sigh.  ideally we should be able to pass in a mob type
+   -- (e.g. HUMANOID) so we avoid creating this guy
+   if not self._sv.find_camp_location_entity then   
+      self._sv.find_camp_location_entity = radiant.entities.create_entity('stonehearth:monsters:goblins:goblin')
+   end
+
+   local success = function(location)
+      log:info('found camp location %s', location)
+      self:_finalize_camp_location(location)
+   end
+
+   local fail = function()
+      log:info('failed to create camp.  trying again')
+      self:_start_find_location_timer()
+   end
+   log:info('looking for camp location %d units away', d)
+
+   local attempted = stonehearth.spawn_region_finder:find_point_outside_civ_perimeter_for_entity_astar(self._sv.find_camp_location_entity, player_banner, d, 1, d * 100, success, fail) 
+   if not attempted then
+      self:_start_find_location_timer()
+   end
+end
+
+function CreateCamp:_finalize_camp_location(location)
+   self:_destroy_find_location_timer()
+   radiant.entities.destroy_entity(self._sv.find_camp_location_entity)
+
+   self._sv.find_camp_location_entity = nil
+   self._sv.ctx.enemy_location = location
+   self.__saved_variables:mark_changed()
+
+   self:_create_camp()
 end
 
 function CreateCamp:_add_piece(x, z, piece)
