@@ -45,9 +45,9 @@ end
 -- The class returned by the script should support an initialize(properties, services) method.
 -- The properties argument is the properties that are passed in here.
 -- The services argument will be a ScenarioModderServices object.
-function StaticScenarioService:add_scenario(properties, x, y, width, length, activate_now)
+function StaticScenarioService:add_scenario(properties, context, x, y, width, length, activate_now)
    if activate_now then
-      self:_activate_scenario(properties, x, y)
+      self:_activate_scenario(properties, context, x, y)
    else
       local scenario_info = {
          id = self._sv.next_id,
@@ -55,7 +55,8 @@ function StaticScenarioService:add_scenario(properties, x, y, width, length, act
          y = y,
          width = width,
          length = length,
-         properties = properties
+         properties = properties,
+         context = context
       }
       self._sv.next_id = self._sv.next_id + 1
       self.__saved_variables:mark_changed()
@@ -79,30 +80,27 @@ end
 -- world_space_region is a region2
 function StaticScenarioService:reveal_region(world_space_region, activation_filter)
    local revealed_region = self._sv.revealed_region
-   local bounded_world_space_region, unrevealed_region, new_region
-   local key, scenarios, properties
-
-   bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
-   new_region = self:_region_to_habitat_space(bounded_world_space_region)
-
-   unrevealed_region = new_region - revealed_region
+   local bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
+   local new_region = self:_region_to_habitat_space(bounded_world_space_region)
+   local unrevealed_region = new_region - revealed_region
 
    for rect in unrevealed_region:each_cube() do
       for j = rect.min.y, rect.max.y-1 do
          for i = rect.min.x, rect.max.x-1 do
-            key = self:_get_key(i, j)
-            scenarios = self._sv.dormant_scenarios[key]
+            local key = self:_get_key(i, j)
+            local scenarios = self._sv.dormant_scenarios[key]
 
             if scenarios then
                for id, scenario_info in pairs(scenarios) do
-                  properties = scenario_info.properties
+                  local properties = scenario_info.properties
+                  local context = scenario_info.context
 
                   self:_remove_from_scenario_map(scenario_info)
 
-                  local activate = not activation_filter or activation_filter(properties)
+                  local activate = not activation_filter or activation_filter(properties, context)
                   if activate then
                      local seconds = Timer.measure(function()
-                           self:_activate_scenario(properties, scenario_info.x, scenario_info.y)
+                           self:_activate_scenario(properties, context, scenario_info.x, scenario_info.y)
                         end)
                      log:info('Activated scenario "%s" in %.3fs', properties.name, seconds)
                   end
@@ -198,15 +196,15 @@ function StaticScenarioService:_each_key_in(x, y, width, length, fn)
 end
 
 -- TODO: randomize orientation in place_entity
-function StaticScenarioService:_activate_scenario(properties, x, y)
+function StaticScenarioService:_activate_scenario(properties, context, x, y)
    local services, scenario_script
 
    services = ScenarioModderServices(self._sv.rng)
-   services:_set_scenario_properties(properties, x, y)
+   services:_set_scenario_properties(properties, context, x, y)
 
    scenario_script = radiant.mods.load_script(properties.script)
    scenario_script()
-   scenario_script:initialize(properties, services)
+   scenario_script:initialize(properties, context, services)
 
    self.__saved_variables:mark_changed()
 end

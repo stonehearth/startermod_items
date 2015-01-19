@@ -10,22 +10,37 @@
          "file(static/terrain/large_boulder_cluster)",
          "file(static/terrain/silkweed_field)",
          "file(static/terrain/frostsnap_field)",
-         "file(static/terrain/brightbell_field)"
+         "file(static/terrain/brightbell_field)",
+         "file(static/terrain/copper_vein)",
+         "file(static/terrain/tin_vein)",
+         "file(static/terrain/iron_vein)",
+         "file(static/terrain/silver_vein)",
+         "file(static/terrain/gold_vein)",
+         "file(static/terrain/coal_vein)"
       ],
       "categories" : {
          "terrain" : {
             "frequency" : 30.0,
             "priority" : 0,
+            "location_type" : "surface",
             "activation_type" : "immediate"
          },
          "wildlife" : {
             "frequency" : 3.0,
             "priority" : 0,
+            "location_type" : "surface",
             "activation_type" : "revealed"
          },
          "ruins" : {
             "frequency" : 0.20,
             "priority" : 3,
+            "location_type" : "surface",
+            "activation_type" : "revealed"
+         },
+         "ore" : {
+            "frequency" : 3.0,
+            "priority" : 0,
+            "location_type" : "underground",
             "activation_type" : "revealed"
          }
       }

@@ -1,0 +1,21 @@
+{
+   "name" : "ore_vein",
+   "category" : "ore",
+   "size" : {
+      "width" : 128,
+      "length" : 128
+   },
+   "weight" : 100,
+   "unique" : false,
+   "script" : "file(ore_vein.lua)",
+
+   "data" : {
+      "num_veins_min" : 2,
+      "num_veins_max" : 5,
+      "vein_length_min" : 31,
+      "vein_length_max" : 63,
+      "vein_radius" : 1,
+      "mother_lode_radius_min" : 2,
+      "mother_lode_radius_max" : 4
+   }
+}

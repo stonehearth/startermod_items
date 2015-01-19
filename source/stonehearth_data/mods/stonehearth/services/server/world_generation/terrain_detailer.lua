@@ -1,4 +1,3 @@
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local Array2D = require 'services.server.world_generation.array_2D'
 local FilterFns = require 'services.server.world_generation.filter.filter_fns'
@@ -114,7 +113,7 @@ end
 
 -- inverse bell curve from 1 to quantization size
 function TerrainDetailer:_generate_detail_height(max_delta, base_height)
-   if base_height >= self._terrain_info[TerrainType.foothills].max_height then
+   if base_height >= self._terrain_info.foothills.max_height then
       -- if rng:get_real(0, 1) <= 0.50 then
          return max_delta
       -- else
@@ -211,7 +210,7 @@ function TerrainDetailer:_is_plains_edge(tile_map, x, y, threshold)
    local height = tile_map.height
    local neighbor
 
-   if value >= self._terrain_info[TerrainType.plains].max_height then
+   if value >= self._terrain_info.plains.max_height then
       return false
    end
 
@@ -238,7 +237,7 @@ end
 function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
    local rng = self._rng
    local chunk_probability = 0.4
-   local foothills_max_height = self._terrain_info[TerrainType.foothills].max_height
+   local foothills_max_height = self._terrain_info.foothills.max_height
    local height, removed
 
    -- TODO: resolve chunks on edge macro_blocks
@@ -265,7 +264,7 @@ function TerrainDetailer:remove_mountain_chunks(tile_map, micro_map)
 end
 
 function TerrainDetailer:_remove_chunk(tile_map, micro_map, x, y, dx, dy)
-   local mountains_step_size = self._terrain_info[TerrainType.mountains].step_size
+   local mountains_step_size = self._terrain_info.mountains.step_size
    local macro_block_size = self._terrain_info.macro_block_size
    local slice_size = self._terrain_info.slice_size
    local height, adj_height

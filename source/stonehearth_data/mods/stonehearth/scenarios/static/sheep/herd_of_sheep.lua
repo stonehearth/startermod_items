@@ -3,7 +3,7 @@ local HerdOfSheep = class()
 function HerdOfSheep:__init()
 end
 
-function HerdOfSheep:initialize(properties, services)
+function HerdOfSheep:initialize(properties, context, services)
    local sheep_name = { 'stonehearth:sheep' }
    local num_sheep = services.rng:get_int(1, 5)
    local sheep_length = 2

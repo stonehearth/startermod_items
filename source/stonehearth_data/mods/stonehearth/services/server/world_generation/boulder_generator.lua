@@ -1,12 +1,10 @@
-local TerrainType = require 'services.server.world_generation.terrain_type'
 local TerrainInfo = require 'services.server.world_generation.terrain_info'
-local log = radiant.log.create_logger('world_generation')
-
 local Terrain = _radiant.om.Terrain
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local construct_cube3 = _radiant.csg.construct_cube3
 local Region3 = _radiant.csg.Region3
+local log = radiant.log.create_logger('world_generation')
 
 local BoulderGenerator = class()
 
@@ -15,9 +13,9 @@ function BoulderGenerator:__init(terrain_info, rng)
    self._rng = rng
 
    self._boulder_size = {
-      [TerrainType.plains]    = { min = 1, max = 3 },
-      [TerrainType.foothills] = { min = 3, max = 6 },
-      [TerrainType.mountains] = { min = 4, max = 9 }
+      plains    = { min = 1, max = 3 },
+      foothills = { min = 3, max = 6 },
+      mountains = { min = 4, max = 9 }
    }
 end
 

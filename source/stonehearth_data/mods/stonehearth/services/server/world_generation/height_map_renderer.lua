@@ -1,6 +1,4 @@
 local Array2D = require 'services.server.world_generation.array_2D'
-local TerrainType = require 'services.server.world_generation.terrain_type'
-
 local Rect2 = _radiant.csg.Rect2
 local Point2 = _radiant.csg.Point2
 local Cube3 = _radiant.csg.Cube3
@@ -19,7 +17,7 @@ function HeightMapRenderer:__init(terrain_info)
    self._block_types = radiant.terrain.get_block_types()
 
    -- rock layers
-   local mountains_info = self._terrain_info[TerrainType.mountains]
+   local mountains_info = self._terrain_info.mountains
    local rock_layers = {}
    local terrain_tags = {
       self._block_types.rock_layer_1,
@@ -42,9 +40,9 @@ function HeightMapRenderer:__init(terrain_info)
 
    -- add land function table
    self._add_land_functions = {
-      [TerrainType.plains] = self._add_plains_to_region,
-      [TerrainType.foothills] = self._add_foothills_to_region,
-      [TerrainType.mountains] = self._add_mountains_to_region
+      plains = self._add_plains_to_region,
+      foothills = self._add_foothills_to_region,
+      mountains = self._add_mountains_to_region
    }
 end
 
@@ -183,8 +181,8 @@ function HeightMapRenderer:_add_mountains_to_region(region3, rect, height)
 end
 
 function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
-   local foothills_step_size = self._terrain_info[TerrainType.foothills].step_size
-   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+   local foothills_step_size = self._terrain_info.foothills.step_size
+   local plains_max_height = self._terrain_info.plains.max_height
 
    local has_grass = height % foothills_step_size == 0
    local soil_top = has_grass and height-1 or height
@@ -204,7 +202,7 @@ function HeightMapRenderer:_add_foothills_to_region(region3, rect, height)
 end
 
 function HeightMapRenderer:_add_plains_to_region(region3, rect, height)
-   local plains_max_height = self._terrain_info[TerrainType.plains].max_height
+   local plains_max_height = self._terrain_info.plains.max_height
    local material = height < plains_max_height and self._block_types.dirt or self._block_types.grass
 
    self:_add_soil_strata_to_region(region3, Cube3(
