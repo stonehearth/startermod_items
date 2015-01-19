@@ -46,7 +46,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
-   self._scenario_index = ScenarioIndex(self._rng)
+   self._scenario_index = ScenarioIndex(self._terrain_info, self._rng)
    self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    stonehearth.static_scenario:create_new_game(self._terrain_info, seed)

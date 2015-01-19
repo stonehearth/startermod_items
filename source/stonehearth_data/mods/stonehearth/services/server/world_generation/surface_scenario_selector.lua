@@ -1,4 +1,5 @@
 local ScenarioSelector = require 'services.server.world_generation.scenario_selector'
+local Histogram = require 'lib.algorithms.histogram'
 local log = radiant.log.create_logger('surface_scenario_selector')
 
 local SurfaceScenarioSelector = class()
@@ -10,13 +11,26 @@ function SurfaceScenarioSelector:__init(scenario_index, terrain_info, rng)
 end
 
 function SurfaceScenarioSelector:place_immediate_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self._scenario_index:select_scenarios('surface', 'immediate')
+   local habitat_volumes = self:_calculate_habitat_volumes(habitat_map)
+   local scenarios = self._scenario_index:select_scenarios('surface', 'immediate', habitat_volumes)
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, true)
 end
 
 function SurfaceScenarioSelector:place_revealed_scenarios(habitat_map, elevation_map, tile_offset_x, tile_offset_y)
-   local scenarios = self._scenario_index:select_scenarios('surface', 'revealed')
+   local habitat_volumes = self:_calculate_habitat_volumes(habitat_map)
+   local scenarios = self._scenario_index:select_scenarios('surface', 'revealed', habitat_volumes)
    self:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, false)
+end
+
+function SurfaceScenarioSelector:_calculate_habitat_volumes(habitat_map)
+   local histogram = Histogram()
+
+   habitat_map:visit(function(habitat_type)
+         histogram:increment(habitat_type)
+      end)
+
+   local habitat_volumes = histogram:get_counts()
+   return habitat_volumes
 end
 
 function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevation_map, tile_offset_x, tile_offset_y, activate_now)
