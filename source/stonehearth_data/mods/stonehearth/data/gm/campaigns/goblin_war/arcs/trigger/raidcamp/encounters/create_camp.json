@@ -19,8 +19,8 @@
             "info" : "file(create_camp/campfire.json)"
          },
          "small_hut" : {
-            "min" : 1,
-            "max" : 4,
+            "min" : 4,
+            "max" : 6,
             "info" : "file(create_camp/small_hut.json)"
          },
          "loot_chest" : {

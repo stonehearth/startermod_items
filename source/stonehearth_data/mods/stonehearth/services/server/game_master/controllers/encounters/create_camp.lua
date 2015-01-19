@@ -5,7 +5,7 @@ local PerturbationGrid = require 'services.server.world_generation.perturbation_
 local rng = _radiant.csg.get_default_rng()
 
 local CAMP_SIZE = 3
-local LARGE_SPOT_COUNT = 3
+local LARGE_SPOT_COUNT = 9
 local LARGE_PIECE_RADIUS = 6
 
 local MEDIUM_SPOT_COUNT = 3
