@@ -6,12 +6,10 @@ local Region3 = _radiant.csg.Region3
 
 local ore_generator = {}
 
-local ore_vein_json = radiant.resources.load_json('/stonehearth/services/server/mining/ore_veins.json')
-
-function ore_generator.create_ore_network(kind, rng)
+function ore_generator.create_ore_network(kind, properties, rng)
    local rng = rng or _radiant.csg.get_default_rng()
    local block_type = radiant.terrain.get_block_types()[kind]
-   local json = ore_vein_json[kind]
+   local json = properties
    local region = Region3()
 
    local mother_lode = ore_generator._create_mother_lode(block_type, json, rng)

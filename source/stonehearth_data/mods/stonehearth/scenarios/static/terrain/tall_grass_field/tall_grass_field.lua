@@ -3,7 +3,7 @@ local PlantField = class()
 function PlantField:__init()
 end
 
-function PlantField:initialize(properties, services)
+function PlantField:initialize(properties, context, services)
    local data = properties.data
    local uris = data.entity_type
    local width = properties.size.width

@@ -333,7 +333,7 @@ function MiningService:mine_point(point)
    self:_update_interior_region(point)
 end
 
-function MiningService:create_ore_network(location, kind)
+function MiningService:create_ore_network(location, kind, properties)
    local game_seed = stonehearth.world_generation:get_seed()
    local rng = nil
 
@@ -344,7 +344,7 @@ function MiningService:create_ore_network(location, kind)
       rng = RandomNumberGenerator(ore_seed)
    end
 
-   local ore_region = ore_generator.create_ore_network(kind, rng)
+   local ore_region = ore_generator.create_ore_network(kind, properties, rng)
    ore_region:translate(location)
    return ore_region
 end

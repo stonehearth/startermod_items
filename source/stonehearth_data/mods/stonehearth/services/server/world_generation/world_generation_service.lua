@@ -149,19 +149,18 @@ function WorldGenerationService:set_starting_location(location)
    exclusion_region:translate(self._starting_location)
 
    -- clear the starting location of all revealed scenarios
-   stonehearth.static_scenario:reveal_region(exclusion_region, function(properties)
+   stonehearth.static_scenario:reveal_region(exclusion_region, function()
          return false
       end)
 
-   -- test code CHECKCHECK
-   if radiant.util.get_config('enable_ore', false) then
-      local exclusion_radius = 10000
-      local exclusion_region = Region2(Rect2(
-            Point2(-exclusion_radius,  -exclusion_radius),
-            Point2( exclusion_radius+1, exclusion_radius+1)
+   if radiant.util.get_config('enable_full_vision', false) then
+      local radius = radiant.math.MAX_INT32
+      local region = Region2(Rect2(
+            Point2(-radius,  -radius),
+            Point2( radius+1, radius+1)
          ))
-      exclusion_region:translate(self._starting_location)
-      stonehearth.static_scenario:reveal_region(exclusion_region)
+      region:translate(self._starting_location)
+      stonehearth.static_scenario:reveal_region(region)
    end
 end
 

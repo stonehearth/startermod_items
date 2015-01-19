@@ -58,7 +58,7 @@ function SurfaceScenarioSelector:_place_scenarios(scenarios, habitat_map, elevat
          x = tile_offset_x + feature_offset_x + intra_cell_offset_x
          y = tile_offset_y + feature_offset_y + intra_cell_offset_y
 
-         stonehearth.static_scenario:add_scenario(properties, x, y, width, length, activate_now)
+         stonehearth.static_scenario:add_scenario(properties, nil, x, y, width, length, activate_now)
 
          self:_mark_habitat_map(habitat_map, site.i, site.j, feature_width, feature_length)
 

@@ -17,7 +17,13 @@ function UndergroundScenarioSelector:__init(scenario_index, terrain_info, featur
 end
 
 function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevation_map, tile_offset_x, tile_offset_y)
+   if not radiant.util.get_config('enable_ore', false) then
+      return
+   end
+
    local weighted_set = WeightedSet(self._rng)
+   local placement_map = self:_create_placement_map(underground_elevation_map)
+   local scenarios = self._scenario_index:select_scenarios('underground', 'revealed')
 
    -- uniformly distribute scenarios in the 3d volume above min height
    underground_elevation_map:visit(function(elevation, i, j)
@@ -28,12 +34,7 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
          end
       end)
 
-   if not radiant.util.get_config('enable_ore', false) then
-      return
-   end
-   -- test code CHECKCHECK
-   local num = 0
-   for i=1, num do
+   for _, properties in pairs(scenarios) do
       local index = weighted_set:choose_random()
       if not index then
          break
@@ -43,13 +44,14 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
       local min_slice = self:_elevation_to_slice_index(self._min_elevation)
       local max_slice = self:_elevation_to_slice_index(elevation)
       local slice_index = self._rng:get_int(min_slice, max_slice)
-
       local location = self:_calculate_location(tile_offset_x, tile_offset_y, index.i, index.j, slice_index)
-      local properties = {}
-      properties.script = '/stonehearth/scenarios/static/terrain/ore_vein/ore_vein.lua'
-      properties.location = location
-      properties.kind = 'gold_ore'
-      stonehearth.static_scenario:add_scenario(properties, location.x-64, location.y-64, 129, 129)
+      local context = { location = location }
+
+      -- test code
+      if self:_is_unoccupied(placement_map, index.i-4, index.j-4, 9, 9, slice_index, slice_index) then
+         stonehearth.static_scenario:add_scenario(properties, context, location.x-64, location.y-64, 129, 129)
+         self:_mark_placement_map(placement_map, index.i-4, index.j-4, 9, 9, slice_index, slice_index)
+      end
    end
 end
 
@@ -89,7 +91,7 @@ end
 
 function UndergroundScenarioSelector:_mark_placement_map(placement_map, i, j, width, length, min_slice, max_slice)
    for k = min_slice, max_slice do
-      placement_map[k]:set_block(i, j, width, height, true)
+      placement_map[k]:set_block(i, j, width, length, true)
    end
 end
 
@@ -97,7 +99,7 @@ function UndergroundScenarioSelector:_is_unoccupied(placement_map, i, j, width, 
    for k = min_slice, max_slice do
       local occupied = false
 
-      placement_map[k]:visit_block(i, j, width, height, function(value)
+      placement_map[k]:visit_block(i, j, width, length, function(value)
             if value then
                occupied = true
                -- return true to terminate iteration
@@ -111,6 +113,11 @@ function UndergroundScenarioSelector:_is_unoccupied(placement_map, i, j, width, 
    end
 
    return true
+end
+
+function UndergroundScenarioSelector:_get_dimensions_in_feature_units(width, length)
+   local feature_size = self._feature_size
+   return math.ceil(width/feature_size), math.ceil(length/feature_size)
 end
 
 return UndergroundScenarioSelector
