@@ -43,8 +43,8 @@
          "ordinal" : 2, 
          "name" : "Armor",
          "recipes" : {
-            "copper_breastplate" : {
-               "recipe" : "file(copper_breastplate_recipe.json)"
+            "bronze_breastplate" : {
+               "recipe" : "file(bronze_breastplate_recipe.json)"
             },
             "iron_mail" : {
                "recipe" : "file(iron_mail_recipe.json)"

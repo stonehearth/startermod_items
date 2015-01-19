@@ -6,14 +6,14 @@
          "category" : "gear"   
       },
       "unit_info" : {
-         "name": "Copper Breastplate",
+         "name": "bronze Breastplate",
          "description": "Armor",
-         "icon" : "file(copper_breastplate.png)"
+         "icon" : "file(bronze_breastplate.png)"
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(copper_breastplate_iconic.qb)"
+               "file(bronze_breastplate_iconic.qb)"
             ]
          }
       },
@@ -21,7 +21,7 @@
          "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
       },
       "stonehearth:material" : {
-         "tags" : "copper armor heavy_armor"
+         "tags" : "bronze armor heavy_armor"
       }
    }
 }

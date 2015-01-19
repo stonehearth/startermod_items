@@ -2,14 +2,14 @@
    "type":"recipe",
 
    "work_units"  : 5,
-   "recipe_name" : "Copper Breastplate",
-   "description" : "Roughly fashioned, but tough enough to deflect a blow.",
-   "portrait"    : "/stonehearth/entities/armor/copper_breastplate/copper_breastplate.png",
+   "recipe_name" : "Vronze Breastplate",
+   "description" : "Partial but sturdy coverage against blunt and edged weapons.",
+   "portrait"    : "/stonehearth/entities/armor/bronze_breastplate/bronze_breastplate.png",
    "level_requirement" : 1,
 
    "ingredients": [
       {
-         "uri" : "stonehearth:refined:copper_ingot",
+         "uri" : "stonehearth:refined:bronze_ingot",
          "count" : 4
       },
       {
@@ -23,7 +23,7 @@
   ],
   "produces": [
       {
-         "item":"stonehearth:armor:copper_breastplate"
+         "item":"stonehearth:armor:bronze_breastplate"
       }
   ]
 }
