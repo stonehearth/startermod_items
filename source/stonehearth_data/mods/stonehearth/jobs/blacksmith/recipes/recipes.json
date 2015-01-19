@@ -27,7 +27,19 @@
             }
          }
       },
-       "armor" : {
+      "tools_weapons" : {
+         "ordinal" : 1, 
+         "name" : "Tools & Weapons", 
+         "recipes" : {
+            "carpenter_saw" : {
+               "recipe" : "file(carpenter_saw_recipe.json)"
+            },
+            "trapper_knife" : {
+               "recipe" : "file(trapper_knife_recipe.json)"
+            }  
+         }
+      },      
+      "armor" : {
          "ordinal" : 2, 
          "name" : "Armor",
          "recipes" : {
