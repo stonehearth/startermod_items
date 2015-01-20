@@ -1,3 +1,4 @@
+local TerrainInfo = require 'services.server.world_generation.terrain_info'
 local ScenarioModderServices = require 'services.server.static_scenario.scenario_modder_services'
 local Timer = require 'services.server.world_generation.timer'
 local Point2 = _radiant.csg.Point2
@@ -12,10 +13,11 @@ function StaticScenarioService:initialize()
    self._reveal_distance = radiant.util.get_config('sight_radius', 64) + 8
    self._region_optimization_threshold = radiant.util.get_config('region_optimization_threshold', 1.2)
    self._terrain_component = radiant._root_entity:add_component('terrain')
+   self._terrain_info = TerrainInfo() -- TODO: this should be passed into create_new_game, but it's not serializable yet
 
    self._sv = self.__saved_variables:get_data()
 
-   if not self._sv.initialized then
+   if not self._sv._initialized then
    else
       radiant.events.listen(radiant, 'radiant:game_loaded', function()
             self:_register_events()
@@ -24,13 +26,12 @@ function StaticScenarioService:initialize()
    end
 end
 
-function StaticScenarioService:create_new_game(terrain_info, seed)
-   self._sv.terrain_info = terrain_info
-   self._sv.rng = RandomNumberGenerator(seed)
-   self._sv.dormant_scenarios = {}
-   self._sv.next_id = 1
-   self._sv.revealed_region = Region2()
-   self._sv.last_optimized_rect_count = 10
+function StaticScenarioService:create_new_game(seed)
+   self._sv._rng = RandomNumberGenerator(seed)
+   self._sv._dormant_scenarios = {}
+   self._sv._next_id = 1
+   self._sv._revealed_region = Region2()
+   self._sv._last_optimized_rect_count = 10
    self._sv._initialized = true
    self.__saved_variables:mark_changed()
 
@@ -50,7 +51,7 @@ function StaticScenarioService:add_scenario(properties, context, x, y, width, le
       self:_activate_scenario(properties, context, x, y)
    else
       local scenario_info = {
-         id = self._sv.next_id,
+         id = self._sv._next_id,
          x = x,
          y = y,
          width = width,
@@ -58,7 +59,7 @@ function StaticScenarioService:add_scenario(properties, context, x, y, width, le
          properties = properties,
          context = context
       }
-      self._sv.next_id = self._sv.next_id + 1
+      self._sv._next_id = self._sv._next_id + 1
       self.__saved_variables:mark_changed()
 
       self:_add_to_scenario_map(scenario_info)
@@ -79,16 +80,16 @@ end
 
 -- world_space_region is a region2
 function StaticScenarioService:reveal_region(world_space_region, activation_filter)
-   local revealed_region = self._sv.revealed_region
+   local revealed_region = self._sv._revealed_region
    local bounded_world_space_region = self:_bound_region_by_terrain(world_space_region)
-   local new_region = self._sv.terrain_info:region_to_feature_space(bounded_world_space_region)
+   local new_region = self._terrain_info:region_to_feature_space(bounded_world_space_region)
    local unrevealed_region = new_region - revealed_region
 
    for rect in unrevealed_region:each_cube() do
       for j = rect.min.y, rect.max.y-1 do
          for i = rect.min.x, rect.max.x-1 do
             local key = self:_get_key(i, j)
-            local scenarios = self._sv.dormant_scenarios[key]
+            local scenarios = self._sv._dormant_scenarios[key]
 
             if scenarios then
                for id, scenario_info in pairs(scenarios) do
@@ -114,10 +115,10 @@ function StaticScenarioService:reveal_region(world_space_region, activation_filt
 
    local num_rects = revealed_region:get_num_rects()
 
-   if num_rects >= self._sv.last_optimized_rect_count * self._region_optimization_threshold then
+   if num_rects >= self._sv._last_optimized_rect_count * self._region_optimization_threshold then
       log:debug('Optimizing scenario region')
       revealed_region:optimize_by_oct_tree(8)
-      self._sv.last_optimized_rect_count = revealed_region:get_num_rects()
+      self._sv._last_optimized_rect_count = revealed_region:get_num_rects()
    end
 
    self.__saved_variables:mark_changed()
@@ -149,12 +150,12 @@ end
 function StaticScenarioService:_add_to_scenario_map(scenario_info)
    self:_each_key_in(scenario_info.x, scenario_info.y, scenario_info.width, scenario_info.length,
       function(key)
-         local scenarios = self._sv.dormant_scenarios[key]
+         local scenarios = self._sv._dormant_scenarios[key]
 
          -- create the list if it doesn't exist
          if not scenarios then
             scenarios = {}
-            self._sv.dormant_scenarios[key] = scenarios
+            self._sv._dormant_scenarios[key] = scenarios
          end
 
          -- add to the list of scenarios at this location
@@ -167,14 +168,14 @@ end
 function StaticScenarioService:_remove_from_scenario_map(scenario_info)
    self:_each_key_in(scenario_info.x, scenario_info.y, scenario_info.width, scenario_info.length,
       function(key)
-         local scenarios = self._sv.dormant_scenarios[key]
+         local scenarios = self._sv._dormant_scenarios[key]
          if scenarios then
             -- clear the scenario from the list
             scenarios[scenario_info.id] = nil
 
             -- remove the list if it is empty
             if not next(scenarios) then
-               self._sv.dormant_scenarios[key] = nil
+               self._sv._dormant_scenarios[key] = nil
             end
          end
       end)
@@ -183,8 +184,8 @@ function StaticScenarioService:_remove_from_scenario_map(scenario_info)
 end
 
 function StaticScenarioService:_each_key_in(x, y, width, length, fn)
-   local feature_x, feature_y = self._sv.terrain_info:get_feature_index(x, y)
-   local feature_width, feature_length = self._sv.terrain_info:get_feature_dimensions(width, length)
+   local feature_x, feature_y = self._terrain_info:get_feature_index(x, y)
+   local feature_width, feature_length = self._terrain_info:get_feature_dimensions(width, length)
 
    -- i, j are offsets so use base 0
    for j=0, feature_length-1 do
@@ -199,7 +200,7 @@ end
 function StaticScenarioService:_activate_scenario(properties, context, x, y)
    local services, scenario_script
 
-   services = ScenarioModderServices(self._sv.rng)
+   services = ScenarioModderServices(self._sv._rng)
    services:_set_scenario_properties(properties, context, x, y)
 
    scenario_script = radiant.mods.load_script(properties.script)

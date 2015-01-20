@@ -26,8 +26,8 @@ local WorldGenerationService = class()
 function WorldGenerationService:initialize()
    self._sv = self.__saved_variables:get_data()
 
-   if not self._sv.initialized then
-      self._sv.initialized = true
+   if not self._sv._initialized then
+      self._sv._initialized = true
    else
       -- TODO: support tile generation after load
       -- TODO: make sure all rngs dependent on the tile seed
@@ -49,7 +49,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self._scenario_index = ScenarioIndex(self._terrain_info, self._rng)
    self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
-   stonehearth.static_scenario:create_new_game(self._terrain_info, seed)
+   stonehearth.static_scenario:create_new_game(seed)
    stonehearth.dynamic_scenario:create_new_game()
 
    self.blueprint_generator = BlueprintGenerator()
