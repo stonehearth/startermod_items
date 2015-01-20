@@ -76,7 +76,7 @@ function sh_86.verify_no_restocking_after_recreating_stockpile(autotest)
    radiant.events.listen(second_stockpile, 'stonehearth:stockpile:item_removed', function(e)
          autotest:fail('continued moving stuff in stockpile after created (iten: %s)', e.item)
       end)
-   radiant.events.listen(second_stockpile, 'stonehearth:stockpile:item_added', function()
+   radiant.events.listen(second_stockpile, 'stonehearth:stockpile:item_added', function(e)
          autotest:fail('continued moving stuff in stockpile after created (iten: %s)', e.item)
       end)
 

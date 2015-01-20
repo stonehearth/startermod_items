@@ -44,13 +44,22 @@ function HeightMapRenderer:__init(terrain_info)
       foothills = self._add_foothills_to_region,
       mountains = self._add_mountains_to_region
    }
+
+   self._show_tile_boundaries = radiant.util.get_config('show_tile_boundaries', false)
 end
 
 function HeightMapRenderer:add_region_to_terrain(region3, offset_x, offset_y)
-   local clipper = Rect2(
-      Point2(offset_x, offset_y),
-      Point2(offset_x + self._tile_size, offset_y + self._tile_size)
-   )
+   local clipper
+
+   if not self._show_tile_boundaries then
+      clipper = Rect2(
+         Point2(offset_x, offset_y),
+         Point2(offset_x + self._tile_size, offset_y + self._tile_size)
+      )
+   else
+      clipper = Rect2(Point2(0, 0), Point2(0, 0))
+   end
+
    region3:translate(Point3(offset_x, 0, offset_y))
    self._terrain:add_tile_clipped(region3, clipper)
 end

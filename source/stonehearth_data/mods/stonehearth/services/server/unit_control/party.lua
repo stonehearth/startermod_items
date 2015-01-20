@@ -96,14 +96,14 @@ function Party:get_formation_location_for(member)
 end
 
 function Party:create_attack_order(location, rotation)
-   self:_set_formation_location(loction, rotation)
+   self:_set_formation_location(location, rotation)
 end
 
 function Party:raid(stockpile)
    -- the formation should be the center of the stockpile
    local location = stockpile:get_component('stonehearth:stockpile')
-                              :get_bounds()
-                                 :get_centroid()
+                                 :get_bounds()
+                                    :get_centroid()
 
    local task = self._party_tg:create_task('stonehearth:party:raid_stockpile', {
          party = self,
@@ -111,7 +111,7 @@ function Party:raid(stockpile)
       })
 
    task:set_priority(self._party_priorities.RAID_STOCKPILE)
-       :start()
+         :start()
 
    self:_set_formation_location(location)
 end

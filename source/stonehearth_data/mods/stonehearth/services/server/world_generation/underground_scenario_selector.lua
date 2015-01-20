@@ -15,14 +15,13 @@ function UndergroundScenarioSelector:__init(scenario_index, terrain_info, rng)
    self._min_elevation = self._terrain_info.mountains.step_size + self._y_cell_size
 end
 
+-- TODO: This code is heavily ore dependent. Generalize when we have other underground scenarios.
 function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevation_map, tile_offset_x, tile_offset_y)
    if not radiant.util.get_config('enable_ore', false) then
       return
    end
 
    local weighted_set = WeightedSet(self._rng)
-   local placement_map = self:_create_placement_map(underground_elevation_map)
-   local scenarios = self._scenario_index:select_scenarios('underground', 'revealed')
 
    -- uniformly distribute scenarios in the 3d volume above min height
    underground_elevation_map:visit(function(elevation, i, j)
@@ -33,7 +32,15 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
          end
       end)
 
+   local habitat_volumes = {
+      mountains = weighted_set:get_total_weight()
+   }
+
+   local scenarios = self._scenario_index:select_scenarios('underground', 'revealed', habitat_volumes)
+   local placement_map = self:_create_placement_map(underground_elevation_map)
+
    for _, properties in pairs(scenarios) do
+      -- allow scenarios to overlap tile boundaries for now
       local index = weighted_set:choose_random()
       if not index then
          break
@@ -43,25 +50,20 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
       local min_slice = self:_elevation_to_slice_index(self._min_elevation)
       local max_slice = self:_elevation_to_slice_index(elevation)
       local slice_index = self._rng:get_int(min_slice, max_slice)
+
+      -- location of the center of the mother lode
       local location = self:_calculate_location(tile_offset_x, tile_offset_y, index.i, index.j, slice_index)
       local context = { location = location }
 
-      -- test code
-      if self:_is_unoccupied(placement_map, index.i-4, index.j-4, 9, 9, slice_index, slice_index) then
-         stonehearth.static_scenario:add_scenario(properties, context, location.x-64, location.y-64, 129, 129)
-         self:_mark_placement_map(placement_map, index.i-4, index.j-4, 9, 9, slice_index, slice_index)
+      -- origin and size of the scenario in feature and world coordinates
+      local i, j, feature_width, feature_length = self:_calculate_feature_params(index.i, index.j, properties)
+      local x, y, width, length = self:_feature_to_world_space(tile_offset_x, tile_offset_y, i, j, feature_width, feature_length)
+
+      if self:_is_unoccupied(placement_map, i, j, feature_width, feature_length, slice_index, slice_index) then
+         stonehearth.static_scenario:add_scenario(properties, context, x, y, width, length)
+         self:_mark_placement_map(placement_map, i, j, feature_width, feature_length, slice_index, slice_index)
       end
    end
-end
-
-function UndergroundScenarioSelector:_calculate_location(tile_offset_x, tile_offset_y, feature_index_x, feature_index_y, slice_index)
-   local feature_size = self._terrain_info.feature_size
-   local feature_middle = math.floor(feature_size*0.5)
-
-   local x = tile_offset_x + (feature_index_x-1)*feature_size + feature_middle
-   local y = slice_index * self._y_cell_size
-   local z = tile_offset_y + (feature_index_y-1)*feature_size + feature_middle
-   return Point3(x, y, z)
 end
 
 function UndergroundScenarioSelector:_elevation_to_slice_index(elevation)
@@ -112,6 +114,37 @@ function UndergroundScenarioSelector:_is_unoccupied(placement_map, i, j, width, 
    end
 
    return true
+end
+
+function UndergroundScenarioSelector:_calculate_feature_params(i, j, properties)
+   local feature_width, feature_length = self._terrain_info:get_feature_dimensions(properties.size.width, properties.size.length)
+   local feature_x = i - math.floor(feature_width*0.5)
+   local feature_y = j - math.floor(feature_length*0.5)
+   return feature_x, feature_y, feature_width, feature_length
+end
+
+function UndergroundScenarioSelector:_calculate_location(tile_offset_x, tile_offset_y, feature_index_x, feature_index_y, slice_index)
+   local feature_size = self._terrain_info.feature_size
+   local feature_middle = math.floor(feature_size*0.5)
+
+   local x = tile_offset_x + (feature_index_x-1)*feature_size + feature_middle
+   local y = slice_index * self._y_cell_size
+   local z = tile_offset_y + (feature_index_y-1)*feature_size + feature_middle
+   return Point3(x, y, z)
+end
+
+function UndergroundScenarioSelector:_feature_to_world_space(tile_offset_x, tile_offset_y, i, j, feature_width, feature_length)
+   local feature_size = self._terrain_info.feature_size
+
+   local feature_offset_x = (i-1)*feature_size
+   local feature_offset_y = (j-1)*feature_size
+
+   local x = tile_offset_x + feature_offset_x
+   local y = tile_offset_y + feature_offset_y
+   local width = feature_width*feature_size
+   local length = feature_length*feature_size
+
+   return x, y, width, length
 end
 
 return UndergroundScenarioSelector

@@ -1,6 +1,7 @@
 {
    "name" : "ore_vein",
    "category" : "ore",
+   "habitat_types" : ["mountains"],
    "size" : {
       "width" : 128,
       "length" : 128

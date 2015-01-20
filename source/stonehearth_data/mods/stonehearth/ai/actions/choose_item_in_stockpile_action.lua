@@ -23,7 +23,7 @@ function ChooseItemInStockpileAction:start_thinking(ai, entity, args)
 
    for id, item in pairs(items) do
       if args.filter_fn(item) then
-         if rng:get_int(1, item_count) == 1 then
+         if not random_item or rng:get_int(1, item_count) == 1 then
             -- the old, "choose a random item from an infinite stream" trick.
             random_item = item
          end

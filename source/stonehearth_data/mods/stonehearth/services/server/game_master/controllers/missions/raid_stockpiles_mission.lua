@@ -8,11 +8,13 @@ function RaidStockpilesMission:initialize(ctx, info)
    assert(ctx.enemy_location)
    assert(info)
 
+   self._sv.ctx = ctx
    self._sv.party = self:_create_party(ctx, info)
-   self:_start_raid(ctx)
+   self:_update_party_orders()
 end
 
-function RaidStockpilesMission:_start_raid(ctx)
+function RaidStockpilesMission:_update_party_orders()
+   local ctx = self._sv.ctx
    local stockpile = self:_find_closest_stockpile(ctx.enemy_location, ctx.player_id)
    if stockpile then
       self:_raid_stockpile(stockpile)
@@ -22,8 +24,25 @@ function RaidStockpilesMission:_start_raid(ctx)
 end
 
 function RaidStockpilesMission:_raid_stockpile(stockpile)
+   self._raiding_stockpile = stockpile
+   self._stockpile_listener = radiant.events.listen(self._raiding_stockpile, 'stonehearth:stockpile:item_removed', self, self._check_stockpile)
    local location = radiant.entities.get_world_grid_location(stockpile)
    self._sv.party:raid(stockpile)
+end
+
+function RaidStockpilesMission:_check_stockpile(e)
+   radiant.log.write('', 0, 'item removed from stockpile...')
+   if e.stockpile == self._raiding_stockpile then
+      local items = e.stockpile:get_component('stonehearth:stockpile')
+                                 :get_items()
+      if not next(items) then
+         if self._stockpile_listener then
+            self._stockpile_listener:destroy()
+            self._stockpile_listener = nil
+         end
+         self:_update_party_orders()
+      end
+   end 
 end
 
 function RaidStockpilesMission:_attack_town_center(ctx)

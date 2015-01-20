@@ -47,12 +47,17 @@ function Mission:_find_closest_stockpile(origin, player_id)
    local best_dist, best_stockpile
    for id, stockpile in pairs(stockpiles) do
       local location = radiant.entities.get_world_grid_location(stockpile)
-      local cube = stockpile:get_component('stonehearth:stockpile')
-                              :get_bounds()
-      local dist = cube:distance_to(origin)
-      if not best_dist or dist < best_dist then
-         best_dist = dist
-         best_stockpile = stockpile
+      local sc = stockpile:get_component('stonehearth:stockpile')
+      local items = sc:get_items()
+      if next(items) then
+         local cube = sc:get_bounds()
+         local dist = cube:distance_to(origin)
+         if not best_dist or dist < best_dist then
+            best_dist = dist
+            best_stockpile = stockpile
+         end
+      else
+         radiant.log.write('', 0, 'stockpile has no items.  ignoring')
       end
    end
 
