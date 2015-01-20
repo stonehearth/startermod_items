@@ -1,23 +1,17 @@
-#bulletinListWidget {
-   .control;
-   position: absolute;
-   bottom: 10px;
-   right: 340px;
-   width: 42px;
-   height: 42px;
-   background-repeat: no-repeat;
-   background-image: url(./images/icon.png);
-}
-
-#bulletinListWidget.disabled {
-   cursor: auto;
-   background-image: url(./images/icon_disabled.png);
-}
-
 #bulletinList {
+   .listContainer {
+      position: absolute;
+      top: 70px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      overflow-y: auto;
+   }
+
    table {
+      overflow-y: hidden;
       width: 100%;
-      font-size: 12px;    
+      font-size: 12px;
    }
 
    td {

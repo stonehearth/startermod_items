@@ -60,6 +60,9 @@ App.StonehearthStartMenuView = App.View.extend({
       tasks_manager: function() {
          App.stonehearthClient.showTasksManager();
       },
+      bulletin_manager: function() {
+         App.bulletinBoard.toggleListView();
+      },
       red_alert: function () {
          App.stonehearthClient.rallyWorkers();
       }
@@ -101,6 +104,18 @@ App.StonehearthStartMenuView = App.View.extend({
 
          });
 
+
+      App.bulletinBoard.getTrace()
+         .progress(function(result) {
+            var bulletins = result.bulletins;
+
+            if (bulletins && Object.keys(bulletins).length > 0) {
+               //self.$('#bulletin_manager').pulse();
+               self.$('#bulletin_manager').addClass('active');
+            } else {
+               self.$('#bulletin_manager').removeClass('active');
+            }
+         });
 
       radiant.call('stonehearth:get_population')
          .done(function(response){
