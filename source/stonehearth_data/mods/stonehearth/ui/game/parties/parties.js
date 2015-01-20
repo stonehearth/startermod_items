@@ -7,6 +7,8 @@ App.StonehearthPartiesView = App.View.extend({
       var self = this;  
       this._super();
 
+      radiant.call_obj('stonehearth.party_editor', 'show_party_banners_command', true);
+
       // remember the party for the row that the mouse is over
       this.$().on('mouseenter', '.row', function() {
          radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' }); // Mouse over SFX
@@ -22,6 +24,11 @@ App.StonehearthPartiesView = App.View.extend({
             $(this).addClass('selected');
          }
       });
+   },
+
+   destroy: function() {
+      this._super();
+      radiant.call_obj('stonehearth.party_editor', 'show_party_banners_command', false);
    },
 
    actions: {

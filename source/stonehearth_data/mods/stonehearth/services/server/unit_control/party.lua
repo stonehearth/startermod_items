@@ -132,6 +132,7 @@ function Party:_set_formation_location(location, rotation)
    location = radiant.terrain.get_standable_point(location)
 
    self._sv.party_location = location
+   self.__saved_variables:mark_changed()
    radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
 
    self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
