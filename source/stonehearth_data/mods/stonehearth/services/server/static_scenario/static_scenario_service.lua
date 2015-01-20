@@ -42,9 +42,9 @@ function StaticScenarioService:get_reveal_distance()
 end
 
 -- The properties object should have a 'script' field that points to a lua file.
--- The class returned by the script should support an initialize(properties, services) method.
--- The properties argument is the properties that are passed in here.
--- The services argument will be a ScenarioModderServices object.
+-- The class returned by the script should support an initialize(properties, context, services) method.
+-- The properties and context parameters are the same as those passed in here.
+-- The services parameter will be a ScenarioModderServices object.
 function StaticScenarioService:add_scenario(properties, context, x, y, width, length, activate_now)
    if activate_now then
       self:_activate_scenario(properties, context, x, y)
