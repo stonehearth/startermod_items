@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/billboard.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/thoughts/sleepy/thought_sleepy.png"
+		}
+	]	
+}

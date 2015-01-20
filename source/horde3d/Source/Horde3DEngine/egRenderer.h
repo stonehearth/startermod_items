@@ -228,14 +228,15 @@ public:
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
 protected:
-   ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
-   bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes);
+   bool findShaderCombination(std::vector<PShaderResource> const& r, std::string const& context, ShaderResource** sr, ShaderContext** scx, ShaderCombination** sc) const;
+   //ShaderCombination* findShaderCombination(std::vector<PShaderResource> const& r, ShaderContext const*context) const;
+   bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes) const;
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
 	
 	void createPrimitives();
 	
-	bool setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext, ShaderResource *shaderRes );
+	bool setMaterialRec(MaterialResource *materialRes, std::string const& shaderContext);
    void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
    void commitLightUniforms(LightNode const* light);

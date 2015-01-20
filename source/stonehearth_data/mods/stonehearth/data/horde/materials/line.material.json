@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/screenspace_fixedsize.shader"
+	},
+
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "textures/common/white.tga"
+		}
+	]
+}

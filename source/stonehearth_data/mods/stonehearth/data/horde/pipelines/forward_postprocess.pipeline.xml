@@ -55,13 +55,13 @@
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
-         <DrawQuad material="materials/ssao.material.xml" context="SSAO" />
+         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
          <UnbindBuffers />
 
          <SwitchTarget target="SSAOBlur"/>
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
-         <DrawQuad material="materials/blur.material.xml" context="BLUR" />
+         <DrawQuad material="materials/blur.material.json" context="BLUR" />
          <UnbindBuffers />
 
          <SwitchTarget target=""/>
@@ -91,11 +91,11 @@
 
          <SwitchTarget target="BloomTemp" />
          <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_X" />
+         <DrawQuad material="materials/blur.material.json" context="BLUR_GAUSSIAN_X" />
 
          <SwitchTarget target="BloomFinal" />
          <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_Y" />
+         <DrawQuad material="materials/blur.material.json" context="BLUR_GAUSSIAN_Y" />
 
          <UnbindBuffers/>
          <SwitchTarget target="" />
@@ -111,7 +111,7 @@
 
       <Stage id="DrawBloom">
          <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
-         <DrawQuad material="materials/fullscreen_quad.material.xml" context="ADD" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="ADD" />
          <UnbindBuffers/>
       </Stage>
 

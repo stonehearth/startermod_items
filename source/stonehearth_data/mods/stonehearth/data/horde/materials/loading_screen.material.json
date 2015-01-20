@@ -1,0 +1,16 @@
+{
+	"shaders" : {
+		"overlay" : "shaders/loading.shader"
+	},
+
+	"samplers" : [
+		{
+			"name" : "loadingMap",
+			"map" : "overlays/loading.jpg"
+		},
+		{
+			"name" : "progressMap",
+			"map" : "overlays/progress_frame.jpg"
+		}
+	]
+}

@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"fow_explored" : "shaders/fow_explored.shader"
+	}
+}

@@ -1,0 +1,14 @@
+{
+	"shaders" : {
+		"everything1" : "shaders/forward.shader",
+		"everything2" : "shaders/_base.shader",
+		"selectable" : "shaders/selectable.shader"
+	},
+
+	"inputs" : [
+		{
+			"name" : "gridlineColor",
+			"default" : [0.02, 0.02, 0.02, 0.5]
+		}
+	]
+}

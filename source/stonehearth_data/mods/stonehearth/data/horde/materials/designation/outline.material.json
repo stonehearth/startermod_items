@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"translucent_on_top" : "materials/designation/outline.shader"
+	},
+	"inputs" : [
+		{
+			"name" : "alpha",
+			"type" : "float4",
+			"default" : [0, 0, 0, 1.0]
+		}
+	]
+}

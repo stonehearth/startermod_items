@@ -60,7 +60,7 @@
          <SwitchTarget target="" />
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <DrawQuad material="materials/base.material.json" context="SELECTED_SCREENSPACE_OUTLINER" />
          <UnbindBuffers />
       </Stage>
 

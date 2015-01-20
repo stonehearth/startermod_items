@@ -1,0 +1,13 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/billboard.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/thoughts/music/music_.png",
+			"numAnimationFrames" : 1,
+			"frameRate" : 24
+		}
+	]	
+}

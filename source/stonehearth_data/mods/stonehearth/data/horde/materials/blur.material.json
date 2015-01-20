@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"blur" : "shaders/blur.shader"
+	}
+}

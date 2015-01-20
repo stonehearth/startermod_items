@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"ssao" : "shaders/ssao.shader"
+	},
+
+	"samplers" : [
+		{
+			"name" : "randomVectorLookup",
+			"map" : "RandomVectorLookup"
+		}
+	]
+}

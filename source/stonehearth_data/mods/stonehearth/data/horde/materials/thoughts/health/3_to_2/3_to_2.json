@@ -1,0 +1,13 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/billboard.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/thoughts/health/3_to_2/3_to_2_.png",
+			"numAnimationFrames" : 20,
+			"frameRate" : 8
+		}
+	]	
+}

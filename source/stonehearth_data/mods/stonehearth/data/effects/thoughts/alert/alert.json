@@ -3,7 +3,7 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/alert/alert_material.xml",
+         "material": "materials/thoughts/alert/alert_material.json",
          "duration": 1500,
          "width": 1,
          "height": 1.7,

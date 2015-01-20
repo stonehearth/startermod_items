@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/screenspace_fixedsize.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/music_overlay/music.png"
+		}
+	]	
+}

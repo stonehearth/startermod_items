@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"translucent" : "materials/designation/stripes.shader"
+	},
+	"inputs" : [
+		{
+			"name" : "alpha",
+			"type" : "float4",
+			"default" : [0, 0, 0, 0.5]
+		}
+	]
+}

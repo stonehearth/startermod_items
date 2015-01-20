@@ -1,0 +1,13 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/billboard.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/thoughts/sleeping/sleeping_.png",
+			"numAnimationFrames" : 46,
+			"frameRate" : 24
+		}
+	]	
+}

@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"fow_visible" : "shaders/fow_visible.shader"
+	}
+}

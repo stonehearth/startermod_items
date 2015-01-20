@@ -17,6 +17,8 @@
 #include "om/error_browser/error_browser.h"
 #include <fstream>
 #include <cstring>
+#include "libjson.h"
+#include "lib/json/node.h"
 
 #include "utDebug.h"
 
@@ -27,6 +29,7 @@
 namespace Horde3D {
 
 using namespace std;
+using namespace ::radiant::json;
 
 // =================================================================================================
 // Code Resource
@@ -778,9 +781,11 @@ bool ShaderResource::parseFXSection( char *data )
 }
 
 
-bool ShaderResource::load( const char *data, int size )
+bool ShaderResource::load(const char *data, int size)
 {
-	if( !Resource::load( data, size ) ) return false;
+	if (!Resource::load(data, size)) {
+      return false;
+   }
 	
 	// Parse sections
 	const char *pData = data;

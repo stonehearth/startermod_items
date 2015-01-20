@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"blueprints" : "shaders/ghost_item.shader"
+	},
+
+	"inputs" : [
+		{
+			"name" : "alpha",
+			"default" : [0, 0, 0, 0.3]
+		}
+	]
+}

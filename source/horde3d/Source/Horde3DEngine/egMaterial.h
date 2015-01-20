@@ -97,18 +97,20 @@ public:
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 
+   std::vector<PShaderResource> const& getShaders() const { return _shaders; }
+   std::vector<MatSampler>& getSamplers() { return _samplers; }
+   std::vector<MatUniform>& getUniforms() {return _uniforms; }
+
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
    void updateSamplerAnimation(int samplerNum, float animTime);
 
 private:
-   PMaterialResource           _parentMaterial;
-	PShaderResource             _shaderRes;
-	std::vector< MatSampler >   _samplers;
-	std::vector< MatUniform >   _uniforms;
+	std::vector<PShaderResource> _shaders;
+	std::vector<MatSampler>      _samplers;
+	std::vector<MatUniform>      _uniforms;
 
 	friend class ResourceManager;
-	friend class Renderer;
 	friend class MeshNode;
 };
 

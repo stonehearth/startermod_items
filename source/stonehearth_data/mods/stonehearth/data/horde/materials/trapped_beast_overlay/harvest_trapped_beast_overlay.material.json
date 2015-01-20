@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/screenspace_fixedsize.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/trapped_beast_overlay/harvest_trapped_beast.png"
+		}
+	]	
+}

@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/cubemitter_bloom.shader"
+	}
+}

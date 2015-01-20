@@ -3,7 +3,7 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/harvest_plant_overlay/harvest_plant_overlay.material.xml",
+         "material" : "materials/harvest_plant_overlay/harvest_plant_overlay.material.json",
          "y_offset" : -10
      }
    }

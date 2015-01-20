@@ -3,7 +3,7 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/health/2_to_1/2_to_1.xml",
+         "material": "materials/thoughts/health/2_to_1/2_to_1.json",
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

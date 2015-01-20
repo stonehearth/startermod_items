@@ -1,0 +1,16 @@
+{
+	"shaders" : {
+		"selection" : "shaders/selectableshader",
+		"blueprint" : "shaders/blueprint.shader"
+	},
+	"inputs" : [
+		{
+			"name" : "gridlineColor",
+			"default" : [0, 0, 0, 0.7]
+		},
+		{
+			"name" : "blueprintAlpha",
+			"default" : [0.6]
+		}
+	]
+}

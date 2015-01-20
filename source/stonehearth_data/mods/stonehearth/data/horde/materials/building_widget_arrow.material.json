@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"blueprint" : "shaders/building_widget_obj.shader"
+	},
+
+	"inputs" : [
+		{
+			"name" : "widgetColor",
+			"default" : [1.0, 1.0, 0.0, 0.3]
+		}
+	]
+}

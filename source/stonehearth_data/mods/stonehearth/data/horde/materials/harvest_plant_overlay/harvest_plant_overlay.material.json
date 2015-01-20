@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/screenspace_fixedsize.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/harvest_plant_overlay/harvest_plant_overlay.png"
+		}
+	]
+}

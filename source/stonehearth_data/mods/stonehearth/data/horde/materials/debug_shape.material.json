@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"debug_shapes" : "shaders/debug_shape.shader"
+	}
+}

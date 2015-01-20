@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"translucent" : "materials/stockpile/stockpile.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/stockpile/corner.png"
+		}
+	]	
+}

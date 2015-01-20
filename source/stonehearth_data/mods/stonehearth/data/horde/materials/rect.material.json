@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"translucent" : "shaders/screenspace_fixedsize.shader"
+	}
+}

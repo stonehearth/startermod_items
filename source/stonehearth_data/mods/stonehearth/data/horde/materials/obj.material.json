@@ -1,0 +1,7 @@
+{
+	"shaders" : {
+		"everything1" : "shaders/forward_obj.shader",
+		"everything2" : "shaders/_base.shader",
+		"selection" : "shaders/selectable.shader"
+	}
+}

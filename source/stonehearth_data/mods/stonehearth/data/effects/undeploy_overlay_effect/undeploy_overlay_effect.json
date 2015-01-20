@@ -3,7 +3,7 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/undeploy_overlay/undeploy_overlay.material.xml",
+         "material" : "materials/undeploy_overlay/undeploy_overlay.material.json",
          "y_offset" : -20
      }
    }

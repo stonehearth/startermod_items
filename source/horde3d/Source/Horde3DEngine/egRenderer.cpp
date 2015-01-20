@@ -605,11 +605,12 @@ void Renderer::releaseShaderComb( ShaderCombination &sc )
 
 void Renderer::setShaderComb( ShaderCombination *sc )
 {
-	if( _curShader != sc )
-	{
-		if( sc == 0x0 ) gRDI->bindShader( 0 );
-		else gRDI->bindShader( sc->shaderObj );
-
+	if (_curShader != sc) {
+		if (sc == 0x0) {
+         gRDI->bindShader(0);
+      } else {
+         gRDI->bindShader(sc->shaderObj);
+      }
 		_curShader = sc;
 	}
 }
@@ -807,64 +808,78 @@ void Renderer::commitGeneralUniforms()
 	}
 }
 
-ShaderCombination* Renderer::findShaderCombination(ShaderResource* r, ShaderContext* context) const
+bool Renderer::findShaderCombination(std::vector<PShaderResource> const& shaders, std::string const& context, ShaderResource** sr, ShaderContext** scx, ShaderCombination** sc) const
 {
-   // Look for a shader with the right combination of engine flags.
-   ShaderCombination* result = 0x0;
-   for (auto& sc : context->shaderCombinations)
-   {
-      result = &sc;
-      for (const auto& flag : Modules().config().shaderFlags)
-      {
-         if (sc.engineFlags.find(flag) == sc.engineFlags.end()) {
-            result = 0x0;
+   // Find a shader context/combination to match, compiling if necessary.
+   for (auto& shader : shaders) {
+      *scx = shader->findContext(context);
+      if (*scx) {
+         for (auto& comb : (*scx)->shaderCombinations)
+         {
+            *sc = &comb;
+
+            // Check to see that every single flag in the engine has a corresponding flag set in the shader.
+            for (const auto& flag : Modules().config().shaderFlags)
+            {
+               if ((*sc)->engineFlags.find(flag) == (*sc)->engineFlags.end()) {
+                  *sc = nullptr;
+                  break;
+               }
+            }
+
+            // Also!  Check to see that every flag in the shader has a corresponding flag in the engine.
+            if (*sc != nullptr) {
+               if ((*sc)->engineFlags.size() == Modules().config().shaderFlags.size()) {
+                  break;
+               }
+               *sc = nullptr;
+            }
+         }
+
+         // If this is a new combination of engine flags, compile a new combination.
+         if (*sc == 0x0)
+         {
+            (*scx)->shaderCombinations.push_back(ShaderCombination());
+            ShaderCombination& sco = (*scx)->shaderCombinations.back();
+            for (const auto& flag : Modules().config().shaderFlags) {
+               sco.engineFlags.insert(flag);
+            }
+
+            shader->compileCombination(**scx, sco);
+            *sc = &(*scx)->shaderCombinations.back();
+         }
+
+         if (*sc) {
+            *sr = shader;
             break;
          }
       }
-
-      if (result != 0x0) {
-         if (sc.engineFlags.size() == Modules().config().shaderFlags.size()) {
-            break;
-         }
-         result = 0x0;
-      }
    }
 
-   // If this is a new combination of engine flags, compile a new combination.
-   if (result == 0x0)
-   {
-      context->shaderCombinations.push_back(ShaderCombination());
-      ShaderCombination& sc = context->shaderCombinations.back();
-      for (const auto& flag : Modules().config().shaderFlags) {
-         sc.engineFlags.insert(flag);
-      }
-
-      r->compileCombination(*context, sc);
-      result = &context->shaderCombinations.back();
+   if (*sr == nullptr) {
+      *scx = nullptr;
+      *sr = nullptr;
+      *sc = nullptr;
+      return false;
    }
 
-   return result;
+   return true;
 }
 
-bool Renderer::isShaderContextSwitch(std::string const& newContext, const MaterialResource *materialRes)
+bool Renderer::isShaderContextSwitch(std::string const& newContext, MaterialResource const* materialRes) const
 {
-   ShaderResource *sr = materialRes->_shaderRes;
-   if (sr == 0x0) {
-      return false;
-   }
+   ShaderResource* sr = nullptr;
+   ShaderContext* sx = nullptr;
+   ShaderCombination* sc = nullptr;
 
-   ShaderContext *sc = sr->findContext(newContext);
-   if (sc == 0x0) {
-      return false;
+   if (findShaderCombination(materialRes->getShaders(), newContext, &sr, &sx, &sc)) {
+   	return sc != _curShader;
    }
-
-   ShaderCombination *scc = findShaderCombination(sr, sc);
-	return scc != _curShader;
+   return false;
 }
 
 
-bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext,
-                              ShaderResource *shaderRes )
+bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& shaderContext)
 {
    radiant::perfmon::TimelineCounterGuard smr("setMaterialRec");
    if( materialRes == 0x0 ) {
@@ -872,197 +887,179 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       return false;
    }
 
-   bool firstRec = (shaderRes == 0x0);
-   bool result = true;
+   ShaderResource* shaderRes = nullptr;
+   ShaderContext* context = nullptr;
+   ShaderCombination* sc = nullptr;
 
-   // Set shader in first recursion step
-   if( firstRec ) {	
-      shaderRes = materialRes->_shaderRes;
-      if ( shaderRes == 0x0 ) {
-         MAT_LOG(7) << materialRes->getName() << " has no shader in setMaterialRec.";
-         return false;
-      }
+   if (!findShaderCombination(materialRes->getShaders(), shaderContext, &shaderRes, &context, &sc)) {
+      MAT_LOG(7) << materialRes->getName() << " has no suitable shader in setMaterialRec.";
+      return false;
+   }
 
+   // Set shader combination
+   setShaderComb(sc);
 
-      // Find context
-      ShaderContext *context = shaderRes->findContext( shaderContext );
-      if ( context == 0x0 ) {
-         MAT_LOG(7) << "could not find context \"" << shaderContext << "\" for material " << materialRes->getName() << " in setMaterialRec.";
-         return false;
-      }
+   // Setup standard shader uniforms
+   commitGeneralUniforms();
 
-      // Set shader combination
-      ShaderCombination *sc = findShaderCombination(shaderRes, context);
-      if ( sc != _curShader ) {
-         setShaderComb( sc );
-      }
-      if  (_curShader == 0x0 || gRDI->_curShaderId == 0) {
-         MAT_LOG(7) << "failed to install shader combiner for " << materialRes->getName() << " in setMaterialRec (context: " << shaderContext << ").";
-         return false;
-      }
+   // Configure color write mask.
+   glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
+      context->writeMask & 2 ? GL_TRUE : GL_FALSE, 
+      context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
+      context->writeMask & 8 ? GL_TRUE : GL_FALSE);
 
-      // Setup standard shader uniforms
-      commitGeneralUniforms();
+   // Configure depth mask
+   if( context->writeDepth ) glDepthMask( GL_TRUE );
+   else glDepthMask( GL_FALSE );
 
-      // Configure color write mask.
-      glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
-         context->writeMask & 2 ? GL_TRUE : GL_FALSE, 
-         context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
-         context->writeMask & 8 ? GL_TRUE : GL_FALSE);
-
-      // Configure depth mask
-      if( context->writeDepth ) glDepthMask( GL_TRUE );
-      else glDepthMask( GL_FALSE );
-
-      // Configure cull mode
-      if( !Modules::config().wireframeMode )
+   // Configure cull mode
+   if( !Modules::config().wireframeMode )
+   {
+      switch( context->cullMode )
       {
-         switch( context->cullMode )
-         {
-         case CullModes::Back:
-            glEnable( GL_CULL_FACE );
-            glCullFace( GL_BACK );
-            break;
-         case CullModes::Front:
-            glEnable( GL_CULL_FACE );
-            glCullFace( GL_FRONT );
-            break;
-         case CullModes::None:
-            glDisable( GL_CULL_FACE );
-            break;
-         }
+      case CullModes::Back:
+         glEnable( GL_CULL_FACE );
+         glCullFace( GL_BACK );
+         break;
+      case CullModes::Front:
+         glEnable( GL_CULL_FACE );
+         glCullFace( GL_FRONT );
+         break;
+      case CullModes::None:
+         glDisable( GL_CULL_FACE );
+         break;
       }
+   }
 
-      switch( context->stencilOpModes) 
-      {
-      case StencilOpModes::Off:
+   switch( context->stencilOpModes) 
+   {
+   case StencilOpModes::Off:
+      glDisable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+      break;
+   case StencilOpModes::Keep_Dec_Dec:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
+      break;
+   case StencilOpModes::Keep_Inc_Inc:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
+      break;
+   case StencilOpModes::Keep_Keep_Dec:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+      break;
+   case StencilOpModes::Keep_Keep_Inc:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+      break;
+   case StencilOpModes::Replace_Replace_Replace:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+      break;
+   }
+
+   switch( context->stencilFunc )
+   {
+   case TestModes::LessEqual:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::Equal:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::Always:
+      if (context->stencilOpModes == StencilOpModes::Off) {
          glDisable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-         break;
-      case StencilOpModes::Keep_Dec_Dec:
+      } else {
          glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_DECR, GL_DECR);
-         break;
-      case StencilOpModes::Keep_Inc_Inc:
-         glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_INCR, GL_INCR);
-         break;
-      case StencilOpModes::Keep_Keep_Dec:
-         glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-         break;
-      case StencilOpModes::Keep_Keep_Inc:
-         glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-         break;
-      case StencilOpModes::Replace_Replace_Replace:
-         glEnable(GL_STENCIL_TEST);
-         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
-         break;
       }
+      glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::Less:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::Greater:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::GreaterEqual:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
+      break;
+   case TestModes::NotEqual:
+      glEnable(GL_STENCIL_TEST);
+      glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
+      break;
+   }
 
-      switch( context->stencilFunc )
+   // Configure blending
+   switch( context->blendMode )
+   {
+   case BlendModes::Replace:
+      glDisable( GL_BLEND );
+      break;
+   case BlendModes::Blend:
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+      break;
+   case BlendModes::Add:
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_ONE, GL_ONE );
+      break;
+   case BlendModes::AddBlended:
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+      break;
+   case BlendModes::Whateva:
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_DST_ALPHA, GL_ONE );
+      break;
+   case BlendModes::Mult:
+      glEnable( GL_BLEND );
+      glBlendFunc( GL_DST_COLOR, GL_ZERO );
+      break;
+   }
+
+   // Configure depth test
+   if( context->depthTest )
+   {
+      glEnable( GL_DEPTH_TEST );
+
+      switch( context->depthFunc )
       {
       case TestModes::LessEqual:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_LEQUAL );
          break;
       case TestModes::Equal:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_EQUAL );
          break;
       case TestModes::Always:
-         if (context->stencilOpModes == StencilOpModes::Off) {
-            glDisable(GL_STENCIL_TEST);
-         } else {
-            glEnable(GL_STENCIL_TEST);
-         }
-         glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_ALWAYS );
          break;
       case TestModes::Less:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_LESS );
          break;
       case TestModes::Greater:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_GREATER );
          break;
       case TestModes::GreaterEqual:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
-         break;
-      case TestModes::NotEqual:
-         glEnable(GL_STENCIL_TEST);
-         glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
+         glDepthFunc( GL_GEQUAL );
          break;
       }
-
-      // Configure blending
-      switch( context->blendMode )
-      {
-      case BlendModes::Replace:
-         glDisable( GL_BLEND );
-         break;
-      case BlendModes::Blend:
-         glEnable( GL_BLEND );
-         glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-         break;
-      case BlendModes::Add:
-         glEnable( GL_BLEND );
-         glBlendFunc( GL_ONE, GL_ONE );
-         break;
-      case BlendModes::AddBlended:
-         glEnable( GL_BLEND );
-         glBlendFunc( GL_SRC_ALPHA, GL_ONE );
-         break;
-      case BlendModes::Whateva:
-         glEnable( GL_BLEND );
-         glBlendFunc( GL_DST_ALPHA, GL_ONE );
-         break;
-      case BlendModes::Mult:
-         glEnable( GL_BLEND );
-         glBlendFunc( GL_DST_COLOR, GL_ZERO );
-         break;
-      }
-
-      // Configure depth test
-      if( context->depthTest )
-      {
-         glEnable( GL_DEPTH_TEST );
-
-         switch( context->depthFunc )
-         {
-         case TestModes::LessEqual:
-            glDepthFunc( GL_LEQUAL );
-            break;
-         case TestModes::Equal:
-            glDepthFunc( GL_EQUAL );
-            break;
-         case TestModes::Always:
-            glDepthFunc( GL_ALWAYS );
-            break;
-         case TestModes::Less:
-            glDepthFunc( GL_LESS );
-            break;
-         case TestModes::Greater:
-            glDepthFunc( GL_GREATER );
-            break;
-         case TestModes::GreaterEqual:
-            glDepthFunc( GL_GEQUAL );
-            break;
-         }
-      }
-      else
-      {
-         glDisable( GL_DEPTH_TEST );
-      }
-
-      // Configure alpha-to-coverage
-      if( context->alphaToCoverage && Modules::config().sampleCount > 0 )
-         glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-      else
-         glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
    }
+   else
+   {
+      glDisable( GL_DEPTH_TEST );
+   }
+
+   // Configure alpha-to-coverage
+   if( context->alphaToCoverage && Modules::config().sampleCount > 0 )
+      glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
+   else
+      glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
 
    // Setup texture samplers
    for( size_t i = 0, si = shaderRes->_samplers.size(); i < si; ++i )
@@ -1073,16 +1070,15 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       TextureResource *texRes = 0x0;
 
       // Use default texture
-      if( firstRec) texRes = sampler.defTex;
+      texRes = sampler.defTex;
 
       // Find sampler in material
-      for( size_t j = 0, sj = materialRes->_samplers.size(); j < sj; ++j )
-      {
-         if( materialRes->_samplers[j].name == sampler.id )
-         {
-            if( materialRes->_samplers[j].texRes->isLoaded() )
-               texRes = materialRes->_samplers[j].texRes;
-            break;
+      for (auto& matSampler : materialRes->getSamplers()) {
+         if (matSampler.name == sampler.id) {
+            if (matSampler.texRes->isLoaded()) {
+               texRes = matSampler.texRes;
+               break;
+            }
          }
       }
 
@@ -1120,35 +1116,29 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       }
 
       // Find sampler in pipeline
-      if( firstRec )
+      for( size_t j = 0, sj = _pipeSamplerBindings.size(); j < sj; ++j )
       {
-         for( size_t j = 0, sj = _pipeSamplerBindings.size(); j < sj; ++j )
+         if( strcmp( _pipeSamplerBindings[j].sampler, sampler.id.c_str() ) == 0 )
          {
-            if( strcmp( _pipeSamplerBindings[j].sampler, sampler.id.c_str() ) == 0 )
-            {
-               gRDI->setTexture( shaderRes->_samplers[i].texUnit, gRDI->getRenderBufferTex(
-                  _pipeSamplerBindings[j].rbObj, _pipeSamplerBindings[j].bufIndex ), sampState );
+            gRDI->setTexture( shaderRes->_samplers[i].texUnit, gRDI->getRenderBufferTex(
+               _pipeSamplerBindings[j].rbObj, _pipeSamplerBindings[j].bufIndex ), sampState );
 
-               break;
-            }
+            break;
          }
       }
    }
 
    // Set custom uniforms
-   for( size_t i = 0, si = shaderRes->_uniforms.size(); i < si; ++i )
-   {
-      if( _curShader->customUniforms[i] < 0 ) continue;
+   for (size_t i = 0, si = shaderRes->_uniforms.size(); i < si; ++i) {
+      if (_curShader->customUniforms[i] < 0) {
+         continue;
+      }
 
       float *unifData = 0x0;
 
       // Find uniform in material
-      for( size_t j = 0, sj = materialRes->_uniforms.size(); j < sj; ++j )
-      {
-         MatUniform &matUniform = materialRes->_uniforms[j];
-
-         if( matUniform.name == shaderRes->_uniforms[i].id )
-         {
+      for (auto& matUniform : materialRes->getUniforms()) {
+         if (matUniform.name == shaderRes->_uniforms[i].id) {
             if (shaderRes->_uniforms[i].arraySize > 1) {
                unifData = matUniform.arrayValues.data();
             } else {
@@ -1159,64 +1149,41 @@ bool Renderer::setMaterialRec( MaterialResource *materialRes, std::string const&
       }
 
       // Use default values if not found
-      if( unifData == 0x0 && firstRec )
+      if (unifData == 0x0) {
          unifData = shaderRes->_uniforms[i].defValues;
+      }
 
-      if( unifData )
-      {
-         switch( shaderRes->_uniforms[i].size )
+      if (unifData) {
+         switch (shaderRes->_uniforms[i].size)
          {
          case 1:
-            gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT, unifData, shaderRes->_uniforms[i].arraySize );
+            gRDI->setShaderConst(_curShader->customUniforms[i], CONST_FLOAT, unifData, shaderRes->_uniforms[i].arraySize);
             break;
          case 4:
-            gRDI->setShaderConst( _curShader->customUniforms[i], CONST_FLOAT4, unifData, shaderRes->_uniforms[i].arraySize );
+            gRDI->setShaderConst(_curShader->customUniforms[i], CONST_FLOAT4, unifData, shaderRes->_uniforms[i].arraySize);
             break;
          }
       }
    }
-
-   if( firstRec )
-   {
-      // Handle link of stage
-      if( _curStageMatLink != 0x0 && _curStageMatLink != materialRes ) {
-         if (!setMaterialRec( _curStageMatLink, shaderContext, shaderRes )) {
-            MAT_LOG(7) << "failed to install material link " << _curStageMatLink->getName() << " in setMaterialRec.";
-            result = false;
-         }
-      }
-   }
-
-   return result;
+   return true;
 }
 
 
 bool Renderer::setMaterial( MaterialResource *materialRes, std::string const& shaderContext )
 {
-   if( materialRes == 0x0 ) {	
-      setShaderComb( 0x0 );
-      glDisable( GL_BLEND );
-      glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );
-      glEnable( GL_DEPTH_TEST );
-      glDepthFunc( GL_LEQUAL );
-      glDepthMask( GL_TRUE );
+   if (materialRes == 0x0) {
+      setShaderComb(0x0);
+      glDisable(GL_BLEND);
+      glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+      glEnable(GL_DEPTH_TEST);
+      glDepthFunc(GL_LEQUAL);
+      glDepthMask(GL_TRUE);
       return false;
    }
 
-   // First, see if the model's material has what we're looking for.
    MAT_LOG(5) << "installing material " << materialRes->getName() << " in setMaterial.";
-   if (setMaterialRec(materialRes, shaderContext, 0x0)) {
+   if (setMaterialRec(materialRes, shaderContext)) {
       return true;
-   }
-
-   // Next, try everything in the model material's chain.
-   MaterialResource* mr = materialRes->_parentMaterial;
-   while (mr != 0x0) {
-      MAT_LOG(5) << "failed.  installing material parent " << mr->getName() << " in setMaterial.";
-      if (setMaterialRec(mr, shaderContext, 0x0)) {
-         return true;
-      }
-      mr = mr->_parentMaterial;
    }
 
    MAT_LOG(5) << "nothing worked!  failed to install material";

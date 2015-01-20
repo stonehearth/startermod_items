@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"transparent" : "shaders/transparent.shader"
+	}
+}

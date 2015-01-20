@@ -15,6 +15,8 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "utXML.h"
+#include "libjson.h"
+#include "lib/json/node.h"
 #include <cstring>
 
 #include "utDebug.h"
@@ -23,6 +25,7 @@
 namespace Horde3D {
 
 using namespace std;
+using namespace ::radiant::json;
 
 
 MaterialResource::MaterialResource( std::string const& name, int flags ) :
@@ -55,16 +58,16 @@ Resource *MaterialResource::clone()
 
 void MaterialResource::initDefault()
 {
-	_shaderRes = 0x0;
-   _parentMaterial = 0x0;
+   _shaders.clear();
 }
 
 
 void MaterialResource::release()
 {
-	_shaderRes = 0x0;
-   _parentMaterial = 0x0;
-	for( uint32 i = 0; i < _samplers.size(); ++i ) _samplers[i].texRes = 0x0;
+   _shaders.clear();
+	for(uint32 i = 0; i < _samplers.size(); ++i) {
+      _samplers[i].texRes = 0x0;
+   }
 
 	_samplers.clear();
 	_uniforms.clear();
@@ -88,71 +91,52 @@ bool MaterialResource::raiseError( std::string const& msg, int line )
 
 bool MaterialResource::load( const char *data, int size )
 {
-	if( !Resource::load( data, size ) ) return false;
-	
-	XMLDoc doc;
-	doc.parseBuffer( data, size );
-	if( doc.hasError() )
-		return raiseError( "XML parsing error" );
-
-	XMLNode rootNode = doc.getRootNode();
-	if( strcmp( rootNode.getName(), "Material" ) != 0 )
-		return raiseError( "Not a material resource file" );
-
-   const char* parentName = rootNode.getAttribute("parent");
-   if (strcmp(parentName, "")) {
-      uint32 mat = Modules::resMan().addResource(ResourceTypes::Material, parentName, 0, false);
-      _parentMaterial = (MaterialResource*)Modules::resMan().resolveResHandle(mat);
+   if(!Resource::load( data, size )) {
+      return false;
    }
+	
+   std::string jsonData(data, size);
+   Node root(libjson::parse(jsonData));
 
-    // Shader
-	XMLNode node1 = rootNode.getFirstChild( "Shader" );
-	if( !node1.isEmpty() )
-	{
-		if( node1.getAttribute( "source" ) == 0x0 ) return raiseError( "Missing Shader attribute 'source'" );
-			
-		uint32 shader = Modules::resMan().addResource(
-				ResourceTypes::Shader, node1.getAttribute( "source" ), 0, false );
-		_shaderRes = (ShaderResource *)Modules::resMan().resolveResHandle( shader );
-	}
+   for (auto const& snode : root.get_node("samplers")) {
+      if (!snode.has("name")) {
+         return raiseError("Missing Sampler attribute 'name'");
+      }
+      if (!snode.has("map")) {
+         return raiseError("Missing Sampler attribute 'map'");
+      }
 
-	// Texture samplers
-	node1 = rootNode.getFirstChild( "Sampler" );
-	while( !node1.isEmpty() )
-	{
-		if( node1.getAttribute( "name" ) == 0x0 ) return raiseError( "Missing Sampler attribute 'name'" );
-		if( node1.getAttribute( "map" ) == 0x0 ) return raiseError( "Missing Sampler attribute 'map'" );
-
-		MatSampler sampler;
-		sampler.name = node1.getAttribute( "name" );
+      MatSampler sampler;
+      sampler.name = snode.get("name", "");
       sampler.currentAnimationTime = 0;
 
-		ResHandle texMap;
-		uint32 flags = 0;
-		if( !Modules::config().loadTextures ) flags |= ResourceFlags::NoQuery;
+      ResHandle texMap;
+      uint32 flags = 0;
+      if (!Modules::config().loadTextures) {
+         flags |= ResourceFlags::NoQuery;
+      }
 		
-		if( _stricmp( node1.getAttribute( "allowCompression", "true" ), "false" ) == 0 ||
-			_stricmp( node1.getAttribute( "allowCompression", "1" ), "0" ) == 0 )
-			flags |= ResourceFlags::NoTexCompression;
+      if (!snode.get("allowCompression", true)) {
+         flags |= ResourceFlags::NoTexCompression;
+      }
 
-		if( _stricmp( node1.getAttribute( "mipmaps", "true" ), "false" ) == 0 ||
-			_stricmp( node1.getAttribute( "mipmaps", "1" ), "0" ) == 0 )
-			flags |= ResourceFlags::NoTexMipmaps;
+      if (!snode.get("mipmaps", true)) {
+         flags |= ResourceFlags::NoTexMipmaps;
+      }
 
-		if( _stricmp( node1.getAttribute( "sRGB", "false" ), "true" ) == 0 ||
-			_stricmp( node1.getAttribute( "sRGB", "0" ), "1" ) == 0 )
-			flags |= ResourceFlags::TexSRGB;
+      if (snode.get("sRGB", false)) {
+         flags |= ResourceFlags::TexSRGB;
+      }
 
-      if (_stricmp(node1.getAttribute("numAnimationFrames", "0"), "0") == 0) {
-		   texMap = Modules::resMan().addResource(
-			   ResourceTypes::Texture, node1.getAttribute( "map" ), flags, false );
-
-		   sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle( texMap );
+      if (snode.get("numAnimationFrames", 0) == 0) {
+         texMap = Modules::resMan().addResource(ResourceTypes::Texture, snode.get("map", ""), flags, false);
+         sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle(texMap);
       } else {
-         sampler.animationRate = (float)atoi(node1.getAttribute("frameRate", "24"));
-         int numFrames = atoi(node1.getAttribute("numAnimationFrames", "0"));
+         sampler.animationRate = snode.get("frameRate", 24.0f);
+         int numFrames = snode.get("numAnimationFrames", 0);
+
          // Animated maps will be of the form "animXYZ.foo", so look for them in that order.
-         std::stringstream ss(node1.getAttribute("map"));
+         std::stringstream ss(snode.get("map", ""));
          std::string baseName;
          std::string extension;
          std::getline(ss, baseName, '.');
@@ -167,31 +151,38 @@ bool MaterialResource::load( const char *data, int size )
 
          sampler.texRes = sampler.animatedTextures[0];
       }
+      _samplers.push_back(sampler);
+   }
 
-		
-		_samplers.push_back( sampler );
-		
-		node1 = node1.getNextSibling( "Sampler" );
-	}
-		
-	// Vector uniforms
-	node1 = rootNode.getFirstChild( "Uniform" );
-	while( !node1.isEmpty() )
-	{
-		if( node1.getAttribute( "name" ) == 0x0 ) return raiseError( "Missing Uniform attribute 'name'" );
+   // Vector uniforms
+   for (auto const& inode : root.get_node("inputs")) {
+      if (!inode.has("name")) {
+         return raiseError("Missing input field 'name'");
+      }
 
-		MatUniform uniform;
-		uniform.name = node1.getAttribute( "name" );
+      if (!inode.has("type")) {
+         return raiseError("Missing input field 'type'");
+      }
 
-		uniform.values[0] = (float)atof( node1.getAttribute( "a", "0" ) );
-		uniform.values[1] = (float)atof( node1.getAttribute( "b", "0" ) );
-		uniform.values[2] = (float)atof( node1.getAttribute( "c", "0" ) );
-		uniform.values[3] = (float)atof( node1.getAttribute( "d", "0" ) );
+      std::string inp_type = inode.get("type", "");
+      MatUniform uniform;
 
-		_uniforms.push_back( uniform );
+      uniform.name = inode.get("name", "");
+      if (inode.has("default")) {
+         int i = 0;
+         for (auto const& v : inode.get_node("default")) {
+            uniform.values[i++] = v.as<float>();
+         }
+      }
+      _uniforms.push_back(uniform);
+   }
 
-		node1 = node1.getNextSibling( "Uniform" );
-	}
+   if (root.has("shaders")) {
+      for (auto const& shader : root.get_node("shaders")) {
+         uint32 shandle = Modules::resMan().addResource(ResourceTypes::Shader, shader.as<std::string>().c_str(), 0, false);
+         _shaders.push_back((ShaderResource *)Modules::resMan().resolveResHandle(shandle));
+      }
+   }
 	
 	return true;
 }
@@ -255,13 +246,6 @@ int MaterialResource::getElemParamI( int elem, int elemIdx, int param )
 {
 	switch( elem )
 	{
-	case MaterialResData::MaterialElem:
-		switch( param )
-		{
-		case MaterialResData::MatShaderI:
-			return _shaderRes != 0x0 ? _shaderRes->getHandle() : 0;
-		}
-		break;
 	case MaterialResData::SamplerElem:
 		if( (unsigned)elemIdx < _samplers.size() )
 		{
@@ -282,27 +266,6 @@ void MaterialResource::setElemParamI( int elem, int elemIdx, int param, int valu
 {
 	switch( elem )
 	{
-	case MaterialResData::MaterialElem:
-		switch( param )
-		{
-		case MaterialResData::MatShaderI:
-			if( value == 0 )
-			{	
-				_shaderRes = 0x0;
-				return;
-			}
-			else
-			{
-				Resource *res = Modules::resMan().resolveResHandle( value );
-				if( res != 0x0 && res->getType() == ResourceTypes::Shader )
-					_shaderRes = (ShaderResource *)res;
-				else
-					Modules::setError( "Invalid handle in h3dSetResParamI for H3DMatRes::MatShaderI" );
-				return;
-			}
-			break;
-		}
-		break;
 	case MaterialResData::SamplerElem:
 		if( (unsigned)elemIdx < _samplers.size() )
 		{

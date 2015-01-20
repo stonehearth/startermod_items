@@ -9,7 +9,7 @@
       },
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/music/music_material.xml",
+         "material": "materials/thoughts/music/music_material.json",
          "duration": 1500,
          "width": 1,
          "height": 1.7,

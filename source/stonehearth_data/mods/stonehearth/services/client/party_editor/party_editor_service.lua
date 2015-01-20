@@ -8,7 +8,7 @@ function PartyEditorService:set_attack_order_command(session, response, party)
    local cursor_entity = radiant.entities.create_entity('stonehearth:attack_order_banner')
 
    cursor_entity:add_component('render_info')
-                     :set_material('materials/ghost_item.xml')
+                     :set_material('materials/ghost_item.json')
 
    stonehearth.selection:select_location()
       :set_rotation_disabled(false)

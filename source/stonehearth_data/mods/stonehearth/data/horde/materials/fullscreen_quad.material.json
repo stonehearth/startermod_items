@@ -1,0 +1,5 @@
+{
+	"shaders" : {
+		"fs_quad" : "shaders/fullscreen_quad.shader"
+	}
+}
