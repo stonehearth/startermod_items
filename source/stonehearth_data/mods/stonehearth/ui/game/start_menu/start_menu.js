@@ -30,7 +30,6 @@ App.StonehearthStartMenuView = App.View.extend({
          App.stonehearthClient.createPasture();
       },
       mining_ui : function () {
-         //$(top).trigger('stonehearth_mining');
          App.stonehearthClient.digDown();
       },
       building_templates: function () {

@@ -14,7 +14,7 @@ function immigration_tests.get_one_citizen(autotest)
    stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:immigration')
 
    --Click the daily update button, click the scenario
-   autotest.ui:click_dom_element('#bulletinListWidget') 
+   autotest.ui:click_dom_element('#bulletin_manager') 
    autotest.ui:click_dom_element('#bulletinList div .info') 
 
    autotest:sleep(4*1000)
