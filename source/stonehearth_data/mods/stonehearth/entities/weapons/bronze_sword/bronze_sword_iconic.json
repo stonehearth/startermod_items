@@ -1,0 +1,26 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "item" : {
+         "category" : "tools"
+       },
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(bronze_sword.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Bronze Sword",
+         "description": "Pointy. Shiny.",
+         "icon" : "file(bronze_sword.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "bronze melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}

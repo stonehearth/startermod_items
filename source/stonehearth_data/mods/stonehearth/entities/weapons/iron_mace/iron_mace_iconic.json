@@ -1,0 +1,26 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "item" : {
+         "category" : "tools"
+       },
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(iron_mace.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Iron Mace",
+         "description": "For flattening faces",
+         "icon" : "file(iron_mace.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "iron melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}

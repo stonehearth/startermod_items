@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Bronze Sword",
+   "description" : "Basic, but better than fighting with a sharpened stick!",
+   "portrait"    : "/stonehearth/entities/weapons/bronze_sword/bronze_sword.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:bronze_ingot",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:weapons:bronze_sword"
+      }
+  ]
+}

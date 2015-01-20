@@ -1,0 +1,47 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "model_variants": {
+         "default" : {
+            "models": [
+               "file(iron_mace_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(iron_mace_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "ilevel" : 6,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      },
+
+      "unit_info": {
+         "name": "Iron Mace",
+         "description": "Heavy, it packs a whallop.",
+         "icon" : "file(iron_mace.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "iron melee_weapon"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 14,
+         "reach" : 1.5
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }      
+      ]
+   }
+}

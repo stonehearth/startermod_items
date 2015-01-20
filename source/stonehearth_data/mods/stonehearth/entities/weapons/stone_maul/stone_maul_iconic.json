@@ -1,0 +1,26 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "item" : {
+         "category" : "tools"
+       },
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(stone_maul.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Stone Maul",
+         "description": "For flattening faces",
+         "icon" : "file(stone_maul.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "stone melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}
