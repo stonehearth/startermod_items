@@ -17,14 +17,11 @@ local TerrainGenerator = class()
 --        These 256x256 terrain tiles are different from nav grid tiles which are 16x16.
 -- World = the entire playspace of a game
 
-function TerrainGenerator:__init(terrain_info, rng, async)
-   if async == nil then async = false end
-
+function TerrainGenerator:__init(terrain_info, rng)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
    self._macro_block_size = self._terrain_info.macro_block_size
    self._rng = rng
-   self._async = async
 
    self._wavelet_levels = 4
    self._frequency_scaling_coeff = 0.69
@@ -40,20 +37,15 @@ function TerrainGenerator:generate_tile(micro_map)
    local tile_map
 
    self:_create_oversize_map_from_micro_map(oversize_map, micro_map)
-   self:_yield()
 
    self:_shape_height_map(oversize_map, self._frequency_scaling_coeff, self._wavelet_levels)
-   self:_yield()
 
    self:_quantize_height_map(oversize_map, false)
-   self:_yield()
 
    self:_add_additional_details(oversize_map, micro_map)
-   self:_yield()
 
    -- copy the offset tile map from the oversize map
    tile_map = self:_extract_tile_map(oversize_map)
-   self:_yield()
 
    return tile_map
 end
@@ -63,11 +55,9 @@ function TerrainGenerator:generate_underground_tile(underground_micro_map)
    local underground_tile_map
 
    self:_create_oversize_map_from_micro_map(oversize_map, underground_micro_map)
-   self:_yield()
 
    -- copy the offset tile map from the oversize map
    underground_tile_map = self:_extract_tile_map(oversize_map)
-   self:_yield()
 
    return underground_tile_map
 end
@@ -91,10 +81,9 @@ function TerrainGenerator:_shape_height_map(height_map, freq_scaling_coeff, leve
    local width = height_map.width
    local height = height_map.height
 
-   Wavelet.DWT_2D(height_map, width, height, levels, self._async)
+   Wavelet.DWT_2D(height_map, width, height, levels)
    WaveletFns.scale_high_freq(height_map, width, height, freq_scaling_coeff, levels)
-   self:_yield()
-   Wavelet.IDWT_2D(height_map, width, height, levels, self._async)
+   Wavelet.IDWT_2D(height_map, width, height, levels)
 end
 
 function TerrainGenerator:_quantize_height_map(height_map, is_micro_map)
@@ -150,12 +139,6 @@ function TerrainGenerator:_extract_tile_map(oversize_map)
       1, 1, tile_map_origin, tile_map_origin, self._tile_size, self._tile_size)
 
    return tile_map
-end
-
-function TerrainGenerator:_yield()
-   if self._async then
-      coroutine.yield()
-   end
 end
 
 return TerrainGenerator

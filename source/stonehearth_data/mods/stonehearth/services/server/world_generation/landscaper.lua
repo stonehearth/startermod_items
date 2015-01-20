@@ -26,15 +26,12 @@ local boulder_name = "boulder"
 local Landscaper = class()
 
 -- TODO: refactor this class into smaller pieces
-function Landscaper:__init(terrain_info, rng, async)
-   if async == nil then async = false end
-
+function Landscaper:__init(terrain_info, rng)
    self._terrain_info = terrain_info
    self._tile_width = self._terrain_info.tile_size
    self._tile_height = self._terrain_info.tile_size
    self._feature_size = self._terrain_info.feature_size
    self._rng = rng
-   self._async = async
 
    self._boulder_probabilities = {
       plains    = 0.02,
@@ -328,7 +325,6 @@ function Landscaper:place_features(tile_map, feature_map, place_item)
             fn(self, feature_name, i, j, tile_map, place_item)
          end
       end
-      self:_yield()
    end
 end
 
@@ -628,8 +624,6 @@ function Landscaper:place_boulders(region3_boxed, tile_map, feature_map)
          end
       end
    )
-
-   self:_yield()
 end
 
 function Landscaper:_should_place_boulder(elevation)
@@ -637,12 +631,6 @@ function Landscaper:_should_place_boulder(elevation)
    local probability = self._boulder_probabilities[terrain_type]
 
    return self._rng:get_real(0, 1) < probability
-end
-
-function Landscaper:_yield()
-   if self._async then
-      coroutine.yield()
-   end
 end
 
 return Landscaper

@@ -41,9 +41,9 @@ function WorldGenerationService:create_new_game(seed, async)
 
    self._terrain_info = TerrainInfo()
    self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._rng)
-   self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng, self._async)
+   self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
-   self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
+   self._landscaper = Landscaper(self._terrain_info, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self._scenario_index = ScenarioIndex(self._terrain_info, self._rng)
@@ -282,12 +282,15 @@ function WorldGenerationService:_generate_tile_internal(i, j)
 
    -- render heightmap to region3
    self:_render_heightmap_to_region3(tile_map, underground_tile_map, feature_map, offset_x, offset_y)
+   self:_yield()
 
    -- place flora
    self:_place_flora(tile_map, feature_map, offset_x, offset_y)
+   self:_yield()
 
    -- place scenarios
    self:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
+   self:_yield()
 
    tile_info.generated = true
 end
@@ -305,7 +308,6 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, undergrou
    )
 
    log:info('Height map to region3 time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, offset_y)
@@ -316,7 +318,6 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, of
    )
 
    log:info('Landscaper time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
@@ -334,7 +335,6 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, und
    )
 
    log:info('Static scenario time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_get_tile_seed(x, y)
