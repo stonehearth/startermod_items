@@ -7,13 +7,6 @@
          <div class="help">
             {{i18n stonehearth:party_editor_help}}
          </div>
-         <div class="toolbar">
-            <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
-               <button {{bind-attr class="buttonEnabled" }}>
-                  {{i18n stonehearth:add_party_member}}
-               </button>
-            </a>
-         </div>
          <table class="list">
             <tbody>
             {{#each member in view.membersArray}}
@@ -21,6 +14,18 @@
             {{/each}}
             </tbody>
          </table>         
+         <div class="toolbar">
+            <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
+               <button {{bind-attr class="buttonEnabled" }}>
+                  {{i18n stonehearth:add_party_member}}
+               </button>
+            </a>
+            <a href="#" {{action "disband" command target="view"}} class='uisounds'>
+               <button {{bind-attr class="buttonEnabled" }}>
+                  {{i18n stonehearth:disband_party}}
+               </button>
+            </a>
+         </div>
       </div>
    </div>
 </script>
@@ -75,11 +80,13 @@
       <div class="job">{{view.model.stonehearth:job.job_uri.name}}</div>
    </td>
    <td><a href="#" class="moveCameraButton">
+      <nobr>
       {{#if view.model.stonehearth:party_member.party }}
          {{ view.model.stonehearth:party_member.party.name }}
       {{else}}
          {{i18n stonehearth:not_in_party}}
-      {{/if}}   
+      {{/if}}
+      </nobr>
    </a></td>
    <td>
       {{#if view.in_current_party }}

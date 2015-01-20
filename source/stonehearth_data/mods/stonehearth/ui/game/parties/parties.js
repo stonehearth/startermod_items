@@ -60,10 +60,12 @@ App.StonehearthPartiesRowView = App.View.extend({
    uriProperty: 'model',
    closeOnEsc: true,
 
+   click: function(evt) {
+      var party = this.get('model')
+      App.stonehearthClient.showPartyEditor(party.__self);
+   },
+
    actions: {
-      editParty: function(party) {
-         App.stonehearthClient.showPartyEditor(party);
-      },
       setAttackOrder: function(party) {
          App.stonehearthClient.setPartyAttackOrder(party);
       },

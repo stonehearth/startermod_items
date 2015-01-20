@@ -28,17 +28,12 @@
       {{view.model.name}}
    </td>
    <td>
-      <a href="#" {{action "editParty" view.model.__self target="view"}} class='uisounds'>
-         <button {{bind-attr class="buttonEnabled" }}>{{i18n stonehearth:edit_party}}</button>
-      </a>
-   </td>
-   <td>
-      <a href="#" {{action "setAttackOrder" view.model.__self target="view"}} class='uisounds'>
+      <a href="#" {{action "setAttackOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
          <button id="attackButton" {{bind-attr class=":red buttonEnabled" }}><img /></button>
       </a>
    </td>
    <td>
-      <a href="#" {{action "setDefendOrder" view.model.__self target="view"}} class='uisounds'>
+      <a href="#" {{action "setDefendOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
          <button id="defendButton" {{bind-attr class=":blue buttonEnabled" }}><img /></button>
       </a>
    </td>

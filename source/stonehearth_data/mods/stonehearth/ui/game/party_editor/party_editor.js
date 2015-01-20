@@ -128,10 +128,23 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
       },
    },
 
+   didInsertElement: function() {
+      var inParty = this.get('in_current_party');
+      if (inParty) {
+         this.$().hide();
+      } else {
+         this.$().show();
+      }
+   },
+
    actions: {
       addPartyMember: function(citizen) {
+         var self = this;
          var party = this.get('party');
          radiant.call_obj(party, 'add_member_command', citizen.__self)
+                  .done(function(response) {
+                     self.$().hide();
+                  })
                   .fail(function(response) {
                      console.log('failed to add party member', response);
                   });
@@ -151,6 +164,6 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
       var viewPartyUri = this.get('party');
       var citizenPartyUri = this.get('model.stonehearth:party_member.party.__self');
       return viewPartyUri == citizenPartyUri;
-   }.property('model.stonehearth:party_member.party', 'view.party'),
+   }.property('model.stonehearth:party_member.party', 'party'),
 
 });
