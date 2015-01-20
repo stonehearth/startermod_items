@@ -19,7 +19,7 @@ function ReserveStockpileSpace:start_thinking(ai, entity, args)
    self._stockpile = args.stockpile:get_component('stonehearth:stockpile')
    self._ready = false
 
-   self._space_listener = radiant.events.listen(self._stockpile, 'space_available', self, self._on_space_available)
+   self._space_listener = radiant.events.listen(args.stockpile, 'stonehearth:stockpile:space_available', self, self._on_space_available)
    self:_on_space_available(self._stockpile, not self._stockpile:is_full())
 end
 
