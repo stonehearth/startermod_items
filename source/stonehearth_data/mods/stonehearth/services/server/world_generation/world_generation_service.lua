@@ -180,31 +180,6 @@ function WorldGenerationService:get_tile_origin(i, j, blueprint)
    return x, y
 end
 
-function WorldGenerationService:generate_all_tiles()
-   self:_run_async(
-      function()
-         local blueprint = self._blueprint
-         local i, j, n, tile_order_list, num_tiles
-         local progress = 0
-
-         self:_report_progress(progress)
-
-         tile_order_list = self:_build_tile_order_list(blueprint)
-         num_tiles = #tile_order_list
-
-         for n=1, num_tiles do
-            i = tile_order_list[n].x
-            j = tile_order_list[n].y
-
-            self:_generate_tile_internal(i, j)
-
-            progress = n / num_tiles
-            self:_report_progress(progress)
-         end
-      end
-   )
-end
-
 function WorldGenerationService:generate_tiles(i, j, radius)
    self:_run_async(
       function()
@@ -344,46 +319,6 @@ function WorldGenerationService:_get_tile_seed(x, y)
    return tile_seed
 end
 
-function WorldGenerationService:_build_tile_order_list(map)
-   local center_x = (map.width+1)/2 -- center can be non-integer
-   local center_y = (map.height+1)/2
-   local tile_order = {}
-   local i, j, dx, dy, coord_info, angle
-
-   for j=1, map.height do
-      for i=1, map.width do
-         coord_info = {}
-         coord_info.x = i
-         coord_info.y = j
-         dx = i-center_x
-         dy = j-center_y
-
-         -- break ties in radial order
-         angle = self:_get_angle(dy, dx)
-         coord_info.dist_metric = dx*dx + dy*dy + angle/1000
-
-         table.insert(tile_order, coord_info)
-      end
-   end
-
-   local compare_tile = function(a, b)
-      return a.dist_metric < b.dist_metric
-   end
-   table.sort(tile_order, compare_tile)
-   return tile_order
-end
-
-function WorldGenerationService:_get_angle(dy, dx)
-   local pi = math.pi
-
-   -- normalize angle to a range of 0 - 2pi
-   local value = math.atan2(dy, dx) + pi
-
-   -- move minimum to 45 degrees (pi/4) so fill order looks better
-   if value < pi/4 then value = value + 2*pi end
-   return value
-end
-
 function WorldGenerationService:_run_async(fn)
    if self._async then
       radiant.create_background_task('World Generation', fn)
@@ -399,4 +334,3 @@ function WorldGenerationService:_yield()
 end
 
 return WorldGenerationService
-
