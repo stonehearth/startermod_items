@@ -52,7 +52,7 @@ function FloorEditor:go(response, floor_uri, options)
 
    selector
       :set_cursor('stonehearth:cursors:create_floor')
-      :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_filter())
+      :set_find_support_filter(stonehearth.selection.make_edit_floor_xz_region_support_filter(options.sink_floor))
       :set_can_contain_entity_filter(stonehearth.selection.floor_can_contain)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)

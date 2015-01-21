@@ -40,7 +40,7 @@ SelectionService.find_supported_xz_region_filter = function (result)
    return stonehearth.selection.FILTER_IGNORE
 end
 
-SelectionService.floor_xz_region_selector = function(result, raise_selector)
+SelectionService.floor_xz_region_support_filter = function(result, raise_selector)
    -- stop if we've hit a piece of existing floor.  the call to  :allow_select_cursor(true)
    -- will save us most, but not all, of the time.  without both checks, we will occasionally
    -- stab through existing floor blueprints and hit the bottom of the terrain cut, creating
@@ -63,8 +63,8 @@ SelectionService.floor_xz_region_selector = function(result, raise_selector)
       end
    end
    
-   -- fast check for 'is terrain'.  we can dig into the terrain, so leave the floor sunk.
-   if entity:get_id() == 1 then
+   -- we can dig into the terrain, so leave the floor sunk.
+   if entity:get_component('terrain') then
       return true
    end
 
@@ -83,19 +83,17 @@ SelectionService.floor_xz_region_selector = function(result, raise_selector)
    return false
 end
 
-SelectionService.make_edit_floor_xz_region_filter = function(result)
+SelectionService.make_edit_floor_xz_region_support_filter = function(raise_selector)
    return function(result)
-      return SelectionService.floor_xz_region_selector(result, true)
+      return SelectionService.floor_xz_region_support_filter(result, raise_selector)
    end
 end
 
-SelectionService.make_delete_floor_xz_region_filter = function(result)
+SelectionService.make_delete_floor_xz_region_support_filter = function()
    return function(result)
-      return SelectionService.floor_xz_region_selector(result, false)
+      return SelectionService.floor_xz_region_support_filter(result, false)
    end
 end
-
-
 
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
 
