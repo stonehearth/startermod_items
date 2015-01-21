@@ -25,6 +25,12 @@
                   {{i18n stonehearth:disband_party}}
                </button>
             </a>
+            <a href="#" {{action "setAttackOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
+               <button id="attackButton" class="bannerButton red attack"><img /></button>
+            </a>
+            <a href="#" {{action "setDefendOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
+               <button id="defendButton" class="bannerButton blue defend"><img /></button>
+            </a>      
          </div>
       </div>
    </div>
