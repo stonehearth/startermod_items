@@ -166,6 +166,14 @@ function Party:place_banner(type, location, rotation)
       })
 end
 
+function Party:remove_banner(type)
+   self._sv.banners[type] = nil
+   self.__saved_variables:mark_changed()
+   radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
+         type = type
+      })
+end
+
 function Party:set_name_command(session, response, name)
    self._sv.name = name
    self.__saved_variables:mark_changed()
@@ -184,6 +192,11 @@ end
 
 function Party:place_banner_command(session, response, type, location, rotation)
    self:place_banner(type, ToPoint3(location), rotation)
+   return true
+end
+
+function Party:remove_banner_command(session, response, type)
+   self:remove_banner(type)
    return true
 end
 

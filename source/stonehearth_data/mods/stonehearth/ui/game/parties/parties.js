@@ -72,12 +72,49 @@ App.StonehearthPartiesRowView = App.View.extend({
       App.stonehearthClient.showPartyEditor(party.__self);
    },
 
+   _updateButtons: function() {
+      var party = this.get('model')
+      this._setButtonState('attack', party.banners.attack);
+      this._setButtonState('defend', party.banners.defend);
+   }.observes('model.banners'),
+
+   _setButtonState: function(type, place) {
+      var button_id = '#' + type + 'Button';
+      var place_cls = type;
+      var remove_cls = 'remove_' + type;
+      if (place) {
+         this.$(button_id).removeClass(place_cls).addClass(remove_cls);
+      } else {
+         this.$(button_id).removeClass(remove_cls).addClass(place_cls);
+      }
+   },
+
+   _getButtonState: function(type) {
+      var button_id = '#' + type + 'Button';
+      var place_cls = type;
+      return this.$(button_id).hasClass(place_cls);
+   },
+
+   _toggleBanner: function(type) {
+      var self = this;
+      var party = this.get('model')
+      if (this._getButtonState(type)) {
+         App.stonehearthClient.placePartyBanner(party.__self, type)
+            .done(function() {
+               self._setButtonState(type, false);
+            })            
+      } else {
+         radiant.call_obj(party.__self, 'remove_banner_command', type);
+         self._setButtonState(type, true);
+      }
+   },
+
    actions: {
-      setAttackOrder: function(party) {
-         App.stonehearthClient.placePartyBanner(party, 'attack');
+      setAttackOrder: function() {
+         this._toggleBanner('attack');
       },
       setDefendOrder: function(party) {
-         App.stonehearthClient.placePartyBanner(party, 'defend');
+         this._toggleBanner('defend');
       },
    },
 });
