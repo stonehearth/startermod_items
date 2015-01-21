@@ -55,6 +55,9 @@
             "iron_mace" : {
                "recipe" : "file(iron_mace_recipe.json)"
             },
+            "iron_pike" : {
+               "recipe" : "file(iron_pike_recipe.json)"
+            },
             "bronze_mace" : {
                "recipe" : "file(bronze_mace_recipe.json)"
             }
