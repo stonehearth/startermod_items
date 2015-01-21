@@ -3,7 +3,13 @@ local Point3 = _radiant.csg.Point3
 local Party = class()
 local PartyGuardAction = require 'services.server.unit_control.actions.party_guard_action'
 
-local DX = -6
+local SPACE = 2
+
+local FORMATIONS = {
+   { Point3(0, 0, 0) },
+   { Point3(-SPACE, 0, 0), Point3(SPACE, 0, 0) },
+   { Point3(-SPACE, 0, 0), Point3(SPACE, 0, 0), Point3(0, 0, SPACE * 2) },
+}
 
 ATTACK = 'attack'
 
@@ -18,6 +24,7 @@ function Party:initialize(unit_controller, id, ord)
    self._sv.unit_controller = unit_controller
    self._sv.members = {}
    self._sv.banners = {}
+   self._sv.party_size = 0
 
    self:restore()
 end
@@ -65,12 +72,12 @@ function Party:add_member(member)
    self._party_tg:add_worker(member)
 
    self._sv.members[id] = {
-      entity = member,
-      formation_offset = Point3(DX, 0, 0)
+      entity = member
    }
-   DX = DX + 3
+   self._sv.party_size = self._sv.party_size + 1
 
    self.__saved_variables:mark_changed()
+   radiant.events.trigger_async(self, 'stonehearth:party:banner_changed')
 end
 
 function Party:remove_member(id)
@@ -85,16 +92,40 @@ function Party:remove_member(id)
          self._party_tg:remove_worker(member:get_id())
       end
       self._sv.members[id] = nil
+      self._sv.party_size = self._sv.party_size - 1
       self.__saved_variables:mark_changed()
    end
 end
 
 function Party:get_formation_offset(member)
-   local entry = self._sv.members[member:get_id()]
-   if not entry then
-      return
+   local i = 0
+   local member_id = member:get_id()
+   for id, _ in pairs(self._sv.members) do
+      if id == member_id then
+         break
+      end
+      i = i + 1
    end
-   return entry.formation_offset
+
+   local formation = FORMATIONS[self._sv.party_size]
+   if formation then
+      local location = formation[i + 1]
+      assert(location)
+      return location
+   end
+   local w = math.ceil(math.sqrt(self._sv.party_size))
+   local x = math.floor(i / w)
+   local z = (i - (x * w))
+   if math.mod(w, 2) == 0 then
+      -- even
+      x = x - (w / 2)
+      z = z - (w / 2)
+      return Point3((x * SPACE * 2) + SPACE, 0, (z * SPACE * 2) + SPACE)
+   end
+   -- odd
+   x = x - math.floor(w / 2)
+   z = z - math.floor(w / 2)
+   return Point3(x * SPACE * 2, 0, z * SPACE * 2)
 end
 
 function Party:get_banner_location(banner_type)
