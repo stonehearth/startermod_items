@@ -56,8 +56,6 @@ function Mission:_find_closest_stockpile(origin, player_id)
             best_dist = dist
             best_stockpile = stockpile
          end
-      else
-         radiant.log.write('', 0, 'stockpile has no items.  ignoring')
       end
    end
 

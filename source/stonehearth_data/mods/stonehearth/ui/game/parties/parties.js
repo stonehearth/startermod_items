@@ -29,6 +29,7 @@ App.StonehearthPartiesView = App.View.extend({
    destroy: function() {
       this._super();
       radiant.call_obj('stonehearth.party_editor', 'show_party_banners_command', false);
+      App.stonehearthClient.hidePartyEditor();
    },
 
    actions: {
@@ -72,20 +73,31 @@ App.StonehearthPartiesRowView = App.View.extend({
       App.stonehearthClient.showPartyEditor(party.__self);
    },
 
+   didInsertElement: function() {
+      this._super();
+      this._updateButtons();
+   },
+
    _updateButtons: function() {
-      var party = this.get('model')
-      this._setButtonState('attack', party.banners.attack);
-      this._setButtonState('defend', party.banners.defend);
+      var party = this.get('model');      
+      if (party) {
+         this._setButtonState('attack', party.banners.attack);
+         this._setButtonState('defend', party.banners.defend);
+      }
    }.observes('model.banners'),
 
    _setButtonState: function(type, place) {
       var button_id = '#' + type + 'Button';
-      var place_cls = type;
-      var remove_cls = 'remove_' + type;
-      if (place) {
-         this.$(button_id).removeClass(place_cls).addClass(remove_cls);
-      } else {
-         this.$(button_id).removeClass(remove_cls).addClass(place_cls);
+      var button = this.$(button_id);
+
+      if (button) {
+         var place_cls = type;
+         var remove_cls = 'remove_' + type;
+         if (place) {
+            button.removeClass(place_cls).addClass(remove_cls);
+         } else {
+            button.removeClass(remove_cls).addClass(place_cls);
+         }
       }
    },
 

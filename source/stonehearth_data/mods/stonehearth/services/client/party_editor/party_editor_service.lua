@@ -84,4 +84,15 @@ function PartyEditorService:show_party_banners_command(session, response, visibl
    return true
 end
 
+function PartyEditorService:select_party_command(session, response, id)
+   if self._selected then
+      self._selected:set_selected(false)
+   end
+   self._selected = self._party_renderers[id]
+   if self._selected then
+      self._selected:set_selected(true)
+   end
+   return true
+end
+
 return PartyEditorService

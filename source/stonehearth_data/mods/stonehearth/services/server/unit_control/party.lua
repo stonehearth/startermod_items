@@ -51,6 +51,12 @@ function Party:destroy()
       self._party_tg:destroy()
       self._party_tg = nil
    end
+
+   local id = next(self._sv.members)
+   while id ~= nil do
+      self:remove_member(id)
+      id = next(self._sv.members)
+   end
 end
 
 function Party:get_id()

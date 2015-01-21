@@ -223,6 +223,11 @@ var StonehearthClient;
             this._partyEditor = App.gameView.addView(App.StonehearthPartyEditorView, { uri: party });
          }
       },
+      hidePartyEditor: function() {
+         if (this._partyEditor != null && !this._partyEditor.isDestroyed) {
+            this._partyEditor.destroy();
+         }
+      },
 
       // item is a reference to an actual entity, not a class of entities like stonehearth:furniture:comfy_bed
       placeItem: function(item) {

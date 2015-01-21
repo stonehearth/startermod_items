@@ -27,5 +27,11 @@ function UnitControlService:create_party_command(session, response)
    return { party = party }
 end
 
+function UnitControlService:disband_party_command(session, response, id)
+   self:get_controller(session.player_id)
+                        :disband_party(id)
+   return true
+end
+
 return UnitControlService
 

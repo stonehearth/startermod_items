@@ -447,11 +447,13 @@ end
 function Town:enable_worker_combat()
    local citizens = self:get_citizens()
    
+   self._town_defense_thoughts = {}
    for _, citizen in pairs(citizens) do
       if self:_is_in_job_map(citizen, worker_defense_jobs) then
          stonehearth.combat:set_panicking_from(citizen, nil)
          stonehearth.combat:set_stance(citizen, 'aggressive')
-         radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
+         local thought = radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
+         table.insert(self._town_defense_thoughts, thought)
          radiant.entities.add_buff(citizen, 'stonehearth:buffs:defender');
 
          -- xxx: let's do this by given them an item with a buff.  tasks are expensive.
@@ -472,6 +474,11 @@ end
 
 -- Tell all defense-capable classes to come out of red alert mode
 function Town:disable_worker_combat()
+   for _, thought in pairs(self._town_defense_thoughts) do
+      thought:destroy()
+   end
+   self._town_defense_thoughts = {}
+
    for id, task in pairs(self._worker_combat_tasks) do
       task:destroy()
 
@@ -479,7 +486,6 @@ function Town:disable_worker_combat()
       if citizen then
          local job_component = citizen:get_component('stonehearth:job')
          job_component:reset_to_default_comabat_stance()
-         radiant.entities.unthink(citizen, '/stonehearth/data/effects/thoughts/alert',  stonehearth.constants.think_priorities.ALERT)
          radiant.entities.remove_buff(citizen, 'stonehearth:buffs:defender');
       end
    end
