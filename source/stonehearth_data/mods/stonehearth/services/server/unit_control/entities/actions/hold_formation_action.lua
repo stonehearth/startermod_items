@@ -13,6 +13,7 @@ function HoldFormationAction:start_thinking(ai, entity, args)
    self._entity = entity
    self._party = args.party
    self._town = stonehearth.town:get_town(entity)
+   self._thinking = true
    if not self._town then
       return
    end
@@ -22,21 +23,22 @@ function HoldFormationAction:start_thinking(ai, entity, args)
 end
 
 function HoldFormationAction:stop_thinking(ai, entity, args)
+   self._thinking = false
    if not self._running then
       self:_destroy_listeners()
    end
 end
 
 function HoldFormationAction:start(ai, entity, args)
-   assert(self._thought_bubble)
    self:create_listeners()
    self._running = true
-   radiant.entities.think(self._entity, self._thought_bubble, stonehearth.constants.think_priorities.PARTY_FORMATION)
+   self._thought = radiant.entities.think(self._entity, self._thought_bubble, stonehearth.constants.think_priorities.PARTY_FORMATION)
 end
 
 function HoldFormationAction:stop(ai, entity, args)
-   if self._active_thought_bubble then
-      radiant.entities.unthink(self._entity, self._active_thought_bubble, stonehearth.constants.think_priorities.PARTY_FORMATION)
+   if self._thought then
+      self._thought:destroy()
+      self._thought = nil
    end
    self._running = false
    self:_destroy_listeners()
@@ -62,7 +64,7 @@ function HoldFormationAction:_destroy_listeners()
    end
 end
 
-function HoldFormationAction:_check_formation_location()
+function HoldFormationAction:_get_formation_location()
    local location
    if self._town:worker_combat_enabled() then
       location = self._party:get_banner_location('defend')
@@ -72,19 +74,25 @@ function HoldFormationAction:_check_formation_location()
       location = self._party:get_banner_location('attack')
       self._thought_bubble = '/stonehearth/data/effects/thoughts/party_attack'
    end
-
    if not location then
       return
    end
-
    location = location + self._party:get_formation_offset(self._entity)
-   if location == self._location then
-      return
-   end
+   return location
+end
+
+function HoldFormationAction:_check_formation_location()
+   local location = self:_get_formation_location()
 
    if self._running then
-      self._ai:abort('formation location changed')
-   else
+      if location ~= self._location then
+         self._ai:abort('formation location changed')
+      end
+      return
+   end
+   if self._thinking and location then
+      self._thinking = false
+      self._location = location
       self._ai:set_think_output({ location = location })
    end
 end

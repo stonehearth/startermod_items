@@ -50,7 +50,7 @@ function PartyRenderer:_update_banner(banner_type, party)
       local entity = self:_create_banner(banner, banner_type)
       radiant.entities.move_to(entity, location)
    else
-      self:_destroy_banner(banner)
+      self:_destroy_banner(banner_type)
    end
 end
 
@@ -64,7 +64,8 @@ function PartyRenderer:_create_banner(banner, banner_type)
    return banner.entity
 end
 
-function PartyRenderer:_destroy_banner(banner)
+function PartyRenderer:_destroy_banner(banner_type)
+   local banner = self._banners[banner_type]
    if banner.entity then
       radiant.entities.destroy_entity(banner.entity)
       banner.entity = nil

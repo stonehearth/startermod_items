@@ -10,6 +10,11 @@ IdleInFormationAction.args = {
 IdleInFormationAction.version = 2
 IdleInFormationAction.priority = stonehearth.constants.priorities.party.hold_formation.IDLE_IN_FORMATION
 
-local ai = stonehearth.ai
-return ai:create_compound_action(IdleInFormationAction)
-         :execute('stonehearth:idle', { hold_position = true })
+
+function IdleInFormationAction:run(ai, entity, args)
+   while true do
+      ai:execute('stonehearth:idle', { hold_position = true })      
+   end
+end
+
+return IdleInFormationAction

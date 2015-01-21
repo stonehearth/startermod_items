@@ -110,7 +110,6 @@ function StructureEraser:_add_tool_selection_capture()
 end
 
 function StructureEraser:_switch_tool(tool_name, hover_entity)
-   radiant.log.write('', 0, 'switching to %s', tostring(tool_name))
    self:_remove_tool_selection_capture()
 
    if self._current_tool then

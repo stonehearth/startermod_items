@@ -31,7 +31,6 @@ function RaidStockpilesMission:_raid_stockpile(stockpile)
 end
 
 function RaidStockpilesMission:_check_stockpile(e)
-   radiant.log.write('', 0, 'item removed from stockpile...')
    if e.stockpile == self._raiding_stockpile then
       local items = e.stockpile:get_component('stonehearth:stockpile')
                                  :get_items()

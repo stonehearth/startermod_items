@@ -29,6 +29,7 @@ App.StonehearthPartiesView = App.View.extend({
    destroy: function() {
       this._super();
       radiant.call_obj('stonehearth.party_editor', 'show_party_banners_command', false);
+      App.stonehearthClient.hidePartyEditor();
    },
 
    actions: {
@@ -72,10 +73,17 @@ App.StonehearthPartiesRowView = App.View.extend({
       App.stonehearthClient.showPartyEditor(party.__self);
    },
 
+   didInsertElement: function() {
+      this._super();
+      this._updateButtons();
+   },
+
    _updateButtons: function() {
-      var party = this.get('model')
-      this._setButtonState('attack', party.banners.attack);
-      this._setButtonState('defend', party.banners.defend);
+      var party = this.get('model');      
+      if (party) {
+         this._setButtonState('attack', party.banners.attack);
+         this._setButtonState('defend', party.banners.defend);
+      }
    }.observes('model.banners'),
 
    _setButtonState: function(type, place) {

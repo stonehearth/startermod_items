@@ -128,7 +128,9 @@ end
 --If the task doesn't currently exist, start the task to look for food
 function CalorieObserver:_start_eat_task()
    --show the hungry toast, if not yet showing from mealtime
-   radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
+   if not self._thought then 
+      self._thought = radiant.entities.think(self._entity, '/stonehearth/data/effects/thoughts/hungry', stonehearth.constants.think_priorities.HUNGRY)
+   end
 
    if not self._eat_task then
       -- ask the ai component for the task group for `basic needs` and create
@@ -145,12 +147,13 @@ function CalorieObserver:_start_eat_task()
 end
 
 function CalorieObserver:_finish_eating()
-   --Hide the hungry thought toast, if it was in effect
-   radiant.entities.unthink(self._entity, '/stonehearth/data/effects/thoughts/hungry')
-   
    self._sv.should_be_eating = false
    self.__saved_variables:mark_changed()
 
+   if self._thought then
+      self._thought:destroy()
+      self._thought = nil
+   end
    if self._eat_task then
       self._eat_task:destroy()
       self._eat_task = nil
