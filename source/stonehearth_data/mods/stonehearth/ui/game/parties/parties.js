@@ -80,12 +80,16 @@ App.StonehearthPartiesRowView = App.View.extend({
 
    _setButtonState: function(type, place) {
       var button_id = '#' + type + 'Button';
-      var place_cls = type;
-      var remove_cls = 'remove_' + type;
-      if (place) {
-         this.$(button_id).removeClass(place_cls).addClass(remove_cls);
-      } else {
-         this.$(button_id).removeClass(remove_cls).addClass(place_cls);
+      var button = this.$(button_id);
+
+      if (button) {
+         var place_cls = type;
+         var remove_cls = 'remove_' + type;
+         if (place) {
+            button.removeClass(place_cls).addClass(remove_cls);
+         } else {
+            button.removeClass(remove_cls).addClass(place_cls);
+         }
       }
    },
 

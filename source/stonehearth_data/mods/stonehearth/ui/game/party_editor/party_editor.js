@@ -45,6 +45,10 @@ App.StonehearthPartyEditorView = App.View.extend({
       }
    }.observes('uri'),
 
+   _setSelected: function() {
+      var party = this.get('model');
+      radiant.call_obj('stonehearth.party_editor', 'select_party_command', party.id);
+   }.observes('model'),
 });
 
 
