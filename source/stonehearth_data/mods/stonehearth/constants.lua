@@ -192,9 +192,9 @@ local constants = {
    think_priorities = {
       HEALTH = 1000,
       ALERT  = 900,         
-      PARTY_FORMATION = 700,
       SLEEPY = 100,
-      HUNGRY = 50
+      HUNGRY = 50,
+      PARTY_FORMATION = 10,
    },
 
    --Constants that contribute to the scoare
