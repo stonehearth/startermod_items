@@ -471,7 +471,7 @@ ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::Effe
 {
    json::Node cjo(node);
 
-   _material = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
+   _material = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.json"));
    _overlayWidth = cjo.get("width", 64);
    _overlayHeight = cjo.get("height", 64);
    _yOffset = cjo.get("y_offset", 0);
@@ -525,7 +525,7 @@ UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effe
    RenderEffectTrack(e, effect->GetEffectId(), "unit status")
 {
    json::Node cjo(node);
-   std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
+   std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.json"));
    float statusWidth = cjo.get("width", 3.0f);
    float statusHeight = cjo.get("height", 3.0f);
    float xOffset = cjo.get("xOffset", 0.0f);

@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"debug" : "fonts/toast_text.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "fonts/fontdinerdotcom_huggable_regular_20.PNG"
+		}
+	]
+}

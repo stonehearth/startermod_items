@@ -54,7 +54,7 @@ bool ToastNode::InitExtension()
 	};
 	ToastNode::vertexLayout = gRDI->registerVertexLayout(2, attribs);
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.xml", 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.json", 0);
 	Resource *matRes =  Modules::resMan().resolveResHandle(mat);
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;

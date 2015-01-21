@@ -165,7 +165,7 @@ void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
       material = render_info->GetMaterial();
    }
    if (material.empty()) {
-      material = "materials/voxel.material.xml";
+      material = "materials/voxel.material.json";
    }
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);

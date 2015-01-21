@@ -14,7 +14,6 @@
 #include "egTexture.h"
 #include "egModules.h"
 #include "egCom.h"
-#include "utXML.h"
 #include "libjson.h"
 #include "lib/json/node.h"
 #include <cstring>
@@ -160,11 +159,6 @@ bool MaterialResource::load( const char *data, int size )
          return raiseError("Missing input field 'name'");
       }
 
-      if (!inode.has("type")) {
-         return raiseError("Missing input field 'type'");
-      }
-
-      std::string inp_type = inode.get("type", "");
       MatUniform uniform;
 
       uniform.name = inode.get("name", "");

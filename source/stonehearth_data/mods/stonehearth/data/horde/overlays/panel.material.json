@@ -1,0 +1,11 @@
+{
+	"shaders" : {
+		"overlay" : "shaders/overlay.shader"
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "textures/common/white.tga"
+		}
+	]
+}

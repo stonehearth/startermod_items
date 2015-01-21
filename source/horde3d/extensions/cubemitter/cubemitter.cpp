@@ -201,7 +201,7 @@ bool CubemitterResource::load( const char *data, int size )
       emitterData.emission = parseEmission(root.get_node("emission"));
    }
 
-   materialPath = root.get("material", "materials/cubemitter.material.xml");
+   materialPath = root.get("material", "materials/cubemitter.material.json");
 
 	return true;
 }

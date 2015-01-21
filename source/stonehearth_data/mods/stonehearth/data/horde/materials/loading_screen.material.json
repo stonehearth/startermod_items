@@ -10,7 +10,7 @@
 		},
 		{
 			"name" : "progressMap",
-			"map" : "overlays/progress_frame.jpg"
+			"map" : "overlays/progress_frame.png"
 		}
 	]
 }

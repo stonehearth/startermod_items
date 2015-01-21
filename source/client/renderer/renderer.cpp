@@ -117,8 +117,8 @@ void Renderer::OneTimeIninitializtion()
 void Renderer::MakeRendererResources()
 {
    // Overlays
-   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.json", 0 );
+   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.json", 0 );
 
    H3DRendererCaps caps;
    h3dGetCapabilities(&caps, nullptr);
@@ -467,7 +467,7 @@ void Renderer::BuildSkySphere()
       texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
    }
 
-   skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
+   skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.json", 0);
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
@@ -523,7 +523,7 @@ void Renderer::BuildStarfield()
       indices[i + 3] = v; indices[i + 4] = v + 2; indices[i + 5] = v + 3;
    }
 
-   starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.xml", 0);
+   starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.json", 0);
 
    H3DRes geoRes = h3dutCreateGeometryRes("starfield", NumStars * 4, NumStars * 6, (float*)verts, indices, nullptr, nullptr, nullptr, texCoords, texCoords2);
    
@@ -849,10 +849,10 @@ void Renderer::Initialize()
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
    /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
    fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 
@@ -879,7 +879,7 @@ void Renderer::Initialize()
 
 void Renderer::BuildLoadingScreen()
 {
-   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", H3DResFlags::NoFlush);
+   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.json", H3DResFlags::NoFlush);
    // Can't clone until we load!
    LoadResources();
    _loadingProgressMaterial = h3dCloneResource(_loadingBackgroundMaterial, "progress_material");
@@ -1699,18 +1699,18 @@ bool Renderer::LoadMissingResources()
    
    // Get the first resource that needs to be loaded
    int res = h3dQueryUnloadedResource(0);
-   while( res != 0 ) {
+   while (res != 0) {
       const char *resourceName = h3dGetResName(res);
-	  std::string rname(resourceName);
-	  std::string resourcePath;
+      std::string rname(resourceName);
+      std::string resourcePath;
 
-	  // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
-	  if (rname[0] == '/') {
-		  resourcePath = rname.substr(1);
-	  } else {
-		  // No leading '/' means look in the main stonehearth mod for the resource.
-	      resourcePath = resourcePath_ + "/" + resourceName;
-	  }
+      // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
+      if (rname[0] == '/') {
+         resourcePath = rname.substr(1);
+      } else {
+         // No leading '/' means look in the main stonehearth mod for the resource.
+         resourcePath = resourcePath_ + "/" + resourceName;
+      }
       std::shared_ptr<std::istream> inf;
 
       // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony
