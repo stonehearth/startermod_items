@@ -74,10 +74,10 @@ App.StonehearthPartiesRowView = App.View.extend({
 
    actions: {
       setAttackOrder: function(party) {
-         App.stonehearthClient.setPartyAttackOrder(party);
+         App.stonehearthClient.placePartyBanner(party, 'attack');
       },
       setDefendOrder: function(party) {
-         App.stonehearthClient.setPartyDefendOrder(party);
+         App.stonehearthClient.placePartyBanner(party, 'defend');
       },
    },
 });
