@@ -349,6 +349,7 @@
       "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
       "weapons:stone_maul" : "file(entities/weapons/stone_maul)",
       "weapons:iron_mace" : "file(entities/weapons/iron_mace)",
+      "weapons:iron_pike" : "file(entities/weapons/iron_pike)",
       "weapons:bronze_mace" : "file(entities/weapons/bronze_mace)",
       "weapons:bronze_sword" : "file(entities/weapons/bronze_sword)",
       "weapons:short_sword" : "file(entities/weapons/short_sword)",
