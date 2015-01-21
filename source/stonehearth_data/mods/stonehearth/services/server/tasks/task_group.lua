@@ -36,6 +36,10 @@ function TaskGroup:__init(scheduler, activity_name, args)
       end)
 end
 
+function TaskGroup:destroy()
+   -- hm.  not sure what to do here...
+end
+
 function TaskGroup:set_counter_name(counter_name)
    self._counter_name = counter_name
    return self

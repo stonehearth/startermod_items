@@ -22,7 +22,14 @@ App.StonehearthPartyEditorView = App.View.extend({
    },
 
    actions: {
-      editRoster: function(command) {
+      disband: function() {
+         var party = this.get('model');
+         if (party) {
+            radiant.call_obj('stonehearth.unit_control', 'disband_party_command', party.id);
+         }
+         this.destroy();
+      },
+      editRoster: function() {
          if (!this._addMemberView || this._addMemberView.isDestroyed) {
             var party = this.get('model');
             this._addMemberView = App.gameView.addView(App.StonehearthPartyEditorEditRosterView, { 'party' : party.__self });
