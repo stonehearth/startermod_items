@@ -61,23 +61,8 @@ App.StonehearthPartiesView = App.View.extend({
    }.property('model.parties'),
 });
 
-App.StonehearthPartiesRowView = App.View.extend({
-   tagName: 'tr',
-   classNames: ['row'],
-   templateName: 'partiesRow',
-   uriProperty: 'model',
-   closeOnEsc: true,
 
-   click: function(evt) {
-      var party = this.get('model')
-      App.stonehearthClient.showPartyEditor(party.__self);
-   },
-
-   didInsertElement: function() {
-      this._super();
-      this._updateButtons();
-   },
-
+App.StonehearthPartyEditorBase = App.View.extend({
    _updateButtons: function() {
       var party = this.get('model');      
       if (party) {
@@ -128,5 +113,23 @@ App.StonehearthPartiesRowView = App.View.extend({
       setDefendOrder: function(party) {
          this._toggleBanner('defend');
       },
+   },
+});
+
+App.StonehearthPartiesRowView = App.StonehearthPartyEditorBase.extend({
+   tagName: 'tr',
+   classNames: ['row'],
+   templateName: 'partiesRow',
+   uriProperty: 'model',
+   closeOnEsc: true,
+
+   click: function(evt) {
+      var party = this.get('model')
+      App.stonehearthClient.showPartyEditor(party.__self);
+   },
+
+   didInsertElement: function() {
+      this._super();
+      this._updateButtons();
    },
 });

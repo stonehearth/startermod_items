@@ -1,4 +1,8 @@
-App.StonehearthPartyEditorView = App.View.extend({
+//
+// App.StonehearthPartyEditorBase is defined in parties.js.  It handles
+// the behavior of the attack and defend buttons
+//
+App.StonehearthPartyEditorView = App.StonehearthPartyEditorBase.extend({
 	templateName: 'partyEditor',
    uriProperty: 'model',
    closeOnEsc: true,
