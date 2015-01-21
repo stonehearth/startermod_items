@@ -190,8 +190,9 @@ local constants = {
    },
 
    think_priorities = {
-      ALERT  = 900,
       HEALTH = 1000,
+      ALERT  = 900,         
+      PARTY_FORMATION = 700,
       SLEEPY = 100,
       HUNGRY = 50
    },

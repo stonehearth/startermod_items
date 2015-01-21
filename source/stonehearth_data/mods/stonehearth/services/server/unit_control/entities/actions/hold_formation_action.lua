@@ -28,11 +28,16 @@ function HoldFormationAction:stop_thinking(ai, entity, args)
 end
 
 function HoldFormationAction:start(ai, entity, args)
+   assert(self._thought_bubble)
    self:create_listeners()
    self._running = true
+   radiant.entities.think(self._entity, self._thought_bubble, stonehearth.constants.think_priorities.PARTY_FORMATION)
 end
 
 function HoldFormationAction:stop(ai, entity, args)
+   if self._active_thought_bubble then
+      radiant.entities.unthink(self._entity, self._active_thought_bubble, stonehearth.constants.think_priorities.PARTY_FORMATION)
+   end
    self._running = false
    self:_destroy_listeners()
 end
@@ -61,9 +66,11 @@ function HoldFormationAction:_check_formation_location()
    local location
    if self._town:worker_combat_enabled() then
       location = self._party:get_banner_location('defend')
+      self._thought_bubble = '/stonehearth/data/effects/thoughts/party_defend'
    end
    if not location then
       location = self._party:get_banner_location('attack')
+      self._thought_bubble = '/stonehearth/data/effects/thoughts/party_attack'
    end
 
    if not location then
