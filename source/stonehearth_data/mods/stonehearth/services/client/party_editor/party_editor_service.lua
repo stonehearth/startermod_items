@@ -5,8 +5,11 @@ function PartyEditorService:initialize()
    self._party_renderers = {}
 end
 
-function PartyEditorService:set_attack_order_command(session, response, party)
-   local cursor_entity = radiant.entities.create_entity('stonehearth:attack_order_banner')
+function PartyEditorService:place_party_banner_command(session, response, party, banner_type)
+   -- either 'stonehearth:attack_order_banner' or 'stonehearth:defend_order_banner'
+   local uri = string.format('stonehearth:%s_order_banner', banner_type)
+
+   local cursor_entity = radiant.entities.create_entity(uri)
 
    cursor_entity:add_component('render_info')
                      :set_material('materials/ghost_item.xml')
@@ -27,7 +30,7 @@ function PartyEditorService:set_attack_order_command(session, response, party)
             return true
          end)
       :done(function(selector, location, rotation)
-            _radiant.call_obj(party, 'create_attack_order_command', location, rotation)
+            _radiant.call_obj(party, 'place_banner_command', banner_type, location, rotation)
                         :always(function()
                               selector:destroy()
                            end)

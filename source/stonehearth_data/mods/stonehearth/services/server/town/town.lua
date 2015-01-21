@@ -464,9 +464,10 @@ function Town:enable_worker_combat()
          self._worker_combat_tasks[citizen:get_id()] = task
       end
    end
-
    self._sv.worker_combat_enabled = true
    self.__saved_variables:mark_changed()
+
+   radiant.events.trigger_async(self, 'stonehearth:town_defense_mode_changed', { enabled = true })
 end
 
 -- Tell all defense-capable classes to come out of red alert mode
@@ -485,6 +486,8 @@ function Town:disable_worker_combat()
    self._worker_combat_tasks = {}
    self._sv.worker_combat_enabled = false
    self.__saved_variables:mark_changed()
+
+   radiant.events.trigger_async(self, 'stonehearth:town_defense_mode_changed', { enabled = false })
 end
 
 ----- Zones -----

@@ -5,6 +5,8 @@ local PartyGuardAction = require 'services.server.unit_control.actions.party_gua
 
 local DX = -6
 
+ATTACK = 'attack'
+
 local function ToPoint3(pt)
    return pt and Point3(pt.x, pt.y, pt.z) or nil
 end
@@ -15,6 +17,7 @@ function Party:initialize(unit_controller, id, ord)
    self._sv.name = string.format('Party No.%d', ord) -- i18n hazard. =(
    self._sv.unit_controller = unit_controller
    self._sv.members = {}
+   self._sv.banners = {}
 
    self:restore()
 end
@@ -25,6 +28,11 @@ function Party:restore()
 
    self._party_tg = scheduler:create_task_group('stonehearth:party', {})
    self._party_priorities = stonehearth.constants.priorities.party
+
+   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
+                                                :set_priority(self._party_priorities.HOLD_FORMATION)
+                                                :start()
+
 end
 
 function Party:destroy()
@@ -81,22 +89,16 @@ function Party:remove_member(id)
    end
 end
 
-function Party:get_formation_location_for(member)
-   local location = self._sv.party_location
-   if not location then
-      return
-   end
-
-   local id = member:get_id()
-   local entry = self._sv.members[id]
+function Party:get_formation_offset(member)
+   local entry = self._sv.members[member:get_id()]
    if not entry then
       return
    end
-   return entry.formation_offset + location
+   return entry.formation_offset
 end
 
-function Party:create_attack_order(location, rotation)
-   self:_set_formation_location(location, rotation)
+function Party:get_banner_location(banner_type)
+   return self._sv.banners[banner_type]
 end
 
 function Party:raid(stockpile)
@@ -113,7 +115,7 @@ function Party:raid(stockpile)
    task:set_priority(self._party_priorities.RAID_STOCKPILE)
          :start()
 
-   self:_set_formation_location(location)
+   self:place_banner(ATTACK, location, 0)
 end
 
 
@@ -123,22 +125,16 @@ function Party:_get_next_id()
    return id
 end
 
-function Party:_set_formation_location(location, rotation)
-   if self._hold_formation_task then
-      self._hold_formation_task:destroy()
-      self._hold_formation_task = nil
-   end
-
+function Party:place_banner(type, location, rotation)
    location = radiant.terrain.get_standable_point(location)
-
-   self._sv.party_location = location
+   self._sv.banners[type] = location
    self.__saved_variables:mark_changed()
-   radiant.events.trigger_async(self, 'stonehearth:party:formation_changed')
-
-   self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
-                                                :set_priority(self._party_priorities.HOLD_FORMATION)
-                                                :start()
+   radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
+         type = type,
+         location = location,
+      })
 end
+
 function Party:set_name_command(session, response, name)
    self._sv.name = name
    self.__saved_variables:mark_changed()
@@ -155,8 +151,8 @@ function Party:remove_member_command(session, response, member)
    return true
 end
 
-function Party:create_attack_order_command(session, response, location, rotation)
-   self:create_attack_order(ToPoint3(location), rotation)
+function Party:place_banner_command(session, response, type, location, rotation)
+   self:place_banner(type, ToPoint3(location), rotation)
    return true
 end
 

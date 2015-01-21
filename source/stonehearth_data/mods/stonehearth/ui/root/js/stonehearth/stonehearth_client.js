@@ -368,9 +368,9 @@ var StonehearthClient;
          });
       },
 
-      setPartyAttackOrder: function(party) {
-         return this._callTool('setPartyAttackOrder', function() {
-            return radiant.call_obj('stonehearth.party_editor', 'set_attack_order_command', party);
+      placePartyBanner: function(party, banner_type) {
+         return this._callTool('placePartyBanner', function() {
+            return radiant.call_obj('stonehearth.party_editor', 'place_party_banner_command', party, banner_type);
          });
       },
 
