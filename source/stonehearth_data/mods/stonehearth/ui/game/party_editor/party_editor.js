@@ -23,6 +23,14 @@ App.StonehearthPartyEditorView = App.StonehearthPartyEditorBase.extend({
             $(this).blur();
          }
       });
+
+      this.$('.bannerButton').each(function() {
+         $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+      });
+
    },
 
    actions: {
