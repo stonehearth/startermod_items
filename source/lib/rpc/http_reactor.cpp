@@ -54,7 +54,7 @@ ReactorDeferredPtr HttpReactor::Call(json::Node const& query, std::string const&
 
 
    } catch (std::exception &e) {
-      RPC_LOG(3) << "critical error in http reactor: " << e.what();
+      RPC_LOG(1) << "critical error in http reactor: " << e.what();
    }
    return nullptr;
 }
