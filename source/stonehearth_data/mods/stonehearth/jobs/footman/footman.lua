@@ -50,6 +50,12 @@ function FootmanClass:unlock_perk(id)
    self.__saved_variables:mark_changed()
 end
 
+--Returns true if this class participates in worker defense. False otherwise.
+--Unless the class specifies in their _description, it's true by default.
+function FootmanClass:get_worker_defense_participation()
+   return self._sv.worker_defense_participant
+end
+
 -- Given the ID of a perk, find out if we have the perk. 
 function FootmanClass:has_perk(id)
    return self._sv.attained_perks[id]

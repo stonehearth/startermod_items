@@ -17,8 +17,7 @@ function WorkerClass:restore()
 end
 
 function WorkerClass:promote(json)
-   self._sv.is_current_class = true
-   self._sv.job_name = json.name
+   job_helper.promote(self._sv, json)
 
    self.__saved_variables:mark_changed()
 end
@@ -42,6 +41,12 @@ end
 -- Given the ID of a perk, find out if we have the perk. 
 function WorkerClass:has_perk(id)
    return false
+end
+
+--Returns true if this class participates in worker defense. False otherwise.
+--Unless the class specifies in their _description, it's true by default.
+function WorkerClass:get_worker_defense_participation()
+   return self._sv.worker_defense_participant
 end
 
 function WorkerClass:demote()

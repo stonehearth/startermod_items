@@ -8,7 +8,7 @@
    "talisman_uri" : "stonehearth:weaver:talisman", 
    "default_stance" : "passive",
    "promotion_activity_name" : "promote_weaver",
-
+   "worker_defense_opt_out" : true,
    
    "equipment" : {
       "abilities" : "file(weaver_abilities)",
