@@ -29,7 +29,9 @@ App.StonehearthCrafterView = App.View.extend({
       "stonehearth:workshop": {
          "crafter": {
             "unit_info" : {},
-            "stonehearth:crafter": {}, 
+            "stonehearth:crafter": {
+
+            }, 
             'stonehearth:job' : {
                'curr_job_controller' : {}
             }
@@ -383,6 +385,30 @@ App.StonehearthCrafterView = App.View.extend({
          self.$("#portrait").attr("src", recipe.portrait);
          self.$("#usefulText").html(recipe.description);
          self.$("#flavorText").html(recipe.flavor);
+
+         //stats
+         var recipeEntityData = recipe.product_info.entity_data;
+         var statHtml = '';
+         var statClass = '';
+         
+         if (recipeEntityData && recipeEntityData['stonehearth:combat:weapon_data']) {
+            var damage = recipeEntityData['stonehearth:combat:weapon_data']['base_damage']
+            if (damage) {
+               statClass = 'damage';
+               statHtml = '<div>' + damage + '</div>';
+            }
+         } else if (recipeEntityData && recipeEntityData['stonehearth:combat:armor_data']) {
+            var armor = recipeEntityData['stonehearth:combat:armor_data']['base_damage_reduction']
+            if (armor) {
+               statClass = 'armor';
+               statHtml = '<div>' + armor + '</div>';
+            }
+         }
+
+         self.$("#stats")
+            .removeClass()
+            .addClass(statClass)
+            .html(statHtml);
 
          var curr_job_controller_data = this.get('context.data.stonehearth:workshop.crafter.stonehearth:job.curr_job_controller');
          var curr_level = curr_job_controller_data.last_gained_lv;
