@@ -1,7 +1,7 @@
 {
     "shaders" : {
        "PROJECTION": {
-       		"state" : "state/voxel/blend.state",
+       		"state" : "states/voxel/blend.state",
        		"shader" : "shaders/projection.shader"
        	}
     },

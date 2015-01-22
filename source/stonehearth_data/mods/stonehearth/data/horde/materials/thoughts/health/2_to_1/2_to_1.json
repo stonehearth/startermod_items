@@ -8,7 +8,7 @@
 	"samplers" : [
 		{
 			"name" : "albedoMap",
-			"map" : "materials/thoughts/health/4_to_3/4_to_3_.png",
+			"map" : "materials/thoughts/health/2_to_2/2_to_1_.png",
 			"numAnimationFrames" : 20,
 			"frameRate" : 8
 		}

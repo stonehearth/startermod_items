@@ -1,11 +1,14 @@
 {
 	"shaders" : {
-		"translucent" : "shaders/screenspace_fixedsize.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/screenspace_fixedsize.shader"
+		}
 	},
 	"samplers" : [
 		{
 			"name" : "albedoMap",
 			"map" : "materials/plant_crop_overlay/plant_crop.png"
 		}
-	]	
+	]
 }

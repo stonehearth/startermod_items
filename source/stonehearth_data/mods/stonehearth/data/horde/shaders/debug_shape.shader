@@ -1,16 +1,6 @@
 [[FX]]
 
-context DEBUG_SHAPES
-{
-  VertexShader = compile GLSL VS_GENERAL;
-  PixelShader = compile GLSL FS_AMBIENT;
-  ZWriteEnable = false;
-  CullMode = None;
-  BlendMode = Blend;
-}
-
-
-[[VS_GENERAL]]
+[[VS]]
 
 uniform mat4 viewProjMat;
 uniform mat4 worldMat;
@@ -25,7 +15,7 @@ void main() {
 	gl_Position = viewProjMat * worldMat * vec4(vertPos, 1.0);
 }
 
-[[FS_AMBIENT]]	
+[[FS]]	
 
 varying vec4 theColor;
 

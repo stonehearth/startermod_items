@@ -1,11 +1,14 @@
 {
 	"shaders" : {
-		"translucent" : "shaders/screenspace_fixedsize.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/screenspace_fixedsize.shader"
+		}
 	},
 	"samplers" : [
 		{
 			"name" : "albedoMap",
 			"map" : "materials/move_item_overlay/move_item.png"
 		}
-	]	
+	]
 }

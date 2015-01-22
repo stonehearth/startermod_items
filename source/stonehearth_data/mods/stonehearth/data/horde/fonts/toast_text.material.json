@@ -1,6 +1,9 @@
 {
 	"shaders" : {
-		"debug" : "fonts/toast_text.shader"
+		"DEBUG_SHAPES" : {
+			"state" : "states/voxel/blend_nodepthtest.state",
+			"shader" : "fonts/toast_text.shader"
+		}
 	},
 	"samplers" : [
 		{

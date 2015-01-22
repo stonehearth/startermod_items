@@ -1,6 +1,14 @@
 {
 	"shaders" : {
-		"overlay" : "shaders/loading.shader"
+		"LOADING_OVERLAY" : {
+			"state" : "states/voxel/blend.state",
+			"shaders/loading.shader"
+		},
+
+		"PROGRESS_OVERLAY" : {
+			"state" : "states/voxel/blend.state",
+			"shaders/progress.shader"			
+		}
 	},
 
 	"samplers" : [

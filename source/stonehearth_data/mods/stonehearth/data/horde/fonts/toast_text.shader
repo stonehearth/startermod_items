@@ -1,21 +1,11 @@
 [[FX]]
 
-context DEBUG_SHAPES
-{
-	VertexShader = compile GLSL VS_GENERAL;
-	PixelShader = compile GLSL FS_AMBIENT;
-	ZWriteEnable = false;
-   ZEnable = false;
-	BlendMode = Blend;
-   CullMode = None;
-}
-
 sampler2D albedoMap = sampler_state
 {
 	Filter = Bilinear;
 };
 
-[[VS_GENERAL]]
+[[VS]]
 
 uniform   mat4    viewProjMat;
 uniform   mat4    projMat;
@@ -30,7 +20,7 @@ varying   vec2    texCoords;
 // http://o3d.googlecode.com/svn/!svn/bc/219/trunk/samples_webgl/shaders/billboard-glsl.shader
 
 void main() {
-	texCoords = texCoords0;
+   texCoords = texCoords0;
    mat4 worldView = viewMat * worldMat;
    gl_Position = projMat * (vec4(vertPos, 1.0) + vec4(worldView[3].xyz, 0));
 }

@@ -1,5 +1,12 @@
 {
 	"shaders" : {
-		"fs_quad" : "shaders/fullscreen_quad.shader"
+		"FSQUAD_COPY" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/fullscreen_quad.shader"
+		},
+		"ADD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/fullscreen_quad.shader"			
+		}
 	}
 }

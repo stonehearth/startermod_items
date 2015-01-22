@@ -1,5 +1,8 @@
 {
 	"shaders" : {
-		"translucent" : "shaders/screenspace_fixedsize.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/screenspace_fixedsize.shader"
+		}
 	}
 }

@@ -1,6 +1,16 @@
 {
 	"shaders" : {
-		"starfield" : "shaders/starfield.shader"
+		"STARFIELD" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/starfield.shader",
+			"inputs" : [
+				{
+					"name" : "brightness",
+					"default" : [1.0, 1.0, 1.0, 1.0],
+					"bind_to_material_input" : "brightness"
+				}
+			]
+		}
 	},
 
 	"inputs" : [

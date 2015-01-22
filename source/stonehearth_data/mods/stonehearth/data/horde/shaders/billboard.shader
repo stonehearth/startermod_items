@@ -8,20 +8,7 @@ sampler2D albedoMap  = sampler_state
 };
 
 
-// Contexts
-context TRANSLUCENT
-{
-	VertexShader = compile GLSL VS_OVERLAY;
-	PixelShader = compile GLSL FS_OVERLAY;
-	
-	BlendMode = Blend;
-	ZWriteEnable = true;
-	CullMode = None;
-}
-
-[[VS_OVERLAY]]
-
-uniform mat4 viewProjMat;
+[[VS]]
 uniform mat4 worldMat;
 uniform mat4 viewMat;
 uniform mat4 projMat;
@@ -42,8 +29,7 @@ void main() {
 }
 
 
-[[FS_OVERLAY]]
-
+[[FS]]
 uniform sampler2D albedoMap;
 
 varying vec2 texCoords;

@@ -18,17 +18,11 @@ sampler2D depthBuffer = sampler_state
   Filter = None;
 };
 
-context SSAO
-{
-  VertexShader = compile GLSL VS_SSAO;
-  PixelShader = compile GLSL FS_SSAO;
-}
-
-[[VS_SSAO]]
+[[VS]]
 #include "shaders/fsquad_vs.glsl"
 
 
-[[FS_SSAO]]
+[[FS]]
 #version 400
 
 #include "shaders/utilityLib/vertCommon_400.glsl"

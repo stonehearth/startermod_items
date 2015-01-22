@@ -1,6 +1,9 @@
 {
 	"shaders" : {
-		"translucent" : "shaders/billboard.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/billboard.shader"
+		}
 	},
 	"samplers" : [
 		{

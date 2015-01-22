@@ -1,6 +1,9 @@
 {
 	"shaders" : {
-		"ssao" : "shaders/ssao.shader"
+		"SSAO" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/ssao.shader"
+		}
 	},
 
 	"samplers" : [

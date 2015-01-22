@@ -1,11 +1,20 @@
 {
 	"shaders" : {
-		"translucent" : "materials/designation/stripes.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "materials/designation/designation.shader",
+			"inputs" : [
+				{
+					"name" : "alpha",
+					"default" : [0, 0, 0, 0.5],
+					"bind_to_material_input" : "alpha"
+				}
+			]
+		}
 	},
 	"inputs" : [
 		{
 			"name" : "alpha",
-			"type" : "float4",
 			"default" : [0, 0, 0, 0.5]
 		}
 	]

@@ -1,6 +1,9 @@
 {
 	"shaders" : {
-		"translucent" : "materials/stockpile/stockpile.shader"
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "materials/stockpile/stockpile.shader"
+		}
 	},
 	"samplers" : [
 		{

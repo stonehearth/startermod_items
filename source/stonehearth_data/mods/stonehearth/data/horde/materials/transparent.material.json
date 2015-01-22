@@ -1,5 +1,35 @@
 {
 	"shaders" : {
-		"transparent" : "shaders/transparent.shader"
+		"SELECTED_SCREENSPACE" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [1, 1, 0, 1]
+				}
+			]
+		},
+
+		"SELECTED_FAST": {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0.5, 0.4, 0, 1]
+				}
+			]
+		},
+
+		"SELECTED_SCREENSPACE_OUTLINER": {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/voxel/selected_screenspace.shader"
+		},
+
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/transparent.shader"
+		}
 	}
 }

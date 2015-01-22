@@ -1,5 +1,14 @@
 {
 	"shaders" : {
-		"fow_visible" : "shaders/fow_visible.shader"
+		"FOW_RT_EXPLORED" : {
+			"state" : "states/voxel/fow.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0, 1, 0, 1]
+				}
+			]			
+		}
 	}
 }

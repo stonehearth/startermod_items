@@ -1,5 +1,8 @@
 {
 	"shaders" : {
-		"debug_shapes" : "shaders/debug_shape.shader"
+		"DEBUG_SHAPES" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/debug_shape.shader"
+		}
 	}
 }
