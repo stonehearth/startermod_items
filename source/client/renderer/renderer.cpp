@@ -175,6 +175,7 @@ void Renderer::InitHorde()
 void Renderer::InitWindow()
 {
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
+      R_LOG(1) << "GLFW Error (" << errorCode << "): " << errorString;
       Renderer::GetInstance().lastGlfwError_ = BUILD_STRING(errorString << " (code: " << std::to_string(errorCode) << ")");
    });
 
@@ -201,6 +202,9 @@ void Renderer::InitWindow()
    GLFWwindow *window;
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
         config_.enable_fullscreen.value ? monitor : nullptr, nullptr))) {
+      R_LOG(1) << "Error trying to create glfw window.  Details:";
+      R_LOG(1) << "  (" << windowWidth_ << " x " << windowHeight_ << ") w/ " << config_.num_msaa_samples << " samples";
+      R_LOG(1) << "  Fullscreen = " << config_.enable_fullscreen.value;
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
