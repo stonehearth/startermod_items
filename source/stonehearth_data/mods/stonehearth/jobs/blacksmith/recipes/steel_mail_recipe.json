@@ -6,7 +6,7 @@
    "description" : "A full suit of heavy, durable steel armor.",
    "flavor" : "Full Metal Jacket",
    "portrait"    : "/stonehearth/entities/armor/steel_mail/steel_mail.png",
-   "level_requirement" : 0,
+   "level_requirement" : 4,
 
    "ingredients": [
       {

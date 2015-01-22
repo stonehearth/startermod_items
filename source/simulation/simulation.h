@@ -102,7 +102,7 @@ private:
    void main(); // public for the server.  xxx - there's a better way to factor this between the server and the in-proc listen server
    void Mainloop();
    void Idle();
-   void SendClientUpdates();
+   void SendClientUpdates(bool throttle);
             
    //void OnCellHover(render3d::RendererInterface *renderer, int x, int y, int z);
    //void on_keyboard_pressed(render3d::RendererInterface *renderer, const render3d::keyboard_event &e);
@@ -113,7 +113,7 @@ private:
 
    void start_accept();
    void handle_accept(std::shared_ptr<tcp::socket> s, const boost::system::error_code& error);
-   void SendUpdates(std::shared_ptr<RemoteClient> c);
+   void SendUpdates(std::shared_ptr<RemoteClient> c, bool throttle);
    void EncodeBeginUpdate(std::shared_ptr<RemoteClient> c);
    void EncodeEndUpdate(std::shared_ptr<RemoteClient> c);
    void EncodeServerTick(std::shared_ptr<RemoteClient> c);
@@ -122,6 +122,7 @@ private:
 
    void Save(boost::filesystem::path const& savedir);
    void Load();
+   void FinishLoadingGame();
    rpc::ReactorDeferredPtr BeginLoad(boost::filesystem::path const& savedir);
    void Reset();
 

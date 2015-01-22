@@ -7,13 +7,15 @@
          <div class="help">
             {{i18n stonehearth:party_editor_help}}
          </div>
-         <table class="list">
-            <tbody>
-            {{#each member in view.membersArray}}
-               {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
-            {{/each}}
-            </tbody>
-         </table>         
+         <div class="list">
+            <table>
+               <tbody>
+               {{#each member in view.membersArray}}
+                  {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
+               {{/each}}
+               </tbody>
+            </table>         
+         </div>
          <div class="toolbar">
             <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
@@ -26,10 +28,11 @@
                </button>
             </a>
             <a href="#" {{action "setAttackOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
-               <button id="attackButton" class="bannerButton red attack"><img /></button>
+               <button id="attackButton" class="bannerButton red attack" title="{{i18n stonehearth:attack_banner_button}}" description="{{i18n stonehearth:attack_banner_button_help}}"><img /></button>
             </a>
             <a href="#" {{action "setDefendOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
-               <button id="defendButton" class="bannerButton blue defend"><img /></button>
+               <button id="defendButton" class="bannerButton blue defend" title="{{i18n stonehearth:defend_banner_button}}" description="{{i18n stonehearth:defend_banner_button_help}}"><img /></button>
+
             </a>      
          </div>
       </div>
@@ -58,13 +61,15 @@
    <div id="partyEditorEditRoster" class="gui citizenTable">
       <div class="window">
          <div class="title">{{i18n stonehearth:add_party_member_title}}<div class="closeButton"></div></div>
-         <table class="list">
-            <tbody>
-            {{#each citizen in view.citizensArray}}
-               {{ view "stonehearthPartyEditorEditRosterRow" party=view.party uriBinding="citizen" }}
-            {{/each}}
-            </tbody>
-         </table>         
+         <div class="list">
+            <table>
+               <tbody>
+               {{#each citizen in view.citizensArray}}
+                  {{ view "stonehearthPartyEditorEditRosterRow" party=view.party uriBinding="citizen" }}
+               {{/each}}
+               </tbody>
+            </table>         
+         </div>
          <div class="toolbar">
             <a href="#" {{action "close" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>

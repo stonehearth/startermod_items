@@ -3,7 +3,7 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/hungry/hungry_material.xml",
+         "material": "materials/thoughts/party_defend/party_defend.xml",
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

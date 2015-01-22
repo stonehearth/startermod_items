@@ -90,7 +90,7 @@ void Renderer::OneTimeIninitializtion()
    SetupGlfwHandlers();
    MakeRendererResources();
 
-   ApplyConfig(config_, false);
+   ApplyConfig(config_, APPLY_CONFIG_RENDERER);
    LoadResources();
 
    memset(&input_.mouse, 0, sizeof input_.mouse);
@@ -286,7 +286,7 @@ void Renderer::SetupGlfwHandlers()
          Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
          Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
       }
-      Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, true);
+      Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, APPLY_CONFIG_PERSIST);
 
       R_LOG(0) << "window closed.  exiting process";
       TerminateProcess(GetCurrentProcess(), 1);
@@ -632,45 +632,48 @@ void Renderer::PersistConfig()
    config.Set("renderer.last_screen_y", config_.last_screen_y.value);
 }
 
-void Renderer::ApplyConfig(const RendererConfig& newConfig, bool persistConfig)
+void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
 {
    UpdateConfig(newConfig);
 
    config_.enable_ssao.value &= config_.enable_ssao.allowed;
-   // Super hard-coded setting for now.
-   if (config_.enable_ssao.value) {
-      worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
-   } else {
-      worldPipeline_ = "pipelines/forward.pipeline.xml";
+
+   if ((flags & APPLY_CONFIG_RENDERER) != 0) {
+      // Super hard-coded setting for now.
+      if (config_.enable_ssao.value) {
+         worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
+      } else {
+         worldPipeline_ = "pipelines/forward.pipeline.xml";
+      }
+
+      int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
+
+      h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
+      h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
+      h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
+      h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
+      h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
+
+      /* Unused, until we can reload the window without bringing everything down.
+      if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
+      {
+         // MSAA change requires that we reload our pipelines (so that we can regenerate our
+         // render target textures with the appropriate sampling).
+         FlushMaterials();
+
+         LoadResources();
+      }*/
+
+      // Propagate far-plane value.
+      ResizeViewport();
+
+      SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
+      SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
+
+      glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
    }
 
-   int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
-
-   h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
-   h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
-   h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
-   h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
-   h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
-
-   /* Unused, until we can reload the window without bringing everything down.
-   if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
-   {
-      // MSAA change requires that we reload our pipelines (so that we can regenerate our
-      // render target textures with the appropriate sampling).
-      FlushMaterials();
-
-      LoadResources();
-   }*/
-
-   // Propagate far-plane value.
-   ResizeViewport();
-
-   SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
-   SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
-
-   glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
-
-   if (persistConfig) {
+   if ((flags & APPLY_CONFIG_PERSIST) != 0) {
       PersistConfig();
    }
 }
@@ -1093,8 +1096,6 @@ void Renderer::RenderOneFrame(int now, float alpha)
       perfmon::SwitchToCounter("render h3d");
    
       if (drawWorld_ && !_loading) {
-         currentPipeline_ = worldPipeline_;
-
          RenderFogOfWarRT();
          h3dSetResParamStr(GetPipeline(currentPipeline_), H3DPipeRes::GlobalRenderTarget, 0, fowRenderTarget_, "FogOfWarRT");
       }
@@ -1314,22 +1315,8 @@ void Renderer::ResizeViewport()
 
 void Renderer::SetDrawWorld(bool drawWorld) 
 {
-   if (drawWorld_ == drawWorld) {
-      return;
-   }
    drawWorld_ = drawWorld;
-
-   if (_loading) {
-      // Loading will always get set to false below (when loading is complete.)  Let that function
-      // set the appropriate pipeline.
-      return;
-   }
-
-   if (drawWorld_) {
-      currentPipeline_ = worldPipeline_;
-   } else {
-      currentPipeline_ = "pipelines/ui_only.pipeline.xml";
-   }
+   SelectPipeline();
 }
 
 void Renderer::SetLoading(bool loading)
@@ -1337,11 +1324,23 @@ void Renderer::SetLoading(bool loading)
    _loading = loading;
    if (loading) {
       _loadingAmount = 0.0f;
-      currentPipeline_ = "pipelines/loading_screen_only.pipeline.xml";
-   } else {
-      currentPipeline_ = worldPipeline_;
    }
+   SelectPipeline();
 }
+
+void Renderer::SelectPipeline()
+{
+   if (_loading) {
+      currentPipeline_ = "pipelines/loading_screen_only.pipeline.xml";
+      return;
+   }
+   if (drawWorld_) {
+      currentPipeline_ = worldPipeline_;
+      return;
+   }
+   currentPipeline_ = "pipelines/ui_only.pipeline.xml";
+}
+
 
 void Renderer::UpdateLoadingProgress(float amountLoaded)
 {

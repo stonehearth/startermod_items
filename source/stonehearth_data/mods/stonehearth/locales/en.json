@@ -77,6 +77,11 @@
    "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
 
+   "attack_banner_button" : "Attack Order",
+   "attack_banner_button_help" : "Tell the party to assault a location",
+   "defend_banner_button" : "Rally & Defend Order",
+   "defend_banner_button_help" : "Tell the party to rally to a location when Town Defense Mode is activated",
+
    "plains_1"    : "Plains",
    "plains_2"    : "Plains",
    "foothills_1" : "Foothills",
@@ -405,7 +410,7 @@
    "generalPerks" : "General Perks",
    "retired" : "Retired at:",
 
-   "red_alert": "Red Alert!",
+   "red_alert": "Town Defense Mode Activated!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
 
    "start_building" : "Build!",
