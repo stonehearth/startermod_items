@@ -123,11 +123,11 @@
       "menuHideSound": "stonehearth:sounds:ui:start_menu:defend_close",
       "menuShowSound": "stonehearth:sounds:ui:start_menu:defend_open",
       "items" : {
-         "red_alert" : {
-            "name" : "Red Alert!",
-            "description" : "Rally workers to defend the town!",
+         "town_defense" : {
+            "name" : "Town Defense Mode!",
+            "description" : "Rally your hearthlings to defend the town!",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/red_alert.png",
+            "icon" : "/stonehearth/ui/game/start_menu/images/town_defense.png",
             "sticky" : true,
             "hotkey" : "r"
          }

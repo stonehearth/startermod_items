@@ -62,7 +62,7 @@ App.StonehearthStartMenuView = App.View.extend({
       bulletin_manager: function() {
          App.bulletinBoard.toggleListView();
       },
-      red_alert: function () {
+      town_defense: function () {
          App.stonehearthClient.rallyWorkers();
       }
    },
