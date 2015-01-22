@@ -7,13 +7,15 @@
          <div class="help">
             {{i18n stonehearth:party_editor_help}}
          </div>
-         <table class="list">
-            <tbody>
-            {{#each member in view.membersArray}}
-               {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
-            {{/each}}
-            </tbody>
-         </table>         
+         <div class="list">
+            <table>
+               <tbody>
+               {{#each member in view.membersArray}}
+                  {{ view "stonehearthPartyMemberRow" party=view.model.__self uriBinding="member" }}
+               {{/each}}
+               </tbody>
+            </table>         
+         </div>
          <div class="toolbar">
             <a href="#" {{action "editRoster" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>
@@ -58,13 +60,15 @@
    <div id="partyEditorEditRoster" class="gui citizenTable">
       <div class="window">
          <div class="title">{{i18n stonehearth:add_party_member_title}}<div class="closeButton"></div></div>
-         <table class="list">
-            <tbody>
-            {{#each citizen in view.citizensArray}}
-               {{ view "stonehearthPartyEditorEditRosterRow" party=view.party uriBinding="citizen" }}
-            {{/each}}
-            </tbody>
-         </table>         
+         <div class="list">
+            <table>
+               <tbody>
+               {{#each citizen in view.citizensArray}}
+                  {{ view "stonehearthPartyEditorEditRosterRow" party=view.party uriBinding="citizen" }}
+               {{/each}}
+               </tbody>
+            </table>         
+         </div>
          <div class="toolbar">
             <a href="#" {{action "close" command target="view"}} class='uisounds'>
                <button {{bind-attr class="buttonEnabled" }}>

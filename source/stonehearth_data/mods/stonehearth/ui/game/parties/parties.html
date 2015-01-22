@@ -10,13 +10,15 @@
                </button>
             </a>
          </div>
-         <table class="list">
-            <tbody>
-            {{#each party in view.partiesArray}}
-               {{ view "stonehearthPartiesRow" uriBinding="party" }}
-            {{/each}}
-            </tbody>
-         </table>
+         <div class="list">
+            <table>
+               <tbody>
+               {{#each party in view.partiesArray}}
+                  {{ view "stonehearthPartiesRow" uriBinding="party" }}
+               {{/each}}
+               </tbody>
+            </table>
+         </div>
       </div>
 
    </div>

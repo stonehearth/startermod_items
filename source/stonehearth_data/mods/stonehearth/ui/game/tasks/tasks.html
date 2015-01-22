@@ -20,39 +20,41 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="taskGroup">
-   <table class="list">
-      <tbody>
-         {{#each this.tasks}}
-            <tr class="row" {{bind-attr id=this.__id}}>
-               <td>
-                  <div class="name">
-                     <img class="banner button" {{bind-attr src=this.taskIcon}}/>
-                     {{this.displayName}}
-                  </div>
-                  <div class="subtext">{{this.subtext}}</div>                    
-                  <div class="toolbar">
-                     {{#if this.source.stonehearth:stockpile }}
-                        <a {{bind-attr id="removeStockpile"}} href="#" {{action removeStockpile this.source.__self target="view"}} class='uisounds'>
-                           <button {{bind-attr class=":commandButton buttonEnabled" }}>
-                              {{i18n stonehearth:remove_stockpile}}
-                           </button>
-                        </a>
-                        <a href="#" {{action pauseStockpile this.source.stonehearth:stockpile.__self this.source.stonehearth:stockpile.active target="view"}} class='uisounds'>
-                           <button>
-                              {{#if this.source.stonehearth:stockpile.active }}
-                                 {{i18n stonehearth:pause_stockpile}}
-                              {{else}}
-                                 {{i18n stonehearth:resume_stockpile}}
-                              {{/if}}
-                           </button>
-                        </a>
-                     {{/if}}
-                  </div>
-               </td>
-               <td><span class="status">{{this.statusText}}</span></td>
-            </tr>
-         {{/each}}
-      </tbody>
-   </table>
+   <div class="list">
+      <table>
+         <tbody>
+            {{#each this.tasks}}
+               <tr class="row" {{bind-attr id=this.__id}}>
+                  <td>
+                     <div class="name">
+                        <img class="banner button" {{bind-attr src=this.taskIcon}}/>
+                        {{this.displayName}}
+                     </div>
+                     <div class="subtext">{{this.subtext}}</div>                    
+                     <div class="toolbar">
+                        {{#if this.source.stonehearth:stockpile }}
+                           <a {{bind-attr id="removeStockpile"}} href="#" {{action removeStockpile this.source.__self target="view"}} class='uisounds'>
+                              <button {{bind-attr class=":commandButton buttonEnabled" }}>
+                                 {{i18n stonehearth:remove_stockpile}}
+                              </button>
+                           </a>
+                           <a href="#" {{action pauseStockpile this.source.stonehearth:stockpile.__self this.source.stonehearth:stockpile.active target="view"}} class='uisounds'>
+                              <button>
+                                 {{#if this.source.stonehearth:stockpile.active }}
+                                    {{i18n stonehearth:pause_stockpile}}
+                                 {{else}}
+                                    {{i18n stonehearth:resume_stockpile}}
+                                 {{/if}}
+                              </button>
+                           </a>
+                        {{/if}}
+                     </div>
+                  </td>
+                  <td><span class="status">{{this.statusText}}</span></td>
+               </tr>
+            {{/each}}
+         </tbody>
+      </table>
+   </div>
 </script>
 
