@@ -5,7 +5,7 @@
    "recipe_name" : "long Sword",
    "description": "Sharp, with extra reach. A faithful weapon.",
    "portrait"    : "/stonehearth/entities/weapons/long_sword/long_sword.png",
-   "level_requirement" : 1,
+   "level_requirement" : 4,
 
    "ingredients": [
       {
