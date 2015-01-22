@@ -168,17 +168,55 @@ bool MaterialResource::load( const char *data, int size )
             uniform.values[i++] = v.as<float>();
          }
       }
-      _uniforms.push_back(uniform);
+      _uniforms[uniform.name] = uniform;
    }
 
    if (root.has("shaders")) {
       for (auto const& shader : root.get_node("shaders")) {
-         uint32 shandle = Modules::resMan().addResource(ResourceTypes::Shader, shader.as<std::string>().c_str(), 0, false);
+         uint32 shandle = Modules::resMan().addResource(ResourceTypes::Shader, shader.get("shader", ""), 0, false);
          _shaders.push_back((ShaderResource *)Modules::resMan().resolveResHandle(shandle));
+         _context_to_shader_map[shader.as<std::string>().c_str()] = _shaders.back();
+
+         for (auto const& sinput : shader.get_node("inputs")) {
+            if (sinput.has("bind_to_material_input")) {
+               _input_to_input_map[shandle][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
+            }
+            if (sinput.has("default")) {
+               MatUniform def;
+               int i = 0;
+               for (auto const& v : sinput.get_node("default")) {
+                  def.values[i++] = v.as<float>();
+               }
+               _input_defaults[sinput.get("name", "")] = def;
+            }
+         }
       }
    }
 	
 	return true;
+}
+
+MatUniform* MaterialResource::getUniform(uint32 shaderHandle, std::string const& name)
+{
+   // First, look to see if we have a binding set up.
+   auto const& h = _input_to_input_map.find(shaderHandle);
+   if (h == _input_to_input_map.end()) {
+      return nullptr;
+   }
+
+   auto const& i = h->second.find(name);
+   if (i != h->second.end()) {
+      return &_uniforms[i->second];
+   }
+
+   // No binding exists for that shader; now, lets see if we have a default.
+   auto const& j = _input_defaults.find(name);
+   if (j != _input_defaults.end()) {
+      return &j->second;
+   }
+
+   // Nothing left!
+   return nullptr;
 }
 
 

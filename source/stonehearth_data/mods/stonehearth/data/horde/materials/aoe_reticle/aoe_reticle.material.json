@@ -1,6 +1,9 @@
 {
     "shaders" : {
-       "projection": "shaders/projection.shader"
+       "PROJECTION": {
+       		"state" : "state/voxel/blend.state",
+       		"shader" : "shaders/projection.shader"
+       	}
     },
 
     "samplers" : [

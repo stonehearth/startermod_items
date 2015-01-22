@@ -1,0 +1,2 @@
+BlendMode = Blend;
+ZWriteEnable = false;

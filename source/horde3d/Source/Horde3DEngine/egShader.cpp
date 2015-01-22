@@ -621,11 +621,8 @@ bool ShaderResource::parseFXSection( char *data )
 		else if( tok.checkToken( "context" ) )
 		{
 			ShaderContext context;
-			_tmpCode0 = _tmpCode1 = "";
-			context.id = tok.getToken( identifier );
-			if( context.id == "" ) return raiseError( "FX: Invalid identifier", tok.getLine() );
 
-			// Skip annotations
+         // Skip annotations
 			if( tok.checkToken( "<" ) )
 				if( !tok.seekToken( ">" ) ) return raiseError( "FX: expected '>'", tok.getLine() );
 			
@@ -713,20 +710,6 @@ bool ShaderResource::parseFXSection( char *data )
 					else if( tok.checkToken( "false" ) || tok.checkToken( "1" ) ) context.alphaToCoverage = false;
 					else return raiseError( "FX: invalid bool value", tok.getLine() );
 				}
-				else if( tok.checkToken( "VertexShader" ) )
-				{
-					if( !tok.checkToken( "=" ) || !tok.checkToken( "compile" ) || !tok.checkToken( "GLSL" ) )
-						return raiseError( "FX: expected '= compile GLSL'", tok.getLine() );
-					_tmpCode0 = tok.getToken( identifier );
-					if( _tmpCode0 == "" ) return raiseError( "FX: Invalid name", tok.getLine() );
-				}
-				else if( tok.checkToken( "PixelShader" ) )
-				{
-					if( !tok.checkToken( "=" ) || !tok.checkToken( "compile" ) || !tok.checkToken( "GLSL" ) )
-						return raiseError( "FX: expected '= compile GLSL'", tok.getLine() );
-					_tmpCode1 = tok.getToken( identifier );
-					if( _tmpCode1 == "" ) return raiseError( "FX: Invalid name", tok.getLine() );
-				}
             else if( tok.checkToken( "ColorWriteMask" ) )
             {
 					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
@@ -740,17 +723,23 @@ bool ShaderResource::parseFXSection( char *data )
 			}
 
 			// Handle shaders
-			for( uint32 i = 0; i < _codeSections.size(); ++i )
-			{
-				if( _codeSections[i].getName() == _tmpCode0 ) context.vertCodeIdx = i;
-				if( _codeSections[i].getName() == _tmpCode1 ) context.fragCodeIdx = i;
+			for (uint32 i = 0; i < _codeSections.size(); ++i) {
+				if (_codeSections[i].getName() == "VS") {
+               context.vertCodeIdx = i;
+            }
+				if (_codeSections[i].getName() == "FS") {
+               context.fragCodeIdx = i;
+            }
 			}
-			if( context.vertCodeIdx < 0 )
-				return raiseError( "FX: Vertex shader referenced by context '" + context.id + "' not found" );
-			if( context.fragCodeIdx < 0 )
-				return raiseError( "FX: Pixel shader referenced by context '" + context.id + "' not found" );
 
-			_contexts.push_back( context );
+			if (context.vertCodeIdx < 0) {
+				return raiseError("FX: Vertex shader referenced by context '" + context.id + "' not found");
+         }
+
+			if (context.fragCodeIdx < 0) {
+				return raiseError("FX: Pixel shader referenced by context '" + context.id + "' not found");
+         }
+			_contexts.push_back(context);
 		}
 		else
 		{

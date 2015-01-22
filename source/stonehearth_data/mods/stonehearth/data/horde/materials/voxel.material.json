@@ -1,7 +1,107 @@
 {
 	"shaders" : {
-		"everything1" : "shaders/forward.shader",
-		"everything2" : "shaders/_base.shader",
-		"selectable" : "shaders/selectable.shader"
+		"SELECTED_SCREENSPACE" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [1, 1, 0, 1]
+				}
+			]
+		},
+
+		"SELECTED_FAST": {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0.5, 0.4, 0, 1]
+				}
+			]
+		},
+
+		"SELECTED_SCREENSPACE_OUTLINER": {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/voxel/selected_screenspace.shader"
+		},
+
+		"DEPTH": {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0, 0, 0, 1]
+				}
+			]
+		},
+
+		"FOG": {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/voxel/fog.shader"
+		},
+
+		"DIRECTIONAL_SHADOWMAP": {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/dir_shadowmap.shader"
+		},
+
+		"OMNI_SHADOWMAP" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/omni_shadowmap.shader"
+		},
+
+		"OMNI_LIGHTING_FORWARD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/omni_lighting_f.shader"
+		},
+
+		"OMNI_LIGHTING_NO_SHADOW_FORWARD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/omni_lighting_noshadow_f.shader"
+		},
+
+		"DIRECTIONAL_LIGHTING_FORWARD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_f.shader"
+		},
+
+		"OMNI_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/omni_lighting_f.shader"
+		},
+
+		"OMNI_LIGHTING_NO_SHADOW_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/omni_lighting_noshadow_f.shader"
+		},
+
+		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_p.shader"
+		},
+
+		"DEPTH_LINEAR" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/depth_linear.shader"
+		},
+		
+		"DEPTH_LINEAR_BACK" : {
+			"state" : "states/voxel/depth_back_mask.state",
+			"shader" : "shaders/voxel/depth_back.shader"
+		},
+		
+		"BLOOM" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0.0, 0.0, 0.0, 0.0]
+				}
+			]
+		}
 	}
 }

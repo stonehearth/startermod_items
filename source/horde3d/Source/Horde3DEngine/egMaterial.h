@@ -99,7 +99,7 @@ public:
 
    std::vector<PShaderResource> const& getShaders() const { return _shaders; }
    std::vector<MatSampler>& getSamplers() { return _samplers; }
-   std::vector<MatUniform>& getUniforms() {return _uniforms; }
+   MatUniform* getUniform(uint32 shaderHandle, std::string const& name);
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
@@ -108,7 +108,10 @@ private:
 private:
 	std::vector<PShaderResource> _shaders;
 	std::vector<MatSampler>      _samplers;
-	std::vector<MatUniform>      _uniforms;
+   std::unordered_map<std::string, MatUniform>   _uniforms;
+   std::unordered_map<uint32, std::unordered_map<std::string, std::string>> _input_to_input_map;
+   std::unordered_map<std::string, PShaderResource> _context_to_shader_map;
+   std::unordered_map<std::string, MatUniform> _input_defaults;
 
 	friend class ResourceManager;
 	friend class MeshNode;

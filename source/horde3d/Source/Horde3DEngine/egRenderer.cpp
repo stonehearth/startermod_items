@@ -1137,14 +1137,12 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       float *unifData = 0x0;
 
       // Find uniform in material
-      for (auto& matUniform : materialRes->getUniforms()) {
-         if (matUniform.name == shaderRes->_uniforms[i].id) {
-            if (shaderRes->_uniforms[i].arraySize > 1) {
-               unifData = matUniform.arrayValues.data();
-            } else {
-               unifData = matUniform.values;
-            }
-            break;
+      MatUniform *matUniform = materialRes->getUniform(shaderRes->getHandle(), shaderRes->_uniforms[i].id);
+      if (matUniform) {
+         if (shaderRes->_uniforms[i].arraySize > 1) {
+            unifData = matUniform->arrayValues.data();
+         } else {
+            unifData = matUniform->values;
          }
       }
 
