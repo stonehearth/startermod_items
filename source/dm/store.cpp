@@ -259,11 +259,13 @@ bool Store::LoadStoreHeader(google::protobuf::io::CodedInputStream& cis, std::st
    google::protobuf::uint32 size, limit;
 
    if (!cis.ReadLittleEndian32(&size)) {
+      error = "could not read size of header";
       return false;
    }
    STORE_LOG(8) << "read header size:" << size;
    limit = cis.PushLimit(size);
    if (!msg.ParseFromCodedStream(&cis)) {
+      error = "could not parse header";
       return false;
    }
    cis.PopLimit(limit);
@@ -280,10 +282,12 @@ bool Store::LoadAllocedObjectsList(google::protobuf::io::CodedInputStream& cis, 
    tesseract::protocol::Update update;
 
    if (!cis.ReadLittleEndian32(&size)) {
+      error = "could not read size of object list";
       return false;
    }
    limit = cis.PushLimit(size);
    if (!update.ParseFromCodedStream(&cis)) {
+      error = "could not read object list";
       return false;
    }
    cis.PopLimit(limit);
@@ -312,7 +316,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
    int last_reported_percent = 0;
    for (i = 0; i < total_objects; i++) {
       if (!cis.ReadLittleEndian32(&size)) {
-         error = BUILD_STRING("could not read object " << i << " (total objects: " << total_objects << ")");
+         error = BUILD_STRING("could not read size for object " << i << "  of " << total_objects << ".");
          return false;
       }
       int percent = i * 100 / total_objects;
@@ -327,6 +331,7 @@ bool Store::LoadObjects(google::protobuf::io::CodedInputStream& cis, std::string
       msg.Clear();
       limit = cis.PushLimit(size);
       if (!msg.ParseFromCodedStream(&cis)) {
+         error = BUILD_STRING("could parse object " << i << "  of " << total_objects << " (size:" << size << ").");
          STORE_LOG(8) << "failed to parse msg size " << size << ".  aborting.";
          return false;
       }
@@ -378,7 +383,7 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
    // length should be limited to the shortest length that will not harm usability. The theoretical
    // shortest message that could cause integer overflows is 512MB. The default limit is 64MB
    //
-   static const int limit = 512 * 1024 * 1024;
+   static const int limit = (512 * 1024 * 1024) - 1;
    cis.SetTotalBytesLimit(limit, limit);
 
    bool result = LoadStoreHeader(cis, error) &&

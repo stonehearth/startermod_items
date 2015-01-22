@@ -1393,7 +1393,7 @@ void Client::UpdateDebugCursor()
             args.set("pawn", selectedEntity->GetStoreAddress());
          }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
+         CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
          args.set("enabled", false);
@@ -1607,6 +1607,14 @@ void Client::RequestReload()
 
 void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
+   if (saveid.empty()) {
+      CLIENT_LOG(0) << "ignoring save request: saveid is empty";
+      return;
+   }
+   if (server_save_deferred_) {
+      CLIENT_LOG(0) << "ignoring save request: request is already in flight";
+   }
+
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (!fs::is_directory(savedir)) {
       fs::create_directories(savedir);
@@ -1616,11 +1624,23 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
       }
    }
    SaveClientState(savedir);
-   SaveClientMetadata(savedir, gameinfo);
 
    json::Node args;
    args.set("saveid", saveid);
-   core_reactor_->Call(rpc::Function("radiant:server:save", args));
+
+   server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
+
+   server_save_deferred_->Done([this, savedir, gameinfo](JSONNode const&n) {
+      // Wait until both the client and server state have been saved to write
+      // the client metadata.  This way we won't leave an incomplete file if we
+      // (for example) crash while saving the server state.
+      SaveClientMetadata(savedir, gameinfo);
+   });
+
+   server_save_deferred_->Always([this] {
+      CLIENT_LOG(3) << "clearing server deferred pointer";
+      server_save_deferred_ = nullptr;
+   });
 }
 
 void Client::DeleteSaveGame(std::string const& saveid)

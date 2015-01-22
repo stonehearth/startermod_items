@@ -18,6 +18,7 @@
 #include "directory_module.h"
 #include "zip_module.h"
 #include "lib/voxel/qubicle_file.h"
+#include <Poco/Zip/ZipStream.h>
 
 // Crytop stuff (xxx - change the include path so these generic headers aren't in it)
 #include "sha.h"
@@ -172,11 +173,16 @@ void ResourceManager2::LoadModules()
          if (stdutil::contains(modules_, module_name)) {
             continue;
          }
-         std::unique_ptr<IModule> module(new ZipModule(module_name, path));
-         if (!IsValidModule(module_name, module)) {
+         try {
+            std::unique_ptr<IModule> module(new ZipModule(module_name, path));
+            if (!IsValidModule(module_name, module)) {
+               continue;
+            }
+            modules_[module_name].swap(module);
+         } catch (Poco::IllegalStateException const& e) {
+            RES_LOG(0) << "failed to load smod \"" << module_name << "\": " << e.message();
             continue;
          }
-         modules_[module_name].swap(module);
 
          if (!_modDirectoryChanged) {
             std::string goodhash = core::Config::GetInstance().Get<std::string>(BUILD_STRING("mod_checksums." << module_name), "");
