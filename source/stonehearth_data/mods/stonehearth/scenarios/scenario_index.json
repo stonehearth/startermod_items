@@ -38,7 +38,7 @@
             "activation_type" : "revealed"
          },
          "ore" : {
-            "density" : 10,
+            "density" : 20,
             "priority" : 0,
             "location_type" : "underground",
             "activation_type" : "revealed"

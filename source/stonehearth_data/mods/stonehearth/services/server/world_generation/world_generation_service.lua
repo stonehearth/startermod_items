@@ -304,7 +304,7 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, und
       function()
          self._surface_scenario_selector:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
-         self._underground_scenario_selector:place_revealed_scenarios(underground_elevation_map, offset_x, offset_y)
+         self._underground_scenario_selector:place_revealed_scenarios(underground_elevation_map, elevation_map, offset_x, offset_y)
          self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
       end
    )

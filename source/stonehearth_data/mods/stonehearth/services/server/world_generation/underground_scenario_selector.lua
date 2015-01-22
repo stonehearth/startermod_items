@@ -12,20 +12,21 @@ function UndergroundScenarioSelector:__init(scenario_index, terrain_info, rng)
    self._terrain_info = terrain_info
    self._rng = rng
    self._y_cell_size = constants.mining.Y_CELL_SIZE
-   self._min_elevation = self._terrain_info.mountains.step_size + self._y_cell_size
+   self._min_elevation = self._terrain_info.mountains.step_size * 2
 end
 
 -- TODO: This code is heavily ore dependent. Generalize when we have other underground scenarios.
-function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevation_map, tile_offset_x, tile_offset_y)
+function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevation_map, elevation_map, tile_offset_x, tile_offset_y)
    if not radiant.util.get_config('enable_ore', false) then
       return
    end
 
+   local max_depth_in_slices = 6
    local weighted_set = WeightedSet(self._rng)
 
-   -- uniformly distribute scenarios in the 3d volume above min height
    underground_elevation_map:visit(function(elevation, i, j)
          local weight = math.floor((elevation - self._min_elevation) / self._y_cell_size)
+         weight = math.min(weight, max_depth_in_slices)
          if weight > 0 then
             local index = { i = i, j = j }
             weighted_set:add(index, weight)
@@ -47,8 +48,9 @@ function UndergroundScenarioSelector:place_revealed_scenarios(underground_elevat
       end
 
       local elevation = underground_elevation_map:get(index.i, index.j)
+      local max_slice = self:_elevation_to_slice_index(elevation) - 1 -- -1 to get to max valid slice
       local min_slice = self:_elevation_to_slice_index(self._min_elevation)
-      local max_slice = self:_elevation_to_slice_index(elevation)
+      min_slice = math.max(min_slice, max_slice - (max_depth_in_slices-1)) -- -1 because inclusive range
       local slice_index = self._rng:get_int(min_slice, max_slice)
 
       -- location of the center of the mother lode
