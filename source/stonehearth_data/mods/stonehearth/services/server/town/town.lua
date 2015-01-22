@@ -435,7 +435,10 @@ local worker_defense_jobs = {
    ['stonehearth:jobs:worker'] = true,
    ['stonehearth:jobs:farmer'] = true,
    ['stonehearth:jobs:carpenter'] = true,
+   ['stonehearth:jobs:mason'] = true,
+   ['stonehearth:jobs:blacksmith'] = true,
    ['stonehearth:jobs:trapper'] = true,
+   ['stonehearth:jobs:shepherd'] = true,
    ['stonehearth:jobs:footman'] = true,
 }
 
