@@ -50,7 +50,6 @@ message Update {
       UpdateObjectsInfo = 8;
       EndUpdate = 9;
       PostCommandReply = 11;
-      LoadGame = 12;
       DefineRemoteObject = 13;
    }
    required Type     type = 1;
@@ -119,13 +118,6 @@ message EndUpdate {
    extend Update {
       optional EndUpdate extension = 109;
    }
-}
-
-message LoadGame {
-   extend Update {
-      optional LoadGame extension = 108;
-   }
-   optional string         game_id = 1;
 }
 
 message PostCommandReply {

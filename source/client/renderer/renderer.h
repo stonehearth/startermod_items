@@ -120,7 +120,13 @@ class Renderer
       void SetUITextureSize(int width, int height);
       SystemStats GetStats();
       const RendererConfig& GetRendererConfig() const { return config_; }
-      void ApplyConfig(const RendererConfig& newConfig, bool persistConfig);
+
+      enum ApplyConfigFlags {
+         APPLY_CONFIG_RENDERER = (1 << 1),
+         APPLY_CONFIG_PERSIST  = (1 << 2),
+         APPLY_CONFIG_ALL      = -1,
+      };
+      void ApplyConfig(const RendererConfig& newConfig, int flags);
       void PersistConfig();
       void UpdateConfig(const RendererConfig& newConfig);
       void SetupGlfwHandlers();
@@ -218,6 +224,7 @@ class Renderer
       void DispatchInputEvent();
       bool LoadMissingResources();
       void OneTimeIninitializtion();
+      void SelectPipeline();
 
    protected:
       struct RenderMapEntry {
