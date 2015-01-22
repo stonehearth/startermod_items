@@ -395,13 +395,13 @@ App.StonehearthCrafterView = App.View.extend({
             var damage = recipeEntityData['stonehearth:combat:weapon_data']['base_damage']
             if (damage) {
                statClass = 'damage';
-               statHtml = '<div>' + damage + '</div>';
+               statHtml = '<div>' + damage + '<br><span class=name>ATK</span></div>';
             }
          } else if (recipeEntityData && recipeEntityData['stonehearth:combat:armor_data']) {
             var armor = recipeEntityData['stonehearth:combat:armor_data']['base_damage_reduction']
             if (armor) {
                statClass = 'armor';
-               statHtml = '<div>' + armor + '</div>';
+               statHtml = '<div>' + armor + '<br><span class=name>DEF</span></div>';
             }
          }
 
