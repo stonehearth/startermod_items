@@ -244,6 +244,40 @@
          }
       }
 
+      #stats {
+         .controlFont;
+         position: absolute;
+         top: 70px;
+         right: 10px;
+         width: 64px;
+         height: 66px;
+         color: #fff;
+         font-size: 24px;
+         line-height: 16px;
+         display: none;
+         align-items: center;
+         justify-content: center;         
+
+         div {
+            text-align: center;
+         }
+
+         .name {
+            font-size: 12px;
+            line-height: 12px;
+         }
+      }
+
+      #stats.damage {
+         display: flex;
+         background: url(images/stat_damage_bg.png);
+      }
+
+      #stats.armor {
+         display: flex;
+         background: url(images/stat_armor_bg.png);
+      }
+
       #description {
          position: absolute;
          top: 300px;

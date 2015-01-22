@@ -31,12 +31,12 @@
    </td>
    <td>
       <a href="#" {{action "setAttackOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
-         <button id="attackButton" class="bannerButton red attack"><img /></button>
+         <button id="attackButton" class="bannerButton red attack" title="{{i18n stonehearth:attack_banner_button}}" description="{{i18n stonehearth:attack_banner_button_help}}"><img /></button>
       </a>
    </td>
    <td>
       <a href="#" {{action "setDefendOrder" view.model.__self target="view" bubbles=false}} class='uisounds'>
-         <button id="defendButton" class="bannerButton blue defend"><img /></button>
+         <button id="defendButton" class="bannerButton blue defend" title="{{i18n stonehearth:defend_banner_button}}" description="{{i18n stonehearth:defend_banner_button_help}}"><img /></button>
       </a>
    </td>
    <td><a href="#" class="moveCameraButton">{{this.stonehearth:ai.status_text}}</a></td>

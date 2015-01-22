@@ -539,10 +539,12 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
 {
    proto::Update update;
 
+   int interval = static_cast<int>(game_speed_ * game_tick_interval_);
+
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
-   msg->set_interval(net_send_interval_);
+   msg->set_interval(interval);
    msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
    c->send_queue->Push(update);
@@ -870,7 +872,7 @@ void Simulation::Mainloop()
    // Disable the independant netsend timer until I can figure out this clock synchronization stuff -- tonyc
    static const bool disable_net_send_timer = true;
    if (disable_net_send_timer || net_send_timer_.expired()) {
-      SendClientUpdates();
+      SendClientUpdates(true);
       // reset the send timer.  We have a choice here of using "set" or "advance". Set
       // will set the timer to the current time + the interval.  Advance will set it to
       // the exact time we were *supposed* to render + the interval.  When the server is
@@ -953,26 +955,28 @@ void Simulation::Idle()
    game_loop_timer_.set(game_tick_interval_);
 }
 
-void Simulation::SendClientUpdates()
+void Simulation::SendClientUpdates(bool throttle)
 {
    MEASURE_TASK_TIME(perf_timeline_, "network send")
    SIM_LOG_GAMELOOP(7) << "sending client updates (time left on net timer: " << net_send_timer_.remaining() << ")";
 
    for (std::shared_ptr<RemoteClient> c : _clients) {
-      SendUpdates(c);
+      SendUpdates(c, throttle);
    };
 }
 
-void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c)
+void Simulation::SendUpdates(std::shared_ptr<RemoteClient> c, bool throttle)
 {   
-   if (!c->IsClientReadyForUpdates()) {
+   if (throttle && !c->IsClientReadyForUpdates()) {
       return;
    }
-   EncodeBeginUpdate(c);
-   EncodeServerTick(c);
-   FlushStream(c);
-   EncodeDebugShapes(c->send_queue);
-   EncodeEndUpdate(c);
+   if (c->streamer) {
+      EncodeBeginUpdate(c);
+      EncodeServerTick(c);
+      FlushStream(c);
+      EncodeDebugShapes(c->send_queue);
+      EncodeEndUpdate(c);
+   }
    EncodeUpdates(c);
    c->FlushSendQueue();
 }
@@ -1024,6 +1028,7 @@ rpc::ReactorDeferredPtr Simulation::BeginLoad(boost::filesystem::path const& sav
 void Simulation::Load()
 {
    SIM_LOG(0) << "Starting load.";
+
    // delete all the streamers before shutting down so we don't spam them with delete requests,
    // then create new streamers. 
    for (std::shared_ptr<RemoteClient> client : _clients) {
@@ -1035,30 +1040,70 @@ void Simulation::Load()
    Shutdown();
    Initialize();
 
-   radiant_ = scriptHost_->Require("radiant.server");
    std::string error;
    dm::ObjectMap objects;
    // Re-initialize the game
    std::string filename = (core::Config::GetInstance().GetSaveDirectory() / load_saveid_ / "server_state.bin").string();
 
-   bool didLoad = store_->Load(filename, error, objects, [this](int progress) {
-      // For loading, work needs to be done on the server, and the client.  Assume
-      // the workload is equal, and so consider 100% of the sim's work to be 50%
-      // of the total load.
+   bool success = store_->Load(filename, error, objects, [this](int progress) {
       json::Node result;
-      result.set("progress", progress / 2.0);
+      result.set("progress", progress);
       load_progress_deferred_->Notify(result);
 
-      // Push the updates immediately.
-      for (std::shared_ptr<RemoteClient> c : _clients) {
-         EncodeUpdates(c);
-         c->FlushSendQueue();
-      }
+      // Push the load progress notifications immediately.
+      SendClientUpdates(false);
    });
-   
-   if (!didLoad) {
+
+   // Resolve or Reject the deferred depending on whether or not the load succeeded.  Then
+   // send the updates to the client IMMEDIATELY.  This puts it in the send queue ahead of
+   // all the data we just loaded.
+   if (success) {
+      load_progress_deferred_->Resolve(json::Node().set("progress", 100));
+   } else {
       SIM_LOG(0) << "Failed to load: " << error;
+      load_progress_deferred_->RejectWithMsg(error);
    }
+   load_progress_deferred_ = nullptr;
+   SendClientUpdates(false);
+   
+   // Finally, either finish loading the game or create a new one.
+   if (success) {
+      // Now put the streamers back so we can send the game state.
+      for (std::shared_ptr<RemoteClient> client : _clients) {
+         client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
+      }
+
+      // Re-call SendClientUpdates().  This will send the data
+      // for everything we just loaded to the client so it can get started re-creating its
+      // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
+      // the expensive task of restoring all the simulation metadata (navgrid, remotion traces,
+      // etc.) with the client recreating all it's render state.
+      SendClientUpdates(false);
+      FinishLoadingGame();
+   } else {
+      // Trash everything and re-initialize.
+      objects.clear();
+      Shutdown();
+      Initialize();
+
+      // Create streamers AFTER we've cleared out our state, so all the crap that got loaded
+      // and subsequently trashed won't be send down to the client.
+      for (std::shared_ptr<RemoteClient> client : _clients) {
+         client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
+      }
+
+      // Now we can create a fresh new state and push updates to the clients.
+      CreateGame();
+      SendClientUpdates(false);
+   }
+
+   platform::SysInfo::LogMemoryStatistics("Finished Loading Simulation", 0);
+}
+
+void Simulation::FinishLoadingGame()
+{
+   radiant_ = scriptHost_->Require("radiant.server");
+
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
    clock_ = root_entity_->AddComponent<om::Clock>();
@@ -1074,18 +1119,6 @@ void Simulation::Load()
       error_browser_->AddRecord(r);
    });
 
-   // create new streamers for all the clients and buffer a notification to clear out all their old
-   // state
-   ASSERT(buffered_updates_.empty());
-   proto::Update msg;
-   msg.set_type(proto::Update::LoadGame);
-   proto::LoadGame *loadGameMsg = msg.MutableExtension(proto::LoadGame::extension);
-   loadGameMsg->set_game_id(load_saveid_.string());
-
-   for (std::shared_ptr<RemoteClient> client : _clients) {
-      client->send_queue->Push(msg);
-      client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
-   }
    std::vector<om::DataStorePtr> datastores;
    store_->TraceStore("sim")->OnAlloced([&datastores, this](dm::ObjectPtr obj) mutable {
       if (obj->GetObjectType() == om::DataStoreObjectType) {
@@ -1096,14 +1129,6 @@ void Simulation::Load()
    })->PushStoreState();
 
    scriptHost_->LoadGame(modList_, entityMap_, datastores);
-
-   // Inform the client we're done loading.
-   load_progress_deferred_->Resolve(json::Node().set("progress", 100));
-   for (std::shared_ptr<RemoteClient> c : _clients) {
-      EncodeUpdates(c);
-      c->FlushSendQueue();
-   }
-   platform::SysInfo::LogMemoryStatistics("Finished Loading Simulation", 0);
 }
 
 void Simulation::Reset()

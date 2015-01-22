@@ -24,6 +24,8 @@ App.StonehearthPartiesView = App.View.extend({
             $(this).addClass('selected');
          }
       });
+
+      Ember.run.scheduleOnce('afterRender', this, '_setTooltips');
    },
 
    destroy: function() {
@@ -131,5 +133,12 @@ App.StonehearthPartiesRowView = App.StonehearthPartyEditorBase.extend({
    didInsertElement: function() {
       this._super();
       this._updateButtons();
+
+     this.$('[title]').each(function() {
+         $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+     });
    },
 });

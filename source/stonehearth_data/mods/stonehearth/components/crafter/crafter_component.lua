@@ -100,6 +100,9 @@ function CrafterComponent:_initialize_recipe_data(recipe_data)
    if not recipe_data.level_requirement then
       recipe_data.level_requirement = 0
    end
+
+   recipe_data.product_info = radiant.resources.load_json(recipe_data.produces[1].item)
+
 end
 
 
