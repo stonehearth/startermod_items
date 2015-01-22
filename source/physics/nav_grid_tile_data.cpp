@@ -72,8 +72,14 @@ void NavGridTileData::UpdateTileData()
 template <>
 void NavGridTileData::UpdateTileData<COLLISION>()
 {
-   const int SrcMask = (1 << COLLISION) | (1 << TERRAIN) | (1 << PLATFORM);
+   const int SrcMask = (1 << COLLISION) | (1 << TERRAIN);
    UpdateTileDataForTrackers<SrcMask, COLLISION>();
+}
+template <>
+void NavGridTileData::UpdateTileData<LADDER>()
+{
+   const int SrcMask = (1 << LADDER) | (1 << PLATFORM);
+   UpdateTileDataForTrackers<SrcMask, LADDER>();
 }
 
 template <int SrcMask, TrackerType DstType>
@@ -178,10 +184,11 @@ void NavGridTileData::MarkDirty(TrackerType t)
 {
    dirty_ |= (1 << t);
 
-   // Why do we need to do this? UpdateTileData<COLLISION>() already checks
-   // all 3 bits... - tony
-   if (t == TERRAIN || t == PLATFORM) {
+   if (t == TERRAIN) {
       dirty_ |= (1 << COLLISION);
+   }
+   if (t == PLATFORM) {
+      dirty_ |= (1 << LADDER);
    }
 }
 

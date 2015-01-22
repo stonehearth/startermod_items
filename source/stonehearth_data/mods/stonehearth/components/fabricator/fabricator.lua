@@ -687,6 +687,7 @@ function Fabricator:_update_fabricator_region()
       self._fabricator_rcs:get_region():modify(function(cursor)
          local rgn = br - pr
          cursor:copy_region(rgn)
+         self._log:debug('still have %d voxels left to build', cursor:get_area())
          self._finished = cursor:empty()
       end)
    end

@@ -100,6 +100,7 @@ void Simulation::OneTimeIninitializtion()
    });
    enable_job_logging_ = config.Get<bool>("enable_job_logging", false);
    if (enable_job_logging_) {
+      SIM_LOG(0) << "job logging enabled";
       jobs_perf_guard_ = perf_jobs_.OnFrameEnd([this](perfmon::Frame* frame) {
          LogJobPerfCounters(frame);
       });
