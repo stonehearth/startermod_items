@@ -266,13 +266,14 @@ RenderAnimationEffectTrack::~RenderAnimationEffectTrack()
 
 void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
-   EL_LOG(9) << "updating animation effect" << animationName_;
    if (!animation_) {
       EL_LOG(9) << "marking animation effect " << animationName_ << " finished (no animation)";
       finished = true;
       return;
    }
    int offset = static_cast<int>((info.now - startTime_) * speed_);
+   EL_LOG(9) << "updating animation effect" << animationName_ << "(time offset: " << offset << " start:" << startTime_ << " now:" << info.now << ")";
+
    if (duration_) {    
       if (info.now > startTime_ + duration_) {
          EL_LOG(9) << "marking animation effect " << animationName_ << " finished (duration exceeded)";
@@ -283,6 +284,7 @@ void RenderAnimationEffectTrack::Update(FrameStartInfo const& info, bool& finish
       int animationDuration = (int)animation_->GetDuration();
       if (offset >= animationDuration) {
          offset = animationDuration - 1;
+         EL_LOG(9) << "clipping animation effect" << animationName_ << " to duration (time offset: " << offset << ")";
       }
    }
 
