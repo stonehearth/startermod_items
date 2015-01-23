@@ -99,13 +99,18 @@
    "vegetation_2" : "Average",
    "vegetation_3" : "Dense",
    "vegetation_4" : "Lush",
-   "vegetation_5" : "Ridiculously Lush",
 
    "wildlife_0": "Desolate",
    "wildlife_1": "Scarce",
    "wildlife_2": "Common",
    "wildlife_3": "Plentiful",
    "wildlife_4": "Abundant",
+
+   "mineral_0": "None",
+   "mineral_1": "Sparse",
+   "mineral_2": "Infrequent",
+   "mineral_3": "Common",
+   "mineral_4": "Ample",
 
    "esc_menu_resume": "Resume",
    "esc_menu_save": "Save Game",
