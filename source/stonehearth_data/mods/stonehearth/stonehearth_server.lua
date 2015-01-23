@@ -58,7 +58,7 @@ end
 
 radiant.events.listen(stonehearth, 'radiant:init', function()
       -- global config
-      radiant.terrain.set_config_file('stonehearth:terrain_block_config')
+      radiant.terrain.set_config_file('stonehearth:terrain_block_config', true)
 
       -- now create all the services
       stonehearth._sv = stonehearth.__saved_variables:get_data()

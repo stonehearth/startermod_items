@@ -7,8 +7,10 @@ local INFINITE = 1000000
 
 local Terrain = {}
 
-function Terrain.set_config_file(config_file)
-   Terrain._get_terrain_component():set_config_file_name(config_file)
+function Terrain.set_config_file(config_file, is_server)
+   if is_server then
+      Terrain._get_terrain_component():set_config_file_name(config_file)
+   end
    Terrain._initialize_block_types(config_file)
 end
 

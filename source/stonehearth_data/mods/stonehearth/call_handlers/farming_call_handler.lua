@@ -10,6 +10,7 @@ function FarmingCallHandler:choose_new_field_location(session, response)
       :set_max_size(20)
       :use_designation_marquee(Color4(55, 187, 56, 255))
       :set_cursor('stonehearth:cursors:zone_farm')
+      :set_find_support_filter(stonehearth.selection.dirt_only_xz_region_support_filter)
       :done(function(selector, box)
             local size = {
                x = box.max.x - box.min.x,

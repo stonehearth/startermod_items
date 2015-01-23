@@ -10,6 +10,7 @@ function ShepherdCallHandler:choose_pasture_location(session, response)
       :set_max_size(50)
       :require_unblocked(false)
       :use_designation_marquee(Color4(56, 80, 0, 255))
+      :set_find_support_filter(stonehearth.selection.dirt_only_xz_region_support_filter)
       :set_can_contain_entity_filter(function(entity)
             -- avoid other designations.            
             if radiant.entities.get_entity_data(entity, 'stonehearth:designation') then

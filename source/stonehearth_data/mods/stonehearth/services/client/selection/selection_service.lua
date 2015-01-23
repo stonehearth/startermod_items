@@ -20,7 +20,7 @@ SelectionService.FILTER_IGNORE = 'ignore'
 
 -- a filter function which looks for things which are solid.
 --
-SelectionService.find_supported_xz_region_filter = function (result)
+SelectionService.find_supported_xz_region_filter = function(result)
    local entity = result.entity
 
    -- fast check for 'is terrain'
@@ -38,6 +38,23 @@ SelectionService.find_supported_xz_region_filter = function (result)
 
    -- otherwise, keep looking!
    return stonehearth.selection.FILTER_IGNORE
+end
+
+SelectionService.dirt_only_xz_region_support_filter = function(result)
+   local entity = result.entity
+
+   if entity:get_id() ~= 1 then
+      return false
+   end
+
+   local valid_kinds = {
+      dirt = true,
+      grass = true
+   }
+   local brick = result.brick
+   local kind = radiant.terrain.get_block_kind_at(brick)
+   local is_valid = valid_kinds[kind]
+   return is_valid
 end
 
 SelectionService.floor_xz_region_support_filter = function(result, raise_selector)
@@ -97,7 +114,7 @@ end
 
 local UNSELECTABLE_FLAG = _radiant.renderer.QueryFlags.UNSELECTABLE
 
-   -- returns whether or not the zone can contain the specified entity
+-- returns whether or not the zone can contain the specified entity
 function SelectionService.designation_can_contain(entity)
    -- zones cannot be dragged around things that "take up space".  these things all
    -- have non-NONE collision regions
