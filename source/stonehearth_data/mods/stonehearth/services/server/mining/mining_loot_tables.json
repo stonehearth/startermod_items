@@ -15,8 +15,14 @@
    "rock" : {
       "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 2 }
+         { "uri" : "", "weight" : 50 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 1 },
+         { "uri" : "stonehearth:resources:copper:ore",          "weight" : 0.100 },
+         { "uri" : "stonehearth:resources:tin:ore",             "weight" : 0.100 },
+         { "uri" : "stonehearth:resources:iron:ore",            "weight" : 0.075 },
+         { "uri" : "stonehearth:resources:coal:lump_of_coal",   "weight" : 0.075 },
+         { "uri" : "stonehearth:resources:silver:ore",          "weight" : 0.055 },
+         { "uri" : "stonehearth:resources:gold:ore",            "weight" : 0.040 }
       ]
    },
    "copper_ore" : {
@@ -40,6 +46,13 @@
          { "uri" : "stonehearth:resources:iron:ore", "weight" : 25 }
       ]
    },
+   "coal" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 25 }
+      ]
+   },
    "silver_ore" : {
       "num_rolls" : 1,
       "items" : [
@@ -52,13 +65,6 @@
       "items" : [
          { "uri" : "", "weight" : 100 },
          { "uri" : "stonehearth:resources:gold:ore", "weight" : 25 }
-      ]
-   },
-   "coal" : {
-      "num_rolls" : 1,
-      "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 25 }
       ]
    }
 }

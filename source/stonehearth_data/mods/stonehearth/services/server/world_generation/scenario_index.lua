@@ -72,7 +72,8 @@ function ScenarioIndex:_sort_scenarios(scenarios)
          return area_a > area_b 
       end
 
-      return a.weight > b.weight
+      -- rare scenarios sorted to lower index
+      return a.weight < b.weight
    end
 
    table.sort(scenarios, comparator)

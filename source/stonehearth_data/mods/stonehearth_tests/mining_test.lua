@@ -6,10 +6,10 @@ local Region3 = _radiant.csg.Region3
 local MiningTest = class(MicroWorld)
 
 function MiningTest:__init()
-   self[MicroWorld]:__init(256)
+   self[MicroWorld]:__init(512)
    self:create_world()
 
-   --self:_ore_test()
+   self:_ore_test()
 
    local session = self:get_session()
 
@@ -23,25 +23,45 @@ function MiningTest:__init()
    local citizen = self:place_citizen(15, 2)
    local citizen = self:place_citizen(15, 4)
    local citizen = self:place_citizen(15, 6)
-   local citizen = self:place_citizen(15, 8)
-   local citizen = self:place_citizen(15, 10)
-   local citizen = self:place_citizen(15, 12)
-   local citizen = self:place_citizen(15, 14)
+   -- local citizen = self:place_citizen(15, 8)
+   -- local citizen = self:place_citizen(15, 10)
+   -- local citizen = self:place_citizen(15, 12)
+   -- local citizen = self:place_citizen(15, 14)
 
-   local point = Point3(20, 9, 4)
-   local region = Region3(Cube3(point, point + Point3(1, 1, 1)))
+   -- local point = Point3(20, 9, 4)
+   -- local region = Region3(Cube3(point, point + Point3(1, 1, 1)))
 
-   stonehearth.mining:dig_down(session.player_id, region)
+   -- stonehearth.mining:dig_down(session.player_id, region)
 
-   for i = 1, 2 do
-      region:translate(Point3(4, 0, 0))
-      stonehearth.mining:dig_out(session.player_id, region)
-   end
+   -- for i = 1, 2 do
+   --    region:translate(Point3(4, 0, 0))
+   --    stonehearth.mining:dig_out(session.player_id, region)
+   -- end
 end
 
 function MiningTest:_ore_test()
+   local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/silver_vein')
+   local ore_network = stonehearth.mining:create_ore_network(Point3(-150, 15, -150), "silver_ore", json.data)
+   radiant.terrain.add_region(ore_network)
+
    local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/gold_vein')
-   local ore_network = stonehearth.mining:create_ore_network(Point3(0, 15, 0), "gold_ore", json.data)
+   local ore_network = stonehearth.mining:create_ore_network(Point3(0, 15, -150), "gold_ore", json.data)
+   radiant.terrain.add_region(ore_network)
+
+   local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/coal_vein')
+   local ore_network = stonehearth.mining:create_ore_network(Point3(150, 15, -150), "coal", json.data)
+   radiant.terrain.add_region(ore_network)
+
+   local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/copper_vein')
+   local ore_network = stonehearth.mining:create_ore_network(Point3(-150, 15, 0), "copper_ore", json.data)
+   radiant.terrain.add_region(ore_network)
+
+   local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/tin_vein')
+   local ore_network = stonehearth.mining:create_ore_network(Point3(0, 15, 0), "tin_ore", json.data)
+   radiant.terrain.add_region(ore_network)
+
+   local json = radiant.resources.load_json('/stonehearth/scenarios/static/terrain/iron_vein')
+   local ore_network = stonehearth.mining:create_ore_network(Point3(150, 15, 0), "iron_ore", json.data)
    radiant.terrain.add_region(ore_network)
 end
 
