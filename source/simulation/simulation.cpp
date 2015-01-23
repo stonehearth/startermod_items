@@ -1072,13 +1072,6 @@ void Simulation::Load()
       for (std::shared_ptr<RemoteClient> client : _clients) {
          client->streamer = std::make_shared<dm::Streamer>(*store_, dm::PLAYER_1_TRACES, client->send_queue.get());
       }
-
-      // Re-call SendClientUpdates().  This will send the data
-      // for everything we just loaded to the client so it can get started re-creating its
-      // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
-      // the expensive task of restoring all the simulation metadata (navgrid, remotion traces,
-      // etc.) with the client recreating all it's render state.
-      SendClientUpdates(false);
       FinishLoadingGame();
    } else {
       // Trash everything and re-initialize.
@@ -1104,10 +1097,20 @@ void Simulation::FinishLoadingGame()
 {
    radiant_ = scriptHost_->Require("radiant.server");
 
+   // Update the clock before sending client updates to make sure the first update
+   // we send has the correct time.
    root_entity_ = store_->FetchObject<om::Entity>(1);
    ASSERT(root_entity_);
    clock_ = root_entity_->AddComponent<om::Clock>();
    now_ = clock_->GetTime();
+
+   // Re-call SendClientUpdates().  This will send the data
+   // for everything we just loaded to the client so it can get started re-creating its
+   // state.  Notice that we do this *before* calling FinishLoadingGame so we can parallelize
+   // the expensive task of restoring all the simulation metadata (navgrid, remotion traces,
+   // etc.) with the client recreating all it's render state.
+   SendClientUpdates(false);
+
    modList_ = root_entity_->AddComponent<om::ModList>();
 
    InitializeDataObjectTraces();

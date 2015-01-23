@@ -886,6 +886,7 @@ void Client::run(int server_port)
    OneTimeIninitializtion();
    Initialize();
    CreateGame();
+   InitializeUI("");
 
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
@@ -1107,6 +1108,11 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
 {
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring SetServerTick. still in limbo while loading.";
+      return;
+   }
+
    int game_time = msg.now();
    game_clock_->Update(msg.now(), msg.interval(), msg.next_msg_time());
    Renderer::GetInstance().SetServerTick(game_time);
@@ -1813,8 +1819,6 @@ void Client::CreateGame()
    ASSERT(!localRootEntity_);
    ASSERT(!error_browser_);
    ASSERT(scriptHost_);
-
-   InitializeUI("");
 
    localRootEntity_ = GetAuthoringStore().AllocObject<om::Entity>();
    ASSERT(localRootEntity_->GetObjectId() == 1);
