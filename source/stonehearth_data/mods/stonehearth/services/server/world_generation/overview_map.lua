@@ -56,7 +56,8 @@ function OverviewMap:derive_overview_map(full_elevation_map, full_feature_map, o
             terrain_code = self:_get_terrain_code(a, b, full_elevation_map),
             forest_density = self:_get_forest_density(a, b, full_feature_map),
             wildlife_density = self:_get_wildlife_density(a, b, full_elevation_map),
-            vegetation_density = self:_get_vegetation_density(a, b, full_feature_map)
+            vegetation_density = self:_get_vegetation_density(a, b, full_feature_map),
+            mineral_density = self:_get_mineral_density(a, b, full_elevation_map)
          }
          overview_map:set(i, j, macro_block_info)
       end
@@ -174,6 +175,30 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
             -- 1.25 to account for thinned out trees
             sum = sum + 1.25
          end
+      end)
+
+   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
+   return score
+end
+
+function OverviewMap:_get_mineral_density(i, j, elevation_map)
+   local terrain_info = self._terrain_info
+   local num_quanta = self._num_quanta
+   local radius = self._radius
+   local length = 2*radius+1
+   local start_a, start_b, width, height, score
+   local sum = 0
+   local terrain_value = {
+      mountains = 1,
+      foothills = 0.35,
+      plains = 0
+   }
+
+   start_a, start_b, width, height = elevation_map:bound_block(i-radius, j-radius, length, length)
+
+   elevation_map:visit_block(start_a, start_b, width, height, function(elevation)
+         local terrain_type = terrain_info:get_terrain_type(elevation)
+         sum = sum + terrain_value[terrain_type]
       end)
 
    score = radiant.math.round(sum / (width*height) * (num_quanta-1))
