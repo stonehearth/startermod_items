@@ -56,6 +56,12 @@ function ShepherdClass:has_perk(id)
    return self._sv.attained_perks[id]
 end
 
+--Returns true if this class participates in worker defense. False otherwise.
+--Unless the class specifies in their _description, it's true by default.
+function ShepherdClass:get_worker_defense_participation()
+   return self._sv.worker_defense_participant
+end
+
 -- Call when it's time to level up in this class
 function ShepherdClass:level_up()
    job_helper.level_up(self._sv)

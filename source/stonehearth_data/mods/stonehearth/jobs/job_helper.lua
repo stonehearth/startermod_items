@@ -31,6 +31,13 @@ function job_helper.promote(sv, json)
    if json.level_data then
       sv.level_data = json.level_data
    end
+
+   --By default, all classes participate in worker defense. 
+   --Some classes, like the shepherd opt out.
+   sv.worker_defense_participant = true
+   if json.worker_defense_opt_out then
+      sv.worker_defense_participant = false
+   end
 end
 
 -- Do level up logic common to all classes

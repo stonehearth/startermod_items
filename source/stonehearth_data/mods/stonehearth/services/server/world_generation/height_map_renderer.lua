@@ -99,31 +99,6 @@ function HeightMapRenderer:_convert_height_map_to_region3(height_map, add_fn)
    return region3
 end
 
-function HeightMapRenderer:_add_surface_to_region(region3, height_map)
-   local region2 = Region2()
-   self:_convert_height_map_to_region2(region2, height_map)
-
-   for rect in region2:each_cube() do
-      local height = rect.tag
-      if height > 0 then
-         self:_add_land_to_region(region3, rect, height);
-      end
-   end
-end
-
-function HeightMapRenderer:_add_underground_to_region(region3, underground_height_map)
-   local region3 = Region3()
-   local region2 = Region2()
-   self:_convert_height_map_to_region2(region2, height_map)
-
-   for rect in region2:each_cube() do
-      local height = rect.tag
-      if height > 0 then
-         self:_add_land_to_region(region3, rect, height);
-      end
-   end
-end
-
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
    assert(height_map.width == height_map.height)
    local height_map_cpp = HeightMapCPP(height_map.width, 1) -- Assumes square map!

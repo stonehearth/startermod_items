@@ -2,5 +2,5 @@
    "mixins" : "file(../ore_vein)",
    "name" : "gold_vein",
    "kind" : "gold_ore",
-   "weight" : 50
+   "weight" : 40
 }

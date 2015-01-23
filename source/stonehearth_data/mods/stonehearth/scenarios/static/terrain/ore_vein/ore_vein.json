@@ -3,8 +3,8 @@
    "category" : "ore",
    "habitat_types" : ["mountains"],
    "size" : {
-      "width" : 144,
-      "length" : 144
+      "width" : 88,
+      "length" : 88
    },
    "unique" : false,
    "script" : "file(ore_vein.lua)",
@@ -14,8 +14,8 @@
       "num_veins_max" : 4,
       "vein_length_min" : 44,
       "vein_length_max" : 72,
-      "vein_radius" : 1,
-      "mother_lode_radius_min" : 2,
-      "mother_lode_radius_max" : 4
+      "vein_radius" : 2,
+      "mother_lode_radius_min" : 3,
+      "mother_lode_radius_max" : 5
    }
 }
