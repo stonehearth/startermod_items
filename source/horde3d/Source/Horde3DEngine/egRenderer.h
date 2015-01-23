@@ -229,7 +229,6 @@ public:
 
 protected:
    bool findShaderCombination(std::vector<PShaderResource> const& r, std::string const& context, ShaderResource** sr, ShaderContext** scx, ShaderCombination** sc) const;
-   //ShaderCombination* findShaderCombination(std::vector<PShaderResource> const& r, ShaderContext const*context) const;
    bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes) const;
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );

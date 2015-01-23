@@ -80,57 +80,7 @@ struct ShaderResData
 	};
 };
 
-// =================================================================================================
 
-struct BlendModes
-{
-	enum List
-	{
-		Replace,
-		Blend,
-		Add,
-		AddBlended,
-		Mult,
-      Whateva
-	};
-};
-
-struct TestModes
-{
-	enum List
-	{
-		Always,
-		Equal,
-		Less,
-		LessEqual,
-		Greater,
-		GreaterEqual,
-      NotEqual
-	};
-};
-
-struct CullModes
-{
-	enum List
-	{
-		Back,
-		Front,
-		None
-	};
-};
-
-struct StencilOpModes
-{
-   enum List
-   {
-      Off,
-      Keep_Dec_Dec,
-      Keep_Inc_Inc,
-      Keep_Keep_Inc,
-      Keep_Keep_Dec,
-      Replace_Replace_Replace
-   };
-};
 
 
 struct ShaderCombination
@@ -170,32 +120,13 @@ struct ShaderContext
 {
    std::string                       id;
 
-   // RenderConfig
-   BlendModes::List                  blendMode;
-   TestModes::List                   depthFunc;
-   CullModes::List                   cullMode;
-   StencilOpModes::List              stencilOpModes;
-   TestModes::List                   stencilFunc;
-   int                               stencilRef;
-   bool                              depthTest;
-   bool                              writeDepth;
-   bool                              writeColor;
-   bool                              writeAlpha;
-   bool                              alphaToCoverage;
-   uint32                            writeMask;
-
    // Shaders
    std::vector<ShaderCombination>    shaderCombinations;
    int                               vertCodeIdx, fragCodeIdx;
    bool                              compiled;
 
-
    ShaderContext() :
-      blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
-      cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
-      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off), 
-      stencilFunc(TestModes::Always), stencilRef(0), writeColor(true), writeAlpha(true), 
-      writeMask(0xf)
+      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false )
    {
    }
 };

@@ -296,7 +296,6 @@ struct H3DMatRes
 
 		MaterialElem  - Base element
 		SamplerElem   - Sampler element
-		UniformElem   - Uniform element
 		MatClassStr   - Material class
 		MatShaderI    - Shader resource
 		SampNameStr   - Name of sampler [read-only]
@@ -308,7 +307,6 @@ struct H3DMatRes
 	{
 		MaterialElem = 400,
 		SamplerElem,
-		UniformElem,
 		MatClassStr,
 		MatShaderI,
 		SampNameStr,

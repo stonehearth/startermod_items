@@ -203,7 +203,7 @@ void Renderer::InitWindow()
    if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
         config_.enable_fullscreen.value ? monitor : nullptr, nullptr))) {
       R_LOG(1) << "Error trying to create glfw window.  Details:";
-      R_LOG(1) << "  (" << windowWidth_ << " x " << windowHeight_ << ") w/ " << config_.num_msaa_samples << " samples";
+      R_LOG(1) << "  (" << windowWidth_ << " x " << windowHeight_ << ") w/ " << config_.num_msaa_samples.value << " samples";
       R_LOG(1) << "  Fullscreen = " << config_.enable_fullscreen.value;
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));

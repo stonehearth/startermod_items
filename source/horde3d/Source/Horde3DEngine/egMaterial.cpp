@@ -70,6 +70,10 @@ void MaterialResource::release()
 
 	_samplers.clear();
 	_uniforms.clear();
+   _context_to_shader_map.clear();
+   _input_defaults.clear();
+   _input_to_input_map.clear();
+   _context_to_shader_state.clear();
 }
 
 
@@ -196,6 +200,8 @@ bool MaterialResource::load( const char *data, int size )
 	return true;
 }
 
+// Gets a _shader_ uniform.  If that shader binds to a material uniform, use that.  Otherwise,
+// get the default value for that shader uniform.  Otherwise, return null.
 MatUniform* MaterialResource::getUniform(uint32 shaderHandle, std::string const& name)
 {
    // First, look to see if we have a binding set up.
@@ -222,39 +228,34 @@ MatUniform* MaterialResource::getUniform(uint32 shaderHandle, std::string const&
 
 bool MaterialResource::setUniform( std::string const& name, float a, float b, float c, float d )
 {
-	for( uint32 i = 0; i < _uniforms.size(); ++i )
-	{
-		if( _uniforms[i].name == name )
-		{
-			_uniforms[i].values[0] = a;
-			_uniforms[i].values[1] = b;
-			_uniforms[i].values[2] = c;
-			_uniforms[i].values[3] = d;
-			return true;
-		}
-	}
-
-	return false;
+   auto i = _uniforms.find(name);
+   if (i == _uniforms.end()) {
+      return false;
+   }
+   MatUniform &m = i->second;
+   m.values[0] = a;
+   m.values[1] = b;
+   m.values[2] = c;
+   m.values[3] = d;
+	return true;
 }
 
 
 bool MaterialResource::setArrayUniform( std::string const& name, float* data, int dataCount)
 {
-	for( uint32 i = 0; i < _uniforms.size(); ++i )
-	{
-		if( _uniforms[i].name == name )
-		{
-         _uniforms[i].arrayValues.clear();
+   auto i = _uniforms.find(name);
+   if (i == _uniforms.end()) {
+      return false;
+   }
 
-         for (int j = 0; j < dataCount; j++)
-         {
-            _uniforms[i].arrayValues.push_back(data[j]);
-         }
-			return true;
-		}
-	}
+   MatUniform &m = i->second;
+   m.arrayValues.clear();
 
-	return false;
+   for (int j = 0; j < dataCount; j++)
+   {
+      m.arrayValues.push_back(data[j]);
+   }
+	return true;
 }
 
 
@@ -266,8 +267,6 @@ int MaterialResource::getElemCount( int elem )
 		return 1;
 	case MaterialResData::SamplerElem:
 		return (int)_samplers.size();
-	case MaterialResData::UniformElem:
-		return (int)_uniforms.size();
 	default:
 		return Resource::getElemCount( elem );
 	}
@@ -323,17 +322,6 @@ float MaterialResource::getElemParamF( int elem, int elemIdx, int param, int com
 {
 	switch( elem )
 	{
-	case MaterialResData::UniformElem:
-		if( (unsigned)elemIdx < _uniforms.size() )
-		{
-			switch( param )
-			{
-			case MaterialResData::UnifValueF4:
-				if( (unsigned)compIdx < 4 ) return _uniforms[elemIdx].values[compIdx];
-				break;
-			}
-		}
-		break;
    case MaterialResData::SamplerElem:
       switch(param) {
       case MaterialResData::AnimatedTexTime:
@@ -351,21 +339,6 @@ void MaterialResource::setElemParamF( int elem, int elemIdx, int param, int comp
 {
 	switch( elem )
 	{
-	case MaterialResData::UniformElem:
-		if( (unsigned)elemIdx < _uniforms.size() )
-		{	
-			switch( param )
-			{
-			case MaterialResData::UnifValueF4:
-				if( (unsigned)compIdx < 4 )
-				{	
-					_uniforms[elemIdx].values[compIdx] = value;
-					return;
-				}
-				break;
-			}
-		}
-		break;
    case MaterialResData::SamplerElem:
       switch (param) {
       case MaterialResData::AnimatedTexTime:
@@ -408,16 +381,6 @@ const char *MaterialResource::getElemParamStr( int elem, int elemIdx, int param 
 			{
 			case MaterialResData::SampNameStr:
 				return _samplers[elemIdx].name.c_str();
-			}
-		}
-		break;
-	case MaterialResData::UniformElem:
-		if( (unsigned)elemIdx < _uniforms.size() )
-		{
-			switch( param )
-			{
-			case MaterialResData::UnifNameStr:
-				return _uniforms[elemIdx].name.c_str();
 			}
 		}
 		break;

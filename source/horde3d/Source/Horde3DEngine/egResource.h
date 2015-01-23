@@ -41,7 +41,8 @@ struct ResourceTypes
 		ParticleEffect,
 		Pipeline,
       VoxelGeometry,
-      PixelBuffer
+      PixelBuffer,
+      ShaderState
 	};
 };
 

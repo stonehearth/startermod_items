@@ -14,6 +14,7 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
+#include "egTokenizer.h"
 #include "om/error_browser/error_browser.h"
 #include <fstream>
 #include <cstring>
@@ -247,122 +248,6 @@ void CodeResource::updateShaders()
 // Shader Resource
 // =================================================================================================
 
-class Tokenizer
-{
-public:
-	
-	Tokenizer( const char *data ) : _p( data ), _line( 1 ) { getNextToken(); }
-
-	int getLine() { return _line; }
-
-	bool hasToken() { return _token[0] != '\0'; }
-	
-	bool checkToken( const char *token, bool peekOnly = false )
-	{
-		if( _stricmp( _token, token ) == 0 )
-		{
-			if( !peekOnly ) getNextToken();
-			return true;
-		}
-		return false;
-	}
-
-	const char *getToken( const char *charset )
-	{
-		if( charset )
-		{
-			// Validate token
-			const char *p = _token;
-			while( *p )
-			{
-				if( strchr( charset, *p++ ) == 0x0 )
-				{
-					_prevToken[0] = '\0';
-					return _prevToken;
-				}
-			}
-		}
-		
-		memcpy( _prevToken, _token, tokenSize );
-		getNextToken();
-		return _prevToken;
-	}
-
-	bool seekToken( const char *token )
-	{
-		while( _stricmp( getToken( 0x0 ), token ) != 0 )
-		{
-			if( !hasToken() ) return false;
-		}
-		return true;
-	}
-
-protected:	
-	
-	void checkLineChange()
-	{
-		if( *_p == '\r' && *(_p+1) == '\n' )
-		{
-			++_p;
-			++_line;
-		}
-		else if( *_p == '\r' || *_p == '\n' ) ++_line;
-	}
-
-	void skip( const char *chars )
-	{
-		while( *_p )
-		{
-			if( !strchr( chars, *_p ) ) break;
-			checkLineChange();
-			++_p;
-		}
-	}
-	
-	bool seekChar( const char *chars )
-	{
-		while( *_p )
-		{
-			if( strchr( chars, *_p ) ) break;
-			checkLineChange();
-			++_p;
-		}
-		return *_p != '\0';
-	}
-	
-	void getNextToken()
-	{
-		// Skip whitespace
-		skip( " \t\n\r" );
-
-		// Parse token
-		const char *p0 = _p, *p1 = _p;
-		if( *_p == '"' )  // Handle string
-		{
-			++_p; ++p0;
-			if( seekChar( "\"\n\r" ) ) p1 = _p++;
-		}
-		else
-		{
-			seekChar( " \t\n\r{}()[]<>=,;" );  // Advance until whitespace or special char found
-			if( _p == p0 && *_p != '\0' ) ++_p;  // Handle special char
-			p1 = _p;
-		}
-		memcpy( _token, p0, std::min( (ptrdiff_t)(p1 - p0), tokenSize-1 ) );
-		_token[std::min( (ptrdiff_t)(p1 - p0), tokenSize-1 )] = '\0';
-	}
-
-protected:
-
-	static const ptrdiff_t tokenSize = 128;
-	
-	char        _token[tokenSize], _prevToken[tokenSize];
-	const char  *_p;
-	int         _line;
-};
-
-// =================================================================================================
-
 std::string ShaderResource::_vertPreamble = "";
 std::string ShaderResource::_fragPreamble = "";
 std::string ShaderResource::_tmpCode0 = "";
@@ -416,25 +301,6 @@ bool ShaderResource::raiseError( std::string const& msg, int line )
 		Modules::log().writeError( "Shader resource '%s': %s (line %i)", _name.c_str(), msg.c_str(), line );
 	
 	return false;
-}
-
-uint32 toWriteMask(const char* writeMaskStr)
-{
-   uint32 writeMask = 0;
-   while (*writeMaskStr != 0x0)
-   {
-      if (*writeMaskStr == 'R') {
-         writeMask |= 1;
-      } else if (*writeMaskStr == 'G') {
-         writeMask |= 2;
-      } else if (*writeMaskStr == 'B') {
-         writeMask |= 4;
-      } else if (*writeMaskStr == 'A') {
-         writeMask |= 8;
-      }
-      writeMaskStr++;
-   }
-   return writeMask;
 }
 
 bool ShaderResource::parseFXSection( char *data )
@@ -617,129 +483,6 @@ bool ShaderResource::parseFXSection( char *data )
 			if( !tok.checkToken( ";" ) ) return raiseError( "FX: expected ';'", tok.getLine() );
 
 			_samplers.push_back( sampler );
-		}
-		else if( tok.checkToken( "context" ) )
-		{
-			ShaderContext context;
-
-         // Skip annotations
-			if( tok.checkToken( "<" ) )
-				if( !tok.seekToken( ">" ) ) return raiseError( "FX: expected '>'", tok.getLine() );
-			
-			if( !tok.checkToken( "{" ) ) return raiseError( "FX: expected '{'", tok.getLine() );
-			while( true )
-			{
-				if( !tok.hasToken() )
-					return raiseError( "FX: expected '}'", tok.getLine() );
-				else if( tok.checkToken( "}" ) )
-					break;
-				else if( tok.checkToken( "ZWriteEnable" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "true" ) ) context.writeDepth = true;
-					else if( tok.checkToken( "false" ) ) context.writeDepth = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
-				else if( tok.checkToken( "ZEnable" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "true" ) ) context.depthTest = true;
-					else if( tok.checkToken( "false" ) ) context.depthTest = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
-				else if( tok.checkToken( "ZFunc" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "LessEqual" ) ) context.depthFunc = TestModes::LessEqual;
-					else if( tok.checkToken( "Always" ) ) context.depthFunc = TestModes::Always;
-					else if( tok.checkToken( "Equal" ) ) context.depthFunc = TestModes::Equal;
-					else if( tok.checkToken( "Less" ) ) context.depthFunc = TestModes::Less;
-					else if( tok.checkToken( "Greater" ) ) context.depthFunc = TestModes::Greater;
-					else if( tok.checkToken( "GreaterEqual" ) ) context.depthFunc = TestModes::GreaterEqual;
-					else return raiseError( "FX: invalid enum value", tok.getLine() );
-				}
-				else if( tok.checkToken( "StencilFunc" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "LessEqual" ) ) context.stencilFunc = TestModes::LessEqual;
-					else if( tok.checkToken( "Always" ) ) context.stencilFunc = TestModes::Always;
-					else if( tok.checkToken( "Equal" ) ) context.stencilFunc = TestModes::Equal;
-					else if( tok.checkToken( "Less" ) ) context.stencilFunc = TestModes::Less;
-					else if( tok.checkToken( "Greater" ) ) context.stencilFunc = TestModes::Greater;
-					else if( tok.checkToken( "GreaterEqual" ) ) context.stencilFunc = TestModes::GreaterEqual;
-					else if( tok.checkToken( "NotEqual" ) ) context.stencilFunc = TestModes::NotEqual;
-					else return raiseError( "FX: invalid enum value", tok.getLine() );
-				}
-				else if( tok.checkToken( "BlendMode" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "Replace" ) ) context.blendMode = BlendModes::Replace;
-					else if( tok.checkToken( "Blend" ) ) context.blendMode = BlendModes::Blend;
-					else if( tok.checkToken( "Add" ) ) context.blendMode = BlendModes::Add;
-					else if( tok.checkToken( "AddBlended" ) ) context.blendMode = BlendModes::AddBlended;
-					else if( tok.checkToken( "Mult" ) ) context.blendMode = BlendModes::Mult;
-               else if( tok.checkToken( "Whateva" ) ) context.blendMode = BlendModes::Whateva;
-					else return raiseError( "FX: invalid enum value", tok.getLine() );
-				}
-				else if( tok.checkToken( "CullMode" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "Back" ) ) context.cullMode = CullModes::Back;
-					else if( tok.checkToken( "Front" ) ) context.cullMode = CullModes::Front;
-					else if( tok.checkToken( "None" ) ) context.cullMode = CullModes::None;
-					else return raiseError( "FX: invalid enum value", tok.getLine() );
-				}
-            else if( tok.checkToken( "StencilOp" ) ) {
-               if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               if( tok.checkToken( "Keep_Dec_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Dec_Dec;
-               else if( tok.checkToken( "Keep_Inc_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Inc_Inc;
-               else if( tok.checkToken( "Keep_Keep_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Inc;
-               else if( tok.checkToken( "Keep_Keep_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Dec;
-               else if( tok.checkToken( "Replace_Replace_Replace" ) ) context.stencilOpModes = StencilOpModes::Replace_Replace_Replace;
-					else return raiseError( "FX: invalid enum value", tok.getLine() );
-            }
-				else if( tok.checkToken( "StencilRef" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               context.stencilRef = atoi(tok.getToken(intnum));
-				}
-				else if( tok.checkToken( "AlphaToCoverage" ) )
-				{
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-					if( tok.checkToken( "true" ) || tok.checkToken( "1" ) ) context.alphaToCoverage = true;
-					else if( tok.checkToken( "false" ) || tok.checkToken( "1" ) ) context.alphaToCoverage = false;
-					else return raiseError( "FX: invalid bool value", tok.getLine() );
-				}
-            else if( tok.checkToken( "ColorWriteMask" ) )
-            {
-					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
-               
-               const char* mask = tok.getToken("RGBA");
-               context.writeMask = toWriteMask(mask);
-            }
-				else
-					return raiseError( "FX: unexpected token", tok.getLine() );
-				if( !tok.checkToken( ";" ) ) return raiseError( "FX: expected ';'", tok.getLine() );
-			}
-
-			// Handle shaders
-			for (uint32 i = 0; i < _codeSections.size(); ++i) {
-				if (_codeSections[i].getName() == "VS") {
-               context.vertCodeIdx = i;
-            }
-				if (_codeSections[i].getName() == "FS") {
-               context.fragCodeIdx = i;
-            }
-			}
-
-			if (context.vertCodeIdx < 0) {
-				return raiseError("FX: Vertex shader referenced by context '" + context.id + "' not found");
-         }
-
-			if (context.fragCodeIdx < 0) {
-				return raiseError("FX: Pixel shader referenced by context '" + context.id + "' not found");
-         }
-			_contexts.push_back(context);
 		}
 		else
 		{

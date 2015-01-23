@@ -896,6 +896,8 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       return false;
    }
 
+   ShaderStateResource* stateRes = materialRes->getShaderState(shaderContext);
+
    // Set shader combination
    setShaderComb(sc);
 
@@ -903,19 +905,22 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
    commitGeneralUniforms();
 
    // Configure color write mask.
-   glColorMask(context->writeMask & 1 ? GL_TRUE : GL_FALSE, 
-      context->writeMask & 2 ? GL_TRUE : GL_FALSE, 
-      context->writeMask & 4 ? GL_TRUE : GL_FALSE, 
-      context->writeMask & 8 ? GL_TRUE : GL_FALSE);
+   glColorMask(stateRes->writeMask & 1 ? GL_TRUE : GL_FALSE, 
+      stateRes->writeMask & 2 ? GL_TRUE : GL_FALSE, 
+      stateRes->writeMask & 4 ? GL_TRUE : GL_FALSE, 
+      stateRes->writeMask & 8 ? GL_TRUE : GL_FALSE);
 
    // Configure depth mask
-   if( context->writeDepth ) glDepthMask( GL_TRUE );
-   else glDepthMask( GL_FALSE );
+   if (stateRes->writeDepth) {
+      glDepthMask(GL_TRUE);
+   } else {
+      glDepthMask(GL_FALSE);
+   }
 
    // Configure cull mode
-   if( !Modules::config().wireframeMode )
+   if(!Modules::config().wireframeMode)
    {
-      switch( context->cullMode )
+      switch(stateRes->cullMode)
       {
       case CullModes::Back:
          glEnable( GL_CULL_FACE );
@@ -931,7 +936,7 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       }
    }
 
-   switch( context->stencilOpModes) 
+   switch(stateRes->stencilOpModes) 
    {
    case StencilOpModes::Off:
       glDisable(GL_STENCIL_TEST);
@@ -959,44 +964,44 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       break;
    }
 
-   switch( context->stencilFunc )
+   switch(stateRes->stencilFunc)
    {
    case TestModes::LessEqual:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_LEQUAL, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_LEQUAL, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::Equal:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_EQUAL, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_EQUAL, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::Always:
-      if (context->stencilOpModes == StencilOpModes::Off) {
+      if (stateRes->stencilOpModes == StencilOpModes::Off) {
          glDisable(GL_STENCIL_TEST);
       } else {
          glEnable(GL_STENCIL_TEST);
       }
-      glStencilFunc( GL_ALWAYS, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_ALWAYS, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::Less:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_LESS, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_LESS, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::Greater:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_GREATER, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_GREATER, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::GreaterEqual:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_GEQUAL, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_GEQUAL, stateRes->stencilRef, 0xffffffff );
       break;
    case TestModes::NotEqual:
       glEnable(GL_STENCIL_TEST);
-      glStencilFunc( GL_NOTEQUAL, context->stencilRef, 0xffffffff );
+      glStencilFunc( GL_NOTEQUAL, stateRes->stencilRef, 0xffffffff );
       break;
    }
 
    // Configure blending
-   switch( context->blendMode )
+   switch(stateRes->blendMode)
    {
    case BlendModes::Replace:
       glDisable( GL_BLEND );
@@ -1013,10 +1018,6 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       glEnable( GL_BLEND );
       glBlendFunc( GL_SRC_ALPHA, GL_ONE );
       break;
-   case BlendModes::Whateva:
-      glEnable( GL_BLEND );
-      glBlendFunc( GL_DST_ALPHA, GL_ONE );
-      break;
    case BlendModes::Mult:
       glEnable( GL_BLEND );
       glBlendFunc( GL_DST_COLOR, GL_ZERO );
@@ -1024,11 +1025,11 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
    }
 
    // Configure depth test
-   if( context->depthTest )
+   if(stateRes->depthTest)
    {
-      glEnable( GL_DEPTH_TEST );
+      glEnable(GL_DEPTH_TEST);
 
-      switch( context->depthFunc )
+      switch(stateRes->depthFunc)
       {
       case TestModes::LessEqual:
          glDepthFunc( GL_LEQUAL );
@@ -1056,7 +1057,7 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
    }
 
    // Configure alpha-to-coverage
-   if( context->alphaToCoverage && Modules::config().sampleCount > 0 )
+   if(stateRes->alphaToCoverage && Modules::config().sampleCount > 0)
       glEnable( GL_SAMPLE_ALPHA_TO_COVERAGE );
    else
       glDisable( GL_SAMPLE_ALPHA_TO_COVERAGE );

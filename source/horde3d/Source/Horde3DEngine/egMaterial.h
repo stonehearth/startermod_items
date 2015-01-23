@@ -16,6 +16,7 @@
 #include "egPrerequisites.h"
 #include "egResource.h"
 #include "egShader.h"
+#include "egShaderState.h"
 #include "egTexture.h"
 
 
@@ -31,7 +32,6 @@ struct MaterialResData
 	{
 		MaterialElem = 400,
 		SamplerElem,
-		UniformElem,
 		MatClassStr,
 		MatShaderI,
 		SampNameStr,
@@ -100,6 +100,7 @@ public:
    std::vector<PShaderResource> const& getShaders() const { return _shaders; }
    std::vector<MatSampler>& getSamplers() { return _samplers; }
    MatUniform* getUniform(uint32 shaderHandle, std::string const& name);
+   PShaderStateResource getShaderState(std::string const& context) { return _context_to_shader_state[context]; }
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
@@ -112,6 +113,7 @@ private:
    std::unordered_map<uint32, std::unordered_map<std::string, std::string>> _input_to_input_map;
    std::unordered_map<std::string, PShaderResource> _context_to_shader_map;
    std::unordered_map<std::string, MatUniform> _input_defaults;
+   std::unordered_map<std::string, PShaderStateResource> _context_to_shader_state;
 
 	friend class ResourceManager;
 	friend class MeshNode;
