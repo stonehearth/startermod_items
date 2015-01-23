@@ -64,7 +64,7 @@ function ore_generator._create_mineral_vein(block_type, json, rng)
 
    if has_kink then
       local half_min_length = math.floor(json.vein_length_min*0.5)
-      local kink_index = rng:get_int(half_min_length, length)
+      local kink_index = rng:get_int(half_min_length, length-vein_radius)
       local kink_length = rng:get_int(12, half_min_length)
 
       segment, finish = ore_generator._create_vein_segment(start, kink_index, direction, normal, vein_radius, block_type, false)
@@ -75,7 +75,7 @@ function ore_generator._create_mineral_vein(block_type, json, rng)
       region:add_cube(segment)
 
       start = finish
-      segment, finish = ore_generator._create_vein_segment(start, length - kink_index, direction, normal, vein_radius, block_type, true)
+      segment, finish = ore_generator._create_vein_segment(start, length-kink_index, direction, normal, vein_radius, block_type, true)
       region:add_cube(segment)
    else
       segment, finish = ore_generator._create_vein_segment(start, length, direction, normal, vein_radius, block_type, false)
