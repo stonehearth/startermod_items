@@ -111,7 +111,7 @@ function StockpileComponent:initialize(entity, json)
       --Don't start listening on created items until after we load
       radiant.events.listen_once(radiant, 'radiant:game_loaded', function(e)
             self:_install_traces()
-         end)   
+         end)
    end
         
    all_stockpiles[self._entity:get_id()] = self
@@ -147,6 +147,10 @@ function StockpileComponent:destroy()
    if self._mob_trace then
       self._mob_trace:destroy()
       self._mob_trace= nil
+   end
+   if self._destroy_listener then
+      self._destroy_listener:destroy()
+      self._destroy_listener = nil
    end
    self:_destroy_tasks()
 end
@@ -270,6 +274,7 @@ function StockpileComponent:_install_traces()
                                        :on_changed(function()
                                              self:_assign_to_player()
                                           end)
+   self._destroy_listener = radiant.events.listen(radiant, 'radiant:entity:post_destroy', self, self._on_item_destroyed)
 end
 
 function StockpileComponent:get_items()
@@ -342,7 +347,7 @@ function StockpileComponent:_add_to_region(location)
       cursor:subtract_point(offset)
    end)
    if not was_full and self:is_full() then
-      radiant.events.trigger(self, 'space_available', self, false)
+      radiant.events.trigger(self._entity, 'stonehearth:stockpile:space_available', self, false)
    end
 end
 
@@ -355,7 +360,7 @@ function StockpileComponent:_remove_from_region(location)
       cursor:add_point(offset)
    end)  
    if was_full and not self:is_full() then
-      radiant.events.trigger(self, 'space_available', self, true)
+      radiant.events.trigger(self._entity, 'stonehearth:stockpile:space_available', self, true)
    end
 end
 
@@ -395,7 +400,7 @@ function StockpileComponent:_add_item_to_stock(entity)
    
    --TODO: we should really just have 1 event when something is added to the inventory/stockpile for a player
    --Trigger this anyway so various scenarios, tests, etc, can still use it
-   radiant.events.trigger(self._entity, "stonehearth:stockpile:item_added", { 
+   radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_added", { 
       stockpile = self._entity,
       item = entity 
    })
@@ -425,15 +430,14 @@ function StockpileComponent:_remove_item_from_stock(id)
    stonehearth.inventory:get_inventory(self._sv.player_id)
                            :remove_item(id)
       
+   --Trigger for scenarios, autotests, etc
+   radiant.events.trigger_async(self._entity, "stonehearth:stockpile:item_removed", { 
+      stockpile = self._entity,
+      item = entity
+   })
+
    --Remove items that have been taken out of the stockpile
-   if entity and entity:is_valid() then
-      
-      --Trigger for scenarios, autotests, etc
-      radiant.events.trigger(self._entity, "stonehearth:stockpile:item_removed", { 
-         storage = self._entity,
-         item = entity
-      })
-      
+   if entity and entity:is_valid() then         
       radiant.events.trigger(stonehearth.ai, 'stonehearth:pathfinder:reconsider_entity', entity)
    end
 end
@@ -489,6 +493,11 @@ function StockpileComponent:_assign_to_player()
       self:_create_worker_tasks()
    end
 end
+
+function StockpileComponent:_on_item_destroyed(e)
+   self:_remove_item(e.entity_id)
+end
+
 
 --- Returns whether or not the stockpile should stock this entity
 -- @param entity The entity you're interested in

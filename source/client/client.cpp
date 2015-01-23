@@ -535,6 +535,10 @@ void Client::OneTimeIninitializtion()
          memcpy(&newCfg, &oldCfg, sizeof(RendererConfig));
 
          bool persistConfig = params.get<bool>("persistConfig", false);
+         int flags = Renderer::APPLY_CONFIG_RENDERER;
+         if (persistConfig) {
+            flags |= Renderer::APPLY_CONFIG_PERSIST;
+         }
          newCfg.use_shadows.value = params.get<bool>("shadows", oldCfg.use_shadows.value);
          newCfg.num_msaa_samples.value = params.get<int>("msaa", oldCfg.num_msaa_samples.value);
          newCfg.shadow_quality.value = params.get<int>("shadow_quality", oldCfg.shadow_quality.value);
@@ -545,7 +549,7 @@ void Client::OneTimeIninitializtion()
          newCfg.use_fast_hilite.value = params.get<bool>("use_fast_hilite", oldCfg.use_fast_hilite.value);
          newCfg.enable_ssao.value = params.get<bool>("enable_ssao", oldCfg.enable_ssao.value);
          
-         Renderer::GetInstance().ApplyConfig(newCfg, persistConfig);
+         Renderer::GetInstance().ApplyConfig(newCfg, flags);
 
          result->ResolveWithMsg("success");
       } catch (std::exception const& e) {
@@ -882,6 +886,7 @@ void Client::run(int server_port)
    OneTimeIninitializtion();
    Initialize();
    CreateGame();
+   InitializeUI("");
 
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
@@ -917,54 +922,49 @@ void Client::setup_connections()
 
 void Client::mainloop()
 {
-   PushPerformanceCounters();
+   ASSERT(browser_ != nullptr);
 
+   PushPerformanceCounters();
    process_messages();
    ProcessBrowserJobQueue();
 
    CLIENT_LOG(5) << "entering client main loop";
 
-   int game_time;
-   float alpha;
-   game_clock_->EstimateCurrentGameTime(game_time, alpha);
-
    Renderer::GetInstance().HandleResize();
 
-   perfmon::SwitchToCounter("update lua");
-   try {
-      luabind::call_function<int>(radiant_["update"]);
-   } catch (std::exception const& e) {
-      CLIENT_LOG(3) << "error in client update: " << e.what();
-      GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
-   }
-
    if (!loading_) {
-      perfmon::SwitchToCounter("update browser frambuffer");
-   }
-   perfmon::SwitchToCounter("flush http events");
-   http_reactor_->FlushEvents();
-
-   if (browser_) {
-      perfmon::SwitchToCounter("browser poll");
-      browser_->Work();
-
-      if (!loading_) {
-         auto cb = [this](const csg::Region2 &rgn, const uint32* buff) {
-            Renderer::GetInstance().UpdateUITexture(rgn, buff);
-         };
-         perfmon::SwitchToCounter("update browser display");
-         browser_->UpdateDisplay(cb);
+      perfmon::SwitchToCounter("update lua");
+      try {
+         luabind::call_function<int>(radiant_["update"]);
+      } catch (std::exception const& e) {
+         CLIENT_LOG(3) << "error in client update: " << e.what();
+         GetScriptHost()->ReportCStackThreadException(GetScriptHost()->GetCallbackThread(), e);
       }
    }
 
+   perfmon::SwitchToCounter("flush http events");
+   http_reactor_->FlushEvents();
+
+   perfmon::SwitchToCounter("browser poll");
+   browser_->Work();
+
+   if (!loading_) {
+      auto cb = [this](const csg::Region2 &rgn, const uint32* buff) {
+         Renderer::GetInstance().UpdateUITexture(rgn, buff);
+      };
+      perfmon::SwitchToCounter("update browser display");
+      browser_->UpdateDisplay(cb);
+
+      // Fire the authoring traces *after* pumping the chrome message loop, since
+      // we may create or modify authoring objects as a result of input events
+      // or calls from the browser.
+      perfmon::SwitchToCounter("fire traces");
+      authoring_render_tracer_->Flush();
+   }
+
+   perfmon::SwitchToCounter("update cursor");
    InstallCurrentCursor();
    UpdateDebugCursor();
-
-   // Fire the authoring traces *after* pumping the chrome message loop, since
-   // we may create or modify authoring objects as a result of input events
-   // or calls from the browser.
-   perfmon::SwitchToCounter("fire traces");
-   authoring_render_tracer_->Flush();
 
    // xxx: GC while waiting for vsync, or GC in another thread while rendering (ooh!)
    perfmon::SwitchToCounter("lua gc");
@@ -972,7 +972,11 @@ void Client::mainloop()
    platform::timer t(10);
    scriptHost_->GC(t);
 
+
    CLIENT_LOG(7) << "rendering one frame";
+   int game_time;
+   float alpha;
+   game_clock_->EstimateCurrentGameTime(game_time, alpha);
    Renderer::GetInstance().RenderOneFrame(game_time, alpha);
 
    if (send_queue_ && connected_) {
@@ -1023,7 +1027,6 @@ bool Client::ProcessMessage(const proto::Update& msg)
       DISPATCH_MSG(RemoveObjects);
       DISPATCH_MSG(UpdateDebugShapes);
       DISPATCH_MSG(PostCommandReply);
-      DISPATCH_MSG(LoadGame);
    default:
       ASSERT(false);
    }
@@ -1033,7 +1036,11 @@ bool Client::ProcessMessage(const proto::Update& msg)
 
 void Client::PostCommandReply(const proto::PostCommandReply& msg)
 {
-   protobuf_router_->OnPostCommandReply(msg);
+   try {
+      protobuf_router_->OnPostCommandReply(msg);
+   } catch (std::exception const& e) {
+      CLIENT_LOG(1) << "got exception handling server reply: " << e.what();
+   }
 }
 
 void Client::BeginUpdate(const proto::BeginUpdate& msg)
@@ -1045,11 +1052,33 @@ void Client::BeginUpdate(const proto::BeginUpdate& msg)
 void Client::EndUpdate(const proto::EndUpdate& msg)
 {
    perfmon::TimelineCounterGuard tcg("end update");
+
+   // If we're still in limbo, bail.
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring EndUpdate. still in limbo while loading.";
+      return;
+   }
+
+   // Acknowledge that we've finished processing the update.
+   proto::Request ack;
+   ack.set_type(proto::Request::FinishedUpdate);   
+   proto::FinishedUpdate* r = ack.MutableExtension(proto::FinishedUpdate::extension);
+   r->set_sequence_number(_lastSequenceNumber);
+   send_queue_->Push(ack);
+
    if (initialUpdate_) {
       if (load_progress_deferred_) {
+         if (loadError_.empty()) {
+            InitializeUI("state=load_finished");
+            load_progress_deferred_->Resolve(JSONNode("progress", 100.0));
+         } else {
+            InitializeUI("");
+            load_progress_deferred_->RejectWithMsg(loadError_);
+            Renderer::GetInstance().SetDrawWorld(false);
+         }
          Renderer::GetInstance().SetLoading(false);
          loading_ = false;
-         load_progress_deferred_->Resolve(JSONNode("progress", 100.0));
+         loadError_.clear();
          load_progress_deferred_.reset();
       }
    }
@@ -1075,17 +1104,15 @@ void Client::EndUpdate(const proto::EndUpdate& msg)
    // data isn't guaranteed to be in a consistent state between
    // boundaries.
    game_render_tracer_->Flush();
-
-   // Acknowledge that we've finished processing the update.
-   proto::Request ack;
-   ack.set_type(proto::Request::FinishedUpdate);   
-   proto::FinishedUpdate* r = ack.MutableExtension(proto::FinishedUpdate::extension);
-   r->set_sequence_number(_lastSequenceNumber);
-   send_queue_->Push(ack);
 }
 
 void Client::SetServerTick(const proto::SetServerTick& msg)
 {
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring SetServerTick. still in limbo while loading.";
+      return;
+   }
+
    int game_time = msg.now();
    game_clock_->Update(msg.now(), msg.interval(), msg.next_msg_time());
    Renderer::GetInstance().SetServerTick(game_time);
@@ -1093,6 +1120,11 @@ void Client::SetServerTick(const proto::SetServerTick& msg)
 
 void Client::AllocObjects(const proto::AllocObjects& update)
 {
+   // If we're still in limbo, bail.
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring AllocObjects. still in limbo while loading.";
+      return;
+   }
    receiver_->ProcessAlloc(update);
 }
 
@@ -1103,12 +1135,19 @@ void Client::UpdateObjectsInfo(const proto::UpdateObjectsInfo& update)
       lastLoadProgress_ = 0;
       networkUpdatesCount_ = 0;
       ReportLoadProgress();
+
+      CLIENT_LOG(3) << "in UpdateObjectsInfo. expecting " << update.update_count() << " updates and " << update.remove_count() << " deletes";
+      networkUpdatesExpected_ = update.update_count() + update.remove_count();
    }
-   networkUpdatesExpected_ = update.update_count() + update.remove_count();
 }
 
 void Client::UpdateObject(const proto::UpdateObject& update)
 {
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring UpdateObject. still in limbo while loading.";
+      return;
+   }
+
    receiver_->ProcessUpdate(update);
    if (initialUpdate_) {
       networkUpdatesCount_++;
@@ -1118,6 +1157,11 @@ void Client::UpdateObject(const proto::UpdateObject& update)
 
 void Client::RemoveObjects(const proto::RemoveObjects& update)
 {
+   if (!receiver_) {
+      CLIENT_LOG(3) << "ignoring RemoveObjects. still in limbo while loading.";
+      return;
+   }
+
    for (int id : update.objects()) {
       dm::ObjectPtr obj = store_->FetchObject<dm::Object>(id);
       if (obj && obj->GetObjectType() == om::EntityObjectType) {
@@ -1143,14 +1187,6 @@ void Client::RemoveObjects(const proto::RemoveObjects& update)
 void Client::UpdateDebugShapes(const proto::UpdateDebugShapes& msg)
 {
    Renderer::GetInstance().DecodeDebugShapes(msg.shapelist());
-}
-
-void Client::LoadGame(const proto::LoadGame& msg)
-{
-   CLIENT_LOG(2) << "load game";
-   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / msg.game_id();
-   LoadClientState(savedir);
-   InitializeUI("state=load_finished");
 }
 
 void Client::process_messages()
@@ -1393,7 +1429,7 @@ void Client::UpdateDebugCursor()
             args.set("pawn", selectedEntity->GetStoreAddress());
          }
          core_reactor_->Call(rpc::Function("radiant:debug_navgrid", args));
-         CLIENT_LOG(1) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
+         CLIENT_LOG(5) << "requesting debug shapes for nav grid tile " << csg::GetChunkIndex<phys::TILE_SIZE>(pt);
       } else {
          json::Node args;
          args.set("enabled", false);
@@ -1607,6 +1643,14 @@ void Client::RequestReload()
 
 void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
+   if (saveid.empty()) {
+      CLIENT_LOG(0) << "ignoring save request: saveid is empty";
+      return;
+   }
+   if (server_save_deferred_) {
+      CLIENT_LOG(0) << "ignoring save request: request is already in flight";
+   }
+
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (!fs::is_directory(savedir)) {
       fs::create_directories(savedir);
@@ -1616,11 +1660,23 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
       }
    }
    SaveClientState(savedir);
-   SaveClientMetadata(savedir, gameinfo);
 
    json::Node args;
    args.set("saveid", saveid);
-   core_reactor_->Call(rpc::Function("radiant:server:save", args));
+
+   server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
+
+   server_save_deferred_->Done([this, savedir, gameinfo](JSONNode const&n) {
+      // Wait until both the client and server state have been saved to write
+      // the client metadata.  This way we won't leave an incomplete file if we
+      // (for example) crash while saving the server state.
+      SaveClientMetadata(savedir, gameinfo);
+   });
+
+   server_save_deferred_->Always([this] {
+      CLIENT_LOG(3) << "clearing server deferred pointer";
+      server_save_deferred_ = nullptr;
+   });
 }
 
 void Client::DeleteSaveGame(std::string const& saveid)
@@ -1633,25 +1689,62 @@ void Client::DeleteSaveGame(std::string const& saveid)
 
 rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
 {
-   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
-   if (fs::is_directory(savedir)) {
-      loading_ = true;
-      json::Node args;
-      args.set("saveid", saveid);
-      server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
-      
-      load_progress_deferred_ = std::make_shared<rpc::ReactorDeferred>("load progress");
-      server_load_deferred_->Progress([this] (JSONNode const& n) {
-         double server_progress = n.at("progress").as_float();
-         load_progress_deferred_->Notify(JSONNode("progress", server_progress / 2.0));
-      });
-      Renderer::GetInstance().SetLoading(true);
+   rpc::ReactorDeferredPtr deferred = std::make_shared<rpc::ReactorDeferred>("load progress");
 
-      load_progress_deferred_->Progress([this] (JSONNode const& n) {
-         float progress = (float)n.as_float();
-         Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
-      });
+   if (load_progress_deferred_ != nullptr) {
+      deferred->RejectWithMsg("ignoring load request when already loading");
+      return deferred;
    }
+
+   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+   if (!fs::is_directory(savedir)) {
+      deferred->RejectWithMsg(BUILD_STRING("save " << saveid << " does not exist"));
+      return deferred;
+   }
+
+   {
+      std::ifstream jsonfile((savedir / "metadata.json").string());
+
+      CLIENT_LOG(0) << "loading save \"" << saveid << "\":";
+      for (std::string line : strutil::split(io::read_contents(jsonfile), "\n")) {
+         CLIENT_LOG(0) << line;
+      }
+   }
+
+   loading_ = true;
+   loadError_.clear();
+   load_progress_deferred_ = deferred;
+   ASSERT(server_load_deferred_ == nullptr);
+
+   json::Node args;
+   args.set("saveid", saveid);
+   server_load_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:load", args));
+   server_load_deferred_->Progress([this] (JSONNode const& n) {
+      float progress = static_cast<float>(n.at("progress").as_float());
+
+      CLIENT_LOG(1) << "server reported load progress of " << progress << "%";
+
+      progress /= 2;
+      load_progress_deferred_->Notify(JSONNode("progress", progress));
+      Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
+   });
+   server_load_deferred_->Done([this, saveid] (JSONNode const& n) {
+      fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+      CLIENT_LOG(0) << "server load finished.  loading client state.";
+      LoadClientState(savedir);
+   });
+   server_load_deferred_->Fail([this, saveid] (JSONNode const& n) {
+      CLIENT_LOG(0) << "server load failed.  returning to title screen.";
+      CreateGame();
+      loadError_ = n.at("error").as_string();
+   });
+   server_load_deferred_->Always([this] {
+      server_load_deferred_.reset();
+   });
+
+   Renderer::GetInstance().SetLoading(true);
+   Shutdown();
+   Initialize();
 
    return load_progress_deferred_;
 }
@@ -1678,11 +1771,6 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
 {
    CLIENT_LOG(0) << "starting loading... " << savedir;
 
-   // shutdown and initialize.  we need to initialize before creating the new streamers.  otherwise,
-   // we won't have the new store for them.
-   Shutdown();
-   Initialize();
-
    std::string error;
    dm::ObjectMap objects;
 
@@ -1697,6 +1785,8 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
    // xxx: keep the trace around all the time to populate the authoredEntities_
    // array?  sounds good!!!
    std::vector<om::DataStorePtr> datastores;
+
+   CLIENT_LOG(1) << "restoring datastores...";
    store.TraceStore("get entities")->OnAlloced([this, &datastores](dm::ObjectPtr obj) mutable {
       dm::ObjectId id = obj->GetObjectId();
       dm::ObjectType type = obj->GetObjectType();
@@ -1708,6 +1798,8 @@ void Client::LoadClientState(boost::filesystem::path const& savedir)
          datastoreMap_[ds->GetObjectId()] = ds;
       }
    })->PushStoreState();   
+
+   CLIENT_LOG(1) << "recreating data objects...";
 
    localRootEntity_ = GetAuthoringStore().FetchObject<om::Entity>(1);
    localModList_ = localRootEntity_->GetComponent<om::ModList>();
@@ -1728,8 +1820,6 @@ void Client::CreateGame()
    ASSERT(!error_browser_);
    ASSERT(scriptHost_);
 
-   InitializeUI("");
-
    localRootEntity_ = GetAuthoringStore().AllocObject<om::Entity>();
    ASSERT(localRootEntity_->GetObjectId() == 1);
    localModList_ = localRootEntity_->AddComponent<om::ModList>();
@@ -1739,6 +1829,7 @@ void Client::CreateGame()
 
    radiant_ = scriptHost_->Require("radiant.client");
    scriptHost_->CreateGame(localModList_);
+
    initialUpdate_ = true;
 }
 
@@ -1762,10 +1853,12 @@ void Client::ReportLoadProgress()
    if (networkUpdatesCount_) {
       int percent = (networkUpdatesCount_ * 100) / networkUpdatesExpected_;
       if (percent - lastLoadProgress_ > 10) {
-         CLIENT_LOG(3) << " client load progress " << percent << "%...";
 
          if (load_progress_deferred_) {
-            load_progress_deferred_->Notify(JSONNode("progress", 50.0 + (percent / 2.0)));
+            float progress = 50.0f + (percent / 2.0f);
+            CLIENT_LOG(1) << "reporting client load progress " << progress << "%...";
+            load_progress_deferred_->Notify(JSONNode("progress", progress));
+            Renderer::GetInstance().UpdateLoadingProgress(progress / 100.0f);
          }
          lastLoadProgress_ = percent;
       }

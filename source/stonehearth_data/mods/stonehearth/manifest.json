@@ -331,13 +331,14 @@
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
       "attack_order_banner" : "file(entities/gizmos/control_attack_banner)",
+      "defend_order_banner" : "file(entities/gizmos/control_defend_banner)",
       "tombstone" : "file(entities/furniture/tombstone)",
 
       "toys:plushie_toy_rabbit" : "file(entities/toys/plushie_toy_rabbit)",
 
       "armor:cloth_padded_vest" : "file(entities/armor/cloth_padded_vest)",
       "armor:leather_vest" : "file(entities/armor/leather_vest)",
-      "armor:copper_breastplate" : "file(entities/armor/copper_breastplate)",
+      "armor:bronze_breastplate" : "file(entities/armor/bronze_breastplate)",
       "armor:iron_mail" : "file(entities/armor/iron_mail)",
       "armor:steel_mail" : "file(entities/armor/steel_mail)",
 
@@ -347,6 +348,13 @@
       
       "weapons:jagged_cleaver" : "file(entities/weapons/jagged_cleaver)",
       "weapons:wooden_sword" : "file(entities/weapons/wooden_sword)",
+      "weapons:stone_maul" : "file(entities/weapons/stone_maul)",
+      "weapons:iron_mace" : "file(entities/weapons/iron_mace)",
+      "weapons:iron_pike" : "file(entities/weapons/iron_pike)",
+      "weapons:bronze_mace" : "file(entities/weapons/bronze_mace)",
+      "weapons:bronze_sword" : "file(entities/weapons/bronze_sword)",
+      "weapons:short_sword" : "file(entities/weapons/short_sword)",
+      "weapons:long_sword" : "file(entities/weapons/long_sword)",
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",
 

@@ -2,8 +2,8 @@
 <div id="citizensManagement" class="gui managerWindow citizenTable">
    <div class="window">
       <div class="title">{{ view.title }} <div class="closeButton"></div></div>
-      <div class="populationContainer">
-         <table class="list">
+      <div class="list">
+         <table>
             <tbody>
             {{#each view.model.citizensArray}}
                <tr class="row" {{bind-attr job=this.stonehearth:job.job_uri.alias id=this.__id}}>

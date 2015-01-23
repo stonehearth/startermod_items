@@ -223,6 +223,11 @@ var StonehearthClient;
             this._partyEditor = App.gameView.addView(App.StonehearthPartyEditorView, { uri: party });
          }
       },
+      hidePartyEditor: function() {
+         if (this._partyEditor != null && !this._partyEditor.isDestroyed) {
+            this._partyEditor.destroy();
+         }
+      },
 
       // item is a reference to an actual entity, not a class of entities like stonehearth:furniture:comfy_bed
       placeItem: function(item) {
@@ -368,9 +373,9 @@ var StonehearthClient;
          });
       },
 
-      setPartyAttackOrder: function(party) {
-         return this._callTool('setPartyAttackOrder', function() {
-            return radiant.call_obj('stonehearth.party_editor', 'set_attack_order_command', party);
+      placePartyBanner: function(party, banner_type) {
+         return this._callTool('placePartyBanner', function() {
+            return radiant.call_obj('stonehearth.party_editor', 'place_party_banner_command', party, banner_type);
          });
       },
 

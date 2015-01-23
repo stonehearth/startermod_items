@@ -26,19 +26,19 @@ function TownPatrol:initialize()
       end
    )
 
-   if not self._sv.initialized then
+   if not self._sv._initialized then
       -- holds all the patrollable objects in the world organized by player_id
-      self._sv.patrollable_objects = {}
+      self._sv._patrollable_objects = {}
 
       -- maps patrollable objects to their owning player. used to provide O(1) destroy.
-      self._sv.object_to_player_map = {}
+      self._sv._object_to_player_map = {}
 
-      self._sv.initialized = true
+      self._sv._initialized = true
       self.__saved_variables:mark_changed()
       
       self._world_objects_trace:push_object_state()
    else
-      for player_id, player_patrollable_objects in pairs(self._sv.patrollable_objects) do
+      for player_id, player_patrollable_objects in pairs(self._sv._patrollable_objects) do
          for object_id, patrollable_object in pairs(player_patrollable_objects) do
             local object = patrollable_object:get_object()
             -- restore traces
@@ -180,7 +180,7 @@ function TownPatrol:_add_to_patrol_list(object)
       local player_patrollable_objects = self:_get_patrollable_objects(player_id)
 
       player_patrollable_objects[object_id] = patrollable_object
-      self._sv.object_to_player_map[object_id] = player_id
+      self._sv._object_to_player_map[object_id] = player_id
 
       self:_trigger_patrol_route_available(player_id)
    end
@@ -192,8 +192,8 @@ function TownPatrol:_add_to_patrol_list(object)
 end
 
 function TownPatrol:_remove_from_patrol_list(object_id)
-   local player_id = self._sv.object_to_player_map[object_id]
-   self._sv.object_to_player_map[object_id] = nil
+   local player_id = self._sv._object_to_player_map[object_id]
+   self._sv._object_to_player_map[object_id] = nil
 
    if player_id then
       local player_patrollable_objects = self:_get_patrollable_objects(player_id)
@@ -211,11 +211,11 @@ function TownPatrol:_remove_from_patrol_list(object_id)
 end
 
 function TownPatrol:_get_patrollable_objects(player_id)
-   local player_patrollable_objects = self._sv.patrollable_objects[player_id]
+   local player_patrollable_objects = self._sv._patrollable_objects[player_id]
 
    if not player_patrollable_objects then
       player_patrollable_objects = {}
-      self._sv.patrollable_objects[player_id] = player_patrollable_objects
+      self._sv._patrollable_objects[player_id] = player_patrollable_objects
    end
 
    return player_patrollable_objects

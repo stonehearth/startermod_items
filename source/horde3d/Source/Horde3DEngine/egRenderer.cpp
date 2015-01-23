@@ -74,6 +74,7 @@ Renderer::Renderer()
 	_maxAnisoMask = 0;
    _materialOverride = 0x0;
    _curPipeline = 0x0;
+   _shadowCascadeBuffer = 0;
 
 	_vlPosOnly = 0;
 	_vlOverlay = 0;
@@ -92,6 +93,10 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
+   if (_shadowCascadeBuffer) {
+      gRDI->destroyRenderBuffer(_shadowCascadeBuffer);
+      _shadowCascadeBuffer = 0;
+   }
 	gRDI->destroyTexture( _defShadowMap );
 	gRDI->destroyBuffer( _particleVBO );
    delete[] _vbInstanceVoxelBuf;
@@ -1372,6 +1377,17 @@ Matrix4f Renderer::calcDirectionalLightShadowProj(LightNode const* light, Boundi
 
 void Renderer::reallocateShadowBuffers(int quality)
 {
+   if (_shadowCascadeBuffer) {
+      gRDI->destroyRenderBuffer(_shadowCascadeBuffer);
+      _shadowCascadeBuffer = 0;
+   }
+
+   // Update the one-and-only shadow cascade buffer here
+   if (Modules::config().enableShadows) {
+      uint32 cascadeBufferSize = (uint32)pow(2, Modules::config().shadowMapQuality + 8);
+      _shadowCascadeBuffer = gRDI->createRenderBuffer(cascadeBufferSize, cascadeBufferSize, TextureFormats::BGRA8, true, 0, 0);
+   }
+
    int numNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::Light);
 
    for (int i = 0; i < numNodes; i++) {

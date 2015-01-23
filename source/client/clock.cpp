@@ -5,6 +5,8 @@
 using namespace radiant;
 using namespace radiant::client;
 
+#define CLOCK_LOG(level)     LOG(client.clock, level)
+
 Clock::Clock() :
    realtime_start_(0),
    game_time_start_(0),
@@ -12,16 +14,14 @@ Clock::Clock() :
    game_time_next_delivery_(0),
    last_reported_time_(0)
 {
+   CLOCK_LOG(3) << "creating new clock";
 }
 
 void Clock::Update(int game_time, int game_time_interval, int estimated_next_delivery)
 {
-   if (game_time_start_ != 0) {
-      game_time_interval_ = std::max(game_time - game_time_start_, 0);
-   } else {
-      game_time_interval_ = 0;
-   }
+   CLOCK_LOG(3) << "updating time (game_time:" << game_time << " interval:" << game_time_interval << ")";
    game_time_start_ = game_time;
+   game_time_interval_ = std::max(game_time_interval, 0);
    game_time_next_delivery_ = estimated_next_delivery;
    realtime_start_ = platform::get_current_time_in_ms();
 }
@@ -40,15 +40,22 @@ void Clock::EstimateCurrentGameTime(int &game_time, float& alpha) const
    // The next game time send to the client is just the beginning of the
    // interval interpolated up to the next expected interval.  One catch, though:
    // make absolutely sure time never, ever goes backward.
-   game_time = static_cast<int>(game_time_start_ + (alpha * game_time_interval_));
-   game_time = std::max(game_time, last_reported_time_);
+   game_time = game_time_start_;
+   if (game_time_interval_ > 0) {
+      game_time += static_cast<int>(+ (alpha * game_time_interval_));
+
+   }
+   if (last_reported_time_ > game_time) {
+      CLOCK_LOG(7) << "dragging clock forward from " << game_time << " to " << last_reported_time_ << "(diff:" << (last_reported_time_ - game_time)<< ")";
+      game_time = last_reported_time_;
+   }
 
    int changed = game_time - last_reported_time_;
    last_reported_time_ = game_time;
 
-   CLIENT_LOG(9) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
-                 << " gt start: " << game_time_start_
-                 << " gt interval: " << game_time_interval_
-                 << " gt next: " << game_time_next_delivery_
-                 << " delta t: " << delta << "]";
+   CLOCK_LOG(4) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
+                << " gt start: " << game_time_start_
+                << " gt interval: " << game_time_interval_
+                << " gt next: " << game_time_next_delivery_
+                << " delta t: " << delta << "]";
 }

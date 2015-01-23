@@ -1,0 +1,26 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "item" : {
+         "category" : "tools"
+       },
+       "model_variants": {
+         "default": {
+            "models": [
+               "file(long_sword.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "long Sword",
+         "description": "Pointy. Shiny.",
+         "icon" : "file(long_sword.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "long melee_weapon crafted"
+      }
+   },
+   "entity_data" : {
+   }
+}

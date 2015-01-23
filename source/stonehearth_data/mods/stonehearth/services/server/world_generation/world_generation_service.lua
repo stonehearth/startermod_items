@@ -9,7 +9,7 @@ local HeightMapRenderer = require 'services.server.world_generation.height_map_r
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
 local ScenarioIndex = require 'services.server.world_generation.scenario_index'
-local UndergroundScenarioSelector = require 'services.server.world_generation.underground_scenario_selector'
+local OreScenarioSelector = require 'services.server.world_generation.ore_scenario_selector'
 local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
@@ -26,8 +26,8 @@ local WorldGenerationService = class()
 function WorldGenerationService:initialize()
    self._sv = self.__saved_variables:get_data()
 
-   if not self._sv.initialized then
-      self._sv.initialized = true
+   if not self._sv._initialized then
+      self._sv._initialized = true
    else
       -- TODO: support tile generation after load
       -- TODO: make sure all rngs dependent on the tile seed
@@ -41,15 +41,15 @@ function WorldGenerationService:create_new_game(seed, async)
 
    self._terrain_info = TerrainInfo()
    self._micro_map_generator = MicroMapGenerator(self._terrain_info, self._rng)
-   self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng, self._async)
+   self._terrain_generator = TerrainGenerator(self._terrain_info, self._rng)
    self._height_map_renderer = HeightMapRenderer(self._terrain_info)
-   self._landscaper = Landscaper(self._terrain_info, self._rng, self._async)
+   self._landscaper = Landscaper(self._terrain_info, self._rng)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self._scenario_index = ScenarioIndex(self._terrain_info, self._rng)
-   self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
+   self._ore_scenario_selector = OreScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
-   stonehearth.static_scenario:create_new_game(self._terrain_info, seed)
+   stonehearth.static_scenario:create_new_game(seed)
    stonehearth.dynamic_scenario:create_new_game()
 
    self.blueprint_generator = BlueprintGenerator()
@@ -63,7 +63,7 @@ function WorldGenerationService:get_terrain_info()
 end
 
 function WorldGenerationService:set_seed(seed)
-   log:info('WorldGenerationService using seed %d', seed)
+   log:warning('WorldGenerationService using seed %d', seed)
    self._sv.seed = seed
    self.__saved_variables:mark_changed()
 
@@ -180,31 +180,6 @@ function WorldGenerationService:get_tile_origin(i, j, blueprint)
    return x, y
 end
 
-function WorldGenerationService:generate_all_tiles()
-   self:_run_async(
-      function()
-         local blueprint = self._blueprint
-         local i, j, n, tile_order_list, num_tiles
-         local progress = 0
-
-         self:_report_progress(progress)
-
-         tile_order_list = self:_build_tile_order_list(blueprint)
-         num_tiles = #tile_order_list
-
-         for n=1, num_tiles do
-            i = tile_order_list[n].x
-            j = tile_order_list[n].y
-
-            self:_generate_tile_internal(i, j)
-
-            progress = n / num_tiles
-            self:_report_progress(progress)
-         end
-      end
-   )
-end
-
 function WorldGenerationService:generate_tiles(i, j, radius)
    self:_run_async(
       function()
@@ -282,12 +257,15 @@ function WorldGenerationService:_generate_tile_internal(i, j)
 
    -- render heightmap to region3
    self:_render_heightmap_to_region3(tile_map, underground_tile_map, feature_map, offset_x, offset_y)
+   self:_yield()
 
    -- place flora
    self:_place_flora(tile_map, feature_map, offset_x, offset_y)
+   self:_yield()
 
    -- place scenarios
    self:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
+   self:_yield()
 
    tile_info.generated = true
 end
@@ -305,7 +283,6 @@ function WorldGenerationService:_render_heightmap_to_region3(tile_map, undergrou
    )
 
    log:info('Height map to region3 time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, offset_y)
@@ -316,7 +293,6 @@ function WorldGenerationService:_place_flora(tile_map, feature_map, offset_x, of
    )
 
    log:info('Landscaper time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, underground_elevation_map, offset_x, offset_y)
@@ -328,13 +304,12 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, und
       function()
          self._surface_scenario_selector:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
-         self._underground_scenario_selector:place_revealed_scenarios(underground_elevation_map, offset_x, offset_y)
+         self._ore_scenario_selector:place_revealed_scenarios(underground_elevation_map, elevation_map, offset_x, offset_y)
          self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
       end
    )
 
    log:info('Static scenario time: %.3fs', seconds)
-   self:_yield()
 end
 
 function WorldGenerationService:_get_tile_seed(x, y)
@@ -342,46 +317,6 @@ function WorldGenerationService:_get_tile_seed(x, y)
    -- using Point2 as an integer pair hash
    local tile_seed = Point2(self._sv.seed, location_hash):hash()
    return tile_seed
-end
-
-function WorldGenerationService:_build_tile_order_list(map)
-   local center_x = (map.width+1)/2 -- center can be non-integer
-   local center_y = (map.height+1)/2
-   local tile_order = {}
-   local i, j, dx, dy, coord_info, angle
-
-   for j=1, map.height do
-      for i=1, map.width do
-         coord_info = {}
-         coord_info.x = i
-         coord_info.y = j
-         dx = i-center_x
-         dy = j-center_y
-
-         -- break ties in radial order
-         angle = self:_get_angle(dy, dx)
-         coord_info.dist_metric = dx*dx + dy*dy + angle/1000
-
-         table.insert(tile_order, coord_info)
-      end
-   end
-
-   local compare_tile = function(a, b)
-      return a.dist_metric < b.dist_metric
-   end
-   table.sort(tile_order, compare_tile)
-   return tile_order
-end
-
-function WorldGenerationService:_get_angle(dy, dx)
-   local pi = math.pi
-
-   -- normalize angle to a range of 0 - 2pi
-   local value = math.atan2(dy, dx) + pi
-
-   -- move minimum to 45 degrees (pi/4) so fill order looks better
-   if value < pi/4 then value = value + 2*pi end
-   return value
 end
 
 function WorldGenerationService:_run_async(fn)
@@ -399,4 +334,3 @@ function WorldGenerationService:_yield()
 end
 
 return WorldGenerationService
-

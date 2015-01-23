@@ -9,32 +9,62 @@ Here are the rules
 ]]
 function ThoughtBubbleComponent:initialize(entity, json)
    self._entity = entity
-   self._thought_priority = 0
+   self._thoughts = {}
+   self._next_id = 2
 end
 
-function ThoughtBubbleComponent:set_thought(uri, priority)
-   if not priority then
-      priority = 0
-   end
+function ThoughtBubbleComponent:add_thought(uri, priority)
+   local id = self:_add_thought(uri, priority)
+   self:_update_thoughts()
 
-   if uri == self._thought_uri and priority == self._thought_priority then
-      return
-   end
-   
-   if self._thought_effect then
-      if priority >= self._thought_priority then
-         self:unset_thought(self._thought_uri)
-      else
-         return
+   return radiant.lib.Destructor(function()
+         self._thoughts[id] = nil
+         self:_update_thoughts()
+      end)
+end
+
+function ThoughtBubbleComponent:_add_thought(uri, priority)
+   local id = self._next_id
+   local thought = {
+      id = id,
+      uri = uri,
+      priority = priority or 0
+   }
+   self._thoughts[id] = thought
+   self._next_id = self._next_id + 1
+
+   return id
+end
+
+function ThoughtBubbleComponent:_update_thoughts()
+   local best = self:_get_best_thought()
+
+   if best ~= self._active_thought then
+      self._active_thought = best
+      if self._thought_effect then
+         self._thought_effect:stop()
+         self._thought_effect = nil
+      end
+      if best then
+         local id = best.id
+         self._thought_effect = radiant.effects.run_effect(self._entity, best.uri)
+         self._thought_effect:set_finished_cb(function()
+               self._thoughts[id] = nil
+               self:_update_thoughts()
+            end)
       end
    end
+end
 
-   self._thought_effect = radiant.effects.run_effect(self._entity, uri)
-   self._thought_uri = uri
-   self._thought_priority = priority
-
-   --self.__saved_variables:mark_changed()   
-   return self._thought_effect
+function ThoughtBubbleComponent:_get_best_thought()
+   local best, best_pri
+   for _, thought in pairs(self._thoughts) do
+      local pri = thought.priority
+      if not best or pri > best_pri then
+         best, best_pri = thought, pri
+      end
+   end
+   return best
 end
 
 function ThoughtBubbleComponent:unset_thought(uri)

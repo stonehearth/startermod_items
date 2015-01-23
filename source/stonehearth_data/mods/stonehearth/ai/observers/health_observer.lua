@@ -76,14 +76,14 @@ function HealthObserver:_change_toast(toast_uri, gaining_health)
    local direction_string, friendly_string
 
    --Is there an existing toast? If so, unthink it
-   if self._sv.last_toast_uri then
-      radiant.entities.unthink(self._entity, self._sv.last_toast_uri)
+   if self._thought then
+      self._thought:destroy()
+      self._thought = nil
    end
 
    --Put up the next toast uri
    if toast_uri then
-      radiant.entities.think(self._entity, toast_uri, stonehearth.constants.think_priorities.HEALTH)
-      self._sv.last_toast_uri = toast_uri
+      self._thought = radiant.entities.think(self._entity, toast_uri, stonehearth.constants.think_priorities.HEALTH)
 
       if gaining_health then
          direction_string = 'gain'

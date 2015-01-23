@@ -1,9 +1,8 @@
 {
-   "rock" : {
-      "num_rolls" : 1,
+   "grass" : {
+      "num_rolls" : 0,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 2 }
       ]
    },
    "dirt" : {
@@ -13,52 +12,59 @@
          { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 1 }
       ]
    },
-   "grass" : {
-      "num_rolls" : 0,
+   "rock" : {
+      "num_rolls" : 1,
       "items" : [
-         { "uri" : "", "weight" : 100 },
+         { "uri" : "", "weight" : 25 },
+         { "uri" : "stonehearth:resources:stone:hunk_of_stone", "weight" : 0.500 },
+         { "uri" : "stonehearth:resources:copper:ore",          "weight" : 0.100 },
+         { "uri" : "stonehearth:resources:tin:ore",             "weight" : 0.100 },
+         { "uri" : "stonehearth:resources:iron:ore",            "weight" : 0.070 },
+         { "uri" : "stonehearth:resources:coal:lump_of_coal",   "weight" : 0.070 },
+         { "uri" : "stonehearth:resources:silver:ore",          "weight" : 0.050 },
+         { "uri" : "stonehearth:resources:gold:ore",            "weight" : 0.025 }
       ]
    },
    "copper_ore" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:copper:ore", "weight" : 20 }
+         { "uri" : "stonehearth:resources:copper:ore", "weight" : 25 }
       ]
    },
    "tin_ore" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:tin:ore", "weight" : 20 }
+         { "uri" : "stonehearth:resources:tin:ore", "weight" : 25 }
       ]
    },
    "iron_ore" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:iron:ore", "weight" : 20 }
-      ]
-   },
-   "silver_ore" : {
-      "num_rolls" : 1,
-      "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:silver:ore", "weight" : 20 }
-      ]
-   },
-   "gold_ore" : {
-      "num_rolls" : 1,
-      "items" : [
-         { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:gold:ore", "weight" : 20 }
+         { "uri" : "stonehearth:resources:iron:ore", "weight" : 25 }
       ]
    },
    "coal" : {
       "num_rolls" : 1,
       "items" : [
          { "uri" : "", "weight" : 100 },
-         { "uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 20 }
+         { "uri" : "stonehearth:resources:coal:lump_of_coal", "weight" : 25 }
+      ]
+   },
+   "silver_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:silver:ore", "weight" : 25 }
+      ]
+   },
+   "gold_ore" : {
+      "num_rolls" : 1,
+      "items" : [
+         { "uri" : "", "weight" : 100 },
+         { "uri" : "stonehearth:resources:gold:ore", "weight" : 25 }
       ]
    }
 }

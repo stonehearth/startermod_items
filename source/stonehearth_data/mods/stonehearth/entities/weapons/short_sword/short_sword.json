@@ -1,0 +1,61 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+       "model_variants": {
+         "default" : {
+            "models": [
+               "file(short_sword_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(short_sword_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "ilevel" : 9,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      },
+
+      "unit_info": {
+         "name": "Short Sword",
+         "description": "Stubby, but its steel blade keeps an edge.",
+         "icon" : "file(short_sword.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "short melee_weapon"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 18,
+         "reach" : 1.5
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_backhand",
+            "active_frame" : 17,
+            "cooldown" : 0,
+            "priority" : 0
+         },
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }      
+      ],
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_parry",
+            "active_frame" : 4,
+            "cooldown" : 8000,
+            "priority" : 0
+         }
+      ]
+   }
+}

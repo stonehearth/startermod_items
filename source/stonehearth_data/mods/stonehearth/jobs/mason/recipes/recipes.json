@@ -1,16 +1,25 @@
 {
    "craftable_recipes" : {
-      "tools_weapons" : {
+      "tools" : {
          "ordinal" : 1, 
-         "name" : "Tools & Weapons", 
+         "name" : "Tools", 
          "recipes" : {
             "blacksmith_hammner" : {
                "recipe" : "file(blacksmith_hammer_recipe.json)"
             }
          }
       },
-      "building_parts" : {
+      "weapons" : {
          "ordinal" : 2, 
+         "name" : "Weapons", 
+         "recipes" : {
+            "stone_maul" : {
+               "recipe" : "file(stone_maul_recipe.json)"
+            }
+         }
+      },
+      "building_parts" : {
+         "ordinal" : 3, 
          "name" : "Building Parts", 
          "recipes" : {
             "stone_bricks" : {
@@ -25,7 +34,7 @@
          }
       },
       "furniture" : {
-         "ordinal" : 3, 
+         "ordinal" : 4, 
          "name" : "Furniture", 
          "recipes" : {
             "stone_chair" : {
@@ -40,7 +49,7 @@
          }
       },
       "signage_decoration" : {
-         "ordinal" : 4, 
+         "ordinal" : 5, 
          "name" : "Signage & Decoration",
          "recipes" : {
             "bird_bath" : {

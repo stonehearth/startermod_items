@@ -95,16 +95,16 @@ function MicroMapGenerator:generate_underground_micro_map(surface_micro_map)
          -- quantize the filtered value
          rock_elevation = quantizer:quantize(underground_micro_map[i])
 
+         -- make sure the sides of the rock faces stay beneath the surface
+         -- e.g. we don't want a drop in an adjacent foothills block to expose the rock
+         if rock_elevation > surface_elevation - mountains_step_size then
+            rock_elevation = rock_elevation - mountains_step_size
+         end
+
          -- make sure we have a layer of rock beneath everything
          if rock_elevation <= 0 then
             rock_elevation = rock_line
          end
-      end
-
-      -- make sure the sides of the rock faces stay beneath the surface
-      -- e.g. we don't want a drop in an adjacent foothills block to expose the rock
-      if rock_elevation > surface_elevation - mountains_step_size then
-         rock_elevation = rock_elevation - mountains_step_size
       end
 
       underground_micro_map[i] = rock_elevation

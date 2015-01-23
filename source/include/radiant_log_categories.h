@@ -5,7 +5,10 @@
    ADD_CATEGORY(browser) \
    ADD_CATEGORY(network) \
    ADD_CATEGORY(deferred) \
-   ADD_CATEGORY(client) \
+   BEGIN_GROUP(client) \
+      ADD_CATEGORY(core) \
+      ADD_CATEGORY(clock) \
+   END_GROUP(client) \
    ADD_CATEGORY(app) \
    ADD_CATEGORY(resources) \
    ADD_CATEGORY(sysinfo) \

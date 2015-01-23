@@ -77,6 +77,11 @@
    "new_game_place_stockpile" : "Click me to place your stockpile",
    "new_game_setup_finished_button" : "Ok, got it",
 
+   "attack_banner_button" : "Attack Order",
+   "attack_banner_button_help" : "Tell the party to assault a location",
+   "defend_banner_button" : "Rally & Defend Order",
+   "defend_banner_button_help" : "Tell the party to rally to a location when Town Defense Mode is activated",
+
    "plains_1"    : "Plains",
    "plains_2"    : "Plains",
    "foothills_1" : "Foothills",
@@ -94,13 +99,18 @@
    "vegetation_2" : "Average",
    "vegetation_3" : "Dense",
    "vegetation_4" : "Lush",
-   "vegetation_5" : "Ridiculously Lush",
 
    "wildlife_0": "Desolate",
    "wildlife_1": "Scarce",
    "wildlife_2": "Common",
    "wildlife_3": "Plentiful",
    "wildlife_4": "Abundant",
+
+   "mineral_0": "None",
+   "mineral_1": "Sparse",
+   "mineral_2": "Infrequent",
+   "mineral_3": "Common",
+   "mineral_4": "Ample",
 
    "esc_menu_resume": "Resume",
    "esc_menu_save": "Save Game",
@@ -405,7 +415,7 @@
    "generalPerks" : "General Perks",
    "retired" : "Retired at:",
 
-   "red_alert": "Red Alert!",
+   "red_alert": "Town Defense Mode Activated!",
    "red_alert_text": "Your workers have stopped their jobs and are vigilantly watching for intruduers.",
 
    "start_building" : "Build!",
@@ -436,12 +446,13 @@
 
    "create_party" : "Create Party",
    "edit_party" : "Edit",
-   "add_party_member" : "Manage Roster",
+   "add_party_member" : "Add Member",
+   "disband_party" : "Disband",
    "add_party_member_title" : "Manage Roster",
    "done_adding_members" : "Done",
    "add_party_member_button" : "Add",
    "remove_party_member_button" : "Remove",
-   "not_in_party" : "No party",
+   "not_in_party" : "Not in a party",
    "party_help" : "Party members will travel together and can be directed on the battlefield.",
    "party_editor_help" : "Use this screen to add and remove hearthlings to the party."   
 }

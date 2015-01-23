@@ -18,7 +18,7 @@ class RenderTerrainLayer;
 
 DECLARE_SHARED_POINTER_TYPES(RenderNode)
 
-#define CLIENT_LOG(level)     LOG(client, level)
+#define CLIENT_LOG(level)     LOG(client.core, level)
 
 END_RADIANT_CLIENT_NAMESPACE
 

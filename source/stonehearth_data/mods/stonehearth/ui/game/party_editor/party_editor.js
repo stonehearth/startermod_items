@@ -1,4 +1,8 @@
-App.StonehearthPartyEditorView = App.View.extend({
+//
+// App.StonehearthPartyEditorBase is defined in parties.js.  It handles
+// the behavior of the attack and defend buttons
+//
+App.StonehearthPartyEditorView = App.StonehearthPartyEditorBase.extend({
 	templateName: 'partyEditor',
    uriProperty: 'model',
    closeOnEsc: true,
@@ -19,10 +23,25 @@ App.StonehearthPartyEditorView = App.View.extend({
             $(this).blur();
          }
       });
+
+      this.$('.bannerButton').each(function() {
+         $(this).tooltipster({
+            content: $('<div class=title>' + $(this).attr('title') + '</div>' + 
+                       '<div class=description>' + $(this).attr('description') + '</div>')
+         });
+      });
+
    },
 
    actions: {
-      editRoster: function(command) {
+      disband: function() {
+         var party = this.get('model');
+         if (party) {
+            radiant.call_obj('stonehearth.unit_control', 'disband_party_command', party.id);
+         }
+         this.destroy();
+      },
+      editRoster: function() {
          if (!this._addMemberView || this._addMemberView.isDestroyed) {
             var party = this.get('model');
             this._addMemberView = App.gameView.addView(App.StonehearthPartyEditorEditRosterView, { 'party' : party.__self });
@@ -45,6 +64,10 @@ App.StonehearthPartyEditorView = App.View.extend({
       }
    }.observes('uri'),
 
+   _setSelected: function() {
+      var party = this.get('model');
+      radiant.call_obj('stonehearth.party_editor', 'select_party_command', party.id);
+   }.observes('model'),
 });
 
 
@@ -128,10 +151,23 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
       },
    },
 
+   didInsertElement: function() {
+      var inParty = this.get('in_current_party');
+      if (inParty) {
+         this.$().hide();
+      } else {
+         this.$().show();
+      }
+   },
+
    actions: {
       addPartyMember: function(citizen) {
+         var self = this;
          var party = this.get('party');
          radiant.call_obj(party, 'add_member_command', citizen.__self)
+                  .done(function(response) {
+                     self.$().hide();
+                  })
                   .fail(function(response) {
                      console.log('failed to add party member', response);
                   });
@@ -151,6 +187,6 @@ App.StonehearthPartyEditorEditRosterRowView = App.View.extend({
       var viewPartyUri = this.get('party');
       var citizenPartyUri = this.get('model.stonehearth:party_member.party.__self');
       return viewPartyUri == citizenPartyUri;
-   }.property('model.stonehearth:party_member.party', 'view.party'),
+   }.property('model.stonehearth:party_member.party', 'party'),
 
 });

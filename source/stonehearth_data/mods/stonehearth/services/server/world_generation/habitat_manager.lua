@@ -5,6 +5,7 @@ local log = radiant.log.create_logger('world_generation')
 local HabitatManager = class()
 
 local habitat_types = {
+   none      = true,
    occupied  = true,
    plains    = true,
    foothills = true,
@@ -59,7 +60,7 @@ function HabitatManager:_get_habitat_type(terrain_type, feature_name)
       return 'foothills'
    end
    log:error('Unable to derive habitat_type')
-   return 'occupied'
+   return 'none'
 end
 
 return HabitatManager

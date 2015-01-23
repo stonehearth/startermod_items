@@ -89,21 +89,23 @@ void LightNode::dirtyCubeFrustums()
 
 void LightNode::reallocateShadowBuffer(int size)
 {
-   if (_shadowMapBuffer) {
-      gRDI->destroyRenderBuffer(_shadowMapBuffer);
-      _shadowMapBuffer = 0;
+   if (!_directional) {
+      if (_shadowMapBuffer) {
+         gRDI->destroyRenderBuffer(_shadowMapBuffer);
+         _shadowMapBuffer = 0;
+      }
    }
-
    _shadowMapSize = size;
 
-   if (_shadowMapSize == 0) {
+   if (_shadowMapSize == 0 || _shadowMapCount == 0) {
       _shadowMapCount = 0;
       return;
    }
 
    if (Modules::config().getOption(EngineOptions::EnableShadows)) {
       if (_directional) {
-         _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::BGRA8, true, 0, 0);
+         // For now, use a global 'master' shadow cascade buffer for directional lights.
+         _shadowMapBuffer = gRenderer->getShadowCascadeBuffer();
       } else {
          _shadowMapBuffer = gRDI->createRenderBuffer(_shadowMapSize, _shadowMapSize, TextureFormats::R32, true, 1, 0, 0, true);
          dirtyCubeFrustums();

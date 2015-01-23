@@ -368,15 +368,9 @@ end
 
 function entities.think(entity, uri, priority)
    radiant.check.is_entity(entity)
-   entity:add_component('stonehearth:thought_bubble'):set_thought(uri, priority)
+   return entity:add_component('stonehearth:thought_bubble'):add_thought(uri, priority)
 end
 
-function entities.unthink(entity, uri)
-   radiant.check.is_entity(entity)
-   if entity and entity:is_valid() then
-      entity:add_component('stonehearth:thought_bubble'):unset_thought(uri)
-   end
-end
 
 -- Add an existing item to the entity's equipment component
 function entities.equip_item(entity, item)

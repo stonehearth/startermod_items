@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Short Sword",
+   "description": "Stubby, but its steel blade keeps an edge.",
+   "portrait"    : "/stonehearth/entities/weapons/short_sword/short_sword.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:steel_ingot",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:weapons:short_sword"
+      }
+  ]
+}

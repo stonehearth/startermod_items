@@ -2,5 +2,11 @@
    "mixins" : "file(../ore_vein)",
    "name" : "silver_vein",
    "kind" : "silver_ore",
-   "weight" : 75
+   "weight" : 55,
+
+   "data" : {
+      "vein_radius" : 1,
+      "mother_lode_radius_min" : 2,
+      "mother_lode_radius_max" : 4
+   }
 }

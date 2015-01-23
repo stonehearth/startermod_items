@@ -27,9 +27,9 @@
             }
          }
       },
-      "tools_weapons" : {
-         "ordinal" : 1, 
-         "name" : "Tools & Weapons", 
+      "tools" : {
+         "ordinal" : 4, 
+         "name" : "Tools", 
          "recipes" : {
             "carpenter_saw" : {
                "recipe" : "file(carpenter_saw_recipe.json)"
@@ -39,12 +39,36 @@
             }  
          }
       },      
+      "weapons" : {
+         "ordinal" : 8, 
+         "name" : "Weapons", 
+         "recipes" : {
+            "bronze_sword" : {
+               "recipe" : "file(bronze_sword_recipe.json)"
+            }  ,
+            "short_sword" : {
+               "recipe" : "file(short_sword_recipe.json)"
+            },
+            "long_sword" : {
+               "recipe" : "file(long_sword_recipe.json)"
+            },
+            "iron_mace" : {
+               "recipe" : "file(iron_mace_recipe.json)"
+            },
+            "iron_pike" : {
+               "recipe" : "file(iron_pike_recipe.json)"
+            },
+            "bronze_mace" : {
+               "recipe" : "file(bronze_mace_recipe.json)"
+            }
+         }
+      },      
       "armor" : {
-         "ordinal" : 2, 
+         "ordinal" : 12, 
          "name" : "Armor",
          "recipes" : {
-            "copper_breastplate" : {
-               "recipe" : "file(copper_breastplate_recipe.json)"
+            "bronze_breastplate" : {
+               "recipe" : "file(bronze_breastplate_recipe.json)"
             },
             "iron_mail" : {
                "recipe" : "file(iron_mail_recipe.json)"

@@ -51,6 +51,9 @@ function CompoundAction:__init(entity, injecting_entity, action_ctor, activities
             assert(#self._previous_think_output == 1)
             self:_start_thinking_on_frame(1)
          end,
+         abort = function(_, ...)
+            self._ai:abort(...)
+         end,
          clear_think_output = function(_)
             if self._thinking then
                self._log:debug('compound action called clear_think_output while thinking.  restarting thinking.')

@@ -72,7 +72,8 @@ function ScenarioIndex:_sort_scenarios(scenarios)
          return area_a > area_b 
       end
 
-      return a.weight > b.weight
+      -- rare scenarios sorted to lower index
+      return a.weight < b.weight
    end
 
    table.sort(scenarios, comparator)
@@ -116,12 +117,10 @@ function ScenarioIndex:_parse_scenario_index(json)
          log:error('Error parsing "%s": Category "%s" has not been defined.', file, tostring(properties.category))
       end
 
-      if category.location_type == 'surface' then
-         -- parse habitat types
-         error_message = self:_parse_habitat_types(properties)
-         if error_message then
-            log:error('Error parsing "%s": "%s"', file, error_message)
-         end
+      -- parse habitat types
+      error_message = self:_parse_habitat_types(properties)
+      if error_message then
+         log:error('Error parsing "%s": "%s"', file, error_message)
       end
    end
 

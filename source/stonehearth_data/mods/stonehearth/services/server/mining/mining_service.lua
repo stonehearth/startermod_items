@@ -26,8 +26,8 @@ function MiningService:initialize()
 
    self._sv = self.__saved_variables:get_data()
 
-   if not self._sv.initialized then
-      self._sv.initialized = true
+   if not self._sv._initialized then
+      self._sv._initialized = true
    else
    end
 

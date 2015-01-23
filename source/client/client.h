@@ -99,7 +99,6 @@ class Client : public core::Singleton<Client> {
       void RemoveObjects(const tesseract::protocol::RemoveObjects& msg);
       void UpdateDebugShapes(const tesseract::protocol::UpdateDebugShapes& msg);
       void DefineRemoteObject(const tesseract::protocol::DefineRemoteObject& msg);
-      void LoadGame(const tesseract::protocol::LoadGame& msg);
 
       void mainloop();
       void setup_connections();
@@ -164,6 +163,7 @@ class Client : public core::Singleton<Client> {
       void RestoreDatastores();
       rpc::ReactorDeferredPtr StartPerformanceCounterPush();
       void PushPerformanceCounters();
+
 private:
       /*
        * The type of DestroyCursor is WINUSERAPI BOOL WINAPI (HCURSOR).  Strip off all
@@ -264,9 +264,11 @@ private:
       rpc::ReactorDeferredPtr     load_progress_deferred_;
       rpc::ReactorDeferredPtr     server_load_deferred_;
       rpc::ReactorDeferredPtr     perf_counter_deferred_;
+      rpc::ReactorDeferredPtr     server_save_deferred_;
       int                         _lastSequenceNumber;
 
       bool                        loading_;
+      std::string                 loadError_;
 };
 
 END_RADIANT_CLIENT_NAMESPACE

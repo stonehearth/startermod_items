@@ -217,6 +217,7 @@ public:
 	CameraNode *getCurCamera() const { return _curCamera; }
 	uint32 getQuadIdxBuf() { return _quadIdxBuf; }
 	uint32 getParticleVBO() { return _particleVBO; }
+   uint32 getShadowCascadeBuffer() const { return _shadowCascadeBuffer; }
 
    uint32 getClipspaceLayout() { return _vlClipspace; }
    uint32 getPosColTexLayout() { return _vlPosColTex; }
@@ -299,6 +300,7 @@ protected:
 	uint32                             _defShadowMap;
 	uint32                             _quadIdxBuf;
 	uint32                             _particleVBO;
+   uint32                             _shadowCascadeBuffer;
 
    PipelineResource                   *_curPipeline;
 	MaterialResource                   *_curStageMatLink;

@@ -1,14 +1,14 @@
 {
    "components": {
       "unit_info": {
-         "name": "Attack Banner",
-         "description": "Attack!!!!"
+         "name": "Defend Banner",
+         "description": "Hold this ground in Town Defense mode"
       },
 
       "model_variants": {
          "default": {
             "models": [
-               "file(control_attack_banner.qb)"
+               "file(control_defend_banner.qb)"
             ]
          }
       },

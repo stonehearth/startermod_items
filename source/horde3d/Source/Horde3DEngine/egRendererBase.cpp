@@ -466,6 +466,11 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 		ASSERT( 0 );
 		break;
 	};
+
+   if (_enable_gl_validation) {
+      Modules::log().writeInfo("Available GPU Mem: %f", Modules::stats().getStat(EngineStats::AvailableGpuMemory, false));
+      Modules::log().writeInfo("Allocating texture type %d %dx%dx%d (%d)", type, width, height, depth, format);
+   }
 	
 	glGenTextures( 1, &tex.glObj );
 	glActiveTexture( GL_TEXTURE15 );
@@ -919,6 +924,11 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
    rb.width = width;
    rb.height = height;
    rb.samples = samples;
+
+   if (_enable_gl_validation) {
+      Modules::log().writeInfo("Available GPU Mem: %f", Modules::stats().getStat(EngineStats::AvailableGpuMemory, false));
+      Modules::log().writeInfo("Creating render buffer (%d) %dx%d depth=%d numColBufs=%d samples=%d cubemap=%d", format, width, height, depth, numColBufs, samples, cubeMap);
+   }
 
 	// Create framebuffers
 	glGenFramebuffersEXT( 1, &rb.fbo );

@@ -15,13 +15,21 @@ function SettlementTest:__init()
    radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
-   stonehearth.inventory:get_inventory('player_1')
-                           :create_stockpile(Point3(14, 1, 14), Point2(4, 4))
-   self:place_item_cluster('stonehearth:resources:wood:oak_log', 14, 14, 4, 4)
-                     
+
+   local function create_stockpile(x, z)
+      stonehearth.inventory:get_inventory('player_1')
+                              :create_stockpile(Point3(x, 1, z), Point2(4, 4))
+      self:place_item_cluster('stonehearth:resources:wood:oak_log', x, z, 4, 4)
+   end
+
+   create_stockpile(14, 14)
+   create_stockpile(10, 8)
+   create_stockpile(2, 16)
 
    -- send in the goblins!!
-   stonehearth.game_master:start()
+   radiant.set_realtime_timer(500, function()
+         stonehearth.game_master:start()
+      end)
    
    -- just for fun...
    --[[

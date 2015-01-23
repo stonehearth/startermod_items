@@ -1,0 +1,22 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Iron Mace",
+   "description" : "Heavy, it packs a whallop.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/weapons/iron_mace/iron_mace.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:iron_ingot",
+         "count" : 2
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:weapons:iron_mace"
+      }
+  ]
+}

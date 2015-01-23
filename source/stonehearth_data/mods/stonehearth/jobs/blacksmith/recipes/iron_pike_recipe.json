@@ -1,0 +1,26 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Iron pike",
+   "description" : "Sharp. Long. Pointy.",
+   "flavor"      : "",
+   "portrait"    : "/stonehearth/entities/weapons/iron_pike/iron_pike.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:iron_ingot",
+         "count" : 1
+      },
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:weapons:iron_pike"
+      }
+  ]
+}

@@ -83,7 +83,7 @@ local function compute_log_prefix(prefix, entity)
    local entity_prefix
    if entity then
       local name = radiant.entities.get_name(entity)
-      entity_prefix = 'e:' .. tostring(entity:get_id())
+      entity_prefix = 'e:' .. (entity:is_valid() and tostring(entity:get_id()) or 'invalid')
       if name then
          entity_prefix = entity_prefix .. ' ' .. name .. ' '
       end

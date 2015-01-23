@@ -110,7 +110,6 @@ function StructureEraser:_add_tool_selection_capture()
 end
 
 function StructureEraser:_switch_tool(tool_name, hover_entity)
-   radiant.log.write('', 0, 'switching to %s', tostring(tool_name))
    self:_remove_tool_selection_capture()
 
    if self._current_tool then
@@ -132,7 +131,7 @@ function StructureEraser:_start_erase_floor_tool()
    return stonehearth.selection:select_xz_region()
       :require_unblocked(false)
       :select_front_brick(false)
-      :set_find_support_filter(stonehearth.selection.make_delete_floor_xz_region_filter())
+      :set_find_support_filter(stonehearth.selection.make_delete_floor_xz_region_support_filter())
       :set_cursor('stonehearth:cursors:create_floor')
       :use_manual_marquee(function(selector, box)
             local n = _radiant.client.create_voxel_node(1, Region3(box), 'materials/blueprint.material.json', Point3(0.5, 0, 0.5))

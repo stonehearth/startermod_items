@@ -26,17 +26,16 @@ function MasonTest:__init()
 
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14, 'mason')
-   self:place_citizen(14, 14)
 
    local player_id = radiant.entities.get_player_id(worker)
-   self:place_item('stonehearth:decoration:loot_chest', 1, 1, player_id, { force_iconic = false })
+
    self:place_item('stonehearth:decoration:crate', 6, 1, player_id, { force_iconic = false })
    self:place_item('stonehearth:monsters:goblins:skull_stake', 9, 1, player_id, { force_iconic = false })
    self:place_item('stonehearth:monsters:goblins:banner',11, 1, player_id, { force_iconic = false })
    self:place_item('stonehearth:decoration:tower_brazier', 3, 1, player_id, { force_iconic = false })
    
    self:at(2000,  function()
-         stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
+         --stonehearth.calendar:set_time_unit_test_only({ hour = 22, minute = 38 })
          --stonehearth.dynamic_scenario:force_spawn_scenario('candledark:scenarios:candledark')
          --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:quests:collect_starting_resources')   
       end)

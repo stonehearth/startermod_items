@@ -44,13 +44,22 @@ function HeightMapRenderer:__init(terrain_info)
       foothills = self._add_foothills_to_region,
       mountains = self._add_mountains_to_region
    }
+
+   self._show_tile_boundaries = radiant.util.get_config('show_tile_boundaries', false)
 end
 
 function HeightMapRenderer:add_region_to_terrain(region3, offset_x, offset_y)
-   local clipper = Rect2(
-      Point2(offset_x, offset_y),
-      Point2(offset_x + self._tile_size, offset_y + self._tile_size)
-   )
+   local clipper
+
+   if not self._show_tile_boundaries then
+      clipper = Rect2(
+         Point2(offset_x, offset_y),
+         Point2(offset_x + self._tile_size, offset_y + self._tile_size)
+      )
+   else
+      clipper = Rect2(Point2(0, 0), Point2(0, 0))
+   end
+
    region3:translate(Point3(offset_x, 0, offset_y))
    self._terrain:add_tile_clipped(region3, clipper)
 end
@@ -88,31 +97,6 @@ function HeightMapRenderer:_convert_height_map_to_region3(height_map, add_fn)
    end
 
    return region3
-end
-
-function HeightMapRenderer:_add_surface_to_region(region3, height_map)
-   local region2 = Region2()
-   self:_convert_height_map_to_region2(region2, height_map)
-
-   for rect in region2:each_cube() do
-      local height = rect.tag
-      if height > 0 then
-         self:_add_land_to_region(region3, rect, height);
-      end
-   end
-end
-
-function HeightMapRenderer:_add_underground_to_region(region3, underground_height_map)
-   local region3 = Region3()
-   local region2 = Region2()
-   self:_convert_height_map_to_region2(region2, height_map)
-
-   for rect in region2:each_cube() do
-      local height = rect.tag
-      if height > 0 then
-         self:_add_land_to_region(region3, rect, height);
-      end
-   end
 end
 
 function HeightMapRenderer:_convert_height_map_to_region2(region2, height_map)
