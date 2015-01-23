@@ -122,6 +122,7 @@ App.StonehearthEmbarkView = App.View.extend({
          terrainType = i18n.t(cell.terrain_code);
          vegetationDescription = i18n.t('vegetation_' + cell.vegetation_density);
          wildlifeDescription = i18n.t('wildlife_' + cell.wildlife_density);
+         mineralDescription = i18n.t('mineral_' + cell.mineral_density);
 
          if (cell.terrain_code != this._prevTerrainCode) {
             var portrait = 'url(/stonehearth/ui/shell/embark/images/' + cell.terrain_code + '.png)'
@@ -142,6 +143,10 @@ App.StonehearthEmbarkView = App.View.extend({
             .addClass('level' + cell.wildlife_density)
             .html(wildlifeDescription);
 
+         self.$('#minerals')
+            .removeAttr('class')
+            .addClass('level' + cell.mineral_density)
+            .html(mineralDescription);
       } else {
          self.$('#scroll').hide();
       }
