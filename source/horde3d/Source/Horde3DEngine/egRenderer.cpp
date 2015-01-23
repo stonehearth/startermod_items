@@ -813,74 +813,57 @@ void Renderer::commitGeneralUniforms()
 	}
 }
 
-bool Renderer::findShaderCombination(std::vector<PShaderResource> const& shaders, std::string const& context, ShaderResource** sr, ShaderContext** scx, ShaderCombination** sc) const
+ShaderCombination* Renderer::findShaderCombination(ShaderResource* sr) const
 {
-   // Find a shader context/combination to match, compiling if necessary.
-   for (auto& shader : shaders) {
-      *scx = shader->findContext(context);
-      if (*scx) {
-         for (auto& comb : (*scx)->shaderCombinations)
-         {
-            *sc = &comb;
+   ShaderCombination* sc = nullptr;
+   // Find a shader combination to match, compiling if necessary.
+   for (auto& comb : sr->shaderCombinations)
+   {
+      sc = &comb;
 
-            // Check to see that every single flag in the engine has a corresponding flag set in the shader.
-            for (const auto& flag : Modules().config().shaderFlags)
-            {
-               if ((*sc)->engineFlags.find(flag) == (*sc)->engineFlags.end()) {
-                  *sc = nullptr;
-                  break;
-               }
-            }
-
-            // Also!  Check to see that every flag in the shader has a corresponding flag in the engine.
-            if (*sc != nullptr) {
-               if ((*sc)->engineFlags.size() == Modules().config().shaderFlags.size()) {
-                  break;
-               }
-               *sc = nullptr;
-            }
-         }
-
-         // If this is a new combination of engine flags, compile a new combination.
-         if (*sc == 0x0)
-         {
-            (*scx)->shaderCombinations.push_back(ShaderCombination());
-            ShaderCombination& sco = (*scx)->shaderCombinations.back();
-            for (const auto& flag : Modules().config().shaderFlags) {
-               sco.engineFlags.insert(flag);
-            }
-
-            shader->compileCombination(**scx, sco);
-            *sc = &(*scx)->shaderCombinations.back();
-         }
-
-         if (*sc) {
-            *sr = shader;
+      // Check to see that every single flag in the engine has a corresponding flag set in the shader.
+      for (const auto& flag : Modules().config().shaderFlags)
+      {
+         if (sc->engineFlags.find(flag) == sc->engineFlags.end()) {
+            sc = nullptr;
             break;
          }
       }
+
+      // Also!  Check to see that every flag in the shader has a corresponding flag in the engine.
+      if (sc != nullptr) {
+         if (sc->engineFlags.size() == Modules().config().shaderFlags.size()) {
+            break;
+         }
+         sc = nullptr;
+      }
    }
 
-   if (*sr == nullptr) {
-      *scx = nullptr;
-      *sr = nullptr;
-      *sc = nullptr;
+   // If this is a new combination of engine flags, compile a new combination.
+   if (sc == 0x0)
+   {
+      sr->shaderCombinations.push_back(ShaderCombination());
+      ShaderCombination& sco = sr->shaderCombinations.back();
+      for (const auto& flag : Modules().config().shaderFlags) {
+         sco.engineFlags.insert(flag);
+      }
+
+      sr->compileCombination(sco);
+      sc = &sr->shaderCombinations.back();
+   }
+   return sc;
+}
+
+bool Renderer::isShaderContextSwitch(std::string const& newContext, MaterialResource* materialRes) const
+{
+   PShaderResource sr = materialRes->getShader(newContext);
+   ShaderCombination* sc = nullptr;
+
+   if (sr.getPtr() == nullptr) {
       return false;
    }
 
-   return true;
-}
-
-bool Renderer::isShaderContextSwitch(std::string const& newContext, MaterialResource const* materialRes) const
-{
-   ShaderResource* sr = nullptr;
-   ShaderContext* sx = nullptr;
-   ShaderCombination* sc = nullptr;
-
-   if (findShaderCombination(materialRes->getShaders(), newContext, &sr, &sx, &sc)) {
-   	return sc != _curShader;
-   }
-   return false;
+   return findShaderCombination(sr) != _curShader;
 }
 
 
@@ -892,15 +875,14 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       return false;
    }
 
-   ShaderResource* shaderRes = nullptr;
-   ShaderContext* context = nullptr;
-   ShaderCombination* sc = nullptr;
+   PShaderResource shaderRes = materialRes->getShader(shaderContext);
 
-   if (!findShaderCombination(materialRes->getShaders(), shaderContext, &shaderRes, &context, &sc)) {
+   if (!shaderRes) {
       MAT_LOG(7) << materialRes->getName() << " has no suitable shader in setMaterialRec.";
       return false;
    }
 
+   ShaderCombination* sc = findShaderCombination(shaderRes);
    ShaderStateResource* stateRes = materialRes->getShaderState(shaderContext);
 
    // Set shader combination

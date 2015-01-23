@@ -101,6 +101,7 @@ public:
    std::vector<MatSampler>& getSamplers() { return _samplers; }
    MatUniform* getUniform(uint32 shaderHandle, std::string const& name);
    PShaderStateResource getShaderState(std::string const& context) { return _context_to_shader_state[context]; }
+   PShaderResource getShader(std::string const& context) { return _context_to_shader_map[context]; }
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );

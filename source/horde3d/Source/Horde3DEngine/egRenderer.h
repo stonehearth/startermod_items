@@ -29,7 +29,6 @@ class MaterialResource;
 class LightNode;
 class CameraNode;
 class VoxelMeshNode;
-struct ShaderContext;
 
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
@@ -229,8 +228,8 @@ public:
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
 protected:
-   bool findShaderCombination(std::vector<PShaderResource> const& r, std::string const& context, ShaderResource** sr, ShaderContext** scx, ShaderCombination** sc) const;
-   bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes) const;
+   ShaderCombination* findShaderCombination(ShaderResource* sr) const;
+   bool isShaderContextSwitch(std::string const& curContext, MaterialResource *materialRes) const;
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
 	

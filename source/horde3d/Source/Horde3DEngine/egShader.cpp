@@ -225,16 +225,15 @@ void CodeResource::updateShaders()
       if (res && res->getType() == ResourceTypes::Shader ) {
          ShaderResource *shaderRes = (ShaderResource *)res;
 
-         // Mark shaders using this code as uncompiled
-         for( uint32 j = 0; j < shaderRes->getContexts().size(); ++j )
-         {
-            ShaderContext &context = shaderRes->getContexts()[j];
+         if (shaderRes->vertCodeIdx == -1 || shaderRes->fragCodeIdx == -1) {
+            continue;
+         }
 
-            if( shaderRes->getCode( context.vertCodeIdx )->hasDependency( this ) ||
-               shaderRes->getCode( context.fragCodeIdx )->hasDependency( this ) )
-            {
-               context.compiled = false;
-            }
+         // Mark shaders using this code as uncompiled
+         if( shaderRes->getCode( shaderRes->vertCodeIdx )->hasDependency( this ) ||
+            shaderRes->getCode( shaderRes->fragCodeIdx )->hasDependency( this ) )
+         {
+            shaderRes->compiled = false;
          }
 
          // Recompile shaders
@@ -269,20 +268,19 @@ ShaderResource::~ShaderResource()
 
 void ShaderResource::initDefault()
 {
+   vertCodeIdx = -1;
+   fragCodeIdx = -1;
+   compiled = false;
 }
 
 
 void ShaderResource::release()
 {
-	for( uint32 i = 0; i < _contexts.size(); ++i )
-	{
-      for (auto& combination : _contexts[i].shaderCombinations)
-      {
-		   gRDI->destroyShader( combination.shaderObj );
-      }
-	}
+   for (auto& combination : shaderCombinations)
+   {
+		gRDI->destroyShader(combination.shaderObj);
+   }
 
-	_contexts.clear();
 	_samplers.clear();
 	_uniforms.clear();
 	_codeSections.clear();
@@ -557,6 +555,13 @@ bool ShaderResource::load(const char *data, int size)
 				// Add section as private code resource which is not managed by resource manager
 				_tmpCode0.assign( sectionNameStart, sectionNameEnd );
 				_codeSections.push_back( CodeResource( _tmpCode0, 0 ) );
+
+            if (_tmpCode0 == "VS") {
+               vertCodeIdx = _codeSections.size() - 1;
+            } else {
+               fragCodeIdx = _codeSections.size() - 1;
+            }
+
 				_tmpCode0.assign( sectionContentStart, sectionContentEnd );
 				_codeSections.back().load( _tmpCode0.c_str(), (uint32)_tmpCode0.length() );
 			}
@@ -576,10 +581,9 @@ bool ShaderResource::load(const char *data, int size)
 }
 
 
-void ShaderResource::compileCombination(ShaderContext &context, ShaderCombination &combination)
+void ShaderResource::compileCombination(ShaderCombination &combination)
 {
-	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
-		_name.c_str(), context.id.c_str() );
+	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s ----", _name.c_str());
 	// Add preamble
 	_tmpCode0 = _vertPreamble;
 	_tmpCode1 = _fragPreamble;
@@ -599,11 +603,9 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 	_tmpCode1 += "// ---------------\r\n";
 
 	// Add actual shader code
-	_tmpCode0 += getCode( context.vertCodeIdx )->assembleCode();
-	_tmpCode1 += getCode( context.fragCodeIdx )->assembleCode();
+	_tmpCode0 += getCode(vertCodeIdx)->assembleCode();
+	_tmpCode1 += getCode(fragCodeIdx)->assembleCode();
 
-	
-	
 	// Unload shader if necessary
    if( combination.shaderObj != 0 )
 	{
@@ -614,8 +616,7 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 	// Compile shader
 	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), combination ) )
 	{
-		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' ",
-			_name.c_str(), context.id.c_str() );
+		Modules::log().writeError( "Shader resource '%s': Failed to compile shader.", _name.c_str());
 
 		if( Modules::config().dumpFailedShaders )
 		{
@@ -659,33 +660,30 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 
 void ShaderResource::compileContexts()
 {
-	for( uint32 i = 0; i < _contexts.size(); ++i )
-	{
-		ShaderContext &context = _contexts[i];
+   if (vertCodeIdx == -1 || fragCodeIdx == -1) {
+      return;
+   }
 
-		if(!context.compiled)
+	if(!compiled)
+	{
+		if( !getCode(vertCodeIdx)->tryLinking() ||
+			 !getCode(fragCodeIdx)->tryLinking() )
 		{
-			if( !getCode(context.vertCodeIdx)->tryLinking() ||
-			    !getCode(context.fragCodeIdx)->tryLinking() )
-			{
-				continue;
-			}
-		
-         for (auto& combination : context.shaderCombinations)
-         {
-			   compileCombination(context, combination);
-         }
-			context.compiled = true;
+			return;
 		}
-	}
+		
+      for (auto& combination : shaderCombinations)
+      {
+			compileCombination(combination);
+      }
+		compiled = true;
+   }
 }
 
 int ShaderResource::getElemCount( int elem )
 {
 	switch( elem )
 	{
-	case ShaderResData::ContextElem:
-		return (int)_contexts.size();
 	case ShaderResData::SamplerElem:
 		return (int)_samplers.size();
 	case ShaderResData::UniformElem:
@@ -766,16 +764,6 @@ const char *ShaderResource::getElemParamStr( int elem, int elemIdx, int param )
 {
 	switch( elem )
 	{
-	case ShaderResData::ContextElem:
-		if( (unsigned)elemIdx < _contexts.size() )
-		{
-			switch( param )
-			{
-			case ShaderResData::ContNameStr:
-				return _contexts[elemIdx].id.c_str();
-			}
-		}
-		break;
 	case ShaderResData::SamplerElem:
 		if( (unsigned)elemIdx < _samplers.size() )
 		{

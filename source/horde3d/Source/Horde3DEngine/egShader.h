@@ -115,22 +115,6 @@ struct ShaderCombination
 	}
 };
 
-
-struct ShaderContext
-{
-   std::string                       id;
-
-   // Shaders
-   std::vector<ShaderCombination>    shaderCombinations;
-   int                               vertCodeIdx, fragCodeIdx;
-   bool                              compiled;
-
-   ShaderContext() :
-      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false )
-   {
-   }
-};
-
 // =================================================================================================
 
 struct ShaderSampler
@@ -182,32 +166,29 @@ public:
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
-	ShaderContext *findContext( std::string const& name )
-	{
-		for( uint32 i = 0; i < _contexts.size(); ++i )
-			if( _contexts[i].id == name ) return &_contexts[i];
-		
-		return 0x0;
-	}
-
-	std::vector< ShaderContext > &getContexts() { return _contexts; }
 	CodeResource *getCode( uint32 index ) { return &_codeSections[index]; }
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
 	bool parseFXSection( char *data );
-	void compileCombination(ShaderContext &context, ShaderCombination &combination);
+	void compileCombination(ShaderCombination &combination);
 	
 private:
 	static std::string            _vertPreamble, _fragPreamble;
 	static std::string            _tmpCode0, _tmpCode1;
 	
-	std::vector< ShaderContext >  _contexts;
+
+   // Shaders
+   std::vector<ShaderCombination>    shaderCombinations;
+   int                               vertCodeIdx, fragCodeIdx;
+   bool                              compiled;
+
 	std::vector< ShaderSampler >  _samplers;
 	std::vector< ShaderUniform >  _uniforms;
 	std::vector< CodeResource >   _codeSections;
 
 	friend class Renderer;
+   friend class CodeResource;
 };
 
 typedef SmartResPtr< ShaderResource > PShaderResource;

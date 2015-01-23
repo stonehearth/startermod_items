@@ -76,7 +76,7 @@ typedef SmartResPtr< ShaderStateResource > PShaderStateResource;
 class ShaderStateResource : public Resource
 {
 public:
-	static ShaderStateResource *factoryFunc( std::string const& name, int flags )
+	static Resource *factoryFunc( std::string const& name, int flags )
 		{ return new ShaderStateResource( name, flags ); }
 	
 	ShaderStateResource( std::string const& name, int flags );

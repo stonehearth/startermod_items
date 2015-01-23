@@ -177,6 +177,9 @@ bool MaterialResource::load( const char *data, int size )
 
    if (root.has("shaders")) {
       for (auto const& shader : root.get_node("shaders")) {
+         uint32 sthandle = Modules::resMan().addResource(ResourceTypes::ShaderState, shader.get("state", ""), 0, false);
+         _context_to_shader_state[shader.name()] = (ShaderStateResource *)Modules::resMan().resolveResHandle(sthandle);
+
          uint32 shandle = Modules::resMan().addResource(ResourceTypes::Shader, shader.get("shader", ""), 0, false);
          _shaders.push_back((ShaderResource *)Modules::resMan().resolveResHandle(shandle));
          _context_to_shader_map[shader.name()] = _shaders.back();
