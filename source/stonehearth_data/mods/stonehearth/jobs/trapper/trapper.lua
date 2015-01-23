@@ -52,6 +52,12 @@ function TrapperClass:has_perk(id)
    return self._sv.attained_perks[id]
 end
 
+--Returns true if this class participates in worker defense. False otherwise.
+--Unless the class specifies in their _description, it's true by default.
+function TrapperClass:get_worker_defense_participation()
+   return self._sv.worker_defense_participant
+end
+
 -- Called by the job component to do job-specific level up
 -- Increment our levels in this class by 1
 function TrapperClass:level_up()

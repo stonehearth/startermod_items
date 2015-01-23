@@ -419,25 +419,24 @@ function Town:plant_crop(crop)
    return task
 end
 
-function Town:_is_in_job_map(entity, job_map)
+--Classes are enrolled in worker defense training by default, 
+--but some classes, like the shepherd, can choose to opt out. 
+--This is defined in classname_description.lua. We get the data
+--by asking for the job controller and queriying it for its
+--worker defense status.
+-- @returns true if the citizen participates in worker defense, false otherwise
+function Town:_get_citizen_participation_in_defense(entity)
    local job_component = entity:get_component('stonehearth:job')
    if not job_component then
       return false
    end
 
-   local job = job_component:get_job_uri()
-   return job_map[job] == true
+   local job = job_component:get_curr_job_controller()
+   if not job then
+      return false
+   end
+   return job:get_worker_defense_participation()
 end
-
------ Worker combat methods -----
-
-local worker_defense_jobs = {
-   ['stonehearth:jobs:worker'] = true,
-   ['stonehearth:jobs:farmer'] = true,
-   ['stonehearth:jobs:carpenter'] = true,
-   ['stonehearth:jobs:trapper'] = true,
-   ['stonehearth:jobs:footman'] = true,
-}
 
 function Town:worker_combat_enabled()
    return self._sv.worker_combat_enabled
@@ -449,7 +448,7 @@ function Town:enable_worker_combat()
    
    self._town_defense_thoughts = {}
    for _, citizen in pairs(citizens) do
-      if self:_is_in_job_map(citizen, worker_defense_jobs) then
+      if self:_get_citizen_participation_in_defense(citizen) then
          stonehearth.combat:set_panicking_from(citizen, nil)
          stonehearth.combat:set_stance(citizen, 'aggressive')
          local thought = radiant.entities.think(citizen, '/stonehearth/data/effects/thoughts/alert', stonehearth.constants.think_priorities.ALERT)
