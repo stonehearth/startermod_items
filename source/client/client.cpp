@@ -580,11 +580,11 @@ void Client::OneTimeIninitializtion()
       }
    });
 
-   core_reactor_->AddRouteV("radiant:client:save_game", [this](rpc::Function const& f) {
+   core_reactor_->AddRoute("radiant:client:save_game", [this](rpc::Function const& f) {
       json::Node saveid(json::Node(f.args).get_node(0));
       json::Node gameinfo(json::Node(f.args).get_node(1));
       gameinfo.set("version", PRODUCT_FILE_VERSION_STR);
-      SaveGame(saveid.as<std::string>(), gameinfo);
+      return SaveGame(saveid.as<std::string>(), gameinfo);
    });
 
    core_reactor_->AddRoute("radiant:client:load_game", [this](rpc::Function const& f) {
@@ -1641,15 +1641,18 @@ void Client::RequestReload()
    core_reactor_->Call(rpc::Function("radiant:server:reload"));
 }
 
-void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
+rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
 {
    if (saveid.empty()) {
       CLIENT_LOG(0) << "ignoring save request: saveid is empty";
-      return;
+      return nullptr;
    }
-   if (server_save_deferred_) {
+
+   if (client_save_deferred_) {
       CLIENT_LOG(0) << "ignoring save request: request is already in flight";
+      return nullptr;
    }
+   ASSERT(!server_save_deferred_);
 
    fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
    if (!fs::is_directory(savedir)) {
@@ -1664,6 +1667,7 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
    json::Node args;
    args.set("saveid", saveid);
 
+   client_save_deferred_ = std::make_shared<rpc::ReactorDeferred>("client save");
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
    server_save_deferred_->Done([this, savedir, gameinfo](JSONNode const&n) {
@@ -1671,12 +1675,18 @@ void Client::SaveGame(std::string const& saveid, json::Node const& gameinfo)
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
       SaveClientMetadata(savedir, gameinfo);
+      client_save_deferred_->Resolve(n);
+   });
+   server_save_deferred_->Fail([this, savedir, gameinfo](JSONNode const&n) {
+      client_save_deferred_->Reject(n);
    });
 
    server_save_deferred_->Always([this] {
-      CLIENT_LOG(3) << "clearing server deferred pointer";
+      CLIENT_LOG(3) << "clearing save deferred pointers";
+      client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
    });
+   return client_save_deferred_;
 }
 
 void Client::DeleteSaveGame(std::string const& saveid)
