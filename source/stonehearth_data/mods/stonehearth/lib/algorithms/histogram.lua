@@ -10,9 +10,7 @@ function Histogram:clear()
 end
 
 function Histogram:increment(key, count)
-   if count == nil then
-      count = 1
-   end
+   count = count or 1
 
    local old_value = self._counts[key]
 
@@ -45,6 +43,14 @@ end
 
 function Histogram:get_counts()
    return self._counts
+end
+
+function Histogram:get_probabilities()
+   local probabilities = {}
+   for key in pairs(self._counts) do
+      probabilities[key] = self:get_probability(key)
+   end
+   return probabilities
 end
 
 function Histogram:print(logger, order, format_string)

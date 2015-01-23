@@ -9,7 +9,7 @@ local HeightMapRenderer = require 'services.server.world_generation.height_map_r
 local HabitatManager = require 'services.server.world_generation.habitat_manager'
 local OverviewMap = require 'services.server.world_generation.overview_map'
 local ScenarioIndex = require 'services.server.world_generation.scenario_index'
-local UndergroundScenarioSelector = require 'services.server.world_generation.underground_scenario_selector'
+local OreScenarioSelector = require 'services.server.world_generation.ore_scenario_selector'
 local SurfaceScenarioSelector = require 'services.server.world_generation.surface_scenario_selector'
 local Timer = require 'services.server.world_generation.timer'
 local RandomNumberGenerator = _radiant.csg.RandomNumberGenerator
@@ -47,7 +47,7 @@ function WorldGenerationService:create_new_game(seed, async)
    self._habitat_manager = HabitatManager(self._terrain_info, self._landscaper)
 
    self._scenario_index = ScenarioIndex(self._terrain_info, self._rng)
-   self._underground_scenario_selector = UndergroundScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
+   self._ore_scenario_selector = OreScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    self._surface_scenario_selector = SurfaceScenarioSelector(self._scenario_index, self._terrain_info, self._rng)
    stonehearth.static_scenario:create_new_game(seed)
    stonehearth.dynamic_scenario:create_new_game()
@@ -63,7 +63,7 @@ function WorldGenerationService:get_terrain_info()
 end
 
 function WorldGenerationService:set_seed(seed)
-   log:info('WorldGenerationService using seed %d', seed)
+   log:warning('WorldGenerationService using seed %d', seed)
    self._sv.seed = seed
    self.__saved_variables:mark_changed()
 
@@ -304,7 +304,7 @@ function WorldGenerationService:_place_scenarios(habitat_map, elevation_map, und
       function()
          self._surface_scenario_selector:place_immediate_scenarios(habitat_map, elevation_map, offset_x, offset_y)
 
-         self._underground_scenario_selector:place_revealed_scenarios(underground_elevation_map, elevation_map, offset_x, offset_y)
+         self._ore_scenario_selector:place_revealed_scenarios(underground_elevation_map, elevation_map, offset_x, offset_y)
          self._surface_scenario_selector:place_revealed_scenarios(habitat_map, elevation_map, offset_x, offset_y)
       end
    )
