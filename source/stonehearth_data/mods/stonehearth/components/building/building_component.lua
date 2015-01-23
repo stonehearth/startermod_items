@@ -174,32 +174,51 @@ function Building:add_structure(entity)
    self.__saved_variables:mark_changed()
 end
 
-function Building:remove_structure(entity)
+function Building:_remove_structure(entity)
    local id = entity:get_id()
+   local layout_roof = false
 
    -- remove the entity from our structure map.  it appears only once, we just have
    -- to find the right table in our list...
    for _, structure_type in pairs(STRUCTURE_TYPES) do
       local trace
       local structure = entity:get_component(structure_type)
-
       if structure then
          self._sv.structures[structure_type][id] = nil
          self.__saved_variables:mark_changed()
+         if structure_type == ROOF then
+            layout_roof = true
+            self:_remove_roof_dependencies(entity)
+         elseif structure_type == FLOOR then
+            self:_remove_floor_dependencies(entity)
+         elseif structure_type == WALL then
+            self:_remove_wall_dependencies(entity)
+         end
          break
       end      
    end
 
    -- if there are any traces for this entity, nuke them now, too.
    self:_untrace_entity(id)
+
+   if layout_roof then
+      self:layout_roof()
+   end
 end
 
 function Building:_create_wall_dependencies(wall)
+   local wall_cp = wall:get_component('stonehearth:construction_progress')
    for _, entry in pairs(self._sv.structures[FLOOR]) do
       local floor = entry.entity
-      wall:get_component('stonehearth:construction_progress')
-               :add_dependency(floor)
+      wall_cp:add_dependency(floor)
    end
+   for _, entry in pairs(self._sv.structures[ROOF]) do
+      local roof = entry.entity
+      wall_cp:loan_scaffolding_to(roof)      
+   end   
+end
+
+function Building:_remove_wall_dependencies(wall)
 end
 
 function Building:_create_floor_dependencies(floor)
@@ -208,6 +227,9 @@ function Building:_create_floor_dependencies(floor)
       wall:get_component('stonehearth:construction_progress')
                :add_dependency(floor)
    end
+end
+
+function Building:_remove_floor_dependencies(floor)
 end
 
 function Building:_create_roof_dependencies(roof)
@@ -223,6 +245,16 @@ function Building:_create_roof_dependencies(roof)
                   :loan_scaffolding_to(roof)
    end
 end
+
+function Building:_remove_roof_dependencies(roof)
+   for _, entry in pairs(self._sv.structures[WALL]) do
+      local structure = entry.entity
+      -- unloan out some scaffolding
+      structure:get_component('stonehearth:construction_progress')
+                  :unloan_scaffolding_to(roof)
+   end
+end
+
 
 function Building:_save_trace(entity, trace)
    local id = entity:get_id()
@@ -261,7 +293,7 @@ function Building:_trace_entity(entity, loading)
    local id = entity:get_id()
 
    radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
-         self:remove_structure(entity)
+         self:_remove_structure(entity)
       end)
 
    self._cp_listeners[id] = radiant.events.listen(entity, 'stonehearth:construction:finished_changed', function()
@@ -350,20 +382,7 @@ end
 
 -- links will be put back by the BuildingUndoManager
 function Building:unlink_entity(entity)
-   for _, structure_type in pairs(STRUCTURE_TYPES) do
-      local structure = entity:get_component(structure_type)
-      if structure then
-         self._sv.structures[structure_type][entity:get_id()] = nil
-         if structure_type == ROOF then            
-            self:layout_roof()
-         end
-         break
-      end
-   end
-   self._sv.envelope_entity:get_component('stonehearth:no_construction_zone')
-                                 :remove_structure(entity:get_id())
-
-   self.__saved_variables:mark_changed()
+   self:_remove_structure(entity)
 end
 
 function Building:layout_roof(roof)

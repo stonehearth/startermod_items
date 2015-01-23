@@ -353,6 +353,13 @@ function ConstructionProgress:loan_scaffolding_to(borrower)
    end
 end
 
+function ConstructionProgress:unloan_scaffolding_to(borrower)
+   if borrower and borrower:is_valid() then
+      self._sv.loaning_scaffolding_to[borrower:get_id()] = nil
+      self.__saved_variables:mark_changed()
+   end
+end
+
 -- return the map of entities that we're loaning our scaffolding to
 function ConstructionProgress:get_loaning_scaffolding_to()
    return self._sv.loaning_scaffolding_to
