@@ -539,10 +539,12 @@ void Simulation::EncodeServerTick(std::shared_ptr<RemoteClient> c)
 {
    proto::Update update;
 
+   int interval = static_cast<int>(game_speed_ * game_tick_interval_);
+
    update.set_type(proto::Update::SetServerTick);
    auto msg = update.MutableExtension(proto::SetServerTick::extension);
    msg->set_now(now_);
-   msg->set_interval(net_send_interval_);
+   msg->set_interval(interval);
    msg->set_next_msg_time(net_send_interval_);
    SIM_LOG_GAMELOOP(7) << "sending server tick " << now_;
    c->send_queue->Push(update);
