@@ -138,7 +138,10 @@ void UiBuffer::allocateBuffers(int width, int height)
       std::ostringstream material;
       material << "{" << std::endl;
       material << "   \"shaders\": {" << std::endl;
-      material << "       \"overlay\" : \"shaders/overlay.shader\"" << std::endl;
+      material << "       \"OVERLAY\" : {" << std::endl;
+      material << "           \"state\" : \"states/voxel/blend.state\"," << std::endl;
+      material << "           \"shader\" : \"shaders/overlay.shader\"" << std::endl;
+      material << "        }" << std::endl;
       material << "    }," << std::endl;
       material << "   \"samplers\" : [" << std::endl;
       material << "       {" << std::endl;

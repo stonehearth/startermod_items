@@ -2,12 +2,12 @@
 	"shaders" : {
 		"LOADING_OVERLAY" : {
 			"state" : "states/voxel/blend.state",
-			"shaders/loading.shader"
+			"shader" : "shaders/loading.shader"
 		},
 
 		"PROGRESS_OVERLAY" : {
 			"state" : "states/voxel/blend.state",
-			"shaders/progress.shader"			
+			"shader" : "shaders/progress.shader"			
 		}
 	},
 

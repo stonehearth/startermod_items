@@ -61,7 +61,7 @@
          <SwitchTarget target="SSAOBlur"/>
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
-         <DrawQuad material="materials/blur.material.json" context="BLUR" />
+         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
          <UnbindBuffers />
 
          <SwitchTarget target=""/>
@@ -91,11 +91,11 @@
 
          <SwitchTarget target="BloomTemp" />
          <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.json" context="BLUR_GAUSSIAN_X" />
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_GAUSSIAN_X" />
 
          <SwitchTarget target="BloomFinal" />
          <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.json" context="BLUR_GAUSSIAN_Y" />
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_GAUSSIAN_Y" />
 
          <UnbindBuffers/>
          <SwitchTarget target="" />

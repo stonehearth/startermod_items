@@ -179,8 +179,7 @@ bool MaterialResource::load( const char *data, int size )
       for (auto const& shader : root.get_node("shaders")) {
          uint32 shandle = Modules::resMan().addResource(ResourceTypes::Shader, shader.get("shader", ""), 0, false);
          _shaders.push_back((ShaderResource *)Modules::resMan().resolveResHandle(shandle));
-         _context_to_shader_map[shader.as<std::string>().c_str()] = _shaders.back();
-
+         _context_to_shader_map[shader.name()] = _shaders.back();
          for (auto const& sinput : shader.get_node("inputs")) {
             if (sinput.has("bind_to_material_input")) {
                _input_to_input_map[shandle][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
