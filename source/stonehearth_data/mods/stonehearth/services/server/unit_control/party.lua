@@ -34,12 +34,15 @@ function Party:restore()
    local scheduler = stonehearth.tasks:create_scheduler(player_id)   
 
    self._party_tg = scheduler:create_task_group('stonehearth:party', {})
+   for _, entry in pairs(self._sv.members) do
+      self._party_tg:add_worker(entry.entity)
+   end
+
    self._party_priorities = stonehearth.constants.priorities.party
 
    self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
                                                 :set_priority(self._party_priorities.HOLD_FORMATION)
                                                 :start()
-
 end
 
 function Party:destroy()

@@ -74,7 +74,7 @@ function ScoreService:get_score_for_entity(entity)
    if score_for_item and score_for_item.value_in_gold then
       return score_for_item.value_in_gold
    else
-      return 10
+      return 3
    end
 end
 
