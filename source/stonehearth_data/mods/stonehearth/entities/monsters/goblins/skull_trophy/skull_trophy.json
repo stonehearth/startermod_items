@@ -1,0 +1,12 @@
+{
+   "type" : "entity",   
+   "mixins": "file(skull_trophy_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(skull_trophy_iconic.json)",
+         "ghost_form" : "file(skull_trophy_ghost.json)",
+         "placeable_on_ground" : true
+      }
+   }
+}

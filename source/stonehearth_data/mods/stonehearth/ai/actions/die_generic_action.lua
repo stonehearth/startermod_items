@@ -11,3 +11,4 @@ DieGeneric.priority = 1
 local ai = stonehearth.ai
 return ai:create_compound_action(DieGeneric)
    :execute('stonehearth:run_death_effect')
+   :execute('stonehearth:drop_loot_action')
