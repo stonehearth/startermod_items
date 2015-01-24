@@ -119,7 +119,7 @@ void LightNode::reallocateShadowBuffer(int size)
 
 LightNode::~LightNode()
 {
-   if (_shadowMapBuffer) {
+   if (_shadowMapBuffer && !_directional) {
       gRDI->destroyRenderBuffer(_shadowMapBuffer);
       _shadowMapBuffer = 0;
    }
