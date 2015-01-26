@@ -45,12 +45,7 @@
             "stonehearth:actions:idle:sway",
             "stonehearth:actions:idle:look_around",
             "stonehearth:actions:grab_promotion_talisman",                        
-            "stonehearth:actions:grab_promotion_talisman_type",                        
-            "stonehearth:actions:sleep_on_ground",
-            "stonehearth:actions:sleep_in_new_bed",
-            "stonehearth:actions:sleep_in_own_bed",
-            "stonehearth:actions:sleep_in_bed_adjacent",
-            "stonehearth:actions:sleep_when_exhausted",
+            "stonehearth:actions:grab_promotion_talisman_type",
             "stonehearth:actions:sit_on_ground",
             "stonehearth:actions:sit_on_chair",
             "stonehearth:actions:sit_on_chair_adjacent",
@@ -97,8 +92,7 @@
          "observers": [
             "stonehearth:observers:aggro",
             "stonehearth:observers:find_target",
-            "stonehearth:observers:sleepiness",
-            "stonehearth:observers:free_time",
+            "stonehearth:observers:free_time"
          ]
       },
       "stonehearth:attributes": {
