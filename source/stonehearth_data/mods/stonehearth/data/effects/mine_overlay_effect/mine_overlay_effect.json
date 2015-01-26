@@ -3,7 +3,15 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/mine_overlay/mine_overlay.material.json",
+         "material" : {
+         	"name": "materials/overlay.material.json",
+         	"samplers" : [
+         		{
+         			"name" : "albedoMap",
+					"map": "materials/mine_overlay/mine.png"
+         		}
+         	]
+         },
          "y_offset" : -10
      }
    }

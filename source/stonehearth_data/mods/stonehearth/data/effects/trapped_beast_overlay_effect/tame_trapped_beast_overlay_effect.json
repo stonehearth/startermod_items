@@ -3,7 +3,15 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/trapped_beast_overlay/tame_trapped_beast_overlay.material.json",
+         "material" : {
+            "name": "materials/overlay.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map": "materials/trapped_beast_overlay/tame_trapped_beast.png"
+               }
+            ]
+         },
          "y_offset" : -50
      }
    }

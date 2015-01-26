@@ -473,7 +473,7 @@ ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::Effe
 {
    json::Node cjo(node);
 
-   _material = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.json"));
+   _materialDesc.load(cjo.get_node("material"));
    _overlayWidth = cjo.get("width", 64);
    _overlayHeight = cjo.get("height", 64);
    _yOffset = cjo.get("y_offset", 0);
@@ -501,10 +501,11 @@ bool ActivityOverlayEffectTrack::PositionOverlayNode()
    // Because there may be animated textures associated with the material, we clone the resource
    // so that all related nodes can animate at their own pace.
    // This is basically a hack until I put in a material_instance/material_template distinction.
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, _material.c_str(), 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), 0);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
+   _materialDesc.applyToMaterialRes(_matRes);
    _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
    return true;
 }
