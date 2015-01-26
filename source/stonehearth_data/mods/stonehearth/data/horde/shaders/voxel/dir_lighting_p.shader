@@ -32,25 +32,41 @@ sampler2D ssaoImage = sampler_state
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 viewProjMat;
+uniform mat4 shadowMats[4];
+uniform mat4 fowViewMat;
 
 attribute vec3 vertPos;
 attribute vec3 normal;
 attribute vec3 color;
 
 varying vec4 pos;
-varying vec4 vsPos;
 varying vec3 tsbNormal;
 varying vec3 albedo;
-varying float worldScale;
+varying vec4 projShadowPos[3];
+varying vec4 projFowPos;
+varying vec3 gridLineCoords;
 
 void main( void )
 {
   pos = calcWorldPos(vec4(vertPos, 1.0));
-  vsPos = calcViewPos(pos);
+  vec4 vsPos = calcViewPos(pos);
   tsbNormal = calcWorldVec(normal);
   albedo = color;
-  worldScale = getWorldScale();
+
+#ifndef DISABLE_SHADOWS
+  projShadowPos[0] = shadowMats[0] * pos;
+  projShadowPos[1] = shadowMats[1] * pos;
+  projShadowPos[2] = shadowMats[2] * pos;
+#endif
+
+  projFowPos = fowViewMat * pos;
+
+  gridLineCoords = pos.xyz + vec3(0.5, 0, 0.5);
+
   gl_Position = viewProjMat * pos;
+
+  // Yuck!  But this saves us an entire vec4, which can kill older cards.
+  pos.w = vsPos.z;
 }
 
 
