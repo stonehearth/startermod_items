@@ -1,3 +1,4 @@
 BlendMode = Blend;
 ZWriteEnable = false;
+ZEnable = false;
 CullMode = Back;

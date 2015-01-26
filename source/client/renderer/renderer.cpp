@@ -445,7 +445,7 @@ void Renderer::BuildSkySphere()
       Horde3D::Vec3f( 0.707f, 0.f, -0.707f ),   Horde3D::Vec3f( -0.707f, 0.f, -0.707f )
    };
    uint32 spInds[2048 * 3] = {  // Number of faces: (4 ^ iterations) * 8
-      2, 3, 0,   3, 4, 0,   4, 5, 0,   5, 2, 0,   2, 1, 3,   3, 1, 4,   4, 1, 5,   5, 1, 2
+      2, 0, 3,   3, 0, 4,   4, 0, 5,   5, 0, 2,   2, 3, 1,   3, 4, 1,   4, 5, 1,   5, 2, 1
    };
    for( uint32 i = 0, nv = 6, ni = 24; i < 4; ++i )  // Two iterations
    {

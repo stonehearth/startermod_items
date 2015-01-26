@@ -1,7 +1,7 @@
 {
 	"shaders" : {
 		"STARFIELD" : {
-			"state" : "states/voxel/blend.state",
+			"state" : "states/voxel/stars.state",
 			"shader" : "shaders/starfield.shader",
 			"inputs" : [
 				{

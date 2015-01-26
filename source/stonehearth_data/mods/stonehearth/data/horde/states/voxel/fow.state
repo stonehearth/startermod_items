@@ -1,4 +1,4 @@
-  ZWriteEnable = false;
-  ZEnable = false;
-  CullMode = None;
-  
+ZWriteEnable = false;
+ZEnable = false;
+CullMode = None;
+BlendMode = Replace;
