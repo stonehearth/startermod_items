@@ -327,6 +327,7 @@
       "decoration:firepit_skulls" : "file(entities/decoration/firepit_skulls)",
       "decoration:loot_chest" : "file(entities/decoration/loot_chest)",
       "decoration:crate" : "file(entities/decoration/crate)",
+      "decoration:wall_crest" : "file(entities/decoration/wall_crest)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",

@@ -1,0 +1,12 @@
+{
+   "type" : "entity",
+   "mixins" : "file(wall_crest_ghost.json)",
+
+   "components": {
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wall_crest_iconic.json)",
+         "ghost_form" : "file(wall_crest_ghost.json)",
+         "placeable_on_walls" : true
+      }
+   }
+}
