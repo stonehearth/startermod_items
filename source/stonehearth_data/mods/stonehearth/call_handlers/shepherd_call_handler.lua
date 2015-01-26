@@ -21,7 +21,7 @@ function ShepherdCallHandler:choose_pasture_location(session, response)
             end
             return true            
          end)
-      :set_cursor('stonehearth:cursors:zone_trapping_grounds')
+      :set_cursor('stonehearth:cursors:zone_pasture')
       :done(
          function(selector, box)
             local size = {

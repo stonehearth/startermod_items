@@ -28,6 +28,7 @@
       "cursors:zone_stockpile" : "file(data/cursors/zone_stockpile.cur)",
       "cursors:zone_farm" : "file(data/cursors/zone_farm.cur)",
       "cursors:zone_trapping_grounds" : "file(data/cursors/zone_trapping_grounds.cur)",
+      "cursors:zone_pasture" : "file(data/cursors/zone_pasture.cur)", 
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
       "cursors:grow_walls" : "file(data/cursors/grow_walls.cur)",
       "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
