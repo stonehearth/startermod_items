@@ -91,11 +91,11 @@
 
          <SwitchTarget target="BloomTemp" />
          <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
-         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_GAUSSIAN_X" />
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_X" />
 
          <SwitchTarget target="BloomFinal" />
          <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
-         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_GAUSSIAN_Y" />
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_Y" />
 
          <UnbindBuffers/>
          <SwitchTarget target="" />
