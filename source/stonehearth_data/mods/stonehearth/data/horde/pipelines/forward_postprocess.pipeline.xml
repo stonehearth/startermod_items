@@ -27,15 +27,15 @@
       </Stage>
 
       <Stage id="Sky">
-         <DrawGeometry context="SKY" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
 
          <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Starfield">
          <SwitchTarget target="" />
-         <DrawGeometry context="STARFIELD" />
+         <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Depth">
@@ -46,7 +46,7 @@
          <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" forceLodLevel="1" />
 
          <SwitchTarget target="" />
-         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2" />
+         <DrawGeometry context="DEPTH" class="~Translucent"  />
       </Stage>
 
       <Stage id="SSAO">
