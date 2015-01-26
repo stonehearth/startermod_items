@@ -14,8 +14,8 @@
          }
       },
       "unit_info": {
-         "name": "A gruesome trophy",
-         "description": "...",
+         "name": "Goblin honor token",
+         "description": "Wooden badge of the goblin's clan",
          "icon" : "file(skull_trophy.png)"
       },
       "stonehearth:material" : {
