@@ -49,6 +49,7 @@ struct MatSampler
 	std::string       name;
 	PTextureResource  texRes;
    
+   uint32            flags;
    std::vector<PTextureResource> animatedTextures;
    float             currentAnimationTime;
    float             animationRate;  // fps
@@ -88,6 +89,7 @@ public:
 	bool load( const char *data, int size );
 	bool setUniform( std::string const& name, float a, float b, float c, float d );
    bool setArrayUniform( std::string const& name, float* data, int dataCount);
+   bool setSampler(std::string const& samplerName, std::string const& resPath, int numFrames, float frameRate);
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );

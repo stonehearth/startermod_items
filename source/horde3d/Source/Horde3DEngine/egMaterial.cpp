@@ -92,6 +92,33 @@ bool MaterialResource::raiseError( std::string const& msg, int line )
 }
 
 
+void loadTexture(MatSampler& sampler, std::string const& path) {
+   ResHandle texMap;
+   texMap = Modules::resMan().addResource(ResourceTypes::Texture, path, sampler.flags, false);
+   sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle(texMap);
+}
+
+void loadAnimatedTexture(MatSampler& sampler, std::string const& path, int numFrames, float frameRate) {
+   sampler.animationRate = frameRate;
+   sampler.animatedTextures.clear();
+
+   // Animated maps will be of the form "animXYZ.foo", so look for them in that order.
+   std::stringstream ss(path);
+   std::string baseName;
+   std::string extension;
+   std::getline(ss, baseName, '.');
+   std::getline(ss, extension, '.');
+   char buff[256];
+
+   for (int i = 0; i < numFrames; i++) {
+      sprintf(buff, "%s%02d.%s", baseName.c_str(), sampler.animatedTextures.size(), extension.c_str());
+      ResHandle r = Modules::resMan().addResource(ResourceTypes::Texture, buff, sampler.flags, false);
+      sampler.animatedTextures.push_back((TextureResource *)Modules::resMan().resolveResHandle(r));
+   }
+
+   sampler.texRes = sampler.animatedTextures[0];
+}
+
 bool MaterialResource::load( const char *data, int size )
 {
    if(!Resource::load( data, size )) {
@@ -112,47 +139,28 @@ bool MaterialResource::load( const char *data, int size )
       MatSampler sampler;
       sampler.name = snode.get("name", "");
       sampler.currentAnimationTime = 0;
+      sampler.flags = 0;
 
-      ResHandle texMap;
-      uint32 flags = 0;
       if (!Modules::config().loadTextures) {
-         flags |= ResourceFlags::NoQuery;
+         sampler.flags |= ResourceFlags::NoQuery;
       }
 		
       if (!snode.get("allowCompression", true)) {
-         flags |= ResourceFlags::NoTexCompression;
+         sampler.flags |= ResourceFlags::NoTexCompression;
       }
 
       if (!snode.get("mipmaps", true)) {
-         flags |= ResourceFlags::NoTexMipmaps;
+         sampler.flags |= ResourceFlags::NoTexMipmaps;
       }
 
       if (snode.get("sRGB", false)) {
-         flags |= ResourceFlags::TexSRGB;
+         sampler.flags |= ResourceFlags::TexSRGB;
       }
 
       if (snode.get("numAnimationFrames", 0) == 0) {
-         texMap = Modules::resMan().addResource(ResourceTypes::Texture, snode.get("map", ""), flags, false);
-         sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle(texMap);
+         loadTexture(sampler, snode.get("map", ""));
       } else {
-         sampler.animationRate = snode.get("frameRate", 24.0f);
-         int numFrames = snode.get("numAnimationFrames", 0);
-
-         // Animated maps will be of the form "animXYZ.foo", so look for them in that order.
-         std::stringstream ss(snode.get("map", ""));
-         std::string baseName;
-         std::string extension;
-         std::getline(ss, baseName, '.');
-         std::getline(ss, extension, '.');
-         char buff[256];
-
-         for (int i = 0; i < numFrames; i++) {
-            sprintf(buff, "%s%02d.%s", baseName.c_str(), sampler.animatedTextures.size(), extension.c_str());
-            ResHandle r = Modules::resMan().addResource(ResourceTypes::Texture, buff, flags, false);
-            sampler.animatedTextures.push_back((TextureResource *)Modules::resMan().resolveResHandle(r));
-         }
-
-         sampler.texRes = sampler.animatedTextures[0];
+         loadAnimatedTexture(sampler, snode.get("map", ""), snode.get("numAnimationFrames", 0), snode.get("frameRate", 24.0f));
       }
       _samplers.push_back(sampler);
    }
@@ -226,6 +234,21 @@ MatUniform* MaterialResource::getUniform(std::string const& context, std::string
 
    // Nothing left!
    return nullptr;
+}
+
+
+bool MaterialResource::setSampler(std::string const& samplerName, std::string const& resPath, int numFrames, float frameRate)
+{
+   for (auto& sampler : _samplers) {
+      if (sampler.name == samplerName) {
+         if (numFrames == 0) {
+            loadTexture(sampler, resPath);
+         } else {
+            loadAnimatedTexture(sampler, resPath, numFrames, frameRate);
+         }
+      }
+   }
+	return true;
 }
 
 
