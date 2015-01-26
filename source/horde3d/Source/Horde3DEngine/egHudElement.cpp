@@ -143,8 +143,8 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
-      0, 1, 2,
-      0, 2, 3
+      0, 2, 1,
+      0, 3, 2
    };
    rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
 
@@ -244,8 +244,8 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, fl
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
-      0, 1, 2,
-      0, 2, 3
+      0, 2, 1,
+      0, 3, 2
    };
    rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
 
