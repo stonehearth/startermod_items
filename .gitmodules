@@ -1,7 +1,3 @@
-[submodule "modules/boost_bin"]
-	path = modules/boost_bin
-	url = https://github.com/radent/boost_bin.git
-	branch = master
 [submodule "modules/breakpad"]
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
@@ -41,7 +37,7 @@
 [submodule "modules/protobuf"]
 	path = modules/protobuf
 	url = https://github.com/radent/protobuf.git
-	branch = master
+	branch = 2.6.1
 [submodule "modules/sfml"]
 	path = modules/sfml
 	url = https://github.com/radent/sfml.git
@@ -69,4 +65,8 @@
 [submodule "modules/eastl"]
 	path = modules/eastl
 	url = https://github.com/radent/eastl.git
+	branch = master
+[submodule "modules/boost"]
+	path = modules/boost
+	url = https://github.com/radent/boost.git
 	branch = master
