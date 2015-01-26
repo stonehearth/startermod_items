@@ -4,13 +4,13 @@
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
          "material" : {
-         	"name": "materials/overlay.material.json",
-         	"samplers" : [
-         		{
-         			"name" : "albedoMap",
-					"map": "materials/harvest_plant_overlay/harvest_plant_overlay.png"
-         		}
-         	]
+            "name": "materials/overlay.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map": "materials/harvest_plant_overlay/harvest_plant_overlay.png"
+               }
+            ]
          },
          "y_offset" : -10
      }

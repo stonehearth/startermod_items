@@ -4,13 +4,13 @@
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
          "material" : {
-         	"name": "materials/overlay.material.json",
-         	"samplers" : [
-         		{
-         			"name" : "albedoMap",
-					"map": "materials/mine_overlay/mine.png"
-         		}
-         	]
+            "name": "materials/overlay.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map": "materials/mine_overlay/mine.png"
+               }
+            ]
          },
          "y_offset" : -10
      }
