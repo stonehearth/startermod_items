@@ -99,7 +99,7 @@ public:
 
    std::vector<PShaderResource> const& getShaders() const { return _shaders; }
    std::vector<MatSampler>& getSamplers() { return _samplers; }
-   MatUniform* getUniform(uint32 shaderHandle, std::string const& name);
+   MatUniform* getUniform(std::string const& context, std::string const& name);
    PShaderStateResource getShaderState(std::string const& context) { return _context_to_shader_state[context]; }
    PShaderResource getShader(std::string const& context) { return _context_to_shader_map[context]; }
 
@@ -111,9 +111,9 @@ private:
 	std::vector<PShaderResource> _shaders;
 	std::vector<MatSampler>      _samplers;
    std::unordered_map<std::string, MatUniform>   _uniforms;
-   std::unordered_map<uint32, std::unordered_map<std::string, std::string>> _input_to_input_map;
+   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _input_to_input_map;
    std::unordered_map<std::string, PShaderResource> _context_to_shader_map;
-   std::unordered_map<std::string, MatUniform> _input_defaults;
+   std::unordered_map<std::string, std::unordered_map<std::string, MatUniform>> _input_defaults;
    std::unordered_map<std::string, PShaderStateResource> _context_to_shader_state;
 
 	friend class ResourceManager;

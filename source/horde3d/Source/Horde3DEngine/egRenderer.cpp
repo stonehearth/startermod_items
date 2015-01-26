@@ -859,7 +859,7 @@ bool Renderer::isShaderContextSwitch(std::string const& newContext, MaterialReso
    PShaderResource sr = materialRes->getShader(newContext);
    ShaderCombination* sc = nullptr;
 
-   if (sr.getPtr() == nullptr) {
+   if (!sr.getPtr()) {
       return false;
    }
 
@@ -877,7 +877,7 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
 
    PShaderResource shaderRes = materialRes->getShader(shaderContext);
 
-   if (!shaderRes) {
+   if (!shaderRes.getPtr()) {
       MAT_LOG(7) << materialRes->getName() << " has no suitable shader in setMaterialRec.";
       return false;
    }
@@ -1125,7 +1125,7 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       float *unifData = 0x0;
 
       // Find uniform in material
-      MatUniform *matUniform = materialRes->getUniform(shaderRes->getHandle(), shaderRes->_uniforms[i].id);
+      MatUniform *matUniform = materialRes->getUniform(shaderContext, shaderRes->_uniforms[i].id);
       if (matUniform) {
          if (shaderRes->_uniforms[i].arraySize > 1) {
             unifData = matUniform->arrayValues.data();
@@ -2551,10 +2551,6 @@ void Renderer::drawMeshes( std::string const& shaderContext, std::string const& 
 
 #undef RENDER_LOG
 	}
-
-	// Draw occlusion proxies
-	if( occSet >= 0 )
-		Modules::renderer().drawOccProxies( 0 );
 
 	gRDI->setVertexLayout( 0 );
 }

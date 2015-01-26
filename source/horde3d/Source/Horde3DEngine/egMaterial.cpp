@@ -185,7 +185,7 @@ bool MaterialResource::load( const char *data, int size )
          _context_to_shader_map[shader.name()] = _shaders.back();
          for (auto const& sinput : shader.get_node("inputs")) {
             if (sinput.has("bind_to_material_input")) {
-               _input_to_input_map[shandle][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
+               _input_to_input_map[shader.name()][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
             }
             if (sinput.has("default")) {
                MatUniform def;
@@ -193,7 +193,7 @@ bool MaterialResource::load( const char *data, int size )
                for (auto const& v : sinput.get_node("default")) {
                   def.values[i++] = v.as<float>();
                }
-               _input_defaults[sinput.get("name", "")] = def;
+               _input_defaults[shader.name()][sinput.get("name", "")] = def;
             }
          }
       }
@@ -204,23 +204,24 @@ bool MaterialResource::load( const char *data, int size )
 
 // Gets a _shader_ uniform.  If that shader binds to a material uniform, use that.  Otherwise,
 // get the default value for that shader uniform.  Otherwise, return null.
-MatUniform* MaterialResource::getUniform(uint32 shaderHandle, std::string const& name)
+MatUniform* MaterialResource::getUniform(std::string const& context, std::string const& name)
 {
    // First, look to see if we have a binding set up.
-   auto const& h = _input_to_input_map.find(shaderHandle);
-   if (h == _input_to_input_map.end()) {
-      return nullptr;
-   }
-
-   auto const& i = h->second.find(name);
-   if (i != h->second.end()) {
-      return &_uniforms[i->second];
+   auto const& h = _input_to_input_map.find(context);
+   if (h != _input_to_input_map.end()) {
+      auto const& i = h->second.find(name);
+      if (i != h->second.end()) {
+         return &_uniforms[i->second];
+      }
    }
 
    // No binding exists for that shader; now, lets see if we have a default.
-   auto const& j = _input_defaults.find(name);
+   auto const& j = _input_defaults.find(context);
    if (j != _input_defaults.end()) {
-      return &j->second;
+      auto const& k = j->second.find(name);
+      if (k != j->second.end()) {
+         return &k->second;
+      }
    }
 
    // Nothing left!
