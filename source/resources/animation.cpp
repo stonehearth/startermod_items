@@ -20,7 +20,7 @@ using ::radiant::csg::Transform;
 Animation::Animation(std::string bin) :
    bin_(bin),
    _base(&bin_[0]),
-   _len(bin_.size())
+   _len((int)bin_.size())
 {
 }
 
@@ -52,7 +52,7 @@ std::string Animation::JsonToBinary(const JSONNode &node)
    }
    result.push_back(0);
    header = (BinaryHeader *)&result[0];
-   header->firstFrameOffset = result.size();
+   header->firstFrameOffset = (uint32)result.size();
 
    // The file format for animation is right-handed, z-up, with the model looking
    // down the -y axis.  This happens to exactly match the format used by 3dsMax.

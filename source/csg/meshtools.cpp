@@ -90,7 +90,7 @@ void Mesh::AddFace(Point3f const points[], Point3f const& normal, Color4 const& 
       bounds.SetMin(points[0] + offset_);
       bounds.SetMax(points[0] + offset_);
    }
-   int vlast = vertices.size();
+   int vlast = static_cast<int>(vertices.size());
    for (int i = 0; i < 4; i++) {
       Point3f pt = points[i] + offset_;
       vertices.emplace_back(Vertex(pt, normal, color));
@@ -205,7 +205,7 @@ Mesh& Mesh::FlipFaces()
 
 Mesh& Mesh::AddVertices(Mesh const& other)
 {   
-   int offset = vertices.size();
+   int offset = static_cast<int>(vertices.size());
 
    if (offset == 0) {
       vertices = other.vertices;

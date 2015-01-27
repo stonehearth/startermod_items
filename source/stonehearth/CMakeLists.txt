@@ -61,6 +61,7 @@ add_custom_command(TARGET stonehearth
                            ${RADIANT_ROOT}/build-environment/scripts/x86/runvs2012.cmd                            
                            ./scripts/stage/stage_stonehearth.sh 
                            -t $<CONFIGURATION> 
-                           -o build/source/stonehearth/$<CONFIGURATION>
+                           -x ${RADIANT_BUILD_PLATFORM}
+                           -o build/${RADIANT_BUILD_PLATFORM}/source/stonehearth/$<CONFIGURATION>
                            -b
                   )

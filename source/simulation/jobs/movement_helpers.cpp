@@ -356,7 +356,7 @@ void MovementHelper::TransposeDiagonalSlope(csg::Point3 const& delta, float& max
 std::vector<csg::Point3f> MovementHelper::PruneCollinearPathPointsPlanar(std::vector<csg::Point3f> const& points) const
 {
    std::vector<csg::Point3f> result;
-   int numPoints = points.size();
+   int numPoints = (int)points.size();
    if (numPoints <= 2) {
       result = points; // Two points define a line - nothing to prune.
       return result;
@@ -459,7 +459,7 @@ std::vector<csg::Point3f> MovementHelper::PruneCollinearPathPoints(std::vector<c
    std::vector<csg::Point3f> subsetResult;
    std::vector<csg::Point3f> result;
 
-   int numPoints = points.size();
+   int numPoints = (int)points.size();
    if (numPoints <= 1) {
       result = points; // Let the code below run for 2 points to check for duplicates.
       return result;

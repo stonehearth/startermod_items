@@ -452,13 +452,14 @@ void Renderer::drawPoly(const std::vector<Vec3f>& poly)
 
    gRDI->unmapBuffer(_vbPoly);
 
+   int polySize = (int)poly.size();
    Matrix4f mat = Matrix4f();
    mat.toIdentity();
    gRDI->setShaderConst( _curShader->uni_worldMat, CONST_FLOAT44, &mat.x[0] );
    gRDI->setVertexBuffer( 0, _vbPoly, 0, 12 );
    gRDI->setIndexBuffer( _ibPoly, IDXFMT_16 );
    gRDI->setVertexLayout( _vlPosOnly );
-   gRDI->drawIndexed( PRIM_TRILIST, 0, 3 + ((poly.size() - 3) * 3), 0, poly.size() );
+   gRDI->drawIndexed( PRIM_TRILIST, 0, 3 + ((polySize - 3) * 3), 0, polySize );
 }
 
 void Renderer::drawAABB( const Vec3f &bbMin, const Vec3f &bbMax )
@@ -661,7 +662,7 @@ void Renderer::commitGlobalUniforms()
       int loc = gRDI->getShaderConstLoc(_curShader->shaderObj, e.first.c_str());
       if (loc >= 0) {
          std::vector<float>& m = e.second;
-         gRDI->setShaderConst(loc, CONST_FLOAT44, m.data(), m.size() / 16);
+         gRDI->setShaderConst(loc, CONST_FLOAT44, m.data(), (int)m.size() / 16);
       }
    }
 }
@@ -2928,10 +2929,10 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
    auto idcIt = _instanceDataCache.find(&renderableQueue);
    if (idcIt != _instanceDataCache.end()) {
       vbInstanceData = idcIt->second;
-      numQueued = renderableQueue.size();
+      numQueued = (unsigned int)renderableQueue.size();
       RENDER_LOG() << "using cached instance data " << vbInstanceData;
    } else {
-      vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
+      vbInstanceData = gRDI->acquireBuffer((int)(sizeof(float) * 16 * renderableQueue.size()));
       RENDER_LOG() << "creating new instance data " << vbInstanceData;
       float* transformBuffer = _vbInstanceVoxelBuf;
       for (const auto& node : renderableQueue) {
@@ -2944,17 +2945,17 @@ void Renderer::drawVoxelMesh_Instances_WithInstancing(const RenderableQueue& ren
          numQueued++;
 
          if (numQueued == MaxVoxelInstanceCount) {
-            gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+            gRDI->updateBufferData(vbInstanceData, 0, (int)((transformBuffer - _vbInstanceVoxelBuf) * sizeof(float)), _vbInstanceVoxelBuf);
             gRDI->setVertexBuffer(1, vbInstanceData, 0, sizeof(float) * 16);
             gRDI->drawInstanced(RDIPrimType::PRIM_TRILIST, vmn->getBatchCount(lodLevel), vmn->getBatchStart(lodLevel), MaxVoxelInstanceCount);
             numQueued = 0;
             transformBuffer = _vbInstanceVoxelBuf;
-            vbInstanceData = gRDI->acquireBuffer(sizeof(float) * 16 * renderableQueue.size());
+            vbInstanceData = gRDI->acquireBuffer((int)(sizeof(float) * 16 * renderableQueue.size()));
          }
       }
 
       if (numQueued > 0) {
-         gRDI->updateBufferData(vbInstanceData, 0, (transformBuffer - _vbInstanceVoxelBuf) * sizeof(float), _vbInstanceVoxelBuf);
+         gRDI->updateBufferData(vbInstanceData, 0, (int)((transformBuffer - _vbInstanceVoxelBuf) * sizeof(float)), _vbInstanceVoxelBuf);
       }
 
       if (numQueued == renderableQueue.size()) {

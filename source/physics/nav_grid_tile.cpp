@@ -314,7 +314,7 @@ bool NavGridTile::ForEachTrackerForEntity(dm::ObjectId entityId, ForEachTrackerC
  */ 
 bool NavGridTile::ForEachTrackerInRange(TrackerMap::const_iterator begin, TrackerMap::const_iterator end, ForEachTrackerCb const& cb)
 {
-   int tempSize = tempTrackers_.size();
+   int tempSize = (int)tempTrackers_.size();
    int numTrackers = 0;
    bool stopped = false;
 

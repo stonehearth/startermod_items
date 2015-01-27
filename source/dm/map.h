@@ -39,7 +39,7 @@ public:
    void Remove(const K& key);
    bool Contains(const K& key) const;
    V Get(const K& key, V default) const;
-   int Size() const { return items_.size(); }
+   int Size() const { return (int)items_.size(); }
    void Clear();
 
 private:

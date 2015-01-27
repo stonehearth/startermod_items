@@ -75,7 +75,8 @@ bool Response::ReadResponse(void* data_out,
    if (_readOffset >= _response.size()) {
       return false;
    }
-   bytes_read = std::min((unsigned int)bytes_to_read, _response.size() - _readOffset);
+   bytes_read = std::min(static_cast<int>(bytes_to_read),
+                         static_cast<int>(_response.size() - _readOffset));
    memcpy(data_out, _response.c_str() + _readOffset, bytes_read);
    _readOffset += bytes_read;
    return true;

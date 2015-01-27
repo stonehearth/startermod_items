@@ -106,7 +106,7 @@ bool Set<T>::IsEmpty() const {
 
 template <class T>
 int Set<T>::Size() const {
-   return items_.size();
+   return (int)items_.size();
 }
 
 template <class T>

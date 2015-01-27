@@ -9,7 +9,6 @@ PROJECT(Stonehearth)
 #string(REPLACE "/Zm[0-9]+" "/Zm200" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 SET(CMAKE_C_FLAGS   " /Zm200${CMAKE_C_FLAGS}")
 SET(CMAKE_CXX_FLAGS " /Zm200${CMAKE_CXX_FLAGS}")
-MESSAGE(flags are ${CMAKE_CXX_FLAGS_DEBUG})
 
 if (DISABLE_WHOLE_PROGRAM_OPTIMIZATION)
    MESSAGE("whole program optimization is disabled")
@@ -24,6 +23,13 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ym0x20000000 ")
 # Turn on multi processor builds
 SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /MP ")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP ")
+
+# Work around C1128 (see https://msdn.microsoft.com/en-us/library/8578y171.aspx)
+if("${RADIANT_BUILD_PLATFORM}" STREQUAL "x64")
+MESSAGE("x64 /bigobj enabled")
+SET(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} /bigobj ")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj ")
+endif()
 
 #SET(CMAKE_CXX_FLAGS_DEBUG "/FR")
 #SET(CMAKE_C_FLAGS_DEBUG "/FR")
