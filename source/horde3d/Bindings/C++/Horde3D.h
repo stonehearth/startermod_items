@@ -188,6 +188,7 @@ struct H3DResTypes
 		Pipeline,
       VoxelGeometry,
       PixelBuffer,
+      ShaderState,
       RenderBuffer
 	};
 };

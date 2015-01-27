@@ -281,6 +281,7 @@ void ShaderResource::release()
 		gRDI->destroyShader(combination.shaderObj);
    }
 
+   shaderCombinations.clear();
 	_samplers.clear();
 	_uniforms.clear();
 	_codeSections.clear();

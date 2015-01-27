@@ -102,7 +102,13 @@ void Renderer::OneTimeIninitializtion()
       std::string fspath = std::string("mods/");
       if (boost::filesystem::is_directory(fspath)) {
          fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-            Renderer::GetInstance().FlushMaterials();
+            const std::wstring sufx[] = {L".shader", L".json", L".png", L".tga", L".jpg", L".glsl"};
+
+            for (int i = 0; i < 6; i++) {
+               if (filename.compare(filename.length() - sufx[i].length() - 1, sufx[i].length(), sufx[i]) == 0) {
+                  Renderer::GetInstance().FlushMaterials();
+               }
+            }
          }, true);
       }
    }
@@ -786,49 +792,56 @@ void Renderer::SetStageEnable(H3DRes pipeRes, const char* stageName, bool enable
 void Renderer::FlushMaterials() {
    H3DRes r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Shader, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
+         h3dUnloadResource(r);
+      }
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::ShaderState, r)) != 0) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
