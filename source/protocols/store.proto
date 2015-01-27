@@ -38,7 +38,7 @@ message Set {
       repeated Value   removed = 4;
    }
    extend Value {
-      required Update extension = 4;
+      optional Update extension = 4;
    }
 }
 
@@ -53,7 +53,7 @@ message Map {
       repeated Value   removed = 4;
    }
    extend Value {
-      required Update extension = 5;
+      optional Update extension = 5;
    }
 }
 
@@ -63,7 +63,7 @@ message BoxedRef {
       required int32    boxed = 2;
    }
    extend Value {
-      required Entry extension = 6;
+      optional Entry extension = 6;
    }
 }
 
@@ -80,7 +80,7 @@ message Array {
 
 message Ref {
    extend Value {
-      required int32   ref_object_id = 8;
+      optional int32   ref_object_id = 8;
    }
 }
 
@@ -89,39 +89,39 @@ message Queue {
       repeated Value   contents = 1;
    }
    extend Value {
-      required Update extension = 9;
+      optional Update extension = 9;
    }
 }
 
 extend Value {
-   required int32 integer = 100;
-   required string string = 101;
-   required bool boolean = 102;
-   required float singleprecision = 103;
-   required radiant.protocol.transform transform = 104;
-   required radiant.protocol.point1i point1i = 105;
-   required radiant.protocol.point1f point1f = 106;
-   required radiant.protocol.point2i point2i = 107;
-   required radiant.protocol.point2f point2f = 108;
-   required radiant.protocol.point3i point3i = 109;
-   required radiant.protocol.point3f point3f = 110;
-   required radiant.protocol.cube3i cube3i  = 111;
-   required radiant.protocol.cube3f cube3f  = 112;
-   required radiant.protocol.cube2i cube2i  = 113;
-   required radiant.protocol.cube2f cube2f  = 114;
-   required radiant.protocol.cube1i cube1i  = 115;
-   required radiant.protocol.cube1f cube1f  = 116;
-   required radiant.protocol.region3i region3i  = 118;
-   required radiant.protocol.region3f region3f  = 119;
-   required radiant.protocol.region2i region2i  = 120;
-   required radiant.protocol.region2f region2f  = 121;
-   required radiant.protocol.region1i region1i  = 122;
-   required radiant.protocol.region1f region1f  = 123;
-   required radiant.protocol.sphere3f sphere3f  = 124;
-   required radiant.protocol.color color = 125;
-   required radiant.protocol.quaternion quaternion = 126;
-   required radiant.protocol.ray3f ray3f = 127;
-   required double doubleprecision = 128;
+   optional int32 integer = 100;
+   optional string string = 101;
+   optional bool boolean = 102;
+   optional float singleprecision = 103;
+   optional radiant.protocol.transform transform = 104;
+   optional radiant.protocol.point1i point1i = 105;
+   optional radiant.protocol.point1f point1f = 106;
+   optional radiant.protocol.point2i point2i = 107;
+   optional radiant.protocol.point2f point2f = 108;
+   optional radiant.protocol.point3i point3i = 109;
+   optional radiant.protocol.point3f point3f = 110;
+   optional radiant.protocol.cube3i cube3i  = 111;
+   optional radiant.protocol.cube3f cube3f  = 112;
+   optional radiant.protocol.cube2i cube2i  = 113;
+   optional radiant.protocol.cube2f cube2f  = 114;
+   optional radiant.protocol.cube1i cube1i  = 115;
+   optional radiant.protocol.cube1f cube1f  = 116;
+   optional radiant.protocol.region3i region3i  = 118;
+   optional radiant.protocol.region3f region3f  = 119;
+   optional radiant.protocol.region2i region2i  = 120;
+   optional radiant.protocol.region2f region2f  = 121;
+   optional radiant.protocol.region1i region1i  = 122;
+   optional radiant.protocol.region1f region1f  = 123;
+   optional radiant.protocol.sphere3f sphere3f  = 124;
+   optional radiant.protocol.color color = 125;
+   optional radiant.protocol.quaternion quaternion = 126;
+   optional radiant.protocol.ray3f ray3f = 127;
+   optional double doubleprecision = 128;
 };
 
 message Animation {
@@ -130,14 +130,14 @@ message Animation {
    required int32       end = 3;
    required int32       flags = 4;
    extend Value {
-      required Animation animation = 200;
+      optional Animation animation = 200;
    }
 };
 
 message GridTile {
    required bytes cells  = 1;
    extend Value {
-      required GridTile tile = 201;
+      optional GridTile tile = 201;
    }
 };
 
@@ -145,7 +145,7 @@ message GridTile {
 message Grid {
    required bytes palette = 1;
    extend Value {
-      required Grid extension  = 202;
+      optional Grid extension  = 202;
    }
 };
 
@@ -158,27 +158,27 @@ message Selection {
    optional string string = 6;
    optional int32 number = 7;
    extend Value {
-      required Selection extension  = 203;
+      optional Selection extension  = 203;
    }
 }
 
 message LuaControllerObject {
    optional string lua_script = 1;
    extend Value {
-      required LuaControllerObject extension  = 204;
+      optional LuaControllerObject extension  = 204;
    }
 };
 
 message LuaDataObject {
    optional Value lua_object = 1;
    extend Value {
-      required LuaDataObject extension  = 205;
+      optional LuaDataObject extension  = 205;
    }
 };
 
 message LuaObject {
    extend Value {
-      required LuaObject extension = 206;
+      optional LuaObject extension = 206;
    }
    enum Type {
       BOOLEAN = 1;
@@ -207,7 +207,7 @@ message LuaObject {
 
 message RandomNumberGenerator {
    extend Value {
-      required RandomNumberGenerator extension = 207;
+      optional RandomNumberGenerator extension = 207;
    }
    optional bytes       state = 1;
 };
