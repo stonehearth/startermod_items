@@ -442,7 +442,7 @@ bool PipelineResource::load( const char *data, int size )
 bool PipelineResource::setupPipeline(std::string const& xml)
 {
 	XMLDoc doc;
-	doc.parseBuffer(xml.c_str(), xml.size());
+	doc.parseBuffer(xml.c_str(), (int)xml.size());
 	if( doc.hasError() ) {
 		return raiseError( "Error parsing xml pipeline setup" );
    }
@@ -452,7 +452,7 @@ bool PipelineResource::setupPipeline(std::string const& xml)
 PipelineStagePtr PipelineResource::compileStage(std::string const& xml)
 {
 	XMLDoc doc;
-	doc.parseBuffer(xml.c_str(), xml.size());
+	doc.parseBuffer(xml.c_str(), (int)xml.size());
 	if( doc.hasError() ) {
 		raiseError( "Error parsing xml pipeline stage" );
       return nullptr;

@@ -117,7 +117,7 @@ void TerrainTesselator::TesselateLayer(csg::Region2 const& layer, int height, cs
    // Clip edges before we do anything...
    if (clipper) {
       std::vector<csg::Edge2>& edges = edgeMap.GetEdges();
-      uint i = 0, c = edges.size();
+      uint i = 0, c = (uint)edges.size();
       while (i < c) {
          bool filter;
          csg::Edge2 edge = edges[i];

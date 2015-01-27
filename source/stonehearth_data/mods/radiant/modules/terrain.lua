@@ -19,8 +19,12 @@ function Terrain.get_block_types()
    return Terrain._block_types
 end
 
-function Terrain.get_block_kind_for_tag(tag)
+function Terrain.get_block_kind_from_tag(tag)
    return Terrain._block_kinds[tag]
+end
+
+function Terrain.get_block_tag_from_kind(kind)
+   return Terrain._block_tags[kind]
 end
 
 function Terrain.get_block_kind_at(point)
@@ -30,7 +34,7 @@ function Terrain.get_block_kind_at(point)
    end
    
    local tag = region:get_rect(0).tag
-   return Terrain.get_block_kind_for_tag(tag)
+   return Terrain.get_block_kind_from_tag(tag)
 end
 
 -- place an entity in the world.  this may not end up no the terrain, but is
@@ -408,10 +412,12 @@ function Terrain._initialize_block_types(config_file)
    local config = radiant.resources.load_json(config_file)
    Terrain._block_types = {}
    Terrain._block_kinds = {}
+   Terrain._block_tags = {}
 
    for name, block_type in pairs(config.block_types) do
       Terrain._block_types[name] = block_type.tag
       Terrain._block_kinds[block_type.tag] = block_type.kind
+      Terrain._block_tags[block_type.kind] = block_type.tag
    end
 end
 

@@ -482,7 +482,7 @@ void GridSpatialGraph::removeNode(SceneNode const& sceneNode)
    } else {
       // Find all old references and remove them.
       for (uint32 gridNum : _nodeGridLookup[h]) {
-         int numRemoved = _gridElements[gridNum]._nodes.erase(&sceneNode);
+         int numRemoved = (int)_gridElements[gridNum]._nodes.erase(&sceneNode);
          ASSERT(numRemoved == 1);
       }
       _nodeGridLookup.erase(h);
@@ -1338,7 +1338,7 @@ int SceneManager::findNodes( SceneNode &startNode, std::string const& name, int 
       _findNodes(startNode, name, type);
    }
 
-	return _findResults.size();
+	return (int)_findResults.size();
 }
 
 
@@ -1507,10 +1507,10 @@ void SceneManager::clearQueryCache()
    for (int i = 0; i < _queryCacheCount; i++) {
       int totalRQs = 0;
       for (const auto& iqs : _queryCache[i].instanceRenderableQueues) {
-         totalRQs += iqs.second.size();
+         totalRQs += (int)iqs.second.size();
       }
 
-      totalRQs += _queryCache[i].renderableQueues.size();
+      totalRQs += (int)_queryCache[i].renderableQueues.size();
 
       if (totalRQs > MaxActiveRenderQueues) {
          Modules::log().writeWarning("Total RQs for query %d exceeds maximum; flushing.", i);

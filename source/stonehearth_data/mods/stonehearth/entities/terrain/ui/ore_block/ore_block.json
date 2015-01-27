@@ -1,0 +1,11 @@
+{
+   "type" : "entity",
+   "components" : {
+      "unit_info" : {
+         "name": "Ore block", 
+         "description": "Mine to get ore"
+      },
+      "stonehearth:ore_block" : {
+      }
+	}
+}

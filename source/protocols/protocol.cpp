@@ -131,9 +131,9 @@ void RecvQueue::HandleRead(RecvQueuePtr q, const boost::system::error_code& e, s
    if (!startTime) {
       startTime = timeGetTime();
    }
-   readBuf_.grow(bytes_transferred);
+   readBuf_.grow(static_cast<int>(bytes_transferred));
    ASSERT(readBuf_.size() <= ReadBufferSize);
-   total += bytes_transferred;
+   total += static_cast<int>(bytes_transferred);
 
    NETWORK_LOG(3) << endpoint_ << " received " << bytes_transferred << " bytes (read buf size is now: " << readBuf_.size() << ")";
 

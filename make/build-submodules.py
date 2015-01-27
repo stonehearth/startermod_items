@@ -16,6 +16,9 @@ def run(*args):
 def git(*args):
    return run([GIT] + list(args))
 
+def last_build_file(submodule):
+   return os.path.join(submodule, '.last_build_' + os.getenv('RADIANT_BUILD_PLATFORM'))
+
 def build_submodule(sha1, submodule):
    """
    build the submodule. if successful, write the sha1 hash to .last_build.
@@ -33,7 +36,8 @@ def build_submodule(sha1, submodule):
    else:
       print ' * ignoring submodule %s (no Makefile).' % submodule
       
-   file(os.path.join(submodule, '.last_build'), 'w').write(sha1)
+   print ' * writing sha1 hash to %s.' % last_build_file(submodule)
+   file(last_build_file(submodule), 'w').write(sha1)
 
    """
    hash = subprocess.Popen('git rev-parse --verify HEAD', 
@@ -47,7 +51,7 @@ def get_last_build_sha1(submodule):
    """
    last_built_hash = ''
    try: 
-      last_built_hash = file(os.path.join(submodule, '.last_build'), 'r').read()
+      last_built_hash = file(last_build_file(submodule), 'r').read()
    except:
       pass
    return last_built_hash

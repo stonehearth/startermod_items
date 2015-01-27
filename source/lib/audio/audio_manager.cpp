@@ -133,7 +133,7 @@ void AudioManager::CleanupSounds()
    if (sounds_.size() < MAX_SOUNDS) {
       return;
    }
-   uint i, c = sounds_.size();
+   uint i, c = static_cast<uint>(sounds_.size());
    for (i = 0; i < c;) {
       if (sounds_[i]->getStatus() == sf::SoundSource::Status::Stopped) {
          sounds_.erase(sounds_.begin() + i);
