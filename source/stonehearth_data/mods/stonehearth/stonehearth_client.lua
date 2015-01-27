@@ -14,6 +14,7 @@ local service_creation_order = {
    'hilight',
    'build_editor',
    'subterranean_view',
+   'terrain_highlight',
    'party_editor',
 }
 

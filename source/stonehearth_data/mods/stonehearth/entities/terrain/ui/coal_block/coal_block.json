@@ -1,0 +1,9 @@
+{
+   "mixins" : "file(../ore_block)",
+   "components" : {
+      "unit_info" : {
+         "name": "Coal Vein", 
+         "description": "Provides coal when mined."
+      }
+	}
+}

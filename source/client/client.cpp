@@ -1313,11 +1313,6 @@ void Client::SelectEntity(om::EntityPtr entity)
    if (selectedEntity != entity) {
       JSONNode selectionChanged(JSON_NODE);
 
-      if (entity && entity->GetStore().GetStoreId() != GetStore().GetStoreId()) {
-         CLIENT_LOG(3) << "ignoring selected object with non-client store id.";
-         return;
-      }
-
       if (selectedEntity) {
          renderEntity = Renderer::GetInstance().GetRenderEntity(selectedEntity);
          if (renderEntity) {
@@ -1390,6 +1385,9 @@ void Client::InstallCurrentCursor()
 
 void Client::HilightEntity(om::EntityPtr hilight)
 {
+   if (hilight->GetObjectId() != 1) {
+      int foo = 1;
+   }
    auto &renderer = Renderer::GetInstance();
    om::EntityPtr selectedEntity = selectedEntity_.lock();
    om::EntityPtr hilightedEntity = hilightedEntity_.lock();

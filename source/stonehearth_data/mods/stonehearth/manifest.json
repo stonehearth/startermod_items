@@ -187,7 +187,6 @@
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
-
      
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder_1" : "file(entities/boulders/medium_boulder/medium_boulder_1.json)",
@@ -195,6 +194,14 @@
       "medium_boulder_3" : "file(entities/boulders/medium_boulder/medium_boulder_3.json)",
       "large_boulder_1" : "file(entities/boulders/large_boulder/large_boulder_1.json)",
       "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
+
+      "terrain:ui:ore_block" : "file(entities/terrain/ui/ore_block)",
+      "terrain:ui:copper_block" : "file(entities/terrain/ui/copper_block)",
+      "terrain:ui:tin_block" : "file(entities/terrain/ui/tin_block)",
+      "terrain:ui:iron_block" : "file(entities/terrain/ui/iron_block)",
+      "terrain:ui:coal_block" : "file(entities/terrain/ui/coal_block)",
+      "terrain:ui:silver_block" : "file(entities/terrain/ui/silver_block)",
+      "terrain:ui:gold_block" : "file(entities/terrain/ui/gold_block)",
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
       
