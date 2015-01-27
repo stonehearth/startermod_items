@@ -130,6 +130,14 @@ else
    MODULE_BUILD_SUFFIX=d
 fi
 
+if [ $BUILD_ARCH == x64 ]; then
+   BUILD_ARCH_SHORT=64
+   BUILD_ARCH_DIR=x64
+else
+   BUILD_ARCH_SHORT=32
+   BUILD_ARCH_DIR=
+fi
+
 if [ -z $OUTPUT_DIR ] || [ -z $BUILD_TYPE ]; then
    usage
    exit 1
@@ -147,18 +155,11 @@ fi
 
 if [ ! -z $STAGE_SELF ]; then
    echo Copying stonehearth binaries
-   BUILD_ROOT=$STONEHEARTH_ROOT/build/source/stonehearth/$BUILD_TYPE
+   BUILD_ROOT=$STONEHEARTH_ROOT/build/$BUILD_ARCH/source/stonehearth/$BUILD_TYPE
    cp -u $BUILD_ROOT/Stonehearth.exe $OUTPUT_DIR    
 fi
 
 if [ ! -z $STAGE_BIN ]; then
-   if [ $BUILD_ARCH == x64 ]; then
-      BUILD_ARCH_SHORT=64
-      BUILD_ARCH_DIR=x64
-   else
-      BUILD_ARCH_SHORT=32
-      BUILD_ARCH_DIR=
-   fi
 
    echo Copying lua binaries
 
