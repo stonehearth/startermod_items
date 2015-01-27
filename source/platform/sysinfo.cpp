@@ -157,10 +157,10 @@ platform::SysInfo::ByteCount SysInfo::GetTotalSystemMemory()
 std::string SysInfo::GetOSName()
 {
    std::string value(256, 0);
-   DWORD size = value.size();
+   DWORD size = (DWORD)value.size();
    if (RegGetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", "ProductName", RRF_RT_REG_SZ, nullptr, &value[0], &size) == ERROR_SUCCESS) {
       // Make sure we don't include the NULL (this string is double null terminated!)
-      size = strlen(value.c_str());
+      size = (DWORD)strlen(value.c_str());
       value.resize(size);
       return value;
    }

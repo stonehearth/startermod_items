@@ -275,10 +275,22 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
 
    profile_cpu_ = false;
 
+   // Allocate the interpreter.  64-bit builds of LuaJit require using luaL_newstate.
+#if defined(_M_X64) || defined(__amd64__)
+   L_ = luaL_newstate();
+#else
    L_ = lua_newstate(LuaAllocFn, this);
+#endif
+   ASSERT(L_);
 
+   // Set the alloc function.  64-bit builds of LuaJit use their own internal allocator
+   // which takes memory from the bottom 2 Gb of the process.
    if (lua::JitIsEnabled()) {
+#if defined(_M_X64) || defined(__amd64__)
+      // nop...
+#else
       lua_setallocf(L_, LuaAllocFn, this);
+#endif
    } else {
       lua_setalloc2f(L_, LuaAllocFnWithState, this);
    }
@@ -480,7 +492,7 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
    ScriptHost* host = static_cast<ScriptHost*>(ud);
    void *realloced;
 
-   host->bytes_allocated_ += (nsize - osize);
+   host->bytes_allocated_ += (int)(nsize - osize);
 
 
    if (nsize == 0) {
@@ -764,7 +776,7 @@ void ScriptHost::DumpHeap(std::string const& filename) const
    FILE* outf = fopen(filename.c_str(), "wb");
    
    // Dump keys first.  Create an index for the keys, too.
-   int numkeys = alloc_map.size();
+   int numkeys = (int)alloc_map.size();
    fwrite(&numkeys, sizeof(numkeys), 1, outf);
    int keyidx = 0;
    for (const auto& v : alloc_map) {
@@ -779,7 +791,7 @@ void ScriptHost::DumpHeap(std::string const& filename) const
    // Record and write the total number of memory allocations.
    int totalallocs = 0;
    for (const auto& entry : alloc_map) {
-      totalallocs += entry.second.size();
+      totalallocs += (int)entry.second.size();
    }
    fwrite(&totalallocs, sizeof(totalallocs), 1, outf);
    for (const auto& entry : alloc_map) {
@@ -820,15 +832,15 @@ void ScriptHost::WriteMemoryProfile(std::string const& filename) const
    for (const auto& entry : alloc_map) {
       int total = 0;
       for (const auto& alloc : entry.second) {
-         total += alloc.second;
+         total += (int)alloc.second;
       }
       grand_total += total;
       _MemSample s;
       s.key = entry.first;
-      s.allocs = entry.second.size();
+      s.allocs = (int)entry.second.size();
       s.totalBytes = total;
       samples.push_back(s);
-      w = std::max(w, entry.first.size() + 2);
+      w = std::max(w, (unsigned int)entry.first.size() + 2);
    }
 
    std::ofstream f(filename);
@@ -1073,7 +1085,7 @@ luabind::object ScriptHost::EnumObjects(const char* modname, const char* path)
 
    try {
       if (fs::is_directory(modpath)) {
-         int start = modpath.string().size() + 1;
+         int start = (int)modpath.string().size() + 1;
 
          int count = 1;
          fs::directory_iterator const end;

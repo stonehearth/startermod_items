@@ -84,7 +84,7 @@ public:
    }
    static Color4 FromString(std::string const& str) {
       const char* c = str.c_str();
-      int len = str.length();
+      size_t len = str.length();
       if (*c == '#') {
          int val = strtol(c + 1, nullptr, 16);
          switch (len - 1) {

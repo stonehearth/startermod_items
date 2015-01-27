@@ -185,7 +185,7 @@ void Store::SaveObjects(google::protobuf::io::CodedOutputStream& cos, std::vecto
    // sort so we save objects in the order they were created
    std::sort(objects.begin(), objects.end());
 
-   cos.WriteLittleEndian32(objects.size());
+   cos.WriteLittleEndian32((int)objects.size());
    for (ObjectId id : objects) {
       Object* obj = objects_[id];
 
@@ -391,7 +391,7 @@ bool Store::Load(std::string const& filename, std::string &error, ObjectMap& obj
 
 bool Store::LoadObject(std::string const& input, std::string& error)
 {
-   google::protobuf::io::ArrayInputStream ais(input.data(), input.size());
+   google::protobuf::io::ArrayInputStream ais(input.data(), (int)input.size());
    google::protobuf::io::CodedInputStream cis(&ais);
 
    Protocol::Object msg;
@@ -493,7 +493,7 @@ void Store::ValidateObjectId(ObjectId oid) const
 
 int Store::GetObjectCount() const
 {
-   return objects_.size();
+   return (int)objects_.size();
 }
 
 ObjectId Store::GetNextObjectId()

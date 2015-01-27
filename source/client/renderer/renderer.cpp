@@ -316,7 +316,7 @@ void Renderer::UpdateFoW(H3DNode node, const csg::Region2f& region)
       f += 16;
    }
 
-   h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (f - start) * 4);
+   h3dUnmapNodeParamV(node, H3DInstanceNodeParams::InstanceBuffer, (int)(f - start) * 4);
    csg::Rect2f bounds = region.GetBounds();
    h3dUpdateBoundingBox(node, (float)bounds.min.x, -ySize/2.0f, (float)bounds.min.y, 
                         (float)bounds.max.x, ySize/2.0f, (float)bounds.max.y);   
@@ -1535,7 +1535,8 @@ void Renderer::OnKey(int key, int down, int mods)
    input_.keyboard.alt = (mods & GLFW_MOD_ALT) != 0;
 
    auto isKeyDown = [](WPARAM arg) {
-      return (GetKeyState(arg) & 0x8000) != 0;
+      int keycode = (int)(arg);
+      return (keycode & 0x8000) != 0;
    };
    DispatchInputEvent();
 }
@@ -1721,7 +1722,7 @@ bool Renderer::LoadMissingResources()
       }
       if (inf) {
          std::string buffer = io::read_contents(*inf);
-         result = h3dLoadResource(res, buffer.c_str(), buffer.size()) && result;
+         result = h3dLoadResource(res, buffer.c_str(), (int)buffer.size()) && result;
       } else {
          // Tell engine to use the default resource by using NULL as data pointer
          h3dLoadResource(res, 0x0, 0);

@@ -141,20 +141,20 @@ void DebugShapesNode::createBuffers()
    std::vector<Vertex> verts;
    if (!lines_.empty()) {
       start = last;
-      last = start + lines_.size();
+      last = start + (int)lines_.size();
       std::copy(lines_.begin(), lines_.end(), std::back_inserter(verts));
       primitives_.push_back(Primitives(PRIM_LINES, start, last));
    }
    if (!triangles_.empty()) {
       start = last;
-      last = start + triangles_.size();
+      last = start + (int)triangles_.size();
       std::copy(triangles_.begin(), triangles_.end(), std::back_inserter(verts));
       primitives_.push_back(Primitives(PRIM_TRILIST, start, last));
    }
 
    _bLocalBox.clear();
    if (!primitives_.empty()) {
-      vertexBufferSize_ = verts.size() * sizeof(Vertex);
+      vertexBufferSize_ = (uint32)verts.size() * sizeof(Vertex);
       if (vertexBufferSize_) {
          vertexBuffer_ = gRDI->createVertexBuffer(vertexBufferSize_, STREAM, verts.data());
       }

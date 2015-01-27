@@ -158,7 +158,7 @@ void Timeline::ColorColumns()
                });
 
    uint c = std::min((uint)counter_data_sorted_.size(), max_top_traces_);
-   uint color_count = colors_.size();
+   uint color_count = (uint)colors_.size();
    for (uint i = 0; i < c; i++) {
       counter_data_sorted_[i]->color = i < color_count ? colors_[i] : default_color_;
    }

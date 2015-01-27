@@ -183,7 +183,7 @@ RenderEffect::~RenderEffect()
 void RenderEffect::Update(FrameStartInfo const& info, bool& finished)
 {
    EL_LOG(9) << "update...";
-   int i = 0, c = tracks_.size();
+   int i = 0, c = (int)tracks_.size();
    while (i < c) {
       auto effect = tracks_[i];
       bool done = false;
@@ -657,7 +657,7 @@ get_easing_function(std::string const& easing)
       if (method == "in_out") { return claw::tween::easing_ ## name::ease_in_out; } \
    }
 
-   int offset = easing.find('_');
+   int offset = (int)easing.find('_');
    if (offset != std::string::npos) {
       std::string eq = easing.substr(0, offset);
       std::string method = easing.substr(offset + 1);

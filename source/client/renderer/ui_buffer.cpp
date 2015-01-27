@@ -142,7 +142,7 @@ void UiBuffer::allocateBuffers(int width, int height)
       material << "</Material>" << std::endl;
 
       uiMatRes_[i] = h3dAddResource(H3DResTypes::Material, matName.c_str(), H3DResFlags::NoFlush);
-      bool result = h3dLoadResource(uiMatRes_[i], material.str().c_str(), material.str().length());
+      bool result = h3dLoadResource(uiMatRes_[i], material.str().c_str(), (int)material.str().length());
       ASSERT(result);
    }
 }

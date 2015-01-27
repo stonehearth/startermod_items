@@ -11,6 +11,7 @@ Required:
    --t      the build type to stage (e.g. Debug)
 
 Optional:
+   --x      architecture
    --c      clean the contents of the output directory
    --a      stage everything
    --b      stage dependencies require to run stonehearth
@@ -29,13 +30,16 @@ STAGE_BIN=
 CLEAN_OUTPUT=
 OPT_MOD_NAMES=()
 
-while getopts "o:t:cabdsm:" OPTION; do
+while getopts "o:t:x:cabdsm:" OPTION; do
    case $OPTION in
       o)
          OUTPUT_DIR=$STONEHEARTH_ROOT/$OPTARG
          ;;
       t)
          BUILD_TYPE=$OPTARG
+         ;;
+      x)
+         BUILD_ARCH=$OPTARG
          ;;
       a) 
          STAGE_BIN=1
@@ -148,21 +152,30 @@ if [ ! -z $STAGE_SELF ]; then
 fi
 
 if [ ! -z $STAGE_BIN ]; then
+   if [ $BUILD_ARCH == x64 ]; then
+      BUILD_ARCH_SHORT=64
+      BUILD_ARCH_DIR=x64
+   else
+      BUILD_ARCH_SHORT=32
+      BUILD_ARCH_DIR=
+   fi
+
    echo Copying lua binaries
 
    # vanilla lua. no jit.  no fun.
    LUA_ROOT=$STONEHEARTH_ROOT/modules/lua/package/lua-5.1.5-coco
-   cp -u $LUA_ROOT/solutions/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
+   cp -u $LUA_ROOT/solutions/$BUILD_ARCH_DIR/$MODULE_BUILD_TYPE/lua-5.1.5.dll $OUTPUT_DIR
 
    # luajit up in here! party time!!
-   LUAJIT_ROOT=$STONEHEARTH_ROOT/modules/luajit/src
+   LUAJIT_ROOT=$STONEHEARTH_ROOT/modules/luajit/src/$BUILD_ARCH
    cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR/lua-5.1.5.jit.dll
+   cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.pdb $OUTPUT_DIR/lua-5.1.5.jit.pdb
 
    echo Copying saved objects
    cp -u -r $STONEHEARTH_ROOT/source/stonehearth_data/saved_objects $OUTPUT_DIR/saved_objects
 
    echo Copying chromium embedded
-   CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows32
+   CHROMIUM_ROOT=$STONEHEARTH_ROOT/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows$BUILD_ARCH_SHORT
    cp -u -r $CHROMIUM_ROOT/resources/locales $OUTPUT_DIR/locales
    cp -u $CHROMIUM_ROOT/resources/icudtl.dat $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/resources/cef.pak $OUTPUT_DIR
@@ -170,7 +183,6 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $CHROMIUM_ROOT/resources/cef_200_percent.pak $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/resources/devtools_resources.pak $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/libcef.dll $OUTPUT_DIR
-   cp -u $CHROMIUM_ROOT/Release/icudt.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/libEGL.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/libGLESv2.dll $OUTPUT_DIR
    cp -u $CHROMIUM_ROOT/Release/ffmpegsumo.dll $OUTPUT_DIR
@@ -179,8 +191,8 @@ if [ ! -z $STAGE_BIN ]; then
 
    echo Copying sfml 
    SFML_ROOT=$STONEHEARTH_ROOT/modules/sfml
-   SFML_BUILD_ROOT=$SFML_ROOT/build/lib/$MODULE_BUILD_TYPE
-   SFML_EXTLIB_ROOT=$SFML_ROOT/package/SFML-2.1/extlibs/bin/x86
+   SFML_BUILD_ROOT=$SFML_ROOT/build/$BUILD_ARCH/lib/$MODULE_BUILD_TYPE
+   SFML_EXTLIB_ROOT=$SFML_ROOT/package/SFML-2.1/extlibs/bin/$BUILD_ARCH
    if [ $BUILD_TYPE == Debug ]; then
       SUFFIX=-d
    else
@@ -192,13 +204,20 @@ if [ ! -z $STAGE_BIN ]; then
    cp -u $SFML_EXTLIB_ROOT/libsndfile-1.dll $OUTPUT_DIR
 
    echo Copying tbb
+   TBB_ROOT=$STONEHEARTH_ROOT/modules/tbb
+   if [ $BUILD_ARCH == x64 ]; then
+      TBB_ARCH=intel64
+   else
+      TBB_ARCH=ia32
+   fi
    if [ $BUILD_TYPE == Debug ]; then
-      TBB_ROOT=$STONEHEARTH_ROOT/modules/tbb
-      cp -u $TBB_ROOT/package/build/vsproject/ia32/Debug-MT/tbb_debug.dll $OUTPUT_DIR
+      cp -u $TBB_ROOT/package/build/vsproject/$TBB_ARCH/Debug-MT/tbb_debug.dll $OUTPUT_DIR
+   else
+      cp -u $TBB_ROOT/package/build/vsproject/$TBB_ARCH/Release-MT/tbb.dll $OUTPUT_DIR
    fi
 
    echo Copying crash reporter
-   CRASH_REPORTER_ROOT=$STONEHEARTH_ROOT/build/source/lib/crash_reporter
+   CRASH_REPORTER_ROOT=$STONEHEARTH_ROOT/build/$BUILD_ARCH/source/lib/crash_reporter
    cp -u $CRASH_REPORTER_ROOT/server/$BUILD_TYPE/crash_reporter.exe $OUTPUT_DIR
 fi
 

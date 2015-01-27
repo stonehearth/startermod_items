@@ -1345,7 +1345,7 @@ void Client::InstallCurrentCursor()
          Renderer& renderer = Renderer::GetInstance();
          HWND hwnd = renderer.GetWindowHandle();
 
-         SetClassLong(hwnd, GCL_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+         SetClassLongPtr(hwnd, GCLP_HCURSOR, static_cast<LONG_PTR>(reinterpret_cast<LONG_PTR>(cursor)));
          ::SetCursor(cursor);
          currentCursor_ = cursor;
       }

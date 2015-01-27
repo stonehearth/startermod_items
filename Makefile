@@ -3,8 +3,12 @@ include make/settings.mk
 STONEHEARTH_ROOT   = ${CURDIR}
 MAKE_ROOT          = $(STONEHEARTH_ROOT)/make
 MAKE_ROOT_DOS      = $(shell pwd -W)/make
-BUILD_ROOT         = $(STONEHEARTH_ROOT)/build
+BUILD_DIR          = build/$(RADIANT_BUILD_PLATFORM)
+BUILD_ROOT         = $(STONEHEARTH_ROOT)/$(BUILD_DIR)
 SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
+
+STAGE_FLAGS        = -t $(MSBUILD_CONFIGURATION) -x $(RADIANT_BUILD_PLATFORM)
+STAGE              = sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh $(STAGE_FLAGS)
 
 # xxx: it would be *great* if we could specify an absolute or relative
 # path for things like STAGE_ROOT and things would "jsut work".  Doing
@@ -13,16 +17,16 @@ SCRIPTS_ROOT       = $(STONEHEARTH_ROOT)/scripts
 # this by using a more recent version of MSYS and pulling git into that
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
-STAGE_ROOT         = build/stage/stonehearth
-TEST_STAGE_ROOT    = build/test-stage/stonehearth
-ZIP_PACKAGE_ROOT   = build/game-package
-TEST_PACKAGE_ROOT  = build/test-package
-STEAM_PACKAGE_ROOT = build/steam-package
+STAGE_ROOT         = $(BUILD_DIR)/stage/stonehearth
+TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
+ZIP_PACKAGE_ROOT   = $(BUILD_DIR)/game-package
+TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
+STEAM_PACKAGE_ROOT = $(BUILD_DIR)/steam-package
 
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)
   RUN_ROOT=$(STONEHEARTH_ROOT)/source/stonehearth_data
-  STONEHEARTH_APP = ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
+  STONEHEARTH_APP = ../../$(BUILD_DIR)/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
 else
   RUN_ROOT=$(STAGE_ROOT)
   STONEHEARTH_APP = ../../source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.exe $(SHFLAGS)
@@ -33,20 +37,18 @@ default: submodules configure crash_reporter stonehearth
 
 .PHONY: clean
 clean:
-	rm -rf build
+	rm -rf $(BUILD_DIR)
 
 .PHONY: official-build
 official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage game-package steam-package
 
 .PHONY: init-build
 init-build:
-	-mkdir -p build
-	$(MAKE_ROOT)/init_build_number.py > build/build_overrides.h
+	-mkdir -p $(BUILD_DIR)
+	$(MAKE_ROOT)/init_build_number.py > $(BUILD_DIR)/build_overrides.h
 
 .PHONY: submodules
 submodules:
-	git submodule init
-	git submodule update --remote
 	$(MAKE_ROOT)/build-submodules.py
 
 %-module:
@@ -55,15 +57,15 @@ submodules:
 .PHONY: configure
 configure:
 	cp $(SCRIPTS_ROOT)/git_hooks/pre-push $(STONEHEARTH_ROOT)/.git/hooks/
-	-rm build/CMakeCache.txt
-	cmd.exe /c "$(CMAKE) -H. -Bbuild -G\"Visual Studio 11\""
+	-rm $(BUILD_DIR)/CMakeCache.txt
+	cmd.exe /c "$(CMAKE) -H. -B$(BUILD_DIR) -G\"$(RADIANT_CMAKE_GENERATOR)\""
 
 .PHONY: stonehearth
 stonehearth:
 	@echo Build type is ${BUILD_TYPE}.
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:protobuf
 	$(MSBUILD) $(BUILD_ROOT)/Stonehearth.sln -p:configuration=$(MSBUILD_CONFIGURATION) -t:stonehearth
-	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o ../../build/source/stonehearth/$(MSBUILD_CONFIGURATION) -t $(MSBUILD_CONFIGURATION) -b
+	$(STAGE) -o ../../$(BUILD_DIR)/source/stonehearth/$(MSBUILD_CONFIGURATION) -b
 
 .PHONY: crash_reporter
 crash_reporter:
@@ -82,7 +84,7 @@ ide: configure ide-only
 
 .PHONY: ide-only
 ide-only:
-	start build/Stonehearth.sln
+	start $(BUILD_DIR)/Stonehearth.sln
 
 .PHONY: run-autotest
 run-autotest:
@@ -107,14 +109,14 @@ run-all-tests-remote:
 .PHONY: run-all-perf-tests-remote
 run-all-perf-tests-remote:
 	scripts/test/run_remote_autotest.py -p -g perf_all
-	curl -F results=@build/combined_results.shperf.json http://10.1.10.51:8087/_result?build_number=$(BAMBOO_BUILD_NUMBER)
+	curl -F results=@$(BUILD_DIR)/combined_results.shperf.json http://10.1.10.51:8087/_result?build_number=$(BAMBOO_BUILD_NUMBER)
 
 # Collect performance data from a local build.  Invokes like:
 # make run-perf-exp SCRIPT=perf_camera_orbit.lua FUNC=orbit CONFIG=ultra_quality DESC=description_goes_here
 .PHONY: run-perf-exp
 run-perf-exp:
 	scripts/test/run_remote_autotest.py -p -s performance/$(SCRIPT) -f $(FUNC) -c $(CONFIG)
-	curl -F results=@build/combined_results.shperf.json http://build-win-01:8087/_experiment?description=$(DESC)
+	curl -F results=@$(BUILD_DIR)/combined_results.shperf.json http://build-win-01:8087/_experiment?description=$(DESC)
 
 .PHONY: perf-exp
 perf-exp: test-stage test-package run-perf-exp
@@ -126,15 +128,15 @@ decoda-project:
 
 .PHONY: dependency-graph
 dependency-graph:
-	cmake -H. -Bbuild -G"Visual Studio 11" --graphviz=deps.dot
+	cmake -H. -B$(BUILD_DIR) -G"Visual Studio 11" --graphviz=deps.dot
 
 .PHONY: stage
 stage:
-	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a
+	$(STAGE) -o $(STAGE_ROOT) -c -a
 
 .PHONY: test-stage
 test-stage:
-	sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh -o $(TEST_STAGE_ROOT) -t $(MSBUILD_CONFIGURATION) -c -a -m stonehearth_autotest -m autotest_framework
+	$(STAGE) -o $(TEST_STAGE_ROOT) -c -a -m stonehearth_autotest -m autotest_framework
 
 .PHONY: test-package
 test-package:
