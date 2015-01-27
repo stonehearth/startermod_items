@@ -103,8 +103,10 @@ function CarpenterClass:_create_xp_listeners()
 end
 
 function CarpenterClass:_remove_xp_listeners()
-   self._on_craft_listener:destroy()
-   self._on_craft_listener = nil
+   if self._on_craft_listener then
+      self._on_craft_listener:destroy()
+      self._on_craft_listener = nil
+   end
 end
 
 --When we've crafted an item, we get XP according to the min-crafter level of the item
