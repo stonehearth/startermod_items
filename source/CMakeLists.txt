@@ -1,6 +1,6 @@
 # almost everyone uses protocol buffers, so throw it in at the top
 # level.  no, i'm not proud of this
-FIND_PACKAGE(Protobuf REQUIRED)
+FIND_PACKAGE(Protobuf REQUIRED NO_MODULE)
 
 FIND_PACKAGE(Lua REQUIRED)
 FIND_PACKAGE(Luabind REQUIRED)
