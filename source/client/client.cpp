@@ -1385,9 +1385,6 @@ void Client::InstallCurrentCursor()
 
 void Client::HilightEntity(om::EntityPtr hilight)
 {
-   if (hilight->GetObjectId() != 1) {
-      int foo = 1;
-   }
    auto &renderer = Renderer::GetInstance();
    om::EntityPtr selectedEntity = selectedEntity_.lock();
    om::EntityPtr hilightedEntity = hilightedEntity_.lock();
