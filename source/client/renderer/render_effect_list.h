@@ -154,6 +154,7 @@ private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
    H3DNodeUnique      statusNode_;
    H3DRes             _matRes;
+   Material          _materialDesc;
 };
 
 /* For playing short sound effects*/

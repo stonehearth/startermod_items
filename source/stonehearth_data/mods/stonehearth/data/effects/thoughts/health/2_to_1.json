@@ -3,7 +3,17 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/health/2_to_1/2_to_1.json",
+         "material": {
+            "name": "materials/billboard.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map" : "materials/thoughts/health/2_to_2/2_to_1_.png",
+                  "numAnimationFrames" : 20,
+                  "frameRate" : 8
+               }
+            ]
+         },
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

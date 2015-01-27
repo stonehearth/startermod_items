@@ -3,7 +3,15 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/sleepy/sleepy_material.json",
+         "material": {
+            "name": "materials/billboard.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map" : "materials/thoughts/sleepy/thought_sleepy.png"
+               }
+            ]
+         },
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

@@ -13,7 +13,7 @@ void Material::load(json::Node const& materialNode)
       Material::SamplerDesc sd;
       sd.name = sampler.get("name", "");
       sd.path = sampler.get("map", "");
-      sd.numFrames = sampler.get("numFrames", 0);
+      sd.numFrames = sampler.get("numAnimationFrames", 0);
       sd.frameRate = sampler.get("frameRate", 24.0f);
 
       _samplers.push_back(sd);
