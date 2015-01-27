@@ -47,7 +47,7 @@ void radiant::perfmon::Timer_Init() {
    std::vector<int64_t> counts;
    int cpuNum = 0;
    while (cpuNum < MAX_PROCS) {
-      if (procMask & (1 << cpuNum)) {
+      if (procMask & (1i64 << cpuNum)) {
          LARGE_INTEGER curTick;
 		   DWORD_PTR threadAffMask = SetThreadAffinityMask( GetCurrentThread(), 1 << cpuNum);
 		   QueryPerformanceFrequency(&timer_freq_);

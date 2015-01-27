@@ -46,7 +46,7 @@ namespace radiant {
          int len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, nullptr, 0);
          std::wstring unicode;
          unicode.resize(len);
-         MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, (LPWSTR)unicode.data(), unicode.capacity());
+         MultiByteToWideChar(CP_UTF8, 0, s.c_str(), -1, (LPWSTR)unicode.data(), (int)unicode.capacity());
          return unicode;
       }
    }
@@ -117,7 +117,7 @@ namespace radiant {
       template <class T, class K> bool UniqueRemove(std::vector<T> &container, const K& element) {
          ASSERT(std::count(container.begin(), container.end(), element) <= 1);
 
-         int size = container.size();
+         int size = (int)container.size();
          for (int i = 0; i < size; i++) {
             if (container[i] == element) {
                container[i] = container[size - 1];
@@ -132,7 +132,7 @@ namespace radiant {
       template <class T, class K> bool UniqueRemove(std::vector<T> &container, const std::weak_ptr<K>& element) {
          std::shared_ptr<K> e = element.lock();
          if (e) {
-            int size = container.size();
+            int size = (int)container.size();
             for (int i = 0; i < size; i++) {
                auto ith = container[i].lock();
                if (ith == e) {
@@ -147,7 +147,7 @@ namespace radiant {
 
       template <class T, class K> int FastRemove(std::vector<T> &container, K const& element) {
          int c = 0;
-         int size = container.size();
+         int size = (int)container.size();
          for (int i = 0; i < size - c; ) {
             if (container[i] == element) {
                container[i] = container[size - 1];
@@ -162,7 +162,7 @@ namespace radiant {
 
       // also compresses nulls out of the std::vector...
       template <class K> int FastRemove(std::vector<std::weak_ptr<K>> &container, std::shared_ptr<K> const& e) {
-         int c = container.size();
+         int c = (int)container.size();
          if (e) {
             for (int i = 0; i < c; ) {
                auto ith = container[i].lock();
@@ -249,7 +249,7 @@ namespace radiant {
       }
 
       template <class K> void ForEachPrune(std::vector<std::weak_ptr<K>> &container, std::function <void (std::shared_ptr<K>)> fn) {
-         int i = 0, size = container.size();
+         int i = 0, size = (int)container.size();
          for (int i = 0; i < size; ) {
             std::shared_ptr<K> p = container[i].lock();
             if (!p) {

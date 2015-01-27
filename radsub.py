@@ -160,7 +160,7 @@ if args.debug:
 else:
   build_type = 'RelWithDebInfo'
   
-sh_build_root = sh_root + 'build/'
+sh_build_root = sh_root + 'build/' + os.environ['RADIANT_BUILD_PLATFORM'] + '/'
 sh_cwd = sh_root + 'source/stonehearth_data/'
 sh_exe_path = sh_build_root + 'source/stonehearth/' + build_type + '/Stonehearth.exe'
 

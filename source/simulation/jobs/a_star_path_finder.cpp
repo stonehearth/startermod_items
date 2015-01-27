@@ -58,8 +58,8 @@ void AStarPathFinder::ComputeCounters(std::function<void(const char*, double, co
             running_count++;
          }
       }
-      open_count += pf->open_.size();
-      closed_count += pf->closed_.size();
+      open_count += (int)pf->open_.size();
+      closed_count += (int)pf->closed_.size();
    });
 
    addCounter("pathfinders:a_star:total_count", count, "counter");
@@ -972,8 +972,8 @@ void AStarPathFinder::GetPathFinderInfo(json::Node& info)
    info.set("id", GetId());
    info.set("eta", EstimateCostToSolution());
    info.set("source", json::encode(source_->GetSourceLocation()));
-   info.set("open_count", open_.size());
-   info.set("closed_count", closed_.size());
+   info.set("open_count", (int)open_.size());
+   info.set("closed_count", (int)closed_.size());
 
    auto entity = entity_.lock();
    if (entity) {

@@ -23,7 +23,7 @@ MeshPtr Mesh_AddVertex(MeshPtr mesh, Vertex const& v)
 int Mesh_GetVertexCount(MeshPtr mesh)
 {
    if (mesh) {
-      return mesh->vertices.size();
+      return static_cast<int>(mesh->vertices.size());
    }
    return 0;
 }
@@ -39,7 +39,7 @@ MeshPtr Mesh_AddIndex(MeshPtr mesh, int i)
 int Mesh_GetIndexCount(MeshPtr mesh)
 {
    if (mesh) {
-      return mesh->indices.size();
+      return static_cast<int>(mesh->indices.size());
    }
    return 0;
 }

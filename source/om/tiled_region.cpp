@@ -186,7 +186,7 @@ void Region3MapWrapper::Clear()
 
 int Region3MapWrapper::NumTiles()
 {
-   return _tiles.size();
+   return (int)_tiles.size();
 }
 
 std::shared_ptr<csg::Region3> Region3MapWrapper::FindTile(csg::Point3 const& index)

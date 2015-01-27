@@ -58,7 +58,7 @@ bool DecalNode::InitExtension()
    indices.push_back(3);
    indices.push_back(0);
 
-   indexCount_ = indices.size();
+   indexCount_ = (uint32)indices.size();
    indexBuffer_ = gRDI->createIndexBuffer(indexCount_ * sizeof(unsigned short), indices.data());
 
    return true;
