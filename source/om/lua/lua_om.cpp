@@ -100,6 +100,8 @@ static scope RegisterTiledRegion(const char* name)
       .def("get_tile",               &TiledRegion_GetTile<T>)
       .def("find_tile",              &TiledRegion_FindTile<T>)
       .def("clear_tile",             &TiledRegion_ClearTile<T>)
+      .def("num_tiles",              &TiledRegion<T>::NumTiles)
+      .def("num_cubes",              &TiledRegion<T>::NumCubes)
       .def("each_changed_index",     &TiledRegion<T>::GetChangedSet, return_stl_iterator)
       .def("clear_changed_set",      &TiledRegion<T>::ClearChangedSet)
       .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles);

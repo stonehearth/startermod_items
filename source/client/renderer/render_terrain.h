@@ -25,6 +25,7 @@ public:
    csg::TagToColorMap const& GetColorMap() const;
    H3DNode GetGroupNode() const;
    void MarkDirty(csg::Point3 const& location);
+   void MarkAllDirty();
    csg::Point3 GetTileSize();
    void AddCut(om::Region3fBoxedPtr const& cut);
    void RemoveCut(om::Region3fBoxedPtr const& cut);
@@ -42,6 +43,7 @@ private:
    void UpdateLayers();
    void UpdateLayer(RenderTerrainLayer &layer, csg::Point3 const& location);
    void Update();
+   void ScheduleUpdate();
 
    RenderTerrainLayer& GetLayer(csg::Point3 const& location);
    bool LayerIsVisible(csg::Point3 const& location) const;

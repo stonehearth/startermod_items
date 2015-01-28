@@ -147,6 +147,28 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
 }
 
 template <typename T>
+void TiledRegion<T>::EachTile(typename TileMapWrapper<T>::EachTileCb fn)
+{
+   _tile_wrapper->EachTile(fn);
+}
+
+template <typename T>
+int TiledRegion<T>::NumTiles()
+{
+   return _tile_wrapper->NumTiles();
+}
+
+template <typename T>
+int TiledRegion<T>::NumCubes()
+{
+   int total = 0;
+   EachTile([&total](csg::Point3 const& index, csg::Region3 const& region) {
+      total += region.GetCubeCount();
+   });
+   return total;
+}
+
+template <typename T>
 void TiledRegion<T>::AddToChangedSet(csg::Point3 const& index)
 {
    _changed_set.insert(index);
@@ -209,6 +231,15 @@ std::shared_ptr<csg::Region3> Region3MapWrapper::GetTile(csg::Point3 const& inde
    return tile;
 }
 
+void Region3MapWrapper::EachTile(EachTileCb fn)
+{
+   for (auto const& entry : _tiles) {
+      csg::Point3 const& index = entry.first;
+      csg::Region3 const& region = GetTileRegion(entry.second);
+      fn(index, region);
+   }
+}
+
 void Region3MapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
 {
    std::shared_ptr<csg::Region3> tile = GetTile(index);
@@ -265,6 +296,15 @@ Region3BoxedPtr Region3BoxedMapWrapper::GetTile(csg::Point3 const& index)
       _tiles.Add(index, tile);
    }
    return tile;
+}
+
+void Region3BoxedMapWrapper::EachTile(EachTileCb fn)
+{
+   for (auto const& entry : _tiles) {
+      csg::Point3 const& index = entry.first;
+      csg::Region3 const& region = GetTileRegion(entry.second);
+      fn(index, region);
+   }
 }
 
 void Region3BoxedMapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
