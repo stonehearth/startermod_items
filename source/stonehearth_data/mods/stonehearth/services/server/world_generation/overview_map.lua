@@ -139,7 +139,7 @@ function OverviewMap:_get_wildlife_density(i, j, elevation_map)
    local num_quanta = self._num_quanta
    local radius = self._radius
    local length = 2*radius+1
-   local start_a, start_b, width, height, elevation, terrain_type, score
+   local start_a, start_b, width, height, elevation, terrain_type
    local sum = 0
 
    start_a, start_b, width, height = elevation_map:bound_block(i-radius, j-radius, length, length)
@@ -156,7 +156,8 @@ function OverviewMap:_get_wildlife_density(i, j, elevation_map)
       end
    end
 
-   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
+   local density = sum / (width*height)
+   local score = self:_density_to_score(density)
    return score
 end
 
@@ -165,7 +166,7 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
    local num_quanta = self._num_quanta
    local radius = self._radius
    local length = 2*radius+1
-   local start_a, start_b, width, height, score
+   local start_a, start_b, width, height
    local sum = 0
 
    start_a, start_b, width, height = feature_map:bound_block(i-radius, j-radius, length, length)
@@ -177,7 +178,8 @@ function OverviewMap:_get_vegetation_density(i, j, feature_map)
          end
       end)
 
-   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
+   local density = sum / (width*height)
+   local score = self:_density_to_score(density)
    return score
 end
 
@@ -186,7 +188,7 @@ function OverviewMap:_get_mineral_density(i, j, elevation_map)
    local num_quanta = self._num_quanta
    local radius = self._radius
    local length = 2*radius+1
-   local start_a, start_b, width, height, score
+   local start_a, start_b, width, height
    local sum = 0
    local terrain_value = {
       mountains = 1,
@@ -201,7 +203,16 @@ function OverviewMap:_get_mineral_density(i, j, elevation_map)
          sum = sum + terrain_value[terrain_type]
       end)
 
-   score = radiant.math.round(sum / (width*height) * (num_quanta-1))
+   local density = sum / (width*height)
+   local score = self:_density_to_score(density)
+   return score
+end
+
+-- converts density (typically between 0.0 - 1.0) to a score (0 - 4)
+function OverviewMap:_density_to_score(density)
+   local num_quanta = self._num_quanta
+   local score = radiant.math.round(density * (num_quanta-1))
+   score = radiant.math.bound(score, 0, num_quanta-1)
    return score
 end
 

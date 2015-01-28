@@ -87,7 +87,7 @@ void Map<K, V, H, MH>::GetDbgInfo(DbgInfo &info) const {
 template <class K, class V, class H, class MH>
 int Map<K, V, H, MH>::GetSize() const
 {
-   return items_.size();
+   return (int)items_.size();
 }
 
 template <class K, class V, class H, class MH>

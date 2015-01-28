@@ -140,6 +140,7 @@ function EntityFormsComponent:_update_restock_info()
 
       if self._position_trace then
          self._position_trace:destroy()
+         self._position_trace = nil
       end
    end
 end

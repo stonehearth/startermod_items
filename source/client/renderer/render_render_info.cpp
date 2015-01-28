@@ -236,7 +236,7 @@ std::string RenderRenderInfo::GetBoneName(std::string const& matrix_name)
    // disambiguate them.  Ignore everything after the _ so we don't make authors manually
    // rename every single part when this happens.
    std::string bone = matrix_name;
-   int pos = bone.find('_');
+   int pos = (int)bone.find('_');
    if (pos != std::string::npos) {
       bone = bone.substr(0, pos);
    }

@@ -1,0 +1,9 @@
+{
+   "mixins" : "file(../ore_block)",
+   "components" : {
+      "unit_info" : {
+         "name": "Gold Vein", 
+         "description": "Provides gold ore when mined."
+      }
+	}
+}

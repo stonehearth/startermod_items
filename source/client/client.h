@@ -151,7 +151,7 @@ class Client : public core::Singleton<Client> {
       void ShutdownDataObjects();
       void ShutdownDataObjectTraces();
       void ShutdownLuaObjects();
-      void SaveGame(std::string const& gameid, json::Node const& gameinfo);
+      rpc::ReactorDeferredPtr SaveGame(std::string const& gameid, json::Node const& gameinfo);
       rpc::ReactorDeferredPtr LoadGame(std::string const& gameid);
       void DeleteSaveGame(std::string const& gameid);
       void SaveClientState(boost::filesystem::path const& savedir);
@@ -265,6 +265,7 @@ private:
       rpc::ReactorDeferredPtr     server_load_deferred_;
       rpc::ReactorDeferredPtr     perf_counter_deferred_;
       rpc::ReactorDeferredPtr     server_save_deferred_;
+      rpc::ReactorDeferredPtr     client_save_deferred_;
       int                         _lastSequenceNumber;
 
       bool                        loading_;

@@ -247,8 +247,8 @@ void Streamer::QueueUpdateInfo()
    update.set_type(proto::Update::UpdateObjectsInfo);
    auto info_msg = update.MutableExtension(proto::UpdateObjectsInfo::extension);
 
-   info_msg->set_update_count(unsaved_objects_.size() + object_updates_.size());
-   info_msg->set_remove_count(destroyed_objects_.size());
+   info_msg->set_update_count((int)unsaved_objects_.size() + (int)object_updates_.size());
+   info_msg->set_remove_count((int)destroyed_objects_.size());
    QueueUpdate(update);
 }
 

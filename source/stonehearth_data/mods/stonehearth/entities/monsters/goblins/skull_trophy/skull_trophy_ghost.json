@@ -1,0 +1,31 @@
+{
+   "components": {
+      "model_variants": {
+         "default" : {
+            "models" : [
+               {
+                  "type" : "one_of",
+                  "items" : [
+                     "file(skull_trophy.qb)",
+                     "file(skull_trophy_alt.qb)"
+                  ]
+               }
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Goblin honor token",
+         "description": "Wooden badge of the goblin's clan",
+         "icon" : "file(skull_trophy.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "bone furniture"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 },
+         "interpolate_movement" : false,
+         "mob_collision_type" : "tiny"
+      }
+   }
+}

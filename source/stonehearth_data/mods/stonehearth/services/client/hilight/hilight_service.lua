@@ -5,6 +5,7 @@ local HilightService = class()
 function HilightService:initialize()
    self._mouse_x = 0
    self._mouse_y = 0
+   self._custom_highlight_fn = nil
 
    self._frame_trace = _radiant.client.trace_render_frame()
    self._frame_trace:on_frame_start('update hilight service', function(now, alpha, frame_time)
@@ -23,6 +24,10 @@ function HilightService:get_hilighted()
    return self._hilighted
 end
 
+function HilightService:add_custom_highlight(custom_highlight_fn)
+   self._custom_highlight_fn = custom_highlight_fn
+end
+
 function HilightService:_on_frame()
    local hilighted
    local results = _radiant.client.query_scene(self._mouse_x, self._mouse_y)
@@ -30,7 +35,8 @@ function HilightService:_on_frame()
    for r in results:each_result() do 
       local re = _radiant.client.get_render_entity(r.entity)
       if re and not re:has_query_flag(_radiant.renderer.QueryFlags.UNSELECTABLE) then
-         hilighted = r.entity
+         local custom_entity = self._custom_highlight_fn and self._custom_highlight_fn(r)
+         hilighted = custom_entity or r.entity
          break
       end
    end

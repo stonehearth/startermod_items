@@ -3,6 +3,8 @@ extern "C" {
 #  include "lib/lua/lua.h"
 }
 
+#pragma optimize ( "" , off )
+
 using namespace radiant;
 using namespace radiant::lua;
 

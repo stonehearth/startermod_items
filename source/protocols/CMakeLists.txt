@@ -1,4 +1,4 @@
-FIND_PACKAGE(Protobuf REQUIRED)
+FIND_PACKAGE(Protobuf REQUIRED NO_MODULE)
 
 include_directories(${PROTOBUF_INCLUDE_DIRS})
 include_directories(${Boost_INCLUDE_DIR})

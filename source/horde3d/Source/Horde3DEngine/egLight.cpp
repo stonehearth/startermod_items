@@ -119,7 +119,7 @@ void LightNode::reallocateShadowBuffer(int size)
 
 LightNode::~LightNode()
 {
-   if (_shadowMapBuffer) {
+   if (_shadowMapBuffer && !_directional) {
       gRDI->destroyRenderBuffer(_shadowMapBuffer);
       _shadowMapBuffer = 0;
    }
@@ -436,7 +436,7 @@ void LightNode::onPostUpdate()
          for (int i = 0; i < 6; i++) {
             lightView.toIdentity();
             lightView.rotate(xRot[i], yRot[i], 0);
-            lightView = _absTrans * lightView;
+            lightView.translate(_absPos.x, _absPos.y, _absPos.z);
             _cubeViewMats[i] = lightView.inverted();
             _cubeFrustums[i].buildViewFrustum(_cubeViewMats[i], projMat);
             _dirtyShadows[i] = true;

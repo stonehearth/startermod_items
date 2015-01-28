@@ -391,8 +391,8 @@ void MaterialResource::updateSamplerAnimation(int samplerNum, float animTime)
    float totalLen = sampler.animatedTextures.size() * (1.0f / sampler.animationRate);
    sampler.currentAnimationTime = fmod(animTime, totalLen);
 
-   unsigned int curFrame = (unsigned int)(sampler.currentAnimationTime * sampler.animationRate);
-   curFrame = std::min(curFrame, sampler.animatedTextures.size() - 1);
+   int curFrame = (unsigned int)(sampler.currentAnimationTime * sampler.animationRate);
+   curFrame = std::min(curFrame, (int)sampler.animatedTextures.size() - 1);
    setElemParamI(MaterialResData::SamplerElem, samplerNum, MaterialResData::SampTexResI, sampler.animatedTextures[curFrame]->getHandle());
 }
 

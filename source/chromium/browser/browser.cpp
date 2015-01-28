@@ -273,8 +273,9 @@ void Browser::UpdateDisplay(PaintCb cb)
 
 int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 {
-   auto isKeyDown = [](WPARAM arg) {
-      return (GetKeyState(arg) & 0x8000) != 0;
+   auto isKeyDown = [](WPARAM arg) -> bool {
+      int keycode = static_cast<int>(arg);
+      return (::GetKeyState(keycode) & 0x8000) != 0;
    };
 
    int modifiers = 0;
@@ -382,8 +383,8 @@ void Browser::OnRawInput(const RawInput &msg)
    case WM_SYSCHAR:
    case WM_CHAR:
    case WM_IME_CHAR: {
-      evt.windows_key_code = msg.wp;
-      evt.native_key_code = msg.lp;
+      evt.windows_key_code = static_cast<int>(msg.wp);
+      evt.native_key_code = static_cast<int>(msg.lp);
       evt.is_system_key = msg.msg == WM_SYSCHAR || msg.msg == WM_SYSKEYDOWN || msg.msg == WM_SYSKEYUP;
       if (msg.msg == WM_KEYDOWN || msg.msg == WM_SYSKEYDOWN) {
          evt.type = KEYEVENT_RAWKEYDOWN;
@@ -592,12 +593,12 @@ static std::string GetPostData(CefRefPtr<CefRequest> request)
 
    auto postData = request->GetPostData();
    if (postData) {
-      int c = postData->GetElementCount();
+      int c = static_cast<int>(postData->GetElementCount());
       if (c == 1) {
          CefPostData::ElementVector elements;
          postData->GetElements(elements);
          auto const e = elements[0];
-         int count = e->GetBytesCount();
+         int count = static_cast<int>(e->GetBytesCount());
          char* bytes = new char[count];           
          e->GetBytes(count, bytes);
          std::string result(bytes, count);

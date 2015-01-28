@@ -82,8 +82,8 @@ RenderNodePtr RenderNode::CreateCsgMeshNode(H3DNode parent, csg::Mesh const& m)
 {
    GeometryInfo geo;
 
-   geo.vertexIndices[1] = m.vertices.size();
-   geo.indexIndicies[1] = m.indices.size();
+   geo.vertexIndices[1] = (int)m.vertices.size();
+   geo.indexIndicies[1] = (int)m.indices.size();
    geo.levelCount = 1;
    geo.unique = true;
 
@@ -101,8 +101,8 @@ RenderNodePtr RenderNode::CreateSharedCsgMeshNode(H3DNode parent, ResourceCacheK
       csg::Mesh m;
       for (int i = 0; i < MAX_LOD_LEVELS; i++) {
          create_mesh_fn(m, i);
-         geo.vertexIndices[i + 1] = m.vertices.size();
-         geo.indexIndicies[i + 1] = m.indices.size();
+         geo.vertexIndices[i + 1] = (int)m.vertices.size();
+         geo.indexIndicies[i + 1] = (int)m.indices.size();
       }
       geo.levelCount = MAX_LOD_LEVELS;
       ConvertVoxelDataToGeometry((VoxelGeometryVertex *)m.vertices.data(), (uint *)m.indices.data(), geo);
@@ -355,7 +355,7 @@ void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &ge
          normalData.push_back(packNormal(n.y));
          normalData.push_back(packNormal(n.z));
 
-         int index = vertex_map.size();
+         int index = (int)vertex_map.size();
          vertex_map[key] = index;
          indices.push_back(index);
       }
@@ -399,9 +399,9 @@ void RenderNode::ConvertObjFileToGeometry(std::istream& stream, GeometryInfo &ge
    }
    
    std::string geoName = BUILD_STRING("geo" << nextId++);
-   geo.vertexIndices[1] = vertices.size() / 3;
-   geo.indexIndicies[1] = indices.size();
+   geo.vertexIndices[1] = (int)vertices.size() / 3;
+   geo.indexIndicies[1] = (int)indices.size();
    geo.levelCount = 1;
-   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), vertices.size() / 3, indices.size(), vertices.data(),
+   geo.geo = h3dutCreateGeometryRes(geoName.c_str(), (int)vertices.size() / 3, (int)indices.size(), vertices.data(),
                                     indices.data(), normalData.data(), nullptr, nullptr, nullptr, nullptr);
 }

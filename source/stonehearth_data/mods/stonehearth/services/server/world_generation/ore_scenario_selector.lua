@@ -17,10 +17,6 @@ end
 
 -- TODO: This code is heavily ore dependent. Generalize when we have other underground scenarios.
 function OreScenarioSelector:place_revealed_scenarios(underground_elevation_map, elevation_map, tile_offset_x, tile_offset_y)
-   if not radiant.util.get_config('enable_ore', false) then
-      return
-   end
-
    local max_depth_in_slices = 6
    local weighted_set = WeightedSet(self._rng)
 

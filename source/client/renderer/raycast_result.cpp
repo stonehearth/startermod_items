@@ -20,7 +20,7 @@ RaycastResult::RaycastResult(csg::Ray3 const& ray) :
 
 int RaycastResult::GetNumResults() const
 {
-   return _results.size();
+   return (int)_results.size();
 }
 
 RaycastResult::Result RaycastResult::GetResult(uint i) const

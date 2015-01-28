@@ -712,14 +712,14 @@ void Simulation::ProcessJobList()
    core::SetProfilerEnabled(true);
 #endif
 
-   int idleCountdown = jobs_.size();
+   int idleCountdown = (int)jobs_.size();
    while (!game_loop_timer_.expired() && !jobs_.empty() && idleCountdown) {
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
-               idleCountdown = jobs_.size() + 2;
+               idleCountdown = (int)jobs_.size() + 2;
                job->Work(game_loop_timer_);
             }
             jobs_.push_back(front);

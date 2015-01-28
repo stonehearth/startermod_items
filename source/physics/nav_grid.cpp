@@ -489,7 +489,7 @@ void NavGrid::UpdateGameTime(int now, int freq)
    now_ = now;
 
    // We want to make sure we get through the entire list in about 15 realtime seconds
-   uint size = tiles_.size();
+   uint size = (uint)tiles_.size();
    if (size > 0) {
       uint toProcess = std::max((uint)1, (size / (1000 / freq) / 15));
       for (uint i = 0; i < toProcess; i++) {

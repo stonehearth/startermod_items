@@ -28,6 +28,7 @@
       "cursors:zone_stockpile" : "file(data/cursors/zone_stockpile.cur)",
       "cursors:zone_farm" : "file(data/cursors/zone_farm.cur)",
       "cursors:zone_trapping_grounds" : "file(data/cursors/zone_trapping_grounds.cur)",
+      "cursors:zone_pasture" : "file(data/cursors/zone_pasture.cur)", 
       "cursors:create_walls" : "file(data/cursors/create_walls.cur)",
       "cursors:grow_walls" : "file(data/cursors/grow_walls.cur)",
       "cursors:create_floor" : "file(data/cursors/create_floor.cur)",
@@ -180,12 +181,12 @@
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
+      "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
       "effects:treasure_glow" : "file(data/effects/treasure_glow)",
-
      
       "small_boulder" : "file(entities/boulders/small_boulder)",
       "medium_boulder_1" : "file(entities/boulders/medium_boulder/medium_boulder_1.json)",
@@ -193,6 +194,14 @@
       "medium_boulder_3" : "file(entities/boulders/medium_boulder/medium_boulder_3.json)",
       "large_boulder_1" : "file(entities/boulders/large_boulder/large_boulder_1.json)",
       "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
+
+      "terrain:ui:ore_block" : "file(entities/terrain/ui/ore_block)",
+      "terrain:ui:copper_block" : "file(entities/terrain/ui/copper_block)",
+      "terrain:ui:tin_block" : "file(entities/terrain/ui/tin_block)",
+      "terrain:ui:iron_block" : "file(entities/terrain/ui/iron_block)",
+      "terrain:ui:coal_block" : "file(entities/terrain/ui/coal_block)",
+      "terrain:ui:silver_block" : "file(entities/terrain/ui/silver_block)",
+      "terrain:ui:gold_block" : "file(entities/terrain/ui/gold_block)",
 
       "terrain:tall_grass" : "file(entities/terrain/tall_grass)",
       
@@ -327,6 +336,7 @@
       "decoration:firepit_skulls" : "file(entities/decoration/firepit_skulls)",
       "decoration:loot_chest" : "file(entities/decoration/loot_chest)",
       "decoration:crate" : "file(entities/decoration/crate)",
+      "decoration:wall_crest" : "file(entities/decoration/wall_crest)",
 
       "camp_standard" : "file(entities/gizmos/camp_standard)",
       "camp_standard_ghost" : "file(entities/gizmos/camp_standard/camp_standard_ghost.json)",
@@ -420,6 +430,7 @@
       "actions:run_death_effect" : "file(ai/actions/run_death_effect_action.lua)",
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
+      "actions:drop_loot" : "file(ai/actions/drop_loot_action.lua)", 
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",

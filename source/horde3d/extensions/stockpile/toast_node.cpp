@@ -210,8 +210,8 @@ void ToastNode::SetText(std::string const& text)
    _bLocalBox.addPoint(Vec3f(start, 0, 0));
    _bLocalBox.addPoint(Vec3f(start + total_width, 0, 0));
 
-   vertexCount_ = text.size() * 4;
-   indexCount_ = text.size() * 6;
+   vertexCount_ = (uint32)text.size() * 4;
+   indexCount_ = (uint32)text.size() * 6;
    std::vector<Vertex> verts(vertexCount_);
    std::vector<unsigned short> indices(indexCount_);
 

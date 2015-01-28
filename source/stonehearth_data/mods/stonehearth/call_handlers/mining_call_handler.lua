@@ -92,7 +92,7 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return q0, q1
    end
 
-   local terrain_support_filter = function(selected, selector)
+   local terrain_support_filter = function(selected)
       if selected.entity:get_component('terrain') then
          return true
       end
