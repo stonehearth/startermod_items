@@ -664,15 +664,7 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
       h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
       h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
 
-      /* Unused, until we can reload the window without bringing everything down.
-      if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
-      {
-         // MSAA change requires that we reload our pipelines (so that we can regenerate our
-         // render target textures with the appropriate sampling).
-         FlushMaterials();
-
-         LoadResources();
-      }*/
+      SelectPipeline();
 
       // Propagate far-plane value.
       ResizeViewport();
