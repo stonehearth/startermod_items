@@ -558,9 +558,9 @@ bool ShaderResource::load(const char *data, int size)
 				_codeSections.push_back( CodeResource( _tmpCode0, 0 ) );
 
             if (_tmpCode0 == "VS") {
-               vertCodeIdx = _codeSections.size() - 1;
+               vertCodeIdx = (int)_codeSections.size() - 1;
             } else {
-               fragCodeIdx = _codeSections.size() - 1;
+               fragCodeIdx = (int)_codeSections.size() - 1;
             }
 
 				_tmpCode0.assign( sectionContentStart, sectionContentEnd );
