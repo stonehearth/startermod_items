@@ -27,7 +27,7 @@
          "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
          "ilevel" : 6,
          "roles" : "combat",
-         "equip_effect" : "/stonehearth/data/effects/weapon_level_up",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
       }
    },
    "entity_data" : {
