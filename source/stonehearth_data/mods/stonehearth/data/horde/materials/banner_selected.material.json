@@ -16,17 +16,16 @@
 			"inputs" : [
 				{
 					"name" : "alpha",
-					"default" : [0, 0, 0, 0.5],
+					"default" : [0, 0, 0, 0.9],
 					"bind_to_material_input" : "alpha"
 				}
 			]			
 		}
 	},
-
 	"inputs" : [
 		{
 			"name" : "alpha",
-			"default" : [0, 0, 0, 0.3]
+			"default" : [0, 0, 0, 0.9]
 		}
 	]
 }

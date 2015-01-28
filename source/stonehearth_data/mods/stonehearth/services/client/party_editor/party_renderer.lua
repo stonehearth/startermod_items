@@ -76,7 +76,7 @@ end
 function PartyRenderer:_update_material(banner_type)
    local banner = self._banners[banner_type]
    if banner.entity then
-      local material = self._selected and 'materials/banner_selected.material.xml' or 'materials/ghost_item.xml'
+      local material = self._selected and 'materials/banner_selected.material.json' or 'materials/ghost_item.json'
       banner.entity:add_component('render_info')
                         :set_material(material)
    end

@@ -15,7 +15,7 @@ void main() {
    gl_Position = viewProjMat * calcWorldPos(vec4(vertPos, 1.0));
 }
 
-[[FS_TRANSLUCENT]]
+[[FS]]
 
 varying vec4 outColor;
 

@@ -29,7 +29,7 @@
 
 		"TRANSLUCENT" : {
 			"state" : "states/voxel/blend.state",
-			"shader" : "shaders/transparent.shader"
+			"shader" : "shaders/color_only.shader"
 		}
 	}
 }
