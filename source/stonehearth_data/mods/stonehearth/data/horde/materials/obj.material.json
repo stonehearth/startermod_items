@@ -45,7 +45,13 @@
 
 		"DIRECTIONAL_SHADOWMAP": {
 			"state" : "states/voxel/replace.state",
-			"shader" : "shaders/voxel/dir_shadowmap.shader"
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0, 0, 0, 0]
+				}
+			]
 		},
 
 		"OMNI_SHADOWMAP" : {
