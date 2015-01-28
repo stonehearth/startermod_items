@@ -17,7 +17,7 @@ STAGE              = sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh $(STAGE_FLAGS
 # this by using a more recent version of MSYS and pulling git into that
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
-STAGE_ROOT         = $(BUILD_DIR)/stage/stonehearth
+STAGE_ROOT         = build/stage/stonehearth
 TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
 ZIP_PACKAGE_ROOT   = $(BUILD_DIR)/game-package
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
