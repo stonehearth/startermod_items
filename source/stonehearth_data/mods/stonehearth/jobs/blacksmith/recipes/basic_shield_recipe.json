@@ -1,0 +1,25 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Trusty Shield",
+   "description" : "Grants the ability to completely block attacks.",
+   "portrait"    : "/stonehearth/entities/armor/basic_shield/basic_shield.png",
+   "level_requirement" : 1,
+
+   "ingredients": [
+      {
+         "uri" : "stonehearth:refined:steel_ingot",
+         "count" : 2
+      },
+      {
+         "material" : "leather resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:armor:basic_shield"
+      }
+  ]
+}

@@ -75,6 +75,9 @@
             },
             "steel_mail" : {
                "recipe" : "file(steel_mail_recipe.json)"
+            },
+            "basic_shield" : {
+               "recipe" : "file(basic_shield_recipe.json)"
             }            
          }
       }
