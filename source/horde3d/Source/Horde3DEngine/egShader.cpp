@@ -148,7 +148,25 @@ bool CodeResource::load( const char *data, int size )
 					delete[] code;
 					return raiseError( "Invalid #include syntax" );
 				}
-			}
+         } else if ( *pData == '#' && *(pData+1) == 'v' && *(pData+2) == 'e' && *(pData+3) == 'r' &&
+			    *(pData+4) == 's' && *(pData+5) == 'i' && *(pData+6) == 'o' && *(pData+7) == 'n' )
+         {
+				// Record version line.
+				const char *verBegin = 0x0, *verEnd = 0x0;
+				
+				verBegin = pData;
+				while( ++pData < eof )
+				{
+               if( *pData == '\n' || *pData == '\r' ) {
+                  verEnd = pData;
+                  break;
+               }
+				}
+				if(verBegin != 0x0 && verEnd != 0x0 )
+				{
+					_verLine = std::string(verBegin, verEnd);
+            }
+         }
 		}
 
 		*pCode++ = *pData++;
@@ -844,8 +862,12 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
 		_name.c_str(), context.id.c_str() );
 	// Add preamble
-	_tmpCode0 = _vertPreamble;
-	_tmpCode1 = _fragPreamble;
+
+   _tmpCode0 = getCode(context.vertCodeIdx)->getVersion();
+   _tmpCode1 = getCode(context.fragCodeIdx)->getVersion();
+
+	_tmpCode0 += _vertPreamble;
+	_tmpCode1 += _fragPreamble;
 
 	// Insert defines for flags
 	_tmpCode0 += "\r\n// ---- Flags ----\r\n";
