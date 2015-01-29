@@ -28,7 +28,7 @@
       "growth_requirements" : {
          "food" : "50 + math.max((num_citizens-7) * 20, 0)",
          "morale" : "4.0",
-         "net_worth" : "num_citizens * 100"
+         "net_worth" : "math.max((num_citizens-2) , 1) * 300"
       }
    }
 }
