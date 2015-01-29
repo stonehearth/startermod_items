@@ -113,6 +113,23 @@ void RenderTerrain::MarkDirty(csg::Point3 const& location)
       _dirtyLayers.insert(GetLayerAddressForLocation(neighbor));
    }
 
+   ScheduleUpdate();
+}
+
+void RenderTerrain::MarkAllDirty()
+{
+   for (auto const& entry : tiles_) {
+      csg::Point3 location = entry.first;
+      _dirtyGeometry.insert(location);
+      _dirtyClipPlanes.insert(location);
+      _dirtyLayers.insert(GetLayerAddressForLocation(location));
+   }
+
+   ScheduleUpdate();
+}
+
+void RenderTerrain::ScheduleUpdate()
+{
    // If we haven't yet done so, schedule a callback to regenerate everything
    if (renderer_frame_trace_.Empty()) {
       renderer_frame_trace_ = Renderer::GetInstance().OnRenderFrameStart([=](FrameStartInfo const&) {
@@ -293,10 +310,7 @@ void RenderTerrain::EnableXrayMode(bool enabled)
    }
    _enable_xray_mode = enabled;
 
-   for (auto const& entry : tiles_) {
-      // suboptimal - this dirties all the neighbors repeatedly
-      MarkDirty(entry.first);
-   }
+   MarkAllDirty();
 }
 
 void RenderTerrain::UpdateNeighbors()

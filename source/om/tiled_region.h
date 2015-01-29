@@ -8,7 +8,22 @@
 
 BEGIN_RADIANT_OM_NAMESPACE
 
-template <typename T> class TileMapWrapper;
+// Abstracts operations on tile elements T in a map type
+template <typename T>
+class TileMapWrapper {
+public:
+   typedef std::function<void(csg::Region3&)> ModifyRegionFn;
+   typedef std::function<void(csg::Point3 const&, csg::Region3 const&)> EachTileCb;
+
+   TileMapWrapper() {}
+   virtual void Clear() = 0;
+   virtual int NumTiles() = 0;
+   virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) = 0; // returns nulltr if not found
+   virtual std::shared_ptr<T> GetTile(csg::Point3 const& index) = 0; // creates tile if not found
+   virtual void EachTile(EachTileCb fn) = 0;
+   virtual void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn) = 0;
+   virtual csg::Region3 const& GetTileRegion(std::shared_ptr<T> tile) = 0;
+};
 
 // Conventions for this class:
 //   indexes are always Point3
@@ -23,6 +38,7 @@ public:
    csg::Point3 GetTileSize() const;
    std::shared_ptr<T> FindTile(csg::Point3 const& index); // returns nulltr if not found
    std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
+   void EachTile(typename TileMapWrapper<T>::EachTileCb fn);
    void Clear();
    void ClearTile(csg::Point3 const& index);
    IndexSet const& GetChangedSet() const { return _changed_set; }
@@ -43,6 +59,9 @@ public:
 
    bool ContainsPoint(csg::Point3f const& point);
 
+   int NumTiles();
+   int NumCubes();
+
    // keeping this inline as it gets messy otherwise
    friend std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region) {
       out << tiled_region._tile_wrapper->NumTiles() << " tiles";
@@ -57,21 +76,6 @@ private:
    IndexSet _changed_set;
 };
 
-// Abstracts operations on tile elements T in a map type
-template <typename T>
-class TileMapWrapper {
-public:
-   typedef std::function<void(csg::Region3&)> ModifyRegionFn;
-
-   TileMapWrapper() {}
-   virtual void Clear() = 0;
-   virtual int NumTiles() = 0;
-   virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) = 0; // returns nulltr if not found
-   virtual std::shared_ptr<T> GetTile(csg::Point3 const& index) = 0; // creates tile if not found
-   virtual void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn) = 0;
-   virtual csg::Region3 const& GetTileRegion(std::shared_ptr<T> tile) = 0;
-};
-
 // Wrapper for an unordered_map of Region3
 class Region3MapWrapper : public TileMapWrapper<csg::Region3> {
 public:
@@ -83,6 +87,7 @@ public:
    int NumTiles();
    std::shared_ptr<csg::Region3> FindTile(csg::Point3 const& index);
    std::shared_ptr<csg::Region3> GetTile(csg::Point3 const& index);
+   void EachTile(EachTileCb fn);
    void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
    csg::Region3 const& GetTileRegion(std::shared_ptr<csg::Region3> tile);
 
@@ -101,6 +106,7 @@ public:
    int NumTiles();
    Region3BoxedPtr FindTile(csg::Point3 const& index);
    Region3BoxedPtr GetTile(csg::Point3 const& index);
+   void EachTile(EachTileCb fn);
    void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
    csg::Region3 const& GetTileRegion(Region3BoxedPtr tile);
 

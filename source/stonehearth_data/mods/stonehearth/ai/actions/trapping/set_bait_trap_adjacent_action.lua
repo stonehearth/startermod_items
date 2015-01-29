@@ -20,8 +20,9 @@ function SetBaitTrapAdjacent:start_thinking(ai, entity, args)
    local trapping_grounds_component = args.trapping_grounds:add_component('stonehearth:trapping_grounds')
    for id, trap in pairs(trapping_grounds_component:get_traps()) do
       if radiant.entities.get_world_grid_location(trap) == args.location then
-         -- trap exists, but we didn't finish arming it
+         -- trap exists, but we didn't finish arming it, remember which trap
          self._trap_added = true
+         self._trap = trap
       end
    end
 

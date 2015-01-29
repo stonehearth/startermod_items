@@ -62,7 +62,7 @@ end
 
 --When we've been killed, dump our talisman on the ground
 function JobComponent:_on_kill_event()
-   self:_drop_talisman()
+   self:demote()
 end
 
 -- Drops the talisman near the location of the entity, returns the talisman entity

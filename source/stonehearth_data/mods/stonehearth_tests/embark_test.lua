@@ -46,17 +46,16 @@ function EmbarkTest:__init()
    local worker5 = self:place_citizen(-9, -5)
    radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker5, description = 'person_embarks'})
-
    local worker6 = self:place_citizen(-10, -5)
    radiant.events.trigger_async(personality_service, 'stonehearth:journal_event', 
                           {entity = worker6, description = 'person_embarks'})
    
-   local player_id = worker:get_component('unit_info'):get_player_id()
+   local player_id = worker6:get_component('unit_info'):get_player_id()
 
    self:place_item('stonehearth:decoration:firepit', 0, 11, player_id, { force_iconic = false })
 
    local pop = stonehearth.population:get_population(player_id)
-   radiant.entities.pickup_item(worker5, pop:create_entity('stonehearth:resources:wood:oak_log'))
+   radiant.entities.pickup_item(worker6, pop:create_entity('stonehearth:resources:wood:oak_log'))
    radiant.entities.pickup_item(worker2, pop:create_entity('stonehearth:resources:fiber:silkweed_bundle'))
    radiant.entities.pickup_item(worker3, pop:create_entity('stonehearth:trapper:talisman'))
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:talisman'))
@@ -78,23 +77,49 @@ function EmbarkTest:__init()
 
    -- Introduce a new person
    
-
-   --[[
+--[[
    self:at(20000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
+         --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
+         self._enemy_population = stonehearth.population:get_population('goblins')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
+         self:place_enemy( -9, 15, 'stonehearth:weapons:jagged_cleaver')
       end)
 
-   self:at(50000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
-      end)
 
+   self:at(40000,  function()
+         --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
+         self:place_citizen(8, -5, 'footman')
+         self:place_citizen(8, -4, 'footman')
+         self:place_citizen(8, -3, 'footman')
+         self:place_citizen(8, -2, 'footman')
+         self:place_citizen(8, -1, 'footman')
+      end)
+   
+   
    self:at(70000,  function()
-         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
+         --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:goblin_brigands', { num_escorts = 1 })
       end)
    --]]
 
 
 end
+
+function EmbarkTest:place_enemy(x, z, weapon)
+   local enemy = self._enemy_population:create_new_citizen()
+   self:equip_weapon(enemy, weapon)
+   radiant.terrain.place_entity(enemy, Point3(x, 1, z))
+   return enemy
+end
+
+function EmbarkTest:equip_weapon(entity, weapon_uri)
+   local weapon = radiant.entities.create_entity(weapon_uri)
+   radiant.entities.equip_item(entity, weapon)
+end
+
 
 return EmbarkTest
 

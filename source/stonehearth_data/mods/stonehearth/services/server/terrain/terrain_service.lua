@@ -7,7 +7,6 @@ local Region2 = _radiant.csg.Region2
 local Point3 = _radiant.csg.Point3
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
-local _terrain = radiant._root_entity:add_component('terrain')
 local log = radiant.log.create_logger('terrain')
 
 local INFINITE = 1000000
@@ -21,6 +20,8 @@ function TerrainService:initialize()
       self._sv._explored_regions = {}
       self._sv._convex_hull = {}
    end
+
+   self._terrain_component = radiant._root_entity:add_component('terrain')
 
    -- the radius of the sight sensor in the json files should match this value
    self._sight_radius = radiant.util.get_config('sight_radius', 64)
@@ -40,6 +41,7 @@ end
 function TerrainService:_on_poll()
    self:_update_regions()
    self:_update_convex_hull()
+   self:_update_terrain_counts()
 end
 
 -- Jarvis 'Gift-Wrapping' Algorithm
@@ -185,7 +187,7 @@ end
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
 function TerrainService:_get_terrain_region()
    local region = Region2()
-   region:add_cube(_terrain:get_bounds():project_onto_xz_plane())
+   region:add_cube(self._terrain_component:get_bounds():project_onto_xz_plane())
    return region
 end
 
@@ -307,7 +309,10 @@ function TerrainService:_get_region(map, player_id)
    return boxed_region
 end
 
-
+function TerrainService:_update_terrain_counts()
+   local tiles = self._terrain_component:get_tiles()
+   --radiant.set_performance_counter('terrain:num_tiles', tiles:num_tiles())
+   --radiant.set_performance_counter('terrain:num_cubes', tiles:num_cubes())
+end
 
 return TerrainService
-

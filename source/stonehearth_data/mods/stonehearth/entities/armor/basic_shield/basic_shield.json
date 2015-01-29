@@ -1,0 +1,38 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Trusty Shield",
+         "description": "Armor",
+         "icon" : "file(basic_shield.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(basic_shield.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "metal armor heavy_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(basic_shield_iconic.json)"
+      },
+
+      "stonehearth:equipment_piece" : {
+         "slot" : "offhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "ilevel" : 6,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 2
+      }
+   }
+}

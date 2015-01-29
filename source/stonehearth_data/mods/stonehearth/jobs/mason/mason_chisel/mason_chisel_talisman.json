@@ -4,10 +4,11 @@
    "components" : {
       "unit_info" : {
          "name" :  "Mason's Chisel",
-         "description" : "Promotes a hearthling into a mason."
+         "description" : "Promotes a hearthling into a mason.",
+         "icon": "file(mason_chisel.png)"
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
        "stonehearth:material" : {
          "tags" : "tool"
