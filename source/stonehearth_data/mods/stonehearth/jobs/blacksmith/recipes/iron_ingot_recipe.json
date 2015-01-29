@@ -11,7 +11,7 @@
    "ingredients": [
       {
          "uri" : "stonehearth:resources:iron:ore",
-         "count" : 4
+         "count" : 2
       },
       {
          "material" : "wood resource",
