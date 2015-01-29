@@ -19,9 +19,6 @@
          <SwitchTarget target="Bloom" />
          <ClearTarget colBuf0="true" depthBuf="true"/>
 
-         <SwitchTarget target="BloomFinal" />
-         <ClearTarget colBuf0="true"/>
-
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
