@@ -1,4 +1,7 @@
 {
+   "scenario_type" : "shop",
+   "rarity" : "common",
+   "uri" : "stonehearth:scenarios:caravan_shop", 
    "scenario_data" : {
       "title" : "The caravan has arrived with wares to sell"
    }

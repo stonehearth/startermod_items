@@ -7,7 +7,7 @@
          "description" : "Basic level carpenter's saw."
       },
       "item" : {
-         "stacks" : 1
+         "category" : "tools"
       },
        "stonehearth:material" : {
          "tags" : "tool"
