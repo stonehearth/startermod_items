@@ -48,12 +48,14 @@ public:
 
 	bool isLoaded() { return _loaded; }
 	std::string const& getCode() { return _code; }
+   std::string getVersion() { return _verLine; }
 
 private:
 	bool raiseError( std::string const& msg );
 	void updateShaders();
 
 private:
+   std::string                                        _verLine;
 	std::string                                        _code;
 	std::vector< std::pair< PCodeResource, size_t > >  _includes;	// Pair: Included res and location in _code
 
