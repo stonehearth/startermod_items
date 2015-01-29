@@ -863,8 +863,8 @@ void ShaderResource::compileCombination(ShaderContext &context, ShaderCombinatio
 		_name.c_str(), context.id.c_str() );
 	// Add preamble
 
-   _tmpCode0 = getCode(vertCodeIdx)->getVersion();
-   _tmpCode1 = getCode(fragCodeIdx)->getVersion();
+   _tmpCode0 = getCode(context.vertCodeIdx)->getVersion();
+   _tmpCode1 = getCode(context.fragCodeIdx)->getVersion();
 
 	_tmpCode0 += _vertPreamble;
 	_tmpCode1 += _fragPreamble;
