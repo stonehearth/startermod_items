@@ -276,24 +276,32 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    profile_cpu_ = false;
 
    // Allocate the interpreter.  64-bit builds of LuaJit require using luaL_newstate.
-#if defined(_M_X64) || defined(__amd64__)
-   L_ = luaL_newstate();
-#else
-   L_ = lua_newstate(LuaAllocFn, this);
-#endif
-   ASSERT(L_);
+   bool is64Bit = core::System::IsProcess64Bit();
+   bool isJitEnabled = lua::JitIsEnabled();
 
-   // Set the alloc function.  64-bit builds of LuaJit use their own internal allocator
-   // which takes memory from the bottom 2 Gb of the process.
-   if (lua::JitIsEnabled()) {
-#if defined(_M_X64) || defined(__amd64__)
-      // nop...
-#else
-      lua_setallocf(L_, LuaAllocFn, this);
-#endif
-   } else {
+   // Written as the cross product of is64Bit and isJitEnabled for clarity
+   if (is64Bit && isJitEnabled) {
+      // 64-bit builds of LuaJit use their own internal allocator which takes memory.
+      // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
+      // the interpreter and don't call any of the setalloc functions
+      L_ = luaL_newstate();
+   } else if (is64Bit && !isJitEnabled) {
+      // 64-bit without jit.  We can use all our crazy allocators.
+      L_ = lua_newstate(LuaAllocFn, this);
       lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   } else if (!is64Bit && !isJitEnabled) {
+      // 32-bit without jit.  We can use all our crazy allocators.
+      L_ = lua_newstate(LuaAllocFn, this);
+      lua_setalloc2f(L_, LuaAllocFnWithState, this);
+   } else if (!is64Bit && isJitEnabled) {
+      // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
+      // doesn't know how to call it.
+      L_ = lua_newstate(LuaAllocFn, this);
+   } else {
+      // Logical error if we get here.
+      NOT_REACHED();
    }
+   ASSERT(L_);
 
    set_pcall_callback(PCallCallbackFn);
    luaL_openlibs(L_);

@@ -12,7 +12,7 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       radiant.call('radiant:client_about_info')
          .done(function(o) {
-            self.set('context.productName', o.product_name + ' ' + o.product_version_string + ' (' + o.product_branch + ' ' +  o.product_build_number + ')');
+            self.set('context.productName', o.product_name + ' ' + o.product_version_string + ' (' + o.product_branch + ' ' +  o.product_build_number + ') ' + o.architecture + ' build');
             self._populateAboutDetails(o);
          });
 
