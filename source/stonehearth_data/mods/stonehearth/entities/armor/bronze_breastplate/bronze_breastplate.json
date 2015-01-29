@@ -28,8 +28,8 @@
          "iconic_form" : "file(bronze_breastplate_iconic.json)"
       },
       "stonehearth:equipment_piece" : {
-         "render_type" : "merge_with_model",
          "slot" : "torso",
+         "render_type" : "merge_with_model",
          "ilevel" : 4,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/level_up"

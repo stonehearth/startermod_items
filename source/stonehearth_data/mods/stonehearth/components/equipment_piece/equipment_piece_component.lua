@@ -9,6 +9,7 @@ function EquipmentPieceComponent:initialize(entity, json)
    
    self._slot_to_bone_map = {
       mainhand = 'mainHand',
+      offhand = 'offHand',
    }
 
    if not self._sv._injected_commands then

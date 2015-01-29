@@ -311,8 +311,8 @@ end
 
 function TerrainService:_update_terrain_counts()
    local tiles = self._terrain_component:get_tiles()
-   radiant.set_performance_counter('terrain:num_tiles', tiles:num_tiles())
-   radiant.set_performance_counter('terrain:num_cubes', tiles:num_cubes())
+   --radiant.set_performance_counter('terrain:num_tiles', tiles:num_tiles())
+   --radiant.set_performance_counter('terrain:num_cubes', tiles:num_cubes())
 end
 
 return TerrainService

@@ -18,10 +18,10 @@ STAGE              = sh $(SCRIPTS_ROOT)/stage/stage_stonehearth.sh $(STAGE_FLAGS
 # but that's a lot of work.  This, incidentally, would also get us a
 # version of gmake from 2006 instead of 2000 (!!)
 STAGE_ROOT         = build/stage/stonehearth
+STEAM_PACKAGE_ROOT = build/steam-package
+ZIP_PACKAGE_ROOT   = build/game-package
 TEST_STAGE_ROOT    = $(BUILD_DIR)/test-stage/stonehearth
-ZIP_PACKAGE_ROOT   = $(BUILD_DIR)/game-package
 TEST_PACKAGE_ROOT  = $(BUILD_DIR)/test-package
-STEAM_PACKAGE_ROOT = $(BUILD_DIR)/steam-package
 
 # figure out where to find the data files for the 'make run*' commands
 ifeq ($(RUN_STAGED),)

@@ -1,0 +1,27 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "gear"   
+      },
+      "unit_info" : {
+         "name": "bronze Breastplate",
+         "description": "Armor",
+         "icon" : "file(basic_shield.png)"
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(basic_shield_iconic.qb)"
+            ]
+         }
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0.05 }
+      },
+      "stonehearth:material" : {
+         "tags" : "metal armor heavy_armor"
+      }
+   }
+}
