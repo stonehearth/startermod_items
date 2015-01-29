@@ -46,13 +46,14 @@
             </div>
 
             <div class="setting">
-               <input type="checkbox" id="opt_useFastHilite" {{bind-attr checked="use_fast_hilite"}}>
-               <label class="chkSetting" for="opt_useFastHilite">{{i18n stonehearth:settings_gfx_fasthilite}}</label>
+               {{input type="checkbox" id="opt_useHighQuality" checked=use_high_quality disabled=high_quality_forbidden }}
+               <label class="chkSetting" for="opt_useHighQuality">{{i18n stonehearth:settings_gfx_use_high_quality}}</label>
             </div>
-         
-            <div class="setting">
-               <input type="checkbox" id="opt_enableSsao" {{bind-attr checked="enable_ssao"}} {{bind-attr disabled="ssao_forbidden"}}>
-               <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
+            <div class="highqualitysettings">
+               <div class="setting">
+                  {{input type="checkbox" id="opt_enableSsao" checked=enable_ssao disabled=view.low_quality }}
+                  <label class="chkSetting" for="opt_enableSsao">{{i18n stonehearth:settings_gfx_enable_ssao}}</label>
+               </div>
             </div>
          </div>
 

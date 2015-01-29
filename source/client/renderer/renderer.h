@@ -66,7 +66,7 @@ struct RendererConfig {
    RendererConfigEntry<int>  shadow_quality;
    RendererConfigEntry<int>  max_lights;
    RendererConfigEntry<float> draw_distance;
-   RendererConfigEntry<bool> use_fast_hilite;
+   RendererConfigEntry<bool> use_high_quality;
 
    RendererConfigEntry<int> screen_width;
    RendererConfigEntry<int> screen_height;
@@ -225,6 +225,8 @@ class Renderer
       bool LoadMissingResources();
       void OneTimeIninitializtion();
       void SelectPipeline();
+
+      void MaskHighQualitySettings();
 
    protected:
       struct RenderMapEntry {

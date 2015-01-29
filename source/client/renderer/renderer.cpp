@@ -555,6 +555,8 @@ void Renderer::GetConfigOptions()
 {
    const core::Config& config = core::Config::GetInstance();
 
+   config_.use_high_quality.value = config.Get("renderer.use_high_quality", false);
+
    config_.enable_ssao.value = config.Get("renderer.enable_ssao", false);
 
    // "Enables shadows."
@@ -588,8 +590,6 @@ void Renderer::GetConfigOptions()
    config_.last_screen_x.value = config.Get("renderer.last_screen_x", 0);
    config_.last_screen_y.value = config.Get("renderer.last_screen_y", 0);
 
-   config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
-
    config_.minimized.value = config.Get("renderer.minimized", false);
 
    config_.disable_pinned_memory.value = config.Get("renderer.disable_pinned_memory", false);
@@ -597,6 +597,15 @@ void Renderer::GetConfigOptions()
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
+
+   MaskHighQualitySettings();
+}
+
+void Renderer::MaskHighQualitySettings() 
+{
+   bool high_quality = config_.use_high_quality.value;
+   // Mask all high-quality settings with the 'use_high_quality' bool.
+   config_.enable_ssao.value &= high_quality;
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
@@ -611,11 +620,20 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
    config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
+
+   // Arbitrarily gating the high-quality renderer on SSAO support.
+   config_.use_high_quality.allowed = rendererCaps.SsaoSupported;
+
+   config_.use_high_quality.value &= config_.use_high_quality.allowed;
+
+   MaskHighQualitySettings();
 }
 
 void Renderer::PersistConfig()
 {
    core::Config& config = core::Config::GetInstance();
+
+   config.Set("renderer.use_high_quality", config_.use_high_quality.value);
 
    config.Set("renderer.enable_ssao", config_.enable_ssao.value);
 
@@ -636,7 +654,6 @@ void Renderer::PersistConfig()
 
    config.Set("renderer.last_window_x", config_.last_window_x.value);
    config.Set("renderer.last_window_y", config_.last_window_y.value);
-   config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
 
    config.Set("renderer.last_screen_x", config_.last_screen_x.value);
    config.Set("renderer.last_screen_y", config_.last_screen_y.value);
@@ -646,11 +663,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
 {
    UpdateConfig(newConfig);
 
-   config_.enable_ssao.value &= config_.enable_ssao.allowed;
-
    if ((flags & APPLY_CONFIG_RENDERER) != 0) {
       // Super hard-coded setting for now.
-      if (config_.enable_ssao.value) {
+      if (config_.use_high_quality.value) {
          worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
       } else {
          worldPipeline_ = "pipelines/forward.pipeline.xml";
@@ -666,11 +681,14 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
 
       SelectPipeline();
 
+      // Set up the optional stages for the high-quality pipeline.
+      if (config_.use_high_quality.value) {
+         SetStageEnable(GetPipeline(currentPipeline_), "Collect SSAO", config_.enable_ssao.value);
+         //SetStageEnable(GetPipeline(currentPipeline_), "Render SSAO", config_.enable_ssao.value);
+      }
+
       // Propagate far-plane value.
       ResizeViewport();
-
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
 
       glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
    }
