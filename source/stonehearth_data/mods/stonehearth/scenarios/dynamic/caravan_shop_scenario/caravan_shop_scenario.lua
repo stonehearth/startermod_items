@@ -10,6 +10,10 @@ function CaravanShopScenario:initialize()
    self:restore()
 end
 
+function CaravanShopScenario:can_spawn()
+   return true
+end
+
 function CaravanShopScenario:restore()
   self._scenario_data = radiant.resources.load_json('stonehearth:scenarios:caravan_shop').scenario_data
 end
