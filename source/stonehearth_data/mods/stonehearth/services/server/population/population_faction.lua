@@ -14,6 +14,10 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
       self._sv.notifications = {}
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
+
+   for id, citizen in pairs(self._sv.citizens) do
+      self:_listen_for_entity_death(citizen)
+   end
 end
 
 function PopulationFaction:get_datastore(reason)
@@ -89,9 +93,13 @@ function PopulationFaction:create_new_citizen()
 
    self.__saved_variables:mark_changed()
 
-   radiant.events.listen(citizen, 'radiant:entity:pre_destroy', self, self._on_entity_destroyed)
+   self:_listen_for_entity_death(citizen)
 
    return citizen
+end
+
+function PopulationFaction:_listen_for_entity_death(citizen)
+   radiant.events.listen(citizen, 'radiant:entity:pre_destroy', self, self._on_entity_destroyed)
 end
 
 --Will show a simple notification that zooms to a citizen when clicked. 
