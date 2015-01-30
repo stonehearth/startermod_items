@@ -1367,8 +1367,20 @@ void Renderer::reallocateShadowBuffers(int quality)
 
    // Update the one-and-only shadow cascade buffer here
    if (Modules::config().enableShadows) {
-      uint32 cascadeBufferSize = (uint32)pow(2, Modules::config().shadowMapQuality + 8);
-      _shadowCascadeBuffer = gRDI->createRenderBuffer(cascadeBufferSize, cascadeBufferSize, TextureFormats::BGRA8, true, 0, 0);
+      while (!_shadowCascadeBuffer && Modules::config().shadowMapQuality > 0) {
+         uint32 cascadeBufferSize = (uint32)pow(2, Modules::config().shadowMapQuality + 8);
+         _shadowCascadeBuffer = gRDI->createRenderBuffer(cascadeBufferSize, cascadeBufferSize, TextureFormats::BGRA8, true, 0, 0);
+
+         if (!_shadowCascadeBuffer) {
+            // Allocation failed, so let's try again, more modestly.
+            Modules::log().writeError("Couldn't reallocate shadow cascade buffer (%d^2).  Trying with a lower resolution.", cascadeBufferSize);
+            Modules::config().shadowMapQuality--;
+         }
+      }
+
+      if (!_shadowCascadeBuffer) {
+         Modules::log().writeError("No cascade buffer allocated!");
+      }
    }
 
    int numNodes = Modules::sceneMan().findNodes(Modules::sceneMan().getRootNode(), "", SceneNodeTypes::Light);
@@ -2224,38 +2236,40 @@ void Renderer::doForwardLightPass(std::string const& shaderContext, std::string 
 
          drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
       } else {
-         if (curLight->_directional) {
-            updateShadowMap(curLight, lightFrus, minDist, maxDist);
-            setupShadowMap(curLight, false);
-            commitLightUniforms(curLight);
-            // Set scissor rectangle
-            if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
-            {
-               gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
-               glEnable(GL_SCISSOR_TEST);
-            }
-
-            drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
-         } else {
-            // Omni lights require a pass/binding for each side of the cubemap into which they render.
-            for (int i = 0; i < 6; i++) {
-               if (curLight->_dirtyShadows[i]) {
-                  curLight->_dirtyShadows[i] = false;
-                  updateShadowMap(curLight, lightFrus, minDist, maxDist, i);
+         if (curLight->_shadowMapBuffer) {
+            if (curLight->_directional && curLight->_shadowMapBuffer) {
+               updateShadowMap(curLight, lightFrus, minDist, maxDist);
+               setupShadowMap(curLight, false);
+               commitLightUniforms(curLight);
+               // Set scissor rectangle
+               if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
+               {
+                  gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
+                  glEnable(GL_SCISSOR_TEST);
                }
-            }
 
-            setupShadowMap(curLight, false);
-            commitLightUniforms(curLight);
-            // Set scissor rectangle
-            if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
-            {
-               gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
-               glEnable(GL_SCISSOR_TEST);
-            }
+               drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+            } else {
+               // Omni lights require a pass/binding for each side of the cubemap into which they render.
+               for (int i = 0; i < 6; i++) {
+                  if (curLight->_dirtyShadows[i]) {
+                     curLight->_dirtyShadows[i] = false;
+                     updateShadowMap(curLight, lightFrus, minDist, maxDist, i);
+                  }
+               }
 
-            // Luckily, we only need one pass to actually apply the shadowing.
-            drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+               setupShadowMap(curLight, false);
+               commitLightUniforms(curLight);
+               // Set scissor rectangle
+               if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
+               {
+                  gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
+                  glEnable(GL_SCISSOR_TEST);
+               }
+
+               // Luckily, we only need one pass to actually apply the shadowing.
+               drawGeometry(curLight->_lightingContext + "_" + _curPipeline->_pipelineName, theClass, order, 0, occSet, 0.0, 1.0, -1, lightFrus);
+            }
          }
       }
 		

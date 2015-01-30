@@ -643,7 +643,7 @@ void Browser::OnScreenResize(int w, int h)
    BROWSER_LOG(3) << "Browser (UI) resized to " << _uiWidth << "x" << _uiHeight;
 
    if (_browser) {
-      _browser->GetHost()->NotifyScreenInfoChanged();
+      _browser->GetHost()->WasResized();
    }
 }
 
