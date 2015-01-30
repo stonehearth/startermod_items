@@ -3,42 +3,42 @@
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
       "unit_info" : {
-         "name": "Trusty Shield",
-         "description": "Armor",
-         "icon" : "file(basic_shield.png)"         
+         "name": "Rough Wooden Buckler",
+         "description": "Crude and basic",
+         "icon" : "file(wooden_shield.png)"         
       },
       "model_variants": {
          "default": {
             "models": [
-               "file(basic_shield.qb)"
+               "file(wooden_shield.qb)"
             ]
          }
       },
       "stonehearth:material" : {
-         "tags" : "metal armor heavy_armor"
+         "tags" : "wood armor heavy_armor"
       },
       "stonehearth:entity_forms" : {
-         "iconic_form" : "file(basic_shield_iconic.json)"
+         "iconic_form" : "file(wooden_shield_iconic.json)"
       },
 
       "stonehearth:equipment_piece" : {
          "slot" : "offhand",
          "render_type" : "attach_to_bone",
          "postures" : [ "stonehearth:combat", "stonehearth:patrol", "stonehearth:have_shield" ],
-         "ilevel" : 6,
+         "ilevel" : 2,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
       }
    },
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
-         "base_damage_reduction" : 2
+         "base_damage_reduction" : 1
       },
       "stonehearth:combat:melee_defenses" : [
          {
             "name" : "combat_1h_shield_block",
             "active_frame" : 4,
-            "cooldown" : 1000,
+            "cooldown" : 8000,
             "priority" : 0
          }
       ]

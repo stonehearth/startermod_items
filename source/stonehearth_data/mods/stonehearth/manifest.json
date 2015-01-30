@@ -351,6 +351,7 @@
       "armor:bronze_breastplate" : "file(entities/armor/bronze_breastplate)",
       "armor:iron_mail" : "file(entities/armor/iron_mail)",
       "armor:steel_mail" : "file(entities/armor/steel_mail)",
+      "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",

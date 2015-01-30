@@ -1,0 +1,21 @@
+{
+   "type":"recipe",
+
+   "work_units"  : 5,
+   "recipe_name" : "Rough Wooden Shield",
+   "description" : "Crude and basic, but allows the holder to occasionally block attacks.",
+   "portrait"    : "/stonehearth/entities/armor/wooden_shield/wooden_shield.png",
+   "level_requirement" : 0,
+
+   "ingredients": [
+      {
+         "material" : "wood resource",
+         "count" : 1
+      }
+  ],
+  "produces": [
+      {
+         "item":"stonehearth:armor:wooden_shield"
+      }
+  ]
+}
