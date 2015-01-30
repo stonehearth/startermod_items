@@ -5,7 +5,7 @@
    "recipe_name" : "Rough Wooden Shield",
    "description" : "Crude and basic, but allows the holder to occasionally block attacks.",
    "portrait"    : "/stonehearth/entities/armor/wooden_shield/wooden_shield.png",
-   "level_requirement" : 0,
+   "level_requirement" : 4,
 
    "ingredients": [
       {
