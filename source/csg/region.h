@@ -82,6 +82,8 @@ public:
    void Subtract(Cube const& cube);
    void Subtract(Region const& region);
 
+   Region<S, C> operator+(Cube const& cube) const;
+   Region<S, C> operator+(Region const& region) const;
    Region<S, C> operator-(Cube const& cube) const;
    Region<S, C> operator-(Region const& region) const;
    Region<S, C> operator&(Cube const& cube) const;
