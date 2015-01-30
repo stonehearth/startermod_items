@@ -42,6 +42,8 @@ function MiningZoneComponent:initialize(entity, json)
    self._entity = entity
    self._destination_component = self._entity:add_component('destination')
    self._collision_shape_component = self._entity:add_component('region_collision_shape')
+   self._last_destination_region = Region3()
+   self._last_unreserved_region = Region3()
 
    self._sv = self.__saved_variables:get_data()
    if not self._sv.initialized then
@@ -431,28 +433,107 @@ function MiningZoneComponent:_add_all_exposed_faces(working_region, add_block_fn
    end
 end
 
+-- Note that nothing in ths component is directly listening to terrain changes yet, so we will miss minable
+-- points that open up because of external terrain modifications
 function MiningZoneComponent:_update_adjacent()
+   self:_update_adjacent_incremental()
+end
+
+-- slow version with an inner loop that is O(#_destination_blocks) / O(surface_area) of the mining region
+function MiningZoneComponent:_update_adjacent_full()
    local location = radiant.entities.get_world_grid_location(self._entity)
    if not location then
       return
    end
 
-   local destination_region = self._destination_component:get_region():get()
-   local reserved_region = self._destination_component:get_reserved():get()
-   local unreserved_destination_region = destination_region - reserved_region
+   local unreserved_region = self:_get_unreserved_region()
+   unreserved_region:translate(location)
+   local adjacent = self:_calculate_adjacent(unreserved_region)
+   adjacent:translate(-location)
 
    self._destination_component:get_adjacent():modify(function(cursor)
          cursor:clear()
-
-         for point in unreserved_destination_region:each_point() do
-            local world_point = point + location
-            local adjacent_region = stonehearth.mining:get_adjacent_for_destination_block(world_point)
-            adjacent_region:translate(-location)
-            cursor:add_region(adjacent_region)
-         end
-
+         cursor:add_region(adjacent)
          cursor:optimize_by_merge()
       end)
+end
+
+-- fast version that is O(1) on the size of the mining region
+function MiningZoneComponent:_update_adjacent_incremental()
+   local location = radiant.entities.get_world_grid_location(self._entity)
+   if not location then
+      return
+   end
+
+   local max_reach_y = math.max(MAX_REACH_UP, MAX_REACH_DOWN)
+   local reach = Point3(1, max_reach_y, 1)
+   local destination_region = self._destination_component:get_region():get()
+   local unreserved_region = self:_get_unreserved_region()
+   local destination_delta = self:_get_region_delta(self._last_destination_region, destination_region)
+   local unreserved_delta = self:_get_region_delta(self._last_unreserved_region, unreserved_region)
+
+   -- the set of changed blocks that will affect the adjacent
+   local changed_blocks = destination_delta + unreserved_delta
+
+   -- the adjacent blocks which are affected by the changed blocks
+   local dirty_adjacent = changed_blocks:inflated(reach)
+
+   -- destination volume that can affect the dirty adjacent region
+   local dirty_unreserved_volume = dirty_adjacent:inflated(reach)
+
+   -- destination blocks that need to be recalculated
+   local dirty_unreserved = dirty_unreserved_volume:intersect_region(unreserved_region)
+
+   -- calculate the updated adjacent volume 
+   dirty_unreserved:translate(location)
+   local adjacent_fragment = self:_calculate_adjacent(dirty_unreserved)
+   adjacent_fragment:translate(-location)
+
+   self._destination_component:get_adjacent():modify(function(cursor)
+         cursor:subtract_region(dirty_adjacent)
+         cursor:add_region(adjacent_fragment)
+         cursor:optimize_by_merge()
+      end)
+
+   self._last_unreserved_region = unreserved_region
+   self._last_destination_region = Region3(destination_region)
+
+   -- for verifying the calculation between the fast and slow versions
+   -- these can also differ if an external party modified the terrain
+   local verify_adjacent = false
+   if verify_adjacent then
+      local incremental_adjacent = Region3(self._destination_component:get_adjacent():get())
+      self:_update_adjacent_full()
+      local full_adjacent = self._destination_component:get_adjacent():get()
+      local intersection = full_adjacent:intersect_region(incremental_adjacent)
+      assert(intersection:get_area() == full_adjacent:get_area())
+   end
+end
+
+function MiningZoneComponent:_get_unreserved_region()
+   local destination_region = self._destination_component:get_region():get()
+   local reserved_region = self._destination_component:get_reserved():get()
+   local unreserved_region = destination_region - reserved_region
+   unreserved_region:optimize_by_merge() -- probably unnecessary
+   return unreserved_region
+end
+
+function MiningZoneComponent:_calculate_adjacent(world_region)
+   local adjacent = Region3()
+
+   for point in world_region:each_point() do
+      local adjacent_region = stonehearth.mining:get_adjacent_for_destination_block(point)
+      adjacent:add_region(adjacent_region)
+   end
+
+   return adjacent
+end
+
+function MiningZoneComponent:_get_region_delta(region1, region2)
+   local added_to_region1 = region2 - region1
+   local removed_from_region1 = region1 - region2
+   local delta = added_to_region1 + removed_from_region1
+   return delta
 end
 
 function MiningZoneComponent:_create_mining_task()

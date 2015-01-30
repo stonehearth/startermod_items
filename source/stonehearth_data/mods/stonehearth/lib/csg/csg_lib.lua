@@ -66,9 +66,15 @@ function csg_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
     -- subtract one because we want the max terrain block, not the bounding grid line
    local max = cube.max - Point3.one
    local min = cube.min
-   local x, y, z, x_face, y_face, z_face, num_faces
+
+   -- performance sensitive code, so cache these values to avoid going to C++ every time
+   local min_x, min_y, min_z = min.x, min.y, min.z
+   local max_x, max_y, max_z = max.x, max.y, max.z
+
    -- reuse this point to avoid inner loop memory allocation
    local point = Point3()
+
+   local x, y, z, x_face, y_face, z_face, num_faces
 
    local face_count = function(value, min, max)
       if value == min or value == max then
@@ -79,30 +85,30 @@ function csg_lib.each_block_in_cube_with_faces(cube, min_faces, cb)
    end
 
    -- can't use for loops because lua doesn't respect changes to the loop counter in the optimization check
-   y = min.y
-   while y <= max.y do
-      y_face = face_count(y, min.y, max.y)
+   y = min_y
+   while y <= max_y do
+      y_face = face_count(y, min_y, max_y)
       if y_face + 2 < min_faces then
          -- optimizaton, jump to opposite face if constraint cannot be met
-         y = max.y
+         y = max_y
          y_face = 1
       end
 
-      z = min.z
-      while z <= max.z do
-         z_face = face_count(z, min.z, max.z)
+      z = min_z
+      while z <= max_z do
+         z_face = face_count(z, min_z, max_z)
          if y_face + z_face + 1 < min_faces then
             -- optimizaton, jump to opposite face if constraint cannot be met
-            z = max.z
+            z = max_z
             z_face = 1
          end
 
-         x = min.x
-         while x <= max.x do
-            x_face = face_count(x, min.x, max.x)
+         x = min_x
+         while x <= max_x do
+            x_face = face_count(x, min_x, max_x)
             if x_face + y_face + z_face < min_faces then
                -- optimizaton, jump to opposite face if constraint cannot be met
-               x = max.x
+               x = max_x
                x_face = 1
             end
 
