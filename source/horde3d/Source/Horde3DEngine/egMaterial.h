@@ -99,24 +99,27 @@ public:
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 
-   std::vector<PShaderResource> const& getShaders() const { return _shaders; }
-   std::vector<MatSampler>& getSamplers() { return _samplers; }
+   std::vector<MatSampler>& getSamplers();
    MatUniform* getUniform(std::string const& context, std::string const& name);
-   PShaderStateResource getShaderState(std::string const& context) { return _context_to_shader_state[context]; }
-   PShaderResource getShader(std::string const& context) { return _context_to_shader_map[context]; }
+   PShaderStateResource getShaderState(std::string const& context);
+   PShaderResource getShader(std::string const& context);
 
 private:
+   void compileSubMaterials();
 	bool raiseError( std::string const& msg, int line = -1 );
    void updateSamplerAnimation(int samplerNum, float animTime);
 
 private:
+   std::unordered_map<std::string, PMaterialResource> _subMaterials;
+   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _subMaterialInputs;
 	std::vector<PShaderResource> _shaders;
 	std::vector<MatSampler>      _samplers;
    std::unordered_map<std::string, MatUniform>   _uniforms;
-   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _input_to_input_map;
+   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _context_to_material_input_map;
    std::unordered_map<std::string, PShaderResource> _context_to_shader_map;
-   std::unordered_map<std::string, std::unordered_map<std::string, MatUniform>> _input_defaults;
+   std::unordered_map<std::string, std::unordered_map<std::string, MatUniform>> _context_to_shader_input_defaults;
    std::unordered_map<std::string, PShaderStateResource> _context_to_shader_state;
+   bool _subMaterialsCompiled;
 
 	friend class ResourceManager;
 	friend class MeshNode;

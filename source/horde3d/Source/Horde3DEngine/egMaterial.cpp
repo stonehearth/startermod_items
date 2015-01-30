@@ -57,6 +57,7 @@ Resource *MaterialResource::clone()
 
 void MaterialResource::initDefault()
 {
+   _subMaterialsCompiled = false;
    _shaders.clear();
 }
 
@@ -71,9 +72,12 @@ void MaterialResource::release()
 	_samplers.clear();
 	_uniforms.clear();
    _context_to_shader_map.clear();
-   _input_defaults.clear();
-   _input_to_input_map.clear();
+   _context_to_shader_input_defaults.clear();
+   _context_to_material_input_map.clear();
    _context_to_shader_state.clear();
+   _subMaterialInputs.clear();
+   _subMaterials.clear();
+   _subMaterialsCompiled = false;
 }
 
 
@@ -193,7 +197,7 @@ bool MaterialResource::load( const char *data, int size )
          _context_to_shader_map[shader.name()] = _shaders.back();
          for (auto const& sinput : shader.get_node("inputs")) {
             if (sinput.has("bind_to_material_input")) {
-               _input_to_input_map[shader.name()][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
+               _context_to_material_input_map[shader.name()][sinput.get("name", "")] = sinput.get("bind_to_material_input", "");
             }
             if (sinput.has("default")) {
                MatUniform def;
@@ -201,8 +205,20 @@ bool MaterialResource::load( const char *data, int size )
                for (auto const& v : sinput.get_node("default")) {
                   def.values[i++] = v.as<float>();
                }
-               _input_defaults[shader.name()][sinput.get("name", "")] = def;
+               _context_to_shader_input_defaults[shader.name()][sinput.get("name", "")] = def;
             }
+         }
+      }
+   }
+
+   if (root.has("materials")) {
+      for (auto const& material : root.get_node("materials")) {
+         std::string matPath = material.get("name", "");
+         uint32 mhandle = Modules::resMan().addResource(ResourceTypes::Material, matPath, 0, false);
+         _subMaterials[material.name()] = (MaterialResource *)Modules::resMan().resolveResHandle(mhandle);
+
+         for (auto const& input : material.get_node("inputs")) {
+            _subMaterialInputs[material.name()][input.get("name", "")] = input.get("bind_to_material_input", "");
          }
       }
    }
@@ -210,13 +226,93 @@ bool MaterialResource::load( const char *data, int size )
 	return true;
 }
 
+std::vector<MatSampler>& MaterialResource::getSamplers() 
+{
+   compileSubMaterials();
+   return _samplers; 
+}
+
+PShaderStateResource MaterialResource::getShaderState(std::string const& context)
+{ 
+   compileSubMaterials();
+   return _context_to_shader_state[context]; 
+}
+
+PShaderResource MaterialResource::getShader(std::string const& context) {
+   compileSubMaterials();
+   return _context_to_shader_map[context]; 
+}
+
+
+void MaterialResource::compileSubMaterials()
+{
+   if (_subMaterialsCompiled) {
+      return;
+   }
+   _subMaterialsCompiled = true;
+
+   for (auto& mat : _subMaterials) {
+      MaterialResource* mr = mat.second;
+      mr->compileSubMaterials();
+
+      // Take any samplers that aren't defined in this material.
+      for (MatSampler& sampler : mr->_samplers) {
+         bool skip = false;
+         for (MatSampler& s : _samplers) {
+            if (s.name == sampler.name) {
+               skip = true;
+               break;
+            }
+         }
+
+         if (!skip) {
+            _samplers.push_back(sampler);
+         }
+      }
+
+      // Take all stages that aren't defined in this material.  Do NOT just take the material bindings,
+      // because those MUST be explicitly declared in the parent material.  But, do take all the shader inputs.
+      // This basically flattens all of the sub-material stages into our own.
+      for (auto& f : mr->_context_to_shader_state) {
+         if (_context_to_shader_state.find(f.first) == _context_to_shader_state.end()) {
+            _context_to_shader_state[f.first] = f.second;
+            _context_to_shader_map[f.first] = mr->_context_to_shader_map[f.first];
+            
+            for (auto& g : mr->_context_to_shader_input_defaults[f.first]) {
+               _context_to_shader_input_defaults[f.first][g.first] = g.second;
+            }
+         }
+      }
+
+      // Bind the declared mappings.
+      for (auto& bindingNamePair : _subMaterialInputs[mat.first]) {
+         std::string shaderName;
+         std::string shaderInputName;
+
+         for (auto const& shaderStageInputsPair : mr->_context_to_material_input_map) {
+            for (auto const& inputBindingPair : shaderStageInputsPair.second) {
+               if (inputBindingPair.second == bindingNamePair.first) {
+                  shaderName = shaderStageInputsPair.first;
+                  shaderInputName = inputBindingPair.first;
+               }
+            }
+         }
+
+         if (!shaderName.empty()) {
+            _context_to_material_input_map[shaderName][shaderInputName] = bindingNamePair.second;
+         }
+      }
+   }
+}
+
 // Gets a _shader_ uniform.  If that shader binds to a material uniform, use that.  Otherwise,
 // get the default value for that shader uniform.  Otherwise, return null.
 MatUniform* MaterialResource::getUniform(std::string const& context, std::string const& name)
 {
+   compileSubMaterials();
    // First, look to see if we have a binding set up.
-   auto const& h = _input_to_input_map.find(context);
-   if (h != _input_to_input_map.end()) {
+   auto const& h = _context_to_material_input_map.find(context);
+   if (h != _context_to_material_input_map.end()) {
       auto const& i = h->second.find(name);
       if (i != h->second.end()) {
          return &_uniforms[i->second];
@@ -224,8 +320,8 @@ MatUniform* MaterialResource::getUniform(std::string const& context, std::string
    }
 
    // No binding exists for that shader; now, lets see if we have a default.
-   auto const& j = _input_defaults.find(context);
-   if (j != _input_defaults.end()) {
+   auto const& j = _context_to_shader_input_defaults.find(context);
+   if (j != _context_to_shader_input_defaults.end()) {
       auto const& k = j->second.find(name);
       if (k != j->second.end()) {
          return &k->second;
