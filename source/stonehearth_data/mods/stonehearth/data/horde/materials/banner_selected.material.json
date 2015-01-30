@@ -1,25 +1,13 @@
 {
-	"shaders" : {
-		"BLUEPRINTS_DEPTH_PASS" : {
-			"state" : "states/voxel/add_withdepth.state",
-			"shader" : "shaders/voxel/flat_color.shader",
-			"inputs" : [
-				{
-					"name" : "flat_color",
-					"default" : [0, 0, 0, 0]
-				}
-			]
-		},
-		"BLUEPRINTS_COLOR_PASS" : {
-			"state" : "states/voxel/blend.state",
-			"shader" : "shaders/transparent_color.shader",
+	"materials" : {
+		"TRANSPARENT" : {
+			"name" : "materials/transparent_with_depth.material.json",
 			"inputs" : [
 				{
 					"name" : "alpha",
-					"default" : [0, 0, 0, 0.9],
 					"bind_to_material_input" : "alpha"
 				}
-			]			
+			]
 		}
 	},
 	"inputs" : [
