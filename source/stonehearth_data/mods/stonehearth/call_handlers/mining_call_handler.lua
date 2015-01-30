@@ -172,6 +172,10 @@ function MiningCallHandler:designate_mining_zone(session, response)
             _radiant.call('stonehearth:add_mining_zone', region, mode)
                :done(function(r)
                      response:resolve({ mining_zone = r.mining_zone })
+                     if not stonehearth.subterranean_view:clip_height_initialized() then
+                        local clip_height = get_cell_max(box.min.y, constants.mining.Y_CELL_SIZE)
+                        stonehearth.subterranean_view:initialize_clip_height(clip_height)
+                     end
                   end
                )
                :always(function()
