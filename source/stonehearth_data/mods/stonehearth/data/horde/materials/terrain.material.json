@@ -11,7 +11,18 @@
 			"inputs" : [
 				{
 					"name" : "gridlineColor",
-					"default" : [0.02, 0.02, 0.02, 0.5],
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
+		},
+		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_p.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
 					"bind_to_material_input" : "gridlineColor"
 				}
 			]
@@ -20,7 +31,7 @@
 	"inputs" : [
 		{
 			"name" : "gridlineColor",
-			"default" : [0.02, 0.02, 0.02, 0.5]
+			"default" : [0.02, 0.02, 0.02, 1.0]
 		}
 	]
 }
