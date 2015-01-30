@@ -77,11 +77,9 @@ void Region<S, C>::Clear()
 }
 
 template <class S, int C>
-void Region<S, C>::Add(Region const& region)
+void Region<S, C>::Add(Point const& point)
 {
-   for (Cube const& c : EachCube(region)) {
-      Add(c);
-   }
+   Add(Cube(point));
 }
 
 template <class S, int C>
@@ -92,9 +90,11 @@ void Region<S, C>::Add(Cube const& cube)
 }
 
 template <class S, int C>
-void Region<S, C>::Add(Point const& point)
+void Region<S, C>::Add(Region const& region)
 {
-   Add(Cube(point));
+   for (Cube const& c : EachCube(region)) {
+      Add(c);
+   }
 }
 
 template <class S, int C>
@@ -188,6 +188,44 @@ void Region<S, C>::Subtract(Cube const& cube)
 }
 
 template <class S, int C>
+Region<S, C> Region<S, C>::operator+(Cube const& cube) const
+{
+   Region result(*this);
+   result += cube;
+   return result;
+}
+
+template <class S, int C>
+Region<S, C> Region<S, C>::operator+(Region const& region) const
+{
+   Region result(*this);
+   result += region;
+   return result;
+}
+
+template <class S, int C>
+Region<S, C> const& Region<S, C>::operator+=(Cube const& cube)
+{
+   Add(cube);
+   return *this;
+}
+
+template <class S, int C>
+Region<S, C> const& Region<S, C>::operator+=(Region const& region)
+{
+   Add(region);
+   return *this;
+}
+
+template <class S, int C>
+void Region<S, C>::Subtract(Region const& r)
+{
+   for (const auto &rc : EachCube(r)) {
+      Subtract(rc);
+   }
+}
+
+template <class S, int C>
 Region<S, C> Region<S, C>::operator-(Cube const& cube) const
 {
    Region result(*this);
@@ -196,12 +234,10 @@ Region<S, C> Region<S, C>::operator-(Cube const& cube) const
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator-(Region const& r) const
+Region<S, C> Region<S, C>::operator-(Region const& region) const
 {
    Region result(*this);
-   for (const auto& c : EachCube(r)) {
-      result -= c;
-   }
+   result -= region;
    return result;
 }
 
@@ -213,25 +249,25 @@ Region<S, C> const& Region<S, C>::operator-=(Cube const& cube)
 }
 
 template <class S, int C>
-Region<S, C> const& Region<S, C>::operator+=(Cube const& cube)
+Region<S, C> const& Region<S, C>::operator-=(Region const& region)
 {
-   Add(cube);
+   Subtract(region);
    return *this;
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator&(Region const& r) const
+Region<S, C> Region<S, C>::operator&(Region const& region) const
 {
    Region result = *this;
-   result &= r;
+   result &= region;
    return result;
 }
 
 template <class S, int C>
-Region<S, C> Region<S, C>::operator&(Cube const& c) const
+Region<S, C> Region<S, C>::operator&(Cube const& cube) const
 {
    Region result = *this;
-   result &= c;
+   result &= cube;
    return result;
 }
 
@@ -279,31 +315,6 @@ Region<S, C> const& Region<S, C>::operator&=(Region const& other)
 
    Validate();
 
-   return *this;
-}
-
-template <class S, int C>
-Region<S, C> const& Region<S, C>::operator-=(Region const& r)
-{
-   Subtract(r);
-   return *this;
-}
-
-
-template <class S, int C>
-void Region<S, C>::Subtract(Region const& r)
-{
-   for (const auto &rc : EachCube(r)) {
-      Subtract(rc);
-   }
-}
-
-template <class S, int C>
-Region<S, C> const& Region<S, C>::operator+=(Region const& r)
-{
-   for (const auto &rc : EachCube(r)) {
-      Add(rc);
-   }
    return *this;
 }
 
@@ -834,16 +845,18 @@ Point<double, C> csg::GetCentroid(Region<S, C> const& region)
    template void Cls::Subtract(const Cls&); \
    template void Cls::Subtract(const Cls::Cube&); \
    template void Cls::Subtract(const Cls::Point&); \
+   template Cls Cls::operator+(const Cls&) const; \
+   template Cls Cls::operator+(const Cls::Cube&) const; \
    template Cls Cls::operator-(const Cls&) const; \
    template Cls Cls::operator-(const Cls::Cube&) const; \
    template Cls Cls::operator&(const Cls&) const; \
    template Cls Cls::operator&(const Cls::Cube&) const; \
-   template const Cls& Cls::operator&=(const Cls::Cube&); \
-   template const Cls& Cls::operator&=(const Cls&); \
-   template const Cls& Cls::operator+=(const Cls::Cube&); \
-   template const Cls& Cls::operator-=(const Cls::Cube&); \
    template const Cls& Cls::operator+=(const Cls&); \
+   template const Cls& Cls::operator+=(const Cls::Cube&); \
    template const Cls& Cls::operator-=(const Cls&); \
+   template const Cls& Cls::operator-=(const Cls::Cube&); \
+   template const Cls& Cls::operator&=(const Cls&); \
+   template const Cls& Cls::operator&=(const Cls::Cube&); \
    template bool Cls::Intersects(const Cls::Cube&) const; \
    template bool Cls::Intersects(const Cls&) const; \
    template bool Cls::Contains(const Cls::Point&) const; \

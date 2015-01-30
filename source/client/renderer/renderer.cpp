@@ -616,7 +616,8 @@ void Renderer::PersistConfig()
    config.Set("renderer.enable_shadows", config_.use_shadows.value);
    config.Set("renderer.msaa_samples", config_.num_msaa_samples.value);
 
-   config.Set("renderer.shadow_quality", config_.shadow_quality.value);
+   // It's possible the engine will override the user's settings; so, listen to the engine.
+   config.Set("renderer.shadow_quality", (int)h3dGetOption(H3DOptions::ShadowMapQuality));
 
    config.Set("renderer.max_lights", config_.max_lights.value);
 
