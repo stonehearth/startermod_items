@@ -5,9 +5,14 @@ mixin_class(Encounter, Node)
 
 function Encounter:initialize(info)
    self._sv.info = info
+   self._log = radiant.log.create_logger('game_master.encounter')
 end
 
 function Encounter:restore()
+end
+
+function Encounter:destroy()
+   radiant.destroy_controller(self._sv.script)
 end
 
 -- get the name of the edge which leads to this encounter.
@@ -28,7 +33,6 @@ function Encounter:get_out_edge()
 	end
 
 	-- return what's in the json file.
-	assert(self._sv.info.out_edge)
    return self._sv.info.out_edge
 end
 
@@ -41,8 +45,19 @@ function Encounter:start(ctx)
    local ename = 'stonehearth:game_master:encounters:' .. etype   
    
    assert(einfo)
-   self._sv.script = radiant.create_controller(ename)
-   self._sv.script:start(ctx, einfo)
+   local script = radiant.create_controller(ename)
+   if not script then
+      self._log:error('could not create controller for encounter type "%s".  bailing.', etype)
+      return
+   end
+   self._sv.script = script
+   script:start(ctx, einfo)
+end
+
+function Encounter:stop()
+   assert(self._sv.script)
+   assert(self._sv.script.stop)
+   self._sv.script:stop()
 end
 
 return Encounter

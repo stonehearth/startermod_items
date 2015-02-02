@@ -68,6 +68,13 @@ function Bulletin:modify(data)
    return self
 end
 
+-- should be called from the user if anything inside the blob the sent
+-- into :set_data() changes afterwards that should cause a repaint on the
+-- client
+function Bulletin:mark_data_changed()
+   self.__saved_variables:mark_changed()
+end
+
 function Bulletin:set_close_on_handle(close_on_handle)
    self._sv.close_on_handle = close_on_handle
    self.__saved_variables:mark_changed()

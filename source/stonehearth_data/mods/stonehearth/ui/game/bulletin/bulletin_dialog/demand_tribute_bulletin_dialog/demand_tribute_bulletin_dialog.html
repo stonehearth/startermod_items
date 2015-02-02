@@ -8,7 +8,11 @@
 
             <ul class="demand_list">
                {{#each view.demands}}
-                  <li>{{ this.count }} {{ this.display_name }}</li>
+                  {{#if this.progress}}
+                     <li>{{ this.display_name }} ({{ this.progress }} of {{ this.count }})</li>
+                  {{else}}
+                     <li>{{ this.count }} {{ this.display_name }}</li>
+                  {{/if}}
                {{/each}}            
             </ul>
 
@@ -20,6 +24,12 @@
       {{/if}}
       {{#if view.model.data.declined_callback }}
          <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+      {{/if}}
+      {{#if view.model.data.collection_pay_callback }}
+         <button id="collectionPayButton" class="">{{i18n stonehearth:collection_quest_pay}}</button>
+      {{/if}}
+      {{#if view.model.data.collection_cancel_callback }}
+         <button id="collectionCancelButton" class="">{{i18n stonehearth:collection_quest_cancel}}</button>
       {{/if}}
    </div>
 </div>

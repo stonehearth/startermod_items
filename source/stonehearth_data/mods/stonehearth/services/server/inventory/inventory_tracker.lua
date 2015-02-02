@@ -67,4 +67,8 @@ function InventoryTracker:get_tracking_data(key)
    return self._sv.tracking_data
 end
 
+function InventoryTracker:trace(reason)
+   return self.__saved_variables:trace(reason)
+end
+
 return InventoryTracker

@@ -1,0 +1,46 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "dialog_tree",
+   "rarity" : "common",
+
+   "in_edge"  : "finish_arc_on_boss_death",
+
+   "dialog_tree_info" : {
+      "start_node" : "msg1",
+      "nodes" : {
+         "msg1" : {
+            "bulletin" : {
+               "title" : "Goblin King Defeated!",
+               "message" : "Ow...",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg2"
+                  }
+               }               
+            }
+         },
+         "msg2" : {
+            "bulletin" : {
+               "title" : "Goblin King Defeated!",
+               "message" : "It hurts...",
+               "choices" : {
+                  "stonehearth:next" : {
+                     "next_node" : "msg3"
+                  }
+               }
+            }
+         },
+         "msg3" : {
+            "bulletin" : {
+               "title" : "Goblin King Defeated!",
+               "message" : "Will you take care of my pet mammoth?",
+               "choices" : {
+                  "stonehearth:ok" : {
+                     "out_edge" : "arc:finish"
+                  }
+               }               
+            }
+         }      
+      }
+   }
+}

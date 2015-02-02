@@ -49,6 +49,25 @@ end
 function JobComponent:destroy()
    self._kill_listener:destroy()
    self._kill_listener = nil
+
+   --destroy all the controllers
+   for uri, controller in pairs(self._sv.job_controllers) do
+      radiant.destroy_controller(controller)
+      controller = nil
+   end
+   self._sv.curr_job_controller = nil
+
+   --Remove from task groups (may be redundant if we are killed, which first calls demote, then this)
+   if self._job_json and self._job_json.task_groups then
+      self:_remove_from_task_groups(self._job_json.task_groups)
+   end
+
+end
+
+--When we've been killed, dump our talisman on the ground
+--Eventually, when our entity is destroyed, the destroy fn above will run also.
+function JobComponent:_on_kill_event()
+   self:demote()
 end
 
 function JobComponent:_call_job(method_name, ...)
@@ -60,10 +79,6 @@ function JobComponent:_call_job(method_name, ...)
    return nil
 end
 
---When we've been killed, dump our talisman on the ground
-function JobComponent:_on_kill_event()
-   self:demote()
-end
 
 -- Drops the talisman near the location of the entity, returns the talisman entity
 -- If the class has something to say about the talisman before it goes, do that first
@@ -267,7 +282,6 @@ function JobComponent:demote()
 
    --If we have a talisman to drop, drop it. 
    local talisman = self:_drop_talisman()
-
 
    if self._sv.curr_job_controller then
       self:_call_job('demote')

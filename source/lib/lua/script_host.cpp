@@ -646,6 +646,7 @@ luabind::object ScriptHost::RequireScript(std::string const& path)
       canonical_path = rm.FindScript(path);
    } catch (std::exception const&) {
       // Use of exceptions here is idiotic. One of my worst ideas in a decade...
+      LUA_LOG(1) << "could not find path for lua script \"" << path << "\".";
       return luabind::object();
    }
 
@@ -1126,6 +1127,10 @@ luabind::object ScriptHost::CreateModule(om::ModListPtr mods, std::string const&
             savestate = luabind::object(L_, datastore);
          }
          module = Require(script_name);
+         if (!module || luabind::type(module) != LUA_TTABLE) { 
+            LUA_LOG(1) << "module \"" << mod_name << "\" returned non-table type.  ignoring";
+            return luabind::object();
+         }
          module["__saved_variables"] = savestate;
          luabind::globals(L_)[mod_name] = module;
          mods->AddMod(mod_name, module);

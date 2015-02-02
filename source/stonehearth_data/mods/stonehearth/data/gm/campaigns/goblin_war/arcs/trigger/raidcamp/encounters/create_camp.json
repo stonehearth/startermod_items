@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "start",
-   "out_edge" : "fight",
+   "out_edge" : ["wait_for_boss_death", "shakedown"],
 
    "create_camp_info" : {
       "player_id" : "goblins",
@@ -12,6 +12,9 @@
          "min" : 80,
          "max" : 90
       },
+
+      "npc_boss" : "stonehearth:sheep",
+
       "pieces" : {
          "campfire" : {
             "min" : 1,

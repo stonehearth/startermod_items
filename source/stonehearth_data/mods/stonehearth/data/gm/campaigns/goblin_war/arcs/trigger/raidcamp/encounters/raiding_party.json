@@ -3,8 +3,7 @@
    "encounter_type" : "city_raid",
    "rarity" : "common",
 
-   "in_edge"  : "fight",
-   "out_edge" : "fight",
+   "in_edge"  : "city_raid",
 
    "city_raid_info" : {
       "missions" : {

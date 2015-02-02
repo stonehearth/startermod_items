@@ -13,6 +13,10 @@ function CityRaid:start(ctx, info)
    self:_create_raid(info)
 end
 
+function CityRaid:stop()
+   radiant.not_yet_implemented()
+end
+
 function CityRaid:get_ctx()
    return self._sv.ctx
 end

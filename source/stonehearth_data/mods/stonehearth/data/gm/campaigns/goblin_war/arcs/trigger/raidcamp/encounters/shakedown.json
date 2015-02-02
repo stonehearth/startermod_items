@@ -7,12 +7,16 @@
 
    "demand_tribute_info" : {
       "out_edges" : {
-         "refuse" : "fight",
-         "fail" : "fight",
-         "success" : "campaign:exit"
+         "refuse" : "spawn_city_raids",
+         "fail" : "spawn_city_raids",
+         "success" : "wait_for_next_shakedown"
       },
 
       "script" : "file(shakedown/shakedown.lua)",
+
+      "source_entity" : "npc_boss",
+
+      "duration" : "2d",
 
       "introduction" : {
          "bulletin" : {
@@ -24,6 +28,24 @@
          "bulletin" : {
             "title" : "The orc leader wants your stuff!!",
             "message" : "Give me this stuff or die!"
+         }
+      },
+      "collection_progress" : {
+         "bulletin" : {
+            "title" : "Appease the Orcs",
+            "message" : "Here's your progress, dude."
+         }
+      },
+      "collection_due" : {
+         "bulletin" : {
+            "title" : "The Orc Man Cometh",
+            "message" : "Hey, have you got my stuff?"
+         }
+      },
+      "collection_failed" : {
+         "bulletin" : {
+            "title" : "The Orc Man Cometh",
+            "message" : "Your lack of forsight will seal your doom!!!!!1!"
          }
       },
       "shakedown_refused" : {
