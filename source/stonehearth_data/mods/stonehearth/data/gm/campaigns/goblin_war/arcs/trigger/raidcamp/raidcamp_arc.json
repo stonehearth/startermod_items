@@ -5,6 +5,7 @@
    "encounters" : {
       "create_camp" : "file(encounters/create_camp.json)",
       "shakedown" : "file(encounters/shakedown.json)",
-      "raiding_party" : "file(encounters/raiding_party.json)"
+      "raiding_party" : "file(encounters/raiding_party.json)",
+      "wait_for_next_shakedown" : "file(encounters/wait_for_next_shakedown.json)"
    }
 }

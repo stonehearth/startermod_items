@@ -2,10 +2,11 @@ local NodeList = class()
 
 function NodeList:initialize(name, expected_type, nodelist)
    self._sv.name = name
-   self._sv.retired_nodes = {}
+   self._sv.nodelist = nodelist
+   self._sv.expected_type = expected_type
+   self._sv.nodes = {}
 
    self:_create_logger()
-   self:_create_nodes(expected_type, nodelist)
 end
 
 function NodeList:restore()
@@ -21,10 +22,8 @@ function NodeList:elect_node(filter_fn)
       return
    end
    
-   local node = self._sv.nodes[name]   
-   
-   self._running_node = node
-   self._sv.retired_nodes[name] = true
+   local node = self._sv.nodes[name]
+   self._sv.nodes[name] = nil
    self.__saved_variables:mark_changed()
 
    return name, node
@@ -37,23 +36,16 @@ function NodeList:_create_logger()
                               :set_prefix(self._sv.name)
 end
 
--- create the controllers for all the nodes in `nodelist`
---
-function NodeList:_create_nodes(expected_type, nodelist)
-   if not self._sv.nodes then
-      local nodes = {}
-      self._sv.nodes = nodes
-      for name, file in pairs(nodelist) do
-         nodes[name] = self:_create_node(name, expected_type, file)
-      end
-      self.__saved_variables:mark_changed()
-   end
-   return self
-end
-
 -- create and initialize a single node
 --
-function NodeList:_create_node(name, expected_type, file)
+function NodeList:_create_node(name, file)
+   -- if we've already create the node but it hasn't been used yet, return that
+   local node = self._sv.nodes[name]
+   if node then
+      return node
+   end
+
+   local expected_type = self._sv.expected_type
    local info = radiant.resources.load_json(file)
    if not info then
       self._log:error('failed to load %s "%s"', expected_type, file)
@@ -76,7 +68,9 @@ function NodeList:_create_node(name, expected_type, file)
    end
 
    node:set_name(self._sv.name .. '.' .. name)
-   
+   self._sv.nodes[name] = node
+   self.__saved_variables:mark_changed()
+
    return node
 end
 
@@ -86,15 +80,13 @@ end
 function NodeList:_run_election(filter_fn)
    local pop = {}
    local total = 0
-   local retired_nodes = self._sv.retired_nodes
    
-   for name, candidate in pairs(self._sv.nodes) do      
-      if not retired_nodes[name] then
-         if not filter_fn or filter_fn(name, candidate) then
-            local votes = candidate:get_vote_count()
-            pop[name] = votes
-            total = total + votes
-         end
+   for name, file in pairs(self._sv.nodelist) do      
+      local candidate = self:_create_node(name, file)
+      if not filter_fn or filter_fn(name, candidate) then
+         local votes = candidate:get_vote_count()
+         pop[name] = votes
+         total = total + votes
       end
    end
 

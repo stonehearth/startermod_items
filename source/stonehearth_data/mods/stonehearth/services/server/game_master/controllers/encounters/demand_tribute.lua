@@ -12,6 +12,7 @@ function DemandTribute:start(ctx, info)
    assert(info.introduction.bulletin)
    assert(info.shakedown)
    assert(info.shakedown.bulletin)
+   assert(info.collection_failed.bulletin)
    assert(info.script)
    assert(info.duration)
 
@@ -23,6 +24,12 @@ function DemandTribute:start(ctx, info)
 
    self._sv.demand = self._sv.script:get_tribute_demand()
    self:_show_introduction()
+end
+
+function DemandTribute:stop()
+   self:_stop_tracking_items()
+   self:_stop_collection_timer()
+   self:_destroy_bulletin()
 end
 
 -- return the edge to transition to, which is simply the result of the encounter.
@@ -155,11 +162,6 @@ function DemandTribute:_destroy_bulletin()
       self._sv.bulletin = nil
       self.__saved_variables:mark_changed()
    end
-
-   if self._progress_trace then
-      self._progress_trace:destroy()
-      self._progress_trace = nil
-   end
 end
 
 function DemandTribute:_start_tracking_items(items)
@@ -206,9 +208,22 @@ function DemandTribute:_start_collection_timer()
    assert(not self._collection_timer)
 
    local duration = self._sv.info.duration
+   local override = radiant.util.get_config('game_master.encounters.demand_tribute.duration')
+   if override ~= nil then
+      duration = override
+   end
+
    self._collection_timer = stonehearth.calendar:set_timer(duration, function()
+         self._collection_timer = nil
          self:_on_collection_timer_expired()
       end)
+end
+
+function DemandTribute:_stop_collection_timer()
+   if self._collection_timer then
+      self._collection_timer:destroy()
+      self._collection_timer = nil
+   end
 end
 
 function DemandTribute:_on_collection_timer_expired()
@@ -224,13 +239,23 @@ function DemandTribute:_on_collection_timer_expired()
 end
 
 function DemandTribute:_on_collection_paid()
-   -- hm...
+   self:_finish_encounter('success')
 end
 
 function DemandTribute:_on_collection_cancelled()
-   -- if the player refused to (or couldn't) pay, just take the same path as if they
-   -- had rejected the offer in the first place
-   self:_show_refused_threat()   
+   assert(self._sv.bulletin)
+
+   local bulletin_data = self._sv.info.collection_failed.bulletin
+
+   bulletin_data.ok_callback = '_on_collection_failed_ok'
+   self:_update_bulletin(bulletin_data)
+end
+
+-- after the user clicks the ok button, transition to the next encounter
+-- in the arc (after setting the 'fail' out_edge)
+--
+function DemandTribute:_on_collection_failed_ok()
+   self:_finish_encounter('fail')
 end
 
 return DemandTribute

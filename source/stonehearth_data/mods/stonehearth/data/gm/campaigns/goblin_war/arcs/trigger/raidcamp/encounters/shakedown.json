@@ -9,7 +9,7 @@
       "out_edges" : {
          "refuse" : "fight",
          "fail" : "fight",
-         "success" : "campaign:exit"
+         "success" : "wait_for_next_shakedown"
       },
 
       "script" : "file(shakedown/shakedown.lua)",
@@ -38,6 +38,12 @@
          "bulletin" : {
             "title" : "The Orc Man Cometh",
             "message" : "Hey, have you got my stuff?"
+         }
+      },
+      "collection_failed" : {
+         "bulletin" : {
+            "title" : "The Orc Man Cometh",
+            "message" : "Your lack of forsight will seal your doom!!!!!1!"
          }
       },
       "shakedown_refused" : {
