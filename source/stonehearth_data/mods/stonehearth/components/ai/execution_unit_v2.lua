@@ -365,7 +365,7 @@ function ExecutionUnitV2:_start_thinking_from_stopped(entity_state)
    -- this action.
    self._object_monitor = self:_create_object_monitor()
    if not self._object_monitor then
-      self._log:error('failed to monitor all entities in args.  bailing.')
+      self._log:warning('failed to monitor all entities in args.  bailing.')
       self:_set_state(STOPPED)
       return
    end

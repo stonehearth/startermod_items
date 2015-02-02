@@ -19,7 +19,6 @@
             "shepherd_crook" : {
                "recipe" : "file(shepherds_crook_recipe.json)"
             }  
-            
          }
       },
       "building_parts" : {
@@ -91,8 +90,17 @@
             }
          }
       },
-      "signage_decoration" : {
+      "armor" : {
          "ordinal" : 4, 
+         "name" : "Armor", 
+         "recipes" : {
+            "wooden_shield" : {
+               "recipe" : "file(wooden_shield_recipe.json)"
+            }  
+         }
+      },      
+      "signage_decoration" : {
+         "ordinal" : 5, 
          "name" : "Signage & Decoration", 
          "recipes" : {
             "wooden_sign" : {

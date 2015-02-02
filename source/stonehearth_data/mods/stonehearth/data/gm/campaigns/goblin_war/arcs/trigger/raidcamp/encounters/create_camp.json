@@ -4,7 +4,7 @@
    "rarity" : "common",
 
    "in_edge"  : "start",
-   "out_edge" : "fight",
+   "out_edge" : "shakedown",
 
    "create_camp_info" : {
       "player_id" : "goblins",

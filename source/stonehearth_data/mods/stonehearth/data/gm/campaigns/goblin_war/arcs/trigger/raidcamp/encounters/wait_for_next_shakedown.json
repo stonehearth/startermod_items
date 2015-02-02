@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "wait_for_next_shakedown",
+   "out_edge" : "shakedown",
+
+   "wait_info" :  {
+      "duration" : "2d"
+   }
+}

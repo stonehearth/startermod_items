@@ -37,6 +37,7 @@ function SubterraneanViewService:initialize()
       self._sv.xray_mode = nil
       self._sv.clip_enabled = false
       self._sv.clip_height = 24
+      self._sv.clip_height_initialized = false
       self._sv.initialized = true
    else
    end
@@ -483,6 +484,15 @@ function SubterraneanViewService:set_clip_height(height)
    end
 end
 
+function SubterraneanViewService:clip_height_initialized()
+   return self._sv.clip_height_initialized
+end
+
+function SubterraneanViewService:initialize_clip_height(height)
+   self:set_clip_height(height)
+   self._sv.clip_height_initialized = true
+end
+
 function SubterraneanViewService:move_clip_height_up()
    self:set_clip_height(self._sv.clip_height + constants.mining.Y_CELL_SIZE);
 end
@@ -513,8 +523,7 @@ end
 
 function SubterraneanViewService:_update_clip_height()
    if self._sv.clip_enabled then
-      local clip_height = self._sv.clip_height
-      _radiant.renderer.set_clip_height(clip_height)
+      _radiant.renderer.set_clip_height(self._sv.clip_height)
    else
       _radiant.renderer.set_clip_height(MAX_CLIP_HEIGHT)
    end

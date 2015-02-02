@@ -4,7 +4,7 @@
       "animation": {
          "type": "animation_effect",
          "start_time": 0,
-         "animation": "combat_1h_parry.json",
+         "animation": "combat_1h_shield_block.json",
          "loop": false
       },
       "sound": {

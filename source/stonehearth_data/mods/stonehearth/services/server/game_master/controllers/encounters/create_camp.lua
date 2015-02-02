@@ -32,6 +32,10 @@ function CreateCamp:start(ctx, info)
    self:_search_for_camp_location()
 end
 
+function CreateCamp:stop()
+   -- nothing to do
+end
+
 function CreateCamp:_create_camp()
    local ctx = self._sv.ctx
    local info = self._sv.info
