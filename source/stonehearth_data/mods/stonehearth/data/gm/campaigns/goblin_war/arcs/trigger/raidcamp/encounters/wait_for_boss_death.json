@@ -1,0 +1,12 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait_for_event",
+
+   "in_edge"  : "wait_for_boss_death",
+   "out_edge" : "finish_arc_on_boss_death",
+
+   "wait_for_event_info" :  {
+      "source" : "npc_boss",
+      "event"  : "radiant:entity:pre_destroy"
+   }
+}

@@ -32,16 +32,23 @@ function Arc:trigger_next_encounter(ctx)
    assert(encounter)
    assert(encounter_name)
 
-   local next_edge = encounter:get_out_edge()
+   local out_edge = encounter:get_out_edge()
    self:_stop_encounter(encounter_name, encounter)
 
-   if not next_edge then
-      self._log:info('encounter "%s" has no out_edge.  end of the line!')
+   if not out_edge then
+      self._log:info('encounter "%s" has no out_edge.  end of the line!', encounter_name)
       return
    end
-   
-   self._log:info('encounter "%s" is triggering next edge "%s"', encounter_name, next_edge)
-   self:_trigger_edge(ctx, next_edge)
+
+   -- trigger all the edges in the out_edge list, in order.  if there's just a single
+   -- edge to trigger, we let out_edge be a string.
+   if type(out_edge) == 'string' then
+      out_edge = { out_edge }
+   end
+   for _, next_edge in pairs(out_edge) do
+      self._log:info('encounter "%s" is triggering next edge "%s"', encounter_name, next_edge)
+      self:_trigger_edge(ctx, next_edge)
+   end
 end
 
 -- callback for encounters.  creates another encounter without finishing the current one
@@ -55,6 +62,17 @@ function Arc:spawn_encounter(ctx, next_edge)
 
    self._log:info('encounter "%s" is spawning edge "%s"', encounter_name, next_edge)
    self:_trigger_edge(ctx, next_edge)
+end
+
+-- callback for encounters.  terminate the current encounter
+--
+function Arc:terminate(ctx, next_edge)
+   local encounter = ctx.encounter
+   local encounter_name = ctx.encounter_name
+
+   assert(encounter)
+   assert(encounter_name)
+   self:_stop_encounter(encounter_name, encounter)
 end
 
 -- start the encounter which has an in_edge matching `edge_name`
