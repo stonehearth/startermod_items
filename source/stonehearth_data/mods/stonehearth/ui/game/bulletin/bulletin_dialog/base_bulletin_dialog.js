@@ -6,32 +6,16 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
       var self = this;
       self._super();
 
-      var dialog = self.$('.bulletinDialog');
+      self.dialog = self.$('.bulletinDialog');
 
-      dialog.on('click', '#okButton', function() {
-         self._callCallback('ok_callback');
-         self._autoDestroy();
-      });
+      this._wireButtonToCallback('#okButton',      'ok_callback');
+      this._wireButtonToCallback('#nextButton',    'next_callback', true);    // Keep the dialog around on next
+      this._wireButtonToCallback('#acceptButton',  'accepted_callback');
+      this._wireButtonToCallback('#declineButton', 'declined_callback');
 
-      dialog.on('click', '#nextButton', function() {
-         self._callCallback('next_callback');
-         // Intentionally not calling autoDestroy.
-      });
-
-      dialog.on('click', '#acceptButton', function() {
-         self._callCallback('accepted_callback');
-         self._autoDestroy();
-      });
-
-      dialog.on('click', '#declineButton', function() {
-         self._callCallback('declined_callback');
-         self._autoDestroy();
-      });
-
-      var cssClass = self.get('model.data.cssClass');
-      
+      var cssClass = self.get('model.data.cssClass');     
       if (cssClass) {
-         self.$('.bulletinDialog').addClass(cssClass);
+         self.dialog.addClass(cssClass);
       }
    },
 
@@ -63,6 +47,17 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
                $(top).trigger(response.trigger_event.event_name, response.trigger_event.event_data);
             }
          });
+   },
+
+   _wireButtonToCallback: function(buttonid, callback, keepAround) {
+      var self = this
+      self.dialog.on('click', buttonid, function() {
+         self._callCallback(callback);
+         if (!keepAround) {
+            self._autoDestroy();
+         }
+      });
+
    },
 
    _autoDestroy: function() {

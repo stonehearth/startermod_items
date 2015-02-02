@@ -13,6 +13,7 @@ function DemandTribute:start(ctx, info)
    assert(info.shakedown)
    assert(info.shakedown.bulletin)
    assert(info.script)
+   assert(info.duration)
 
    local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script
@@ -51,7 +52,6 @@ end
 --
 function DemandTribute:_show_demand()
    local bulletin_data = self._sv.info.shakedown.bulletin
-
    bulletin_data.demands = {
    	items = self._sv.demand
 	}
@@ -64,8 +64,18 @@ end
 --
 function DemandTribute:_on_shakedown_accepted()
    self:_destroy_bulletin()
-   -- xxx: for testing, loop back to the intro.
-   self:_show_introduction()
+
+   -- update the bulletin to start tracking the collection progress
+   local bulletin_data = self._sv.info.collection_progress.bulletin
+   local items = self._sv.demand
+   bulletin_data.demands = {
+      items = self._sv.demand
+   }
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })
+   self:_start_tracking_items(items)
+
+   -- start a timer for when to check up on the quest
+   self:_start_collection_timer()
 end
 
 -- called by the ui if the player declines the terms of the shakdown.
@@ -145,6 +155,82 @@ function DemandTribute:_destroy_bulletin()
       self._sv.bulletin = nil
       self.__saved_variables:mark_changed()
    end
+
+   if self._progress_trace then
+      self._progress_trace:destroy()
+      self._progress_trace = nil
+   end
+end
+
+function DemandTribute:_start_tracking_items(items)
+   local ctx = self._sv.ctx
+   local player_id = ctx.player_id
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   local tracker = inventory:get_item_tracker('stonehearth:basic_inventory_tracker')
+
+   self._sv.tracker = tracker
+   self._progress_trace = tracker:trace('quest progress')
+                              :on_changed(function()
+                                    self:_update_progress(items)
+                                 end)
+                              :push_object_state()
+end
+
+function DemandTribute:_stop_tracking_items(items)
+   if self._progress_trace then
+      self._progress_trace:destroy()
+      self._progress_trace = nil
+   end
+end
+
+function DemandTribute:_update_progress(items)
+   local bulletin = self._sv.bulletin
+   if not bulletin then
+      return
+   end
+
+   local tracker = self._sv.tracker
+   local tracking_data = tracker:get_tracking_data()
+
+   for _, item in pairs(items) do
+      item.progress = 0
+      local info = tracking_data[item.uri]
+      if info then
+         item.progress = math.min(info.count, item.count)
+      end
+   end
+   bulletin:mark_data_changed()
+end
+
+function DemandTribute:_start_collection_timer()
+   assert(not self._collection_timer)
+
+   local duration = self._sv.info.duration
+   self._collection_timer = stonehearth.calendar:set_timer(duration, function()
+         self:_on_collection_timer_expired()
+      end)
+end
+
+function DemandTribute:_on_collection_timer_expired()
+   self:_stop_tracking_items()
+
+   local bulletin_data = self._sv.info.collection_due.bulletin
+   bulletin_data.demands = {
+      items = self._sv.demand
+   }
+   bulletin_data.collection_pay_callback = '_on_collection_paid'
+   bulletin_data.collection_cancel_callback = '_on_collection_cancelled'
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })   
+end
+
+function DemandTribute:_on_collection_paid()
+   -- hm...
+end
+
+function DemandTribute:_on_collection_cancelled()
+   -- if the player refused to (or couldn't) pay, just take the same path as if they
+   -- had rejected the offer in the first place
+   self:_show_refused_threat()   
 end
 
 return DemandTribute
