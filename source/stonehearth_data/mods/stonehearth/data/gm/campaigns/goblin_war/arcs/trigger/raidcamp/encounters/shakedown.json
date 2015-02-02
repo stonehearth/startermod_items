@@ -7,8 +7,8 @@
 
    "demand_tribute_info" : {
       "out_edges" : {
-         "refuse" : "fight",
-         "fail" : "fight",
+         "refuse" : "spawn_city_raids",
+         "fail" : "spawn_city_raids",
          "success" : "wait_for_next_shakedown"
       },
 

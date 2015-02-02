@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "generator",
+
+   "in_edge"  : "spawn_city_raids",
+
+   "generator_info" :  {
+      "delay" : "1d",
+      "spawn_edge" : "city_raid"
+   }
+}
