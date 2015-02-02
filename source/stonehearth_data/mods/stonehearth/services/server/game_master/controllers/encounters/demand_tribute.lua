@@ -1,3 +1,4 @@
+local Entity = _radiant.om.Entity
 
 local DemandTribute = class()
 
@@ -22,6 +23,14 @@ function DemandTribute:start(ctx, info)
    assert(script)
    assert(script.get_tribute_demand)
 
+   if info.source_entity then
+      local entity = ctx[info.source_entity]
+      if radiant.util.is_a(entity, Entity) and entity:is_valid() then
+         self._sv.source_entity = entity
+         self:_start_source_listener()
+      end
+   end
+
    self._sv.demand = self._sv.script:get_tribute_demand()
    self:_show_introduction()
 end
@@ -29,6 +38,7 @@ end
 function DemandTribute:stop()
    self:_stop_tracking_items()
    self:_stop_collection_timer()
+   self:_stop_source_listener()
    self:_destroy_bulletin()
 end
 
@@ -258,5 +268,23 @@ function DemandTribute:_on_collection_failed_ok()
    self:_finish_encounter('fail')
 end
 
+function DemandTribute:_start_source_listener()
+   local source = self._sv.source_entity
+
+   assert(source:is_valid())
+   assert(not self._source_listener)
+
+   self._source_listener = radiant.events.listen(source, 'radiant:entity:pre_destroy', function()
+         local ctx = self._sv.ctx
+         ctx.arc:terminate(ctx)
+      end)
+end
+
+function DemandTribute:_stop_source_listener()
+   if self._source_listener then
+      self._source_listener:destroy()
+      self._source_listener = nil
+   end
+end
 return DemandTribute
 
