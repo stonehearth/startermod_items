@@ -33,7 +33,6 @@ function Encounter:get_out_edge()
 	end
 
 	-- return what's in the json file.
-	assert(self._sv.info.out_edge)
    return self._sv.info.out_edge
 end
 

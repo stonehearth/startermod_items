@@ -42,8 +42,13 @@ function CreateCamp:_create_camp()
 
    assert(ctx.enemy_player_id)
    assert(ctx.enemy_location)
+   assert(info.boss)
 
    self._population = stonehearth.population:get_population(ctx.enemy_player_id)
+
+   local boss = self._population:create_entity(info.boss)
+   radiant.terrain.place_entity(boss, ctx.enemy_location)
+   ctx.npc_boss = boss
 
    local pieces = {
       large = {},

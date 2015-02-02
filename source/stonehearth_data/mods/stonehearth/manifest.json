@@ -1315,6 +1315,7 @@
       "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)",
       "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid.lua)",
       "game_master:encounters:wait" : "file(services/server/game_master/controllers/encounters/wait.lua)",
+      "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

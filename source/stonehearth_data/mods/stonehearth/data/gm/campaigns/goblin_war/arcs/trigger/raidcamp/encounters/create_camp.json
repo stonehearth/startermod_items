@@ -12,6 +12,9 @@
          "min" : 80,
          "max" : 90
       },
+
+      "boss" : "stonehearth:sheep",
+      
       "pieces" : {
          "campfire" : {
             "min" : 1,

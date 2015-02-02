@@ -21,6 +21,7 @@ function Arc:start(ctx)
    self:_trigger_edge(self._sv.ctx, 'start')
 end
 
+
 -- callback for encounters.  triggers the start of another encounter pointed to
 -- by the out_edge of the calling encounter.
 --
@@ -34,7 +35,25 @@ function Arc:trigger_next_encounter(ctx)
    local next_edge = encounter:get_out_edge()
    self:_stop_encounter(encounter_name, encounter)
 
+   if not next_edge then
+      self._log:info('encounter "%s" has no out_edge.  end of the line!')
+      return
+   end
+   
    self._log:info('encounter "%s" is triggering next edge "%s"', encounter_name, next_edge)
+   self:_trigger_edge(ctx, next_edge)
+end
+
+-- callback for encounters.  creates another encounter without finishing the current one
+--
+function Arc:spawn_encounter(ctx, next_edge)
+   local encounter = ctx.encounter
+   local encounter_name = ctx.encounter_name
+
+   assert(encounter)
+   assert(encounter_name)
+
+   self._log:info('encounter "%s" is spawning edge "%s"', encounter_name, next_edge)
    self:_trigger_edge(ctx, next_edge)
 end
 
