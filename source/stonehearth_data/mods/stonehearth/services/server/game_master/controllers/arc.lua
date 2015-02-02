@@ -35,6 +35,11 @@ function Arc:trigger_next_encounter(ctx)
    local next_edge = encounter:get_out_edge()
    self:_stop_encounter(encounter_name, encounter)
 
+   if not next_edge then
+      self._log:info('encounter "%s" has no out_edge.  end of the line!')
+      return
+   end
+   
    self._log:info('encounter "%s" is triggering next edge "%s"', encounter_name, next_edge)
    self:_trigger_edge(ctx, next_edge)
 end

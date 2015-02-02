@@ -6,6 +6,7 @@
 
    "generator_info" :  {
       "delay" : "1d",
+      "source_entity" : "npc_boss",
       "spawn_edge" : "city_raid"
    }
 }
