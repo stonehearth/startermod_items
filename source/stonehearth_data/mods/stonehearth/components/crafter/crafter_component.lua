@@ -43,7 +43,7 @@ function CrafterComponent:destroy()
       self._orchestrator:destroy()
       self._orchestrator = nil
    end
-   if self._sv.workshop then
+   if self._sv.workshop and self._sv.workshop:get_entity() and self._sv.workshop:get_entity():is_valid() then
       self._sv.workshop:set_crafter(nil)
    end
    local inventory = stonehearth.inventory:get_inventory(self._entity)
