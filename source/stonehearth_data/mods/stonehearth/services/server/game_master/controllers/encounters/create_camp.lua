@@ -42,13 +42,14 @@ function CreateCamp:_create_camp()
 
    assert(ctx.enemy_player_id)
    assert(ctx.enemy_location)
-   assert(info.npc_boss)
 
    self._population = stonehearth.population:get_population(ctx.enemy_player_id)
 
-   local npc_boss = self._population:create_entity(info.npc_boss)
-   radiant.terrain.place_entity(npc_boss, ctx.enemy_location)
-   ctx.npc_boss = npc_boss
+   if info.npc_boss_entity_type then
+      local npc_boss_entity = self._population:create_new_citizen(info.npc_boss_entity_type)
+      radiant.terrain.place_entity(npc_boss_entity, ctx.enemy_location)
+      ctx.npc_boss_entity = npc_boss_entity
+   end
 
    local pieces = {
       large = {},
@@ -67,6 +68,13 @@ function CreateCamp:_create_camp()
    local used_large_spots = {}
    self:_create_large_spots(used_large_spots, pieces.large)
    self:_create_medium_spots(used_large_spots, pieces.medium)
+
+   -- if there's a script associated with the mod, give it a chance to customize the camp
+   if info.script then
+      local script = radiant.create_controller(info.script, ctx)
+      self._sv.script = script
+      script:start(ctx)
+   end
 
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   

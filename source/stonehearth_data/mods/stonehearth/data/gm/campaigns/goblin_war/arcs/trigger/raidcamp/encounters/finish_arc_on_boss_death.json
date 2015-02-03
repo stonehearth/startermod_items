@@ -33,7 +33,7 @@
          "msg3" : {
             "bulletin" : {
                "title" : "Goblin King Defeated!",
-               "message" : "Will you take care of my pet mammoth?",
+               "message" : "Tell my sheep I love her...",
                "choices" : {
                   "stonehearth:ok" : {
                      "out_edge" : "arc:finish"
