@@ -1312,7 +1312,7 @@
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
       "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp.lua)",
-      "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)",
+      "game_master:encounters:collection_quest" : "file(services/server/game_master/controllers/encounters/collection_quest_encounter.lua)",
       "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid.lua)",
       "game_master:encounters:wait" : "file(services/server/game_master/controllers/encounters/wait.lua)",
       "game_master:encounters:wait_for_event" : "file(services/server/game_master/controllers/encounters/wait_for_event.lua)",
@@ -1492,7 +1492,7 @@
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.html)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
@@ -1582,7 +1582,7 @@
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.js)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1657,7 +1657,7 @@
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.less)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.less)",
          "file(ui/game/event_log/event_log.less)"
       ]
