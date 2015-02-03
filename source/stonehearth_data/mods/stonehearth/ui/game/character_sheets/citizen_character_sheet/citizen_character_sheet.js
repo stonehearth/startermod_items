@@ -361,16 +361,6 @@ App.StonehearthCitizenCharacterSheetView = App.View.extend({
          self._onEntitySelected(data);
       });
 
-      this.$('.tab').click(function() {
-         var tabPage = $(this).attr('tabPage');
-
-         self.$('.tabPage').hide();
-         self.$('.tab').removeClass('active');
-         $(this).addClass('active');
-
-         self.$('#' + tabPage).show();
-      });
-
       this.$('#name').focus(function (e) {
          radiant.call('stonehearth:enable_camera_movement', false)
       });

@@ -1,3 +1,5 @@
+local entity_forms = require 'stonehearth.lib.entity_forms.entity_forms_lib'
+
 local SellableItemTracker = class()
 
 function SellableItemTracker:initialize()
@@ -19,9 +21,10 @@ end
 function SellableItemTracker:create_key_for_entity(entity)
    assert(entity:is_valid(), 'entity is not valid.')
 
+   local entity_uri, _, _ = entity_forms.get_uris(entity)
 
    -- is it sellable?
-   local net_worth = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth')
+   local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
    if net_worth and net_worth.shop_info and net_worth.shop_info.sellable then
       return entity:get_uri()
    end
@@ -44,6 +47,9 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
       -- We're the first object of this type.  Create a new tracking data structure.
 
       local unit_info = entity:add_component('unit_info')      
+      local entity_uri, _, _ = entity_forms.get_uris(entity)
+      local cost = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
+      
       tracking_data = {
          uri = entity:get_uri(),
          count = 0, 
@@ -51,7 +57,7 @@ function SellableItemTracker:add_entity_to_tracking_data(entity, tracking_data)
          icon = unit_info:get_icon(),
          display_name = unit_info:get_display_name(),
          category = radiant.entities.get_category(entity),
-         cost = radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold,
+         cost = cost,
       }
 end
 
