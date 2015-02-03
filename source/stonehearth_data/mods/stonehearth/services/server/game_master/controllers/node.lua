@@ -33,7 +33,7 @@ end
 -- xxx: consider moving everything below to a different class
 
 -- get the subtype of the node (e.g. an encounter node might have a subtype
--- of 'create_camp' or 'demand_tribute')
+-- of 'create_camp' or 'collection_quest')
 --
 function Node:get_subtype()
    assert(self._sv.info)

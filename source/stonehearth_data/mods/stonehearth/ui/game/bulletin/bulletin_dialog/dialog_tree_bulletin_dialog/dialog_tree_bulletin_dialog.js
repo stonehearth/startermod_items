@@ -8,7 +8,7 @@ App.StonehearthDialogTreeBulletinDialog = App.StonehearthBaseBulletinDialog.exte
       this._wireButtonToCallback('#collectionCancelButton', 'collection_cancel_callback');
    },
 
-   _demand_tribute: function() {
+   _choices: function() {
    	var buttons = [];
       var choices = this.get('model.data.choices');
       if (choices) {
