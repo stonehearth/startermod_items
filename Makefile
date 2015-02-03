@@ -68,7 +68,7 @@ official-build-platform: submodules init-build configure crash_reporter stonehea
 .PHONY: official-build-package
 official-build-package: stage game-package steam-package
 
-# fake-official-build-x32 and fake-official-build-x64 for testing in a developer environment
+# fake-official-build-x86 and fake-official-build-x64 for testing in a developer environment
 fake-official-build-%:
 	BAMBOO_BRANCH_NAME=branch BAMBOO_BUILD_TIME=now BAMBOO_PRODUCT_VERSION_MAJOR=1 BAMBOO_PRODUCT_VERSION_PATCH=1 BAMBOO_PRODUCT_VERSION_MINOR=1 BAMBOO_BUILD_NUMBER=1111 BAMBOO_PRODUCT_NAME=Stonehearth make BAMBOO_PRODUCT_IDENTIFIER=sh BAMBOO_PRODUCT_IDENTIFIER=stonehearth BAMBOO_BRANCH_REVISION=efgh official-build-$*
 
@@ -164,7 +164,7 @@ dependency-graph:
 
 .PHONY: stage
 stage:
-	$(STAGE) -o $(STAGE_ROOT)     -x x32 -c -b -s -d
+	$(STAGE) -o $(STAGE_ROOT)     -x x86 -c -b -s -d
 	$(STAGE) -o $(STAGE_ROOT)/x64 -x x64 -c -b -s
 
 .PHONY: test-stage
