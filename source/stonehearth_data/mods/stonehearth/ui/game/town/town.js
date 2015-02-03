@@ -120,17 +120,6 @@ App.StonehearthTownView = App.View.extend({
             console.error(response);
          });
 
-      
-      this.$('.tab').click(function() {
-         var tabPage = $(this).attr('tabPage');
-
-         self.$('.tabPage').hide();
-         self.$('.tab').removeClass('active');
-         $(this).addClass('active');
-
-         self.$('#' + tabPage).show();
-      });
-
       this.$('#overviewTab').show();
    },
 

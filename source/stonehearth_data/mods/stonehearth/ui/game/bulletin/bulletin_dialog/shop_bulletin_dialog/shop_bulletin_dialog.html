@@ -4,42 +4,37 @@
       <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
       
       
-      <div id="top">
-         <div>
-            <h1 id="shopTitle">Shop inventory</h2>
-         </div>
-         <div id="modeButtons">
-            <button id="buyButton">Buy</button>
-            <button id="sellButton">Sell</button>
+      <div id="buyTab" class="tabPage">
+         <!-- shop inventory -->
+         <div id="buyList" class="inventoryList"></div>
+
+         <div class="shopButtons" id="buyButtons">
+            <button class="green disabled" id="buy1Button">Buy 1</button>
+            <button class="green disabled" id="buy10Button">Buy 10</button>
          </div>
       </div>
 
-      <div id="inventory">
-
-            <!-- shop inventory -->      
-            <div id="buyList" class="inventoryList">
-            </div>
-
-            <!-- player inventory -->
-            <div id="sellList" class="inventoryList">
-            </div>
-
+      <div id="sellTab" class="tabPage">
+         test
+         <!-- player inventory -->
+         <div id="sellList" class="inventoryList"></div>
+         
+         <div class="shopButtons" id="sellButtons">
+            <button class="green disabled" id="sell1Button">Sell 1</button>
+            <button class="green disabled" id="sell10Button">Sell 10</button>
+         </div>
       </div>
 
       <div id="playerGold">
          <h2>Gold: <span class="goldText">{{view.playerGold}}</h2></h2>
       </div>
 
-      <div class="shopButtons" id="buyButtons">
-         <button class="green disabled" id="buy1Button">Buy 1</button>
-         <button class="green disabled" id="buy10Button">Buy 10</button>
-      </div>
-
-      <div class="shopButtons" id="sellButtons">
-         <button class="green disabled" id="sell1Button">Sell 1</button>
-         <button class="green disabled" id="sell10Button">Sell 10</button>
+      <div id="tabs">
+         <div class="tab active" tabPage="buyTab">{{i18n stonehearth:shop_buy}}</div>
+         <div class="tab" tabPage="sellTab">{{i18n stonehearth:shop_sell}}</div>
       </div>
 
    </div>
+
 </div>
 </script>
