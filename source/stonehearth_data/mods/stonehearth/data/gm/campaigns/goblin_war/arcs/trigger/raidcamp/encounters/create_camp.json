@@ -14,7 +14,7 @@
          "max" : 90
       },
 
-      "npc_boss_entity" : "stonehearth:sheep",
+      "npc_boss_entity_type" : "",
       "script" : "file(create_camp/goblin_raiding_camp.lua)",
 
       "pieces" : {
