@@ -225,7 +225,7 @@ function DemandTribute:_start_collection_timer()
    assert(not self._collection_timer)
 
    local duration = self._sv.info.duration
-   local override = radiant.util.get_config('game_master.encounters.demand_tribute.duration')
+   local override = radiant.util.get_config('game_master.encounters.collection_quest.duration')
    if override ~= nil then
       duration = override
    end
