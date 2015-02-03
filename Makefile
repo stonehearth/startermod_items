@@ -50,12 +50,12 @@ official-build: clean init-build submodules configure crash_reporter stonehearth
 # the current official targets.  builds are done in this order with these shells:
 #
 #    official-build-setup 	 (32-bit shell)
-#    official-build-x86  	 (32-bit shell)
 #    official-build-x64   	 (64-bit shell)
+#    official-build-x86  	 (32-bit shell)
 #    official-build-package (32-bit shell)
 #
 .PHONY: official-build-setup
-official-build-setup: clean-all submodules
+official-build-setup: clean-all
 
 .PHONY: official-build-x86
 official-build-x86: official-build-platform
@@ -63,7 +63,7 @@ official-build-x86: official-build-platform
 .PHONY: official-build-x64
 official-build-x64: official-build-platform
 
-official-build-platform: init-build configure crash_reporter stonehearth symbols
+official-build-platform: submodules init-build configure crash_reporter stonehearth symbols
 
 .PHONY: official-build-package
 official-build-package: stage game-package steam-package
