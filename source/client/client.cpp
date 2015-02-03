@@ -302,6 +302,7 @@ void Client::OneTimeIninitializtion()
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
+         node.set("architecture", core::System::IsProcess64Bit() ? "x64" : "x32");
          node.set("product_name", PRODUCT_NAME);
          node.set("product_major_version", PRODUCT_MAJOR_VERSION);
          node.set("product_minor_version", PRODUCT_MINOR_VERSION);

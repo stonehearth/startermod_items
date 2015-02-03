@@ -74,3 +74,31 @@ boost::filesystem::path System::DefaultTempDirectory(std::string const& applicat
    }
    return boost::filesystem::path(path) / application_name;
 }
+
+bool System::IsProcess64Bit()
+{
+#if defined(_M_X64) || defined(__amd64__)
+   return true;
+#endif
+   return false;
+}
+
+bool System::IsPlatform64Bit()
+{
+   BOOL bIsWow64 = FALSE;
+
+   // IsWow64Process is not available on all supported versions of Windows.
+   // Use GetModuleHandle to get a handle to the DLL that contains the function
+   // and GetProcAddress to get a pointer to the function if available.
+   typedef BOOL (WINAPI *LPFN_ISWOW64PROCESS) (HANDLE, PBOOL);
+
+   LPFN_ISWOW64PROCESS fnIsWow64Process = (LPFN_ISWOW64PROCESS)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process");
+   if (!fnIsWow64Process) {
+      return false;
+   }
+   if (!fnIsWow64Process(GetCurrentProcess(), &bIsWow64)) {
+      return false;
+   }
+   return !!bIsWow64;
+}
+
