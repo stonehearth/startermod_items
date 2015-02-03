@@ -8,12 +8,14 @@
 
    "create_camp_info" : {
       "player_id" : "goblins",
+
       "spawn_range" : {
          "min" : 80,
          "max" : 90
       },
 
-      "npc_boss" : "stonehearth:sheep",
+      "npc_boss_entity" : "stonehearth:sheep",
+      "script" : "file(create_camp/goblin_raiding_camp.lua)",
 
       "pieces" : {
          "campfire" : {
