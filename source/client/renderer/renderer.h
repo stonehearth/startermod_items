@@ -82,6 +82,7 @@ struct RendererConfig {
    RendererConfigEntry<bool> minimized;
    
    RendererConfigEntry<bool> disable_pinned_memory;
+   RendererConfigEntry<bool> run_once;
 };
 
 struct SystemStats {
@@ -227,6 +228,10 @@ class Renderer
       void SelectPipeline();
 
       void MaskHighQualitySettings();
+
+      std::string GetGraphicsCardName() const;
+      void SelectRecommendedGfxLevel(std::string const& gfxCard);
+      int GetGpuPerformance(std::string const& gfxCard) const;
 
    protected:
       struct RenderMapEntry {

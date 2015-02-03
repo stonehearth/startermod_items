@@ -78,9 +78,39 @@ Renderer::Renderer() :
    OneTimeIninitializtion();
 }
 
+std::string Renderer::GetGraphicsCardName() const
+{
+   std::string name;
+
+#ifdef WIN32
+   DISPLAY_DEVICE devInfo;
+   devInfo.cb = sizeof(DISPLAY_DEVICE);
+
+   DWORD iDevNum = 0;
+
+   while (EnumDisplayDevices(NULL, iDevNum, &devInfo, 0))
+   {
+      // Access DevInfo here to get information on the current device...
+      iDevNum++;
+      if (devInfo.StateFlags & (DISPLAY_DEVICE_ATTACHED_TO_DESKTOP | DISPLAY_DEVICE_PRIMARY_DEVICE)) {
+         name = std::string(devInfo.DeviceString);
+         break;
+      }
+   }
+#endif
+
+   return name;
+}
+
 void Renderer::OneTimeIninitializtion()
 {
    GetConfigOptions();
+   
+   if (!config_.run_once.value) {
+      std::string gfxCard = GetGraphicsCardName();
+      SelectRecommendedGfxLevel(gfxCard);
+   }
+   config_.run_once.value = true;
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -119,6 +149,131 @@ void Renderer::OneTimeIninitializtion()
    SetDrawWorld(false);
    initialized_ = true;
 }
+
+
+void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
+{
+   int gpuScore = GetGpuPerformance(gfxCard);
+
+   // Slightly aggressive: high-quality renderer, but with most bells/whistles turned off.
+   if (gpuScore == 0) {
+      gpuScore = 1000;
+   }
+
+   config_.enable_vsync.value = false;
+   if (gpuScore < 250) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1280;
+      config_.screen_height.value = 720;
+      config_.draw_distance.value = 500;
+      config_.use_shadows.value = false;
+   } else if (gpuScore < 500) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1280;
+      config_.screen_height.value = 720;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 1;
+   } else if (gpuScore < 750) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 2;
+   } else if (gpuScore < 1000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.enable_ssao.value = false;
+      config_.shadow_quality.value = 3;
+   } else if (gpuScore < 2000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.enable_ssao.value = false;
+      config_.shadow_quality.value = 4;
+   } else if (gpuScore < 3000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 4;
+      config_.enable_ssao.value = true;
+   } else {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 4;
+      config_.enable_ssao.value = true;
+   }
+   // anti-aliasing, god rays, etc., to come.
+}
+
+int Renderer::GetGpuPerformance(std::string const& gfxCard) const
+{
+   JSONNode rootj;
+   std::string error_message;
+   boost::filesystem::path file_path = boost::filesystem::canonical(boost::filesystem::path(".")) / std::string("gfxcards.json");
+   json::ReadJsonFile(file_path.string(), rootj, error_message);
+   json::Node root(rootj);
+
+   std::vector<std::string> tokens;
+   std::stringstream ss(gfxCard);
+   std::string item;
+
+   while (std::getline(ss, item, ' ')) {
+      tokens.push_back(item);
+   }
+
+   bool found = false;
+
+   json::Node n = root;
+   while (tokens.size() > 0) {
+      int idx = -1;
+      for (int i = 0; i < tokens.size(); i++) {
+         if (n.has(tokens[i])) {
+            n = n.get_node(tokens[i]);
+            idx = i;
+            break;
+         }
+      }
+
+      if (idx == -1) {
+         tokens.clear();
+      } else {
+         tokens.erase(tokens.begin() + idx);
+      }
+   }
+
+   while (!n.has("_value") && n.size() == 1) {
+      n = n.get_node(0);
+   }
+
+   // The best, obvious fit.
+   if (n.has("_value")) {
+      return n.get("_value", 0);
+   }
+
+   // We landed on a node with lots of children, but we've no more tokens, so we have no idea what we have :(
+   // Return "I don't know".
+   return 0;
+}
+
 
 void Renderer::MakeRendererResources()
 {
@@ -593,6 +748,8 @@ void Renderer::GetConfigOptions()
    config_.minimized.value = config.Get("renderer.minimized", false);
 
    config_.disable_pinned_memory.value = config.Get("renderer.disable_pinned_memory", false);
+
+   config_.run_once.value = config.Get("renderer.run_once", false);
    
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
@@ -632,6 +789,8 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
 void Renderer::PersistConfig()
 {
    core::Config& config = core::Config::GetInstance();
+
+   config.Set("renderer.run_once", config_.run_once.value);
 
    config.Set("renderer.use_high_quality", config_.use_high_quality.value);
 
