@@ -1,4 +1,3 @@
-local ZoneRenderer = require 'renderers.zone_renderer'
 local Point2 = _radiant.csg.Point2
 local Color4 = _radiant.csg.Color4
 

@@ -8,7 +8,7 @@ App.StonehearthDemandTributeBulletinDialog = App.StonehearthBaseBulletinDialog.e
       this._wireButtonToCallback('#collectionCancelButton', 'collection_cancel_callback');
    },
 
-   _demand_tribute: function() {
+   _demands: function() {
    	var array = [];
       var demands = this.get('model.data.demands');
       if (demands) {

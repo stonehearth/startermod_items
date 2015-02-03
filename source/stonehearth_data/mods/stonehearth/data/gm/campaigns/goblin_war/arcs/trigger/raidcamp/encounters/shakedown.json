@@ -1,11 +1,11 @@
 {
    "type" : "encounter",
-   "encounter_type" : "demand_tribute",
+   "encounter_type" : "collection_quest",
    "rarity" : "common",
 
    "in_edge"  : "shakedown",
 
-   "demand_tribute_info" : {
+   "collection_quest_info" : {
       "out_edges" : {
          "refuse" : "spawn_city_raids",
          "fail" : "spawn_city_raids",
@@ -14,7 +14,7 @@
 
       "script" : "file(shakedown/shakedown.lua)",
 
-      "source_entity" : "npc_boss",
+      "source_entity" : "npc_boss_entity",
 
       "duration" : "2d",
 

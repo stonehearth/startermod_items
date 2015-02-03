@@ -12,6 +12,30 @@ function events.__init()
    events._senders = {}
    events._async_triggers = {}
    events._dead_listeners = {}
+
+   events.listen_once(radiant, 'radiant:init', function()
+      -- These events should be deleted and each client should just set a calendar or real-time timer
+      -- according to their needs. Using the events below just bunches up the processing onto a single
+      -- gameloop causing periodic stuttering.
+
+      -- Fires five times a second.   
+      radiant.set_realtime_interval(200, function()
+            local now = { now = radiant.gamestate.now() }
+            events.trigger(radiant, 'stonehearth:slow_poll', now)
+         end)
+
+      --Fires once a second.
+      radiant.set_realtime_interval(1000, function()
+            local now = { now = radiant.gamestate.now() }
+            events.trigger(radiant, 'stonehearth:very_slow_poll', now)
+         end)
+
+      --Fires once a minute.
+      radiant.set_realtime_interval(1000 * 60, function()
+            local now = { now = radiant.gamestate.now() }
+            events.trigger(radiant, 'stonehearth:minute_poll', now)
+         end)
+   end)
 end   
 
 function events._convert_object_to_key(object)
@@ -219,7 +243,6 @@ end
 
 function events._update()
    assert(trigger_depth == 0)
-   local now = { now = radiant.gamestate.now() }
    
    local async_triggers = events._async_triggers
    events._async_triggers = {}
@@ -227,27 +250,9 @@ function events._update()
       events.trigger(trigger.object, trigger.event, unpack(trigger.args))
    end
 
-   -- The following update intervals are correct _when the game is running
-   -- at game-speed 1.0_!  This means increasing the gamespeed increases the
-   -- rate at which the events are fired.
-
    -- Fires every update--by default, every 50 ms.
+   local now = { now = radiant.gamestate.now() }
    events.trigger(radiant, 'stonehearth:gameloop', now)
-
-   -- Fires five times a second.   
-   if now.now % 200 == 0 then
-      events.trigger(radiant, 'stonehearth:slow_poll', now)
-   end
-
-   --Fires once a second.
-   if now.now % 1000 == 0 then
-      events.trigger(radiant, 'stonehearth:very_slow_poll', now)
-   end
-
-   --Fires once a minute.
-   if now.now % (1000 * 60) == 0 then
-      events.trigger(radiant, 'stonehearth:minute_poll', now)
-   end
 
    assert(trigger_depth == 0)
    local oldsize = #events._dead_listeners
@@ -278,6 +283,6 @@ radiant.create_background_task = function(name, fn)
    table.insert(singleton.jobs, job)
 end
 
-
 events.__init()
+
 return events

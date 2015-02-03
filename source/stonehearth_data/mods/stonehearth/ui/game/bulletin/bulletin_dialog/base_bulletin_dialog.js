@@ -52,6 +52,9 @@ App.StonehearthBaseBulletinDialog = App.View.extend({
    _wireButtonToCallback: function(buttonid, callback, keepAround) {
       var self = this
       self.dialog.on('click', buttonid, function() {
+         if ($(this).hasClass('disabled')) {
+            return;
+         }
          self._callCallback(callback);
          if (!keepAround) {
             self._autoDestroy();
