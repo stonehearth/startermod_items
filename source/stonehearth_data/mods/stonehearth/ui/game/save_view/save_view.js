@@ -81,8 +81,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                      label: "Yes",
                      click: function() {
                         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-                        radiant.call("radiant:client:delete_save_game", key)
-                        radiant.call("radiant:client:save_game", String(t), { 
+                        radiant.call("radiant:client:save_game", key, { 
                               name: "",
                               town_name: App.stonehearthClient.settlementName(),
                               game_date: gameDate,
