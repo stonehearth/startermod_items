@@ -1912,8 +1912,6 @@ void Client::ReportSysInfo()
       node.set("OsVersion", platform::SysInfo::GetOSVersion());
       node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
 
-      LOG_(0) << "os:" << core::System::IsPlatform64Bit() << " process:" << core::System::IsProcess64Bit();
-
       // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
       analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
       post_data.Send();
