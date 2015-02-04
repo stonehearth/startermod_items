@@ -85,6 +85,9 @@ bool System::IsProcess64Bit()
 
 bool System::IsPlatform64Bit()
 {
+#if defined(_M_X64) || defined(__amd64__)
+   return true;
+#else
    BOOL bIsWow64 = FALSE;
 
    // IsWow64Process is not available on all supported versions of Windows.
@@ -100,5 +103,6 @@ bool System::IsPlatform64Bit()
       return false;
    }
    return !!bIsWow64;
+#endif
 }
 
