@@ -23,7 +23,7 @@ App.StonehearthConfirmView = App.View.extend({
 
          if (button.click) {
             element.click(function() {
-               button.click();
+               button.click(button.args);
                self.destroy();
             })
          } else {

@@ -540,6 +540,8 @@
       "actions:harvest_crop_adjacent" : "file(ai/actions/harvest_crop_adjacent.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
+      "actions:clear_item" : "file(ai/actions/clear_item_action.lua)",
+      "actions:clear_item_adjacent" : "file(ai/actions/clear_item_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
@@ -1047,8 +1049,12 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "shear_sheep" : {
-         "controller": "file(call_handlers/resource_call_handler.lua)",
+      "box_clear_resources" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_clear_resources" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
       "get_event_tracker": {

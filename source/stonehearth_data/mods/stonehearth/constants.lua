@@ -55,6 +55,7 @@ local constants = {
       simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
+         CLEAR              = 3,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,

@@ -23,6 +23,20 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
             "sticky" : true,
             "hotkey" : "m"
+         },
+         "clear_item" : {
+            "name" : "Clear",
+            "description" : "Clear items out of the world",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
+            "sticky" : true
+         },
+         "unharvest" : {
+            "name" : "Un-Harvest",
+            "description" : "Cancel existing harvesting orders",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/unharvest.png",
+            "sticky" : true
          }
       }
    },

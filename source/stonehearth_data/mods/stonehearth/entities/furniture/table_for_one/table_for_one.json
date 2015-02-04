@@ -18,7 +18,6 @@
       }
    },
    "entity_data" : {
-      "stonehearth:chair" : {},
       "stonehearth:net_worth" : {
          "value_in_gold" : 28,
          "rarity" : "common",
