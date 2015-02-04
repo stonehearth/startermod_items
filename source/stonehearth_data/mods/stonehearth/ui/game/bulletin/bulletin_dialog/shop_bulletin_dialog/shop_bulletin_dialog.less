@@ -50,7 +50,7 @@
       }
 
       td.cost {
-         text-align: right;
+         text-align: left;
          background-image: url(images/gold.png);
          background-position: right center;
          background-repeat: no-repeat;
@@ -65,32 +65,16 @@
 
    .inventoryList {
       position: absolute;
-      top: 0px;
-      bottom: 0px;
+      top: 8px;
+      bottom: 88px;
       left: 10px;
       right: 10px;
-   }
-
-   #buyList {
-      
-   }
-
-   #sellList {
-      display: none;
    }
 
    .shopButtons {
       position: absolute;
       right: 10px;
       bottom: 10px;
-   }
-
-   #buyButtons {
-
-   }
-
-   #sellButtons {
-      display: none;
    }
 
    #playerGold {
@@ -107,19 +91,29 @@
    .goldText {
       color: #eccd39;
    }
+
+   .tabPage {
+      position: absolute;
+      top: 66px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      display: none;
+   }
+
+   #tabs {
+      position: absolute;
+      bottom: -70px;
+   }
 }
 
 .shopItem {
    //display: block !important;
 
-   .num {
-      display: none;
-   }
-
    div.cost {
       position: absolute;
-      bottom: 0px;
-      right: 0px;
+      bottom: 20px;
+      right: -6px;
       font-family: @controlFontFamily;
       font-size: 16px;
       color: #eccd39;  

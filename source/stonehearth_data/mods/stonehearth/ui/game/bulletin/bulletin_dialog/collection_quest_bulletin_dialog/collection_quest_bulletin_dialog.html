@@ -26,7 +26,7 @@
          <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
       {{/if}}
       {{#if view.model.data.collection_pay_callback }}
-         <button id="collectionPayButton" class="">{{i18n stonehearth:collection_quest_pay}}</button>
+         <button id="collectionPayButton" {{bind-attr class=view.model.data.have_enough:enabled:disabled}}>{{i18n stonehearth:collection_quest_pay}}</button>
       {{/if}}
       {{#if view.model.data.collection_cancel_callback }}
          <button id="collectionCancelButton" class="">{{i18n stonehearth:collection_quest_cancel}}</button>

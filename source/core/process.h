@@ -11,6 +11,7 @@ class Process
 {
 public:
    // Creates a new process with the supplied command line
+   Process(std::string const& binary, std::string const& command_line);
    Process(std::string const& command_line);
 
    // Terminates the process
@@ -22,6 +23,12 @@ public:
 
    // Wait for Process to finish executing
    void Join();
+
+   // Return whether or not the process is running
+   bool IsRunning();
+
+private:
+   void Start(const char* binary, const char* cmdline);
 
 private:
    NO_COPY_CONSTRUCTOR(Process);

@@ -24,6 +24,7 @@ namespace radiant {
             void ShowHelp() const;
             boost::asio::ip::tcp::acceptor* FindServerPort();
             void InitializeCrashReporting();
+            bool ShouldRelaunch64Bit() const;
 
             static void ClientThreadMain(int server_port);
 

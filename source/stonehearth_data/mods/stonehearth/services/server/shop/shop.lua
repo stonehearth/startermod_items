@@ -1,3 +1,6 @@
+local Entity = _radiant.om.Entity
+
+local entity_forms = require 'stonehearth.lib.entity_forms.entity_forms_lib'
 local Shop = class()
 
 function Shop:__init()
@@ -146,15 +149,21 @@ function Shop:sell_item(uri, quantity)
    local sell_quantity = quantity or 1
 
    local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
-   local item_cost = self:_get_item_cost(uri)
-
-   local total_gold = 0
    local sellable_items = inventory:get_items_of_type(uri)
+
+   local item_cost
+   local total_gold = 0
 
    -- "sell" each entity by destroying it, until we've sold the requested amount or run out of entities
    for uri, entity in pairs(sellable_items.items) do
       if sell_quantity == 0 then
          break
+      end
+      if item_cost == nil then
+         -- _get_item_cost needs an entity, so we can't call it until we have one
+         -- (e.g. if uri is an iconic entity, we can't get the cost intil we have the actual
+         -- iconic_entity to get it's iconic_form component to get back to the real entity!)
+         item_cost = self:_get_item_cost(entity)
       end
       radiant.entities.destroy_entity(entity)
       total_gold = total_gold + item_cost
@@ -222,7 +231,9 @@ function Shop:_add_entity_to_sellable_items(uri, entity)
 end
 
 function Shop:_get_item_cost(entity)
-   return radiant.entities.get_entity_data(entity, 'stonehearth:net_worth').value_in_gold
+   assert(radiant.util.is_a(entity, Entity))
+   local entity_uri, _, _ = entity_forms.get_uris(entity)
+   return radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
 end
 
 function Shop:_get_category(entity)

@@ -89,7 +89,7 @@ function DemandTribute:_on_shakedown_accepted()
       items = self._sv.demand
    }
    self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })
-   self:_start_tracking_items(items)
+   self:_start_tracking_items()
 
    -- start a timer for when to check up on the quest
    self:_start_collection_timer()
@@ -174,7 +174,7 @@ function DemandTribute:_destroy_bulletin()
    end
 end
 
-function DemandTribute:_start_tracking_items(items)
+function DemandTribute:_start_tracking_items()
    local ctx = self._sv.ctx
    local player_id = ctx.player_id
    local inventory = stonehearth.inventory:get_inventory(player_id)
@@ -183,7 +183,7 @@ function DemandTribute:_start_tracking_items(items)
    self._sv.tracker = tracker
    self._progress_trace = tracker:trace('quest progress')
                               :on_changed(function()
-                                    self:_update_progress(items)
+                                    self:_update_progress()
                                  end)
                               :push_object_state()
 end
@@ -203,14 +203,21 @@ function DemandTribute:_update_progress(items)
 
    local tracker = self._sv.tracker
    local tracking_data = tracker:get_tracking_data()
+   local items = self._sv.demand
 
+   self._sv.have_enough = true
    for _, item in pairs(items) do
       item.progress = 0
       local info = tracking_data[item.uri]
       if info then
          item.progress = math.min(info.count, item.count)
+         if item.progress < item.count then
+            self._sv.have_enough = false
+         end
       end
    end
+   self.__saved_variables:mark_changed()
+   
    bulletin:mark_data_changed()
 end
 
@@ -218,7 +225,7 @@ function DemandTribute:_start_collection_timer()
    assert(not self._collection_timer)
 
    local duration = self._sv.info.duration
-   local override = radiant.util.get_config('game_master.encounters.demand_tribute.duration')
+   local override = radiant.util.get_config('game_master.encounters.collection_quest.duration')
    if override ~= nil then
       duration = override
    end
@@ -241,7 +248,8 @@ function DemandTribute:_on_collection_timer_expired()
 
    local bulletin_data = self._sv.info.collection_due.bulletin
    bulletin_data.demands = {
-      items = self._sv.demand
+      items = self._sv.demand,
+      have_enough = self._sv.have_enough,
    }
    bulletin_data.collection_pay_callback = '_on_collection_paid'
    bulletin_data.collection_cancel_callback = '_on_collection_cancelled'

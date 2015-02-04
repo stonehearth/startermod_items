@@ -91,6 +91,8 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
    return n;
 }
 
+static const std::string SAVE_TEMP_DIR("tmp_save");
+
 Client::Client() :
    _tcp_socket(_io_service),
    store_(nullptr),
@@ -302,6 +304,7 @@ void Client::OneTimeIninitializtion()
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
+         node.set("architecture", core::System::IsProcess64Bit() ? "x64" : "x32");
          node.set("product_name", PRODUCT_NAME);
          node.set("product_major_version", PRODUCT_MAJOR_VERSION);
          node.set("product_minor_version", PRODUCT_MINOR_VERSION);
@@ -603,6 +606,9 @@ void Client::OneTimeIninitializtion()
          for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
             try {
                std::string name = it->path().filename().string();
+               if (name == SAVE_TEMP_DIR) {
+                  continue;
+               }
                std::ifstream jsonfile((it->path() / "metadata.json").string());
                JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
                json::Node entry;
@@ -1649,37 +1655,41 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    }
    ASSERT(!server_save_deferred_);
 
-   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
-   if (!fs::is_directory(savedir)) {
-      fs::create_directories(savedir);
-   } else {
-      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
-         remove_all(it->path());
-      }
+   fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
+   if (fs::is_directory(tmpdir)) {
+      remove_all(tmpdir);
    }
-   SaveClientState(savedir);
+   fs::create_directories(tmpdir);
+   SaveClientState(tmpdir);
 
    json::Node args;
-   args.set("saveid", saveid);
+   args.set("saveid", SAVE_TEMP_DIR);
 
    client_save_deferred_ = std::make_shared<rpc::ReactorDeferred>("client save");
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
-   server_save_deferred_->Done([this, savedir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
       // Wait until both the client and server state have been saved to write
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
-      SaveClientMetadata(savedir, gameinfo);
+      SaveClientMetadata(tmpdir, gameinfo);
       client_save_deferred_->Resolve(n);
+
+      // finally. move the save game to the correct direcory
+      fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+      DeleteSaveGame(saveid);
+      rename(tmpdir, savedir);
+      CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
    });
-   server_save_deferred_->Fail([this, savedir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);
    });
 
-   server_save_deferred_->Always([this] {
+   server_save_deferred_->Always([this, tmpdir] {
       CLIENT_LOG(3) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
+      remove_all(tmpdir);
    });
    return client_save_deferred_;
 }

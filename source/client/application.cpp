@@ -122,6 +122,17 @@ void Application::ShowHelp() const
    MessageBox(nullptr, HELP_MESSAGE.c_str(), PRODUCT_IDENTIFIER, MB_OK);
 }
 
+bool Application::ShouldRelaunch64Bit() const
+{
+   if (!core::System::IsPlatform64Bit()) {
+      return false;
+   }
+   if (core::System::IsProcess64Bit()) {
+      return false;
+   }
+   return core::Config::GetInstance().Get<bool>("enable_x64", true);
+ }
+
 int Application::Run(int argc, const char** argv)
 {
    // Exception handling prior to initializing crash reporter
@@ -135,6 +146,15 @@ int Application::Run(int argc, const char** argv)
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
 
+      if (ShouldRelaunch64Bit()) {
+         std::string binary = core::Config::GetInstance().Get<std::string>("x64_binary", "x64\\Stonehearth.exe");
+         core::Process p(binary, GetCommandLine());
+         if (p.IsRunning()) {
+            p.Detach();
+            return 0;
+         }
+      }
+
       bool show_console = false;
       DEBUG_ONLY(show_console = true;)
       if (core::Config::GetInstance().Get<bool>("logging.show_console", show_console)) {
@@ -147,7 +167,7 @@ int Application::Run(int argc, const char** argv)
       google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, std::string const& message) {
          LOG(protobuf, 0) << " " << message;
       });
-      APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR;
+      APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR << " (" << (core::System::IsProcess64Bit() ? "x64" : "x32") << ")";
 
       perfmon::Timer_Init();
    } catch (std::exception const& e) {
