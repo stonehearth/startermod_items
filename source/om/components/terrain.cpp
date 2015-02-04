@@ -22,7 +22,8 @@ std::ostream& operator<<(std::ostream& os, Terrain const& o)
 
 void Terrain::LoadFromJson(json::Node const& obj)
 {
-   bounds_ = csg::Cube3::zero;
+   // TODO: fix how vertical bounds are calculated
+   bounds_ = csg::Cube3(csg::Point3::zero, csg::Point3(0, 256, 0));
 }
 
 void Terrain::SerializeToJson(json::Node& node) const
@@ -99,10 +100,17 @@ csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
    while ((*bounds_).Contains(csg::ToInt(point))) {
       // if we started blocked, keep going up until open
       // if we started open, keep going down until blocked
-      if (blocked != tiles->ContainsPoint(point)) {
+      if (tiles->ContainsPoint(point) != blocked) {
          break;
       }
       point += direction;
+   }
+
+   if (!blocked) {
+      // if we're dropping down to the terrain, return the point above the terrain
+      point += csg::Point3f::unitY;
+   } else {
+      // point is already above the terrain
    }
 
    return point;

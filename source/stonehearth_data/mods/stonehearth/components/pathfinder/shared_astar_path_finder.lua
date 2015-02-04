@@ -104,7 +104,8 @@ function SharedAStarPathFinder:_start_pathfinder()
                                  return self:_on_exhausted()
                               end)
                            :start()
-                           
+      
+      self._log:set_prefix(string.format('jid:%d', self._pathfinder:get_id()))
       self._log:info('created astar pathfinder id:%d name:%s for %s @ %s',
                      self._pathfinder:get_id(), self._pathfinder:get_name(),
                      self._entity, self._start_location)
@@ -125,6 +126,7 @@ function SharedAStarPathFinder:_on_solved(path)
    -- now run through each solved cb...
    for _, cb in ipairs(local_solved_cbs) do
       if solved_cbs[cb] then
+         self._log:info('calling solved callback for destination %s', tostring(path:get_destination()))
          cb(path)
          self:remove_destination(id, cb)
       end

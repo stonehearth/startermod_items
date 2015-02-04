@@ -30,6 +30,7 @@ function Town:restore()
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
+   self._clear_tasks = {}
    self._blueprints = {}
    self._placement_xs = {}
    self._worker_combat_tasks = {}
@@ -369,6 +370,21 @@ function Town:harvest_renewable_resource_node(plant)
       end
    end
    return true
+end
+
+function Town:clear_item(item)
+   local id = item:get_id()
+   local task = self:create_task_for_group('stonehearth:task_group:harvest', 'stonehearth:clear_item', {item = item})
+                     :set_source(item)
+                     :set_priority(stonehearth.constants.priorities.simple_labor.CLEAR)
+                     :once()
+                     :notify_completed(function()
+                        self._clear_tasks[id] = nil
+                     end)
+                     :start()
+   self._clear_tasks[id] = task
+   self:_remember_user_initiated_task(task, 'clear_item', item)
+
 end
 
 function Town:harvest_crop(crop, player_initialized)

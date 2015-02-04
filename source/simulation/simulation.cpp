@@ -347,10 +347,6 @@ void Simulation::InitializeGameObjects()
 void Simulation::ShutdownGameObjects()
 {
    SIM_LOG(1) << "Shutting down game objects.";
-   entity_jobs_schedulers_.clear();
-   jobs_.clear();
-   tasks_.clear();
-   freeMotionTasks_.clear();
 
    // Remove the entityMap datastructure before destroying the entities; this is because entity
    // destruction will cause other entities to be accessed/destroyed, but we'd need a valid
@@ -360,7 +356,14 @@ void Simulation::ShutdownGameObjects()
       std::unordered_map<dm::ObjectId, om::EntityPtr> keepAlive = entityMap_;
       entityMap_.clear();
    }
+   SIM_LOG(1) << "All entities have been destroyed.";
 
+   // The act of destroying entities may run lua code which may mutate our state.  Therefore,
+   // make sure we clear out our state *after* they're all dead.
+   entity_jobs_schedulers_.clear();
+   jobs_.clear();
+   tasks_.clear();
+   freeMotionTasks_.clear();
    datastoreMap_.clear();
 
    clock_ = nullptr;
@@ -629,6 +632,7 @@ void Simulation::AddTask(std::shared_ptr<Task> task)
 
 void Simulation::AddJob(std::shared_ptr<Job> job)
 {
+   SIM_LOG_GAMELOOP(5) << "adding job jid:" << job->GetId() << " name:" << job->GetName();
    jobs_.push_back(job);
 }
 
@@ -652,7 +656,9 @@ void Simulation::AddJobForEntity(om::EntityPtr entity, PathFinderPtr pf)
          EntityJobSchedulerPtr ejs = std::make_shared<EntityJobScheduler>(*this, entity);
          i = entity_jobs_schedulers_.insert(make_pair(id, ejs)).first;
          jobs_.push_back(ejs);
+         SIM_LOG_GAMELOOP(5) << "created entity job scheduler " << ejs->GetId() << " for " << (*entity);
       }
+      SIM_LOG_GAMELOOP(5) << "adding job jid:" << pf->GetId() << " for " << (*entity) << " scheduler:" << i->second->GetId();
       i->second->AddPathfinder(pf);
    }
 }
@@ -717,6 +723,7 @@ void Simulation::ProcessJobList()
       std::weak_ptr<Job> front = radiant::stdutil::pop_front(jobs_);
       std::shared_ptr<Job> job = front.lock();
       if (job) {
+         SIM_LOG_GAMELOOP(9) << "checking job jid:" << job->GetId();
          if (!job->IsFinished()) {
             if (!job->IsIdle()) {
                idleCountdown = (int)jobs_.size() + 2;
@@ -724,8 +731,10 @@ void Simulation::ProcessJobList()
             }
             jobs_.push_back(front);
          } else {
-            SIM_LOG_GAMELOOP(5) << "destroying job..";
+            SIM_LOG_GAMELOOP(5) << "jid:" << job->GetId() << " is finished.  removing from job list.";
          }
+      } else {
+         SIM_LOG_GAMELOOP(7) << "job failed to lock.  removing from job list";
       }
       idleCountdown--;
    }
