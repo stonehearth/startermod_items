@@ -79,6 +79,9 @@ namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");
 
+static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
+static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
+
 DEFINE_SINGLETON(Client);
 
 template<typename T> 
@@ -110,8 +113,10 @@ Client::Client() :
    save_stress_test_(false),
    debug_track_object_lifetime_(false),
    loading_(false),
-   _lastSequenceNumber(0)
+   _lastSequenceNumber(0),
+   _nextSysInfoPostTime(0)
 {
+   _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
 }
 
 Client::~Client()
@@ -354,30 +359,8 @@ void Client::OneTimeIninitializtion()
    });
 
    //Pass framerate, cpu, card, memory info up
-   core_reactor_->AddRoute("radiant:send_performance_stats", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:send_performance_stats");
-      try {
-         json::Node node;
-         SystemStats stats = Renderer::GetInstance().GetStats();
-         node.set("UserId", core::Config::GetInstance().GetUserID());
-         node.set("FrameRate", stats.frame_rate);
-         node.set("GpuVendor", stats.gpu_vendor);
-         node.set("GpuRenderer", stats.gpu_renderer);
-         node.set("GlVersion", stats.gl_version);
-         node.set("CpuInfo", stats.cpu_info);
-         node.set("MemoryGb", stats.memory_gb);
-         node.set("OsName", platform::SysInfo::GetOSName());
-         node.set("OsVersion", platform::SysInfo::GetOSVersion());
-
-         // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
-         analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
-         post_data.Send();
-         result->ResolveWithMsg("success");
-
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
-      return result;
+   core_reactor_->AddRouteV("radiant:send_performance_stats", [this](rpc::Function const& f) {
+      ReportSysInfo();
    });
 
    core_reactor_->AddRoute("radiant:set_audio_config", [this](rpc::Function const& f) {
@@ -1005,6 +988,12 @@ void Client::mainloop()
       SaveGame("stress_test_save", json::Node());
       LoadGame("stress_test_save");
       save_stress_test_timer_.set(10000);
+   }
+   
+   int now = platform::get_current_time_in_ms();
+   if (_nextSysInfoPostTime < now) {
+      ReportSysInfo();
+      _nextSysInfoPostTime = now + POST_SYSINFO_INTERVAL_MS;
    }
 
    CLIENT_LOG(5) << "exiting client main loop";
@@ -1905,4 +1894,30 @@ void Client::RestoreDatastores()
 csg::Point2 Client::GetMousePosition() const
 {
    return mouse_position_;
+}
+
+void Client::ReportSysInfo()
+{
+   try {
+      json::Node node;
+      SystemStats stats = Renderer::GetInstance().GetStats();
+      node.set("UserId", core::Config::GetInstance().GetUserID());
+      node.set("FrameRate", stats.frame_rate);
+      node.set("GpuVendor", stats.gpu_vendor);
+      node.set("GpuRenderer", stats.gpu_renderer);
+      node.set("GlVersion", stats.gl_version);
+      node.set("CpuInfo", stats.cpu_info);
+      node.set("MemoryGb", stats.memory_gb);
+      node.set("OsName", platform::SysInfo::GetOSName());
+      node.set("OsVersion", platform::SysInfo::GetOSVersion());
+      node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
+
+      LOG_(0) << "os:" << core::System::IsPlatform64Bit() << " process:" << core::System::IsProcess64Bit();
+
+      // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
+      analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
+      post_data.Send();
+   } catch (std::exception const& e) {
+      CLIENT_LOG(1) << "failed to update sysinfo:" << e.what();
+   }
 }

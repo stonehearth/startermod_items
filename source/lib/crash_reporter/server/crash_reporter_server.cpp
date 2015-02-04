@@ -2,6 +2,7 @@
 #include "radiant_macros.h"
 #include "crash_reporter_server.h"
 #include "build_number.h"
+#include "core/system.h"
 #include <fstream>
 #include <sstream>
 
@@ -114,10 +115,12 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
 
    std::ostringstream query;
    query << "branch="    << PRODUCT_BRANCH;
+   query << "&cpu_arch=" << (core::System::IsProcess64Bit() ? "x64" : "x32");
    query << "&userid="   << userid_;
    query << "&product="  << PRODUCT_NAME;
    query << "&build="    << PRODUCT_BUILD_NUMBER;
    query << "&revision=" << PRODUCT_REVISION;
+
    uri.setQuery(query.str());
 
    std::string path(uri.getPathAndQuery());
