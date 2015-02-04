@@ -1,0 +1,40 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Miniboss crown",
+         "description": "...",
+         "icon" : "file(miniboss_crown.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "layer": "clothing",
+            "models": [
+               "file(miniboss_crown.qb)"
+            ]
+         },
+         "female" : {
+            "layer": "clothing",
+            "models": [
+               "file(miniboss_crown.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "iron armor"
+      },
+      "stonehearth:equipment_piece" : {
+         "render_type" : "merge_with_model",
+         "slot" : "head",
+         "ilevel" : 99,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 0
+      }
+   }   
+}
