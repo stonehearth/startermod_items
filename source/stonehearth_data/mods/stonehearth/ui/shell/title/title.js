@@ -46,12 +46,15 @@ App.StonehearthTitleScreenView = App.View.extend({
 
 
             if (vals.length > 0) {
+               var save = vals[0];
+               if (save.gameinfo.version != App.stonehearthVersion) {
+                  save.gameinfo.differentVersions = true;
+               }
                self.$('#continue').show();
                self.$('#continueGameButton').show();
                self.$('#loadGameButton').show();
                
-               self.set('context.lastSave', vals[0]);
-
+               self.set('context.lastSave', save);
                /*
                var ss = vals[0].screenshot;
                $('#titlescreen').css({
