@@ -1,7 +1,7 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
-      <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" mipLevels="5"/>
+      <RenderTarget id="GBuffers" numColBufs="4" depthBuf="true" format="RGBA32F" scale="1.0" />
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
@@ -23,7 +23,7 @@
          <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
 
-      <Stage id="Sky">
+      <!--Stage id="Sky">
          <DrawGeometry context="SKY" forceLodLevel="0"/>
 
          <SwitchTarget target="SkyTemp" />
@@ -33,21 +33,18 @@
       <Stage id="Starfield">
          <SwitchTarget target="" />
          <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
+      </Stage-->
+
+      <Stage id="Attributes">
+         <SwitchTarget target="GBuffers" />
+         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="1" />
       </Stage>
 
-      <Stage id="Depth">
+      <!--Stage id="Collect SSAO">
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" forceLodLevel="1" />
 
          <ClearTarget colBuf0="false" colBuf1="false" depthBuf="true" />
          <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" forceLodLevel="1" />
-
-         <SwitchTarget target="" />
-         <DrawGeometry context="DEPTH" class="~Translucent"  forceLodLevel="-2" />
-      </Stage>
-
-      <Stage id="Collect SSAO">
-         <!--BuildMipmaps rt="GBuffers" index="0" /-->
 
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
@@ -64,15 +61,7 @@
          <SwitchTarget target=""/>
       </Stage>
 
-      <Stage id="Light">
-         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
-         <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
-         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
-         <UnbindBuffers />
-      </Stage>
-
       <Stage id="Projections">
-         <!-- '1' is UserFlags::Terrain only (see pipeline.h for enum definition). -->
          <DrawProjections context="PROJECTION" userFlags="1" />
       </Stage>
 
@@ -121,6 +110,14 @@
          <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
          <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
          <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <UnbindBuffers />
+      </Stage-->
+
+      <Stage id="Light">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
+         <BindBuffer sampler="positions" sourceRT="GBuffers" bufIndex="2" />
+         <DoDeferredLightLoop noShadows="true" material="materials/deferred_light.material.json" />
          <UnbindBuffers />
       </Stage>
 

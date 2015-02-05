@@ -1,0 +1,8 @@
+{
+	"shaders" : {
+		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_lighting.shader"
+		}
+	}
+}

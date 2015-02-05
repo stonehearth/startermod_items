@@ -295,11 +295,13 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 		}
 		else if( strcmp( node1.getName(), "DoDeferredLightLoop" ) == 0 )
 		{
-			stage->commands.push_back( PipelineCommand( PipelineCommands::DoDeferredLightLoop ) );
-			vector< PipeCmdParam > &params = stage->commands.back().params;
-			params.resize( 2 );
-			params[0].setString( node1.getAttribute( "context", "" ) );
-			params[1].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
+         stage->commands.push_back( PipelineCommand( PipelineCommands::DoDeferredLightLoop ) );
+         vector< PipeCmdParam > &params = stage->commands.back().params;
+
+         uint32 matRes = Modules::resMan().addResource(ResourceTypes::Material, node1.getAttribute("material"), 0, false);
+         params.resize(2);
+         params[0].setBool(_stricmp(node1.getAttribute("noShadows", "false"), "true") == 0);
+         params[1].setResource(Modules::resMan().resolveResHandle(matRes));
 		}
 		else if( strcmp( node1.getName(), "SetUniform" ) == 0 )
 		{

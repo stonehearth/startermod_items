@@ -192,7 +192,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
-      config_.shadow_quality.value = 3;
+      config_.shadow_quality.value = 2;
    } else if (gpuScore < 2000) {
       config_.use_high_quality.value = true;
 
@@ -201,7 +201,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
-      config_.shadow_quality.value = 4;
+      config_.shadow_quality.value = 3;
    } else if (gpuScore < 3000) {
       config_.use_high_quality.value = true;
 
@@ -236,12 +236,12 @@ int Renderer::GetGpuPerformance(std::string const& gfxCard) const
    std::stringstream ss(gfxCard);
    std::string item;
 
+   // Split the gpu name ('NVIDIA GeForce 900 GTX') into tokens, used to traverse our gpu trie.
    while (std::getline(ss, item, ' ')) {
       tokens.push_back(item);
    }
 
-   bool found = false;
-
+   // First, we traverse the gpu trie to find the deepest matching node.
    json::Node n = root;
    while (tokens.size() > 0) {
       int idx = -1;
@@ -260,18 +260,15 @@ int Renderer::GetGpuPerformance(std::string const& gfxCard) const
       }
    }
 
+   // We might be at a non-leaf node, but on branch with exactly one descendant leaf.  If so,
+   // traverse to that leaf.  (We're returning what appears to be the 'best-matching' gpu, in this 
+   // case.)
    while (!n.has("_value") && n.size() == 1) {
       n = n.get_node(0);
    }
 
-   // The best, obvious fit.
-   if (n.has("_value")) {
-      return n.get("_value", 0);
-   }
-
-   // We landed on a node with lots of children, but we've no more tokens, so we have no idea what we have :(
-   // Return "I don't know".
-   return 0;
+   // If this is a leaf, then return the value; otherwise, return 0 ('unknown').
+   return n.get("_value", 0);
 }
 
 

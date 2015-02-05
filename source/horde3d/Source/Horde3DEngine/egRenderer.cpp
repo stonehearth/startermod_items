@@ -1910,6 +1910,17 @@ void Renderer::drawFSQuad( Resource *matRes, std::string const& shaderContext )
 	gRDI->draw( PRIM_TRILIST, 0, 3 );
 }
 
+void Renderer::drawQuad()
+{
+	ASSERT( _curShader != 0x0 );	
+	gRDI->setVertexBuffer( 0, _vbFSPoly, 0, 12 );
+	gRDI->setIndexBuffer( 0, IDXFMT_16 );
+	gRDI->setVertexLayout( _vlPosOnly );
+
+	gRDI->draw( PRIM_TRILIST, 0, 3 );
+}
+
+
 void Renderer::updateLodUniform(int lodLevel, float lodDist1, float lodDist2)
 {
    float nearV = _curCamera->getParamF(CameraNodeParams::NearPlaneF, 0);
@@ -2281,75 +2292,100 @@ void Renderer::doForwardLightPass(std::string const& shaderContext, std::string 
 }
 
 
-void Renderer::drawLightShapes( std::string const& shaderContext, bool noShadows, int occSet )
+void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMaterial)
 {
-	MaterialResource *curMatRes = 0x0;
-	
 	Modules::sceneMan().updateQueues( "drawing light shapes", _curCamera->getFrustum(), 0x0, RenderingOrder::None,
 	                                  SceneNodeFlags::NoDraw, 0, true, false );
-		
-	for( const auto& entry : Modules::sceneMan().getLightQueue() )
-	{
-		LightNode* curLight = (LightNode *)entry;
+   std::vector<LightNode*> prioritizedLights;
+   prioritizeLights(&prioritizedLights);
 
-		// Check if light is not visible
-      if( !curLight->_directional && _curCamera->getFrustum().cullFrustum( curLight->getFrustum() ) ) {
-         continue;
-      }
+   // For shadows, knowing the tightest extents (surrounding geometry) of the front and back of the frustum can 
+   // help us greatly with increasing shadow precision, so compute them if needed.
+   float maxDist = _curCamera->_frustFar;
+   float minDist = _curCamera->_frustNear;
+   if (!noShadows) 
+   {
+      computeTightCameraBounds(&minDist, &maxDist);
+   }
 
-      const Frustum* lightFrus;
+   for (const auto& curLight : prioritizedLights)
+   {
+      Frustum const* lightFrus;
       Frustum dirLightFrus;
 
-      // Save the far plane distance in case we have a directional light we want to cast shadows with.
-      float maxDist = _curCamera->_frustFar;
-      float minDist = _curCamera->_frustNear;
-
-      if (!noShadows && curLight->_shadowMapCount > 0)
-      {
-         computeTightCameraBounds(&minDist, &maxDist);
-      }
-
+      setupViewMatrices( _curCamera->getViewMat(), Matrix4f::OrthoMat( 0, 1, 0, 1, -1, 1 ) );
+      setMaterial(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
       if (curLight->_directional)
       {
-         dirLightFrus = computeDirectionalLightFrustum(curLight, minDist, maxDist);
-         lightFrus = &dirLightFrus;
+         if (noShadows)
+         {
+            // If we're a directional light, and no shadows are to be cast, then only light
+            // what is visible.
+            lightFrus = nullptr;
+         } else {
+            dirLightFrus = computeDirectionalLightFrustum(curLight, minDist, maxDist);
+            lightFrus = &dirLightFrus;
+         }
       } else {
          lightFrus = &(curLight->getFrustum());
       }
+
+      if (lightFrus && _curCamera->getFrustum().cullFrustum(*lightFrus)) {
+         continue;
+      }
+
+      // Calculate light screen space position
+      float bbx, bby, bbw, bbh;
+      curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
+
+      if (noShadows || curLight->_shadowMapCount == 0)
+      {
+         // Bind the trivial shadow map.
+         // TODO: this is actually pointless, since in-shader, we should never actually reference
+         // the shadow map in an un-shadowed pass.
+         setupShadowMap(curLight, true);
+
+         commitLightUniforms(curLight);
+         
+		   if (curLight->_directional) {
+            drawQuad();
+         } else {
+			   drawSphere(curLight->_absPos, curLight->_radius);
+		   }
+      } else {
+         if (curLight->_shadowMapBuffer) {
+            if (curLight->_directional && curLight->_shadowMapBuffer) {
+               updateShadowMap(curLight, lightFrus, minDist, maxDist);
+               setupShadowMap(curLight, false);
+               commitLightUniforms(curLight);
+
+		         if (curLight->_directional) {
+                  drawQuad();
+               } else {
+			         drawSphere(curLight->_absPos, curLight->_radius);
+		         }
+            } else {
+               // Omni lights require a pass/binding for each side of the cubemap into which they render.
+               for (int i = 0; i < 6; i++) {
+                  if (curLight->_dirtyShadows[i]) {
+                     curLight->_dirtyShadows[i] = false;
+                     updateShadowMap(curLight, lightFrus, minDist, maxDist, i);
+                  }
+               }
+
+               setupShadowMap(curLight, false);
+               commitLightUniforms(curLight);
+
+		         if (curLight->_directional) {
+                  drawQuad();
+               } else {
+			         drawSphere(curLight->_absPos, curLight->_radius);
+		         }
+            }
+         }
+      }
 		
-		// Update shadow map
-		if( !noShadows && curLight->_shadowMapCount > 0 )
-		{	
-         updateShadowMap(curLight, lightFrus, minDist, maxDist);
-			setupShadowMap(curLight, false);
-			curMatRes = 0x0;
-		}
-		else
-		{
-			setupShadowMap(curLight, true);
-		}
-
-		setupViewMatrices( _curCamera->getViewMat(), _curCamera->getProjMat() );
-
-		commitLightUniforms(curLight);
-
-		glCullFace( GL_FRONT );
-		glDisable( GL_DEPTH_TEST );
-
-		if (curLight->_directional) {
-         drawFSQuad(curMatRes, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
-      } else if (curLight->_fov < 180) {
-			float r = curLight->_radius * tanf( degToRad( curLight->_fov / 2 ) );
-			drawCone( curLight->_radius, r, curLight->_absTrans );
-		} else {
-			drawSphere( curLight->_absPos, curLight->_radius );
-		}
-
-		Modules().stats().incStat( EngineStats::LightPassCount, 1 );
-
-		// Reset
-		glEnable( GL_DEPTH_TEST );
-		glCullFace( GL_BACK );
+      Modules().stats().incStat(EngineStats::LightPassCount, 1);
 	}
 }
 
@@ -3328,8 +3364,8 @@ void Renderer::render( CameraNode *camNode, PipelineResource* pRes )
 				break;
 
 			case PipelineCommands::DoDeferredLightLoop:
-				drawLightShapes( pc.params[0].getString(), pc.params[1].getBool() || !drawShadows, 
-               _curCamera->_occSet );
+				doDeferredLightPass(pc.params[0].getBool() || !drawShadows, 
+               (MaterialResource*)pc.params[1].getResource());
 				break;
 
 			case PipelineCommands::SetUniform:

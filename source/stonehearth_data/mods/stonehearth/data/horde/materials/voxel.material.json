@@ -87,6 +87,11 @@
 					"default" : [0.0, 0.0, 0.0, 0.0]
 				}
 			]
+		},
+
+		"DEFERRED_ATTRIBUTES" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/deferred_attributes.shader"
 		}
 	}
 }
