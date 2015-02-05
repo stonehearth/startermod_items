@@ -585,22 +585,31 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRouteJ("radiant:client:get_save_games", [this](rpc::Function const& f) {
       json::Node games;
       fs::path savedir = core::Config::GetInstance().GetSaveDirectory();
-      if (fs::is_directory(savedir)) {
-         for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
-            try {
-               std::string name = it->path().filename().string();
-               if (name == SAVE_TEMP_DIR) {
-                  continue;
-               }
-               std::ifstream jsonfile((it->path() / "metadata.json").string());
-               JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
-               json::Node entry;
-               entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
-               entry.set("gameinfo", metadata);
 
-               games.set(name, entry);
-            } catch (std::exception const&) {
-            }
+      CLIENT_LOG(3) << "listing saved games";
+
+      if (!fs::is_directory(savedir)) {
+         CLIENT_LOG(3) << "save game directory does not exist!";
+         return games;
+      }
+
+      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         std::string name = it->path().filename().string();
+         if (name == SAVE_TEMP_DIR) {
+            CLIENT_LOG(3) << "ignoring temporary save directory: " << SAVE_TEMP_DIR;
+            continue;
+         }
+         try {
+            std::ifstream jsonfile((it->path() / "metadata.json").string());
+            JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
+            json::Node entry;
+            entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
+            entry.set("gameinfo", metadata);
+            games.set(name, entry);
+
+            CLIENT_LOG(3) << "added save \"" << name << "\" to list.";
+         } catch (std::exception const &e) {
+            CLIENT_LOG(3) << "ignoring directory \"" << name << "\" :" << e.what();
          }
       }
       return games;
