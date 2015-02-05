@@ -132,9 +132,9 @@ void Renderer::OneTimeIninitializtion()
       std::string fspath = std::string("mods/");
       if (boost::filesystem::is_directory(fspath)) {
          fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-            const std::wstring sufx[] = {L".shader", L".json", L".png", L".tga", L".jpg", L".glsl", L".xml"};
+            const std::wstring sufx[] = {L".shader", L".json", L".png", L".tga", L".jpg", L".glsl", L".xml", L".state"};
 
-            for (int i = 0; i < 7; i++) {
+            for (int i = 0; i < 8; i++) {
                if (filename.compare(filename.length() - sufx[i].length() - 1, sufx[i].length(), sufx[i]) == 0) {
                   Renderer::GetInstance().FlushMaterials();
                }
