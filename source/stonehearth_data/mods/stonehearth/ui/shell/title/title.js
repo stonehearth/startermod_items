@@ -109,7 +109,7 @@ App.StonehearthTitleScreenView = App.View.extend({
             if (!o.alpha_welcome || !o.alpha_welcome.hide) {
                App.shellView.addView(App.StonehearthConfirmView, 
                   { 
-                     title : "Welcome to Stonehearth Alpha 5",
+                     title : "Welcome to Stonehearth Alpha 8",
                      message : "Warning: this is Alpha quality software. It's missing many features, and you can expect to encounter bugs as you play.<br><br>You can help by automatically sending us crash reports for your game. Would you like to do this?",
                      buttons : [
                         { 

@@ -44,6 +44,11 @@ void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const ra
    ASSERT(size.x && size.y);
 
    csg::Rect2 bounds = rgn.GetBounds();
+
+   if (bounds.min.x < 0 || bounds.min.y < 0 || bounds.max.x > size.x || bounds.max.y > size.y) {
+      UB_LOG(1) << "ignoring to update ui buffer with invalid bounds:" << bounds << " size:" << size;
+      return;
+   }
    UB_LOG(3) << "updating ui buffer (size:" << size << " rgnbounds:" << bounds << ")";
 
    resizeBuffers(size);
