@@ -18,10 +18,9 @@ class Browser : public IBrowser,
                 public CefRequestHandler
 {
 public:
-   Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port);
+   Browser(HWND parentWindow, std::string const& docroot, csg::Point2 const& screenSize, csg::Point2 const& minUiSize, int debug_port);
    virtual ~Browser();
 
-   typedef std::function<void(const csg::Region2& rgn, const uint32* buff)> PaintCb;
    typedef std::function<void(const CefCursorHandle cursor)> CursorChangeCb;
    
 public:  // IBrowser Interface
@@ -32,8 +31,7 @@ public:  // IBrowser Interface
    bool OnInput(Input const& evt) override;
    void SetCursorChangeCb(CursorChangeCb cb) override;
    void SetRequestHandler(HandleRequestCb cb) override;
-   void OnScreenResize(int w, int h) override;
-   void GetBrowserSize(int& w, int& h) override;
+   void OnScreenResize(csg::Point2 const& size) override;
 
 public:
    typedef int CommandId;
@@ -143,10 +141,9 @@ private:
    std::mutex                    _lock;
    CursorChangeCb                _cursorChangeCb;
 
-   int32                         _screenWidth;
-   int32                         _screenHeight;
-   int32                         _uiWidth;
-   int32                         _uiHeight;
+   csg::Point2                   _screenSize;
+   csg::Point2                   _uiSize;
+   csg::Point2                   _minUiSize;
    std::vector<uint32>           _browserFB;
    HandleRequestCb               _requestHandler;
    HWND                          _parentWindow;
@@ -155,6 +152,7 @@ private:
    bool                          _dirty;
    csg::Region2                  _dirtyRegion;
    std::string                   _bufferedNavigateUrl;
+   bool                          _threadNameSet;
 };
 
 END_RADIANT_CHROMIUM_NAMESPACE

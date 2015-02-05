@@ -14,19 +14,17 @@ class UiBuffer
       UiBuffer();
       ~UiBuffer();
 
-      void buffersWereCleared();
-      void update(const csg::Region2& rgn, const uint32* buff);
-      void allocateBuffers(int width, int height);
+      void update(csg::Point2 const& size, csg::Region2 const& rgn, const uint32* buff);
       H3DRes getMaterial() const;
-      bool isUiMaterial(H3DRes m) const;
-      void* getNextUiBuffer() const;
 
    private:
       NO_COPY_CONSTRUCTOR(UiBuffer);
+      void resizeBuffers(csg::Point2 const& size);
+      void reallocateBuffers();
 
    private:
       int               curBuff_;
-      int               width_, height_;
+      csg::Point2       size_;
       H3DRes            uiMatRes_[MAX_BUFFERS];
       H3DRes            uiTexture_[MAX_BUFFERS];
       H3DRes            uiPbo_[MAX_BUFFERS];

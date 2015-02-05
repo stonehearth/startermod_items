@@ -9,11 +9,10 @@
 using namespace ::radiant;
 using namespace ::radiant::client;
 
-#define R_LOG(level)      LOG(renderer.renderer, level)
+#define UB_LOG(level)      LOG(renderer.ui_buffer, level)
 
 UiBuffer::UiBuffer() :
-   width_(0),
-   height_(0)
+   size_(csg::Point2::zero)
 {
    for (int i = 0; i < MAX_BUFFERS; i++) {
       uiTexture_[i] = 0x0;
@@ -37,73 +36,60 @@ H3DRes UiBuffer::getMaterial() const
    return uiMatRes_[lastBuff];
 }
 
-void UiBuffer::buffersWereCleared()
+
+void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const radiant::uint32* buff)
 {
-   for (int i = 0; i < MAX_BUFFERS; i++) {
-      uiTexture_[i] = 0x0;
-      uiMatRes_[i] = 0x0;
-      uiPbo_[i] = 0x0;
-   }
-   curBuff_ = 0;
-
-   allocateBuffers(width_, height_);
-}
-
-void* UiBuffer::getNextUiBuffer() const
-{
-   if (!uiPbo_[curBuff_]) {
-      return nullptr;
-   }
-
-   return h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
-}
-
-void UiBuffer::update(const csg::Region2& rgn, const radiant::uint32* buff)
-{
-   if (!uiPbo_[curBuff_]) {
-      return;
-   }
-   auto bounds = rgn.GetBounds();
-
    perfmon::SwitchToCounter("system ui buffer copy to pbo");
 
-   radiant::uint32 buffStart = (rgn.GetBounds().min.x + (width_ * rgn.GetBounds().min.y));
-   radiant::uint32 *destBuff = (uint32 *)getNextUiBuffer();
+   ASSERT(size.x && size.y);
+
+   csg::Rect2 bounds = rgn.GetBounds();
+   UB_LOG(3) << "updating ui buffer (size:" << size << " rgnbounds:" << bounds << ")";
+
+   resizeBuffers(size);
+
+   if (!uiPbo_[curBuff_]) {
+      UB_LOG(1) << "no pbo exists for buffer " << curBuff_ << ".  aborting.";
+      return;
+   }
+
+   radiant::uint32 buffStart = (rgn.GetBounds().min.x + (size_.x * rgn.GetBounds().min.y));
+   radiant::uint32 *destBuff = (uint32 *)h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
+
+   if (!destBuff) {
+      UB_LOG(1) << "failed to map ui buffer " << curBuff_ << ".  aborting.";
+      return;
+   }
+
    buff += buffStart;
    for (int i = 0; i < bounds.GetHeight(); i++) {
       memmove(destBuff, buff, bounds.GetWidth() * 4);
       destBuff += bounds.GetWidth();
-      buff += width_;
+      buff += size_.x;
    }
 
    perfmon::SwitchToCounter("unmap ui pbo");
    h3dUnmapResStream(uiPbo_[curBuff_], rgn.GetBounds().GetArea() * 4);
 
    perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
-
    h3dCopyBufferToBuffer(uiPbo_[curBuff_], uiTexture_[curBuff_], bounds.min.x, bounds.min.y, bounds.GetWidth(), bounds.GetHeight());
 
    curBuff_ = (curBuff_ + 1) % MAX_BUFFERS;
 }
 
-bool UiBuffer::isUiMaterial(H3DRes r) const
+void UiBuffer::resizeBuffers(csg::Point2 const& size)
 {
-   for (int i = 0; i < MAX_BUFFERS; i++)
-   {
-      if (r == uiMatRes_[i]) 
-      {
-         return true;
-      }
+   if (size == size_) {
+      return;
    }
-   return false;
+   UB_LOG(3) << "resizing ui buffer to " << size << " (old:" << size_ << ").";
+   size_ = size;
+   reallocateBuffers();
 }
 
-void UiBuffer::allocateBuffers(int width, int height)
+void UiBuffer::reallocateBuffers()
 {
-   if (width != width_ || height != height_) {
-      width_ = width;
-      height_ = height;
-   } else {
+   if (size_ == csg::Point2::zero) {
       return;
    }
 
@@ -128,11 +114,12 @@ void UiBuffer::allocateBuffers(int width, int height)
       std::string texName("ui_texture " + loopVal);
       std::string matName("ui_mat " + loopVal);
 
-      uiPbo_[i] = h3dCreatePixelBuffer(pboName.c_str(), width * height * 4);
+      int dataSize = size_.x * size_.y * 4;
+      uiPbo_[i] = h3dCreatePixelBuffer(pboName.c_str(), dataSize);
 
-      uiTexture_[i] = h3dCreateTexture(texName.c_str(), width, height, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoFlush);
+      uiTexture_[i] = h3dCreateTexture(texName.c_str(), size_.x, size_.y, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoFlush);
       unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_[i], H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
-      memset(data, 0, width * height * 4);
+      memset(data, 0, dataSize);
       h3dUnmapResStream(uiTexture_[i], 0);
 
       std::ostringstream material;

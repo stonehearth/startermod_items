@@ -159,10 +159,7 @@ void Client::OneTimeIninitializtion()
    });
 
    // browser...
-   int screen_width = renderer.GetWindowWidth();
-   int screen_height = renderer.GetWindowHeight();
-
-   browser_.reset(chromium::CreateBrowser(hwnd, "", screen_width, screen_height, 1338));
+   browser_.reset(chromium::CreateBrowser(hwnd, "", renderer.GetScreenSize(), renderer.GetMinUiSize(), 1338));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
          DestroyCursor(uiCursor_);
@@ -177,11 +174,8 @@ void Client::OneTimeIninitializtion()
       BrowserRequestHandler(uri, query, postdata, response);
    });
 
-   int ui_width, ui_height;
-   browser_->GetBrowserSize(ui_width, ui_height);
-   renderer.SetUITextureSize(ui_width, ui_height);
    browserResizeGuard_ = renderer.OnScreenResize([this](csg::Point2 const& r) {
-      browser_->OnScreenResize(r.x, r.y);
+      browser_->OnScreenResize(r);
    });
 
    if (config.Get("enable_flush_and_load", false)) {
@@ -947,8 +941,8 @@ void Client::mainloop()
    browser_->Work();
 
    if (!loading_) {
-      auto cb = [this](const csg::Region2 &rgn, const uint32* buff) {
-         Renderer::GetInstance().UpdateUITexture(rgn, buff);
+      auto cb = [this](csg::Point2 const& size, csg::Region2 const &rgn, const uint32* buff) {
+         Renderer::GetInstance().UpdateUITexture(size, rgn, buff);
       };
       perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
