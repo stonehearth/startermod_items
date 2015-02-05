@@ -16,6 +16,10 @@ function ShopTest:__init()
 
    self:place_item_cluster('stonehearth:loot:gold', -10, 15, 3, 3)
    self:place_item_cluster('stonehearth:food:pumpkin:pumpkin_basket', -10, 11, 3, 3)
+   self:place_item_cluster('stonehearth:resources:tin:ore', 4, 14, 2, 2)
+   self:place_item_cluster('stonehearth:resources:silver:ore', 0, 14, 2, 2)
+   self:place_item_cluster('stonehearth:resources:stone:hunk_of_stone', 8, 14, 2, 2)
+
    
    local worker = self:place_citizen(12, 12)
    self:place_citizen(14, 14)
@@ -32,7 +36,7 @@ function ShopTest:__init()
 
    self:at(10,  function()
          self:place_stockpile_cmd(player_id, -8, -8, 0, 0)
-         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
+         --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
       end)
 end
 
