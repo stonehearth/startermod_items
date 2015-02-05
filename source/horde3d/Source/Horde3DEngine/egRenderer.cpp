@@ -795,7 +795,7 @@ void Renderer::commitGeneralUniforms()
 
       if( _curShader->uni_camViewMatInv >= 0)
       {
-         Matrix4f m = getCurCamera()->getViewMat();
+         Matrix4f m = getCurCamera()->getViewMat().inverted();
 			gRDI->setShaderConst( _curShader->uni_camViewMatInv, CONST_FLOAT44, m.x );
       }
 		
@@ -1962,6 +1962,8 @@ void Renderer::drawLodGeometry(std::string const& shaderContext, std::string con
 void Renderer::drawGeometry( std::string const& shaderContext, std::string const& theClass,
                              RenderingOrder::List order, int filterRequired, int occSet, float frustStart, float frustEnd, int forceLodLevel, Frustum const* lightFrus)
 {
+   // TODO: all these 'forceLodLevel' settings look like a joke, but rationalizing this between the forward and deferred renderers
+   // is tricky.  Sit and think and fix this.
    R_LOG(5) << "drawing geometry (shader:" << shaderContext << " class:" << theClass << " lod:" << forceLodLevel << ")";
 
    if (forceLodLevel >= 0) {
@@ -1976,6 +1978,11 @@ void Renderer::drawGeometry( std::string const& shaderContext, std::string const
       float fEnd = std::min(0.41f, frustEnd);
       if (fStart < fEnd) {
          drawLodGeometry(shaderContext, theClass, order, filterRequired, occSet, fStart, fEnd, 0, lightFrus);
+      }
+
+      if (forceLodLevel == -3) {
+         _lod_polygon_offset_x = 0.0;
+         _lod_polygon_offset_y = -2.0;
       }
 
       fStart = std::max(frustStart, 0.39f);

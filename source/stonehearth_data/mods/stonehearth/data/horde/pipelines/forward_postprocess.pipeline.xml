@@ -1,7 +1,7 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
-      <RenderTarget id="GBuffers" numColBufs="4" depthBuf="true" format="RGBA32F" scale="1.0" />
+      <RenderTarget id="GBuffers" numColBufs="3" depthBuf="true" format="RGBA32F" scale="1.0" />
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
@@ -37,7 +37,7 @@
 
       <Stage id="Attributes">
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="1" />
+         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3" />
       </Stage>
 
       <!--Stage id="Collect SSAO">
@@ -116,12 +116,19 @@
       <Stage id="Light">
          <SwitchTarget target="" />
          <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
-         <BindBuffer sampler="positions" sourceRT="GBuffers" bufIndex="2" />
          <DoDeferredLightLoop noShadows="true" material="materials/deferred_light.material.json" />
          <UnbindBuffers />
       </Stage>
 
+      <Stage id="Albedo">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="buf0" sourceRT="GBuffers" bufIndex="2" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="MULT" />
+         <UnbindBuffers />
+      </Stage>
+
       <Stage id="Overlays">
+         <SwitchTarget target="" />
          <DrawOverlays context="OVERLAY"/>
       </Stage>
    </CommandQueue>

@@ -7,15 +7,20 @@ uniform mat4 viewProjMat;
 
 attribute vec3 vertPos;
 attribute vec3 normal;
+attribute vec3 color;
 
-varying vec4 pos;
-varying vec4 vsPos;
+varying float vsDepth;
+varying vec3 albedo;
 varying vec3 tsbNormal;
 varying float worldScale;
 
 void main( void )
 {
-  pos = calcWorldPos(vec4(vertPos, 1.0));
+  vec4 pos = calcWorldPos(vec4(vertPos, 1.0));
+  vec4 vsPos = calcViewPos(pos);
+
+  vsDepth = vsPos.z;
+  albedo = color;
   tsbNormal = calcWorldVec(normal);
   worldScale = getWorldScale();
   gl_Position = viewProjMat * pos;
@@ -25,15 +30,24 @@ void main( void )
 #include "shaders/utilityLib/psCommon.glsl"
 
 uniform mat4 viewMat;
+uniform vec4 lodLevels;
 
-varying vec4 pos;
+varying float vsDepth;
+varying vec3 albedo;
 varying vec3 tsbNormal;
 varying float worldScale;
 
 void main(void)
 {
+  float lodWeight;
+  if (lodLevels.x == 0.0) {
+    lodWeight = clamp((lodLevels.y + vsDepth) / lodLevels.w, 0.0, 1.0);
+  } else {
+    lodWeight = clamp((-vsDepth - lodLevels.z) / lodLevels.w, 0.0, 1.0);
+  }
+
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
-  gl_FragData[1] = vec4(normalize(tsbNormal), 0.0);
-  gl_FragData[2].rgb = pos.xyz;
+  gl_FragData[1] = vec4(normalize(tsbNormal), 1.0);
+  gl_FragData[2] = vec4(albedo, lodWeight);
 }
