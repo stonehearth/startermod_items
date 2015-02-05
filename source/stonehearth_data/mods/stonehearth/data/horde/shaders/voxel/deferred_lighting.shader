@@ -20,8 +20,10 @@ void main(void)
 
 
 [[FS]]
+
 #include "shaders/utilityLib/fragLighting.glsl" 
 
+uniform vec3 lightAmbientColor;
 uniform sampler2D normals;
 
 varying vec2 texCoords;
@@ -33,5 +35,4 @@ void main(void)
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normal);
   gl_FragColor = vec4(lightColor + lightAmbientColor, 1.0);
-
 }
