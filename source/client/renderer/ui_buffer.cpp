@@ -65,10 +65,19 @@ void UiBuffer::update(const csg::Region2& rgn, const radiant::uint32* buff)
    }
    auto bounds = rgn.GetBounds();
 
+   if (bounds.min.x < 0 || bounds.min.y < 0 || bounds.max.x > width_ || bounds.max.y > height_) {
+      R_LOG(1) << "Tried to update ui buffer with invalid bounds: (" << bounds.min.x << ", " << bounds.min.y << ")-(" << bounds.max.x << ", " << bounds.max.y << ")";
+      R_LOG(1) << "UI is only: (" << width_ << ", " << height_ << ")";
+      return;
+   }
+
    perfmon::SwitchToCounter("system ui buffer copy to pbo");
 
    radiant::uint32 buffStart = (rgn.GetBounds().min.x + (width_ * rgn.GetBounds().min.y));
    radiant::uint32 *destBuff = (uint32 *)getNextUiBuffer();
+
+   ASSERT(destBuff != nullptr);
+   
    buff += buffStart;
    for (int i = 0; i < bounds.GetHeight(); i++) {
       memmove(destBuff, buff, bounds.GetWidth() * 4);
