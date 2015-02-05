@@ -71,3 +71,10 @@ float toLinearDepth(float d)
   float z_e = 2.0 * nearPlane * farPlane / (farPlane + nearPlane - z_n * (farPlane - nearPlane));
   return z_e;
 }  
+
+
+vec3 toWorldSpace(const vec3 viewerPos, const mat3 camRotInv, const vec2 fragCoord, float linear_depth)
+{
+  vec3 viewPos = toCameraSpace(fragCoord, linear_depth);  
+  return -(camRotInv * (viewPos + viewerPos));
+}
