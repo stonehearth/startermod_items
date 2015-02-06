@@ -18,6 +18,7 @@
 
 #include "utDebug.h"
 
+#define PBO_LOG(n)      LOG(horde.pbo) << "pbo:" << getName() << " size:" << _size << " "
 
 namespace Horde3D {
 
@@ -47,10 +48,12 @@ PixelBufferResource::PixelBufferResource( std::string const& name, uint32 size) 
    _usePinnedMemory = usePinnedMemory();
    _streambuff = new unsigned char[size];
 
+   PBO_LOG(5) << "created pbo (pinned:" << _usePinnedMemory << " size:" << size << ")";
+
    if (!_usePinnedMemory)
    {
 	   _buffer = gRDI->createPixelBuffer(GL_PIXEL_UNPACK_BUFFER, size, nullptr);
-      if( _buffer == 0 ) {
+      if (_buffer == 0) {
          initDefault();
       }
    } else {
@@ -74,15 +77,18 @@ PixelBufferResource::~PixelBufferResource()
 
 void PixelBufferResource::initDefault()
 {
+   PBO_LOG(5) << "resetting pbo to default state"
    _size = 0;
    _buffer = 0;
    _curSync = 0;
+
    for (int i = 0; i < MAX_SYNCS; i++) {
       _pinnedBuffers[i] = 0;
       _pinnedMemory[i] = nullptr;
       _pinnedMemoryAligned[i] = nullptr;
       _pinnedMemFences[i] = nullptr;
    }
+
    _streambuff = 0x0;
 }
 
@@ -91,26 +97,31 @@ void PixelBufferResource::release()
 {
    if (_buffer)
    {
+      PBO_LOG(5) << "destroying rdi buffer " << _buffer;
 	   gRDI->destroyBuffer(_buffer);
       _buffer = 0;
    }
 
    if (_streambuff) {
+      PBO_LOG(5) << "deleting stream buf memory " << _streambuff;
       delete[] _streambuff;
       _streambuff = 0x0;
    }
 
    for (int i = 0; i < MAX_SYNCS; i++) {
       if(_pinnedBuffers[i]) {
+         PBO_LOG(5) << "destroying pinned buffer " << _pinnedBuffers[i];
 	      gRDI->destroyBuffer(_pinnedBuffers[i]);
          _pinnedBuffers[i] = 0;
       }
       if (_pinnedMemFences[i] != nullptr) {
+         PBO_LOG(5) << "deleting pinned buffer fence " << _pinnedMemFences[i];
          glDeleteSync(_pinnedMemFences[i]);
          _pinnedMemFences[i] = nullptr;
       }
       if (_pinnedMemory[i])
       {
+         PBO_LOG(5) << "deleting pinned memory " << _pinnedMemory[i];
          delete[] _pinnedMemory[i];
          _pinnedMemory[i] = nullptr;
       }
@@ -142,11 +153,13 @@ void *PixelBufferResource::mapStream( int elem, int elemIdx, int stream, bool re
    if (_usePinnedMemory)
    {
       if (_pinnedMemFences[_curSync] != nullptr) {
+         PBO_LOG(5) << "waiting for pinned fence " << _pinnedMemFences[_curSync];
          glClientWaitSync(_pinnedMemFences[_curSync], GL_SYNC_FLUSH_COMMANDS_BIT, ~0ull);
       }
+      PBO_LOG(5) << "mapStream returning pinned memory: " << _pinnedMemoryAligned[_curSync];
       return _pinnedMemoryAligned[_curSync];
    }
-
+   PBO_LOG(5) << "mapStream returning unpinned memory: " << _streambuff;
    return _streambuff;
 }
 
@@ -155,6 +168,7 @@ void PixelBufferResource::unmapStream(int bytesMapped)
 {
    if (!_usePinnedMemory)
    {
+      PBO_LOG(5) << "flushing " << bytesMapped << " bytes in unmapStream."
       bytesMapped = bytesMapped > 0 ? bytesMapped : _size;
       gRDI->updateBufferData(_buffer, 0, bytesMapped, _streambuff);
    }
