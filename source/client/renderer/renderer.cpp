@@ -33,9 +33,6 @@ using namespace ::radiant::client;
 
 #define R_LOG(level)      LOG(renderer.renderer, level)
 
-#define UI_WIDTH 1920
-#define UI_HEIGHT 1080
-
 H3DNode meshNode;
 H3DNode starfieldMeshNode;
 H3DRes starfieldMat;
@@ -58,8 +55,8 @@ Renderer::Renderer() :
    initialized_(false),
    scriptHost_(nullptr),
    camera_(nullptr),
-   uiWidth_(0),
-   uiHeight_(0),
+   screenSize_(csg::Point2::zero),
+   uiSize_(csg::Point2::zero),
    last_render_time_(0),
    server_tick_slot_("server tick"),
    render_frame_start_slot_("render frame start"),
@@ -85,7 +82,7 @@ void Renderer::OneTimeIninitializtion()
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
 
-   InitWindow();
+   csg::Point2 windowSize = InitWindow();
    InitHorde();
    SetupGlfwHandlers();
    MakeRendererResources();
@@ -107,7 +104,7 @@ void Renderer::OneTimeIninitializtion()
       }
    }
 
-   OnWindowResized(windowWidth_, windowHeight_);
+   OnWindowResized(windowSize);
    SetShowDebugShapes(false);
 
    SetDrawWorld(false);
@@ -172,7 +169,7 @@ void Renderer::InitHorde()
    h3dSetGlobalShaderFlag("DRAW_GRIDLINES", false);
 }
 
-void Renderer::InitWindow()
+csg::Point2 Renderer::InitWindow()
 {
    glfwSetErrorCallback([](int errorCode, const char* errorString) {
       R_LOG(1) << "GLFW Error (" << errorCode << "): " << errorString;
@@ -186,47 +183,48 @@ void Renderer::InitWindow()
 
    inFullscreen_ = config_.enable_fullscreen.value;
    GLFWmonitor* monitor;
-   int windowX, windowY;
-   SelectSaneVideoMode(config_.enable_fullscreen.value, &windowWidth_, &windowHeight_, &windowX, &windowY, &monitor);
+   csg::Point2 size, pos;
+   SelectSaneVideoMode(config_.enable_fullscreen.value, pos, size, &monitor);
 
    if (!inFullscreen_) {
-      config_.last_window_x.value = windowX;
-      config_.last_window_y.value = windowY;
-      config_.screen_height.value = windowHeight_;
-      config_.screen_width.value = windowWidth_;
+      config_.last_window_x.value = pos.x;
+      config_.last_window_y.value = pos.y;
+      config_.screen_width.value = size.x;
+      config_.screen_height.value = size.y;
    }
 
    glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
-   GLFWwindow *window;
-   if (!(window = glfwCreateWindow(windowWidth_, windowHeight_, "Stonehearth", 
-        config_.enable_fullscreen.value ? monitor : nullptr, nullptr))) {
-      R_LOG(1) << "Error trying to create glfw window.  Details:";
-      R_LOG(1) << "  (" << windowWidth_ << " x " << windowHeight_ << ") w/ " << config_.num_msaa_samples.value << " samples";
-      R_LOG(1) << "  Fullscreen = " << config_.enable_fullscreen.value;
+   GLFWwindow *window = glfwCreateWindow(size.x, size.y, "Stonehearth", 
+                                         config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
+   if (!window) {
+      R_LOG(1) << "Error trying to create glfw window.  (size:" << size << " samples: " << config_.num_msaa_samples.value
+               << "  fullscreen:" << config_.enable_fullscreen.value << ")";
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
 
    glfwMakeContextCurrent(window);
-   glfwGetWindowSize(window, &windowWidth_, &windowHeight_);
+   glfwGetWindowSize(window, &size.x, &size.y);
+
    if (!inFullscreen_) {
-      SetWindowPos(GetWindowHandle(), NULL, windowX, windowY, 0, 0, SWP_NOSIZE);
+      SetWindowPos(GetWindowHandle(), NULL, pos.x, pos.y, 0, 0, SWP_NOSIZE);
    }
 
    if (config_.minimized.value) {
       glfwIconifyWindow(window);
    }
+   return size;
 }
 
 void Renderer::SetupGlfwHandlers()
 {
    GLFWwindow *window = glfwGetCurrentContext();
-   glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) { 
-      Renderer::GetInstance().resize_pending_ = true;
-      Renderer::GetInstance().nextHeight_ = newHeight;
-      Renderer::GetInstance().nextWidth_ = newWidth;
+   glfwSetWindowSizeCallback(window, [](GLFWwindow *window, int newWidth, int newHeight) {       
+      Renderer &r = Renderer::GetInstance();
+      r.resize_pending_ = true;
+      r.nextScreenSize_ = csg::Point2(newWidth, newHeight);
    });
 
    glfwSetWindowIconifyCallback(window, [](GLFWwindow *window, int iconified) {
@@ -266,34 +264,7 @@ void Renderer::SetupGlfwHandlers()
    });
    
    glfwSetWindowCloseCallback(window, [](GLFWwindow* window) -> void {
-      // All Win32 specific!
-
-      // This nonsense is because the upper-left corner of the window (on a multi-monitor system)
-      // will actually bleed into the adjacent window, so we need to figure out what kind of bias
-      // that needs to be _in_ the monitor.  We get that bias by calling ScreenToClient on the
-      // upper-left of the window's rect.
-      RECT rect;
-      GetWindowRect(Renderer::GetInstance().GetWindowHandle(), &rect);
-
-      POINT p; p.x = 0; p.y = 0;
-      POINT p2; p2.x = rect.left; p2.y = rect.top;
-      ScreenToClient(Renderer::GetInstance().GetWindowHandle(), &p2);
-      ClientToScreen(Renderer::GetInstance().GetWindowHandle(), &p);
-
-      if (!Renderer::GetInstance().inFullscreen_) {
-         Renderer::GetInstance().config_.last_window_x.value = (int)rect.left;
-         Renderer::GetInstance().config_.last_window_y.value = (int)rect.top;
-
-         Renderer::GetInstance().config_.last_screen_x.value = p.x - p2.x;
-         Renderer::GetInstance().config_.last_screen_y.value = p.y - p2.y;
-
-         Renderer::GetInstance().config_.screen_width.value = Renderer::GetInstance().windowWidth_;
-         Renderer::GetInstance().config_.screen_height.value = Renderer::GetInstance().windowHeight_;
-      }
-      Renderer::GetInstance().ApplyConfig(Renderer::GetInstance().config_, APPLY_CONFIG_PERSIST);
-
-      R_LOG(0) << "window closed.  exiting process";
-      TerminateProcess(GetCurrentProcess(), 1);
+      Renderer::GetInstance().OnWindowClose();
    });
 }
 
@@ -591,6 +562,9 @@ void Renderer::GetConfigOptions()
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
+
+   minUiSize_.x = config.Get("renderer.min_ui_width",  1920);
+   minUiSize_.y = config.Get("renderer.min_ui_height", 1080);
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
@@ -703,10 +677,10 @@ GLFWmonitor* getMonitorAt(int x, int y)
    return nullptr;
 }
 
-void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor) 
+void Renderer::SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point2 &size, GLFWmonitor** monitor) 
 {
-   *windowX = config_.last_window_x.value;
-   *windowY = config_.last_window_y.value;
+   pos.x = config_.last_window_x.value;
+   pos.y = config_.last_window_y.value;
 
    int last_res_width = config_.screen_width.value;
    int last_res_height = config_.screen_height.value;
@@ -718,12 +692,12 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
       if (*monitor == NULL) {
          // Couldn't find a monitor to contain the window; put us on the first monitor.
          *monitor = glfwGetPrimaryMonitor();
-         *windowX = 0;
-         *windowY = 0;
+         pos.x = 0;
+         pos.y = 0;
       }
       const GLFWvidmode* m = glfwGetVideoMode(*monitor);
-      *width = std::max(320, std::min(last_res_width, m->width));
-      *height = std::max(240, std::min(last_res_height, m->height));
+      size.x = std::max(320, std::min(last_res_width, m->width));
+      size.y = std::max(240, std::min(last_res_height, m->height));
    } else {
       // In fullscreen, try to find the monitor that contains the window's upper-left coordinate.
       GLFWmonitor *desiredMonitor = getMonitorAt(config_.last_screen_x.value, config_.last_screen_y.value);
@@ -732,8 +706,8 @@ void Renderer::SelectSaneVideoMode(bool fullscreen, int* width, int* height, int
       }
       const GLFWvidmode* m = glfwGetVideoMode(desiredMonitor);
       *monitor = desiredMonitor;
-      *width = m->width;
-      *height = m->height;
+      size.x = m->width;
+      size.y = m->height;
    }
 }
 
@@ -1037,7 +1011,7 @@ void Renderer::RenderOneFrame(int now, float alpha)
    }
   
    bool showUI = true;
-   const float ww = uiWidth_ / (float)uiHeight_;
+   const float ww = uiSize_.x / (float)uiSize_.y;
 
    h3dSetOption(H3DOptions::DebugViewMode, debug);
    h3dSetOption(H3DOptions::WireframeMode, debug);
@@ -1256,52 +1230,54 @@ csg::Matrix4 Renderer::GetNodeTransform(H3DNode node) const
    return transform;
  }
 
-void Renderer::UpdateUITexture(const csg::Region2& rgn, const radiant::uint32* buff)
+void Renderer::UpdateUITexture(csg::Point2 const& size, csg::Region2 const & rgn, const radiant::uint32* buff)
 {
-   if (!rgn.IsEmpty()) {
-      uiBuffer_.update(rgn, buff);
-   }
+   uiSize_ = size;
+   uiBuffer_.update(size, rgn, buff);
 }
 
 void Renderer::HandleResize()
 {
-   if (resize_pending_)
-   {
+   if (resize_pending_) {
       resize_pending_ = false;
-      OnWindowResized(nextWidth_, nextHeight_);
+      OnWindowResized(nextScreenSize_);
    }
 }
 
 void Renderer::ResizePipelines()
 {
    for (const auto& entry : pipelines_) {
-      h3dResizePipelineBuffers(entry.second, windowWidth_, windowHeight_);
+      h3dResizePipelineBuffers(entry.second, screenSize_.x, screenSize_.y);
    }
 }
 
 void Renderer::ResizeViewport()
 {
-   double desiredAspect = windowWidth_ / (double)windowHeight_;
+   if (screenSize_ == csg::Point2::zero) {
+      return;
+   }
+
+   double desiredAspect = screenSize_.x / (double)screenSize_.y;
    int left = 0;
    int top = 0;
-   int width = windowWidth_;
-   int height = windowHeight_;
-   if (windowWidth_ < UI_WIDTH || windowHeight_ < UI_HEIGHT) {
-      desiredAspect = (float)UI_WIDTH / (float)UI_HEIGHT;
-      double aspect = windowWidth_ / (double)windowHeight_;
+   int width = screenSize_.x;
+   int height = screenSize_.y;
+   if (screenSize_.x < minUiSize_.x || screenSize_.y < minUiSize_.y) {
+      desiredAspect = minUiSize_.x / (double)minUiSize_.y;
+      double aspect = screenSize_.x / (double)screenSize_.y;
 
       double widthAspect = aspect > desiredAspect ? (aspect / desiredAspect) : 1.0;
-      double widthResidual = (windowWidth_ - (windowWidth_ / widthAspect));
+      double widthResidual = (screenSize_.x - (screenSize_.x / widthAspect));
       double heightAspect = aspect < desiredAspect ? (desiredAspect / aspect) : 1.0;
-      double heightResidual = (windowHeight_ - (windowHeight_ / heightAspect));
+      double heightResidual = (screenSize_.y - (screenSize_.y / heightAspect));
    
       left = (int)(widthResidual * 0.5);
       top = (int)(heightResidual * 0.5);
-      width = (int)(windowWidth_ - widthResidual);
-      height = (int)(windowHeight_ - heightResidual);
+      width = (int)(screenSize_.x - widthResidual);
+      height = (int)(screenSize_.y - heightResidual);
    }
 
-   R_LOG(3) << "Window resized to " << windowWidth_ << "x" << windowHeight_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
+   R_LOG(3) << "Window resized to " << screenSize_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
 
    // Resize viewport
    if (camera_) {
@@ -1381,11 +1357,6 @@ void Renderer::RenderLoadingMeter()
    ovTitleVerts[13] = y;
          
    h3dShowOverlays( ovTitleVerts, 4,  1.0f, 1.0f, 1.0f, 1.0f, _loadingProgressMaterial, 0 );
-}
-
-void* Renderer::GetNextUiBuffer()
-{
-   return uiBuffer_.getNextUiBuffer();
 }
 
 std::shared_ptr<RenderEntity> Renderer::CreateRenderEntity(H3DNode parent, om::EntityPtr entity)
@@ -1558,15 +1529,17 @@ void Renderer::GetViewportMouseCoords(double& x, double& y)
    }
 }
 
-void Renderer::OnWindowResized(int newWidth, int newHeight) {
-   if (newWidth == 0 || newHeight == 0) {
+void Renderer::OnWindowResized(csg::Point2 const& size) {
+   if (size == screenSize_) {
+      R_LOG(1) << "ignoring duplicate screen resize to " << size;
       return;
    }
+   if (size == csg::Point2::zero) {
+      R_LOG(1) << "ignoring screen resize to " << size;
+      return;
+   }
+   screenSize_ = size;
 
-   windowWidth_ = newWidth;
-   windowHeight_ = newHeight;
-
-   SetUITextureSize(windowWidth_, windowHeight_);
    ResizeViewport();
    ResizePipelines();
    CallWindowResizeListeners();
@@ -1603,7 +1576,7 @@ H3DRes Renderer::GetPipeline(std::string const& name)
       p = h3dAddResource(H3DResTypes::Pipeline, name.c_str(), 0);
       pipelines_[name] = p;
       LoadResources();
-      h3dResizePipelineBuffers(p, windowWidth_, windowHeight_);
+      h3dResizePipelineBuffers(p, screenSize_.x, screenSize_.y);
    } else {
       p = i->second;
    }
@@ -1612,8 +1585,6 @@ H3DRes Renderer::GetPipeline(std::string const& name)
 
 void Renderer::LoadResources()
 {
-   uiBuffer_.allocateBuffers(std::max(uiWidth_, UI_WIDTH), std::max(UI_HEIGHT, uiHeight_));
-
    if (!LoadMissingResources()) {
       // at this time, there's a bug in horde3d (?) which causes render
       // pipline corruption if invalid resources are even attempted to
@@ -1628,14 +1599,14 @@ csg::Point2 Renderer::GetMousePosition() const
    return csg::Point2(input_.mouse.x, input_.mouse.y);
 }
 
-int Renderer::GetWindowWidth() const
+csg::Point2 const& Renderer::GetScreenSize() const
 {
-   return windowWidth_;
+   return screenSize_;
 }
 
-int Renderer::GetWindowHeight() const
+csg::Point2 const& Renderer::GetMinUiSize() const
 {
-   return windowHeight_;
+   return minUiSize_;
 }
 
 void Renderer::SetScriptHost(lua::ScriptHost* scriptHost)
@@ -1647,18 +1618,6 @@ lua::ScriptHost* Renderer::GetScriptHost() const
 {
    ASSERT(scriptHost_);
    return scriptHost_;
-}
-
-void Renderer::SetUITextureSize(int width, int height)
-{
-   uiWidth_ = UI_WIDTH;
-   uiHeight_ = UI_HEIGHT;
-   if (width >= UI_WIDTH && height >= UI_HEIGHT) {
-      uiWidth_ = width;
-      uiHeight_ = height;
-   }
-
-   uiBuffer_.allocateBuffers(uiWidth_, uiHeight_);
 }
 
 core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> const& fn)
@@ -1736,4 +1695,38 @@ bool Renderer::LoadMissingResources()
       res = h3dQueryUnloadedResource(0);
    }
    return result;
+}
+
+void Renderer::OnWindowClose()
+{
+   // All Win32 specific!
+   HWND hwnd = GetWindowHandle();
+
+   // This nonsense is because the upper-left corner of the window (on a multi-monitor system)
+   // will actually bleed into the adjacent window, so we need to figure out what kind of bias
+   // that needs to be _in_ the monito  We get that bias by calling ScreenToClient on the
+   // upper-left of the window's rect.
+   RECT rect;
+   GetWindowRect(hwnd, &rect);
+
+   POINT p  = { 0 };
+   POINT p2 = { rect.left, rect.top };
+
+   ScreenToClient(hwnd, &p2);
+   ClientToScreen(hwnd, &p);
+
+   if (!inFullscreen_) {
+      config_.last_window_x.value = (int)rect.left;
+      config_.last_window_y.value = (int)rect.top;
+
+      config_.last_screen_x.value = p.x - p2.x;
+      config_.last_screen_y.value = p.y - p2.y;
+
+      config_.screen_width.value = screenSize_.x;
+      config_.screen_height.value = screenSize_.y;
+   }
+   ApplyConfig(config_, APPLY_CONFIG_PERSIST);
+
+   R_LOG(0) << "window closed.  exiting process";
+   TerminateProcess(GetCurrentProcess(), 1);
 }

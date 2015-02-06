@@ -20,7 +20,7 @@
          <div class="title">Load Game</div>
 
          <div id="saves">
-         {{view stonehearthSaveList }}
+         {{ view stonehearthSaveList }}
          </div>
          <a href="#" {{action loadGame target="view"}}><button id="loadButton">{{i18n stonehearth:load_game}}</button></a>
       </div>
@@ -30,7 +30,7 @@
 
 <script type="text/x-handlebars" data-template-name="saveList">
    <div class="saveList list">
-      {{#each saves}}
+      {{#each view.saves}}
          <div {{bind-attr class=":saveSlot :row differentVersions:differentVersion current:current:notCurrent" key=key}} >
             <div class="screenshot">
                <img {{bind-attr src=this.screenshot}} />

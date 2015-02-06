@@ -13,9 +13,6 @@
 
 #define BROWSER_LOG(level)    LOG(browser, level)
 
-#define BROWSER_WIDTH 1920
-#define BROWSER_HEIGHT 1080
-
 using namespace radiant;
 using namespace radiant::chromium;
 
@@ -23,24 +20,22 @@ static std::string GetPostData(CefRefPtr<CefRequest> request);
 static JSONNode GetQuery(std::string const& query);
 static std::string UrlDecode(std::string const& in);
 
-IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port)
+IBrowser* ::radiant::chromium::CreateBrowser(HWND parentWindow, std::string const& docroot, csg::Point2 const& screenSize, csg::Point2 const& minUiSize, int debug_port)
 {
-   return new Browser(parentWindow, docroot, width, height, debug_port);
+   return new Browser(parentWindow, docroot, screenSize, minUiSize, debug_port);
 }
 
-Browser::Browser(HWND parentWindow, std::string const& docroot, int width, int height, int debug_port) :
-   _screenWidth(width),
-   _screenHeight(height),
+Browser::Browser(HWND parentWindow, std::string const& docroot, csg::Point2 const& screenSize, csg::Point2 const& minUiSize, int debug_port) :
+   _uiSize(csg::Point2::zero),
+   _screenSize(csg::Point2::zero),
+   _minUiSize(minUiSize),
    _parentWindow(parentWindow),
-   _dirty(false)
+   _dirty(false),
+   _threadNameSet(false)
 { 
-   _uiWidth = BROWSER_WIDTH;
-   _uiHeight = BROWSER_HEIGHT;
-   if (_screenWidth >= BROWSER_WIDTH && _screenHeight >= BROWSER_HEIGHT) {
-      _uiWidth = _screenWidth;
-      _uiHeight = _screenHeight;
-   }
-   _browserFB.resize(_uiWidth * _uiHeight);
+   OnScreenResize(screenSize);
+
+   core::Config& config = core::Config::GetInstance();
    _drawCount = 0;
    _neededToDraw = 0;
    _app = this;
@@ -177,7 +172,7 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
       char msg[128];
       std::wcstombs(msg, message.c_str(), sizeof msg);
 
-      BROWSER_LOG(4) << "console log: " << msg;
+      BROWSER_LOG(7) << "console log: " << msg;
    }
    return false;
 }
@@ -186,13 +181,13 @@ bool Browser::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& m
 bool Browser::GetRootScreenRect(CefRefPtr<CefBrowser> browser,
                                  CefRect& rect)
 {
-   rect.Set(0, 0, _uiWidth, _uiHeight);
+   rect.Set(0, 0, _uiSize.x, _uiSize.y);
    return true;
 }
 
 bool Browser::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) 
 {
-   rect.Set(0, 0, _uiWidth, _uiHeight);
+   rect.Set(0, 0, _uiSize.x, _uiSize.y);
    return true;
 }
 
@@ -219,25 +214,30 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
    perfmon::SwitchToCounter("copy chromium fb to system buffer") ;
    std::lock_guard<std::mutex> guard(_lock);
 
+   if (!_threadNameSet) {
+      radiant::log::SetCurrentThreadName("cef");
+      _threadNameSet = true;
+   }
    // xxx: we can optimize this by accumulating a dirty region and sending a message to
    // the ui thread to do the copy once every frame -- unknown
    //
    // we actually can't, as the backing store in 'buffer' may get freed after this call
    // for all we know! -- tony
 
-   if (width != _uiWidth || height != _uiHeight) {
+   if (width != _uiSize.x || height != _uiSize.y) {
       // for some reason, the dimensions of the buffer passed in do not match the
       // size of our backing store.  just ignore this paint.  this can sometimes happen
       // when the window is resized when we get paints from the old (and out of date)
       // size.
       BROWSER_LOG(3) << "ignoring paint request from browser (" 
                      << csg::Point2(width, height) << " != "
-                     << csg::Point2(_uiWidth, _uiHeight) << ")";
+                     << _uiSize << ")";
       return;
    }
+   BROWSER_LOG(5) << "processing paint request from browser (size:" << _uiSize << ")";
 
    uint32 *bf = _browserFB.data();
-   int uiWidth = _uiWidth;
+   int uiWidth = _uiSize.x;
    for (auto& r : dirtyRects) {
       uint32 *bfLine = bf + (r.y * uiWidth) + r.x;
       uint32 *srcLine = ((uint32 *)buffer) + (r.y * uiWidth) + r.x;
@@ -249,7 +249,11 @@ void Browser::OnPaint(CefRefPtr<CefBrowser> browser,
          srcLine += uiWidth;
       }
 
-      _dirtyRegion.Add(csg::Rect2(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height)));
+      csg::Rect2 box(csg::Point2(r.x, r.y), csg::Point2(r.x + r.width, r.y + r.height), 0);
+
+      BROWSER_LOG(7) << "adding " << box << " to dirty region";
+
+      _dirtyRegion.Add(box);
    }
    _dirty = true;
 }
@@ -261,13 +265,17 @@ void Browser::UpdateDisplay(PaintCb cb)
    }
    _dirty = false;
    std::lock_guard<std::mutex> guard(_lock);
- 
-   // Always inform clients that our entire view has changed.  This is because it's possible
-   // that our OnPaint method can be called more than once before UpdateDisplay is polled, leading
-   // to outdated bounding rect information being sent to any clients.
-   csg::Region2 r(csg::Rect2(csg::Point2(0, 0), csg::Point2(_uiWidth, _uiHeight)));
 
-   cb(_dirtyRegion, _browserFB.data());
+   // Before thinking, "let's send one big rect", console this change which removed the "one big rect"
+   // path: https://github.com/radent/stonehearth/commit/caf5471fcca80440df83d7295ced36953c817ccb
+
+   if (_dirtyRegion.IsEmpty()) {
+      BROWSER_LOG(7) << "updating display ignored (dirty region is empty).";
+      return;
+   }
+
+   BROWSER_LOG(7) << "updating display (size:" << csg::Point2(_uiSize.x, _uiSize.y) << " bounds:" << _dirtyRegion.GetBounds() << ")";
+   cb(_uiSize, _dirtyRegion, _browserFB.data());
    _dirtyRegion.Clear();
 }
 
@@ -428,7 +436,7 @@ void Browser::OnMouseInput(const MouseInput& mouse)
 
    auto host = _browser->GetHost();
    host->SendMouseMoveEvent(evt, false);
-   BROWSER_LOG(7) << "sending mouse move " << x << ", " << y << ".";
+   BROWSER_LOG(9) << "sending mouse move " << x << ", " << y << ".";
    
    for (auto type : types) {
       // xxx: until i have time to fix the "right click interpreted as middle click",
@@ -456,10 +464,10 @@ bool Browser::HasMouseFocus(int x, int y)
 {
    WindowToBrowser(x, y);
 
-   if (x < 0 || y < 0 || x >= _uiWidth || y >= _uiHeight) {
+   if (x < 0 || y < 0 || x >= _uiSize.x || y >= _uiSize.y) {
       return false;
    }
-   uint32 pixel = _browserFB[x + (y * _uiWidth)];
+   uint32 pixel = _browserFB[x + (y * _uiSize.x)];
    return ((pixel >> 24) & 0xff) != 0;
 }
 
@@ -615,42 +623,30 @@ void Browser::SetRequestHandler(HandleRequestCb cb)
    _requestHandler = cb;
 }
 
-void Browser::WindowToBrowser(int& x, int& y) 
+void Browser::WindowToBrowser(int &x, int& y)
 {
-   x = (int)((x / (float)_screenWidth) * _uiWidth);
-   y = (int)((y / (float)_screenHeight) * _uiHeight);
+   x = (int)((x / (float)_screenSize.x) * _uiSize.x);
+   y = (int)((y / (float)_screenSize.y) * _uiSize.y);
 }
 
-void Browser::OnScreenResize(int w, int h)
+void Browser::OnScreenResize(csg::Point2 const& size)
 {
-   if (_screenWidth == w && _screenHeight == h)
-   {
+   if (_screenSize == size) {
       return;
    }
-   _screenWidth = w;
-   _screenHeight = h;
+   _screenSize = size;
+   
+   _uiSize.x = std::max(size.x, _minUiSize.x);
+   _uiSize.y = std::max(size.y, _minUiSize.y);
 
-   if (_screenWidth >= BROWSER_WIDTH && _screenHeight >= BROWSER_HEIGHT) {
-      _uiWidth = _screenWidth;
-      _uiHeight = _screenHeight;
-   } else {
-      _uiWidth = BROWSER_WIDTH;
-      _uiHeight = BROWSER_HEIGHT;
-   }
+   _browserFB.resize(_uiSize.x * _uiSize.y);
 
-   _browserFB.resize(_uiWidth * _uiHeight);
-
-   BROWSER_LOG(3) << "Browser (UI) resized to " << _uiWidth << "x" << _uiHeight;
+   BROWSER_LOG(3) << "Browser (UI) resized to " << _uiSize;
 
    if (_browser) {
       _browser->GetHost()->WasResized();
+      _dirtyRegion = csg::Region2(csg::Rect2(csg::Point2::zero, _uiSize, 0));
    }
-}
-
-void Browser::GetBrowserSize(int& w, int& h)
-{
-   w = _uiWidth;
-   h = _uiHeight;
 }
 
 void Browser::Navigate(std::string const& url)

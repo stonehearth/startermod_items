@@ -63,6 +63,7 @@
    END_GROUP(horde) \
    \
    BEGIN_GROUP(renderer) \
+      ADD_CATEGORY(ui_buffer) \
       ADD_CATEGORY(effects_list) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(entity_container) \
