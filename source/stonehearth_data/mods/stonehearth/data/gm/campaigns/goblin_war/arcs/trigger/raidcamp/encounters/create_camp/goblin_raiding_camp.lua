@@ -16,7 +16,8 @@ function GoblinRaidingCampScript:start(ctx)
    radiant.entities.equip_item(boss, crown)
 
    -- rename the boss 
-   radiant.entities.set_name(boss, 'Leader Gragg the Magnificant')
+   local name = radiant.entities.get_name(boss)
+   radiant.entities.set_name(boss, 'Chieftan ' .. name)
    -- XXX, make this a boss name lookup table
 end
 

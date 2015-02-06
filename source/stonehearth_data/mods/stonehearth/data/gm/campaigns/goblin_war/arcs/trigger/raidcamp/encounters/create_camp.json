@@ -3,15 +3,15 @@
    "encounter_type" : "create_camp",
    "rarity" : "common",
 
-   "in_edge"  : "start",
+   "in_edge"  : "create_camp",
    "out_edge" : ["wait_for_boss_death", "shakedown"],
 
    "create_camp_info" : {
       "player_id" : "goblins",
 
       "spawn_range" : {
-         "min" : 80,
-         "max" : 90
+         "min" : 240,
+         "max" : 300
       },
 
       "npc_boss_entity_type" : "",

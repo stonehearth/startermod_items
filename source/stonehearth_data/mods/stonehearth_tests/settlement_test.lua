@@ -19,7 +19,7 @@ function SettlementTest:__init()
    local function create_stockpile(x, z)
       stonehearth.inventory:get_inventory('player_1')
                               :create_stockpile(Point3(x, 1, z), Point2(4, 4))
-      self:place_item_cluster('stonehearth:resources:wood:oak_log', x, z, 4, 4)
+      self:place_item_cluster('stonehearth:furniture:comfy_bed', x, z, 4, 4)
    end
 
    create_stockpile(14, 14)
@@ -28,7 +28,7 @@ function SettlementTest:__init()
 
    -- send in the goblins!!
    radiant.set_realtime_timer(500, function()
-         stonehearth.game_master:start()
+         --stonehearth.game_master:start()
       end)
    
    -- just for fun...
@@ -55,12 +55,11 @@ function SettlementTest:__init()
    self:place_item_cluster('stonehearth:portals:wooden_door_2', -2, -2, 2, 2)
    self:place_item_cluster('stonehearth:decoration:wooden_wall_lantern', -10, 10, 2, 2)
    self:place_item_cluster('stonehearth:furniture:comfy_bed', 2, 2, 2, 2)
-   if true then return end
+   --if true then return end
    self:place_item_cluster('stonehearth:food:berries:berry_basket', -8, -8, 2, 2)
    self:place_item_cluster('stonehearth:portals:wooden_door', -8, 8, 1, 1)
    self:place_item_cluster('stonehearth:portals:wooden_window_frame', -12, 8, 2, 2)
    self:place_item_cluster('stonehearth:portals:wooden_diamond_window', -12, 12, 2, 2)
-   self:place_item_cluster('stonehearth:decoration:green_hanging', 4, 2, 2, 2)
    
    --self:place_citizen(0, 0)
    if true then return end

@@ -28,6 +28,7 @@
          "render_type" : "merge_with_model",
          "slot" : "head",
          "ilevel" : 99,
+         "no_drop" : true,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/level_up"
       }

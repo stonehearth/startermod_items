@@ -3,6 +3,7 @@
    "rarity" : "common",
 
    "encounters" : {
+      "wait_to_start" : "file(encounters/wait_to_start.json)",
       "create_camp" : "file(encounters/create_camp.json)",
       "shakedown" : "file(encounters/shakedown.json)",
       "raiding_party_1" : "file(encounters/raiding_party.json)",
