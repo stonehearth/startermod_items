@@ -372,8 +372,14 @@ function entities.think(entity, uri, priority)
 end
 
 
--- Add an existing item to the entity's equipment component
-function entities.equip_item(entity, item)
+-- Add an item to the entity's equipment component. If passed a uri, create the item first
+function entities.equip_item(entity, arg1)
+   local item
+   if type(arg1) == 'string' then
+      item = radiant.entities.create_entity(arg1)
+      assert(entity:is_valid())
+   end
+
    entity:add_component('stonehearth:equipment')
                :equip_item(item)
 end

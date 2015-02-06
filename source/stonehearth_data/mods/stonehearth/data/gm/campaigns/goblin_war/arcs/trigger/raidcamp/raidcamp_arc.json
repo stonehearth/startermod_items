@@ -4,7 +4,7 @@
 
    "encounters" : {
       "wait_to_start" : "file(encounters/wait_to_start.json)",
-      "create_camp" : "file(encounters/create_camp.json)",
+      "create_camp" : "file(encounters/goblin_raiding_camp_1.json)",
       "shakedown" : "file(encounters/shakedown.json)",
       "raiding_party_1" : "file(encounters/raiding_party.json)",
       "raiding_party_2" : "file(encounters/raiding_party.json)",

@@ -3,7 +3,7 @@
 
    "entities" : {
       "tent" : {
-         "uri" : "stonehearth:monsters:goblins:goblin_tent",
+         "uri" : "stonehearth:monsters:goblins:goblin_hut",
          "location" : {
             "x" : 0,
             "y" : 0,

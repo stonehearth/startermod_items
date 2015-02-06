@@ -11,7 +11,7 @@
       "model_variants": {
          "default": {
             "models": [
-               "file(goblin_tent.qb)"
+               "file(goblin_hut.qb)"
             ]
          }
       },
@@ -31,7 +31,6 @@
             "value" : 70
          }
       },      
-      
       "region_collision_shape" : {
          "region": [
             {
@@ -39,6 +38,14 @@
                "max" : { "x" :  3, "y" : 4,  "z" :  4 }
             }
          ]
-      }      
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  3, "y" : 1, "z" :  4 }
+            }
+         ]
+      }
    }
 }

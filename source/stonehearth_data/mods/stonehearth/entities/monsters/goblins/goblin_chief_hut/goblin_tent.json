@@ -31,8 +31,7 @@
             "value" : 70
          }
       },      
-      
-      "region_collision_shape" : {
+      "_region_collision_shape" : {
          "region": [
             {
                "min" : { "x" : -4, "y" : 0,  "z" : -3 },
