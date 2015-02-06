@@ -634,6 +634,8 @@ void Browser::OnScreenResize(csg::Point2 const& size)
    if (_screenSize == size) {
       return;
    }
+   std::lock_guard<std::mutex> guard(_lock);
+
    _screenSize = size;
    
    _uiSize.x = std::max(size.x, _minUiSize.x);
@@ -641,7 +643,7 @@ void Browser::OnScreenResize(csg::Point2 const& size)
 
    _browserFB.resize(_uiSize.x * _uiSize.y);
 
-   BROWSER_LOG(3) << "Browser (UI) resized to " << _uiSize;
+   BROWSER_LOG(3) << "browser frame buffer resized to " << _uiSize << "(buf:" << _browserFB.data() <<")";
 
    if (_browser) {
       _browser->GetHost()->WasResized();

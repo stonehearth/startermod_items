@@ -66,13 +66,27 @@ void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const ra
       return;
    }
 
-   UB_LOG(5) << "copying backing buffer to pbo";
+   UB_LOG(5) << "copying backing buffer to pbo (dst:" << destBuff << " src:" << buff << ")";
 
    int width = bounds.GetWidth();
    int height = bounds.GetHeight();
 
    buff += buffStart;
    destBuff += buffStart;
+
+   if (LOG_LEVEL(renderer.ui_buffer) >= 5) {
+      volatile static int read;
+      UB_LOG(5) << "reading 1st byte of src:" << buff;
+      read = *buff;
+
+      UB_LOG(5) << "touching 1st byte of dst:" << destBuff;
+      *destBuff = 0;
+
+      UB_LOG(5) << "copying 1st scanline.";
+      memmove(destBuff, buff, width * 4);
+
+      UB_LOG(5) << "proceeding into loop.";
+   }
 
    for (int i = 0; i < height; i++) {
       memmove(destBuff, buff, width * 4);
@@ -82,10 +96,12 @@ void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const ra
    UB_LOG(5) << "finished copying backing buffer to pbo";
 
    perfmon::SwitchToCounter("unmap ui pbo");
-   h3dUnmapResStream(uiPbo_[curBuff_], -1);
+   h3dUnmapResStream(uiPbo_[curBuff_], 0);
+   UB_LOG(5) << "finished unmapping stream";
 
    perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
    h3dCopyBufferToBuffer(uiPbo_[curBuff_], uiTexture_[curBuff_], bounds.min.x, bounds.min.y, bounds.GetWidth(), bounds.GetHeight());
+   UB_LOG(5) << "finished copying pbo to texture";
 
    curBuff_ = (curBuff_ + 1) % MAX_BUFFERS;
 }
