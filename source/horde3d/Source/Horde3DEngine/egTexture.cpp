@@ -88,6 +88,8 @@ void TextureResource::initializationFunc()
 		  128,192,255,255, 128,192,255,255, 128,192,255,255, 128,192,255,255,
 		  128,192,255,255, 128,192,255,255, 128,192,255,255, 128,192,255,255 };
 
+   Modules::log().writeInfo("initializing texture resource subsystem");
+
 	// Upload default textures
 	defTex2DObject = gRDI->createTexture( TextureTypes::Tex2D, 4, 4, 1,
 	                                      TextureFormats::BGRA8, true, true, false, false );
@@ -108,6 +110,8 @@ void TextureResource::initializationFunc()
 	                                      TextureFormats::BGRA8, true, true, false, false );
 	gRDI->uploadTextureData( defTex3DObject, 0, 0, texData2 );
 	delete[] texData2;
+
+   Modules::log().writeInfo("finished initializing texture resource subsystem");
 }
 
 

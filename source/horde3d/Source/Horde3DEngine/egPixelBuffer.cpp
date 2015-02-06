@@ -19,6 +19,8 @@
 #include "radiant.h"
 #include "utDebug.h"
 
+#define PAGE_SIZE    4096     // verifyed to be try for both 32 and 64 bit windows.
+
 #define PBO_LOG(level)      LOG(horde.pbo, level) << "(pbo:'" << getName() << "'' size:" << _size << " buffer:" << _buffer << ") "
 
 namespace Horde3D {
@@ -59,10 +61,24 @@ PixelBufferResource::PixelBufferResource( std::string const& name, uint32 size) 
       _curSync = 0;
       memset(_pinnedMemFences, 0, sizeof(GLsync) * MAX_SYNCS);
       for (int i = 0; i < MAX_SYNCS; i++) {
-         // We need 4K page alignment, otherwise Bad Things happen....
-         _pinnedMemory[i] = new char[size + 0x1000];
-         _pinnedMemoryAligned[i] = (void*)((unsigned(_pinnedMemory[i]) + 0xfff) & (~0xfff));
+         static volatile int firstByte;
+         // Page align since the ATI drivers delegate pinning to the OS (and it most likely needs page alignment)
+         _pinnedMemory[i] = malloc(size + PAGE_SIZE - 1);
+         uintptr_t addr = (uintptr_t)_pinnedMemory[i];
+         uintptr_t alignedAddr =  (addr + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1);
+
+         ASSERT(alignedAddr >= addr);
+         ASSERT((alignedAddr - addr) < PAGE_SIZE);
+
+         _pinnedMemoryAligned[i] = (void*)(alignedAddr);
+
+         PBO_LOG(7) << "touching first byte of aligned memory (" << i << ") " << _pinnedMemoryAligned[i];
+         firstByte = *(int *)_pinnedMemoryAligned[i];
          _pinnedBuffers[i] = gRDI->createPixelBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, size, _pinnedMemoryAligned[i]);
+
+         PBO_LOG(7) << "touching first byte of aligned memory (" << i << ") after creating pbo" << _pinnedMemoryAligned[i];
+
+         firstByte = *(int *)_pinnedMemoryAligned[i];
       }
       PBO_LOG(5) << "created pinned pbo";
    }
@@ -119,8 +135,8 @@ void PixelBufferResource::release()
          _pinnedMemFences[i] = nullptr;
       }
       if (_pinnedMemory[i]) {
-         PBO_LOG(5) << "deleting pinned memory " << _pinnedMemory[i];
-         delete[] _pinnedMemory[i];
+         PBO_LOG(5) << "freeing pinned memory " << _pinnedMemory[i];
+         free(_pinnedMemory[i]);
          _pinnedMemory[i] = nullptr;
       }
    }

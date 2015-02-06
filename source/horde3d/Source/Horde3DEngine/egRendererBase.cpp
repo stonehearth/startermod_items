@@ -38,7 +38,6 @@ void validateGLCall(const char* errorStr)
       uint32 error = glGetError();
       if (error != GL_NO_ERROR) {
          Modules::log().writeError(errorStr, error);
-         ASSERT(false);
       }
    }
 }
@@ -592,22 +591,28 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 		int target = (tex.type == TextureTypes::Tex2D) ?
 			GL_TEXTURE_2D : (GL_TEXTURE_CUBE_MAP_POSITIVE_X + slice);
 		
-		if( compressed )
+		if( compressed ) {
 			glCompressedTexImage2D( target, mipLevel, tex.glFmt, width, height, 0,
 			                        calcTextureSize( format, width, height, 1 ), pixels );	
-		else
+         validateGLCall("glCompressedTexImage2D uploading texture data failed: %d");   
+      } else {
 			glTexImage2D( target, mipLevel, tex.glFmt, width, height, 0, inputFormat, inputType, pixels );
+         validateGLCall("glTexImage2D uploading texture data  failed: %d");   
+      }
 	}
 	else if( tex.type == TextureTypes::Tex3D )
 	{
 		int depth = std::max( tex.depth >> mipLevel, 1 );
 		
-		if( compressed )
+		if( compressed ) {
 			glCompressedTexImage3D( GL_TEXTURE_3D, mipLevel, tex.glFmt, width, height, depth, 0,
 			                        calcTextureSize( format, width, height, depth ), pixels );	
-		else
+         validateGLCall("glCompressedTexImage3D uploading texture data  failed: %d");   
+      } else {
 			glTexImage3D( GL_TEXTURE_3D, mipLevel, tex.glFmt, width, height, depth, 0,
 			              inputFormat, inputType, pixels );
+         validateGLCall("glTexImage3D uploading texture data  failed: %d");   
+      }
 	}
 
 	if( tex.genMips && (tex.type != GL_TEXTURE_CUBE_MAP || slice == 5) )
@@ -625,17 +630,20 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 		      glDisable( tex.type );
          }
       } else {
+         Modules::log().writeInfo("generating mip maps.");
 		   glEnable( tex.type );  // Workaround for ATI driver bug
 		   glGenerateMipmapEXT( tex.type );
 		   glDisable( tex.type );
       }
 		// Note: for cube maps mips are only generated when the side with the highest index is uploaded
+      validateGLCall("Error generating mipmaps while uploading texture data: %d");
 	}
 
 	glBindTexture( tex.type, 0 );
-	if( _texSlots[15].texObj )
-		glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
+	if (_texSlots[15].texObj) {
+      glBindTexture( _textures.getRef( _texSlots[15].texObj ).type, _textures.getRef( _texSlots[15].texObj ).glObj );
 
+   }
    validateGLCall("Error uploading texture data: %d");
 }
 
