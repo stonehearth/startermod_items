@@ -28,6 +28,7 @@ local service_creation_order = {
    'game_master',
    'analytics',
    'mining',
+   'hydrology',
    'town_patrol',
    'bulletin_board',
    'linear_combat',

@@ -196,6 +196,9 @@
       "large_boulder_1" : "file(entities/boulders/large_boulder/large_boulder_1.json)",
       "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
 
+      "terrain:water" : "file(entities/terrain/water)",
+      "terrain:waterfall" : "file(entities/terrain/waterfall)",
+
       "terrain:ui:ore_block" : "file(entities/terrain/ui/ore_block)",
       "terrain:ui:copper_block" : "file(entities/terrain/ui/copper_block)",
       "terrain:ui:tin_block" : "file(entities/terrain/ui/tin_block)",
@@ -1351,6 +1354,8 @@
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
       "pet" : "file(components/pet/pet_component.lua)",
       "pet_owner" : "file(components/pet/pet_owner_component.lua)",
+      "water" : "file(components/water/water_component.lua)",
+      "waterfall" : "file(components/waterfall/waterfall_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
@@ -1425,6 +1430,8 @@
       "shepherd_pasture" : "file(renderers/shepherd_pasture/shepherd_pasture_renderer.lua)", 
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
+      "water" : "file(renderers/water/water_renderer.lua)",
+      "waterfall" : "file(renderers/waterfall/waterfall_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
       "ladder" : "file(renderers/ladder/ladder_renderer.lua)"
