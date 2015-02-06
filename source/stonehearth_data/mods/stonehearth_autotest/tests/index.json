@@ -45,7 +45,7 @@
                "name" : "end to end tests",
 
                "scripts" : [
-                  "file(end_to_end/immigration_autotests.lua)",
+                  "file(end_to_end/alarm_autotests.lua)",
                   "file(end_to_end/shepherd_autotests.lua)",
                   "file(end_to_end/level_up_autotests.lua)",
                   "file(end_to_end/firepit_autotests.lua)",
@@ -67,7 +67,8 @@
                   "file(end_to_end/placement_autotests.lua)",
                   "file(end_to_end/sensor_autotests.lua)",
                   "file(end_to_end/roads_autotests.lua)",
-                  "file(end_to_end/gravity_autotests.lua)"
+                  "file(end_to_end/gravity_autotests.lua)",
+                  "file(end_to_end/immigration_autotests.lua)"
                ]
             },
 

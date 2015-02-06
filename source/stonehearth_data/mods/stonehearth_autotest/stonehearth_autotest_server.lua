@@ -43,12 +43,12 @@ radiant.events.listen(mod, 'radiant:new_game', function(args)
       local options = radiant.util.get_config('options', {})
       local world, group, script = parse_options(index, options)
 
-      if not world then
-         radiant.log.write('stonehearth_autotest', 0, 'could not determine world script.  aborting.')
-         radiant.exit(1)
-      end
       if not group and not script then
          radiant.log.write('stonehearth_autotest', 0, 'could not determine group or script to execute.  aborting.')
+         radiant.exit(1)
+      end
+      if not world then
+         radiant.log.write('stonehearth_autotest', 0, 'could not determine world script.  aborting.')
          radiant.exit(1)
       end
 

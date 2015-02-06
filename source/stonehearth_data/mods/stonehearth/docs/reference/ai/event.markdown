@@ -52,18 +52,11 @@ All events listed below are prefaced in code by stonehearth:, because they are a
 
    - **hourly** - triggered every in-game hour by the calendar service. Passes args: {now = self._sv.date}
       - Key: stonehearth.calendar 
-      - Name: stonehearth:midnight/sunrise/noon/sunset
       - Args: {now = current date}
-
-   - **midnight** - triggers at midnight
-   - **sunrise** - triggers at sunrise
-   - **noon** - triggers at noon
-   - **sunset** - triggers at sunset
 
 For all the above events: 
    
    - Key: stonehearth.calendar 
-   - Name: stonehearth:midnight/sunrise/noon/sunset
    - Args: none
 
 Note: times of day (midnight, sunrise, noon, sunset are defined in calendar constants)

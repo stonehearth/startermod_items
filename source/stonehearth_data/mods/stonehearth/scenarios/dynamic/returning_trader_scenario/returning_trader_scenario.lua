@@ -69,8 +69,10 @@ function ReturningTrader:restore()
          return radiant.events.UNLISTEN
       end)
    end
-   if self._sv._waiting_for_return then
-      radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self._on_hourly)
+   if self._sv._waiting_for_return and not self._hourly_timer then
+      self._hourly_timer = stonehearth.calendar:set_interval('1h', function()
+            self:_on_hourly()
+         end)
    end
 end
 
@@ -253,7 +255,11 @@ function ReturningTrader:_on_accepted()
       })
    --register a callback every hour so we can
    self._sv._waiting_for_return = true
-   radiant.events.listen(stonehearth.calendar, 'stonehearth:hourly', self, self._on_hourly)
+   if not self._hourly_timer then
+      self._hourly_timer = stonehearth.calendar:set_interval('1h', function()
+            self:_on_hourly()
+         end)
+   end
 end
 
 function ReturningTrader:_on_hourly()
@@ -265,7 +271,8 @@ function ReturningTrader:_on_hourly()
          message = message
       })
    else
-      return radiant.events.UNLISTEN
+      self._hourly_timer:destroy()
+      self._hourly_timer = nil
    end
 end
 
