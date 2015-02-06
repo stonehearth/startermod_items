@@ -91,9 +91,12 @@ function WaterComponent:add_water(world_location, volume)
 
             if not is_drop then
                local existing_water_body = stonehearth.hydrology:get_water_body(world_edge_point)
+               assert(existing_water_body ~= self._entity)
+
                if existing_water_body then
                   stonehearth.hydrology:merge_water_bodies(self._entity, existing_water_body)
-                  -- TODO: edge_region needs to be updated!
+                  -- TODO: review this code
+                  edge_region = self:_get_edge_region(self._sv._current_layer:get())
                else
                   delta_region:add_point(edge_point)
                   volume = volume - self._wetting_volume
