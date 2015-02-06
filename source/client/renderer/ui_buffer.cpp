@@ -58,7 +58,7 @@ void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const ra
       return;
    }
 
-   radiant::uint32 buffStart = (rgn.GetBounds().min.x + (size_.x * rgn.GetBounds().min.y));
+   radiant::uint32 buffStart = (bounds.min.x + (size_.x * bounds.min.y));
    radiant::uint32 *destBuff = (uint32 *)h3dMapResStream(uiPbo_[curBuff_], 0, 0, 0, false, true);
 
    if (!destBuff) {
@@ -66,18 +66,42 @@ void UiBuffer::update(csg::Point2 const& size, csg::Region2 const& rgn, const ra
       return;
    }
 
+   UB_LOG(5) << "copying backing buffer to pbo (dst:" << destBuff << " src:" << buff << ")";
+
+   int width = bounds.GetWidth();
+   int height = bounds.GetHeight();
+
    buff += buffStart;
-   for (int i = 0; i < bounds.GetHeight(); i++) {
-      memmove(destBuff, buff, bounds.GetWidth() * 4);
-      destBuff += bounds.GetWidth();
-      buff += size_.x;
+   destBuff += buffStart;
+
+   if (LOG_LEVEL(renderer.ui_buffer) >= 5) {
+      volatile static int read;
+      UB_LOG(5) << "reading 1st byte of src:" << buff;
+      read = *buff;
+
+      UB_LOG(5) << "touching 1st byte of dst:" << destBuff;
+      *destBuff = 0;
+
+      UB_LOG(5) << "copying 1st scanline.";
+      memmove(destBuff, buff, width * 4);
+
+      UB_LOG(5) << "proceeding into loop.";
    }
 
+   for (int i = 0; i < height; i++) {
+      memmove(destBuff, buff, width * 4);
+      destBuff += size_.x;
+      buff += size_.x;
+   }
+   UB_LOG(5) << "finished copying backing buffer to pbo";
+
    perfmon::SwitchToCounter("unmap ui pbo");
-   h3dUnmapResStream(uiPbo_[curBuff_], rgn.GetBounds().GetArea() * 4);
+   h3dUnmapResStream(uiPbo_[curBuff_], 0);
+   UB_LOG(5) << "finished unmapping stream";
 
    perfmon::SwitchToCounter("copy ui pbo to ui texture") ;
    h3dCopyBufferToBuffer(uiPbo_[curBuff_], uiTexture_[curBuff_], bounds.min.x, bounds.min.y, bounds.GetWidth(), bounds.GetHeight());
+   UB_LOG(5) << "finished copying pbo to texture";
 
    curBuff_ = (curBuff_ + 1) % MAX_BUFFERS;
 }
@@ -124,6 +148,10 @@ void UiBuffer::reallocateBuffers()
 
       uiTexture_[i] = h3dCreateTexture(texName.c_str(), size_.x, size_.y, H3DFormats::List::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoFlush);
       unsigned char *data = (unsigned char *)h3dMapResStream(uiTexture_[i], H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+      if (!data) {
+         UB_LOG(1) << "failed to map texture while allocating ui buffer of size " << size_;
+         return;
+      }
       memset(data, 0, dataSize);
       h3dUnmapResStream(uiTexture_[i], 0);
 

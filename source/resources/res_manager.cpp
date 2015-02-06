@@ -211,7 +211,7 @@ void ResourceManager2::LoadModules()
    if (_modDirectoryChanged) {
       RES_LOG(1) << "Modules have been modified by the user!";
    } else {
-      RES_LOG(1) << "Modules are verified prestine.";
+      RES_LOG(1) << "Modules are verified pristine.";
    }
 
    // Compute the module names last so we ensure the list is in sorted order

@@ -43,7 +43,7 @@ function HilightService:_on_frame()
    local terrain_brick = nil
 
    for r in results:each_result() do 
-      if r.entity:get_id() == 1 then
+      if self:_is_terrain_entity(r.entity) then
          terrain_brick = r.brick
       end
 
@@ -132,6 +132,11 @@ function HilightService:_destroy_coordinate_nodes()
       self._box_node:destroy()
       self._box_node = nil
    end
+end
+
+function HilightService:_is_terrain_entity(entity)
+   local result = entity and entity:is_valid() and entity:get_id() == 1
+   return result
 end
 
 return HilightService

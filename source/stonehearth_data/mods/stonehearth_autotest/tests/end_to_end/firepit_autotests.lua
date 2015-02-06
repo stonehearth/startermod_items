@@ -27,7 +27,7 @@ function firepit_autotests.light_fire(autotest)
          is_lit_at_night = true
 
          --Make it midnight to reset the daily counters
-         stonehearth.calendar:set_time_unit_test_only({ hour = 0 })
+         stonehearth.calendar:set_time_unit_test_only({ hour = 0, minute = 0, second = 0 })
       else 
          --The fire was just extinguished
          if is_lit_at_night and is_admiring_fire then

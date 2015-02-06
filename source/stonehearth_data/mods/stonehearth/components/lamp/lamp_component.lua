@@ -16,8 +16,12 @@ function LampComponent:initialize(entity, json)
    self:_check_light()
 
    if not self._sv.on then
-      self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._light_off)
-      self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._light_on)
+      self._sunrise_listener = stonehearth.calendar:set_alarm('6:00+5m', function()
+            self:_light_off()
+         end)
+      self._sunset_listener = stonehearth.calendar:set_alarm('22:00+5m', function()
+            self:_light_on()
+         end)
    end
 end
 
