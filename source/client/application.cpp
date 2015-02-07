@@ -137,6 +137,23 @@ int Application::Run(int argc, const char** argv)
 {
    // Exception handling prior to initializing crash reporter
    try {
+      // Some people are double-clicking on the Stonehearth.exe in the x64 directory
+      // manually trying to run the 64-bit build.  This will end up throwing a "cannot
+      // find settings.json" file since we expect the working directory to be one level
+      // up.  If we're a 64-bit build and we detect that our current directory is in the
+      // x64 dir, just cd up one level before trying to initialize anything.
+      if (core::System::IsProcess64Bit()) {
+         TCHAR tcurrent[MAX_PATH];
+         if (GetCurrentDirectory(MAX_PATH - 1, tcurrent)) {
+            std::string current(tcurrent);
+            if (boost::ends_with(current, "\\X64") || boost::ends_with(current, "\\X64\\") ||
+                boost::ends_with(current, "\\x64") || boost::ends_with(current, "\\x64\\")) {
+               std::string uplevel = current.substr(0, current.size() - 4);
+               SetCurrentDirectory(uplevel.c_str());
+            }
+         }
+      }
+
       if (ShouldShowHelp(argc, argv)) {
          ShowHelp();
          std::exit(0);
