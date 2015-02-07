@@ -115,9 +115,9 @@ class Renderer
       void ShowPerfHud(bool value);
       void SetServerTick(int tick);
 
-      int GetWindowWidth() const;
-      int GetWindowHeight() const;
-      void SetUITextureSize(int width, int height);
+      csg::Point2 const& GetScreenSize() const;
+      csg::Point2 const& GetMinUiSize() const;
+
       SystemStats GetStats();
       const RendererConfig& GetRendererConfig() const { return config_; }
 
@@ -130,11 +130,11 @@ class Renderer
       void PersistConfig();
       void UpdateConfig(const RendererConfig& newConfig);
       void SetupGlfwHandlers();
-      void InitWindow();
+      csg::Point2 InitWindow();
       void InitHorde();
       void MakeRendererResources();
 
-      void SelectSaneVideoMode(bool fullscreen, int* width, int* height, int* windowX, int* windowY, GLFWmonitor** monitor);
+      void SelectSaneVideoMode(bool fullscreen, csg::Point2 &pos, csg::Point2 &size, GLFWmonitor** monitor);
       void GetViewportMouseCoords(double& x, double& y);
       csg::Point2 GetMousePosition() const;
       csg::Matrix4 GetNodeTransform(H3DNode node) const;
@@ -164,7 +164,7 @@ class Renderer
       bool ShowDebugShapes();
       void SetShowDebugShapes(bool show_debug_shapes);
 
-      void UpdateUITexture(const csg::Region2& rgn, const uint32* buff);
+      void UpdateUITexture(csg::Point2 const& size, csg::Region2 const& rgn, const uint32* buff);
 
       Camera* GetCamera() { return camera_; }
 
@@ -176,8 +176,6 @@ class Renderer
       void SetStarfieldBrightness(float brightness);
 
       void HandleResize();
-
-      void* GetNextUiBuffer();
 
       void SetDrawWorld(bool drawWorld);
       void SetLoading(bool loading);
@@ -202,7 +200,7 @@ class Renderer
       void BuildStarfield();
       void BuildLoadingScreen();
       void SetStageEnable(H3DRes pipeRes, const char* stageName, bool enabled);
-      void OnWindowResized(int newWidth, int newHeight);
+      void OnWindowResized(csg::Point2 const& size);
       void OnKey(int key, int down, int mods);
       void OnMouseWheel(double value);
       void OnMouseMove(double x, double y);
@@ -225,6 +223,7 @@ class Renderer
       bool LoadMissingResources();
       void OneTimeIninitializtion();
       void SelectPipeline();
+      void OnWindowClose();
 
    protected:
       struct RenderMapEntry {
@@ -237,10 +236,9 @@ class Renderer
       typedef std::unordered_map<dm::ObjectId, RenderMapEntry> RenderEntityMap;
       typedef std::unordered_map<std::string, H3DRes>          H3DResourceMap;
 
-      int               windowWidth_;
-      int               windowHeight_;
-      int               uiWidth_;
-      int               uiHeight_;
+      csg::Point2       screenSize_;
+      csg::Point2       uiSize_;
+      csg::Point2       minUiSize_;
       bool              drawWorld_;
       uint32            fowRenderTarget_;
 
@@ -286,7 +284,7 @@ class Renderer
       int               last_render_time_wallclock_;
       bool              resize_pending_;
       bool              inFullscreen_;
-      int               nextWidth_, nextHeight_;
+      csg::Point2       nextScreenSize_;
       int               _maxRenderEntityLoadTime;
       
       std::string       resourcePath_;

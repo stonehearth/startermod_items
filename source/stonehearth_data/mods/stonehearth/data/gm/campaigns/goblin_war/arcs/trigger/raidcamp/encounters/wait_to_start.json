@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "wait",
+
+   "in_edge"  : "start",
+   "out_edge" : "create_camp",
+
+   "wait_info" :  {
+      "duration" : "1h"
+   }
+}

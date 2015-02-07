@@ -33,8 +33,10 @@ function SafetyScoreObserver:initialize(entity)
    self._combat_battery_listener = radiant.events.listen(entity, 'stonehearth:combat:battery', self, self._on_combat_battery)
    self._sv.dangerously_wounded_today = false
 
-   self._midnight_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self._on_midnight)
-
+   self._midnight_listener = stonehearth.calendar:set_alarm('0:00', function()
+            self:_on_midnight()
+         end)
+   
    self._kill_event_listener = radiant.events.listen(radiant.entities, 'stonehearth:entity_killed', self, self._on_entity_killed )
    self._sv.friend_died = false
 end

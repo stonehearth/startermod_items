@@ -23,7 +23,9 @@ function SleepinessObserver:initialize(entity)
       self._sv.should_be_sleeping = false
    end
 
-   self._hourly_listener = radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
+   self._hourly_listener = stonehearth.calendar:set_interval('1h', function()
+         self:_on_hourly()
+      end)
    self._sleepiness_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:sleepiness', self, self._on_sleepiness_changed)
 
    --Should we be sleeping? If so, let's do that
@@ -55,7 +57,7 @@ function SleepinessObserver:_on_sleepiness_changed()
 end
 
 --Every hour, increment our sleepiness, up to a caps
-function SleepinessObserver:_on_hourly(e)
+function SleepinessObserver:_on_hourly()
    local sleepiness = self._attributes_component:get_attribute('sleepiness')
    sleepiness = sleepiness + stonehearth.constants.sleep.HOURLY_SLEEPINESS
    if sleepiness > stonehearth.constants.sleep.MAX_SLEEPINESS then
@@ -64,7 +66,8 @@ function SleepinessObserver:_on_hourly(e)
    self._attributes_component:set_attribute('sleepiness', sleepiness)
 
    --If it's bedtime, go sleep
-   if e.now.hour == stonehearth.constants.sleep.BEDTIME_START then
+   local now = stonehearth.calendar:get_time_and_date()
+   if now.hour == stonehearth.constants.sleep.BEDTIME_START then
       self:_start_sleep_task()
    end
 end

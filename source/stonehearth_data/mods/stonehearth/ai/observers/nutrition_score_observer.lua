@@ -30,7 +30,9 @@ function NutritionScoreObserver:initialize(entity)
    end
 
    self._eat_listener = radiant.events.listen(entity, 'stonehearth:eat_food', self, self._on_eat)
-   self._midnight_listener = radiant.events.listen(calendar, 'stonehearth:midnight', self, self._on_midnight)
+   self._midnight_listener = stonehearth.calendar:set_alarm('0:00', function()
+            self:_on_midnight()
+         end)
    self._malnoursh_listener = radiant.events.listen(entity, 'stonehearth:malnourishment_event', self, self._on_malnourishment)
 end
 

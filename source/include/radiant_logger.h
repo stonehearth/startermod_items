@@ -91,7 +91,7 @@ namespace radiant {
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!
 #define LOG_CATEGORY_(level, prefix) \
-   LOG_(level) << " | " << radiant::log::GetCurrentThreadName() << " | " << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
+   LOG_(level) << " | " << std::setfill(' ') << std::setw(6) << radiant::log::GetCurrentThreadName() << " | " << std::setw(2) << level << " | " << std::setfill(' ') << std::setw(32) << prefix << " | "
 
 // Check to see if the specified log level is enabled
 #define LOG_IS_ENABLED(category, level)   (LOG_LEVEL(category) >= level)

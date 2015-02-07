@@ -476,9 +476,11 @@ function MiningZoneComponent:_update_adjacent_incremental()
    local changed_blocks = destination_delta + unreserved_delta
 
    -- the adjacent blocks which are affected by the changed blocks
+   -- TODO: perform a separable inflation to exclude diagonals
    local dirty_adjacent = changed_blocks:inflated(reach)
 
    -- destination volume that can affect the dirty adjacent region
+   -- TODO: perform a separable inflation to exclude diagonals
    local dirty_unreserved_volume = dirty_adjacent:inflated(reach)
 
    -- destination blocks that need to be recalculated

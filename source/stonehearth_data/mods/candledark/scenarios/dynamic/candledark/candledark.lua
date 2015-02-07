@@ -20,7 +20,9 @@ function Candledark:restore()
    self._scenario_data = radiant.resources.load_json('/candledark/scenarios/dynamic/candledark/candledark.json').scenario_data
    
    if self._sv.started then
-      self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
+      self._sunset_listener = stonehearth.calendar:set_alarm('22:00+5m', function()
+            self:_on_sunset()
+         end)
    end
 
    -- We saved/loaded while the timer was running, so just start it again and spawn the skeletons later
@@ -37,7 +39,9 @@ function Candledark:start()
       self.__saved_variables:mark_changed()
    end
    --stonehearth.calendar:set_time_unit_test_only({ hour = 23, minute = 38 })
-   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._on_sunset)
+   self._sunset_listener = stonehearth.calendar:set_alarm('22:00+5m', function()
+            self:_on_sunset()
+         end)
 end
 
 function Candledark:_post_intro_bulletin()
