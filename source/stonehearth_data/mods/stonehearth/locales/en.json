@@ -272,6 +272,8 @@
    "harvest_resource_tip_description" : "Right click to exit this mode", 
    "clear_item_tip_title" : "Click and drag to permanently clear items from the world",
    "clear_item_tip_description" : "Right click to exit this mode",  
+   "unharvest_resource_tip_title" : "Click and drag to remove harvest and clear commands", 
+   "unharvest_resource_tip_description" : "Right click to exit this mode", 
    "clear_item_confirm_title" : "Are you really sure you want to clear these items?",
    "clear_item_confirm_message" : "Usable items in the area will be permanently destroyed", 
    "confirm_clear" : "Yes, destroy!",

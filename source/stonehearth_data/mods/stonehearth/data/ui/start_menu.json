@@ -33,7 +33,7 @@
          },
          "unharvest" : {
             "name" : "Un-Harvest",
-            "description" : "Cancel existing harvesting orders",
+            "description" : "Cancel existing harvest/clear orders",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/unharvest.png",
             "sticky" : true

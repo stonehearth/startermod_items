@@ -323,7 +323,7 @@ function Town:harvest_resource_node(node)
       return false
    end
 
-   self:_remove_previous_task_on_item(node)
+   self:remove_previous_harvest_task_on_item(node)
    local id = node:get_id()
    if not self._harvest_tasks[id] then
       local node_component = node:get_component('stonehearth:resource_node')
@@ -352,7 +352,7 @@ function Town:harvest_renewable_resource_node(plant)
    end
 
    local id = plant:get_id()
-   self:_remove_previous_task_on_item(plant)
+   self:remove_previous_harvest_task_on_item(plant)
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component and node_component:is_harvestable() then
@@ -377,7 +377,7 @@ end
 --Tell the harvesters to remove an item permanently from the world
 --If there was already an outstanding task on the object, make sure to cancel it first.
 function Town:clear_item(item)
-   self:_remove_previous_task_on_item(item)
+   self:remove_previous_harvest_task_on_item(item)
    local id = item:get_id()
    
    --trace the item. If it moves, cancel the task
@@ -404,14 +404,14 @@ function Town:clear_item(item)
                      :start()
    self._clear_tasks[id] = task
    self:_remember_user_initiated_task(task, 'clear_item', item)
-
-   --Put a trace on the item. If it moves/is destroyed etc cancel the task; task:destroy()
 end
 
 --Between Harvest/Clear only the most recent task should be happening at a time
 --Unharvest should remove either task if it's on there already. 
 --TODO: can we do this by clicking a red X on the toast? 
-function Town:_remove_previous_task_on_item(item)
+--TODO: this seems fragmented. Could we make a more general version of this mechanism
+--that sorts all tasks on an object by player_id?
+function Town:remove_previous_harvest_task_on_item(item)
    local id = item:get_id()
    if self._clear_tasks[id] then
       self._clear_tasks[id]:destroy()
