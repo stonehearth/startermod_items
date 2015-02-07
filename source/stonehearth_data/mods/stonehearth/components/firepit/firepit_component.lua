@@ -3,13 +3,14 @@ local priorities = require('constants').priorities.worker_task
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
-local log = radiant.log.create_logger('firepit')
 local FirepitComponent = class()
 FirepitComponent.__classname = 'FirepitComponent'
 
 function FirepitComponent:initialize(entity, json)
    radiant.check.is_entity(entity)
    self._entity = entity
+   self._log = radiant.log.create_logger('firepit')
+                              :set_entity(entity)
 
    self._light_task = nil
    self._fire_effect = json.fire_effect
@@ -47,6 +48,7 @@ function FirepitComponent:initialize(entity, json)
 end
 
 function FirepitComponent:destroy()
+   self._log:debug('destroy')
    --When the firepit is destroyed, destroy its seat entities too
    self:_shutdown()
 end
@@ -73,30 +75,40 @@ function FirepitComponent:_on_entity_remove(id)
 end
 
 function FirepitComponent:_startup()
-   log:debug('listining for calendar sunset/sunrise events')
-   self._sunrise_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunrise', self, self._start_or_stop_firepit)
-   self._sunset_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:sunset', self, self._start_or_stop_firepit)
+   self._log:debug('creating alarms')
+   
+   if not self._sunrise_alarm then
+      self._sunrise_alarm = stonehearth.calendar:set_alarm('6:00+5m', function()
+            self:_start_or_stop_firepit()
+         end)
+   end
+   if not self._sunrise_alarm then
+      self._sunrise_alarm = stonehearth.calendar:set_alarm('22:00+5m', function()
+            self:_start_or_stop_firepit()
+         end)
+   end
+
    self:_start_or_stop_firepit()
 end
 
 --- Stop listening for events, destroy seats, terminate effects and tasks
 -- Call when firepit is moving or being destroyed.
 function FirepitComponent:_shutdown()
-   log:debug('unlistining for calendar sunset/sunrise events')
+   self._log:debug('destroying alarms')
 
-   if self._sunrise_listener then
-      self._sunrise_listener:destroy()   
-      self._sunrise_listener = nil
+   if self._sunrise_alarm then
+      self._sunrise_alarm:destroy()   
+      self._sunrise_alarm = nil
    end
-   if self._sunset_listener then
-      self._sunset_listener:destroy()   
-      self._sunset_listener = nil
+   if self._sunset_alarm then
+      self._sunset_alarm:destroy()   
+      self._sunset_alarm = nil
    end
    self:_extinguish()
 
    if self._sv.seats then
       for i, v in ipairs(self._sv.seats) do
-         log:debug('destroying firepit seat %s', tostring(v))
+         self._log:debug('destroying firepit seat %s', tostring(v))
          radiant.entities.destroy_entity(v)
       end
    end
@@ -116,10 +128,10 @@ function FirepitComponent:_start_or_stop_firepit()
    if self._sv.is_lit and should_light_fire then
       self:_light()
    elseif should_light_fire then
-      log:detail('decided to light the fire!')
+      self._log:detail('decided to light the fire!')
       self:_init_gather_wood_task()
    elseif not should_light_fire then      
-      log:detail('decided to put out the fire!')
+      self._log:detail('decided to put out the fire!')
       self:_extinguish()
    end
 end
@@ -127,7 +139,7 @@ end
 ---Adds 8 seats around the firepit
 --TODO: add a random element to the placement of the seats.
 function FirepitComponent:_add_seats()
-   log:debug('adding firepit seats')
+   self._log:debug('adding firepit seats')
    self._sv.seats = {}
    local firepit_loc = Point3(radiant.entities.get_world_grid_location(self._entity))
    self:_add_one_seat(1, Point3(firepit_loc.x + 5, firepit_loc.y, firepit_loc.z + 1))
@@ -146,7 +158,7 @@ function FirepitComponent:_add_one_seat(seat_number, location)
    seat_comp:add_to_center_of_attention(self._entity, seat_number)
    self._sv.seats[seat_number] = seat
    radiant.terrain.place_entity(seat, location)
-   log:spam('place firepit seat at %s', tostring(location))
+   self._log:spam('place firepit seat at %s', tostring(location))
 end
 
 --- Create a worker task to gather wood
@@ -185,7 +197,7 @@ end
 
 --Internal, handles issues on load, etc. 
 function FirepitComponent:_light()
-   log:debug('lighting the fire')
+   self._log:debug('lighting the fire')
 
    if not self._curr_fire_effect then
       local effect_file = self._fire_effect or '/stonehearth/data/effects/firepit_effect'
@@ -207,7 +219,7 @@ end
 
 --- If there is wood, destroy it and extinguish the particles
 function FirepitComponent:_extinguish()
-   log:debug('extinguishing the fire')
+   self._log:debug('extinguishing the fire')
 
    local ec = self._entity:add_component('entity_container')
 

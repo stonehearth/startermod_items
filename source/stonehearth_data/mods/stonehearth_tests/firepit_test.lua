@@ -19,13 +19,7 @@ function FirePitTest:__init()
    self:at(1000,  function()
          --radiant.entities.destroy_entity(firepit)
          stonehearth.calendar:set_time_unit_test_only({ hour = 24, minute = 38 })
-      end)
-
-   --[[
-   radiant.events.trigger_async(stonehearth.calendar, 'stonehearth:hourly')
-   --firepit:get_component('stonehearth:decoration:firepit'):_init_gather_wood_task()
-   ]]
-   
+      end)   
 end
 
 return FirePitTest
