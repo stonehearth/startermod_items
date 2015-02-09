@@ -107,7 +107,10 @@ crash_reporter:
 
 .PHONY: symbols
 symbols:
-	modules/breakpad/package/src/tools/windows/dump_syms/Release/dump_syms.exe \
+	modules/breakpad/build/$(MSBUILD_CONFIGURATION)/release/dump_syms.exe \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/lua-5.1.5.jit.dll > \
+	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/lua-5.1.5.jit.sym
+	modules/breakpad/build/$(MSBUILD_CONFIGURATION)/release/dump_syms.exe \
 	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.exe > \
 	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.sym
 
