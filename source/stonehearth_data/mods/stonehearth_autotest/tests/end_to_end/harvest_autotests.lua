@@ -71,7 +71,7 @@ end
 function harvest_tests.unharvest(autotest)   
    local tree = autotest.env:create_entity(1, 1, 'stonehearth:small_oak_tree')
    
-   radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
+   local event = radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
       if e.entity:get_uri() == 'stonehearth:resources:wood:oak_log' then 
          autotest:fail()
          return radiant.events.UNLISTEN
@@ -90,6 +90,8 @@ function harvest_tests.unharvest(autotest)
    autotest.env:create_person(10, 10, { job = 'worker' })
 
    autotest:sleep(3000)
+   event:destroy()
+   event = nil
    autotest:success('unharvest works')
 end
 --]]
