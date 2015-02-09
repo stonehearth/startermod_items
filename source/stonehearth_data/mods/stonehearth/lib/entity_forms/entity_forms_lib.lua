@@ -28,9 +28,12 @@ function entity_forms_lib.get_uris(uri_or_entity)
             end
          end
       end
+   
+      local iconic_entity = ef:get_iconic_entity()
+      local ghost_entity = ef:get_ghost_entity()
       return entity:get_uri(),
-             ef:get_iconic_entity():get_uri(),
-             ef:get_ghost_entity():get_uri()
+             iconic_entity and iconic_entity:get_uri(),
+             ghost_entity and ghost_entity:get_uri()
    end
 end
 
