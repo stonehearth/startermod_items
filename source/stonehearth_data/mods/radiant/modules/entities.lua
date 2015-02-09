@@ -378,6 +378,8 @@ function entities.equip_item(entity, arg1)
    if type(arg1) == 'string' then
       item = radiant.entities.create_entity(arg1)
       assert(entity:is_valid())
+   else 
+      item = arg1
    end
 
    entity:add_component('stonehearth:equipment')
