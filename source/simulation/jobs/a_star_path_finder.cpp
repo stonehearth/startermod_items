@@ -751,7 +751,7 @@ bool AStarPathFinder::SolveSearch(std::vector<csg::Point3f>& solution, PathFinde
    }
 
    if (solved) {
-      PF_LOG(2) << "solution accepted by callback!";
+      PF_LOG(3) << "solution accepted by callback!";
       solution_  = path;
    } else {
       PF_LOG(5) << "removing destination and continuing search.";
@@ -773,7 +773,7 @@ AStarPathFinderPtr AStarPathFinder::RestartSearch(const char* reason)
 {
    if (!restart_search_) {
       if (search_exhausted_) {
-         PF_LOG(2) << "requesting restart of exhausted search: " << reason;
+         PF_LOG(3) << "requesting restart of exhausted search: " << reason;
       } else {
          PF_LOG(3) << "requesting search restart: " << reason;
       }

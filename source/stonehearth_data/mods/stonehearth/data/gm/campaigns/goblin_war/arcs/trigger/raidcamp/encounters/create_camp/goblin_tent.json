@@ -1,6 +1,5 @@
 {
    "type" : "camp_piece",
-   "size" : "large",
 
    "entities" : {
       "tent" : {

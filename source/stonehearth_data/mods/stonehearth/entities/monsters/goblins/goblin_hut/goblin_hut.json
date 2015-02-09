@@ -1,0 +1,51 @@
+{
+   "type": "entity", 
+   "components": {
+      "unit_info" : {
+         "name": "A Tent",
+         "description": "Made from crudely-sewn animal hides"
+      },      
+      "render_info" : {
+         "scale" : 0.6
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(goblin_hut.qb)"
+            ]
+         }
+      },
+      "mob" : {
+      },
+      "_stonehearth:attributes": {
+          "max_health": {
+            "type" : "basic", 
+            "value" : 20
+         },
+         "health": {
+            "type" : "variable", 
+            "equation" :  "max_health"
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 0
+         }
+      },      
+      "region_collision_shape" : {
+         "region": [
+            {
+               "min" : { "x" : -4, "y" : 0,  "z" : -3 },
+               "max" : { "x" :  3, "y" : 4,  "z" :  4 }
+            }
+         ]
+      },
+      "destination" : {
+         "region" : [
+            {
+               "min" : { "x" : -4, "y" : 0, "z" : -3 },
+               "max" : { "x" :  3, "y" : 1, "z" :  4 }
+            }
+         ]
+      }
+   }
+}

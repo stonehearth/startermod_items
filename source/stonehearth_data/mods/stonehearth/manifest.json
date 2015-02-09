@@ -180,10 +180,15 @@
 
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
+      "monsters:goblins:goblin_hut" : "file(entities/monsters/goblins/goblin_hut)",
+      "monsters:goblins:goblin_barricade" : "file(entities/monsters/goblins/goblin_barricade)",
+      "monsters:goblins:goblin_small_totem" : "file(entities/monsters/goblins/goblin_small_totem)",
+      "monsters:goblins:goblin_large_totem" : "file(entities/monsters/goblins/goblin_large_totem)",
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
       "monsters:goblins:armor:miniboss_crown" : "file(entities/monsters/goblins/armor/miniboss_crown)",
+      "monsters:goblins:armor:back_standard" : "file(entities/monsters/goblins/armor/back_standard)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",

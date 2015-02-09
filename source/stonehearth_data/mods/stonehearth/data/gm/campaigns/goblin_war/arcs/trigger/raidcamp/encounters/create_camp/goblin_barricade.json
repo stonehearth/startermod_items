@@ -1,10 +1,9 @@
 {
    "type" : "camp_piece",
-   "size" : "large",
 
    "entities" : {
       "tent" : {
-         "uri" : "stonehearth:monsters:goblins:goblin_tent",
+         "uri" : "stonehearth:monsters:goblins:goblin_barricade",
          "location" : {
             "x" : 0,
             "y" : 0,

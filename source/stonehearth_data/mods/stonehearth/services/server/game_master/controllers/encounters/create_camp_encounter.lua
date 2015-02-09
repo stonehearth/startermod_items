@@ -1,22 +1,8 @@
 local Point3 = _radiant.csg.Point3
+local Cube3 = _radiant.csg.Cube3
 
 local rng = _radiant.csg.get_default_rng()
 local log = radiant.log.create_logger('game_master')
-
-local CAMP_SIZE = 3
-local LARGE_SPOT_COUNT = 9
-local LARGE_PIECE_RADIUS = 6
-
-local MEDIUM_SPOT_COUNT = 3
-local MEDIUM_SPOT_RADIUS = 3
-local MEDIUM_SPOT_SIZE = math.floor(LARGE_PIECE_RADIUS / MEDIUM_SPOT_RADIUS)
-
-local INFINITE = 10000000
-
-local PIECE_SIZES = {
-   large = true,
-   medium = true,
-}
 
 local CreateCamp = class()
 
@@ -45,29 +31,33 @@ function CreateCamp:_create_camp()
 
    self._population = stonehearth.population:get_population(ctx.enemy_player_id)
 
+   -- carve a hole in the ground for the camp to sit in
+   local size = 20
+   local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
+   local cube2 = cube:translated(Point3.unit_y)
+
+   -- nuke all the entities around the camp
+   local entities = radiant.terrain.get_entities_in_cube(cube2)
+   for id, entity in pairs(entities) do
+      radiant.entities.destroy_entity(entity)
+   end
+   
+   -- carve out the grass around the camp
+   radiant.terrain.subtract_cube(cube)
+
    if info.npc_boss_entity_type then
       local npc_boss_entity = self._population:create_new_citizen(info.npc_boss_entity_type)
       radiant.terrain.place_entity(npc_boss_entity, ctx.enemy_location)
       ctx.npc_boss_entity = npc_boss_entity
    end
 
-   local pieces = {
-      large = {},
-      medium = {},
-   }
-
-   for k, piece in pairs(info.pieces) do      
+   for k, piece in pairs(info.pieces) do
       local uri = piece.info
       piece.info = radiant.resources.load_json(uri)
       assert(piece.info.type == 'camp_piece', string.format('camp piece at "%s" does not have type == camp_piece', uri))
-      assert(PIECE_SIZES[piece.info.size], string.format('camp piece at "%s" size field "%s" is invalid', uri, tostring(piece.info.size)))
-      piece.info.min = piece.info.min or 0
-      piece.info.max = piece.info.max or INFINITE
-      table.insert(pieces[piece.info.size], piece)
+      --table.insert(pieces[piece.info.size], piece)
+      self:_add_piece(piece)
    end
-   local used_large_spots = {}
-   self:_create_large_spots(used_large_spots, pieces.large)
-   self:_create_medium_spots(used_large_spots, pieces.medium)
 
    -- if there's a script associated with the mod, give it a chance to customize the camp
    if info.script then
@@ -75,91 +65,17 @@ function CreateCamp:_create_camp()
       self._sv.script = script
       script:start(ctx)
    end
-
+   
    -- camp created!  move onto the next encounter in the arc.
    ctx.arc:trigger_next_encounter(ctx)   
 end
 
-function CreateCamp:_create_large_spots(used_large_spots, pieces)
-   local spots = self:_choose_spots(used_large_spots, CAMP_SIZE, CAMP_SIZE, LARGE_SPOT_COUNT)
-   for _, spot in pairs(spots) do
-      local x = spot.x * (LARGE_PIECE_RADIUS * 2) + LARGE_PIECE_RADIUS
-      local z = spot.y * (LARGE_PIECE_RADIUS * 2) + LARGE_PIECE_RADIUS
-      local piece = self:_choose_piece(pieces)
-      if piece then
-         self:_add_piece(x, z, piece.info)
-      end
-   end
-end
+function CreateCamp:_create_piece(piece)
+   local x = piece.position.x
+   local z = piece.position.y
+   local rot = piece.rotation
 
-function CreateCamp:_create_medium_spots(used_large_spots, pieces)
-   local spots = self:_choose_spots(used_large_spots, MEDIUM_SPOT_SIZE, MEDIUM_SPOT_SIZE, LARGE_SPOT_COUNT)
-   for _, spot in pairs(spots) do
-      local ox = spot.x * (LARGE_PIECE_RADIUS * 2)
-      local oz = spot.y * (LARGE_PIECE_RADIUS * 2)
-      local subspots = self:_choose_spots({}, MEDIUM_SPOT_SIZE, MEDIUM_SPOT_SIZE, MEDIUM_SPOT_COUNT)
-      for _, subspot in pairs(subspots) do
-         local x = ox + subspot.x * (MEDIUM_SPOT_RADIUS * 2) + MEDIUM_SPOT_RADIUS
-         local z = oz + subspot.y * (MEDIUM_SPOT_RADIUS * 2) + MEDIUM_SPOT_RADIUS
-         local piece = self:_choose_piece(pieces)
-         if piece then
-            self:_add_piece(x, z, piece.info)
-         end
-      end
-   end
-end
-
-function CreateCamp:_choose_piece(pieces)
-   if #pieces == 0 then
-      return
-   end
-   
-   for i, piece in pairs(pieces) do
-      if piece.min > 0 then
-         piece.min = piece.min - 1
-         piece.max = piece.max - 1
-         if piece.max == 0 then
-            table.remove(pieces, i)
-         end
-         return piece
-      end
-   end
-
-   local i = rng:get_int(1, #pieces)
-   local piece = pieces[i]
-   piece.max = piece.max - 1
-   if piece.max == 0 then
-      table.remove(pieces, i)
-   end
-   return piece
-end
-
-
-function CreateCamp:_choose_spots(used_spots, w, h, count)
-   local spots = {}
-   local size = w * h
-   count = math.min(count, size - radiant.size(used_spots))
-   
-   for i=1,count do
-      local spot = rng:get_int(1, size)
-      while used_spots[spot] do
-         spot = spot + 1
-         if spot > size then
-            spot = 1
-         end
-      end
-      table.insert(spots, spot)
-      assert(not used_spots[spot])
-      used_spots[spot] = true
-   end
-
-   for i, spot in ipairs(spots) do
-      spot = spot - 1
-      local x = math.floor(spot / w)
-      local y = spot - (x * w)
-      spots[i] = { x=x, y=y }
-   end
-   return spots
+   self:_add_piece(x, z, rot, piece.info)
 end
 
 function CreateCamp:_destroy_find_location_timer()
@@ -223,24 +139,32 @@ function CreateCamp:_finalize_camp_location(location)
    self:_create_camp()
 end
 
-function CreateCamp:_add_piece(x, z, piece)
+function CreateCamp:_add_piece(piece)
+   local x = piece.position.x
+   local z = piece.position.y
+   local rot = piece.rotation
+
    local origin = self._sv.ctx.enemy_location + Point3(x, 0, z)
    local player_id = self:_get_player_id()
 
    -- add all the entities.
-   if piece.entities then
-      for name, info in pairs(piece.entities) do
+   if piece.info.entities then
+      for name, info in pairs(piece.info.entities) do
          local entity = radiant.entities.create_entity(info.uri)
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
-         radiant.entities.turn_to(entity, 90 * rng:get_int(0, 3))
+
+         if rot then
+            radiant.entities.turn_to(entity, rot)
+         end
+
          radiant.entities.set_player_id(entity, player_id)
       end
    end
 
    -- add all the people.
-   if piece.citizens then
-      for name, info in pairs(piece.citizens) do
+   if piece.info.citizens then
+      for name, info in pairs(piece.info.citizens) do
          local citizen = self._population:create_new_citizen()
          if info.job then
             citizen:add_component('stonehearth:job')
@@ -250,6 +174,13 @@ function CreateCamp:_add_piece(x, z, piece)
          radiant.terrain.place_entity(citizen, origin + offset)
       end
    end
+
+   -- if there's a script associated with the mod, give it a chance to customize the camp
+   if piece.info.script then
+      local script = radiant.create_controller(piece.info.script, piece)
+      script:start(self._sv.ctx)
+   end
+
 end
 
 function CreateCamp:_get_player_id()

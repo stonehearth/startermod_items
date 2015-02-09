@@ -8,8 +8,9 @@
    "talisman_uri" : "stonehearth:trapper:talisman",
    "default_stance" : "defensive",
 
-   "equipment" : {
-      "abilities" : "file(trapper_abilities)",
+   "abilities" : "file(trapper_abilities)",
+
+   "equipment" : {   
       "torso" : "file(trapper_outfit)",
       "mainhand" : "stonehearth:trapper:knife"
    },

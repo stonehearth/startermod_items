@@ -57,64 +57,56 @@ function WaterComponent:add_water(world_location, volume)
       volume = volume - self._wetting_volume
    end
 
+   -- process and raise layers until we run out of volume
    while volume > 0 do
-      local flows = stonehearth.hydrology:get_flows(self._entity)
-      if flows then
-         for _, flow in pairs(flows) do
-            -- TODO: flow volume not accurate with multiple passes
+      local edge_region = self:_get_edge_region(self._sv._current_layer:get())
+      delta_region:clear()
+
+      -- grow the region until we run out of volume or become bounded
+      while volume > 0 and not edge_region:empty() do
+         local edge_point = edge_region:get_closest_point(location)
+         -- TODO: incrementally update the new edge region
+         -- especially important when added flows are not in the center of the layer
+         edge_region:subtract_point(edge_point)
+
+         local world_edge_point = edge_point + entity_location
+         local is_drop = not radiant.terrain.is_terrain(world_edge_point - Point3.unit_y)
+
+         if not is_drop then
+            local existing_water_body = stonehearth.hydrology:get_water_body(world_edge_point)
+            assert(existing_water_body ~= self._entity)
+
+            if existing_water_body then
+               stonehearth.hydrology:merge_water_bodies(self._entity, existing_water_body)
+               -- TODO: review this code
+               edge_region = self:_get_edge_region(self._sv._current_layer:get())
+            else
+               delta_region:add_point(edge_point)
+               volume = volume - self._wetting_volume
+            end
+         else
+            local from_location = world_edge_point
+            local flow = stonehearth.hydrology:get_flow(self._entity, from_location)
+            if not flow then
+               flow = self:_create_waterfall_flow(from_location)
+            end
+
+            -- TODO: calculate flow throughput
             local flow_volume = math.min(volume, 1)
             stonehearth.hydrology:queue_water(flow.to_entity, flow.to_location, flow_volume)
             volume = volume - flow_volume
          end
-         if volume <= 0 then
-            break
-         end
       end
 
-      local edge_region = self:_get_edge_region(self._sv._current_layer:get())
-      if edge_region:empty() then
+      delta_region:optimize_by_merge()
+      self:_add_to_layer(delta_region)
+
+      -- current layer is bounded, raise the water level until we hit the next layer
+      if volume > 0 then
          volume, new_layer = self:_add_height(volume)
          if new_layer then
             self:_raise_layer()
          end
-      else
-         delta_region:clear()
-
-         while not edge_region:empty() do
-            local edge_point = edge_region:get_closest_point(location)
-            -- TODO: incrementally update the new edge region
-            -- especially important when added flows are not in the center of the layer
-            edge_region:subtract_point(edge_point)
-
-            local world_edge_point = edge_point + entity_location
-            local is_drop = not radiant.terrain.is_terrain(world_edge_point - Point3.unit_y)
-
-            if not is_drop then
-               local existing_water_body = stonehearth.hydrology:get_water_body(world_edge_point)
-               if existing_water_body then
-                  stonehearth.hydrology:merge_water_bodies(self._entity, existing_water_body)
-                  -- TODO: edge_region needs to be updated!
-               else
-                  delta_region:add_point(edge_point)
-                  volume = volume - self._wetting_volume
-                  if volume <= 0 then
-                     break
-                  end
-               end
-            else
-               local from_location = world_edge_point
-               local flow = self:_create_waterfall_flow(from_location)
-
-               -- TODO: calculate flow throughput
-               local flow_volume = math.min(volume, 1)
-               stonehearth.hydrology:queue_water(flow.to_entity, flow.to_location, flow_volume)
-               volume = volume - flow_volume
-            end
-         end
-
-         delta_region:optimize_by_merge()
-
-         self:_add_to_layer(delta_region)
       end
    end
 
@@ -191,8 +183,8 @@ function WaterComponent:_get_edge_region(region)
    edge_region = edge_region:intersect_cube(world_bounds)
 
    -- remove flow points
-   local flow_points = self:_get_flow_points()
-   edge_region:subtract_region(flow_points)
+   -- local flow_points = self:_get_flow_points()
+   -- edge_region:subtract_region(flow_points)
 
    edge_region:optimize_by_merge()
 

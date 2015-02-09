@@ -5,8 +5,10 @@
    "controller" : "stonehearth:class:mason",   
    "description": "The Mason crafts building materials and decorative items from stone.",
    "requirements": "Mason's Mallet and Chisel, crafted by the carpenter.",
+   
+   "abilities" : "file(mason_abilities)",
+
    "equipment" : {
-      "abilities" : "file(mason_abilities)",
       "torso" : "file(mason_outfit)",
       "mainhand" : "stonehearth:mason:chisel"
    },

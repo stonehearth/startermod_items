@@ -20,7 +20,7 @@
 
       "introduction" : {
          "bulletin" : {
-            "title" : "The great Orc Leader approahces",
+            "title" : "__boss_name__ approahces",
             "message" : "This doesn't look good for you..."
          }
       },

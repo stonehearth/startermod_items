@@ -1,0 +1,81 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "create_camp",
+   "rarity" : "common",
+
+   "in_edge"  : "create_camp",
+   "out_edge" : ["wait_for_boss_death", "shakedown"],
+
+   "script" : "file(create_camp/create_camp.lua)",
+
+   "create_camp_info" : {
+      "player_id" : "goblins",
+
+      "radius" : 18,
+      
+      "spawn_range" : {
+         "min" : 100,
+         "max" : 120
+      },
+
+      "npc_boss_entity_type" : "",
+      
+      "script" : "file(create_camp/goblin_raiding_camp.lua)",
+
+      "pieces" : {
+         "campfire" : {
+            "info" : "file(create_camp/campfire.json)",
+            "position" : { "x": 0, "y": 0 }
+         },
+         "goblin_tent_1" : {
+            "info" : "file(create_camp/goblin_tent.json)",
+            "position" : { "x": -12, "y": 12 },
+            "rotation" : -90
+         },
+         "goblin_hut_1" : {
+            "info" : "file(create_camp/goblin_hut.json)",
+            "position" : { "x": 12, "y": 12 },
+            "rotation" : 90
+         },
+         "goblin_hut_2" : {
+            "info" : "file(create_camp/goblin_hut.json)",
+            "position" : { "x": 0, "y": -16 },
+            "rotation" : 180
+         },
+         "goblin_barricade_1" : {
+            "info" : "file(create_camp/goblin_barricade.json)",
+            "position" : { "x": -6, "y": 16 },
+            "rotation" : 0
+         },
+         "goblin_barricade_2" : {
+            "info" : "file(create_camp/goblin_barricade.json)",
+            "position" : { "x": -3, "y": 16 },
+            "rotation" : 0
+         },
+         "goblin_barricade_3" : {
+            "info" : "file(create_camp/goblin_barricade.json)",
+            "position" : { "x": 17, "y": -10 },
+            "rotation" : 90
+         },
+         "totem_1" : {
+            "info" : "file(create_camp/goblin_small_totem.json)",
+            "position" : { "x": -12, "y": -10 },
+            "rotation" : 90
+         },
+         "totem_2" : {
+            "info" : "file(create_camp/goblin_large_totem.json)",
+            "position" : { "x": -12, "y": -5 },
+            "rotation" : 90
+         },
+         "stockpile" : {
+            "position" : { "x": 12, "y": -8 },
+            "info" : "file(create_camp/stockpile.json)"
+         },
+         "loot_chest" : {
+            "info" : "file(create_camp/loot_chest.json)",
+            "position" : { "x": 12, "y": 0 },
+            "rotation" : 0
+         }
+      }
+   }
+}

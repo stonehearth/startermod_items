@@ -1,6 +1,6 @@
 local CalendarAlarm = require 'services.server.calendar.calendar_alarm'
 
-local CalendarService = class()
+local rng = _radiant.csg.get_default_rng()
 
 local TIME_UNITS = {
    'second',
@@ -10,9 +10,10 @@ local TIME_UNITS = {
    'month',
    'year',
 }
-
 local TIME_INTERVALS = {}
 local TIME_DURATIONS = {}
+
+local CalendarService = class()
 
 function CalendarService:__init()
    self._constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
@@ -52,12 +53,7 @@ function CalendarService:initialize()
          self._sv.date[unit] = self._constants.start[unit]
          self._sv.start_time[unit] = self._constants.start[unit]
       end
-      
-      -- When you change the start time change these to match
-      self._sv._fired_sunrise_today = true
-      self._sv._fired_noon_today = false
-      self._sv._fired_sunset_today = false
-      self._sv._fired_midnight_today = false
+      self:_update_seconds_today()
    end
 end
 
@@ -128,9 +124,13 @@ end
 
 function CalendarService:parse_time(str)
    -- see if we're a fuzzy timeout
-   local time, duration = string.match(str, '(.+)\\+(.+)')
-   if time and duration then
-      return self:parse_time(time) + self:parse_duration(duration)
+   local plus_offset = str:find('+')
+   if plus_offset and plus_offset > 1 then
+      local time = str:sub(1, plus_offset - 1)
+      local duration = str:sub(plus_offset + 1, #str)
+
+      local random_delay = self:parse_duration(duration)
+      return self:parse_time(time) + rng:get_int(1, random_delay)
    end
 
    local h, m = string.match(str, '(%d+):(%d+)')
@@ -235,8 +235,7 @@ function CalendarService:_on_event_loop(e)
    if self._sv.date.hour == 0 and last_hour == (self._constants.hours_per_day - 1) then
       self:_reset_all_alarms()
    end
-
-   self._sv.seconds_today = (self._sv.date.hour * TIME_DURATIONS.hour ) + (self._sv.date.minute * TIME_DURATIONS.minute) + self._sv.date.second
+   self:_update_seconds_today()
 
    -- the time, formatted into a string
    self._sv.date.time = self:format_time()
@@ -288,12 +287,16 @@ function CalendarService:set_time_unit_test_only(override)
       self._sv.start_time[name] = new_value
    end
    self._sv.start_game_tick = radiant.gamestate.now()
-   self._sv.seconds_today = (self._sv.date.hour * TIME_DURATIONS.hour ) + (self._sv.date.minute * TIME_DURATIONS.minute) + self._sv.date.second
+   self:_update_seconds_today()
    if self._sv.seconds_today == 0 then
       self:_reset_all_alarms()
    end
 end
 
+function CalendarService:_update_seconds_today()
+   self._sv.seconds_today = (self._sv.date.hour * TIME_DURATIONS.hour ) + (self._sv.date.minute * TIME_DURATIONS.minute) + self._sv.date.second
+   self.__saved_variables:mark_changed()
+end
 
 return CalendarService
 

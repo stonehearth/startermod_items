@@ -82,8 +82,8 @@ function FirepitComponent:_startup()
             self:_start_or_stop_firepit()
          end)
    end
-   if not self._sunrise_alarm then
-      self._sunrise_alarm = stonehearth.calendar:set_alarm('22:00+5m', function()
+   if not self._sunset_alarm then
+      self._sunset_alarm = stonehearth.calendar:set_alarm('22:00+5m', function()
             self:_start_or_stop_firepit()
          end)
    end
