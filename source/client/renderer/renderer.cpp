@@ -723,6 +723,9 @@ void Renderer::GetConfigOptions()
 
    resourcePath_ = config.Get("renderer.resource_path", "stonehearth/data/horde");
 
+   minUiSize_.x = config.Get("renderer.min_ui_width",  1920);
+   minUiSize_.y = config.Get("renderer.min_ui_height", 1080);
+
    MaskHighQualitySettings();
 }
 
@@ -731,8 +734,6 @@ void Renderer::MaskHighQualitySettings()
    bool high_quality = config_.use_high_quality.value;
    // Mask all high-quality settings with the 'use_high_quality' bool.
    config_.enable_ssao.value &= high_quality;
-   minUiSize_.x = config.Get("renderer.min_ui_width",  1920);
-   minUiSize_.y = config.Get("renderer.min_ui_height", 1080);
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
