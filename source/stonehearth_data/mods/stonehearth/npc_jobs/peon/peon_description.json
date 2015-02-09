@@ -6,8 +6,9 @@
    "requirements": "None, just hard work and guts.",
    "default_stance" : "aggressive",
 
+   "abilities" : "file(peon_abilities)",
+
    "equipment" : {
-      "abilities" : "file(peon_abilities)",
       "mainhand" : [
          "stonehearth:mining_pick", 
          "stonehearth:worker_hammer"

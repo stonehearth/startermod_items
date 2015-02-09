@@ -8,8 +8,9 @@
    "talisman_uri" : "stonehearth:footman:wooden_sword_talisman",
    "default_stance": "aggressive",
 
+   "abilities" : "file(footman_abilities)",
+
    "equipment" : {
-      "abilities" : "file(footman_abilities)",
       "torso" : "file(footman_outfit)",
       "mainhand" : "stonehearth:weapons:wooden_sword"
    },

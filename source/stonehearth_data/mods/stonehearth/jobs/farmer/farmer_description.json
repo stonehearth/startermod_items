@@ -8,8 +8,9 @@
    "talisman_uri" : "stonehearth:farmer:talisman",
    "default_stance" : "passive",
    
+   "abilities" : "file(farmer_abilities)",
+
    "equipment" : {
-      "abilities" : "file(farmer_abilities)",
       "torso" : "file(farmer_outfit)",
       "mainhand" : "stonehearth:farmer:hoe"
    },
