@@ -44,6 +44,7 @@ function WaterfallComponent:set_height(height)
          cursor:clear()
          cursor:add_cube(
             Cube3(
+               -- note that the location of the waterfall entity is at the TOP of the region
                Point3(0, -height, 0),
                Point3(1, 0, 1)
             )

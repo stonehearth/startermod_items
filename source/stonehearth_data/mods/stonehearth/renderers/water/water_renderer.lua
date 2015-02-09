@@ -12,8 +12,6 @@ function WaterRenderer:initialize(render_entity, datastore)
    self._parent_node = self._render_entity:get_node()
    self._edge_color = Color4(28, 191, 255, 128)
    self._face_color = Color4(28, 191, 255, 128)
-   self._alpha_min = 64
-   self._alpha_max = 128
 
    self._datastore_trace = self._datastore:trace_data('rendering water')
       :on_changed(function()
@@ -22,7 +20,7 @@ function WaterRenderer:initialize(render_entity, datastore)
       )
       :push_object_state()
 
-   stonehearth.selection:set_selectable(self._entity, false)
+   --stonehearth.selection:set_selectable(self._entity, false)
 end
 
 function WaterRenderer:destroy()
@@ -48,9 +46,6 @@ function WaterRenderer:_update()
    local region = data.region:get()
    local height = data.height
 
-   -- local alpha = self:_get_alpha(height)
-   -- self._color.a = alpha
-
    local render_region = Region3()
    for cube in region:each_cube() do
       cube.max.y = math.min(cube.max.y, height)
@@ -59,13 +54,6 @@ function WaterRenderer:_update()
    end
 
    self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, render_region, self._edge_color, self._face_color)
-end
-
-function WaterRenderer:_get_alpha(height)
-   local saturation = math.min(height, 1.0)
-   local range = self._alpha_max - self._alpha_min
-   local alpha = self._alpha_min + radiant.math.round(range*saturation)
-   return alpha
 end
 
 return WaterRenderer
