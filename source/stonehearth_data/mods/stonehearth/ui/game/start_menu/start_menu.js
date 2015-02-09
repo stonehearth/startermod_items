@@ -20,6 +20,9 @@ App.StonehearthStartMenuView = App.View.extend({
       clear_item: function () {
          App.stonehearthClient.boxClearItem();
       },
+      unharvest: function () {
+         App.stonehearthClient.boxUnharvestItem();
+      },
       create_stockpile: function () {
          App.stonehearthClient.createStockpile();
       },

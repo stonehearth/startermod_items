@@ -129,4 +129,42 @@ function ResourceCallHandler:clear_resource_entity(session, response, entity)
    end
 end
 
+--Drag out an area. Any harvest/clear tasks in the box will be destroyed
+function ResourceCallHandler:box_unharvest_resources(session, response) 
+   stonehearth.selection:select_xz_region()
+      :require_supported(true)
+      --Change this color to something else
+      :use_outline_marquee(Color4(0, 255, 0, 32), Color4(0, 255, 0, 255))
+      --Change this cursor to something else
+      :set_cursor('stonehearth:cursors:harvest')
+      --I still don't know what this does
+      :set_find_support_filter(function(result)
+            if result.entity:get_component('terrain') then
+               return true
+            end
+            return stonehearth.selection.FILTER_IGNORE
+         end)
+      :done(function(selector, box)
+            _radiant.call('stonehearth:server_box_unharvest_resources', box)
+            response:resolve(true)
+         end)
+      :fail(function(selector)            
+            response:reject('no region')
+         end)
+      :go()
+end
+
+--TODO: should we undo mining regions too?
+function ResourceCallHandler:server_box_unharvest_resources(session, response, box)
+   local cube = Cube3(Point3(box.min.x, box.min.y, box.min.z),
+                      Point3(box.max.x, box.max.y, box.max.z))
+
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+   
+   for _, entity in pairs(entities) do
+      local town = stonehearth.town:get_town(session.player_id)
+      town:remove_previous_harvest_task_on_item(entity)
+   end
+end
+
 return ResourceCallHandler

@@ -21,7 +21,7 @@ function Mission:_create_party(ctx, info)
       local member = population:create_new_citizen()
       
       member:add_component('stonehearth:job')
-                  :promote_to(job)
+                  :promote_to(job, nil, { is_npc = true })
       
       party:add_member(member)
 

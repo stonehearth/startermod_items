@@ -392,6 +392,23 @@ var StonehearthClient;
          });
       },
 
+      boxUnharvestItem: function() {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:unharvest_resource_tip_title', 'stonehearth:unharvest_resource_tip_description', {i18n : true});
+
+         return this._callTool('boxUnharvestItem', function() {
+            return radiant.call('stonehearth:box_unharvest_resources')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
+                  self.boxUnharvestItem();
+               })
+               .fail(function(response) {
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       createStockpile: function() {
          var self = this;
 

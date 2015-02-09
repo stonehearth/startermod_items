@@ -5,8 +5,10 @@
    "controller" : "stonehearth:class:carpenter",   
    "description": "The carpenter crafts tools and furniture from wood. The tools he makes unlocks several other jobs.",
    "requirements": "Carpenter's saw, crafted by the Blacksmith.",
+
+   "abilities" : "file(carpenter_abilities)",
+
    "equipment" : {
-      "abilities" : "file(carpenter_abilities)",
       "torso" : "file(carpenter_outfit)",
       "mainhand" : "stonehearth:carpenter:saw"
    },

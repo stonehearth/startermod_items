@@ -1,0 +1,10 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "activity_overlay_effect": {
+         "type" : "activity_overlay_effect",
+         "material" : "materials/clear_overlay/clear_overlay.material.xml",
+         "y_offset" : -10
+     }
+   }
+}

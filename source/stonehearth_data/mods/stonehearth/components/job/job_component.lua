@@ -156,7 +156,7 @@ end
 -- Called in the moment that the animation converts the citizen to their new job. 
 -- @job_uri - uri of the job we're promoting to
 -- @talisman_entity - specific talisman associated with this job, optional
-function JobComponent:promote_to(job_uri, talisman_entity)
+function JobComponent:promote_to(job_uri, talisman_entity, options)
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
       self:demote()
@@ -174,7 +174,15 @@ function JobComponent:promote_to(job_uri, talisman_entity)
       self._sv.current_level_exp = 0
       self._sv.xp_to_next_lv = self:_calculate_xp_to_next_lv()
 
-      self:_equip_outfit(self._job_json)
+      -- equip your abilities item
+      self:_equip_abilities(self._job_json)
+
+      -- equip your equipment, unless you're an npc, in which case the game is responsible for manually
+      -- adding the proper equipment
+      if not options or not options.is_npc then
+         self:_equip_equipment(self._job_json)
+      end
+
       self._sv._default_stance = self._job_json.default_stance
       self:reset_to_default_comabat_stance()
 
@@ -277,7 +285,7 @@ end
 
 --Call when we no longer want the job we have
 function JobComponent:demote()
-   self:_remove_outfit()
+   self:_remove_equipment()
    self:_remove_all_perks()
 
    --If we have a talisman to drop, drop it. 
@@ -449,12 +457,22 @@ function JobComponent:_set_unit_info(name)
    self._entity:add_component('unit_info'):set_description(name)
 end
 
-function JobComponent:_equip_outfit(json)
-   local equipment_component = self._entity:add_component('stonehearth:equipment')
-   if json and json.equipment then
-      assert(not self._sv.equipment)
-      self._sv.equipment = {}
+function JobComponent:_equip_abilities(json)
+   assert(json and json.abilities)
+   assert(not self._sv.equipment)
       
+   
+   local equipment_component = self._entity:add_component('stonehearth:equipment')
+   local item = radiant.entities.create_entity(json.abilities)
+   equipment_component:equip_item(item)
+   
+   self._sv.equipment = {}
+   table.insert(self._sv.equipment, item)
+end
+
+function JobComponent:_equip_equipment(json)
+local equipment_component = self._entity:add_component('stonehearth:equipment')
+   if json and json.equipment then
       -- iterate through the equipment in the table, placing one item from each value
       -- on the entity.  they of the entry are irrelevant: they're just for documenation
       for _, items in pairs(json.equipment) do
@@ -473,7 +491,7 @@ function JobComponent:_equip_outfit(json)
 end
 
 -- Drop all the equipment and the talisman, if relevant
-function JobComponent:_remove_outfit()
+function JobComponent:_remove_equipment()
    if self._sv.equipment then
       local equipment_component = self._entity:add_component('stonehearth:equipment')
       equipment_component:drop_equipment()

@@ -6,8 +6,9 @@
    "requirements": "None, just hard work and guts.",
    "default_stance" : "passive",
 
-   "equipment" : {
-      "abilities" : "file(worker_abilities)",
+   "abilities" : "file(worker_abilities)",
+   
+   "equipment" : {   
       "torso" : "file(worker_outfit)",
       "mainhand" : [
          "stonehearth:mining_pick", 
