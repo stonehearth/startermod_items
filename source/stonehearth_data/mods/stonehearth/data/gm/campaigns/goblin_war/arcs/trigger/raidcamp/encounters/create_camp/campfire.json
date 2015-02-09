@@ -1,8 +1,6 @@
 {
    "type" : "camp_piece",
 
-   "size" : "large",
-
    "entities" : {
       "campfire" : {
          "uri" : "stonehearth:decoration:firepit_skulls",
@@ -12,7 +10,16 @@
             "y" : 0,
             "z" : 0
          }
-      }
+      },
+      "wood" : {
+         "uri" : "stonehearth:resources:wood:oak_log",
+         "force_iconic" : false,
+         "location" : {
+            "x" : 4,
+            "y" : 0,
+            "z" : 4
+         }
+      }      
    },
    "citizens" : {
       "worker_1" : {

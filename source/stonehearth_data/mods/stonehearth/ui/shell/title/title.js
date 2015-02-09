@@ -12,7 +12,7 @@ App.StonehearthTitleScreenView = App.View.extend({
 
       radiant.call('radiant:client_about_info')
          .done(function(o) {
-            self.set('context.productName', o.product_name + ' ' + o.product_version_string + ' (' + o.product_branch + ' ' +  o.product_build_number + ')');
+            self.set('context.productName', o.product_name + ' ' + o.product_version_string + ' (' + o.product_branch + ' ' +  o.product_build_number + ') ' + o.architecture + ' build');
             self._populateAboutDetails(o);
          });
 
@@ -46,12 +46,15 @@ App.StonehearthTitleScreenView = App.View.extend({
 
 
             if (vals.length > 0) {
+               var save = vals[0];
+               if (save.gameinfo.version != App.stonehearthVersion) {
+                  save.gameinfo.differentVersions = true;
+               }
                self.$('#continue').show();
                self.$('#continueGameButton').show();
                self.$('#loadGameButton').show();
                
-               self.set('context.lastSave', vals[0]);
-
+               self.set('context.lastSave', save);
                /*
                var ss = vals[0].screenshot;
                $('#titlescreen').css({
@@ -106,7 +109,7 @@ App.StonehearthTitleScreenView = App.View.extend({
             if (!o.alpha_welcome || !o.alpha_welcome.hide) {
                App.shellView.addView(App.StonehearthConfirmView, 
                   { 
-                     title : "Welcome to Stonehearth Alpha 5",
+                     title : "Welcome to Stonehearth Alpha 8",
                      message : "Warning: this is Alpha quality software. It's missing many features, and you can expect to encounter bugs as you play.<br><br>You can help by automatically sending us crash reports for your game. Would you like to do this?",
                      buttons : [
                         { 

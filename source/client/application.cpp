@@ -122,10 +122,38 @@ void Application::ShowHelp() const
    MessageBox(nullptr, HELP_MESSAGE.c_str(), PRODUCT_IDENTIFIER, MB_OK);
 }
 
+bool Application::ShouldRelaunch64Bit() const
+{
+   if (!core::System::IsPlatform64Bit()) {
+      return false;
+   }
+   if (core::System::IsProcess64Bit()) {
+      return false;
+   }
+   return core::Config::GetInstance().Get<bool>("enable_x64", true);
+ }
+
 int Application::Run(int argc, const char** argv)
 {
    // Exception handling prior to initializing crash reporter
    try {
+      // Some people are double-clicking on the Stonehearth.exe in the x64 directory
+      // manually trying to run the 64-bit build.  This will end up throwing a "cannot
+      // find settings.json" file since we expect the working directory to be one level
+      // up.  If we're a 64-bit build and we detect that our current directory is in the
+      // x64 dir, just cd up one level before trying to initialize anything.
+      if (core::System::IsProcess64Bit()) {
+         TCHAR tcurrent[MAX_PATH];
+         if (GetCurrentDirectory(MAX_PATH - 1, tcurrent)) {
+            std::string current(tcurrent);
+            if (boost::ends_with(current, "\\X64") || boost::ends_with(current, "\\X64\\") ||
+                boost::ends_with(current, "\\x64") || boost::ends_with(current, "\\x64\\")) {
+               std::string uplevel = current.substr(0, current.size() - 4);
+               SetCurrentDirectory(uplevel.c_str());
+            }
+         }
+      }
+
       if (ShouldShowHelp(argc, argv)) {
          ShowHelp();
          std::exit(0);
@@ -134,6 +162,15 @@ int Application::Run(int argc, const char** argv)
       TypeRegistry::Initialize();
       json::InitialzeErrorHandler();
       core::Config::GetInstance().Load(argc, argv);
+
+      if (ShouldRelaunch64Bit()) {
+         std::string binary = core::Config::GetInstance().Get<std::string>("x64_binary", "x64\\Stonehearth.exe");
+         core::Process p(binary, GetCommandLine());
+         if (p.IsRunning()) {
+            p.Detach();
+            return 0;
+         }
+      }
 
       bool show_console = false;
       DEBUG_ONLY(show_console = true;)
@@ -147,7 +184,7 @@ int Application::Run(int argc, const char** argv)
       google::protobuf::SetLogHandler([](google::protobuf::LogLevel level, const char* filename, int line, std::string const& message) {
          LOG(protobuf, 0) << " " << message;
       });
-      APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR;
+      APP_LOG(1) << "Stonehearth Version " << PRODUCT_FILE_VERSION_STR << " (" << (core::System::IsProcess64Bit() ? "x64" : "x32") << ")";
 
       perfmon::Timer_Init();
    } catch (std::exception const& e) {

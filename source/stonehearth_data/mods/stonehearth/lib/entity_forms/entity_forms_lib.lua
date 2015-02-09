@@ -24,7 +24,7 @@ function entity_forms_lib.get_uris(uri_or_entity)
                entity = iconic:get_root_entity()
                ef = entity:get_component('stonehearth:entity_forms')
             else
-               return nil, nil, nil -- no luck!
+               return entity:get_uri(), nil, nil  -- just a plain old entity with no forms
             end
          end
       end

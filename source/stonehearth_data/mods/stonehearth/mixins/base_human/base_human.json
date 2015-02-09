@@ -41,6 +41,8 @@
             "stonehearth:actions:harvest_resource_node_adjacent_action",
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
+            "stonehearth:actions:clear_item",
+            "stonehearth:actions:clear_item_adjacent",
             "stonehearth:actions:restock_stockpile",
             "stonehearth:actions:memorialize_death",
             "stonehearth:actions:combat",

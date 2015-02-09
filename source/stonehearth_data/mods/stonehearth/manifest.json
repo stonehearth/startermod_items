@@ -143,8 +143,8 @@
       "weaver:spinning_wheel" : "file(jobs/weaver/weaver_spinning_wheel/weaver_spinning_wheel.json)",
       "weaver:loom" : "file(jobs/weaver/weaver_loom/weaver_loom.json)",
 
-      "mining_zone" : "file(entities/terrain/mining_zone.json)",
-      "mining_zone_designation" : "file(entities/terrain/mining_zone_designation.json)",
+      "mining_zone" : "file(entities/terrain/mining_zone/mining_zone.json)",
+      "mining_zone_designation" : "file(entities/terrain/mining_zone/mining_zone_designation.json)",
 
       "stockpile" : "file(entities/construction/stockpile)",
       "workshop_outbox" : "file(entities/crafting/workshop_outbox)",
@@ -180,9 +180,15 @@
 
       "monsters:goblins:goblin" : "file(entities/monsters/goblins/goblin)",
       "monsters:goblins:goblin_tent" : "file(entities/monsters/goblins/goblin_tent)",
+      "monsters:goblins:goblin_hut" : "file(entities/monsters/goblins/goblin_hut)",
+      "monsters:goblins:goblin_barricade" : "file(entities/monsters/goblins/goblin_barricade)",
+      "monsters:goblins:goblin_small_totem" : "file(entities/monsters/goblins/goblin_small_totem)",
+      "monsters:goblins:goblin_large_totem" : "file(entities/monsters/goblins/goblin_large_totem)",
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
+      "monsters:goblins:armor:miniboss_crown" : "file(entities/monsters/goblins/armor/miniboss_crown)",
+      "monsters:goblins:armor:back_standard" : "file(entities/monsters/goblins/armor/back_standard)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -194,6 +200,9 @@
       "medium_boulder_3" : "file(entities/boulders/medium_boulder/medium_boulder_3.json)",
       "large_boulder_1" : "file(entities/boulders/large_boulder/large_boulder_1.json)",
       "large_boulder_2" : "file(entities/boulders/large_boulder/large_boulder_2.json)",
+
+      "terrain:water" : "file(entities/terrain/water)",
+      "terrain:waterfall" : "file(entities/terrain/waterfall)",
 
       "terrain:ui:ore_block" : "file(entities/terrain/ui/ore_block)",
       "terrain:ui:copper_block" : "file(entities/terrain/ui/copper_block)",
@@ -351,6 +360,7 @@
       "armor:bronze_breastplate" : "file(entities/armor/bronze_breastplate)",
       "armor:iron_mail" : "file(entities/armor/iron_mail)",
       "armor:steel_mail" : "file(entities/armor/steel_mail)",
+      "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
 
       "wooden_buckler" : "file(entities/armor/wooden_buckler)",
@@ -539,6 +549,8 @@
       "actions:harvest_crop_adjacent" : "file(ai/actions/harvest_crop_adjacent.lua)",
       "actions:harvest_plant" : "file(ai/actions/harvest_plant.lua)",
       "actions:harvest_plant_adjacent" : "file(ai/actions/harvest_plant_adjacent.lua)",
+      "actions:clear_item" : "file(ai/actions/clear_item_action.lua)",
+      "actions:clear_item_adjacent" : "file(ai/actions/clear_item_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
@@ -1046,8 +1058,12 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "shear_sheep" : {
-         "controller": "file(call_handlers/resource_call_handler.lua)",
+      "box_clear_resources" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_clear_resources" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
       "get_event_tracker": {
@@ -1310,9 +1326,13 @@
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
-      "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp.lua)",
-      "game_master:encounters:demand_tribute" : "file(services/server/game_master/controllers/encounters/demand_tribute.lua)",
-      "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid.lua)",
+      "game_master:encounters:create_camp" : "file(services/server/game_master/controllers/encounters/create_camp_encounter.lua)",
+      "game_master:encounters:collection_quest" : "file(services/server/game_master/controllers/encounters/collection_quest_encounter.lua)",
+      "game_master:encounters:city_raid" : "file(services/server/game_master/controllers/encounters/city_raid_encounter.lua)",
+      "game_master:encounters:wait" : "file(services/server/game_master/controllers/encounters/wait_encounter.lua)",
+      "game_master:encounters:wait_for_event" : "file(services/server/game_master/controllers/encounters/wait_for_event_encounter.lua)",
+      "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
+      "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",
@@ -1339,6 +1359,8 @@
       "bait_trap" : "file(components/trapping/bait_trap_component.lua)",
       "pet" : "file(components/pet/pet_component.lua)",
       "pet_owner" : "file(components/pet/pet_owner_component.lua)",
+      "water" : "file(components/water/water_component.lua)",
+      "waterfall" : "file(components/waterfall/waterfall_component.lua)",
       "door" : "file(components/door/door_component.lua)",
       "lamp" : "file(components/lamp/lamp_component.lua)",
       "workshop" : "file(components/workshop/workshop_component.lua)",
@@ -1413,6 +1435,8 @@
       "shepherd_pasture" : "file(renderers/shepherd_pasture/shepherd_pasture_renderer.lua)", 
       "trapping_grounds" : "file(renderers/trapping_grounds/trapping_grounds_renderer.lua)",
       "mining_zone" : "file(renderers/mining_zone/mining_zone_renderer.lua)",
+      "water" : "file(renderers/water/water_renderer.lua)",
+      "waterfall" : "file(renderers/waterfall/waterfall_renderer.lua)",
       "no_construction_zone" : "file(renderers/no_construction_zone/no_construction_zone_renderer.lua)",
       "construction_data" : "file(renderers/construction_data/construction_data_renderer.lua)",
       "ladder" : "file(renderers/ladder/ladder_renderer.lua)"
@@ -1487,7 +1511,8 @@
          "file(ui/game/bulletin/bulletin_dialog/shop_bulletin_dialog/shop_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.html)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.html)",
+         "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
       ],
@@ -1576,7 +1601,8 @@
          "file(ui/game/bulletin/bulletin_list/bulletin_list.js)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.js)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.js)",
+         "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
       "less" : [
@@ -1650,7 +1676,8 @@
          "file(ui/game/bulletin/bulletin_list/bulletin_list.less)",
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.less)",
-         "file(ui/game/bulletin/bulletin_dialog/demand_tribute_bulletin_dialog/demand_tribute_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.less)",
+         "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.less)",
          "file(ui/game/event_log/event_log.less)"
       ]
    }

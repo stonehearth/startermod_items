@@ -3,8 +3,15 @@
    "rarity" : "common",
 
    "encounters" : {
-      "create_camp" : "file(encounters/create_camp.json)",
+      "wait_to_start" : "file(encounters/wait_to_start.json)",
+      "create_camp" : "file(encounters/goblin_raiding_camp_1.json)",
       "shakedown" : "file(encounters/shakedown.json)",
-      "raiding_party" : "file(encounters/raiding_party.json)"
+      "raiding_party_1" : "file(encounters/raiding_party.json)",
+      "raiding_party_2" : "file(encounters/raiding_party.json)",
+      "raiding_party_3" : "file(encounters/raiding_party.json)",
+      "wait_for_next_shakedown" : "file(encounters/wait_for_next_shakedown.json)",
+      "wait_for_boss_death" : "file(encounters/wait_for_boss_death.json)",
+      "spawn_city_raids" : "file(encounters/spawn_city_raids.json)",
+      "finish_arc_on_boss_death" : "file(encounters/finish_arc_on_boss_death.json)"
    }
 }

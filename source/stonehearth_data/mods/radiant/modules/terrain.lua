@@ -46,12 +46,31 @@ end
 --   @param location - where to place it.  the entity will be placed at the
 --                     most appropriate y coordinate based on location.
 --
-function Terrain.place_entity(entity, location, options)
+function Terrain.place_entity(arg0, location, options)
+   local entity
+   if type(arg0) == 'string' then
+      entity = radiant.entities.create_entity(arg0)
+   else
+      entity = arg0
+   end
+
    if type(location) == "table" then
       location = Point3(location.x, location.y, location.z)
    end
    local pt = _physics:get_standable_point(entity, location)
    return Terrain.place_entity_at_exact_location(entity, pt, options)
+end
+
+-- create `w` * `h` entities at `x`, `z`.  see `place_entity` for a discussion
+-- of options
+function Terrain.place_entity_cluster(arg0, location, w, h, options)
+   w = w and w or 3
+   h = h and h or 3
+   for i = 1, w do
+      for j = 1, h do
+         Terrain.place_entity(arg0, location + Point3(i, 0, j), options)
+      end
+   end
 end
 
 -- place `entity` at the exact spot specified by `location`.  this could

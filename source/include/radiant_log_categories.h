@@ -57,12 +57,14 @@
    END_GROUP(simulation) \
    \
    BEGIN_GROUP(horde) \
+      ADD_CATEGORY(pbo) \
       ADD_CATEGORY(renderer) \
       ADD_CATEGORY(material) \
       ADD_CATEGORY(scene) \
    END_GROUP(horde) \
    \
    BEGIN_GROUP(renderer) \
+      ADD_CATEGORY(ui_buffer) \
       ADD_CATEGORY(effects_list) \
       ADD_CATEGORY(entity) \
       ADD_CATEGORY(entity_container) \

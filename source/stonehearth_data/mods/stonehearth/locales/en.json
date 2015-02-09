@@ -270,6 +270,12 @@
 
    "harvest_resource_tip_title" : "Click and drag to harvest resources", 
    "harvest_resource_tip_description" : "Right click to exit this mode", 
+   "clear_item_tip_title" : "Click and drag to permanently clear items from the world",
+   "clear_item_tip_description" : "Right click to exit this mode",  
+   "clear_item_confirm_title" : "Are you really sure you want to clear these items?",
+   "clear_item_confirm_message" : "Usable items in the area will be permanently destroyed", 
+   "confirm_clear" : "Yes, destroy!",
+   "confirm_clear_no" : "No! I need that stuff!",  
    "stockpile_tip_title" : "Click and drag to create your stockpile", 
    "stockpile_tip_description" : "Right click to exit this mode", 
    "field_tip_title" : "Click and drag to designate a new field", 
@@ -454,5 +460,11 @@
    "remove_party_member_button" : "Remove",
    "not_in_party" : "Not in a party",
    "party_help" : "Party members will travel together and can be directed on the battlefield.",
-   "party_editor_help" : "Use this screen to add and remove hearthlings to the party."   
+   "party_editor_help" : "Use this screen to add and remove hearthlings to the party.",
+   "collection_quest_pay" : "Here you go!",
+   "collection_quest_cancel" : "I'd rather not",
+
+   "shop_buy" : "Buy",
+   "shop_sell" : "Sell"
+
 }

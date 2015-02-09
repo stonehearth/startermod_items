@@ -79,6 +79,9 @@ namespace proto = ::radiant::tesseract::protocol;
 
 static const std::regex call_path_regex__("/r/call/?");
 
+static int POST_SYSINFO_DELAY_MS    = 15 * 1000;      // 15 seconds
+static int POST_SYSINFO_INTERVAL_MS = 5 * 60 * 1000;  // every 5 minutes
+
 DEFINE_SINGLETON(Client);
 
 template<typename T> 
@@ -90,6 +93,8 @@ json::Node makeRendererConfigNode(RendererConfigEntry<T>& e) {
 
    return n;
 }
+
+static const std::string SAVE_TEMP_DIR("tmp_save");
 
 Client::Client() :
    _tcp_socket(_io_service),
@@ -108,8 +113,10 @@ Client::Client() :
    save_stress_test_(false),
    debug_track_object_lifetime_(false),
    loading_(false),
-   _lastSequenceNumber(0)
+   _lastSequenceNumber(0),
+   _nextSysInfoPostTime(0)
 {
+   _nextSysInfoPostTime = platform::get_current_time_in_ms() + POST_SYSINFO_DELAY_MS;
 }
 
 Client::~Client()
@@ -152,10 +159,7 @@ void Client::OneTimeIninitializtion()
    });
 
    // browser...
-   int screen_width = renderer.GetWindowWidth();
-   int screen_height = renderer.GetWindowHeight();
-
-   browser_.reset(chromium::CreateBrowser(hwnd, "", screen_width, screen_height, 1338));
+   browser_.reset(chromium::CreateBrowser(hwnd, "", renderer.GetScreenSize(), renderer.GetMinUiSize(), 1338));
    browser_->SetCursorChangeCb([=](HCURSOR cursor) {
       if (uiCursor_) {
          DestroyCursor(uiCursor_);
@@ -170,11 +174,8 @@ void Client::OneTimeIninitializtion()
       BrowserRequestHandler(uri, query, postdata, response);
    });
 
-   int ui_width, ui_height;
-   browser_->GetBrowserSize(ui_width, ui_height);
-   renderer.SetUITextureSize(ui_width, ui_height);
    browserResizeGuard_ = renderer.OnScreenResize([this](csg::Point2 const& r) {
-      browser_->OnScreenResize(r.x, r.y);
+      browser_->OnScreenResize(r);
    });
 
    if (config.Get("enable_flush_and_load", false)) {
@@ -302,6 +303,7 @@ void Client::OneTimeIninitializtion()
       try {
          json::Node node;
          core::Config& config = core::Config::GetInstance();
+         node.set("architecture", core::System::IsProcess64Bit() ? "x64" : "x32");
          node.set("product_name", PRODUCT_NAME);
          node.set("product_major_version", PRODUCT_MAJOR_VERSION);
          node.set("product_minor_version", PRODUCT_MINOR_VERSION);
@@ -351,30 +353,8 @@ void Client::OneTimeIninitializtion()
    });
 
    //Pass framerate, cpu, card, memory info up
-   core_reactor_->AddRoute("radiant:send_performance_stats", [this](rpc::Function const& f) {
-      rpc::ReactorDeferredPtr result = std::make_shared<rpc::ReactorDeferred>("radiant:send_performance_stats");
-      try {
-         json::Node node;
-         SystemStats stats = Renderer::GetInstance().GetStats();
-         node.set("UserId", core::Config::GetInstance().GetUserID());
-         node.set("FrameRate", stats.frame_rate);
-         node.set("GpuVendor", stats.gpu_vendor);
-         node.set("GpuRenderer", stats.gpu_renderer);
-         node.set("GlVersion", stats.gl_version);
-         node.set("CpuInfo", stats.cpu_info);
-         node.set("MemoryGb", stats.memory_gb);
-         node.set("OsName", platform::SysInfo::GetOSName());
-         node.set("OsVersion", platform::SysInfo::GetOSVersion());
-
-         // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
-         analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
-         post_data.Send();
-         result->ResolveWithMsg("success");
-
-      } catch (std::exception const& e) {
-         result->RejectWithMsg(BUILD_STRING("exception: " << e.what()));
-      }
-      return result;
+   core_reactor_->AddRouteV("radiant:send_performance_stats", [this](rpc::Function const& f) {
+      ReportSysInfo();
    });
 
    core_reactor_->AddRoute("radiant:set_audio_config", [this](rpc::Function const& f) {
@@ -599,19 +579,31 @@ void Client::OneTimeIninitializtion()
    core_reactor_->AddRouteJ("radiant:client:get_save_games", [this](rpc::Function const& f) {
       json::Node games;
       fs::path savedir = core::Config::GetInstance().GetSaveDirectory();
-      if (fs::is_directory(savedir)) {
-         for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
-            try {
-               std::string name = it->path().filename().string();
-               std::ifstream jsonfile((it->path() / "metadata.json").string());
-               JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
-               json::Node entry;
-               entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
-               entry.set("gameinfo", metadata);
 
-               games.set(name, entry);
-            } catch (std::exception const&) {
-            }
+      CLIENT_LOG(3) << "listing saved games";
+
+      if (!fs::is_directory(savedir)) {
+         CLIENT_LOG(3) << "save game directory does not exist!";
+         return games;
+      }
+
+      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
+         std::string name = it->path().filename().string();
+         if (name == SAVE_TEMP_DIR) {
+            CLIENT_LOG(3) << "ignoring temporary save directory: " << SAVE_TEMP_DIR;
+            continue;
+         }
+         try {
+            std::ifstream jsonfile((it->path() / "metadata.json").string());
+            JSONNode metadata = libjson::parse(io::read_contents(jsonfile));
+            json::Node entry;
+            entry.set("screenshot", BUILD_STRING("/r/screenshot/" << name << "/screenshot.png"));
+            entry.set("gameinfo", metadata);
+            games.set(name, entry);
+
+            CLIENT_LOG(3) << "added save \"" << name << "\" to list.";
+         } catch (std::exception const &e) {
+            CLIENT_LOG(3) << "ignoring directory \"" << name << "\" :" << e.what();
          }
       }
       return games;
@@ -949,8 +941,8 @@ void Client::mainloop()
    browser_->Work();
 
    if (!loading_) {
-      auto cb = [this](const csg::Region2 &rgn, const uint32* buff) {
-         Renderer::GetInstance().UpdateUITexture(rgn, buff);
+      auto cb = [this](csg::Point2 const& size, csg::Region2 const &rgn, const uint32* buff) {
+         Renderer::GetInstance().UpdateUITexture(size, rgn, buff);
       };
       perfmon::SwitchToCounter("update browser display");
       browser_->UpdateDisplay(cb);
@@ -999,6 +991,12 @@ void Client::mainloop()
       SaveGame("stress_test_save", json::Node());
       LoadGame("stress_test_save");
       save_stress_test_timer_.set(10000);
+   }
+   
+   int now = platform::get_current_time_in_ms();
+   if (_nextSysInfoPostTime < now) {
+      ReportSysInfo();
+      _nextSysInfoPostTime = now + POST_SYSINFO_INTERVAL_MS;
    }
 
    CLIENT_LOG(5) << "exiting client main loop";
@@ -1649,37 +1647,41 @@ rpc::ReactorDeferredPtr Client::SaveGame(std::string const& saveid, json::Node c
    }
    ASSERT(!server_save_deferred_);
 
-   fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
-   if (!fs::is_directory(savedir)) {
-      fs::create_directories(savedir);
-   } else {
-      for (fs::directory_iterator end_dir_it, it(savedir); it != end_dir_it; ++it) {
-         remove_all(it->path());
-      }
+   fs::path tmpdir  = core::Config::GetInstance().GetSaveDirectory() / SAVE_TEMP_DIR;
+   if (fs::is_directory(tmpdir)) {
+      remove_all(tmpdir);
    }
-   SaveClientState(savedir);
+   fs::create_directories(tmpdir);
+   SaveClientState(tmpdir);
 
    json::Node args;
-   args.set("saveid", saveid);
+   args.set("saveid", SAVE_TEMP_DIR);
 
    client_save_deferred_ = std::make_shared<rpc::ReactorDeferred>("client save");
    server_save_deferred_ = core_reactor_->Call(rpc::Function("radiant:server:save", args));
 
-   server_save_deferred_->Done([this, savedir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Done([this, saveid, tmpdir, gameinfo](JSONNode const&n) {
       // Wait until both the client and server state have been saved to write
       // the client metadata.  This way we won't leave an incomplete file if we
       // (for example) crash while saving the server state.
-      SaveClientMetadata(savedir, gameinfo);
+      SaveClientMetadata(tmpdir, gameinfo);
       client_save_deferred_->Resolve(n);
+
+      // finally. move the save game to the correct direcory
+      fs::path savedir = core::Config::GetInstance().GetSaveDirectory() / saveid;
+      DeleteSaveGame(saveid);
+      rename(tmpdir, savedir);
+      CLIENT_LOG(1) << "moving " << tmpdir.string() << " to " << savedir;
    });
-   server_save_deferred_->Fail([this, savedir, gameinfo](JSONNode const&n) {
+   server_save_deferred_->Fail([this, tmpdir, gameinfo](JSONNode const&n) {
       client_save_deferred_->Reject(n);
    });
 
-   server_save_deferred_->Always([this] {
+   server_save_deferred_->Always([this, tmpdir] {
       CLIENT_LOG(3) << "clearing save deferred pointers";
       client_save_deferred_ = nullptr;
       server_save_deferred_ = nullptr;
+      remove_all(tmpdir);
    });
    return client_save_deferred_;
 }
@@ -1895,4 +1897,28 @@ void Client::RestoreDatastores()
 csg::Point2 Client::GetMousePosition() const
 {
    return mouse_position_;
+}
+
+void Client::ReportSysInfo()
+{
+   try {
+      json::Node node;
+      SystemStats stats = Renderer::GetInstance().GetStats();
+      node.set("UserId", core::Config::GetInstance().GetUserID());
+      node.set("FrameRate", stats.frame_rate);
+      node.set("GpuVendor", stats.gpu_vendor);
+      node.set("GpuRenderer", stats.gpu_renderer);
+      node.set("GlVersion", stats.gl_version);
+      node.set("CpuInfo", stats.cpu_info);
+      node.set("MemoryGb", stats.memory_gb);
+      node.set("OsName", platform::SysInfo::GetOSName());
+      node.set("OsVersion", platform::SysInfo::GetOSVersion());
+      node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
+
+      // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
+      analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
+      post_data.Send();
+   } catch (std::exception const& e) {
+      CLIENT_LOG(1) << "failed to update sysinfo:" << e.what();
+   }
 }

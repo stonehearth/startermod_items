@@ -1,4 +1,6 @@
-CalendarService = class()
+local CalendarAlarm = require 'services.server.calendar.calendar_alarm'
+
+local rng = _radiant.csg.get_default_rng()
 
 local TIME_UNITS = {
    'second',
@@ -8,9 +10,10 @@ local TIME_UNITS = {
    'month',
    'year',
 }
-
 local TIME_INTERVALS = {}
 local TIME_DURATIONS = {}
+
+local CalendarService = class()
 
 function CalendarService:__init()
    self._constants = radiant.resources.load_json('/stonehearth/data/calendar/calendar_constants.json')
@@ -36,6 +39,10 @@ end
 
 function CalendarService:initialize()
    self._sv = self.__saved_variables:get_data()
+   
+   self._past_alarms = {}
+   self._future_alarms = {}
+   
    if not self._sv.date then
       --We're loading for the first time
       self._sv.date = {} -- the calendar data to export
@@ -46,17 +53,12 @@ function CalendarService:initialize()
          self._sv.date[unit] = self._constants.start[unit]
          self._sv.start_time[unit] = self._constants.start[unit]
       end
-      
-      -- When you change the start time change these to match
-      self._sv._fired_sunrise_today = true
-      self._sv._fired_noon_today = false
-      self._sv._fired_sunset_today = false
-      self._sv._fired_midnight_today = false
+      self:_update_seconds_today()
    end
 end
 
---Returns the remaining time based ont he period passed in 'm' for minute, 'h' for hour, 'd' for day, 
---otherwise, returns period in seconds
+-- Returns the remaining time based on the period passed in 'm' for minute, 'h' for hour, 'd' for day, 
+-- otherwise, returns period in seconds
 --
 function CalendarService:get_remaining_time(timer, period)
    local seconds_remaining = timer:get_expire_time() - self:get_elapsed_time()
@@ -95,6 +97,7 @@ end
 --    set_timer(120, cb)  -- 2 minute timer
 --    set_timer('2m', cb) -- also a 2 minute timer
 --    set_timer('1d1s', cb) -- a timer for 1 day and 1 second.
+--
 function CalendarService:set_timer(duration, fn)
    return self:_create_timer(duration, fn, false)
 end
@@ -119,6 +122,29 @@ function CalendarService:parse_duration(str)
    return seconds
 end
 
+function CalendarService:parse_time(str)
+   -- see if we're a fuzzy timeout
+   local plus_offset = str:find('+')
+   if plus_offset and plus_offset > 1 then
+      local time = str:sub(1, plus_offset - 1)
+      local duration = str:sub(plus_offset + 1, #str)
+
+      local random_delay = self:parse_duration(duration)
+      return self:parse_time(time) + rng:get_int(1, random_delay)
+   end
+
+   local h, m = string.match(str, '(%d+):(%d+)')
+   if h == nil or m == nil then
+      error(string.format("invalid time string %s", str))
+   end
+   h = tonumber(h)
+   m = tonumber(m)
+   if h < 0 or h >= self._constants.hours_per_day or m < 0 or m >= self._constants.minutes_per_hour then
+      error(string.format("invalid time string %s", str))
+   end
+   return h * TIME_DURATIONS.hour + m * TIME_DURATIONS.minute;
+end
+
 -- currently zero duration timers will fire on the following game loop
 function CalendarService:_create_timer(duration, fn, repeating)
    assert(type(fn) == 'function')
@@ -133,6 +159,55 @@ function CalendarService:_create_timer(duration, fn, repeating)
    assert(timeout_s >= 0, string.format('invalid duration passed to calendar set timer, "%s"', tostring(duration)))
 
    return self._time_tracker:set_timer(timeout_s, fn, repeating)
+end
+
+-- alarms go off once a day
+function CalendarService:set_alarm(time, fn)
+   assert(type(fn) == 'function')
+   
+   local alarm = CalendarAlarm(time, fn)
+   self:_queue_alarm(alarm)
+   return alarm
+end
+
+function CalendarService:_queue_alarm(alarm)
+   if alarm:get_expire_time() >= self._sv.seconds_today then
+      table.insert(self._future_alarms, alarm)
+      table.sort(self._future_alarms, function(l, r)
+            return l:get_expire_time() < r:get_expire_time()
+         end)
+   else
+      table.insert(self._past_alarms, alarm)
+   end
+end
+
+function CalendarService:_fire_alarms(alarm)
+   local now = self._sv.seconds_today
+
+   while #self._future_alarms > 0 do
+      local alarm = self._future_alarms[1]
+      if alarm:get_expire_time() > now then
+         break
+      end
+      table.remove(self._future_alarms, 1)
+      if not alarm:is_dead() then
+         alarm:fire()
+         table.insert(self._past_alarms, alarm)
+      end
+   end
+end
+
+function CalendarService:_reset_all_alarms()
+   for _, alarm in pairs(self._past_alarms) do
+      if not alarm:is_dead() then
+         alarm:reset()
+         table.insert(self._future_alarms, alarm)
+      end
+   end
+   self._past_alarms = {}
+   table.sort(self._future_alarms, function(l, r)
+         return l:get_expire_time() < r:get_expire_time()
+      end)
 end
 
 function CalendarService:get_constants()
@@ -156,13 +231,11 @@ function CalendarService:_on_event_loop(e)
          break
       end
       remaining = remaining / TIME_INTERVALS[unit]
+   end   
+   if self._sv.date.hour == 0 and last_hour == (self._constants.hours_per_day - 1) then
+      self:_reset_all_alarms()
    end
-
-   if last_hour ~= nil and last_hour ~= self._sv.date.hour then
-      radiant.events.trigger_async(self, 'stonehearth:hourly', { now = self._sv.date })
-   end
-
-   self:fire_time_of_day_events()
+   self:_update_seconds_today()
 
    -- the time, formatted into a string
    self._sv.date.time = self:format_time()
@@ -170,61 +243,12 @@ function CalendarService:_on_event_loop(e)
    -- the date, formatting into a string
    self._sv.date.date = self:format_date()
 
+   self:_fire_alarms()
    self._time_tracker:set_now(self:get_elapsed_time())
+
    self.__saved_variables:mark_changed()
 
    radiant.set_performance_counter('game time', self:get_elapsed_time())
-end
-
---[[
-   If the hour is greater than the set time of day, then fire the
-   relevant event.
-]]
-function CalendarService:fire_time_of_day_events()
-   local hour = self._sv.date.hour
-   local curr_day_periods = self._constants.event_times
-
-   if hour >= curr_day_periods.midnight and
-      hour < curr_day_periods.sunrise and
-      not self._sv._fired_midnight_today then
-
-      radiant.events.trigger_async(self, 'stonehearth:midnight')
-      self._sv._fired_midnight_today = true
-
-      self._sv._fired_sunrise_today = false
-      self._sv._fired_noon_today = false
-      self._sv._fired_sunset_today = false
-      return
-   end
-
-   if hour >= curr_day_periods.sunrise and
-      not self._sv._fired_sunrise_today then
-
-      radiant.events.trigger_async(self, 'stonehearth:sunrise')
-      --xxx localise
-      stonehearth.events:add_entry('The sun has risen on ' .. self:format_date() .. '.')
-      self._sv._fired_sunrise_today = true
-      self._sv._fired_midnight_today = false
-      return
-   end
-
-   if hour >= curr_day_periods.midday and
-      not self._sv._fired_noon_today then
-
-      radiant.events.trigger_async(self, 'stonehearth:noon')
-      self._sv._fired_noon_today = true
-      return
-   end
-
-   if hour >= curr_day_periods.sunset and
-      not self._sv._fired_sunset_today then
-
-      radiant.events.trigger_async(self, 'stonehearth:sunset')
-      --xxx localize
-      stonehearth.events:add_entry('The sun has set.')
-      self._sv._fired_sunset_today = true
-      return
-   end
 end
 
 function CalendarService:format_time()
@@ -263,8 +287,16 @@ function CalendarService:set_time_unit_test_only(override)
       self._sv.start_time[name] = new_value
    end
    self._sv.start_game_tick = radiant.gamestate.now()
+   self:_update_seconds_today()
+   if self._sv.seconds_today == 0 then
+      self:_reset_all_alarms()
+   end
 end
 
+function CalendarService:_update_seconds_today()
+   self._sv.seconds_today = (self._sv.date.hour * TIME_DURATIONS.hour ) + (self._sv.date.minute * TIME_DURATIONS.minute) + self._sv.date.second
+   self.__saved_variables:mark_changed()
+end
 
 return CalendarService
 

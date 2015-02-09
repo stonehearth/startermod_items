@@ -1,0 +1,46 @@
+{
+   "type": "entity",
+   "mixins" : "stonehearth:mixins:item_properties",
+   "components" : {
+      "unit_info" : {
+         "name": "Rough Wooden Buckler",
+         "description": "Crude and basic",
+         "icon" : "file(wooden_shield.png)"         
+      },
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(wooden_shield.qb)"
+            ]
+         }
+      },
+      "stonehearth:material" : {
+         "tags" : "wood armor heavy_armor"
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(wooden_shield_iconic.json)"
+      },
+
+      "stonehearth:equipment_piece" : {
+         "slot" : "offhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol", "stonehearth:have_shield" ],
+         "ilevel" : 2,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:armor_data" : {
+         "base_damage_reduction" : 1
+      },
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_shield_block",
+            "active_frame" : 4,
+            "cooldown" : 8000,
+            "priority" : 0
+         }
+      ]
+   }
+}

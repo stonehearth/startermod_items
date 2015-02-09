@@ -163,6 +163,7 @@ class Client : public core::Singleton<Client> {
       void RestoreDatastores();
       rpc::ReactorDeferredPtr StartPerformanceCounterPush();
       void PushPerformanceCounters();
+      void ReportSysInfo();
 
 private:
       /*
@@ -267,6 +268,7 @@ private:
       rpc::ReactorDeferredPtr     server_save_deferred_;
       rpc::ReactorDeferredPtr     client_save_deferred_;
       int                         _lastSequenceNumber;
+      int                         _nextSysInfoPostTime;
 
       bool                        loading_;
       std::string                 loadError_;

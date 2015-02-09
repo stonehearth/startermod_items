@@ -39,13 +39,43 @@ default: submodules configure crash_reporter stonehearth
 clean:
 	rm -rf $(BUILD_DIR)
 
+.PHONY: clean-all
+clean-all:
+	rm -rf build
+
+# the legacy official-build target.  does nothing!
 .PHONY: official-build
 official-build: clean init-build submodules configure crash_reporter stonehearth symbols stage game-package steam-package
 
+# the current official targets.  builds are done in this order with these shells:
+#
+#    official-build-setup 	 (32-bit shell)
+#    official-build-x64   	 (64-bit shell)
+#    official-build-x86  	 (32-bit shell)
+#    official-build-package (32-bit shell)
+#
+.PHONY: official-build-setup
+official-build-setup: clean-all
+
+.PHONY: official-build-x86
+official-build-x86: official-build-platform
+
+.PHONY: official-build-x64
+official-build-x64: official-build-platform
+
+official-build-platform: submodules init-build configure crash_reporter stonehearth symbols
+
+.PHONY: official-build-package
+official-build-package: stage game-package steam-package
+
+# fake-official-build-x86 and fake-official-build-x64 for testing in a developer environment
+fake-official-build-%:
+	BAMBOO_BRANCH_NAME=branch BAMBOO_BUILD_TIME=now BAMBOO_PRODUCT_VERSION_MAJOR=1 BAMBOO_PRODUCT_VERSION_PATCH=1 BAMBOO_PRODUCT_VERSION_MINOR=1 BAMBOO_BUILD_NUMBER=1111 BAMBOO_PRODUCT_NAME=Stonehearth make BAMBOO_PRODUCT_IDENTIFIER=sh BAMBOO_PRODUCT_IDENTIFIER=stonehearth BAMBOO_BRANCH_REVISION=efgh official-build-$*
+
 .PHONY: init-build
 init-build:
-	-mkdir -p $(BUILD_DIR)
-	$(MAKE_ROOT)/init_build_number.py > $(BUILD_DIR)/build_overrides.h
+	-mkdir -p $(BUILD_ROOT)
+	$(MAKE_ROOT)/init_build_number.py > $(BUILD_ROOT)/build_overrides.h
 
 .PHONY: submodules
 submodules:
@@ -134,7 +164,8 @@ dependency-graph:
 
 .PHONY: stage
 stage:
-	$(STAGE) -o $(STAGE_ROOT) -c -a
+	$(STAGE) -o $(STAGE_ROOT)     -x x86 -c -b -s -d
+	$(STAGE) -o $(STAGE_ROOT)/x64 -x x64 -c -b -s
 
 .PHONY: test-stage
 test-stage:

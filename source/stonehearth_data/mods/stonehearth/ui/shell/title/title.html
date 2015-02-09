@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="stonehearthTitleScreen">
    <div id="radiant">
    </div>
-   <div id="titlescreen">
+   <div id="titlescreen" class="dev_build">
       
       <div id="menubar">
          <a href="#" {{action exit target="view"}}>{{i18n stonehearth:title_screen_exit}}</a>
@@ -18,6 +18,9 @@
                <div class="nameHeader">{{i18n stonehearth:title_screen_kingdom_of}}</div>
                <div class="name">{{lastSave.gameinfo.town_name}}</div>
                <div class="gameTime">{{lastSave.gameinfo.game_date}}</div>
+               {{#if lastSave.gameinfo.differentVersions}}
+                  <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
+               {{/if}}               
                <img class="banner" />
             </div>
          </div>

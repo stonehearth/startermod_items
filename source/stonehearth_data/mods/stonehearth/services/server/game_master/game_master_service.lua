@@ -13,6 +13,11 @@ function GameMasterService:initialize()
    else
       self:restore()
    end
+   
+   local enabled = radiant.util.get_config('game_master.enabled')
+   if enabled then
+      self:start()
+   end
 end
 
 function GameMasterService:restore()

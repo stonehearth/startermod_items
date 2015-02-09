@@ -117,6 +117,7 @@ set(Boost_USE_STATIC_RUNTIME  ON)
 set(Boost_USE_MULTITHREADED   ON)
 
 # this must be first, to pickup build_overrides.h before the one in source/include
+MESSAGE("looking for build_overrids.h in ${CMAKE_CURRENT_BINARY_DIR}")
 FIND_PATH(BUILD_OVERRIDES build_overrides.h PATHS "${CMAKE_CURRENT_BINARY_DIR}")
 if (BUILD_OVERRIDES)
    MESSAGE("using build_overrides")

@@ -17,6 +17,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          .done(function(response) {
             self.set('playerGold', response.gold);
             self._updateBuyButtons();
+            self._updateSellButtons();
          })
    },
 
@@ -44,22 +45,6 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          self._updateSellButton();
       });
 
-      self.$('#buyButton').click(function() {
-         self.$('#buyList').show();
-         self.$('#sellList').hide();
-         self.$('#shopTitle').html('Shop inventory');
-         self.$('#buyButtons').show();
-         self.$('#sellButtons').hide();
-      });
-
-      self.$('#sellButton').click(function() {
-         self.$('#buyList').hide();
-         self.$('#sellList').show();
-         self.$('#shopTitle').html('My inventory');
-         self.$('#buyButtons').hide();
-         self.$('#sellButtons').show();
-      });
-
       self.$('#buy1Button').click(function() {
          if (!$(this).hasClass('disabled')) {
             self._doBuy(1);
@@ -84,6 +69,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          }
       })      
 
+      this.$('#buyTab').show();
    },
 
    _buildBuyPalette: function() {

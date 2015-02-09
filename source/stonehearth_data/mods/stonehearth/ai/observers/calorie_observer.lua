@@ -25,7 +25,9 @@ function CalorieObserver:initialize(entity)
    --Hunger is on by default. If it's NOT on, don't do any of this. 
    self._enable_hunger = radiant.util.get_config('enable_hunger', true)
    if self._enable_hunger then
-      self._hour_listener = radiant.events.listen(calendar, 'stonehearth:hourly', self, self._on_hourly)
+      self._hour_listener = stonehearth.calendar:set_interval('1h', function()
+            self:_on_hourly()
+         end)
       self._calorie_listener = radiant.events.listen(self._entity, 'stonehearth:attribute_changed:calories', self, self._on_calories_changed)
    
       --Also, should we be eating right now? If so, let's do that
@@ -99,7 +101,7 @@ function CalorieObserver:_adjust_health_and_status()
 end
 
 --- Every hour, handle energy, eating impulses, health etc
-function CalorieObserver:_on_hourly(e)
+function CalorieObserver:_on_hourly()
    local calories = self._attributes_component:get_attribute('calories')
    local previous_calories = calories
    calories = calories - stonehearth.constants.food.HOURLY_ENERGY_LOSS
@@ -114,13 +116,14 @@ function CalorieObserver:_on_hourly(e)
    self._attributes_component:set_attribute('calories', calories)
 
    --If it's mealtime, everyone go eat. 
-   self:_handle_mealtimes(e.now.hour, calories)
+   self:_handle_mealtimes(calories)
 end
 
 -- If it's mealtime, start the looking for food task
 -- TODO: is this necessary: If it's not mealtime, and we're not malnourished, stop eating
-function CalorieObserver:_handle_mealtimes(hour, calories)
-   if hour == stonehearth.constants.food.MEALTIME_START and  calories < stonehearth.constants.food.MAX_ENERGY then
+function CalorieObserver:_handle_mealtimes(calories)
+   local now = stonehearth.calendar:get_time_and_date()   
+   if now.hour == stonehearth.constants.food.MEALTIME_START and calories < stonehearth.constants.food.MAX_ENERGY then
       self:_start_eat_task()
    end
 end

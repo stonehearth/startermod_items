@@ -14,12 +14,12 @@ Clock::Clock() :
    game_time_next_delivery_(0),
    last_reported_time_(0)
 {
-   CLOCK_LOG(3) << "creating new clock";
+   CLOCK_LOG(7) << "creating new clock";
 }
 
 void Clock::Update(int game_time, int game_time_interval, int estimated_next_delivery)
 {
-   CLOCK_LOG(3) << "updating time (game_time:" << game_time << " interval:" << game_time_interval << ")";
+   CLOCK_LOG(7) << "updating time (game_time:" << game_time << " interval:" << game_time_interval << ")";
    game_time_start_ = game_time;
    game_time_interval_ = std::max(game_time_interval, 0);
    game_time_next_delivery_ = estimated_next_delivery;
@@ -46,14 +46,14 @@ void Clock::EstimateCurrentGameTime(int &game_time, float& alpha) const
 
    }
    if (last_reported_time_ > game_time) {
-      CLOCK_LOG(7) << "dragging clock forward from " << game_time << " to " << last_reported_time_ << "(diff:" << (last_reported_time_ - game_time)<< ")";
+      CLOCK_LOG(9) << "dragging clock forward from " << game_time << " to " << last_reported_time_ << "(diff:" << (last_reported_time_ - game_time)<< ")";
       game_time = last_reported_time_;
    }
 
    int changed = game_time - last_reported_time_;
    last_reported_time_ = game_time;
 
-   CLOCK_LOG(4) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
+   CLOCK_LOG(9) << "estimate time: " << game_time << "(alpha: " << alpha << " change: " << changed << ")" << "["
                 << " gt start: " << game_time_start_
                 << " gt interval: " << game_time_interval_
                 << " gt next: " << game_time_next_delivery_

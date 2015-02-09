@@ -24,7 +24,7 @@
       "stonehearth:equipment_piece" : {
          "slot" : "offhand",
          "render_type" : "attach_to_bone",
-         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol", "stonehearth:have_shield" ],
          "ilevel" : 6,
          "roles" : "combat",
          "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
@@ -33,6 +33,14 @@
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
          "base_damage_reduction" : 2
-      }
+      },
+      "stonehearth:combat:melee_defenses" : [
+         {
+            "name" : "combat_1h_shield_block",
+            "active_frame" : 4,
+            "cooldown" : 1000,
+            "priority" : 0
+         }
+      ]
    }
 }

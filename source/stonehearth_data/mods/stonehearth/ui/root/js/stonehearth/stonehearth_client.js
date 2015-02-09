@@ -353,6 +353,45 @@ var StonehearthClient;
          });
       },
 
+      boxClearItem: function() {
+         var self = this;
+         var tip = self.showTip('stonehearth:clear_item_tip_title', 'stonehearth:clear_item_tip_description', {i18n : true});
+         var doStartClearing = function(args) {
+            radiant.call('stonehearth:server_box_clear_resources', args.box)
+         }
+
+         return this._callTool('boxClearItem', function() {
+            return radiant.call('stonehearth:box_clear_resources')
+               .done(function(response){
+                  //put up a dialog asking for confirmation, if there are entities in the box
+                  
+                  if (response.has_entities) {
+                     App.gameView.addView(App.StonehearthConfirmView, 
+                     { 
+                        title : i18n.t('clear_item_confirm_title'),
+                        message : i18n.t('clear_item_confirm_message'),
+                        buttons : [
+                           { 
+                              id: 'confirmClear',
+                              label: i18n.t('confirm_clear'),
+                              click: doStartClearing, 
+                              args: response
+                           },
+                           {
+                              label: i18n.t('confirm_clear_no')
+                           }
+                        ] 
+                     });                              
+                  }
+                  
+                  self.hideTip(tip);
+               })
+               .fail(function(response){
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       createStockpile: function() {
          var self = this;
 

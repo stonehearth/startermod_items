@@ -46,6 +46,10 @@ function EquipmentPieceComponent:get_slot()
    return self._json.slot
 end
 
+function EquipmentPieceComponent:get_no_drop()
+   return self._json.no_drop
+end
+
 function EquipmentPieceComponent:get_ilevel()
    return self._json.ilevel or 0
 end

@@ -81,8 +81,7 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                      label: "Yes",
                      click: function() {
                         radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:small_click' });
-                        radiant.call("radiant:client:delete_save_game", key)
-                        radiant.call("radiant:client:save_game", String(t), { 
+                        radiant.call("radiant:client:save_game", key, { 
                               name: "",
                               town_name: App.stonehearthClient.settlementName(),
                               game_date: gameDate,
@@ -172,49 +171,54 @@ App.StonehearthSaveListView = App.View.extend({
    classNames: [],
 
    init: function() {
-      this._super();
       var self = this;
-
-      this.set('context', {});
-
+      this._super();
       this.refresh();
    },
 
+   didInsertElement: function() {
+      var self = this;
+      this._super();
+
+      this.$().on( 'click', '.row', function() {
+         self.$().find('.row').removeClass('selected');
+         $(this).addClass('selected');
+      });
+   },
+ 
    refresh: function() {
       var self = this;
-      var saveKey = App.stonehearthClient.gameState.saveKey;
-      var simVer = App.stonehearthVersion;
-
       radiant.call("radiant:client:get_save_games")
-         .done(function(json) {
-            var vals = radiant.map_to_array(json, function(k ,v) {
-               v['key'] = k;
-               if (k == saveKey) {
-                  v['current'] = true;
-               }
-            });
-
-            // sort by creation time
-            vals.sort(function(a, b){
-               var keyA = a.key;
-               var keyB = b.key;
-               // Compare the 2 keys
-               if(keyA < keyB) return 1;
-               if(keyA > keyB) return -1;
-               return 0;
-            });
-
-            $.each(vals, function(k, v) {
-               // For now, just blindly warn if versions are different.
-               if (!v.gameinfo.version || v.gameinfo.version != simVer) {
-                  v['differentVersions'] = true;
-               }
-            })
-
-            self.set('context.saves', vals);
-            Ember.run.scheduleOnce('afterRender', self, 'selectFirstItem')
-         })      
+               .done(function(json) {
+                  self.set('saved_games', json)
+               });
    },
+
+   saves: function() {
+      var saveKey = App.stonehearthClient.gameState.saveKey;
+      var vals = radiant.map_to_array(this.get('saved_games'), function(k ,v) {
+         v.key = k;
+         if (k == saveKey) {
+            v.current = true;
+         }
+         if (!v.gameinfo.version || v.gameinfo.version != App.stonehearthVersion) {
+            // For now, just blindly warn if versions are different.
+            v.differentVersions = true;
+         }
+      });
+
+      // sort by creation time
+      vals.sort(function(a, b){
+         var keyA = a.key;
+         var keyB = b.key;
+         // Compare the 2 keys
+         if(keyA < keyB) return 1;
+         if(keyA > keyB) return -1;
+         return 0;
+      });
+
+      return vals;
+   }.property('saved_games'),
 
    getSelectedKey: function() {
       return this.$().find('.selected').attr('key');
@@ -228,22 +232,5 @@ App.StonehearthSaveListView = App.View.extend({
       }
       
    },
-
-   didInsertElement: function() {
-      var self = this;
-      this._super();
-
-      this.$().on( 'click', '.row', function() {
-         self.$().find('.row').removeClass('selected');
-         $(this).addClass('selected');
-      });
-   },
-
-   actions: {
-
-      foo: function() {
-
-      },
-   }
 
 });

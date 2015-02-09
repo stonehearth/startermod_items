@@ -19,7 +19,9 @@ function Personality:initialize(entity, json)
       self._sv.substitutions = {}
       self._sv.todays_events = {}    --Each notable thing that's happened today
    end
-   self._midnight_listener = radiant.events.listen(stonehearth.calendar, 'stonehearth:midnight', self, self.on_midnight)
+   self._midnight_listener = stonehearth.calendar:set_alarm('0:00', function()
+            self:_on_midnight()
+         end)
 end
 
 function Personality:destroy()
@@ -67,7 +69,7 @@ end
 
 --Every night, dump the old log
 --TODO: Possibly add backstory, events, etc
-function Personality:on_midnight(e)
+function Personality:_on_midnight()
    self._sv.todays_events = {}
    self.__saved_variables:mark_changed()
 end

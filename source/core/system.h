@@ -12,6 +12,8 @@ public:
    System();
    
    boost::filesystem::path GetTempDirectory() const;
+   static bool IsProcess64Bit();
+   static bool IsPlatform64Bit();
 
 private:
    NO_COPY_CONSTRUCTOR(System);
