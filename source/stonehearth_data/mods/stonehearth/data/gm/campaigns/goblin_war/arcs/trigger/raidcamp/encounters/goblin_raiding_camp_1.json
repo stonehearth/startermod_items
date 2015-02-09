@@ -14,8 +14,8 @@
       "radius" : 18,
       
       "spawn_range" : {
-         "min" : 50,
-         "max" : 60
+         "min" : 100,
+         "max" : 120
       },
 
       "npc_boss_entity_type" : "",

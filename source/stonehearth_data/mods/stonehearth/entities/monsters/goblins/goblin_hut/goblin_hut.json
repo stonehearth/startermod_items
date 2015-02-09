@@ -17,7 +17,7 @@
       },
       "mob" : {
       },
-      "stonehearth:attributes": {
+      "_stonehearth:attributes": {
           "max_health": {
             "type" : "basic", 
             "value" : 20
@@ -28,7 +28,7 @@
          },
          "menace": {
             "type" : "basic",
-            "value" : 70
+            "value" : 0
          }
       },      
       "region_collision_shape" : {

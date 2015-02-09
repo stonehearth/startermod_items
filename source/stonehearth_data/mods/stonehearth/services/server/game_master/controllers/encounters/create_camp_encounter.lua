@@ -32,18 +32,18 @@ function CreateCamp:_create_camp()
    self._population = stonehearth.population:get_population(ctx.enemy_player_id)
 
    -- carve a hole in the ground for the camp to sit in
-   local cube = Cube3(ctx.enemy_location - Point3(30, 1, 30), ctx.enemy_location + Point3(30 + 1, 0, 30 + 1))
+   local size = 20
+   local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
    local cube2 = cube:translated(Point3.unit_y)
 
+   -- nuke all the entities around the camp
    local entities = radiant.terrain.get_entities_in_cube(cube2)
-   
    for id, entity in pairs(entities) do
       radiant.entities.destroy_entity(entity)
    end
    
+   -- carve out the grass around the camp
    radiant.terrain.subtract_cube(cube)
-
-   
 
    if info.npc_boss_entity_type then
       local npc_boss_entity = self._population:create_new_citizen(info.npc_boss_entity_type)
