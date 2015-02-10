@@ -145,17 +145,21 @@ struct RenderTarget
 	float                 scale;  // Scale factor for FB width and height
 	bool                  hasDepthBuf;
    uint32                mipLevels;
-
    uint32                rendBuf;
 
-	RenderTarget()
+   std::string           targetAlias;
+   int                   aliasIdx;
+
+   RenderTarget()
 	{
 		hasDepthBuf = false;
 		numColBufs = 0;
 		rendBuf = 0;
       mipLevels = 0;
+      aliasIdx = -1;
 	}
 };
+
 
 // =================================================================================================
 
@@ -189,6 +193,7 @@ private:
 	void addRenderTarget( std::string const& id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
 	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
+   void addRenderTargetAlias(std::string const& id, std::string const& target, int idx);
    void addGlobalRenderTarget(const char* name);
 	RenderTarget *findRenderTarget( std::string const& id );
 	bool createRenderTargets();
