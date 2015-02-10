@@ -18,9 +18,11 @@ function HydrologyService:initialize()
    else
    end
 
-   stonehearth.calendar:set_interval(10, function()
-      self:_on_tick()
-   end)
+   if radiant.util.get_config('enable_water', false) then
+      stonehearth.calendar:set_interval(10, function()
+            self:_on_tick()
+         end)
+   end
 end
 
 function HydrologyService:destroy()
