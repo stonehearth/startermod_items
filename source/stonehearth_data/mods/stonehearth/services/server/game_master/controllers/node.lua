@@ -36,15 +36,15 @@ end
 -- of 'create_camp' or 'collection_quest')
 --
 function Node:get_subtype()
-   assert(self._sv.info)
-   return self._sv.info.subtype
+   assert(self._sv._info)
+   return self._sv._info.subtype
 end
 
 -- get the rarity of the node
 --
 function Node:get_rarity()
-   assert(self._sv.info)
-   return self._sv.info.rarity
+   assert(self._sv._info)
+   return self._sv._info.rarity
 end
 
 -- get the number of votes this node gets during the election

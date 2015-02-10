@@ -3,7 +3,7 @@ local DialogTreeEncounter = class()
 
 function DialogTreeEncounter:start(ctx, info)
    self._sv.ctx = ctx
-   self._sv.info = info
+   self._sv._info = info
    self._sv.bulletin_data = {}
 
    self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')   

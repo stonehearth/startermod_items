@@ -11,7 +11,7 @@ function CreateCamp:start(ctx, info)
    assert(info)
    assert(info.pieces)
 
-   self._sv.info = info
+   self._sv._info = info
    self._sv.ctx = ctx
 
    ctx.enemy_player_id = info.player_id -- xxx: should be 'npc_enemy_id'
@@ -24,7 +24,7 @@ end
 
 function CreateCamp:_create_camp()
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    assert(ctx.enemy_player_id)
    assert(ctx.enemy_location)
@@ -96,7 +96,7 @@ function CreateCamp:_search_for_camp_location()
    self:_destroy_find_location_timer()
 
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    -- choose a distance and start looking for a place to put the camp
    local player_banner = stonehearth.town:get_town(ctx.player_id)
@@ -184,7 +184,7 @@ function CreateCamp:_add_piece(piece)
 end
 
 function CreateCamp:_get_player_id()
-   return self._sv.info.player_id
+   return self._sv._info.player_id
 end
 
 return CreateCamp

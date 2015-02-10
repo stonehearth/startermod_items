@@ -6,7 +6,7 @@ local CollectionQuest = class()
 
 function CollectionQuest:start(ctx, info)
    self._sv.ctx = ctx
-   self._sv.info = info
+   self._sv._info = info
    self._sv.bulletin_data = {}
 
    assert(info.script)
@@ -66,7 +66,7 @@ end
 -- start of the state machine.  introduce the guy doing the shakedown
 --
 function CollectionQuest:_show_introduction()
-   local intro = self._sv.info.bulletins.introduction
+   local intro = self._sv._info.bulletins.introduction
 
    intro.next_callback = '_on_introduction_finished'
    self:_update_bulletin(intro)
@@ -82,7 +82,7 @@ end
 -- the demand phase.  state the demands!
 --
 function CollectionQuest:_show_demand()
-   local bulletin_data = self._sv.info.bulletins.shakedown
+   local bulletin_data = self._sv._info.bulletins.shakedown
    bulletin_data.demands = {
       items = self._sv.demand
    }
@@ -97,7 +97,7 @@ function CollectionQuest:_on_shakedown_accepted()
    self:_destroy_bulletin()
 
    -- update the bulletin to start tracking the collection progress
-   local bulletin_data = self._sv.info.bulletins.collection_progress
+   local bulletin_data = self._sv._info.bulletins.collection_progress
    local items = self._sv.demand
    bulletin_data.demands = {
       items = self._sv.demand
@@ -121,7 +121,7 @@ end
 function CollectionQuest:_show_refused_threat()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv.info.bulletins.shakedown_refused
+   local bulletin_data = self._sv._info.bulletins.shakedown_refused
 
    bulletin_data.ok_callback = '_on_refused_threat_ok'
    self:_update_bulletin(bulletin_data)
@@ -141,7 +141,7 @@ function CollectionQuest:_finish_encounter(result)
    assert(result)
    self:_destroy_bulletin()
 
-   local out_edge = self._sv.info.out_edges[result]
+   local out_edge = self._sv._info.out_edges[result]
    assert(out_edge)
    
    self._sv.resolved_out_edge = out_edge
@@ -232,7 +232,7 @@ end
 function CollectionQuest:_start_collection_timer()
    assert(not self._collection_timer)
 
-   local duration = self._sv.info.duration
+   local duration = self._sv._info.duration
    local override = radiant.util.get_config('game_master.encounters.collection_quest.duration')
    if override ~= nil then
       duration = override
@@ -254,7 +254,7 @@ end
 function CollectionQuest:_on_collection_timer_expired()
    self:_stop_tracking_items()
 
-   local bulletin_data = self._sv.info.bulletins.collection_due
+   local bulletin_data = self._sv._info.bulletins.collection_due
    bulletin_data.demands = {
       items = self._sv.demand,      
    }
@@ -284,7 +284,7 @@ end
 function CollectionQuest:_on_collection_cancelled()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv.info.bulletins.collection_failed
+   local bulletin_data = self._sv._info.bulletins.collection_failed
 
    bulletin_data.ok_callback = '_on_collection_failed_ok'
    self:_update_bulletin(bulletin_data)
