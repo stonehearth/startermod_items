@@ -8,6 +8,9 @@ local WaterComponent = class()
 function WaterComponent:__init()
    -- the volume of water consumed to make a block wet
    self._wetting_volume = 0.25
+
+   -- constant converting pressure to a flow rate per unit cross section
+   self._pressure_to_flow_rate = 1
 end
 
 function WaterComponent:initialize(entity, json)
@@ -45,6 +48,7 @@ end
 
 -- TODO: schedule add_water through the hydrology service
 function WaterComponent:add_water(world_location, volume)
+   assert(volume >= 0)
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local location = world_location - entity_location
    local delta_region = Region3()
@@ -66,7 +70,6 @@ function WaterComponent:add_water(world_location, volume)
       while volume > 0 and not edge_region:empty() do
          local edge_point = edge_region:get_closest_point(location)
          -- TODO: incrementally update the new edge region
-         -- especially important when added flows are not in the center of the layer
          edge_region:subtract_point(edge_point)
 
          local world_edge_point = edge_point + entity_location
@@ -86,14 +89,15 @@ function WaterComponent:add_water(world_location, volume)
             end
          else
             local from_location = world_edge_point
-            local flow = stonehearth.hydrology:get_flow(self._entity, from_location)
-            if not flow then
-               flow = self:_create_waterfall_flow(from_location)
+            local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
+            if not channel then
+               channel = self:_create_waterfall_channel(from_location)
             end
 
-            -- TODO: calculate flow throughput
-            local flow_volume = math.min(volume, 1)
-            stonehearth.hydrology:queue_water(flow.to_entity, flow.to_location, flow_volume)
+            local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
+            local unused_volume = max_flow_volume - channel.queued_volume
+            local flow_volume = math.min(unused_volume, volume)
+            channel.queued_volume = channel.queued_volume + flow_volume
             volume = volume - flow_volume
          end
       end
@@ -113,7 +117,15 @@ function WaterComponent:add_water(world_location, volume)
    self.__saved_variables:mark_changed()
 end
 
-function WaterComponent:_create_waterfall_flow(from_location)
+function WaterComponent:_calculate_max_flow_volume(location)
+   -- calculate pressure based on a full upper layer
+   local reference_elevation = math.floor(self:get_water_elevation()) + 1
+   local pressure = reference_elevation - location.y
+   local max_flow_volume = pressure * self._pressure_to_flow_rate
+   return max_flow_volume
+end
+
+function WaterComponent:_create_waterfall_channel(from_location)
    local to_location = radiant.terrain.get_point_on_terrain(from_location)
    local to_entity = stonehearth.hydrology:get_water_body(to_location)
    if not to_entity then
@@ -121,8 +133,8 @@ function WaterComponent:_create_waterfall_flow(from_location)
    end
 
    local waterfall = stonehearth.hydrology:create_waterfall(from_location, to_location)
-   local flow = stonehearth.hydrology:add_flow(self._entity, from_location, to_entity, to_location, waterfall)
-   return flow
+   local channel = stonehearth.hydrology:add_channel(self._entity, from_location, to_entity, to_location, waterfall)
+   return channel
 end
 
 function WaterComponent:_raise_layer()
@@ -182,25 +194,12 @@ function WaterComponent:_get_edge_region(region)
    -- remove locations outside the world
    edge_region = edge_region:intersect_cube(world_bounds)
 
-   -- remove flow points
-   -- local flow_points = self:_get_flow_points()
-   -- edge_region:subtract_region(flow_points)
-
    edge_region:optimize_by_merge()
 
    -- back to local coordinates
    edge_region:translate(-entity_location)
 
    return edge_region
-end
-
-function WaterComponent:_get_flow_points()
-   local region = Region3()
-   local flows = stonehearth.hydrology:get_flows(self._entity)
-   for _, flow in pairs(flows) do
-      region:add_point(flow.from_location)
-   end
-   return region
 end
 
 function WaterComponent:_add_height(volume)
