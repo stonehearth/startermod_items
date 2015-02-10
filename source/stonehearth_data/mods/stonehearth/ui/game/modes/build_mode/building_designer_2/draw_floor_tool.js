@@ -33,12 +33,11 @@ var DrawFloorTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, 'Floor', self.materialClass, self.buildingParts.floorPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.brush = brush;
-                     self.floorMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('floorMaterial', self.floorMaterial);
+                     self.buildingDesigner.saveKey('floorBrush', brush);
 
                      // Re/activate the floor tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
@@ -54,10 +53,13 @@ var DrawFloorTool;
       },
 
       restoreState: function(state) {
-         this.floorMaterial = state.floorMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.floorMaterial]);
+         var self = this;
+
+         var selector = state.floorBrush ? '[brush="' + state.floorBrush + '"]' :  '.' + self.materialClass;
+         var selectedMaterial = $($(selector)[0]);
+         
          selectedMaterial.addClass('selected');
-         this.brush = selectedMaterial.attr('brush');
+         self.brush = selectedMaterial.attr('brush');
       }
    });
 })();

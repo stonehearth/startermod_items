@@ -29,12 +29,11 @@ var DrawDoodadTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, '', self.materialClass, self.buildingParts.doodads, 
-                  function(brush, material) {
+                  function(brush) {
                      self.brush = brush;
-                     self.doodadMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('doodadMaterial', self.doodadMaterial);
+                     self.buildingDesigner.saveKey('brush', brush);
 
                      // Re/activate the doodad tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
@@ -50,10 +49,13 @@ var DrawDoodadTool;
       },
 
       restoreState: function(state) {
-         this.doodadMaterial = state.doodadMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.doodadMaterial]);
+         var self = this;
+
+         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.brush = selectedMaterial.attr('brush');
+         self.brush = selectedMaterial.attr('brush');
       }
    });
 })();
