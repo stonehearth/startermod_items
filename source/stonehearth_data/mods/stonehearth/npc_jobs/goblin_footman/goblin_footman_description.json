@@ -1,0 +1,19 @@
+{
+   "job_id": "goblin_footman",
+   "alias" : "stonehearth:jobs:goblin:footman", 
+   "controller" : "stonehearth:class:footman", 
+   "name" : "Raider",
+   "description" : "Rawr!",
+   "default_stance": "aggressive",
+
+   "abilities" : "file(../../jobs/footman/footman_abilities)",
+
+   "equipment" : {
+      "mainhand" : [
+         "stonehearth:weapons:short_sword", 
+         "stonehearth:weapons:long_sword"
+      ]
+   },
+
+   "roles" : "footman_job combat"
+}

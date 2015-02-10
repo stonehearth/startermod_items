@@ -1,0 +1,18 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+      }
+   }, 
+   "entity_data" : {
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_power_spike",
+            "active_frame" : 94,
+            "cooldown" : 20000,
+            "priority" : 1, 
+            "bonus_dmg_multiplier" : 1.0
+         }      
+      ]
+   }
+}
