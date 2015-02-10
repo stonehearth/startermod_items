@@ -7,38 +7,49 @@
       .handCursor;
       .outlined;
       font-family: @controlFontFamily;
-      width: 587px;
-      height: 141px;
+      width: 547px;
       text-align: center;
-
-      .inner {
-         position: relative;
-         font-size: 24px;
-         top: 86px;
-      }
+      border-width: 10px 10px 14px 10px;
+      border-image: url(images/alert_bg.png) 10 10 14 10 repeat;
+      background-color: #312f2f;
+      color: #b39b5b;
+      font-size: 24px;
+      padding: 30px 10px 10px 10px;  
    }
 
-   .info {
-      background: url(images/info_bg.png);
-      color: #c0d8ea;
+   #popup.info {
+      //border-image: url(images/info_bg.png) 10 10 14 10 repeat;
+      //background-color: #a4c8e4;
+      //color: #d8eeff;
    }
 
-   .alert {
-      background: url(images/alert_bg.png);
+   #popup.alert {
       color: #ffc000;
    }
 
-   .quest {
-      background: url(images/quest_bg.png);
+   #icon {
+      position: absolute;
+      top: -12px;
+      left: 272px;
+      width: 45px;
+      height: 45px;
+   }
+
+   #icon.info {
+      background-image: url(images/info_icon.png);
+   }
+
+   #icon.alert {
+      background-image: url(images/alert_icon.png);
+   }
+
+   #icon.quest {
+      background-image: url(images/quest_icon.png);
       color: #ffd041;      
    }
 
-   .level_up {
-      background: url(images/alert_bg.png);
+   #icon.level_up {
+      background-image: url(images/lvlup_icon.png);
       color: #ffc000;
-   }
-
-   .shop {
-      color: #ff0000;
    }
 }

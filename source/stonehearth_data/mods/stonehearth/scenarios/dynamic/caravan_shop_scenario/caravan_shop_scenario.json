@@ -3,6 +3,28 @@
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:caravan_shop", 
    "scenario_data" : {
-      "title" : "The caravan has arrived with wares to sell"
+      "title" : "__shop__ has arrived with wares to sell",
+      "shops" : {
+         "food" : {
+            "name" : "A passing caravan",
+            "inventory" : {
+               "item_category" : ["food"]
+            }
+         },
+         "woodcutter" : {
+            "name" : "Norm Windriser's Woodcutter Shop",
+            "inventory" : {
+               "item_category" : ["resources", "furniture", "decoration"],
+               "item_material" : "wood"
+            }
+         },
+         "stonecutter" : {
+            "name" : "Rufus Garrow's Stonecutter Shop",
+            "inventory" : {
+               "item_category" : ["resources", "furniture", "decoration"],
+               "item_material" : "stone"            
+            }
+         }
+      }
    }
 }
