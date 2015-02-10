@@ -2,6 +2,9 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
+      "item" : {
+         "category" : "armor"   
+      },
       "unit_info" : {
          "name": "Trusty Shield",
          "description": "Armor",
@@ -41,6 +44,16 @@
             "cooldown" : 1000,
             "priority" : 0
          }
-      ]
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 103,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
    }
 }

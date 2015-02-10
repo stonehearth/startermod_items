@@ -2,6 +2,9 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
+      "item" : {
+         "category" : "armor"   
+      },
       "unit_info" : {
          "name" :  "Upgraded Worker Outfit",
          "description" : "Reinforced construction improves worker efficiency!",

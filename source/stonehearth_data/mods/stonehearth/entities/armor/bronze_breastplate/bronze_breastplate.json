@@ -2,7 +2,10 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
-      "unit_info" : {
+      "item" : {
+         "category" : "armor"
+      },
+       "unit_info" : {
          "name": "Bronze Breastplate",
          "description": "Armor",
          "icon" : "file(bronze_breastplate.png)"         
@@ -38,6 +41,16 @@
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
          "base_damage_reduction" : 5
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 165,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
       }
    }   
 }

@@ -2,6 +2,9 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
+      "item" : {
+         "category" : "armor"   
+      },
       "unit_info" : {
          "name" :  "Winter Worker Outfit",
          "description" : "A heavy wool coat, for cold winter nights",

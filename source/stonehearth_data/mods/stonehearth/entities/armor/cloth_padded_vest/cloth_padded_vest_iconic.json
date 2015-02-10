@@ -2,9 +2,6 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "item" : {
-         "category" : "gear"
-      },
       "unit_info" : {
          "name" :  "Padded Vest",
          "description": "Provides light protection in a fight. Every little bit helps!",

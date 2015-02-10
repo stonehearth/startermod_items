@@ -2,10 +2,7 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-      "item" : {
-         "category" : "gear"   
-      },
-      "unit_info" : {
+     "unit_info" : {
          "name": "bronze Breastplate",
          "description": "Armor",
          "icon" : "file(bronze_breastplate.png)"
