@@ -324,7 +324,9 @@ function Town:harvest_resource_node(node)
       return false
    end
 
-   self:remove_previous_harvest_task_on_item(node)
+   self:remove_previous_task_on_item(node)
+
+
    local id = node:get_id()
    if not self._harvest_tasks[id] then
       local node_component = node:get_component('stonehearth:resource_node')
@@ -353,7 +355,8 @@ function Town:harvest_renewable_resource_node(plant)
    end
 
    local id = plant:get_id()
-   self:remove_previous_harvest_task_on_item(plant)
+   self:remove_previous_task_on_item(plant)
+
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component and node_component:is_harvestable() then
@@ -398,7 +401,7 @@ end
 --Tell the harvesters to remove an item permanently from the world
 --If there was already an outstanding task on the object, make sure to cancel it first.
 function Town:clear_item(item)
-   self:remove_previous_harvest_task_on_item(item)
+   self:remove_previous_task_on_item(item)
    local id = item:get_id()
    
    --trace the item. If it moves, cancel the task
@@ -427,12 +430,8 @@ function Town:clear_item(item)
    self:_remember_user_initiated_task(task, 'clear_item', item)
 end
 
---Between Harvest/Clear only the most recent task should be happening at a time
---Unharvest should remove either task if it's on there already. 
---TODO: can we do this by clicking a red X on the toast? 
---TODO: this seems fragmented. Could we make a more general version of this mechanism
---that sorts all tasks on an object by player_id?
-function Town:remove_previous_harvest_task_on_item(item)
+--Remove only harvest/clear
+function Town:remove_town_tasks_on_item(item)
    local id = item:get_id()
    if self._clear_tasks[id] then
       self._clear_tasks[id]:destroy()
@@ -442,7 +441,15 @@ function Town:remove_previous_harvest_task_on_item(item)
       self._harvest_tasks[id]:destroy()
       self._harvest_tasks[id] = nil
    end
-   --TODO: test that this triggers the remember_user_init task to stop!
+end
+
+--Generally, remove as many kinds of tasks as we know about
+function Town:remove_previous_task_on_item(item)
+   self:remove_town_tasks_on_item(item)
+   local entity_forms_component = item:get_component('stonehearth:entity_forms')
+   if entity_forms_component then
+      entity_forms_component:cancel_placement_tasks()
+   end
 end
 
 function Town:harvest_crop(crop, player_initialized)

@@ -183,7 +183,9 @@ function ResourceCallHandler:server_box_unharvest_resources(session, response, b
    
    for _, entity in pairs(entities) do
       local town = stonehearth.town:get_town(session.player_id)
-      town:remove_previous_harvest_task_on_item(entity)
+
+      --remove the tasks the town knows about
+      town:remove_previous_task_on_item(entity)
    end
 end
 
