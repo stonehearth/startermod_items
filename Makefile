@@ -114,6 +114,23 @@ symbols:
 	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/stonehearth.exe > \
 	  $(BUILD_ROOT)/source/stonehearth/$(MSBUILD_CONFIGURATION)/Stonehearth.sym
 
+# the cef-symbols target requires updating radbot@support-stage's .authorized_keys
+.PHONY: cef-symbols
+cef-symbols:
+	-rm $(BUILD_DIR)/libcef.sym
+	modules/breakpad/build/$(RADIANT_BUILD_PLATFORM)/release/dump_syms.exe \
+		$(STONEHEARTH_ROOT)/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows64/Release/libcef.dll > \
+		$(BUILD_DIR)/libcef.sym
+	scp $(BUILD_DIR)/libcef.sym radbot@support-stage:/home/radbot/libcef.sym
+	ssh radbot@support-stage "./publish_symbols.sh libcef"
+
+	-rm $(BUILD_DIR)/libcef.sym
+	modules/breakpad/build/$(RADIANT_BUILD_PLATFORM)/release/dump_syms.exe \
+		$(STONEHEARTH_ROOT)/modules/chromium-embedded/package/cef_binary_3.2171.1902_windows32/Release/libcef.dll > \
+		$(BUILD_DIR)/libcef.sym
+	scp $(BUILD_DIR)/libcef.sym radbot@support-stage:/home/radbot/libcef.sym
+	ssh radbot@support-stage "./publish_symbols.sh libcef"
+
 .PHONY: ide
 ide: configure ide-only
 

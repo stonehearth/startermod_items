@@ -11,15 +11,14 @@ function HydrologyService:initialize()
    if not self._sv._initialized then
       self._sv._water_bodies = {}
       self._sv._queue_map = {}
-      self._sv._flows_map = {}
+      self._sv._channels = {}
+      self._sv._next_id = 1
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
    end
 
-   self._working_queue_map = {}
-
-   stonehearth.calendar:set_interval(20, function()
+   stonehearth.calendar:set_interval(10, function()
       self:_on_tick()
    end)
 end
@@ -33,7 +32,6 @@ function HydrologyService:create_water_body(location)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity
-   self._sv._flows_map[id] = {}
    self._sv._queue_map[id] = {}
    radiant.terrain.place_entity_at_exact_location(entity, location)
    self.__saved_variables:mark_changed()
@@ -62,7 +60,6 @@ function HydrologyService:remove_water_body(entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
-   self._sv._flows_map[id] = nil
    self._sv._queue_map[id] = nil
    self.__saved_variables:mark_changed()
 end
@@ -75,72 +72,61 @@ function HydrologyService:create_waterfall(from_location, to_location)
    return entity
 end
 
-function HydrologyService:get_flows(from_entity)
-   local flows = self._sv._flows_map[from_entity:get_id()]
-   return flows
+function HydrologyService:get_channel(from_entity, from_location)
+   -- TODO: optimize to avoid O(n) iteration
+   for _, channel in pairs(self._sv._channels) do
+      if channel.from_location == from_location and channel.from_entity == from_entity then
+         return channel
+      end
+   end
+   return nil
 end
 
-function HydrologyService:get_flow(from_entity, from_location)
-   local flows = self._sv._flows_map[from_entity:get_id()]
-   local key = self:_point_to_key(from_location)
-   local flow = flows[key]
-   return flow
+-- to_entity is an optional hint
+function HydrologyService:add_water(volume, to_location, to_entity)
+   if not to_entity then
+      to_entity = self:get_water_body(to_location)
+   end
+
+   log:debug('adding channel to %s at %s', to_entity, to_location)
+
+   local channel = self:_create_channel(nil, nil, to_entity, to_location, nil, false)
+   channel.queued_volume = volume
+   self._sv._channels[channel.id] = channel
 end
 
-function HydrologyService:add_flow(from_entity, from_location, to_entity, to_location, channel_entity)
-   log:debug('adding flow from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
+function HydrologyService:add_channel(from_entity, from_location, to_entity, to_location, channel_entity)
+   log:debug('adding channel from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
 
-   local from_entity_id = from_entity:get_id()
-   local flow = {
-      from_entity = from_entity,
-      from_location = from_location,
-      to_entity = to_entity,
-      to_location = to_location,
-      channel_entity = channel_entity
-   }
-
-   local flows = self._sv._flows_map[from_entity_id]
-   local key = self:_point_to_key(from_location)
-   flows[key] = flow
+   local channel = self:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity, true)
+   self._sv._channels[channel.id] = channel
 
    self.__saved_variables:mark_changed()
-   return flow
+   return channel
 end
 
-function HydrologyService:remove_flow(from_entity, from_location)
-   log:debug('removing flow from %s at %s', from_entity, from_location)
+function HydrologyService:remove_channel(id)
+   local channel = self._sv._channels[id]
+   if not channel then
+      return
+   end
 
-   local from_entity_id = from_entity:get_id()
-   local flows = self._sv._flows_map[from_entity_id]
+   self._sv._channels[id] = nil
+   self:_destroy_channel(channel)
 
-   local key = self:_point_to_key(from_location)
-   local flow = flows[key]
-
-   if flow then
-      self:_destroy_flow(flow)
-      flows[key] = nil
+   if channel.from_entity then
+      log:debug('removing channel (%d) from %s at %s', id, from_entity, from_location)
+   else
+      log:debug('removing channel (%d)', id)
    end
 
    self.__saved_variables:mark_changed()
 end
 
-function HydrologyService:_destroy_flow(flow)
-   radiant.entities.destroy_entity(flow.channel_entity)
-end
-
-function HydrologyService:queue_water(entity, location, volume)
-   local id = entity:get_id()
-   local queue = self._sv._queue_map[id]
-
-   log:spam('queuing %s at %s with volume %d', entity, location, volume)
-
-   local entry = {
-      location = location,
-      volume = volume
-   }
-   table.insert(queue, entry)
-
-   self.__saved_variables:mark_changed()
+function HydrologyService:_destroy_channel(channel)
+   if channel.channel_entity then
+      radiant.entities.destroy_entity(channel.channel_entity)
+   end
 end
 
 function HydrologyService:merge_water_bodies(master, mergee)
@@ -149,12 +135,8 @@ function HydrologyService:merge_water_bodies(master, mergee)
    log:debug('merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
 
    self:_merge_regions(master, mergee)
-   self:_merge_flows(master, mergee, self._sv._flows_map)
-   self:_merge_water_queues(master, mergee, self._sv._queue_map)
-
-   if self._working_queue_map then
-      self:_merge_water_queues(master, mergee, self._working_queue_map)
-   end
+   self:_merge_channels(master, mergee)
+   self:_merge_water_queue(master, mergee)
 
    self:remove_water_body(mergee)
    radiant.entities.destroy_entity(mergee)
@@ -196,49 +178,33 @@ function HydrologyService:_merge_regions(master, mergee)
       end)
 end
 
-function HydrologyService:_merge_water_queues(master, mergee, queue_map)
-   local master_id = master:get_id()
-   local mergee_id = mergee:get_id()
-   local master_queue = queue_map[master_id]
-   local mergee_queue = queue_map[mergee_id]
+function HydrologyService:_merge_channels(master, mergee)
+   for id, channel in pairs(self._sv._channels) do
+      -- all channels originating from mergee now originate from master
+      if channel.from_entity and channel.from_entity == mergee then
+         channel.from_entity = master
+      end
 
-   for _, entry in pairs(mergee_queue) do
-      table.insert(master_queue, entry)
+      -- all channels going to mergee now go to master
+      if channel.to_entity == mergee then
+         channel.to_entity = master
+      end
+
+      if channel.from_entity == channel.to_entity then
+         -- channel now goes to itself, so just destroy it
+         self:_destroy_channel(channel)
+      end
    end
-
-   queue_map[mergee_id] = {}
 end
 
-function HydrologyService:_merge_flows(master, mergee, flows_map)
-   local master_id = master:get_id()
-   local mergee_id = mergee:get_id()
-   local master_flows = flows_map[master_id]
-   local mergee_flows = flows_map[mergee_id]
-
-   -- all flows originating from mergee now originate from master
-   for key, flow in pairs(mergee_flows) do
-      if flow.to_entity == master then
-         -- destroy the flow if it would redirect to itself
-         self:_destroy_flow(flow)
-      else
-         -- the flow now originates from the master entity
-         flow.from_entity = master
-      end
-      assert(not master_flows[key])
-      master_flows[key] = flow
+function HydrologyService:_merge_water_queue(master, mergee)
+   if not self._water_queue then
+      return
    end
 
-   -- remove the flows that had originated from mergee
-   flows_map[mergee_id] = {}
-
-   -- all flows going to mergee now go to master
-   for id, flows in pairs(flows_map) do
-      if id ~= master_id then
-         for key, flow in pairs(flows) do
-            if flow.to_entity == mergee then
-               flow.to_entity = master
-            end
-         end
+   for _, entry in pairs(self._water_queue) do
+      if entry.to_entity == mergee then
+         entry.to_entity = master
       end
    end
 end
@@ -246,55 +212,63 @@ end
 function HydrologyService:_on_tick()
    log:spam('processing next tick')
 
-   self._working_queue_map = {}
+   self._water_queue = {}
 
-   for id, entries in pairs(self._sv._queue_map) do
-      -- save the current queue for processing below
-      self._working_queue_map[id] = entries
-      -- clear the queue so we can use it to buffer for the next tick
-      self._sv._queue_map[id] = {}
-   end
-   
-   while true do
-      -- ugly processing loop becuase the working queue can get remapped from a merge
-      -- TODO: fix this mess
-      local id = nil
-      local entries = nil
-      for check_id, check_entries in pairs(self._working_queue_map) do
-         if next(check_entries) then
-            id = check_id
-            entries = check_entries
-            break
-         end
-      end
-      if not entries then
-         break
-      end
+   for _, channel in pairs(self._sv._channels) do
+      local entry = {
+         entity = channel.to_entity,
+         location = channel.to_location,
+         volume = channel.queued_volume
+      }
+      table.insert(self._water_queue, entry)
 
-      log:spam('on_tick processing %d', id)
-
-      -- remove the entries so we don't process it again
-      self._working_queue_map[id] = {}
-
-      local entity = self._sv._water_bodies[id]
-      if not entity then
-         log:error('entity %d not found!', id)
-      end
-      local water_component = entity:add_component('stonehearth:water')
-
-      for _, entry in pairs(entries) do
-         -- this call may merge water bodies and cause the working queue to change
-         water_component:add_water(entry.location, entry.volume)
+      if not channel.persistent then
+         self._sv._channels[channel.id] = nil
+      else
+         -- clear the channel so we can queue for the next iteration
+         channel.queued_volume = 0
       end
    end
 
-   self._working_queue_map = nil
+   for _, entry in pairs(self._water_queue) do
+      log:spam('on_tick adding %d to %s at %s', entry.volume, entry.entity, entry.location)
+
+      local water_component = entry.entity:add_component('stonehearth:water')
+      -- this call may merge water bodies and cause the entries in the water queue to change
+      water_component:add_water(entry.location, entry.volume)
+   end
+
+   self._water_queue = nil
 
    self.__saved_variables:mark_changed()
 end
 
+function HydrologyService:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity, persistent)
+   local channel = {
+      id = self:_get_next_id(),
+      from_entity = from_entity,
+      from_location = from_location,
+      to_entity = to_entity,
+      to_location = to_location,
+      channel_entity = channel_entity,
+      persistent = persistent,
+      queued_volume = 0
+   }
+
+   self.__saved_variables:mark_changed()
+
+   return channel
+end
+
 function HydrologyService:_point_to_key(point)
    return string.format('%d,%d,%d', point.x, point.y, point.z)
+end
+
+function HydrologyService:_get_next_id()
+   local id = self._sv._next_id
+   self._sv._next_id = id + 1
+   self.__saved_variables:mark_changed()
+   return id
 end
 
 return HydrologyService
