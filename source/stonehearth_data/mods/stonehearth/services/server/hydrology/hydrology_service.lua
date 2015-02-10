@@ -64,7 +64,19 @@ function HydrologyService:remove_water_body(entity)
    self.__saved_variables:mark_changed()
 end
 
-function HydrologyService:create_waterfall(from_location, to_location)
+function HydrologyService:create_waterfall_channel(from_entity, from_location)
+   local to_location = radiant.terrain.get_point_on_terrain(from_location)
+   local to_entity = self:get_water_body(to_location)
+   if not to_entity then
+      to_entity = self:create_water_body(to_location)
+   end
+
+   local waterfall = self:_create_waterfall(from_location, to_location)
+   local channel = self:add_channel(from_entity, from_location, to_entity, to_location, waterfall)
+   return channel
+end
+
+function HydrologyService:_create_waterfall(from_location, to_location)
    local entity = radiant.entities.create_entity('stonehearth:terrain:waterfall')
    radiant.terrain.place_entity_at_exact_location(entity, from_location)
    local waterfall_component = entity:add_component('stonehearth:waterfall')
@@ -212,23 +224,7 @@ end
 function HydrologyService:_on_tick()
    log:spam('processing next tick')
 
-   self._water_queue = {}
-
-   for _, channel in pairs(self._sv._channels) do
-      local entry = {
-         entity = channel.to_entity,
-         location = channel.to_location,
-         volume = channel.queued_volume
-      }
-      table.insert(self._water_queue, entry)
-
-      if not channel.persistent then
-         self._sv._channels[channel.id] = nil
-      else
-         -- clear the channel so we can queue for the next iteration
-         channel.queued_volume = 0
-      end
-   end
+   self._water_queue = self:_empty_channels()
 
    for _, entry in pairs(self._water_queue) do
       log:spam('on_tick adding %d to %s at %s', entry.volume, entry.entity, entry.location)
@@ -240,7 +236,42 @@ function HydrologyService:_on_tick()
 
    self._water_queue = nil
 
+   self:_update_channels()
+
    self.__saved_variables:mark_changed()
+end
+
+function HydrologyService:_empty_channels()
+   local water_queue = {}
+
+   for _, channel in pairs(self._sv._channels) do
+      local entry = {
+         entity = channel.to_entity,
+         location = channel.to_location,
+         volume = channel.queued_volume
+      }
+      table.insert(water_queue, entry)
+
+      if not channel.persistent then
+         self._sv._channels[channel.id] = nil
+      else
+         -- empty the channel so we can queue for the next iteration
+         channel.queued_volume = 0
+      end
+   end
+
+   self.__saved_variables:mark_changed()
+
+   return water_queue
+end
+
+function HydrologyService:_update_channels()
+   for _, channel in pairs(self._sv._channels) do
+      local waterfall_component = channel.channel_entity:add_component('stonehearth:waterfall')
+      if waterfall_component then
+         waterfall_component:set_volume(channel.queued_volume)
+      end
+   end
 end
 
 function HydrologyService:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity, persistent)

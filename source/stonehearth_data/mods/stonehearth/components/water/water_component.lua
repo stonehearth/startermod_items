@@ -46,7 +46,6 @@ function WaterComponent:get_water_elevation()
    return elevation
 end
 
--- TODO: schedule add_water through the hydrology service
 function WaterComponent:add_water(world_location, volume)
    assert(volume >= 0)
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
@@ -73,7 +72,7 @@ function WaterComponent:add_water(world_location, volume)
          edge_region:subtract_point(edge_point)
 
          local world_edge_point = edge_point + entity_location
-         local is_drop = not radiant.terrain.is_terrain(world_edge_point - Point3.unit_y)
+         local is_drop = not self:_is_blocked(world_edge_point - Point3.unit_y)
 
          if not is_drop then
             local existing_water_body = stonehearth.hydrology:get_water_body(world_edge_point)
@@ -91,7 +90,7 @@ function WaterComponent:add_water(world_location, volume)
             local from_location = world_edge_point
             local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
             if not channel then
-               channel = self:_create_waterfall_channel(from_location)
+               channel = stonehearth.hydrology:create_waterfall_channel(self._entity, from_location)
             end
 
             local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
@@ -123,18 +122,6 @@ function WaterComponent:_calculate_max_flow_volume(location)
    local pressure = reference_elevation - location.y
    local max_flow_volume = pressure * self._pressure_to_flow_rate
    return max_flow_volume
-end
-
-function WaterComponent:_create_waterfall_channel(from_location)
-   local to_location = radiant.terrain.get_point_on_terrain(from_location)
-   local to_entity = stonehearth.hydrology:get_water_body(to_location)
-   if not to_entity then
-      to_entity = stonehearth.hydrology:create_water_body(to_location)
-   end
-
-   local waterfall = stonehearth.hydrology:create_waterfall(from_location, to_location)
-   local channel = stonehearth.hydrology:add_channel(self._entity, from_location, to_entity, to_location, waterfall)
-   return channel
 end
 
 function WaterComponent:_raise_layer()
@@ -187,11 +174,16 @@ function WaterComponent:_get_edge_region(region)
    -- to world coordinates
    edge_region:translate(entity_location)
 
-   -- remove blocked locations
-   local intersection = radiant.terrain.intersect_region(edge_region)
-   edge_region:subtract_region(intersection)
+   -- remove region blocked by terrain
+   local terrain = radiant.terrain.intersect_region(edge_region)
+   edge_region:subtract_region(terrain)
+
+   -- remove region blocked by watertight entities
+   local collision_region = self:_get_solid_collision_regions(edge_region)
+   edge_region:subtract_region(collision_region)
 
    -- remove locations outside the world
+   -- TODO: just make these regions channels to nowhere
    edge_region = edge_region:intersect_cube(world_bounds)
 
    edge_region:optimize_by_merge()
@@ -200,6 +192,44 @@ function WaterComponent:_get_edge_region(region)
    edge_region:translate(-entity_location)
 
    return edge_region
+end
+
+function WaterComponent:_get_solid_collision_regions(region)
+   local result = Region3()
+   local entities = radiant.terrain.get_entities_in_region(region)
+   for _, entity in pairs(entities) do
+      local rcs_component = entity:get_component('region_collision_shape')
+      if self:_is_watertight(rcs_component) then
+         local location = radiant.entities.get_world_grid_location(entity)
+         local entity_region = rcs_component:get_region():get():translated(location)
+         result:add_region(entity_region)
+      end
+   end
+
+   return result
+end
+
+-- TODO: could optimize by getting the watertight region and testing to see if point is in that set
+function WaterComponent:_is_blocked(point)
+   if radiant.terrain.is_terrain(point) then
+      return true
+   end
+
+   local entities = radiant.terrain.get_entities_at_point(point)
+   for _, entity in pairs(entities) do
+      local rcs_component = entity:get_component('region_collision_shape')
+      if self:_is_watertight(rcs_component) then
+         return true
+      end
+   end
+
+   return false
+end
+
+function WaterComponent:_is_watertight(region_collision_shape)
+   local collision_type = region_collision_shape and region_collision_shape:get_region_collision_type()
+   local result = collision_type == _radiant.om.RegionCollisionShape.SOLID
+   return result
 end
 
 function WaterComponent:_add_height(volume)
