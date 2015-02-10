@@ -36,6 +36,7 @@ function Town:restore()
    self._worker_combat_tasks = {}
    self._rally_tasks = {}
    self._mining_zone_destroy_listeners = {}
+   self._temporary_effects = {}
 
    self:_restore_mining_zone_listeners()
 
@@ -373,6 +374,26 @@ function Town:harvest_renewable_resource_node(plant)
    end
    return true
 end
+
+
+--Add a temporary effect to this entity. Keep a pointer to it so we can remove it later.
+--Assume we won't have more than 1 of a given effect type on an object at a time. 
+function Town:add_temporary_effect(entity, effect_name)
+   local entity_id = entity:get_id()
+   local effect_index = effect_name .. entity_id
+   if not self._temporary_effects[effect_index] then
+      self._temporary_effects[effect_index] = radiant.effects.run_effect(entity, "/stonehearth/data/effects/clear_effect")
+   end
+end
+
+function Town:remove_temporary_effect(entity_id, effect_name)
+   local effect_index = effect_name .. entity_id
+   if self._temporary_effects[effect_index]  then
+      self._temporary_effects[effect_index]:stop()
+      self._temporary_effects[effect_index] = nil
+   end
+end
+
 
 --Tell the harvesters to remove an item permanently from the world
 --If there was already an outstanding task on the object, make sure to cancel it first.
