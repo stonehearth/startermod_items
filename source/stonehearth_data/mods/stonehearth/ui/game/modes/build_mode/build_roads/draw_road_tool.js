@@ -34,7 +34,7 @@ var DrawRoadTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Road Material', self.roadMaterialClass, self.buildingParts.roadPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Road', self.roadMaterialClass, self.buildingParts.roadPatterns, 
                   function(brush, material) {
                      self.roadBrush = brush;
                      self.roadMaterial = material;
@@ -46,7 +46,7 @@ var DrawRoadTool;
                      self.buildingDesigner.activateTool(self.buildTool);
                   }
                );
-               MaterialHelper.addMaterialPalette(tab, 'Curb Material', self.curbMaterialClass, self.buildingParts.curbPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Curb', self.curbMaterialClass, self.buildingParts.curbPatterns, 
                   function(brush, material) {
                      self.curbBrush = brush;
                      self.curbMaterial = material;

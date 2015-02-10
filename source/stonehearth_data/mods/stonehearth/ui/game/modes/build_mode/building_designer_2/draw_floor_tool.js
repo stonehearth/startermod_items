@@ -32,7 +32,7 @@ var DrawFloorTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Floor Material', self.materialClass, self.buildingParts.floorPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Floor', self.materialClass, self.buildingParts.floorPatterns, 
                   function(brush, material) {
                      self.brush = brush;
                      self.floorMaterial = material;

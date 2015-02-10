@@ -32,15 +32,15 @@ var DrawSlabTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Slab Material', self.materialClass, self.buildingParts.slabPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Slab', self.materialClass, self.buildingParts.slabPatterns, 
                   function(brush, material) {
                      self.brush = brush;
                      self.material = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('slabMaterial', self.floorMaterial);
+                     self.buildingDesigner.saveKey('slabMaterial', self.slabMaterial);
 
-                     // Re/activate the floor tool with the new material.
+                     // Re/activate the slab tool with the new material.
                      self.buildingDesigner.reactivateTool(self.buildTool);
                   }
                );

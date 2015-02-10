@@ -28,7 +28,7 @@ var DrawDoodadTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Doors & Windows', self.materialClass, self.buildingParts.doodads, 
+               MaterialHelper.addMaterialPalette(tab, '', self.materialClass, self.buildingParts.doodads, 
                   function(brush, material) {
                      self.brush = brush;
                      self.doodadMaterial = material;

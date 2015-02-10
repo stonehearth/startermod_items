@@ -49,7 +49,7 @@ var GrowRoofTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Roof Material', self.materialClass, self.buildingParts.roofPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Roof', self.materialClass, self.buildingParts.roofPatterns, 
                   function(brush, material) {
                      self.brush = brush;
                      self.material = material;

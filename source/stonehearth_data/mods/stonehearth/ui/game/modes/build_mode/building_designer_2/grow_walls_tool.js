@@ -41,7 +41,7 @@ var GrowWallsTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Wall Material', self.wallMaterialClass, self.buildingParts.wallPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Wall', self.wallMaterialClass, self.buildingParts.wallPatterns, 
                   function(brush, material) {
                      self.wallBrush = brush;
                      self.wallMaterial = material;
@@ -52,7 +52,7 @@ var GrowWallsTool;
                      self._onMaterialChange('wall', self.wallBrush);
                   }
                );
-               MaterialHelper.addMaterialPalette(tab, 'Column Material', self.columnMaterialClass, self.buildingParts.columnPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Column', self.columnMaterialClass, self.buildingParts.columnPatterns, 
                   function(brush, material) {
                      self.columnBrush = brush;
                      self.columnMaterial = material;
