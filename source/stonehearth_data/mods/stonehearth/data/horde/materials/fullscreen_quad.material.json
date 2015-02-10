@@ -4,6 +4,10 @@
 			"state" : "states/voxel/replace.state",
 			"shader" : "shaders/fullscreen_quad.shader"
 		},
+		"COPY_TEST" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/fullscreen_quad_test.shader"
+		},
 		"ADD" : {
 			"state" : "states/voxel/add.state",
 			"shader" : "shaders/fullscreen_quad.shader"			

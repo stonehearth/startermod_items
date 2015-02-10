@@ -2,6 +2,8 @@
 <Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
       <RenderTarget id="GBuffers" numColBufs="3" depthBuf="true" format="RGBA32F" scale="1.0" />
+      <RenderTarget id="Composite" numColBufs="1" depthBuf="false" format="RGBA32F" scale="1.0" />
+      <RenderTarget id="Final" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
@@ -14,26 +16,20 @@
    <CommandQueue>
       <Stage id="Init">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" />
 
          <SwitchTarget target="Bloom" />
          <ClearTarget colBuf0="true" depthBuf="true"/>
 
+         <SwitchTarget target="Final" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+         
+         <SwitchTarget target="Composite" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
-
-      <!--Stage id="Sky">
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
-
-         <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
-      </Stage>
-
-      <Stage id="Starfield">
-         <SwitchTarget target="" />
-         <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
-      </Stage-->
 
       <Stage id="Attributes">
          <SwitchTarget target="GBuffers" />
@@ -113,17 +109,33 @@
          <UnbindBuffers />
       </Stage-->
 
-      <Stage id="Light">
+      <Stage id="Sky">
          <SwitchTarget target="" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
+         <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
+      </Stage>
+
+      <Stage id="Light">
+         <SwitchTarget target="Composite" />
          <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
          <DoDeferredLightLoop noShadows="true" material="materials/deferred_light.material.json" />
          <UnbindBuffers />
       </Stage>
 
       <Stage id="Albedo">
-         <SwitchTarget target="" />
+         <SwitchTarget target="Composite" />
          <BindBuffer sampler="buf0" sourceRT="GBuffers" bufIndex="2" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="MULT" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Composite">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="buf0" sourceRT="Composite" bufIndex="0" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="COPY_TEST" />
          <UnbindBuffers />
       </Stage>
 

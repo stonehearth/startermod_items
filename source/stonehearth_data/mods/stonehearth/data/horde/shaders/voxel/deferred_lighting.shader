@@ -30,9 +30,14 @@ varying vec2 texCoords;
 
 void main(void)
 {
-  vec3 normal = texture2D(normals, texCoords).rgb;
+  vec4 normal = texture2D(normals, texCoords);
+
+  // Check to see if a valid normal was even written!
+  if (normal.w == 0.0) {
+  	discard;
+  }
 
   // Light Color.
-  vec3 lightColor = calcSimpleDirectionalLight(normal);
+  vec3 lightColor = calcSimpleDirectionalLight(normal.xyz);
   gl_FragColor = vec4(lightColor + lightAmbientColor, 1.0);
 }

@@ -90,7 +90,7 @@
 		},
 
 		"DEFERRED_ATTRIBUTES" : {
-			"state" : "states/voxel/blend_withdepth.state",
+			"state" : "states/voxel/replace.state",
 			"shader" : "shaders/voxel/deferred_attributes.shader"
 		}
 	}

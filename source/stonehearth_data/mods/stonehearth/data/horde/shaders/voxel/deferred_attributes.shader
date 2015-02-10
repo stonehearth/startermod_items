@@ -39,15 +39,8 @@ varying float worldScale;
 
 void main(void)
 {
-  float lodWeight;
-  if (lodLevels.x == 0.0) {
-    lodWeight = clamp((lodLevels.y + vsDepth) / lodLevels.w, 0.0, 1.0);
-  } else {
-    lodWeight = clamp((-vsDepth - lodLevels.z) / lodLevels.w, 0.0, 1.0);
-  }
-
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
   gl_FragData[1] = vec4(normalize(tsbNormal), 1.0);
-  gl_FragData[2] = vec4(albedo, lodWeight);
+  gl_FragData[2] = vec4(albedo, 1.0);
 }
