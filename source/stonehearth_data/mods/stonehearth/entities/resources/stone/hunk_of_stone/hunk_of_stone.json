@@ -3,7 +3,6 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "stone",
          "category": "resources",
          "stacks": 40
       },

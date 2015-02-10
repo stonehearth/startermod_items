@@ -1,7 +1,15 @@
 local PartyMemberComponent = class()
 PartyMemberComponent.__classname = 'PartyMemberComponent'
 
-function PartyMemberComponent:initialize(entity, json)   
+function PartyMemberComponent:initialize(entity, json)
+   self._entity = entity
+end
+
+function PartyMemberComponent:destroy()
+   if self._sv.party then
+      self._sv.party:remove_member(self._entity:get_id())
+      self._sv.party = nil
+   end
 end
 
 function PartyMemberComponent:get_party()

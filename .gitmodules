@@ -1,7 +1,7 @@
 [submodule "modules/breakpad"]
 	path = modules/breakpad
 	url = http://github.com/radent/breakpad.git
-	branch = master
+	branch = version_2015_02_09
 [submodule "modules/chromium-embedded"]
 	path = modules/chromium-embedded
 	url = https://github.com/radent/chromium-embedded.git

@@ -15,14 +15,17 @@ function Shop:initialize(session)
    end
 end
 
----Sets the function which determines whether or not an item should be available 
--- in the shop.  The function gets passed an instance of that item and the shop itself
-function Shop:set_item_filter_fn(fn)
-   self._sv.item_filter_fn = fn
+function Shop:set_options(options)
+   self._sv.options = options
    self.__saved_variables:mark_changed()
    return self
 end
 
+function Shop:set_item_categories(item_categories)
+   self._sv.item_categories = item_categories
+   self.__saved_variables:mark_changed()
+   return self
+end
 ---Gets the level range of the shopkeeper for this shop.  The getter 
 -- returns 2 values (the min and the max).
 function Shop:get_shopkeeper_level_range()
@@ -54,6 +57,24 @@ function Shop:set_inventory_max_net_worth()
    return self
 end
 
+---A function which implements the default item filter for a shop.  The default filter simply 
+-- checks the item against the various shop configuration parameters (e.g. is the rarity one that 
+-- the shop is configured to stock?).  Returns true if the item can go in the shop and false otherwise.
+function Shop:item_filter_fn(entity)
+   local item_categories = self._sv.item_categories
+   assert(item_categories)
+
+   local entity_category = radiant.entities.get_category(entity)
+   
+   for _, category in pairs(item_categories) do
+      if entity_category == category then
+         return true
+      end
+   end
+
+   return false
+end
+
 function Shop:stock_shop() 
    -- get a table of all the items which can appear in a shop
    local all_sellable_items = stonehearth.shop:get_sellable_items()
@@ -63,7 +84,7 @@ function Shop:stock_shop()
 
    -- Copy the items which pass the filter function into a new table, with buckets for rarity.
    for uri, entity in pairs(all_sellable_items) do
-      if self._sv.item_filter_fn(entity) then
+      if self:item_filter_fn(entity) then
          self:_add_entity_to_sellable_items(uri, entity)
       end
    end

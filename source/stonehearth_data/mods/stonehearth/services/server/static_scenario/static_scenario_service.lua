@@ -51,7 +51,7 @@ function StaticScenarioService:add_scenario(properties, context, x, y, width, le
       self:_activate_scenario(properties, context, x, y)
    else
       local scenario_info = {
-         id = self._sv._next_id,
+         id = self:_get_next_id(),
          x = x,
          y = y,
          width = width,
@@ -59,8 +59,6 @@ function StaticScenarioService:add_scenario(properties, context, x, y, width, le
          properties = properties,
          context = context
       }
-      self._sv._next_id = self._sv._next_id + 1
-      self.__saved_variables:mark_changed()
 
       self:_add_to_scenario_map(scenario_info)
    end
@@ -223,6 +221,13 @@ end
 
 function StaticScenarioService:_get_key(x, y)
    return string.format('%d,%d', x, y)
+end
+
+function StaticScenarioService:_get_next_id()
+   local id = self._sv._next_id
+   self._sv._next_id = id + 1
+   self.__saved_variables:mark_changed()
+   return id
 end
 
 return StaticScenarioService
