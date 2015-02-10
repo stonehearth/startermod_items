@@ -189,6 +189,8 @@ void Config::InitializeSession()
    if (!root_config_.has("game.mod")) {
       root_config_.set("game.mod", PRODUCT_IDENTIFIER);
    }
+   CONFIG_LOG(1) << "user id is    " << userid_;
+   CONFIG_LOG(1) << "session id is " << sessionid_;
 }
 
 std::string Config::GetUserID() const
