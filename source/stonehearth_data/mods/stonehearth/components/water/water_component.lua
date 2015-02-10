@@ -51,7 +51,7 @@ function WaterComponent:add_water(world_location, volume)
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
    local location = world_location - entity_location
    local delta_region = Region3()
-   local new_layer
+   local merge_with_entity = nil
 
    if self._sv.region:get():empty() then
       local region = Region3()
@@ -67,27 +67,26 @@ function WaterComponent:add_water(world_location, volume)
 
       -- grow the region until we run out of volume or become bounded
       while volume > 0 and not edge_region:empty() do
-         local edge_point = edge_region:get_closest_point(location)
+         local point = edge_region:get_closest_point(location)
          -- TODO: incrementally update the new edge region
-         edge_region:subtract_point(edge_point)
+         edge_region:subtract_point(point)
 
-         local world_edge_point = edge_point + entity_location
-         local is_drop = not self:_is_blocked(world_edge_point - Point3.unit_y)
+         local world_point = point + entity_location
+         local is_drop = not self:_is_blocked(world_point - Point3.unit_y)
 
          if not is_drop then
-            local existing_water_body = stonehearth.hydrology:get_water_body(world_edge_point)
+            local existing_water_body = stonehearth.hydrology:get_water_body(world_point)
             assert(existing_water_body ~= self._entity)
 
             if existing_water_body then
-               stonehearth.hydrology:merge_water_bodies(self._entity, existing_water_body)
-               -- TODO: review this code
-               edge_region = self:_get_edge_region(self._sv._current_layer:get())
+               merge_with_entity = existing_water_body
+               break
             else
-               delta_region:add_point(edge_point)
+               delta_region:add_point(point)
                volume = volume - self._wetting_volume
             end
          else
-            local from_location = world_edge_point
+            local from_location = world_point
             local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
             if not channel then
                channel = stonehearth.hydrology:create_waterfall_channel(self._entity, from_location)
@@ -104,8 +103,13 @@ function WaterComponent:add_water(world_location, volume)
       delta_region:optimize_by_merge()
       self:_add_to_layer(delta_region)
 
+      if merge_with_entity then
+         break
+      end
+
       -- current layer is bounded, raise the water level until we hit the next layer
       if volume > 0 then
+         local new_layer
          volume, new_layer = self:_add_height(volume)
          if new_layer then
             self:_raise_layer()
@@ -114,6 +118,23 @@ function WaterComponent:add_water(world_location, volume)
    end
 
    self.__saved_variables:mark_changed()
+
+   if merge_with_entity then
+      -- record the entities to merge, and the location and volume of unused water
+      local merge_info = {
+         entity1 = self._entity,
+         entity2 = merge_with_entity,
+         location = world_location,
+         volume = volume
+      }
+      return 'merge', merge_info
+   else
+      return nil, nil
+   end
+end
+
+function WaterComponent:remove_water(volume)
+
 end
 
 function WaterComponent:_calculate_max_flow_volume(location)
