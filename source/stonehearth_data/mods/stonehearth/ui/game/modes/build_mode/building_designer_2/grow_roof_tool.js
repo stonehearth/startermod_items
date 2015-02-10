@@ -50,12 +50,11 @@ var GrowRoofTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, 'Roof', self.materialClass, self.buildingParts.roofPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.brush = brush;
-                     self.material = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('roofMaterial', self.material);
+                     self.buildingDesigner.saveKey('brush', brush);
                      self.buildingDesigner.reactivateTool(self.buildTool);
 
                      self._onMaterialChange('roof', self.brush);
@@ -123,11 +122,11 @@ var GrowRoofTool;
       restoreState: function(state) {
          var self = this;
 
-         $('#' + this.materialTabId + ' .' + this.materialClass).removeClass('selected');
-         this.material = state.roofMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.material]);
+         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.brush = selectedMaterial.attr('brush');
+         self.brush = selectedMaterial.attr('brush');
 
          this.options = state.growRoofOptions || {
             nine_grid_gradiant: ['left', 'right'],

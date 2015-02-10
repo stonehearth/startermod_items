@@ -47,23 +47,21 @@ var DrawWallTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, 'Wall', self.wallMaterialClass, self.buildingParts.wallPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.wallBrush = brush;
-                     self.wallMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('wallMaterial', self.wallMaterial);
+                     self.buildingDesigner.saveKey('wallBrush', brush);
 
                      self._onMaterialChange('wall', self.wallBrush);
                   }
                );
                MaterialHelper.addMaterialPalette(tab, 'Column', self.columnMaterialClass, self.buildingParts.columnPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.columnBrush = brush;
-                     self.columnMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('columnMaterial', self.columnMaterial);
+                     self.buildingDesigner.saveKey('columnBrush', brush);
 
                      self._onMaterialChange('column', self.columnBrush);
                   }
@@ -91,17 +89,19 @@ var DrawWallTool;
       },
 
       restoreState: function(state) {
-         $('#' + this.materialTabId + ' .' + this.columnMaterialClass).removeClass('selected');
-         this.columnMaterial = state.columnMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.columnMaterialClass)[this.columnMaterial]);
-         selectedMaterial.addClass('selected');
-         this.columnBrush = selectedMaterial.attr('brush');
+         var self = this;
 
-         $('#' + this.materialTabId + ' .' + this.wallMaterialClass).removeClass('selected')
-         this.wallMaterial = state.wallMaterial || 0;
-         selectedMaterial = $($('#' + this.materialTabId + ' .' + this.wallMaterialClass)[this.wallMaterial]);
+         var selector = state.wallBrush ? '.' + self.wallMaterialClass + '[brush="' + state.wallBrush + '"]' :  '.' + self.wallMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.wallMaterialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.wallBrush = selectedMaterial.attr('brush');
+         self.wallBrush = selectedMaterial.attr('brush');
+
+         var selector = state.columnBrush ? '.' + self.columnMaterialClass + '[brush="' + state.columnBrush + '"]' :  '.' + self.columnMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.columnMaterialClass).removeClass('selected');
+         selectedMaterial.addClass('selected');
+         self.columnBrush = selectedMaterial.attr('brush');
       }
    });
 })();

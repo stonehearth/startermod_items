@@ -33,12 +33,11 @@ var DrawSlabTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, 'Slab', self.materialClass, self.buildingParts.slabPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.brush = brush;
-                     self.material = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('slabMaterial', self.slabMaterial);
+                     self.buildingDesigner.saveKey('brush', brush);
 
                      // Re/activate the slab tool with the new material.
                      self.buildingDesigner.reactivateTool(self.buildTool);
@@ -54,10 +53,13 @@ var DrawSlabTool;
       },
 
       restoreState: function(state) {
-         this.material = state.slabMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.materialClass)[this.material]);
+         var self = this;
+
+         var selector = state.brush ? '.' + self.materialClass + '[brush="' + state.brush + '"]' :  '.' + self.materialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.materialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.brush = selectedMaterial.attr('brush');
+         self.brush = selectedMaterial.attr('brush');
       }
    });
 })();

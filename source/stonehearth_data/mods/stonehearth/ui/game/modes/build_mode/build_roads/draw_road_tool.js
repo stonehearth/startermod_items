@@ -35,24 +35,22 @@ var DrawRoadTool;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
                MaterialHelper.addMaterialPalette(tab, 'Road', self.roadMaterialClass, self.buildingParts.roadPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.roadBrush = brush;
-                     self.roadMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('roadMaterial', self.roadMaterial);
+                     self.buildingDesigner.saveKey('roadBrush', brush);
 
                      // Re/activate the road tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
                   }
                );
                MaterialHelper.addMaterialPalette(tab, 'Curb', self.curbMaterialClass, self.buildingParts.curbPatterns, 
-                  function(brush, material) {
+                  function(brush) {
                      self.curbBrush = brush;
-                     self.curbMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('curbMaterial', self.curbMaterial);
+                     self.buildingDesigner.saveKey('curbBrush', brush);
 
                      // Re/activate the road tool with the new material.
                      self.buildingDesigner.activateTool(self.buildTool);
@@ -68,15 +66,19 @@ var DrawRoadTool;
       },
 
       restoreState: function(state) {
-         this.roadMaterial = state.roadMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.roadMaterialClass)[this.roadMaterial]);
-         selectedMaterial.addClass('selected');
-         this.roadBrush = selectedMaterial.attr('brush');
+         var self = this;
 
-         this.curbMaterial = state.curbMaterial || 0;
-         selectedMaterial = $($('#' + this.materialTabId + ' .' + this.curbMaterialClass)[this.curbMaterial]);
+         var selector = state.roadBrush ? '.' + self.roadMaterialClass + '[brush="' + state.roadBrush + '"]' :  '.' + self.roadMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.roadMaterialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.curbBrush = selectedMaterial.attr('brush');
+         self.roadBrush = selectedMaterial.attr('brush');
+
+         var selector = state.curbBrush ? '.' + self.curbMaterialClass + '[brush="' + state.curbBrush + '"]' :  '.' + self.curbMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.curbMaterialClass).removeClass('selected');
+         selectedMaterial.addClass('selected');
+         self.curbBrush = selectedMaterial.attr('brush');
       }
    });
 })();

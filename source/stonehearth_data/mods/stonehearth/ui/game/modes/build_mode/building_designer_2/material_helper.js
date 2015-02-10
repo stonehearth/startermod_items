@@ -1,7 +1,5 @@
 var MaterialHelper = {};
 
-MaterialHelper.index = 0;
-
 MaterialHelper.buildMaterialPalette = function(items, materialClassName) {
    var palette = $('<div>').addClass('brushPalette');
 
@@ -12,13 +10,10 @@ MaterialHelper.buildMaterialPalette = function(items, materialClassName) {
                      .attr('brush', material.brush)
                      .css({ 'background-image' : 'url(' + material.portrait + ')' })
                      .attr('title', material.name)
-                     .attr('index', MaterialHelper.index)
                      .addClass(materialClassName)
                      .append('<div class=selectBox />'); // for showing the brush when it's selected
 
       palette.append(brush);
-      
-      MaterialHelper.index += 1;
    });
 
    return palette;
@@ -42,9 +37,8 @@ MaterialHelper.addMaterialPalette = function(el, tabTitle, materialClass, materi
    el.find('.' + materialClass).click(function() {
       el.find('.' + materialClass).removeClass('selected');
       $(this).addClass('selected');
-      var material = $(this).attr('index');
 
-      clickHandler($(this).attr('brush'), material);
+      clickHandler($(this).attr('brush'));
    });
 
    el.find("[title]").tooltipster();
