@@ -119,7 +119,9 @@ function EntityFormsComponent:_update_restock_info()
    if self._sv.should_restock then 
       --if we're restocking, cancel other tasks on this object first
       local town = stonehearth.town:get_town(self._entity)
-      town:remove_town_tasks_on_item(self._entity)
+      if town then
+         town:remove_town_tasks_on_item(self._entity)
+      end
       self:_destroy_placement_task()
 
       if not self._overlay_effect then
