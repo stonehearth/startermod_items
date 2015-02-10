@@ -11,6 +11,9 @@
       "idle_sway" : "sitting_idle",
       "idle_look_around" : "sitting_idle"
    },
+   "stonehearth:patrol" : {
+      "run" : "patrol_walk"
+   },  
    "stonehearth:sitting_on_chair" : {
       "eat" : "sitting_on_chair_eat"
    }
