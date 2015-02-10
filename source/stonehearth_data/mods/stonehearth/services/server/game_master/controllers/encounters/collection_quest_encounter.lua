@@ -1,21 +1,34 @@
+local I18N = require 'lib.i18n.i18n'
+
 local Entity = _radiant.om.Entity
 
-local DemandTribute = class()
+local CollectionQuest = class()
 
-function DemandTribute:start(ctx, info)
+function CollectionQuest:start(ctx, info)
    self._sv.ctx = ctx
    self._sv.info = info
    self._sv.bulletin_data = {}
 
    assert(info.script)
    assert(info.out_edges)   
-   assert(info.introduction)
-   assert(info.introduction.bulletin)
-   assert(info.shakedown)
-   assert(info.shakedown.bulletin)
-   assert(info.collection_failed.bulletin)
-   assert(info.script)
    assert(info.duration)
+
+   assert(info.bulletins)
+   local bulletins = info.bulletins
+   assert(bulletins.introduction)
+   assert(bulletins.shakedown)
+   assert(bulletins.collection_progress)
+   assert(bulletins.collection_due)
+   assert(bulletins.collection_failed)
+   assert(bulletins.shakedown_refused)
+
+   local i18n = I18N()
+   for _, bulletin in pairs(bulletins) do
+      for key, text in pairs(bulletin) do
+         bulletin[key] = i18n:format_string(text, ctx)
+      end
+   end
+
 
    local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script
@@ -33,9 +46,10 @@ function DemandTribute:start(ctx, info)
 
    self._sv.demand = self._sv.script:get_tribute_demand()
    self:_show_introduction()
+   self:_cache_player_tracking_data()
 end
 
-function DemandTribute:stop()
+function CollectionQuest:stop()
    self:_stop_tracking_items()
    self:_stop_collection_timer()
    self:_stop_source_listener()
@@ -45,14 +59,14 @@ end
 -- return the edge to transition to, which is simply the result of the encounter.
 -- this will be one of the edges listed in the `out_edges` (refuse, fail, or success)
 --
-function DemandTribute:get_out_edge()
+function CollectionQuest:get_out_edge()
    return self._sv.resolved_out_edge
 end
 
 -- start of the state machine.  introduce the guy doing the shakedown
 --
-function DemandTribute:_show_introduction()
-   local intro = self._sv.info.introduction.bulletin
+function CollectionQuest:_show_introduction()
+   local intro = self._sv.info.bulletins.introduction
 
    intro.next_callback = '_on_introduction_finished'
    self:_update_bulletin(intro)
@@ -61,34 +75,34 @@ end
 -- called by the ui when the intro's finished.  transition into the demand
 -- phase
 --
-function DemandTribute:_on_introduction_finished()
+function CollectionQuest:_on_introduction_finished()
    self:_show_demand()
 end
 
 -- the demand phase.  state the demands!
 --
-function DemandTribute:_show_demand()
-   local bulletin_data = self._sv.info.shakedown.bulletin
+function CollectionQuest:_show_demand()
+   local bulletin_data = self._sv.info.bulletins.shakedown
    bulletin_data.demands = {
-   	items = self._sv.demand
-	}
+      items = self._sv.demand
+   }
    bulletin_data.accepted_callback = '_on_shakedown_accepted'
    bulletin_data.declined_callback = '_on_shakedown_declined'
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
 end
 
 -- called by the ui if the player accepts the terms of the shakedown.
 --
-function DemandTribute:_on_shakedown_accepted()
+function CollectionQuest:_on_shakedown_accepted()
    self:_destroy_bulletin()
 
    -- update the bulletin to start tracking the collection progress
-   local bulletin_data = self._sv.info.collection_progress.bulletin
+   local bulletin_data = self._sv.info.bulletins.collection_progress
    local items = self._sv.demand
    bulletin_data.demands = {
       items = self._sv.demand
    }
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
    self:_start_tracking_items()
 
    -- start a timer for when to check up on the quest
@@ -98,16 +112,16 @@ end
 -- called by the ui if the player declines the terms of the shakdown.
 -- show the antagonist's displeasure
 --
-function DemandTribute:_on_shakedown_declined()
+function CollectionQuest:_on_shakedown_declined()
    self:_show_refused_threat()
 end
 
 -- show the antagonist's displeasure.  called when the shakedown is rejected
 --
-function DemandTribute:_show_refused_threat()
+function CollectionQuest:_show_refused_threat()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv.info.shakedown_refused.bulletin
+   local bulletin_data = self._sv.info.bulletins.shakedown_refused
 
    bulletin_data.ok_callback = '_on_refused_threat_ok'
    self:_update_bulletin(bulletin_data)
@@ -116,14 +130,14 @@ end
 -- after the user clicks the ok button, transition to the next encounter
 -- in the arc (after setting the 'refuse' out_edge)
 --
-function DemandTribute:_on_refused_threat_ok()
+function CollectionQuest:_on_refused_threat_ok()
    self:_finish_encounter('refuse')
 end
 
 -- transition out of the encounter using the edge in the data file named after
 -- `result`.  `result` must be one of 'success', 'fail', or 'reject'
 --
-function DemandTribute:_finish_encounter(result)
+function CollectionQuest:_finish_encounter(result)
    assert(result)
    self:_destroy_bulletin()
 
@@ -139,7 +153,7 @@ end
 
 -- update the conversation tree with the new bulletin data.
 --
-function DemandTribute:_update_bulletin(new_bulletin_data, opt)
+function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
    local ctx = self._sv.ctx
    local player_id = ctx.player_id
    local opt_view = (opt and opt.view) or 'StonehearthGenericBulletinDialog'
@@ -159,13 +173,13 @@ function DemandTribute:_update_bulletin(new_bulletin_data, opt)
    self.__saved_variables:mark_changed()
 
    bulletin:set_data(self._sv.bulletin_data)
-   		  :set_ui_view(opt_view)
+           :set_ui_view(opt_view)
 
 end
 
 -- ends the current conversation
 --
-function DemandTribute:_destroy_bulletin()
+function CollectionQuest:_destroy_bulletin()
    local bulletin = self._sv.bulletin
    if bulletin then
       stonehearth.bulletin_board:remove_bulletin(bulletin)
@@ -174,35 +188,29 @@ function DemandTribute:_destroy_bulletin()
    end
 end
 
-function DemandTribute:_start_tracking_items()
-   local ctx = self._sv.ctx
-   local player_id = ctx.player_id
-   local inventory = stonehearth.inventory:get_inventory(player_id)
-   local tracker = inventory:get_item_tracker('stonehearth:basic_inventory_tracker')
-
-   self._sv.tracker = tracker
-   self._progress_trace = tracker:trace('quest progress')
+function CollectionQuest:_start_tracking_items()
+   self._progress_trace = self._player_inventory_tracker:trace('quest progress')
                               :on_changed(function()
                                     self:_update_progress()
                                  end)
                               :push_object_state()
 end
 
-function DemandTribute:_stop_tracking_items(items)
+function CollectionQuest:_stop_tracking_items(items)
    if self._progress_trace then
       self._progress_trace:destroy()
       self._progress_trace = nil
    end
 end
 
-function DemandTribute:_update_progress(items)
+function CollectionQuest:_update_progress(items)
+   assert(self._player_inventory_tracking_data)
+
    local bulletin = self._sv.bulletin
    if not bulletin then
       return
    end
-
-   local tracker = self._sv.tracker
-   local tracking_data = tracker:get_tracking_data()
+   local tracking_data = self._player_inventory_tracking_data
    local items = self._sv.demand
 
    self._sv.have_enough = true
@@ -221,7 +229,7 @@ function DemandTribute:_update_progress(items)
    bulletin:mark_data_changed()
 end
 
-function DemandTribute:_start_collection_timer()
+function CollectionQuest:_start_collection_timer()
    assert(not self._collection_timer)
 
    local duration = self._sv.info.duration
@@ -236,34 +244,47 @@ function DemandTribute:_start_collection_timer()
       end)
 end
 
-function DemandTribute:_stop_collection_timer()
+function CollectionQuest:_stop_collection_timer()
    if self._collection_timer then
       self._collection_timer:destroy()
       self._collection_timer = nil
    end
 end
 
-function DemandTribute:_on_collection_timer_expired()
+function CollectionQuest:_on_collection_timer_expired()
    self:_stop_tracking_items()
 
-   local bulletin_data = self._sv.info.collection_due.bulletin
+   local bulletin_data = self._sv.info.bulletins.collection_due
    bulletin_data.demands = {
-      items = self._sv.demand,
-      have_enough = self._sv.have_enough,
+      items = self._sv.demand,      
    }
+   bulletin_data.have_enough = self._sv.have_enough
+
    bulletin_data.collection_pay_callback = '_on_collection_paid'
    bulletin_data.collection_cancel_callback = '_on_collection_cancelled'
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthDemandTributeBulletinDialog' })   
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })   
 end
 
-function DemandTribute:_on_collection_paid()
+function CollectionQuest:_on_collection_paid()
+   -- take the items!
+   local tracking_data = self._player_inventory_tracking_data
+
+   for uri, info in pairs(self._sv.demand) do
+      local entities = tracking_data[uri].items
+      for i=1, info.count do
+         local id, entity = next(entities)
+         if entity then
+            radiant.entities.destroy_entity(entity)
+         end
+      end
+   end
    self:_finish_encounter('success')
 end
 
-function DemandTribute:_on_collection_cancelled()
+function CollectionQuest:_on_collection_cancelled()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv.info.collection_failed.bulletin
+   local bulletin_data = self._sv.info.bulletins.collection_failed
 
    bulletin_data.ok_callback = '_on_collection_failed_ok'
    self:_update_bulletin(bulletin_data)
@@ -272,11 +293,11 @@ end
 -- after the user clicks the ok button, transition to the next encounter
 -- in the arc (after setting the 'fail' out_edge)
 --
-function DemandTribute:_on_collection_failed_ok()
+function CollectionQuest:_on_collection_failed_ok()
    self:_finish_encounter('fail')
 end
 
-function DemandTribute:_start_source_listener()
+function CollectionQuest:_start_source_listener()
    local source = self._sv.source_entity
 
    assert(source:is_valid())
@@ -288,11 +309,22 @@ function DemandTribute:_start_source_listener()
       end)
 end
 
-function DemandTribute:_stop_source_listener()
+function CollectionQuest:_stop_source_listener()
    if self._source_listener then
       self._source_listener:destroy()
       self._source_listener = nil
    end
 end
-return DemandTribute
+
+function CollectionQuest:_cache_player_tracking_data()
+   local ctx = self._sv.ctx
+   local player_id = ctx.player_id
+   local inventory = stonehearth.inventory:get_inventory(player_id)
+   local tracker = inventory:get_item_tracker('stonehearth:basic_inventory_tracker')
+
+   self._player_inventory_tracker = tracker
+   self._player_inventory_tracking_data = tracker:get_tracking_data()
+end
+
+return CollectionQuest
 
