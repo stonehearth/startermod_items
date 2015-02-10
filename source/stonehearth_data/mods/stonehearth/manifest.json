@@ -1050,11 +1050,11 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
-      "box_unharvest_resources" : {
+      "box_cancel_task" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "client"
       },
-      "server_box_unharvest_resources" : {
+      "server_box_cancel_task" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },

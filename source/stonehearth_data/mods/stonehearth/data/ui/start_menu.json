@@ -16,11 +16,11 @@
             "sticky" : true,
             "hotkey" : "h"
          },
-         "unharvest" : {
-            "name" : "Un-Harvest",
-            "description" : "Cancel existing harvest/clear orders",
+         "cancel_task" : {
+            "name" : "Cancel Task",
+            "description" : "Cancel tasks on this object",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/unharvest.png",
+            "icon" : "/stonehearth/ui/game/start_menu/images/cancel.png",
             "sticky" : true
          },
          "clear_item" : {

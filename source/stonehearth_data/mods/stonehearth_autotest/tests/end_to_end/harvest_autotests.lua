@@ -65,10 +65,9 @@ function harvest_tests.supercede_command(autotest)
 end
 
 
---test that unharvest/unclear
---test that unharvest works
+--test that cancel task works
 ---[[
-function harvest_tests.unharvest(autotest)   
+function harvest_tests.cancel_task(autotest)   
    local tree = autotest.env:create_entity(1, 1, 'stonehearth:small_oak_tree')
    
    local event = radiant.events.listen(radiant, 'radiant:entity:post_create', function (e)
@@ -83,7 +82,7 @@ function harvest_tests.unharvest(autotest)
    autotest.ui:set_next_designation_region(-4, -4, 12, 12) 
 
    autotest.ui:click_dom_element('#startMenu #harvest_menu')
-   autotest.ui:click_dom_element('#startMenu #unharvest')
+   autotest.ui:click_dom_element('#startMenu #cancel_task')
    autotest.ui:set_next_designation_region(-4, -4, 12, 12) 
    
    autotest:sleep(3000)
@@ -92,7 +91,7 @@ function harvest_tests.unharvest(autotest)
    autotest:sleep(3000)
    event:destroy()
    event = nil
-   autotest:success('unharvest works')
+   autotest:success('undo_task works')
 end
 --]]
 

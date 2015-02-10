@@ -395,16 +395,16 @@ var StonehearthClient;
          });
       },
 
-      boxUnharvestItem: function() {
+      boxCancelTask: function() {
          var self = this;
 
-         var tip = self.showTip('stonehearth:unharvest_resource_tip_title', 'stonehearth:unharvest_resource_tip_description', {i18n : true});
+         var tip = self.showTip('stonehearth:cancel_task_tip_title', 'stonehearth:cancel_task_tip_description', {i18n : true});
 
-         return this._callTool('boxUnharvestItem', function() {
-            return radiant.call('stonehearth:box_unharvest_resources')
+         return this._callTool('boxCancelTask', function() {
+            return radiant.call('stonehearth:box_cancel_task')
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
-                  self.boxUnharvestItem();
+                  self.boxCancelTask();
                })
                .fail(function(response) {
                   self.hideTip(tip);

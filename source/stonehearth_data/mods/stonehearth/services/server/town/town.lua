@@ -416,7 +416,7 @@ function Town:clear_item(item)
    local task = self:create_task_for_group('stonehearth:task_group:harvest', 'stonehearth:clear_item', {item = item})
                      :set_source(item)
                      :set_priority(stonehearth.constants.priorities.simple_labor.CLEAR)
-                     :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
+                  :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
                      :once()
                      :notify_completed(function()
                         self._clear_tasks[id] = nil
@@ -430,7 +430,7 @@ function Town:clear_item(item)
    self:_remember_user_initiated_task(task, 'clear_item', item)
 end
 
---Remove only harvest/clear
+--Remove only town-related tasks, like harvest/clear
 function Town:remove_town_tasks_on_item(item)
    local id = item:get_id()
    if self._clear_tasks[id] then

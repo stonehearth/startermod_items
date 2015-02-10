@@ -195,6 +195,10 @@ end
 
 function EntityFormsComponent:cancel_placement_tasks()
    self:_destroy_placement_task()
+
+   --TODO: if the restock task, which is always in action, is already on a guy
+   --setting the flag to false will not stop them. Consider putting another
+   --filter on the restock action, so it double checks before pickup
    self:set_should_restock(false)
 end
 

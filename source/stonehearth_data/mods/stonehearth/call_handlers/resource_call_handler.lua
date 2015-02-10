@@ -150,7 +150,7 @@ function ResourceCallHandler:_is_clearable(entity)
 end
 
 --Drag out an area. Any harvest/clear tasks in the box will be destroyed
-function ResourceCallHandler:box_unharvest_resources(session, response) 
+function ResourceCallHandler:box_cancel_task(session, response) 
    stonehearth.selection:select_xz_region()
       :require_supported(true)
       --Change this color to something else
@@ -165,7 +165,7 @@ function ResourceCallHandler:box_unharvest_resources(session, response)
             return stonehearth.selection.FILTER_IGNORE
          end)
       :done(function(selector, box)
-            _radiant.call('stonehearth:server_box_unharvest_resources', box)
+            _radiant.call('stonehearth:server_box_cancel_task', box)
             response:resolve(true)
          end)
       :fail(function(selector)            
@@ -175,7 +175,7 @@ function ResourceCallHandler:box_unharvest_resources(session, response)
 end
 
 --TODO: should we undo mining regions too?
-function ResourceCallHandler:server_box_unharvest_resources(session, response, box)
+function ResourceCallHandler:server_box_cancel_task(session, response, box)
    local cube = Cube3(Point3(box.min.x, box.min.y, box.min.z),
                       Point3(box.max.x, box.max.y, box.max.z))
 
