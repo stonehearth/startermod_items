@@ -57,7 +57,6 @@ function ShakeDown:get_tribute_demand()
          local worth = self:_get_value_in_gold(entity)
          if worth > 0 then
             local cap = (remaining_value / worth) + 1
-            radiant.log.write('', 0, 'cap %d (remaining:%d worth:%d', cap, remaining_value, worth)
             local count = rng:get_int(1, cap)
             if not tribute[uri] then
                local info = items[uri]
@@ -70,20 +69,17 @@ function ShakeDown:get_tribute_demand()
             end
             tribute[uri].count = tribute[uri].count + count
             remaining_value = remaining_value - (count * worth)
-            radiant.log.write('', 0, 'remaining %d', remaining_value)
          end
       end
       tries = tries + 1
    end
 
    -- make up the rest in oak logs
-   radiant.log.write('', 0, 'remaining %d', remaining_value)
    if remaining_value > 0 then
       local fi = self._filler_info
       local uri = fi.uri
 
       local count = remaining_value / fi.worth
-      radiant.log.write('', 0, 'count %d', count)
       if not tribute[uri] then
          tribute[uri] = {
             uri = uri,
