@@ -29,8 +29,15 @@ end
 
 --- Options
 --  {
---     item_category : ["furniture", "decoration"]
---     item_material : ["wood"]
+--     "filters" : [
+--        {
+--           item_category : ["furniture", "decoration"]
+--           item_material : ["wood"]
+--        }
+--     ],
+--     "items" : [
+--       "stonehearth:refined:thread"
+--     ]
 --  }
 function Shop:set_options(options)
    self._sv.options = options or {}
@@ -70,26 +77,51 @@ end
 
 ---A function which implements the default item filter for a shop.  
 function Shop:item_filter_fn(entity)
-   if not self:_item_in_category_filter(entity) then
+   local inventory_spec = self._sv.options
+
+   -- check if the entity in the list of items
+   if inventory_spec.items then
+      local entity_path = radiant.resources.convert_to_canonical_path(entity:get_uri())
+      for _, uri in ipairs(inventory_spec.items) do
+         local item_path = radiant.resources.convert_to_canonical_path(uri)
+         if item_path == entity_path then
+            return true
+         end
+      end
+   end
+
+   -- check if the entity passes any filter
+   if inventory_spec.items_matching then
+      for key, filter in pairs(inventory_spec.items_matching) do
+         if self:_inventory_filter_fn(entity, filter) then
+            return true
+         end
+      end
+   end
+
+   return false
+end
+
+function Shop:_inventory_filter_fn(entity, filter)
+   if not self:_item_in_category_filter(entity, filter) then
       return false
    end
 
-   if not self:_item_in_material_filter(entity) then
+   if not self:_item_in_material_filter(entity, filter) then
       return false
    end
 
    return true
 end
 
-function Shop:_item_in_category_filter(entity)
-   local item_category = self._sv.options.item_category
-   local entity_category = radiant.entities.get_category(entity)
+function Shop:_item_in_category_filter(entity, filter)
    
-   if not item_category then 
+   if not filter.category then 
       return true
    end 
-   
-   for _, category in pairs(item_category) do
+
+   local entity_category = radiant.entities.get_category(entity)
+   for _, category in pairs(filter.category) do
       if entity_category == category then
          return true
       end
@@ -98,11 +130,15 @@ function Shop:_item_in_category_filter(entity)
    return false   
 end
 
-function Shop:_item_in_material_filter(entity)
-   local item_material = self._sv.options.item_material
+function Shop:_item_in_material_filter(entity, filter)
+   if not filter.material then
+      return true
+   end
 
-   if item_material then
-      return radiant.entities.is_material(entity, item_material)
+   for _, material in pairs(filter.material) do
+      if material then
+         return radiant.entities.is_material(entity, material)
+      end
    end
 
    return true   

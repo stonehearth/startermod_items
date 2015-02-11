@@ -19,7 +19,6 @@ function CaravanShopScenario:restore()
 end
 
 function CaravanShopScenario:start()
-   self._sv.shop = stonehearth.shop:create_shop(self.session, {'weapons', 'armor'})
    self:_create_shop()
    self:_post_bulletin()
 end
@@ -28,8 +27,12 @@ end
 --  {
 --     "name" : "Woodcutter Shop",
 --     "inventory" : {
---        "item_category" : ["resources", "furniture", "decoration"],
---        "item_material" : "wood"
+--        "filters" : [
+--           {
+--              "item_category" : ["resources", "furniture", "decoration"],
+--              "item_material" : "wood"
+--           }
+--        ]
 --     }
 --  }
 function CaravanShopScenario:_create_shop(spec)
@@ -39,6 +42,7 @@ function CaravanShopScenario:_create_shop(spec)
   if not shop_spec then
     local keys = radiant.keys(self._scenario_data.shops)
     shop_spec = self._scenario_data.shops[keys[rng:get_int(1, #keys)]]
+    shop_spec = self._scenario_data.shops['rugs']
   end
 
   self._sv.shop = stonehearth.shop:create_shop(self.session, shop_spec.name, shop_spec.inventory)

@@ -3,10 +3,28 @@
    "mixins" : "file(banner_wall_small_ghost.json)",
 
    "components": {
+      "item" : {
+         "category" : "decoration"
+      },
+      "stonehearth:material" : {
+         "tags" : "decoration crafted cloth"
+      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(banner_wall_small_iconic.json)",
          "ghost_form" : "file(banner_wall_small_ghost.json)",
          "placeable_on_walls" : true
+      }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 16,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
       }
    }
 }

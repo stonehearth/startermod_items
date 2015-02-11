@@ -8,23 +8,51 @@
          "food" : {
             "name" : "A passing caravan",
             "inventory" : {
-               "item_category" : ["food"]
+               "items_matching" : {
+                  "food" : {
+                     "category" : ["food"]   
+                  }
+               }
             }
          },
          "woodcutter" : {
             "name" : "Norm Windriser's Woodcutter Shop",
             "inventory" : {
-               "item_category" : ["resources", "furniture", "decoration"],
-               "item_material" : "wood"
+               "items_matching" : {
+                  "wood stuff" : {
+                     "category" : ["resources", "furniture", "decoration"],
+                     "material" : ["wood"]
+                  }
+               }
             }
          },
          "stonecutter" : {
             "name" : "Rufus Garrow's Stonecutter Shop",
             "inventory" : {
-               "item_category" : ["resources", "furniture", "decoration"],
-               "item_material" : "stone"
+               "items_matching" : {
+                  "stone stuff" : {
+                     "category" : ["resources", "furniture", "decoration"],
+                     "material" : ["stone"]
+                  }
+               }
             }
-         }
+         },
+         "rugs" : {
+            "name" : "Havaad's Fine Rugs and Garmets",
+            "inventory" : {
+               "items" : [
+                  "stonehearth:refined:thread",
+                  "stonehearth:refined:cloth_bolt",
+                  "stonehearth:decoration:fur_rug",
+               ],
+               "items_matching" : {
+                  "cloth armor" : {                    
+                     "category" : ["decoration", "armor"],
+                     "material" : ["cloth"]
+                  }
+               }
+            }
+         }        
       }
    }
 }

@@ -25,7 +25,7 @@
          }
       },
       "stonehearth:material" : {
-         "tags" :  "armor light_armor"
+         "tags" :  "armor light_armor cloth"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(worker_outfit_2_iconic.json)"
@@ -38,5 +38,17 @@
          "injected_buffs" : [ "stonehearth:buffs:devoted" ],
          "equip_effect" : "/stonehearth/data/effects/level_up"
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 20,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }      
 }
