@@ -1,3 +1,4 @@
+local entity_forms = require 'lib.entity_forms.entity_forms_lib'
 local rng = _radiant.csg.get_default_rng()
 
 local ShakeDown = class()
@@ -51,21 +52,24 @@ function ShakeDown:get_tribute_demand()
 
    while key_count > 0 and tries < max_tries and remaining_value > 0 do
       local uri = keys[rng:get_int(1, key_count)]
-      local worth = self:_get_value_in_gold(uri)
-      if worth then
-         local cap = (remaining_value / worth) + 1
-         local count = rng:get_int(1, cap)
-         if not tribute[uri] then
-            local info = items[uri]
-            tribute[uri] = {
-               uri = uri,
-               count = 0, 
-               icon = info.icon,
-               display_name = info.display_name,
-            }
+      local _, entity = next(items[uri].items)
+      if entity then 
+         local worth = self:_get_value_in_gold(entity)
+         if worth > 0 then
+            local cap = (remaining_value / worth) + 1
+            local count = rng:get_int(1, cap)
+            if not tribute[uri] then
+               local info = items[uri]
+               tribute[uri] = {
+                  uri = uri,
+                  count = 0, 
+                  icon = info.icon,
+                  display_name = info.display_name,
+               }
+            end
+            tribute[uri].count = tribute[uri].count + count
+            remaining_value = remaining_value - (count * worth)
          end
-         tribute[uri].count = tribute[uri].count + count
-         remaining_value = remaining_value - (count * worth)
       end
       tries = tries + 1
    end
@@ -93,8 +97,9 @@ function ShakeDown:get_tribute_demand()
    return tribute
 end
 
-function ShakeDown:_get_value_in_gold(uri)
-   local net_worth = radiant.entities.get_entity_data(uri, 'stonehearth:net_worth')
+function ShakeDown:_get_value_in_gold(entity)
+   local entity_uri, _, _ = entity_forms.get_uris(entity)
+   local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
    return net_worth and net_worth.value_in_gold or 0
 end
 

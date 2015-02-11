@@ -1,10 +1,9 @@
 <script type="text/x-handlebars" data-template-name="bulletinNotification">
    <div id="bulletinNotification">
       <div id="popup" {{bind-attr class=view.model.type}}>
-         <div class="inner">
-            {{view.model.data.title}}
-         </div>
+         {{view.model.data.title}}
       </div>
+      <div id="icon" {{bind-attr class=view.model.type}}/>      
    </div>
 </script>
 A

@@ -1,5 +1,5 @@
-App.StonehearthDemandTributeBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
-	templateName: 'demandTributeBulletinDialog',
+App.StonehearthCollectionQuestBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
+	templateName: 'collectionQuestBulletinDialog',
 
 
    didInsertElement: function() {

@@ -4,8 +4,8 @@ var GrowWallsTool;
    GrowWallsTool = SimpleClass.extend({
 
       toolId: 'growWallsTool',
-      wallMaterialClass: 'wallMaterial',
-      columnMaterialClass: 'columnMaterial',
+      wallMaterialClass: 'growWallMaterial',
+      columnMaterialClass: 'growColumnMaterial',
       materialTabId: 'growWallMaterialTab',
       columnBrush: null,
       wallBrush: null,
@@ -41,24 +41,22 @@ var GrowWallsTool;
                self.buildingParts = json;
 
                var tab = MaterialHelper.addMaterialTab(root, self.materialTabId);
-               MaterialHelper.addMaterialPalette(tab, 'Wall Material', self.wallMaterialClass, self.buildingParts.wallPatterns, 
-                  function(brush, material) {
+               MaterialHelper.addMaterialPalette(tab, 'Wall', self.wallMaterialClass, self.buildingParts.wallPatterns, 
+                  function(brush) {
                      self.wallBrush = brush;
-                     self.wallMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('wallMaterial', self.wallMaterial);
+                     self.buildingDesigner.saveKey('wallBrush', brush);
 
                      self._onMaterialChange('wall', self.wallBrush);
                   }
                );
-               MaterialHelper.addMaterialPalette(tab, 'Column Material', self.columnMaterialClass, self.buildingParts.columnPatterns, 
+               MaterialHelper.addMaterialPalette(tab, 'Column', self.columnMaterialClass, self.buildingParts.columnPatterns, 
                   function(brush, material) {
                      self.columnBrush = brush;
-                     self.columnMaterial = material;
 
                      // Remember what we've selected.
-                     self.buildingDesigner.saveKey('columnMaterial', self.columnMaterial);
+                     self.buildingDesigner.saveKey('columnBrush', brush);
 
                      self._onMaterialChange('column', self.columnBrush);
                   }
@@ -73,17 +71,18 @@ var GrowWallsTool;
       },
 
       restoreState: function(state) {
-         $('#' + this.materialTabId + ' .' + this.columnMaterialClass).removeClass('selected');
-         this.columnMaterial = state.columnMaterial || 0;
-         var selectedMaterial = $($('#' + this.materialTabId + ' .' + this.columnMaterialClass)[this.columnMaterial]);
+         var self = this;
+         var selector = state.wallBrush ? '.' + self.wallMaterialClass + '[brush="' + state.wallBrush + '"]' :  '.' + self.wallMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.wallMaterialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.columnBrush = selectedMaterial.attr('brush');
+         self.wallBrush = selectedMaterial.attr('brush');
 
-         $('#' + this.materialTabId + ' .' + this.wallMaterialClass).removeClass('selected')
-         this.wallMaterial = state.wallMaterial || 0;
-         selectedMaterial = $($('#' + this.materialTabId + ' .' + this.wallMaterialClass)[this.wallMaterial]);
+         var selector = state.columnBrush ? '.' + self.columnMaterialClass + '[brush="' + state.columnBrush + '"]' :  '.' + self.columnMaterialClass;
+         var selectedMaterial = $($(selector)[0]);
+         $('.' + self.columnMaterialClass).removeClass('selected');
          selectedMaterial.addClass('selected');
-         this.wallBrush = selectedMaterial.attr('brush');
+         self.columnBrush = selectedMaterial.attr('brush');
       }
    });
 })();

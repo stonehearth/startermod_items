@@ -9,29 +9,40 @@ end
 function Shop:initialize(session)   
    self._sv = self.__saved_variables:get_data()
    self._session = session
+   
    if not self._sv.initialized then
+      self._sv.options = {}
       self._sv.level_range = { min = -1, max = -1}
       self.__saved_variables:mark_changed()
    end
 end
 
-function Shop:set_options(options)
-   self._sv.options = options
+function Shop:get_name()
+   return self._sv.name
+end
+
+function Shop:set_name(name)
+   self._sv.name = name
    self.__saved_variables:mark_changed()
    return self
 end
 
-function Shop:set_item_categories(item_categories)
-   self._sv.item_categories = item_categories
+--- Options
+--  {
+--     item_category : ["furniture", "decoration"]
+--     item_material : ["wood"]
+--  }
+function Shop:set_options(options)
+   self._sv.options = options or {}
    self.__saved_variables:mark_changed()
    return self
 end
+
 ---Gets the level range of the shopkeeper for this shop.  The getter 
 -- returns 2 values (the min and the max).
 function Shop:get_shopkeeper_level_range()
    return nil
 end
-
 
 function Shop:set_shopkeeper_level_range(range)
    return self
@@ -57,22 +68,44 @@ function Shop:set_inventory_max_net_worth()
    return self
 end
 
----A function which implements the default item filter for a shop.  The default filter simply 
--- checks the item against the various shop configuration parameters (e.g. is the rarity one that 
--- the shop is configured to stock?).  Returns true if the item can go in the shop and false otherwise.
+---A function which implements the default item filter for a shop.  
 function Shop:item_filter_fn(entity)
-   local item_categories = self._sv.item_categories
-   assert(item_categories)
+   if not self:_item_in_category_filter(entity) then
+      return false
+   end
 
+   if not self:_item_in_material_filter(entity) then
+      return false
+   end
+
+   return true
+end
+
+function Shop:_item_in_category_filter(entity)
+   local item_category = self._sv.options.item_category
    local entity_category = radiant.entities.get_category(entity)
    
-   for _, category in pairs(item_categories) do
+   if not item_category then 
+      return true
+   end 
+   
+   for _, category in pairs(item_category) do
       if entity_category == category then
          return true
       end
    end
 
-   return false
+   return false   
+end
+
+function Shop:_item_in_material_filter(entity)
+   local item_material = self._sv.options.item_material
+
+   if item_material then
+      return radiant.entities.is_material(entity, item_material)
+   end
+
+   return true   
 end
 
 function Shop:stock_shop() 

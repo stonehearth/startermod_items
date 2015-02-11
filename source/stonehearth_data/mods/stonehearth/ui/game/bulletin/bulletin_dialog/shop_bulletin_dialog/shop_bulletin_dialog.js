@@ -96,6 +96,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self._shopTrace = new StonehearthDataTrace(this.get('model.data.shop'), {});
 
       self._shopTrace.progress(function(eobj) {
+            self.set('shop_name', eobj.name);
             self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
          });
    },

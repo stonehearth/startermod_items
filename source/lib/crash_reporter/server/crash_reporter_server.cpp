@@ -142,15 +142,20 @@ void CrashReporterServer::SendCrashReport(std::string const& dump_filename)
    Poco::Net::HTTPResponse response;
    std::istream& response_stream = session.receiveResponse(response);
 
+   core::System::Log(BUILD_STRING("posting crash report"));
+
    // Check result
    int status = response.getStatus();
    if (status != Poco::Net::HTTPResponse::HTTP_OK) {
+      core::System::Log(BUILD_STRING("post failed!"));
       // unexpected result code, not much we can do
 	}
 
+
    // For debugging
-   //std::string response_string(1000, '\0');
-   //response_stream.read(&response_string[0], 1000);
+   std::string response_string(1000, '\0');
+   response_stream.read(&response_string[0], 1000);
+   core::System::Log(response_string);
    //MessageBox(nullptr, response_string.c_str(), "crash_reporter", MB_OK);
 }
 
@@ -211,6 +216,7 @@ void CrashReporterServer::ExitProcess()
 // Static callbacks for Breakpad
 void CrashReporterServer::OnClientConnected(void* context, google_breakpad::ClientInfo const* client_info)
 {
+   core::System::Log("process connected");
    try {
    } catch (...) {
    }
@@ -218,6 +224,7 @@ void CrashReporterServer::OnClientConnected(void* context, google_breakpad::Clie
 
 void CrashReporterServer::OnClientCrashed(void* context, google_breakpad::ClientInfo const* client_info, std::wstring const* dump_filename_w)
 {
+   core::System::Log("crash detected");
    try {
       CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
       crash_reporter->SendCrashReport(WstringToString(*dump_filename_w));
@@ -229,6 +236,7 @@ void CrashReporterServer::OnClientCrashed(void* context, google_breakpad::Client
 
 void CrashReporterServer::OnClientExited(void* context, google_breakpad::ClientInfo const* client_info)
 {
+   core::System::Log("process existed");
    try {
       CrashReporterServer* crash_reporter = (CrashReporterServer*) context;
       crash_reporter->ExitProcess();
