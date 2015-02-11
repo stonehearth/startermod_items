@@ -158,7 +158,7 @@ end
 -- @talisman_entity - specific talisman associated with this job, optional
 function JobComponent:promote_to(job_uri, options)
    local is_npc = options and options.is_npc
-   local talisman_entity = options and options.talisman_entity
+   local talisman_entity = options and options.talisman
 
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
