@@ -39,16 +39,17 @@ function CreateCamp:_create_camp()
    -- nuke all the entities around the camp
    local entities = radiant.terrain.get_entities_in_cube(cube2)
    for id, entity in pairs(entities) do
-      radiant.entities.destroy_entity(entity)
+      if id ~= 1 then
+         radiant.entities.destroy_entity(entity)
+      end
    end
    
    -- carve out the grass around the camp
    radiant.terrain.subtract_cube(cube)
 
-   if info.npc_boss_entity_type then
-      local npc_boss_entity = self._population:create_new_citizen(info.npc_boss_entity_type)
-      radiant.terrain.place_entity(npc_boss_entity, ctx.enemy_location)
-      ctx.npc_boss_entity = npc_boss_entity
+   -- create the boss entity
+   if info.boss then
+      ctx.npc_boss_entity = self:_create_camp_citizen(info.boss, ctx.enemy_location)
    end
 
    for k, piece in pairs(info.pieces) do
@@ -165,13 +166,7 @@ function CreateCamp:_add_piece(piece)
    -- add all the people.
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
-         local citizen = self._population:create_new_citizen()
-         if info.job then
-            citizen:add_component('stonehearth:job')
-                        :promote_to(info.job)
-         end
-         local offset = Point3(info.location.x, info.location.y, info.location.z)
-         radiant.terrain.place_entity(citizen, origin + offset)
+         self:_create_camp_citizen(info, origin)
       end
    end
 
@@ -182,6 +177,32 @@ function CreateCamp:_add_piece(piece)
    end
 
 end
+
+function CreateCamp:_create_camp_citizen(info, origin)
+   local citizen = self._population:create_new_citizen()
+   if info.job then
+      citizen:add_component('stonehearth:job')
+                  :promote_to(info.job, {
+                        is_npc = true,
+                     })
+   end
+
+   local offset = Point3.zero
+   if info.location then
+      offset = Point3(info.location.x, info.location.y, info.location.z)
+   end
+   local location = origin + offset
+
+   if info.combat_leash_range then
+      citizen:add_component('stonehearth:combat_state')
+                  :set_attack_leash(location, info.combat_leash_range)
+   end
+
+   radiant.terrain.place_entity(citizen, location)
+
+   return citizen
+end
+
 
 function CreateCamp:_get_player_id()
    return self._sv._info.player_id

@@ -18,7 +18,7 @@ function TrapperClass:restore()
    self.__saved_variables:mark_changed()
 end
 
-function TrapperClass:promote(json)
+function TrapperClass:promote(json, options)
    job_helper.promote(self._sv, json)
 
    self:_create_xp_listeners()

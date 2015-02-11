@@ -575,6 +575,9 @@ RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::Ef
       if (selection.HasEntities()) {
          dm::ObjectId id = selection.GetEntities().front();
          item = Client::GetInstance().GetStore().FetchObject<om::Entity>(id);
+         if (!item) {
+            EL_LOG(1) << "item with id " << id << " does not exist.";
+         }
 #if 0
          // this is illegal.  if we really need to move it, move the render entity!
          if (item) {
@@ -592,31 +595,33 @@ RenderAttachItemEffectTrack::RenderAttachItemEffectTrack(RenderEntity& e, om::Ef
          om::Stonehearth::InitEntity(item, kind.c_str(), Client::GetInstance().GetScriptHost()->GetInterpreter());
       } catch (res::Exception &e) {
          // xxx: put this in the error browser!!
-         EL_LOG(5) << "!!!!!!! ERROR IN RenderAttachItemEffectTrack: " << e.what();
+         EL_LOG(1) << "failed to initialize entity:" << e.what();
       }
    }
+   if (!item) {
+      EL_LOG(1) << "failed to attach \"" << kind << "\".";
+      return;
+   }
 
-   if (item) {
-      startTime_ = GetStartTime(node) + now;
-      bone_ = node["bone"].as_string();
+   startTime_ = GetStartTime(node) + now;
+   bone_ = node["bone"].as_string();
 
-      om::MobPtr mob = item->GetComponent<om::Mob>();
-      if (mob) {
-         mob->SetLocationGridAligned(csg::Point3f::zero);
-      }
+   om::MobPtr mob = item->GetComponent<om::Mob>();
+   if (mob) {
+      mob->SetLocationGridAligned(csg::Point3f::zero);
+   }
 
-      H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
-      render_item_ = Renderer::GetInstance().CreateRenderEntity(parent, item);
-      render_item_->SetParent(0);
+   H3DNode parent = entity_.GetSkeleton().GetSceneNode(bone_);
+   render_item_ = Renderer::GetInstance().CreateRenderEntity(parent, item);
+   render_item_->SetParent(0);
 
-      auto i = node.find("render_info");
-      if (i != node.end()) {
-         // xxx: can we get rid of this abomination? -- tony
-         auto j = i->find("model_variant");
-         if (j != i->end()) {
-            model_variant_override_ = j->as_string();
-            use_model_variant_override_ = true;
-         }
+   auto i = node.find("render_info");
+   if (i != node.end()) {
+      // xxx: can we get rid of this abomination? -- tony
+      auto j = i->find("model_variant");
+      if (j != i->end()) {
+         model_variant_override_ = j->as_string();
+         use_model_variant_override_ = true;
       }
    }
 }
@@ -631,7 +636,7 @@ RenderAttachItemEffectTrack::~RenderAttachItemEffectTrack()
 
 void RenderAttachItemEffectTrack::Update(FrameStartInfo const& info, bool& finished)
 {
-   if (finished_) {
+   if (!render_item_ || finished_) {
       finished = true;
       return;
    }

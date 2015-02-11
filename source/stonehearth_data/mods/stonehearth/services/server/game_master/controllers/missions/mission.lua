@@ -18,10 +18,11 @@ function Mission:_create_party(ctx, info)
    local party = stonehearth.unit_control:get_controller(ctx.enemy_player_id)
                                              :create_party()
    for name, job in pairs(info.members) do
+      -- xxx: delegate this to the camp's implementation!
       local member = population:create_new_citizen()
       
       member:add_component('stonehearth:job')
-                  :promote_to(job, nil, { is_npc = true })
+                  :promote_to(job, { is_npc = true })
       
       party:add_member(member)
 

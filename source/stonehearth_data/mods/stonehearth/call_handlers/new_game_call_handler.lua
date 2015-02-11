@@ -248,7 +248,10 @@ function NewGameCallHandler:place_citizen(pop, x, z, job, talisman)
    if not job then
       job = 'stonehearth:jobs:worker'
    end
-   pop:promote_citizen(citizen, job, talisman)
+   citizen:add_component('stonehearth:job')
+               :promote_to(job, {
+                  talisman = talisman
+               })
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen

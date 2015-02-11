@@ -18,7 +18,11 @@
          "max" : 120
       },
 
-      "npc_boss_entity_type" : "",
+      "boss" : {
+         "position" : { "x": 6, "y": 6 },
+         "combat_leash_range" : 18,
+         "job" : "stonehearth:jobs:footman"
+      },
       
       "script" : "file(create_camp/goblin_raiding_camp.lua)",
 

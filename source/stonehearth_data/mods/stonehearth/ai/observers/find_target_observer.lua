@@ -46,7 +46,9 @@ function FindTargetObserver:_get_sight_sensor()
 end
 
 function FindTargetObserver:_subscribe_to_events()
-   self._aggro_table = self._entity:add_component('stonehearth:target_tables'):get_target_table('aggro')
+   self._aggro_table = self._entity:add_component('stonehearth:target_tables')
+                                       :get_target_table('aggro')
+   self._combat_state = self._entity:add_component('stonehearth:combat_state')
    self._table_change_listener = radiant.events.listen(self._aggro_table, 'stonehearth:target_table_changed', self, self._on_target_table_changed)
    self._stance_change_listener = radiant.events.listen(self._entity, 'stonehearth:combat:stance_changed', self, self._on_stance_changed)
    self._assault_listener = radiant.events.listen(self._entity, 'stonehearth:combat:assault', self, self._on_assault)
@@ -252,13 +254,17 @@ function FindTargetObserver:_calculate_target_cost_benefit()
    for target_id, aggro in pairs(targets) do
       local target = radiant.entities.get_entity(target_id)
       if self:_can_see_target(target) then
-         local distance = radiant.entities.distance_between(self._entity, target)
-         local score = aggro / distance
-         if score > best_score then
-            best_target = target
-            best_score = score
+         if self._combat_state:is_within_leash(target) then
+            local distance = radiant.entities.distance_between(self._entity, target)
+            local score = aggro / distance
+            if score > best_score then
+               best_target = target
+               best_score = score
+            end
+            self._log:spam('considering target %s (aggro:%.2f distance:%.2f score:%2.f)', target, aggro, distance, score)
+         else
+            self._log:spam('considering target %s (aggro:%.2f .. too far away from leash!  ignoring)', target, aggro)
          end
-         self._log:spam('considering target %s (aggro:%.2f distance:%.2f score:%2.f)', target, aggro, distance, score)
       else
          self._log:spam('considering target %s (aggro:%.2f .. cannot see!  ignoring)', target, aggro)
       end

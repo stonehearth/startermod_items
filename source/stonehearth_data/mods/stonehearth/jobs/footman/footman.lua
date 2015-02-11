@@ -21,7 +21,7 @@ function FootmanClass:restore()
 end
 
 -- Call when it's time to promote someone to this class
-function FootmanClass:promote(json)
+function FootmanClass:promote(json, options)
    job_helper.promote(self._sv, json)
 
    self:_create_xp_listeners()

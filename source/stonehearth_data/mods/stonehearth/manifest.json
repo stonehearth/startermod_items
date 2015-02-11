@@ -894,7 +894,6 @@
       "jobs:weaver" : "file(jobs/weaver/weaver_description.json)",
       "jobs:weaponsmith" : "file(jobs/weaponsmith/weaponsmith_description.json)",
       "jobs:worker" : "file(jobs/worker/worker_description.json)",
-      "npc_jobs:peon" : "file(npc_jobs/peon/peon_description.json)",
 
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
 
@@ -1300,8 +1299,6 @@
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
       "class:weaver" : "file(jobs/weaver/weaver.lua)",
       "class:shepherd" : "file(jobs/shepherd/shepherd.lua)", 
-
-      "class:peon" : "file(npc_jobs/peon/peon.lua)", 
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",

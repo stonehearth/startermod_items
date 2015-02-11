@@ -14,9 +14,9 @@ function GameMasterService:initialize()
       self:restore()
    end
    
-   local enabled = radiant.util.get_config('game_master.enabled')
-   if enabled then
-      self:start()
+   self._is_enabled = radiant.util.get_config('game_master.enabled')
+   if self._is_enabled then
+      self:start()     
    end
 end
 
@@ -31,6 +31,10 @@ function GameMasterService:_create_context()
    return {
       player_id = 'player_1'
    }
+end
+
+function GameMasterService:is_enabled()
+   return self._is_enabled
 end
 
 function GameMasterService:_start_campaign(subtype)

@@ -26,7 +26,8 @@ function CombatSpamTest:place_footmen(location, number)
    local entities = {}
    for i = 1, number do
       local entity = self._player_population:create_new_citizen()
-      entity:add_component('stonehearth:job'):promote_to('stonehearth:jobs:footman')
+      entity:add_component('stonehearth:job')
+               :promote_to('stonehearth:jobs:footman')
       table.insert(entities, entity)
 
       radiant.events.listen_once(entity, 'radiant:entity:pre_destroy', function()
