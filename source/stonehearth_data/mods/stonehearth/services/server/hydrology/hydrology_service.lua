@@ -96,6 +96,19 @@ function HydrologyService:get_channel(from_entity, from_location)
    return nil
 end
 
+function HydrologyService:get_channels(from_entity)
+   local channels = {}
+
+   -- TODO: optimize to avoid O(n) iteration
+   for _, channel in pairs(self._sv._channels) do
+      if channel.from_entity == from_entity then
+         channels[channel.id] = channel
+      end
+   end
+
+   return channels
+end
+
 -- to_entity is an optional hint
 function HydrologyService:add_water(volume, to_location, to_entity)
    if not to_entity then
@@ -282,14 +295,10 @@ end
 
 function HydrologyService:_merge_water_queue(master, mergee, queue)
    for _, entry in ipairs(queue) do
-      if entry.to_entity == mergee then
-         entry.to_entity = master
+      -- redirect all mergee references to master
+      if entry.entity == mergee then
+         entry.entity = master
       end
-      if entry.from_entity == mergee then
-         entry.from_entity = master
-      end
-      -- ok for an entry to queue to itself
-      -- in fact, we want to add the water back so we don't lose it
    end
 end
 

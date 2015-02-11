@@ -7,7 +7,7 @@ function CityRaid:start(ctx, info)
    assert(ctx.enemy_location)
 
    self._sv.ctx = ctx
-   self._sv.info = info
+   self._sv._info = info
    self._sv.missions = {}
 
    self:_create_raid(info)
