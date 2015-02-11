@@ -156,7 +156,10 @@ end
 -- Called in the moment that the animation converts the citizen to their new job. 
 -- @job_uri - uri of the job we're promoting to
 -- @talisman_entity - specific talisman associated with this job, optional
-function JobComponent:promote_to(job_uri, talisman_entity, options)
+function JobComponent:promote_to(job_uri, options)
+   local is_npc = options and options.is_npc
+   local talisman_entity = options and options.talisman_entity
+
    self._job_json = radiant.resources.load_json(job_uri, true)
    if self._job_json then
       self:demote()
@@ -179,7 +182,7 @@ function JobComponent:promote_to(job_uri, talisman_entity, options)
 
       -- equip your equipment, unless you're an npc, in which case the game is responsible for manually
       -- adding the proper equipment
-      if not options or not options.is_npc then
+      if not is_npc then
          self:_equip_equipment(self._job_json)
       end
 

@@ -7,7 +7,7 @@ local JobCallHandler = class()
 
 function JobCallHandler:grab_promotion_talisman(session, response, person, talisman)
    local town = stonehearth.town:get_town(session.player_id)
-   town:promote_citizen(person, talisman)
+   town:create_promote_orchestrator(person, talisman)
    return true
 end
 

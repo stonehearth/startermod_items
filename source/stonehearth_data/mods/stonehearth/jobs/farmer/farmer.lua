@@ -19,7 +19,7 @@ function FarmerClass:restore()
    self.__saved_variables:mark_changed()
 end
 
-function FarmerClass:promote(json)
+function FarmerClass:promote(json, options)
    job_helper.promote(self._sv, json)
    self:_create_xp_listeners()
 

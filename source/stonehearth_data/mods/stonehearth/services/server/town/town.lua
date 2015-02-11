@@ -312,7 +312,7 @@ function Town:create_orchestrator(orchestrator_ctor, args)
    }
 end
 
-function Town:promote_citizen(person, talisman)
+function Town:create_promote_orchestrator(person, talisman)
    return self:create_orchestrator(Promote, {
       person = person,
       talisman = talisman,

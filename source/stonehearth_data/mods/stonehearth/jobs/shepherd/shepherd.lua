@@ -22,7 +22,7 @@ function ShepherdClass:restore()
    self.__saved_variables:mark_changed()
 end
 
-function ShepherdClass:promote(json)
+function ShepherdClass:promote(json, options)
    job_helper.promote(self._sv, json)
    self:_create_xp_listeners()
 
