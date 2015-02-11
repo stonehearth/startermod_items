@@ -4,7 +4,7 @@ local Arc = class()
 mixin_class(Arc, Node)
 
 function Arc:initialize(info)
-   self._sv.info = info
+   self._sv._info = info
    self._sv.running_encounters = {}
    self._log = radiant.log.create_logger('game_master.arc')
 end
@@ -17,7 +17,7 @@ end
 function Arc:start(ctx)
    self._sv.ctx = ctx
    self._sv.ctx.arc = self
-   self._sv.encounters = self:_create_nodelist('encounter', self._sv.info.encounters)
+   self._sv.encounters = self:_create_nodelist('encounter', self._sv._info.encounters)
    self:_trigger_edge(self._sv.ctx, 'start')
 end
 

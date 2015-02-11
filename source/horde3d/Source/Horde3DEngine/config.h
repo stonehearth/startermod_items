@@ -21,7 +21,7 @@
 #define H3D_API_VALIDATION
 
 // Send log messages to the output channel of the attached debugger
-#define H3D_DEBUGGER_OUTPUT
+// #define H3D_DEBUGGER_OUTPUT
 
 // Check for errors and invalid data during each drawcall (requires DEBUG config)
 //#define H3D_VALIDATE_DRAWCALLS

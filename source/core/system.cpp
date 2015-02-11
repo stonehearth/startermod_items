@@ -75,6 +75,12 @@ boost::filesystem::path System::DefaultTempDirectory(std::string const& applicat
    return boost::filesystem::path(path) / application_name;
 }
 
+void System::Log(const char* src)
+{
+   std::string log = BUILD_STRING("stonehearth: " << src);
+   OutputDebugStringA(log.c_str());
+}
+
 bool System::IsProcess64Bit()
 {
 #if defined(_M_X64) || defined(__amd64__)

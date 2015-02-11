@@ -58,4 +58,8 @@ function GameMasterService:_start_campaign(subtype)
    campaign:start(ctx)
 end
 
+function GameMasterService:get_data_command(session, response)
+   return self.__saved_variables
+end
+
 return GameMasterService

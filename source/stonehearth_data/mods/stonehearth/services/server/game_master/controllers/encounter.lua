@@ -4,7 +4,7 @@ local Encounter = class()
 mixin_class(Encounter, Node)
 
 function Encounter:initialize(info)
-   self._sv.info = info
+   self._sv._info = info
    self._log = radiant.log.create_logger('game_master.encounter')
 end
 
@@ -18,8 +18,8 @@ end
 -- get the name of the edge which leads to this encounter.
 --
 function Encounter:get_in_edge()
-	assert(self._sv.info.in_edge)
-   return self._sv.info.in_edge
+	assert(self._sv._info.in_edge)
+   return self._sv._info.in_edge
 end
 
 -- get the name of the edge which this encounter leads to.
@@ -33,15 +33,15 @@ function Encounter:get_out_edge()
 	end
 
 	-- return what's in the json file.
-   return self._sv.info.out_edge
+   return self._sv._info.out_edge
 end
 
 -- start the encounter.
 --
 function Encounter:start(ctx)
    assert(not self._sv.script)
-   local etype = self._sv.info.encounter_type
-   local einfo = self._sv.info[etype .. '_info']
+   local etype = self._sv._info.encounter_type
+   local einfo = self._sv._info[etype .. '_info']
    local ename = 'stonehearth:game_master:encounters:' .. etype   
    
    assert(einfo)
