@@ -2320,8 +2320,6 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
       Frustum const* lightFrus;
       Frustum dirLightFrus;
 
-      setupViewMatrices( _curCamera->getViewMat(), Matrix4f::OrthoMat( 0, 1, 0, 1, -1, 1 ) );
-      setMaterial(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
       if (curLight->_directional)
       {
          if (noShadows)
@@ -2344,6 +2342,12 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
       // Calculate light screen space position
       float bbx, bby, bbw, bbh;
       curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
+      // Set scissor rectangle
+      if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
+      {
+         gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
+         glEnable(GL_SCISSOR_TEST);
+      }
 
       if (noShadows || curLight->_shadowMapCount == 0)
       {
@@ -2354,11 +2358,7 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
 
          commitLightUniforms(curLight);
          
-		   if (curLight->_directional) {
-            drawQuad();
-         } else {
-			   drawSphere(curLight->_absPos, curLight->_radius);
-		   }
+         drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
       } else {
          if (curLight->_shadowMapBuffer) {
             if (curLight->_directional && curLight->_shadowMapBuffer) {
@@ -2366,11 +2366,7 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
                setupShadowMap(curLight, false);
                commitLightUniforms(curLight);
 
-		         if (curLight->_directional) {
-                  drawQuad();
-               } else {
-			         drawSphere(curLight->_absPos, curLight->_radius);
-		         }
+               drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
             } else {
                // Omni lights require a pass/binding for each side of the cubemap into which they render.
                for (int i = 0; i < 6; i++) {
@@ -2383,15 +2379,12 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
                setupShadowMap(curLight, false);
                commitLightUniforms(curLight);
 
-		         if (curLight->_directional) {
-                  drawQuad();
-               } else {
-			         drawSphere(curLight->_absPos, curLight->_radius);
-		         }
+               drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
             }
          }
       }
-		
+		glDisable(GL_SCISSOR_TEST);
+
       Modules().stats().incStat(EngineStats::LightPassCount, 1);
 	}
 }
