@@ -880,6 +880,8 @@ void Client::run(int server_port)
    CreateGame();
    InitializeUI("");
 
+   CLIENT_LOG(1) << "user feedback is " << (analytics::GetCollectionStatus() ? "on" : "off");
+   
    while (renderer.IsRunning()) {
       perfmon::BeginFrame(perf_hud_shown_);
       perfmon::TimelineCounterGuard tcg("client run loop") ;
@@ -1914,6 +1916,8 @@ void Client::ReportSysInfo()
       node.set("OsName", platform::SysInfo::GetOSName());
       node.set("OsVersion", platform::SysInfo::GetOSVersion());
       node.set("OsArch", core::System::IsPlatform64Bit() ? "x64" : "x32");
+
+      CLIENT_LOG(1) << "reporting sysinfo";
 
       // xxx, parse GAME_DEMOGRAPHICS_URL into domain and path, in postdata
       analytics::PostData post_data(node, REPORT_SYSINFO_URI,  "");
