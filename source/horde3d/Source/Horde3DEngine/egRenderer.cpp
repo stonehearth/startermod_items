@@ -996,18 +996,27 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       break;
    case BlendModes::Blend:
       glEnable( GL_BLEND );
+      glBlendEquation(GL_FUNC_ADD);
       glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
       break;
    case BlendModes::Add:
       glEnable( GL_BLEND );
+      glBlendEquation(GL_FUNC_ADD);
       glBlendFunc( GL_ONE, GL_ONE );
       break;
    case BlendModes::AddBlended:
       glEnable( GL_BLEND );
+      glBlendEquation(GL_FUNC_ADD);
       glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+      break;
+   case BlendModes::Sub:
+      glEnable(GL_BLEND);
+      glBlendEquation(GL_FUNC_REVERSE_SUBTRACT);
+      glBlendFunc(GL_ONE, GL_ONE);
       break;
    case BlendModes::Mult:
       glEnable( GL_BLEND );
+      glBlendEquation(GL_FUNC_ADD);
       glBlendFunc( GL_DST_COLOR, GL_ZERO );
       break;
    }

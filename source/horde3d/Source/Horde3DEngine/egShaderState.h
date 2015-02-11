@@ -29,7 +29,8 @@ struct BlendModes
 		Blend,
 		Add,
 		AddBlended,
-		Mult
+		Mult,
+      Sub
 	};
 };
 

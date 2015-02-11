@@ -195,6 +195,8 @@ bool ShaderStateResource::load(const char *data, int size)
             blendMode = BlendModes::AddBlended;
          } else if (tok.checkToken("Mult")) {
             blendMode = BlendModes::Mult;
+         } else if (tok.checkToken("Sub")) {
+            blendMode = BlendModes::Sub;
          } else {
             return raiseError("FX: invalid enum value", tok.getLine());
          }
