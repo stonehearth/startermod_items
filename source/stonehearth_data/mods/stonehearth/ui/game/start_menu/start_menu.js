@@ -104,10 +104,6 @@ App.StonehearthStartMenuView = App.View.extend({
                .done(function(response) {
                   if (!response.show_in_progress_ui) {
                      self.$('#tasks_manager').hide();
-
-                     //hide clear item and cancel task
-                     self.$('#clear_item').hide();
-                     self.$('#cancel_task').hide();
                   }
                })
 
