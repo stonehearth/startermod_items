@@ -19,6 +19,8 @@ end
 function PartyMemberComponent:set_party(party)
    self._sv.party = party
    self.__saved_variables:mark_changed()
+
+   radiant.events.trigger_async(self._entity, 'stonehearth:party:party_changed')
 end
 
 return PartyMemberComponent

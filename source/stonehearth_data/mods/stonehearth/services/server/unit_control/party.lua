@@ -25,6 +25,7 @@ function Party:initialize(unit_controller, player_id, id, ord)
    self._sv.members = {}
    self._sv.banners = {}
    self._sv.party_size = 0
+   self._sv.leash_range = 10
    self._sv.player_id = player_id
 
    self:restore()
@@ -184,6 +185,8 @@ function Party:place_banner(type, location, rotation)
       location = location,
    }
    self.__saved_variables:mark_changed()
+   self:_update_leashes()
+
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = type,
          location = location,
@@ -193,9 +196,25 @@ end
 function Party:remove_banner(type)
    self._sv.banners[type] = nil
    self.__saved_variables:mark_changed()
+   self:_update_leashes()
+
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = type
       })
+end
+
+function Party:_update_leashes()
+   local banner = self:get_active_banner()
+   for _, entry in pairs(self._sv.members) do
+      if entry.leash then
+         entry.leash:destroy()
+         entry.leash = nil
+      end
+      if banner then
+         entry.leash = entry.entity:add_component('stonehearth:combat_state')
+                                       :set_attack_leash(banner.location, self._sv.leash_range)
+      end
+   end
 end
 
 function Party:_create_listeners()
@@ -205,6 +224,7 @@ function Party:_create_listeners()
 end
 
 function Party:_check_town_defense_mode()
+   self:_update_leashes()
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = 'defend'
       })   
