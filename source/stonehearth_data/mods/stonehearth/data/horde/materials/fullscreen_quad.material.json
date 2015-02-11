@@ -12,6 +12,10 @@
 			"state" : "states/voxel/add.state",
 			"shader" : "shaders/fullscreen_quad.shader"			
 		},	
+		"SUB" : {
+			"state" : "states/voxel/sub.state",
+			"shader" : "shaders/fullscreen_quad.shader"			
+		},	
 		"MULT" : {
 			"state" : "states/voxel/mult.state",
 			"shader" : "shaders/fullscreen_quad.shader"			
