@@ -70,10 +70,13 @@
       "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
       "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
 
-      "wooden_slab_solid_light" : "file(entities/build/slab/wooden_slab_solid_light)",
-      "wooden_slab_solid_dark" : "file(entities/build/slab/wooden_slab_solid_dark)",
-      "wooden_slab_diagonal" : "file(entities/build/slab/wooden_slab_diagonal)",
-      "checkered_slate_slab" : "file(entities/build/slab/checkered_slate_slab)",
+      "fine_wood_slab_1" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_1.json)",
+      "fine_wood_slab_2" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_2.json)",
+      "fine_wood_slab_3" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_3.json)",
+
+      "blue_slate_slab_1" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_1.json)",
+      "blue_slate_slab_2" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_2.json)",
+      "blue_slate_slab_3" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_3.json)",
 
       "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
       "stone_paved_road" : "file(entities/build/road/stone_paved_road)",

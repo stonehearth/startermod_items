@@ -22,7 +22,7 @@
             "name" : "Rufus Garrow's Stonecutter Shop",
             "inventory" : {
                "item_category" : ["resources", "furniture", "decoration"],
-               "item_material" : "stone"            
+               "item_material" : "stone"
             }
          }
       }
