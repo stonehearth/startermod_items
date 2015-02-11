@@ -1,6 +1,7 @@
 #include "crash_reporter_client.h"
 #include "radiant_macros.h"
 #include "core/process.h"
+#include "core/system.h"
 #include "platform/sysinfo.h"
 #include "build_number.h"
 #include "poco/UUIDGenerator.h"
@@ -62,9 +63,14 @@ void CrashReporterClient::Start(std::string const& crash_dump_path, std::string 
    ASSERT(!running_);
 
    std::string const pipe_name = GeneratePipeName();
-   std::string const filename = CRASH_REPORTER_NAME + ".exe";
-   std::string const command_line = BUILD_STRING(filename << " " << pipe_name << " " << crash_dump_path << " " << crash_dump_uri << " " << userid);
+   std::string const command_line = BUILD_STRING(
+      "\"" << CRASH_REPORTER_NAME << ".exe" << "\" " << 
+      "\"" << pipe_name << " \" " << 
+      "\"" << crash_dump_path << "\" " <<
+      "\"" << crash_dump_uri << "\" " <<
+      "\"" << userid << "\"");
 
+   core::System::Log(BUILD_STRING("starting crash reporter: " << command_line));
    crash_reporter_server_process_.reset(new radiant::core::Process(command_line));
 
    InitializeExceptionHandlingEnvironment(pipe_name);
