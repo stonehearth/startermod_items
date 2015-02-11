@@ -26,6 +26,17 @@
 					"bind_to_material_input" : "gridlineColor"
 				}
 			]
+		},
+		"DEFERRED_ATTRIBUTES" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/deferred_attributes.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
 		}
 	},
 	"inputs" : [

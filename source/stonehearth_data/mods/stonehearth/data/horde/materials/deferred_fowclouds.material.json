@@ -1,0 +1,8 @@
+{
+	"shaders" : {
+		"FOW_CLOUDS" : {
+			"state" : "states/voxel/sub.state",
+			"shader" : "shaders/voxel/deferred_fowclouds.shader"
+		}
+	}
+}
