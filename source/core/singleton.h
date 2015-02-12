@@ -3,6 +3,7 @@
 
 #include "namespace.h"
 #include <memory>
+#include <mutex>
 
 BEGIN_RADIANT_CORE_NAMESPACE
 
@@ -11,6 +12,8 @@ class Singleton
 {
 public:
    static Derived& GetInstance() {
+      std::lock_guard<boost::detail::spinlock> lock(_lock);
+
       ASSERT(!destroyed_);
       if (destroyed_) {
          throw std::logic_error("attempting to access singleton after its destruction");
@@ -25,6 +28,8 @@ public:
    }
 
    static void Destroy() {
+      std::lock_guard<boost::detail::spinlock> lock(_lock);
+
       ASSERT(!destroyed_);
       if (destroyed_) {
          throw std::logic_error("attempting 2nd destruction of singleton");
@@ -45,13 +50,15 @@ private:
    static std::unique_ptr<Derived> singleton_;
    static bool destroyed_;
    static bool constructed_;
+   static boost::detail::spinlock _lock;
 };
 
 // Must be done once in a .cpp file somewhere to declare the singleton variable
 #define DEFINE_SINGLETON(Cls) \
    std::unique_ptr<Cls> core::Singleton<Cls>::singleton_; \
    bool core::Singleton<Cls>::constructed_ = false; \
-   bool core::Singleton<Cls>::destroyed_ = false; 
+   bool core::Singleton<Cls>::destroyed_ = false; \
+   boost::detail::spinlock core::Singleton<Cls>::_lock;
 
 END_RADIANT_CORE_NAMESPACE
 
