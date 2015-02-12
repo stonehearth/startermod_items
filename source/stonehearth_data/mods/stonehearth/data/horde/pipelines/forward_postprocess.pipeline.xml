@@ -25,7 +25,7 @@
          <ClearTarget colBuf0="true" depthBuf="true"/>
 
          <SwitchTarget target="LightAccumulation" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
+         <ClearTarget colBuf0="true" depthBuf="false"/>
 
          <SwitchTarget target="SSAOBlur" />
          <ClearTarget colBuf0="true" depthBuf="false" />
@@ -50,14 +50,6 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Sky">
-         <SwitchTarget target="" />
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
-         <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
-
-         <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
-      </Stage>
 
       <Stage id="Light">
          <SwitchTarget target="LightAccumulation" />
@@ -90,6 +82,15 @@
          <UnbindBuffers />
       </Stage>
 
+      <Stage id="Sky">
+         <SwitchTarget target="Albedo" />
+         <DrawGeometry context="SKY_DEFERRED" forceLodLevel="0"/>
+         <DrawGeometry context="STARFIELD_DEFERRED" forceLodLevel="0"/>
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
+      </Stage>
+
       <Stage id="Fog">
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
@@ -120,7 +121,7 @@
       <Stage id="Composite">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="Albedo" bufIndex="0" />
-         <DrawQuad material="materials/fullscreen_quad.material.json" context="COPY_TEST" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="FSQUAD_COPY" />
          <UnbindBuffers />
       </Stage>
 

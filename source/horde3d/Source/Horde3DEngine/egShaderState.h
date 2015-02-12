@@ -30,8 +30,9 @@ struct BlendModes
 		Add,
 		AddBlended,
 		Mult,
-      Sub
-	};
+      Sub,
+      ReplaceByAlpha	
+   };
 };
 
 struct TestModes

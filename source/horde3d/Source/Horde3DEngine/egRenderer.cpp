@@ -999,6 +999,11 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
       glBlendEquation(GL_FUNC_ADD);
       glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
       break;
+   case BlendModes::ReplaceByAlpha:
+      glEnable( GL_BLEND );
+      glBlendEquation(GL_FUNC_ADD);
+      glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
+      break;
    case BlendModes::Add:
       glEnable( GL_BLEND );
       glBlendEquation(GL_FUNC_ADD);

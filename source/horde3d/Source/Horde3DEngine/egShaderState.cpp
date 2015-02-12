@@ -193,6 +193,8 @@ bool ShaderStateResource::load(const char *data, int size)
             blendMode = BlendModes::Add;
          } else if (tok.checkToken("AddBlended")) {
             blendMode = BlendModes::AddBlended;
+         } else if (tok.checkToken("ReplaceByAlpha")) {
+            blendMode = BlendModes::ReplaceByAlpha;
          } else if (tok.checkToken("Mult")) {
             blendMode = BlendModes::Mult;
          } else if (tok.checkToken("Sub")) {
