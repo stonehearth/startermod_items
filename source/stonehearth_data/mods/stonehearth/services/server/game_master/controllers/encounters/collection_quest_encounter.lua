@@ -15,7 +15,6 @@ function CollectionQuest:start(ctx, info)
 
    assert(info.bulletins)
    local bulletins = info.bulletins
-   assert(bulletins.introduction)
    assert(bulletins.shakedown)
    assert(bulletins.collection_progress)
    assert(bulletins.collection_due)
@@ -45,7 +44,12 @@ function CollectionQuest:start(ctx, info)
    end
 
    self._sv.demand = self._sv.script:get_tribute_demand()
-   self:_show_introduction()
+   if bulletins.introduction then
+      self:_show_introduction()
+   else
+      -- skip the introduction if it's not specified.
+      self:_show_demand()
+   end
    self:_cache_player_tracking_data()
 end
 
@@ -124,7 +128,7 @@ function CollectionQuest:_show_refused_threat()
    local bulletin_data = self._sv._info.bulletins.shakedown_refused
 
    bulletin_data.ok_callback = '_on_refused_threat_ok'
-   self:_update_bulletin(bulletin_data)
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
 end
 
 -- after the user clicks the ok button, transition to the next encounter
@@ -287,7 +291,7 @@ function CollectionQuest:_on_collection_cancelled()
    local bulletin_data = self._sv._info.bulletins.collection_failed
 
    bulletin_data.ok_callback = '_on_collection_failed_ok'
-   self:_update_bulletin(bulletin_data)
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
 end
 
 -- after the user clicks the ok button, transition to the next encounter

@@ -4,6 +4,6 @@
          "time_till_first_occurance" : "24h",
          "occurance_interval" : "24h", 
          "enabled" : true
-      }
+      }      
    }  
 }

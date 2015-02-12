@@ -42,7 +42,7 @@ function CaravanShopScenario:_create_shop(spec)
   if not shop_spec then
     local keys = radiant.keys(self._scenario_data.shops)
     shop_spec = self._scenario_data.shops[keys[rng:get_int(1, #keys)]]
-    shop_spec = self._scenario_data.shops['rugs']
+    --shop_spec = self._scenario_data.shops['rugs']
   end
 
   self._sv.shop = stonehearth.shop:create_shop(self.session, shop_spec.name, shop_spec.inventory)
