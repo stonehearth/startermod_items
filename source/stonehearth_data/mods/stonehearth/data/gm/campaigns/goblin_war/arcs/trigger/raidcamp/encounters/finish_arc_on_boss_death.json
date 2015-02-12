@@ -10,8 +10,10 @@
       "nodes" : {
          "msg1" : {
             "bulletin" : {
-               "title" : "Goblin King Defeated!",
-               "message" : "Ow...",
+               "title" : "%name(npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(npc_boss_entity)",
+               "portrait" : "file(shakedown/boss_portrait.png)",
+               "message" : "Ow...it hurts...",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg2"
@@ -21,8 +23,10 @@
          },
          "msg2" : {
             "bulletin" : {
-               "title" : "Goblin King Defeated!",
-               "message" : "It hurts...",
+               "title" : "%name(npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(npc_boss_entity)",
+               "portrait" : "file(shakedown/boss_portrait.png)",
+               "message" : "Tell my sheep... me loves her always...",
                "choices" : {
                   "stonehearth:next" : {
                      "next_node" : "msg3"
@@ -32,8 +36,10 @@
          },
          "msg3" : {
             "bulletin" : {
-               "title" : "Goblin King Defeated!",
-               "message" : "Tell my sheep I love her...",
+               "title" : "%name(npc_boss_entity) is Defeated!",
+               "dialog_title" : "%name(npc_boss_entity)",
+               "portrait" : "file(shakedown/boss_portrait.png)",
+               "message" : "You no win. More... coming. Always more...",
                "choices" : {
                   "stonehearth:ok" : {
                      "out_edge" : "arc:finish"
