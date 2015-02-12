@@ -2364,18 +2364,13 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
          // TODO: this is actually pointless, since in-shader, we should never actually reference
          // the shadow map in an un-shadowed pass.
          setupShadowMap(curLight, true);
-
-         commitLightUniforms(curLight);
-         
-         drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
+         commitLightUniforms(curLight);         
       } else {
          if (curLight->_shadowMapBuffer) {
             if (curLight->_directional && curLight->_shadowMapBuffer) {
                updateShadowMap(curLight, lightFrus, minDist, maxDist);
                setupShadowMap(curLight, false);
                commitLightUniforms(curLight);
-
-               drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
             } else {
                // Omni lights require a pass/binding for each side of the cubemap into which they render.
                for (int i = 0; i < 6; i++) {
@@ -2387,11 +2382,10 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
 
                setupShadowMap(curLight, false);
                commitLightUniforms(curLight);
-
-               drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
             }
          }
       }
+      drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
 		glDisable(GL_SCISSOR_TEST);
 
       Modules().stats().incStat(EngineStats::LightPassCount, 1);

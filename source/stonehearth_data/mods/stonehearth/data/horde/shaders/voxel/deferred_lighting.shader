@@ -6,6 +6,12 @@ sampler2D normals = sampler_state
   Address = Clamp;
 };
 
+sampler2D depths = sampler_state
+{
+  Filter = None;
+  Address = Clamp;
+};
+
 [[VS]]
 
 uniform mat4 projMat;
@@ -20,11 +26,17 @@ void main(void)
 
 
 [[FS]]
-
+#version 120
+#include "shaders/utilityLib/camera_transforms.glsl"
 #include "shaders/utilityLib/fragLighting.glsl" 
+#include "shaders/shadows.shader"
 
 uniform vec3 lightAmbientColor;
 uniform sampler2D normals;
+uniform sampler2D depths;
+uniform vec3 camViewerPos;
+uniform mat4 camProjMat;
+uniform mat4 camViewMatInv;
 
 varying vec2 texCoords;
 
@@ -37,7 +49,14 @@ void main(void)
   	discard;
   }
 
+  float shadowTerm = 1.0;
+
+  #ifndef DISABLE_SHADOWS
+    vec3 pos = toWorldSpace(camViewerPos, camProjMat, mat3(camViewMatInv), texCoords, texture2D(depths, texCoords).r);
+    shadowTerm = getShadowValue_deferred(pos);
+  #endif
+
   // Light Color.
-  vec3 lightColor = calcSimpleDirectionalLight(normal.xyz);
+  vec3 lightColor = calcSimpleDirectionalLight(normal.xyz) * shadowTerm;
   gl_FragColor = vec4(lightColor + lightAmbientColor, 1.0);
 }

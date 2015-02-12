@@ -26,7 +26,6 @@ void main(void)
 
 [[FS]]
 #version 120
-#include "shaders/omni_shadows.shader"
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/utilityLib/camera_transforms.glsl"
 
@@ -48,8 +47,7 @@ void main(void)
   }
 
   vec3 pos = toWorldSpace(camViewerPos, camProjMat, mat3(camViewMatInv), texCoords, texture2D(depths, texCoords).r);
-  float shadowTerm = getOmniShadowValue(lightPos.xyz, pos);
 
   // Light Color.
-  gl_FragColor = vec4(calcPhongOmniLight(camViewerPos, pos, normal.xyz) * shadowTerm, 1.0);
+  gl_FragColor = vec4(calcPhongOmniLight(camViewerPos, pos, normal.xyz), 1.0);
 }

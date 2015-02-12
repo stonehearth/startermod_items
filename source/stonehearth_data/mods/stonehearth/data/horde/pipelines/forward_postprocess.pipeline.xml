@@ -64,7 +64,7 @@
 
          <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
-         <DoDeferredLightLoop noShadows="true" material="materials/deferred_light.material.json" />
+         <DoDeferredLightLoop noShadows="false" material="materials/deferred_light.material.json" />
          <UnbindBuffers />
       </Stage>
 
