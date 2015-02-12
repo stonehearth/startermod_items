@@ -62,8 +62,8 @@ void main(void)
   cloudColor = cloudColor * texture2D(cloudMap, fragCoord.yx / 192.0 + (cloudSpeed / 10.0)).rgb;
 
   // Mix in fog of war.
-  vec3 fowValue = vec3(1.0 - texture2D(fowRT, projFowPos.xy).a);
-  cloudColor = vec3(1.0) - cloudColor;
+  vec3 fowValue = vec3(texture2D(fowRT, projFowPos.xy).a);
+  cloudColor = cloudColor;
 
-  gl_FragColor = vec4(cloudColor + fowValue, 0.0);
+  gl_FragColor = vec4(cloudColor * fowValue, 0.0);
 }
