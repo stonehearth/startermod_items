@@ -130,7 +130,7 @@ bool Application::ShouldRelaunch64Bit() const
    if (core::System::IsProcess64Bit()) {
       return false;
    }
-   return core::Config::GetInstance().Get<bool>("enable_x64", true);
+   return core::Config::GetInstance().Get<bool>("enable_64_bit", true);
  }
 
 int Application::Run(int argc, const char** argv)
