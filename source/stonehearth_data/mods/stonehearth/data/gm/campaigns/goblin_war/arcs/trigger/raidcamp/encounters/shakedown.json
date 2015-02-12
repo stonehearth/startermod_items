@@ -19,29 +19,33 @@
       "duration" : "2d",
 
       "bulletins" : {
-         "introduction" : {
-            "title" : "%name(npc_boss_entity) approahces",
-            "message" : "This doesn't look good for you..."
-         },
          "shakedown" : {
-            "title" : "The orc leader wants your stuff!!",
-            "message" : "Give me this stuff or die!"
+            "title" : "A goblin with a fancy hat swaggers into town",
+            "dialog_title" : "%name(npc_boss_entity)",
+            "portrait" : "file(shakedown/boss_portrait.png)",
+            "message" : "Hahaha!! Your puny settlement now part of Glittering Territory! Ah-peeze me with shinies! Come tomorrow, you bring me these things, or else!"
          },
          "collection_progress" : {
-            "title" : "Appease the Orcs",
-            "message" : "Here's your progress, dude."
+            "title" : "Appease the Goblins",
+            "message" : "%name(npc_boss_entity) demands that you deliver the following:"
          },
          "collection_due" : {
-            "title" : "The Orc Man Cometh",
-            "message" : "Hey, have you got my stuff?"
+            "title" : "The goblin stomps back into town",
+            "dialog_title" : "%name(npc_boss_entity)",
+            "portrait" : "file(shakedown/boss_portrait.png)",
+            "message" : "Glittering Army returns! Where iz stuff?"
          },
          "collection_failed" : {
-            "title" : "The Orc Man Cometh",
-            "message" : "Your lack of forsight will seal your doom!!!!!1!"
+            "title" : "The goblin looks incredulous",
+            "dialog_title" : "%name(npc_boss_entity)",
+            "portrait" : "file(shakedown/boss_portrait.png)",
+            "message" : "You forgot stuff? You no make? You stain Glittering Army Honor! You die now!"
          },
          "shakedown_refused" : {
-            "title" : "The orc looks mad",
-            "message" : "You will regret your insolence!!"
+            "title" : "The goblin looks incredulous",
+            "dialog_title" : "%name(npc_boss_entity)",
+            "portrait" : "file(shakedown/boss_portrait.png)",
+            "message" : "What? You say no? Then we take! TAKE ALL THINGS!!!!"
          }      
       }
    }
