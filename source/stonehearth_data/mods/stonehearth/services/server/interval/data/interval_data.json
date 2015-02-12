@@ -4,11 +4,6 @@
          "time_till_first_occurance" : "24h",
          "occurance_interval" : "24h", 
          "enabled" : true
-      },
-      "stonehearth:scenarios:caravan_shop" : {
-         "time_till_first_occurance" : "28h",
-         "occurance_interval" : "48h", 
-         "enabled" : true
       }      
    }  
 }
