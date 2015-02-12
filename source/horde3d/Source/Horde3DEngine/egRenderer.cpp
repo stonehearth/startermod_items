@@ -2348,16 +2348,6 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
          continue;
       }
 
-      // Calculate light screen space position
-      float bbx, bby, bbw, bbh;
-      curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
-      // Set scissor rectangle
-      if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
-      {
-         gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
-         glEnable(GL_SCISSOR_TEST);
-      }
-
       if (noShadows || curLight->_shadowMapCount == 0)
       {
          // Bind the trivial shadow map.
@@ -2384,6 +2374,15 @@ void Renderer::doDeferredLightPass(bool noShadows, MaterialResource *deferredMat
                commitLightUniforms(curLight);
             }
          }
+      }
+      // Calculate light screen space position
+      float bbx, bby, bbw, bbh;
+      curLight->calcScreenSpaceAABB(_curCamera->getProjMat() * _curCamera->getViewMat(), bbx, bby, bbw, bbh);
+      // Set scissor rectangle
+      if (bbx != 0 || bby != 0 || bbw != 1 || bbh != 1)
+      {
+         gRDI->setScissorRect(ftoi_r(bbx * gRDI->_fbWidth), ftoi_r(bby * gRDI->_fbHeight), ftoi_r(bbw * gRDI->_fbWidth), ftoi_r(bbh * gRDI->_fbHeight));
+         glEnable(GL_SCISSOR_TEST);
       }
       drawFSQuad(deferredMaterial, curLight->_lightingContext + "_" + _curPipeline->_pipelineName);
 		glDisable(GL_SCISSOR_TEST);
