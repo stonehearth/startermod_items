@@ -106,7 +106,7 @@ function CollectionQuest:_on_shakedown_accepted()
    bulletin_data.demands = {
       items = self._sv.demand
    }
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestProgressBulletinDialog' })
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
    self:_start_tracking_items()
 
    -- start a timer for when to check up on the quest

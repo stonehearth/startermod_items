@@ -1528,7 +1528,6 @@
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.html)",
-         "file(ui/game/bulletin/bulletin_dialog/collection_quest_progress_bulletin_dialog/collection_quest_progress_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.html)",
          "file(ui/game/bulletin/bulletin_list/bulletin_list.html)",
          "file(ui/game/event_log/event_log.html)"
@@ -1619,7 +1618,6 @@
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.js)",
-         "file(ui/game/bulletin/bulletin_dialog/collection_quest_progress_bulletin_dialog/collection_quest_progress_bulletin_dialog.js)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.js)",
          "file(ui/game/event_log/event_log.js)"
       ],
@@ -1695,7 +1693,6 @@
          "file(ui/game/bulletin/bulletin_dialog/level_up_bulletin_dialog/level_up_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/immigration_report_dialog/immigration_report_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/collection_quest_bulletin_dialog/collection_quest_bulletin_dialog.less)",
-         "file(ui/game/bulletin/bulletin_dialog/collection_quest_progress_bulletin_dialog/collection_quest_progress_bulletin_dialog.less)",
          "file(ui/game/bulletin/bulletin_dialog/dialog_tree_bulletin_dialog/dialog_tree_bulletin_dialog.less)",
          "file(ui/game/event_log/event_log.less)"
       ]

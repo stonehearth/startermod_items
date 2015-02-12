@@ -27,7 +27,9 @@
          },
          "collection_progress" : {
             "title" : "Appease the Goblins",
-            "message" : "%name(npc_boss_entity) demands that you deliver the following:"
+            "dialog_title" : "%name(npc_boss_entity)",
+            "portrait" : "file(shakedown/boss_portrait.png)",
+            "message" : "I'll be back for my stuff. Better have it, or no good for you hearthling."
          },
          "collection_due" : {
             "title" : "The goblin stomps back into town",
