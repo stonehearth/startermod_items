@@ -10,9 +10,7 @@ function HydrologyService:initialize()
 
    if not self._sv._initialized then
       self._sv._water_bodies = {}
-      self._sv._queue_map = {}
       self._sv._channels = {}
-      self._sv._next_id = 1
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -34,7 +32,7 @@ function HydrologyService:create_water_body(location)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity
-   self._sv._queue_map[id] = {}
+   self._sv._channels[id] = {}
    radiant.terrain.place_entity_at_exact_location(entity, location)
    self.__saved_variables:mark_changed()
 
@@ -46,7 +44,7 @@ function HydrologyService:get_water_body(location)
       local entity_location = radiant.entities.get_world_grid_location(entity)
       local local_location = location - entity_location
       local water_component = entity:add_component('stonehearth:water')
-      local region = water_component:get_region()
+      local region = water_component:get_region():get()
 
       -- cache the region bounds as a quick rejection test if this becomes slow
       if region:contains(local_location) then
@@ -62,8 +60,93 @@ function HydrologyService:remove_water_body(entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
-   self._sv._queue_map[id] = nil
+   self._sv._channels[id] = nil
    self.__saved_variables:mark_changed()
+end
+
+-- entity is an optional hint
+-- returns volume of water that could not be added
+function HydrologyService:add_water(volume, location, entity)
+   if not entity then
+      entity = self:get_water_body(location)
+   end
+
+   local water_component = entity:add_component('stonehearth:water')
+   local volume, info = water_component:_add_water(location, volume)
+
+   if volume > 0 then
+      assert(info.result == 'merge')
+      -- the entity lower in elevation is the master
+      local master, mergee = self:_order_entities(info.entity1, info.entity2)
+      -- mergee is destroyed in this call
+      self:merge_water_bodies(master, mergee)
+      -- add the remaining water to the master
+      return self:add_water(volume, location, master)
+   end
+
+   return volume
+end
+
+-- must specify either location or entity
+-- returns volume of water that could not be removed
+function HydrologyService:remove_water(volume, location, entity)
+   if not entity then
+      entity = self:get_water_body(location)
+   end
+
+   local water_component = entity:add_component('stonehearth:water')
+   local volume = water_component:_remove_water(volume, location, entity)
+
+   return volume
+end
+
+function HydrologyService:get_channel(from_entity, from_location)
+   local channels = self:get_channels(from_entity)
+   local key = self:_point_to_key(from_location)
+   local channel = channels[key]   
+   return channel
+end
+
+function HydrologyService:get_channels(from_entity)
+   local channels = self._sv._channels[from_entity:get_id()]
+   return channels
+end
+
+function HydrologyService:add_channel(from_entity, from_location, to_entity, to_location, channel_entity)
+   log:debug('adding persistent channel from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
+
+   local channel = self:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity)
+   local key = self:_point_to_key(from_location)
+   local channels = self:get_channels(from_entity)
+   channels[key] = channel
+
+   self.__saved_variables:mark_changed()
+   return channel
+end
+
+function HydrologyService:remove_channel(from_entity, from_location)
+   log:debug('removing channel (%d) from %s at %s', id, from_entity, from_location)
+
+   local channels = self:get_channels(from_entity)
+   local key = self:_point_to_key(from_location)
+   local channel = channels[key]
+
+   if not channel then
+      return
+   end
+
+   channels[key] = nil
+   self:_destroy_channel(channel)
+
+   self.__saved_variables:mark_changed()
+end
+
+function HydrologyService:_each_channel(callback_fn)
+   for id, channels in pairs(self._sv._channels) do
+      for _, channel in pairs(channels) do
+         callback_fn(channel)
+      end
+   end
 end
 
 function HydrologyService:create_waterfall_channel(from_entity, from_location)
@@ -86,70 +169,6 @@ function HydrologyService:_create_waterfall(from_location, to_location)
    return entity
 end
 
-function HydrologyService:get_channel(from_entity, from_location)
-   -- TODO: optimize to avoid O(n) iteration
-   for _, channel in pairs(self._sv._channels) do
-      if channel.from_location == from_location and channel.from_entity == from_entity then
-         return channel
-      end
-   end
-   return nil
-end
-
-function HydrologyService:get_channels(from_entity)
-   local channels = {}
-
-   -- TODO: optimize to avoid O(n) iteration
-   for _, channel in pairs(self._sv._channels) do
-      if channel.from_entity == from_entity then
-         channels[channel.id] = channel
-      end
-   end
-
-   return channels
-end
-
--- to_entity is an optional hint
-function HydrologyService:add_water(volume, to_location, to_entity)
-   if not to_entity then
-      to_entity = self:get_water_body(to_location)
-   end
-
-   --log:debug('adding non-persistent channel to %s at %s', to_entity, to_location)
-
-   local channel = self:_create_channel(nil, nil, to_entity, to_location, nil, false)
-   channel.queued_volume = volume
-   self._sv._channels[channel.id] = channel
-end
-
-function HydrologyService:add_channel(from_entity, from_location, to_entity, to_location, channel_entity)
-   log:debug('adding persistent channel from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
-
-   local channel = self:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity, true)
-   self._sv._channels[channel.id] = channel
-
-   self.__saved_variables:mark_changed()
-   return channel
-end
-
-function HydrologyService:remove_channel(id)
-   local channel = self._sv._channels[id]
-   if not channel then
-      return
-   end
-
-   self._sv._channels[id] = nil
-   self:_destroy_channel(channel)
-
-   if channel.from_entity then
-      log:debug('removing channel (%d) from %s at %s', id, from_entity, from_location)
-   else
-      log:debug('removing channel (%d)', id)
-   end
-
-   self.__saved_variables:mark_changed()
-end
-
 function HydrologyService:_destroy_channel(channel)
    if channel.channel_entity then
       radiant.entities.destroy_entity(channel.channel_entity)
@@ -163,6 +182,7 @@ function HydrologyService:merge_water_bodies(master, mergee)
 
    self:_merge_regions(master, mergee)
    self:_merge_channels(master, mergee)
+   self:_merge_water_queue(master, mergee)
 
    self:remove_water_body(mergee)
    radiant.entities.destroy_entity(mergee)
@@ -205,58 +225,56 @@ function HydrologyService:_merge_regions(master, mergee)
 end
 
 function HydrologyService:_merge_channels(master, mergee)
-   for id, channel in pairs(self._sv._channels) do
-      -- all channels originating from mergee now originate from master
-      if channel.from_entity and channel.from_entity == mergee then
-         channel.from_entity = master
-      end
+   self:_each_channel(function(channel)
+         -- all channels originating from mergee now originate from master
+         if channel.from_entity and channel.from_entity == mergee then
+            channel.from_entity = master
+         end
 
-      -- all channels going to mergee now go to master
-      if channel.to_entity == mergee then
-         channel.to_entity = master
-      end
+         -- all channels going to mergee now go to master
+         if channel.to_entity == mergee then
+            channel.to_entity = master
+         end
 
-      if channel.from_entity == channel.to_entity then
-         -- channel now goes to itself, so just destroy it
-         self:_destroy_channel(channel)
+         if channel.from_entity == channel.to_entity then
+            -- channel now goes to itself, so just destroy it
+            self:_destroy_channel(channel)
+         end
+      end)
+end
+
+function HydrologyService:_merge_water_queue(master, mergee)
+   if not self._water_queue then
+      return
+   end
+
+   for _, entry in ipairs(self._water_queue) do
+      -- redirect all mergee references to master
+      if entry.entity == mergee then
+         entry.entity = master
       end
    end
 end
 
 function HydrologyService:_on_tick()
-   log:spam('processing next tick')
+   log:spam('start tick')
 
-   local water_queue = self:_empty_channels()
-   local i = 1
+   self:_each_channel(function(channel)
+         local water_component = channel.from_entity:add_component('stonehearth:water')
+         water_component:_update_channels()
+      end)
 
-   while i <= #water_queue do
-      local entry = water_queue[i]
-      log:spam('on_tick adding %d to %s at %s', entry.volume, entry.entity, entry.location)
+   self._water_queue = self:_empty_channels()
 
-      local water_component = entry.entity:add_component('stonehearth:water')
-      local action, action_info = water_component:add_water(entry.location, entry.volume)
-
-      if action == 'merge' then
-         -- for proper bookeeping, update the volume to what was actually consumed
-         entry.volume = entry.volume - action_info.volume
-
-         -- create a new entry with the remaining volume. we will remap the entity below if needed.
-         local new_entry = self:_create_water_queue_entry(action_info.entity1, action_info.location, action_info.volume)
-         table.insert(water_queue, new_entry)
-
-         -- entity at lower elevation becomes the master
-         local master, mergee = self:_order_entities(action_info.entity1, action_info.entity2)
-
-         self:_merge_water_queue(master, mergee, water_queue)
-
-         -- mergee is destroyed in this call
-         self:merge_water_bodies(master, mergee)
-      end
-
-      i = i + 1
+   for i, entry in ipairs(self._water_queue) do
+      self:add_water(entry.volume, entry.location, entry.entity)
    end
 
-   self:_update_channels()
+   self._water_queue = nil
+
+   self:_update_channel_entities()
+
+   log:spam('end tick')
 
    self.__saved_variables:mark_changed()
 end
@@ -276,30 +294,17 @@ end
 function HydrologyService:_empty_channels()
    local water_queue = {}
 
-   for _, channel in pairs(self._sv._channels) do
-      local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
-      table.insert(water_queue, entry)
+   self:_each_channel(function(channel)
+         local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
+         table.insert(water_queue, entry)
 
-      if not channel.persistent then
-         self._sv._channels[channel.id] = nil
-      else
          -- empty the channel so we can queue for the next iteration
          channel.queued_volume = 0
-      end
-   end
+      end)
 
    self.__saved_variables:mark_changed()
 
    return water_queue
-end
-
-function HydrologyService:_merge_water_queue(master, mergee, queue)
-   for _, entry in ipairs(queue) do
-      -- redirect all mergee references to master
-      if entry.entity == mergee then
-         entry.entity = master
-      end
-   end
 end
 
 function HydrologyService:_create_water_queue_entry(entity, location, volume)
@@ -311,24 +316,22 @@ function HydrologyService:_create_water_queue_entry(entity, location, volume)
    return entry
 end
 
-function HydrologyService:_update_channels()
-   for _, channel in pairs(self._sv._channels) do
-      local waterfall_component = channel.channel_entity:add_component('stonehearth:waterfall')
-      if waterfall_component then
-         waterfall_component:set_volume(channel.queued_volume)
-      end
-   end
+function HydrologyService:_update_channel_entities()
+   self:_each_channel(function(channel)
+         local waterfall_component = channel.channel_entity:add_component('stonehearth:waterfall')
+         if waterfall_component then
+            waterfall_component:set_volume(channel.queued_volume)
+         end
+      end)
 end
 
-function HydrologyService:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity, persistent)
+function HydrologyService:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity)
    local channel = {
-      id = self:_get_next_id(),
       from_entity = from_entity,
       from_location = from_location,
       to_entity = to_entity,
       to_location = to_location,
       channel_entity = channel_entity,
-      persistent = persistent,
       queued_volume = 0
    }
 
@@ -339,13 +342,6 @@ end
 
 function HydrologyService:_point_to_key(point)
    return string.format('%d,%d,%d', point.x, point.y, point.z)
-end
-
-function HydrologyService:_get_next_id()
-   local id = self._sv._next_id
-   self._sv._next_id = id + 1
-   self.__saved_variables:mark_changed()
-   return id
 end
 
 return HydrologyService
