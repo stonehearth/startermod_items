@@ -62,7 +62,7 @@ function LeaseComponent:get_owner(lease_name, allied_entity)
    if not leases then
       return
    end
-   local info = leases
+   local info = leases[lease_name]
    return info and info.owner
 end
 
@@ -87,8 +87,12 @@ function LeaseComponent:release(lease_name, entity)
    self.__saved_variables:mark_changed()
 end
 
-function LeaseComponent:_get_faction(entity)
-   return radiant.entities.get_player_id(entity)
+function LeaseComponent:_get_faction(entity)   
+   local faction = radiant.entities.get_player_id(entity)
+   if faction == nil then
+      error(string.format('entity %s cannot acquire lease: no player id!', entity))
+   end
+   return faction
 end
 
 return LeaseComponent

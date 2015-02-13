@@ -33,6 +33,7 @@ function SimpleCaravan:initialize()
    --Make a dummy entity to hold the lease on desired items
    --TODO: replace with the actual caravan entity once they move in the world
    self._sv.caravan_entity = radiant.entities.create_entity()   
+   radiant.entities.set_player_id(self._sv.caravan_entity, self._sv.player_id)
 end
 
 function SimpleCaravan:restore()
