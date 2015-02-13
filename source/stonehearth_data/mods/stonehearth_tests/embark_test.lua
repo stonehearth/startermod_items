@@ -1,6 +1,7 @@
 local MicroWorld = require 'lib.micro_world'
 local EmbarkTest = class(MicroWorld)
 local personality_service = stonehearth.personality
+local interval_service = stonehearth.interval
 local Point3 = _radiant.csg.Point3
 
 --Create a tiny embark scenario to make sure initial gameplay functions correctly
@@ -8,6 +9,8 @@ local Point3 = _radiant.csg.Point3
 function EmbarkTest:__init()
    self[MicroWorld]:__init(128)
    self:create_world()
+
+   interval_service:enable(true)
 
    local bush = self:place_item('stonehearth:berry_bush', 4, 4)
    local bush = self:place_item('stonehearth:berry_bush', -1, -1)

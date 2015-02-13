@@ -18,9 +18,6 @@
          "name": "Big Wall-Mounted Banner",
          "description": "Show your town pride with this banner.",
          "icon" : "file(banner_wall_big.png)"
-      },
-      "stonehearth:material" : {
-         "tags" : "decoration crafted"
       }
    }
 }

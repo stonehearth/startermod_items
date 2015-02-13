@@ -356,8 +356,8 @@ var StonehearthClient;
       boxClearItem: function() {
          var self = this;
          var tip = self.showTip('stonehearth:clear_item_tip_title', 'stonehearth:clear_item_tip_description', {i18n : true});
-         var doStartClearing = function(args) {
-            radiant.call('stonehearth:server_box_clear_resources', args.box)
+         var handleClearing = function(args) {
+            radiant.call('stonehearth:server_box_clear_resources', args.box, args.should_clear)
          }
 
          return this._callTool('boxClearItem', function() {
@@ -374,11 +374,14 @@ var StonehearthClient;
                            { 
                               id: 'confirmClear',
                               label: i18n.t('confirm_clear'),
-                              click: doStartClearing, 
-                              args: response
+                              click: handleClearing, 
+                              args: {box : response.box, should_clear : true}
                            },
                            {
-                              label: i18n.t('confirm_clear_no')
+                              id: 'cancelClear',
+                              label: i18n.t('confirm_clear_no'),
+                              click: handleClearing,
+                              args: {box : response.box, should_clear : false}
                            }
                         ] 
                      });                              
@@ -387,6 +390,23 @@ var StonehearthClient;
                   self.hideTip(tip);
                })
                .fail(function(response){
+                  self.hideTip(tip);
+               });
+         });
+      },
+
+      boxCancelTask: function() {
+         var self = this;
+
+         var tip = self.showTip('stonehearth:cancel_task_tip_title', 'stonehearth:cancel_task_tip_description', {i18n : true});
+
+         return this._callTool('boxCancelTask', function() {
+            return radiant.call('stonehearth:box_cancel_task')
+               .done(function(response) {
+                  radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:start_menu:popup'} );
+                  self.boxCancelTask();
+               })
+               .fail(function(response) {
                   self.hideTip(tip);
                });
          });

@@ -131,6 +131,7 @@ static lua_State * (__cdecl *luaL_newstate_fn)(void);
 static const char * (__cdecl *luaL_gsub_fn)(lua_State *L, const char *s, const char *p, const char *r);
 static const char * (__cdecl *luaL_findtable_fn)(lua_State *L, int idx, const char *fname, int szhint);
 static void (__cdecl *luaL_openlibs_fn)(lua_State *L);
+static lua_State *(__cdecl *lj_state_newstate_fn)(lua_Alloc f, void *ud);
 
 void lua::Initialize(bool enableJit)
 {
@@ -248,14 +249,27 @@ void lua::Initialize(bool enableJit)
    luaL_gsub_fn = (const char *(*)(lua_State *L, const char *s, const char *p, const char *r))LoadSymbol("luaL_gsub");
    luaL_findtable_fn = (const char *(*)(lua_State *L, int idx, const char *fname, int szhint))LoadSymbol("luaL_findtable");
    luaL_openlibs_fn = (void(*)(lua_State *L))LoadSymbol("luaL_openlibs");
-
+   lj_state_newstate_fn = (lua_State *(*)(lua_Alloc f, void *ud))LoadSymbol("lj_state_newstate");
 }
 
 extern "C" lua_State * lua_newstate(lua_Alloc f, void *ud)
 {
+   if (lj_state_newstate_fn) {
+      return lj_state_newstate_fn(f, ud);
+   }
+
    ASSERT(lua_newstate_fn);
    if (lua_newstate_fn) {
       return (*lua_newstate_fn)(f, ud);
+   }
+   return NULL;
+}
+
+extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud)
+{
+   ASSERT(lj_state_newstate_fn);
+   if (lj_state_newstate_fn) {
+      return lj_state_newstate_fn(f, ud);
    }
    return NULL;
 }
@@ -1206,5 +1220,3 @@ extern "C" const char * lua_pushfstring(lua_State *L, const char *fmt, ...)
    }
    return NULL;
 }
-
-

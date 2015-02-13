@@ -11,8 +11,8 @@
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
             "members" : {
-               "thief_a" : "stonehearth:npc_jobs:peon",
-               "thief_b" : "stonehearth:npc_jobs:peon",
+               "thief_a" : "stonehearth:jobs:worker",
+               "thief_b" : "stonehearth:jobs:worker",
                "escort_a" : "stonehearth:jobs:footman",
                "escort_b" : "stonehearth:jobs:footman"
             }

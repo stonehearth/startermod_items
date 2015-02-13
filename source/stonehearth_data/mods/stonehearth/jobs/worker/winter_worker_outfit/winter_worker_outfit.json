@@ -2,6 +2,9 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
+      "item" : {
+         "category" : "armor"   
+      },
       "unit_info" : {
          "name" :  "Winter Worker Outfit",
          "description" : "A heavy wool coat, for cold winter nights",
@@ -22,7 +25,7 @@
          }
       },
       "stonehearth:material" : {
-         "tags" :  "armor light_armor"
+         "tags" :  "cloth armor light_armor"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(winter_worker_outfit_iconic.json)"
@@ -35,5 +38,17 @@
          "injected_buffs" : [ "stonehearth:buffs:devoted" ],
          "equip_effect" : "/stonehearth/data/effects/level_up"
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 35,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }         
 }

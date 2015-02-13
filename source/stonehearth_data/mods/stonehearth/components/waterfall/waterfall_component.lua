@@ -15,6 +15,7 @@ function WaterfallComponent:initialize(entity, json)
 
    if not self._sv._initialized then
       self._sv.region = _radiant.sim.alloc_region3()
+      self._sv.volume = 0
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -50,6 +51,11 @@ function WaterfallComponent:set_height(height)
             )
          )
       end)
+   self.__saved_variables:mark_changed()
+end
+
+function WaterfallComponent:set_volume(volume)
+   self._sv.volume = volume
    self.__saved_variables:mark_changed()
 end
 

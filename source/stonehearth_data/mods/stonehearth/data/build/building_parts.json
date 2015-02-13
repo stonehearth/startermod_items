@@ -1,7 +1,7 @@
 { 
    "floorPatterns" : [
       {
-         "category" : "Wooden Materials",
+         "category" : "Wooden",
          "items" : [
             { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_light/wooden_floor_solid_light.png", "brush":"stonehearth:wooden_floor_solid_light" },
             { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_dark/wooden_floor_solid_dark.png", "brush":"stonehearth:wooden_floor_solid_dark" },
@@ -9,7 +9,7 @@
          ]         
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "id": "checkered", "name": "Checkered slate floor",    "portrait": "/stonehearth/entities/build/floor/checkered_slate_floor/checkered_slate_floor.png", "brush":"stonehearth:checkered_slate_floor" }
          ]         
@@ -18,7 +18,7 @@
 
    "roadPatterns" : [
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "id": "stone_paved", "name": "Stone paved road",    "portrait": "/stonehearth/entities/build/road/stone_paved_road/stone_paved_road.png", "brush":"stonehearth:stone_paved_road" },
             { "id": "brick_paved", "name": "Brick paved road",    "portrait": "/stonehearth/entities/build/road/brick_paved_road/brick_paved_road.png", "brush":"stonehearth:brick_paved_road" }
@@ -28,13 +28,13 @@
 
    "curbPatterns" : [
       {
-         "category" : "None",
+         "category" : "No ",
          "items" : [
             { "id": "none",    "name": "None", "portrait": "/stonehearth/entities/build/none/none.png", "brush":"none" }
          ]         
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "id": "checkered", "name": "Checkered slate road",    "portrait": "/stonehearth/entities/build/road/stone_curb/stone_curb.png", "brush":"stonehearth:stone_curb" }
          ]         
@@ -43,14 +43,14 @@
 
    "wallPatterns": [
       {
-         "category" : "Wooden Materials",
+         "category" : "Wooden",
          "items" : [
             { "name": "Plastered wooden wall",    "portrait": "/stonehearth/entities/build/wooden_wall/plastered_wooden_wall.png", "brush": "stonehearth:plastered_wooden_wall" },
             { "name": "Wooden wall", "portrait": "/stonehearth/entities/build/wooden_wall/wooden_wall.png", "brush": "stonehearth:wooden_wall" }
          ]         
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "name": "Cobblestone wall",    "portrait": "/stonehearth/entities/build/cobblestone_wall/cobblestone_wall.png", "brush": "stonehearth:cobblestone_wall" }            
          ]         
@@ -59,13 +59,13 @@
 
    "columnPatterns": [
       {
-         "category" : "Wooden Materials",
+         "category" : "Wooden",
          "items" : [
             { "name": "Wooden column",    "portrait": "/stonehearth/entities/build/wooden_column/wooden_column.png", "brush": "stonehearth:wooden_column" }
          ]         
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "name": "Stone column",    "portrait": "/stonehearth/entities/build/stone_column/stone_column.png", "brush": "stonehearth:stone_column" }
          ]         
@@ -74,14 +74,14 @@
 
    "roofPatterns": [
       {
-         "category" : "Wooden Materials",
+         "category" : "Wooden",
          "items" : [
             { "name": "Wooden roof",    "portrait": "/stonehearth/entities/build/roof/wooden_peaked_roof/wooden_peaked_roof.png", "brush": "stonehearth:wooden_peaked_roof" },
             { "name": "Thatch roof",    "portrait": "/stonehearth/entities/build/roof/thatch_peaked_roof/thatch_peaked_roof.png", "brush": "stonehearth:thatch_peaked_roof" }
          ]
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
             { "name": "Blue slate roof",   "portrait": "/stonehearth/entities/build/roof/blue_slate_peaked_roof/blue_slate_peaked_roof.png", "brush": "stonehearth:blue_slate_peaked_roof" },
             { "name": "Red slate roof",    "portrait": "/stonehearth/entities/build/roof/red_slate_peaked_roof/red_slate_peaked_roof.png", "brush": "stonehearth:red_slate_peaked_roof" }
@@ -91,17 +91,28 @@
 
    "slabPatterns": [
       {
-         "category" : "Wooden Materials",
+         "category" : "Wooden",
          "items" : [
-            { "id": "light",    "name": "Light wooden boards", "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_light/wooden_floor_solid_light.png", "brush":"stonehearth:wooden_floor_solid_light" },
-            { "id": "dark",     "name": "Dark wooden boards",  "portrait": "/stonehearth/entities/build/floor/wooden_floor_solid_dark/wooden_floor_solid_dark.png", "brush":"stonehearth:wooden_floor_solid_dark" },
-            { "id": "diagonal", "name": "Diagonal wooden pattern",    "portrait": "/stonehearth/entities/build/floor/wooden_floor_diagonal/wooden_floor_diagonal.png", "brush":"stonehearth:wooden_floor_diagonal" }
+            { "id": "fine_wood_slab_1",    "name": "Fine wooden slab", "portrait": "/stonehearth/entities/build/slab/fine_wood_slab/fine_wood_slab_1.png", "brush":"stonehearth:fine_wood_slab_1" },
+            { "id": "fine_wood_slab_2",    "name": "Fine wooden slab", "portrait": "/stonehearth/entities/build/slab/fine_wood_slab/fine_wood_slab_2.png", "brush":"stonehearth:fine_wood_slab_2" },
+            { "id": "fine_wood_slab_3",    "name": "Fine wooden slab", "portrait": "/stonehearth/entities/build/slab/fine_wood_slab/fine_wood_slab_3.png", "brush":"stonehearth:fine_wood_slab_3" }
          ]         
       },
       {
-         "category" : "Stone Materials",
+         "category" : "Stone",
          "items" : [
-            { "id": "checkered", "name": "Checkered slate floor",    "portrait": "/stonehearth/entities/build/floor/checkered_slate_floor/checkered_slate_floor.png", "brush":"stonehearth:checkered_slate_floor" }
+            { "id": "blue_slate_slab_1",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_1.png", "brush":"stonehearth:blue_slate_slab_1" },
+            { "id": "blue_slate_slab_2",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_2.png", "brush":"stonehearth:blue_slate_slab_2" },
+            { "id": "blue_slate_slab_3",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_3.png", "brush":"stonehearth:blue_slate_slab_3" },
+
+            { "id": "slate_slab_1",    "name": "Slate slab", "portrait": "/stonehearth/entities/build/slab/slate_slab/slate_slab_1.png", "brush":"stonehearth:slate_slab_1" },
+            { "id": "slate_slab_2",    "name": "Slate slab", "portrait": "/stonehearth/entities/build/slab/slate_slab/slate_slab_2.png", "brush":"stonehearth:slate_slab_2" },
+            { "id": "slate_slab_3",    "name": "Slate slab", "portrait": "/stonehearth/entities/build/slab/slate_slab/slate_slab_3.png", "brush":"stonehearth:slate_slab_3" },
+
+            { "id": "brick_slab_1",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_1.png", "brush":"stonehearth:brick_slab_1" },
+            { "id": "brick_slab_2",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_2.png", "brush":"stonehearth:brick_slab_2" },
+            { "id": "brick_slab_3",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_3.png", "brush":"stonehearth:brick_slab_3" }
+
          ]         
       }            
    ],

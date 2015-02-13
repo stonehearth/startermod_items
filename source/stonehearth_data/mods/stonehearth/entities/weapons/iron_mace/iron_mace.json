@@ -2,6 +2,9 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
+      "item" : {
+         "category" : "weapons"
+      },    
        "model_variants": {
          "default" : {
             "models": [
@@ -42,6 +45,16 @@
             "cooldown" : 0,
             "priority" : 0
          }      
-      ]
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 55,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
    }
 }

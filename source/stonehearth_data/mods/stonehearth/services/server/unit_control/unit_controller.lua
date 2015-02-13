@@ -11,8 +11,8 @@ end
 function UnitController:create_party()
    local party_id = self:_get_next_id()
    local party_ord = self:_get_next_ordinal()
-
-   local party = radiant.create_controller('stonehearth:unit_control:party', self, party_id, party_ord)
+   
+   local party = radiant.create_controller('stonehearth:unit_control:party', self, self._sv.player_id, party_id, party_ord)
    self._sv.parties[party_id] = party
    self.__saved_variables:mark_changed()
 

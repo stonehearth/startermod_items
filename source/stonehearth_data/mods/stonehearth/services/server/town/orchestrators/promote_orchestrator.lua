@@ -11,7 +11,9 @@ function Promote:run(town, args)
          if info.event == "change_outfit" then
             local promotion_talisman_component = args.talisman:get_component('stonehearth:promotion_talisman')
             local job_uri = promotion_talisman_component:get_job()
-            self:_change_job(person, job_uri, args.talisman)
+            self:_change_job(person, job_uri, {
+                  talisman = args.talisman
+               })
             radiant.effects.run_effect(person, '/stonehearth/data/effects/level_up')
          elseif info.event == "remove_talisman" then
             -- xx for now destroy the talisman. Eventually store it in the talisman component so we can bring it back when the civ is demoted
@@ -61,9 +63,10 @@ function Promote:run(town, args)
    return true
 end
 
-function Promote:_change_job(person, job_uri, talisman_entity)
+function Promote:_change_job(person, job_uri, options)
    --Add the new class
-   person:add_component('stonehearth:job'):promote_to(job_uri, talisman_entity)
+   person:add_component('stonehearth:job')
+               :promote_to(job_uri, options)
 end
 
 return Promote

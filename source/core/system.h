@@ -14,6 +14,8 @@ public:
    boost::filesystem::path GetTempDirectory() const;
    static bool IsProcess64Bit();
    static bool IsPlatform64Bit();
+   static void Log(std::string const& str) { Log(str.c_str()); }
+   static void Log(const char* src);
 
 private:
    NO_COPY_CONSTRUCTOR(System);

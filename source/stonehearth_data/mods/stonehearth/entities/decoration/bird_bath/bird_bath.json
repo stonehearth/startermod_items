@@ -3,6 +3,9 @@
    "mixins" : "file(bird_bath_ghost.json)",
    
    "components": {
+      "item" : {
+         "category" : "furniture"
+      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(bird_bath_iconic.json)",
          "ghost_form" : "file(bird_bath_ghost.json)",

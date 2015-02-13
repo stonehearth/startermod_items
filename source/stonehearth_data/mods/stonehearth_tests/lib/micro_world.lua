@@ -78,7 +78,8 @@ function MicroWorld:place_citizen(x, z, job)
       -- there if they didn't put it there to begin with
       job = 'stonehearth:jobs:' .. job
    end
-   citizen:add_component('stonehearth:job'):promote_to(job)
+   citizen:add_component('stonehearth:job')
+               :promote_to(job)
 
    radiant.terrain.place_entity(citizen, Point3(x, 1, z))
    return citizen

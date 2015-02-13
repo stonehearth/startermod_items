@@ -3,7 +3,6 @@
    "type": "entity",
    "components": {
       "item": {
-         "material": "tin ore",
          "category": "resources",
          "stacks": 40
       },

@@ -17,10 +17,11 @@ function ShopService:initialize()
 end
 
 ---Creates a new shop with reasonable defaults.  See the shop object for more information.
-function ShopService:create_shop(session)
+function ShopService:create_shop(session, name, options)
    local shop = radiant.create_controller('stonehearth:shop', session)
 
-   shop:set_item_filter_fn(ShopService.default_item_filter_fn)
+   shop:set_name(name)
+      :set_options(options)
       :set_shopkeeper_level_range(0, 10)
       :set_inventory_rarity("junk", "common", "uncommon", "rare")
       :set_inventory_max_net_worth(100)
@@ -29,13 +30,6 @@ function ShopService:create_shop(session)
    assert(shop)
 
    return shop
-end
-
----A function which implements the default item filter for a shop.  The default filter simply 
--- checks the item against the various shop configuration parameters (e.g. is the rarity one that 
--- the shop is configured to stock?).  Returns true if the item can go in the shop and false otherwise.
-function ShopService:default_item_filter_fn(entity)
-   return true
 end
 
 ---Returns a table (keyed by uri) of an instance of every item in the world which is stockable.  These 

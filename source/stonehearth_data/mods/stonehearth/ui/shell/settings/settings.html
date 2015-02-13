@@ -58,7 +58,6 @@
          </div>
 
          <div id="soundTab" class="tabPage">
-
             <h2>{{i18n stonehearth:settings_sound}}</h2>
                <br><br>
                <div class="setting">
@@ -73,6 +72,19 @@
                </div>
          </div>
 
+         <div id="systemTab" class="tabPage">
+            <h2>{{i18n stonehearth:settings_system}}</h2>
+               <br><br>
+               <div class="setting">
+                  <input type="checkbox" id="opt_enable64bit" {{bind-attr checked="enable_64bit"}}>
+                  <label for="opt_enable64bit">{{i18n stonehearth:settings_enable_64bit}}</label>
+               </div>
+               <div class="setting">
+                  <input type="checkbox" id="opt_enableCollectAnalytics" {{bind-attr checked="collect_analytics"}}>
+                  <label for="opt_enableCollectAnalytics">{{i18n stonehearth:settings_send_anon_data}}</label>
+               </div>
+         </div>
+
          <div id=buttons>
             <button id="applyButton">{{i18n stonehearth:ok}}</button>
             <button id="cancelButton">{{i18n stonehearth:cancel}}</button>
@@ -81,6 +93,7 @@
          <div id="tabs">
             <div class="tab active" tabPage="graphicsTab">{{i18n stonehearth:settings_graphics}}</div>
             <div class="tab" tabPage="soundTab">{{i18n stonehearth:settings_sound}}</div>
+            <div class="tab" tabPage="systemTab">{{i18n stonehearth:settings_system}}</div>
          </div>         
       </div>
    </div>

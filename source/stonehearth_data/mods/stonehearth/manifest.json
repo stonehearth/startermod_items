@@ -70,10 +70,18 @@
       "wooden_floor_diagonal" : "file(entities/build/floor/wooden_floor_diagonal)",
       "checkered_slate_floor" : "file(entities/build/floor/checkered_slate_floor)",
 
-      "wooden_slab_solid_light" : "file(entities/build/slab/wooden_slab_solid_light)",
-      "wooden_slab_solid_dark" : "file(entities/build/slab/wooden_slab_solid_dark)",
-      "wooden_slab_diagonal" : "file(entities/build/slab/wooden_slab_diagonal)",
-      "checkered_slate_slab" : "file(entities/build/slab/checkered_slate_slab)",
+      "fine_wood_slab_1" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_1.json)",
+      "fine_wood_slab_2" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_2.json)",
+      "fine_wood_slab_3" : "file(entities/build/slab/fine_wood_slab/fine_wood_slab_3.json)",
+      "blue_slate_slab_1" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_1.json)",
+      "blue_slate_slab_2" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_2.json)",
+      "blue_slate_slab_3" : "file(entities/build/slab/blue_slate_slab/blue_slate_slab_3.json)",
+      "slate_slab_1" : "file(entities/build/slab/slate_slab/slate_slab_1.json)",
+      "slate_slab_2" : "file(entities/build/slab/slate_slab/slate_slab_2.json)",
+      "slate_slab_3" : "file(entities/build/slab/slate_slab/slate_slab_3.json)",
+      "brick_slab_1" : "file(entities/build/slab/brick_slab/brick_slab_1.json)",
+      "brick_slab_2" : "file(entities/build/slab/brick_slab/brick_slab_2.json)",
+      "brick_slab_3" : "file(entities/build/slab/brick_slab/brick_slab_3.json)",
 
       "wooden_road_solid_light" : "file(entities/build/road/wooden_road_solid_light)",
       "stone_paved_road" : "file(entities/build/road/stone_paved_road)",
@@ -363,7 +371,6 @@
       "armor:wooden_shield" : "file(entities/armor/wooden_shield)",
       "armor:basic_shield" : "file(entities/armor/basic_shield)",
 
-      "wooden_buckler" : "file(entities/armor/wooden_buckler)",
 
       "loot:gold" : "file(entities/loot/gold)",
       
@@ -887,7 +894,6 @@
       "jobs:weaver" : "file(jobs/weaver/weaver_description.json)",
       "jobs:weaponsmith" : "file(jobs/weaponsmith/weaponsmith_description.json)",
       "jobs:worker" : "file(jobs/worker/worker_description.json)",
-      "npc_jobs:peon" : "file(npc_jobs/peon/peon_description.json)",
 
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
 
@@ -1050,6 +1056,14 @@
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
+      "box_cancel_task" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_cancel_task" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
       "harvest_entity" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
@@ -1063,6 +1077,10 @@
          "endpoint" : "client"
       },
       "server_box_clear_resources" : {
+         "controller" : "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "server_mark_relevant_resources" : {
          "controller" : "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -1281,8 +1299,6 @@
       "class:trapper" : "file(jobs/trapper/trapper.lua)", 
       "class:weaver" : "file(jobs/weaver/weaver.lua)",
       "class:shepherd" : "file(jobs/shepherd/shepherd.lua)", 
-
-      "class:peon" : "file(npc_jobs/peon/peon.lua)", 
 
       "inventory" : "file(services/server/inventory/inventory.lua)",
       "inventory_tracker" : "file(services/server/inventory/inventory_tracker.lua)",

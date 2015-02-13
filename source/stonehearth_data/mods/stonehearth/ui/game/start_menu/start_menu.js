@@ -20,6 +20,9 @@ App.StonehearthStartMenuView = App.View.extend({
       clear_item: function () {
          App.stonehearthClient.boxClearItem();
       },
+      cancel_task: function () {
+         App.stonehearthClient.boxCancelTask();
+      },
       create_stockpile: function () {
          App.stonehearthClient.createStockpile();
       },
@@ -101,10 +104,6 @@ App.StonehearthStartMenuView = App.View.extend({
                .done(function(response) {
                   if (!response.show_in_progress_ui) {
                      self.$('#tasks_manager').hide();
-
-                     //hide clear item and unharvest
-                     self.$('#clear_item').hide();
-                     self.$('#unharvest').hide();
                   }
                })
 

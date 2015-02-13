@@ -36,7 +36,7 @@ function ShopTest:__init()
 
    self:at(10,  function()
          self:place_stockpile_cmd(player_id, -8, -8, 0, 0)
-         --stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
+         stonehearth.dynamic_scenario:force_spawn_scenario('stonehearth:scenarios:caravan_shop')
       end)
 end
 

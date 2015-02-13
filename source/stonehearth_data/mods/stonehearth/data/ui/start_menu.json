@@ -16,13 +16,12 @@
             "sticky" : true,
             "hotkey" : "h"
          },
-         "mining_ui" : {
-            "name" : "Mine",
-            "description" : "Mine out tunnels and caves",
+         "cancel_task" : {
+            "name" : "Cancel Task",
+            "description" : "Cancel tasks on this object",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
-            "sticky" : true,
-            "hotkey" : "m"
+            "icon" : "/stonehearth/ui/game/start_menu/images/cancel.png",
+            "sticky" : true
          },
          "clear_item" : {
             "name" : "Clear",
@@ -31,12 +30,13 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
             "sticky" : true
          },
-         "unharvest" : {
-            "name" : "Un-Harvest",
-            "description" : "Cancel existing harvesting orders",
+         "mining_ui" : {
+            "name" : "Mine",
+            "description" : "Mine out tunnels and caves",
             "class" : "button",
-            "icon" : "/stonehearth/ui/game/start_menu/images/unharvest.png",
-            "sticky" : true
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "m"
          }
       }
    },

@@ -3,10 +3,28 @@
    "mixins" : "file(fur_rug_ghost.json)",
 
    "components": {
+      "item" : {
+         "category" : "decoration"
+      },
+      "stonehearth:material" : {
+         "tags" : "refined animal_part crafted decoration"
+      },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(fur_rug_iconic.json)",
          "ghost_form" : "file(fur_rug_ghost.json)",
          "placeable_on_ground" : true
       }
-   }
+   },
+   "entity_data" : {
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 22,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }         
 }

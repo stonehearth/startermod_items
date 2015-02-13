@@ -11,7 +11,7 @@ function CreateCamp:start(ctx, info)
    assert(info)
    assert(info.pieces)
 
-   self._sv.info = info
+   self._sv._info = info
    self._sv.ctx = ctx
 
    ctx.enemy_player_id = info.player_id -- xxx: should be 'npc_enemy_id'
@@ -24,7 +24,7 @@ end
 
 function CreateCamp:_create_camp()
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    assert(ctx.enemy_player_id)
    assert(ctx.enemy_location)
@@ -32,23 +32,24 @@ function CreateCamp:_create_camp()
    self._population = stonehearth.population:get_population(ctx.enemy_player_id)
 
    -- carve a hole in the ground for the camp to sit in
-   local cube = Cube3(ctx.enemy_location - Point3(30, 1, 30), ctx.enemy_location + Point3(30 + 1, 0, 30 + 1))
+   local size = 20
+   local cube = Cube3(ctx.enemy_location - Point3(size, 1, size), ctx.enemy_location + Point3(size + 1, 0, size + 1))
    local cube2 = cube:translated(Point3.unit_y)
 
+   -- nuke all the entities around the camp
    local entities = radiant.terrain.get_entities_in_cube(cube2)
-   
    for id, entity in pairs(entities) do
-      radiant.entities.destroy_entity(entity)
+      if id ~= 1 then
+         radiant.entities.destroy_entity(entity)
+      end
    end
    
+   -- carve out the grass around the camp
    radiant.terrain.subtract_cube(cube)
 
-   
-
-   if info.npc_boss_entity_type then
-      local npc_boss_entity = self._population:create_new_citizen(info.npc_boss_entity_type)
-      radiant.terrain.place_entity(npc_boss_entity, ctx.enemy_location)
-      ctx.npc_boss_entity = npc_boss_entity
+   -- create the boss entity
+   if info.boss then
+      ctx.npc_boss_entity = self:_create_camp_citizen(info.boss, ctx.enemy_location)
    end
 
    for k, piece in pairs(info.pieces) do
@@ -96,7 +97,7 @@ function CreateCamp:_search_for_camp_location()
    self:_destroy_find_location_timer()
 
    local ctx = self._sv.ctx
-   local info = self._sv.info
+   local info = self._sv._info
 
    -- choose a distance and start looking for a place to put the camp
    local player_banner = stonehearth.town:get_town(ctx.player_id)
@@ -165,13 +166,7 @@ function CreateCamp:_add_piece(piece)
    -- add all the people.
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
-         local citizen = self._population:create_new_citizen()
-         if info.job then
-            citizen:add_component('stonehearth:job')
-                        :promote_to(info.job)
-         end
-         local offset = Point3(info.location.x, info.location.y, info.location.z)
-         radiant.terrain.place_entity(citizen, origin + offset)
+         self:_create_camp_citizen(info, origin)
       end
    end
 
@@ -183,8 +178,34 @@ function CreateCamp:_add_piece(piece)
 
 end
 
+function CreateCamp:_create_camp_citizen(info, origin)
+   local citizen = self._population:create_new_citizen()
+   if info.job then
+      citizen:add_component('stonehearth:job')
+                  :promote_to(info.job, {
+                        is_npc = true,
+                     })
+   end
+
+   local offset = Point3.zero
+   if info.location then
+      offset = Point3(info.location.x, info.location.y, info.location.z)
+   end
+   local location = origin + offset
+
+   if info.combat_leash_range then
+      citizen:add_component('stonehearth:combat_state')
+                  :set_attack_leash(location, info.combat_leash_range)
+   end
+
+   radiant.terrain.place_entity(citizen, location)
+
+   return citizen
+end
+
+
 function CreateCamp:_get_player_id()
-   return self._sv.info.player_id
+   return self._sv._info.player_id
 end
 
 return CreateCamp

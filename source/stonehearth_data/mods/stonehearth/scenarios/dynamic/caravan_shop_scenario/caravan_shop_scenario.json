@@ -3,6 +3,56 @@
    "rarity" : "common",
    "uri" : "stonehearth:scenarios:caravan_shop", 
    "scenario_data" : {
-      "title" : "The caravan has arrived with wares to sell"
+      "title" : "__shop__ has arrived with wares to sell",
+      "shops" : {
+         "food" : {
+            "name" : "A passing caravan",
+            "inventory" : {
+               "items_matching" : {
+                  "food" : {
+                     "category" : ["food"]   
+                  }
+               }
+            }
+         },
+         "woodcutter" : {
+            "name" : "Norm Windriser's Woodcutter Shop",
+            "inventory" : {
+               "items_matching" : {
+                  "wood stuff" : {
+                     "category" : ["resources", "furniture", "decoration"],
+                     "material" : ["wood"]
+                  }
+               }
+            }
+         },
+         "stonecutter" : {
+            "name" : "Rufus Garrow's Stonecutter Shop",
+            "inventory" : {
+               "items_matching" : {
+                  "stone stuff" : {
+                     "category" : ["resources", "furniture", "decoration"],
+                     "material" : ["stone"]
+                  }
+               }
+            }
+         },
+         "rugs" : {
+            "name" : "Havaad's Fine Rugs and Garmets",
+            "inventory" : {
+               "items" : [
+                  "stonehearth:refined:thread",
+                  "stonehearth:refined:cloth_bolt",
+                  "stonehearth:decoration:fur_rug",
+               ],
+               "items_matching" : {
+                  "cloth armor" : {                    
+                     "category" : ["decoration", "armor"],
+                     "material" : ["cloth"]
+                  }
+               }
+            }
+         }        
+      }
    }
 }

@@ -169,8 +169,7 @@ if [ ! -z $STAGE_BIN ]; then
 
    # luajit up in here! party time!!
    LUAJIT_ROOT=$STONEHEARTH_ROOT/modules/luajit/src/$BUILD_ARCH
-   cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR/lua-5.1.5.jit.dll
-   cp -u $LUAJIT_ROOT/lua51${MODULE_BUILD_SUFFIX}.pdb $OUTPUT_DIR/lua-5.1.5.jit.pdb
+   cp -u $LUAJIT_ROOT/lua-5.1.5.jit${MODULE_BUILD_SUFFIX}.dll $OUTPUT_DIR
 
    #echo Copying saved objects
    #cp -u -r $STONEHEARTH_ROOT/source/stonehearth_data/saved_objects $OUTPUT_DIR/saved_objects

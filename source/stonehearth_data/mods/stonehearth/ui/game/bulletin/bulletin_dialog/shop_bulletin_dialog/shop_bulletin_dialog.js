@@ -40,7 +40,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
          var row = $(this);
 
          row.addClass('selected');
-         self._selectedUri = row.attr('uri');
+         //self._selectedUri = row.attr('uri');
 
          self._updateSellButton();
       });
@@ -96,6 +96,7 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       self._shopTrace = new StonehearthDataTrace(this.get('model.data.shop'), {});
 
       self._shopTrace.progress(function(eobj) {
+            self.set('shop_name', eobj.name);
             self._buyPalette.stonehearthItemPalette('updateItems', eobj.shop_inventory);
          });
    },
@@ -151,6 +152,10 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
       var shop = self.get('model.data.shop');
       var item = self.$('#sellList .selected').attr('uri')
 
+      if (!item) {
+         return;
+      }
+
       radiant.call_obj(shop, 'sell_item_command', item, quantity)
          .always(function() {
             self._getGold();
@@ -187,19 +192,19 @@ App.StonehearthShopBulletinDialog = App.StonehearthBaseBulletinDialog.extend({
    _updateSellButtons: function() {
       var self = this;
 
-      var row = self.$("[uri='" + self._selectedUri + "']");
+      var item = self.$('#sellList .selected')
 
-      if (row) {
-         self.$('#sell1Button').removeClass('disabled');   
-         self.$('#sell10Button').removeClass('disabled');   
+      if (!item || item.length == 0) {
+         self.$('#sell1Button').addClass('disabled');   
+         self.$('#sell10Button').addClass('disabled');   
       } else {
-         self.$('#buy1Button').addClass('disabled');   
-         self.$('#buy10Button').addClass('disabled');   
+         self.$('#sell1Button').removeClass('disabled');
+         self.$('#sell10Button').removeClass('disabled');   
       }
    },
 
    _updateInventoryHtml: function() {
-      Ember.run.scheduleOnce('afterRender', this, '_selectShopRow')
+      //Ember.run.scheduleOnce('afterRender', this, '_selectShopRow')
    }.observes('inventoryArray'),
 
    _selectShopRow: function() {

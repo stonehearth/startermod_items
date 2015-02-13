@@ -17,7 +17,7 @@ local function ToPoint3(pt)
    return pt and Point3(pt.x, pt.y, pt.z) or nil
 end
 
-function Party:initialize(unit_controller, id, ord)
+function Party:initialize(unit_controller, player_id, id, ord)
    self._sv._next_id = 2
    self._sv.id = id
    self._sv.name = string.format('Party No.%d', ord) -- i18n hazard. =(
@@ -25,6 +25,8 @@ function Party:initialize(unit_controller, id, ord)
    self._sv.members = {}
    self._sv.banners = {}
    self._sv.party_size = 0
+   self._sv.leash_range = 10
+   self._sv.player_id = player_id
 
    self:restore()
 end
@@ -43,6 +45,9 @@ function Party:restore()
    self._hold_formation_task = self._party_tg:create_task('stonehearth:party:hold_formation', { party = self })
                                                 :set_priority(self._party_priorities.HOLD_FORMATION)
                                                 :start()
+
+   self._town = stonehearth.town:get_town(self._sv.player_id)
+   self:_create_listeners()
 end
 
 function Party:destroy()
@@ -137,9 +142,17 @@ function Party:get_formation_offset(member)
    return Point3(x * SPACE * 2, 0, z * SPACE * 2)
 end
 
-function Party:get_banner_location(banner_type)
-   return self._sv.banners[banner_type]
+function Party:get_active_banner()
+   local banner
+   if self._town:worker_combat_enabled() then
+      banner = self._sv.banners['defend']
+   end
+   if not banner then
+      banner = self._sv.banners['attack']
+   end
+   return banner
 end
+
 
 function Party:raid(stockpile)
    -- the formation should be the center of the stockpile
@@ -167,8 +180,13 @@ end
 
 function Party:place_banner(type, location, rotation)
    location = radiant.terrain.get_standable_point(location)
-   self._sv.banners[type] = location
+   self._sv.banners[type] = {
+      type = type,
+      location = location,
+   }
    self.__saved_variables:mark_changed()
+   self:_update_leashes()
+
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = type,
          location = location,
@@ -178,10 +196,40 @@ end
 function Party:remove_banner(type)
    self._sv.banners[type] = nil
    self.__saved_variables:mark_changed()
+   self:_update_leashes()
+
    radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
          type = type
       })
 end
+
+function Party:_update_leashes()
+   local banner = self:get_active_banner()
+   for _, entry in pairs(self._sv.members) do
+      if entry.leash then
+         entry.leash:destroy()
+         entry.leash = nil
+      end
+      if banner then
+         entry.leash = entry.entity:add_component('stonehearth:combat_state')
+                                       :set_attack_leash(banner.location, self._sv.leash_range)
+      end
+   end
+end
+
+function Party:_create_listeners()
+   if not self._town_listener then
+      self._town_listener = radiant.events.listen(self._town, 'stonehearth:town_defense_mode_changed', self, self._check_town_defense_mode)
+   end
+end
+
+function Party:_check_town_defense_mode()
+   self:_update_leashes()
+   radiant.events.trigger_async(self, 'stonehearth:party:banner_changed', {
+         type = 'defend'
+      })   
+end
+
 
 function Party:set_name_command(session, response, name)
    self._sv.name = name

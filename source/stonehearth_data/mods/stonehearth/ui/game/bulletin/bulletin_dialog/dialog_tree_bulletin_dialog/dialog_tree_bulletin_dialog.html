@@ -1,18 +1,31 @@
 <script type="text/x-handlebars" data-template-name="dialogTreeBulletinDialog">
 <div id="dialogTreeBulletinDialog" class="gui bulletinDialog">
-   <div class="window">
-      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
-      <div id="scroll" class="parchment">
-         <div id="content">
-            <div id="title">{{{ view.model.data.title }}}</div>
-            <div class="message">{{{ view.model.data.message }}}</div>
-         </div>
+   <div class="window dialog">
+      <div class="title">{{ view.model.data.dialog_title }}</div>
+      <div id="portrait">
+         <img {{bind-attr src=view.model.data.portrait}} />
       </div>
-      {{#each view.buttons}}
-         <a href="#" {{action "choose" id target="view"}} class='uisounds'>
-            <button>{{text}}</button>
-         </a>
-      {{/each}}
+      <div id="content">
+         <div class="message">{{{ view.model.data.message }}}</div>
+         
+         <ul class="demandList">
+            {{#each view.demands}}
+               {{#if this.progress}}
+                  <li>{{ this.display_name }} ({{ this.progress }} of {{ this.count }})</li>
+               {{else}}
+                  <li>{{ this.count }} {{ this.display_name }}</li>
+               {{/if}}
+            {{/each}}            
+         </ul>
+      </div>
+
+      <div id='buttons'>
+         {{#each view.buttons}}
+            <a href="#" {{action "choose" id target="view"}} class='uisounds'>
+               <button>{{text}}</button>
+            </a>
+         {{/each}}
+      <div>
    </div>
 </div>
 </script>

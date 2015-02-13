@@ -1,36 +1,41 @@
-<script type="text/x-handlebars" data-template-name="demandTributeBulletinDialog">
-<div id="demandTributeBulletinDialog" class="gui bulletinDialog">
-   <div class="window">
-      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
-      <div id="scroll" class="parchment">
-         <div id="content">
-            <div id="title">{{{ view.model.data.title }}}</div>
-
-            <ul class="demand_list">
-               {{#each view.demands}}
-                  {{#if this.progress}}
-                     <li>{{ this.display_name }} ({{ this.progress }} of {{ this.count }})</li>
-                  {{else}}
-                     <li>{{ this.count }} {{ this.display_name }}</li>
-                  {{/if}}
-               {{/each}}            
-            </ul>
-
-            <div class="message">{{{ view.model.data.message }}}</div>
-         </div>
+<script type="text/x-handlebars" data-template-name="collectionQuestBulletinDialog">
+<div id="collectionQuestBulletinDialog" class="gui bulletinDialog">
+   <div class="window dialog">
+      <div class="title">{{ view.model.data.dialog_title }}</div>
+      <div id="portrait">
+         <img {{bind-attr src=view.model.data.portrait}} />
       </div>
-      {{#if view.model.data.accepted_callback }}
-         <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
-      {{/if}}
-      {{#if view.model.data.declined_callback }}
-         <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
-      {{/if}}
-      {{#if view.model.data.collection_pay_callback }}
-         <button id="collectionPayButton" {{bind-attr class=view.model.data.have_enough:enabled:disabled}}>{{i18n stonehearth:collection_quest_pay}}</button>
-      {{/if}}
-      {{#if view.model.data.collection_cancel_callback }}
-         <button id="collectionCancelButton" class="">{{i18n stonehearth:collection_quest_cancel}}</button>
-      {{/if}}
+      <div id="content">
+         <div class="message">{{{ view.model.data.message }}}</div>
+         
+         <ul class="demandList">
+            {{#each view.demands}}
+               {{#if this.progress}}
+                  <li>{{ this.display_name }} ({{ this.progress }} of {{ this.count }})</li>
+               {{else}}
+                  <li>{{ this.count }} {{ this.display_name }}</li>
+               {{/if}}
+            {{/each}}            
+         </ul>
+      </div>
+
+      <div id='buttons'>
+         {{#if view.model.data.ok_callback }}
+            <button id="okButton" class="">{{i18n stonehearth:ok}}</button>
+         {{/if}}
+         {{#if view.model.data.accepted_callback }}
+            <button id="acceptButton" class="">{{i18n stonehearth:accept}}</button>
+         {{/if}}
+         {{#if view.model.data.declined_callback }}
+            <button id="declineButton" class="">{{i18n stonehearth:decline}}</button>
+         {{/if}}
+         {{#if view.model.data.collection_pay_callback }}
+            <button id="collectionPayButton" {{bind-attr class=view.model.data.have_enough:enabled:disabled}}>{{i18n stonehearth:collection_quest_pay}}</button>
+         {{/if}}
+         {{#if view.model.data.collection_cancel_callback }}
+            <button id="collectionCancelButton" class="">{{i18n stonehearth:collection_quest_cancel}}</button>
+         {{/if}}
+      </div>
    </div>
 </div>
 </script>

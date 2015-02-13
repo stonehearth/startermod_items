@@ -36,6 +36,7 @@ function Town:restore()
    self._worker_combat_tasks = {}
    self._rally_tasks = {}
    self._mining_zone_destroy_listeners = {}
+   self._temporary_effects = {}
 
    self:_restore_mining_zone_listeners()
 
@@ -311,7 +312,7 @@ function Town:create_orchestrator(orchestrator_ctor, args)
    }
 end
 
-function Town:promote_citizen(person, talisman)
+function Town:create_promote_orchestrator(person, talisman)
    return self:create_orchestrator(Promote, {
       person = person,
       talisman = talisman,
@@ -322,6 +323,9 @@ function Town:harvest_resource_node(node)
    if not radiant.util.is_a(node, Entity) then
       return false
    end
+
+   self:remove_previous_task_on_item(node)
+
 
    local id = node:get_id()
    if not self._harvest_tasks[id] then
@@ -351,6 +355,8 @@ function Town:harvest_renewable_resource_node(plant)
    end
 
    local id = plant:get_id()
+   self:remove_previous_task_on_item(plant)
+
    if not self._harvest_tasks[id] then
       local node_component = plant:get_component('stonehearth:renewable_resource_node')
       if node_component and node_component:is_harvestable() then
@@ -372,19 +378,78 @@ function Town:harvest_renewable_resource_node(plant)
    return true
 end
 
+
+--Add a temporary effect to this entity. Keep a pointer to it so we can remove it later.
+--Assume we won't have more than 1 of a given effect type on an object at a time. 
+function Town:add_temporary_effect(entity, effect_name)
+   local entity_id = entity:get_id()
+   local effect_index = effect_name .. entity_id
+   if not self._temporary_effects[effect_index] then
+      self._temporary_effects[effect_index] = radiant.effects.run_effect(entity, "/stonehearth/data/effects/clear_effect")
+   end
+end
+
+function Town:remove_temporary_effect(entity_id, effect_name)
+   local effect_index = effect_name .. entity_id
+   if self._temporary_effects[effect_index]  then
+      self._temporary_effects[effect_index]:stop()
+      self._temporary_effects[effect_index] = nil
+   end
+end
+
+
+--Tell the harvesters to remove an item permanently from the world
+--If there was already an outstanding task on the object, make sure to cancel it first.
 function Town:clear_item(item)
+   self:remove_previous_task_on_item(item)
    local id = item:get_id()
+   
+   --trace the item. If it moves, cancel the task
+   local position_trace = radiant.entities.trace_location(item, 'clear item task generator')
+                                 :on_changed(function()
+                                    if self._clear_tasks[id] then 
+                                       self._clear_tasks[id]:destroy()
+                                       self._clear_tasks[id] = nil
+                                    end
+                                 end)
+
    local task = self:create_task_for_group('stonehearth:task_group:harvest', 'stonehearth:clear_item', {item = item})
                      :set_source(item)
                      :set_priority(stonehearth.constants.priorities.simple_labor.CLEAR)
+                  :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
                      :once()
                      :notify_completed(function()
                         self._clear_tasks[id] = nil
+                        if position_trace then
+                           position_trace:destroy()
+                           position_trace = nil
+                        end
                      end)
                      :start()
    self._clear_tasks[id] = task
    self:_remember_user_initiated_task(task, 'clear_item', item)
+end
 
+--Remove only town-related tasks, like harvest/clear
+function Town:remove_town_tasks_on_item(item)
+   local id = item:get_id()
+   if self._clear_tasks[id] then
+      self._clear_tasks[id]:destroy()
+      self._clear_tasks[id] = nil
+   end
+   if self._harvest_tasks[id] then
+      self._harvest_tasks[id]:destroy()
+      self._harvest_tasks[id] = nil
+   end
+end
+
+--Generally, remove as many kinds of tasks as we know about
+function Town:remove_previous_task_on_item(item)
+   self:remove_town_tasks_on_item(item)
+   local entity_forms_component = item:get_component('stonehearth:entity_forms')
+   if entity_forms_component then
+      entity_forms_component:cancel_placement_tasks()
+   end
 end
 
 function Town:harvest_crop(crop, player_initialized)

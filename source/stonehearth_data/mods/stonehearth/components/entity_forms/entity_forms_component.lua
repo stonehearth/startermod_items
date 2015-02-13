@@ -117,6 +117,13 @@ end
 
 function EntityFormsComponent:_update_restock_info()
    if self._sv.should_restock then 
+      --if we're restocking, cancel other tasks on this object first
+      local town = stonehearth.town:get_town(self._entity)
+      if town then
+         town:remove_town_tasks_on_item(self._entity)
+      end
+      self:_destroy_placement_task()
+
       if not self._overlay_effect then
          self._overlay_effect = radiant.effects.run_effect(self._entity, '/stonehearth/data/effects/undeploy_overlay_effect');
       end
@@ -188,6 +195,15 @@ function EntityFormsComponent:_load_placement_task()
    end
 end
 
+function EntityFormsComponent:cancel_placement_tasks()
+   self:_destroy_placement_task()
+
+   --TODO: if the restock task, which is always in action, is already on a guy
+   --setting the flag to false will not stop them. Consider putting another
+   --filter on the restock action, so it double checks before pickup
+   self:set_should_restock(false)
+end
+
 function EntityFormsComponent:_destroy_placement_task()
    if self._climb_to_item then
       self._climb_to_item:destroy()
@@ -198,6 +214,10 @@ function EntityFormsComponent:_destroy_placement_task()
       self._climb_to_destination = nil
    end
    if self._placement_task then
+      if self._sv.ghost_entity then
+         radiant.terrain.remove_entity(self._sv.ghost_entity)
+      end
+
       self._placement_task:destroy()
       self._placement_task = nil
    end
@@ -335,6 +355,9 @@ function EntityFormsComponent:_create_task(args)
 
    assert(town)
    assert(not self._placement_task)  
+
+   --ask the town to cancel any  other existing tasks
+   town:remove_town_tasks_on_item(self._entity)
 
    self._placement_task = town:create_task_for_group('stonehearth:task_group:placement', 'stonehearth:place_item_on_structure', args)
    self._placement_task:set_priority(stonehearth.constants.priorities.simple_labor.PLACE_ITEM)                    

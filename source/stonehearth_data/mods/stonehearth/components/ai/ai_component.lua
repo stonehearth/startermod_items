@@ -94,7 +94,7 @@ function AIComponent:destroy()
       self:remove_observer(uri)
    end
    
-   self._action_index = {}
+   self._action_index = nil
    self:_terminate_thread()
 end
 
@@ -131,6 +131,11 @@ function AIComponent:_add_action(key, action_ctor, injecting_entity)
    assert(does)
    assert(not action_key_to_activity[key] or action_key_to_activity[key] == does)
    
+   if not self._action_index then
+      self._log:debug('ignoring add_action %s during entity destruction', tostring(key))
+      return -- add_action happening on the way down...
+   end
+
    action_key_to_activity[key] = does
    local action_index = self._action_index[does]
    if not action_index then
@@ -221,6 +226,11 @@ function AIComponent:_unregister_execution_frame(activity_name, frame)
 end
 
 function AIComponent:remove_action(key)
+   if not self._action_index then
+      self._log:debug('ignoring remove_action %s during entity destruction', tostring(key))
+      return
+   end
+
    if type(key) == 'string' then
       self.__saved_variables:modify(function (o)
             o._actions[key] = nil

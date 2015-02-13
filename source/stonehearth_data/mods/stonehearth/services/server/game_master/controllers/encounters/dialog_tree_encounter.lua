@@ -1,15 +1,17 @@
+local bulletin_lib = require 'lib.game_master.bulletin_lib'
 
 local DialogTreeEncounter = class()
 
 function DialogTreeEncounter:start(ctx, info)
    self._sv.ctx = ctx
-   self._sv.info = info
+   self._sv._info = info
    self._sv.bulletin_data = {}
 
    self._log = radiant.log.create_logger('game_master.encounters.dialog_tree')   
 
    assert(info.start_node)
    assert(info.nodes)
+   bulletin_lib.compile_bulletin_nodes(info.nodes, ctx)
 
    self._sv.dialog_tree = info.nodes
    self:_transition_to_node(info.start_node)

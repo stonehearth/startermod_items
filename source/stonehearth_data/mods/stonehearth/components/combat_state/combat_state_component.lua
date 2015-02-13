@@ -172,6 +172,33 @@ function CombatStateComponent:recompile_combat_actions(action_type)
    self._combat_actions[action_type] = actions
 end
 
+function CombatStateComponent:is_within_leash(target)
+   local leash = self._sv.leash
+   if not leash then
+      -- no leash configured.  everything's good!
+      return true
+   end
+   local d = radiant.entities.distance_between(leash.center, target)
+   return d <= leash.range
+end
+
+-- center may be a Point3 or an Entity
+--
+function CombatStateComponent:set_attack_leash(center, range)
+   self._sv.leash = {
+      center = center,
+      range = range,
+   }
+   self.__saved_variables:mark_changed()
+   radiant.events.trigger_async(self._entity, 'stonehearth:combat_state:leash_changed')
+
+   return radiant.lib.Destructor(function()
+         self._sv.leash = nil
+         self.__saved_variables:mark_changed()
+         radiant.events.trigger_async(self._entity, 'stonehearth:combat_state:leash_changed')
+      end)
+end
+
 -- combat actions can come from two sources:
 --   1) something you are (a dragon has a tail attack)
 --   2) something you have (a wand of lightning bolt)

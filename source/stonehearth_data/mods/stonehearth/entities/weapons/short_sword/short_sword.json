@@ -2,7 +2,10 @@
    "mixins": "stonehearth:mixins:item_properties",
    "type": "entity",
    "components": {
-       "model_variants": {
+      "item": {
+         "category" : "weapons"
+      },
+      "model_variants": {
          "default" : {
             "models": [
                "file(short_sword_equipped.qb)"
@@ -56,6 +59,16 @@
             "cooldown" : 8000,
             "priority" : 0
          }
-      ]
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 125,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }      
    }
 }

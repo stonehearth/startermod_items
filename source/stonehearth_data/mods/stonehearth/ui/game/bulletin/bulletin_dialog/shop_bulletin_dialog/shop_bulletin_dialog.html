@@ -1,7 +1,7 @@
 <script type="text/x-handlebars" data-template-name="shopBulletinDialog">
 <div id="shopBulletinDialog" class="gui bulletinDialog">
    <div class="window">
-      <div class="title">{{i18n stonehearth:bulletin_dialog_title}}<div class="closeButton"></div></div>
+      <div class="title">{{view.shop_name}}<div class="closeButton"></div></div>
       
       
       <div id="buyTab" class="tabPage">
@@ -15,7 +15,6 @@
       </div>
 
       <div id="sellTab" class="tabPage">
-         test
          <!-- player inventory -->
          <div id="sellList" class="inventoryList"></div>
          

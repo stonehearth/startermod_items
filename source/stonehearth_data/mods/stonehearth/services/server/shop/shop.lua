@@ -9,16 +9,38 @@ end
 function Shop:initialize(session)   
    self._sv = self.__saved_variables:get_data()
    self._session = session
+   
    if not self._sv.initialized then
+      self._sv.options = {}
       self._sv.level_range = { min = -1, max = -1}
       self.__saved_variables:mark_changed()
    end
 end
 
----Sets the function which determines whether or not an item should be available 
--- in the shop.  The function gets passed an instance of that item and the shop itself
-function Shop:set_item_filter_fn(fn)
-   self._sv.item_filter_fn = fn
+function Shop:get_name()
+   return self._sv.name
+end
+
+function Shop:set_name(name)
+   self._sv.name = name
+   self.__saved_variables:mark_changed()
+   return self
+end
+
+--- Options
+--  {
+--     "filters" : [
+--        {
+--           item_category : ["furniture", "decoration"]
+--           item_material : ["wood"]
+--        }
+--     ],
+--     "items" : [
+--       "stonehearth:refined:thread"
+--     ]
+--  }
+function Shop:set_options(options)
+   self._sv.options = options or {}
    self.__saved_variables:mark_changed()
    return self
 end
@@ -28,7 +50,6 @@ end
 function Shop:get_shopkeeper_level_range()
    return nil
 end
-
 
 function Shop:set_shopkeeper_level_range(range)
    return self
@@ -54,6 +75,75 @@ function Shop:set_inventory_max_net_worth()
    return self
 end
 
+---A function which implements the default item filter for a shop.  
+function Shop:item_filter_fn(entity)
+   local inventory_spec = self._sv.options
+
+   -- check if the entity in the list of items
+   if inventory_spec.items then
+      local entity_path = radiant.resources.convert_to_canonical_path(entity:get_uri())
+      for _, uri in ipairs(inventory_spec.items) do
+         local item_path = radiant.resources.convert_to_canonical_path(uri)
+         if item_path == entity_path then
+            return true
+         end
+      end
+   end
+
+   -- check if the entity passes any filter
+   if inventory_spec.items_matching then
+      for key, filter in pairs(inventory_spec.items_matching) do
+         if self:_inventory_filter_fn(entity, filter) then
+            return true
+         end
+      end
+   end
+
+   return false
+end
+
+function Shop:_inventory_filter_fn(entity, filter)
+   if not self:_item_in_category_filter(entity, filter) then
+      return false
+   end
+
+   if not self:_item_in_material_filter(entity, filter) then
+      return false
+   end
+
+   return true
+end
+
+function Shop:_item_in_category_filter(entity, filter)
+   
+   if not filter.category then 
+      return true
+   end 
+
+   local entity_category = radiant.entities.get_category(entity)
+   for _, category in pairs(filter.category) do
+      if entity_category == category then
+         return true
+      end
+   end
+
+   return false   
+end
+
+function Shop:_item_in_material_filter(entity, filter)
+   if not filter.material then
+      return true
+   end
+
+   for _, material in pairs(filter.material) do
+      if material then
+         return radiant.entities.is_material(entity, material)
+      end
+   end
+
+   return true   
+end
+
 function Shop:stock_shop() 
    -- get a table of all the items which can appear in a shop
    local all_sellable_items = stonehearth.shop:get_sellable_items()
@@ -63,7 +153,7 @@ function Shop:stock_shop()
 
    -- Copy the items which pass the filter function into a new table, with buckets for rarity.
    for uri, entity in pairs(all_sellable_items) do
-      if self._sv.item_filter_fn(entity) then
+      if self:item_filter_fn(entity) then
          self:_add_entity_to_sellable_items(uri, entity)
       end
    end

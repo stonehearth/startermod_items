@@ -10,8 +10,9 @@
    "promotion_activity_name" : "promote_weaver",
    "worker_defense_opt_out" : true,
    
+   "abilities" : "file(weaver_abilities)",
+
    "equipment" : {
-      "abilities" : "file(weaver_abilities)",
       "torso" : "file(weaver_outfit)",
       "mainhand" : "stonehearth:weaver:spindle"
    },

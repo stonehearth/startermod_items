@@ -185,6 +185,11 @@ local function get_restock_filter_fn(filter_key, filter, player_id)
          local containing_entity = containing_component and containing_component:get_entity()
 
          if containing_entity then
+            if stonehearth.game_master:is_enabled() then
+               log:detail('already stocked!  returning false from filter function')
+               return false
+            end
+
             -- ideally, "restock" would ignore EVERYTHING in other stockpiles.  if someone
             -- wants to explicitly raid from a stockpile, they can make another action.
             -- until that happy day, put this extremely weird special case logic

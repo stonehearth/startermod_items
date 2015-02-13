@@ -7,7 +7,9 @@ function entity_forms_lib.get_uris(uri_or_entity)
    
    if type(uri_or_entity) == 'string' then
       local data = radiant.entities.get_component_data(uri_or_entity, 'stonehearth:entity_forms')
-      return uri_or_entity, data.iconic_form, data.ghost_form
+      return uri_or_entity,
+             data and data.iconic_form,
+             data and data.ghost_form
    end
 
    if radiant.util.is_a(uri_or_entity, Entity) then
@@ -28,9 +30,12 @@ function entity_forms_lib.get_uris(uri_or_entity)
             end
          end
       end
+   
+      local iconic_entity = ef:get_iconic_entity()
+      local ghost_entity = ef:get_ghost_entity()
       return entity:get_uri(),
-             ef:get_iconic_entity():get_uri(),
-             ef:get_ghost_entity():get_uri()
+             iconic_entity and iconic_entity:get_uri(),
+             ghost_entity and ghost_entity:get_uri()
    end
 end
 

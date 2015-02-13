@@ -2,10 +2,13 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
+      "item" : {
+         "category" : "armor"
+      },
       "unit_info" : {
          "name": "Padded Vest",
          "description": "Provides light protection in a fight.",
-         "icon" : "file(padded_vest.png)"         
+         "icon" : "file(cloth_padded_vest.png)"         
       },
       "model_variants": {
          "default": {
@@ -22,7 +25,7 @@
          }
       },
       "stonehearth:material" : {
-         "tags" :  "armor light_armor"
+         "tags" :  "armor light_armor cloth"
       },
       "stonehearth:entity_forms" : {
          "iconic_form" : "file(cloth_padded_vest_iconic.json)"
@@ -38,6 +41,16 @@
    "entity_data" : {
       "stonehearth:combat:armor_data" : {
          "base_damage_reduction" : 3
+      },
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 50,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
       }
    }   
 }

@@ -16,7 +16,7 @@ end
 function WorkerClass:restore()
 end
 
-function WorkerClass:promote(json)
+function WorkerClass:promote(json, options)
    job_helper.promote(self._sv, json)
 
    self.__saved_variables:mark_changed()

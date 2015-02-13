@@ -20,7 +20,7 @@ function WaterRenderer:initialize(render_entity, datastore)
       )
       :push_object_state()
 
-   --stonehearth.selection:set_selectable(self._entity, false)
+   stonehearth.selection:set_selectable(self._entity, false)
 end
 
 function WaterRenderer:destroy()

@@ -1,0 +1,9 @@
+{
+   "mixins": "file(../slab.json)",
+   "components": {
+      "stonehearth:construction_data" : {
+         "brush": "file(fine_wood_slab_1.qb)",
+         "material": "wood resource"
+      }
+   }
+}

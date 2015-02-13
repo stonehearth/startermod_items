@@ -219,7 +219,9 @@ end
 function Immigration:_on_accepted()
    local pop = stonehearth.population:get_population(self._sv.player_id)
    local citizen = pop:create_new_citizen()
-   pop:promote_citizen(citizen, 'stonehearth:jobs:worker')
+
+   citizen:add_component('stonehearth:job')
+               :promote_to('stonehearth:jobs:worker')
 
    self:place_citizen(citizen)
    if self._timer then

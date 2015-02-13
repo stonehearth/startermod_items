@@ -13,8 +13,9 @@
    "parent_job" : "stonehearth:jobs:trapper",
    "parent_level_requirement" : 3,
 
+   "abilities" : "file(shepherd_abilities)",
+
    "equipment" : {
-      "abilities" : "file(shepherd_abilities)",
       "torso" : "file(shepherd_outfit)",
       "mainhand" : "stonehearth:shepherd:crook"
    },
