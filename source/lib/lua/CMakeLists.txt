@@ -10,6 +10,7 @@ include_directories(${Luabind_INCLUDE_DIRS})
 include_directories(${Horde3D_INCLUDE_DIRS})
 
 add_library(lua
+            low_mem_allocator.cpp
             dynload_lua.cpp
             script_host.cpp
             data_object.cpp

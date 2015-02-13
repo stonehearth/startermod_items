@@ -1,6 +1,7 @@
 local I18N = require 'lib.i18n.i18n'
 
 local Entity = _radiant.om.Entity
+local rng = _radiant.csg.get_default_rng()
 
 local CollectionQuest = class()
 
@@ -24,6 +25,10 @@ function CollectionQuest:start(ctx, info)
    local i18n = I18N()
    for _, bulletin in pairs(bulletins) do
       for key, text in pairs(bulletin) do
+         if type(text) == 'table' then
+            assert(text[1])
+            text = text[rng:get_int(1, #text)]
+         end
          bulletin[key] = i18n:format_string(text, ctx)
       end
    end
