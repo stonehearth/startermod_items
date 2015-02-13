@@ -1,4 +1,4 @@
-local I18N = require 'lib.i18n.i18n'
+local bulletin_lib = require 'lib.game_master.bulletin_lib'
 
 local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
@@ -14,25 +14,15 @@ function CollectionQuest:start(ctx, info)
    assert(info.out_edges)   
    assert(info.duration)
 
-   assert(info.bulletins)
-   local bulletins = info.bulletins
-   assert(bulletins.shakedown)
-   assert(bulletins.collection_progress)
-   assert(bulletins.collection_due)
-   assert(bulletins.collection_failed)
-   assert(bulletins.shakedown_refused)
+   assert(info.nodes)
+   local nodes = info.nodes
+   assert(nodes.shakedown)
+   assert(nodes.collection_progress)
+   assert(nodes.collection_due)
+   assert(nodes.collection_failed)
+   assert(nodes.shakedown_refused)
 
-   local i18n = I18N()
-   for _, bulletin in pairs(bulletins) do
-      for key, text in pairs(bulletin) do
-         if type(text) == 'table' then
-            assert(text[1])
-            text = text[rng:get_int(1, #text)]
-         end
-         bulletin[key] = i18n:format_string(text, ctx)
-      end
-   end
-
+   bulletin_lib.compile_bulletin_nodes(nodes, ctx)
 
    local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script
@@ -49,7 +39,7 @@ function CollectionQuest:start(ctx, info)
    end
 
    self._sv.demand = self._sv.script:get_tribute_demand()
-   if bulletins.introduction then
+   if nodes.introduction then
       self:_show_introduction()
    else
       -- skip the introduction if it's not specified.
@@ -75,7 +65,7 @@ end
 -- start of the state machine.  introduce the guy doing the shakedown
 --
 function CollectionQuest:_show_introduction()
-   local intro = self._sv._info.bulletins.introduction
+   local intro = self._sv._info.nodes.introduction.bulletin
 
    intro.next_callback = '_on_introduction_finished'
    self:_update_bulletin(intro)
@@ -91,7 +81,7 @@ end
 -- the demand phase.  state the demands!
 --
 function CollectionQuest:_show_demand()
-   local bulletin_data = self._sv._info.bulletins.shakedown
+   local bulletin_data = self._sv._info.nodes.shakedown.bulletin
    bulletin_data.demands = {
       items = self._sv.demand
    }
@@ -106,7 +96,7 @@ function CollectionQuest:_on_shakedown_accepted()
    self:_destroy_bulletin()
 
    -- update the bulletin to start tracking the collection progress
-   local bulletin_data = self._sv._info.bulletins.collection_progress
+   local bulletin_data = self._sv._info.nodes.collection_progress.bulletin
    local items = self._sv.demand
    bulletin_data.demands = {
       items = self._sv.demand
@@ -130,7 +120,7 @@ end
 function CollectionQuest:_show_refused_threat()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv._info.bulletins.shakedown_refused
+   local bulletin_data = self._sv._info.nodes.shakedown_refused.bulletin
 
    bulletin_data.ok_callback = '_on_refused_threat_ok'
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
@@ -263,7 +253,7 @@ end
 function CollectionQuest:_on_collection_timer_expired()
    self:_stop_tracking_items()
 
-   local bulletin_data = self._sv._info.bulletins.collection_due
+   local bulletin_data = self._sv._info.nodes.collection_due.bulletin
    bulletin_data.demands = {
       items = self._sv.demand,      
    }
@@ -293,7 +283,7 @@ end
 function CollectionQuest:_on_collection_cancelled()
    assert(self._sv.bulletin)
 
-   local bulletin_data = self._sv._info.bulletins.collection_failed
+   local bulletin_data = self._sv._info.nodes.collection_failed.bulletin
 
    bulletin_data.ok_callback = '_on_collection_failed_ok'
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })

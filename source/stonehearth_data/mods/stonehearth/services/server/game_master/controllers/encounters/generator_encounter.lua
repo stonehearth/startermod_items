@@ -12,7 +12,6 @@ function GeneratorEncounter:start(ctx, info)
 
    self._sv.ctx = ctx
    self._sv.spawn_edge = info.spawn_edge
-   self.__saved_variables:mark_changed()
 
    if info.source_entity then
       local entity = ctx[info.source_entity]
@@ -27,8 +26,10 @@ function GeneratorEncounter:start(ctx, info)
    if override ~= nil then
       delay = override
    end
+   self._sv.delay = delay
+   self.__saved_variables:mark_changed()
 
-   self:_start_timer(delay)
+   self:_spawn_encounter()
 end
 
 function GeneratorEncounter:stop()
@@ -42,13 +43,20 @@ function GeneratorEncounter:stop()
    end
 end
 
-function GeneratorEncounter:_start_timer(delay)
+function GeneratorEncounter:_spawn_encounter()
    local ctx = self._sv.ctx
-   self._log:info('setting generator timer for %s', tostring(delay))
+
+   self._log:info('spawning encounter')
+   ctx.arc:spawn_encounter(ctx, self._sv.spawn_edge)
+   self:_start_timer()
+end
+
+function GeneratorEncounter:_start_timer()
+   local delay = self._sv.delay
    
+   self._log:info('setting generator timer for %s', tostring(delay))  
    self._timer = stonehearth.calendar:set_timer(delay, function()
-         ctx.arc:spawn_encounter(ctx, self._sv.spawn_edge)
-         self:_start_timer(delay)
+         self:_spawn_encounter()
       end)
 end
 
