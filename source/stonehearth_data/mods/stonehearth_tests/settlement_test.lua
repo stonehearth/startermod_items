@@ -29,6 +29,11 @@ function SettlementTest:__init()
    create_stockpile(10, 8)
    create_stockpile(2, 16)
 
+   -- send in the goblins!!
+   radiant.set_realtime_timer(500, function()
+         stonehearth.game_master:start()
+      end)
+   
    -- just for fun...
    --[[
    self:place_item_cluster('stonehearth:resources:wood:oak_log', 8, 8, 7, 7)

@@ -26,6 +26,9 @@ end
 function NewGameCallHandler:set_game_options(session, response, options)
    linear_combat_service:enable(options.enable_enemies)
    interval_service:enable(true)
+   if not options.enable_enemies then
+      stonehearth.game_master:enable_campaign_type('combat', false)
+   end
    return true
 end
 
@@ -240,7 +243,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
    radiant.entities.pickup_item(worker4, pop:create_entity('stonehearth:carpenter:talisman'))
 
    -- start the game master service
-   --stonehearth.game_master.start()
+   stonehearth.game_master:start()
 
    return {random_town_name = random_town_name}
 end
