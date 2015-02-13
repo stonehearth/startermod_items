@@ -38,6 +38,9 @@ function GameMasterService:is_enabled()
 end
 
 function GameMasterService:_start_campaign(subtype)
+   if self._sv.running_campaigns[subtype] then
+      return
+   end
    assert(not self._sv.running_campaigns[subtype])
 
    -- xxx: there should probably be a CampaignCategory class or something

@@ -2,6 +2,7 @@ local constants = require 'constants'
 local Array2D = require 'services.server.world_generation.array_2D'
 local BlueprintGenerator = require 'services.server.world_generation.blueprint_generator'
 local personality_service = stonehearth.personality
+local interval_service = stonehearth.interval
 local linear_combat_service =  stonehearth.linear_combat
 
 local Point2 = _radiant.csg.Point2
@@ -24,6 +25,7 @@ end
 
 function NewGameCallHandler:set_game_options(session, response, options)
    linear_combat_service:enable(options.enable_enemies)
+   interval_service:enable(true)
    return true
 end
 
