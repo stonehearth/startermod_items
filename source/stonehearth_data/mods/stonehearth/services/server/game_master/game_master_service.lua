@@ -4,26 +4,34 @@ local GameMasterService = class()
 mixin_class(GameMasterService, Node)
 
 function GameMasterService:initialize()
+   self._log = radiant.log.create_logger('game_master')
+   self._is_enabled = radiant.util.get_config('game_master.enabled')
+
    self._sv = self.__saved_variables:get_data() 
-   if not self._sv.initialized then
-      self._sv.initialized = true
+   if not self._sv._initialized then
+      self._sv._initialized = true
+      self._sv.disabled = {}
       self._sv.campaigns = {}
       self._sv.running_campaigns = {}
       self:set_name('gm')
    else
       self:restore()
-   end
-   
-   self._is_enabled = radiant.util.get_config('game_master.enabled')
-   if self._is_enabled then
-      self:start()     
-   end
+   end  
 end
 
 function GameMasterService:restore()
 end
 
+function GameMasterService:enable_campaign_type(type, enabled)
+   self._sv.disabled[type] = not enabled
+   self.__saved_variables:mark_changed()
+end
+
 function GameMasterService:start()
+   if not self._is_enabled then
+      self._log:error('cannot start game_master.  not enabled!')
+      return
+   end
    self:_start_campaign('combat')
 end
 
@@ -39,6 +47,11 @@ end
 
 function GameMasterService:_start_campaign(subtype)
    assert(not self._sv.running_campaigns[subtype])
+
+   if self._sv.disabled[subtype] then
+      self._log:info('ignoring request to start "%s".  disabled.', subtype)
+      return
+   end
 
    -- xxx: there should probably be a CampaignCategory class or something
    -- to manage this.  Consider adding once we get beyond combat
