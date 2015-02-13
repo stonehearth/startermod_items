@@ -20,6 +20,7 @@ function CollectionQuest:start(ctx, info)
    assert(bulletins.collection_progress)
    assert(bulletins.collection_due)
    assert(bulletins.collection_failed)
+   assert(bulletins.collection_success)
    assert(bulletins.shakedown_refused)
 
    local i18n = I18N()
@@ -287,6 +288,14 @@ function CollectionQuest:_on_collection_paid()
          end
       end
    end
+
+   --Should put a final bulletin here, as a reward
+   local bulletin_data = self._sv._info.bulletins.collection_success
+   bulletin_data.ok_callback = '_on_collection_success_ok'
+   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
+end
+
+function CollectionQuest:_on_collection_success_ok()
    self:_finish_encounter('success')
 end
 
