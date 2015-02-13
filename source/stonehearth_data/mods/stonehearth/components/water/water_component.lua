@@ -49,7 +49,7 @@ end
 
 -- TODO: clean up this method
 function WaterComponent:_add_water(world_location, volume)
-   log:debug('Adding %d water to %s at %s', volume, self._entity, world_location)
+   log:detail('Adding %d water to %s at %s', volume, self._entity, world_location)
 
    assert(volume >= 0)
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
@@ -113,14 +113,9 @@ function WaterComponent:_add_water(world_location, volume)
                end
             else
                -- create a waterfall and a channel to the target entity
-               local from_location = point
-               local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
-               if not channel then
-                  channel = stonehearth.hydrology:create_waterfall_channel(self._entity, from_location)
-               end
-
-               channel_region:add_point(from_location)
+               local channel = self:_get_waterfall_channel(point)
                volume = self:_add_volume_to_channel(channel, volume)
+               channel_region:add_point(point)
             end
          end
 
@@ -141,7 +136,7 @@ function WaterComponent:_add_water(world_location, volume)
 end
 
 function WaterComponent:_remove_water(volume)
-   log:debug('Removing %d water from %s', volume, self._entity)
+   log:detail('Removing %d water from %s', volume, self._entity)
 
    assert(volume >= 0)
    
@@ -157,11 +152,20 @@ function WaterComponent:_remove_water(volume)
    return volume
 end
 
+function WaterComponent:_get_waterfall_channel(from_location)
+   -- TODO: assert that this is a waterfall channel
+   local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
+   if not channel then
+      channel = stonehearth.hydrology:create_waterfall_channel(self._entity, from_location)
+   end
+   return channel
+end
+
 function WaterComponent:_create_merge_info(entity1, entity2)
    local merge_info = {
       result = 'merge',
-      entity1 = self._entity,
-      entity2 = existing_water_body
+      entity1 = entity1,
+      entity2 = entity2
    }
    return merge_info
 end
@@ -241,7 +245,7 @@ end
 
 function WaterComponent:_calculate_max_flow_volume(location)
    -- calculate pressure based on a full upper layer
-   local reference_elevation = math.floor(self:get_water_elevation()) + 1
+   local reference_elevation = self:get_water_elevation() + 1
    local pressure = reference_elevation - location.y
    local max_flow_volume = pressure * self._pressure_to_flow_rate
    return max_flow_volume
