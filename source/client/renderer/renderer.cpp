@@ -242,7 +242,7 @@ int Renderer::GetGpuPerformance(std::string const& gfxCard) const
    json::Node n = root;
    while (tokens.size() > 0) {
       int idx = -1;
-      for (int i = 0; i < tokens.size(); i++) {
+      for (uint i = 0; i < tokens.size(); i++) {
          if (n.has(tokens[i])) {
             n = n.get_node(tokens[i]);
             idx = i;
