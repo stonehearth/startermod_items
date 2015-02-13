@@ -61,7 +61,7 @@ end
 
 function AiService:get_ai_lease_owner(target)
    local lc = target:get_component('stonehearth:lease')
-   return lc and lc:get_owner(stonehearth.ai.RESERVATION_LEASE_NAME)
+   return lc and lc:get_owner(stonehearth.ai.RESERVATION_LEASE_NAME, target)
 end
 
 function AiService:release_ai_lease(target, owner)

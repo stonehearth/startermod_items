@@ -28,7 +28,7 @@ function ReplaceProxyWithItem:start(ai, entity, args)
       local lease_component = self._proxy:get_component('stonehearth:lease')
       local owner = 'unknown' 
       if lease_component then
-         owner = tostring(lease_component:get_owner('ai_reservation'))
+         owner = tostring(lease_component:get_owner('ai_reservation', entity))
       end
       ai:abort('could not lease %s (%s has it).', tostring(self._proxy), owner)
       return
