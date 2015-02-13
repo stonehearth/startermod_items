@@ -93,21 +93,28 @@ PathPtr Path::CombinePaths(std::vector<PathPtr> const& paths)
    std::vector<csg::Point3f> combinedPoints;
 
    for (PathPtr const& path : paths) {
-      std::vector<csg::Point3f> const& points = path->GetPoints();
-
-      auto begin = points.begin();
-      auto end = points.end();
-      if (begin == end) {
+      if (!path) {
+         PF_LOG(0) << "error: received null path in combine_paths";
          continue;
       }
+      std::vector<csg::Point3f> const& points = path->GetPoints();
+
+      if (points.empty()) {
+         continue;
+      }
+      auto begin = points.begin();
+      auto end = points.end();
 
       if (!combinedPoints.empty()) {
          csg::Point3f lastCombined = combinedPoints.back();
 
-         if (begin != end && lastCombined == *begin) {
+         if (lastCombined == *begin) {
             // The point at the back of combinedPoints is the same as the point at
             // the front of the path.  Skip the duplicate.
             ++begin;
+            if (begin == end) {
+               continue;
+            }
          }
 
          // really want to assert using OctTree::ValidMove(), but we don't have access to the simulation from here

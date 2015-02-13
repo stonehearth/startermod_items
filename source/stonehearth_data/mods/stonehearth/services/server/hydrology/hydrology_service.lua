@@ -28,7 +28,7 @@ end
 
 function HydrologyService:create_water_body(location)
    local entity = radiant.entities.create_entity('stonehearth:terrain:water')
-   log:debug('creating water body %s at %s', entity, location)
+   log:debug('Creating water body %s at %s', entity, location)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = entity
@@ -56,7 +56,7 @@ function HydrologyService:get_water_body(location)
 end
 
 function HydrologyService:remove_water_body(entity)
-   log:debug('removing water body %s', entity)
+   log:debug('Removing water body %s', entity)
 
    local id = entity:get_id()
    self._sv._water_bodies[id] = nil
@@ -113,7 +113,7 @@ function HydrologyService:get_channels(from_entity)
 end
 
 function HydrologyService:add_channel(from_entity, from_location, to_entity, to_location, channel_entity)
-   log:debug('adding persistent channel from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
+   log:debug('Adding channel from %s at %s to %s at %s', from_entity, from_location, to_entity, to_location)
 
    local channel = self:_create_channel(from_entity, from_location, to_entity, to_location, channel_entity)
    local key = self:_point_to_key(from_location)
@@ -125,7 +125,7 @@ function HydrologyService:add_channel(from_entity, from_location, to_entity, to_
 end
 
 function HydrologyService:remove_channel(from_entity, from_location)
-   log:debug('removing channel (%d) from %s at %s', id, from_entity, from_location)
+   log:debug('Removing channel (%d) from %s at %s', id, from_entity, from_location)
 
    local channels = self:get_channels(from_entity)
    local key = self:_point_to_key(from_location)
@@ -178,7 +178,7 @@ end
 function HydrologyService:merge_water_bodies(master, mergee)
    local master_location = radiant.entities.get_world_grid_location(master)
    local mergee_location = radiant.entities.get_world_grid_location(mergee)
-   log:debug('merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
+   log:debug('Merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
 
    self:_merge_regions(master, mergee)
    self:_merge_channels(master, mergee)
@@ -257,13 +257,14 @@ function HydrologyService:_merge_water_queue(master, mergee)
 end
 
 function HydrologyService:_on_tick()
-   log:spam('start tick')
+   log:spam('Start tick')
 
    self:_each_channel(function(channel)
          local water_component = channel.from_entity:add_component('stonehearth:water')
          water_component:_update_channels()
       end)
 
+   log:spam('Emptying channels into water queue')
    self._water_queue = self:_empty_channels()
 
    for i, entry in ipairs(self._water_queue) do
@@ -274,7 +275,7 @@ function HydrologyService:_on_tick()
 
    self:_update_channel_entities()
 
-   log:spam('end tick')
+   log:spam('End tick')
 
    self.__saved_variables:mark_changed()
 end

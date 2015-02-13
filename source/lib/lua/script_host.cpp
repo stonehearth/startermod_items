@@ -16,6 +16,7 @@
 #include "om/components/data_store.ridl.h"
 #include "om/components/mod_list.ridl.h"
 #include "om/stonehearth.h"
+#include "low_mem_allocator.h"
 
 using namespace ::luabind;
 using namespace ::radiant;
@@ -27,6 +28,8 @@ DEFINE_INVALID_JSON_CONVERSION(ScriptHost);
 DEFINE_INVALID_LUA_CONVERSION(ScriptHost)
 
 #define SH_LOG(level)    LOG(script_host, level)
+
+extern "C" lua_State * lj_state_newstate(lua_Alloc f, void *ud);
 
 static std::string GetLuaTraceback(lua_State* L)
 {
@@ -280,26 +283,27 @@ ScriptHost::ScriptHost(std::string const& site, AllocDataStoreFn const& allocDs)
    bool isJitEnabled = lua::JitIsEnabled();
 
    // Written as the cross product of is64Bit and isJitEnabled for clarity
-   if (is64Bit && isJitEnabled) {
-      // 64-bit builds of LuaJit use their own internal allocator which takes memory.
-      // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
-      // the interpreter and don't call any of the setalloc functions
-      L_ = luaL_newstate();
-   } else if (is64Bit && !isJitEnabled) {
-      // 64-bit without jit.  We can use all our crazy allocators.
-      L_ = lua_newstate(LuaAllocFn, this);
-      lua_setalloc2f(L_, LuaAllocFnWithState, this);
-   } else if (!is64Bit && !isJitEnabled) {
-      // 32-bit without jit.  We can use all our crazy allocators.
-      L_ = lua_newstate(LuaAllocFn, this);
-      lua_setalloc2f(L_, LuaAllocFnWithState, this);
-   } else if (!is64Bit && isJitEnabled) {
-      // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
-      // doesn't know how to call it.
-      L_ = lua_newstate(LuaAllocFn, this);
+   if (is64Bit) {
+      if (isJitEnabled) {
+         // 64-bit builds of LuaJit use their own internal allocator which takes memory.
+         // Use luaL_newstate to create the interpreter.  Use luaL_newstate to allocate
+         // the interpreter and don't call any of the setalloc functions
+         L_ = lj_state_newstate(LuaAllocLowMemFn, this);
+      } else {
+         // 64-bit without jit.  We can use all our crazy allocators.
+         L_ = lua_newstate(LuaAllocFn, this);
+         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+      }
    } else {
-      // Logical error if we get here.
-      NOT_REACHED();
+      if (!isJitEnabled) {
+         // 32-bit without jit.  We can use all our crazy allocators.
+         L_ = lua_newstate(LuaAllocFn, this);
+         lua_setalloc2f(L_, LuaAllocFnWithState, this);
+      } else {
+         // 32-bit with jit.  Don't install our LuaAllocFnWithState callbacks, as LuaJit
+         // doesn't know how to call it.
+         L_ = lua_newstate(LuaAllocFn, this);
+      }
    }
    ASSERT(L_);
 
@@ -490,6 +494,27 @@ void* ScriptHost::LuaAllocFnWithState(void *ud, void *ptr, size_t osize, size_t 
             host->alloc_map[key][realloced] = nsize;
             host->alloc_backmap[realloced] = key;
          }
+      }
+   }
+   return realloced;
+}
+
+void* ScriptHost::LuaAllocLowMemFn(void *ud, void *ptr, size_t osize, size_t nsize)
+{
+   ScriptHost* host = static_cast<ScriptHost*>(ud);
+   LowMemAllocator& allocator = LowMemAllocator::GetInstance();
+
+   void *realloced;
+
+   host->bytes_allocated_ += (int)(nsize - osize);
+   if (nsize == 0) {
+      allocator.deallocate(ptr);
+      realloced = nullptr;
+   } else {
+      realloced = allocator.allocate(nsize);
+      if (osize) {
+         memcpy(realloced, ptr, std::min(nsize, osize));
+         allocator.deallocate(ptr);
       }
    }
    return realloced;

@@ -21,6 +21,7 @@ function WaterComponent:initialize(entity, json)
       self._sv.region = _radiant.sim.alloc_region3()
       self._sv.height = 0
       self._sv._current_layer = _radiant.sim.alloc_region3()
+      self._sv._current_layer_index = 0
       self._sv._initialized = true
       self.__saved_variables:mark_changed()
    else
@@ -48,30 +49,30 @@ end
 
 -- TODO: clean up this method
 function WaterComponent:_add_water(world_location, volume)
-   log:debug('adding %d water to %s at %s', volume, self._entity, world_location)
+   log:debug('Adding %d water to %s at %s', volume, self._entity, world_location)
 
    assert(volume >= 0)
    local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local location = world_location - entity_location
+   local channel_region = Region3()
    local delta_region = Region3()
    local merge_info = nil
 
    if self._sv.region:get():empty() then
       local region = Region3()
-      region:add_point(location)
+      region:add_point(world_location - entity_location)
       self:_add_to_layer(region)
       volume = self:_subtract_wetting_volume(volume)
    end
 
    -- process and raise layers until we run out of volume
    while volume > 0 do
-      local current_layer = self._sv._current_layer:get()
+      local current_layer = self._sv._current_layer:get():translated(entity_location)
       if current_layer:empty() then
          log:warning('Current layer is empty/blocked. Water body may not be able to expand up. Unable to add water.')
          break
       end
 
-      local edge_region = self:_get_edge_region(current_layer)
+      local edge_region = self:_get_edge_region(current_layer, channel_region)
 
       if edge_region:empty() then
          -- current layer is bounded, raise the water level until we hit the next layer
@@ -86,16 +87,15 @@ function WaterComponent:_add_water(world_location, volume)
 
          -- grow the region until we run out of volume or edges
          while volume > 0 and not edge_region:empty() do
-            local point = edge_region:get_closest_point(location)
+            local point = edge_region:get_closest_point(world_location)
 
             -- TODO: incrementally update the new edge region
             edge_region:subtract_point(point)
 
-            local world_point = point + entity_location
-            local is_drop = not self:_is_blocked(world_point - Point3.unit_y)
+            local is_drop = not self:_is_blocked(point - Point3.unit_y)
 
             if not is_drop then
-               local existing_water_body = stonehearth.hydrology:get_water_body(world_point)
+               local existing_water_body = stonehearth.hydrology:get_water_body(point)
                assert(existing_water_body ~= self._entity)
 
                if existing_water_body then
@@ -114,18 +114,21 @@ function WaterComponent:_add_water(world_location, volume)
                end
             else
                -- create a waterfall and a channel to the target entity
-               local from_location = world_point
+               local from_location = point
                local channel = stonehearth.hydrology:get_channel(self._entity, from_location)
                if not channel then
                   channel = stonehearth.hydrology:create_waterfall_channel(self._entity, from_location)
                end
 
+               channel_region:add_point(from_location)
                volume = self:_add_volume_to_channel(channel, volume)
             end
          end
 
          delta_region:optimize_by_merge()
+         delta_region:translate(-entity_location)
          self:_add_to_layer(delta_region)
+         delta_region:clear()
 
          if merge_info then
             break
@@ -139,7 +142,7 @@ function WaterComponent:_add_water(world_location, volume)
 end
 
 function WaterComponent:_remove_water(volume)
-   log:debug('removing %d water from %s', volume, self._entity)
+   log:debug('Removing %d water from %s', volume, self._entity)
 
    assert(volume >= 0)
    
@@ -162,12 +165,12 @@ function WaterComponent:_update_channels(channels)
    local sorted_channels = self:_sort_channels(channels)
 
    for _, channel in pairs(sorted_channels) do
-      log:spam('updating channel for %s at %s', self._entity, channel.from_location)
-
       local elevation = self:get_water_elevation()
       local channel_height = channel.from_location.y
 
       if channel_height < elevation then
+         log:spam('Updating channel for %s at %s', self._entity, channel.from_location)
+
          local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
          local unused_volume = max_flow_volume - channel.queued_volume
 
@@ -179,6 +182,9 @@ function WaterComponent:_update_channels(channels)
             end
             local flow_volume = unused_volume - residual
             channel.queued_volume = channel.queued_volume + flow_volume
+            log:spam('Added %d to channel', flow_volume)
+         else
+            log:spam('Channel is full')
          end
       end
    end
@@ -201,13 +207,7 @@ function WaterComponent:_calculate_max_flow_volume(location)
    return max_flow_volume
 end
 
--- returns if the channel capacity is full for the current water level
-function WaterComponent:_channel_is_full(channel)
-   local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
-   local full = channel.queued_volume >= max_flow_volume
-   return full
-end
-
+-- region in local coordinates
 function WaterComponent:_add_to_layer(region)
    self._sv.region:modify(function(cursor)
          cursor:add_region(region)
@@ -220,18 +220,15 @@ function WaterComponent:_add_to_layer(region)
       end)
 end
 
-function WaterComponent:_get_edge_region(region)
+-- return value and parameters all in world coordinates
+function WaterComponent:_get_edge_region(region, channel_region)
    local world_bounds = self._root_terrain_component:get_bounds()
-   local entity_location = radiant.entities.get_world_grid_location(self._entity)
 
    -- perform a separable inflation to exclude diagonals
    local inflated = region:inflated(Point3.unit_x) + region:inflated(Point3.unit_z)
 
    -- subtract the interior region
    local edge_region = inflated - region
-
-   -- to world coordinates
-   edge_region:translate(entity_location)
 
    -- remove region blocked by terrain
    local terrain = radiant.terrain.intersect_region(edge_region)
@@ -241,10 +238,8 @@ function WaterComponent:_get_edge_region(region)
    local collision_region = self:_get_solid_collision_regions(edge_region)
    edge_region:subtract_region(collision_region)
 
-   -- remove channels that are full
-   -- TODO: could optimize by only including channels at this elevation
-   local full_channel_region = self:_get_full_channel_region()
-   edge_region:subtract_region(full_channel_region)
+   -- remove channels that we've already processed
+   edge_region:subtract_region(channel_region)
 
    -- remove locations outside the world
    -- TODO: just make these regions channels to nowhere
@@ -252,23 +247,7 @@ function WaterComponent:_get_edge_region(region)
 
    edge_region:optimize_by_merge()
 
-   -- back to local coordinates
-   edge_region:translate(-entity_location)
-
    return edge_region
-end
-
-function WaterComponent:_get_full_channel_region()
-   local channels = stonehearth.hydrology:get_channels(self._entity)
-   local result = Region3()
-
-   for _, channel in pairs(channels) do
-      if self:_channel_is_full(channel) then
-         result:add_point(channel.from_location)
-      end
-   end
-
-   return result
 end
 
 function WaterComponent:_get_solid_collision_regions(region)
@@ -298,12 +277,11 @@ function WaterComponent:_add_height(volume)
 
    local delta = volume / layer_area
    local residual = 0
-   local upper_limit = current_layer:get_rect(0).max.y
-   assert(upper_limit == math.floor(self._sv.height + 1))
+   local upper_limit = self._sv._current_layer_index + 1
 
    self._sv.height = self._sv.height + delta
 
-   -- important that this is >= and not >
+   -- important that this is >= and not > because layer bounds are inclusive on min height but exclusive on max height
    if self._sv.height >= upper_limit then
       residual = (self._sv.height - upper_limit) * layer_area
       self._sv.height = upper_limit
@@ -321,7 +299,7 @@ function WaterComponent:_remove_height(volume)
    end
    assert(volume > 0)
 
-   local lower_limit = math.floor(self._sv.height)
+   local lower_limit = self._sv._current_layer_index
    if self._sv.height <= lower_limit then
       self:_lower_layer()
    end
@@ -337,7 +315,6 @@ function WaterComponent:_remove_height(volume)
 
    self._sv.height = self._sv.height - delta
 
-   -- important that this is < and not <=
    if self._sv.height < lower_limit then
       residual = (lower_limit - self._sv.height) * layer_area
       self._sv.height = lower_limit
@@ -349,22 +326,21 @@ function WaterComponent:_remove_height(volume)
 end
 
 function WaterComponent:_raise_layer()
-   log:debug('raising layer for %s', self._entity)
+   local entity_location = radiant.entities.get_world_grid_location(self._entity)
+   local new_layer_index = self._sv._current_layer_index + 1
+   log:debug('Raising layer for %s to %d', self._entity, new_layer_index + entity_location.y)
 
    local current_layer = self._sv._current_layer:get()
 
    if current_layer:empty() then
-      log:warning('cannot raise layer for %s', self._entity)
+      log:warning('Cannot raise layer for %s', self._entity)
       return false
    end
 
-   local entity_location = radiant.entities.get_world_grid_location(self._entity)
+   assert(current_layer:get_rect(0).min.y + 1 == new_layer_index)
 
    -- convert to world space and raise one level
    local raised_layer = current_layer:translated(entity_location + Point3.unit_y)
-
-   local layer_elevation = (raised_layer:get_rect(0).min + entity_location).y
-   log:debug('new layer for %s at %d', self._entity, layer_elevation)
 
    -- subtract any new terrain obstructions
    local intersection = radiant.terrain.intersect_region(raised_layer)
@@ -384,33 +360,31 @@ function WaterComponent:_raise_layer()
          cursor:add_region(raised_layer)
       end)
 
+   self._sv._current_layer_index = new_layer_index
+
    self.__saved_variables:mark_changed()
 
    return true
 end
 
 function WaterComponent:_lower_layer()
-   log:debug('lowering layer for %s', self._entity)
+   local entity_location = radiant.entities.get_world_grid_location(self._entity)
+   local new_layer_index = self._sv._current_layer_index - 1
+   log:debug('Lowering layer for %s to %d', self._entity, new_layer_index + entity_location.y)
 
-   local bounds = self._sv.region:get():get_bounds()
-   local new_upper_bound = bounds.max.y - 1
-   bounds.max.y = new_upper_bound
-   bounds.min.y = new_upper_bound - 1
+   local lowered_layer = self:_get_layer(new_layer_index)
 
-   local lower_layer = self._sv.region:get():intersect_cube(bounds)
-   lower_layer:optimize_by_merge()
-
-   if lower_layer:empty() then
-      log:warning('cannot lower layer for %s', self._entity)
+   if lowered_layer:empty() then
+      log:warning('Cannot lower layer for %s', self._entity)
       return false
    end
 
-   local entity_location = radiant.entities.get_world_grid_location(self._entity)
-   local layer_elevation = (lower_layer:get_rect(0).min + entity_location).y
-   log:debug('new layer for %s at %d', self._entity, layer_elevation)
-
    -- make a copy since the read only reference to current layer will change below
    local top_layer = Region3(self._sv._current_layer:get())
+
+   if not top_layer:empty() then
+      assert(top_layer:get_rect(0).min.y - 1 == new_layer_index)
+   end
 
    self._sv.region:modify(function(cursor)
          cursor:subtract_region(top_layer)
@@ -418,10 +392,12 @@ function WaterComponent:_lower_layer()
 
    self._sv._current_layer:modify(function(cursor)
          cursor:clear()
-         cursor:add_region(lower_layer)
+         cursor:add_region(lowered_layer)
       end)
 
-   local projected_lower_layer = lower_layer:translated(Point3.unit_y)
+   self._sv._current_layer_index = new_layer_index
+
+   local projected_lower_layer = lowered_layer:translated(Point3.unit_y)
    local residual_top_layer = top_layer - projected_lower_layer
 
    if not residual_top_layer:empty() then
@@ -437,12 +413,36 @@ function WaterComponent:_lower_layer()
             cursor:add_region(residual_top_layer)
          end)
 
-      log:debug('top layer from %s becoming new entity %s', self._entity, child)
+      child_water_component:_recalculate_current_layer()
+
+      log:debug('Top layer from %s becoming new entity %s', self._entity, child)
    end
 
    self.__saved_variables:mark_changed()
 
    return true
+end
+
+function WaterComponent:_recalculate_current_layer()
+   local layer = self:_get_layer(self._sv._current_layer_index)
+
+   self._sv._current_layer:modify(function(cursor)
+         cursor:clear()
+         cursor:add_region(layer)
+      end)
+
+   self.__saved_variables:mark_changed()
+end
+
+function WaterComponent:_get_layer(elevation)
+   local region = self._sv.region:get()
+   local bounds = region:get_bounds()
+   bounds.min.y = elevation
+   bounds.max.y = elevation + 1
+
+   local layer = region:intersect_cube(bounds)
+   layer:optimize_by_merge()
+   return layer
 end
 
 -- TODO: could optimize by getting the watertight region and testing to see if point is in that set
