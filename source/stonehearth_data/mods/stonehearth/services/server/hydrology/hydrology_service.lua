@@ -261,7 +261,7 @@ function HydrologyService:_on_tick()
 
    self:_each_channel(function(channel)
          local water_component = channel.from_entity:add_component('stonehearth:water')
-         water_component:_update_channels()
+         water_component:_fill_channels_to_capacity()
       end)
 
    log:spam('Emptying channels into water queue')
