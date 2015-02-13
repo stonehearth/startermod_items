@@ -104,11 +104,7 @@ function WaterComponent:_add_water(world_location, volume)
                if existing_water_body then
                   -- we should save our current region and exit
                   -- a new water entry will process the merged entity
-                  merge_info = {
-                     result = 'merge',
-                     entity1 = self._entity,
-                     entity2 = existing_water_body
-                  }
+                  merge_info = self:_create_merge_info(self._entity, existing_water_body)
                   break
                else
                   -- make this location wet
@@ -159,6 +155,15 @@ function WaterComponent:_remove_water(volume)
    end
 
    return volume
+end
+
+function WaterComponent:_create_merge_info(entity1, entity2)
+   local merge_info = {
+      result = 'merge',
+      entity1 = self._entity,
+      entity2 = existing_water_body
+   }
+   return merge_info
 end
 
 function WaterComponent:_add_water_to_channels(volume)
