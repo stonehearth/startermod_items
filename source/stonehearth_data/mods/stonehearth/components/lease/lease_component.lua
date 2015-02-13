@@ -18,8 +18,8 @@ end
 function LeaseComponent:_remove_nonpersistent_leases()
    for _, leases in pairs(self._sv.factions) do
       for lease_name, info in pairs(leases) do
-         if not info.persistent and self._sv.leases then
-            self._sv.leases[lease_name] = nil
+         if not info.persistent then
+            info[lease_name] = nil
          end
       end
    end

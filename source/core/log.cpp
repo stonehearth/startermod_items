@@ -52,7 +52,8 @@ void radiant::log::Init(boost::filesystem::path const& logfile)
    log_level_names_["detail"] = DETAIL;
    log_level_names_["spam"] = SPAM;
 
-   LOG_(0) << "logger initialized";
+   SetCurrentThreadName("main");
+   LOG(core.log, 0) << "logger initialized";
 }
 
 int radiant::log::GetDefaultLogLevel()
@@ -107,10 +108,10 @@ static void InitDefaults()
    console_log_severity_ = config.Get<int>("logging.console_log_severity", DEFAULT_CONSOLE_LOG_SEVERITY);
 
    if (console_log_severity_ != DEFAULT_CONSOLE_LOG_SEVERITY) {
-      LOG_(0) << "console log severity " << console_log_severity_;
+      LOG(core.log, 0) << "console log severity " << console_log_severity_;
    }
    if (default_log_level_ != DEFAULT_LOG_LEVEL) {
-      LOG_(0) << "setting default log level to " << default_log_level_;
+      LOG(core.log, 0) << "setting default log level to " << default_log_level_;
    }
 }
 
@@ -145,7 +146,7 @@ static void SetLogLevels()
    // systems).
 #define ADD_CATEGORY(category)    level = GetLogLevel(config_path.back() + "." #category, log_levels.back()); \
                                   if (level != default_log_level_) { \
-                                     LOG_(0) << "setting " << config_path.back() << "." #category << " to " << level; \
+                                     LOG(core.log, 0) << "setting " << config_path.back() << "." #category << " to " << level; \
                                   } \
                                   *offset++ = level; \
 
@@ -168,7 +169,7 @@ void radiant::log::InitLogLevels()
 
 void radiant::log::Exit()
 {
-   LOG_(0) << "logger shutting down";
+   LOG(core.log, 0) << "logger shutting down";
 }
 
 const char* radiant::log::GetCurrentThreadName()

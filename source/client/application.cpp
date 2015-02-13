@@ -196,7 +196,7 @@ int Application::Run(int argc, const char** argv)
       crash_reporter::client::CrashReporterClient::TerminateApplicationWithMessage(error_message);
    }
 
-   LOG_(0) << "Initializing crash reporter";
+   LOG(core.system, 0) << "Initializing crash reporter";
    try {
       InitializeCrashReporting();
    } catch (std::exception const& e) {
