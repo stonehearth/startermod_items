@@ -44,6 +44,11 @@ function WaterfallRenderer:_update()
 
    local data = self._datastore:get_data()
    local region = data.region:get()
+   local volume = data.volume
+
+   if volume == 0 then
+      return
+   end
 
    self._outline_node = _radiant.client.create_region_outline_node(self._parent_node, region, self._edge_color, self._face_color)
 end

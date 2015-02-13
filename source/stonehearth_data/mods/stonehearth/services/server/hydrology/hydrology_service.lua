@@ -264,6 +264,9 @@ function HydrologyService:_on_tick()
          water_component:_fill_channels_to_capacity()
       end)
 
+   -- TODO: fix the channel rendering lagging the volume by 1 tick
+   self:_update_channel_entities()
+
    log:spam('Emptying channels into water queue')
    self._water_queue = self:_empty_channels()
 
@@ -272,8 +275,6 @@ function HydrologyService:_on_tick()
    end
 
    self._water_queue = nil
-
-   self:_update_channel_entities()
 
    log:spam('End tick')
 
