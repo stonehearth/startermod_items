@@ -39,13 +39,13 @@ vec4 _shadowCoordsByMap_deferred(const vec3 worldSpace_fragmentPos) {
 
   cascadeTexCoord = shadowMats[1] * hWorldSpace_fragmentPos;
   if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.25)) <= 0.249) {
-    cascadeTexCoord.z -= 0.0001;
+    cascadeTexCoord.z -= 0.001;
     return cascadeTexCoord;
   }
 
   cascadeTexCoord = shadowMats[2] * hWorldSpace_fragmentPos;
   if (max(abs(cascadeTexCoord.x - 0.75), abs(cascadeTexCoord.y - 0.75)) <= 0.249) {
-    cascadeTexCoord.z -= 0.0001;
+    cascadeTexCoord.z -= 0.001;
     return cascadeTexCoord;
   }
 
