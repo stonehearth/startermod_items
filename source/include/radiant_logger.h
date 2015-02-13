@@ -86,7 +86,7 @@ namespace radiant {
 
 // Used to write unconditionally to the log for critical messages.  Use
 // extremely sparingly.
-#define LOG_CRITICAL() LOG_(0)
+#define LOG_CRITICAL() LOG(core.system, 0)
 
 // Another unconditional logger.  Don't use this unless you've already
 // verified the level against some authority!

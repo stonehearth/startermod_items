@@ -719,7 +719,7 @@ void ScriptHost::Log(const char* category, int level, const char* str)
 
 void ScriptHost::Exit(int code)
 {
-   LOG_(0) << "exiting with code " << code << " by mod request.";
+   LOG(core.system, 0) << "exiting with code " << code << " by mod request.";
    // NOOOOOOOOOOOO!  Can we gracefully shutdown?  So far this is used exclusively
    // by the autotest framework.
    TerminateProcess(GetCurrentProcess(), code);

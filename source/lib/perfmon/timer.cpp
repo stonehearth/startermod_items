@@ -6,7 +6,7 @@
 using namespace radiant;
 using namespace radiant::perfmon;
 
-#define T_LOG(level)   LOG(simulation.core, level)
+#define T_LOG(level)   LOG(core.timer, level)
 
 // If your cpu has more than 32 cores, you have to resort to shenanigans (cpu groups, or something), to get at them.
 // Realistically, if you have that many cores, your QPC is probably implemented correctly....
