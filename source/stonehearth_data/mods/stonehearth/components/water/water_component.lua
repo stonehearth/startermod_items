@@ -64,6 +64,9 @@ function WaterComponent:_add_water(world_location, volume)
       volume = self:_subtract_wetting_volume(volume)
    end
 
+   -- fill the channels first so we don't unnecessarily raise and lower layers
+   volume = self:_add_water_to_channels(volume)
+
    -- process and raise layers until we run out of volume
    while volume > 0 do
       local current_layer = self._sv._current_layer:get():translated(entity_location)
@@ -158,9 +161,7 @@ function WaterComponent:_remove_water(volume)
    return volume
 end
 
--- push water into the channels until we max out their capacity
--- TODO: tell hydrology service to mark saved variables as changed after this
-function WaterComponent:_update_channels(channels)
+function WaterComponent:_add_water_to_channels(volume)
    local channels = stonehearth.hydrology:get_channels(self._entity)
    local sorted_channels = self:_sort_channels(channels)
 
@@ -168,34 +169,68 @@ function WaterComponent:_update_channels(channels)
       local elevation = self:get_water_elevation()
       local channel_height = channel.from_location.y
 
-      if channel_height < elevation then
-         log:spam('Updating channel for %s at %s', self._entity, channel.from_location)
+      if channel_height >= elevation then
+         -- we're done becuase channels are sorted by increasing elevation
+         break
+      end
 
-         local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
-         local unused_volume = max_flow_volume - channel.queued_volume
+      volume = self:_add_volume_to_channel(channel, volume)
 
-         if unused_volume > 0 then
-            local residual = self:_remove_water(unused_volume)
-            if residual == unused_volume then
-               -- remove height was not successful
-               break
-            end
-            local flow_volume = unused_volume - residual
-            channel.queued_volume = channel.queued_volume + flow_volume
-            log:spam('Added %d to channel', flow_volume)
-         else
-            log:spam('Channel is full')
+      if volume <= 0 then
+         break
+      end
+   end
+
+   return volume
+end
+
+-- push water into the channels until we max out their capacity
+-- TODO: tell hydrology service to mark saved variables as changed after this
+function WaterComponent:_fill_channels_to_capacity()
+   local channels = stonehearth.hydrology:get_channels(self._entity)
+   local sorted_channels = self:_sort_channels(channels)
+
+   for _, channel in pairs(sorted_channels) do
+      local elevation = self:get_water_elevation()
+      local channel_height = channel.from_location.y
+
+      if channel_height >= elevation then
+         -- we're done becuase channels are sorted by increasing elevation
+         break
+      end
+
+      local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
+      local unused_volume = max_flow_volume - channel.queued_volume
+
+      if unused_volume > 0 then
+         local residual = self:_remove_water(unused_volume)
+         if residual == unused_volume then
+            -- remove height was not successful
+            break
+         end
+         local flow_volume = unused_volume - residual
+         channel.queued_volume = channel.queued_volume + flow_volume
+
+         if flow_volume > 0 then
+            log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
          end
       end
    end
 end
 
 function WaterComponent:_add_volume_to_channel(channel, volume)
+   assert(volume >= 0)
+
    local max_flow_volume = self:_calculate_max_flow_volume(channel.from_location)
    local unused_volume = max_flow_volume - channel.queued_volume
    local flow_volume = math.min(unused_volume, volume)
    channel.queued_volume = channel.queued_volume + flow_volume
    volume = volume - flow_volume
+
+   if flow_volume > 0 then
+      log:spam('Added %d to channel for %s at %s', flow_volume, self._entity, channel.from_location)
+   end
+
    return volume
 end
 
