@@ -100,6 +100,8 @@ void loadTexture(MatSampler& sampler, std::string const& path) {
    ResHandle texMap;
    texMap = Modules::resMan().addResource(ResourceTypes::Texture, path, sampler.flags, false);
    sampler.texRes = (TextureResource *)Modules::resMan().resolveResHandle(texMap);
+   sampler.animationRate = 0;
+   sampler.animatedTextures.clear();
 }
 
 void loadAnimatedTexture(MatSampler& sampler, std::string const& path, int numFrames, float frameRate) {
