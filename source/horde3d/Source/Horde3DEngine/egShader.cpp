@@ -14,12 +14,9 @@
 #include "egModules.h"
 #include "egCom.h"
 #include "egRenderer.h"
-#include "egTokenizer.h"
 #include "om/error_browser/error_browser.h"
 #include <fstream>
 #include <cstring>
-#include "libjson.h"
-#include "lib/json/node.h"
 
 #include "utDebug.h"
 
@@ -30,7 +27,6 @@
 namespace Horde3D {
 
 using namespace std;
-using namespace ::radiant::json;
 
 // =================================================================================================
 // Code Resource
@@ -243,15 +239,16 @@ void CodeResource::updateShaders()
       if (res && res->getType() == ResourceTypes::Shader ) {
          ShaderResource *shaderRes = (ShaderResource *)res;
 
-         if (shaderRes->vertCodeIdx == -1 || shaderRes->fragCodeIdx == -1) {
-            continue;
-         }
-
          // Mark shaders using this code as uncompiled
-         if( shaderRes->getCode( shaderRes->vertCodeIdx )->hasDependency( this ) ||
-            shaderRes->getCode( shaderRes->fragCodeIdx )->hasDependency( this ) )
+         for( uint32 j = 0; j < shaderRes->getContexts().size(); ++j )
          {
-            shaderRes->compiled = false;
+            ShaderContext &context = shaderRes->getContexts()[j];
+
+            if( shaderRes->getCode( context.vertCodeIdx )->hasDependency( this ) ||
+               shaderRes->getCode( context.fragCodeIdx )->hasDependency( this ) )
+            {
+               context.compiled = false;
+            }
          }
 
          // Recompile shaders
@@ -263,6 +260,122 @@ void CodeResource::updateShaders()
 
 // =================================================================================================
 // Shader Resource
+// =================================================================================================
+
+class Tokenizer
+{
+public:
+	
+	Tokenizer( const char *data ) : _p( data ), _line( 1 ) { getNextToken(); }
+
+	int getLine() { return _line; }
+
+	bool hasToken() { return _token[0] != '\0'; }
+	
+	bool checkToken( const char *token, bool peekOnly = false )
+	{
+		if( _stricmp( _token, token ) == 0 )
+		{
+			if( !peekOnly ) getNextToken();
+			return true;
+		}
+		return false;
+	}
+
+	const char *getToken( const char *charset )
+	{
+		if( charset )
+		{
+			// Validate token
+			const char *p = _token;
+			while( *p )
+			{
+				if( strchr( charset, *p++ ) == 0x0 )
+				{
+					_prevToken[0] = '\0';
+					return _prevToken;
+				}
+			}
+		}
+		
+		memcpy( _prevToken, _token, tokenSize );
+		getNextToken();
+		return _prevToken;
+	}
+
+	bool seekToken( const char *token )
+	{
+		while( _stricmp( getToken( 0x0 ), token ) != 0 )
+		{
+			if( !hasToken() ) return false;
+		}
+		return true;
+	}
+
+protected:	
+	
+	void checkLineChange()
+	{
+		if( *_p == '\r' && *(_p+1) == '\n' )
+		{
+			++_p;
+			++_line;
+		}
+		else if( *_p == '\r' || *_p == '\n' ) ++_line;
+	}
+
+	void skip( const char *chars )
+	{
+		while( *_p )
+		{
+			if( !strchr( chars, *_p ) ) break;
+			checkLineChange();
+			++_p;
+		}
+	}
+	
+	bool seekChar( const char *chars )
+	{
+		while( *_p )
+		{
+			if( strchr( chars, *_p ) ) break;
+			checkLineChange();
+			++_p;
+		}
+		return *_p != '\0';
+	}
+	
+	void getNextToken()
+	{
+		// Skip whitespace
+		skip( " \t\n\r" );
+
+		// Parse token
+		const char *p0 = _p, *p1 = _p;
+		if( *_p == '"' )  // Handle string
+		{
+			++_p; ++p0;
+			if( seekChar( "\"\n\r" ) ) p1 = _p++;
+		}
+		else
+		{
+			seekChar( " \t\n\r{}()[]<>=,;" );  // Advance until whitespace or special char found
+			if( _p == p0 && *_p != '\0' ) ++_p;  // Handle special char
+			p1 = _p;
+		}
+		memcpy( _token, p0, std::min( (ptrdiff_t)(p1 - p0), tokenSize-1 ) );
+		_token[std::min( (ptrdiff_t)(p1 - p0), tokenSize-1 )] = '\0';
+	}
+
+protected:
+
+	static const ptrdiff_t tokenSize = 128;
+	
+	char        _token[tokenSize], _prevToken[tokenSize];
+	const char  *_p;
+	int         _line;
+};
+
 // =================================================================================================
 
 std::string ShaderResource::_vertPreamble = "";
@@ -286,20 +399,20 @@ ShaderResource::~ShaderResource()
 
 void ShaderResource::initDefault()
 {
-   vertCodeIdx = -1;
-   fragCodeIdx = -1;
-   compiled = false;
 }
 
 
 void ShaderResource::release()
 {
-   for (auto& combination : shaderCombinations)
-   {
-		gRDI->destroyShader(combination.shaderObj);
-   }
+	for( uint32 i = 0; i < _contexts.size(); ++i )
+	{
+      for (auto& combination : _contexts[i].shaderCombinations)
+      {
+		   gRDI->destroyShader( combination.shaderObj );
+      }
+	}
 
-   shaderCombinations.clear();
+	_contexts.clear();
 	_samplers.clear();
 	_uniforms.clear();
 	_codeSections.clear();
@@ -318,6 +431,25 @@ bool ShaderResource::raiseError( std::string const& msg, int line )
 		Modules::log().writeError( "Shader resource '%s': %s (line %i)", _name.c_str(), msg.c_str(), line );
 	
 	return false;
+}
+
+uint32 toWriteMask(const char* writeMaskStr)
+{
+   uint32 writeMask = 0;
+   while (*writeMaskStr != 0x0)
+   {
+      if (*writeMaskStr == 'R') {
+         writeMask |= 1;
+      } else if (*writeMaskStr == 'G') {
+         writeMask |= 2;
+      } else if (*writeMaskStr == 'B') {
+         writeMask |= 4;
+      } else if (*writeMaskStr == 'A') {
+         writeMask |= 8;
+      }
+      writeMaskStr++;
+   }
+   return writeMask;
 }
 
 bool ShaderResource::parseFXSection( char *data )
@@ -501,6 +633,140 @@ bool ShaderResource::parseFXSection( char *data )
 
 			_samplers.push_back( sampler );
 		}
+		else if( tok.checkToken( "context" ) )
+		{
+			ShaderContext context;
+			_tmpCode0 = _tmpCode1 = "";
+			context.id = tok.getToken( identifier );
+			if( context.id == "" ) return raiseError( "FX: Invalid identifier", tok.getLine() );
+
+			// Skip annotations
+			if( tok.checkToken( "<" ) )
+				if( !tok.seekToken( ">" ) ) return raiseError( "FX: expected '>'", tok.getLine() );
+			
+			if( !tok.checkToken( "{" ) ) return raiseError( "FX: expected '{'", tok.getLine() );
+			while( true )
+			{
+				if( !tok.hasToken() )
+					return raiseError( "FX: expected '}'", tok.getLine() );
+				else if( tok.checkToken( "}" ) )
+					break;
+				else if( tok.checkToken( "ZWriteEnable" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "true" ) ) context.writeDepth = true;
+					else if( tok.checkToken( "false" ) ) context.writeDepth = false;
+					else return raiseError( "FX: invalid bool value", tok.getLine() );
+				}
+				else if( tok.checkToken( "ZEnable" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "true" ) ) context.depthTest = true;
+					else if( tok.checkToken( "false" ) ) context.depthTest = false;
+					else return raiseError( "FX: invalid bool value", tok.getLine() );
+				}
+				else if( tok.checkToken( "ZFunc" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "LessEqual" ) ) context.depthFunc = TestModes::LessEqual;
+					else if( tok.checkToken( "Always" ) ) context.depthFunc = TestModes::Always;
+					else if( tok.checkToken( "Equal" ) ) context.depthFunc = TestModes::Equal;
+					else if( tok.checkToken( "Less" ) ) context.depthFunc = TestModes::Less;
+					else if( tok.checkToken( "Greater" ) ) context.depthFunc = TestModes::Greater;
+					else if( tok.checkToken( "GreaterEqual" ) ) context.depthFunc = TestModes::GreaterEqual;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+				}
+				else if( tok.checkToken( "StencilFunc" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "LessEqual" ) ) context.stencilFunc = TestModes::LessEqual;
+					else if( tok.checkToken( "Always" ) ) context.stencilFunc = TestModes::Always;
+					else if( tok.checkToken( "Equal" ) ) context.stencilFunc = TestModes::Equal;
+					else if( tok.checkToken( "Less" ) ) context.stencilFunc = TestModes::Less;
+					else if( tok.checkToken( "Greater" ) ) context.stencilFunc = TestModes::Greater;
+					else if( tok.checkToken( "GreaterEqual" ) ) context.stencilFunc = TestModes::GreaterEqual;
+					else if( tok.checkToken( "NotEqual" ) ) context.stencilFunc = TestModes::NotEqual;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+				}
+				else if( tok.checkToken( "BlendMode" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "Replace" ) ) context.blendMode = BlendModes::Replace;
+					else if( tok.checkToken( "Blend" ) ) context.blendMode = BlendModes::Blend;
+					else if( tok.checkToken( "Add" ) ) context.blendMode = BlendModes::Add;
+					else if( tok.checkToken( "AddBlended" ) ) context.blendMode = BlendModes::AddBlended;
+					else if( tok.checkToken( "Mult" ) ) context.blendMode = BlendModes::Mult;
+               else if( tok.checkToken( "Whateva" ) ) context.blendMode = BlendModes::Whateva;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+				}
+				else if( tok.checkToken( "CullMode" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "Back" ) ) context.cullMode = CullModes::Back;
+					else if( tok.checkToken( "Front" ) ) context.cullMode = CullModes::Front;
+					else if( tok.checkToken( "None" ) ) context.cullMode = CullModes::None;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+				}
+            else if( tok.checkToken( "StencilOp" ) ) {
+               if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               if( tok.checkToken( "Keep_Dec_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Dec_Dec;
+               else if( tok.checkToken( "Keep_Inc_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Inc_Inc;
+               else if( tok.checkToken( "Keep_Keep_Inc" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Inc;
+               else if( tok.checkToken( "Keep_Keep_Dec" ) ) context.stencilOpModes = StencilOpModes::Keep_Keep_Dec;
+               else if( tok.checkToken( "Replace_Replace_Replace" ) ) context.stencilOpModes = StencilOpModes::Replace_Replace_Replace;
+					else return raiseError( "FX: invalid enum value", tok.getLine() );
+            }
+				else if( tok.checkToken( "StencilRef" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               context.stencilRef = atoi(tok.getToken(intnum));
+				}
+				else if( tok.checkToken( "AlphaToCoverage" ) )
+				{
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+					if( tok.checkToken( "true" ) || tok.checkToken( "1" ) ) context.alphaToCoverage = true;
+					else if( tok.checkToken( "false" ) || tok.checkToken( "1" ) ) context.alphaToCoverage = false;
+					else return raiseError( "FX: invalid bool value", tok.getLine() );
+				}
+				else if( tok.checkToken( "VertexShader" ) )
+				{
+					if( !tok.checkToken( "=" ) || !tok.checkToken( "compile" ) || !tok.checkToken( "GLSL" ) )
+						return raiseError( "FX: expected '= compile GLSL'", tok.getLine() );
+					_tmpCode0 = tok.getToken( identifier );
+					if( _tmpCode0 == "" ) return raiseError( "FX: Invalid name", tok.getLine() );
+				}
+				else if( tok.checkToken( "PixelShader" ) )
+				{
+					if( !tok.checkToken( "=" ) || !tok.checkToken( "compile" ) || !tok.checkToken( "GLSL" ) )
+						return raiseError( "FX: expected '= compile GLSL'", tok.getLine() );
+					_tmpCode1 = tok.getToken( identifier );
+					if( _tmpCode1 == "" ) return raiseError( "FX: Invalid name", tok.getLine() );
+				}
+            else if( tok.checkToken( "ColorWriteMask" ) )
+            {
+					if( !tok.checkToken( "=" ) ) return raiseError( "FX: expected '='", tok.getLine() );
+               
+               const char* mask = tok.getToken("RGBA");
+               context.writeMask = toWriteMask(mask);
+            }
+				else
+					return raiseError( "FX: unexpected token", tok.getLine() );
+				if( !tok.checkToken( ";" ) ) return raiseError( "FX: expected ';'", tok.getLine() );
+			}
+
+			// Handle shaders
+			for( uint32 i = 0; i < _codeSections.size(); ++i )
+			{
+				if( _codeSections[i].getName() == _tmpCode0 ) context.vertCodeIdx = i;
+				if( _codeSections[i].getName() == _tmpCode1 ) context.fragCodeIdx = i;
+			}
+			if( context.vertCodeIdx < 0 )
+				return raiseError( "FX: Vertex shader referenced by context '" + context.id + "' not found" );
+			if( context.fragCodeIdx < 0 )
+				return raiseError( "FX: Pixel shader referenced by context '" + context.id + "' not found" );
+
+			_contexts.push_back( context );
+		}
 		else
 		{
 			return raiseError( "FX: unexpected token", tok.getLine() );
@@ -530,11 +796,9 @@ bool ShaderResource::parseFXSection( char *data )
 }
 
 
-bool ShaderResource::load(const char *data, int size)
+bool ShaderResource::load( const char *data, int size )
 {
-	if (!Resource::load(data, size)) {
-      return false;
-   }
+	if( !Resource::load( data, size ) ) return false;
 	
 	// Parse sections
 	const char *pData = data;
@@ -574,13 +838,6 @@ bool ShaderResource::load(const char *data, int size)
 				// Add section as private code resource which is not managed by resource manager
 				_tmpCode0.assign( sectionNameStart, sectionNameEnd );
 				_codeSections.push_back( CodeResource( _tmpCode0, 0 ) );
-
-            if (_tmpCode0 == "VS") {
-               vertCodeIdx = (int)_codeSections.size() - 1;
-            } else {
-               fragCodeIdx = (int)_codeSections.size() - 1;
-            }
-
 				_tmpCode0.assign( sectionContentStart, sectionContentEnd );
 				_codeSections.back().load( _tmpCode0.c_str(), (uint32)_tmpCode0.length() );
 			}
@@ -600,13 +857,14 @@ bool ShaderResource::load(const char *data, int size)
 }
 
 
-void ShaderResource::compileCombination(ShaderCombination &combination)
+void ShaderResource::compileCombination(ShaderContext &context, ShaderCombination &combination)
 {
-	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s ----", _name.c_str());
+	Modules::log().writeInfo( "---- C O M P I L I N G  . S H A D E R . %s@%s ----",
+		_name.c_str(), context.id.c_str() );
 	// Add preamble
 
-   _tmpCode0 = getCode(vertCodeIdx)->getVersion();
-   _tmpCode1 = getCode(fragCodeIdx)->getVersion();
+   _tmpCode0 = getCode(context.vertCodeIdx)->getVersion();
+   _tmpCode1 = getCode(context.fragCodeIdx)->getVersion();
 
 	_tmpCode0 += _vertPreamble;
 	_tmpCode1 += _fragPreamble;
@@ -626,9 +884,11 @@ void ShaderResource::compileCombination(ShaderCombination &combination)
 	_tmpCode1 += "// ---------------\r\n";
 
 	// Add actual shader code
-	_tmpCode0 += getCode(vertCodeIdx)->assembleCode();
-	_tmpCode1 += getCode(fragCodeIdx)->assembleCode();
+	_tmpCode0 += getCode( context.vertCodeIdx )->assembleCode();
+	_tmpCode1 += getCode( context.fragCodeIdx )->assembleCode();
 
+	
+	
 	// Unload shader if necessary
    if( combination.shaderObj != 0 )
 	{
@@ -639,7 +899,8 @@ void ShaderResource::compileCombination(ShaderCombination &combination)
 	// Compile shader
 	if( !Modules::renderer().createShaderComb( _name.c_str(), _tmpCode0.c_str(), _tmpCode1.c_str(), combination ) )
 	{
-		Modules::log().writeError( "Shader resource '%s': Failed to compile shader.", _name.c_str());
+		Modules::log().writeError( "Shader resource '%s': Failed to compile shader context '%s' ",
+			_name.c_str(), context.id.c_str() );
 
 		if( Modules::config().dumpFailedShaders )
 		{
@@ -683,30 +944,33 @@ void ShaderResource::compileCombination(ShaderCombination &combination)
 
 void ShaderResource::compileContexts()
 {
-   if (vertCodeIdx == -1 || fragCodeIdx == -1) {
-      return;
-   }
-
-	if(!compiled)
+	for( uint32 i = 0; i < _contexts.size(); ++i )
 	{
-		if( !getCode(vertCodeIdx)->tryLinking() ||
-			 !getCode(fragCodeIdx)->tryLinking() )
+		ShaderContext &context = _contexts[i];
+
+		if(!context.compiled)
 		{
-			return;
-		}
+			if( !getCode(context.vertCodeIdx)->tryLinking() ||
+			    !getCode(context.fragCodeIdx)->tryLinking() )
+			{
+				continue;
+			}
 		
-      for (auto& combination : shaderCombinations)
-      {
-			compileCombination(combination);
-      }
-		compiled = true;
-   }
+         for (auto& combination : context.shaderCombinations)
+         {
+			   compileCombination(context, combination);
+         }
+			context.compiled = true;
+		}
+	}
 }
 
 int ShaderResource::getElemCount( int elem )
 {
 	switch( elem )
 	{
+	case ShaderResData::ContextElem:
+		return (int)_contexts.size();
 	case ShaderResData::SamplerElem:
 		return (int)_samplers.size();
 	case ShaderResData::UniformElem:
@@ -787,6 +1051,16 @@ const char *ShaderResource::getElemParamStr( int elem, int elemIdx, int param )
 {
 	switch( elem )
 	{
+	case ShaderResData::ContextElem:
+		if( (unsigned)elemIdx < _contexts.size() )
+		{
+			switch( param )
+			{
+			case ShaderResData::ContNameStr:
+				return _contexts[elemIdx].id.c_str();
+			}
+		}
+		break;
 	case ShaderResData::SamplerElem:
 		if( (unsigned)elemIdx < _samplers.size() )
 		{

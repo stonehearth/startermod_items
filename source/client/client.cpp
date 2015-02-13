@@ -496,7 +496,7 @@ void Client::OneTimeIninitializtion()
          node.set("draw_distance", makeRendererConfigNode(cfg.draw_distance));
          node.set("gfx_card_renderer", Renderer::GetInstance().GetStats().gpu_renderer);
          node.set("gfx_card_driver", Renderer::GetInstance().GetStats().gl_version);
-         node.set("use_high_quality", makeRendererConfigNode(cfg.use_high_quality));
+         node.set("use_fast_hilite", makeRendererConfigNode(cfg.use_fast_hilite));
          node.set("enable_ssao", makeRendererConfigNode(cfg.enable_ssao));
 
          result->Resolve(node);
@@ -526,7 +526,7 @@ void Client::OneTimeIninitializtion()
          newCfg.enable_fullscreen.value = params.get<bool>("fullscreen", oldCfg.enable_fullscreen.value);
          newCfg.enable_vsync.value = params.get<bool>("vsync", oldCfg.enable_vsync.value);
          newCfg.draw_distance.value = params.get<float>("draw_distance", oldCfg.draw_distance.value);
-         newCfg.use_high_quality.value = params.get<bool>("use_high_quality", oldCfg.use_high_quality.value);
+         newCfg.use_fast_hilite.value = params.get<bool>("use_fast_hilite", oldCfg.use_fast_hilite.value);
          newCfg.enable_ssao.value = params.get<bool>("enable_ssao", oldCfg.enable_ssao.value);
          
          Renderer::GetInstance().ApplyConfig(newCfg, flags);

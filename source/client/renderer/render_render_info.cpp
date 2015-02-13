@@ -160,23 +160,12 @@ void RenderRenderInfo::CheckScale(om::RenderInfoPtr render_info)
 
 void RenderRenderInfo::CheckMaterial(om::RenderInfoPtr render_info)
 {
-   // First, check to see if we have manually overridden the material for this entity.
    std::string material = entity_.GetMaterialOverride();
-
-   // If we haven't, see if the entity has a 'default' material path set up.
-   if (material.empty()) {
-      material = entity_.GetMaterialPathFromKind("default");
-   }
-
-   // Still nothing?  Consult the material on the render_info.
    if (material.empty() && render_info) {
       material = render_info->GetMaterial();
    }
-
-   // render_info is null--I'm not even sure if that can happen, but just in case,
-   // here's the absolute default.
    if (material.empty()) {
-      material = "materials/voxel.material.json";
+      material = "materials/voxel.material.xml";
    }
 
    H3DRes mat = h3dAddResource(H3DResTypes::Material, material.c_str(), 0);

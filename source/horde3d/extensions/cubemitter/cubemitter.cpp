@@ -201,7 +201,7 @@ bool CubemitterResource::load( const char *data, int size )
       emitterData.emission = parseEmission(root.get_node("emission"));
    }
 
-   materialPath = root.get("material", "materials/cubemitter.material.json");
+   materialPath = root.get("material", "materials/cubemitter.material.xml");
 
 	return true;
 }
@@ -423,6 +423,7 @@ void CubemitterNode::renderFunc(std::string const& shaderContext, std::string co
 		CubemitterNode *emitter = (CubemitterNode *)entry.node;
 
       if( emitter->_maxCubes == 0 ) continue;
+		if( !emitter->_materialRes->isOfClass( theClass ) ) continue;
 		
 		// Occlusion culling
 		uint32 queryObj = 0;

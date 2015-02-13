@@ -1,3 +1,4 @@
+<!-- Forward Shading Pipeline -->
 <Pipeline name="FOW">
    <Setup>
       <GlobalRenderTarget id="FogOfWarRT" />

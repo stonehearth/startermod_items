@@ -3,7 +3,7 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/plant_crop_overlay/corn/plant_corn_overlay.material.json",
+         "material" : "materials/plant_crop_overlay/corn/plant_corn_overlay.material.xml",
          "y_offset" : -50
      }
    }

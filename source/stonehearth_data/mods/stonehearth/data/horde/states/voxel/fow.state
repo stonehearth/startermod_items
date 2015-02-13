@@ -1,4 +1,0 @@
-ZWriteEnable = false;
-ZEnable = false;
-CullMode = None;
-BlendMode = Replace;

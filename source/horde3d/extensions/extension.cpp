@@ -68,7 +68,7 @@ bool Extension::init()
 	};
 	DebugShapesNode::vertexLayout = gRDI->registerVertexLayout(2, attribs);
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.json", 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, "materials/debug_shape.material.xml", 0);
 	Resource *matRes =  Modules::resMan().resolveResHandle(mat);
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;

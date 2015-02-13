@@ -7,7 +7,16 @@ sampler2D image = sampler_state
   Filter = Pixely;
 };
 
-[[VS]]
+// Contexts
+context PROJECTION
+{
+  VertexShader = compile GLSL VS_PROJECTION;
+  PixelShader  = compile GLSL FS_PROJECTION;
+  ZWriteEnable = false;
+  BlendMode = Blend;
+}
+
+[[VS_PROJECTION]]
 #include "shaders/utilityLib/vertCommon.glsl"
 
 uniform mat4 projectorMat;
@@ -27,7 +36,7 @@ void main( void )
 }
 
 
-[[FS]]
+[[FS_PROJECTION]]
 uniform sampler2D image;
 
 varying vec2 texCoords;

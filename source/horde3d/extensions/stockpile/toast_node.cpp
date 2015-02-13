@@ -54,7 +54,7 @@ bool ToastNode::InitExtension()
 	};
 	ToastNode::vertexLayout = gRDI->registerVertexLayout(2, attribs);
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.json", 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, "fonts/toast_text.material.xml", 0);
 	Resource *matRes =  Modules::resMan().resolveResHandle(mat);
 	if (matRes == 0x0 || matRes->getType() != ResourceTypes::Material ) {
       return 0;
@@ -158,7 +158,7 @@ void ToastNode::renderFunc(std::string const& shaderContext, std::string const& 
    for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_ToastNode)) {
       ToastNode *toast = (ToastNode *)entry.node;
 
-      if (!fontMaterial_) {
+      if (!fontMaterial_ || !fontMaterial_->isOfClass(theClass)) {
          continue;
       }
 		if (!Modules::renderer().setMaterial(fontMaterial_, shaderContext)) {

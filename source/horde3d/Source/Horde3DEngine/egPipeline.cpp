@@ -295,13 +295,11 @@ std::string PipelineResource::parseStage( XMLNode const &node, PipelineStagePtr 
 		}
 		else if( strcmp( node1.getName(), "DoDeferredLightLoop" ) == 0 )
 		{
-         stage->commands.push_back( PipelineCommand( PipelineCommands::DoDeferredLightLoop ) );
-         vector< PipeCmdParam > &params = stage->commands.back().params;
-
-         uint32 matRes = Modules::resMan().addResource(ResourceTypes::Material, node1.getAttribute("material"), 0, false);
-         params.resize(2);
-         params[0].setBool(_stricmp(node1.getAttribute("noShadows", "false"), "true") == 0);
-         params[1].setResource(Modules::resMan().resolveResHandle(matRes));
+			stage->commands.push_back( PipelineCommand( PipelineCommands::DoDeferredLightLoop ) );
+			vector< PipeCmdParam > &params = stage->commands.back().params;
+			params.resize( 2 );
+			params[0].setString( node1.getAttribute( "context", "" ) );
+			params[1].setBool( _stricmp( node1.getAttribute( "noShadows", "false" ), "true" ) == 0 );
 		}
 		else if( strcmp( node1.getName(), "SetUniform" ) == 0 )
 		{
@@ -371,17 +369,6 @@ void PipelineResource::addRenderTarget( std::string const& id, bool depthBuf, ui
 	_renderTargets.push_back( rt );
 }
 
-void PipelineResource::addRenderTargetAlias(std::string const& id, std::string const& target, int idx)
-{
-   RenderTarget ra;
-   ra.id = id;
-   ra.targetAlias = target;
-   ra.aliasIdx = idx;
-
-   _renderTargets.push_back(ra);
-}
-
-
 
 RenderTarget *PipelineResource::findRenderTarget( std::string const& id )
 {
@@ -407,46 +394,19 @@ RenderTarget *PipelineResource::findRenderTarget( std::string const& id )
 
 bool PipelineResource::createRenderTargets()
 {
-   for( uint32 i = 0; i < _renderTargets.size(); ++i )
-   {
-      RenderTarget &rt = _renderTargets[i];
-
-      if (rt.aliasIdx != -1) {
-         // Skip aliases in this loop.
-         continue;
-      }
+	for( uint32 i = 0; i < _renderTargets.size(); ++i )
+	{
+		RenderTarget &rt = _renderTargets[i];
 	
-      uint32 width = ftoi_r( rt.width * rt.scale ), height = ftoi_r( rt.height * rt.scale );
-      if( width == 0 ) width = ftoi_r( _baseWidth * rt.scale );
-      if( height == 0 ) height = ftoi_r( _baseHeight * rt.scale );
+		uint32 width = ftoi_r( rt.width * rt.scale ), height = ftoi_r( rt.height * rt.scale );
+		if( width == 0 ) width = ftoi_r( _baseWidth * rt.scale );
+		if( height == 0 ) height = ftoi_r( _baseHeight * rt.scale );
 
-      rt.rendBuf = gRDI->createRenderBuffer(
+		rt.rendBuf = gRDI->createRenderBuffer(
          width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples, rt.mipLevels );
-      if( rt.rendBuf == 0 ) return false;
-   }
-
-   for( uint32 i = 0; i < _renderTargets.size(); ++i )
-   {
-      RenderTarget &rta = _renderTargets[i];
-
-      if (rta.aliasIdx == -1) {
-         // Skip original render targets.
-         continue;
-      }
+		if( rt.rendBuf == 0 ) return false;
+	}
 	
-      for (RenderTarget& rt : _renderTargets) {
-         if (rt.id == rta.targetAlias) {
-            rta.rendBuf = gRDI->aliasRenderBuffer(rt.rendBuf, rta.aliasIdx);
-
-            if (rta.rendBuf == 0) {
-               return false;
-            }
-
-            break;
-         }
-      }
-   }
-
 	return true;
 }
 
@@ -550,31 +510,6 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
 
       node2 = node2.getNextSibling( "GlobalRenderTarget" );
    }
-
-
-   node2 = setupNode.getFirstChild("RenderTargetAlias");
-   while (!node2.isEmpty())
-   {
-      if (!node2.getAttribute("id")) {
-         return raiseError("Missing RenderTargetAlias attribute 'id'");
-      }
-      std::string id = node2.getAttribute("id");
-
-      if (!node2.getAttribute("target")) {
-         return raiseError("Missing RenderTargetAlias attribute 'target'");
-      }
-      std::string target = node2.getAttribute("target");
-
-      if (!node2.getAttribute("idx")) {
-         return raiseError("Missing RenderTargetAlias attribute 'idx'");
-      }
-      int idx = atoi(node2.getAttribute("idx"));
-
-      addRenderTargetAlias(id, target, idx);
-
-      node2 = node2.getNextSibling( "RenderTargetAlias" );
-   }
-
    return true;
 }
 

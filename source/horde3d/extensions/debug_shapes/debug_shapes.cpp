@@ -58,6 +58,9 @@ void DebugShapesNode::renderFunc(std::string const& shaderContext, std::string c
       //Modules::renderer().commitGeneralUniforms();
       if (first) {
          MaterialResource* material = debugShapes->GetMaterial();
+         if (!material->isOfClass(theClass)) {
+            continue;
+         }
 		   if (!Modules::renderer().setMaterial(material, shaderContext)) {
             continue;
          }

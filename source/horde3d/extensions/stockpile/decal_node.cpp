@@ -85,6 +85,9 @@ void DecalNode::renderFunc(std::string const& shaderContext, std::string const& 
       DecalNode *decal = (DecalNode *)entry.node;
 
       MaterialResource* material = decal->GetMaterial();
+      if (!material || !material->isOfClass(theClass)) {
+         continue;
+      }
 		if (!Modules::renderer().setMaterial(material, shaderContext)) {
          continue;
       }

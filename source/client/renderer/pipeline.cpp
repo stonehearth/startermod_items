@@ -206,13 +206,13 @@ Pipeline::CreateDesignationNode(H3DNode parent,
 
    RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
    RenderNodePtr stripes = RenderNode::CreateCsgMeshNode(group->GetNode(), stripes_mesh)
-      ->SetMaterial("materials/designation/stripes.material.json");
+      ->SetMaterial("materials/designation/stripes.material.xml");
 
    h3dSetNodeParamI(stripes->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    EnablePolygonOffset(stripes->GetNode());
 
    RenderNodePtr outline = RenderNode::CreateCsgMeshNode(group->GetNode(), outline_mesh)
-      ->SetMaterial("materials/designation/outline.material.json");
+      ->SetMaterial("materials/designation/outline.material.xml");
 
    h3dSetNodeParamI(outline->GetNode(), H3DModel::UseCoarseCollisionBoxI, useCoarseCollisionBox);
    EnablePolygonOffset(outline->GetNode());
@@ -289,7 +289,7 @@ Pipeline::CreateRegionOutlineNode(H3DNode parent,
       });
 
       RenderNodePtr face_node = RenderNode::CreateCsgMeshNode(group_node->GetNode(), mesh)
-         ->SetMaterial("materials/transparent.material.json");
+         ->SetMaterial("materials/transparent.material.xml");
 
       h3dSetNodeParamI(face_node->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
       EnablePolygonOffset(face_node->GetNode());
@@ -319,7 +319,7 @@ Pipeline::CreateXZBoxNode(H3DNode parent,
    RenderNodePtr group = RenderNode::CreateGroupNode(parent, "designation group node");
 
    RenderNodePtr interior = RenderNode::CreateCsgMeshNode(group->GetNode(), mesh)
-      ->SetMaterial("materials/transparent.material.json");
+      ->SetMaterial("materials/transparent.material.xml");
 
    h3dSetNodeParamI(interior->GetNode(), H3DModel::UseCoarseCollisionBoxI, 1);
    EnablePolygonOffset(interior->GetNode());

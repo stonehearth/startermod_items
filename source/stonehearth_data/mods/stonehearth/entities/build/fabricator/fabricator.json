@@ -2,11 +2,11 @@
    "mixins": "stonehearth:mixins:align_to_grid",
    "entity_data" : {
       "stonehearth:render_materials" : {
-         "normal" : "materials/blueprint.material.json",
-         "selected" : "materials/blueprint.material.json",
-         "hover" : "materials/blueprint.material.json",
-         "building_selected" : "materials/blueprint.material.json",
-         "building_selected_hover" : "materials/blueprint.material.json"
+         "normal" : "materials/blueprint.material.xml",
+         "selected" : "materials/blueprint.material.xml",
+         "hover" : "materials/blueprint.material.xml",
+         "building_selected" : "materials/blueprint.material.xml",
+         "building_selected_hover" : "materials/blueprint.material.xml"
       }
    }   
 }

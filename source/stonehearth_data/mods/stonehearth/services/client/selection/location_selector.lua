@@ -117,7 +117,7 @@ end
 function LocationSelector:use_ghost_entity_cursor(uri)   
    local cursor_entity = radiant.entities.create_entity(uri)
    cursor_entity:add_component('render_info')
-                     :set_material('materials/ghost_item.json')
+                     :set_material('materials/ghost_item.xml')
    self:set_cursor_entity(cursor_entity)
    return self
 end

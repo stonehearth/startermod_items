@@ -85,7 +85,7 @@ local function load_structure_from_template(entity, template, options, entity_ma
 
    if options.mode == 'preview' then
       entity:add_component('render_info')
-               :set_material('materials/place_template_preview.json')
+               :set_material('materials/place_template_preview.xml')
    end
 
    for name, data in pairs(template) do

@@ -11,7 +11,6 @@
 #include "resources/animation.h"
 #include "om/components/effect_list.ridl.h"
 #include "lib/audio/input_stream.h"
-#include "client/renderer/material.h"
 #include <SFML/Audio.hpp>
 
 BEGIN_RADIANT_CLIENT_NAMESPACE
@@ -134,10 +133,10 @@ private:
    Horde3D::HudElementNode *_hud;
    H3DRes            _matRes;
    H3DNodeUnique     overlayNode_;
-   Material          _materialDesc;
    int               _overlayWidth;
    int               _overlayHeight;
    int               _yOffset;
+   std::string       _material;
    bool              _positioned;
 };
 
@@ -154,7 +153,6 @@ private:
    void parseTransforms(const JSONNode& node, float* x, float* y, float* z);
    H3DNodeUnique      statusNode_;
    H3DRes             _matRes;
-   Material          _materialDesc;
 };
 
 /* For playing short sound effects*/

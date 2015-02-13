@@ -1,7 +1,7 @@
 {
     "name": "fire",
     "duration": 20,
-    "material": "materials/cubemitter_bloom.material.json",
+    "material": "materials/cubemitter_bloom.material.xml",
     "particle": {
         "lifetime": {
             "start": {

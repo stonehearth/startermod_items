@@ -7,7 +7,17 @@ sampler2D albedoMap  = sampler_state
 };
 
 
-[[VS]]
+// Contexts
+context OVERLAY
+{
+	VertexShader = compile GLSL VS_OVERLAY;
+	PixelShader = compile GLSL FS_OVERLAY;
+	
+	ZWriteEnable = false;
+	BlendMode = Blend;
+}
+
+[[VS_OVERLAY]]
 
 uniform mat4 projMat;
 attribute vec2 vertPos;
@@ -21,7 +31,7 @@ void main( void )
 }
 
 
-[[FS]]
+[[FS_OVERLAY]]
 
 uniform vec4 olayColor;
 uniform sampler2D albedoMap;

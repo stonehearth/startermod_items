@@ -9,17 +9,7 @@
       },
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": {
-            "name": "materials/billboard.material.json",
-            "samplers" : [
-               {
-                  "name" : "albedoMap",
-                  "map" : "materials/thoughts/sleeping/sleeping_.png",
-                  "numAnimationFrames" : 46,
-                  "frameRate" : 24
-               }
-            ]
-         },
+         "material": "materials/thoughts/sleeping/sleeping_material.xml",
          "duration": 1500,
          "width": 1.5,
          "height": 2.55,

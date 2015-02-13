@@ -1,8 +1,0 @@
-{
-	"shaders" : {
-		"BLUR" : {
-			"state" : "states/voxel/replace.state",
-			"shader" : "shaders/blur/blur_radial.shader"
-		}
-	}
-}

@@ -28,7 +28,6 @@
 #include "egVoxelGeometry.h"
 #include "egExtensions.h"
 #include "egVoxelModel.h"
-#include "egShaderState.h"
 
 // Extensions
 #if 1
@@ -120,8 +119,6 @@ bool Modules::init(int glMajor, int glMinor, bool msaaWindowSupported, bool enab
 		ParticleEffectResource::factoryFunc );
 	resMan().registerType( ResourceTypes::Pipeline, "Pipeline", 0x0, 0x0,
 		PipelineResource::factoryFunc );
-   resMan().registerType( ResourceTypes::ShaderState, "ShaderState", 0x0, 0x0,
-		ShaderStateResource::factoryFunc );
 
 	// Register node types
 	sceneMan().registerType( SceneNodeTypes::Group, "Group",

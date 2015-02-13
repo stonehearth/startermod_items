@@ -56,7 +56,7 @@ function EntityFormsComponent:_post_create(json)
 
    if ghost_entity then
       ghost_entity:add_component('render_info')
-                     :set_material('materials/ghost_item.json')
+                     :set_material('materials/ghost_item.xml')
    end
 
    if placeable then

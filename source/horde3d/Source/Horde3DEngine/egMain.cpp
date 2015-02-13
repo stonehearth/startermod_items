@@ -456,19 +456,9 @@ DLLEXP ResHandle h3dCreatePixelBuffer( const char *name, int size )
    return res;
 }
 
-
 DLLEXP void h3dSetShaderPreambles( const char *vertPreamble, const char *fragPreamble )
 {
 	ShaderResource::setPreambles( safeStr( vertPreamble, 0 ), safeStr( fragPreamble, 1 ) );
-}
-
-
-DLLEXP bool h3dSetMaterialSampler(ResHandle materialRes, const char *name, const char *map, int numFrames, float frameRate)
-{
-	Resource *resObj = Modules::resMan().resolveResHandle( materialRes );
-	APIFUNC_VALIDATE_RES_TYPE( resObj, ResourceTypes::Material, "h3dSetMaterialSampler", false );
-
-	return ((MaterialResource *)resObj)->setSampler(safeStr(name, 0), safeStr(map, 1), numFrames, frameRate);
 }
 
 

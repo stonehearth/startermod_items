@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/screenspace_fixedsize.shader" />
+   <Sampler name="albedoMap" map="materials/plant_crop_overlay/plant_crop.png" />
+</Material>

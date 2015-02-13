@@ -1,0 +1,4 @@
+<Material>
+   <Shader source="shaders/billboard.shader" />
+   <Sampler name="albedoMap" map="materials/thoughts/party_defend/party_defend.png" />
+</Material>

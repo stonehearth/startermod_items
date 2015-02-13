@@ -82,7 +82,57 @@ struct ShaderResData
 	};
 };
 
+// =================================================================================================
 
+struct BlendModes
+{
+	enum List
+	{
+		Replace,
+		Blend,
+		Add,
+		AddBlended,
+		Mult,
+      Whateva
+	};
+};
+
+struct TestModes
+{
+	enum List
+	{
+		Always,
+		Equal,
+		Less,
+		LessEqual,
+		Greater,
+		GreaterEqual,
+      NotEqual
+	};
+};
+
+struct CullModes
+{
+	enum List
+	{
+		Back,
+		Front,
+		None
+	};
+};
+
+struct StencilOpModes
+{
+   enum List
+   {
+      Off,
+      Keep_Dec_Dec,
+      Keep_Inc_Inc,
+      Keep_Keep_Inc,
+      Keep_Keep_Dec,
+      Replace_Replace_Replace
+   };
+};
 
 
 struct ShaderCombination
@@ -115,6 +165,41 @@ struct ShaderCombination
 		shaderObj( 0 ), lastUpdateStamp( 0 )
 	{
 	}
+};
+
+
+struct ShaderContext
+{
+   std::string                       id;
+
+   // RenderConfig
+   BlendModes::List                  blendMode;
+   TestModes::List                   depthFunc;
+   CullModes::List                   cullMode;
+   StencilOpModes::List              stencilOpModes;
+   TestModes::List                   stencilFunc;
+   int                               stencilRef;
+   bool                              depthTest;
+   bool                              writeDepth;
+   bool                              writeColor;
+   bool                              writeAlpha;
+   bool                              alphaToCoverage;
+   uint32                            writeMask;
+
+   // Shaders
+   std::vector<ShaderCombination>    shaderCombinations;
+   int                               vertCodeIdx, fragCodeIdx;
+   bool                              compiled;
+
+
+   ShaderContext() :
+      blendMode( BlendModes::Replace ), depthFunc( TestModes::LessEqual ),
+      cullMode( CullModes::Back ), depthTest( true ), writeDepth( true ), alphaToCoverage( false ),
+      vertCodeIdx( -1 ), fragCodeIdx( -1 ), compiled( false ), stencilOpModes(StencilOpModes::Off), 
+      stencilFunc(TestModes::Always), stencilRef(0), writeColor(true), writeAlpha(true), 
+      writeMask(0xf)
+   {
+   }
 };
 
 // =================================================================================================
@@ -168,29 +253,32 @@ public:
 	void setElemParamF( int elem, int elemIdx, int param, int compIdx, float value );
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 
+	ShaderContext *findContext( std::string const& name )
+	{
+		for( uint32 i = 0; i < _contexts.size(); ++i )
+			if( _contexts[i].id == name ) return &_contexts[i];
+		
+		return 0x0;
+	}
+
+	std::vector< ShaderContext > &getContexts() { return _contexts; }
 	CodeResource *getCode( uint32 index ) { return &_codeSections[index]; }
 
 private:
 	bool raiseError( std::string const& msg, int line = -1 );
 	bool parseFXSection( char *data );
-	void compileCombination(ShaderCombination &combination);
+	void compileCombination(ShaderContext &context, ShaderCombination &combination);
 	
 private:
 	static std::string            _vertPreamble, _fragPreamble;
 	static std::string            _tmpCode0, _tmpCode1;
 	
-
-   // Shaders
-   std::vector<ShaderCombination>    shaderCombinations;
-   int                               vertCodeIdx, fragCodeIdx;
-   bool                              compiled;
-
+	std::vector< ShaderContext >  _contexts;
 	std::vector< ShaderSampler >  _samplers;
 	std::vector< ShaderUniform >  _uniforms;
 	std::vector< CodeResource >   _codeSections;
 
 	friend class Renderer;
-   friend class CodeResource;
 };
 
 typedef SmartResPtr< ShaderResource > PShaderResource;

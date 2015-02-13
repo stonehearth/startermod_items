@@ -1,0 +1,4 @@
+<Material>
+  <Shader source="shaders/projection.shader" />
+  <Sampler name="image" map="materials/aoe_reticle/aoe_reticle.png" />
+</Material>

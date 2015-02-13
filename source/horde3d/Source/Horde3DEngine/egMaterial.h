@@ -16,7 +16,6 @@
 #include "egPrerequisites.h"
 #include "egResource.h"
 #include "egShader.h"
-#include "egShaderState.h"
 #include "egTexture.h"
 
 
@@ -32,7 +31,9 @@ struct MaterialResData
 	{
 		MaterialElem = 400,
 		SamplerElem,
+		UniformElem,
 		MatClassStr,
+		MatLinkI,
 		MatShaderI,
 		SampNameStr,
 		SampTexResI,
@@ -49,7 +50,6 @@ struct MatSampler
 	std::string       name;
 	PTextureResource  texRes;
    
-   uint32            flags;
    std::vector<PTextureResource> animatedTextures;
    float             currentAnimationTime;
    float             animationRate;  // fps
@@ -89,7 +89,7 @@ public:
 	bool load( const char *data, int size );
 	bool setUniform( std::string const& name, float a, float b, float c, float d );
    bool setArrayUniform( std::string const& name, float* data, int dataCount);
-   bool setSampler(std::string const& samplerName, std::string const& resPath, int numFrames, float frameRate);
+	bool isOfClass( std::string const& theClass );
 
 	int getElemCount( int elem );
 	int getElemParamI( int elem, int elemIdx, int param );
@@ -99,29 +99,21 @@ public:
 	const char *getElemParamStr( int elem, int elemIdx, int param );
 	void setElemParamStr( int elem, int elemIdx, int param, const char *value );
 
-   std::vector<MatSampler>& getSamplers();
-   MatUniform* getUniform(std::string const& context, std::string const& name);
-   PShaderStateResource getShaderState(std::string const& context);
-   PShaderResource getShader(std::string const& context);
-
 private:
-   void compileSubMaterials();
 	bool raiseError( std::string const& msg, int line = -1 );
    void updateSamplerAnimation(int samplerNum, float animTime);
 
 private:
-   std::unordered_map<std::string, PMaterialResource> _subMaterials;
-   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _subMaterialInputs;
-	std::vector<PShaderResource> _shaders;
-	std::vector<MatSampler>      _samplers;
-   std::unordered_map<std::string, MatUniform>   _uniforms;
-   std::unordered_map<std::string, std::unordered_map<std::string, std::string>> _context_to_material_input_map;
-   std::unordered_map<std::string, PShaderResource> _context_to_shader_map;
-   std::unordered_map<std::string, std::unordered_map<std::string, MatUniform>> _context_to_shader_input_defaults;
-   std::unordered_map<std::string, PShaderStateResource> _context_to_shader_state;
-   bool _subMaterialsCompiled;
+   PMaterialResource           _parentMaterial;
+	PShaderResource             _shaderRes;
+	std::string                 _class, _notClass;
+	std::vector< MatSampler >   _samplers;
+	std::vector< MatUniform >   _uniforms;
+	std::vector< std::string >  _shaderFlags;
+	PMaterialResource           _matLink;
 
 	friend class ResourceManager;
+	friend class Renderer;
 	friend class MeshNode;
 };
 

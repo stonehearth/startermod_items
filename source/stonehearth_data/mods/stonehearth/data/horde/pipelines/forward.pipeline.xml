@@ -1,6 +1,7 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline name="FORWARD">
    <Setup>
+      <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" format="RGBA8" scale="1.0"/>
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="0.125"/>
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
@@ -11,19 +12,19 @@
       </Stage>
       
       <Stage id="Sky">
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
+         <DrawGeometry context="SKY"/>
 
          <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY" forceLodLevel="0"/>
+         <DrawGeometry context="SKY"/>
       </Stage>
 
       <Stage id="Starfield">
          <SwitchTarget target="" />
-         <DrawGeometry context="STARFIELD" forceLodLevel="0"/>
+         <DrawGeometry context="STARFIELD"/>
       </Stage>
 
       <Stage id="Depth">
-         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2"/>
+         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2" />
       </Stage>
 
       <Stage id="Light">
@@ -49,6 +50,18 @@
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
          <DrawGeometry context="BLUEPRINTS_COLOR_PASS"/>
          <DrawGeometry context="DEBUG_SHAPES" />
+      </Stage>
+
+      <Stage id="Selected">
+         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true"/>
+         <DrawSelected context="SELECTED_SCREENSPACE" />
+
+         <SwitchTarget target="" />
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <UnbindBuffers />
       </Stage>
 
       <Stage id="Selected_Fast">

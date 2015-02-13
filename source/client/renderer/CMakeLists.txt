@@ -36,7 +36,6 @@ add_library(client_renderer STATIC
             perfhud/timeline_column.cpp
             perfhud/render_context.cpp
             render_node.cpp
-            material.cpp
             )
 
 add_dependencies(client_renderer

@@ -54,7 +54,7 @@ end
 function PortalEditor:go()
    self._fixture_blueprint = radiant.entities.create_entity(self._fixture_blueprint_uri)
    self._fixture_blueprint:add_component('render_info')
-                              :set_material('materials/ghost_item.json')
+                              :set_material('materials/ghost_item.xml')
    self._cursor_uri = self._fixture_blueprint:get_component('stonehearth:fixture')
                                                       :get_cursor()
    if not self._cursor_uri then

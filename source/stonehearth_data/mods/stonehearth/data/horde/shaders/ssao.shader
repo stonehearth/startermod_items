@@ -18,11 +18,17 @@ sampler2D depthBuffer = sampler_state
   Filter = None;
 };
 
-[[VS]]
+context SSAO
+{
+  VertexShader = compile GLSL VS_SSAO;
+  PixelShader = compile GLSL FS_SSAO;
+}
+
+[[VS_SSAO]]
 #include "shaders/fsquad_vs.glsl"
 
 
-[[FS]]
+[[FS_SSAO]]
 #version 400
 
 #include "shaders/utilityLib/vertCommon_400.glsl"
@@ -30,7 +36,7 @@ sampler2D depthBuffer = sampler_state
 
 #define LOG_MAX_OFFSET 3
 #define MAX_MIP_LEVEL 5
-#define NUM_SAMPLES 8
+#define NUM_SAMPLES 32
 
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normalBuffer;
@@ -78,22 +84,22 @@ vec3 getRandomVec(const vec2 texCoords)
 void main()
 {
   float radius = 0.5;
-  const float intensity = 1.0;
+  const float intensity = 0.5;
 
   vec4 attribs = texture2D(depthBuffer, texCoords);
   vec3 origin = toCameraSpace(texCoords, attribs.r);
   radius *= attribs.g;
   vec3 rvec = getRandomVec(texCoords);
-  vec3 normal = (camViewMat * vec4(-texture2D(normalBuffer, texCoords).xyz, 0)).xyz;
+  vec3 normal = -texture2D(normalBuffer, texCoords).xyz;
 
   vec3 tangent = normalize(rvec - (normal * dot(rvec, normal)));
   vec3 bitangent = cross(normal, tangent);
   mat3 tbn = mat3(tangent, bitangent, normal);
 
   float occlusion = 0.0;
-  for (int i = 0; i < NUM_SAMPLES; i++) {
+  for (int i = 0; i < NUM_SAMPLES; i+=4) {
     // get sample position:
-    vec3 cameraSpaceSample = tbn * samplerKernel[i * 4];
+    vec3 cameraSpaceSample = tbn * samplerKernel[i];
     vec3 ssaoSample = (cameraSpaceSample * radius) + origin;
 
     // project sample position:
@@ -101,22 +107,26 @@ void main()
     offset.xy /= offset.w;
     offset.xy = (offset.xy * 0.5) + 0.5;
 
-    // get sample location.
-    vec2 sampledDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
+    // get sample location: (x is front-face depths, y is back-face depths).
+    vec2 sampledDepths = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
 
     float sampleOcclusion;
     // Range check:
-    float rangeCheck = abs(origin.z - sampledDepth.x) <  radius ? 1.0 : 0.0;
+    float rangeCheck = abs(origin.z - sampledDepths.r) <  radius ? 1.0 : 0.0;
+    //float normalCheck = abs(dot(normal, normalize(cameraSpaceSample)));
 
-    // Old and busted (and faster :P)
-    occlusion += sampledDepth.x < ssaoSample.z ? 1.0 * rangeCheck : 0;
+    // Old and busted:
+    //sampleOcclusion = sampledDepths.r < ssaoSample.z ? (1.0 * rangeCheck) : 0.0;
 
     // New hotness:
-    //sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
+    sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
+
+
+    occlusion += sampleOcclusion;
   }
 
-  occlusion /= NUM_SAMPLES;
-  occlusion *= intensity; 
+  occlusion /= (NUM_SAMPLES / 4);
+  occlusion *= intensity;
 
-  fragColor = vec4(vec3(occlusion), 0.0);
+  fragColor = vec4(vec3(occlusion), 1.0);
 }

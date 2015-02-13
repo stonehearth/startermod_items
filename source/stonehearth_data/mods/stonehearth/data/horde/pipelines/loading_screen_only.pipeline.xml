@@ -6,7 +6,7 @@
          <ClearTarget colBuf0="true" depthBuf="true"/>
       </Stage>
       <Stage id="Overlays">
-         <DrawQuad material="materials/loading_screen.material.json" context="LOADING_OVERLAY" />
+         <DrawQuad material="materials/loading_screen.material.xml" context="LOADING_OVERLAY" />
          <DrawOverlays context="PROGRESS_OVERLAY"/>
       </Stage>
    </CommandQueue>

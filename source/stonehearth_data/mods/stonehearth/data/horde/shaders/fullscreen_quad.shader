@@ -1,12 +1,32 @@
 [[FX]]
 
+// Samplers
+
 sampler2D buf0 = sampler_state
 {
   Address = Clamp;
   Filter = None;
 };
 
-[[VS]]
+context FSQUAD_COPY
+{
+	VertexShader = compile GLSL VS_FSQUAD;
+	PixelShader = compile GLSL FS_FSQUAD_COPY;
+	
+	ZWriteEnable = false;
+}
+
+context ADD
+{
+	VertexShader = compile GLSL VS_FSQUAD;
+	PixelShader = compile GLSL FS_FSQUAD_COPY;
+
+	BlendMode = Add;	
+	ZWriteEnable = false;
+}
+
+[[VS_FSQUAD]]
+
 uniform mat4 projMat;
 attribute vec3 vertPos;
 varying vec2 texCoords;
@@ -18,7 +38,8 @@ void main( void )
 }
 
 
-[[FS]]
+[[FS_FSQUAD_COPY]]
+
 uniform sampler2D buf0;
 varying vec2 texCoords;
 

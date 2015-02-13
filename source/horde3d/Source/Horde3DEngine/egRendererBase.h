@@ -241,7 +241,6 @@ struct RDIRenderBuffer
 	static const uint32 MaxColorAttachmentCount = 4;
    
    bool    cubeMap;
-   bool    alias;
 
 	uint32  fbo, fboMS;  // fboMS: Multisampled FBO used when samples > 0
 	uint32  width, height;
@@ -250,7 +249,7 @@ struct RDIRenderBuffer
 	uint32  depthTex, colTexs[MaxColorAttachmentCount];
 	uint32  depthBuf, colBufs[MaxColorAttachmentCount];  // Used for multisampling
 
-	RDIRenderBuffer() : fbo( 0 ), fboMS( 0 ), width( 0 ), height( 0 ), depthTex( 0 ), depthBuf( 0 ), cubeMap(false), alias(false)
+	RDIRenderBuffer() : fbo( 0 ), fboMS( 0 ), width( 0 ), height( 0 ), depthTex( 0 ), depthBuf( 0 ), cubeMap(false)
 	{
 		for( uint32 i = 0; i < MaxColorAttachmentCount; ++i ) colTexs[i] = colBufs[i] = 0;
 	}
@@ -394,7 +393,6 @@ public:
 	// Renderbuffers
 	uint32 createRenderBuffer(uint32 width, uint32 height, TextureFormats::List format,
 	                          bool depth, uint32 numColBufs, uint32 samples, uint32 numMips = 0, bool cubeMap = false);
-   uint32 aliasRenderBuffer(uint32 rbObj, int bufIdx);
 	void destroyRenderBuffer( uint32 rbObj );
 	uint32 getRenderBufferTex( uint32 rbObj, uint32 bufIndex );
 	void setRenderBuffer(uint32 rbObj, int cubeFace=0);

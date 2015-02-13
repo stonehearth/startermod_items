@@ -179,7 +179,7 @@ function RulerWidget:_recreate_render_node(label)
 
    self._render_node = _radiant.client.create_mesh_node(1, mesh)
    self._render_node:set_can_query(false)
-                    :set_material('materials/transparent.material.json')
+                    :set_material('materials/transparent.material.xml')
 
    if label then
       self._text_node = _radiant.client.create_text_node(1, label)

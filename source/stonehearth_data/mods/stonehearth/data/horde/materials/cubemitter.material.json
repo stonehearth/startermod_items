@@ -1,8 +1,0 @@
-{
-	"shaders" : {
-		"TRANSLUCENT" : {
-			"state" : "states/voxel/blend.state",
-			"shader" : "shaders/cubemitter.shader"
-		}
-	}
-}

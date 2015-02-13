@@ -1,7 +1,17 @@
 [[FX]]
 
+context TRANSLUCENT
+{
+  VertexShader = compile GLSL VS_TRANSLUCENT;
+  PixelShader = compile GLSL FS_TRANSLUCENT;
+  
+  ZWriteEnable = false;
+  BlendMode = Blend;
+  CullMode = Back;
+}
 
-[[VS]]
+[[VS_TRANSLUCENT]]
+// =================================================================================================
 // Cubemitters can take two different paths for rendering (instancing, and the fallback: batching),
 // so always use the cubemitter interface to get your data!
 
@@ -18,7 +28,9 @@ void main(void)
 }
 
 
-[[FS]]
+[[FS_TRANSLUCENT]]
+// =================================================================================================
+
 varying vec4 color;
 
 void main( void )

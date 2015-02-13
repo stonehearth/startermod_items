@@ -29,6 +29,7 @@ class MaterialResource;
 class LightNode;
 class CameraNode;
 class VoxelMeshNode;
+struct ShaderContext;
 
 const uint32 MaxNumOverlayVerts = (1 << 16); // about 32k..
 const uint32 ParticlesPerBatch = 64;	// Warning: The GPU must have enough registers
@@ -228,14 +229,14 @@ public:
    void setGlobalUniform(const char* uniName, UniformType::List kind, void const* value, int num=1);
 
 protected:
-   ShaderCombination* findShaderCombination(ShaderResource* sr) const;
-   bool isShaderContextSwitch(std::string const& curContext, MaterialResource *materialRes) const;
+   ShaderCombination* findShaderCombination(ShaderResource* r, ShaderContext* context) const;
+   bool isShaderContextSwitch(std::string const& curContext, const MaterialResource *materialRes);
 
    void setupViewMatrices( const Matrix4f &viewMat, const Matrix4f &projMat );
 	
 	void createPrimitives();
 	
-	bool setMaterialRec(MaterialResource *materialRes, std::string const& shaderContext);
+	bool setMaterialRec( MaterialResource *materialRes, std::string const& shaderContext, ShaderResource *shaderRes );
    void updateLodUniform(int lodLevel, float lodDist1, float lodDist2);
 	
    void commitLightUniforms(LightNode const* light);
@@ -253,7 +254,6 @@ protected:
 	void bindPipeBuffer( uint32 rbObj, std::string const& sampler, uint32 bufIndex );
 	void clear( bool depth, bool buf0, bool buf1, bool buf2, bool buf3, float r, float g, float b, float a, int stencilVal );
 	void drawFSQuad( Resource *matRes, std::string const& shaderContext );
-	void drawQuad();
    void drawLodGeometry( std::string const& shaderContext, std::string const& theClass,
                          RenderingOrder::List order, int filterRequried, int occSet, float frustStart, float frustEnd, int lodLevel, Frustum const* lightFrus=0x0);
    void drawGeometry( std::string const& shaderContext, std::string const& theClass,
@@ -262,7 +262,7 @@ protected:
    void prioritizeLights(std::vector<LightNode*> *lights);
 	void doForwardLightPass( std::string const& shaderContext, std::string const& theClass,
 	                        bool noShadows, RenderingOrder::List order, int occSet, bool selectedOnly );
-	void doDeferredLightPass(bool noShadows, MaterialResource* deferredMaterial);
+	void drawLightShapes( std::string const& shaderContext, bool noShadows, int occSet );
 	
 	void drawRenderables( std::string const& shaderContext, std::string const& theClass, bool debugView,
 		const Frustum *frust1, const Frustum *frust2, RenderingOrder::List order, int occSet, int lodLevel );
