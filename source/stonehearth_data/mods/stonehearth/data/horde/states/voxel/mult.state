@@ -1,0 +1,3 @@
+BlendMode = Mult;
+ZWriteEnable = false;
+CullMode = Back;

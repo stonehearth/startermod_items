@@ -57,7 +57,7 @@ function FloorEditor:go(response, floor_uri, options)
       :use_manual_marquee(function(selector, box)
             local box_region = Region3(box)
             local model = brush:paint_through_stencil(box_region)
-            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.xml', Point3.zero)
+            local node =  _radiant.client.create_voxel_node(1, model, 'materials/blueprint.material.json', Point3.zero)
             node:set_position(MODEL_OFFSET)
             node:set_polygon_offset(-5, -5)
 

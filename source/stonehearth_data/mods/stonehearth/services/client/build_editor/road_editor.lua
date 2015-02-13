@@ -91,7 +91,7 @@ function RoadEditor:go(response, road_uri, curb_uri)
             if curb_region and curb_uri then
                model_region:add_region(curb_brush:paint_through_stencil(curb_region))
             end
-            local node =  _radiant.client.create_voxel_node(1, model_region, 'materials/blueprint.material.xml', Point3(0, 0, 0))
+            local node =  _radiant.client.create_voxel_node(1, model_region, 'materials/blueprint.material.json', Point3(0, 0, 0))
             node:set_polygon_offset(-5, -5)
             node:set_position(MODEL_OFFSET)
 

@@ -1,0 +1,48 @@
+{
+	"materials" : {
+		"VOXEL" : {
+			"name" : "materials/voxel.material.json"
+		}
+	},
+	"shaders" : {
+		"DIRECTIONAL_LIGHTING_FORWARD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_f.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
+		},
+		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/dir_lighting_p.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
+		},
+		"DEFERRED_ATTRIBUTES" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/voxel/deferred_attributes.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
+		}
+	},
+	"inputs" : [
+		{
+			"name" : "gridlineColor",
+			"default" : [0.02, 0.02, 0.02, 1.0]
+		}
+	]
+}

@@ -3,7 +3,15 @@
    "tracks": {
       "activity_overlay_effect": {
          "type" : "activity_overlay_effect",
-         "material" : "materials/plant_crop_overlay/corn/plant_crop_overlay.material.xml",
+         "material" : {
+            "name": "materials/overlay.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map": "materials/plant_crop_overlay/plant_crop.png"
+               }
+            ]
+         },
          "y_offset" : -50
      }
    }

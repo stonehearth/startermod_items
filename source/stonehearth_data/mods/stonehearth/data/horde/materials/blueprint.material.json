@@ -1,0 +1,47 @@
+{
+	"materials" : {
+		"SELECTABLE" : {
+			"name" : "materials/selected.material.json"
+		}
+	},
+
+	"shaders" : {
+		"BLUEPRINTS_DEPTH_PASS" : {
+			"state" : "states/voxel/add_withdepth.state",
+			"shader" : "shaders/voxel/flat_color.shader",
+			"inputs" : [
+				{
+					"name" : "flat_color",
+					"default" : [0.0, 0.0, 0, 0]
+				}
+			]			
+		},
+
+		"BLUEPRINTS_COLOR_PASS" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/blueprint.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0, 0, 0, 0.7],
+					"bind_to_material_input" : "gridlineColor"
+				},
+				{
+					"name" : "blueprintAlpha",
+					"default" : [0.6],
+					"bind_to_material_input" : "blueprintAlpha"
+				}
+			]
+		}
+	},
+	"inputs" : [
+		{
+			"name" : "gridlineColor",
+			"default" : [0, 0, 0, 0.7]
+		},
+		{
+			"name" : "blueprintAlpha",
+			"default" : [0.6]
+		}
+	]
+}

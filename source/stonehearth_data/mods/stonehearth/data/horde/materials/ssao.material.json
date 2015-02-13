@@ -1,0 +1,15 @@
+{
+	"shaders" : {
+		"SSAO" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/ssao.shader"
+		}
+	},
+
+	"samplers" : [
+		{
+			"name" : "randomVectorLookup",
+			"map" : "RandomVectorLookup"
+		}
+	]
+}

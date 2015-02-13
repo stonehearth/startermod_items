@@ -3,7 +3,17 @@
    "tracks": {
        "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/health/dead/dead.xml",
+         "material": {
+            "name": "materials/billboard.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map" : "materials/thoughts/health/dead/dead_.png",
+                  "numAnimationFrames" : 25,
+                  "frameRate" : 20
+               }
+            ]
+         },
          "width": 2,
          "height": 3.4,
          "xOffset": 0,

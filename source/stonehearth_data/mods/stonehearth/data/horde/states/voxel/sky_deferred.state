@@ -1,0 +1,3 @@
+ZWriteEnable = false;
+ZEnable = false;
+BlendMode = ReplaceByAlpha;

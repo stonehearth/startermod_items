@@ -1076,19 +1076,114 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 }
 
 
+uint32 RenderDevice::aliasRenderBuffer(uint32 rbTargetObj, int bufIdx)
+{
+   ASSERT(bufIdx != 32);  // TODO: support for aliasing depth-buffers might be useful.
+   RDIRenderBuffer &rbTarget = _rendBufs.getRef(rbTargetObj);
+
+   RDIRenderBuffer rb;
+   rb.alias = true;
+   rb.cubeMap = rbTarget.cubeMap;
+   rb.width = rbTarget.width;
+   rb.height = rbTarget.height;
+   rb.samples = rbTarget.samples;
+
+   if (_enable_gl_validation) {
+      Modules::log().writeInfo("Available GPU Mem: %f", Modules::stats().getStat(EngineStats::AvailableGpuMemory, false));
+      Modules::log().writeInfo("Creating render buffer alias.");
+   }
+
+   // Create framebuffers
+   glGenFramebuffersEXT(1, &rb.fbo);
+
+   if (rbTarget.colTexs[bufIdx] != 0)
+	{
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
+		// Alias color texture
+
+      rb.colTexs[0] = rbTarget.colTexs[bufIdx];
+      RDITexture &tex = _textures.getRef(rbTarget.colTexs[bufIdx]);
+
+      if (rb.cubeMap) {
+         // We shouldn't attach the texture to the framebuffer, because we won't know what to use until bind-time, but
+         // we also want to have _some_ validation when creating this render buffer, so just arbitrarily bind a face 
+         // of the cube.  When binding a cube for rendering, you are required to set the appropriate cube side.
+         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, tex.glObj, 0);
+      } else {
+         // Attach the texture
+         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex.glObj, 0);
+      }
+
+		uint32 buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, 
+         GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_COLOR_ATTACHMENT4_EXT, 
+         GL_COLOR_ATTACHMENT5_EXT, GL_COLOR_ATTACHMENT6_EXT, GL_COLOR_ATTACHMENT7_EXT,
+         GL_COLOR_ATTACHMENT8_EXT, GL_COLOR_ATTACHMENT9_EXT, GL_COLOR_ATTACHMENT10_EXT,
+         GL_COLOR_ATTACHMENT11_EXT, GL_COLOR_ATTACHMENT12_EXT, GL_COLOR_ATTACHMENT13_EXT,
+         GL_COLOR_ATTACHMENT14_EXT, GL_COLOR_ATTACHMENT15_EXT};
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
+		glDrawBuffers(1, buffers);		
+	}
+
+	// Attach depth buffer
+   if (rbTarget.depthTex)
+	{
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
+
+      // TODO: aliasing depth buffers only will require this.
+      /*if (numColBufs == 0) {
+		   glDrawBuffer( GL_NONE );
+		   glReadBuffer( GL_NONE );
+      }*/
+		// Create a depth texture
+      RDITexture &tex = _textures.getRef(rbTarget.depthTex);
+      glBindTexture(GL_TEXTURE_2D, tex.glObj);
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+      glBindTexture(GL_TEXTURE_2D, 0);
+		rb.depthTex = rbTarget.depthTex;
+		// Attach the texture
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0);
+	}
+
+	uint32 rbObj = _rendBufs.add(rb);
+	
+	// Check if FBO is complete
+	bool valid = true;
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
+	uint32 status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	if(status != GL_FRAMEBUFFER_COMPLETE_EXT)
+   {
+      Modules::log().writeError("Unable to create fbo alias: %d, %d", status, rb.fbo);
+      valid = false;
+   }
+	
+	if(!valid)
+	{
+		destroyRenderBuffer(rbObj);
+		return 0;
+	}
+	
+	return rbObj;
+}
+
+
 void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 {
 	RDIRenderBuffer &rb = _rendBufs.getRef( rbObj );
 	
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 	
-	if( rb.depthTex != 0 ) destroyTexture( rb.depthTex );
+	if (rb.depthTex != 0 && !rb.alias) {
+      destroyTexture( rb.depthTex );
+   }
 	if( rb.depthBuf != 0 ) glDeleteRenderbuffersEXT( 1, &rb.depthBuf );
 	rb.depthTex = rb.depthBuf = 0;
 		
 	for( uint32 i = 0; i < RDIRenderBuffer::MaxColorAttachmentCount; ++i )
 	{
-		if( rb.colTexs[i] != 0 ) destroyTexture( rb.colTexs[i] );
+		if (rb.colTexs[i] != 0 && !rb.alias) {
+         destroyTexture( rb.colTexs[i] );
+      }
 		if( rb.colBufs[i] != 0 ) glDeleteRenderbuffersEXT( 1, &rb.colBufs[i] );
 		rb.colTexs[i] = rb.colBufs[i] = 0;
 	}

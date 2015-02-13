@@ -3,7 +3,15 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/hungry/hungry_material.xml",
+         "material": {
+            "name": "materials/billboard.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map" : "materials/thoughts/hungry/thought_hungry.png"
+               }
+            ]
+         },
          "width": 1,
          "height": 1.7,
          "xOffset": 0,

@@ -1,0 +1,14 @@
+{
+    "shaders" : {
+        "DEBUG_SHAPES" : {
+            "state" : "states/voxel/blend.state",
+            "shader" : "shaders/transparent_color.shader",
+            "inputs" : [
+                {
+                    "name" : "alpha",
+                    "default" : [0, 0, 0, 0.5]
+                }
+            ]
+        }
+    }
+}

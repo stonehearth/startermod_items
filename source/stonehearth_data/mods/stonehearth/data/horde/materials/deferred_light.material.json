@@ -1,0 +1,16 @@
+{
+	"shaders" : {
+		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_lighting.shader"
+		},
+		"OMNI_LIGHTING_NO_SHADOW_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_no_shadow_omni_lighting.shader"
+		},
+		"OMNI_LIGHTING_FORWARD_POSTPROCESS" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_omni_lighting.shader"
+		}
+	}
+}

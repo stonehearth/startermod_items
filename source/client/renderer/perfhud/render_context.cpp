@@ -8,8 +8,8 @@ using namespace ::radiant::client;
 
 RenderContext::RenderContext()
 {
-   material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/panel.material.xml", 0));
-   font_material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/font.material.xml", 0));
+   material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/panel.material.json", 0));
+   font_material_.reset(h3dAddResource(H3DResTypes::Material, "overlays/font.material.json", 0));
    timeline_height_t_ = perfmon::MillisecondsToCounter(100);
 }
 

@@ -12,7 +12,7 @@ function PartyEditorService:place_party_banner_command(session, response, party,
    local cursor_entity = radiant.entities.create_entity(uri)
 
    cursor_entity:add_component('render_info')
-                     :set_material('materials/ghost_item.xml')
+                     :set_material('materials/ghost_item.json')
 
    stonehearth.selection:select_location()
       :set_rotation_disabled(false)
