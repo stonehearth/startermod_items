@@ -6,6 +6,8 @@ local LeaseComponent = class()
 function LeaseComponent:initialize(entity, json)
    self._entity = entity  -- the entity we will be leasing
    self._sv = self.__saved_variables:get_data()
+   self._log = radiant.log.create_logger('lease')
+                              :set_entity(entity)
    if not self._sv.factions then
       self._sv.factions = {}
    end
@@ -16,12 +18,18 @@ function LeaseComponent:initialize(entity, json)
 end
 
 function LeaseComponent:_remove_nonpersistent_leases()
-   for _, leases in pairs(self._sv.factions) do
+   local changed = false
+   for faction, leases in pairs(self._sv.factions) do
       for lease_name, info in pairs(leases) do
          if not info.persistent then
-            info[lease_name] = nil
+            self._log:info('nuking non-persistent lease %s for %s (owner:%s)', lease_name, faction, info.owner)
+            leases[lease_name] = nil
+            changed = true
          end
       end
+   end
+   if changed then
+      self.__saved_variables:mark_changed()
    end
 end
 
@@ -43,6 +51,7 @@ function LeaseComponent:acquire(lease_name, entity, options)
       }
       entity:add_component('stonehearth:lease_holder'):_add_lease(lease_name, self._entity)
       self.__saved_variables:mark_changed()
+      self._log:info('%s acquiring lease %s for %s', entity, lease_name, faction)
       return true
    end
    return false
@@ -53,6 +62,12 @@ end
 function LeaseComponent:can_acquire(lease_name, entity)
    local owner = self:get_owner(lease_name, entity)
    local can_acquire = not owner or not owner:is_valid() or owner == entity
+
+   if not can_acquire then
+      local faction = self:_get_faction(entity)
+      self._log:info('%s cannot acquire lease %s for %s (owner:%s)', entity, lease_name, faction, owner)
+   end
+
    return can_acquire
 end
 
@@ -73,6 +88,9 @@ end
 -- @returns true if the release was successful, false otherwise
 function LeaseComponent:release(lease_name, entity)
    local faction = self:_get_faction(entity)
+
+   self._log:info('%s releasing lease %s for %s', entity, lease_name, faction)
+
    local leases = self._sv.factions[faction]
    if not leases then
       return false
@@ -83,7 +101,9 @@ function LeaseComponent:release(lease_name, entity)
    end
 
    leases[lease_name] = nil
-   entity:add_component('stonehearth:lease_holder'):_remove_lease(lease_name, self._entity)
+   entity:add_component('stonehearth:lease_holder')
+               :_remove_lease(lease_name, self._entity)
+
    self.__saved_variables:mark_changed()
 end
 
