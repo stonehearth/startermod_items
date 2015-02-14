@@ -1,4 +1,4 @@
-local bulletin_lib = require 'lib.game_master.bulletin_lib'
+local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
@@ -22,7 +22,7 @@ function CollectionQuest:start(ctx, info)
    assert(nodes.collection_success)
    assert(nodes.shakedown_refused)
 
-   bulletin_lib.compile_bulletin_nodes(nodes, ctx)
+   game_master_lib.compile_bulletin_nodes(nodes, ctx)
 
    local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script

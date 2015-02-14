@@ -11,10 +11,28 @@
             "role" : "raid_stockpiles",
             "offset" : { "x" : 0, "y" : 0, "z" : 0 },
             "members" : {
-               "thief_a" : "stonehearth:jobs:worker",
-               "thief_b" : "stonehearth:jobs:worker",
-               "escort_a" : "stonehearth:jobs:footman",
-               "escort_b" : "stonehearth:jobs:footman"
+               "thief_a" : {
+                  "location" : { "x": -1, "z": -1 },
+                  "job" : "stonehearth:jobs:worker"
+               },
+               "thief_b" : {
+                  "location" : { "x": -1, "z": 1 },
+                  "job" : "stonehearth:jobs:worker"
+               },
+               "escort_a" : {
+                  "location" : { "x": 1, "z": -1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:bronze_sword" ]
+                  }
+               },
+               "escort_b" : {
+                  "location" : { "x": 1, "z": 1 },
+                  "job" : "stonehearth:jobs:footman",
+                  "equipment" : {
+                     "weapon" : [ "stonehearth:weapons:jagged_cleaver", "stonehearth:weapons:stone_maul", "stonehearth:weapons:bronze_sword" ]
+                  }
+               }
             }
          }
       }

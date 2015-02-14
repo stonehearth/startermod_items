@@ -1,3 +1,5 @@
+local game_master_lib = require 'lib.game_master.game_master_lib'
+
 local Point3 = _radiant.csg.Point3
 
 local Mission = class()
@@ -17,17 +19,9 @@ function Mission:_create_party(ctx, info)
    -- xxx: "enemy" here should be "npc"
    local party = stonehearth.unit_control:get_controller(ctx.enemy_player_id)
                                              :create_party()
-   for name, job in pairs(info.members) do
-      -- xxx: delegate this to the camp's implementation!
-      local member = population:create_new_citizen()
-      
-      member:add_component('stonehearth:job')
-                  :promote_to(job, { is_npc = true })
-      
+   for name, info in pairs(info.members) do
+      local member = game_master_lib.create_citizen(population, info, origin + offset)
       party:add_member(member)
-
-      local offset = Point3(info.offset.x, info.offset.y, info.offset.z)
-      radiant.terrain.place_entity(member, origin + offset)
    end
    return party
 end

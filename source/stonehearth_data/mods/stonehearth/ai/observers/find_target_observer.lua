@@ -191,8 +191,8 @@ function FindTargetObserver:_attack_target(target)
 
    if target and target:is_valid() then
       self._task = self._entity:add_component('stonehearth:ai')
-                               :get_task_group('stonehearth:combat')
-                               :create_task('stonehearth:combat:attack_after_cooldown', { target = target })
+                         :get_task_group('stonehearth:combat')
+                            :create_task('stonehearth:combat:attack_after_cooldown', { target = target })
                                :set_priority(stonehearth.constants.priorities.combat.ACTIVE)
                                :once()
                                :notify_completed(

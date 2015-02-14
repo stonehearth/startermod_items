@@ -1,3 +1,5 @@
+local game_master_lib = require 'lib.game_master.game_master_lib'
+
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 
@@ -49,7 +51,7 @@ function CreateCamp:_create_camp()
 
    -- create the boss entity
    if info.boss then
-      ctx.npc_boss_entity = self:_create_camp_citizen(info.boss, ctx.enemy_location)
+      ctx.npc_boss_entity = game_master_lib.create_citizen(self._population, info.boss, ctx.enemy_location)
    end
 
    for k, piece in pairs(info.pieces) do
@@ -166,7 +168,7 @@ function CreateCamp:_add_piece(piece)
    -- add all the people.
    if piece.info.citizens then
       for name, info in pairs(piece.info.citizens) do
-         self:_create_camp_citizen(info, origin)
+         game_master_lib.create_citizen(self._population, info, origin)
       end
    end
 
@@ -177,32 +179,6 @@ function CreateCamp:_add_piece(piece)
    end
 
 end
-
-function CreateCamp:_create_camp_citizen(info, origin)
-   local citizen = self._population:create_new_citizen()
-   if info.job then
-      citizen:add_component('stonehearth:job')
-                  :promote_to(info.job, {
-                        is_npc = true,
-                     })
-   end
-
-   local offset = Point3.zero
-   if info.location then
-      offset = Point3(info.location.x, info.location.y, info.location.z)
-   end
-   local location = origin + offset
-
-   if info.combat_leash_range then
-      citizen:add_component('stonehearth:combat_state')
-                  :set_attack_leash(location, info.combat_leash_range)
-   end
-
-   radiant.terrain.place_entity(citizen, location)
-
-   return citizen
-end
-
 
 function CreateCamp:_get_player_id()
    return self._sv._info.player_id
