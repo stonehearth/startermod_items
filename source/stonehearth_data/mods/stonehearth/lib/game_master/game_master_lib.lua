@@ -33,6 +33,9 @@ function game_master_lib.compile_bulletin_nodes(nodes, ctx)
    end
 end
 
+function game_master_lib.create_context(parent_ctx)
+   return radiant.create_controller('stonehearth:game_master:node_ctx', parent_ctx)
+end
 
 function game_master_lib.create_citizen(population, info, origin)
    local citizen = population:create_new_citizen()

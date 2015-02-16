@@ -1,3 +1,4 @@
+local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local Arc = class()
@@ -108,11 +109,11 @@ end
 function Arc:_start_encounter(ctx, name, encounter)
    self._log:info('starting encounter "%s"', name)
 
-   local ctx = self:_copy_ctx(ctx)
-   ctx.encounter = encounter
-   ctx.encounter_name = name
+   local enc_ctx = game_master_lib.create_context(ctx)
+   enc_ctx.encounter = encounter
+   enc_ctx.encounter_name = name
 
-   encounter:start(ctx)
+   encounter:start(enc_ctx)
 
    self._sv.running_encounters[name] = encounter
    self.__saved_variables:mark_changed()

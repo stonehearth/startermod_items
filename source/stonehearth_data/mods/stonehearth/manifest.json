@@ -1338,7 +1338,8 @@
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)",
 
-      "game_master:nodelist" : "file(services/server/game_master/controllers/nodelist.lua)",
+      "game_master:node_ctx" : "file(services/server/game_master/controllers/node_context.lua)",
+      "game_master:node_list" : "file(services/server/game_master/controllers/node_list.lua)",
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
