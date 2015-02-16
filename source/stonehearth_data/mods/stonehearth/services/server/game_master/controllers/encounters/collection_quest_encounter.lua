@@ -101,6 +101,8 @@ function CollectionQuest:_on_shakedown_accepted()
    bulletin_data.demands = {
       items = self._sv.demand
    }
+
+   bulletin_data.ok_callback = '_nop' -- we don't do anything when they push ok, but the UI will close the view
    self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
    self:_start_tracking_items()
 
@@ -123,7 +125,10 @@ function CollectionQuest:_show_refused_threat()
    local bulletin_data = self._sv._info.nodes.shakedown_refused.bulletin
 
    bulletin_data.ok_callback = '_on_refused_threat_ok'
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
+   self:_update_bulletin(bulletin_data, { 
+         keep_open = false,
+         view = 'StonehearthCollectionQuestBulletinDialog',
+      })
 end
 
 -- after the user clicks the ok button, transition to the next encounter
@@ -155,6 +160,7 @@ end
 function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
    local ctx = self._sv.ctx
    local player_id = ctx.player_id
+   local opt_keep_open = not opt or opt.keep_open == true
    local opt_view = (opt and opt.view) or 'StonehearthGenericBulletinDialog'
 
    local bulletin = self._sv.bulletin
@@ -163,7 +169,7 @@ function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
                                     :set_callback_instance(self)
                                     :set_type('quest')
                                     :set_sticky(true)
-                                    :set_keep_open(true)
+                                    :set_keep_open(opt_keep_open)
                                     :set_close_on_handle(false)
       self._sv.bulletin = bulletin
    end

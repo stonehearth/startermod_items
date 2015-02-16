@@ -33,17 +33,27 @@
                ]
             }
          },
-         "collection_progress" : {
+         "shakedown_refused" : {
             "bulletin" : {
-               "title" : "The goblin hides elation under a scowl",
+               "title" : "The goblin looks incredulous",
                "dialog_title" : "%name(npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
-                  "Me back soon for stuff. Better have it, or no good for you, little hearthling.",
-                  "Amazing! You show great wisdom, for a pathetic hume.",
-                  "Really? Hahaha, me consider you for first-box-vassal! Be back sooo-on!",
-                  "Good, good. We no crush. Today.",
-                  "Puny human! You feel wra--wait, you say yes? Well then! We be back!"
+                  "What? You say no? Then we take! TAKE ALL THINGS!!!!",
+                  "No no no. You supposed to say 'Yes.' You supposed to feel grateful! Try again? No? Bad! Me fix badness!",
+                  "No? Me brain breaking!! Me break you!",
+                  "What? Cannot believe?! Must kill!!!",
+                  "You no understand. Alternative: Death. Deeeaaaattth. DEAAATTTTTHHH!!!"
+               ]               
+            }
+         },
+         "collection_progress" : {
+            "bulletin" : {
+               "title" : "Satisfy the Goblins",
+               "dialog_title" : "%name(npc_boss_entity)",
+               "portrait" : "file(shakedown/boss_portrait.png)",
+               "message" : [
+                  "Me back soon for stuff. Better have it, or no good for you, little hearthling."
                ]               
             }
          },
@@ -87,21 +97,7 @@
                   "Me love this! Me get stuff, moe more important, me make you feel small and sub-ser-vee-ent! Best day ever."
                ]               
             }
-         },
-         "shakedown_refused" : {
-            "bulletin" : {
-               "title" : "The goblin looks incredulous",
-               "dialog_title" : "%name(npc_boss_entity)",
-               "portrait" : "file(shakedown/boss_portrait.png)",
-               "message" : [
-                  "What? You say no? Then we take! TAKE ALL THINGS!!!!",
-                  "No no no. You supposed to say ‘Yes.’ You supposed to feel grateful! Try again? No? Bad! Me fix badness!",
-                  "No? Me brain breaking!! Me break you!",
-                  "What? Cannot believe?! Must kill!!!",
-                  "You no understand. Alternative: Death. Deeeaaaattth. DEAAATTTTTHHH!!!"
-               ]               
-            }
-         }      
+         }
       }
    }
 }
