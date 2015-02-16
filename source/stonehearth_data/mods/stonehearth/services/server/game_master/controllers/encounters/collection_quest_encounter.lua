@@ -101,7 +101,12 @@ function CollectionQuest:_on_shakedown_accepted()
    bulletin_data.demands = {
       items = self._sv.demand
    }
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
+
+   bulletin_data.ok_callback = '_nop' -- we don't do anything when they push ok, but the UI will close the view
+   self:_update_bulletin(bulletin_data, { 
+         keep_open = false,
+         view = 'StonehearthCollectionQuestBulletinDialog',
+      })
    self:_start_tracking_items()
 
    -- start a timer for when to check up on the quest
@@ -156,6 +161,11 @@ function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
    local ctx = self._sv.ctx
    local player_id = ctx.player_id
    local opt_view = (opt and opt.view) or 'StonehearthGenericBulletinDialog'
+   local opt_keep_open = true
+
+   if (opt and opt.keep_open ~= nil) then
+      opt_keep_open = opt.keep_open
+   end
 
    local bulletin = self._sv.bulletin
    if not bulletin then
@@ -163,7 +173,7 @@ function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
                                     :set_callback_instance(self)
                                     :set_type('quest')
                                     :set_sticky(true)
-                                    :set_keep_open(true)
+                                    :set_keep_open(opt_keep_open)
                                     :set_close_on_handle(false)
       self._sv.bulletin = bulletin
    end
