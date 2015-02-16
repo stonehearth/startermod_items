@@ -72,6 +72,8 @@ function GameMasterService:_start_campaign(subtype)
    -- every campaign gets a new context which is shared among all arcs
    -- and encounters for that campaign.
    local ctx = game_master_lib.create_context(self._sv.ctx)
+   ctx.campaign = campaign
+   ctx.campaign_name = name
    campaign:start(ctx)
 end
 

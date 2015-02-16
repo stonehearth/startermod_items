@@ -1,0 +1,44 @@
+<script type="text/x-handlebars" data-template-name="campaignBrowserIcon">
+   <div id="campaignBrowserIcon"></div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="game_master">
+   <div id="game_master">
+      <div class="game_master">
+         {{#each campaign in view.campaigns}}
+            {{ view "stonehearthCampaign" uri=campaign }}
+         {{/each}}
+      </div>
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="campaign">
+   <div class="campaign">   
+      <div id="key">campaign: {{ view.model.campaign_name }}</div>
+      {{#each arc in view.arcs}}
+         {{ view "stonehearthArc" uri=arc }}
+      {{/each}}
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="arc">
+   <div class="arc">
+      <div id="key">arc: {{ view.model.arc_name }}</div>
+      <div id="encounters">
+         {{#each encounter in view.encounters }}
+            {{ view "stonehearthEncounter" uri=encounter }}
+         {{/each}}
+      </div>
+   </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="encounter">
+   <div class="encounter">      
+      <div id="key">encounter: {{ view.model.encounter_name }}</div>
+      <div id="encounters">
+         {{#each encounter in view.encounters }}
+            {{ view "stonehearthEncounter" uri=encounter }}
+         {{/each}}
+      </div>
+   </div>
+</script>

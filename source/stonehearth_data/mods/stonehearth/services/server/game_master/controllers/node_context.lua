@@ -13,6 +13,7 @@ function NodeContext:__newindex(k, v)
    if k ~= '_sv' and k ~= '__saved_variables' then
       self._sv[k] = v
       self.__saved_variables:mark_changed()
+      return
    end
    rawset(self, k, v)
 end
@@ -22,7 +23,7 @@ function NodeContext:__next(k)
 end
 
 function NodeContext:initialize(parent_ctx)
-   self.child_nodes = {}
+   self.child_nodes = { n = 0 }
    if parent_ctx then
       for k, v in pairs(parent_ctx) do
          if not self[k] then 

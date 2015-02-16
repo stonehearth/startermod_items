@@ -101,7 +101,7 @@ end
 
 
 
-function combat_tests.talsman_drop(autotest)
+function combat_tests.talisman_drop(autotest)
    local citizens = {
       autotest.env:create_person(-9, -2, { job = 'footman', attributes = { mind = 0, body = 1, spirit = 0 } }),
       autotest.env:create_person( -5, -2, { job = 'carpenter', attributes = { mind = 0, body = 1, spirit = 0 } }),

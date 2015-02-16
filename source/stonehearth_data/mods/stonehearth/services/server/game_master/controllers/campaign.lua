@@ -22,8 +22,8 @@ function Campaign:start(ctx)
    self.__saved_variables:mark_changed()
 
    local arc_ctx = game_master_lib.create_context(ctx)
-   arc_ctx.name = 'trigger'
    arc_ctx.arc = trigger
+   arc_ctx.arc_name = 'trigger'
    trigger:start(arc_ctx)
 end
 
