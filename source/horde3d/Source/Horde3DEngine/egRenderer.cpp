@@ -706,8 +706,8 @@ void Renderer::commitGeneralUniforms()
 	{
 		if( _curShader->uni_frameBufSize >= 0 )
 		{
-			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
-			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
+         float dimensions[4] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight, 1.0f / gRDI->_fbWidth, 1.0f / gRDI->_fbHeight };
+			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT4, dimensions );
 		}
 
       if( _curShader->uni_lodLevels >= 0 )

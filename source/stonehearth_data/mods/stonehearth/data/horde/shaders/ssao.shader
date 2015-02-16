@@ -35,7 +35,7 @@ sampler2D depthBuffer = sampler_state
 uniform sampler2D randomVectorLookup;
 uniform sampler2D normalBuffer;
 uniform sampler2D depthBuffer;
-uniform vec2 frameBufSize;
+uniform vec4 frameBufSize;
 uniform mat4 camProjMat;
 uniform mat4 camViewMat;
 
@@ -45,7 +45,7 @@ out vec4 fragColor;
 
 
 vec2 getSampleDepth(const vec2 texCoords, const float screenSpaceDistance) {
-  ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize));
+  ivec2 pixelCoords = ivec2(floor(texCoords * frameBufSize.xy));
 
   int mipLevel = 0;//clamp(int(floor(log2(screenSpaceDistance) - LOG_MAX_OFFSET)), 0, MAX_MIP_LEVEL);
 
@@ -70,7 +70,7 @@ vec3 toCameraSpace(const vec2 fragCoord, float depth)
 
 vec3 getRandomVec(const vec2 texCoords)
 {
-  vec2 noiseScale = frameBufSize / 4.0;
+  vec2 noiseScale = frameBufSize.xy / 4.0;
   return texture2D(randomVectorLookup, texCoords * noiseScale).xyz;
 }
 
@@ -102,7 +102,7 @@ void main()
     offset.xy = (offset.xy * 0.5) + 0.5;
 
     // get sample location.
-    vec2 sampledDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize));
+    vec2 sampledDepth = getSampleDepth(offset.xy, length((offset.xy - texCoords) * frameBufSize.xy));
 
     float sampleOcclusion;
     // Range check:
