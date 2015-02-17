@@ -53,6 +53,7 @@
       "mixins:resources:jerky" : "file(mixins/food/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
+      "mixins:destructable_object" : "file(mixins/destructable_object)",
       
       "data:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
@@ -670,6 +671,7 @@
       "observers:shelter_score" : "file(ai/observers/shelter_score_observer.lua)",
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
+      "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -1364,6 +1366,7 @@
 
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
+      "observers" : "file(components/observers/observers_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
       "thought_bubble" : "file(components/thought_bubble/thought_bubble_component.lua)",
       "center_of_attention_spot" : "file(components/center_of_attention/coa_spot_component.lua)",

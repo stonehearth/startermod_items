@@ -1,4 +1,5 @@
 {
+   "mixins": "stonehearth:mixins:destructable_object",   
    "type": "entity", 
    "components": {
       "unit_info" : {

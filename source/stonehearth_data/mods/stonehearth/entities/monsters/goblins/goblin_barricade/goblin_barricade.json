@@ -1,5 +1,5 @@
 {
-   "type": "entity", 
+   "mixins": "stonehearth:mixins:destructable_object",
    "components": {
       "unit_info" : {
          "name": "A barricade"
@@ -12,6 +12,17 @@
             "models": [
                "file(goblin_barricade.qb)"
             ]
+         }
+      },
+      "stonehearth:observers": {
+         "observers" : [
+            "stonehearth:observers:kill_at_zero_health"
+         ]
+      },
+      "stonehearth:attributes": {
+          "max_health": {
+            "type" : "basic", 
+            "value" : 50
          }
       },
       "mob" : {

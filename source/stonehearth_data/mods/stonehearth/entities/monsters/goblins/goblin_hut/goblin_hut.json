@@ -1,4 +1,5 @@
 {
+   "mixins": "stonehearth:mixins:destructable_object",   
    "type": "entity", 
    "components": {
       "unit_info" : {
@@ -15,22 +16,6 @@
             ]
          }
       },
-      "mob" : {
-      },
-      "_stonehearth:attributes": {
-          "max_health": {
-            "type" : "basic", 
-            "value" : 20
-         },
-         "health": {
-            "type" : "variable", 
-            "equation" :  "max_health"
-         },
-         "menace": {
-            "type" : "basic",
-            "value" : 0
-         }
-      },      
       "region_collision_shape" : {
          "region": [
             {

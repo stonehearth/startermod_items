@@ -1,0 +1,29 @@
+{
+   "type": "entity", 
+   "components": {
+      "stonehearth:observers": {
+         "observers" : [
+            "stonehearth:observers:kill_at_zero_health"
+         ]
+      },
+      "stonehearth:attributes": {
+          "max_health": {
+            "type" : "basic", 
+            "value" : 100
+         },
+         "health": {
+            "type" : "variable", 
+            "equation" :  "max_health"
+         },
+         "menace": {
+            "type" : "basic",
+            "value" : 1
+         }
+      }
+   },
+   "entity_data" : {
+      "on_destroy" : {
+         "effect": "/stonehearth/data/effects/clear_effect/clear_effect.json"
+      }
+   }
+}
