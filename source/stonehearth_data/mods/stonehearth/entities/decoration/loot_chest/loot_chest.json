@@ -1,5 +1,8 @@
 {
-   "mixins": "stonehearth:mixins:align_to_grid",
+   "mixins": [
+      "stonehearth:mixins:align_to_grid",
+      "stonehearth:mixins:destructable_object"
+   ],
    "type": "entity", 
    "components": {
       "unit_info" : {
