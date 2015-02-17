@@ -62,7 +62,13 @@ end
 function AggroObserver:_add_hostile_to_aggro_table(enemy)
    if self:_is_killable(enemy) then
       local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
-      target_table:add(enemy)
+      local current = target_table:get_score(enemy)
+      if current == nil then
+         -- the first time we see the enemy, we bump their aggro up by their menace
+         -- stat
+         local menace = radiant.entities.get_attribute(enemy, 'menace') or 1
+         target_table:modify_score(enemy, menace)
+      end
    end
 end
 
@@ -94,21 +100,14 @@ function AggroObserver:_on_ally_battery(context)
    if self:_is_killable(context.attacker) then
       local target_table = radiant.entities.get_target_table(self._entity, 'aggro')
       if target_table then
-         local aggro = self:_calculate_aggro(context)
+         local aggro = context.damage
+         if context.target ~= self._entity then
+            -- aggro from allies getting hit is less than self getting hit
+            aggro = aggro * self._ally_aggro_ratio
+         end
          target_table:modify_score(context.attacker, aggro)
       end
    end
-end
-
-function AggroObserver:_calculate_aggro(context)
-   local aggro = context.damage
-
-   if context.target ~= self._entity then
-      -- aggro from allies getting hit is less than self getting hit
-      aggro = aggro * self._ally_aggro_ratio
-   end
-
-   return aggro
 end
 
 function AggroObserver:_is_killable(target)

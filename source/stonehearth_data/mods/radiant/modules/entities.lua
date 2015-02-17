@@ -524,10 +524,14 @@ function entities.set_display_name(entity, name)
                :set_display_name(name)
 end
 
-function entities.get_attribute(entity, attribute_name)
+function entities.get_attribute(entity, attribute_name, default)
    if entity and entity:is_valid() then
-      return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+      local ac = entity:add_component('stonehearth:attributes')
+      if ac then
+         return ac:get_attribute(attribute_name, default)
+      end
    end
+   return default
 end
 
 
@@ -836,8 +840,8 @@ function entities.get_target_table(entity, table_name)
       return nil
    end
 
-   local target_tables_component = entity:add_component('stonehearth:target_tables')
-   return target_tables_component:get_target_table(table_name)
+   return entity:add_component('stonehearth:target_tables')
+                    :get_target_table(table_name)
 end
 
 function entities.compare_attribute(entity_a, entity_b, attribute)
