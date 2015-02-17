@@ -130,6 +130,7 @@
       <Stage id="FSAA">
          <SwitchTarget target="EdgeTex" />
          <BindBuffer sampler="depthTex" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="colorTex" sourceRT="GBuffers" bufIndex="2" />
          <DrawQuad material="materials/smaa.material.json" context="EDGE_DETECTION" />
          <UnbindBuffers/>
 

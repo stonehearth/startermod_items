@@ -45,6 +45,12 @@ sampler2D depthTex = sampler_state
   Filter = None;
 };
 
+sampler2D colorTex = sampler_state
+{
+  Address = Clamp;
+  Filter = None;
+};
+
 [[VS]]
 
 uniform vec4 frameBufSize;
@@ -82,14 +88,14 @@ void main() {
  *   If temporal supersampling is used, 0.2 could be a reasonable value, as low
  *   contrast edges are properly filtered by just 2x.
  */
-#define SMAA_THRESHOLD 0.01
+#define SMAA_THRESHOLD 0.05
 
 /**
  * SMAA_DEPTH_THRESHOLD specifies the threshold for depth edge detection.
  * 
  * Range: depends on the depth range of the scene.
  */
-#define SMAA_DEPTH_THRESHOLD (0.1 * SMAA_THRESHOLD)
+#define SMAA_DEPTH_THRESHOLD (0.01 * SMAA_THRESHOLD)
 
 /*if SMAA_GLSL_4 == 1
 define SMAAMad(a, b, c) fma(a, b, c)
@@ -97,6 +103,7 @@ define SMAAGather(tex, coord) textureGather(tex, coord)
 endif*/
 
 uniform sampler2D depthTex;
+uniform sampler2D colorTex;
 varying vec2 texcoord;
 varying vec4 offset[3];
 
@@ -182,7 +189,7 @@ vec3 SMAAGatherNeighbours(vec2 texcoord,
  * IMPORTANT NOTICE: color edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-/*vec4 SMAAColorEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex) {
+void main() {
     // Calculate the threshold:
     vec2 threshold = vec2(SMAA_THRESHOLD, SMAA_THRESHOLD);
 
@@ -232,13 +239,13 @@ vec3 SMAAGatherNeighbours(vec2 texcoord,
     // Local contrast adaptation in action:
     edges.xy *= step(0.5 * maxDelta, delta.xy);
 
-    return vec4(edges, 0.0, 0.0);
-}*/
+    gl_FragColor = vec4(edges, 0.0, 0.0);
+}
 
 /**
  * Depth Edge Detection
  */
-void main() {
+/*void main() {
     vec3 neighbours = SMAAGatherNeighbours(texcoord, offset, depthTex);
     vec2 delta = abs(neighbours.xx - vec2(neighbours.y, neighbours.z));
     vec2 edges = step(SMAA_DEPTH_THRESHOLD, delta);
@@ -248,4 +255,4 @@ void main() {
     }
 
     gl_FragColor = vec4(edges, 0.0, 0.0);
-}
+}*/
