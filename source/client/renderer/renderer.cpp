@@ -301,6 +301,9 @@ void Renderer::MakeRendererResources()
       }
    }
 
+   CreateTextureResource("SMAA_AreaTex", resourcePath_ + "/textures/smaa/smaa_area.raw", 160, 560, H3DFormats::TEX_RG8, 2);
+   CreateTextureResource("SMAA_SearchTex", resourcePath_ + "/textures/smaa/smaa_search.raw", 66, 33, H3DFormats::TEX_R8, 1);
+
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
 
    BuildLoadingScreen();
@@ -1760,6 +1763,18 @@ H3DRes Renderer::GetPipeline(std::string const& name)
       p = i->second;
    }
    return p;
+}
+
+void Renderer::CreateTextureResource(std::string const& name, std::string const& path, int width, int height, int format, int stride)
+{
+   H3DRes texRes = h3dCreateTexture(name.c_str(), width, height, format, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   std::shared_ptr<std::istream> inf = resourceManager.OpenResource(path);
+   std::string buffer = io::read_contents(*inf);
+   unsigned char* data = (unsigned char*)h3dMapResStream(texRes, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   memcpy(data, buffer.c_str(), width * height * stride);
+   h3dUnmapResStream(texRes, 0);
 }
 
 void Renderer::LoadResources()

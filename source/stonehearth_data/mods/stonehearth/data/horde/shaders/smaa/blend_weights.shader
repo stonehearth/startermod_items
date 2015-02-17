@@ -36,12 +36,25 @@
  * policies, either expressed or implied, of the copyright holders.
  */
 
-#define SMAAMad(a, b, c) (a * b + c)
+[[FX]]
 
-/*if SMAA_GLSL_4 == 1
-define SMAAMad(a, b, c) fma(a, b, c)
-endif*/
+sampler2D edgesTex = sampler_state
+{
+  Address = Clamp;
+  Filter = Bilinear;
+};
 
+sampler2D areaTex = sampler_state
+{
+  Address = Clamp;
+  Filter = Bilinear;
+};
+
+sampler2D searchTex = sampler_state
+{
+  Address = Clamp;
+  Filter = None;
+};
 
 [[VS]]
 
@@ -52,15 +65,15 @@ uniform mat4 projMat;
 
 attribute vec3 vertPos;
 
+varying vec2 texcoord;
 varying vec2 pixcoord;
 varying vec4 offset[3];
 
 void main() {
     vec2 pixelSize = frameBufSize.zw;
-    vec2 texcoord = vertPos.xy;
-
+    
+    texcoord = vertPos.xy;
     gl_Position = projMat * vec4(vertPos, 1.0);
-
     pixcoord = texcoord * frameBufSize.xy;
 
     // We will use these offsets for the searches later on (see @PSEUDO_GATHER4):
@@ -76,9 +89,18 @@ void main() {
 
 
 [[FS]]
+#version 130
 
-#include "smaa_search_diag.glsl"
-#include "smaa_search_hv.glsl"
+#define SMAAMad(a, b, c) (a * b + c)
+
+/*if SMAA_GLSL_4 == 1
+define SMAAMad(a, b, c) fma(a, b, c)
+endif*/
+
+uniform vec4 frameBufSize;
+
+#include "shaders/smaa/smaa_search_diag.glsl"
+#include "shaders/smaa/smaa_search_hv.glsl"
 
 /**
  * SMAA_MAX_SEARCH_STEPS_DIAG specifies the maximum steps performed in the
@@ -103,7 +125,6 @@ void main() {
 #define SMAA_AREATEX_PIXEL_SIZE (1.0 / vec2(160.0, 560.0))
 #define SMAA_AREATEX_SUBTEX_SIZE (1.0 / 7.0)
 
-uniform vec4 frameBufSize;
 uniform sampler2D edgesTex;
 uniform sampler2D areaTex;
 uniform sampler2D searchTex;
@@ -130,7 +151,7 @@ vec2 SMAAArea(sampler2D areaTex, vec2 dist, float e1, float e2, float offset) {
 
     // Do it!
     //if SMAA_HLSL_3 == 1
-    return textureLod(areaTex, texcoord, 0.0).ra;
+    return textureLod(areaTex, texcoord, 0.0).rg;
     //else
     //return textureLod(areaTex, texcoord, 0.0).rg;
     //endif
@@ -149,11 +170,15 @@ void SMAADetectHorizontalCornerPattern(sampler2D edgesTex, inout vec2 weights, v
 	    e.r = textureLodOffset(edgesTex, coords.xy, 0.0, ivec2(0.0,  1.0)).r;
 	    bool left = abs(d.x) < abs(d.y);
 	    e.g = textureLodOffset(edgesTex, coords.xy, 0.0, ivec2(0.0, -2.0)).r;
-	    if (left) weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e);
+	    if (left) {
+            weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e, 0, 1);
+        }
 
 	    e.r = textureLodOffset(edgesTex, coords.zw, 0.0, ivec2(1.0,  1.0)).r;
 	    e.g = textureLodOffset(edgesTex, coords.zw, 0.0, ivec2(1.0, -2.0)).r;
-	    if (!left) weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e);
+	    if (!left) {
+            weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e, 0, 1);
+        }
 
     //endif
 }
@@ -167,11 +192,15 @@ void SMAADetectVerticalCornerPattern(sampler2D edgesTex, inout vec2 weights, vec
         e.r = textureLodOffset(edgesTex, coords.xy, 0.0, ivec2( 1.0, 0.0)).g;
         bool left = abs(d.x) < abs(d.y);
         e.g = textureLodOffset(edgesTex, coords.xy, 0.0, ivec2(-2.0, 0.0)).g;
-        if (left) weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e);
+        if (left) {
+            weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e, 0, 1);
+        }
 
         e.r = textureLodOffset(edgesTex, coords.zw, 0.0, ivec2( 1.0, 1.0)).g;
         e.g = textureLodOffset(edgesTex, coords.zw, 0.0, ivec2(-2.0, 1.0)).g;
-        if (!left) weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e);
+        if (!left) {
+            weights *= clamp(float(SMAA_CORNER_ROUNDING) / 100.0 + 1.0 - e, 0, 1);
+        }
     //endif
 }
 

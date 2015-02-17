@@ -49,6 +49,8 @@
  */
 #define SMAA_MAX_SEARCH_STEPS_DIAG 8
 
+#define SMAA_AREATEX_MAX_DISTANCE_DIAG 20
+
 
 #define SMAA_AREATEX_PIXEL_SIZE (1.0 / vec2(160.0, 560.0))
 #define SMAA_AREATEX_SUBTEX_SIZE (1.0 / 7.0)
@@ -73,7 +75,7 @@ float SMAASearchDiag1(sampler2D edgesTex, vec2 texcoord, vec2 dir, float c) {
     float i;
     for (i = 0.0; i < float(SMAA_MAX_SEARCH_STEPS_DIAG); i++) {
         e.rg = textureLod(edgesTex, texcoord, 0.0).rg;
-        SMAA_FLATTEN if (dot(e, vec2(1.0, 1.0)) < 1.9) break;
+        if (dot(e, vec2(1.0, 1.0)) < 1.9) break;
         texcoord += dir * pixelSize;
     }
     return i + float(e.g > 0.9) * c;
@@ -87,7 +89,7 @@ float SMAASearchDiag2(sampler2D edgesTex, vec2 texcoord, vec2 dir, float c) {
     for (i = 0.0; i < float(SMAA_MAX_SEARCH_STEPS_DIAG); i++) {
         e.g = textureLod(edgesTex, texcoord, 0.0).g;
         e.r = textureLodOffset(edgesTex, texcoord, 0.0, ivec2(1, 0)).r;
-        SMAA_FLATTEN if (dot(e, vec2(1.0, 1.0)) < 1.9) break;
+        if (dot(e, vec2(1.0, 1.0)) < 1.9) break;
         texcoord += dir * pixelSize;
     }
     return i + float(e.g > 0.9) * c;
@@ -140,7 +142,7 @@ vec2 SMAACalculateDiagWeights(sampler2D edgesTex, sampler2D areaTex, vec2 texcoo
     }
 
     d.x = SMAASearchDiag2(edgesTex, texcoord, vec2(-1.0, -1.0), 0.0);
-    float right = textureLodOffset(edgesTex, texcoord, ivec2(1, 0)).r;
+    float right = textureLodOffset(edgesTex, texcoord, 0.0, ivec2(1, 0)).r;
     d.y = right > 0.0? SMAASearchDiag2(edgesTex, texcoord, vec2(1.0, 1.0), 1.0) : 0.0;
 
     if (d.r + d.g > 2.0) { // d.r + d.g + 1 > 3

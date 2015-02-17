@@ -42,13 +42,13 @@
 sampler2D blendTex = sampler_state
 {
   Address = Clamp;
-  Filter = None;
+  Filter = Bilinear;
 };
 
 sampler2D colorTex = sampler_state
 {
   Address = Clamp;
-  Filter = Linear;
+  Filter = Bilinear;
 };
 
 [[VS]]
@@ -71,6 +71,7 @@ void main() {
 }
 
 [[FS]]
+#version 130
 
 uniform sampler2D colorTex;
 uniform sampler2D blendTex;
@@ -87,10 +88,9 @@ void main() {
     a.w = texture(blendTex, offset[1].xy).a;
 
     // Is there any blending weight with a value greater than 0.0?
-    if (dot(a, vec4(1.0, 1.0, 1.0, 1.0)) < 1e-5)
+    if (dot(a, vec4(1.0, 1.0, 1.0, 1.0)) < 1e-5) {
         gl_FragColor = textureLod(colorTex, texcoord, 0.0);
-        return;
-    else {
+    } else {
         vec2 pixelSize = frameBufSize.zw;
         vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
 
@@ -113,8 +113,7 @@ void main() {
             // neighbor:
 
 
-            texcoord += offset * pixelSize;
-            gl_FragColor = textureLod(colorTex, texcoord, 0.0);
+            gl_FragColor = textureLod(colorTex, texcoord + offset * pixelSize, 0.0);
 
 
         /*else

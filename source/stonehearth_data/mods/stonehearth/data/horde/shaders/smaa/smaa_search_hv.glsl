@@ -1,4 +1,21 @@
 /**
+ * This allows to determine how much length should we add in the last step
+ * of the searches. It takes the bilinearly interpolated edge (see 
+ * @PSEUDO_GATHER4), and adds 0, 1 or 2, depending on which edges and
+ * crossing edges are active.
+ */
+float SMAASearchLength(sampler2D searchTex, vec2 e, float bias, float scale) {
+    // Not required if searchTex accesses are set to point:
+    // vec2 SEARCH_TEX_PIXEL_SIZE = 1.0 / vec2(66.0, 33.0);
+    // e = vec2(bias, 0.0) + 0.5 * SEARCH_TEX_PIXEL_SIZE + 
+    //     e * vec2(scale, 1.0) * vec2(64.0, 32.0) * SEARCH_TEX_PIXEL_SIZE;
+    e.r = bias + e.r * scale;
+    e.g = -e.g;
+    return 255.0 * textureLod(searchTex, e, 0.0).r;
+}
+
+
+/**
  * Horizontal/vertical search functions.
  */
 
@@ -22,21 +39,6 @@ float SMAASearchYDown(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, fl
 //-----------------------------------------------------------------------------
 // Horizontal/Vertical Search Functions
 
-/**
- * This allows to determine how much length should we add in the last step
- * of the searches. It takes the bilinearly interpolated edge (see 
- * @PSEUDO_GATHER4), and adds 0, 1 or 2, depending on which edges and
- * crossing edges are active.
- */
-float SMAASearchLength(sampler2D searchTex, vec2 e, float bias, float scale) {
-    // Not required if searchTex accesses are set to point:
-    // vec2 SEARCH_TEX_PIXEL_SIZE = 1.0 / vec2(66.0, 33.0);
-    // e = vec2(bias, 0.0) + 0.5 * SEARCH_TEX_PIXEL_SIZE + 
-    //     e * vec2(scale, 1.0) * vec2(64.0, 32.0) * SEARCH_TEX_PIXEL_SIZE;
-    e.r = bias + e.r * scale;
-    e.g = -e.g;
-    return 255.0 * textureLod(searchTex, e, 0.0).r;
-}
 
 float SMAASearchXLeft(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, float end) {
     vec2 pixelSize = frameBufSize.zw;

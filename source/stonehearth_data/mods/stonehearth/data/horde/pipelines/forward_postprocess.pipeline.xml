@@ -14,6 +14,8 @@
       <RenderTarget id="BloomTemp" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
       <RenderTarget id="BloomFinal" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
       <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/>      
+      <RenderTarget id="EdgeTex" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>      
+      <RenderTarget id="BlendWeights" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>      
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
@@ -29,6 +31,13 @@
 
          <SwitchTarget target="SSAOBlur" />
          <ClearTarget colBuf0="true" depthBuf="false" />
+         
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true" />
+         <SwitchTarget target="EdgeTex" />
+         <ClearTarget colBuf0="true" depthBuf="true" />
+         <SwitchTarget target="BlendWeights" />
+         <ClearTarget colBuf0="true" depthBuf="true" />
       </Stage>
 
       <Stage id="Attributes">
@@ -118,7 +127,26 @@
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
-      <Stage id="Composite">
+      <Stage id="FSAA">
+         <SwitchTarget target="EdgeTex" />
+         <BindBuffer sampler="depthTex" sourceRT="GBuffers" bufIndex="0" />
+         <DrawQuad material="materials/smaa.material.json" context="EDGE_DETECTION" />
+         <UnbindBuffers/>
+
+         <SwitchTarget target="BlendWeights" />
+         <BindBuffer sampler="edgesTex" sourceRT="EdgeTex" />
+         <DrawQuad material="materials/smaa.material.json" context="BLEND_WEIGHTS" />
+         <UnbindBuffers/>
+
+         <SwitchTarget target="" />
+         <BindBuffer sampler="blendTex" sourceRT="BlendWeights" />
+         <BindBuffer sampler="colorTex" sourceRT="Albedo" />
+         <DrawQuad material="materials/smaa.material.json" context="NEIGHBOUR_BLEND" />
+         <UnbindBuffers/>
+      </Stage>
+
+
+      <!--Stage id="Composite">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="Albedo" bufIndex="0" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="FSQUAD_COPY" />
@@ -146,7 +174,8 @@
          <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
          <DrawQuad material="materials/fullscreen_quad.material.json" context="ADD" />
          <UnbindBuffers/>
-      </Stage>
+      </Stage-->
+
 
       <Stage id="Overlays">
          <SwitchTarget target="" />

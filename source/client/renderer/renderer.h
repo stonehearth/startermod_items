@@ -219,6 +219,7 @@ class Renderer
       void ResizeViewport();
       void ResizePipelines();
       void CallWindowResizeListeners();
+      void CreateTextureResource(std::string const& name, std::string const& path, int width, int height, int format, int stride);
 
       void DispatchInputEvent();
       bool LoadMissingResources();

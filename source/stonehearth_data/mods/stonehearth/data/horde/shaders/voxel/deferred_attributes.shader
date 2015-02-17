@@ -61,6 +61,7 @@ void main(void)
 {
   gl_FragData[0].r = toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
+  gl_FragData[0].b = gl_FragCoord.z;
   gl_FragData[1] = vec4(normalize(tsbNormal), 1.0);
 
   vec3 color = albedo;

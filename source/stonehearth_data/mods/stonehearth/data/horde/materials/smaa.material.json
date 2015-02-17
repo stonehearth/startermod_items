@@ -1,0 +1,26 @@
+{
+	"shaders" : {
+		"EDGE_DETECTION" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/smaa/edge_detection.shader"
+		},
+		"BLEND_WEIGHTS" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/smaa/blend_weights.shader"
+		},
+		"NEIGHBOUR_BLEND" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/smaa/neighbour_blend.shader"
+		}
+	},
+	"samplers" : [
+		{
+			"name" : "areaTex",
+			"map" : "SMAA_AreaTex"
+		},
+		{
+			"name" : "searchTex",
+			"map" : "SMAA_SearchTex"
+		}
+	]
+}

@@ -39,6 +39,11 @@
 
 [[FX]]
 
+sampler2D depthTex = sampler_state
+{
+  Address = Clamp;
+  Filter = None;
+};
 
 [[VS]]
 
@@ -63,6 +68,7 @@ void main() {
 
 
 [[FS]]
+#version 130
 
 /**
  * SMAA_THRESHOLD specifies the threshold or sensitivity to edges.
@@ -76,7 +82,7 @@ void main() {
  *   If temporal supersampling is used, 0.2 could be a reasonable value, as low
  *   contrast edges are properly filtered by just 2x.
  */
-#define SMAA_THRESHOLD 0.1
+#define SMAA_THRESHOLD 0.01
 
 /**
  * SMAA_DEPTH_THRESHOLD specifies the threshold for depth edge detection.
@@ -104,9 +110,9 @@ vec3 SMAAGatherNeighbours(vec2 texcoord,
     /*if SMAA_HLSL_4_1 == 1 || SMAA_GLSL_4 == 1
     return SMAAGather(tex, texcoord + SMAA_PIXEL_SIZE * vec2(-0.5, -0.5)).grb;
     else*/
-    float P = texture(tex, texcoord).r;
-    float Pleft = texture(tex, offset[0].xy).r;
-    float Ptop  = texture(tex, offset[0].zw).r;
+    float P = texture(tex, texcoord).b;
+    float Pleft = texture(tex, offset[0].xy).b;
+    float Ptop  = texture(tex, offset[0].zw).b;
     return vec3(P, Pleft, Ptop);
 }
 
@@ -237,8 +243,9 @@ void main() {
     vec2 delta = abs(neighbours.xx - vec2(neighbours.y, neighbours.z));
     vec2 edges = step(SMAA_DEPTH_THRESHOLD, delta);
 
-    if (dot(edges, vec2(1.0, 1.0)) == 0.0)
+    if (dot(edges, vec2(1.0, 1.0)) == 0.0) {
         discard;
+    }
 
     gl_FragColor = vec4(edges, 0.0, 0.0);
 }
