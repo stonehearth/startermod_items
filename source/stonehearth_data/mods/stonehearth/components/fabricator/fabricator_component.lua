@@ -131,7 +131,7 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
    
    -- ask the build service to set all this up!!
 
-   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding')
+   local scaffolding = radiant.entities.create_entity('stonehearth:scaffolding', { owner = self._entity })
    radiant.entities.set_player_id(scaffolding, project)
    scaffolding:add_component('stonehearth:construction_data')
                   :set_normal(normal)
@@ -141,7 +141,7 @@ function FabricatorComponent:_add_scaffolding(blueprint, project, normal)
                   :support_project(project, blueprint, normal)
 
    -- create a fabricator entity to build the scaffolding
-   local fabricator = radiant.entities.create_entity()
+   local fabricator = radiant.entities.create_entity('', { owner = self._entity })
    self._entity:get_component('mob'):get_parent():get_component('entity_container')
                                                       :add_child(fabricator)
 

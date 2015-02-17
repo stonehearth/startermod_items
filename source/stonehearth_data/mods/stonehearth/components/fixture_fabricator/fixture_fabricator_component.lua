@@ -73,7 +73,7 @@ end
 
 function FixtureFabricator:instabuild()
    if not self._sv.fixture then
-      self._sv.fixture = radiant.entities.create_entity(self._sv.fixture_uri)
+      self._sv.fixture = radiant.entities.create_entity(self._sv.fixture_uri, { owner = self._entity })
    end
    local root_entity = self._sv.fixture
    local parent = self._entity:get_component('mob'):get_parent()

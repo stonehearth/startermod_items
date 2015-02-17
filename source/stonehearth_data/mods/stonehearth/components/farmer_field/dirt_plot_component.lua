@@ -150,7 +150,7 @@ function DirtPlotComponent:plant_crop(crop_type)
       return
    end
 
-   local planted_entity = radiant.entities.create_entity(crop_type)
+   local planted_entity = radiant.entities.create_entity(crop_type, { owner = self._entity })
    radiant.terrain.place_entity(planted_entity, radiant.entities.get_world_grid_location(self._entity))
    self._sv.contents = planted_entity
    self._sv.last_planted_type = crop_type

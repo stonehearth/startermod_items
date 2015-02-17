@@ -49,7 +49,7 @@ function pathfinder_tests.check_movement_guard(autotest)
    local gold = autotest.env:create_entity(0, 0, 'stonehearth:loot:gold')
 
    -- make sure a sheep can't!
-   local sheep = autotest.env:create_entity(0, 18, 'stonehearth:sheep')
+   local sheep = autotest.env:create_entity(0, 18, 'stonehearth:sheep', { owner = 'critters' })
    local pathfinder = _radiant.sim.create_astar_path_finder(sheep, 'check_movement_guard test')
                                     :add_destination(gold)
                                     :set_solved_cb(function(path)

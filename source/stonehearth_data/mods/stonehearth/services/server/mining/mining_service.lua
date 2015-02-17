@@ -139,7 +139,7 @@ end
 
 -- Explicitly create a mining zone.
 function MiningService:create_mining_zone(player_id)
-   local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone')
+   local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone', { owner = player_id })
 
    mining_zone:add_component('unit_info')
       :set_player_id(player_id)

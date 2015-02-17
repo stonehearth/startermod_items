@@ -148,20 +148,17 @@ function CreateCamp:_add_piece(piece)
    local rot = piece.rotation
 
    local origin = self._sv.ctx.enemy_location + Point3(x, 0, z)
-   local player_id = self:_get_player_id()
-
+   
    -- add all the entities.
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
-         local entity = radiant.entities.create_entity(info.uri)
+         local entity = radiant.entities.create_entity(info.uri, { owner = ctx.enemy_player_id })
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
 
          if rot then
             radiant.entities.turn_to(entity, rot)
          end
-
-         radiant.entities.set_player_id(entity, player_id)
       end
    end
 
@@ -178,10 +175,6 @@ function CreateCamp:_add_piece(piece)
       script:start(self._sv.ctx)
    end
 
-end
-
-function CreateCamp:_get_player_id()
-   return self._sv._info.player_id
 end
 
 return CreateCamp

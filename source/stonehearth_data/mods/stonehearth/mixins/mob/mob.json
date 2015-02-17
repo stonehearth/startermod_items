@@ -58,7 +58,7 @@
             "stonehearth:actions:key_to_entity_data_filter_fn",
             "stonehearth:actions:goto_item_made_of",
             "stonehearth:actions:goto_entity_with_entity_data",
-            "stonehearth:actions:create_proxy_entity",
+            "stonehearth:actions:create_entity",
             "stonehearth:actions:set_hangable_adjacent",
             "stonehearth:actions:idle_top_action",
             "stonehearth:actions:idle_action",

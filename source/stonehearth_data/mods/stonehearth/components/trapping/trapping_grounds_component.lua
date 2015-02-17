@@ -448,7 +448,7 @@ function TrappingGroundsComponent:_is_threatening_to_critter(other_entity)
 end
 
 function TrappingGroundsComponent:_create_critter(uri)
-   local critter = radiant.entities.create_entity(uri)
+   local critter = radiant.entities.create_entity(uri, { owner = self._entity })
    radiant.entities.set_player_id(critter, 'critters')
 
    local despawn_ai = self:_inject_despawn_ai(critter)

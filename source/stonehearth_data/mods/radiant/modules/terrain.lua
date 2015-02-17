@@ -49,7 +49,7 @@ end
 function Terrain.place_entity(arg0, location, options)
    local entity
    if type(arg0) == 'string' then
-      entity = radiant.entities.create_entity(arg0)
+      entity = radiant.entities.create_entity(arg0, options)
    else
       entity = arg0
    end

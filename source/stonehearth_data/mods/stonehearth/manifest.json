@@ -427,7 +427,7 @@
       "actions:key_to_entity_data_filter_fn" : "file(ai/actions/key_to_entity_data_filter_fn_action.lua)",
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
-      "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
+      "actions:create_entity" : "file(ai/actions/create_entity_action.lua)",
       "actions:set_hangable_adjacent" : "file(ai/actions/set_hangable_adjacent_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",

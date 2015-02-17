@@ -26,7 +26,7 @@ function Inventory:restore()
 end
 
 function Inventory:create_stockpile(location, size)
-   local entity = radiant.entities.create_entity('stonehearth:stockpile')   
+   local entity = radiant.entities.create_entity('stonehearth:stockpile', { owner = self._sv.player_id })
    radiant.terrain.place_entity(entity, location)
 
    entity:add_component('region_collision_shape')
@@ -233,7 +233,7 @@ function Inventory:add_gold(amount)
       return false
    end
 
-   local gold = radiant.entities.create_entity('stonehearth:loot:gold')
+   local gold = radiant.entities.create_entity('stonehearth:loot:gold', { owner = self._sv.player_id })
    local item = gold:add_component('item')
    item:set_stacks(amount)
 

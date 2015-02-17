@@ -16,9 +16,34 @@ function entities.get_root_entity()
    return radiant._root_entity
 end
 
-function entities.create_entity(ref)
+function entities.create_entity(ref, options)
+   assert(type(ref) ~= 'table') -- did you forget to pass nil or '' for empty entities?
+
    local entity = _radiant.sim.create_entity(ref or "")
    log:debug('created entity %s', entity)
+   if options then
+      if options.owner then
+         radiant.entities.set_player_id(entity, options.owner)
+      end
+      if options.debug_text then
+         entity:set_debug_text(options.debug_text)
+      end
+      if options.add_item_destination then
+         -- cache the origin region since we use this a lot
+         if entities.origin_region == nil then
+            entities.origin_region = _radiant.sim.alloc_region3()
+            entities.origin_region:modify(function(region3)
+                  region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
+               end)
+         end
+
+         -- make the adjacent the same as the entity location, so that we actually go to the entity location
+         entity:add_component('destination')
+                  :set_region(entities.origin_region)
+                  :set_adjacent(entities.origin_region)
+
+      end
+   end
    return entity
 end
 
@@ -81,7 +106,7 @@ function entities.destroy_entity(entity)
       local on_destroy = radiant.entities.get_entity_data(entity, 'on_destroy')
       if on_destroy ~= nil and on_destroy.effect ~= nil then
       
-         local proxy_entity = radiant.entities.create_proxy_entity('death effect')
+         local proxy_entity = radiant.entities.create_entity(nil, { debug_text = 'death effect' })
          local location = radiant.entities.get_location_aligned(entity)
          radiant.terrain.place_entity_at_exact_location(proxy_entity, location)
 
@@ -124,35 +149,6 @@ function entities.kill_entity(entity)
       --"It still only counts as one!" --ChrisGimli
       entities.destroy_entity(entity)
    end
-end
-
-function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
-   assert(type(debug_text) == 'string')
-
-   if use_default_adjacent_region == nil then
-      use_default_adjacent_region = false
-   end
-
-   local proxy_entity = radiant.entities.create_entity()
-   proxy_entity:set_debug_text(debug_text)
-   log:debug('created proxy entity %s', proxy_entity)
-
-   if not use_default_adjacent_region then
-      -- cache the origin region since we use this a lot
-      if entities.origin_region == nil then
-         entities.origin_region = _radiant.sim.alloc_region3()
-         entities.origin_region:modify(function(region3)
-               region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
-            end)
-      end
-
-      -- make the adjacent the same as the entity location, so that we actually go to the entity location
-      local destination = proxy_entity:add_component('destination')
-      destination:set_region(entities.origin_region)
-      destination:set_adjacent(entities.origin_region)
-   end
-
-   return proxy_entity
 end
 
 function entities.get_parent(entity)
@@ -297,14 +293,9 @@ function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
    for uri, quantity in pairs(uris) do
       for i = 1, quantity do
          local location = radiant.terrain.find_placement_point(origin, min_radius, max_radius)
-         local item = radiant.entities.create_entity(uri)
+         local item = radiant.entities.create_entity(uri, { owner = player_id })
 
          items[item:get_id()] = item
-
-         if player_id then
-            entities.set_player_id(item, player_id)
-         end
-
          radiant.terrain.place_entity(item, location)
       end
    end

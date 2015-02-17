@@ -303,7 +303,7 @@ function ShepherdPastureComponent:_reproduce_animal()
    end
 
    --TODO: OMG, baby animals! We want baby animals!
-   local animal = radiant.entities.create_entity(self._sv.pasture_type)
+   local animal = radiant.entities.create_entity(self._sv.pasture_type, { owner = self._entity })
    local equipment_component = animal:add_component('stonehearth:equipment')
    local pasture_collar = radiant.entities.create_entity('stonehearth:pasture_tag')
    equipment_component:equip_item(pasture_collar)

@@ -160,7 +160,7 @@ end
 
 function placement_autotests.undeploy_item(autotest)
    autotest.env:create_person(-8, 8, { job = 'worker' })   
-   local big_bed = autotest.env:create_entity(8, 8, 'stonehearth:furniture:comfy_bed')
+   local big_bed = autotest.env:create_entity(8, 8, 'stonehearth:furniture:comfy_bed', { force_iconic = false })
    local efc = big_bed:get_component('stonehearth:entity_forms')
    local iconic_bed = efc:get_iconic_entity()
 

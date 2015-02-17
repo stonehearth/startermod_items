@@ -36,7 +36,7 @@ end
 --  Workers are not actually asked to create the workbench until the outbox is placed too. 
 function WorkshopCallHandler:create_ghost_workbench(session, response, workbench_entity_uri, pt, rotation, crafter_id)
    local location = Point3(pt.x, pt.y, pt.z)
-   local workbench = radiant.entities.create_entity(workbench_entity_uri)
+   local workbench = radiant.entities.create_entity(workbench_entity_uri, { owner = session.player_id })
 
    local entity_forms = workbench:get_component('stonehearth:entity_forms')
    local ghost_entity = entity_forms:get_ghost_entity()

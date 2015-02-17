@@ -76,6 +76,8 @@ function EquipmentComponent:equip_item(item)
    local ep = item:get_component('stonehearth:equipment_piece')
    assert(ep, 'item is not an equipment piece')
 
+   radiant.entities.set_player_id(item, self._entity)
+
    
    local slot = ep:get_slot()
    

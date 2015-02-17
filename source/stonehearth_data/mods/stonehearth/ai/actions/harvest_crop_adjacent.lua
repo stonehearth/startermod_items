@@ -29,7 +29,7 @@ function HarvestCropAdjacent:run(ai, entity, args)
       local product_uri = crop_component:get_product()
       
       if product_uri ~= nil then
-         local product = radiant.entities.create_entity(product_uri)
+         local product = radiant.entities.create_entity(product_uri, { owner = entity })
          local entity_forms = product:get_component('stonehearth:entity_forms')
 
          --If there is an entity_forms component, then you want to put the iconic version

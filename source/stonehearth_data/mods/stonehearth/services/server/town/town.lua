@@ -15,7 +15,7 @@ function Town:initialize(player_id)
    self._sv.rally_to_battle_standard = false
    self._sv.mining_zones = {}
 
-   self._sv.entity = radiant.entities.create_entity()
+   self._sv.entity = radiant.entities.create_entity('', { owner = player_id })
    
    self.__saved_variables:mark_changed()
 

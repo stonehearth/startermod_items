@@ -31,13 +31,13 @@ function FarmerCrop:initialize(player_id, field, location, crop_type, auto_harve
    self._sv.total_region:copy_region(region)
    self._sv.town = stonehearth.town:get_town(player_id)
    
-   self._sv.plantable_region_entity = radiant.entities.create_entity()
+   self._sv.plantable_region_entity = radiant.entities.create_entity('', { owner = self._entity })
    radiant.terrain.place_entity(self._sv.plantable_region_entity, location)
    local d = self._sv.plantable_region_entity:add_component('destination')
    d:set_region(_radiant.sim.alloc_region3())
      :set_auto_update_adjacent(true)
 
-   self._sv.harvestable_region_entity = radiant.entities.create_entity()
+   self._sv.harvestable_region_entity = radiant.entities.create_entity('', { owner = self._entity })
    radiant.terrain.place_entity(self._sv.harvestable_region_entity, location)
    d = self._sv.harvestable_region_entity:add_component('destination')
    d:set_region(_radiant.sim.alloc_region3())

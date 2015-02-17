@@ -5,10 +5,12 @@ local _all_entities = {}
 
 local env = {}
 
+local PLAYER_ID = 'player_1'
+
 function env.set_world_generator_script(world_generator_script)
    env.create_world_fn = radiant.mods.load_script(world_generator_script)
 
-   local player_id = 'player_1'
+   local player_id = PLAYER_ID
    env.session = {
       player_id = player_id,
    }
@@ -66,15 +68,19 @@ function env.get_town()
 end
 
 local function apply_options_to_entity(entity, options)
-   if options.player_id then
-      radiant.entities.set_player_id(entity, options.player_id)
+   -- by default, create averythin
+   local owner = options.owner or PLAYER_ID
+   if owner ~= false then
+      radiant.entities.set_player_id(entity, owner)
    end
+
    if options.attributes then
       for name, value in pairs(options.attributes) do
          entity:get_component('stonehearth:attributes')
                   :set_attribute(name, value)
       end
    end
+
    if options.job then
       local job = options.job
       if not string.find(job, ':') and not string.find(job, '/') then
@@ -85,6 +91,7 @@ local function apply_options_to_entity(entity, options)
       entity:add_component('stonehearth:job')
                :promote_to(job)
    end
+
    if options.weapon then
       env.equip_weapon(entity, options.weapon)
    end
@@ -101,13 +108,12 @@ function env.create_entity(x, z, uri, options)
    local entity = radiant.entities.create_entity(uri)
    apply_options_to_entity(entity, options or {})
    
-
    local place_options = {}
    if options and options.force_iconic ~= nil then
       place_options.force_iconic = options.force_iconic
    end
-
    radiant.terrain.place_entity(entity, location, place_options)
+
    return entity
 end
 
@@ -130,7 +136,7 @@ function env.create_person(x, z, options)
    end
 
    options = options or {}
-   local player_id = options.player_id or 'player_1'
+   local player_id = options.owner or 'player_1'
 
    local pop = stonehearth.population:get_population(player_id)
    local person = pop:create_new_citizen()

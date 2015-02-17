@@ -136,7 +136,7 @@ function Building:add_structure(entity)
    -- Lazily build envelope entity, because it might actually have been created when we loaded
    -- this building from a template.
    if not self._sv.envelope_entity then
-      self._sv.envelope_entity = radiant.entities.create_entity()    
+      self._sv.envelope_entity = radiant.entities.create_entity('', { owner = self._entity })
       self._sv.envelope_entity:set_debug_text(string.format('envelope for %s', tostring(self._entity)))
       self._sv.envelope_entity:add_component('stonehearth:no_construction_zone')
                                  :set_building_entity(self._entity)

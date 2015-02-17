@@ -111,7 +111,7 @@ function GetPatrolPoint:_find_path(start_location, waypoints)
 
       -- reusing the proxy entity is causing issues with the shared pathfinder,
       -- so create a new one each time
-      self:_create_proxy_entity(finish)
+      self:_create_patrol_point_entity(finish)
 
       self._pathfinder = self._entity:add_component('stonehearth:pathfinder')
                                           :find_path_to_entity(start, self._proxy_entity, on_success, on_exhausted)
@@ -129,16 +129,15 @@ function GetPatrolPoint:_set_think_output(paths)
    })
 end
 
-function GetPatrolPoint:_create_proxy_entity(location)
+function GetPatrolPoint:_create_patrol_point_entity(location)
    self:_destroy_proxy_entity()
-   self._proxy_entity = radiant.entities.create_proxy_entity('get patrol point')
+   self._proxy_entity = radiant.entities.create_entity('', { debug_text = 'get patrol point' })
    radiant.terrain.place_entity_at_exact_location(self._proxy_entity, location)
 end
 
 function GetPatrolPoint:_destroy_proxy_entity()
    if self._proxy_entity then
       radiant.entities.destroy_entity(self._proxy_entity)
-      self._proxy_entity = nil
    end
 end
 

@@ -33,7 +33,7 @@ end
 function FarmingService:create_new_field(session, location, size)
    -- A little sanitization: what we get from the client isn't exactly a Point3
    location = Point3(location.x, location.y, location.z)
-   local entity = radiant.entities.create_entity('stonehearth:farmer:field')   
+   local entity = radiant.entities.create_entity('stonehearth:farmer:field', { owner = session.player_id })
    radiant.terrain.place_entity(entity, location)
 
    self:_add_region_components(entity, size)
