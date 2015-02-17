@@ -27,10 +27,6 @@
          "health": {
             "type" : "variable", 
             "equation" :  "max_health"
-         },
-         "menace": {
-            "type" : "basic",
-            "value" : 0
          }
       },
       "mob" : {
