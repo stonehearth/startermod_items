@@ -313,24 +313,43 @@ function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
 end
 
 function entities.distance_between(object_a, object_b)
-   local mob
+   local point_a, point_b
+   
    assert(object_a and object_b)
 
-   if radiant.util.is_a(object_a, Entity) then
-      mob = object_a:get_component('mob')
-      object_a = mob and mob:get_world_location()
-   end
-   if radiant.util.is_a(object_b, Entity) then
-      mob = object_b:get_component('mob')
-      object_b = mob and mob:get_world_location()
+   if radiant.util.is_a(object_a, Point3) then
+      point_a = object_a
+   elseif radiant.util.is_a(object_a, Entity) then
+      local mob = object_a:get_component('mob')
+      point_a = mob and mob:get_world_location()
+   else
+      error('unexpected type for arg1 "%s"', type(object_a))
    end
 
-   if not object_a or not object_b then
+   if radiant.util.is_a(object_b, Point3) then
+      point_b = object_b
+   elseif radiant.util.is_a(object_b, Entity) then      
+      local rcs = object_b:get_component('region_collision_shape')
+      if rcs then
+         -- find the point on the region closets to point_a
+         local region = rcs:get_region()
+         if region then
+            local world_space_region = entities.local_to_world(region:get(), object_b)
+            point_b = world_space_region:get_closest_point(point_a)
+         end
+      end
+      if not point_b then
+         -- still no point?  use the world location
+         local mob = object_b:get_component('mob')
+         point_b = mob and mob:get_world_location()
+      end
+   end
+
+   if not point_a or not point_b then
+      -- either a or b was an entity that's not in the world.  doh!
       return nil
    end
-   
-   -- xxx: verify a and b are both Point3fs...
-   return object_a:distance_to(object_b)
+   return point_a:distance_to(point_b)
 end
 
 function entities.move_to(entity, location)
