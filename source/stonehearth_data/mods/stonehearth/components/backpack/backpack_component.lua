@@ -27,11 +27,14 @@ end
 
 --If we're killed, dump the things in our backpack
 function BackpackComponent:_on_kill_event()
-   while not self:is_empty() do
-      local item = self:remove_first_item()
-      local location = radiant.entities.get_world_grid_location(self._entity)
-      local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
-      radiant.terrain.place_entity(item, placement_point)
+   -- npc's don't drop what's in their pack
+   if not stonehearth.player:is_npc(self._entity) then
+      while not self:is_empty() do
+         local item = self:remove_first_item()
+         local location = radiant.entities.get_world_grid_location(self._entity)
+         local placement_point = radiant.terrain.find_placement_point(location, 1, 4)
+         radiant.terrain.place_entity(item, placement_point)
+      end
    end
 end
    

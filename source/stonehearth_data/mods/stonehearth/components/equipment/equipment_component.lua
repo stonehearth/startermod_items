@@ -19,7 +19,9 @@ end
 
 --When we've been killed, dump things that are >0 iLevel on the ground
 function EquipmentComponent:_on_kill_event()
-   self:drop_equipment()
+   if not stonehearth.player:is_npc(self._entity) then
+      self:drop_equipment()
+   end
 end
 
 function EquipmentComponent:drop_equipment()

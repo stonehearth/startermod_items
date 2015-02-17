@@ -43,9 +43,7 @@ function game_master_lib.create_citizen(population, info, origin)
    -- info.job: promote the citizen to the proper job
    if info.job then
       citizen:add_component('stonehearth:job')
-                  :promote_to(info.job, {
-                        is_npc = true,
-                     })
+                  :promote_to(info.job)
    end
 
    -- info.equipment: gear up!

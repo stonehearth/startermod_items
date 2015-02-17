@@ -67,7 +67,9 @@ end
 --When we've been killed, dump our talisman on the ground
 --Eventually, when our entity is destroyed, the destroy fn above will run also.
 function JobComponent:_on_kill_event()
-   self:demote()
+   if not stonehearth.player:is_npc(self._entity) then
+      self:demote()
+   end
 end
 
 function JobComponent:_call_job(method_name, ...)
@@ -83,18 +85,20 @@ end
 -- Drops the talisman near the location of the entity, returns the talisman entity
 -- If the class has something to say about the talisman before it goes, do that first
 function JobComponent:_drop_talisman()
-   if self._sv.talisman_uri then
-      local location = radiant.entities.get_world_grid_location(self._entity)
-      local player_id = radiant.entities.get_player_id(self._entity)
-      local output_table = {}
-      output_table[self._sv.talisman_uri] = 1
-      --TODO: is it possible that this gets dumped onto an inaccessible location?
-      local items = radiant.entities.spawn_items(output_table, location, 1, 2, player_id)
+   if not stonehearth.player:is_npc(self._entity) then
+      if self._sv.talisman_uri then
+         local location = radiant.entities.get_world_grid_location(self._entity)
+         local player_id = radiant.entities.get_player_id(self._entity)
+         local output_table = {}
+         output_table[self._sv.talisman_uri] = 1
+         --TODO: is it possible that this gets dumped onto an inaccessible location?
+         local items = radiant.entities.spawn_items(output_table, location, 1, 2, player_id)
 
-      for id, obj in pairs(items) do
-         if obj:get_component('stonehearth:promotion_talisman') then
-            self:_call_job('associate_entities_to_talisman', obj)
-            return obj
+         for id, obj in pairs(items) do
+            if obj:get_component('stonehearth:promotion_talisman') then
+               self:_call_job('associate_entities_to_talisman', obj)
+               return obj
+            end
          end
       end
    end
@@ -157,7 +161,7 @@ end
 -- @job_uri - uri of the job we're promoting to
 -- @talisman_entity - specific talisman associated with this job, optional
 function JobComponent:promote_to(job_uri, options)
-   local is_npc = options and options.is_npc
+   local is_npc = stonehearth.player:is_npc(self._entity)
    local talisman_entity = options and options.talisman
 
    self._job_json = radiant.resources.load_json(job_uri, true)

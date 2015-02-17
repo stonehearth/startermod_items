@@ -33,9 +33,14 @@ $(document).ready(function(){
       }
    });
 
-   radiant.console.register('kill_entity', {
+   radiant.console.register('kill', {
       call: function(cmdobjs, fn, args) {
-         var entity = 'object://game/' + args[0]
+         var entity;
+         if (args.length > 0) {
+            entity = 'object://game/' + args[0];
+         } else {
+            entity = selected;
+         }
          return radiant.call('stonehearth:kill_entity', entity);
       }
    });

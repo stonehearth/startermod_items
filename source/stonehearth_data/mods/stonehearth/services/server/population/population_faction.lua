@@ -12,6 +12,7 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
       self._sv.citizens = {}
       self._sv.citizen_scores = {}
       self._sv.notifications = {}
+      self._sv.is_npc = true
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
 
@@ -30,6 +31,15 @@ end
 
 function PopulationFaction:get_player_id()
    return self._sv.player_id
+end
+
+function PopulationFaction:is_npc()
+   return self._sv.is_npc
+end
+
+function PopulationFaction:set_is_npc(value)
+   self._sv.is_npc = value
+   self.__saved_variables:mark_changed()
 end
 
 function PopulationFaction:create_town_name()
