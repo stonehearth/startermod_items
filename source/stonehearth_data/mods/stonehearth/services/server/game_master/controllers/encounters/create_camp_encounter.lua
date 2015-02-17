@@ -147,12 +147,14 @@ function CreateCamp:_add_piece(piece)
    local z = piece.position.y
    local rot = piece.rotation
 
-   local origin = self._sv.ctx.enemy_location + Point3(x, 0, z)
+   local ctx = self._sv.ctx
+   local player_id = ctx.enemy_player_id
+   local origin = ctx.enemy_location + Point3(x, 0, z)
    
    -- add all the entities.
    if piece.info.entities then
       for name, info in pairs(piece.info.entities) do
-         local entity = radiant.entities.create_entity(info.uri, { owner = ctx.enemy_player_id })
+         local entity = radiant.entities.create_entity(info.uri, { owner = player_id })
          local offset = Point3(info.location.x, info.location.y, info.location.z)
          radiant.terrain.place_entity(entity, origin + offset, { force_iconic = info.force_iconic })
 
