@@ -566,6 +566,7 @@ extern PFNGLGETCOMPRESSEDTEXIMAGEPROC glGetCompressedTexImage;
 #define GL_TEXTURE_COMPARE_MODE           0x884C
 #define GL_TEXTURE_COMPARE_FUNC           0x884D
 #define GL_COMPARE_R_TO_TEXTURE           0x884E
+#define GL_DEPTH24_STENCIL8               0x88F0
 
 typedef void (GLAPIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
 typedef void (GLAPIENTRYP PFNGLMULTIDRAWARRAYSPROC) (GLenum mode, GLint *first, GLsizei *count, GLsizei primcount);
@@ -1059,6 +1060,7 @@ namespace h3dGL
 #define GL_COLOR_ATTACHMENT15_EXT                           0x8CEF
 #define GL_DEPTH_ATTACHMENT_EXT                             0x8D00
 #define GL_STENCIL_ATTACHMENT_EXT                           0x8D20
+#define GL_DEPTH_STENCIL_ATTACHMENT_EXT                     0x84F9
 #define GL_FRAMEBUFFER_EXT                                  0x8D40
 #define GL_RENDERBUFFER_EXT                                 0x8D41
 #define GL_RENDERBUFFER_WIDTH_EXT                           0x8D42

@@ -171,7 +171,7 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
    }
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
-	_depthFormat = GL_DEPTH_COMPONENT24;
+	_depthFormat = GL_DEPTH24_STENCIL8;
 	uint32 testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 
 	if( testBuf == 0 )
 	{	
@@ -1037,6 +1037,7 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 		rb.depthTex = texObj;
 		// Attach the texture
 		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
 
 		if( samples > 0 )
 		{
@@ -1050,7 +1051,7 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rb.depthBuf );
 			glRenderbufferStorageMultisampleEXT( GL_RENDERBUFFER_EXT, rb.samples, _depthFormat, rb.width, rb.height );
 			// Attach the renderbuffer
-			glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+			glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT_EXT,
 			                              GL_RENDERBUFFER_EXT, rb.depthBuf );
 		}
 	}
@@ -1155,7 +1156,7 @@ uint32 RenderDevice::aliasRenderBuffer(uint32 rbTargetObj, int bufIdx)
       glBindTexture(GL_TEXTURE_2D, 0);
 		rb.depthTex = rbTarget.depthTex;
 		// Attach the texture
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0);
+		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0);
 	}
 
 	uint32 rbObj = _rendBufs.add(rb);
