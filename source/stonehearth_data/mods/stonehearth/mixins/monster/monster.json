@@ -33,7 +33,9 @@
             "stonehearth:actions:combat:set_global_attack_cooldown",
             "stonehearth:actions:combat:wait_for_global_attack_cooldown",
             "stonehearth:actions:set_posture"
-         ],
+         ]
+      },
+      "stonehearth:observers" : {
          "observers": [
             "stonehearth:observers:aggro",
             "stonehearth:observers:find_target",

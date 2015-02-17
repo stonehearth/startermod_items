@@ -88,7 +88,9 @@
             "stonehearth:actions:upgrade_equipment",
             "stonehearth:actions:find_equipment_upgrade",
             "stonehearth:actions:party:destroy_items_in_stockpile"
-         ],
+         ]
+      },
+      "stonehearth:observers" : {
          "observers": [
             "stonehearth:observers:aggro",
             "stonehearth:observers:find_target",
