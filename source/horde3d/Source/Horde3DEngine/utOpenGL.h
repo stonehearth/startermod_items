@@ -273,6 +273,7 @@ typedef uint64          GLuint64;
 #define GL_RGB                            0x1907
 #define GL_RGBA                           0x1908
 #define GL_LUMINANCE                      0x1909
+#define GL_RG                             0x8227
 
 #define GL_POINT                          0x1B00
 #define GL_LINE                           0x1B01
@@ -318,6 +319,8 @@ typedef uint64          GLuint64;
 #define GL_RGBA12                         0x805A
 #define GL_RGBA16                         0x805B
 #define GL_R32F                           0x822E
+#define GL_R8                             0x8229
+#define GL_RG8                            0x822B
 
 #define GL_PROXY_TEXTURE_1D               0x8063
 #define GL_PROXY_TEXTURE_2D               0x8064

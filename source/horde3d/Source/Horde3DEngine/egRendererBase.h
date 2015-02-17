@@ -177,7 +177,9 @@ struct TextureFormats
 		RGBA32F,
 		DEPTH,
       A8,
-      R32
+      R32,
+      RG8,
+      R8
 	};
 };
 

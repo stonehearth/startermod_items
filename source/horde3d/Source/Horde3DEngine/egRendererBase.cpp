@@ -461,6 +461,12 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
    case TextureFormats::R32:
       tex.glFmt = GL_R32F;
       break;
+   case TextureFormats::R8:
+      tex.glFmt = GL_R8;
+      break;
+   case TextureFormats::RG8:
+      tex.glFmt = GL_RG8;
+      break;
 	default:
 		ASSERT( 0 );
 		break;
@@ -580,6 +586,14 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
    case TextureFormats::R32:
       inputFormat = GL_RED;
       inputType = GL_FLOAT;
+      break;
+   case TextureFormats::R8:
+      inputFormat = GL_RED;
+      inputType = GL_UNSIGNED_BYTE;
+      break;
+   case TextureFormats::RG8:
+      inputFormat = GL_RG;
+      inputType = GL_UNSIGNED_BYTE;
       break;
 	};
 	
