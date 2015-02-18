@@ -48,12 +48,15 @@ function FindStockpileForBackpackItem:start_thinking(ai, entity, args)
    end
 
    self._ready = false
+   self._thinking = true
    self:_create_listeners()
    self:_start_searching()
 end
 
 function FindStockpileForBackpackItem:stop_thinking(ai, entity, args)
+   self._thinking = false
    self:_stop_searching()
+   self:_destroy_listeners()
 end
 
 function FindStockpileForBackpackItem:_create_listeners()
@@ -78,7 +81,7 @@ end
 
 function FindStockpileForBackpackItem:_start_searching()
    self:_stop_searching()
-   if self._ready then
+   if self._ready or not self._thinking then
       return
    end
 
