@@ -66,7 +66,9 @@ end
 -- radiant.events.listen(sender, 'event_name', object, method)
 -- radiant.events.listen(sender, 'event_name', function)
 function events.listen(object, event, self, fn)
-   assert(object and event and self)
+   assert(object)
+   assert(event)
+   assert(self)
 
    local key = events._convert_object_to_key(object)
    if not events._senders[key] then

@@ -16,6 +16,12 @@ function radiant.size(t)
    return c
 end
 
+function radiant.report_traceback(err)
+   local traceback = debug.traceback()
+   _host:report_error(err, traceback)
+   return err
+end
+
 function radiant.alloc_region3()
    if _radiant.client then
       return _radiant.client.alloc_region3()
