@@ -25,10 +25,13 @@
    <CommandQueue>
       <Stage id="Init">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
+
+         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
 
          <SwitchTarget target="Bloom" />
-         <ClearTarget colBuf0="true" depthBuf="true"/>
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
 
          <SwitchTarget target="LightAccumulation" />
          <ClearTarget colBuf0="true" depthBuf="false"/>
@@ -37,11 +40,12 @@
          <ClearTarget colBuf0="true" depthBuf="false" />
          
          <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
+         
          <SwitchTarget target="EdgeTex" />
-         <ClearTarget colBuf0="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
          <SwitchTarget target="BlendWeights" />
-         <ClearTarget colBuf0="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
       </Stage>
 
       <Stage id="Attributes">
@@ -112,7 +116,6 @@
 
       <Stage id="Selected">
          <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true" depthBuf="true"/>
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
          <SwitchTarget target="Albedo" />
