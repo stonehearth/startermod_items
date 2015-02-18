@@ -197,8 +197,8 @@
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
-      "monsters:goblins:armor:miniboss_crown" : "file(entities/monsters/goblins/armor/miniboss_crown)",
-      "monsters:goblins:armor:back_standard" : "file(entities/monsters/goblins/armor/back_standard)",
+      "monsters:goblins:outfits:footman" : "file(entities/monsters/goblins/outfits/footman_outfit)",
+      "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -386,6 +386,7 @@
       "weapons:short_sword" : "file(entities/weapons/short_sword)",
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
       "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
+      "weapons:giant_bone_axe" : "file(entities/weapons/giant_bone_axe)",
 
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",

@@ -2,25 +2,22 @@
    "type": "entity",
    "mixins" : "stonehearth:mixins:item_properties",
    "components" : {
-      "unit_info" : {
-      },
       "model_variants": {
          "default": {
             "layer": "clothing",
             "models": [
-               "file(back_standard.qb)"
+               "file(footman_outfit.qb)"
             ]
          },
          "female" : {
             "layer": "clothing",
             "models": [
-               "file(back_standard_female.qb)"
+               "file(footman_outfit.qb)"
             ]
          }
       },
       "stonehearth:equipment_piece" : {
-         "render_type" : "merge_with_model",
-         "slot" : "torso"
+         "render_type" : "merge_with_model"
       }
    },
    "entity_data" : {
