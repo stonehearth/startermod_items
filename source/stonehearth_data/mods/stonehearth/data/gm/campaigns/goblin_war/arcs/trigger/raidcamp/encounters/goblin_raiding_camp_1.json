@@ -23,7 +23,7 @@
          "combat_leash_range" : 18,
          "job" : "stonehearth:jobs:footman",
          "equipment" : {
-            "weapon" : "stonehearth:weapons:jagged_cleaver",
+            "weapon" : "stonehearth:weapons:giant_bone_mace",
             "crown" : "stonehearth:monsters:goblins:armor:miniboss_crown",
             "armor" : "stonehearth:monsters:goblins:armor:back_standard"
          }

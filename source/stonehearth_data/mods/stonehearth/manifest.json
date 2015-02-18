@@ -385,6 +385,8 @@
       "weapons:bronze_sword" : "file(entities/weapons/bronze_sword)",
       "weapons:short_sword" : "file(entities/weapons/short_sword)",
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
+      "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
+
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",
 
