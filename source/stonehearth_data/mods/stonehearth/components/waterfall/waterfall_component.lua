@@ -24,22 +24,30 @@ function WaterfallComponent:initialize(entity, json)
 end
 
 function WaterfallComponent:_restore()
+   self:_trace_target()
 end
 
 function WaterfallComponent:destroy()
+   self:_destroy_target_trace()
 end
 
-function WaterfallComponent:set_source_entity(source_entity)
-   self._sv.source_entity = source_entity
+function WaterfallComponent:set_source(source)
+   self._sv.source = source
    self.__saved_variables:mark_changed()
 end
 
-function WaterfallComponent:set_drain_entity(drain_entity)
-   self._sv.drain_entity = drain_entity
+function WaterfallComponent:set_target(target)
+   self._sv.target = target
    self.__saved_variables:mark_changed()
+
+   self:_trace_target()
 end
 
 function WaterfallComponent:set_height(height)
+   if height == self._sv.height then
+      return
+   end
+
    self._sv.height = height
    self._sv.region:modify(function(cursor)
          cursor:clear()
@@ -61,6 +69,43 @@ end
 
 function WaterfallComponent:get_region()
    return self._sv.region:get()
+end
+
+function WaterfallComponent:_trace_target()
+   self:_destroy_target_trace()
+
+   local target = self._sv.target
+   if not target then
+      return
+   end
+
+   local target_water_component = target:add_component('stonehearth:water')
+   self._target_trace = target_water_component.__saved_variables:trace_data('waterfall component')
+      :on_changed(function()
+               self:_update()
+            end
+         )
+      :push_object_state()
+end
+
+function WaterfallComponent:_destroy_target_trace()
+   if self._target_trace then
+      self._target_trace:destroy()
+      self._target_trace = nil
+   end
+end
+
+function WaterfallComponent:_update()
+   local target = self._sv.target
+   if not target then
+      return
+   end
+
+   local target_water_component = target:add_component('stonehearth:water')
+   local water_elevation = target_water_component:get_water_elevation()
+   local waterfall_location = radiant.entities.get_world_grid_location(self._entity)
+   local height = waterfall_location.y - water_elevation
+   self:set_height(height)
 end
 
 return WaterfallComponent
