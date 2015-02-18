@@ -18,7 +18,7 @@ function WaitForClosestStockpileSpace:start_thinking(ai, entity, args)
    self._log = ai:get_log()
 
    local stockpiles = stonehearth.inventory:get_inventory(entity)
-                                             :get_all_stockpiles()
+                                                :get_all_stockpiles()
 
    local shortest_distance
    local closest_stockpile

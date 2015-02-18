@@ -562,6 +562,7 @@
       "actions:clear_item_adjacent" : "file(ai/actions/clear_item_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
+      "actions:drop_carrying_in_stockpile" : "file(ai/actions/drop_carrying_in_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
       "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
@@ -658,8 +659,6 @@
       "actions:shepherd:find_stray_animal" : "file(ai/actions/find_stray_animal_action.lua)",
       "actions:shepherd:wait_for_pasture_vacancy" : "file(ai/actions/wait_for_pasture_vacancy.lua)",
       "actions:shepherd:create_animal_for_pasture" : "file(ai/actions/create_animal_for_pasture.lua)",  
-
-      "actions:party:destroy_items_in_stockpile" : "file(ai/actions/party/destroy_items_in_stockpile_action.lua)",  
 
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
@@ -900,7 +899,9 @@
 
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
 
-      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)"
+      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
+      "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
+      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {

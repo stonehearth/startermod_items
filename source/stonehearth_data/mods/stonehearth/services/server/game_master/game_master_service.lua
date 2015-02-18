@@ -14,7 +14,7 @@ function GameMasterService:initialize()
       self._sv.disabled = {}
       self._sv.campaigns = {}
       self._sv.running_campaigns = {}
-      self._sv.ctx = game_master_lib.create_context()
+      self._sv.ctx = game_master_lib.create_context('root', self)
       self._sv.ctx.player_id = 'player_1'
       self:set_name('gm')
    else
@@ -71,9 +71,7 @@ function GameMasterService:_start_campaign(subtype)
 
    -- every campaign gets a new context which is shared among all arcs
    -- and encounters for that campaign.
-   local ctx = game_master_lib.create_context(self._sv.ctx)
-   ctx.campaign = campaign
-   ctx.campaign_name = name
+   local ctx = game_master_lib.create_context(name, campaign, self._sv.ctx)
    campaign:start(ctx)
 end
 

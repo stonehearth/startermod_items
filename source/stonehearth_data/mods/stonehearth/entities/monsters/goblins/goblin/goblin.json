@@ -60,6 +60,7 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:drop_carrying_in_stockpile",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack_after_cooldown",
             "stonehearth:actions:combat:attack:melee",
@@ -83,8 +84,7 @@
             "stonehearth:actions:free_time:dispatcher",
             "stonehearth:actions:equip_carrying",
             "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade",
-            "stonehearth:actions:party:destroy_items_in_stockpile"
+            "stonehearth:actions:find_equipment_upgrade"
          ]
       },
       "stonehearth:observers" : {

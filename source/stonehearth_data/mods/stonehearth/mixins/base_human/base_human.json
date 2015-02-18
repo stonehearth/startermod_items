@@ -44,6 +44,7 @@
             "stonehearth:actions:clear_item",
             "stonehearth:actions:clear_item_adjacent",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:drop_carrying_in_stockpile",            
             "stonehearth:actions:memorialize_death",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack_after_cooldown",

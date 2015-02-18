@@ -109,7 +109,7 @@ end
 function Arc:_start_encounter(ctx, name, encounter)
    self._log:info('starting encounter "%s"', name)
 
-   local enc_ctx = game_master_lib.create_context(ctx)
+   local enc_ctx = game_master_lib.create_context(name, encounter, ctx)
    enc_ctx.encounter = encounter
    enc_ctx.encounter_name = name
 

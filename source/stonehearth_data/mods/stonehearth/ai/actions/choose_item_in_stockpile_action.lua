@@ -5,7 +5,10 @@ ChooseItemInStockpileAction.name = 'choose item in stockpile'
 ChooseItemInStockpileAction.does = 'stonehearth:choose_item_in_stockpile'
 ChooseItemInStockpileAction.args = {
    stockpile = Entity,     -- the stockpile
-   filter_fn = 'function', -- the function which picks good items
+   filter_fn = {
+      type = 'function', -- the function which picks good items
+      default = stonehearth.ai.NIL
+   }
 }
 ChooseItemInStockpileAction.think_output = {
    item = Entity           -- the chosen item
@@ -20,9 +23,10 @@ function ChooseItemInStockpileAction:start_thinking(ai, entity, args)
    local random_item
    local item_count = 1
    local rng = _radiant.csg.get_default_rng()
+   local filter_fn = args.filter_fn
 
    for id, item in pairs(items) do
-      if args.filter_fn(item) then
+      if filter_fn == nil or filter_fn(item) then
          if not random_item or rng:get_int(1, item_count) == 1 then
             -- the old, "choose a random item from an infinite stream" trick.
             random_item = item
