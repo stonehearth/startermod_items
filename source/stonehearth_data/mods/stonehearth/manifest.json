@@ -450,7 +450,6 @@
       "actions:run_death_effect" : "file(ai/actions/run_death_effect_action.lua)",
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
-      "actions:drop_loot" : "file(ai/actions/drop_loot_action.lua)", 
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",

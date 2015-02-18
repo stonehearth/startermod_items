@@ -39,6 +39,10 @@ function PathFinder:find_path_to_entity(location, item, solved_cb, exhausted_cb)
       end)
 end
 
+function PathFinder:clear_filter_fn_cache_entry(filter_fn)
+   FILTER_RESULT_CACHES[filter_fn] = nil
+end
+
 -- find a path from `location` to any item which matches the `filter_fn`.  All callers
 -- who pass the exact same `location` and `filter_fn` will get a handle to the same bfs pathfinder.
 -- so if 20 callers are all looking for the same thing, we'll only create 1 pathfinder on the
