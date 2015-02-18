@@ -157,7 +157,8 @@
          <UnbindBuffers />
       </Stage>
 
-      <!--Stage id="Bloom">
+      <!-- Don't want to anti-alias bloom, so lets put it after the actual AA pass -->
+      <Stage id="Bloom">
          <SwitchTarget target="Bloom" />
          <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
 
@@ -174,14 +175,12 @@
          <UnbindBuffers/>
       </Stage>
 
-
       <Stage id="DrawBloom">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
          <DrawQuad material="materials/fullscreen_quad.material.json" context="ADD" />
          <UnbindBuffers/>
-      </Stage-->
-
+      </Stage>
 
       <Stage id="Overlays">
          <SwitchTarget target="" />
