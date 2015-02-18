@@ -1439,7 +1439,8 @@
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
       "ladder" : "file(components/ladder/ladder_component.lua)",
       "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
-      "party_member" : "file(components/party_member/party_member_component.lua)"
+      "party_member" : "file(components/party_member/party_member_component.lua)",
+      "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {
       "building" : "file(components/building/building_client_component.lua)",

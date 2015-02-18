@@ -63,6 +63,13 @@ function game_master_lib.create_citizen(population, info, origin)
          ec:equip_item(piece)
       end
    end
+
+   -- info.loot_drops: what does the guy drop when it dies?
+   if info.loot_drops then
+      citizen:add_component('stonehearth:loot_drops')
+                  :set_loot_table(info.loot_drops)
+   end
+
    -- info.location: compute the offset from the origin to place the citizen
    if info.location then
       local x = info.location.x or 0
