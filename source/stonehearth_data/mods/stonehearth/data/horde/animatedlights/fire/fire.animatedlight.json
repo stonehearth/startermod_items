@@ -2,6 +2,7 @@
     "name": "fire",
     "duration": 0.2,
     "loops": true,
+    "loops": true,
     "intensity": {
         "over_lifetime": {
             "kind": "RANDOM_BETWEEN_CURVES",

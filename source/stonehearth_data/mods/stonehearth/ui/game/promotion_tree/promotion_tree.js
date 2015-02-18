@@ -8,7 +8,7 @@ $(document).ready(function(){
 });
 
 App.StonehearthPromotionTree = App.View.extend({
-	templateName: 'promotionTree',
+   templateName: 'promotionTree',
    classNames: ['flex', 'fullScreen'],
    closeOnEsc: true,
 

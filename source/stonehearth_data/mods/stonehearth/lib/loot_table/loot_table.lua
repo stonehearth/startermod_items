@@ -4,14 +4,9 @@ local log = radiant.log.create_logger('loot_table')
 
 local LootTable = class()
 
-function LootTable:__init()
+function LootTable:__init(json)
    self:_clear()
-end
-
--- Entity may be a uri or valid entity
-function LootTable:load_from_entity(entity)
-   local json = radiant.entities.get_entity_data(entity, 'stonehearth:loot_table')
-   self:load_from_json(json)
+   self:_load_from_json(json)
 end
 
 -- Sample json:
@@ -35,7 +30,7 @@ end
 --    a) Array of entries with keys "uri" and "weight"
 --    b) If "uri" is the empty string, no drop is created if it is rolled
 --    c) If "weight" is omitted, defaults to 1. Non-integer values are ok.
-function LootTable:load_from_json(json)
+function LootTable:_load_from_json(json)
    if not json then
       self:_clear()
       return

@@ -43,7 +43,7 @@
                "items" : [
                   "stonehearth:refined:thread",
                   "stonehearth:refined:cloth_bolt",
-                  "stonehearth:decoration:fur_rug",
+                  "stonehearth:decoration:fur_rug"
                ],
                "items_matching" : {
                   "cloth armor" : {                    

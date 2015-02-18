@@ -385,6 +385,8 @@
       "weapons:bronze_sword" : "file(entities/weapons/bronze_sword)",
       "weapons:short_sword" : "file(entities/weapons/short_sword)",
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
+      "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
+
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",
 
@@ -450,7 +452,6 @@
       "actions:run_death_effect" : "file(ai/actions/run_death_effect_action.lua)",
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
-      "actions:drop_loot" : "file(ai/actions/drop_loot_action.lua)", 
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
