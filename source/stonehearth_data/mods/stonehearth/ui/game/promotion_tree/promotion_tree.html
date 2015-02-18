@@ -3,28 +3,7 @@
    <div class="window">
       <div class="title">{{i18n stonehearth:citizens_choose_job_title}}<div class="closeButton"></div></div>
       <div id="content" class="downSection">
-         <table id="jobTable">
-            {{#each view.jobData}}
-               <tr>
-                  <td class="icon">
-                     <div class="jobButton">
-                        <img {{bind-attr src=this.description.icon}} />
-                     </div>
-                  </td>
-                  <td class="description">
-                     <h1>{{this.description.name}}</h1>
-
-                     <div class="requirements">
-                        {{this.description.requirements}}
-                     </div>
-                     <div class="description">
-                        {{this.description.description}}
-                     </div>
-                     <br><br>
-                  </td>
-               </tr>
-            {{/each}}
-         </table>
+         <svg id="treeSvg" width="900" height="800"></svg>
       </div>
       <div id="scroll">
          <div id="inner">
