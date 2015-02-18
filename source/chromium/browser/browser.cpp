@@ -439,16 +439,20 @@ void Browser::OnMouseInput(const MouseInput& mouse)
    BROWSER_LOG(9) << "sending mouse move " << x << ", " << y << ".";
    
    for (auto type : types) {
-      // xxx: until i have time to fix the "right click interpreted as middle click",
-      // just send left clicks.
-      if (type == MBT_LEFT) {
-         if (mouse.down[type]) {
-            host->SendMouseClickEvent(evt, type, false, 1);
-         }
-         if (mouse.up[type]) {
-            host->SendMouseClickEvent(evt, type, true, 1);
-         }
+      if (mouse.down[type]) {
+         host->SendMouseClickEvent(evt, type, false, 1);
       }
+      if (mouse.up[type]) {
+         host->SendMouseClickEvent(evt, type, true, 1);
+      }
+   }
+   if (mouse.wheel != 0) {
+      int delta = mouse.wheel;
+#if defined(WIN32)
+      delta *= WHEEL_DELTA;  // glfw divied by WHEEL_DELTA for us, but chrome wants the raw codes!
+#endif
+      BROWSER_LOG(0) << "sending mouse wheel " << delta;
+      host->SendMouseWheelEvent(evt, delta, delta);
    }
 }
 
