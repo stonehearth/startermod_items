@@ -171,13 +171,23 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
    }
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
-	_depthFormat = GL_DEPTH24_STENCIL8;
+   if (_caps.glVersion >= 30) {
+      _depthFormat = GL_DEPTH24_STENCIL8;
+   } else {
+      _depthFormat = GL_DEPTH_COMPONENT24;
+   }
 	uint32 testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 
-	if( testBuf == 0 )
-	{	
-		_depthFormat = GL_DEPTH_COMPONENT16;
-		Modules::log().writeWarning( "Render target depth precision limited to 16 bit" );
+	if(testBuf == 0 && _depthFormat == GL_DEPTH24_STENCIL8)
+	{
+		Modules::log().writeWarning( "Couldn't get DEPTH24_STENCIL8 on a GL >= 3.0 config.  Trying DEPTH24." );
+      _depthFormat = GL_DEPTH_COMPONENT24;
+   	testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 
 	}
+
+   if(testBuf == 0) {
+		_depthFormat = GL_DEPTH_COMPONENT16;
+		Modules::log().writeWarning( "Render target depth precision limited to 16 bit.  This is probably going to fail...." );
+   }
 	else
 		destroyRenderBuffer( testBuf );
 	
@@ -581,8 +591,13 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 		inputType = GL_FLOAT;
 		break;
 	case TextureFormats::DEPTH:
-		inputFormat = GL_DEPTH_COMPONENT;
-		inputType = GL_FLOAT;
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+   		inputFormat = GL_DEPTH_STENCIL;
+	   	inputType = GL_UNSIGNED_INT_24_8;
+      } else {
+         inputFormat = GL_DEPTH_COMPONENT;
+         inputType = GL_FLOAT;
+      }
       break;
    case TextureFormats::A8:
       inputFormat = GL_LUMINANCE;
@@ -1033,15 +1048,19 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
       //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
       uploadTextureData( texObj, 0, 0, 0x0 );
 		rb.depthTex = texObj;
 		// Attach the texture
-		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
-		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+         // Note: I don't know why we can't use the _EXT version.  If we try, we don't get any attachment errors, but
+         // the buffer doesn't work (either depth or stencil).
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,  GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex.glObj, 0 );
+      } else {
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      }
 
 		if( samples > 0 )
 		{
@@ -1055,8 +1074,14 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rb.depthBuf );
 			glRenderbufferStorageMultisampleEXT( GL_RENDERBUFFER_EXT, rb.samples, _depthFormat, rb.width, rb.height );
 			// Attach the renderbuffer
-			glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT_EXT,
-			                              GL_RENDERBUFFER_EXT, rb.depthBuf );
+
+         if (_depthFormat == GL_DEPTH24_STENCIL8) {
+			   glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
+			                                 GL_RENDERBUFFER_EXT, rb.depthBuf );
+         } else {
+			   glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+			                                 GL_RENDERBUFFER_EXT, rb.depthBuf );
+         }
 		}
 	}
 
@@ -1183,14 +1208,19 @@ uint32 RenderDevice::createRenderBufferWithAliases(uint32 width, uint32 height, 
 
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
       //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
 		rb.depthTex = texObj;
 		// Attach the texture
-		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
-		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+         // Note: I don't know why we can't use the _EXT version.  If we try, we don't get any attachment errors, but
+         // the buffer doesn't work (either depth or stencil).
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,  GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex.glObj, 0 );
+      } else {
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      }
 	}
 
 	uint32 rbObj = _rendBufs.add( rb );

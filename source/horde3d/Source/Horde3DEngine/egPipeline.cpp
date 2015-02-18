@@ -495,6 +495,7 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
       if (node2.getAttribute("depthBuf", nullptr)) {
    		depth = _stricmp(node2.getAttribute("depthBuf"), "true") == 0;
       } else if (node2.getAttribute("depthBufAlias", nullptr)) {
+         depth = true;
          depthAlias = node2.getAttribute("depthBufAlias");
       } else {
          return raiseError("Missing RenderTarget attribute 'depthBuf'");
@@ -520,7 +521,7 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
          }
       }
 
-      if (depth || depthAlias != "") {
+      if (depth) {
          aliases.push_back(RenderTargetAlias());
          if (depthAlias != "") {
             aliases.back().targetAlias = depthAlias;
