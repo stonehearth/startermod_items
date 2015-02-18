@@ -451,7 +451,7 @@ void Browser::OnMouseInput(const MouseInput& mouse)
 #if defined(WIN32)
       delta *= WHEEL_DELTA;  // glfw divied by WHEEL_DELTA for us, but chrome wants the raw codes!
 #endif
-      BROWSER_LOG(0) << "sending mouse wheel " << delta;
+      BROWSER_LOG(9) << "sending mouse wheel " << delta;
       host->SendMouseWheelEvent(evt, delta, delta);
    }
 }
