@@ -73,7 +73,7 @@ local function destroy_child_entities(entity)
          ec_children[id] = child
       end         
       for id, child in pairs(ec_children) do
-         entities.destroy_entity(child)
+         radiant.entities.destroy_entity(child)
       end
    end   
 end
