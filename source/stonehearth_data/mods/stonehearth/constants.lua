@@ -74,7 +74,6 @@ local constants = {
       trapping = {
          SURVEY_TRAPPING_GROUNDS = 1,
          SET_TRAPS = 2,
-         UNLOAD_BACKPACK = 3,
          CHECK_TRAPS = 3,
          PICK_UP_LOOT = 10,
       },

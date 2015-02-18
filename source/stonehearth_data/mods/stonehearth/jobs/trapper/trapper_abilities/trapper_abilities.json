@@ -17,8 +17,7 @@
                "stonehearth:actions:trapping:set_bait_trap_adjacent",
                "stonehearth:actions:trapping:check_bait_trap",
                "stonehearth:actions:trapping:find_trap_in_trapping_grounds",
-               "stonehearth:actions:trapping:harvest_trapped_beast",
-               "stonehearth:actions:trapping:unload_backpack"
+               "stonehearth:actions:trapping:harvest_trapped_beast"
             ],
             "observers" : [
                "stonehearth:observers:combat_panic",
