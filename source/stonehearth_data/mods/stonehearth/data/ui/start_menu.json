@@ -45,6 +45,22 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
             "sticky" : true,
             "hotkey" : "g"
+         },
+         "mining_ui" : {
+            "name" : "Mine",
+            "description" : "Mine out tunnels and caves",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "m"
+         },
+         "mine_block" : {
+            "name" : "Mine Block",
+            "description" : "Mine individual blocks",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "n"
          }
       }
    },
