@@ -71,7 +71,7 @@ function promote_tests.progression_test(autotest)
 
    -- when the farm widget pops up, pick the turnip crop
    autotest.ui:click_dom_element('#farmWindow #addCropLink')
-   autotest.ui:click_dom_element('div[crop="stonehearth:crops:tester_crop"]')
+   autotest.ui:click_dom_element('[crop="stonehearth:crops:tester_crop"]')
 
    -- click ok to close the dialog
    autotest.ui:click_dom_element('#farmWindow .ok')
