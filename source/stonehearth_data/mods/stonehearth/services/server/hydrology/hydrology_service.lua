@@ -1,3 +1,4 @@
+local csg_lib = require 'lib.csg.csg_lib'
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
@@ -113,7 +114,7 @@ function HydrologyService:link_waterfall_channel(from_entity, from_location)
 
    if not channel then
       local to_entity, to_location = self:_get_waterfall_target(from_location)
-      local waterfall = self:_create_waterfall(from_location, to_location)
+      local waterfall = self:_create_waterfall(from_entity, from_location, to_entity, to_location)
       channel = self:_add_channel(from_entity, from_location, to_entity, to_location, 'waterfall', waterfall)
    end
    return channel
@@ -211,12 +212,14 @@ function HydrologyService:_add_channel(from_entity, from_location, to_entity, to
    return channel
 end
 
-function HydrologyService:_create_waterfall(from_location, to_location)
-   local entity = radiant.entities.create_entity('stonehearth:terrain:waterfall')
-   radiant.terrain.place_entity_at_exact_location(entity, from_location)
-   local waterfall_component = entity:add_component('stonehearth:waterfall')
+function HydrologyService:_create_waterfall(from_entity, from_location, to_entity, to_location)
+   local waterfall = radiant.entities.create_entity('stonehearth:terrain:waterfall')
+   radiant.terrain.place_entity_at_exact_location(waterfall, from_location)
+   local waterfall_component = waterfall:add_component('stonehearth:waterfall')
    waterfall_component:set_height(from_location.y - to_location.y)
-   return entity
+   waterfall_component:set_source(from_entity)
+   waterfall_component:set_target(to_entity)
+   return waterfall
 end
 
 function HydrologyService:calculate_channel_flow_rate(channel)
