@@ -77,8 +77,9 @@ uniform sampler2D colorTex;
 uniform sampler2D blendTex;
 uniform vec4 frameBufSize;
 
-varying vec2 texcoord;
-varying vec4 offset[2];
+in vec2 texcoord;
+in vec4 offset[2];
+out vec4 fragColor;
 
 void main() {
     // Fetch the blending weights for current pixel:
@@ -89,7 +90,7 @@ void main() {
 
     // Is there any blending weight with a value greater than 0.0?
     if (dot(a, vec4(1.0, 1.0, 1.0, 1.0)) < 1e-5) {
-        gl_FragColor = textureLod(colorTex, texcoord, 0.0);
+        fragColor = textureLod(colorTex, texcoord, 0.0);
     } else {
         vec2 pixelSize = frameBufSize.zw;
         vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
@@ -113,7 +114,7 @@ void main() {
             // neighbor:
 
 
-            gl_FragColor = textureLod(colorTex, texcoord + offset * pixelSize, 0.0);
+            fragColor = textureLod(colorTex, texcoord + offset * pixelSize, 0.0);
 
 
         /*else
@@ -122,7 +123,7 @@ void main() {
             texcoord += sign(offset) * pixelSize;
             vec4 Cop = textureLod(colorTex, texcoord, 0.0);
             float s = abs(offset.x) > abs(offset.y)? abs(offset.x) : abs(offset.y);
-            gl_FragColor = mix(C, Cop, s);
+            fragColor = mix(C, Cop, s);
         endif*/
     }
 }

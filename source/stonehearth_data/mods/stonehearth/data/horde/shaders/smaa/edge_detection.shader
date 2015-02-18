@@ -104,8 +104,9 @@ endif*/
 
 uniform sampler2D depthTex;
 uniform sampler2D colorTex;
-varying vec2 texcoord;
-varying vec4 offset[3];
+in vec2 texcoord;
+in vec4 offset[3];
+out vec4 fragColor;
 
 
 /**
@@ -239,7 +240,7 @@ void main() {
     // Local contrast adaptation in action:
     edges.xy *= step(0.5 * maxDelta, delta.xy);
 
-    gl_FragColor = vec4(edges, 0.0, 0.0);
+    fragColor = vec4(edges, 0.0, 0.0);
 }
 
 /**
@@ -254,5 +255,5 @@ void main() {
         discard;
     }
 
-    gl_FragColor = vec4(edges, 0.0, 0.0);
+    fragColor = vec4(edges, 0.0, 0.0);
 }*/

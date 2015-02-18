@@ -23,7 +23,7 @@ sampler2D depthBuffer = sampler_state
 
 
 [[FS]]
-#version 400
+#version 130
 
 #include "shaders/utilityLib/vertCommon_400.glsl"
 #include "shaders/utilityLib/ssaoSamplerKernel.glsl"

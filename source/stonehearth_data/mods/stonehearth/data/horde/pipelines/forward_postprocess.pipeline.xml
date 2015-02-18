@@ -53,7 +53,7 @@
          <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3" />
       </Stage>
 
-      <!--Stage id="Collect SSAO">
+      <Stage id="Collect SSAO">
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
@@ -65,7 +65,7 @@
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
          <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
          <UnbindBuffers />
-      </Stage-->
+      </Stage>
 
 
       <Stage id="Light">
@@ -77,12 +77,12 @@
          <UnbindBuffers />
       </Stage>
 
-      <!--Stage id="SSAO Contribution">
+      <Stage id="SSAO Contribution">
          <SwitchTarget target="LightAccumulation" />
          <BindBuffer sampler="buf0" sourceRT="SSAOBlur" bufIndex="0" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="SUB" />
          <UnbindBuffers />
-      </Stage-->
+      </Stage>
 
       <!--Stage id="FowAndClouds">
          <SwitchTarget target="LightAccumulation" />

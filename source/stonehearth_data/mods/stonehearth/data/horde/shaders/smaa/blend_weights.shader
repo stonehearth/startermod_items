@@ -129,10 +129,10 @@ uniform sampler2D edgesTex;
 uniform sampler2D areaTex;
 uniform sampler2D searchTex;
 
-varying vec2 texcoord;
-varying vec2 pixcoord;
-varying vec4 offset[3];
-
+in vec2 texcoord;
+in vec2 pixcoord;
+in vec4 offset[3];
+out vec4 fragColor;
 
 /** 
  * Ok, we have the distance and both crossing edges. So, what are the areas
@@ -297,5 +297,5 @@ void main() {
         SMAADetectVerticalCornerPattern(edgesTex, weights.ba, texcoord, d);
     }
 
-    gl_FragColor = weights;
+    fragColor = weights;
 }
