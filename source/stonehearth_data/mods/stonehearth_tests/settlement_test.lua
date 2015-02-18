@@ -26,6 +26,7 @@ function SettlementTest:__init()
                               :create_stockpile(Point3(x, 1, z), Point2(4, 4))
       self:place_item_cluster('stonehearth:furniture:comfy_bed', x, z, 4, 4)
    end
+   self:place_item_cluster('stonehearth:furniture:comfy_bed', -4, 14, 2, 2)
 
    create_stockpile(14, 14)
    create_stockpile(10, 8)

@@ -14,8 +14,8 @@
       "radius" : 18,
       
       "spawn_range" : {
-         "min" : 100,
-         "max" : 120
+         "min" : 120,
+         "max" : 140
       },
 
       "boss" : {

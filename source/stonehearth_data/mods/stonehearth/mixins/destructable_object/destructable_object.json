@@ -18,8 +18,8 @@
       }
    },
    "entity_data" : {
-      "on_destroy" : {
+      "stonehearth:on_destroy" : {
          "effect": "/stonehearth/data/effects/object_destroyed/object_destroyed.json"
-      }      
-   }   
+      }
+   }
 }

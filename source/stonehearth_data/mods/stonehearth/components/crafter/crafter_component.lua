@@ -35,7 +35,6 @@ function CrafterComponent:initialize(entity, json)
    self:_determine_maintain()
    self._added_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', self, self._on_stockpiles_changed)
    self._removed_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_removed', self, self._on_stockpiles_changed)
-
 end
 
 function CrafterComponent:destroy()

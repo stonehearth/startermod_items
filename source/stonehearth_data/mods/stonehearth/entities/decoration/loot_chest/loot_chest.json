@@ -41,7 +41,7 @@
       }      
    },
    "entity_data" : {
-      "stonehearth:loot_table" : {
+      "stonehearth:destroyed_loot_table" : {
          "num_rolls" : {
             "min" : 6,
             "max" : 10

@@ -61,7 +61,12 @@ end
 
 function FindStockpileForBackpackItem:_create_listeners()
    if not self._stockpile_item_listener then
-      self._stockpile_item_listener = radiant.events.listen(self._entity, 'stonehearth:inventory:stockpile_added', self, self._start_searching)
+      local inventory = stonehearth.inventory:get_inventory(self._entity)
+      if inventory then
+         self._stockpile_item_listener = radiant.events.listen(inventory, 'stonehearth:inventory:stockpile_added', function()
+               self:_start_searching()
+            end)
+      end
    end
    if not self._backpack_listener then
       self._backpack_listener = radiant.events.listen(self._entity, 'stonehearth:backpack:item_added', self, self._start_searching)
@@ -69,11 +74,11 @@ function FindStockpileForBackpackItem:_create_listeners()
 end
 
 function FindStockpileForBackpackItem:_destroy_listeners()
-   if not self._stockpile_item_listener then
+   if self._stockpile_item_listener then
       self._stockpile_item_listener:destroy()
       self._stockpile_item_listener = nil
    end
-   if not self._backpack_listener then
+   if self._backpack_listener then
       self._backpack_listener:destroy()
       self._backpack_listener = nil
    end
@@ -94,11 +99,13 @@ function FindStockpileForBackpackItem:_start_searching()
       return
    end
 
-   self._pathfinder = entity:add_component('stonehearth:pathfinder')
-                                 :find_path_to_entity_type(ai.CURRENT.location,
-                                                           self._filter_fn,
-                                                           'find stockpile for backpack',
-                                                           self._solved_cb)
+   local pf = entity:add_component('stonehearth:pathfinder')
+
+   pf:clear_filter_fn_cache_entry(self._filter_fn)
+   self._pathfinder = pf:find_path_to_entity_type(ai.CURRENT.location,
+                             self._filter_fn,
+                             'find stockpile for backpack',
+                             self._solved_cb)
 end
 
 function FindStockpileForBackpackItem:_stop_searching()

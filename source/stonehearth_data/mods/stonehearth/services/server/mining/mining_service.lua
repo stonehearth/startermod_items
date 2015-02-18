@@ -315,9 +315,7 @@ function MiningService:_init_loot_tables()
    self._loot_tables = {}
 
    for block_kind, loot_json in pairs(json) do
-      local loot_table = LootTable()
-      loot_table:load_from_json(loot_json)
-      self._loot_tables[block_kind] = loot_table
+      self._loot_tables[block_kind] = LootTable(loot_json)
    end
 end
 

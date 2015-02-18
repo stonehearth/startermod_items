@@ -12,10 +12,6 @@ App.StonehearthPromotionTree = App.View.extend({
    classNames: ['flex', 'fullScreen'],
    closeOnEsc: true,
 
-   components: {
-      "jobs" : {}
-   },
-
    didInsertElement: function() {
       radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:promotion_menu:scroll_open' });
       this._super();
@@ -24,7 +20,15 @@ App.StonehearthPromotionTree = App.View.extend({
 
       self._jobButtons = {};
 
-      self.jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', self.components);
+      var components = {
+         "jobs" : {
+            "*" : {
+               "description" : {} 
+            }
+         }
+      };
+
+      self.jobsTrace = new StonehearthDataTrace('stonehearth:jobs:index', components);
       self.jobsTrace.progress(function(eobj) {
             self._jobs = eobj.jobs;
             self._initCitizen();            
@@ -47,10 +51,46 @@ App.StonehearthPromotionTree = App.View.extend({
       self._citizenTrace.progress(function(o) {
             self._startingJob = o['stonehearth:job'].job_uri;
             self._citizenJobData = o['stonehearth:job'].job_controllers;
-            self._buildTree();
+            //self._buildTree();
+            //self._buildJobList();
+            self._jobData();
             self.set('citizen', o);
             self._citizenTrace.destroy();               
          })
+   },
+
+   _jobData: function() {
+      var self = this;
+      // for each job, determine if it's available based on the tools that are
+      // in the world
+      self.set('selectedJobAlias', self._startingJob);
+
+      radiant.call('stonehearth:get_talismans_in_explored_region')
+         .done(function(o) {
+            $.each(o.available_jobs, function(key, jobAlias) {
+               //Only add this if the talisman is in the world AND if the reqirements are met
+
+               var requirementsMet = self._calculateRequirementsMet(jobAlias);
+               if (requirementsMet) {
+                  self._jobs[jobAlias].available = true;
+               }
+            })
+
+            //The worker job is always available
+            self._jobs['stonehearth:jobs:worker'].available = true;
+
+            var array = radiant.map_to_array(self._jobs);
+
+            self.set('jobData', array);
+
+            self._addTreeHandlers();
+            self._updateUi(self._startingJob);
+         });  
+   },
+
+   _buildJobList: function() {
+      self = this;
+      var jobTable = self.$('#jobTable');
    },
 
    _buildTree: function() {
@@ -186,14 +226,16 @@ App.StonehearthPromotionTree = App.View.extend({
    _addTreeHandlers: function() {
       var self = this;
 
+      // XXX, fix click handlers.
       self.$('.jobButton').click(function() {
          var jobAlias = $(this).attr('id');
+         self._selectedJobAlias = jobAlias
          self._updateUi(jobAlias);
       });
 
       self.$('#approveStamper').click(function() {
          self._animateStamper(); 
-         self._promote(self.get('selectedJob.alias'));
+         self._promote(self._selectedJobAlias);
       })
    },
 
@@ -210,34 +252,39 @@ App.StonehearthPromotionTree = App.View.extend({
 
    _updateUi: function(jobAlias) {
       var self = this;
-      var selectedJob;
 
+      radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
+      /*
       $.each(self._jobs, function(i, job) {
          if (job.alias == jobAlias) {
             selectedJob = job;
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
          }
       })
+      */
 
       // move the cursor
+      // xxx, turn this back on later
+      /*
       $(self._jobCursor)
          .attr('x', self._layout[jobAlias].x - 5)
          .attr('y', self._layout[jobAlias].y - 4);
+      */
 
       // tell handlebars about changes
-      self.set('selectedJob', selectedJob);
+      self.set('selectedJobAlias', jobAlias);
 
-      var requirementsMet = self._jobButtons[jobAlias].hasClass('available') || selectedJob.alias == self._startingJob; //self._calculateRequirementsMet(jobAlias, selectedJob); //
+      var requirementsMet = self._jobs[jobAlias].available || jobAlias == self._startingJob;
       
       //Need to also check if the class requires another class as a pre-req
       //For example: if the parent job is NOT worker, we need to be level 3 at that job in order to allow upgrade
 
-      var promoteOk = selectedJob.alias != self._startingJob && requirementsMet;
+      var promoteOk = jobAlias != self._startingJob && requirementsMet;
 
       self.set('requirementsMet', requirementsMet);
       self.set('promoteOk', promoteOk);
 
-      if (selectedJob.alias == self._startingJob) {
+      if (jobAlias == self._startingJob) {
          self.$('#scroll').hide();
       } else {
          self.$('#scroll').show();
@@ -260,15 +307,19 @@ App.StonehearthPromotionTree = App.View.extend({
    //True if the current job is worker or has a parent that is the worker class
    //If there is a parent job and a required level of the parent job,
    //take that into consideration also
-   _calculateRequirementsMet: function(jobAlias, selectedJob) {
+   _calculateRequirementsMet: function(jobAlias) {
       var self = this;
       var requirementsMet = false;
 
-      if (jobAlias == 'stonehearth:jobs:worker' || selectedJob.parent_job == 'stonehearth:jobs:worker') {
+      var jobDescription = self._jobs[jobAlias].description;
+      var selectedJobAlias = self.get('selectedJobAlias');
+      var selectedJob = self._jobs[selectedJobAlias].description;
+
+      if (jobAlias == 'stonehearth:jobs:worker' || jobDescription.parent_job == 'stonehearth:jobs:worker') {
          return true;
       }
 
-      if (selectedJob.parent_job != undefined) {
+      if (jobDescription.parent_job != undefined) {
          var parentJobController = self._citizenJobData[selectedJob.parent_job];
          var parentRequiredLevel = selectedJob.parent_level_requirement;
          
