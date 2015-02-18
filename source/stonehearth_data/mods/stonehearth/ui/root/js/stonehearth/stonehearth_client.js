@@ -395,6 +395,23 @@ var StonehearthClient;
          });
       },
 
+
+      boxLootItems: function() {
+         var self = this;
+         var tip = self.showTip('stonehearth:loot_item_tip_title', 'stonehearth:loot_item_tip_description', {i18n : true});
+
+         return this._callTool('boxLootItems', function() {
+            return radiant.call('stonehearth:box_loot_items')
+               .done(function(response){
+                  radiant.call('stonehearth:server_box_loot_items', response.box)
+                  self.boxLootItems();
+               })
+               .fail(function(response){
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       boxCancelTask: function() {
          var self = this;
 

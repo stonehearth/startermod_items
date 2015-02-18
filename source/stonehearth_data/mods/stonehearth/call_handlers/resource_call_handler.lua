@@ -189,4 +189,40 @@ function ResourceCallHandler:server_box_cancel_task(session, response, box)
    end
 end
 
+--Drag out an area. Any harvest/clear tasks in the box will be destroyed
+function ResourceCallHandler:box_loot_items(session, response) 
+   stonehearth.selection:select_xz_region()
+      :require_supported(true)
+      --Change this color to something else
+      :use_outline_marquee(Color4(255, 235, 0, 32), Color4(255, 235, 0, 255))
+      --Change this cursor to something else
+      :set_cursor('stonehearth:cursors:loot')
+      --I still don't know what this does
+      :set_find_support_filter(function(result)
+            if result.entity:get_component('terrain') then
+               return true
+            end
+            return stonehearth.selection.FILTER_IGNORE
+         end)
+      :done(function(selector, box)
+            response:resolve({ box = box })
+         end)
+      :fail(function(selector)            
+            response:reject('no region')
+         end)
+      :go()
+end
+
+function ResourceCallHandler:server_box_loot_items(session, response, box)
+   local cube = Cube3(Point3(box.min.x, box.min.y, box.min.z),
+                      Point3(box.max.x, box.max.y, box.max.z))
+
+   local entities = radiant.terrain.get_entities_in_cube(cube)
+   
+   local town = stonehearth.town:get_town(session.player_id)
+   for _, entity in pairs(entities) do
+      town:loot_item(entity)
+   end
+end
+
 return ResourceCallHandler
