@@ -1,0 +1,27 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "cubemitter": {
+         "type": "cubemitter",
+         "cubemitter": "particles/dust_poof/object_destroyed.cubemitter.json",
+         "loop": true,
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+     "sound": {
+         "type": "sound_effect",
+         "loop" : true,
+         "start_time": 400,
+         "min_distance": 40,
+         "falloff" : 2.5,
+         "volume": 70,
+         "track" : "stonehearth:sounds:firepit_loop_sound"        
+      }
+   }
+}

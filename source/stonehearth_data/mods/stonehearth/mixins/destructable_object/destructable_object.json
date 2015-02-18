@@ -19,7 +19,7 @@
    },
    "entity_data" : {
       "on_destroy" : {
-         "effect": "/stonehearth/data/effects/clear_effect/clear_effect.json"
-      }
-   }
+         "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
+      }      
+   }   
 }
