@@ -169,14 +169,17 @@ function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
 
    local bulletin = self._sv.bulletin
    if not bulletin then
+      -- set all constant data for all bulletins in the encounter
       bulletin = stonehearth.bulletin_board:post_bulletin(ctx.player_id)
                                     :set_callback_instance(self)
                                     :set_type('quest')
                                     :set_sticky(true)
-                                    :set_keep_open(opt_keep_open)
                                     :set_close_on_handle(false)
       self._sv.bulletin = bulletin
    end
+
+   -- set data that might change when the bulltin is recycled
+   bulletin:set_keep_open(opt_keep_open)
 
    self._sv.bulletin_data = radiant.shallow_copy(new_bulletin_data)
    self.__saved_variables:mark_changed()

@@ -16,6 +16,14 @@
             "sticky" : true,
             "hotkey" : "h"
          },
+         "mining_ui" : {
+            "name" : "Mine",
+            "description" : "Mine out tunnels and caves",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "m"
+         },         
          "cancel_task" : {
             "name" : "Cancel Task",
             "description" : "Cancel tasks on this object",
@@ -32,7 +40,7 @@
          },
          "loot_item" : {
             "name" : "Loot",
-            "description" : "Loot items",
+            "description" : "Steal items from another player.",
             "class" : "button",
             "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
             "sticky" : true,
@@ -45,6 +53,14 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
             "sticky" : true,
             "hotkey" : "m"
+         },
+         "mine_block" : {
+            "name" : "Mine Block",
+            "description" : "Mine individual blocks",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/mine.png",
+            "sticky" : true,
+            "hotkey" : "n"
          }
       }
    },

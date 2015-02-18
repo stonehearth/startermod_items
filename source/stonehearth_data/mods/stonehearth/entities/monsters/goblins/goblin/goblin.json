@@ -16,17 +16,14 @@
                      "file(goblin_head_2.qb)", 
                      "file(goblin_head_3.qb)",
                      "file(goblin_head_4.qb)",
-                     "file(goblin_head_5.qb)",
-                     "file(goblin_head_6.qb)"
+                     "file(goblin_head_5.qb)"
                   ]
                },
                {
                   "type": "one_of",
                   "items": [
                      "file(goblin_armor_none.qb)", 
-                     "file(goblin_armor_vest.qb)", 
-                     "file(goblin_armor_leather.qb)", 
-                     "file(goblin_armor_breastplate.qb)"
+                     "file(goblin_armor_vest.qb)"
                   ]
                }
             ]

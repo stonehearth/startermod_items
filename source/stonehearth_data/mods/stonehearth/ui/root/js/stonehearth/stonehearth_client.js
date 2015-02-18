@@ -514,18 +514,18 @@ var StonehearthClient;
          });
       },
 
-      digDown: function() {
+      mineCube: function() {
          var self = this;
 
          App.setGameMode('build');
          var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
          return this._callTool('digDown', function() {
-            return radiant.call('stonehearth:designate_mining_zone', 'down')
+            return radiant.call('stonehearth:designate_mining_zone', true)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   //radiant.call('stonehearth:select_entity', response.mining_zone);
-                  self.digDown();
+                  self.mineCube();
                })
                .fail(function(response) {
                   self.hideTip(tip);
@@ -533,18 +533,18 @@ var StonehearthClient;
          });
       },
 
-      digOut: function() {
+      mineBlock: function() {
          var self = this;
 
          App.setGameMode('build');
-         var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
-         return this._callTool('digOut', function() {
-            return radiant.call('stonehearth:designate_mining_zone', 'out')
+         return this._callTool('digDown', function() {
+            return radiant.call('stonehearth:designate_mining_zone', false)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   //radiant.call('stonehearth:select_entity', response.mining_zone);
-                  self.digOut();
+                  self.mineBlock();
                })
                .fail(function(response) {
                   self.hideTip(tip);
