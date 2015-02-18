@@ -136,16 +136,15 @@ void Renderer::setGpuCompatibility()
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
 
    gpuCompatibility_.canDoOmniShadows = gpuCompatibility_.canDoShadows && gRDI->getCaps().texFloat;
-
-   // SSAO: arbitrarily gate SSAO with gl version >= 4.0
-   gpuCompatibility_.canDoSsao = glVer >= 40;
 }
 
 void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const
 {
    if (rendererCaps) {
+      // It is _possible_ (apparently?  According to Horde guys?  Harumph.) that, even with GL3.x support claimed, we won't get
+      // the stencil buffer we deserve, so be doubly paranoid and check that that is our render target depth format.
+      rendererCaps->HighQualityRendererSupported = gRDI->_depthFormat == GL_DEPTH24_STENCIL8 && gRDI->getCaps().glVersion >= 30;
       rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
-      rendererCaps->SsaoSupported = gpuCompatibility_.canDoSsao;
    }
 
    if (gpuCaps) {

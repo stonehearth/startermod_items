@@ -278,7 +278,7 @@ void Renderer::MakeRendererResources()
    H3DRendererCaps caps;
    h3dGetCapabilities(&caps, nullptr);
 
-   if (caps.SsaoSupported) {
+   if (caps.HighQualityRendererSupported) {
       H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
 
       csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
@@ -299,10 +299,10 @@ void Renderer::MakeRendererResources()
          }
          h3dUnmapResStream(veclookup, 0);
       }
+      CreateTextureResource("SMAA_AreaTex", resourcePath_ + "/textures/smaa/smaa_area.raw", 160, 560, H3DFormats::TEX_RG8, 2);
+      CreateTextureResource("SMAA_SearchTex", resourcePath_ + "/textures/smaa/smaa_search.raw", 66, 33, H3DFormats::TEX_R8, 1);
    }
 
-   CreateTextureResource("SMAA_AreaTex", resourcePath_ + "/textures/smaa/smaa_area.raw", 160, 560, H3DFormats::TEX_RG8, 2);
-   CreateTextureResource("SMAA_SearchTex", resourcePath_ + "/textures/smaa/smaa_search.raw", 66, 33, H3DFormats::TEX_R8, 1);
 
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
 
@@ -750,10 +750,10 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    // Presently, only the engine can decide if certain features are even allowed to run.
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
-   config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
+   config_.enable_ssao.allowed = rendererCaps.HighQualityRendererSupported;
 
    // Arbitrarily gating the high-quality renderer on SSAO support.
-   config_.use_high_quality.allowed = rendererCaps.SsaoSupported;
+   config_.use_high_quality.allowed = rendererCaps.HighQualityRendererSupported;
 
    config_.use_high_quality.value &= config_.use_high_quality.allowed;
 

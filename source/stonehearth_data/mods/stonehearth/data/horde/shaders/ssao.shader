@@ -84,7 +84,7 @@ void main()
   vec3 origin = toCameraSpace(texCoords, attribs.r);
   radius *= attribs.g;
   vec3 rvec = getRandomVec(texCoords);
-  vec3 normal = (camViewMat * vec4(-texture2D(normalBuffer, texCoords).xyz, 0)).xyz;
+  vec3 normal = (camViewMat * vec4(-texture2D(normalBuffer, texCoords).xyz, 0.0)).xyz;
 
   vec3 tangent = normalize(rvec - (normal * dot(rvec, normal)));
   vec3 bitangent = cross(normal, tangent);
@@ -109,7 +109,7 @@ void main()
     float rangeCheck = abs(origin.z - sampledDepth.x) <  radius ? 1.0 : 0.0;
 
     // Old and busted (and faster :P)
-    occlusion += sampledDepth.x < ssaoSample.z ? 1.0 * rangeCheck : 0;
+    occlusion += sampledDepth.x < ssaoSample.z ? 1.0 * rangeCheck : 0.0;
 
     // New hotness:
     //sampleOcclusion = ((sampledDepths.x < ssaoSample.z) && (sampledDepths.y >= ssaoSample.z)) ? 1.0 : 0.0;
