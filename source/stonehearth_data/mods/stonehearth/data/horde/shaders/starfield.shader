@@ -44,5 +44,5 @@ varying vec2 texCoords;
 
 void main() {
   float finalBrightness = oBrightness * (texture2D(twinkleMap, texCoords).x * 2.0);
-  gl_FragColor = vec4(1.0, 1.0, 1.0, finalBrightness);
+  gl_FragColor = vec4(vec3(1.0), finalBrightness);
 }

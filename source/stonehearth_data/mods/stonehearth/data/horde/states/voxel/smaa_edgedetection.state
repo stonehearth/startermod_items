@@ -3,4 +3,4 @@ ZEnable = false;
 CullMode = Back;
 StencilOp = Replace_Replace_Replace;
 StencilFunc = Always;
-StencilRef = 1;
+StencilRef = 2;

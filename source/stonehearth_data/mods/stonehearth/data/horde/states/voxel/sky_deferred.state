@@ -1,3 +1,5 @@
 ZWriteEnable = false;
 ZEnable = false;
-BlendMode = ReplaceByAlpha;
+BlendMode = Replace;
+StencilFunc = Equal;
+StencilRef = 0;

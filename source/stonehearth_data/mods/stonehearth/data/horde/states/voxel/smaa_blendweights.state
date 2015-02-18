@@ -2,4 +2,4 @@ ZWriteEnable = false;
 ZEnable = false;
 CullMode = Back;
 StencilFunc = Equal;
-StencilRef = 1;
+StencilRef = 2;
