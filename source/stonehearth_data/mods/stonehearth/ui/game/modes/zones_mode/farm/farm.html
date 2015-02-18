@@ -30,15 +30,29 @@
 
 <script type="text/x-handlebars" data-template-name="stonehearthCropPalette">
    <div id="cropPalette" class="gui">
-      <div class="window flat">
+      <div class="window">
          <div class="title">Choose a Crop</div>
-         <div class="itemPalette">
-            {{#each view.crops}}
-               <div class="item uisounds" {{bind-attr crop=crop_type title=crop_info.name description=crop_info.description}}>
-                  <img class="image" {{bind-attr src=crop_info.icon}} />
-               </div>
-            {{/each}}
-            <div style="clear: both;" />
+
+         <div class="list downSection">
+            <table>
+               <tbody>
+               {{#each view.crops}}
+                  <tr class="row" {{bind-attr crop=crop_type}}>
+                     <td>
+                        <div class="icon">
+                           <img class="image" {{bind-attr src=crop_info.icon}} />
+                        </div>
+                     </td>
+                     <td>
+                        <div class="info">
+                           <div class="name">{{crop_info.name}}</div>
+                           <div class="description">{{crop_info.description}}</div>
+                        </div>
+                     </td>
+                  </tr>
+               {{/each}}
+               </tbody>
+            </table>
          </div>
       </div>
    </div>

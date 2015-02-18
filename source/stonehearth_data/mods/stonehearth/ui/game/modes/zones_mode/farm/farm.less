@@ -62,18 +62,34 @@
 
 #cropPalette {
    position: absolute;
-   width: 360px;
-   height: 300px;
+   left: 28px;
+   top: 208px;
 
    .window {
-      width: 100%;
-      height: 100%;
+      width: 450px;
+      height: 600px;
    }
 
-   .itemPalette {
-      top: 70px;
-      left: 30px;
-      right: 10px;
-      bottom: 10px;
+   .list {
+      height: 506px;
+      overflow-y: scroll;
+
+      tr {
+         .button;
+      }
+      
+      .icon {
+         margin-right: 10px;
+         img {
+            width: 72px;
+            height: 72px;            
+         }
+      }
+
+      .info {
+         .name {
+            .controlFont;
+         }
+      }
    }
 }
