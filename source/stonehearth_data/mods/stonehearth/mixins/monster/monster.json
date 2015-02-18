@@ -24,6 +24,7 @@
             "stonehearth:actions:combat:hit_stun",
             "stonehearth:actions:chase_entity",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:drop_carrying_in_stockpile",            
             "stonehearth:actions:reserve_stockpile_space",
             "stonehearth:actions:place_item",
             "stonehearth:actions:stockpile_arson",
