@@ -260,7 +260,7 @@ function FindTargetObserver:_target_cost_benefit(target, aggro)
    end
    local distance = radiant.entities.distance_between(self._entity, target)
    local score = aggro / distance
-   self._log:spam('considering target %s (aggro:%.2f distance:%.2f score:%2.f)', target, aggro, distance, score)
+   self._log:spam('considering target %s (score:%.2f - aggro:%.2f distance:%.2f)', target, score, aggro, distance)
    return score
 end
 
