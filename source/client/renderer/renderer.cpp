@@ -737,6 +737,7 @@ void Renderer::MaskHighQualitySettings()
    bool high_quality = config_.use_high_quality.value;
    // Mask all high-quality settings with the 'use_high_quality' bool.
    config_.enable_ssao.value &= high_quality;
+   config_.num_msaa_samples.value &= high_quality ? 0xFF : 0x00;
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
@@ -748,11 +749,9 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    h3dGetCapabilities(&rendererCaps, &gpuCaps);
 
    // Presently, only the engine can decide if certain features are even allowed to run.
-   config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
    config_.enable_ssao.allowed = rendererCaps.HighQualityRendererSupported;
 
-   // Arbitrarily gating the high-quality renderer on SSAO support.
    config_.use_high_quality.allowed = rendererCaps.HighQualityRendererSupported;
 
    config_.use_high_quality.value &= config_.use_high_quality.allowed;
@@ -818,7 +817,10 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
       // Set up the optional stages for the high-quality pipeline.
       if (config_.use_high_quality.value) {
          SetStageEnable(GetPipeline(currentPipeline_), "Collect SSAO", config_.enable_ssao.value);
-         //SetStageEnable(GetPipeline(currentPipeline_), "Render SSAO", config_.enable_ssao.value);
+         SetStageEnable(GetPipeline(currentPipeline_), "SSAO Contribution", config_.enable_ssao.value);
+
+         SetStageEnable(GetPipeline(currentPipeline_), "FSAA", config_.num_msaa_samples.value > 0);
+         SetStageEnable(GetPipeline(currentPipeline_), "Composite", config_.num_msaa_samples.value == 0);
       }
 
       // Propagate far-plane value.

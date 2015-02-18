@@ -24,36 +24,22 @@
    </Setup>
    <CommandQueue>
       <Stage id="Init">
-         <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
-
-         <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
-         <SwitchTarget target="Bloom" />
-         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
-
-         <SwitchTarget target="LightAccumulation" />
-         <ClearTarget colBuf0="true" depthBuf="false"/>
-
-         <SwitchTarget target="SSAOBlur" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
-         
          <SwitchTarget target="" />
          <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
-         
-         <SwitchTarget target="EdgeTex" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
-         <SwitchTarget target="BlendWeights" />
-         <ClearTarget colBuf0="true" depthBuf="false" />
       </Stage>
 
       <Stage id="Attributes">
+         <SwitchTarget target="GBuffers" />
+         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
+
          <SwitchTarget target="GBuffers" />
          <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3" />
       </Stage>
 
       <Stage id="Collect SSAO">
+         <SwitchTarget target="SSAOBlur" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
@@ -70,6 +56,7 @@
 
       <Stage id="Light">
          <SwitchTarget target="LightAccumulation" />
+         <ClearTarget colBuf0="true" depthBuf="false"/>
 
          <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
@@ -84,13 +71,13 @@
          <UnbindBuffers />
       </Stage>
 
-      <!--Stage id="FowAndClouds">
+      <Stage id="FowAndClouds">
          <SwitchTarget target="LightAccumulation" />
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
          <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
          <DrawQuad material="materials/deferred_fowclouds.material.json" context="FOW_CLOUDS" />
          <UnbindBuffers />
-      </Stage-->
+      </Stage>
 
       <Stage id="Albedo">
          <SwitchTarget target="Albedo" />
@@ -116,6 +103,9 @@
 
       <Stage id="Selected">
          <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
+
+         <SwitchTarget target="SelectedTemp" />
          <DrawSelected context="SELECTED_SCREENSPACE" />
 
          <SwitchTarget target="Albedo" />
@@ -134,7 +124,13 @@
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
+      <!-- This is active iff composite is inactive. -->
       <Stage id="FSAA">
+         <SwitchTarget target="EdgeTex" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+         <SwitchTarget target="BlendWeights" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+
          <SwitchTarget target="EdgeTex" />
          <BindBuffer sampler="depthTex" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="colorTex" sourceRT="GBuffers" bufIndex="2" />
@@ -153,16 +149,18 @@
          <UnbindBuffers/>
       </Stage>
 
-
-      <!--Stage id="Composite">
+      <!-- This is active iff FSAA is inactive. -->
+      <Stage id="Composite">
          <SwitchTarget target="" />
          <BindBuffer sampler="buf0" sourceRT="GBuffers" bufIndex="2" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="FSQUAD_COPY" />
          <UnbindBuffers />
-      </Stage-->
+      </Stage>
 
       <!--Stage id="Bloom">
          <SwitchTarget target="Bloom" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
+
          <DrawGeometry context="BLOOM" forceLodLevel="1" />
 
          <SwitchTarget target="BloomTemp" />

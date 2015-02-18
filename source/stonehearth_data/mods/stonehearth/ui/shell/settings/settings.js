@@ -8,6 +8,12 @@ App.StonehearthSettingsView = App.View.extend({
       return !this.get('context.use_high_quality');
    }.property('context.use_high_quality'),
 
+   qualityChanged : function() {
+      if ($('#aaNumSlider').hasClass('ui-slider')) {
+         $('#aaNumSlider').slider('option', 'disabled', this.get('low_quality'));
+      }
+   }.observes('low_quality'),
+
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
          return 0;
@@ -15,11 +21,8 @@ App.StonehearthSettingsView = App.View.extend({
       return shadowRes;
    },
 
-   fromSamplesToVal : function(msaaSamples, msaaEnabled) {
-      if (!msaaEnabled || msaaSamples == 0) {
-         return 0;
-      }
-      return (Math.log(msaaSamples) / Math.log(2));      
+   fromSamplesToVal : function(msaaSamples) {
+      return msaaSamples;
    },
 
    fromValToSamples : function(msaaVal) {
@@ -139,19 +142,10 @@ App.StonehearthSettingsView = App.View.extend({
       self.set('context.max_lights', o.max_lights.value)
       self.set('context.vsync_enabled', o.vsync.value);
       self.set('context.fullscreen_enabled', o.fullscreen.value);
-      self.set('context.msaa_forbidden', !o.msaa.allowed);
 
-      if (!o.msaa.allowed) {
-         o.msaa.value = 0;
-
-      }
-      self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
+      self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value));
       self.set('context.draw_distance', o.draw_distance.value);
 
-      self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
-      if (!o.enable_ssao.allowed) {
-         o.enable_ssao.value = false;
-      }
       self.set('context.enable_ssao', o.enable_ssao.value);
 
       self.set('context.high_quality_forbidden', !o.use_high_quality.allowed);
@@ -168,9 +162,9 @@ App.StonehearthSettingsView = App.View.extend({
       $('#aaNumSlider').slider({
          value: self.get('context.num_msaa_samples'),
          min: 0,
-         max: 4,
+         max: 1,
          step: 1,
-         disabled: self.get('context.msaa_forbidden'),
+         disabled: self.get('low_quality'),
          slide: function( event, ui ) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
             $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
