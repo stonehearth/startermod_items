@@ -260,6 +260,7 @@ function StockpileComponent:set_filter(filter)
    end
 
    self:_create_worker_tasks()
+   radiant.events.trigger_async(self._entity, 'stonehearth:stockpile:filter_changed')
    return self
 end
 

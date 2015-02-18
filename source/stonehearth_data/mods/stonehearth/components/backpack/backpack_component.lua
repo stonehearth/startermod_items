@@ -49,6 +49,7 @@ function BackpackComponent:add_item(item)
       self._sv.items[id] = item
       self._sv.num_items = self._sv.num_items + 1
       self.__saved_variables:mark_changed()
+      radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_added')
    end
 
    return true
@@ -61,6 +62,7 @@ function BackpackComponent:remove_item(item)
       self._sv.items[id] = nil
       self._sv.num_items = self._sv.num_items - 1
       self.__saved_variables:mark_changed()
+      radiant.events.trigger_async(self._entity, 'stonehearth:backpack:item_removed')
       return true
    end
 

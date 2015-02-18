@@ -276,6 +276,8 @@
    "harvest_resource_tip_description" : "Right click to exit this mode", 
    "clear_item_tip_title" : "Click and drag to permanently clear items from the world",
    "clear_item_tip_description" : "Right click to exit this mode",  
+   "loot_item_tip_title" : "Click and drag to loot items from the world",
+   "loot_item_tip_description" : "Right click to exit this mode",  
    "cancel_task_tip_title" : "Click and drag to remove various commands", 
    "cancel_task_tip_description" : "Right click to exit this mode", 
    "clear_item_confirm_title" : "Are you really sure you want to clear these items?",

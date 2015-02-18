@@ -2,10 +2,10 @@ local Entity = _radiant.om.Entity
 
 local RestockItemsInBackpack = class()
 RestockItemsInBackpack.name = 'restock items in backpack'
-RestockItemsInBackpack.does = 'stonehearth:restock_items_in_backpack'
+RestockItemsInBackpack.does = 'stonehearth:simple_labor'
 RestockItemsInBackpack.args = {}
 RestockItemsInBackpack.version = 2
-RestockItemsInBackpack.priority = 1
+RestockItemsInBackpack.priority = stonehearth.constants.priorities.simple_labor.RESTOCK_FROM_BACKPACK
 
 local ai = stonehearth.ai
 return ai:create_compound_action(RestockItemsInBackpack)

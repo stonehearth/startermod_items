@@ -39,5 +39,18 @@
             }
          ]
       }      
-   }
+   },
+   "entity_data" : {
+      "stonehearth:loot_table" : {
+         "num_rolls" : {
+            "min" : 6,
+            "max" : 10
+         },
+         "items" : [
+            { "uri" : "stonehearth:resources:copper:ore" },
+            { "uri" : "stonehearth:resources:silver:ore"  },
+            { "uri" : "stonehearth:resources:gold:ore"  }
+         ]
+      }
+   }   
 }

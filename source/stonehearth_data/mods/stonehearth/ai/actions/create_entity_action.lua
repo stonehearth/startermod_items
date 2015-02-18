@@ -2,42 +2,44 @@ local Cube3 = _radiant.csg.Cube3
 local Point3 = _radiant.csg.Point3
 local Region3 = _radiant.csg.Region3
 local Entity = _radiant.om.Entity
-local CreateProxyEntity = class()
+local CreateEntity = class()
 
-CreateProxyEntity.name = 'create proxy entity'
-CreateProxyEntity.does = 'stonehearth:create_proxy_entity'
-CreateProxyEntity.args = {
+CreateEntity.name = 'create entity'
+CreateEntity.does = 'stonehearth:create_entity'
+CreateEntity.args = {
    location = Point3,
-   reason = 'string',
-   use_default_adjacent_region = {
-      type = 'boolean',
-      default = false,
+   uri = {
+      type = 'table',
+      default = stonehearth.ai.NIL,
+   },
+   options = {
+      type = 'table',
+      default = {},
    }
 }
-CreateProxyEntity.think_output = {
+CreateEntity.think_output = {
    entity = Entity   -- the proxy entity
 }
-CreateProxyEntity.version = 2
-CreateProxyEntity.priority = 1
+CreateEntity.version = 2
+CreateEntity.priority = 1
 
-function CreateProxyEntity:start_thinking(ai, entity, args)
+function CreateEntity:start_thinking(ai, entity, args)
    -- if we already have a proxy entity, someone has screwed us by making us
    -- thinking twice without an intervening call to stop_thinking()
-   assert(not self._proxy_entity)
+   assert(not self._created_entity)
 
    self._using_proxy_entity = false
-
-   self._proxy_entity = radiant.entities.create_proxy_entity(args.reason, args.use_default_adjacent_region)
+   self._created_entity = radiant.entities.create_entity(args.uri, args.options)
 
    -- do not use radiant.terrain.place_entity, here.  that will put the entity on the terrain,
    -- which may not be the *exact* location passed in, which may screw some people up
    -- downstream
-   radiant.entities.add_child(radiant._root_entity, self._proxy_entity, args.location)
+   radiant.entities.add_child(radiant._root_entity, self._created_entity, args.location)
 
-   ai:set_think_output({ entity = self._proxy_entity })
+   ai:set_think_output({ entity = self._created_entity })
 end
 
-function CreateProxyEntity:stop_thinking()
+function CreateEntity:stop_thinking()
    -- if we need to keep the proxy entity around, start() will have been called before
    -- stop_thinking() to let us know.  if we don't need it, nuke it now.
    if not self._using_proxy_entity then
@@ -45,29 +47,29 @@ function CreateProxyEntity:stop_thinking()
    end
 end
 
-function CreateProxyEntity:run()
-   assert(self._using_proxy_entity and self._proxy_entity)
+function CreateEntity:run()
+   assert(self._using_proxy_entity and self._created_entity)
 end
 
-function CreateProxyEntity:start()
+function CreateEntity:start()
    -- set a flag to keep the proxy entity around for the duration of run
    self._using_proxy_entity = true
 end
 
-function CreateProxyEntity:stop()
+function CreateEntity:stop()
    self:_destroy_proxy_entity()
 end
 
-function CreateProxyEntity:destroy()
+function CreateEntity:destroy()
    self:_destroy_proxy_entity()
 end
 
-function CreateProxyEntity:_destroy_proxy_entity()
-   if self._proxy_entity then
-      radiant.entities.destroy_entity(self._proxy_entity)
-      self._proxy_entity = nil
+function CreateEntity:_destroy_proxy_entity()
+   if self._created_entity then
+      radiant.entities.destroy_entity(self._created_entity)
+      self._created_entity = nil
       self._using_proxy_entity = false
    end
 end
 
-return CreateProxyEntity
+return CreateEntity

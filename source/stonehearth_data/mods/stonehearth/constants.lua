@@ -55,11 +55,13 @@ local constants = {
       simple_labor = {
          DEFAULT            = 2,
          RESTOCK_STOCKPILE  = 2,
+         RESTOCK_FROM_BACKPACK = 3,
          CLEAR              = 3,
          CONSTRUCT_BUILDING = 5,
          TEARDOWN_BUILDING  = 6,
          BUILD_LADDER       = 7,
          PLACE_ITEM         = 8,
+         LOOT_ITEM          = 8,
          LIGHT_FIRE         = 10,
       },
 
@@ -72,7 +74,6 @@ local constants = {
       trapping = {
          SURVEY_TRAPPING_GROUNDS = 1,
          SET_TRAPS = 2,
-         UNLOAD_BACKPACK = 3,
          CHECK_TRAPS = 3,
          PICK_UP_LOOT = 10,
       },

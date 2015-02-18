@@ -24,6 +24,7 @@
       "cursors:place_template" : "file(data/cursors/place_template.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
+      "cursors:loot" : "file(data/cursors/loot.cur)",
       "cursors:zone_generic" : "file(data/cursors/zone_generic.cur)",
       "cursors:zone_stockpile" : "file(data/cursors/zone_stockpile.cur)",
       "cursors:zone_farm" : "file(data/cursors/zone_farm.cur)",
@@ -500,8 +501,6 @@
       "actions:find_stockpile_for_backpack_item" : "file(ai/actions/find_stockpile_for_backpack_item_action.lua)",
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
-      "actions:trapping:unload_backpack_dispatcher" : "file(ai/actions/trapping/unload_backpack_dispatcher.lua)",
-      "actions:trapping:unload_backpack" : "file(ai/actions/trapping/unload_backpack_action.lua)",
 
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:pickup_ingredient_with_material" : "file(ai/actions/pickup_ingredient_with_material_action.lua)",
@@ -1063,6 +1062,14 @@
          "endpoint" : "client"
       },
       "server_box_cancel_task" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "box_loot_items" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_loot_items" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },

@@ -53,6 +53,9 @@ App.StonehearthStartMenuView = App.View.extend({
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
       },
+      loot_item : function () {
+         App.stonehearthClient.boxLootItems();
+      },
       town_menu: function() {
          App.stonehearthClient.showTownMenu();
       },

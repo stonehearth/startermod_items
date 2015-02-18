@@ -30,6 +30,14 @@
             "icon" : "/stonehearth/ui/game/start_menu/images/clear.png",
             "sticky" : true
          },
+         "loot_item" : {
+            "name" : "Loot",
+            "description" : "Loot items",
+            "class" : "button",
+            "icon" : "/stonehearth/ui/game/start_menu/images/loot.png",
+            "sticky" : true,
+            "hotkey" : "g"
+         },
          "mining_ui" : {
             "name" : "Mine",
             "description" : "Mine out tunnels and caves",
