@@ -354,7 +354,7 @@ void PipelineResource::addGlobalRenderTarget(const char* name)
 
 void PipelineResource::addRenderTarget( std::string const& id, bool depthBuf, uint32 numColBufs,
 										TextureFormats::List format, uint32 samples,
-										uint32 width, uint32 height, float scale, uint32 mipLevels )
+                              uint32 width, uint32 height, float scale, uint32 mipLevels, std::vector<RenderTargetAlias>& aliases )
 {
 	RenderTarget rt;
 	
@@ -367,21 +367,10 @@ void PipelineResource::addRenderTarget( std::string const& id, bool depthBuf, ui
 	rt.height = height;
 	rt.scale = scale;
    rt.mipLevels = mipLevels;
+   rt.aliases = aliases;
 
 	_renderTargets.push_back( rt );
 }
-
-void PipelineResource::addRenderTargetAlias(std::string const& id, std::string const& target, int idx)
-{
-   RenderTarget ra;
-   ra.id = id;
-   ra.targetAlias = target;
-   ra.aliasIdx = idx;
-
-   _renderTargets.push_back(ra);
-}
-
-
 
 RenderTarget *PipelineResource::findRenderTarget( std::string const& id )
 {
@@ -411,40 +400,32 @@ bool PipelineResource::createRenderTargets()
    {
       RenderTarget &rt = _renderTargets[i];
 
-      if (rt.aliasIdx != -1) {
-         // Skip aliases in this loop.
-         continue;
+      // At this point, any aliases this render target may point to MUST be resolved.  So, resolve all aliases.
+      std::vector<RenderBufferAlias> resolvedAliases;
+      for (RenderTargetAlias& rta : rt.aliases) {
+         resolvedAliases.push_back(RenderBufferAlias());
+
+         // Note: if rt aliases a depth buffer, then the last 'extra' RenderTargetAlias in the vector is the depth buffer.
+         // Render buffer creation will automatically take care of it for us, so there's nothing special to do to
+         // handle it.
+         if (rta.aliasIdx != -1) {
+            for (uint32 j = 0; j < i; j++) {
+               if (_renderTargets[j].id == rta.targetAlias) {
+                  resolvedAliases.back().index = rta.aliasIdx;
+                  resolvedAliases.back().robj = _renderTargets[j].rendBuf;
+                  break;
+               }
+            }
+         }
       }
-	
+
       uint32 width = ftoi_r( rt.width * rt.scale ), height = ftoi_r( rt.height * rt.scale );
       if( width == 0 ) width = ftoi_r( _baseWidth * rt.scale );
       if( height == 0 ) height = ftoi_r( _baseHeight * rt.scale );
 
-      rt.rendBuf = gRDI->createRenderBuffer(
-         width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples, rt.mipLevels );
+      rt.rendBuf = gRDI->createRenderBufferWithAliases(
+         width, height, rt.format, rt.hasDepthBuf, rt.numColBufs, rt.samples, resolvedAliases, rt.mipLevels);
       if( rt.rendBuf == 0 ) return false;
-   }
-
-   for( uint32 i = 0; i < _renderTargets.size(); ++i )
-   {
-      RenderTarget &rta = _renderTargets[i];
-
-      if (rta.aliasIdx == -1) {
-         // Skip original render targets.
-         continue;
-      }
-	
-      for (RenderTarget& rt : _renderTargets) {
-         if (rt.id == rta.targetAlias) {
-            rta.rendBuf = gRDI->aliasRenderBuffer(rt.rendBuf, rta.aliasIdx);
-
-            if (rta.rendBuf == 0) {
-               return false;
-            }
-
-            break;
-         }
-      }
    }
 
 	return true;
@@ -508,15 +489,46 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
 		if( !node2.getAttribute( "id" ) ) return raiseError( "Missing RenderTarget attribute 'id'" );
 		std::string id = node2.getAttribute( "id" );
 			
-		if( !node2.getAttribute( "depthBuf" ) ) return raiseError( "Missing RenderTarget attribute 'depthBuf'" );
 		bool depth = false;
-		if( _stricmp( node2.getAttribute( "depthBuf" ), "true" ) == 0 ) depth = true;
+      std::string depthAlias = "";
+		
+      if (node2.getAttribute("depthBuf", nullptr)) {
+   		depth = _stricmp(node2.getAttribute("depthBuf"), "true") == 0;
+      } else if (node2.getAttribute("depthBufAlias", nullptr)) {
+         depthAlias = node2.getAttribute("depthBufAlias");
+      } else {
+         return raiseError("Missing RenderTarget attribute 'depthBuf'");
+      }
 			
-		if( !node2.getAttribute( "numColBufs" ) ) return raiseError( "Missing RenderTarget attribute 'numColBufs'" );
-		uint32 numBuffers = atoi( node2.getAttribute( "numColBufs" ) );
-			
+		if( !node2.getAttribute( "numColBufs", nullptr ) ) return raiseError( "Missing RenderTarget attribute 'numColBufs'" );
+		uint32 numBuffers = atoi( node2.getAttribute( "numColBufs") );
+      std::vector<RenderTargetAlias> aliases;
+      for (uint32 i = 0; i < numBuffers; i++) {
+         char buff[256];
+         sprintf(buff, "colBuf%d", i);
+
+         aliases.push_back(RenderTargetAlias());
+         if (node2.getAttribute(buff, nullptr)) {
+            char buff2[256];
+            strncpy(buff2, node2.getAttribute(buff), 256);
+
+            char * bufName = strtok(buff2, "[");
+            aliases.back().targetAlias = bufName;
+
+            int index = atoi(strtok(NULL, "]"));
+            aliases.back().aliasIdx = index;
+         }
+      }
+
+      if (depth || depthAlias != "") {
+         aliases.push_back(RenderTargetAlias());
+         if (depthAlias != "") {
+            aliases.back().targetAlias = depthAlias;
+            aliases.back().aliasIdx = 32;
+         }
+      }			
 		TextureFormats::List format = TextureFormats::BGRA8;
-		if( node2.getAttribute( "format" ) != 0x0 )
+		if( node2.getAttribute( "format", nullptr ) != 0x0 )
 		{
 			if( _stricmp( node2.getAttribute( "format" ), "RGBA8" ) == 0 )
 				format = TextureFormats::BGRA8;
@@ -536,7 +548,7 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
       uint32 mipLevels = atoi(node2.getAttribute("mipLevels", "0"));
 
 		addRenderTarget( id, depth, numBuffers, format,
-			std::min( maxSamples, Modules::config().sampleCount ), width, height, scale, mipLevels );
+			std::min( maxSamples, Modules::config().sampleCount ), width, height, scale, mipLevels, aliases );
 
 		node2 = node2.getNextSibling( "RenderTarget" );
 	}
@@ -549,30 +561,6 @@ bool PipelineResource::loadSetupNode(XMLNode const& setupNode)
       addGlobalRenderTarget(node2.getAttribute( "id" ));
 
       node2 = node2.getNextSibling( "GlobalRenderTarget" );
-   }
-
-
-   node2 = setupNode.getFirstChild("RenderTargetAlias");
-   while (!node2.isEmpty())
-   {
-      if (!node2.getAttribute("id")) {
-         return raiseError("Missing RenderTargetAlias attribute 'id'");
-      }
-      std::string id = node2.getAttribute("id");
-
-      if (!node2.getAttribute("target")) {
-         return raiseError("Missing RenderTargetAlias attribute 'target'");
-      }
-      std::string target = node2.getAttribute("target");
-
-      if (!node2.getAttribute("idx")) {
-         return raiseError("Missing RenderTargetAlias attribute 'idx'");
-      }
-      int idx = atoi(node2.getAttribute("idx"));
-
-      addRenderTargetAlias(id, target, idx);
-
-      node2 = node2.getNextSibling( "RenderTargetAlias" );
    }
 
    return true;

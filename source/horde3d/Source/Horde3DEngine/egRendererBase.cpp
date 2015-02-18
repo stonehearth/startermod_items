@@ -414,6 +414,10 @@ uint32 RenderDevice::calcTextureSize( TextureFormats::List format, int width, in
       return width * height * depth;
    case TextureFormats::R32:
       return width * height * depth * 4 * 2;  // 32-bit depth + 32-bit fp R channel.
+   case TextureFormats::R8:
+      return width * height * depth;
+   case TextureFormats::RG8:
+      return width * height * depth * 2;
 	default:
 		return 0;
 	}
@@ -1090,44 +1094,60 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 	return rbObj;
 }
 
-
-uint32 RenderDevice::aliasRenderBuffer(uint32 rbTargetObj, int bufIdx)
+uint32 RenderDevice::createRenderBufferWithAliases(uint32 width, uint32 height, TextureFormats::List format,
+                                         bool depth, uint32 numColBufs, uint32 samples, std::vector<RenderBufferAlias>& aliases, uint32 numMips)
 {
-   ASSERT(bufIdx != 32);  // TODO: support for aliasing depth-buffers might be useful.
-   RDIRenderBuffer &rbTarget = _rendBufs.getRef(rbTargetObj);
+	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F || format == TextureFormats::R32) && !_caps.texFloat )
+	{
+		return 0;
+	}
+
+	if( numColBufs > RDIRenderBuffer::MaxColorAttachmentCount ) return 0;
 
    RDIRenderBuffer rb;
-   rb.alias = true;
-   rb.cubeMap = rbTarget.cubeMap;
-   rb.width = rbTarget.width;
-   rb.height = rbTarget.height;
-   rb.samples = rbTarget.samples;
+   rb.cubeMap = false;
+   rb.width = width;
+   rb.height = height;
+   rb.samples = samples;
 
    if (_enable_gl_validation) {
       Modules::log().writeInfo("Available GPU Mem: %f", Modules::stats().getStat(EngineStats::AvailableGpuMemory, false));
-      Modules::log().writeInfo("Creating render buffer alias.");
+      Modules::log().writeInfo("Creating render buffer (%d) %dx%d depth=%d numColBufs=%d samples=%d", format, width, height, depth, numColBufs, samples);
    }
 
-   // Create framebuffers
-   glGenFramebuffersEXT(1, &rb.fbo);
+	// Create framebuffers
+	glGenFramebuffersEXT( 1, &rb.fbo );
+	if( samples > 0 ) 
+   {
+      glGenFramebuffersEXT( 1, &rb.fboMS );
+   }
 
-   if (rbTarget.colTexs[bufIdx] != 0)
+	if( numColBufs > 0 )
 	{
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
-		// Alias color texture
+		// Attach color buffers
+		for( uint32 j = 0; j < numColBufs; ++j )
+		{
+			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
 
-      rb.colTexs[0] = rbTarget.colTexs[bufIdx];
-      RDITexture &tex = _textures.getRef(rbTarget.colTexs[bufIdx]);
+         uint32 texObj;
+         if (aliases[j].index != -1) {
+            // Alias this attachment with an existing texture.
+            RDIRenderBuffer &rbTarget = _rendBufs.getRef(aliases[j].robj);
+            texObj = rbTarget.colTexs[aliases[j].index];
+            rb.colAlias[j] = true;
+         } else {
+			   // Create a color texture
+            texObj = createTexture(TextureTypes::Tex2D, rb.width, rb.height, 1, format, numMips > 0 ? true : false, numMips > 0 ? true : false, false, false );
+            ASSERT( texObj != 0 );
+            uploadTextureData(texObj, 0, 0, nullptr);
+         }
 
-      if (rb.cubeMap) {
-         // We shouldn't attach the texture to the framebuffer, because we won't know what to use until bind-time, but
-         // we also want to have _some_ validation when creating this render buffer, so just arbitrarily bind a face 
-         // of the cube.  When binding a cube for rendering, you are required to set the appropriate cube side.
-         glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, tex.glObj, 0);
-      } else {
+         rb.colTexs[j] = texObj;
+         RDITexture &tex = _textures.getRef(texObj);
+
          // Attach the texture
-         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex.glObj, 0);
-      }
+         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, tex.glObj, 0 );
+		}
 
 		uint32 buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, 
          GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_COLOR_ATTACHMENT4_EXT, 
@@ -1135,46 +1155,60 @@ uint32 RenderDevice::aliasRenderBuffer(uint32 rbTargetObj, int bufIdx)
          GL_COLOR_ATTACHMENT8_EXT, GL_COLOR_ATTACHMENT9_EXT, GL_COLOR_ATTACHMENT10_EXT,
          GL_COLOR_ATTACHMENT11_EXT, GL_COLOR_ATTACHMENT12_EXT, GL_COLOR_ATTACHMENT13_EXT,
          GL_COLOR_ATTACHMENT14_EXT, GL_COLOR_ATTACHMENT15_EXT};
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
-		glDrawBuffers(1, buffers);		
+		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+		glDrawBuffers( numColBufs, buffers );		
 	}
 
 	// Attach depth buffer
-   if (rbTarget.depthTex)
+	if( depth )
 	{
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
-
-      // TODO: aliasing depth buffers only will require this.
-      /*if (numColBufs == 0) {
+		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+      if (numColBufs == 0) {
 		   glDrawBuffer( GL_NONE );
 		   glReadBuffer( GL_NONE );
-      }*/
+      }
 		// Create a depth texture
-      RDITexture &tex = _textures.getRef(rbTarget.depthTex);
+
+      uint32 texObj;
+      if (aliases.back().index != -1) {
+         // Alias this attachment with an existing texture.
+         RDIRenderBuffer &rbTarget = _rendBufs.getRef(aliases.back().robj);
+         texObj = rbTarget.depthTex;
+         rb.depthAlias = true;
+      } else {
+		   texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
+		   ASSERT( texObj != 0 );
+         uploadTextureData( texObj, 0, 0, 0x0 );
+      }
+
+      RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+      //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
-		rb.depthTex = rbTarget.depthTex;
+		
+		rb.depthTex = texObj;
 		// Attach the texture
-		glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0);
+		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
 	}
 
-	uint32 rbObj = _rendBufs.add(rb);
+	uint32 rbObj = _rendBufs.add( rb );
 	
 	// Check if FBO is complete
 	bool valid = true;
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, rb.fbo);
-	uint32 status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	if(status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+	uint32 status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
    {
-      Modules::log().writeError("Unable to create fbo alias: %d, %d", status, rb.fbo);
+      Modules::log().writeError("Unable to create fbo: %d, %d", status, rb.fbo);
       valid = false;
    }
 	
-	if(!valid)
+	if( !valid )
 	{
-		destroyRenderBuffer(rbObj);
+		destroyRenderBuffer( rbObj );
 		return 0;
 	}
 	
@@ -1188,7 +1222,7 @@ void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 	
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 	
-	if (rb.depthTex != 0 && !rb.alias) {
+   if (rb.depthTex != 0 && !rb.depthAlias) {
       destroyTexture( rb.depthTex );
    }
 	if( rb.depthBuf != 0 ) glDeleteRenderbuffersEXT( 1, &rb.depthBuf );
@@ -1196,7 +1230,7 @@ void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 		
 	for( uint32 i = 0; i < RDIRenderBuffer::MaxColorAttachmentCount; ++i )
 	{
-		if (rb.colTexs[i] != 0 && !rb.alias) {
+      if (rb.colTexs[i] != 0 && !rb.colAlias[i]) {
          destroyTexture( rb.colTexs[i] );
       }
 		if( rb.colBufs[i] != 0 ) glDeleteRenderbuffersEXT( 1, &rb.colBufs[i] );

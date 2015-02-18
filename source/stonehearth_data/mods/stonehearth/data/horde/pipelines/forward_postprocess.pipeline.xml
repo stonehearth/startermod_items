@@ -2,20 +2,24 @@
 <Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
       <RenderTarget id="GBuffers" numColBufs="3" depthBuf="true" format="RGBA32F" scale="1.0" />
-
-      <RenderTargetAlias id="Albedo" target="GBuffers" idx="2" />
-
+      
+      <RenderTarget id="Albedo" numColBufs="1" colBuf0="GBuffers[2]" depthBufAlias="GBuffers" />
       <RenderTarget id="LightAccumulation" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
-      <RenderTarget id="Final" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+      
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
+      
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
+      
       <RenderTarget id="BloomTemp" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
       <RenderTarget id="BloomFinal" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
-      <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/>      
-      <RenderTarget id="EdgeTex" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>      
-      <RenderTarget id="BlendWeights" numColBufs="1" depthBuf="false" scale="1.0" format="RGBA8"/>      
+      <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/> 
+
+      <RenderTarget id="EdgeTex" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="BlendWeights" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>      
+      
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
