@@ -66,7 +66,7 @@
                   "Glittering Army returns! Where iz stuff?", 
                   "My stuff! Where iz?",
                   "We back. You pay tribute now. Where iz?",
-                  "Me dreamed last night. In dream, you make me stuff; we like brothers only me no kill you. Stuff?",
+                  "Me dreamed last night. In dream, you make me stuff; we like brothers only me no kill you. Got Stuff?",
                   "Want stuff now. You make? We good! You no make? You die. We all friends!"
                ]               
             }
@@ -90,11 +90,7 @@
                "dialog_title" : "%name(npc_boss_entity)",
                "portrait" : "file(shakedown/boss_portrait.png)",
                "message" : [
-                  "You make stuff! Me love them and pet them like puppy dumb brother ate, except better!",
-                  "You make my stuff! We now bestest friends. Unless we think of reason to be not-friends. Then: death. Hang out later?",
-                  "You make stuff! Me really am best chieftain!",
-                  "You make stuff? Really? That never happened bef--I mean good! GUD! Me be back later!!!",
-                  "Me love this! Me get stuff, moe more important, me make you feel small and sub-ser-vee-ent! Best day ever."
+                  "That's right. You cooperate, we get along just fine."
                ]               
             }
          }
