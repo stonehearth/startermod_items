@@ -11,15 +11,8 @@ function SettlementTest:__init()
    -- build the player camp
    self:place_citizen(4, 4, 'footman')
    self:place_citizen(4, 7, 'footman')
-<<<<<<< HEAD
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(4, 7, 'footman')
-   self:place_citizen(4, 7, 'footman')
-=======
    self:place_citizen(10, 7, 'footman')
    self:place_citizen(13, 7, 'footman')
->>>>>>> af359bf2e131f0fd2a8f4dde082e3863416c2bdb
    self:place_citizen(7, 4)
    self:place_citizen(7, 7)
 
