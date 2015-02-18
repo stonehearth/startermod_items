@@ -1,11 +1,11 @@
 {
 	"shaders" : {
 		"EDGE_DETECTION" : {
-			"state" : "states/voxel/replace.state",
+			"state" : "states/voxel/smaa_edgedetection.state",
 			"shader" : "shaders/smaa/edge_detection.shader"
 		},
 		"BLEND_WEIGHTS" : {
-			"state" : "states/voxel/replace.state",
+			"state" : "states/voxel/smaa_blendweights.state",
 			"shader" : "shaders/smaa/blend_weights.shader"
 		},
 		"NEIGHBOUR_BLEND" : {

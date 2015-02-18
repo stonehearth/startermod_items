@@ -18,7 +18,7 @@
       <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/> 
 
       <RenderTarget id="EdgeTex" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
-      <RenderTarget id="BlendWeights" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>      
+      <RenderTarget id="BlendWeights" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
       
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
@@ -49,7 +49,7 @@
          <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3" />
       </Stage>
 
-      <Stage id="Collect SSAO">
+      <!--Stage id="Collect SSAO">
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
@@ -61,7 +61,7 @@
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
          <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
          <UnbindBuffers />
-      </Stage>
+      </Stage-->
 
 
       <Stage id="Light">
@@ -73,20 +73,20 @@
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="SSAO Contribution">
+      <!--Stage id="SSAO Contribution">
          <SwitchTarget target="LightAccumulation" />
          <BindBuffer sampler="buf0" sourceRT="SSAOBlur" bufIndex="0" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="SUB" />
          <UnbindBuffers />
-      </Stage>
+      </Stage-->
 
-      <Stage id="FowAndClouds">
+      <!--Stage id="FowAndClouds">
          <SwitchTarget target="LightAccumulation" />
          <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
          <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
          <DrawQuad material="materials/deferred_fowclouds.material.json" context="FOW_CLOUDS" />
          <UnbindBuffers />
-      </Stage>
+      </Stage-->
 
       <Stage id="Albedo">
          <SwitchTarget target="Albedo" />
@@ -153,12 +153,12 @@
 
       <!--Stage id="Composite">
          <SwitchTarget target="" />
-         <BindBuffer sampler="buf0" sourceRT="Albedo" bufIndex="0" />
+         <BindBuffer sampler="buf0" sourceRT="GBuffers" bufIndex="2" />
          <DrawQuad material="materials/fullscreen_quad.material.json" context="FSQUAD_COPY" />
          <UnbindBuffers />
-      </Stage>
+      </Stage-->
 
-      <Stage id="Bloom">
+      <!--Stage id="Bloom">
          <SwitchTarget target="Bloom" />
          <DrawGeometry context="BLOOM" forceLodLevel="1" />
 
