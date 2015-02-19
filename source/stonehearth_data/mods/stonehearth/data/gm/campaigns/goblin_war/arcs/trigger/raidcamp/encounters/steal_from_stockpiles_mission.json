@@ -13,11 +13,17 @@
             "members" : {
                "thief_a" : {
                   "location" : { "x": -1, "z": -1 },
-                  "job" : "stonehearth:jobs:worker"
+                  "job" : "stonehearth:jobs:worker",
+                  "equipment" : {
+                     "abilities" : "stonehearth:abilities:thief_abilities"
+                  }
                },
                "thief_b" : {
                   "location" : { "x": -1, "z": 1 },
-                  "job" : "stonehearth:jobs:worker"
+                  "job" : "stonehearth:jobs:worker",
+                  "equipment" : {
+                     "abilities" : "stonehearth:abilities:thief_abilities"
+                  }
                },
                "escort_a" : {
                   "location" : { "x": 1, "z": -1 },

@@ -10,6 +10,7 @@
       "spawn_city_raids" : "file(encounters/spawn_city_raids.json)",
       "steal_from_stockpiles" : "file(encounters/steal_from_stockpiles_mission.json)",
       "smash_stockpiles" : "file(encounters/smash_stockpiles_mission.json)",
+      "stealthy_thief" : "file(encounters/stealthy_thief_mission.json)",
 
       "wait_for_next_shakedown" : "file(encounters/wait_for_next_shakedown.json)",
       "wait_for_boss_death" : "file(encounters/wait_for_boss_death.json)",

@@ -198,6 +198,7 @@
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
       "monsters:goblins:outfits:footman" : "file(entities/monsters/goblins/outfits/footman_outfit)",
+      "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
       "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
