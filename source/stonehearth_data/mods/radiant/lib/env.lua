@@ -104,4 +104,12 @@ function string:strip()
   return (self:gsub("^%s*(.-)%s*$", "%1"))
 end
 
+function string:starts_with(prefix)
+   return self:sub(1, prefix:len()) == prefix
+end
+
+function string:ends_with(suffix)
+   return suffix == '' or self:sub(-suffix:len()) == suffix
+end
+
 require 'lualibs.unclasslib'
