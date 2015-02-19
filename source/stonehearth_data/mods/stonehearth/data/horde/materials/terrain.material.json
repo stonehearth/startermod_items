@@ -37,6 +37,17 @@
 					"bind_to_material_input" : "gridlineColor"
 				}
 			]
+		},
+		"DEFERRED_ALBEDO_LOD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_albedo_lod.shader",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"default" : [0.02, 0.02, 0.02, 0.0],
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
 		}
 	},
 	"inputs" : [

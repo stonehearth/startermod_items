@@ -14,13 +14,10 @@ sampler3D gridMap = sampler_state
 uniform mat4 viewProjMat;
 
 attribute vec3 vertPos;
-attribute vec3 normal;
 attribute vec3 color;
 
 varying float vsDepth;
 varying vec3 albedo;
-varying vec3 tsbNormal;
-varying float worldScale;
 varying vec3 gridLineCoords;
 
 void main( void )
@@ -31,8 +28,6 @@ void main( void )
   gridLineCoords = pos.xyz + vec3(0.5, 0, 0.5);
   vsDepth = -vsPos.z;
   albedo = color;
-  tsbNormal = calcWorldVec(normal);
-  worldScale = getWorldScale();
   gl_Position = viewProjMat * pos;
 }
 
@@ -46,29 +41,18 @@ uniform vec4 gridlineColor;
 
 varying float vsDepth;
 varying vec3 albedo;
-varying vec3 tsbNormal;
-varying float worldScale;
 varying vec3 gridLineCoords;
 
 void main(void)
 {
-  gl_FragData[0].r = vsDepth; //toLinearDepth(gl_FragCoord.z);
-  gl_FragData[0].g = worldScale;
-  gl_FragData[0].b = gl_FragCoord.z;
-  gl_FragData[1] = vec4(normalize(tsbNormal), 1.0);
+  float f;
+  f = clamp((lodLevels.y - vsDepth) / lodLevels.w, 0.0, 1.0);
+  if (lodLevels.x == 1.0) {
+    f = 1.0 - f;
+  }
 
-  float f = 1.0;
-  if (lodLevels.x == 0.0) {
-    if (vsDepth > lodLevels.z) {
-      f = 0.0;
-    }
-  } else {
-    if (vsDepth < lodLevels.y) {
-      // By the time we see this pixel in the second LOD level, it has already been painted by the first LOD level,
-      // just discard, and don't bother contributing.  Maybe we should just stencil mask, since putting discard
-      // in a shader can have perf implications?
-      discard;
-    }
+  if (f == 1.0) {
+    f = 0.0;
   }
   vec3 color = albedo * f;
 
@@ -80,5 +64,5 @@ void main(void)
     color = mix(gridlineColor.rgb, color, mix(1.0, gridline, gridlineColor.a));
   #endif
 
-  gl_FragData[2] = vec4(color, 1.0);
+  gl_FragColor = vec4(color, 1.0);
 }

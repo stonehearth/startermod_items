@@ -92,6 +92,10 @@
 		"DEFERRED_ATTRIBUTES" : {
 			"state" : "states/voxel/replace_mask.state",
 			"shader" : "shaders/voxel/deferred_attributes.shader"
+		},
+		"DEFERRED_ALBEDO_LOD" : {
+			"state" : "states/voxel/add.state",
+			"shader" : "shaders/voxel/deferred_albedo_lod.shader"
 		}
 	}
 }

@@ -33,7 +33,10 @@
          <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
 
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3" />
+         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3"/>
+         
+         <SwitchTarget target="Albedo" />
+         <DrawGeometry context="DEFERRED_ALBEDO_LOD" forceLodLevel="-3" frustum_start="0.39" frustum_end="0.41" />
       </Stage>
 
       <Stage id="Collect SSAO">
@@ -96,6 +99,7 @@
       </Stage>
 
       <Stage id="Fog">
+         <SwitchTarget target="Albedo" />
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
