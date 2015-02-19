@@ -21,17 +21,6 @@ App.StonehearthSettingsView = App.View.extend({
       return shadowRes;
    },
 
-   fromSamplesToVal : function(msaaSamples) {
-      return msaaSamples;
-   },
-
-   fromValToSamples : function(msaaVal) {
-      if (msaaVal == 0) {
-         return 0;
-      }
-      return Math.pow(2, msaaVal);
-   },
-
    init : function() {
       this._super();
       var self = this;
@@ -143,7 +132,7 @@ App.StonehearthSettingsView = App.View.extend({
       self.set('context.vsync_enabled', o.vsync.value);
       self.set('context.fullscreen_enabled', o.fullscreen.value);
 
-      self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value));
+      self.set('context.num_msaa_samples', o.msaa.value);
       self.set('context.draw_distance', o.draw_distance.value);
 
       self.set('context.enable_ssao', o.enable_ssao.value);
@@ -215,7 +204,7 @@ App.StonehearthSettingsView = App.View.extend({
          "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-         "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
+         "msaa" : $( "#aaNumSlider" ).slider( "value" ),
          "shadow_quality" :  $( "#shadowResSlider" ).slider( "value" ),
          "max_lights" :  $( "#maxLightsSlider" ).slider( "value" ),
          "persistConfig" : persistConfig,
