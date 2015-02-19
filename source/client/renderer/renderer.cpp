@@ -27,6 +27,7 @@
 #include "raycast_result.h"
 #include "platform/utils.h"
 #include "horde3d\Source\Shared\utMath.h"
+#include "gfxcard_db.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -190,6 +191,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 2;
+      config_.num_msaa_samples.value = 0;
    } else if (gpuScore < 2000) {
       config_.use_high_quality.value = true;
 
@@ -199,6 +201,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 3;
+      config_.num_msaa_samples.value = 1;
    } else if (gpuScore < 3000) {
       config_.use_high_quality.value = true;
 
@@ -208,6 +211,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 4;
       config_.enable_ssao.value = true;
+      config_.num_msaa_samples.value = 1;
    } else {
       config_.use_high_quality.value = true;
 
@@ -217,6 +221,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 4;
       config_.enable_ssao.value = true;
+      config_.num_msaa_samples.value = 1;
    }
    // anti-aliasing, god rays, etc., to come.
 }
@@ -225,8 +230,7 @@ int Renderer::GetGpuPerformance(std::string const& gfxCard) const
 {
    JSONNode rootj;
    std::string error_message;
-   boost::filesystem::path file_path = boost::filesystem::canonical(boost::filesystem::path(".")) / std::string("gfxcards.json");
-   json::ReadJsonFile(file_path.string(), rootj, error_message);
+   json::ReadJson(std::string(gfxCardData), rootj, error_message);
    json::Node root(rootj);
 
    std::vector<std::string> tokens;
