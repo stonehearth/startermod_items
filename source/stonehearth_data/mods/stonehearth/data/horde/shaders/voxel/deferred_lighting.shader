@@ -58,5 +58,5 @@ void main(void)
 
   // Light Color.
   vec3 lightColor = calcSimpleDirectionalLight(normal.xyz) * shadowTerm;
-  gl_FragColor = vec4(lightColor + lightAmbientColor, 1.0);
+  gl_FragColor = vec4(lightColor + lightAmbientColor, 0.0);
 }

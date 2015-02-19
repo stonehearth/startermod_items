@@ -65,5 +65,5 @@ void main(void)
   vec3 fowValue = vec3(texture2D(fowRT, projFowPos.xy).a);
   cloudColor = cloudColor;
 
-  gl_FragColor = vec4(cloudColor * fowValue, 0.0);
+  gl_FragColor = vec4(cloudColor * fowValue, 1.0);
 }
