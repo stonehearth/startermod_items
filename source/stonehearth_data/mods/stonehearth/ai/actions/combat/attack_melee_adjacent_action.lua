@@ -145,7 +145,7 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
    --Get the damage reduction from armor
    local total_armor = self:_calculate_total_armor(entity)
 
-   return math.max(total_damage - total_armor, 0)
+   return math.max(total_damage - total_armor, 1) -- all attacks do at least 1 damage
 end
 
 -- TODO: take different damage types into effect
