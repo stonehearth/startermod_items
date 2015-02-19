@@ -358,14 +358,12 @@ csg::Point2 Renderer::InitWindow()
       config_.screen_height.value = size.y;
    }
 
-   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window = glfwCreateWindow(size.x, size.y, "Stonehearth", 
                                          config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
    if (!window) {
-      R_LOG(1) << "Error trying to create glfw window.  (size:" << size << " samples: " << config_.num_msaa_samples.value
-               << "  fullscreen:" << config_.enable_fullscreen.value << ")";
+      R_LOG(1) << "Error trying to create glfw window.  (size:" << size << "  fullscreen:" << config_.enable_fullscreen.value << ")";
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
@@ -808,12 +806,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
          worldPipeline_ = "pipelines/forward.pipeline.xml";
       }
 
-      int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
-
       h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
       h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
       h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
-      h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
       h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
 
       SelectPipeline();
