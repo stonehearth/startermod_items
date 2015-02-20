@@ -14,6 +14,13 @@ TiledRegion<T>::TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMa
 }
 
 template <typename T>
+bool TiledRegion<T>::IsEmpty() const
+{
+   bool empty = NumTiles() == 0;
+   return empty;
+}
+
+template <typename T>
 csg::Point3 TiledRegion<T>::GetTileSize() const
 {
    return _tile_size;
@@ -72,20 +79,20 @@ void TiledRegion<T>::SubtractRegion(csg::Region3f const& region3f)
 }
 
 template <typename T>
-csg::Region3f TiledRegion<T>::IntersectPoint(csg::Point3f const& point3f)
+csg::Region3f TiledRegion<T>::IntersectPoint(csg::Point3f const& point3f) const
 {
    return IntersectCube(point3f);
 }
 
 template <typename T>
-csg::Region3f TiledRegion<T>::IntersectCube(csg::Cube3f const& cube3f)
+csg::Region3f TiledRegion<T>::IntersectCube(csg::Cube3f const& cube3f) const
 {
    return IntersectRegion(cube3f);
 }
 
 // can be further optimized
 template <typename T>
-csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f)
+csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f) const
 {
    csg::Region3 region3 = csg::ToInt(region3f);   // we expect the region to be simple relative to the stored tiles
    csg::Region3f result;
@@ -104,7 +111,7 @@ csg::Region3f TiledRegion<T>::IntersectRegion(csg::Region3f const& region3f)
 }
 
 template <typename T>
-bool TiledRegion<T>::ContainsPoint(csg::Point3f const& point3f)
+bool TiledRegion<T>::ContainsPoint(csg::Point3f const& point3f) const
 {
    csg::Region3f intersection = IntersectPoint(point3f);
    bool contains = !intersection.IsEmpty();
@@ -132,7 +139,7 @@ void TiledRegion<T>::ClearTile(csg::Point3 const& index)
 
 // returns nulltr if not found
 template <typename T>
-std::shared_ptr<T> TiledRegion<T>::FindTile(csg::Point3 const& index)
+std::shared_ptr<T> TiledRegion<T>::FindTile(csg::Point3 const& index) const
 {
    std::shared_ptr<T> tile = _tile_wrapper->FindTile(index);
    return tile;
@@ -147,19 +154,19 @@ std::shared_ptr<T> TiledRegion<T>::GetTile(csg::Point3 const& index)
 }
 
 template <typename T>
-void TiledRegion<T>::EachTile(typename TileMapWrapper<T>::EachTileCb fn)
+void TiledRegion<T>::EachTile(typename TileMapWrapper<T>::EachTileCb fn) const
 {
    _tile_wrapper->EachTile(fn);
 }
 
 template <typename T>
-int TiledRegion<T>::NumTiles()
+int TiledRegion<T>::NumTiles() const
 {
    return _tile_wrapper->NumTiles();
 }
 
 template <typename T>
-int TiledRegion<T>::NumCubes()
+int TiledRegion<T>::NumCubes() const
 {
    int total = 0;
    EachTile([&total](csg::Point3 const& index, csg::Region3 const& region) {
@@ -206,12 +213,12 @@ void Region3MapWrapper::Clear()
    }
 }
 
-int Region3MapWrapper::NumTiles()
+int Region3MapWrapper::NumTiles() const
 {
    return (int)_tiles.size();
 }
 
-std::shared_ptr<csg::Region3> Region3MapWrapper::FindTile(csg::Point3 const& index)
+std::shared_ptr<csg::Region3> Region3MapWrapper::FindTile(csg::Point3 const& index) const
 {
    std::shared_ptr<csg::Region3> tile = nullptr;
    auto i = _tiles.find(index);
@@ -231,7 +238,7 @@ std::shared_ptr<csg::Region3> Region3MapWrapper::GetTile(csg::Point3 const& inde
    return tile;
 }
 
-void Region3MapWrapper::EachTile(EachTileCb fn)
+void Region3MapWrapper::EachTile(EachTileCb fn) const
 {
    for (auto const& entry : _tiles) {
       csg::Point3 const& index = entry.first;
@@ -246,7 +253,7 @@ void Region3MapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn fn)
    fn(*tile);
 }
 
-csg::Region3 const& Region3MapWrapper::GetTileRegion(std::shared_ptr<csg::Region3> tile)
+csg::Region3 const& Region3MapWrapper::GetTileRegion(std::shared_ptr<csg::Region3> tile) const
 {
    if (!tile) {
       ASSERT(false);
@@ -273,12 +280,12 @@ void Region3BoxedMapWrapper::Clear()
    }
 }
 
-int Region3BoxedMapWrapper::NumTiles()
+int Region3BoxedMapWrapper::NumTiles() const
 {
    return _tiles.Size();
 }
 
-Region3BoxedPtr Region3BoxedMapWrapper::FindTile(csg::Point3 const& index)
+Region3BoxedPtr Region3BoxedMapWrapper::FindTile(csg::Point3 const& index) const
 {
    Region3BoxedPtr tile = nullptr;
    auto i = _tiles.find(index);
@@ -298,7 +305,7 @@ Region3BoxedPtr Region3BoxedMapWrapper::GetTile(csg::Point3 const& index)
    return tile;
 }
 
-void Region3BoxedMapWrapper::EachTile(EachTileCb fn)
+void Region3BoxedMapWrapper::EachTile(EachTileCb fn) const
 {
    for (auto const& entry : _tiles) {
       csg::Point3 const& index = entry.first;
@@ -313,7 +320,7 @@ void Region3BoxedMapWrapper::ModifyTile(csg::Point3 const& index, ModifyRegionFn
    tile->Modify(fn);
 }
 
-csg::Region3 const& Region3BoxedMapWrapper::GetTileRegion(Region3BoxedPtr tile)
+csg::Region3 const& Region3BoxedMapWrapper::GetTileRegion(Region3BoxedPtr tile) const
 {
    if (!tile) {
       ASSERT(false);

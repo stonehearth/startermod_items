@@ -4,18 +4,23 @@
 #include "csg/region_tools.h"
 #include "resources/res_manager.h"
 #include "terrain.ridl.h"
-#include "terrain_tesselator.h"
+#include "terrain_ring_tesselator.h"
 
 using namespace ::radiant;
 using namespace ::radiant::om;
 
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
 
-TerrainTesselator::TerrainTesselator()
+std::ostream& operator<<(std::ostream& os, TerrainRingTesselator const& o)
+{
+   return (os << "[TerrainRingTesselator]");
+}
+
+TerrainRingTesselator::TerrainRingTesselator()
 {
 }
 
-void TerrainTesselator::LoadFromJson(json::Node config)
+void TerrainRingTesselator::LoadFromJson(json::Node config)
 {
    tag_map_.clear();
    ring_infos_.clear();
@@ -45,7 +50,7 @@ void TerrainTesselator::LoadFromJson(json::Node config)
    }
 }
 
-int TerrainTesselator::GetTag(std::string name)
+int TerrainRingTesselator::GetTag(std::string name) const
 {
    auto i = tag_map_.find(name);
    if (i != tag_map_.end()) {
@@ -55,9 +60,25 @@ int TerrainTesselator::GetTag(std::string name)
    }
 }
 
-csg::Region3 TerrainTesselator::TesselateTerrain(csg::Region3 const& terrain, csg::Rect2 const* clipper)
+csg::Region3f TerrainRingTesselator::Tesselate(csg::Region3f const& terrain, csg::Rect2f const* clipper)
 {
-   csg::Region3 tesselated;
+   csg::Rect2 int_clipper_store;
+   csg::Rect2* int_clipper = nullptr;
+
+   if (clipper) {
+      int_clipper_store = csg::ToInt(*clipper);
+      int_clipper = &int_clipper_store;
+   }
+
+   csg::Region3 int_terrain = csg::ToInt(terrain);
+   csg::Region3 int_result = Tesselate(int_terrain, int_clipper);
+   csg::Region3f result = csg::ToFloat(int_result);
+   return result;
+}
+
+csg::Region3 TerrainRingTesselator::Tesselate(csg::Region3 const& terrain, csg::Rect2 const* clipper)
+{
+   csg::Region3 result;
    std::unordered_map<int, std::shared_ptr<csg::Region3>> tesselation_map;
 
    for (auto i : ring_infos_) {
@@ -69,7 +90,7 @@ csg::Region3 TerrainTesselator::TesselateTerrain(csg::Region3 const& terrain, cs
       int tag = cube.GetTag();
       auto i = ring_infos_.find(tag);
       if (i == ring_infos_.end()) {
-         tesselated.AddUnique(cube);
+         result.AddUnique(cube);
       } else {
          tesselation_map[tag]->AddUnique(cube);
       }
@@ -78,15 +99,15 @@ csg::Region3 TerrainTesselator::TesselateTerrain(csg::Region3 const& terrain, cs
    for (auto const& i : tesselation_map) {
       csg::Region3& region = *(i.second);
       RingInfo ring_info = ring_infos_[i.first];
-      AddTerrainTypeToTesselation(region, clipper, ring_info, tesselated);
+      AddTerrainTypeToTesselation(region, clipper, ring_info, result);
    }
 
    TERRAIN_LOG(7) << "Done Tesselating Terrain!";
 
-   return tesselated;
+   return result;
 }
 
-void TerrainTesselator::AddTerrainTypeToTesselation(csg::Region3 const& region, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess)
+void TerrainRingTesselator::AddTerrainTypeToTesselation(csg::Region3 const& region, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess) const
 {
    std::unordered_map<int, csg::Region2> layers;
 
@@ -109,7 +130,7 @@ void TerrainTesselator::AddTerrainTypeToTesselation(csg::Region3 const& region, 
    }
 }
 
-void TerrainTesselator::TesselateLayer(csg::Region2 const& layer, int height, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess)
+void TerrainRingTesselator::TesselateLayer(csg::Region2 const& layer, int height, csg::Rect2 const* clipper, RingInfo const& ringInfo, csg::Region3& tess) const
 {
    csg::Region2 inner = layer;
    csg::EdgeMap2 edgeMap = csg::RegionTools2().GetEdgeMap(layer);
@@ -170,7 +191,7 @@ void TerrainTesselator::TesselateLayer(csg::Region2 const& layer, int height, cs
    }
 }
 
-csg::Region2 TerrainTesselator::CreateRing(csg::EdgeMap2 const& edgeMap, int width, csg::Region2 const* clipper)
+csg::Region2 TerrainRingTesselator::CreateRing(csg::EdgeMap2 const& edgeMap, int width, csg::Region2 const* clipper) const
 {
    csg::Region2 result;
 

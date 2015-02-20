@@ -17,16 +17,16 @@ public:
 
    TileMapWrapper() {}
    virtual void Clear() = 0;
-   virtual int NumTiles() = 0;
-   virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) = 0; // returns nulltr if not found
+   virtual int NumTiles() const = 0;
+   virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) const = 0; // returns nulltr if not found
    virtual std::shared_ptr<T> GetTile(csg::Point3 const& index) = 0; // creates tile if not found
-   virtual void EachTile(EachTileCb fn) = 0;
+   virtual void EachTile(EachTileCb fn) const = 0;
    virtual void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn) = 0;
-   virtual csg::Region3 const& GetTileRegion(std::shared_ptr<T> tile) = 0;
+   virtual csg::Region3 const& GetTileRegion(std::shared_ptr<T> tile) const = 0;
 };
 
 // Conventions for this class:
-//   indexes are always Point3
+//   indicies are always Point3
 //   parameters for modifying the region are always [base_type]3f
 template <typename T>
 class TiledRegion {
@@ -35,10 +35,11 @@ public:
 
    TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMapWrapper<T>> tile_wrapper);
 
+   bool IsEmpty() const;
    csg::Point3 GetTileSize() const;
-   std::shared_ptr<T> FindTile(csg::Point3 const& index); // returns nulltr if not found
+   std::shared_ptr<T> FindTile(csg::Point3 const& index) const; // returns nulltr if not found
    std::shared_ptr<T> GetTile(csg::Point3 const& index); // creates tile if not found
-   void EachTile(typename TileMapWrapper<T>::EachTileCb fn);
+   void EachTile(typename TileMapWrapper<T>::EachTileCb fn) const;
    void Clear();
    void ClearTile(csg::Point3 const& index);
    IndexSet const& GetChangedSet() const { return _changed_set; }
@@ -53,14 +54,14 @@ public:
    void SubtractCube(csg::Cube3f const& cube);
    void SubtractRegion(csg::Region3f const& region);
 
-   csg::Region3f IntersectPoint(csg::Point3f const& point);
-   csg::Region3f IntersectCube(csg::Cube3f const& cube);
-   csg::Region3f IntersectRegion(csg::Region3f const& region);
+   csg::Region3f IntersectPoint(csg::Point3f const& point) const;
+   csg::Region3f IntersectCube(csg::Cube3f const& cube) const;
+   csg::Region3f IntersectRegion(csg::Region3f const& region) const;
 
-   bool ContainsPoint(csg::Point3f const& point);
+   bool ContainsPoint(csg::Point3f const& point) const;
 
-   int NumTiles();
-   int NumCubes();
+   int NumTiles() const;
+   int NumCubes() const;
 
    // keeping this inline as it gets messy otherwise
    friend std::ostream& operator<<(std::ostream& out, TiledRegion const& tiled_region) {
@@ -84,12 +85,12 @@ public:
    Region3MapWrapper(TileMap& tiles);
 
    void Clear();
-   int NumTiles();
-   std::shared_ptr<csg::Region3> FindTile(csg::Point3 const& index);
+   int NumTiles() const;
+   std::shared_ptr<csg::Region3> FindTile(csg::Point3 const& index) const;
    std::shared_ptr<csg::Region3> GetTile(csg::Point3 const& index);
-   void EachTile(EachTileCb fn);
+   void EachTile(EachTileCb fn) const;
    void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
-   csg::Region3 const& GetTileRegion(std::shared_ptr<csg::Region3> tile);
+   csg::Region3 const& GetTileRegion(std::shared_ptr<csg::Region3> tile) const;
 
 private:
    TileMap& _tiles;
@@ -103,12 +104,12 @@ public:
    Region3BoxedMapWrapper(TileMap& tiles);
 
    void Clear();
-   int NumTiles();
-   Region3BoxedPtr FindTile(csg::Point3 const& index);
+   int NumTiles() const;
+   Region3BoxedPtr FindTile(csg::Point3 const& index) const;
    Region3BoxedPtr GetTile(csg::Point3 const& index);
-   void EachTile(EachTileCb fn);
+   void EachTile(EachTileCb fn) const;
    void ModifyTile(csg::Point3 const& index, ModifyRegionFn fn);
-   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile);
+   csg::Region3 const& GetTileRegion(Region3BoxedPtr tile) const;
 
 private:
    TileMap& _tiles;
