@@ -111,6 +111,11 @@
 					"name" : "gridlineColor",
 					"default" : [0.2, 0.2, 0.2, 1.0],
 					"bind_to_material_input" : "gridlineColor"
+				},
+				{
+					"name" : "glossy",
+					"default" : [0.0, 0.0, 0.0, 0.0],
+					"bind_to_material_input" : "glossy"
 				}
 			]
 		},
@@ -128,6 +133,10 @@
 	},
 
 	"inputs" : [
+		{
+			"name" : "glossy",
+			"default" : [0.0, 0.0, 0.0, 999999]
+		},
 		{
 			"name" : "gridlineColor",
 			"default" : [0.2, 0.2, 0.2, 0.0]

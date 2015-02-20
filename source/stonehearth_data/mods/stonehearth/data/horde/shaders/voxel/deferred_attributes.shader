@@ -1,6 +1,8 @@
 [[FX]]
 float4 gridlineColor = { 0.0, 0.0, 0.0, 0.0 };
 
+float4 glossy = { 0.0, 0.0, 0.0, 0.0 };
+
 // Samplers
 sampler3D gridMap = sampler_state
 {
@@ -43,6 +45,7 @@ uniform mat4 viewMat;
 uniform vec4 lodLevels;
 uniform sampler3D gridMap;
 uniform vec4 gridlineColor;
+uniform vec4 glossy;
 
 varying float vsDepth;
 varying vec3 albedo;
@@ -55,6 +58,8 @@ void main(void)
   gl_FragData[0].r = vsDepth; //toLinearDepth(gl_FragCoord.z);
   gl_FragData[0].g = worldScale;
   gl_FragData[0].b = gl_FragCoord.z;
+  gl_FragData[0].a = glossy.a;
+
   gl_FragData[1] = vec4(normalize(tsbNormal), 1.0);
 
   float f = 1.0;

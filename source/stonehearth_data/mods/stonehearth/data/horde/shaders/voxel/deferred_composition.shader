@@ -43,5 +43,5 @@ void main(void)
 {
   vec4 light = texture2D(lighting, texCoords);
   vec3 albedo = texture2D(albedo, texCoords).rgb;
-  gl_FragColor = vec4((albedo * light.xyz) + light.www, 1.0);
+  gl_FragColor = vec4((albedo * light.rgb) + light.aaa, 1.0);
 }
