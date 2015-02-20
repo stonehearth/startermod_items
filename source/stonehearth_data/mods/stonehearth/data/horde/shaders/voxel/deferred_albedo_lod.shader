@@ -45,15 +45,17 @@ varying vec3 gridLineCoords;
 
 void main(void)
 {
-  float f;
-  f = clamp((lodLevels.y - vsDepth) / lodLevels.w, 0.0, 1.0);
-  if (lodLevels.x == 1.0) {
-    f = 1.0 - f;
-  }
+  // First, compute our lod percentage function--this will look like:
+  // 0 for the lod level 0, (0, 1) for between the lod levels, and 1 for lod level 1.
+  float f = clamp((lodLevels.y - vsDepth) / lodLevels.w, 0.0, 1.0);
 
-  if (f == 1.0) {
-    f = 0.0;
-  }
+  // Next, if we're rendering at lod 1, we actually want to invert this.
+  f = abs(lodLevels.x - f);
+
+  // Finally, we actually want to remove the part where we're at lod 1 (since this will already
+  // be drawn), so subtract out that piece.
+  f = f - step(1.0, f);
+
   vec3 color = albedo * f;
 
   // gridlineAlpha is a single float containing the global opacity of gridlines for all

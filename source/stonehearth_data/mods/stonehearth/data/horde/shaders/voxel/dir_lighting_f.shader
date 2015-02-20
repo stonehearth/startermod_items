@@ -106,12 +106,16 @@ void main( void )
   float fowValue = texture2D(fowRT, projFowPos.xy).a;
   lightColor *= fowValue;
 
+
   // Do LOD blending.  Note that pos.w is view-space 'z' coordinate (see VS.)
-  if (lodLevels.x == 0.0) {
-    lightColor *= clamp((lodLevels.y + pos.w) / lodLevels.w, 0.0, 1.0);
-  } else {
-    lightColor *= clamp((-pos.w - lodLevels.z) / lodLevels.w, 0.0, 1.0);
-  }
+  // First, compute our lod percentage function--this will look like:
+  // 0 for the lod level 0, (0, 1) for between the lod levels, and 1 for lod level 1.
+  float f = clamp((lodLevels.y + pos.w) / lodLevels.w, 0.0, 1.0);
+
+  // Next, if we're rendering at lod 1, we actually want to invert this.
+  f = abs(lodLevels.x - f);
+
+  lightColor *= f; 
 
   // gridlineAlpha is a single float containing the global opacity of gridlines for all
   // nodes.  gridlineColor is the per-material color of the gridline to use.  Only draw
