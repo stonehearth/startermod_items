@@ -12,7 +12,7 @@ local HeightMapRenderer = class()
 function HeightMapRenderer:__init(terrain_info)
    self._terrain_info = terrain_info
    self._tile_size = self._terrain_info.tile_size
-   self._terrain = radiant._root_entity:add_component('terrain')
+   self._terrain_component = radiant._root_entity:add_component('terrain')
 
    self._block_types = radiant.terrain.get_block_types()
 
@@ -49,19 +49,17 @@ function HeightMapRenderer:__init(terrain_info)
 end
 
 function HeightMapRenderer:add_region_to_terrain(region3, offset_x, offset_y)
-   local clipper
+   local tile_origin = Point3(offset_x, 0, offset_y)
+   local clipper = nil
 
    if not self._show_tile_boundaries then
-      clipper = Rect2(
-         Point2(offset_x, offset_y),
-         Point2(offset_x + self._tile_size, offset_y + self._tile_size)
-      )
-   else
-      clipper = Rect2(Point2(0, 0), Point2(0, 0))
+      clipper = Rect2(Point2.zero, Point2(self._tile_size, self._tile_size))
    end
 
-   region3:translate(Point3(offset_x, 0, offset_y))
-   self._terrain:add_tile_clipped(region3, clipper)
+   local ring_tesselator = self._terrain_component:get_terrain_ring_tesselator()
+   local tesselated_region = ring_tesselator:tesselate(region3, clipper)
+   tesselated_region:translate(tile_origin)
+   self._terrain_component:add_tile(tesselated_region)
 end
 
 function HeightMapRenderer:render_height_map_to_region(region3, height_map, underground_height_map)

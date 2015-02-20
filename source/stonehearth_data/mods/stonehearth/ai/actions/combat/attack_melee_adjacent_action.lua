@@ -104,7 +104,7 @@ function AttackMeleeAdjacent:run(ai, entity, args)
             -- For now, will have an additive dmg attribute, a multiplicative dmg attribute
             -- and will apply both to this base damage number
             -- TODO: Albert to implement more robust solution after he works on mining
-            local total_damage = self:_calculate_total_damage(entity, base_damage, attack_info)
+            local total_damage = self:_calculate_total_damage(target, base_damage, attack_info)
             local battery_context = BatteryContext(entity, target, total_damage)
             stonehearth.combat:battery(battery_context)
          end
@@ -145,7 +145,7 @@ function AttackMeleeAdjacent:_calculate_total_damage(entity, base_damage, attack
    --Get the damage reduction from armor
    local total_armor = self:_calculate_total_armor(entity)
 
-   return math.max(total_damage - total_armor, 0)
+   return math.max(total_damage - total_armor, 1) -- all attacks do at least 1 damage
 end
 
 -- TODO: take different damage types into effect

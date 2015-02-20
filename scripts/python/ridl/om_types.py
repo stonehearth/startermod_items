@@ -33,6 +33,9 @@ class Region3fBoxedPtr(ridl.Type):
 class Region3BoxedTiledPtr(ridl.Type):
    name = "Region3BoxedTiledPtr"
 
+class TerrainRingTesselatorPtr(ridl.Type):
+   name = "TerrainRingTesselatorPtr"
+
 def EntityRef():
    return std.weak_ptr(Entity())
    _lua_weak_ref = True

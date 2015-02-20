@@ -14,6 +14,7 @@
 #include "om/all_object_defs.h"
 #include "om/all_component_defs.h"
 #include "om/tiled_region.h"
+#include "om/components/terrain_ring_tesselator.h"
 #include "csg/util.h"
 #include "lib/lua/dm/boxed_trace_wrapper.h"
 #include "lib/lua/dm/trace_wrapper.h"
@@ -85,6 +86,7 @@ template <typename T>
 static scope RegisterTiledRegion(const char* name)
 {
    return lua::RegisterTypePtr_NoTypeInfo<TiledRegion<T>>(name)
+      .def("is_empty",               &TiledRegion<T>::IsEmpty)
       .def("clear",                  &TiledRegion<T>::Clear)
       .def("add_point",              &TiledRegion<T>::AddPoint)
       .def("add_cube",               &TiledRegion<T>::AddCube)
@@ -105,6 +107,12 @@ static scope RegisterTiledRegion(const char* name)
       .def("each_changed_index",     &TiledRegion<T>::GetChangedSet, return_stl_iterator)
       .def("clear_changed_set",      &TiledRegion<T>::ClearChangedSet)
       .def("optimize_changed_tiles", &TiledRegion<T>::OptimizeChangedTiles);
+}
+
+static scope RegisterTerrainRingTesselator()
+{
+   return lua::RegisterTypePtr_NoTypeInfo<TerrainRingTesselator>("TerrainRingTesselator")
+      .def("tesselate", (csg::Region3f (TerrainRingTesselator::*)(csg::Region3f const&, csg::Rect2f const*))&TerrainRingTesselator::Tesselate);
 }
 
 #define OM_OBJECT(Cls, cls) scope Register ## Cls(lua_State* L);
@@ -167,6 +175,8 @@ void radiant::om::RegisterLuaTypes(lua_State* L)
             RegisterTiledRegion<Region3Boxed>("Region3BoxedTiled")
             ,
             RegisterTiledRegion<csg::Region3>("Region3Tiled")
+            ,
+            RegisterTerrainRingTesselator()
          ]
       ]
    ];

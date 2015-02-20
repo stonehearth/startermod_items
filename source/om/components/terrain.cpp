@@ -1,7 +1,7 @@
 #include "radiant.h"
 #include "mob.ridl.h"
 #include "terrain.ridl.h"
-#include "terrain_tesselator.h"
+#include "terrain_ring_tesselator.h"
 #include "om/entity.h"
 #include "om/region.h"
 #include "csg/iterators.h"
@@ -14,6 +14,7 @@ using namespace ::radiant::om;
 #define TERRAIN_LOG(level)    LOG(simulation.terrain, level)
 
 static const csg::Point3 TILE_SIZE(32, 5, 32);
+static const double TILE_HEIGHT = 256;
 
 std::ostream& operator<<(std::ostream& os, Terrain const& o)
 {
@@ -23,7 +24,7 @@ std::ostream& operator<<(std::ostream& os, Terrain const& o)
 void Terrain::LoadFromJson(json::Node const& obj)
 {
    // TODO: fix how vertical bounds are calculated
-   bounds_ = csg::Cube3(csg::Point3::zero, csg::Point3(0, 256, 0));
+   bounds_ = csg::Cube3f(csg::Point3f::zero, csg::Point3f(0, 256, 0));
 }
 
 void Terrain::SerializeToJson(json::Node& node) const
@@ -35,69 +36,84 @@ void Terrain::ConstructObject()
 {
    Component::ConstructObject();
 
+   terrainRingTesselator_ = std::make_shared<TerrainRingTesselator>();
+
    config_file_name_trace_ = TraceConfigFileName("terrain", dm::OBJECT_MODEL_TRACES)
       ->OnModified([this]() {
          res::ResourceManager2::GetInstance().LookupJson(config_file_name_, [&](const json::Node& node) {
-            terrainTesselator_.LoadFromJson(node);
+            terrainRingTesselator_->LoadFromJson(node);
          });
       });
 }
 
-void Terrain::AddTile(csg::Region3f const& region)
+TerrainRingTesselatorPtr Terrain::GetTerrainRingTesselator() const
 {
-   AddTileClipped(region, nullptr);
+   return terrainRingTesselator_;
 }
 
-void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2f const& clipper)
+bool Terrain::IsEmpty()
 {
-   csg::Rect2 clip = csg::ToInt(clipper);
-   AddTileClipped(region, &clip);
-}
-
-void Terrain::AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper)
-{
-   csg::Region3 src = csg::ToInt(region); // World space...
-   csg::Region3 tesselated = terrainTesselator_.TesselateTerrain(src, clipper);
-
-   csg::PartitionRegionIntoChunksSlow(tesselated, TILE_SIZE, [this](csg::Point3 const& index, csg::Region3 const& region) {
-      Region3BoxedPtr tile = GetTiles()->GetTile(index);
-      tile->Modify([&region](csg::Region3& cursor) {
-         cursor += region;
-         cursor.OptimizeByMerge();
-      });
-      bounds_.Modify([&index](csg::Cube3& cube) {
-         cube.Grow(index.Scaled(TILE_SIZE));
-         cube.Grow((index + csg::Point3::one).Scaled(TILE_SIZE));
-      });
-      return false; // don't stop!
-   });
+   bool empty = GetTiles()->IsEmpty();
+   return empty;
 }
 
 // if we start streaming in tiles, this will need to return a region instead of a cube
 // WARNING: when testing GetBounds().Contains() you must pass in a grid location
-csg::Cube3f Terrain::GetBounds() const
+csg::Cube3f Terrain::GetBounds()
 {
-   return csg::ToFloat(*bounds_);
+   if (IsEmpty()) {
+      throw core::Exception("GetBounds is undefined when there are no tiles."); 
+   }
+
+   return bounds_;
+}
+
+void Terrain::SetBounds(csg::Cube3f const& bounds)
+{
+   bounds_ = bounds;
+}
+
+void Terrain::GrowBounds(csg::Cube3f const& cube)
+{
+   bounds_.Modify([&cube](csg::Cube3f& cursor) {
+      cursor.Grow(cube);
+   });
+}
+
+// TODO: Kind of ugly that that we AddTile and GrowBounds outside of TiledRegion API
+// (with the accessor obtained from GetTiles). However, the bounds needs to have a persistent datastore
+// and not all TiledRegions want to track bounds, so these functions are still separate for the moment.
+void Terrain::AddTile(csg::Region3f const& region)
+{
+   csg::Cube3f region_bounds = region.GetBounds();
+   region_bounds.max.y = TILE_HEIGHT;
+
+   if (IsEmpty()) {
+      SetBounds(region_bounds);
+   } else {
+      GrowBounds(region_bounds);
+   }
+
+   GetTiles()->AddRegion(region);
 }
 
 // TODO: optimize this
 csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
 {
+   csg::Point3f grid_location = csg::ToFloat(csg::ToClosestInt(location));
    csg::Point3f point;
 
-   { // scope for point3
-      csg::Point3 point3 = csg::ToClosestInt(location);
-      if (!(*bounds_).Contains(point3)) {
-         point3 = (*bounds_).GetClosestPoint(point3);
-      }
-      point = csg::ToFloat(point3);
+   if ((*bounds_).Contains(grid_location)) {
+      point = grid_location;
+   } else {
+      point = (*bounds_).GetClosestPoint(grid_location);
    }
 
    Region3BoxedTiledPtr tiles = GetTiles();
    bool blocked = tiles->ContainsPoint(point);
    csg::Point3f direction = blocked ? csg::Point3f::unitY : -csg::Point3f::unitY;
 
-   while ((*bounds_).Contains(csg::ToInt(point))) {
+   while ((*bounds_).Contains(point)) {
       // if we started blocked, keep going up until open
       // if we started open, keep going down until blocked
       if (tiles->ContainsPoint(point) != blocked) {
