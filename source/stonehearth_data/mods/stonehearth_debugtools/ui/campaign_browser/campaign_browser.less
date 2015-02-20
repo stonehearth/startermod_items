@@ -4,6 +4,27 @@
 }
 
 #game_master {
+   .tree {
+      background-color: yellow;
+
+      .node circle {
+         fill: #fff;
+         stroke: steelblue;
+         stroke-width: 5.5px;
+      }
+
+      .node {
+         stroke: white;
+         font: 12px sans-serif;
+      }
+
+      .link {
+         fill: none;
+         stroke: #ccc;
+         stroke-width: 5.5px;
+      }
+   }
+   
    .debug;
    position: absolute;
    top: 10px;
@@ -23,27 +44,6 @@
    .button {
       position: relative;
       top: -6px;
-   }
-
-   .game_master {
-      margin: 1px;
-      padding: 1px;
-      border: 1px solid red;
-   }
-   .campaign {
-      margin: 1px;
-      padding: 1px;
-      border: 1px solid orange;
-   }
-   .arc {
-      margin: 1px;
-      padding: 1px;
-      border: 1px solid yellow;
-   }
-   .encounter {
-      margin: 1px;
-      padding: 1px;
-      border: 1px solid green;
    }
 
    #collapse {

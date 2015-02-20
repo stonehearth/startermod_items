@@ -5,8 +5,31 @@ var RadiantTrace;
 
       _debug : false,
 
-      init: function() {
+      init: function(uri, properties) {
          this._traces = {};
+         if (uri) {
+            this.traceUri(uri, properties);
+         }
+      },
+
+      progress: function (cb) {
+         this._top_deferred.progress(cb);
+         return this;
+      },
+
+      fail: function (cb) {
+         this._top_deferred.fail(cb);
+         return this;
+      },
+
+      done: function (cb) {
+         this._top_deferred.done(cb);
+         return this;
+      },
+
+      always: function (cb) {
+         this._top_deferred.always(cb);
+         return this;
       },
 
       destroy: function() {
@@ -14,7 +37,9 @@ var RadiantTrace;
       },
 
       traceUri: function(uri, properties) {
-         return this._expand_uri(uri, properties);
+         properties = properties == undefined ? {} : properties;
+         this._top_deferred = this._expand_uri(uri, properties);
+         return this._top_deferred;
       },
 
       useDeferred: function(user_deferred, properties) {
@@ -56,6 +81,7 @@ var RadiantTrace;
          $.each(this._traces, function(k, info) {
             info.trace.destroy();
          });
+         this._top_deferred = null;
          this._traces = {};
       },
 
