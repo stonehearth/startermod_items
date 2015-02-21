@@ -60,28 +60,6 @@
 			]
 		},
 
-		"OMNI_LIGHTING_FORWARD_POSTPROCESS" : {
-			"state" : "states/voxel/add.state",
-			"shader" : "shaders/voxel/omni_lighting_f.shader"
-		},
-
-		"OMNI_LIGHTING_NO_SHADOW_FORWARD_POSTPROCESS" : {
-			"state" : "states/voxel/add.state",
-			"shader" : "shaders/voxel/omni_lighting_noshadow_f.shader"
-		},
-
-		"DIRECTIONAL_LIGHTING_FORWARD_POSTPROCESS" : {
-			"state" : "states/voxel/add.state",
-			"shader" : "shaders/voxel/dir_lighting_p.shader",
-			"inputs" : [
-				{
-					"name" : "gridlineColor",
-					"default" : [0.2, 0.2, 0.2, 1.0],
-					"bind_to_material_input" : "gridlineColor"
-				}
-			]
-		},
-
 		"DEPTH_LINEAR" : {
 			"state" : "states/voxel/replace.state",
 			"shader" : "shaders/voxel/depth_linear.shader"
