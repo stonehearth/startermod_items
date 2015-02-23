@@ -215,8 +215,12 @@ end
 
  -- this may eventually be a non-rectangular region composed of the tiles that have been generated
 function StaticScenarioService:_get_terrain_bounds()
-   local bounds = self._terrain_component:get_bounds():project_onto_xz_plane()
-   return Region2(bounds)
+   local region = Region2()
+   if not self._terrain_component:is_empty() then
+      local bounds = self._terrain_component:get_bounds():project_onto_xz_plane()
+      region:add_cube(bounds)
+   end
+   return region
 end
 
 function StaticScenarioService:_get_key(x, y)

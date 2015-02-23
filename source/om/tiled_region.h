@@ -16,6 +16,7 @@ public:
    typedef std::function<void(csg::Point3 const&, csg::Region3 const&)> EachTileCb;
 
    TileMapWrapper() {}
+   virtual ~TileMapWrapper() {}
    virtual void Clear() = 0;
    virtual int NumTiles() const = 0;
    virtual std::shared_ptr<T> FindTile(csg::Point3 const& index) const = 0; // returns nulltr if not found
@@ -32,8 +33,11 @@ template <typename T>
 class TiledRegion {
 public:
    typedef std::unordered_set<csg::Point3, csg::Point3::Hash> IndexSet;
+   typedef std::function<void(csg::Region3f const&)> ModifiedCb;
 
    TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMapWrapper<T>> tile_wrapper);
+
+   void SetModifiedCb(ModifiedCb modified_cb);
 
    bool IsEmpty() const;
    csg::Point3 GetTileSize() const;
@@ -70,11 +74,14 @@ public:
    }
 
 private:
+   void TriggerModified(csg::Region3f const& region);
    void AddToChangedSet(csg::Point3 const& index);
+   csg::Cube3f GetTileBounds(csg::Point3 const& index);
 
    csg::Point3 _tile_size;
    std::shared_ptr<TileMapWrapper<T>> _tile_wrapper;
    IndexSet _changed_set;
+   ModifiedCb _modified_cb;
 };
 
 // Wrapper for an unordered_map of Region3
