@@ -112,7 +112,7 @@ function LadderRenderer:_rebuild_ladder_nodes(points, ghost_points)
    for _, pt in ipairs(points) do
       local node = self._ladder_nodes[i]
       self:_move_node(node, pt)    
-      node:set_material('materials/voxel.material.xml')
+      node:set_material('materials/voxel.material.json')
       node:set_visible(true)
       i = i + 1
    end
@@ -120,7 +120,7 @@ function LadderRenderer:_rebuild_ladder_nodes(points, ghost_points)
    for _, pt in ipairs(ghost_points) do
       local node = self._ladder_nodes[i]
       self:_move_node(node, pt)    
-      node:set_material('materials/ghost_item.xml')
+      node:set_material('materials/ghost_item.json')
       node:set_visible(true)
       i = i + 1
    end

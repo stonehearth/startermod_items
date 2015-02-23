@@ -75,9 +75,39 @@ Renderer::Renderer() :
    OneTimeIninitializtion();
 }
 
+std::string Renderer::GetGraphicsCardName() const
+{
+   std::string name;
+
+#ifdef WIN32
+   DISPLAY_DEVICE devInfo;
+   devInfo.cb = sizeof(DISPLAY_DEVICE);
+
+   DWORD iDevNum = 0;
+
+   while (EnumDisplayDevices(NULL, iDevNum, &devInfo, 0))
+   {
+      // Access DevInfo here to get information on the current device...
+      iDevNum++;
+      if (devInfo.StateFlags & (DISPLAY_DEVICE_ATTACHED_TO_DESKTOP | DISPLAY_DEVICE_PRIMARY_DEVICE)) {
+         name = std::string(devInfo.DeviceString);
+         break;
+      }
+   }
+#endif
+
+   return name;
+}
+
 void Renderer::OneTimeIninitializtion()
 {
    GetConfigOptions();
+   
+   if (!config_.run_once.value) {
+      std::string gfxCard = GetGraphicsCardName();
+      SelectRecommendedGfxLevel(gfxCard);
+   }
+   config_.run_once.value = true;
 
    assert(renderer_.get() == nullptr);
    renderer_.reset(this);
@@ -99,7 +129,13 @@ void Renderer::OneTimeIninitializtion()
       std::string fspath = std::string("mods/");
       if (boost::filesystem::is_directory(fspath)) {
          fileWatcher_.addWatch(strutil::utf8_to_unicode(fspath), [](FW::WatchID watchid, const std::wstring& dir, const std::wstring& filename, FW::Action action) -> void {
-            Renderer::GetInstance().FlushMaterials();
+            const std::wstring sufx[] = {L".shader", L".json", L".png", L".tga", L".jpg", L".glsl", L".xml", L".state"};
+
+            for (int i = 0; i < 8; i++) {
+               if (filename.compare(filename.length() - sufx[i].length() - 1, sufx[i].length(), sufx[i]) == 0) {
+                  Renderer::GetInstance().FlushMaterials();
+               }
+            }
          }, true);
       }
    }
@@ -112,11 +148,132 @@ void Renderer::OneTimeIninitializtion()
 }
 
 
+void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
+{
+   int gpuScore = GetGpuPerformance(gfxCard);
+
+   // Slightly aggressive: high-quality renderer, but with most bells/whistles turned off.
+   if (gpuScore == 0) {
+      gpuScore = 1000;
+   }
+
+   config_.enable_vsync.value = false;
+   if (gpuScore < 250) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1280;
+      config_.screen_height.value = 720;
+      config_.draw_distance.value = 500;
+      config_.use_shadows.value = false;
+   } else if (gpuScore < 500) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1280;
+      config_.screen_height.value = 720;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 1;
+   } else if (gpuScore < 750) {
+      config_.use_high_quality.value = false;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 2;
+   } else if (gpuScore < 1000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.enable_ssao.value = false;
+      config_.shadow_quality.value = 2;
+   } else if (gpuScore < 2000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.enable_ssao.value = false;
+      config_.shadow_quality.value = 3;
+   } else if (gpuScore < 3000) {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 4;
+      config_.enable_ssao.value = true;
+   } else {
+      config_.use_high_quality.value = true;
+
+      config_.screen_width.value = 1920;
+      config_.screen_height.value = 1080;
+      config_.draw_distance.value = 1000;
+      config_.use_shadows.value = true;
+      config_.shadow_quality.value = 4;
+      config_.enable_ssao.value = true;
+   }
+   // anti-aliasing, god rays, etc., to come.
+}
+
+int Renderer::GetGpuPerformance(std::string const& gfxCard) const
+{
+   JSONNode rootj;
+   std::string error_message;
+   boost::filesystem::path file_path = boost::filesystem::canonical(boost::filesystem::path(".")) / std::string("gfxcards.json");
+   json::ReadJsonFile(file_path.string(), rootj, error_message);
+   json::Node root(rootj);
+
+   std::vector<std::string> tokens;
+   std::stringstream ss(gfxCard);
+   std::string item;
+
+   // Split the gpu name ('NVIDIA GeForce 900 GTX') into tokens, used to traverse our gpu trie.
+   while (std::getline(ss, item, ' ')) {
+      tokens.push_back(item);
+   }
+
+   // First, we traverse the gpu trie to find the deepest matching node.
+   json::Node n = root;
+   while (tokens.size() > 0) {
+      int idx = -1;
+      for (uint i = 0; i < tokens.size(); i++) {
+         if (n.has(tokens[i])) {
+            n = n.get_node(tokens[i]);
+            idx = i;
+            break;
+         }
+      }
+
+      if (idx == -1) {
+         tokens.clear();
+      } else {
+         tokens.erase(tokens.begin() + idx);
+      }
+   }
+
+   // We might be at a non-leaf node, but on branch with exactly one descendant leaf.  If so,
+   // traverse to that leaf.  (We're returning what appears to be the 'best-matching' gpu, in this 
+   // case.)
+   while (!n.has("_value") && n.size() == 1) {
+      n = n.get_node(0);
+   }
+
+   // If this is a leaf, then return the value; otherwise, return 0 ('unknown').
+   return n.get("_value", 0);
+}
+
+
 void Renderer::MakeRendererResources()
 {
    // Overlays
-   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.xml", 0 );
-   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.xml", 0 );
+   fontMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/font.material.json", 0 );
+   panelMatRes_ = h3dAddResource( H3DResTypes::Material, "overlays/panel.material.json", 0 );
 
    H3DRendererCaps caps;
    h3dGetCapabilities(&caps, nullptr);
@@ -417,7 +574,7 @@ void Renderer::BuildSkySphere()
       Horde3D::Vec3f( 0.707f, 0.f, -0.707f ),   Horde3D::Vec3f( -0.707f, 0.f, -0.707f )
    };
    uint32 spInds[2048 * 3] = {  // Number of faces: (4 ^ iterations) * 8
-      2, 3, 0,   3, 4, 0,   4, 5, 0,   5, 2, 0,   2, 1, 3,   3, 1, 4,   4, 1, 5,   5, 1, 2
+      2, 0, 3,   3, 0, 4,   4, 0, 5,   5, 0, 2,   2, 3, 1,   3, 4, 1,   4, 5, 1,   5, 2, 1
    };
    for( uint32 i = 0, nv = 6, ni = 24; i < 4; ++i )  // Two iterations
    {
@@ -443,7 +600,7 @@ void Renderer::BuildSkySphere()
       texData[i * 2 + 1] = 1.0f - ((spVerts[i].y * 0.5f) + 0.5f);
    }
 
-   skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.xml", 0);
+   skysphereMat = h3dAddResource(H3DResTypes::Material, "materials/skysphere.material.json", 0);
    H3DRes geoRes = h3dutCreateGeometryRes("skysphere", 2046, 2048 * 3, (float*)spVerts, spInds, nullptr, nullptr, nullptr, texData, nullptr);
    H3DNode modelNode = h3dAddModelNode(H3DRootNode, "skysphere_model", geoRes);
    meshNode = h3dAddMeshNode(modelNode, "skysphere_mesh", skysphereMat, 0, 2048 * 3, 0, 2045);
@@ -499,7 +656,7 @@ void Renderer::BuildStarfield()
       indices[i + 3] = v; indices[i + 4] = v + 2; indices[i + 5] = v + 3;
    }
 
-   starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.xml", 0);
+   starfieldMat = h3dAddResource(H3DResTypes::Material, "materials/starfield.material.json", 0);
 
    H3DRes geoRes = h3dutCreateGeometryRes("starfield", NumStars * 4, NumStars * 6, (float*)verts, indices, nullptr, nullptr, nullptr, texCoords, texCoords2);
    
@@ -520,6 +677,8 @@ void Renderer::ShowPerfHud(bool value) {
 void Renderer::GetConfigOptions()
 {
    const core::Config& config = core::Config::GetInstance();
+
+   config_.use_high_quality.value = config.Get("renderer.use_high_quality", false);
 
    config_.enable_ssao.value = config.Get("renderer.enable_ssao", false);
 
@@ -554,11 +713,11 @@ void Renderer::GetConfigOptions()
    config_.last_screen_x.value = config.Get("renderer.last_screen_x", 0);
    config_.last_screen_y.value = config.Get("renderer.last_screen_y", 0);
 
-   config_.use_fast_hilite.value = config.Get("renderer.use_fast_hilite", false);
-
    config_.minimized.value = config.Get("renderer.minimized", false);
 
    config_.disable_pinned_memory.value = config.Get("renderer.disable_pinned_memory", false);
+
+   config_.run_once.value = config.Get("renderer.run_once", false);
    
    _maxRenderEntityLoadTime = core::Config::GetInstance().Get<int>("max_render_entity_load_time", 50);
 
@@ -566,6 +725,15 @@ void Renderer::GetConfigOptions()
 
    minUiSize_.x = config.Get("renderer.min_ui_width",  1920);
    minUiSize_.y = config.Get("renderer.min_ui_height", 1080);
+
+   MaskHighQualitySettings();
+}
+
+void Renderer::MaskHighQualitySettings() 
+{
+   bool high_quality = config_.use_high_quality.value;
+   // Mask all high-quality settings with the 'use_high_quality' bool.
+   config_.enable_ssao.value &= high_quality;
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
@@ -580,11 +748,22 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
    config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
+
+   // Arbitrarily gating the high-quality renderer on SSAO support.
+   config_.use_high_quality.allowed = rendererCaps.SsaoSupported;
+
+   config_.use_high_quality.value &= config_.use_high_quality.allowed;
+
+   MaskHighQualitySettings();
 }
 
 void Renderer::PersistConfig()
 {
    core::Config& config = core::Config::GetInstance();
+
+   config.Set("renderer.run_once", config_.run_once.value);
+
+   config.Set("renderer.use_high_quality", config_.use_high_quality.value);
 
    config.Set("renderer.enable_ssao", config_.enable_ssao.value);
 
@@ -606,7 +785,6 @@ void Renderer::PersistConfig()
 
    config.Set("renderer.last_window_x", config_.last_window_x.value);
    config.Set("renderer.last_window_y", config_.last_window_y.value);
-   config.Set("renderer.use_fast_hilite", config_.use_fast_hilite.value);
 
    config.Set("renderer.last_screen_x", config_.last_screen_x.value);
    config.Set("renderer.last_screen_y", config_.last_screen_y.value);
@@ -616,11 +794,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
 {
    UpdateConfig(newConfig);
 
-   config_.enable_ssao.value &= config_.enable_ssao.allowed;
-
    if ((flags & APPLY_CONFIG_RENDERER) != 0) {
       // Super hard-coded setting for now.
-      if (config_.enable_ssao.value) {
+      if (config_.use_high_quality.value) {
          worldPipeline_ = "pipelines/forward_postprocess.pipeline.xml";
       } else {
          worldPipeline_ = "pipelines/forward.pipeline.xml";
@@ -634,21 +810,16 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
       h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
       h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
 
-      /* Unused, until we can reload the window without bringing everything down.
-      if (oldMSAACount != (int)h3dGetOption(H3DOptions::SampleCount))
-      {
-         // MSAA change requires that we reload our pipelines (so that we can regenerate our
-         // render target textures with the appropriate sampling).
-         FlushMaterials();
+      SelectPipeline();
 
-         LoadResources();
-      }*/
+      // Set up the optional stages for the high-quality pipeline.
+      if (config_.use_high_quality.value) {
+         SetStageEnable(GetPipeline(currentPipeline_), "Collect SSAO", config_.enable_ssao.value);
+         //SetStageEnable(GetPipeline(currentPipeline_), "Render SSAO", config_.enable_ssao.value);
+      }
 
       // Propagate far-plane value.
       ResizeViewport();
-
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected_Fast", config_.use_fast_hilite.value);
-      SetStageEnable(GetPipeline(worldPipeline_), "Selected", !config_.use_fast_hilite.value);
 
       glfwSwapInterval(config_.enable_vsync.value ? 1 : 0);
    }
@@ -762,49 +933,56 @@ void Renderer::SetStageEnable(H3DRes pipeRes, const char* stageName, bool enable
 void Renderer::FlushMaterials() {
    H3DRes r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Shader, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
+         h3dUnloadResource(r);
+      }
+   }
+
+   r = 0;
+   while ((r = h3dGetNextResource(H3DResTypes::ShaderState, r)) != 0) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Material, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Pipeline, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::ParticleEffect, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(H3DResTypes::Code, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_CubemitterResource, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
 
    r = 0;
    while ((r = h3dGetNextResource(RT_AnimatedLightResource, r)) != 0) {
-      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush)) {
+      if (!(h3dGetResFlags(r) & H3DResFlags::NoFlush) && h3dIsResLoaded(r)) {
          h3dUnloadResource(r);
       }
    }
@@ -832,10 +1010,10 @@ void Renderer::Initialize()
 
    csg::Region3::Cube littleCube(csg::Region3::Point(0, 0, 0), csg::Region3::Point(1, 1, 1));
    /*fowVisibleNode_ = h3dAddInstanceNode(H3DRootNode, "fow_visiblenode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.xml", 0), 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_visible.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);*/
    fowExploredNode_ = h3dAddInstanceNode(H3DRootNode, "fow_explorednode", 
-      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.xml", 0), 
+      h3dAddResource(H3DResTypes::Material, "materials/fow_explored.material.json", 0), 
       Pipeline::GetInstance().CreateVoxelGeometryFromRegion("littlecube", littleCube), 1000);
    h3dSetNodeFlags(fowExploredNode_, H3DNodeFlags::NoCastShadow | H3DNodeFlags::NoRayQuery | H3DNodeFlags::NoCull, true);
 
@@ -862,7 +1040,7 @@ void Renderer::Initialize()
 
 void Renderer::BuildLoadingScreen()
 {
-   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.xml", H3DResFlags::NoFlush);
+   _loadingBackgroundMaterial = h3dAddResource(H3DResTypes::Material, "materials/loading_screen.material.json", H3DResFlags::NoFlush);
    // Can't clone until we load!
    LoadResources();
    _loadingProgressMaterial = h3dCloneResource(_loadingBackgroundMaterial, "progress_material");
@@ -1664,18 +1842,18 @@ bool Renderer::LoadMissingResources()
    
    // Get the first resource that needs to be loaded
    int res = h3dQueryUnloadedResource(0);
-   while( res != 0 ) {
+   while (res != 0) {
       const char *resourceName = h3dGetResName(res);
-	  std::string rname(resourceName);
-	  std::string resourcePath;
+      std::string rname(resourceName);
+      std::string resourcePath;
 
-	  // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
-	  if (rname[0] == '/') {
-		  resourcePath = rname.substr(1);
-	  } else {
-		  // No leading '/' means look in the main stonehearth mod for the resource.
-	      resourcePath = resourcePath_ + "/" + resourceName;
-	  }
+      // Paths beginning with '/' are treated as relative to whatever mod from which they originate.
+      if (rname[0] == '/') {
+         resourcePath = rname.substr(1);
+      } else {
+         // No leading '/' means look in the main stonehearth mod for the resource.
+         resourcePath = resourcePath_ + "/" + resourceName;
+      }
       std::shared_ptr<std::istream> inf;
 
       // using exceptions here was a HORRIBLE idea.  who's responsible for this? =O - tony

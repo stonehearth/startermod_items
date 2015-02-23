@@ -34,7 +34,7 @@ RenderNodePtr RenderNode::CreateMeshNode(H3DNode parent, GeometryInfo const& geo
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
-   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/obj.material.xml");
+   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode node = h3dAddModelNode(parent, modelName.c_str(), geo.geo.get());
 
    int indexCount = geo.indexIndicies[geo.levelCount];
@@ -49,7 +49,7 @@ RenderNodePtr RenderNode::CreateVoxelNode(H3DNode parent, GeometryInfo const& ge
    std::string modelName = BUILD_STRING("model" << nextId++);
    std::string meshName = BUILD_STRING("mesh" << nextId++);
 
-   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.xml");
+   SharedMaterial mat = Pipeline::GetInstance().GetSharedMaterial("materials/voxel.material.json");
    H3DNode node = h3dAddVoxelModelNode(parent, modelName.c_str(), geo.geo.get());
    H3DNode meshNode = h3dAddVoxelMeshNode(node, meshName.c_str(), mat.get());
    if (geo.unique) {

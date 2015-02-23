@@ -1,0 +1,14 @@
+{
+	"shaders" : {
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "materials/stockpile/stockpile.shader"
+		}
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "materials/stockpile/edge.png"
+		}
+	]	
+}

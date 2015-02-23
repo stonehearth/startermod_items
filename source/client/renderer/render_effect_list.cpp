@@ -473,7 +473,7 @@ ActivityOverlayEffectTrack::ActivityOverlayEffectTrack(RenderEntity& e, om::Effe
 {
    json::Node cjo(node);
 
-   _material = cjo.get("material", std::string("materials/chop_overlay/chop_overlay.material.xml"));
+   _materialDesc.load(cjo.get_node("material"));
    _overlayWidth = cjo.get("width", 64);
    _overlayHeight = cjo.get("height", 64);
    _yOffset = cjo.get("y_offset", 0);
@@ -501,10 +501,11 @@ bool ActivityOverlayEffectTrack::PositionOverlayNode()
    // Because there may be animated textures associated with the material, we clone the resource
    // so that all related nodes can animate at their own pace.
    // This is basically a hack until I put in a material_instance/material_template distinction.
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, _material.c_str(), 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), 0);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
+   _materialDesc.applyToMaterialRes(_matRes);
    _hud->addScreenspaceRect(_overlayWidth, _overlayHeight, (int)(-_overlayWidth / 2.0f), _yOffset, Horde3D::Vec4f(1, 1, 1, 1), _matRes);
    return true;
 }
@@ -527,17 +528,18 @@ UnitStatusEffectTrack::UnitStatusEffectTrack(RenderEntity& e, om::EffectPtr effe
    RenderEffectTrack(e, effect->GetEffectId(), "unit status")
 {
    json::Node cjo(node);
-   std::string matName = cjo.get("material", std::string("materials/sleepy_indicator/sleepy_indicator.material.xml"));
+   _materialDesc.load(cjo.get_node("material"));
    float statusWidth = cjo.get("width", 3.0f);
    float statusHeight = cjo.get("height", 3.0f);
    float xOffset = cjo.get("xOffset", 0.0f);
    float yOffset = cjo.get("yOffset", 0.0f);
    H3DNode n = e.GetSkeleton().GetSceneNode(cjo.get("bone", std::string("head")));
 
-   H3DRes mat = h3dAddResource(H3DResTypes::Material, matName.c_str(), 0);
+   H3DRes mat = h3dAddResource(H3DResTypes::Material, _materialDesc.getName().c_str(), 0);
    // Can't clone until we load!
    Renderer::GetInstance().LoadResources();
    _matRes = h3dCloneResource(mat, "");
+   _materialDesc.applyToMaterialRes(_matRes);
 
    Horde3D::HudElementNode* hud = h3dAddHudElementNode(n, "");
    h3dSetNodeTransform(hud->getHandle(), 0, 0, 0, 0, 0, 0, 1, 1, 1);

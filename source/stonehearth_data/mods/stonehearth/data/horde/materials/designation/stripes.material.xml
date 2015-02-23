@@ -1,4 +1,0 @@
-<Material>
-   <Shader source="materials/designation/stripes.shader" />
-   <Uniform name="alpha" d="0.5" />
-</Material>

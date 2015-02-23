@@ -1,3 +1,0 @@
-<Material parent="materials/selectable.material.xml">
-  <Shader source="shaders/_base.shader" />
-</Material>

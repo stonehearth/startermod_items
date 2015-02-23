@@ -3,7 +3,17 @@
    "tracks": {
       "unit_status_effect": {
          "type": "unit_status_effect",
-         "material": "materials/thoughts/alert/alert_material.xml",
+         "material": {
+            "name": "materials/billboard.material.json",
+            "samplers" : [
+               {
+                  "name" : "albedoMap",
+                  "map" : "materials/thoughts/alert/alert_.png",
+                  "numAnimationFrames" : 8,
+                  "frameRate" : 24
+               }
+            ]
+         },
          "duration": 1500,
          "width": 1,
          "height": 1.7,

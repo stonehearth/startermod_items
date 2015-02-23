@@ -1,0 +1,15 @@
+{
+    "shaders" : {
+       "PROJECTION": {
+       		"state" : "states/voxel/blend.state",
+       		"shader" : "shaders/projection.shader"
+       	}
+    },
+
+    "samplers" : [
+        {
+            "name" : "image",
+            "map" : "materials/aoe_reticle/aoe_reticle.png"
+        }
+    ]
+}

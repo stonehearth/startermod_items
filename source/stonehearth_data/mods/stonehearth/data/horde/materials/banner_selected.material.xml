@@ -1,4 +1,0 @@
-<Material>
-   <Shader source="shaders/ghost_item.shader"/>
-   <Uniform name="alpha" d="0.9" />
-</Material>

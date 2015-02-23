@@ -4,6 +4,10 @@ App.StonehearthSettingsView = App.View.extend({
    closeOnEsc: true,
    modal: true,
 
+   low_quality : function() {
+      return !this.get('context.use_high_quality');
+   }.property('context.use_high_quality'),
+
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
          return 0;
@@ -34,7 +38,6 @@ App.StonehearthSettingsView = App.View.extend({
             self.destroy();
          }
       });
-
    },
 
    didInsertElement : function() {
@@ -107,7 +110,7 @@ App.StonehearthSettingsView = App.View.extend({
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
                "draw_distance" : o.draw_distance.value,
-               "use_fast_hilite" : o.use_fast_hilite.value,
+               "use_high_quality" : o.use_high_quality.value,
                "enable_ssao" : o.enable_ssao.value
             };
             self._updateGfxTabPage(o);
@@ -148,13 +151,18 @@ App.StonehearthSettingsView = App.View.extend({
       }
       self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
       self.set('context.draw_distance', o.draw_distance.value);
-      self.set('context.use_fast_hilite', o.use_fast_hilite.value);
-      self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
 
+      self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
       if (!o.enable_ssao.allowed) {
          o.enable_ssao.value = false;
       }
       self.set('context.enable_ssao', o.enable_ssao.value);
+
+      self.set('context.high_quality_forbidden', !o.use_high_quality.allowed);
+      if (!o.use_high_quality.allowed) {
+         o.use_high_quality.value = false;
+      }
+      self.set('context.use_high_quality', o.use_high_quality.value);
 
       $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
          "gpuRenderer": o.gfx_card_renderer, 
@@ -222,7 +230,7 @@ App.StonehearthSettingsView = App.View.extend({
          "max_lights" :  $( "#maxLightsSlider" ).slider( "value" ),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),
-         "use_fast_hilite" : $('#opt_useFastHilite').is(':checked'),
+         "use_high_quality" : $('#opt_useHighQuality').is(':checked'),
          "enable_ssao" : $('#opt_enableSsao').is(':checked'),
       };
       return newConfig;

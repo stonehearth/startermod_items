@@ -3,17 +3,7 @@
 float4 skycolor_start;
 float4 skycolor_end;
 
-// Contexts
-context SKY
-{
-  VertexShader = compile GLSL VS_SKYSPHERE;
-  PixelShader  = compile GLSL FS_SKYSPHERE;
-  ZWriteEnable = false;
-  ZEnable = false;
-  CullMode = None;
-}
-
-[[VS_SKYSPHERE]]
+[[VS]]
 
 uniform mat4 worldMat;
 uniform mat4 projMat;
@@ -41,8 +31,7 @@ void main() {
   gl_Position = projMat * vec4(worldPos, 1.0);
 }
 
-[[FS_SKYSPHERE]]
-
+[[FS]]
 varying float colorT;
 varying vec4 startCol;
 varying vec4 endCol;

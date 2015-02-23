@@ -10,18 +10,7 @@ sampler2D twinkleMap = sampler_state
   Filter = None;
 };
 
-// Contexts
-context STARFIELD
-{
-  VertexShader = compile GLSL VS_STARFIELD;
-  PixelShader  = compile GLSL FS_STARFIELD;
-  ZWriteEnable = false;
-  ZEnable = false;
-  CullMode = None;
-  BlendMode = Blend;
-}
-
-[[VS_STARFIELD]]
+[[VS]]
 
 uniform mat4 worldMat;
 uniform mat4 viewProjMat;
@@ -46,7 +35,7 @@ void main() {
   gl_Position = clipPos;
 }
 
-[[FS_STARFIELD]]
+[[FS]]
 
 uniform sampler2D twinkleMap;
 
