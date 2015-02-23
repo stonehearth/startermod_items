@@ -2,6 +2,9 @@
    <div id="objectBrowserIcon"></div>
 </script>
 
+<script type="text/x-handlebars" data-template-name="_toolbar">
+</script>
+
 <script type="text/x-handlebars" data-template-name="objectBrowser">
    <div id="objectBrowser">
       <div id="toolbar">
@@ -23,7 +26,16 @@
          </a>
       </div>
       <div id="body">
-         {{{view.raw_view}}}
+         {{ view view.subViewClass uri=view.uri }}
       </div>
    </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="objectBrowserRaw">
+   {{{view.raw_view}}}
+</script>
+
+<script type="text/x-handlebars" data-template-name="objectBrowserEncounter">
+   Encounter:
+   {{ view "stonehearthObjectBrowserRaw" model=view.model.ctx }}
 </script>

@@ -44,11 +44,7 @@ var D3Node = SimpleClass.extend({
 
    inspect: function() {
       var self = this;
-      self._tree.options.inspect_node({
-         uri: self._uri,
-         left: self.y, 
-         top: self.x,
-      });
+      self._tree.options.inspect_node(self);
    },
 
    _update : function(ctx) {
@@ -56,6 +52,7 @@ var D3Node = SimpleClass.extend({
 
       // updat d3 options...
       self.name = self._tree.options.get_node_name(ctx);
+      self.data = ctx
 
       // update child nodes...
       var child_nodes = self._tree.options.get_node_children(ctx);
@@ -217,22 +214,26 @@ App.StonehearthGameMasterView = App.View.extend({
    uriProperty: 'model',
 
    didInsertElement : function() {
-      radiant.call_obj('stonehearth.game_master', 'get_root_context_command')
+      var self = this;
+
+      radiant.call_obj('stonehearth.game_master', 'get_root_node_command')
          .done(function(o) {
             self._node_browser = new D3CollapsableTree({
                container: this.$('#game_master')[0],
-               root_node_uri: o.result,
+               root_node_uri: o.__self,
                get_node_name : function(node) { return node.node_name },
                get_node_children : function(node) { return node.child_nodes },
-               inspect_node: function(info) {
-
-                  App.debugView.addView(App.StonehearthObjectBrowserView, {
-                     uri: info.uri,
+               inspect_node: function(node) {
+                  if (self._nodeInspector)  {
+                     self._nodeInspector.destroy();
+                  }
+                  self._nodeInspector = App.debugView.addView(App.StonehearthObjectBrowserView, {
+                     uri: node.data.__self,
                      relativeTo: {
-                        top: info.top,
-                        left: info.left,
+                        top: node.x,
+                        left: node.y,
                      }
-                  })
+                  });
                }
             })
          })

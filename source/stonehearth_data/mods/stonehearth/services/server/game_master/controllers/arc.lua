@@ -15,11 +15,12 @@ end
 
 -- start the arc.  this simply starts the encounter with the `start` edge_in
 --
-function Arc:start(ctx)
-   self._sv.ctx = ctx
+function Arc:start()
    self._sv.ctx.arc = self
    self._sv.encounters = self:_create_nodelist('encounter', self._sv._info.encounters)
-   self:_trigger_edge(self._sv.ctx, 'start')
+   self.__saved_variables:mark_changed()
+
+   self:_trigger_edge('start', self)
 end
 
 
@@ -48,7 +49,7 @@ function Arc:trigger_next_encounter(ctx)
    end
    for _, next_edge in pairs(out_edge) do
       self._log:info('encounter "%s" is triggering next edge "%s"', encounter_name, next_edge)
-      self:_trigger_edge(ctx, next_edge)
+      self:_trigger_edge(next_edge, encounter)
    end
 end
 
@@ -62,15 +63,14 @@ function Arc:spawn_encounter(ctx, next_edge)
    assert(encounter_name)
 
    self._log:info('encounter "%s" is spawning edge "%s"', encounter_name, next_edge)
-   self:_trigger_edge(ctx, next_edge)
+   self:_trigger_edge(next_edge, encounter)
 end
 
 -- callback for encounters.  terminate the current encounter
 --
-function Arc:terminate(ctx, next_edge)
+function Arc:terminate(ctx)
    local encounter = ctx.encounter
    local encounter_name = ctx.encounter_name
-
    assert(encounter)
    assert(encounter_name)
    self:_stop_encounter(encounter_name, encounter)
@@ -78,7 +78,7 @@ end
 
 -- start the encounter which has an in_edge matching `edge_name`
 --
-function Arc:_trigger_edge(ctx, edge_name)
+function Arc:_trigger_edge(edge_name, parent_node)
    self._log:info('triggering edge "%s"', edge_name)
 
    local running_encounters = self._sv.running_encounters
@@ -100,16 +100,16 @@ function Arc:_trigger_edge(ctx, edge_name)
       self._log:info('could not find encounter for edge named "%s".  bailing.', edge_name)
       return
    end
-   self:_start_encounter(ctx, name, encounter)
+   self:_start_encounter(name, encounter, parent_node)
 end
 
 -- start an encounter.  creates an encounter specific ctx so we can recognize
 -- it in the arc callbacks.
 --
-function Arc:_start_encounter(ctx, name, encounter)
+function Arc:_start_encounter(name, encounter, parent_node)
    self._log:info('starting encounter "%s"', name)
 
-   local enc_ctx = game_master_lib.create_context(name, encounter, ctx)
+   local enc_ctx = game_master_lib.create_context(name, encounter, parent_node)
    enc_ctx.encounter = encounter
    enc_ctx.encounter_name = name
 
@@ -124,7 +124,7 @@ function Arc:_stop_encounter(name, encounter)
 
    self._sv.running_encounters[name] = nil
    encounter:stop()
-   radiant.destroy_controller(encounter)
+   --radiant.destroy_controller(encounter)
 end
 
 return Arc
