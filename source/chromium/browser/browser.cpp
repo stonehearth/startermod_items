@@ -281,7 +281,7 @@ void Browser::UpdateDisplay(PaintCb cb)
 }
 
 bool Browser::IsKeyDown(WPARAM wparam) {
-  return (GetKeyState(wparam) & 0x8000) != 0;
+  return (GetKeyState((int)wparam) & 0x8000) != 0;
 }
 
 int Browser::GetCefMouseModifiers(WPARAM wparam) {
