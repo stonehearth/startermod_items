@@ -5,12 +5,21 @@
 using namespace ::radiant;
 using namespace ::radiant::om;
 
+#define TILED_REGION_LOG(level)    LOG(simulation.terrain, level)
+
 // TiledRegion is used for manipulating large regions that need to be spatially subdivided.
 template <typename T>
 TiledRegion<T>::TiledRegion(csg::Point3 const& tile_size, std::shared_ptr<TileMapWrapper<T>> tile_wrapper) :
    _tile_size(tile_size),
-   _tile_wrapper(tile_wrapper)
+   _tile_wrapper(tile_wrapper),
+   _modified_cb(nullptr)
 {
+}
+
+template <typename T>
+void TiledRegion<T>::SetModifiedCb(ModifiedCb modified_cb)
+{
+   _modified_cb = modified_cb;  
 }
 
 template <typename T>
@@ -50,6 +59,8 @@ void TiledRegion<T>::AddRegion(csg::Region3f const& region3f)
       AddToChangedSet(index);
       return false; // don't stop!
    });
+
+   TriggerModified(region3f);
 }
 
 template <typename T>
@@ -76,6 +87,8 @@ void TiledRegion<T>::SubtractRegion(csg::Region3f const& region3f)
       AddToChangedSet(index);
       return false; // don't stop!
    });
+
+   TriggerModified(region3f);
 }
 
 template <typename T>
@@ -121,7 +134,17 @@ bool TiledRegion<T>::ContainsPoint(csg::Point3f const& point3f) const
 template <typename T>
 void TiledRegion<T>::Clear()
 {
+   csg::Region3f cleared_region;
+
+   // doing this to 
+   EachTile([this, &cleared_region](csg::Point3 const& index, csg::Region3 const& region) {
+         csg::Cube3f tile_bounds = GetTileBounds(index);
+         cleared_region.AddUnique(tile_bounds);
+      });
+
    _tile_wrapper->Clear();
+
+   TriggerModified(cleared_region);
 }
 
 template <typename T>
@@ -134,6 +157,9 @@ void TiledRegion<T>::ClearTile(csg::Point3 const& index)
       _tile_wrapper->ModifyTile(index, [](csg::Region3& cursor) {
          cursor.Clear();
       });
+
+      csg::Cube3f tile_bounds = GetTileBounds(index);
+      TriggerModified(csg::Region3f(tile_bounds));
    }
 }
 
@@ -197,6 +223,25 @@ void TiledRegion<T>::OptimizeChangedTiles()
    }
 }
 
+template <typename T>
+void TiledRegion<T>::TriggerModified(csg::Region3f const& region)
+{
+   if (region.IsEmpty()) {
+      return;  
+   }
+   if (_modified_cb) {
+      _modified_cb(region);
+   }
+}
+
+template <typename T>
+csg::Cube3f TiledRegion<T>::GetTileBounds(csg::Point3 const& index)
+{
+   csg::Point3f min = csg::ToFloat(index * _tile_size);
+   csg::Point3f max = csg::ToFloat((index + csg::Point3::one) * _tile_size);
+   return csg::Cube3f(min, max);
+}
+
 //------------------
 // Region3MapWrapper
 //------------------
@@ -215,7 +260,7 @@ void Region3MapWrapper::Clear()
 
 int Region3MapWrapper::NumTiles() const
 {
-   return (int)_tiles.size();
+   return static_cast<int>(_tiles.size());
 }
 
 std::shared_ptr<csg::Region3> Region3MapWrapper::FindTile(csg::Point3 const& index) const

@@ -2,9 +2,7 @@
 #include "mob.ridl.h"
 #include "terrain.ridl.h"
 #include "terrain_ring_tesselator.h"
-#include "om/entity.h"
 #include "om/region.h"
-#include "csg/iterators.h"
 #include "dm/dm.h"
 #include "resources/res_manager.h"
 
@@ -23,8 +21,6 @@ std::ostream& operator<<(std::ostream& os, Terrain const& o)
 
 void Terrain::LoadFromJson(json::Node const& obj)
 {
-   // TODO: fix how vertical bounds are calculated
-   bounds_ = csg::Cube3f(csg::Point3f::zero, csg::Point3f(0, 256, 0));
 }
 
 void Terrain::SerializeToJson(json::Node& node) const
@@ -59,7 +55,7 @@ bool Terrain::IsEmpty()
 
 // if we start streaming in tiles, this will need to return a region instead of a cube
 // WARNING: when testing GetBounds().Contains() you must pass in a grid location
-csg::Cube3f Terrain::GetBounds()
+csg::Cube3f const& Terrain::GetBounds()
 {
    if (IsEmpty()) {
       throw core::Exception("GetBounds is undefined when there are no tiles."); 
@@ -75,9 +71,13 @@ void Terrain::SetBounds(csg::Cube3f const& bounds)
 
 void Terrain::GrowBounds(csg::Cube3f const& cube)
 {
-   bounds_.Modify([&cube](csg::Cube3f& cursor) {
-      cursor.Grow(cube);
-   });
+   if (IsEmpty()) {
+      SetBounds(cube);
+   } else {
+      bounds_.Modify([&cube](csg::Cube3f& cursor) {
+         cursor.Grow(cube);
+      });
+   }
 }
 
 // TODO: Kind of ugly that that we AddTile and GrowBounds outside of TiledRegion API
@@ -87,12 +87,9 @@ void Terrain::AddTile(csg::Region3f const& region)
 {
    csg::Cube3f region_bounds = region.GetBounds();
    region_bounds.max.y = TILE_HEIGHT;
+   GrowBounds(region_bounds);
 
-   if (IsEmpty()) {
-      SetBounds(region_bounds);
-   } else {
-      GrowBounds(region_bounds);
-   }
+   delta_region_ = csg::Region3f(region_bounds);
 
    GetTiles()->AddRegion(region);
 }
@@ -101,19 +98,20 @@ void Terrain::AddTile(csg::Region3f const& region)
 csg::Point3f Terrain::GetPointOnTerrain(csg::Point3f const& location)
 {
    csg::Point3f grid_location = csg::ToFloat(csg::ToClosestInt(location));
+   csg::Cube3f const& bounds = GetBounds();
    csg::Point3f point;
 
-   if ((*bounds_).Contains(grid_location)) {
+   if (bounds.Contains(grid_location)) {
       point = grid_location;
    } else {
-      point = (*bounds_).GetClosestPoint(grid_location);
+      point = bounds.GetClosestPoint(grid_location);
    }
 
    Region3BoxedTiledPtr tiles = GetTiles();
    bool blocked = tiles->ContainsPoint(point);
    csg::Point3f direction = blocked ? csg::Point3f::unitY : -csg::Point3f::unitY;
 
-   while ((*bounds_).Contains(point)) {
+   while (bounds.Contains(point)) {
       // if we started blocked, keep going up until open
       // if we started open, keep going down until blocked
       if (tiles->ContainsPoint(point) != blocked) {
@@ -142,6 +140,10 @@ Region3BoxedTiledPtr Terrain::GetTiles()
 {
    if (!tile_accessor_) {
       tile_accessor_ = CreateTileAccessor(tiles_);
+      tile_accessor_->SetModifiedCb([this](csg::Region3f const& region) {
+         TERRAIN_LOG(8) << "Delta region contains " << (*delta_region_).GetCubeCount() << " cubes";
+         delta_region_ = region;
+      });
    }
    return tile_accessor_;
 }
