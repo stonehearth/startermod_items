@@ -122,6 +122,7 @@
    "esc_menu_options": "Options",
    "esc_menu_quit_to_menu": "Quit to Main Menu",
    "esc_menu_exit_game": "Exit Game",
+   "esc_menu_post_bug" : "Post a bug", 
 
    "embark_title" : "Click the map to choose your settlement's location",
    "embark_at_this_location" : "Embark here!",
