@@ -402,7 +402,7 @@ TEST(RegionTools2D, ForEachPlane) {
    RegionTools2 tools;
    tools.ForEachPlane(r2, [=](Region1 const& r1, RegionTools2::PlaneInfo const& pi) {
       for (const auto &c : csg::EachCube(r1)) {
-         LOG_(0) << c << " " << pi.reduced_value;
+         LOG(test, 0) << c << " " << pi.reduced_value;
       }
    });
 }
@@ -413,7 +413,7 @@ TEST(RegionTools2, ForEachEdge) {
 
    RegionTools2 tools;
    tools.ForEachEdge(r2, [=](csg::EdgeInfo2 const& edge_info) {
-      LOG_(0) << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
+      LOG(test, 0) << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
 }
 
@@ -424,7 +424,7 @@ TEST(RegionTools3, ForEachPlane) {
    RegionTools3 tools;
    tools.ForEachPlane(r3, [=](Region2 const& r2, RegionTools3::PlaneInfo const& pi) {
       for (const auto &c : csg::EachCube(r2)) {
-         LOG_(0) << c << " " << pi.reduced_value;
+         LOG(test, 0) << c << " " << pi.reduced_value;
       }
    });
 }
@@ -436,7 +436,7 @@ TEST(RegionTools3, ForEachEdge) {
    RegionTools3 tools;
    int i = 0;
    tools.ForEachEdge(r3, [&](csg::EdgeInfo3 const& edge_info) {
-      LOG_(0) << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
+      LOG(test, 0) << std::setw(3) << i++ << " " << edge_info.min << " " << edge_info.max << " " << edge_info.normal;
    });
 }
 

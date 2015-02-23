@@ -33,7 +33,7 @@ function SetBaitTrapAdjacent:run(ai, entity, args)
    local trapping_grounds = args.trapping_grounds
 
    if not self._trap_added then
-      self._trap = radiant.entities.create_entity(args.trap_uri)
+      self._trap = radiant.entities.create_entity(args.trap_uri, { owner = entity })
       local picked_up = radiant.entities.pickup_item(entity, self._trap)
       assert(picked_up)
 

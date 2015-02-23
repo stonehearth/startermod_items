@@ -35,10 +35,13 @@ function TerrainService:initialize()
 end
 
 function TerrainService:_register_events()
-   radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._on_poll)
+   -- fires about once per second at game speed 1
+   stonehearth.calendar:set_interval(110, function()
+         self:_on_tick()
+      end)
 end
 
-function TerrainService:_on_poll()
+function TerrainService:_on_tick()
    self:_update_regions()
    self:_update_convex_hull()
    self:_update_terrain_counts()
@@ -187,7 +190,12 @@ end
  -- this will eventually be a non-rectangular region composed of the tiles that have been generated
 function TerrainService:_get_terrain_region()
    local region = Region2()
-   region:add_cube(self._terrain_component:get_bounds():project_onto_xz_plane())
+
+   if not self._terrain_component:is_empty() then
+      local bounds = self._terrain_component:get_bounds():project_onto_xz_plane()
+      region:add_cube(bounds)
+   end
+
    return region
 end
 

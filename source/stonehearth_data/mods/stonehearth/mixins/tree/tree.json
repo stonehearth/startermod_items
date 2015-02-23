@@ -17,7 +17,7 @@
          "default" : "materials/voxel.material.xml",
          "hud" : "materials/ghost_item.xml"
       },
-      "on_destroy" : {
+      "stonehearth:on_destroy" : {
          "effect": "/stonehearth/data/effects/terrain/tree_harvest.json"
       }      
    }   

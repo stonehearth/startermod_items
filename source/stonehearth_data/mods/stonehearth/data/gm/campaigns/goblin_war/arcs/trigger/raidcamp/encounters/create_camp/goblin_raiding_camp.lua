@@ -11,10 +11,6 @@ function GoblinRaidingCampScript:start(ctx)
    assert (render_info)
    render_info:set_scale(.120)
 
-   -- give him the boss gear
-   radiant.entities.equip_item(boss, 'stonehearth:monsters:goblins:armor:miniboss_crown')
-   radiant.entities.equip_item(boss, 'stonehearth:monsters:goblins:armor:back_standard')
-
    -- rename the boss 
    -- XXX, make this a boss name lookup table
    -- XXX, make this localizable

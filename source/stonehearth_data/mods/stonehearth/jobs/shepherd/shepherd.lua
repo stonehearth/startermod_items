@@ -200,7 +200,7 @@ function ShepherdClass:_on_renewable_resource_gathered(args)
       if not placement_point then
          placement_point = source_location
       end
-      local extra_harvest = radiant.entities.create_entity(spawned_uri)
+      local extra_harvest = radiant.entities.create_entity(spawned_uri, { owner = self._entity })
       radiant.terrain.place_entity(extra_harvest, placement_point)
    end
 end

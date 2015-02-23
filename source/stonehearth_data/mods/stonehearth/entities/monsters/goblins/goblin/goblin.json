@@ -16,17 +16,14 @@
                      "file(goblin_head_2.qb)", 
                      "file(goblin_head_3.qb)",
                      "file(goblin_head_4.qb)",
-                     "file(goblin_head_5.qb)",
-                     "file(goblin_head_6.qb)"
+                     "file(goblin_head_5.qb)"
                   ]
                },
                {
                   "type": "one_of",
                   "items": [
                      "file(goblin_armor_none.qb)", 
-                     "file(goblin_armor_vest.qb)", 
-                     "file(goblin_armor_leather.qb)", 
-                     "file(goblin_armor_breastplate.qb)"
+                     "file(goblin_armor_vest.qb)"
                   ]
                }
             ]
@@ -63,6 +60,7 @@
             "stonehearth:actions:harvest_plant",
             "stonehearth:actions:harvest_plant_adjacent",
             "stonehearth:actions:restock_stockpile",
+            "stonehearth:actions:drop_carrying_in_stockpile",
             "stonehearth:actions:combat",
             "stonehearth:actions:combat:attack_after_cooldown",
             "stonehearth:actions:combat:attack:melee",
@@ -86,9 +84,10 @@
             "stonehearth:actions:free_time:dispatcher",
             "stonehearth:actions:equip_carrying",
             "stonehearth:actions:upgrade_equipment",
-            "stonehearth:actions:find_equipment_upgrade",
-            "stonehearth:actions:party:destroy_items_in_stockpile"
-         ],
+            "stonehearth:actions:find_equipment_upgrade"
+         ]
+      },
+      "stonehearth:observers" : {
          "observers": [
             "stonehearth:observers:aggro",
             "stonehearth:observers:find_target",
@@ -98,7 +97,7 @@
       "stonehearth:attributes": {
           "max_health": {
             "type" : "basic", 
-            "value" : 20
+            "value" : 60
          },
          "health": {
             "type" : "variable", 

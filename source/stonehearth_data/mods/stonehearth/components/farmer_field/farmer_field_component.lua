@@ -21,7 +21,7 @@ function FarmerFieldComponent:initialize(entity, json)
       -- creating for the 1st time...
       self._sv.crops = {}
 
-      self._sv.soil_layer = radiant.entities.create_entity()
+      self._sv.soil_layer = radiant.entities.create_entity('', { owner = self._entity })
       self._sv.tilled_soil_region = _radiant.sim.alloc_region3()
 
       self._sv._initialized = true
@@ -164,7 +164,7 @@ end
 --- Init the dirt plot's model variant, and place it in the world.
 --  The dirt plot starts invisible, and then once tilled, appears.
 function FarmerFieldComponent:_init_dirt_plot(location, x, y)
-   local field_spacer = radiant.entities.create_entity('stonehearth:tilled_dirt') 
+   local field_spacer = radiant.entities.create_entity('stonehearth:tilled_dirt', { owner = self._entity }) 
    local render_info = field_spacer:add_component('render_info')
    render_info:set_model_variant('untilled_ground')
    local dirt_plot_component = field_spacer:add_component('stonehearth:dirt_plot')

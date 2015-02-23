@@ -12,6 +12,7 @@
 
    "ui" :  {
       "html" : [
+         "file(/ui/campaign_browser/campaign_browser.html)",
          "file(/ui/entity_inspector/entity_inspector.html)",
          "file(/ui/object_browser/object_browser.html)",
          "file(/ui/perfmon/perfmon.html)",
@@ -19,13 +20,16 @@
       ],
       "js" : [
          "file(ui/debug_dock/debug_dock.js)",      
+         "file(/ui/campaign_browser/campaign_browser.js)",
          "file(/ui/entity_inspector/entity_inspector.js)",
          "file(/ui/object_browser/object_browser.js)",
          "file(/ui/perfmon/perfmon.js)",
          "file(/ui/item_dropper/item_dropper.js)"
       ],
       "less" : [
-         "file(ui/debug_dock/debug_dock.less)",      
+         "file(/html/font-awesome-4.3.0/css/font-awesome.min.css)",
+         "file(/ui/debug_dock/debug_dock.less)",      
+         "file(/ui/campaign_browser/campaign_browser.less)",
          "file(/ui/entity_inspector/entity_inspector.less)",
          "file(/ui/object_browser/object_browser.less)",
          "file(/ui/perfmon/perfmon.less)",

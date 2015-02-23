@@ -1,0 +1,60 @@
+{
+   "mixins": "stonehearth:mixins:item_properties",
+   "type": "entity",
+   "components": {
+      "item" : {
+         "category" : "weapons"
+      },    
+       "model_variants": {
+         "default" : {
+            "models": [
+               "file(giant_bone_axe_equipped.qb)"
+            ]
+         }
+      },
+      "stonehearth:entity_forms" : {
+         "iconic_form" : "file(giant_bone_axe_iconic.json)"
+      },
+      "stonehearth:equipment_piece" : {
+         "slot" : "mainhand",
+         "render_type" : "attach_to_bone",
+         "postures" : [ "stonehearth:combat", "stonehearth:patrol" ],
+         "ilevel" : 13,
+         "roles" : "combat",
+         "equip_effect" : "/stonehearth/data/effects/weapon_level_up"
+      },
+
+      "unit_info": {
+         "name": "Giant Bone Axe",
+         "description": "Carved from the clavical of some great beast.",
+         "icon" : "file(giant_bone_axe.png)"
+      },
+      "stonehearth:material" : {
+         "tags" : "giant_bone melee_weapon"
+      }
+   },
+   "entity_data" : {
+      "stonehearth:combat:weapon_data" : {
+         "base_damage" : 26,
+         "reach" : 2.2
+      },
+      "stonehearth:combat:melee_attacks" : [
+         {
+            "name" : "combat_1h_forehand",
+            "active_frame" : 16,
+            "cooldown" : 0,
+            "priority" : 0
+         }      
+      ],
+      "stonehearth:net_worth" : {
+         "value_in_gold" : 115,
+         "rarity" : "common",
+         "shop_info" : {
+            "buyable" : true,   
+            "sellable" : true,
+            "shopkeeper_level" : 1,
+            "shopkeeper_type" : "caravan"
+         }
+      }
+   }
+}

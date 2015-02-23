@@ -1,5 +1,8 @@
 {
-   "mixins" : "file(firepit_skulls_ghost.json)",
+   "mixins" : [
+      "file(firepit_skulls_ghost.json)",
+      "stonehearth:mixins:destructable_object"
+   ],
    "type": "entity",
    "components": {
       "stonehearth:entity_forms" : {

@@ -6,10 +6,10 @@ local Point3 = _radiant.csg.Point3
 local LadderBuilder = class()
 local log = radiant.log.create_logger('ladder_builder')
 
-function LadderBuilder:initialize(manager, base, normal, removeable)
+function LadderBuilder:initialize(manager, owner, base, normal, removeable)
    self._sv.climb_to = {}
 
-   local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder')
+   local ladder = radiant.entities.create_entity('stonehearth:wooden_ladder', { ownwer = owner })
    self._ladder_dtor_trace = ladder:trace('ladder dtor')
                                        :on_destroyed(function()
                                              self._sv.manager:_destroy_builder(self._sv.base, self)

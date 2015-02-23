@@ -191,8 +191,8 @@ function FindTargetObserver:_attack_target(target)
 
    if target and target:is_valid() then
       self._task = self._entity:add_component('stonehearth:ai')
-                               :get_task_group('stonehearth:combat')
-                               :create_task('stonehearth:combat:attack_after_cooldown', { target = target })
+                         :get_task_group('stonehearth:combat')
+                            :create_task('stonehearth:combat:attack_after_cooldown', { target = target })
                                :set_priority(stonehearth.constants.priorities.combat.ACTIVE)
                                :once()
                                :notify_completed(
@@ -225,7 +225,9 @@ function FindTargetObserver:_find_target()
    else
       assert(stance == 'aggressive')
       -- find the best target to attack
-      target = self:_calculate_target_cost_benefit()
+      target = self._aggro_table:get_top(function(entity, aggro)
+            return self:_target_cost_benefit(entity, aggro)
+         end)
    end
 
    self._log:info('stance is %s.  returning %s as target.', stance, tostring(target))
@@ -245,32 +247,21 @@ function FindTargetObserver:_can_see_target(target)
    return visible
 end
 
--- calculate a crude cost/benefit ratio so we don't switch targets over long distances unless it really matters
-function FindTargetObserver:_calculate_target_cost_benefit()
-   local targets = self._aggro_table:get_targets()
-   local best_target = nil
-   local best_score = -1
-
-   for target_id, aggro in pairs(targets) do
-      local target = radiant.entities.get_entity(target_id)
-      if self:_can_see_target(target) then
-         if self._combat_state:is_within_leash(target) then
-            local distance = radiant.entities.distance_between(self._entity, target)
-            local score = aggro / distance
-            if score > best_score then
-               best_target = target
-               best_score = score
-            end
-            self._log:spam('considering target %s (aggro:%.2f distance:%.2f score:%2.f)', target, aggro, distance, score)
-         else
-            self._log:spam('considering target %s (aggro:%.2f .. too far away from leash!  ignoring)', target, aggro)
-         end
-      else
-         self._log:spam('considering target %s (aggro:%.2f .. cannot see!  ignoring)', target, aggro)
-      end
+function FindTargetObserver:_target_cost_benefit(target, aggro)
+   if not self:_can_see_target(target) then
+      -- can't see?  not a candidate
+      self._log:spam('considering target %s (aggro:%.2f .. cannot see!  ignoring)', target, aggro)
+      return
    end
-
-   return best_target
+   if not self._combat_state:is_within_leash(target) then
+      -- outside of leash?  don't run there!
+      self._log:spam('considering target %s (aggro:%.2f .. too far away from leash!  ignoring)', target, aggro)
+      return
+   end
+   local distance = radiant.entities.distance_between(self._entity, target)
+   local score = aggro / distance
+   self._log:spam('considering target %s (score:%.2f - aggro:%.2f distance:%.2f)', target, score, aggro, distance)
+   return score
 end
 
 function FindTargetObserver:_get_retaliation_target()

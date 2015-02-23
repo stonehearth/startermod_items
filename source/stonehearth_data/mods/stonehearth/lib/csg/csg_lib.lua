@@ -160,4 +160,62 @@ function csg_lib.create_adjacent_columns(point, y_min, y_max)
    return region
 end
 
+function csg_lib.get_contiguous_regions(parent_region)
+   local sub_regions = {}
+
+   for cube in parent_region:each_cube() do
+      local indicies = {}
+
+      for index, sub_region in ipairs(sub_regions) do
+         -- create a list of regions adjacent to this cube
+         if csg_lib._cube_touches_region(cube, sub_region) then
+            table.insert(indicies, index)
+         end
+      end
+
+      local first_index = next(indicies)
+
+      if not first_index then
+         -- cube wasn't adjacent to any existing region, so create a new one
+         local new_sub_region = Region3(cube)
+         table.insert(sub_regions, new_sub_region)
+      else
+         -- get the dominant region that will absorb the other regions
+         local dominant_region = sub_regions[first_index]
+         dominant_region:add_unique_cube(cube)
+         -- remove the dominant region from the list of mergable indicies
+         table.remove(indicies, 1)
+
+         -- merge all the subordinate regions into the dominant region
+         for _, index in ipairs(indicies) do
+            local sub_region = sub_regions[index]
+            dominant_region:add_unique_region(sub_region)
+         end
+
+         -- remove the subordinate regions that have been merged
+         -- iterate from largest index to smallest 
+         for i = #indicies, 1, -1 do
+            local index = indicies[i]
+            table.remove(sub_regions, index)
+         end
+      end
+   end
+
+   return sub_regions
+end
+
+function csg_lib._cube_touches_region(cube, region)
+   local x_inflated = cube:inflated(Point3.unit_x)
+   if region:intersects_cube(x_inflated) then
+      return true
+   end
+
+   local z_inflated = cube:inflated(Point3.unit_z)
+   if region:intersects_cube(z_inflated) then
+      return true
+   end
+
+   return false
+end
+
 return csg_lib

@@ -10,7 +10,7 @@ function BuildScaffoldingManager:initialize()
 end
 
 
-function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
+function BuildScaffoldingManager:request_ladder_to(owner, to, normal, removable)
    -- xxx: this is only correct in a world where the terrain doesn't change. 
    -- we should take a pass over all the ladder building code and make sure
    -- it can handle cases where the ground around the latter starts moving.
@@ -26,7 +26,7 @@ function BuildScaffoldingManager:request_ladder_to(to, normal, removable)
    
    local ladder_builder = self._sv.ladder_builders[base:key_value()]
    if not ladder_builder then
-      ladder_builder = radiant.create_controller('stonehearth:ladder_builder', self, base, normal, removable)
+      ladder_builder = radiant.create_controller('stonehearth:ladder_builder', self, owner, base, normal, removable)
       self._sv.ladder_builders[base:key_value()] = ladder_builder
       self.__saved_variables:mark_changed()
    end

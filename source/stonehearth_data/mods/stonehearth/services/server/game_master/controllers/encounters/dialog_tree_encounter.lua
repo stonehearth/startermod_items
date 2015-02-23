@@ -1,4 +1,4 @@
-local bulletin_lib = require 'lib.game_master.bulletin_lib'
+local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local DialogTreeEncounter = class()
 
@@ -11,7 +11,7 @@ function DialogTreeEncounter:start(ctx, info)
 
    assert(info.start_node)
    assert(info.nodes)
-   bulletin_lib.compile_bulletin_nodes(info.nodes, ctx)
+   game_master_lib.compile_bulletin_nodes(info.nodes, ctx)
 
    self._sv.dialog_tree = info.nodes
    self:_transition_to_node(info.start_node)

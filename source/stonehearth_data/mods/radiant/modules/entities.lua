@@ -1,4 +1,5 @@
 local FilteredTrace = require 'modules.filtered_trace'
+
 local Point2 = _radiant.csg.Point2
 local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
@@ -16,9 +17,34 @@ function entities.get_root_entity()
    return radiant._root_entity
 end
 
-function entities.create_entity(ref)
+function entities.create_entity(ref, options)
+   assert(type(ref) ~= 'table') -- did you forget to pass nil or '' for empty entities?
+
    local entity = _radiant.sim.create_entity(ref or "")
    log:debug('created entity %s', entity)
+   if options then
+      if options.owner then
+         radiant.entities.set_player_id(entity, options.owner)
+      end
+      if options.debug_text then
+         entity:set_debug_text(options.debug_text)
+      end
+      if options.add_item_destination then
+         -- cache the origin region since we use this a lot
+         if entities.origin_region == nil then
+            entities.origin_region = _radiant.sim.alloc_region3()
+            entities.origin_region:modify(function(region3)
+                  region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
+               end)
+         end
+
+         -- make the adjacent the same as the entity location, so that we actually go to the entity location
+         entity:add_component('destination')
+                  :set_region(entities.origin_region)
+                  :set_adjacent(entities.origin_region)
+
+      end
+   end
    return entity
 end
 
@@ -40,60 +66,6 @@ function entities.destroy_entity(entity)
    if entity and entity:is_valid() then
       log:debug('destroying entity %s', entity)
       radiant.check.is_entity(entity)
-
-      -- destroy all the children when destorying the parent.  should we do
-      -- this from c++?  if not, entities which get destroyed from the cpp
-      -- layer won't get this behavior.  maybe that's just impossible (i.e. forbid
-      -- it from happening, since the cpp layer knowns nothing about game logic?)
-      local ec = entity:get_component('entity_container')
-      if ec then
-         -- Copy the blueprint's (container's) children into a local var first, because
-         -- _set_teardown_recursive could cause the entity container to be invalidated.
-         local ec_children = {}
-         for id, child in ec:each_child() do
-            ec_children[id] = child
-         end         
-         for id, child in pairs(ec_children) do
-            entities.destroy_entity(child)
-         end
-      end
-      --If we're the big one, destroy the little and ghost one
-      local entity_forms = entity:get_component('stonehearth:entity_forms')
-      if entity_forms then
-         local iconic_entity = entity_forms:get_iconic_entity()
-         if iconic_entity then
-            _radiant.sim.destroy_entity(iconic_entity)
-         end
-         local ghost_entity = entity_forms:get_ghost_entity()
-         if ghost_entity then
-            _radiant.sim.destroy_entity(ghost_entity)
-         end
-      end
-      --If we're the little one, call destroy on the big one and exit
-      local iconic_component = entity:get_component('stonehearth:iconic_form')
-      if iconic_component then
-         local full_sized = iconic_component:get_root_entity()
-         entities.destroy_entity(full_sized)
-         return 
-      end
-
-      --If the entity has specified to run an effect, run it.
-      local on_destroy = radiant.entities.get_entity_data(entity, 'on_destroy')
-      if on_destroy ~= nil and on_destroy.effect ~= nil then
-      
-         local proxy_entity = radiant.entities.create_proxy_entity('death effect')
-         local location = radiant.entities.get_location_aligned(entity)
-         radiant.terrain.place_entity_at_exact_location(proxy_entity, location)
-
-         local effect = radiant.effects.run_effect(proxy_entity, on_destroy.effect)
-         effect:set_finished_cb(
-            function()
-               radiant.entities.destroy_entity(proxy_entity)
-            end
-         )
-
-      end
-
       _radiant.sim.destroy_entity(entity)
    end
 end
@@ -124,35 +96,6 @@ function entities.kill_entity(entity)
       --"It still only counts as one!" --ChrisGimli
       entities.destroy_entity(entity)
    end
-end
-
-function entities.create_proxy_entity(debug_text, use_default_adjacent_region)
-   assert(type(debug_text) == 'string')
-
-   if use_default_adjacent_region == nil then
-      use_default_adjacent_region = false
-   end
-
-   local proxy_entity = radiant.entities.create_entity()
-   proxy_entity:set_debug_text(debug_text)
-   log:debug('created proxy entity %s', proxy_entity)
-
-   if not use_default_adjacent_region then
-      -- cache the origin region since we use this a lot
-      if entities.origin_region == nil then
-         entities.origin_region = _radiant.sim.alloc_region3()
-         entities.origin_region:modify(function(region3)
-               region3:add_unique_cube(Cube3(Point3(0, 0, 0), Point3(1, 1, 1)))
-            end)
-      end
-
-      -- make the adjacent the same as the entity location, so that we actually go to the entity location
-      local destination = proxy_entity:add_component('destination')
-      destination:set_region(entities.origin_region)
-      destination:set_adjacent(entities.origin_region)
-   end
-
-   return proxy_entity
 end
 
 function entities.get_parent(entity)
@@ -281,6 +224,9 @@ end
 
 -- returns nil if the entity's parent is nil (i.e. it is not placed in the world)
 function entities.get_world_grid_location(entity)
+   if not entity:is_valid() then
+      return nil
+   end
    if entity:get_id() == 1 then
       return Point3(0, 0, 0)
    end
@@ -297,14 +243,9 @@ function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
    for uri, quantity in pairs(uris) do
       for i = 1, quantity do
          local location = radiant.terrain.find_placement_point(origin, min_radius, max_radius)
-         local item = radiant.entities.create_entity(uri)
+         local item = radiant.entities.create_entity(uri, { owner = player_id })
 
          items[item:get_id()] = item
-
-         if player_id then
-            entities.set_player_id(item, player_id)
-         end
-
          radiant.terrain.place_entity(item, location)
       end
    end
@@ -313,24 +254,43 @@ function entities.spawn_items(uris, origin, min_radius, max_radius, player_id)
 end
 
 function entities.distance_between(object_a, object_b)
-   local mob
+   local point_a, point_b
+   
    assert(object_a and object_b)
 
-   if radiant.util.is_a(object_a, Entity) then
-      mob = object_a:get_component('mob')
-      object_a = mob and mob:get_world_location()
-   end
-   if radiant.util.is_a(object_b, Entity) then
-      mob = object_b:get_component('mob')
-      object_b = mob and mob:get_world_location()
+   if radiant.util.is_a(object_a, Point3) then
+      point_a = object_a
+   elseif radiant.util.is_a(object_a, Entity) then
+      local mob = object_a:get_component('mob')
+      point_a = mob and mob:get_world_location()
+   else
+      error('unexpected type for arg1 "%s"', type(object_a))
    end
 
-   if not object_a or not object_b then
+   if radiant.util.is_a(object_b, Point3) then
+      point_b = object_b
+   elseif radiant.util.is_a(object_b, Entity) then      
+      local rcs = object_b:get_component('region_collision_shape')
+      if rcs then
+         -- find the point on the region closets to point_a
+         local region = rcs:get_region()
+         if region then
+            local world_space_region = entities.local_to_world(region:get(), object_b)
+            point_b = world_space_region:get_closest_point(point_a)
+         end
+      end
+      if not point_b then
+         -- still no point?  use the world location
+         local mob = object_b:get_component('mob')
+         point_b = mob and mob:get_world_location()
+      end
+   end
+
+   if not point_a or not point_b then
+      -- either a or b was an entity that's not in the world.  doh!
       return nil
    end
-   
-   -- xxx: verify a and b are both Point3fs...
-   return object_a:distance_to(object_b)
+   return point_a:distance_to(point_b)
 end
 
 function entities.move_to(entity, location)
@@ -505,10 +465,14 @@ function entities.set_display_name(entity, name)
                :set_display_name(name)
 end
 
-function entities.get_attribute(entity, attribute_name)
+function entities.get_attribute(entity, attribute_name, default)
    if entity and entity:is_valid() then
-      return entity:add_component('stonehearth:attributes'):get_attribute(attribute_name)
+      local ac = entity:add_component('stonehearth:attributes')
+      if ac then
+         return ac:get_attribute(attribute_name, default)
+      end
    end
+   return default
 end
 
 
@@ -817,8 +781,8 @@ function entities.get_target_table(entity, table_name)
       return nil
    end
 
-   local target_tables_component = entity:add_component('stonehearth:target_tables')
-   return target_tables_component:get_target_table(table_name)
+   return entity:add_component('stonehearth:target_tables')
+                    :get_target_table(table_name)
 end
 
 function entities.compare_attribute(entity_a, entity_b, attribute)

@@ -7,26 +7,23 @@ from ridl.om_types import *
 
 class Terrain(Component):
    config_file_name = dm.Boxed(std.string())
-   bounds = dm.Boxed(csg.Cube3(), get=None, set=None, no_lua_impl = True)
-   get_bounds = ridl.Method(csg.Cube3f()).const
-
+   bounds = dm.Boxed(csg.Cube3f(), get=None, set=None, no_lua_impl = True)
    tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='tile', add=None, remove=None, get=None, contains=None, num=None)
    interior_tiles = dm.Map(csg.Point3(), Region3BoxedPtr(), singular_name='interior_tile', add=None, remove=None, get=None, contains=None, num=None)
+   delta_region = dm.Boxed(csg.Region3f(), set=None)
 
-   add_tile = ridl.Method(c.void(),
-                          ('region', csg.Region3f().const.ref))
-   add_tile_clipped = ridl.Method(c.void(),
-                          ('region', csg.Region3f().const.ref),
-                          ('clipper', csg.Rect2f().const.ref))
-   get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref))
-
+   is_empty = ridl.Method(c.bool())
+   get_bounds = ridl.Method(csg.Cube3f().const.ref)
+   add_tile = ridl.Method(c.void(), ('region', csg.Region3f().const.ref))
    get_tiles = ridl.Method(Region3BoxedTiledPtr())
    get_interior_tiles = ridl.Method(Region3BoxedTiledPtr())
+   get_point_on_terrain =  ridl.Method(csg.Point3f(), ('pt', csg.Point3f().const.ref))
+   get_terrain_ring_tesselator = ridl.Method(TerrainRingTesselatorPtr()).const
 
    _generate_construct_object = True
 
    _includes = [
-      "om/components/terrain_tesselator.h",
+      "om/components/terrain_ring_tesselator.h",
       "om/region.h",
       "om/tiled_region.h",
       "csg/util.h",
@@ -40,11 +37,12 @@ class Terrain(Component):
 
    _private = \
    """
-   void AddTileClipped(csg::Region3f const& region, csg::Rect2 const* clipper);
+   void SetBounds(csg::Cube3f const& bounds);
+   void GrowBounds(csg::Cube3f const& cube);
    Region3BoxedTiledPtr CreateTileAccessor(dm::Map<csg::Point3, Region3BoxedPtr, csg::Point3::Hash>& tiles);
 
    Region3BoxedTiledPtr tile_accessor_;
    Region3BoxedTiledPtr interior_tile_accessor_;
-   TerrainTesselator terrainTesselator_;
+   TerrainRingTesselatorPtr terrainRingTesselator_;
    dm::TracePtr config_file_name_trace_;
    """

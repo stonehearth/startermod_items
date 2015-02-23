@@ -16,6 +16,9 @@ var StonehearthClient;
       init: function() {
          var self = this;
 
+         $(top).on("radiant_selection_changed", function (_, e) {
+            self._selectedEntity = e.selected_entity;
+         });
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
@@ -61,6 +64,10 @@ var StonehearthClient;
       gameState: {
          settlementName: 'Lah Salitos',
          saveKey: null 
+      },
+
+      getSelectedEntity : function() {
+         return this._selectedEntity;
       },
 
       settlementName: function(value) {
@@ -395,6 +402,23 @@ var StonehearthClient;
          });
       },
 
+
+      boxLootItems: function() {
+         var self = this;
+         var tip = self.showTip('stonehearth:loot_item_tip_title', 'stonehearth:loot_item_tip_description', {i18n : true});
+
+         return this._callTool('boxLootItems', function() {
+            return radiant.call('stonehearth:box_loot_items')
+               .done(function(response){
+                  radiant.call('stonehearth:server_box_loot_items', response.box)
+                  self.boxLootItems();
+               })
+               .fail(function(response){
+                  self.hideTip(tip);
+               });
+         });
+      },
+
       boxCancelTask: function() {
          var self = this;
 
@@ -497,18 +521,18 @@ var StonehearthClient;
          });
       },
 
-      digDown: function() {
+      mineCube: function() {
          var self = this;
 
          App.setGameMode('build');
          var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
          return this._callTool('digDown', function() {
-            return radiant.call('stonehearth:designate_mining_zone', 'down')
+            return radiant.call('stonehearth:designate_mining_zone', true)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   //radiant.call('stonehearth:select_entity', response.mining_zone);
-                  self.digDown();
+                  self.mineCube();
                })
                .fail(function(response) {
                   self.hideTip(tip);
@@ -516,18 +540,18 @@ var StonehearthClient;
          });
       },
 
-      digOut: function() {
+      mineBlock: function() {
          var self = this;
 
          App.setGameMode('build');
-         var tip = self.showTip('stonehearth:mine_out_tip_title', 'stonehearth:mine_out_tip_description', { i18n: true });
+         var tip = self.showTip('stonehearth:mine_down_tip_title', 'stonehearth:mine_down_tip_description', { i18n: true });
 
-         return this._callTool('digOut', function() {
-            return radiant.call('stonehearth:designate_mining_zone', 'out')
+         return this._callTool('digDown', function() {
+            return radiant.call('stonehearth:designate_mining_zone', false)
                .done(function(response) {
                   radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:place_structure'} );
                   //radiant.call('stonehearth:select_entity', response.mining_zone);
-                  self.digOut();
+                  self.mineBlock();
                })
                .fail(function(response) {
                   self.hideTip(tip);

@@ -1,4 +1,4 @@
-local bulletin_lib = require 'lib.game_master.bulletin_lib'
+local game_master_lib = require 'lib.game_master.game_master_lib'
 
 local Entity = _radiant.om.Entity
 local rng = _radiant.csg.get_default_rng()
@@ -22,7 +22,7 @@ function CollectionQuest:start(ctx, info)
    assert(nodes.collection_success)
    assert(nodes.shakedown_refused)
 
-   bulletin_lib.compile_bulletin_nodes(nodes, ctx)
+   game_master_lib.compile_bulletin_nodes(nodes, ctx)
 
    local script = radiant.create_controller(info.script, ctx)
    self._sv.script = script
@@ -101,7 +101,12 @@ function CollectionQuest:_on_shakedown_accepted()
    bulletin_data.demands = {
       items = self._sv.demand
    }
-   self:_update_bulletin(bulletin_data, { view = 'StonehearthCollectionQuestBulletinDialog' })
+
+   bulletin_data.ok_callback = '_nop' -- we don't do anything when they push ok, but the UI will close the view
+   self:_update_bulletin(bulletin_data, { 
+         keep_open = false,
+         view = 'StonehearthCollectionQuestBulletinDialog',
+      })
    self:_start_tracking_items()
 
    -- start a timer for when to check up on the quest
@@ -156,17 +161,25 @@ function CollectionQuest:_update_bulletin(new_bulletin_data, opt)
    local ctx = self._sv.ctx
    local player_id = ctx.player_id
    local opt_view = (opt and opt.view) or 'StonehearthGenericBulletinDialog'
+   local opt_keep_open = true
+
+   if (opt and opt.keep_open ~= nil) then
+      opt_keep_open = opt.keep_open
+   end
 
    local bulletin = self._sv.bulletin
    if not bulletin then
+      -- set all constant data for all bulletins in the encounter
       bulletin = stonehearth.bulletin_board:post_bulletin(ctx.player_id)
                                     :set_callback_instance(self)
                                     :set_type('quest')
                                     :set_sticky(true)
-                                    :set_keep_open(true)
                                     :set_close_on_handle(false)
       self._sv.bulletin = bulletin
    end
+
+   -- set data that might change when the bulltin is recycled
+   bulletin:set_keep_open(opt_keep_open)
 
    self._sv.bulletin_data = radiant.shallow_copy(new_bulletin_data)
    self.__saved_variables:mark_changed()

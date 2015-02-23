@@ -28,12 +28,13 @@ function SetHangableAdjacent:start_thinking(ai, entity, args)
    local adjacent_region = destination_component:get_adjacent()
 
    destination_region:modify(function(cursor)
+         cursor:clear()
          cursor:add_unique_cube(Cube3(Point3.zero, Point3.one))
       end)
 
    adjacent_region:modify(function(cursor)
          local adjacent_region = csg_lib.create_adjacent_columns(Point3.zero, -(entity_height-1), 1)
-         cursor:add_region(adjacent_region)
+         cursor:copy_region(adjacent_region)
       end)
 
    ai:set_think_output()

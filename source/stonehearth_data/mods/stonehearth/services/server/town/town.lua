@@ -15,7 +15,7 @@ function Town:initialize(player_id)
    self._sv.rally_to_battle_standard = false
    self._sv.mining_zones = {}
 
-   self._sv.entity = radiant.entities.create_entity()
+   self._sv.entity = radiant.entities.create_entity('', { owner = player_id })
    
    self.__saved_variables:mark_changed()
 
@@ -30,6 +30,7 @@ function Town:restore()
    self._unit_controllers = {}
    self._thread_orchestrators = {}
    self._harvest_tasks = {}
+   self._loot_tasks = {}
    self._clear_tasks = {}
    self._blueprints = {}
    self._placement_xs = {}
@@ -319,13 +320,40 @@ function Town:create_promote_orchestrator(person, talisman)
    })
 end
 
+function Town:loot_item(item)
+   -- is the item on the ground?
+   local location = radiant.entities.get_world_grid_location(item)
+   if not location then
+      return
+   end
+   -- is the item actually an item?
+   local ic = item:get_component('item')
+   if not ic then
+      return
+   end
+
+   self:remove_previous_task_on_item(item)
+   local id = item:get_id()
+   if not self._loot_tasks[id] then
+      local task = self:create_task_for_group('stonehearth:task_group:restock', 'stonehearth:pickup_item_into_backpack', { item = item })
+                           :set_priority(stonehearth.constants.priorities.simple_labor.LOOT_ITEM)
+                           :add_entity_effect(item, '/stonehearth/data/effects/loot_effect')
+                           :notify_completed(function()
+                              self._loot_tasks[id] = nil
+                           end)
+                           :once()
+                           :start()
+      self._loot_tasks[id] = task
+      self:_remember_user_initiated_task(task, 'loot_item', item)
+   end
+end
+
 function Town:harvest_resource_node(node)
    if not radiant.util.is_a(node, Entity) then
       return false
    end
 
    self:remove_previous_task_on_item(node)
-
 
    local id = node:get_id()
    if not self._harvest_tasks[id] then
@@ -416,7 +444,7 @@ function Town:clear_item(item)
    local task = self:create_task_for_group('stonehearth:task_group:harvest', 'stonehearth:clear_item', {item = item})
                      :set_source(item)
                      :set_priority(stonehearth.constants.priorities.simple_labor.CLEAR)
-                  :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
+                     :add_entity_effect(item, "/stonehearth/data/effects/clear_effect")
                      :once()
                      :notify_completed(function()
                         self._clear_tasks[id] = nil
@@ -440,6 +468,10 @@ function Town:remove_town_tasks_on_item(item)
    if self._harvest_tasks[id] then
       self._harvest_tasks[id]:destroy()
       self._harvest_tasks[id] = nil
+   end
+   if self._loot_tasks[id] then
+      self._loot_tasks[id]:destroy()
+      self._loot_tasks[id] = nil
    end
 end
 

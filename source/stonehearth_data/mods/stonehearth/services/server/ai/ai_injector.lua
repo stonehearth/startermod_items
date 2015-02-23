@@ -14,18 +14,20 @@ end
 
 function AiInjector:inject_ai(ai)
    log:info('injecting ai into %s', self._entity)
-   local ai_component = self._entity:add_component('stonehearth:ai')
+   
 
    if ai.actions then
+      local aic = self._entity:add_component('stonehearth:ai')
       for _, uri in ipairs(ai.actions) do
-         ai_component:add_action(uri, self._injecting_entity)
+         aic:add_action(uri, self._injecting_entity)
          table.insert(self._injected.actions, uri)
       end
    end
 
    if ai.observers then
+      local obs = self._entity:add_component('stonehearth:observers')
       for _, uri in ipairs(ai.observers) do
-         ai_component:add_observer(uri, self._injecting_entity)
+         obs:add_observer(uri, self._injecting_entity)
          table.insert(self._injected.observers, uri)
       end
    end
@@ -39,17 +41,18 @@ function AiInjector:destroy()
    end
 
    log:info('revoking injected ai from %s', self._entity)
-   local ai_component = self._entity:add_component('stonehearth:ai')
 
    if self._injected.actions then
+      local ai = self._entity:add_component('stonehearth:ai')
       for _, uri  in ipairs(self._injected.actions) do
-         ai_component:remove_action(uri)
+         ai:remove_action(uri)
       end
    end
 
    if self._injected.observers then
+      local obs = self._entity:add_component('stonehearth:observers')
       for _, uri  in ipairs(self._injected.observers) do
-         ai_component:remove_observer(uri)
+         obs:remove_observer(uri)
       end
    end
 end

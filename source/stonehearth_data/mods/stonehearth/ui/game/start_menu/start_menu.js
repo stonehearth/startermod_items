@@ -36,7 +36,10 @@ App.StonehearthStartMenuView = App.View.extend({
          App.stonehearthClient.createPasture();
       },
       mining_ui : function () {
-         App.stonehearthClient.digDown();
+         App.stonehearthClient.mineCube();
+      },
+      mine_block : function () {
+         App.stonehearthClient.mineBlock();
       },
       building_templates: function () {
          $(top).trigger('stonehearth_building_templates');
@@ -52,6 +55,9 @@ App.StonehearthStartMenuView = App.View.extend({
       },
       build_simple_room: function () {
          App.stonehearthClient.buildRoom();
+      },
+      loot_item : function () {
+         App.stonehearthClient.boxLootItems();
       },
       town_menu: function() {
          App.stonehearthClient.showTownMenu();
@@ -104,6 +110,7 @@ App.StonehearthStartMenuView = App.View.extend({
                .done(function(response) {
                   if (!response.show_in_progress_ui) {
                      self.$('#tasks_manager').hide();
+                     self.$('#mine_block').hide();
                   }
                })
 

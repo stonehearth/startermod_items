@@ -10,11 +10,13 @@ function SettlementTest:__init()
 
    -- build the player camp
    self:place_citizen(4, 4, 'footman')
-   self:place_citizen(4, 7)
+   self:place_citizen(4, 7, 'footman')
+   self:place_citizen(10, 7, 'footman')
+   self:place_citizen(13, 7, 'footman')
    self:place_citizen(7, 4)
    self:place_citizen(7, 7)
 
-   local banner = radiant.entities.create_entity('stonehearth:camp_standard')
+   local banner = radiant.entities.create_entity('stonehearth:camp_standard', { owner = 'player_1' })
    radiant.terrain.place_entity(banner, Point3(8, 1, 8), { force_iconic = false })
    stonehearth.town:get_town('player_1')
                      :set_banner(banner)
@@ -24,6 +26,7 @@ function SettlementTest:__init()
                               :create_stockpile(Point3(x, 1, z), Point2(4, 4))
       self:place_item_cluster('stonehearth:furniture:comfy_bed', x, z, 4, 4)
    end
+   self:place_item_cluster('stonehearth:furniture:comfy_bed', -4, 14, 2, 2)
 
    create_stockpile(14, 14)
    create_stockpile(10, 8)

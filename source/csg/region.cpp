@@ -804,7 +804,7 @@ void Region<S, C>::Validate() const
       ASSERT(!cubes_[i].IsEmpty());
       for (j = 0; j < i; j++) {
          if (cubes_[i].Intersects(cubes_[j])) {
-            LOG_(0) << "cube " << j << ":" << cubes_[i] << " overlaps with " << i << ":" << cubes_[i];
+            LOG(csg.region, 0) << "cube " << j << ":" << cubes_[i] << " overlaps with " << i << ":" << cubes_[i];
          }
          ASSERT(!cubes_[i].Intersects(cubes_[j]));
       }

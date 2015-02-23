@@ -111,6 +111,7 @@ void Renderer::OneTimeIninitializtion()
    initialized_ = true;
 }
 
+
 void Renderer::MakeRendererResources()
 {
    // Overlays
@@ -254,8 +255,8 @@ void Renderer::SetupGlfwHandlers()
       Renderer::GetInstance().OnMouseButton(button, action == GLFW_PRESS); 
    });
 
-   glfwSetScrollCallback(window, [](GLFWwindow *window, double xoffset, double yoffset) {
-      Renderer::GetInstance().OnMouseWheel(yoffset);
+   glfwSetScrollCallback(window, [](GLFWwindow *window, double dx, double dy) {
+      Renderer::GetInstance().OnMouseWheel(dy);
    });
 
    // Platform-specific ifdef code goes here....
@@ -1413,9 +1414,9 @@ void Renderer::UpdateCamera()
    sf::Listener::setDirection((float)direction.x, (float)direction.y, (float)direction.z);
 }
 
-void Renderer::OnMouseWheel(double value)
+void Renderer::OnMouseWheel(double dy)
 {
-   input_.mouse.wheel = (int)value;
+   input_.mouse.wheel = (int)dy;
    CallMouseInputCallbacks();
    input_.mouse.wheel = 0;
 }

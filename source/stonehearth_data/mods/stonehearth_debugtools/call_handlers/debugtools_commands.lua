@@ -10,7 +10,7 @@ function Commands:interrupt_ai(session, response, entity)
 end
 
 function Commands:create_and_place_entity(session, response, uri, iconic)
-   local entity = radiant.entities.create_entity(uri)
+   local entity = radiant.entities.create_entity(uri, { owner = session.player_id })
    local entity_forms = entity:get_component('stonehearth:entity_forms')
 
    if iconic and entity_forms ~= nil then 
@@ -36,7 +36,7 @@ function Commands:create_and_place_entity(session, response, uri, iconic)
 end
 
 function Commands:create_entity(session, response, uri, iconic, location, rotation)
-   local entity = radiant.entities.create_entity(uri)
+   local entity = radiant.entities.create_entity(uri, { owner = session.player_id })
    local entity_forms = entity:get_component('stonehearth:entity_forms')
 
    if entity_forms == nil then

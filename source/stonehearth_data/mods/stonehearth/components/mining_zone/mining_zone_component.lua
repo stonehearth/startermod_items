@@ -578,7 +578,7 @@ function MiningZoneComponent:_update_mining_task()
 end
 
 function MiningZoneComponent:_create_designation_entity()
-   local entity = radiant.entities.create_entity('stonehearth:mining_zone_designation')
+   local entity = radiant.entities.create_entity('stonehearth:mining_zone_designation', { owner = self._entity })
    local collision_shape_component = entity:add_component('region_collision_shape')
       :set_region_collision_type(_radiant.om.RegionCollisionShape.NONE)
       :set_region(_radiant.sim.alloc_region3())

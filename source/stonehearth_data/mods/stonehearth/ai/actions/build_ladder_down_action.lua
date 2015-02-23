@@ -31,10 +31,11 @@ end
 local ai = stonehearth.ai
 return ai:create_compound_action(BuildLadderDown)
          :execute('stonehearth:pickup_item_made_of', { material = ai.ARGS.builder:get_material() })
-         :execute('stonehearth:create_proxy_entity', {
+         :execute('stonehearth:create_entity', {
                location = ai.BACK(2).ladder_top,
-               reason = 'build ladder down',
-               use_default_adjacent_region = true
+               options = {
+                  debug_text = 'build ladder down'
+               }
             })
          :execute('stonehearth:goto_entity', { entity = ai.PREV.entity })
          :execute('stonehearth:build_ladder_adjacent', { ladder = ai.ARGS.ladder, builder = ai.ARGS.builder, direction = 'down' })

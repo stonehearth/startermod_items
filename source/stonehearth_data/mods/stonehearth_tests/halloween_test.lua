@@ -11,7 +11,7 @@ function HalloweenTest:__init()
    self:place_item('candledark:pumpkin_ward', 2, 2, nil, { force_iconic = false })
 
    -- the banner
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = carpenter })
    local player_id = carpenter:get_component('unit_info'):get_player_id()
    radiant.terrain.place_entity(banner_entity, Point3(0, 0, 0))
    stonehearth.town:get_town('player_1'):set_banner(banner_entity)

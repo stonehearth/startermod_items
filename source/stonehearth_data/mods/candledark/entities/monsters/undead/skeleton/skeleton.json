@@ -56,7 +56,9 @@
             "stonehearth:actions:combat:panic_watcher",
             "stonehearth:actions:combat:stop_panicking",
             "stonehearth:actions:combat:flee"
-         ],
+         ]
+      },
+      "stonehearth:observers" : {
          "observers" : [
             "stonehearth:observers:combat_panic",
             "stonehearth:observers:avoid_threatening_entities"

@@ -55,12 +55,7 @@ App.StonehearthFarmView = App.View.extend({
       addCropButtonClicked: function() {
          var self = this;
          palette = App.gameView.addView(App.StonehearthFarmCropPalette, { 
-                     field: this.get('context.stonehearth:farmer_field').__self,
-                     position: {
-                        my : 'center',
-                        at : 'center', 
-                        of : this.$('.targetCrop')
-                     }
+                     field: this.get('context.stonehearth:farmer_field').__self
                   });
       },
    },
@@ -86,7 +81,7 @@ App.StonehearthFarmCropPalette = App.View.extend({
       this._super();
       var self = this;
 
-      this.$().on( 'click', '.item', function() {
+      this.$().on( 'click', '[crop]', function() {
          var cropId = $(this).attr('crop');
          if (cropId) {
             //TODO: add back when we make the queue

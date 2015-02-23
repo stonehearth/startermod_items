@@ -12,7 +12,7 @@ function PromoteTest:__init()
 
    --Create the saw 
    local saw = self:place_item('stonehearth:carpenter:talisman', 10, 10)
-   local saw = self:place_item('stonehearth:footman:wooden_sword_talisman', 12, 1)
+   --local saw = self:place_item('stonehearth:footman:wooden_sword_talisman', 12, 1)
 
    self:place_citizen(-1,2)
    local worker = self:place_citizen(12, 12)

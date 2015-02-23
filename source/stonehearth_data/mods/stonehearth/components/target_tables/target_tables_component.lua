@@ -10,15 +10,9 @@ function TargetTables:initialize(entity, json)
       self._sv.initialized = true
       self.__saved_variables:mark_changed()
    end
-
-   -- ten second or minute poll is sufficient
-   self._very_slow_poll_listener = radiant.events.listen(radiant, 'stonehearth:very_slow_poll', self, self._clean_target_tables)
 end
 
 function TargetTables:destroy()
-   self._very_slow_poll_listener:destroy()
-   self._very_slow_poll_listener = nil
-   
    for _, target_table in pairs(self._sv.target_tables) do
       radiant.destroy_controller(target_table)
    end
@@ -33,12 +27,6 @@ function TargetTables:get_target_table(table_name)
    end
 
    return target_table
-end
-
-function TargetTables:_clean_target_tables()
-   for _, target_table in pairs(self._sv.target_tables) do
-      target_table:remove_invalid_targets()
-   end
 end
 
 return TargetTables

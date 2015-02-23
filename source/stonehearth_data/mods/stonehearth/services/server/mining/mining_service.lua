@@ -139,7 +139,7 @@ end
 
 -- Explicitly create a mining zone.
 function MiningService:create_mining_zone(player_id)
-   local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone')
+   local mining_zone = radiant.entities.create_entity('stonehearth:mining_zone', { owner = player_id })
 
    mining_zone:add_component('unit_info')
       :set_player_id(player_id)
@@ -315,9 +315,7 @@ function MiningService:_init_loot_tables()
    self._loot_tables = {}
 
    for block_kind, loot_json in pairs(json) do
-      local loot_table = LootTable()
-      loot_table:load_from_json(loot_json)
-      self._loot_tables[block_kind] = loot_table
+      self._loot_tables[block_kind] = LootTable(loot_json)
    end
 end
 

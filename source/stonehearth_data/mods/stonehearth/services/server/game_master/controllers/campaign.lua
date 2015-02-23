@@ -1,3 +1,4 @@
+local game_master_lib = require 'lib.game_master.game_master_lib'
 local Node = require 'services.server.game_master.controllers.node'
 
 local Campaign = class()
@@ -19,7 +20,11 @@ function Campaign:start(ctx)
    end
    self._sv.trigger = trigger
    self.__saved_variables:mark_changed()
-   trigger:start(ctx)
+
+   local arc_ctx = game_master_lib.create_context('trigger', trigger, ctx)
+   arc_ctx.arc = trigger
+   arc_ctx.arc_name = 'trigger'
+   trigger:start(arc_ctx)
 end
 
 -- create the arc nodelist for arc with `key` (e.g. trigger, climax)

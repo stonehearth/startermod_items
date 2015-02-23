@@ -16,7 +16,6 @@ function AIComponent:initialize(entity, json)
    self._action_index = {}
    self._task_groups = {}
    self._last_added_actions = {}
-   self._observer_instances = {}
    self._all_execution_frames = {}
    self._sv = self.__saved_variables:get_data()
    self.__saved_variables:set_controller(self)
@@ -29,9 +28,7 @@ function AIComponent:initialize(entity, json)
                           :set_entity(self._entity)
 
    if not self._sv._initialized then
-      -- wait until the entity is completely initialized before piling all our
-      -- observers and actions
-
+      -- wait until the entity is completely initialized before piling all our actions
       radiant.events.listen_once(entity, 'radiant:entity:post_create', function()
             self._sv._dispatchers = json.dispatchers
             self:_initialize(json)
@@ -89,11 +86,6 @@ end
 
 function AIComponent:destroy()
    self._dead = true
-
-   for uri, _ in pairs(self._observer_instances) do
-      self:remove_observer(uri)
-   end
-   
    self._action_index = nil
    self:_terminate_thread()
 end
@@ -259,63 +251,17 @@ function AIComponent:remove_custom_action(action_ctor, injecting_entity)
    self:remove_action(action_ctor)
 end
 
-function AIComponent:add_observer(uri)
-   if self._observer_instances[uri] then
-      return
-   end
-
-   local ctor = radiant.mods.load_script(uri)
-   local observer = ctor(self._entity)
-   
-   if not self._sv._observer_datastores[uri] then
-      self._sv._observer_datastores[uri] = radiant.create_datastore()
-   end
-
-   observer.__saved_variables = self._sv._observer_datastores[uri]
-   observer:initialize(self._entity)
-
-   self._observer_instances[uri] = observer
-   self.__saved_variables:mark_changed()
-end
-
-function AIComponent:remove_observer(uri)
-   local observer = self._observer_instances[uri]
-
-   if observer then
-      if observer.destroy then
-         observer:destroy()
-      end
-
-      self._observer_instances[uri] = nil
-      if self._sv._observer_datastores[uri] then
-         radiant.destroy_datastore(self._sv._observer_datastores[uri])
-         self._sv._observer_datastores[uri] = nil
-      end
-      self.__saved_variables:mark_changed()
-   end
-end
-
 function AIComponent:_initialize(json)
    if not self._sv._initialized then
       self._sv.status_text = ''
       self._sv._actions = {}
-      self._sv._observer_instances = {}
-      self._sv._observer_datastores = {}
-
+      
       for _, uri in ipairs(json.actions or {}) do
          self:add_action(uri)
-      end
-
-      for _, uri in ipairs(json.observers or {}) do
-         self:add_observer(uri)
       end
    else
       for uri, _ in pairs(self._sv._actions) do
          self:_add_action_script(uri)
-      end
-
-      for uri, _ in pairs(self._sv._observer_datastores) do
-         self:add_observer(uri)
       end
    end
    self:_create_task_dispatchers('stonehearth:top', self._sv._dispatchers)

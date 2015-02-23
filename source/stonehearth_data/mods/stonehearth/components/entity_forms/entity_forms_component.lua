@@ -330,7 +330,7 @@ function EntityFormsComponent:_create_pick_up_ladder_task()
       local pickup_normal = build_util.rotation_to_normal(rotation)
       local pickup_location = radiant.entities.get_world_grid_location(self._entity)
       pickup_location = pickup_location - Point3.unit_y + pickup_normal
-      self._climb_to_item = stonehearth.build:request_ladder_to(pickup_location, pickup_normal)
+      self._climb_to_item = stonehearth.build:request_ladder_to(self._entity, pickup_location, pickup_normal)
    end
 end
 
@@ -347,7 +347,7 @@ function EntityFormsComponent:_create_put_down_ladder_task(location, normal)
    end
 
    local climb_to = location - Point3.unit_y + normal
-   self._climb_to_destination = stonehearth.build:request_ladder_to(climb_to, normal)
+   self._climb_to_destination = stonehearth.build:request_ladder_to(self._entity, climb_to, normal)
 end
 
 function EntityFormsComponent:_create_task(args)

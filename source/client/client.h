@@ -137,6 +137,7 @@ class Client : public core::Singleton<Client> {
       void CallHttpReactor(std::string const& parts, const json::Node& query, std::string const& postdata, rpc::HttpDeferredPtr response);
       void InitDataModel();
       void RequestReload();
+      void ReloadBrowser();
       void EnableDisableSaveStressTest();
       void EnableDisableLifetimeTracking();
       void OneTimeIninitializtion();

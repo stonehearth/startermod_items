@@ -25,6 +25,6 @@
 	"working_dir" : "d:/radiant/stonehearth/source/stonehearth_data",
 	"selector" : "source.lua",
 	"env" : {
-		"PATH" : "d:/radiant/stonehearth/build/source/stonehearth/RelWithDebInfo"
+		"PATH" : "d:/radiant/stonehearth/build/x86/source/stonehearth/RelWithDebInfo"
 	}
 }

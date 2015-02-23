@@ -142,7 +142,7 @@ function Fabricator:_create_new_project()
    -- no need to update their transform.
    local blueprint = self._blueprint
    local rgn = _radiant.sim.alloc_region3()
-   self._project = radiant.entities.create_entity(blueprint:get_uri())
+   self._project = radiant.entities.create_entity(blueprint:get_uri(), { owner = self._entity })
    self._project:set_debug_text('project')
    self._project_dst = self._project:add_component('destination')
 

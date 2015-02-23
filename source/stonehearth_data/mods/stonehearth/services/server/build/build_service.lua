@@ -387,7 +387,7 @@ function BuildService:add_fabricator(blueprint)
    assert(blueprint:get_component('stonehearth:construction_data'),
           string.format('blueprint %s has no construction_data', tostring(blueprint)))
 
-   local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator')
+   local fabricator = radiant.entities.create_entity('stonehearth:entities:fabricator', { owner = blueprint })
 
    local blueprint_mob = blueprint:add_component('mob')
    local parent = blueprint_mob:get_parent()
@@ -461,7 +461,7 @@ end
 --                      where the blueprint is located
 --
 function BuildService:_create_blueprint(building, blueprint_uri, offset, init_fn)
-   local blueprint = radiant.entities.create_entity(blueprint_uri)
+   local blueprint = radiant.entities.create_entity(blueprint_uri, { owner = building })
 
    self:_bind_building_to_blueprint(building, blueprint)
    blueprint:set_debug_text('blueprint')
@@ -493,7 +493,7 @@ end
 --                       world
 --
 function BuildService:_create_new_building(session, location)
-   local building = radiant.entities.create_entity('stonehearth:entities:building')
+   local building = radiant.entities.create_entity('stonehearth:entities:building', { owner = session.player_id })
    self._undo:trace_building(building)
    
    -- give the building a unique name and establish ownership.
@@ -548,7 +548,7 @@ function BuildService:_merge_floor_into_building(building_ent, floor_type, floor
    local bc = building_ent:get_component('stonehearth:building')
    local building_floors = bc:get_floors(floor_type)
 
-   local new_floor_ent = radiant.entities.create_entity(floor_uri)
+   local new_floor_ent = radiant.entities.create_entity(floor_uri, { owner = building_ent })
    local new_floor_cd = new_floor_ent:get_component('stonehearth:construction_data')
 
    for _, building_floor_ent in pairs(building_floors) do
@@ -1014,8 +1014,10 @@ function BuildService:add_fixture(parent_entity, fixture_or_uri, location, norma
    local _, fixture_blueprint
 
    local _, _, fixture_ghost_uri = entity_forms.get_uris(fixture_or_uri)
-   fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri)
-   fixture_blueprint:set_debug_text('fixture blueprint')
+   fixture_blueprint = radiant.entities.create_entity(fixture_ghost_uri, {
+         owner = parent_entity,
+         debug_text = 'fixture blueprint',
+      })
    
    local building = build_util.get_building_for(parent_entity)
 
@@ -1189,7 +1191,7 @@ end
 function BuildService:create_ladder_command(session, response, ladder_uri, location, normal)
    normal = ToPoint3(normal)
    location = ToPoint3(location)
-   self._sv.scaffolding_manager:request_ladder_to(location, normal, true)
+   self._sv.scaffolding_manager:request_ladder_to(session.player_id, location, normal, true)
    return true
 end
 
@@ -1204,8 +1206,8 @@ function BuildService:remove_ladder_command(session, response, ladder_entity)
    return true
 end
 
-function BuildService:request_ladder_to(climb_to, normal)
-   return self._sv.scaffolding_manager:request_ladder_to(climb_to, normal)
+function BuildService:request_ladder_to(owner, climb_to, normal)
+   return self._sv.scaffolding_manager:request_ladder_to(owner, climb_to, normal)
 end
 
 function BuildService:instabuild_command(session, response, building)

@@ -27,7 +27,7 @@ function get_cell_max(value, cell_size)
    return get_cell_min(value, cell_size) + cell_size-1
 end
 
-function MiningCallHandler:designate_mining_zone(session, response)
+function MiningCallHandler:designate_mining_zone(session, response, aligned)
    local edge_color = Color4(255, 255, 0, 128)
    local face_color = Color4(255, 255, 0, 16)
    local xz_cell_size = constants.mining.XZ_CELL_SIZE
@@ -128,7 +128,10 @@ function MiningCallHandler:designate_mining_zone(session, response)
    end
 
    local draw_region_outline_marquee = function(selector, box)
-      local mode = self:_infer_mode(box)
+      local mode = nil
+      if aligned then
+         mode = self:_infer_mode(box)
+      end
       local region = self:_get_dig_region(box, mode)
       local render_node = _radiant.client.create_region_outline_node(1, region, edge_color, face_color)
       return render_node
@@ -156,18 +159,25 @@ function MiningCallHandler:designate_mining_zone(session, response)
       return not region:empty()
    end
 
-   stonehearth.selection:select_xz_region()
+   local selector = stonehearth.selection:select_xz_region()
       :select_front_brick(false)
       :set_validation_offset(Point3.unit_y)
       :set_cursor_fn(select_cursor)
-      :set_end_point_transforms(get_proposed_points, get_resolved_points)
       :set_find_support_filter(terrain_support_filter)
       :set_can_contain_entity_filter(contain_entity_filter)
       :set_ghost_ignored_entity_filter(ghost_ignored_entity_filter)
       :use_manual_marquee(draw_region_outline_marquee)
 
+   if aligned then
+      selector:set_end_point_transforms(get_proposed_points, get_resolved_points)
+   end
+
+   selector
       :done(function(selector, box)
-            local mode = self:_infer_mode(box)
+            local mode = nil
+            if aligned then
+               mode = self:_infer_mode(box)
+            end
             local region = self:_get_dig_region(box, mode)
             _radiant.call('stonehearth:add_mining_zone', region, mode)
                :done(function(r)
@@ -245,6 +255,9 @@ function MiningCallHandler:_get_dig_region(selection_box, mode)
    elseif mode == 'out' then
       cube = self:_get_aligned_cube(selection_box)
       cube.max.y = cube.max.y - 1
+   else
+      assert(mode == nil)
+      cube = selection_box
    end
 
    if cube then
@@ -266,6 +279,9 @@ function MiningCallHandler:add_mining_zone(session, response, region_table, mode
       mining_zone = stonehearth.mining:dig_out(session.player_id, region)
    elseif mode == 'up' then
       mining_zone = stonehearth.mining:dig_up(session.player_id, region)
+   else
+      assert(mode == nil)
+      mining_zone = stonehearth.mining:dig_region(session.player_id, region)
    end
 
    return { mining_zone = mining_zone }

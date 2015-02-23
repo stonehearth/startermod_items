@@ -11,7 +11,8 @@ local FORMATIONS = {
    { Point3(-SPACE, 0, 0), Point3(SPACE, 0, 0), Point3(0, 0, SPACE * 2) },
 }
 
-ATTACK = 'attack'
+Party.ATTACK = 'attack'
+Party.DEFEND = 'defend'
 
 local function ToPoint3(pt)
    return pt and Point3(pt.x, pt.y, pt.z) or nil
@@ -27,6 +28,7 @@ function Party:initialize(unit_controller, player_id, id, ord)
    self._sv.party_size = 0
    self._sv.leash_range = 10
    self._sv.player_id = player_id
+   self._party_tasks = {}
 
    self:restore()
 end
@@ -111,6 +113,14 @@ function Party:remove_member(id)
    end
 end
 
+function Party:each_member()
+   local id
+   return function()      
+      id, entry = next(self._sv.members, id)
+      return id, entry.entity
+   end
+end
+
 function Party:get_formation_offset(member)
    local i = 0
    local member_id = member:get_id()
@@ -145,32 +155,27 @@ end
 function Party:get_active_banner()
    local banner
    if self._town:worker_combat_enabled() then
-      banner = self._sv.banners['defend']
+      banner = self._sv.banners[Party.DEFEND]
    end
    if not banner then
-      banner = self._sv.banners['attack']
+      banner = self._sv.banners[Party.ATTACK]
    end
    return banner
 end
 
 
-function Party:raid(stockpile)
-   -- the formation should be the center of the stockpile
-   local location = stockpile:get_component('stonehearth:stockpile')
-                                 :get_bounds()
-                                    :get_centroid()
-
-   local task = self._party_tg:create_task('stonehearth:party:raid_stockpile', {
-         party = self,
-         stockpile = stockpile,
-      })
-
-   task:set_priority(self._party_priorities.RAID_STOCKPILE)
-         :start()
-
-   self:place_banner(ATTACK, location, 0)
+function Party:cancel_tasks()
+   for _, task in pairs(self._party_tasks) do
+      task:destroy()
+   end
+   self._party_tasks = {}
 end
 
+function Party:add_task(activity, args)
+   local task = self._party_tg:create_task(activity, args)
+   table.insert(self._party_tasks, task)
+   return task
+end
 
 function Party:_get_next_id()
    local id = self._sv._next_id

@@ -17,7 +17,7 @@ end
 function ShepherdService:create_new_pasture(session, location, size)
    -- A little sanitization: what we get from the client isn't exactly a Point3
    location = Point3(location.x, location.y, location.z)
-   local entity = radiant.entities.create_entity('stonehearth:shepherd:shepherd_pasture')   
+   local entity = radiant.entities.create_entity('stonehearth:shepherd:shepherd_pasture', { owner = session.player_id })
    entity:get_component('unit_info')
             :set_player_id(session.player_id)
    self:_add_region_components(entity, size)

@@ -12,6 +12,7 @@ function PopulationFaction:__init(player_id, kingdom, saved_variables)
       self._sv.citizens = {}
       self._sv.citizen_scores = {}
       self._sv.notifications = {}
+      self._sv.is_npc = true
    end
    self._data = radiant.resources.load_json(self._sv.kingdom)
 
@@ -30,6 +31,15 @@ end
 
 function PopulationFaction:get_player_id()
    return self._sv.player_id
+end
+
+function PopulationFaction:is_npc()
+   return self._sv.is_npc
+end
+
+function PopulationFaction:set_is_npc(value)
+   self._sv.is_npc = value
+   self.__saved_variables:mark_changed()
 end
 
 function PopulationFaction:create_town_name()
@@ -76,7 +86,7 @@ function PopulationFaction:create_new_citizen()
    
    local entities = self._data[gender .. '_entities']
    local kind = entities[rng:get_int(1, #entities)]
-   local citizen = radiant.entities.create_entity(kind)
+   local citizen = radiant.entities.create_entity(kind, { owner = self._sv.player_id })
    
    local all_variants = radiant.entities.get_entity_data(citizen, 'stonehearth:customization_variants')
    if all_variants then
@@ -183,10 +193,7 @@ function PopulationFaction:_set_citizen_initial_state(citizen, gender)
 end
 
 function PopulationFaction:create_entity(uri)
-   local entity = radiant.entities.create_entity(uri)
-   entity:add_component('unit_info')
-            :set_player_id(self._sv.player_id)
-   return entity
+   return radiant.entities.create_entity(uri, { owner = self._sv.player_id })
 end
 
 function PopulationFaction:get_home_location()

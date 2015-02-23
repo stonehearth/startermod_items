@@ -34,12 +34,14 @@
    CREATE_BOXED(om::Region3fBoxed) \
    CREATE_BOXED(om::Region2fBoxedPtrBoxed) \
    CREATE_BOXED(om::Region3fBoxedPtrBoxed) \
-   BOXED(csg::Region3) \
-   BOXED(csg::Region2) \
    BOXED(csg::Point3) \
    BOXED(csg::Point3f) \
    BOXED(csg::Cube3) \
    BOXED(csg::Cube3f) \
+   BOXED(csg::Region3) \
+   BOXED(csg::Region3f) \
+   BOXED(csg::Region2) \
+   BOXED(csg::Region2f) \
    BOXED(csg::Transform) \
    BOXED(json::Node) \
    BOXED(lua::DataObject) \

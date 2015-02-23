@@ -28,10 +28,11 @@ return ai:create_compound_action(PickupHangableItem)
          :execute('stonehearth:get_entity_location', {
                entity = ai.ARGS.item
             })
-         :execute('stonehearth:create_proxy_entity', {
+         :execute('stonehearth:create_entity', {
                location = ai.PREV.grid_location,
-               reason = 'pick up hangable item',
-               use_default_adjacent_region = true,
+               options = {
+                  debug_text = 'pick up hangable item',
+               }
             })
          :execute('stonehearth:set_hangable_adjacent', {
                item = ai.BACK(1).entity,

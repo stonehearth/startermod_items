@@ -210,7 +210,7 @@ void Client::OneTimeIninitializtion()
       _commands[GLFW_KEY_F2] = [=](KeyboardInput const& kb) { EnableDisableLifetimeTracking(); };
       _commands[GLFW_KEY_F3] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:toggle_step_paths")); };
       _commands[GLFW_KEY_F4] = [=](KeyboardInput const& kb) { core_reactor_->Call(rpc::Function("radiant:step_paths")); };
-      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) { RequestReload(); };
+      _commands[GLFW_KEY_F5] = [=](KeyboardInput const& kb) { if (kb.ctrl) { ReloadBrowser(); } };
       _commands[GLFW_KEY_F6] = [=](KeyboardInput const& kb) { SaveGame("hotkey_save", json::Node()); };
       _commands[GLFW_KEY_F7] = [=](KeyboardInput const& kb) { LoadGame("hotkey_save"); };
       //_commands[GLFW_KEY_F8] = [=](KeyboardInput const& kb) { EnableDisableSaveStressTest(); };
@@ -1631,6 +1631,11 @@ void Client::EnableDisableSaveStressTest()
    }
 }
    
+void Client::ReloadBrowser()
+{
+   InitializeUI("");
+}
+
 void Client::RequestReload()
 {
    core_reactor_->Call(rpc::Function("radiant:server:reload"));

@@ -7,7 +7,7 @@ RunDeathEffect.version = 2
 RunDeathEffect.priority = 1
 
 function RunDeathEffect:run(ai, entity, args)
-   local proxy = radiant.entities.create_proxy_entity('running death effect')
+   local proxy = radiant.entities.create_entity(nil, { debug_text = 'running death effect' })
    local location = radiant.entities.get_world_grid_location(entity)
    
    radiant.terrain.place_entity(proxy, location)

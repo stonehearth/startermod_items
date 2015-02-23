@@ -1,5 +1,8 @@
 {
-   "mixins": "stonehearth:mixins:align_to_grid",
+   "mixins": [
+      "stonehearth:mixins:align_to_grid",
+      "stonehearth:mixins:destructable_object"
+   ],
    "type": "entity", 
    "components": {
       "unit_info" : {
@@ -24,10 +27,6 @@
          "health": {
             "type" : "variable", 
             "equation" :  "max_health"
-         },
-         "menace": {
-            "type" : "basic",
-            "value" : 0
          }
       },
       "mob" : {
@@ -40,5 +39,18 @@
             }
          ]
       }      
-   }
+   },
+   "entity_data" : {
+      "stonehearth:destroyed_loot_table" : {
+         "num_rolls" : {
+            "min" : 6,
+            "max" : 10
+         },
+         "items" : [
+            { "uri" : "stonehearth:resources:copper:ore" },
+            { "uri" : "stonehearth:resources:silver:ore"  },
+            { "uri" : "stonehearth:resources:gold:ore"  }
+         ]
+      }
+   }   
 }

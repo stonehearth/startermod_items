@@ -145,7 +145,7 @@ end
 --- Get the value of an attribute. 
 --  If it doesn't exist, create it. If there is json already for it, incoming but
 --  not yet processed, process the children first.
-function AttributesComponent:get_attribute(name)
+function AttributesComponent:get_attribute(name, default)
    local attribute_data = self._sv._attribute_data[name]
    if not attribute_data then
       -- check if this attribute just hasn't been processed yet
@@ -162,12 +162,15 @@ function AttributesComponent:get_attribute(name)
       return self._sv._attribute_data[name].value
    end
 
-   -- HACK
-   -- ideally this would return nil at this point
-   -- however, this causes problems with injected attributes where they are tested before the starting value can be set
-   -- return 0 to avoid this problem for now, but this is a poor default
-   -- (e.g. injected health attribute when animating an object that can attack)
-   return 0
+   if default == nil then
+      -- HACK
+      -- ideally this would return nil at this point
+      -- however, this causes problems with injected attributes where they are tested before the starting value can be set
+      -- return 0 to avoid this problem for now, but this is a poor default
+      -- (e.g. injected health attribute when animating an object that can attack)
+      return 0
+   end      
+   return default
 end
 
 --Note: now, only use this on basic/random/variable values. Everything

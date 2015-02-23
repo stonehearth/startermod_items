@@ -30,7 +30,7 @@ function ShopTest:__init()
    local player_id = 'player_1'
    local town = stonehearth.town:get_town(player_id)
    local location = Point3(7, 0, 7)
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = player_id })
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
 

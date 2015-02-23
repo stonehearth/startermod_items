@@ -184,6 +184,12 @@ local function get_restock_filter_fn(filter_key, filter, player_id)
          local containing_component = get_stockpile_containing_entity(item)
          local containing_entity = containing_component and containing_component:get_entity()
 
+         local item_player_id = radiant.entities.get_player_id(item)
+         if item_player_id ~= player_id then
+            log:detail('item player id "%s" ~= stockpile id "%s".  returning from filter function', item_player_id, player_id)
+            return false
+         end
+
          if containing_entity then
             if stonehearth.game_master:is_enabled() then
                log:detail('already stocked!  returning false from filter function')
@@ -254,6 +260,7 @@ function StockpileComponent:set_filter(filter)
    end
 
    self:_create_worker_tasks()
+   radiant.events.trigger_async(self._entity, 'stonehearth:stockpile:filter_changed')
    return self
 end
 

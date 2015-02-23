@@ -53,6 +53,7 @@ function CarryBlock:set_carrying(new_item)
    self._entity:add_component('entity_container')
                      :add_child_to_bone(new_item, 'carry')
    radiant.entities.move_to(new_item, Point3.zero)
+   radiant.entities.set_player_id(new_item, self._entity)
    
    self:_create_carried_item_trace()
 

@@ -73,7 +73,7 @@ void Convert::UserdataToProtobuf(luabind::object const& obj, Protocol::Value* ms
       if (!__get_userdata_type_id || !__get_userdata_type_id.is_valid()) {
          int top = lua_gettop(L);
          obj.push(L);
-         LOG_(0) << "error: lua object " << luabind::get_class_info(luabind::from_stack(L, top+1)).name << " not registered with dynamic type info in UserdataToProtobuf";
+         LOG(core.system, 0) << "error: lua object " << luabind::get_class_info(luabind::from_stack(L, top+1)).name << " not registered with dynamic type info in UserdataToProtobuf";
          lua_settop(L, top);
          msg->set_type_id(0);
          return;

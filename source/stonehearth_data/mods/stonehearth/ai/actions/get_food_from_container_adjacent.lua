@@ -31,7 +31,7 @@ function GetFoodFromContainerAdjacent:run(ai, entity, args)
       ai:abort('Cannot eat: Food container is empty.')
    end
 
-   local food = radiant.entities.create_entity(container_data.food)   
+   local food = radiant.entities.create_entity(container_data.food, { owner = entity })
    radiant.entities.pickup_item(entity, food)
 end
 

@@ -26,7 +26,7 @@ function PetEatFromContainerAdjacent:run(ai, entity, args)
   
    radiant.entities.turn_to_face(entity, container)
    
-   local food = radiant.entities.create_entity(container_data.food)   
+   local food = radiant.entities.create_entity(container_data.food)
    ai:execute('stonehearth:eat_item', { food = food })
 end
 

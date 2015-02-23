@@ -209,7 +209,7 @@ function NewGameCallHandler:create_camp(session, response, pt)
 
    -- place the stanfard in the middle of the camp
    local location = Point3(pt.x, pt.y, pt.z)
-   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard')
+   local banner_entity = radiant.entities.create_entity('stonehearth:camp_standard', { owner = session.player_id })
    radiant.terrain.place_entity(banner_entity, location, { force_iconic = false })
    town:set_banner(banner_entity)
    radiant.entities.turn_to(banner_entity, 180)
@@ -263,11 +263,9 @@ function NewGameCallHandler:place_citizen(pop, x, z, job, talisman)
 end
 
 function NewGameCallHandler:place_item(pop, uri, x, z, options)
-   local entity = radiant.entities.create_entity(uri)
+   local player_id = pop:get_player_id()
+   local entity = radiant.entities.create_entity(uri, { owner = player_id })
    radiant.terrain.place_entity(entity, Point3(x, 1, z), options)
-
-   entity:add_component('unit_info')
-            :set_player_id(pop:get_player_id())
 
    return entity
 end

@@ -115,12 +115,16 @@ App.StonehearthSettingsView = App.View.extend({
 
       radiant.call('radiant:get_config', 'enable_64_bit')
          .done(function(o) {
-            self.set('context.enable_64bit', o.enable_64_bit);
+            // o.enable_64_bit can be true, false, or undefined here.  if it's undefined or
+            // true, we want to turn 64-bit mode on!
+            var enabled = o.enable_64_bit != false;
+            self.set('context.enable_64bit', enabled);
          });
 
       radiant.call('radiant:get_config', 'collect_analytics')
          .done(function(o) {
-            self.set('context.collect_analytics', o.collect_analytics);
+            var enabled = o.collect_analytics != false;
+            self.set('context.collect_analytics', enabled);
          });
    },
 

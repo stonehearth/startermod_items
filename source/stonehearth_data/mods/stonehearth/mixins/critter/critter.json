@@ -21,7 +21,9 @@
             "stonehearth:actions:combat:panic_watcher",
             "stonehearth:actions:combat:stop_panicking",
             "stonehearth:actions:combat:flee"
-         ],
+         ]
+      },
+      "stonehearth:observers" : {
          "observers" : [
             "stonehearth:observers:avoid_threatening_entities"
          ]
@@ -46,10 +48,6 @@
          "sleepiness" : {
             "type" : "basic", 
             "value" : 0
-         },
-         "menace": {
-            "type" : "basic",
-            "value" : 1
          },
          "courage": {
             "type" : "basic",

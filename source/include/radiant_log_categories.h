@@ -3,6 +3,7 @@
 
 #define RADIANT_LOG_CATEGORIES \
    ADD_CATEGORY(browser) \
+   ADD_CATEGORY(test) \
    ADD_CATEGORY(network) \
    ADD_CATEGORY(deferred) \
    BEGIN_GROUP(client) \
@@ -36,6 +37,9 @@
    END_GROUP(csg) \
    \
    BEGIN_GROUP(core) \
+      ADD_CATEGORY(system) \
+      ADD_CATEGORY(log) \
+      ADD_CATEGORY(timer) \
       ADD_CATEGORY(config) \
       ADD_CATEGORY(guard) \
       ADD_CATEGORY(perf) \

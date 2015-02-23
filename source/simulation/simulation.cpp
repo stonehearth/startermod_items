@@ -596,7 +596,10 @@ void Simulation::DestroyEntity(dm::ObjectId id)
 {
    auto i = entityMap_.find(id);
    if (i != entityMap_.end()) {
+      // remove from the map before triggering so lookups will fail
       om::EntityPtr entity = i->second;
+      entityMap_.erase(i);
+
       lua_State* L = scriptHost_->GetInterpreter();
       luabind::object e(L, std::weak_ptr<om::Entity>(entity));
       luabind::object id(L, entity->GetObjectId());
@@ -611,7 +614,6 @@ void Simulation::DestroyEntity(dm::ObjectId id)
       evt["entity_id"] = id;
 
       entity->Destroy();
-      entityMap_.erase(i);
       entity = nullptr;
 
       scriptHost_->Trigger("radiant:entity:post_destroy", evt);

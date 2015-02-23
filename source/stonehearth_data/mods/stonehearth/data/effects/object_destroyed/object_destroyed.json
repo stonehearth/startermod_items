@@ -1,0 +1,50 @@
+{
+   "type" : "effect",
+   "tracks": {
+      "dust": {
+         "type": "cubemitter",
+         "cubemitter": "particles/dust_poof/object_destroyed.cubemitter.json",
+         "loop": false,
+         "start_time" : 0,
+         "end_time" : 2400,         
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "dirt": {
+         "type": "cubemitter",
+         "cubemitter": "particles/dust_poof/object_destroyed_dirt.cubemitter.json",
+         "loop": false,
+         "start_time" : 0,
+         "end_time" : 1500,         
+         "transforms": {
+            "x":0,
+            "y":0,
+            "z":0,
+            "rx":90,
+            "ry":0,
+            "rz":0
+         }
+      },
+      "sound": {
+         "type": "sound_effect",
+         "start_time": 150,
+         "min_distance": 27,
+         "falloff" : 5,
+         "volume": 60,
+         "track" : {
+            "type": "one_of",
+            "items": [
+               "stonehearth:sounds:hammer_sound_01",
+               "stonehearth:sounds:hammer_sound_02",
+               "stonehearth:sounds:hammer_sound_03"
+            ]
+         }
+      }      
+   }
+}

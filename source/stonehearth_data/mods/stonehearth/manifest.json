@@ -24,6 +24,7 @@
       "cursors:place_template" : "file(data/cursors/place_template.cur)",
       "cursors:grow_roof" : "file(data/cursors/create_roof.cur)",
       "cursors:harvest" : "file(data/cursors/harvest.cur)",
+      "cursors:loot" : "file(data/cursors/loot.cur)",
       "cursors:zone_generic" : "file(data/cursors/zone_generic.cur)",
       "cursors:zone_stockpile" : "file(data/cursors/zone_stockpile.cur)",
       "cursors:zone_farm" : "file(data/cursors/zone_farm.cur)",
@@ -53,6 +54,7 @@
       "mixins:resources:jerky" : "file(mixins/food/jerky)",
       "mixins:resources:fur_pelt" : "file(mixins/resources/fur_pelt)",
       "mixins:align_to_grid" : "file(mixins/align_to_grid)",
+      "mixins:destructable_object" : "file(mixins/destructable_object)",
       
       "data:player_task_groups" : "file(services/server/population/data/player_task_groups.json)",
 
@@ -195,8 +197,9 @@
       "monsters:goblins:skull_stake" : "file(entities/monsters/goblins/decoration/skull_stake)",
       "monsters:goblins:skull_trophy" : "file(entities/monsters/goblins/skull_trophy)",
       "monsters:goblins:banner" : "file(entities/monsters/goblins/decoration/banner)",
-      "monsters:goblins:armor:miniboss_crown" : "file(entities/monsters/goblins/armor/miniboss_crown)",
-      "monsters:goblins:armor:back_standard" : "file(entities/monsters/goblins/armor/back_standard)",
+      "monsters:goblins:outfits:footman" : "file(entities/monsters/goblins/outfits/footman_outfit)",
+      "monsters:goblins:outfits:thief" : "file(entities/monsters/goblins/outfits/thief_outfit)",
+      "monsters:goblins:outfits:miniboss" : "file(entities/monsters/goblins/outfits/miniboss_outfit)",
       "monsters:forest:ent" : "file(entities/monsters/forest/ent)",
 
       "effects:talisman_glow" : "file(data/effects/talisman_glow)",
@@ -383,6 +386,9 @@
       "weapons:bronze_sword" : "file(entities/weapons/bronze_sword)",
       "weapons:short_sword" : "file(entities/weapons/short_sword)",
       "weapons:long_sword" : "file(entities/weapons/long_sword)",
+      "weapons:giant_bone_mace" : "file(entities/weapons/giant_bone_mace)",
+      "weapons:giant_bone_axe" : "file(entities/weapons/giant_bone_axe)",
+
       "footman:wooden_sword_talisman" : "file(entities/weapons/wooden_sword/wooden_sword_talisman.json)",
       "ball" : "file(entities/toys/ball)",
 
@@ -426,7 +432,7 @@
       "actions:key_to_entity_data_filter_fn" : "file(ai/actions/key_to_entity_data_filter_fn_action.lua)",
       "actions:goto_item_made_of" : "file(ai/actions/goto_item_made_of.lua)",
       "actions:goto_entity_with_entity_data" : "file(ai/actions/goto_entity_with_entity_data_action.lua)",
-      "actions:create_proxy_entity" : "file(ai/actions/create_proxy_entity.lua)",
+      "actions:create_entity" : "file(ai/actions/create_entity_action.lua)",
       "actions:set_hangable_adjacent" : "file(ai/actions/set_hangable_adjacent_action.lua)",
       "actions:fear_fire" : "file(ai/actions/fear_fire_action.lua)",
       "actions:run_effect_action" : "file(ai/actions/run_effect_action.lua)",
@@ -448,7 +454,6 @@
       "actions:run_death_effect" : "file(ai/actions/run_death_effect_action.lua)",
       "actions:die_citizen" : "file(ai/actions/die_citizen_action.lua)",
       "actions:die_generic" : "file(ai/actions/die_generic_action.lua)",
-      "actions:drop_loot" : "file(ai/actions/drop_loot_action.lua)", 
       "actions:destroy_entity" : "file(ai/actions/destroy_entity_action.lua)",
       "actions:memorialize_death" : "file(ai/actions/memorialize_death_action.lua)",
       "actions:delay_thinking" : "file(ai/actions/delay_thinking_action.lua)",
@@ -499,8 +504,6 @@
       "actions:find_stockpile_for_backpack_item" : "file(ai/actions/find_stockpile_for_backpack_item_action.lua)",
       "actions:pickup_item_from_backpack" : "file(ai/actions/pickup_item_from_backpack_action.lua)",
       "actions:pickup_item_type_from_backpack" : "file(ai/actions/pickup_item_type_from_backpack_action.lua)",
-      "actions:trapping:unload_backpack_dispatcher" : "file(ai/actions/trapping/unload_backpack_dispatcher.lua)",
-      "actions:trapping:unload_backpack" : "file(ai/actions/trapping/unload_backpack_action.lua)",
 
       "actions:collect_ingredient" : "file(ai/actions/collect_ingredient.lua)",
       "actions:pickup_ingredient_with_material" : "file(ai/actions/pickup_ingredient_with_material_action.lua)",
@@ -560,6 +563,7 @@
       "actions:clear_item_adjacent" : "file(ai/actions/clear_item_adjacent.lua)",
       "actions:shear_sheep_action" : "file(ai/actions/shear_sheep_action.lua)",
       "actions:restock_stockpile" : "file(ai/actions/restock_stockpile_action.lua)",
+      "actions:drop_carrying_in_stockpile" : "file(ai/actions/drop_carrying_in_stockpile_action.lua)",
       "actions:reserve_stockpile_space" : "file(ai/actions/reserve_stockpile_space.lua)",
       "actions:light_firepit" : "file(ai/actions/light_firepit.lua)",
       "actions:play_with_ball_action" : "file(ai/actions/play_with_ball_action.lua)",
@@ -657,8 +661,6 @@
       "actions:shepherd:wait_for_pasture_vacancy" : "file(ai/actions/wait_for_pasture_vacancy.lua)",
       "actions:shepherd:create_animal_for_pasture" : "file(ai/actions/create_animal_for_pasture.lua)",  
 
-      "actions:party:destroy_items_in_stockpile" : "file(ai/actions/party/destroy_items_in_stockpile_action.lua)",  
-
       "observers:find_target" : "file(ai/observers/find_target_observer.lua)",
       "observers:aggro" : "file(ai/observers/aggro_observer.lua)",
       "observers:combat_panic" : "file(ai/observers/combat_panic_observer.lua)",
@@ -670,6 +672,7 @@
       "observers:shelter_score" : "file(ai/observers/shelter_score_observer.lua)",
       "observers:health_score" : "file(ai/observers/health_observer.lua)", 
       "observers:safety_score" : "file(ai/observers/safety_observer.lua)",
+      "observers:kill_at_zero_health" : "file(ai/observers/kill_at_zero_health_observer.lua)", 
 
       "class_info" : "file(entities/class_info)",
       "personality_types" : "file(data/personality/personality_types.json)",
@@ -897,7 +900,9 @@
 
       "bulletins:goblin_thief" : "file(bulletins/goblin_thief.json)",
 
-      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)"
+      "party:party_abilities" : "file(services/server/unit_control/entities/party_abilities.json)",
+      "abilities:thief_abilities" : "file(entities/abilities/thief_abilities.json)",
+      "abilities:maurauder_abilities" : "file(entities/abilities/maurauder_abilities.json)"
    },
    "functions" : {
       "save_browser_object": {
@@ -1061,6 +1066,14 @@
          "endpoint" : "client"
       },
       "server_box_cancel_task" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "server"
+      },
+      "box_loot_items" : {
+         "controller": "file(call_handlers/resource_call_handler.lua)",
+         "endpoint" : "client"
+      },
+      "server_box_loot_items" : {
          "controller": "file(call_handlers/resource_call_handler.lua)",
          "endpoint" : "server"
       },
@@ -1338,7 +1351,8 @@
 
       "farmer_crop" : "file(components/farmer_field/farmer_crop.lua)",
 
-      "game_master:nodelist" : "file(services/server/game_master/controllers/nodelist.lua)",
+      "game_master:node_ctx" : "file(services/server/game_master/controllers/node_context.lua)",
+      "game_master:node_list" : "file(services/server/game_master/controllers/node_list.lua)",
       "game_master:campaign" : "file(services/server/game_master/controllers/campaign.lua)",
       "game_master:arc" : "file(services/server/game_master/controllers/arc.lua)",
       "game_master:encounter" : "file(services/server/game_master/controllers/encounter.lua)",
@@ -1363,6 +1377,7 @@
 
    "components" :  {
       "ai" : "file(components/ai/ai_component.lua)",
+      "observers" : "file(components/observers/observers_component.lua)",
       "commands" : "file(components/commands/commands_component.lua)",
       "thought_bubble" : "file(components/thought_bubble/thought_bubble_component.lua)",
       "center_of_attention_spot" : "file(components/center_of_attention/coa_spot_component.lua)",
@@ -1425,7 +1440,8 @@
       "pathfinder" : "file(components/pathfinder/pathfinder_component.lua)",
       "ladder" : "file(components/ladder/ladder_component.lua)",
       "stacks_model_renderer" : "file(components/stacks_model_renderer/stacks_model_renderer_component.lua)",
-      "party_member" : "file(components/party_member/party_member_component.lua)"
+      "party_member" : "file(components/party_member/party_member_component.lua)",
+      "loot_drops" : "file(components/loot_drops/loot_drops_component.lua)"
    },
    "client_components" : {
       "building" : "file(components/building/building_client_component.lua)",

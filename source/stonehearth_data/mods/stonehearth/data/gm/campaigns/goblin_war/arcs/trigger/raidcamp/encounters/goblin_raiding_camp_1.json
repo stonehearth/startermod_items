@@ -14,14 +14,28 @@
       "radius" : 18,
       
       "spawn_range" : {
-         "min" : 100,
-         "max" : 120
+         "min" : 160,
+         "max" : 180
       },
 
       "boss" : {
          "position" : { "x": 6, "y": 6 },
          "combat_leash_range" : 18,
-         "job" : "stonehearth:jobs:footman"
+         "job" : "stonehearth:jobs:footman",
+         "equipment" : {
+            "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"],
+            "outfit" : "stonehearth:monsters:goblins:outfits:miniboss"
+         },
+         "loot_drops" : {
+            "num_rolls" : {
+               "min" : 1,
+               "max" : 1
+            },
+            "items" : [
+               { "uri" : "stonehearth:weapons:giant_bone_mace" },
+               { "uri" : "stonehearth:weapons:giant_bone_axe"  }
+            ]
+         }         
       },
       
       "script" : "file(create_camp/goblin_raiding_camp.lua)",

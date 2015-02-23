@@ -49,7 +49,8 @@ end
 -- If the resource is nil, the object will still eventually disappear
 function ResourceNodeComponent:spawn_resource(owner, collect_location)
    if self._sv.resource then
-      local item = radiant.entities.create_entity(self._sv.resource)
+      local item = radiant.entities.create_entity(self._sv.resource, { owner = owner })
+
       local pt = radiant.terrain.find_placement_point(collect_location, 0, 4)
       radiant.terrain.place_entity(item, pt)
 

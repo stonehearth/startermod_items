@@ -1,0 +1,14 @@
+{
+   "type": "entity",
+   "components" : {
+      "stonehearth:equipment_piece" : {
+         "injected_ai" : {
+            "actions" : [
+               "file(actions/destroy_items_in_stockpile_action.lua)"
+            ],
+            "observers" : [
+            ]
+         }
+      }
+   }
+}

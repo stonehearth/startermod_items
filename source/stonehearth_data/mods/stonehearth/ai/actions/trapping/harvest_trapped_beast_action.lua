@@ -61,8 +61,11 @@ end
 
 function HarvestTrappedBeast:_spawn_loot(target)
    local location = radiant.entities.get_world_grid_location(target)
-   local loot_table = LootTable()
-   loot_table:load_from_entity(target)
+   local json = radiant.entities.get_entity_data(target, 'stonehearth:harvest_beast_loot_table')
+   if not json then
+      return
+   end
+   local loot_table = LootTable(json)
    local uris = loot_table:roll_loot()
    local items = radiant.entities.spawn_items(uris, location, 1, 3)
 
