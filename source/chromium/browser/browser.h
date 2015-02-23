@@ -38,7 +38,6 @@ public:
 
 private:
    void OnRawInput(const RawInput& evt);
-   void OnMouseInput(const MouseInput &evt);
 
 public:
    IMPLEMENT_REFCOUNTING(Browser);
@@ -132,6 +131,8 @@ public:
 
 private:
    int GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam);
+   int GetCefMouseModifiers(WPARAM wparam);
+   bool IsKeyDown(WPARAM wparam);
    void WindowToBrowser(int &x, int& y);
 
 private:

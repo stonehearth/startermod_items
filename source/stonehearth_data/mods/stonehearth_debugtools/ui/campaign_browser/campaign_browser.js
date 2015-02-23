@@ -42,6 +42,15 @@ var D3Node = SimpleClass.extend({
       self._tree._update(self);
    },
 
+   inspect: function() {
+      var self = this;
+      self._tree.options.inspect_node({
+         uri: self._uri,
+         left: self.y, 
+         top: self.x,
+      });
+   },
+
    _update : function(ctx) {
       var self = this;
 
@@ -130,16 +139,15 @@ var D3CollapsableTree = SimpleClass.extend({
          .attr("class", "node")
          .attr("nid", function(d) { return d.id; })
          .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-         .on("click", function(d) { d.toggle(); });
 
       nodeEnter.append("svg:circle")
          .attr("r", 1e-6)
+         .on("click", function(d) { d.toggle(); })
          .style("fill", function(d) { return !d._visible ? "lightsteelblue" : "#fff"; });
 
       nodeEnter.append("svg:text")
-         .attr("x", function(d) { return d._visible ? -10 : 10; })
-         .attr("dy", ".35em")
-         .attr("text-anchor", function(d) { return d._children.length > 0 ? "end" : "start"; })
+         .attr("dy", "1.5em")
+         .on("click", function(d) { d.inspect() })
          .text(function(d) { return d.name; })
          .style("fill-opacity", 1e-6);
 
@@ -216,6 +224,16 @@ App.StonehearthGameMasterView = App.View.extend({
                root_node_uri: o.result,
                get_node_name : function(node) { return node.node_name },
                get_node_children : function(node) { return node.child_nodes },
+               inspect_node: function(info) {
+
+                  App.debugView.addView(App.StonehearthObjectBrowserView, {
+                     uri: info.uri,
+                     relativeTo: {
+                        top: info.top,
+                        left: info.left,
+                     }
+                  })
+               }
             })
          })
          .fail(function(o) {

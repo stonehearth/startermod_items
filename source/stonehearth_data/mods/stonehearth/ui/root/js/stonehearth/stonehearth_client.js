@@ -16,6 +16,9 @@ var StonehearthClient;
       init: function() {
          var self = this;
 
+         $(top).on("radiant_selection_changed", function (_, e) {
+            self._selectedEntity = e.selected_entity;
+         });
          radiant.call('stonehearth:get_client_service', 'build_editor')
             .done(function(e) {
                self._build_editor = e.result;
@@ -61,6 +64,10 @@ var StonehearthClient;
       gameState: {
          settlementName: 'Lah Salitos',
          saveKey: null 
+      },
+
+      getSelectedEntity : function() {
+         return this._selectedEntity;
       },
 
       settlementName: function(value) {

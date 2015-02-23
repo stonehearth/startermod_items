@@ -8,6 +8,7 @@
 #include "browser.h"
 #include "response.h"
 #include "lib/perfmon/perfmon.h"
+#include <windowsx.h>
 #include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -279,6 +280,33 @@ void Browser::UpdateDisplay(PaintCb cb)
    _dirtyRegion.Clear();
 }
 
+bool Browser::IsKeyDown(WPARAM wparam) {
+  return (GetKeyState(wparam) & 0x8000) != 0;
+}
+
+int Browser::GetCefMouseModifiers(WPARAM wparam) {
+  int modifiers = 0;
+  if (wparam & MK_CONTROL)
+    modifiers |= EVENTFLAG_CONTROL_DOWN;
+  if (wparam & MK_SHIFT)
+    modifiers |= EVENTFLAG_SHIFT_DOWN;
+  if (IsKeyDown(VK_MENU))
+    modifiers |= EVENTFLAG_ALT_DOWN;
+  if (wparam & MK_LBUTTON)
+    modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+  if (wparam & MK_MBUTTON)
+    modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+  if (wparam & MK_RBUTTON)
+    modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+
+  // Low bit set from GetKeyState indicates "toggled".
+  if (::GetKeyState(VK_NUMLOCK) & 1)
+    modifiers |= EVENTFLAG_NUM_LOCK_ON;
+  if (::GetKeyState(VK_CAPITAL) & 1)
+    modifiers |= EVENTFLAG_CAPS_LOCK_ON;
+  return modifiers;
+}
+
 int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 {
    auto isKeyDown = [](WPARAM arg) -> bool {
@@ -367,44 +395,203 @@ int Browser::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 
 bool Browser::OnInput(Input const& evt)
 {
-   if (evt.type == evt.MOUSE) {
-      OnMouseInput(evt.mouse);
-   } else if (evt.type == evt.RAW_INPUT) {
+   if (evt.type == evt.RAW_INPUT) {
       OnRawInput(evt.raw_input);
    }
    return true;
 }
 
+// This whole function is grabbed directly from the cefclient_osr_wideget_win sample
+// that comes with chromium embedded. 
 void Browser::OnRawInput(const RawInput &msg)
 {
+   HWND hWnd = _parentWindow;
+   UINT message = msg.msg;
+   WPARAM wParam = msg.wp;
+   LPARAM lParam = msg.lp;
+   CefMouseEvent mouse_event;
+
    if (!_browser) {
       return;
    }
+   auto host = _browser->GetHost();
 
-   CefKeyEvent evt;
+   static POINT lastMousePos, curMousePos;
+   static bool mouseTracking = false;
 
-   switch (msg.msg) {
-   case WM_KEYDOWN:
-   case WM_SYSKEYDOWN:
-   case WM_KEYUP:
-   case WM_SYSKEYUP:
-   case WM_SYSCHAR:
-   case WM_CHAR:
-   case WM_IME_CHAR: {
-      evt.windows_key_code = static_cast<int>(msg.wp);
-      evt.native_key_code = static_cast<int>(msg.lp);
-      evt.is_system_key = msg.msg == WM_SYSCHAR || msg.msg == WM_SYSKEYDOWN || msg.msg == WM_SYSKEYUP;
-      if (msg.msg == WM_KEYDOWN || msg.msg == WM_SYSKEYDOWN) {
-         evt.type = KEYEVENT_RAWKEYDOWN;
-      } else if (msg.msg == WM_KEYUP || msg.msg == WM_SYSKEYUP) {
-         evt.type = KEYEVENT_KEYUP;
+   static int lastClickX = 0;
+   static int lastClickY = 0;
+   static CefBrowserHost::MouseButtonType lastClickButton = MBT_LEFT;
+   static int gLastClickCount = 0;
+   static double gLastClickTime = 0;
+
+   static bool gLastMouseDownOnView = false;
+
+   LONG currentTime = 0;
+   bool cancelPreviousClick = false;
+
+   if (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
+       message == WM_MBUTTONDOWN || message == WM_MOUSEMOVE ||
+       message == WM_MOUSELEAVE) {
+         currentTime = GetMessageTime();
+         int x = GET_X_LPARAM(lParam);
+         int y = GET_Y_LPARAM(lParam);
+
+         cancelPreviousClick =
+            (abs(lastClickX - x) > (GetSystemMetrics(SM_CXDOUBLECLK) / 2))
+            || (abs(lastClickY - y) > (GetSystemMetrics(SM_CYDOUBLECLK) / 2))
+            || ((currentTime - gLastClickTime) > GetDoubleClickTime());
+
+         if (cancelPreviousClick &&
+            (message == WM_MOUSEMOVE || message == WM_MOUSELEAVE)) {
+               gLastClickCount = 0;
+               lastClickX = 0;
+               lastClickY = 0;
+               gLastClickTime = 0;
+         }
+   }
+
+   switch (message) {
+   case WM_LBUTTONDOWN:
+   case WM_RBUTTONDOWN:
+   case WM_MBUTTONDOWN: {
+      SetCapture(hWnd);
+      SetFocus(hWnd);
+      int x = GET_X_LPARAM(lParam);
+      int y = GET_Y_LPARAM(lParam);
+
+      CefBrowserHost::MouseButtonType btnType =
+         (message == WM_LBUTTONDOWN ? MBT_LEFT : (
+         message == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
+      if (!cancelPreviousClick && (btnType == lastClickButton)) {
+         ++gLastClickCount;
       } else {
-         evt.type = KEYEVENT_CHAR;
+         gLastClickCount = 1;
+         lastClickX = x;
+         lastClickY = y;
       }
-      evt.modifiers = GetCefKeyboardModifiers(msg.wp, msg.lp);
-      BROWSER_LOG(7) << "sending key " << ((char)evt.windows_key_code) << " " << evt.type;
+      gLastClickTime = currentTime;
+      lastClickButton = btnType;
 
-      _browser->GetHost()->SendKeyEvent(evt);
+      mouse_event.x = x;
+      mouse_event.y = y;
+      WindowToBrowser(mouse_event.x, mouse_event.y);
+      gLastMouseDownOnView = true;
+      mouse_event.modifiers = GetCefMouseModifiers(wParam);
+      host->SendMouseClickEvent(mouse_event, btnType, false, gLastClickCount);
+      break;
+      }
+
+   case WM_LBUTTONUP:
+   case WM_RBUTTONUP:
+   case WM_MBUTTONUP: {
+      if (GetCapture() == hWnd) {
+         ReleaseCapture();
+      }
+      int x = GET_X_LPARAM(lParam);
+      int y = GET_Y_LPARAM(lParam);
+
+      CefBrowserHost::MouseButtonType btnType =
+         (message == WM_LBUTTONUP ? MBT_LEFT : (
+         message == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
+
+      mouse_event.x = x;
+      mouse_event.y = y;
+      WindowToBrowser(mouse_event.x, mouse_event.y);
+      mouse_event.modifiers = GetCefMouseModifiers(wParam);
+      host->SendMouseClickEvent(mouse_event, btnType, true, gLastClickCount);
+      break;
+      }
+
+   case WM_MOUSEMOVE: {
+      int x = GET_X_LPARAM(lParam);
+      int y = GET_Y_LPARAM(lParam);
+      if (!mouseTracking) {
+         // Start tracking mouse leave. Required for the WM_MOUSELEAVE event to
+         // be generated.
+         TRACKMOUSEEVENT tme;
+         tme.cbSize = sizeof(TRACKMOUSEEVENT);
+         tme.dwFlags = TME_LEAVE;
+         tme.hwndTrack = hWnd;
+         TrackMouseEvent(&tme);
+         mouseTracking = true;
+      }
+      mouse_event.x = x;
+      mouse_event.y = y;
+      WindowToBrowser(mouse_event.x, mouse_event.y);
+      mouse_event.modifiers = GetCefMouseModifiers(wParam);
+      host->SendMouseMoveEvent(mouse_event, false);
+      break;
+      }
+
+   case WM_MOUSELEAVE:
+      if (mouseTracking) {
+         // Stop tracking mouse leave.
+         TRACKMOUSEEVENT tme;
+         tme.cbSize = sizeof(TRACKMOUSEEVENT);
+         tme.dwFlags = TME_LEAVE & TME_CANCEL;
+         tme.hwndTrack = hWnd;
+         TrackMouseEvent(&tme);
+         mouseTracking = false;
+      }
+      // Determine the cursor position in screen coordinates.
+      POINT p;
+      ::GetCursorPos(&p);
+      ::ScreenToClient(hWnd, &p);
+
+      mouse_event.x = p.x;
+      mouse_event.y = p.y;
+      WindowToBrowser(mouse_event.x, mouse_event.y);
+      mouse_event.modifiers = GetCefMouseModifiers(wParam);
+      host->SendMouseMoveEvent(mouse_event, true);
+      break;
+
+   case WM_MOUSEWHEEL: {
+      POINT screen_point = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
+      HWND scrolled_wnd = ::WindowFromPoint(screen_point);
+      if (scrolled_wnd != hWnd) {
+         break;
+      }
+      ScreenToClient(hWnd, &screen_point);
+      int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+
+      mouse_event.x = screen_point.x;
+      mouse_event.y = screen_point.y;
+      WindowToBrowser(mouse_event.x, mouse_event.y);
+      mouse_event.modifiers = GetCefMouseModifiers(wParam);
+
+      host->SendMouseWheelEvent(mouse_event,
+         IsKeyDown(VK_SHIFT) ? delta : 0,
+         !IsKeyDown(VK_SHIFT) ? delta : 0);
+      break;
+      }
+
+   case WM_CAPTURECHANGED:
+   case WM_CANCELMODE:
+      host->SendCaptureLostEvent();
+      break;
+
+   case WM_SYSCHAR:
+   case WM_SYSKEYDOWN:
+   case WM_SYSKEYUP:
+   case WM_KEYDOWN:
+   case WM_KEYUP:
+   case WM_CHAR: {
+      CefKeyEvent event;
+      event.windows_key_code = wParam;
+      event.native_key_code = lParam;
+      event.is_system_key = message == WM_SYSCHAR ||
+         message == WM_SYSKEYDOWN ||
+         message == WM_SYSKEYUP;
+
+      if (message == WM_KEYDOWN || message == WM_SYSKEYDOWN)
+         event.type = KEYEVENT_RAWKEYDOWN;
+      else if (message == WM_KEYUP || message == WM_SYSKEYUP)
+         event.type = KEYEVENT_KEYUP;
+      else
+         event.type = KEYEVENT_CHAR;
+      event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
+      host->SendKeyEvent(event);
       break;
       }
    }
@@ -412,48 +599,6 @@ void Browser::OnRawInput(const RawInput &msg)
 
 void Browser::SetCursorChangeCb(CursorChangeCb cb) {
    _cursorChangeCb = cb;
-}
-
-void Browser::OnMouseInput(const MouseInput& mouse)
-{
-   static const CefBrowserHost::MouseButtonType types[] = {
-      MBT_LEFT,
-      MBT_RIGHT,
-      MBT_MIDDLE,
-   };
-
-   if (!_browser) {
-      return;
-   }
-   int x = mouse.x;
-   int y = mouse.y;
-   WindowToBrowser(x, y);
-
-   CefMouseEvent evt;
-   evt.x = x;
-   evt.y = y;
-   evt.modifiers = 0;
-
-   auto host = _browser->GetHost();
-   host->SendMouseMoveEvent(evt, false);
-   BROWSER_LOG(9) << "sending mouse move " << x << ", " << y << ".";
-   
-   for (auto type : types) {
-      if (mouse.down[type]) {
-         host->SendMouseClickEvent(evt, type, false, 1);
-      }
-      if (mouse.up[type]) {
-         host->SendMouseClickEvent(evt, type, true, 1);
-      }
-   }
-   if (mouse.wheel != 0) {
-      int delta = mouse.wheel;
-#if defined(WIN32)
-      delta *= WHEEL_DELTA;  // glfw divied by WHEEL_DELTA for us, but chrome wants the raw codes!
-#endif
-      BROWSER_LOG(9) << "sending mouse wheel " << delta;
-      host->SendMouseWheelEvent(evt, delta, delta);
-   }
 }
 
 void Browser::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor)
