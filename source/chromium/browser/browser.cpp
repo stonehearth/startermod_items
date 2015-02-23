@@ -578,8 +578,8 @@ void Browser::OnRawInput(const RawInput &msg)
    case WM_KEYUP:
    case WM_CHAR: {
       CefKeyEvent event;
-      event.windows_key_code = wParam;
-      event.native_key_code = lParam;
+      event.windows_key_code = (int)wParam;
+      event.native_key_code = (int)lParam;
       event.is_system_key = message == WM_SYSCHAR ||
          message == WM_SYSKEYDOWN ||
          message == WM_SYSKEYUP;
