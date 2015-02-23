@@ -192,7 +192,8 @@ function TerrainService:_get_terrain_region()
    local region = Region2()
 
    if not self._terrain_component:is_empty() then
-      region:add_cube(self._terrain_component:get_bounds():project_onto_xz_plane())
+      local bounds = self._terrain_component:get_bounds():project_onto_xz_plane()
+      region:add_cube(bounds)
    end
 
    return region
