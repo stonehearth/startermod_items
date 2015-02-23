@@ -5,6 +5,7 @@ mixin_class(Encounter, Node)
 
 function Encounter:initialize(info)
    self._sv._info = info
+   self._sv.type = 'stonehearth:encounter'
    self._log = radiant.log.create_logger('game_master.encounter')
 end
 

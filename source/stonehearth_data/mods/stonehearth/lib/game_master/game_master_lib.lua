@@ -33,13 +33,26 @@ function game_master_lib.compile_bulletin_nodes(nodes, ctx)
    end
 end
 
-function game_master_lib.create_context(node_name, node, parent_ctx)
+function game_master_lib.create_context(node_name, node, parent_node)
    assert(type(node_name) == 'string')
    assert(radiant.util.is_instance(node))
    
-   local ctx = radiant.create_controller('stonehearth:game_master:node_ctx', parent_ctx)
-   ctx.node = node
-   ctx.node_name = node_name
+   local parent_ctx
+   if parent_node then
+      parent_ctx = parent_node._sv.ctx
+      assert(parent_ctx)
+
+      table.insert(parent_node._sv.child_nodes, node)
+      parent_node.__saved_variables:mark_changed()
+   end
+
+   local ctx = radiant.create_controller('stonehearth:game_master:node_ctx', node, parent_ctx)
+   -- stash some stuff in the node...
+   node._sv.ctx = ctx
+   node._sv.node_name = node_name
+   node._sv.child_nodes = { n = 0 }
+   node.__saved_variables:mark_changed()
+
    return ctx
 end
 

@@ -19,7 +19,7 @@ App.StonehearthObjectBrowserIcon = App.View.extend({
 App.StonehearthObjectBrowserView = App.View.extend({
    templateName: 'objectBrowser',
    uriProperty: 'model',
-   loading: false,
+   subViewClass: 'stonehearthObjectBrowserRaw',
    history: [],
    forwardHistory: [],
 
@@ -104,6 +104,18 @@ App.StonehearthObjectBrowserView = App.View.extend({
    }.property('model'),
 
 
+   _update_template: function() {
+      var type = this.get('model.type');
+      var subViewClass = 'stonehearthObjectBrowserRaw';
+
+      if (type == 'stonehearth:encounter') {
+         subViewClass = 'stonehearthObjectBrowserEncounter';
+      }
+      this.set('subViewClass', subViewClass);
+      this.rerender();
+   }.observes('model'),
+
+
    _updateTrackSelectedControl : function() {
       var self = this;
       if (self.trackSelected) {
@@ -161,5 +173,36 @@ App.StonehearthObjectBrowserView = App.View.extend({
          self._updateTrackSelectedControl();
       }
    }
+});
+
+
+App.StonehearthObjectBrowserRawView = App.View.extend({
+   templateName: 'objectBrowserRaw',
+   uriProperty: 'model',
+
+   raw_view: function() {
+      var model = this.get('model');
+
+      if (!model) {
+         return '';
+      }
+      var json = JSON.stringify(model, undefined, 2);
+      return json.replace(/&/g, '&amp;')
+                 .replace(/</g, '&lt;')
+                 .replace(/>/g, '&gt;')
+                 .replace(/ /g, '&nbsp;')
+                 .replace(/\n/g, '<br>')
+                 .replace(/"(object:\/\/[^"]*)"/g, '<a href="$1">$1</a>')
+                 //.replace(/(\/[^"]*)/g, '<a href="$1">$1</a>')
+   }.property('model'),
+});
+
+
+App.StonehearthObjectBrowserEncounterView = App.View.extend({
+   templateName: 'objectBrowserEncounter',
+   uriProperty: 'model',
+   components: {
+      'ctx' : {}
+   },
 });
 
