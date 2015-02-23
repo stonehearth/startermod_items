@@ -1,5 +1,5 @@
 ZWriteEnable = false;
 ZEnable = false;
-BlendMode = Replace;
+CullMode = Back;
 StencilFunc = Equal;
-StencilRef = 0;
+StencilRef = 2;

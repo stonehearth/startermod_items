@@ -24,5 +24,5 @@ varying vec2 texCoords;
 
 void main( void )
 {
-   gl_FragColor = vec4(texture2D(buf0, texCoords).xyz, 1.0);
+   gl_FragColor = texture2D(buf0, texCoords);
 }

@@ -12,11 +12,11 @@ sampler2D image = sampler_state
 [[FS]]
 varying vec2 texCoords;
 uniform sampler2D image;
-uniform vec2 frameBufSize;
+uniform vec4 frameBufSize;
 
 void main()
 {
-  float u_offset = 1.0 / frameBufSize.x;
+  float u_offset = frameBufSize.z;
 
   vec3 result = texture2D(image, texCoords + vec2(u_offset * -2.0, 0)).xyz * 0.061;
   result += texture2D(image, texCoords + vec2(u_offset * -1.0, 0)).xyz * 0.242;

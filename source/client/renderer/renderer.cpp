@@ -27,6 +27,7 @@
 #include "raycast_result.h"
 #include "platform/utils.h"
 #include "horde3d\Source\Shared\utMath.h"
+#include "gfxcard_db.h"
 
 using namespace ::radiant;
 using namespace ::radiant::client;
@@ -152,20 +153,20 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
 {
    int gpuScore = GetGpuPerformance(gfxCard);
 
-   // Slightly aggressive: high-quality renderer, but with most bells/whistles turned off.
+   // Slightly aggressive: low-quality renderer, but at 1080P and some light shadowing.
    if (gpuScore == 0) {
-      gpuScore = 1000;
+      gpuScore = 750;
    }
 
    config_.enable_vsync.value = false;
-   if (gpuScore < 250) {
+   if (gpuScore <= 250) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1280;
       config_.screen_height.value = 720;
       config_.draw_distance.value = 500;
       config_.use_shadows.value = false;
-   } else if (gpuScore < 500) {
+   } else if (gpuScore <= 500) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1280;
@@ -173,7 +174,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 1;
-   } else if (gpuScore < 750) {
+   } else if (gpuScore <= 750) {
       config_.use_high_quality.value = false;
 
       config_.screen_width.value = 1920;
@@ -181,7 +182,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.draw_distance.value = 1000;
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 2;
-   } else if (gpuScore < 1000) {
+   } else if (gpuScore <= 1000) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;
@@ -190,7 +191,8 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 2;
-   } else if (gpuScore < 2000) {
+      config_.num_msaa_samples.value = 0;
+   } else if (gpuScore <= 2000) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;
@@ -199,7 +201,8 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.enable_ssao.value = false;
       config_.shadow_quality.value = 3;
-   } else if (gpuScore < 3000) {
+      config_.num_msaa_samples.value = 1;
+   } else if (gpuScore <= 3000) {
       config_.use_high_quality.value = true;
 
       config_.screen_width.value = 1920;
@@ -208,6 +211,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 4;
       config_.enable_ssao.value = true;
+      config_.num_msaa_samples.value = 1;
    } else {
       config_.use_high_quality.value = true;
 
@@ -217,6 +221,7 @@ void Renderer::SelectRecommendedGfxLevel(std::string const& gfxCard)
       config_.use_shadows.value = true;
       config_.shadow_quality.value = 4;
       config_.enable_ssao.value = true;
+      config_.num_msaa_samples.value = 1;
    }
    // anti-aliasing, god rays, etc., to come.
 }
@@ -225,8 +230,7 @@ int Renderer::GetGpuPerformance(std::string const& gfxCard) const
 {
    JSONNode rootj;
    std::string error_message;
-   boost::filesystem::path file_path = boost::filesystem::canonical(boost::filesystem::path(".")) / std::string("gfxcards.json");
-   json::ReadJsonFile(file_path.string(), rootj, error_message);
+   json::ReadJson(std::string(gfxCardData), rootj, error_message);
    json::Node root(rootj);
 
    std::vector<std::string> tokens;
@@ -278,7 +282,7 @@ void Renderer::MakeRendererResources()
    H3DRendererCaps caps;
    h3dGetCapabilities(&caps, nullptr);
 
-   if (caps.SsaoSupported) {
+   if (caps.HighQualityRendererSupported) {
       H3DRes veclookup = h3dCreateTexture("RandomVectorLookup", 4, 4, H3DFormats::TEX_RGBA32F, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
 
       csg::RandomNumberGenerator &rng = csg::RandomNumberGenerator::DefaultInstance();
@@ -299,7 +303,10 @@ void Renderer::MakeRendererResources()
          }
          h3dUnmapResStream(veclookup, 0);
       }
+      CreateTextureResource("SMAA_AreaTex", resourcePath_ + "/textures/smaa/smaa_area.raw", 160, 560, H3DFormats::TEX_RG8, 2);
+      CreateTextureResource("SMAA_SearchTex", resourcePath_ + "/textures/smaa/smaa_search.raw", 66, 33, H3DFormats::TEX_R8, 1);
    }
+
 
    fowRenderTarget_ = h3dutCreateRenderTarget(512, 512, H3DFormats::TEX_BGRA8, false, 1, 0, 0);
 
@@ -351,14 +358,12 @@ csg::Point2 Renderer::InitWindow()
       config_.screen_height.value = size.y;
    }
 
-   glfwWindowHint(GLFW_SAMPLES, config_.num_msaa_samples.value);
    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, config_.enable_gl_logging.value ? 1 : 0);
 
    GLFWwindow *window = glfwCreateWindow(size.x, size.y, "Stonehearth", 
                                          config_.enable_fullscreen.value ? monitor : nullptr, nullptr);
    if (!window) {
-      R_LOG(1) << "Error trying to create glfw window.  (size:" << size << " samples: " << config_.num_msaa_samples.value
-               << "  fullscreen:" << config_.enable_fullscreen.value << ")";
+      R_LOG(1) << "Error trying to create glfw window.  (size:" << size << "  fullscreen:" << config_.enable_fullscreen.value << ")";
       glfwTerminate();
       throw std::runtime_error(BUILD_STRING("Unable to create glfw window: " << lastGlfwError_));
    }
@@ -734,6 +739,7 @@ void Renderer::MaskHighQualitySettings()
    bool high_quality = config_.use_high_quality.value;
    // Mask all high-quality settings with the 'use_high_quality' bool.
    config_.enable_ssao.value &= high_quality;
+   config_.num_msaa_samples.value &= high_quality ? 0xFF : 0x00;
 }
 
 void Renderer::UpdateConfig(const RendererConfig& newConfig)
@@ -745,12 +751,10 @@ void Renderer::UpdateConfig(const RendererConfig& newConfig)
    h3dGetCapabilities(&rendererCaps, &gpuCaps);
 
    // Presently, only the engine can decide if certain features are even allowed to run.
-   config_.num_msaa_samples.allowed = gpuCaps.MSAASupported;
    config_.use_shadows.allowed = rendererCaps.ShadowsSupported;
-   config_.enable_ssao.allowed = rendererCaps.SsaoSupported;
+   config_.enable_ssao.allowed = rendererCaps.HighQualityRendererSupported;
 
-   // Arbitrarily gating the high-quality renderer on SSAO support.
-   config_.use_high_quality.allowed = rendererCaps.SsaoSupported;
+   config_.use_high_quality.allowed = rendererCaps.HighQualityRendererSupported;
 
    config_.use_high_quality.value &= config_.use_high_quality.allowed;
 
@@ -802,12 +806,9 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
          worldPipeline_ = "pipelines/forward.pipeline.xml";
       }
 
-      int oldMSAACount = (int)h3dGetOption(H3DOptions::SampleCount);
-
       h3dSetOption(H3DOptions::EnableShadows, config_.use_shadows.value ? 1.0f : 0.0f);
       h3dSetOption(H3DOptions::ShadowMapQuality, (float)config_.shadow_quality.value);
       h3dSetOption(H3DOptions::MaxLights, (float)config_.max_lights.value);
-      h3dSetOption(H3DOptions::SampleCount, (float)config_.num_msaa_samples.value);
       h3dSetOption(H3DOptions::DisablePinnedMemory, config_.disable_pinned_memory.value);
 
       SelectPipeline();
@@ -815,7 +816,10 @@ void Renderer::ApplyConfig(const RendererConfig& newConfig, int flags)
       // Set up the optional stages for the high-quality pipeline.
       if (config_.use_high_quality.value) {
          SetStageEnable(GetPipeline(currentPipeline_), "Collect SSAO", config_.enable_ssao.value);
-         //SetStageEnable(GetPipeline(currentPipeline_), "Render SSAO", config_.enable_ssao.value);
+         SetStageEnable(GetPipeline(currentPipeline_), "SSAO Contribution", config_.enable_ssao.value);
+
+         SetStageEnable(GetPipeline(currentPipeline_), "FSAA", config_.num_msaa_samples.value > 0);
+         SetStageEnable(GetPipeline(currentPipeline_), "Composite", config_.num_msaa_samples.value == 0);
       }
 
       // Propagate far-plane value.
@@ -1760,6 +1764,18 @@ H3DRes Renderer::GetPipeline(std::string const& name)
       p = i->second;
    }
    return p;
+}
+
+void Renderer::CreateTextureResource(std::string const& name, std::string const& path, int width, int height, int format, int stride)
+{
+   H3DRes texRes = h3dCreateTexture(name.c_str(), width, height, format, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush);
+
+   res::ResourceManager2& resourceManager = res::ResourceManager2::GetInstance();
+   std::shared_ptr<std::istream> inf = resourceManager.OpenResource(path);
+   std::string buffer = io::read_contents(*inf);
+   unsigned char* data = (unsigned char*)h3dMapResStream(texRes, H3DTexRes::ImageElem, 0, H3DTexRes::ImgPixelStream, false, true);
+   memcpy(data, buffer.c_str(), width * height * stride);
+   h3dUnmapResStream(texRes, 0);
 }
 
 void Renderer::LoadResources()

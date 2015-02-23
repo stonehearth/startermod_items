@@ -136,16 +136,15 @@ void Renderer::setGpuCompatibility()
    gpuCompatibility_.canDoShadows = !(gpu == CardType::INTEL && glVer < 30);
 
    gpuCompatibility_.canDoOmniShadows = gpuCompatibility_.canDoShadows && gRDI->getCaps().texFloat;
-
-   // SSAO: arbitrarily gate SSAO with gl version >= 4.0
-   gpuCompatibility_.canDoSsao = glVer >= 40;
 }
 
 void Renderer::getEngineCapabilities(EngineRendererCaps* rendererCaps, EngineGpuCaps* gpuCaps) const
 {
    if (rendererCaps) {
+      // It is _possible_ (apparently?  According to Horde guys?  Harumph.) that, even with GL3.x support claimed, we won't get
+      // the stencil buffer we deserve, so be doubly paranoid and check that that is our render target depth format.
+      rendererCaps->HighQualityRendererSupported = gRDI->_depthFormat == GL_DEPTH24_STENCIL8 && gRDI->getCaps().glVersion >= 30;
       rendererCaps->ShadowsSupported = gpuCompatibility_.canDoShadows;
-      rendererCaps->SsaoSupported = gpuCompatibility_.canDoSsao;
    }
 
    if (gpuCaps) {
@@ -706,8 +705,8 @@ void Renderer::commitGeneralUniforms()
 	{
 		if( _curShader->uni_frameBufSize >= 0 )
 		{
-			float dimensions[2] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight };
-			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT2, dimensions );
+         float dimensions[4] = { (float)gRDI->_fbWidth, (float)gRDI->_fbHeight, 1.0f / gRDI->_fbWidth, 1.0f / gRDI->_fbHeight };
+			gRDI->setShaderConst( _curShader->uni_frameBufSize, CONST_FLOAT4, dimensions );
 		}
 
       if( _curShader->uni_lodLevels >= 0 )
@@ -949,6 +948,10 @@ bool Renderer::setMaterialRec(MaterialResource *materialRes, std::string const& 
    case StencilOpModes::Replace_Replace_Replace:
       glEnable(GL_STENCIL_TEST);
       glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE);
+      break;
+   case StencilOpModes::Keep_Keep_Keep:
+      glEnable(GL_STENCIL_TEST);
+      glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
       break;
    }
 

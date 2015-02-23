@@ -21,7 +21,7 @@ sampler2D ssaoImage = sampler_state
 varying vec2 texCoords;
 uniform sampler2D depthBuffer;
 uniform sampler2D ssaoImage;
-uniform vec2 frameBufSize;
+uniform vec4 frameBufSize;
 
 const int g_BlurRadius = 4;
 
@@ -32,7 +32,7 @@ void main()
     float center_c = texture2D(ssaoImage, texCoords).r;
     float pixelDepth = texture2D(depthBuffer, texCoords).r;
 
-    vec2 g_InvResolution = 1.0 / frameBufSize;
+    vec2 g_InvResolution = frameBufSize.zw;
     
     b = BlurFunction(texCoords, 0.0, pixelDepth, w_total, depthBuffer, ssaoImage);
     for (int r = -g_BlurRadius; r <= g_BlurRadius; ++r)
@@ -49,5 +49,5 @@ void main()
     }
 
     float result = b / w_total;
-    gl_FragColor = vec4(vec3(result), 1.0);
+    gl_FragColor = vec4(vec3(result), 0.0);
 }

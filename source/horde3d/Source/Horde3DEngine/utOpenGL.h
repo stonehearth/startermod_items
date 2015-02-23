@@ -246,6 +246,7 @@ typedef uint64          GLuint64;
 #define GL_UNSIGNED_INT                   0x1405
 #define GL_FLOAT                          0x1406
 #define GL_DOUBLE                         0x140A
+#define GL_UNSIGNED_INT_24_8              0x84FA
 
 #define GL_CLEAR                          0x1500
 #define GL_AND                            0x1501
@@ -273,6 +274,7 @@ typedef uint64          GLuint64;
 #define GL_RGB                            0x1907
 #define GL_RGBA                           0x1908
 #define GL_LUMINANCE                      0x1909
+#define GL_RG                             0x8227
 
 #define GL_POINT                          0x1B00
 #define GL_LINE                           0x1B01
@@ -318,6 +320,8 @@ typedef uint64          GLuint64;
 #define GL_RGBA12                         0x805A
 #define GL_RGBA16                         0x805B
 #define GL_R32F                           0x822E
+#define GL_R8                             0x8229
+#define GL_RG8                            0x822B
 
 #define GL_PROXY_TEXTURE_1D               0x8063
 #define GL_PROXY_TEXTURE_2D               0x8064
@@ -563,6 +567,8 @@ extern PFNGLGETCOMPRESSEDTEXIMAGEPROC glGetCompressedTexImage;
 #define GL_TEXTURE_COMPARE_MODE           0x884C
 #define GL_TEXTURE_COMPARE_FUNC           0x884D
 #define GL_COMPARE_R_TO_TEXTURE           0x884E
+#define GL_DEPTH24_STENCIL8               0x88F0
+#define GL_DEPTH_STENCIL                  0x84F9
 
 typedef void (GLAPIENTRYP PFNGLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
 typedef void (GLAPIENTRYP PFNGLMULTIDRAWARRAYSPROC) (GLenum mode, GLint *first, GLsizei *count, GLsizei primcount);
@@ -1056,6 +1062,9 @@ namespace h3dGL
 #define GL_COLOR_ATTACHMENT15_EXT                           0x8CEF
 #define GL_DEPTH_ATTACHMENT_EXT                             0x8D00
 #define GL_STENCIL_ATTACHMENT_EXT                           0x8D20
+// No, I don't know why these next two differ.
+#define GL_DEPTH_STENCIL_ATTACHMENT_EXT                     0x84F9
+#define GL_DEPTH_STENCIL_ATTACHMENT                         0x821A
 #define GL_FRAMEBUFFER_EXT                                  0x8D40
 #define GL_RENDERBUFFER_EXT                                 0x8D41
 #define GL_RENDERBUFFER_WIDTH_EXT                           0x8D42

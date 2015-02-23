@@ -229,6 +229,8 @@ bool ShaderStateResource::load(const char *data, int size)
             stencilOpModes = StencilOpModes::Keep_Keep_Dec;
          } else if (tok.checkToken("Replace_Replace_Replace")) {
             stencilOpModes = StencilOpModes::Replace_Replace_Replace;
+         } else if (tok.checkToken("Keep_Keep_Keep")) {
+            stencilOpModes = StencilOpModes::Keep_Keep_Keep;
          } else {
             return raiseError("FX: invalid enum value", tok.getLine());
          }

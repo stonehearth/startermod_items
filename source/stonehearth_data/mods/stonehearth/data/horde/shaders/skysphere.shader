@@ -22,8 +22,8 @@ void main() {
   // Compress the gradient to occupy the most visible band of the sky.
   colorT = (12.0 * texCoords0.y) - 2.75;
   
-  startCol = skycolor_start;
-  endCol = skycolor_end;
+  startCol = vec4(skycolor_start.rgb, 0.0);
+  endCol = vec4(skycolor_end.rgb, 0.0);
   
   // We rotate the sphere just a bit, in order to minimize the perspective warping
   // of the sphere.

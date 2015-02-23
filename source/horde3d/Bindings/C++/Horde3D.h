@@ -68,8 +68,8 @@ struct H3DGpuCaps
 
 struct H3DRendererCaps
 {
+   bool HighQualityRendererSupported;
    bool ShadowsSupported;
-   bool SsaoSupported;
 };
 
 
@@ -242,7 +242,12 @@ struct H3DFormats
 		TEX_DXT3,
 		TEX_DXT5,
 		TEX_RGBA16F,
-		TEX_RGBA32F
+		TEX_RGBA32F,
+      TEX_DEPTH,
+      TEX_A8,
+      TEX_R32,
+      TEX_RG8,
+      TEX_R8
 	};
 };
 
