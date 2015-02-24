@@ -107,6 +107,7 @@ void Renderer::OneTimeIninitializtion()
    if (!config_.run_once.value) {
       std::string gfxCard = GetGraphicsCardName();
       SelectRecommendedGfxLevel(gfxCard);
+	  MaskHighQualitySettings();
    }
    config_.run_once.value = true;
 
