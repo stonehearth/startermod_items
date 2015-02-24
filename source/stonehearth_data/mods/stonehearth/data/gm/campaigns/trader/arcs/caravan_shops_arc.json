@@ -1,0 +1,13 @@
+{
+   "type" : "arc",
+   "rarity" : "common",
+
+   "encounters" : {
+      "wait to start" : "file(encounters/wait_to_start.json)",
+      "spawn shop" : "file(encounters/spawn_next_shop.json)",
+      "woodcutter" : "file(encounters/woodcutter_shop.json)",
+      "stonecutter" : "file(encounters/stonecutter_shop.json)",
+      "rugs" : "file(encounters/rugs_shop.json)",
+      "food" : "file(encounters/food_shop.json)"
+   }
+}

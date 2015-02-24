@@ -1,0 +1,20 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "shop",
+   "rarity" : "common",
+
+   "in_edge"  : "spawn_shop",
+
+   "shop_info" : {
+      "title" : "Rufus Garrow has arrived with wares to sell",
+      "name" : "Rufus Garrow's Stonecutter Shop",
+      "inventory" : {
+         "items_matching" : {
+            "stone stuff" : {
+               "category" : ["resources", "furniture", "decoration"],
+               "material" : ["stone"]
+            }
+         }
+      }
+   }
+}

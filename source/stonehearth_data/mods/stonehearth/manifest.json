@@ -1367,6 +1367,7 @@
       "game_master:encounters:wait_for_time_of_day" : "file(services/server/game_master/controllers/encounters/wait_for_time_of_day_encounter.lua)",
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
+      "game_master:encounters:shop" : "file(services/server/game_master/controllers/encounters/shop_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
 
       "unit_control:controller" : "file(services/server/unit_control/unit_controller.lua)",

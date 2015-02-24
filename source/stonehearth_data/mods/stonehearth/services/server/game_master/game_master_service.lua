@@ -39,6 +39,7 @@ function GameMasterService:start()
       return
    end
    self:_start_campaign('combat')
+   self:_start_campaign('trader')
 end
 
 function GameMasterService:is_enabled()

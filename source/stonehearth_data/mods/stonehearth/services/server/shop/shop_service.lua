@@ -17,15 +17,15 @@ function ShopService:initialize()
 end
 
 ---Creates a new shop with reasonable defaults.  See the shop object for more information.
-function ShopService:create_shop(session, name, options)
-   local shop = radiant.create_controller('stonehearth:shop', session)
+function ShopService:create_shop(player_id, name, options)
+   local shop = radiant.create_controller('stonehearth:shop', player_id)
 
    shop:set_name(name)
-      :set_options(options)
-      :set_shopkeeper_level_range(0, 10)
-      :set_inventory_rarity("junk", "common", "uncommon", "rare")
-      :set_inventory_max_net_worth(100)
-      :stock_shop()
+         :set_options(options)
+         :set_shopkeeper_level_range(0, 10)
+         :set_inventory_rarity("junk", "common", "uncommon", "rare")
+         :set_inventory_max_net_worth(100)
+         :stock_shop()
 
    assert(shop)
 
