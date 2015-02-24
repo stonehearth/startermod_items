@@ -7,13 +7,7 @@ App.StonehearthErrorDialogView = App.View.extend({
 
    didInsertElement: function() {
 
-      $('#errorDialog')
-        .draggable()
-        .position({
-          my: "right top",
-          at: "right top",
-          of: "body",
-        });
+      $('#errorDialog').draggable();
 
       //this.set('uri', '/o/stores/tmp/objects/27');
       /*
