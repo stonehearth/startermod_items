@@ -1731,9 +1731,15 @@ void Renderer::OnWindowResized(csg::Point2 const& size) {
 
 void Renderer::CallWindowResizeListeners() {
    if (camera_) {
-      screen_resize_slot_.Signal(csg::Point2(
-         h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
-         h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI)));
+      screen_resize_slot_.Signal(
+         csg::Rect2(
+			 csg::Point2(
+				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportXI),
+				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportYI)),
+			 csg::Point2(
+				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
+				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI))
+			));
    }
 }
 
@@ -1816,7 +1822,7 @@ lua::ScriptHost* Renderer::GetScriptHost() const
    return scriptHost_;
 }
 
-core::Guard Renderer::OnScreenResize(std::function<void(csg::Point2)> const& fn)
+core::Guard Renderer::OnScreenResize(std::function<void(csg::Rect2)> const& fn)
 {
    return screen_resize_slot_.Register(fn);
 }
