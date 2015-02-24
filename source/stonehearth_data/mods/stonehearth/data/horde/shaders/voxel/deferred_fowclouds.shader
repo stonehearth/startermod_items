@@ -43,7 +43,6 @@ uniform sampler2D cloudMap;
 uniform sampler2D fowRT;
 uniform sampler2D depths;
 uniform float currentTime;
-uniform vec3 camViewerPos;
 uniform mat4 camProjMat;
 uniform mat4 camViewMatInv;
 uniform mat4 fowViewMat;
@@ -52,7 +51,7 @@ varying vec2 texCoords;
 
 void main(void)
 {
-  vec3 pos = toWorldSpace(camViewerPos, camProjMat, mat3(camViewMatInv), texCoords, texture2D(depths, texCoords).r);
+  vec3 pos = toWorldSpace(camProjMat, camViewMatInv, texCoords, texture2D(depths, texCoords).r);
   vec4 projFowPos = fowViewMat * vec4(pos, 1.0);
 
   // Mix in cloud color.

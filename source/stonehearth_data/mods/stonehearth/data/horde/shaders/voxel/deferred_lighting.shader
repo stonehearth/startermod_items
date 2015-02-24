@@ -55,7 +55,7 @@ void main(void)
   float shadowTerm = 1.0;
   vec4 depthInfo = texture2D(depths, texCoords);
 
-  vec3 pos = toWorldSpace(camViewerPos, camProjMat, mat3(camViewMatInv), texCoords, depthInfo.r);
+  vec3 pos = toWorldSpace(camProjMat, camViewMatInv, texCoords, depthInfo.r);
   #ifndef DISABLE_SHADOWS
     shadowTerm = getShadowValue_deferred(pos);
   #endif

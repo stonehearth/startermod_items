@@ -46,7 +46,7 @@ void main(void)
   	discard;
   }
 
-  vec3 pos = toWorldSpace(camViewerPos, camProjMat, mat3(camViewMatInv), texCoords, texture2D(depths, texCoords).r);
+  vec3 pos = toWorldSpace(camProjMat, camViewMatInv, texCoords, texture2D(depths, texCoords).r);
 
   // Light Color.
   gl_FragColor = vec4(calcPhongOmniLight(camViewerPos, pos, normal.xyz), 1.0);

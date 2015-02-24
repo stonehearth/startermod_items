@@ -14,8 +14,8 @@ vec3 toCameraSpace(const mat4 camProjMat, const vec2 fragCoord, float depth)
 }
 
 
-vec3 toWorldSpace(const vec3 viewerPos, const mat4 camProjMat, const mat3 camRotInv, const vec2 fragCoord, float linear_depth)
+vec3 toWorldSpace(const mat4 camProjMat, const mat4 camRotInv, const vec2 fragCoord, float linear_depth)
 {
   vec3 viewPos = toCameraSpace(camProjMat, fragCoord, linear_depth);  
-  return -(camRotInv * (viewPos + viewerPos));
+  return -(camRotInv * vec4(viewPos, -1.0)).xyz;
 }
