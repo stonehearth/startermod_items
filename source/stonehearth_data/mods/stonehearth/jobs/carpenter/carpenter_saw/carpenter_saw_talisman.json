@@ -27,7 +27,5 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:carpenter"
       }
-   },
-   "entity_data" : {
    }
 }

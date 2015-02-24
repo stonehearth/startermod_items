@@ -1,0 +1,14 @@
+{
+	"shaders" : {
+		"TRANSLUCENT" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/screenspace_fixedsize.shader"
+		}
+	},
+	"samplers" : [
+		{
+			"name": "albedoMap",
+			"map": "materials/chop_overlay/chop.png"
+		}
+	]
+}

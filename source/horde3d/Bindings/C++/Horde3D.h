@@ -68,8 +68,8 @@ struct H3DGpuCaps
 
 struct H3DRendererCaps
 {
+   bool HighQualityRendererSupported;
    bool ShadowsSupported;
-   bool SsaoSupported;
 };
 
 
@@ -188,6 +188,7 @@ struct H3DResTypes
 		Pipeline,
       VoxelGeometry,
       PixelBuffer,
+      ShaderState,
       RenderBuffer
 	};
 };
@@ -241,7 +242,12 @@ struct H3DFormats
 		TEX_DXT3,
 		TEX_DXT5,
 		TEX_RGBA16F,
-		TEX_RGBA32F
+		TEX_RGBA32F,
+      TEX_DEPTH,
+      TEX_A8,
+      TEX_R32,
+      TEX_RG8,
+      TEX_R8
 	};
 };
 
@@ -296,9 +302,7 @@ struct H3DMatRes
 
 		MaterialElem  - Base element
 		SamplerElem   - Sampler element
-		UniformElem   - Uniform element
 		MatClassStr   - Material class
-		MatLinkI      - Material resource that is linked to this material
 		MatShaderI    - Shader resource
 		SampNameStr   - Name of sampler [read-only]
 		SampTexResI   - Texture resource bound to sampler
@@ -309,9 +313,7 @@ struct H3DMatRes
 	{
 		MaterialElem = 400,
 		SamplerElem,
-		UniformElem,
 		MatClassStr,
-		MatLinkI,
 		MatShaderI,
 		SampNameStr,
 		SampTexResI,
@@ -1443,6 +1445,8 @@ DLL void h3dSetShaderPreambles( const char *vertPreamble, const char *fragPreamb
 		true if uniform was found, otherwise false
 */
 DLL bool h3dSetMaterialUniform( H3DRes materialRes, const char *name, float a, float b, float c, float d );
+
+DLL bool h3dSetMaterialSampler(H3DRes materialRes, const char *name, const char *map, int numFrames, float frameRate);
 
 DLL bool h3dSetMaterialArrayUniform( H3DRes materialRes, const char *name, float* data, int dataCount );
 

@@ -1,0 +1,20 @@
+{
+	"materials" : {
+		"TRANSPARENT" : {
+			"name" : "materials/transparent_with_depth.material.json",
+			"inputs" : [
+				{
+					"name" : "alpha",
+					"bind_to_material_input" : "alpha"
+				}
+			]
+		}
+	},
+
+	"inputs" : [
+		{
+			"name" : "alpha",
+			"default" : [0, 0, 0, 0.3]
+		}
+	]
+}

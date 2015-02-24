@@ -989,7 +989,7 @@ function BuildService:add_fixture_fabricator(fixture_blueprint, fixture_or_uri, 
    -- itself.  change the material we use to render it and hook up a fixture_fabricator
    -- to help build it.
    fixture_blueprint:add_component('render_info')
-                        :set_material('materials/blueprint.material.xml')
+                        :set_material('materials/blueprint.material.json')
    
    local fab_component = fixture_blueprint:add_component('stonehearth:fixture_fabricator')
    fab_component:start_project(fixture_or_uri, normal, rotation)

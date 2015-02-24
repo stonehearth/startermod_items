@@ -171,13 +171,23 @@ bool RenderDevice::init(int glMajor, int glMinor, bool msaaWindowSupported, bool
    }
 
 	// Find supported depth format (some old ATI cards only support 16 bit depth for FBOs)
-	_depthFormat = GL_DEPTH_COMPONENT24;
+   if (_caps.glVersion >= 30) {
+      _depthFormat = GL_DEPTH24_STENCIL8;
+   } else {
+      _depthFormat = GL_DEPTH_COMPONENT24;
+   }
 	uint32 testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 
-	if( testBuf == 0 )
-	{	
-		_depthFormat = GL_DEPTH_COMPONENT16;
-		Modules::log().writeWarning( "Render target depth precision limited to 16 bit" );
+	if(testBuf == 0 && _depthFormat == GL_DEPTH24_STENCIL8)
+	{
+		Modules::log().writeWarning( "Couldn't get DEPTH24_STENCIL8 on a GL >= 3.0 config.  Trying DEPTH24." );
+      _depthFormat = GL_DEPTH_COMPONENT24;
+   	testBuf = createRenderBuffer( 32, 32, TextureFormats::BGRA8, true, 1, 0 ); 
 	}
+
+   if(testBuf == 0) {
+		_depthFormat = GL_DEPTH_COMPONENT16;
+		Modules::log().writeWarning( "Render target depth precision limited to 16 bit.  This is probably going to fail...." );
+   }
 	else
 		destroyRenderBuffer( testBuf );
 	
@@ -414,6 +424,10 @@ uint32 RenderDevice::calcTextureSize( TextureFormats::List format, int width, in
       return width * height * depth;
    case TextureFormats::R32:
       return width * height * depth * 4 * 2;  // 32-bit depth + 32-bit fp R channel.
+   case TextureFormats::R8:
+      return width * height * depth;
+   case TextureFormats::RG8:
+      return width * height * depth * 2;
 	default:
 		return 0;
 	}
@@ -460,6 +474,12 @@ uint32 RenderDevice::createTexture( TextureTypes::List type, int width, int heig
 		break;
    case TextureFormats::R32:
       tex.glFmt = GL_R32F;
+      break;
+   case TextureFormats::R8:
+      tex.glFmt = GL_R8;
+      break;
+   case TextureFormats::RG8:
+      tex.glFmt = GL_RG8;
       break;
 	default:
 		ASSERT( 0 );
@@ -571,8 +591,13 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
 		inputType = GL_FLOAT;
 		break;
 	case TextureFormats::DEPTH:
-		inputFormat = GL_DEPTH_COMPONENT;
-		inputType = GL_FLOAT;
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+   		inputFormat = GL_DEPTH_STENCIL;
+	   	inputType = GL_UNSIGNED_INT_24_8;
+      } else {
+         inputFormat = GL_DEPTH_COMPONENT;
+         inputType = GL_FLOAT;
+      }
       break;
    case TextureFormats::A8:
       inputFormat = GL_LUMINANCE;
@@ -580,6 +605,14 @@ void RenderDevice::uploadTextureData( uint32 texObj, int slice, int mipLevel, co
    case TextureFormats::R32:
       inputFormat = GL_RED;
       inputType = GL_FLOAT;
+      break;
+   case TextureFormats::R8:
+      inputFormat = GL_RED;
+      inputType = GL_UNSIGNED_BYTE;
+      break;
+   case TextureFormats::RG8:
+      inputFormat = GL_RG;
+      inputType = GL_UNSIGNED_BYTE;
       break;
 	};
 	
@@ -1015,14 +1048,19 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 
       RDITexture &tex = _textures.getRef(texObj);
       glBindTexture(GL_TEXTURE_2D, tex.glObj);
-      glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
       //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
       glBindTexture(GL_TEXTURE_2D, 0);
 		
       uploadTextureData( texObj, 0, 0, 0x0 );
 		rb.depthTex = texObj;
 		// Attach the texture
-		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+         // Note: I don't know why we can't use the _EXT version.  If we try, we don't get any attachment errors, but
+         // the buffer doesn't work (either depth or stencil).
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,  GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex.glObj, 0 );
+      } else {
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      }
 
 		if( samples > 0 )
 		{
@@ -1036,8 +1074,14 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 			glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, rb.depthBuf );
 			glRenderbufferStorageMultisampleEXT( GL_RENDERBUFFER_EXT, rb.samples, _depthFormat, rb.width, rb.height );
 			// Attach the renderbuffer
-			glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
-			                              GL_RENDERBUFFER_EXT, rb.depthBuf );
+
+         if (_depthFormat == GL_DEPTH24_STENCIL8) {
+			   glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
+			                                 GL_RENDERBUFFER_EXT, rb.depthBuf );
+         } else {
+			   glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+			                                 GL_RENDERBUFFER_EXT, rb.depthBuf );
+         }
 		}
 	}
 
@@ -1075,6 +1119,132 @@ uint32 RenderDevice::createRenderBuffer( uint32 width, uint32 height, TextureFor
 	return rbObj;
 }
 
+uint32 RenderDevice::createRenderBufferWithAliases(uint32 width, uint32 height, TextureFormats::List format,
+                                         bool depth, uint32 numColBufs, uint32 samples, std::vector<RenderBufferAlias>& aliases, uint32 numMips)
+{
+	if( (format == TextureFormats::RGBA16F || format == TextureFormats::RGBA32F || format == TextureFormats::R32) && !_caps.texFloat )
+	{
+		return 0;
+	}
+
+	if( numColBufs > RDIRenderBuffer::MaxColorAttachmentCount ) return 0;
+
+   RDIRenderBuffer rb;
+   rb.cubeMap = false;
+   rb.width = width;
+   rb.height = height;
+   rb.samples = samples;
+
+   if (_enable_gl_validation) {
+      Modules::log().writeInfo("Available GPU Mem: %f", Modules::stats().getStat(EngineStats::AvailableGpuMemory, false));
+      Modules::log().writeInfo("Creating render buffer (%d) %dx%d depth=%d numColBufs=%d samples=%d", format, width, height, depth, numColBufs, samples);
+   }
+
+	// Create framebuffers
+	glGenFramebuffersEXT( 1, &rb.fbo );
+	if( samples > 0 ) 
+   {
+      glGenFramebuffersEXT( 1, &rb.fboMS );
+   }
+
+	if( numColBufs > 0 )
+	{
+		// Attach color buffers
+		for( uint32 j = 0; j < numColBufs; ++j )
+		{
+			glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+
+         uint32 texObj;
+         if (aliases[j].index != -1) {
+            // Alias this attachment with an existing texture.
+            RDIRenderBuffer &rbTarget = _rendBufs.getRef(aliases[j].robj);
+            texObj = rbTarget.colTexs[aliases[j].index];
+            rb.colAlias[j] = true;
+         } else {
+			   // Create a color texture
+            texObj = createTexture(TextureTypes::Tex2D, rb.width, rb.height, 1, format, numMips > 0 ? true : false, numMips > 0 ? true : false, false, false );
+            ASSERT( texObj != 0 );
+            uploadTextureData(texObj, 0, 0, nullptr);
+         }
+
+         rb.colTexs[j] = texObj;
+         RDITexture &tex = _textures.getRef(texObj);
+
+         // Attach the texture
+         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT + j, GL_TEXTURE_2D, tex.glObj, 0 );
+		}
+
+		uint32 buffers[] = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT, 
+         GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT, GL_COLOR_ATTACHMENT4_EXT, 
+         GL_COLOR_ATTACHMENT5_EXT, GL_COLOR_ATTACHMENT6_EXT, GL_COLOR_ATTACHMENT7_EXT,
+         GL_COLOR_ATTACHMENT8_EXT, GL_COLOR_ATTACHMENT9_EXT, GL_COLOR_ATTACHMENT10_EXT,
+         GL_COLOR_ATTACHMENT11_EXT, GL_COLOR_ATTACHMENT12_EXT, GL_COLOR_ATTACHMENT13_EXT,
+         GL_COLOR_ATTACHMENT14_EXT, GL_COLOR_ATTACHMENT15_EXT};
+		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+		glDrawBuffers( numColBufs, buffers );		
+	}
+
+	// Attach depth buffer
+	if( depth )
+	{
+		glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+      if (numColBufs == 0) {
+		   glDrawBuffer( GL_NONE );
+		   glReadBuffer( GL_NONE );
+      }
+		// Create a depth texture
+
+      uint32 texObj;
+      if (aliases.back().index != -1) {
+         // Alias this attachment with an existing texture.
+         RDIRenderBuffer &rbTarget = _rendBufs.getRef(aliases.back().robj);
+         texObj = rbTarget.depthTex;
+         rb.depthAlias = true;
+      } else {
+		   texObj = createTexture( TextureTypes::Tex2D, rb.width, rb.height, 1, TextureFormats::DEPTH, false, false, false, false );
+		   ASSERT( texObj != 0 );
+         uploadTextureData( texObj, 0, 0, 0x0 );
+      }
+
+      RDITexture &tex = _textures.getRef(texObj);
+      glBindTexture(GL_TEXTURE_2D, tex.glObj);
+      //glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+      glBindTexture(GL_TEXTURE_2D, 0);
+		
+		rb.depthTex = texObj;
+		// Attach the texture
+
+      if (_depthFormat == GL_DEPTH24_STENCIL8) {
+         // Note: I don't know why we can't use the _EXT version.  If we try, we don't get any attachment errors, but
+         // the buffer doesn't work (either depth or stencil).
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT,  GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, tex.glObj, 0 );
+      } else {
+   		glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, tex.glObj, 0 );
+      }
+	}
+
+	uint32 rbObj = _rendBufs.add( rb );
+	
+	// Check if FBO is complete
+	bool valid = true;
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, rb.fbo );
+	uint32 status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
+	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
+	if( status != GL_FRAMEBUFFER_COMPLETE_EXT ) 
+   {
+      Modules::log().writeError("Unable to create fbo: %d, %d", status, rb.fbo);
+      valid = false;
+   }
+	
+	if( !valid )
+	{
+		destroyRenderBuffer( rbObj );
+		return 0;
+	}
+	
+	return rbObj;
+}
+
 
 void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 {
@@ -1082,13 +1252,17 @@ void RenderDevice::destroyRenderBuffer( uint32 rbObj )
 	
 	glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 );
 	
-	if( rb.depthTex != 0 ) destroyTexture( rb.depthTex );
+   if (rb.depthTex != 0 && !rb.depthAlias) {
+      destroyTexture( rb.depthTex );
+   }
 	if( rb.depthBuf != 0 ) glDeleteRenderbuffersEXT( 1, &rb.depthBuf );
 	rb.depthTex = rb.depthBuf = 0;
 		
 	for( uint32 i = 0; i < RDIRenderBuffer::MaxColorAttachmentCount; ++i )
 	{
-		if( rb.colTexs[i] != 0 ) destroyTexture( rb.colTexs[i] );
+      if (rb.colTexs[i] != 0 && !rb.colAlias[i]) {
+         destroyTexture( rb.colTexs[i] );
+      }
 		if( rb.colBufs[i] != 0 ) glDeleteRenderbuffersEXT( 1, &rb.colBufs[i] );
 		rb.colTexs[i] = rb.colBufs[i] = 0;
 	}

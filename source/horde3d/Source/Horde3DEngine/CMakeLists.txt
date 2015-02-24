@@ -18,7 +18,7 @@ set(HORDE3D_SOURCES
 	egModules.cpp
 	egParticle.cpp
 	egPipeline.cpp
-  egPixelBuffer.cpp
+        egPixelBuffer.cpp
 	egPrimitives.cpp
 	egProjectorNode.cpp
 	egRendererBase.cpp
@@ -27,10 +27,11 @@ set(HORDE3D_SOURCES
 	egScene.cpp
 	egSceneGraphRes.cpp
 	egShader.cpp
+        egShaderState.cpp
 	egTexture.cpp
-  egVoxelModel.cpp
-  egVoxelMesh.cpp
-  egVoxelGeometry.cpp
+        egVoxelModel.cpp
+        egVoxelMesh.cpp
+        egVoxelGeometry.cpp
 	utImage.cpp
 	utOpenGL.cpp
 	config.h
@@ -58,7 +59,9 @@ set(HORDE3D_SOURCES
 	egScene.h
 	egSceneGraphRes.h
 	egShader.h
+        egShaderState.h
 	egTexture.h
+        egTokenizer.h
 	utImage.h
 	utOpenGL.h
 	../../Bindings/C++/Horde3D.h

@@ -1,107 +1,131 @@
 <!-- Forward Shading Pipeline -->
 <Pipeline name="FORWARD_POSTPROCESS">
    <Setup>
-      <RenderTarget id="GBuffers" numColBufs="2" depthBuf="true" format="RGBA32F" scale="1.0" mipLevels="5"/>
+      <RenderTarget id="GBuffers" numColBufs="3" depthBuf="true" format="RGBA32F" scale="1.0" />
+      
+      <RenderTarget id="Final" numColBufs="1" depthBufAlias="GBuffers" format="RGBA8" scale="1.0"/>
+      <RenderTarget id="Albedo" numColBufs="1" colBuf0="GBuffers[2]" depthBufAlias="GBuffers" />
+      <RenderTarget id="LightAccumulation" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+
       <RenderTarget id="SSAOTemp" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
       <RenderTarget id="SSAOBlur" numColBufs="1" depthBuf="false" format="RGBA8" scale="1.0" />
+      
       <RenderTarget id="SelectedTemp" numColBufs="1" depthBuf="true" scale="1.0" format="RGBA8"/>
+      
       <RenderTarget id="SkyTemp" numColBufs="1" depthBuf="false" scale="0.125" format="RGBA8"/>
+      
       <RenderTarget id="BloomTemp" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
       <RenderTarget id="BloomFinal" numColBufs="1" depthBuf="false" scale="0.25" format="RGBA8"/>
-      <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/>      
+      <RenderTarget id="Bloom" numColBufs="1" depthBuf="true" scale="0.25" format="RGBA8"/> 
+
+      <RenderTarget id="EdgeTex" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
+      <RenderTarget id="BlendWeights" numColBufs="1" depthBufAlias="GBuffers" scale="1.0" format="RGBA8"/>
+      
       <GlobalRenderTarget id="FogOfWarRT" />
    </Setup>
    <CommandQueue>
       <Stage id="Init">
+         <SwitchTarget target="" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0" />
+
+         <SwitchTarget target="Final" />
+         <ClearTarget colBuf0="true" depthBuf="false" stencilBuf="-1"/>
+      </Stage>
+
+      <Stage id="Attributes">
          <SwitchTarget target="GBuffers" />
-         <ClearTarget colBuf0="true" colBuf1="true" depthBuf="true" />
+         <ClearTarget colBuf0="true" colBuf1="true" colBuf2="true" depthBuf="true" stencilBuf="0"/>
 
-         <SwitchTarget target="Bloom" />
-         <ClearTarget colBuf0="true" depthBuf="true"/>
-
-         <SwitchTarget target="BloomFinal" />
-         <ClearTarget colBuf0="true"/>
-
-         <SwitchTarget target="" />
-         <ClearTarget colBuf0="true" depthBuf="true" />
-      </Stage>
-
-      <Stage id="Sky">
-         <DrawGeometry context="SKY" />
-
-         <SwitchTarget target="SkyTemp" />
-         <DrawGeometry context="SKY" />
-      </Stage>
-
-      <Stage id="Starfield">
-         <SwitchTarget target="" />
-         <DrawGeometry context="STARFIELD" />
-      </Stage>
-
-      <Stage id="Depth">
          <SwitchTarget target="GBuffers" />
-         <DrawGeometry context="DEPTH_LINEAR" class="~Translucent" forceLodLevel="1" />
-
-         <ClearTarget colBuf0="false" colBuf1="false" depthBuf="true" />
-         <DrawGeometry context="DEPTH_LINEAR_BACK" class="~Translucent" forceLodLevel="1" />
-
-         <SwitchTarget target="" />
-         <DrawGeometry context="DEPTH" class="~Translucent" forceLodLevel="-2" />
+         <DrawGeometry context="DEFERRED_ATTRIBUTES" forceLodLevel="-3"/>
+         
+         <SwitchTarget target="Albedo" />
+         <DrawGeometry context="DEFERRED_ALBEDO_LOD" forceLodLevel="-3" frustum_start="0.39" frustum_end="0.41" />
       </Stage>
 
-      <Stage id="SSAO">
-         <!--BuildMipmaps rt="GBuffers" index="0" /-->
+      <Stage id="Collect SSAO">
+         <SwitchTarget target="SSAOBlur" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
 
          <SwitchTarget target="SSAOTemp" />
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="normalBuffer" sourceRT="GBuffers" bufIndex="1" />
-         <DrawQuad material="materials/ssao.material.xml" context="SSAO" />
+         <DrawQuad material="materials/ssao.material.json" context="SSAO" />
          <UnbindBuffers />
 
          <SwitchTarget target="SSAOBlur"/>
          <BindBuffer sampler="depthBuffer" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="ssaoImage" sourceRT="SSAOTemp" bufIndex="0" />
-         <DrawQuad material="materials/blur.material.xml" context="BLUR" />
+         <DrawQuad material="materials/blur/radial_blur.material.json" context="BLUR" />
          <UnbindBuffers />
-
-         <SwitchTarget target=""/>
       </Stage>
+
 
       <Stage id="Light">
-         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
-         <BindBuffer sampler="ssaoImage" sourceRT="SSAOBlur" bufIndex="0" />
-         <DoForwardLightLoop class="~Translucent" noShadows="false"/>
+         <SwitchTarget target="LightAccumulation" />
+         <ClearTarget colBuf0="true" depthBuf="false"/>
+
+         <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
+         <BindBuffer sampler="normals" sourceRT="GBuffers" bufIndex="1" />
+         <DoDeferredLightLoop noShadows="false" material="materials/deferred_light.material.json" />
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Projections">
-         <!-- '1' is UserFlags::Terrain only (see pipeline.h for enum definition). -->
-         <DrawProjections context="PROJECTION" userFlags="1" />
+      <Stage id="SSAO Contribution">
+         <SwitchTarget target="LightAccumulation" />
+         <BindBuffer sampler="buf0" sourceRT="SSAOBlur" bufIndex="0" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="SUB" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="FowAndClouds">
+         <SwitchTarget target="LightAccumulation" />
+         <BindBuffer sampler="fowRT" sourceRT="FogOfWarRT" bufIndex="0" />
+         <BindBuffer sampler="depths" sourceRT="GBuffers" bufIndex="0" />
+         <DrawQuad material="materials/deferred_fowclouds.material.json" context="FOW_CLOUDS" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="LightComposition">
+         <SwitchTarget target="Final" />
+         <BindBuffer sampler="lighting" sourceRT="LightAccumulation" />
+         <BindBuffer sampler="albedo" sourceRT="Albedo" />
+         <DrawQuad material="materials/deferred_composition.material.json" context="COMPOSE" />
+         <UnbindBuffers />
+      </Stage>
+
+      <Stage id="Sky">
+         <SwitchTarget target="Final" />
+         <DrawGeometry context="SKY_DEFERRED" forceLodLevel="0"/>
+         <DrawGeometry context="STARFIELD_DEFERRED" forceLodLevel="0"/>
+
+         <SwitchTarget target="SkyTemp" />
+         <DrawGeometry context="SKY" forceLodLevel="0"/>
       </Stage>
 
       <Stage id="Fog">
+         <SwitchTarget target="Final" />
          <BindBuffer sampler="skySampler" sourceRT="SkyTemp" bufIndex="0"/>
          <DrawGeometry class="~Translucent" context="FOG" noShadows="true" frustum_start="0.7"/>
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Bloom">
-         <SwitchTarget target="Bloom" />
-         <DrawGeometry context="BLOOM" forceLodLevel="1" />
+      <Stage id="Selected">
+         <SwitchTarget target="SelectedTemp" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
 
-         <SwitchTarget target="BloomTemp" />
-         <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_X" />
+         <SwitchTarget target="SelectedTemp" />
+         <DrawSelected context="SELECTED_SCREENSPACE" />
 
-         <SwitchTarget target="BloomFinal" />
-         <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
-         <DrawQuad material="materials/blur.material.xml" context="BLUR_GAUSSIAN_Y" />
-
-         <UnbindBuffers/>
-         <SwitchTarget target="" />
+         <SwitchTarget target="Final" />
+         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
+         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
+         <DrawQuad material="materials/selectable.material.json" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <UnbindBuffers />
       </Stage>
 
       <Stage id="Translucent">
+         <SwitchTarget target="Final" />
          <DrawGeometry context="TRANSLUCENT_ON_TOP" order="BACK_TO_FRONT" />
          <DrawGeometry context="TRANSLUCENT" order="BACK_TO_FRONT" />
          <DrawGeometry context="BLUEPRINTS_DEPTH_PASS"/>
@@ -109,29 +133,65 @@
          <DrawGeometry context="DEBUG_SHAPES" />
       </Stage>
 
-      <Stage id="DrawBloom">
-         <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
-         <DrawQuad material="materials/fullscreen_quad.material.xml" context="ADD" />
+      <!-- This is active iff composite is inactive. -->
+      <Stage id="FSAA">
+         <SwitchTarget target="EdgeTex" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+         <SwitchTarget target="BlendWeights" />
+         <ClearTarget colBuf0="true" depthBuf="false" />
+
+         <SwitchTarget target="EdgeTex" />
+         <BindBuffer sampler="colorTex" sourceRT="Final"/>
+         <DrawQuad material="materials/smaa.material.json" context="EDGE_DETECTION" />
+         <UnbindBuffers/>
+
+         <SwitchTarget target="BlendWeights" />
+         <BindBuffer sampler="edgesTex" sourceRT="EdgeTex" />
+         <DrawQuad material="materials/smaa.material.json" context="BLEND_WEIGHTS" />
+         <UnbindBuffers/>
+
+         <SwitchTarget target="" />
+         <BindBuffer sampler="blendTex" sourceRT="BlendWeights" />
+         <BindBuffer sampler="colorTex" sourceRT="Final" />
+         <DrawQuad material="materials/smaa.material.json" context="NEIGHBOUR_BLEND" />
          <UnbindBuffers/>
       </Stage>
 
-      <Stage id="Selected">
-         <SwitchTarget target="SelectedTemp" />
-         <ClearTarget colBuf0="true" depthBuf="true"/>
-         <DrawSelected context="SELECTED_SCREENSPACE" />
-
+      <!-- This is active iff FSAA is inactive. -->
+      <Stage id="Composite">
          <SwitchTarget target="" />
-         <BindBuffer sampler="outlineSampler" sourceRT="SelectedTemp" bufIndex="0"/>
-         <BindBuffer sampler="outlineDepth" sourceRT="SelectedTemp" bufIndex="32"/>
-         <DrawQuad material="materials/base.material.xml" context="SELECTED_SCREENSPACE_OUTLINER" />
+         <BindBuffer sampler="buf0" sourceRT="Final" />
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="FSQUAD_COPY" />
          <UnbindBuffers />
       </Stage>
 
-      <Stage id="Selected_Fast">
-         <DrawSelected context="SELECTED_FAST" />
+      <!-- Don't want to anti-alias bloom, so lets put it after the actual AA pass -->
+      <Stage id="Bloom">
+         <SwitchTarget target="Bloom" />
+         <ClearTarget colBuf0="true" depthBuf="true" stencilBuf="0"/>
+
+         <DrawGeometry context="BLOOM" forceLodLevel="1" />
+
+         <SwitchTarget target="BloomTemp" />
+         <BindBuffer sampler="image" sourceRT="Bloom" bufIndex="0"/>
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_X" />
+
+         <SwitchTarget target="BloomFinal" />
+         <BindBuffer sampler="image" sourceRT="BloomTemp" bufIndex="0"/>
+         <DrawQuad material="materials/blur/gaussian_blur.material.json" context="BLUR_Y" />
+
+         <UnbindBuffers/>
+      </Stage>
+
+      <Stage id="DrawBloom">
+         <SwitchTarget target="" />
+         <BindBuffer sampler="buf0" sourceRT="BloomFinal" bufIndex="0"/>
+         <DrawQuad material="materials/fullscreen_quad.material.json" context="ADD" />
+         <UnbindBuffers/>
       </Stage>
 
       <Stage id="Overlays">
+         <SwitchTarget target="" />
          <DrawOverlays context="OVERLAY"/>
       </Stage>
    </CommandQueue>

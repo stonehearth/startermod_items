@@ -9,17 +9,7 @@ sampler2D albedoMap = sampler_state
   Filter = Pixely;
 };
 
-context TRANSLUCENT
-{
-	VertexShader = compile GLSL VS_OVERLAY;
-	PixelShader = compile GLSL FS_OVERLAY;
-	
-	BlendMode = Blend;
-	ZWriteEnable = false;
-	CullMode = None;
-}
-
-[[VS_OVERLAY]]
+[[VS]]
 
 attribute vec4 vertPos;
 attribute vec2 texCoords0;
@@ -31,11 +21,11 @@ varying vec2 texCoords;
 void main() {
   texCoords = texCoords0;
   oColor = color;
-	gl_Position = vertPos;
+  gl_Position = vertPos;
 }
 
 
-[[FS_OVERLAY]]
+[[FS]]
 
 uniform sampler2D albedoMap;
 

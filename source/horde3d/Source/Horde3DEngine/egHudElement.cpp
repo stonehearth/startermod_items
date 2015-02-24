@@ -77,11 +77,6 @@ WorldspaceLineHudElement::WorldspaceLineHudElement(NodeHandle parentNode, int wi
 
 void WorldspaceLineHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;
@@ -148,8 +143,8 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
-      0, 1, 2,
-      0, 2, 3
+      0, 2, 1,
+      0, 3, 2
    };
    rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
 
@@ -166,11 +161,6 @@ ScreenspaceRectHudElement::ScreenspaceRectHudElement(int width, int height, int 
 
 void ScreenspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;
@@ -254,8 +244,8 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, fl
 
    // Create cube geometry indices.
    uint16 cubeInds[6] = {
-      0, 1, 2,
-      0, 2, 3
+      0, 2, 1,
+      0, 3, 2
    };
    rectIdxBuf_ = gRDI->createIndexBuffer(6 * sizeof(uint16), cubeInds);
 
@@ -292,11 +282,6 @@ WorldspaceRectHudElement::WorldspaceRectHudElement(float width, float height, fl
 
 void WorldspaceRectHudElement::draw(std::string const& shaderContext, std::string const& theClass, Matrix4f& worldMat)
 {
-   if (!materialRes_->isOfClass(theClass)) 
-   {
-      return;
-   }
-
    if (!Modules::renderer().setMaterial(materialRes_, shaderContext))
    {
       return;

@@ -1,0 +1,24 @@
+{
+	"shaders" : {
+		"LOADING_OVERLAY" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/loading.shader"
+		},
+
+		"PROGRESS_OVERLAY" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/progress.shader"			
+		}
+	},
+
+	"samplers" : [
+		{
+			"name" : "loadingMap",
+			"map" : "overlays/loading.jpg"
+		},
+		{
+			"name" : "progressMap",
+			"map" : "overlays/progress_frame.png"
+		}
+	]
+}

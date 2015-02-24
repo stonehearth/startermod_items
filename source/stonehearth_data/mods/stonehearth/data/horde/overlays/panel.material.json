@@ -1,0 +1,14 @@
+{
+	"shaders" : {
+		"OVERLAY" : {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/overlay.shader"
+		}
+	},
+	"samplers" : [
+		{
+			"name" : "albedoMap",
+			"map" : "textures/common/white.tga"
+		}
+	]
+}

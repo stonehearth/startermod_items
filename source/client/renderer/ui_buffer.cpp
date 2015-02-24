@@ -156,10 +156,23 @@ void UiBuffer::reallocateBuffers()
       h3dUnmapResStream(uiTexture_[i], 0);
 
       std::ostringstream material;
-      material << "<Material>" << std::endl;
-      material << "   <Shader source=\"shaders/overlay.shader\"/>" << std::endl;
-      material << "   <Sampler name=\"albedoMap\" map=\"" << texName << "\" />" << std::endl;
-      material << "</Material>" << std::endl;
+      material << "{" << std::endl;
+      material << "   \"shaders\": {" << std::endl;
+      material << "       \"OVERLAY\" : {" << std::endl;
+      material << "           \"state\" : \"states/voxel/blend.state\"," << std::endl;
+      material << "           \"shader\" : \"shaders/overlay.shader\"" << std::endl;
+      material << "        }" << std::endl;
+      material << "    }," << std::endl;
+      material << "   \"samplers\" : [" << std::endl;
+      material << "       {" << std::endl;
+      material << "           \"name\" : \"albedoMap\"," << std::endl;
+      material << "           \"map\" : \"" << texName << "\"" << std::endl;
+      material << "       }" << std::endl;
+      material << "    ]" << std::endl;
+      material << "}" << std::endl;
+
+
+
 
       uiMatRes_[i] = h3dAddResource(H3DResTypes::Material, matName.c_str(), H3DResFlags::NoFlush);
       bool result = h3dLoadResource(uiMatRes_[i], material.str().c_str(), (int)material.str().length());

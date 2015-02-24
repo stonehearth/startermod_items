@@ -1,0 +1,6 @@
+ZWriteEnable = true;
+ZEnable = true;
+CullMode = Back;
+StencilFunc = Always;
+StencilOp = Replace_Replace_Replace;
+StencilRef = 1;

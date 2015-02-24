@@ -1,0 +1,4 @@
+BlendMode = Blend;
+ZWriteEnable = true;
+ZEnable = true;
+CullMode = Back;
