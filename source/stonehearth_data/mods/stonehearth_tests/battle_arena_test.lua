@@ -34,7 +34,11 @@ function BattleArenaTest:load_team(team)
          local count = citizen_spec.count or 1
          for i = 1,count do
             local location = Point3(team.location.x + citizen_count * 4, team.location.y, team.location.z)
-            game_master_lib.create_citizen(population, citizen_spec, location)
+            local citizen = game_master_lib.create_citizen(population, citizen_spec, location)
+
+            if team.player_id == 'player_1' then
+               radiant.entities.turn_to(citizen, 180)
+            end
 
             citizen_count = citizen_count + 1
          end

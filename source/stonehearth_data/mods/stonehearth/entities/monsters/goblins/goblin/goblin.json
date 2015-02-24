@@ -97,7 +97,7 @@
       "stonehearth:attributes": {
           "max_health": {
             "type" : "basic", 
-            "value" : 60
+            "value" : 50
          },
          "health": {
             "type" : "variable", 
