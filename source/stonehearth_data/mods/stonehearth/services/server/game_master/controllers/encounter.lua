@@ -45,7 +45,8 @@ function Encounter:start(ctx)
    local einfo = self._sv._info[etype .. '_info']
    local ename = 'stonehearth:game_master:encounters:' .. etype   
    
-   assert(einfo)
+   assert(einfo, string.format('missing encounter data for type "%s"', etype))
+
    local script = radiant.create_controller(ename)
    if not script then
       self._log:error('could not create controller for encounter type "%s".  bailing.', etype)
