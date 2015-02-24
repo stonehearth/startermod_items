@@ -45,6 +45,12 @@ function WaterComponent:get_water_elevation()
    return elevation
 end
 
+function WaterComponent:get_current_layer_elevation()
+   local entity_location = radiant.entities.get_world_grid_location(self._entity)
+   local elevation = entity_location.y + self._sv._current_layer_index
+   return elevation
+end
+
 -- TODO: clean up this method
 function WaterComponent:_add_water(world_location, volume)
    log:detail('Adding %d water to %s at %s', volume, self._entity, world_location)
@@ -98,7 +104,7 @@ function WaterComponent:_add_water(world_location, volume)
             assert(target_entity ~= self._entity)
 
             if target_entity then
-               if self:_can_merge_with(target_entity) then
+               if stonehearth.hydrology:can_merge_water_bodies(self._entity, target_entity) then
                   -- we should save our current region and exit
                   -- a new water entry will process the merged entity
                   merge_info = self:_create_merge_info(self._entity, target_entity)
@@ -161,38 +167,6 @@ function WaterComponent:_remove_water(volume)
    end
 
    return volume
-end
-
-function WaterComponent:_can_merge_with(target)
-   local water_elevation = self:get_water_elevation()
-   local target_water_component = target:add_component('stonehearth:water')
-   local target_water_elevation = target_water_component:get_water_elevation()
-   local elevation_delta = water_elevation - target_water_elevation
-
-   -- quick and easy test
-   if elevation_delta == 0 then
-      return true
-   end
-
-   if elevation_delta < 0 then
-      return false
-   end
-
-   -- only mergable if the top layers are at the same elevation
-   if target_water_component._sv._current_layer_index ~= self._sv._current_layer_index then
-      return false
-   end
-
-   -- if adding a small volume of water through the channel would equalize heights, then allow merge
-   -- TODO: consider optimizing repeated calls to O(n) get_area()
-   local merge_threshold = 1
-   local target_layer_area = target_water_component._sv._current_layer:get():get_area()
-   local volume_delta = target_layer_area * elevation_delta
-   if volume_delta < 1 then
-      return true
-   end
-
-   return false
 end
 
 function WaterComponent:_create_merge_info(entity1, entity2)
