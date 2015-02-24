@@ -1,0 +1,25 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "shop",
+   "rarity" : "common",
+
+   "in_edge"  : "spawn_shop",
+
+   "shop_info" : {
+      "name" : "Havaad's Fine Rugs and Garmets",
+      "title" : "A simple merchant has arrived with wares to sell",
+      "inventory" : {
+         "items" : [
+            "stonehearth:refined:thread",
+            "stonehearth:refined:cloth_bolt",
+            "stonehearth:decoration:fur_rug"
+         ],
+         "items_matching" : {
+            "cloth armor" : {                    
+               "category" : ["decoration", "armor"],
+               "material" : ["cloth"]
+            }
+         }
+      }
+   }
+}

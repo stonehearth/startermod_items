@@ -1,0 +1,20 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "shop",
+   "rarity" : "common",
+
+   "in_edge"  : "spawn_shop",
+
+   "shop_info" : {
+      "name" : "Norm Windriser's Woodcutter Shop",
+      "title" : "Norm Windriser has arrived with wares to sell",
+      "inventory" : {
+         "items_matching" : {
+            "wood stuff" : {
+               "category" : ["resources", "furniture", "decoration"],
+               "material" : ["wood"]
+            }
+         }
+      }
+   }
+}

@@ -4,9 +4,18 @@ local rng = _radiant.csg.get_default_rng()
 local ShakeDown = class()
 
 function ShakeDown:initialize(ctx)
+   local tribute_value = 100
+
+   if ctx.previous_shakedown_value then
+      tribute_value = ctx.previous_shakedown_value * 1.2
+   end
+
    self._sv.ctx = ctx
    self._sv.max_tries = 4
-   self._sv.tribute_value = 100
+   self._sv.tribute_value = tribute_value
+
+   ctx.previous_shakedown_value = tribute_value
+
    self:_construct()
 end
 

@@ -3,6 +3,7 @@ local Point3 = _radiant.csg.Point3
 local Cube3 = _radiant.csg.Cube3
 local Region3 = _radiant.csg.Region3
 local log = radiant.log.create_logger('water')
+local TraceCategories = _radiant.dm.TraceCategories
 
 HydrologyService = class()
 
@@ -25,9 +26,146 @@ function HydrologyService:initialize()
             self:_on_tick()
          end)
    end
+
+   self:_trace_terrain_delta()
 end
 
 function HydrologyService:destroy()
+   self:_destroy_terrain_delta_trace()
+end
+
+function HydrologyService:_trace_terrain_delta()
+   local terrain_component = radiant._root_entity:add_component('terrain')
+   self._delta_trace = terrain_component:trace_delta_region('hydrology service', TraceCategories.SYNC_TRACE)
+      :on_changed(function(delta_region)
+            self:_on_terrain_changed(delta_region)
+         end)
+      :push_object_state()
+end
+
+function HydrologyService:_destroy_terrain_delta_trace()
+   if self._delta_trace then
+      self._delta_trace:destroy()
+      self._delta_trace = nil
+   end
+end
+
+function HydrologyService:_on_terrain_changed(delta_region)
+   local inflated_delta_bounds = self:_get_inflated_delta_bounds(delta_region)
+   if not inflated_delta_bounds then
+      return
+   end
+
+   for id, entity in pairs(self._sv._water_bodies) do
+      -- fast-ish rejection test to see if the delta region modifies the water region or its container
+      if self:_bounds_intersects_water_body(inflated_delta_bounds, entity) then
+         local modified_water_region = self:_get_affected_water_region(delta_region, entity)
+         for point in modified_water_region:each_point() do
+            if radiant.terrain.is_terrain(point) then
+               -- TODO: merge may have occured
+               -- TODO: check for unused volume
+               -- TODO: check for bisection at end
+               -- TODO: if region is empty, delete water body
+               self:add_water(1, point, entity)
+            end
+         end
+
+         local modified_container_region = self:_get_affected_container_region(delta_region, entity)
+         for point in modified_container_region:each_point() do
+            if not radiant.terrain.is_terrain(point) then
+               -- TODO: handle vertical case
+               local target_entity = self:create_water_body(point)
+               local target_adjacent_point = self:_get_closest_point_to(point, entity)
+               stonehearth.hydrology:link_pressure_channel(entity, point, target_entity, target_adjacent_point)
+            end
+         end
+      end
+   end
+end
+
+-- point and result are in world coordinates
+function HydrologyService:_get_closest_point_to(world_point, entity)
+   local water_component = entity:add_component('stonehearth:water')
+   local entity_location = radiant.entities.get_world_grid_location(entity)
+   local local_point = world_point - entity_location
+   local water_region = water_component:get_region():get()
+   local local_closest_point = water_region:get_closest_point(local_point)
+   local closest_point = local_closest_point:translated(entity_location)
+   return closest_point
+end
+
+-- bounds are in world coordinates
+function HydrologyService:_bounds_intersects_water_body(inflated_delta_bounds, entity)
+   local entity_location = radiant.entities.get_world_grid_location(entity)
+   local local_inflated_delta_bounds = inflated_delta_bounds:translated(-entity_location)
+
+   local water_component = entity:add_component('stonehearth:water')
+   local water_region = water_component:get_region():get()
+   local result = water_region:intersects_cube(local_inflated_delta_bounds)
+   return result
+end
+
+-- returns the intersection of the delta region and the water body proper (and not its container)
+-- delta region and result are in world coordinates
+function HydrologyService:_get_affected_water_region(delta_region, entity)
+   local entity_location = radiant.entities.get_world_grid_location(entity)
+   local local_delta_region = delta_region:translated(-entity_location)
+
+   local water_component = entity:add_component('stonehearth:water')
+   local water_region = water_component:get_region():get()
+   local intersection = water_region:intersect_region(local_delta_region)
+   intersection:translate(entity_location)
+   return intersection
+end
+
+-- returns the intersection of the delta region and the side and bottom walls of the water body's container
+-- delta region and result are in world coordinates
+function HydrologyService:_get_affected_container_region(delta_region, entity)
+   local entity_location = radiant.entities.get_world_grid_location(entity)
+   local local_delta_region = delta_region:translated(-entity_location)
+
+   local container_region = self:_get_container_region(entity)
+   local intersection = container_region:intersect_region(local_delta_region)
+   intersection:translate(entity_location)
+   return intersection
+end
+
+function HydrologyService:_get_inflated_delta_bounds(region)
+   if region:empty() then
+      return nil
+   end
+
+   local bounds = region:get_bounds()
+   local lower_bound = bounds.min.y
+   bounds = bounds:inflated(Point3.one)
+   -- don't inflate the bottom because water isn't affected by blocks above the surface
+   bounds.min.y = lower_bound
+   return bounds
+end
+
+-- returns the watertight region that contains the water region in local coordinates
+function HydrologyService:_get_container_region(entity)
+   local water_component = entity:add_component('stonehearth:water')
+   local water_region = water_component:get_region():get()
+   local container_region = Region3()
+
+   -- add the walls to the container
+   container_region:add_region(water_region:inflated(Point3.unit_x))
+   container_region:add_region(water_region:inflated(Point3.unit_z))
+
+   -- add the floor to the container
+   local floor_region = Region3()
+   for cube in water_region:each_cube() do
+      local inflated_cube = Cube3(cube)
+      inflated_cube.min.y = inflated_cube.min.y - 1
+      floor_region:add_cube(inflated_cube)
+   end
+   container_region:add_region(floor_region)
+
+   -- subtract the water body to get the container
+   container_region:subtract_region(water_region)
+
+   return container_region
 end
 
 function HydrologyService:create_water_body(location)
@@ -81,9 +219,8 @@ function HydrologyService:add_water(volume, location, entity)
    if volume > 0 then
       assert(info.result == 'merge')
       -- the entity lower in elevation is the master
-      local master, mergee = self:_order_entities(info.entity1, info.entity2)
       -- mergee is destroyed in this call
-      self:merge_water_bodies(master, mergee)
+      local master = self:merge_water_bodies(info.entity1, info.entity2)
       -- add the remaining water to the master
       return self:add_water(volume, location, master)
    end
@@ -195,7 +332,10 @@ end
 function HydrologyService:_each_channel(callback_fn)
    for id, channels in pairs(self._sv._channels) do
       for _, channel in pairs(channels) do
-         callback_fn(channel)
+         local stop = callback_fn(channel)
+         if stop then
+            return
+         end
       end
    end
 end
@@ -249,7 +389,50 @@ function HydrologyService:calculate_flow_rate(from_elevation, to_elevation)
    return flow_rate
 end
 
-function HydrologyService:merge_water_bodies(master, mergee)
+function HydrologyService:can_merge_water_bodies(entity1, entity2)
+   assert(entity1 ~= entity2)
+   local water_component1 = entity1:add_component('stonehearth:water')
+   local water_component2 = entity2:add_component('stonehearth:water')
+   local water_elevation1 = water_component1:get_water_elevation()
+   local water_elevation2 = water_component2:get_water_elevation()
+   local elevation_delta = math.abs(water_elevation1 - water_elevation2)
+
+   -- quick and easy test. occurs a lot when merging wetted regions.
+   if elevation_delta == 0 then
+      return true
+   end
+
+   -- only mergable if the top layers are at the same elevation
+   local layer_elevation1 = water_component1:get_current_layer_elevation()
+   local layer_elevation2 = water_component2:get_current_layer_elevation()
+   if layer_elevation1 ~= layer_elevation2 then
+      return false
+   end
+
+   -- if transferring a small volume of water through the channel would equalize heights, then allow merge
+   -- TODO: consider optimizing repeated calls to O(n) get_area()
+   local merge_volume_threshold = 1
+   local entity1_layer_area = water_component1._sv._current_layer:get():get_area()
+   local entity2_layer_area = water_component2._sv._current_layer:get():get_area()
+   local entity1_delta_height = merge_volume_threshold / entity1_layer_area
+   local entity2_delta_height = merge_volume_threshold / entity2_layer_area
+   if entity1_delta_height + entity2_delta_height >= elevation_delta then
+      assert(elevation_delta < 1)
+      return true
+   end
+
+   return false
+end
+
+function HydrologyService:merge_water_bodies(entity1, entity2)
+   assert(entity1 ~= entity2)
+   local master, mergee = self:_order_entities(entity1, entity2)
+   self:_merge_water_bodies_impl(entity1, entity2)
+   return master
+end
+
+function HydrologyService:_merge_water_bodies_impl(master, mergee)
+   assert(master ~= mergee)
    local master_location = radiant.entities.get_world_grid_location(master)
    local mergee_location = radiant.entities.get_world_grid_location(mergee)
    log:debug('Merging %s at %s with %s at %s', master, master_location, mergee, mergee_location)
@@ -270,8 +453,8 @@ function HydrologyService:_merge_regions(master, mergee)
    local master_component = master:add_component('stonehearth:water')
    local mergee_component = mergee:add_component('stonehearth:water')
 
-   -- hydrostatic pressures must be equal in order to merge
-   assert(master_component:get_water_elevation() == mergee_component:get_water_elevation())
+   -- layers must be at same level
+   assert(master_component:get_current_layer_elevation() == mergee_component:get_current_layer_elevation())
 
    -- translate between local coordinate systems
    local translation = mergee_location - master_location
@@ -299,22 +482,31 @@ function HydrologyService:_merge_regions(master, mergee)
 end
 
 function HydrologyService:_merge_channels(master, mergee)
+   local master_channels = self:get_channels(master)
+   local mergee_channels = self:get_channels(mergee)
+
+   -- reparent all mergee channels to master
+   for key, channel in pairs(mergee_channels) do
+      assert(channel.from_entity == mergee)
+
+      channel.from_entity = master
+      master_channels[key] = channel
+      mergee_channels[key] = nil
+   end
+
+   -- redirect all channels from mergee to master
    self:_each_channel(function(channel)
-         -- all channels originating from mergee now originate from master
-         if channel.from_entity and channel.from_entity == mergee then
-            channel.from_entity = master
-         end
+      assert(channel.from_entity ~= mergee)
 
-         -- all channels going to mergee now go to master
-         if channel.to_entity == mergee then
-            channel.to_entity = master
-         end
+      if channel.to_entity == mergee then
+         channel.to_entity = master
+      end
 
-         if channel.from_entity == channel.to_entity then
-            -- channel now goes to itself, so just destroy it
-            self:_destroy_channel(channel)
-         end
-      end)
+      if channel.from_entity == channel.to_entity then
+         -- channel now goes to itself, so destroy it
+         self:remove_channel(channel.from_entity, channel.from_location)
+      end
+   end)
 end
 
 function HydrologyService:_merge_water_queue(master, mergee)
@@ -344,6 +536,9 @@ function HydrologyService:_on_tick()
    log:spam('Emptying channels into water queue')
    self._water_queue = self:_empty_channels()
 
+   -- check when the channels are empty to avoid destroying channels with queued water
+   self:_check_for_channel_merge()
+
    for i, entry in ipairs(self._water_queue) do
       self:add_water(entry.volume, entry.location, entry.entity)
    end
@@ -357,22 +552,49 @@ end
 
 -- orders entities by increasing elevation
 function HydrologyService:_order_entities(entity1, entity2)
-   local entity1_location = radiant.entities.get_world_grid_location(entity1)
-   local entity2_location = radiant.entities.get_world_grid_location(entity2)
+   local entity1_elevation = radiant.entities.get_world_grid_location(entity1).y
+   local entity2_elevation = radiant.entities.get_world_grid_location(entity2).y
 
-   if entity1_location.y <= entity2_location.y then
+   if entity1_elevation == entity2_elevation then
+      -- if at the same elevation prefer the larger water body
+      local volume1 = entity1:add_component('stonehearth:water'):get_region():get():get_area()
+      local volume2 = entity2:add_component('stonehearth:water'):get_region():get():get_area()
+      if volume1 > volume2 then
+         return entity1, entity2
+      else
+         return entity2, entity1
+      end
+   end
+
+   if entity1_elevation < entity2_elevation then
       return entity1, entity2
    else
       return entity2, entity1
    end
 end
 
+function HydrologyService:_check_for_channel_merge()
+   repeat
+      local restart = false
+      self:_each_channel(function(channel)
+            if self:can_merge_water_bodies(channel.from_entity, channel.to_entity) then
+               self:merge_water_bodies(channel.from_entity, channel.to_entity)
+               restart = true
+               return true -- stop iteration
+            end
+            return nil
+         end)
+   until not restart
+end
+
 function HydrologyService:_empty_channels()
    local water_queue = {}
 
    self:_each_channel(function(channel)
-         local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
-         table.insert(water_queue, entry)
+         if channel.queued_volume > 0 then
+            local entry = self:_create_water_queue_entry(channel.to_entity, channel.to_location, channel.queued_volume)
+            table.insert(water_queue, entry)
+         end
 
          -- empty the channel so we can queue for the next iteration
          channel.queued_volume = 0
