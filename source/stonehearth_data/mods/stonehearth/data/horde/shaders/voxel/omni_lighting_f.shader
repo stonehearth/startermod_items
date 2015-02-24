@@ -29,8 +29,6 @@ void main( void )
 #include "shaders/utilityLib/fragLighting.glsl" 
 #include "shaders/omni_shadows.shader"
 
-uniform vec3 viewerPos;
-
 varying vec4 pos;
 varying vec4 vsPos;
 varying vec3 albedo;
@@ -39,5 +37,5 @@ varying vec3 tsbNormal;
 void main( void )
 {
   float shadowTerm = getOmniShadowValue(lightPos.xyz, pos.xyz);
-  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo * shadowTerm, 1.0);
+  gl_FragColor = vec4(calcSimpleOmniLight(pos.xyz, normalize(tsbNormal)) * albedo * shadowTerm, 1.0);
 }

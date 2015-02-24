@@ -43,7 +43,7 @@ vec3 calcPhongSpotLight( const vec3 viewerPos, const vec3 pos, const vec3 normal
 }
 
 
-vec3 calcPhongOmniLight(const vec3 viewerPos, const vec3 pos, const vec3 normal)
+vec4 calcPhongOmniLight(const vec3 viewerPos, const vec3 pos, const vec3 normal, const float glossMask, const float gloss)
 {
 	vec3 light = lightPos.xyz - pos;
 	float lightLen = length( light );
@@ -58,10 +58,15 @@ vec3 calcPhongOmniLight(const vec3 viewerPos, const vec3 pos, const vec3 normal)
 	atten *= NdotL;
 		
 	// Blinn-Phong specular with energy conservation
-	vec3 view = normalize( viewerPos - pos );
-	vec3 halfVec = normalize( light + view );
+	vec3 view = normalize( pos - viewerPos );
+	vec3 halfVec = normalize( light - view );
+  float specAngle = max(dot(halfVec, normal), 0.0);
+  
+  float specExp = exp2( 10.0 * gloss);
+  float specular =  pow( specAngle, specExp );
+  specular *=  glossMask * (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
 	
-	return lightColor * atten;
+	return vec4(lightColor * atten, atten * specular);
 }
 
 vec4 calcPhongDirectionalLight( vec3 viewerPos, const vec3 pos, const vec3 normal, const float glossMask, const float gloss)
@@ -73,7 +78,7 @@ vec4 calcPhongDirectionalLight( vec3 viewerPos, const vec3 pos, const vec3 norma
   float atten = max( dot( normal, ldir ), 0.0 );
 
   // Blinn-Phong specular with energy conservation
-  vec3 view = normalize(pos - vec3(viewerPos.x, viewerPos.y, viewerPos.z));
+  vec3 view = normalize(pos - viewerPos);
 
   vec3 halfVec = normalize(ldir - view);
   float specAngle = max(dot(halfVec, normal), 0.0);
@@ -83,6 +88,23 @@ vec4 calcPhongDirectionalLight( vec3 viewerPos, const vec3 pos, const vec3 norma
   specular *=  glossMask * (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
 
   return vec4(atten * lightColor, atten * specular);
+}
+
+
+vec3 calcSimpleOmniLight(const vec3 pos, const vec3 normal)
+{
+  vec3 light = lightPos.xyz - pos;
+  float lightLen = length( light );
+  light /= lightLen;
+
+  // Distance attenuation
+  float lightDepth = lightLen / lightPos.w;
+  float atten = max( 1.0 - lightDepth * lightDepth, 0.0 );
+
+  // Lambert diffuse
+  float NdotL = max( dot( normal, light ), 0.0 );
+  atten *= NdotL;
+  return lightColor * atten;
 }
 
 

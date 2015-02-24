@@ -28,7 +28,6 @@ void main( void )
 [[FS]]
 #include "shaders/utilityLib/fragLighting.glsl" 
 
-uniform vec3 viewerPos;
 uniform vec4 matDiffuseCol;
 uniform vec4 matSpecParams;
 
@@ -39,5 +38,5 @@ varying vec3 tsbNormal;
 
 void main( void )
 {
-  gl_FragColor = vec4(calcPhongOmniLight(viewerPos, pos.xyz, normalize(tsbNormal)) * albedo, 1.0);
+  gl_FragColor = vec4(calcSimpleOmniLight(pos.xyz, normalize(tsbNormal)) * albedo, 1.0);
 }
