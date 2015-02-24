@@ -800,8 +800,9 @@ void Renderer::commitGeneralUniforms()
 		
 		if( _curShader->uni_camViewerPos >= 0 ) 
       {
-         Matrix4f m = getCurCamera()->getViewMat();
-			gRDI->setShaderConst( _curShader->uni_camViewerPos, CONST_FLOAT3, &m.x[12] );
+		  Vec3f v = getCurCamera()->getAbsPos();
+		 float f[3] = {v.x, v.y, v.z };
+		 gRDI->setShaderConst( _curShader->uni_camViewerPos, CONST_FLOAT3, f );
       }
 
       if( _curShader->uni_projectorMat >= 0 )
