@@ -27,10 +27,5 @@
       "stonehearth:promotion_talisman": {
          "job": "stonehearth:jobs:carpenter"
       }
-   },
-   "entity_data" : {
-      "stonehearth:render_materials" : {
-         "default" : "materials/shiny.material.json"
-      }
    }
 }
