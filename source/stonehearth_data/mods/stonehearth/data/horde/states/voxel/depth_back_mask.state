@@ -1,0 +1,2 @@
+  ColorWriteMask = A;
+  CullMode = Front;

@@ -4,19 +4,19 @@
       "location" : {
          "x" : 0,
          "y" : 0,
-         "z" : -32
+         "z" : -24
       },
 
       "citizens" : {
-         "_workers" : {
+         "workers" : {
             "job" : "stonehearth:jobs:worker",
-            "count" : 2
+            "count" : 4
          },
-         "footmen" : {
+         "citizenfootmen" : {
             "job" : "stonehearth:jobs:footman",
             "count" : 3,
             "equipment" : {
-               
+               "shield": ["stonehearth:armor:wooden_shield"]
             }
          }         
       }
@@ -26,25 +26,23 @@
       "location" : {
          "x" : 0,
          "y" : 0,
-         "z" : 32
+         "z" : 24
       },
 
       "citizens" : {
-         "boss" : {
+         "raiders" : {
+            "job" : "stonehearth:jobs:footman",
+            "count" : 5,
+            "equipment" : {
+               "outfit" : "stonehearth:monsters:goblins:outfits:footman",
+               "weapon" : ["stonehearth:weapons:jagged_cleaver"]
+            }
+         },
+         "_boss" : {
             "job" : "stonehearth:jobs:footman",
             "equipment" : {
                "outfit" : "stonehearth:monsters:goblins:outfits:miniboss",
                "weapon" : ["stonehearth:weapons:giant_bone_mace", "stonehearth:weapons:giant_bone_axe"]
-            },
-            "loot_drops" : {
-               "num_rolls" : {
-                  "min" : 1,
-                  "max" : 1
-               },
-               "items" : [
-                  { "uri" : "stonehearth:weapons:giant_bone_mace" },
-                  { "uri" : "stonehearth:weapons:giant_bone_axe"  }
-               ]
             }         
          }
       }

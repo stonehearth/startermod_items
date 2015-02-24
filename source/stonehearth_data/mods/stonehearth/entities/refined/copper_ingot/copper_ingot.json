@@ -24,6 +24,9 @@
       }
    },
    "entity_data" : {
+      "stonehearth:render_materials" : {
+         "default" : "materials/shiny.material.json"
+      },
       "stonehearth:net_worth" : {
          "value_in_gold" : 14,
          "rarity" : "common",

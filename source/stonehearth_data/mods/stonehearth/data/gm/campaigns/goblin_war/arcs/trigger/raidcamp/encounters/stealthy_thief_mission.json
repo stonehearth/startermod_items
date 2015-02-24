@@ -1,9 +1,9 @@
 {
    "type" : "encounter",
-   "encounter_type" : "city_raid",
+   "encounter_type" : "nighttime_city_raid",
    "rarity" : "common",
 
-   "in_edge"  : "city_raid",
+   "in_edge"  : "city_raid_at_night",
 
    "city_raid_info" : {
       "missions" : {

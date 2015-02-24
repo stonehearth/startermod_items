@@ -37,9 +37,9 @@ function CastAoeCallHandler:_on_mouse_event(e, response, entity, spell)
    local material, material_path
 
    if in_range then
-      material_path = "materials/aoe_reticle/aoe_reticle.material.xml"
+      material_path = "materials/aoe_reticle/aoe_reticle.material.json"
    else
-      material_path = "materials/out_of_range_reticle/out_of_range_reticle.material.xml"
+      material_path = "materials/out_of_range_reticle/out_of_range_reticle.material.json"
    end
 
    material = h3dAddResource(H3DResTypes.Material, material_path, 0)

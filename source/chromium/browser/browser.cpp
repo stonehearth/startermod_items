@@ -452,9 +452,7 @@ void Browser::OnRawInput(const RawInput &msg)
    }
 
    switch (message) {
-   case WM_LBUTTONDOWN:
-   case WM_RBUTTONDOWN:
-   case WM_MBUTTONDOWN: {
+   case WM_LBUTTONDOWN: {
       SetCapture(hWnd);
       SetFocus(hWnd);
       int x = GET_X_LPARAM(lParam);
@@ -482,9 +480,7 @@ void Browser::OnRawInput(const RawInput &msg)
       break;
       }
 
-   case WM_LBUTTONUP:
-   case WM_RBUTTONUP:
-   case WM_MBUTTONUP: {
+   case WM_LBUTTONUP: {
       if (GetCapture() == hWnd) {
          ReleaseCapture();
       }

@@ -1,0 +1,8 @@
+{
+	"shaders" : {
+		"SELECTED_SCREENSPACE_OUTLINER": {
+			"state" : "states/voxel/blend.state",
+			"shader" : "shaders/voxel/selected_screenspace.shader"
+		}
+	}
+}

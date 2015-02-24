@@ -1,3 +1,5 @@
+local rng = _radiant.csg.get_default_rng()
+
 local NodeList = class()
 
 function NodeList:initialize(name, expected_type, nodelist)
@@ -80,18 +82,29 @@ end
 function NodeList:_run_election(filter_fn)
    local pop = {}
    local total = 0
-   
+   local total_candidates = 0
+
    for name, file in pairs(self._sv.nodelist) do      
       local candidate = self:_create_node(name, file)
       if not filter_fn or filter_fn(name, candidate) then
-         local votes = candidate:get_vote_count()
-         pop[name] = votes
-         total = total + votes
+         local tickets = candidate:get_vote_count()
+         pop[name] = tickets
+         total = total + tickets
+         total_candidates = total_candidates + 1
       end
    end
 
-   -- xxx: first node in the list always wins, for now.   
-   return next(pop) -- lol!
+   self._log:info('choosing between %d valid candidates (%d total tickets)', total_candidates, total)
+   local tickets_left = rng:get_int(1, total)
+   for name, tickets in pairs(pop) do
+      tickets_left = tickets_left - tickets
+      if tickets_left <= 0 then 
+         return name
+      end
+   end
+   -- should never get here, since total can't exceed all the tickets in the
+   -- list.  if we do, though, just return the 1st one.
+   return next(pop)
 end
 
 return NodeList

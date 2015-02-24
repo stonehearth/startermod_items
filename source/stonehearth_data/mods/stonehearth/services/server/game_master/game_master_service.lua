@@ -6,7 +6,7 @@ mixin_class(GameMasterService, Node)
 
 function GameMasterService:initialize()
    self._log = radiant.log.create_logger('game_master')
-   self._is_enabled = radiant.util.get_config('game_master.enabled')
+   self._is_enabled = radiant.util.get_config('game_master.enabled', true)
 
    self._sv = self.__saved_variables:get_data() 
    if not self._sv._initialized then
@@ -39,6 +39,7 @@ function GameMasterService:start()
       return
    end
    self:_start_campaign('combat')
+   self:_start_campaign('trader')
 end
 
 function GameMasterService:is_enabled()

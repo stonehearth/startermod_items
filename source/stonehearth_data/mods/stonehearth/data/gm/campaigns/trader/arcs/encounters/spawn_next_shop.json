@@ -1,0 +1,11 @@
+{
+   "type" : "encounter",
+   "encounter_type" : "generator",
+
+   "in_edge"  : "spawn_shops",
+
+   "generator_info" :  {
+      "delay" : "22h+2h",
+      "spawn_edge" : "spawn_shop"
+   }
+}

@@ -66,7 +66,7 @@ struct RendererConfig {
    RendererConfigEntry<int>  shadow_quality;
    RendererConfigEntry<int>  max_lights;
    RendererConfigEntry<float> draw_distance;
-   RendererConfigEntry<bool> use_fast_hilite;
+   RendererConfigEntry<bool> use_high_quality;
 
    RendererConfigEntry<int> screen_width;
    RendererConfigEntry<int> screen_height;
@@ -82,6 +82,7 @@ struct RendererConfig {
    RendererConfigEntry<bool> minimized;
    
    RendererConfigEntry<bool> disable_pinned_memory;
+   RendererConfigEntry<bool> run_once;
 };
 
 struct SystemStats {
@@ -218,12 +219,19 @@ class Renderer
       void ResizeViewport();
       void ResizePipelines();
       void CallWindowResizeListeners();
+      void CreateTextureResource(std::string const& name, std::string const& path, int width, int height, int format, int stride);
 
       void DispatchInputEvent();
       bool LoadMissingResources();
       void OneTimeIninitializtion();
       void SelectPipeline();
       void OnWindowClose();
+
+      void MaskHighQualitySettings();
+
+      std::string GetGraphicsCardName() const;
+      void SelectRecommendedGfxLevel(std::string const& gfxCard);
+      int GetGpuPerformance(std::string const& gfxCard) const;
 
    protected:
       struct RenderMapEntry {

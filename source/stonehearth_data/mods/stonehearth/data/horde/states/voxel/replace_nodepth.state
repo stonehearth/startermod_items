@@ -1,0 +1,2 @@
+ZWriteEnable = false;
+CullMode = Back;

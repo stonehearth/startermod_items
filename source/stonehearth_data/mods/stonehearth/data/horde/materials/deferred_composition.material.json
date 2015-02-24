@@ -1,0 +1,8 @@
+{
+	"shaders" : {
+		"COMPOSE" : {
+			"state" : "states/voxel/replace_nodepth.state",
+			"shader" : "shaders/voxel/deferred_composition.shader"
+		}
+	}
+}

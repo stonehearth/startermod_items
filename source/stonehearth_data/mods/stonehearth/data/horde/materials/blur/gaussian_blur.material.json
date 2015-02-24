@@ -1,0 +1,12 @@
+{
+	"shaders" : {
+		"BLUR_X" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/blur/blur_x.shader"
+		},
+		"BLUR_Y" : {
+			"state" : "states/voxel/replace.state",
+			"shader" : "shaders/blur/blur_y.shader"
+		}
+	}
+}

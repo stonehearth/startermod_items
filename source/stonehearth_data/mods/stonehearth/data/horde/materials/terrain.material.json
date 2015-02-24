@@ -1,0 +1,19 @@
+{
+	"materials" : {
+		"VOXEL" : {
+			"name" : "materials/voxel.material.json",
+			"inputs" : [
+				{
+					"name" : "gridlineColor",
+					"bind_to_material_input" : "gridlineColor"
+				}
+			]
+		}
+	},
+	"inputs" : [
+		{
+			"name" : "gridlineColor",
+			"default" : [0.02, 0.02, 0.02, 1.0]
+		}
+	]
+}

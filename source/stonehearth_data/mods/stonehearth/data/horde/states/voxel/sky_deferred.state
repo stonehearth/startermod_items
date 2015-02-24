@@ -1,0 +1,5 @@
+ZWriteEnable = false;
+ZEnable = false;
+BlendMode = Replace;
+StencilFunc = Equal;
+StencilRef = 0;

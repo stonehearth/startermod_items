@@ -4,25 +4,21 @@ App.StonehearthSettingsView = App.View.extend({
    closeOnEsc: true,
    modal: true,
 
+   low_quality : function() {
+      return !this.get('context.use_high_quality');
+   }.property('context.use_high_quality'),
+
+   qualityChanged : function() {
+      if ($('#aaNumSlider').hasClass('ui-slider')) {
+         $('#aaNumSlider').slider('option', 'disabled', this.get('low_quality'));
+      }
+   }.observes('low_quality'),
+
    fromResToVal : function(shadowRes, shadowsEnabled) {
       if (!shadowsEnabled) {
          return 0;
       }
       return shadowRes;
-   },
-
-   fromSamplesToVal : function(msaaSamples, msaaEnabled) {
-      if (!msaaEnabled || msaaSamples == 0) {
-         return 0;
-      }
-      return (Math.log(msaaSamples) / Math.log(2));      
-   },
-
-   fromValToSamples : function(msaaVal) {
-      if (msaaVal == 0) {
-         return 0;
-      }
-      return Math.pow(2, msaaVal);
    },
 
    init : function() {
@@ -34,7 +30,6 @@ App.StonehearthSettingsView = App.View.extend({
             self.destroy();
          }
       });
-
    },
 
    didInsertElement : function() {
@@ -107,7 +102,7 @@ App.StonehearthSettingsView = App.View.extend({
                "fullscreen" : o.fullscreen.value,
                "msaa" : o.msaa.value,
                "draw_distance" : o.draw_distance.value,
-               "use_fast_hilite" : o.use_fast_hilite.value,
+               "use_high_quality" : o.use_high_quality.value,
                "enable_ssao" : o.enable_ssao.value
             };
             self._updateGfxTabPage(o);
@@ -140,21 +135,17 @@ App.StonehearthSettingsView = App.View.extend({
       self.set('context.max_lights', o.max_lights.value)
       self.set('context.vsync_enabled', o.vsync.value);
       self.set('context.fullscreen_enabled', o.fullscreen.value);
-      self.set('context.msaa_forbidden', !o.msaa.allowed);
 
-      if (!o.msaa.allowed) {
-         o.msaa.value = 0;
-
-      }
-      self.set('context.num_msaa_samples', self.fromSamplesToVal(o.msaa.value, o.msaa.allowed));
+      self.set('context.num_msaa_samples', o.msaa.value);
       self.set('context.draw_distance', o.draw_distance.value);
-      self.set('context.use_fast_hilite', o.use_fast_hilite.value);
-      self.set('context.ssao_forbidden', !o.enable_ssao.allowed);
 
-      if (!o.enable_ssao.allowed) {
-         o.enable_ssao.value = false;
-      }
       self.set('context.enable_ssao', o.enable_ssao.value);
+
+      self.set('context.high_quality_forbidden', !o.use_high_quality.allowed);
+      if (!o.use_high_quality.allowed) {
+         o.use_high_quality.value = false;
+      }
+      self.set('context.use_high_quality', o.use_high_quality.value);
 
       $('#gfxCardString').html(i18n.t('stonehearth:settings_gfx_cardinfo', {
          "gpuRenderer": o.gfx_card_renderer, 
@@ -164,9 +155,9 @@ App.StonehearthSettingsView = App.View.extend({
       $('#aaNumSlider').slider({
          value: self.get('context.num_msaa_samples'),
          min: 0,
-         max: 4,
+         max: 1,
          step: 1,
-         disabled: self.get('context.msaa_forbidden'),
+         disabled: self.get('low_quality'),
          slide: function( event, ui ) {
             radiant.call('radiant:play_sound', {'track' : 'stonehearth:sounds:ui:action_hover' });
             $('#aaNumDescription').html(i18n.t('stonehearth:settings_aa_slider_' + ui.value));
@@ -217,12 +208,12 @@ App.StonehearthSettingsView = App.View.extend({
          "shadows" : $( "#shadowResSlider" ).slider( "value" ) > 0,
          "vsync" : $('#opt_enableVsync').is(':checked'),
          "fullscreen" : $('#opt_enableFullscreen').is(':checked'),
-         "msaa" : this.fromValToSamples($( "#aaNumSlider" ).slider( "value" )),
+         "msaa" : $( "#aaNumSlider" ).slider( "value" ),
          "shadow_quality" :  $( "#shadowResSlider" ).slider( "value" ),
          "max_lights" :  $( "#maxLightsSlider" ).slider( "value" ),
          "persistConfig" : persistConfig,
          "draw_distance" : $( "#drawDistSlider" ).slider( "value" ),
-         "use_fast_hilite" : $('#opt_useFastHilite').is(':checked'),
+         "use_high_quality" : $('#opt_useHighQuality').is(':checked'),
          "enable_ssao" : $('#opt_enableSsao').is(':checked'),
       };
       return newConfig;

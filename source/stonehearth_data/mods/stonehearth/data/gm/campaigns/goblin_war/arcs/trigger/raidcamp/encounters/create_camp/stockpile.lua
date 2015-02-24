@@ -23,7 +23,7 @@ function Stockpile:_create_stockpile(location, w, h)
    local contents = self._sv.piece.info.script_info.stockpile_contents
 
    if contents then
-      radiant.terrain.place_entity_cluster('stonehearth:resources:wood:oak_log', location, w - 1, h - 1)
+      radiant.terrain.place_entity_cluster(contents, location, w - 1, h - 1)
    end
 end
 

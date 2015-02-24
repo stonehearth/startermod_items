@@ -88,7 +88,8 @@ function Arc:_trigger_edge(edge_name, parent_node)
             self._log:debug('skipping encounter "%s" (in edge "%s" doesn\'t match)', name, in_edge)
             return false
          end
-         if running_encounters[name] ~= nil then
+         local unique = node:get_is_unique()
+         if unique and running_encounters[name] ~= nil then
             self._log:debug('skipping encounter "%s" (already running)', name)
             return false
          end

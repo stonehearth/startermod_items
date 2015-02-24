@@ -74,7 +74,7 @@ void RenderTerrainLayer::EndUpdate()
       _node.reset();
    } else {
       _node = RenderNode::CreateCsgMeshNode(_terrain.GetGroupNode(), mesh)
-                              ->SetMaterial("materials/terrain.material.xml")
+                              ->SetMaterial("materials/terrain.material.json")
                               ->SetUserFlags(UserFlags::Terrain);
    }
 }

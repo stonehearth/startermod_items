@@ -135,6 +135,16 @@ struct PipelineStage
 
 typedef std::shared_ptr<PipelineStage> PipelineStagePtr;
 
+struct RenderTargetAlias
+{
+   std::string    targetAlias;
+   int            aliasIdx;
+
+   RenderTargetAlias() {
+      aliasIdx = -1;
+   }
+};
+
 struct RenderTarget
 {
 	std::string           id;
@@ -145,10 +155,11 @@ struct RenderTarget
 	float                 scale;  // Scale factor for FB width and height
 	bool                  hasDepthBuf;
    uint32                mipLevels;
-
    uint32                rendBuf;
 
-	RenderTarget()
+   std::vector<RenderTargetAlias>     aliases;
+
+   RenderTarget()
 	{
 		hasDepthBuf = false;
 		numColBufs = 0;
@@ -156,6 +167,7 @@ struct RenderTarget
       mipLevels = 0;
 	}
 };
+
 
 // =================================================================================================
 
@@ -188,7 +200,7 @@ private:
 
 	void addRenderTarget( std::string const& id, bool depthBuffer, uint32 numBuffers,
 	                      TextureFormats::List format, uint32 samples,
-	                      uint32 width, uint32 height, float scale, uint32 mipLevels );
+                         uint32 width, uint32 height, float scale, uint32 mipLevels, std::vector<RenderTargetAlias>& aliases );
    void addGlobalRenderTarget(const char* name);
 	RenderTarget *findRenderTarget( std::string const& id );
 	bool createRenderTargets();
