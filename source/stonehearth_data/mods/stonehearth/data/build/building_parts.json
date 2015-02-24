@@ -104,6 +104,7 @@
             { "id": "blue_slate_slab_1",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_1.png", "brush":"stonehearth:blue_slate_slab_1" },
             { "id": "blue_slate_slab_2",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_2.png", "brush":"stonehearth:blue_slate_slab_2" },
             { "id": "blue_slate_slab_3",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_3.png", "brush":"stonehearth:blue_slate_slab_3" },
+            { "id": "blue_slate_slab_4",    "name": "Blue slate slab", "portrait": "/stonehearth/entities/build/slab/blue_slate_slab/blue_slate_slab_4.png", "brush":"stonehearth:blue_slate_slab_4" },
 
             { "id": "slate_slab_1",    "name": "Slate slab", "portrait": "/stonehearth/entities/build/slab/slate_slab/slate_slab_1.png", "brush":"stonehearth:slate_slab_1" },
             { "id": "slate_slab_2",    "name": "Slate slab", "portrait": "/stonehearth/entities/build/slab/slate_slab/slate_slab_2.png", "brush":"stonehearth:slate_slab_2" },
@@ -111,8 +112,8 @@
 
             { "id": "brick_slab_1",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_1.png", "brush":"stonehearth:brick_slab_1" },
             { "id": "brick_slab_2",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_2.png", "brush":"stonehearth:brick_slab_2" },
-            { "id": "brick_slab_3",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_3.png", "brush":"stonehearth:brick_slab_3" }
-
+            { "id": "brick_slab_3",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_3.png", "brush":"stonehearth:brick_slab_3" },
+            { "id": "brick_slab_4",    "name": "brick slab", "portrait": "/stonehearth/entities/build/slab/brick_slab/brick_slab_4.png", "brush":"stonehearth:brick_slab_4" }
          ]         
       }            
    ],
@@ -134,3 +135,4 @@
       }
    ]
 }
+
