@@ -1362,6 +1362,7 @@
       "game_master:encounters:wait" : "file(services/server/game_master/controllers/encounters/wait_encounter.lua)",
       "game_master:encounters:wait_for_event" : "file(services/server/game_master/controllers/encounters/wait_for_event_encounter.lua)",
       "game_master:encounters:wait_for_net_worth" : "file(services/server/game_master/controllers/encounters/wait_for_net_worth_encounter.lua)",
+      "game_master:encounters:wait_for_time_of_day" : "file(services/server/game_master/controllers/encounters/wait_for_time_of_day_encounter.lua)",
       "game_master:encounters:dialog_tree" : "file(services/server/game_master/controllers/encounters/dialog_tree_encounter.lua)",
       "game_master:encounters:generator" : "file(services/server/game_master/controllers/encounters/generator_encounter.lua)",
       "game_master:missions:raid_stockpiles" : "file(services/server/game_master/controllers/missions/raid_stockpiles_mission.lua)",
