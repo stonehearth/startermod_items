@@ -64,35 +64,23 @@ vec3 calcPhongOmniLight(const vec3 viewerPos, const vec3 pos, const vec3 normal)
 	return lightColor * atten;
 }
 
-vec4 calcPhongDirectionalLight( vec3 viewerPos, const vec3 pos, const vec3 normal, const float gloss)
+vec4 calcPhongDirectionalLight( vec3 viewerPos, const vec3 pos, const vec3 normal, const float glossMask, const float gloss)
 {
   vec3 specColor = lightColor;
-  vec3 ldir = lightDir.xyz;
+  vec3 ldir = -lightDir.xyz;
   
-  ldir.xyz *= -1;
-  //viewerPos.xzy *= -1;
-
   // Lambert diffuse
   float atten = max( dot( normal, ldir ), 0.0 );
 
   // Blinn-Phong specular with energy conservation
-  vec3 view = normalize(pos - viewerPos);
-  view.z *= -1;
+  vec3 view = normalize(pos - vec3(viewerPos.x, viewerPos.y, viewerPos.z));
 
-  //vec3 rVec = reflect(-ldir, normal);
-  //float specAngle = max(dot(r, view), 0.0);
-
-  vec3 halfVec = normalize(ldir + view);
-  //float specAngle = max(dot(halfVec, normal), 0.0);
-  //float specular = pow(specAngle, 20.10);
-
-  //vec3 specular = specColor * pow( max( dot( halfVec, normal ), 0.0 ), specExp );
-  //specular *= (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
+  vec3 halfVec = normalize(ldir - view);
+  float specAngle = max(dot(halfVec, normal), 0.0);
   
-  float specExp = exp2( 10.0 * gloss + 1.0 );
-  float specular =  pow( max( dot( halfVec, normal ), 0.0 ), specExp );
-  specular *=  (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
-
+  float specExp = exp2( 10.0 * gloss);
+  float specular =  pow( specAngle, specExp );
+  specular *=  glossMask * (specExp * 0.125 + 0.25);  // Normalization factor (n+2)/8
 
   return vec4(atten * lightColor, atten * specular);
 }

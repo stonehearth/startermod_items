@@ -141,7 +141,6 @@
          <ClearTarget colBuf0="true" depthBuf="false" />
 
          <SwitchTarget target="EdgeTex" />
-         <BindBuffer sampler="depthTex" sourceRT="GBuffers" bufIndex="0" />
          <BindBuffer sampler="colorTex" sourceRT="Final"/>
          <DrawQuad material="materials/smaa.material.json" context="EDGE_DETECTION" />
          <UnbindBuffers/>

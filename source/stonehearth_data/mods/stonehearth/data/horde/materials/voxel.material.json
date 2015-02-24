@@ -113,7 +113,7 @@
 	"inputs" : [
 		{
 			"name" : "glossy",
-			"default" : [0.0, 0.0, 0.0, 999999]
+			"default" : [0.0, 0.0, 0.0, 0.0]
 		},
 		{
 			"name" : "gridlineColor",

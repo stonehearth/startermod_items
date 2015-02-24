@@ -39,12 +39,6 @@
 
 [[FX]]
 
-sampler2D depthTex = sampler_state
-{
-  Address = Clamp;
-  Filter = None;
-};
-
 sampler2D colorTex = sampler_state
 {
   Address = Clamp;
@@ -102,7 +96,6 @@ define SMAAMad(a, b, c) fma(a, b, c)
 define SMAAGather(tex, coord) textureGather(tex, coord)
 endif*/
 
-uniform sampler2D depthTex;
 uniform sampler2D colorTex;
 in vec2 texcoord;
 in vec4 offset[3];
