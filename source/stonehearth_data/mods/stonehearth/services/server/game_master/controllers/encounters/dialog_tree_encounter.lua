@@ -34,7 +34,7 @@ function DialogTreeEncounter:_transition_to_node(name)
    local node = self._sv.dialog_tree[name]
    if not node then
       self._log:error('no dialog tree node named \"%s\"', name)
-      ctx.arc:terminate(ctx)
+      ctx.arc:terminate(self._sv.ctx)
       return
    end
 

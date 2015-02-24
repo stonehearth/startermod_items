@@ -42,11 +42,17 @@ var D3Node = SimpleClass.extend({
       self._tree._update(self);
    },
 
+   inspect: function() {
+      var self = this;
+      self._tree.options.inspect_node(self);
+   },
+
    _update : function(ctx) {
       var self = this;
 
       // updat d3 options...
       self.name = self._tree.options.get_node_name(ctx);
+      self.data = ctx
 
       // update child nodes...
       var child_nodes = self._tree.options.get_node_children(ctx);
@@ -130,16 +136,15 @@ var D3CollapsableTree = SimpleClass.extend({
          .attr("class", "node")
          .attr("nid", function(d) { return d.id; })
          .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-         .on("click", function(d) { d.toggle(); });
 
       nodeEnter.append("svg:circle")
          .attr("r", 1e-6)
+         .on("click", function(d) { d.toggle(); })
          .style("fill", function(d) { return !d._visible ? "lightsteelblue" : "#fff"; });
 
       nodeEnter.append("svg:text")
-         .attr("x", function(d) { return d._visible ? -10 : 10; })
-         .attr("dy", ".35em")
-         .attr("text-anchor", function(d) { return d._children.length > 0 ? "end" : "start"; })
+         .attr("dy", "1.5em")
+         .on("click", function(d) { d.inspect() })
          .text(function(d) { return d.name; })
          .style("fill-opacity", 1e-6);
 
@@ -209,13 +214,27 @@ App.StonehearthGameMasterView = App.View.extend({
    uriProperty: 'model',
 
    didInsertElement : function() {
-      radiant.call_obj('stonehearth.game_master', 'get_root_context_command')
+      var self = this;
+
+      radiant.call_obj('stonehearth.game_master', 'get_root_node_command')
          .done(function(o) {
             self._node_browser = new D3CollapsableTree({
                container: this.$('#game_master')[0],
-               root_node_uri: o.result,
+               root_node_uri: o.__self,
                get_node_name : function(node) { return node.node_name },
                get_node_children : function(node) { return node.child_nodes },
+               inspect_node: function(node) {
+                  if (self._nodeInspector)  {
+                     self._nodeInspector.destroy();
+                  }
+                  self._nodeInspector = App.debugView.addView(App.StonehearthObjectBrowserView, {
+                     uri: node.data.__self,
+                     relativeTo: {
+                        top: node.x,
+                        left: node.y,
+                     }
+                  });
+               }
             })
          })
          .fail(function(o) {

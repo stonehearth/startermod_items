@@ -27,7 +27,8 @@
          "file(/ui/item_dropper/item_dropper.js)"
       ],
       "less" : [
-         "file(ui/debug_dock/debug_dock.less)",      
+         "file(/html/font-awesome-4.3.0/css/font-awesome.min.css)",
+         "file(/ui/debug_dock/debug_dock.less)",      
          "file(/ui/campaign_browser/campaign_browser.less)",
          "file(/ui/entity_inspector/entity_inspector.less)",
          "file(/ui/object_browser/object_browser.less)",

@@ -2,30 +2,40 @@
    <div id="objectBrowserIcon"></div>
 </script>
 
+<script type="text/x-handlebars" data-template-name="_toolbar">
+</script>
+
 <script type="text/x-handlebars" data-template-name="objectBrowser">
    <div id="objectBrowser">
       <div id="toolbar">
-         <a href="#" {{action goHome target="view"}} class="button">
-            <img src="/stonehearth_debugtools/ui/object_browser/images/goHome.png">
+         <a id="trackSelected" href="#" {{action "toggleTrackSelected" target="view"}} class="button" title="Track Selected">
+            <i class="fa fa-crosshairs fa-fw fa-lg"></i>
          </a>
-         <a href="#" {{action goBack target="view"}} class="button">
-            <img src="/stonehearth_debugtools/ui/object_browser/images/goBack.png">
+         <a href="#" {{action "goBack" target="view"}} class="button">
+            <i class="fa fa-arrow-left fa-fw fa-lg"></i>
          </a>
-         <a href="#" {{action goForward target="view"}} class="button">
-            <img src="/stonehearth_debugtools/ui/object_browser/images/goForward.png">
+         <a href="#" {{action "goForward" target="view"}} class="button">
+            <i class="fa fa-arrow-right fa-fw fa-lg"></i>
          </a>
-
-         <input type="text" id="uriInput" {{bind-attr value="uri"}}>
-         <a href="#" {{action collapse target="view"}} id="collapse" class="button">
-            <img src="/stonehearth_debugtools/ui/object_browser/images/collapse.png">
+         <input type="text" id="uriInput" {{bind-attr value="view.uri"}}>
+         <a id="collapse" href="#" {{action "toggleCollapsed" target="view"}} class="button">
+            <i id="collapse_image" class="fa fa-chevron-up fa-fw fa-lg"></i>
+         </a>
+         <a id="close" href="#" {{action "close" target="view"}} class="button">
+            <i class="fa fa-times fa-fw fa-lg"></i>
          </a>
       </div>
       <div id="body">
-         {{#if loading}}
-            loading...
-         {{else}}
-            {{{objectHtml}}}
-         {{/if}}
+         {{ view view.subViewClass uri=view.uri }}
       </div>
    </div>
+</script>
+
+<script type="text/x-handlebars" data-template-name="objectBrowserRaw">
+   {{{view.raw_view}}}
+</script>
+
+<script type="text/x-handlebars" data-template-name="objectBrowserEncounter">
+   Encounter:
+   {{ view "stonehearthObjectBrowserRaw" model=view.model.ctx }}
 </script>

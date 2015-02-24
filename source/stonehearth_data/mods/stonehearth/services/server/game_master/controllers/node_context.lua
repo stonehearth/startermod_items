@@ -22,17 +22,15 @@ function NodeContext:__next(k)
    return next(self._sv, k)
 end
 
-function NodeContext:initialize(parent_ctx)
-   self.child_nodes = { n = 0 }
+function NodeContext:initialize(node, parent_ctx)
    if parent_ctx then
       for k, v in pairs(parent_ctx) do
          if not self[k] then 
             self[k] = v
          end
       end
-      table.insert(parent_ctx.child_nodes, self)
-      parent_ctx:mark_changed()
    end
+   self.node = node
 end
 
 function NodeContext:get_data()

@@ -85,8 +85,12 @@
             "position" : { "x": -12, "y": -5 },
             "rotation" : 90
          },
-         "stockpile" : {
+         "wood_stockpile" : {
             "position" : { "x": 12, "y": -8 },
+            "info" : "file(create_camp/wood_stockpile.json)"
+         },
+         "stockpile" : {
+            "position" : { "x": 12, "y": -14 },
             "info" : "file(create_camp/stockpile.json)"
          },
          "loot_chest" : {

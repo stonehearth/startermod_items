@@ -5,22 +5,25 @@
 
 #game_master {
    .tree {
-      background-color: yellow;
+      background-color: #fff;
 
       .node circle {
-         fill: #fff;
-         stroke: steelblue;
-         stroke-width: 5.5px;
+         fill: white;
+         stroke: #607d8b;
+         stroke-width: 2.5px;
+         &:hover {
+            fill: white;
+            stroke: #78909c;
+         }
       }
-
-      .node {
-         stroke: white;
-         font: 12px sans-serif;
+      .node text {
+         stroke: #263238;
+         text-anchor: middle;
       }
 
       .link {
          fill: none;
-         stroke: #ccc;
+         stroke: #4dd0e1;
          stroke-width: 5.5px;
       }
    }
@@ -30,7 +33,6 @@
    top: 10px;
    left: 720px;
    min-width: 250px;
-   //font-family: "Consolas";
 
    input {
       width: 130px;
