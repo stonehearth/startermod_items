@@ -1765,7 +1765,9 @@ rpc::ReactorDeferredPtr Client::LoadGame(std::string const& saveid)
 
 void Client::SaveClientMetadata(boost::filesystem::path const& savedir, json::Node const& gameinfo)
 {
-   h3dutScreenshot((savedir / "screenshot.png").string().c_str() );
+   auto&r = Renderer::GetInstance();
+   r.RenderOneFrame(r.GetLastRenderTime(), r.GetLastRenderAlpha(), true);
+   h3dutScreenshot((savedir / "screenshot.png").string().c_str(), r.GetScreenshotTexture());
    std::ofstream metadata((savedir / "metadata.json").string());
    metadata << gameinfo.write_formatted() << std::endl;
 }

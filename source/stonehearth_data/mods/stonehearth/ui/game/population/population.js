@@ -64,7 +64,7 @@ var StonehearthPopulation;
       // NOT useful for implementing a reactive ui!  make your own trace for that!!
       _createGetterTrace: function() {
          var self = this;
-         self._getterTrace = self.getTrace()
+         self._getterTrace = new RadiantTrace(self._populationUri, self._components)
             .progress(function(pop) {
                self._numWorkers = 0;
                self._numCrafters = 0;
