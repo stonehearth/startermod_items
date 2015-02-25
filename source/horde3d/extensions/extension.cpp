@@ -64,7 +64,7 @@ bool Extension::init()
 
 	VertexLayoutAttrib attribs[2] = {
 		"vertPos",     0, 3, 0,
-		"inputColor",  0, 3, 12,
+		"color",  0, 4, 12,
 	};
 	DebugShapesNode::vertexLayout = gRDI->registerVertexLayout(2, attribs);
 
