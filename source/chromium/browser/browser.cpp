@@ -774,21 +774,21 @@ void Browser::WindowToBrowser(int &x, int& y)
    y = (int)(((y - _browserOffset.y) / (float)_screenSize.y) * _uiSize.y);
 }
 
-void Browser::OnScreenResize(csg::Rect2 const& size)
+void Browser::OnScreenResize(csg::Rect2 const& bounds)
 {
-   csg::Point2 offset = size.min;
-   csg::Point2 sizes = size.max;
-   
-   if (_screenSize == sizes) {
-      return;
-   }
    std::lock_guard<std::mutex> guard(_lock);
 
-   _screenSize = sizes;
-   _browserOffset = offset;
+   csg::Point2 size = bounds.max - bounds.min;
    
-   _uiSize.x = std::max(sizes.x, _minUiSize.x);
-   _uiSize.y = std::max(sizes.y, _minUiSize.y);
+   _browserOffset = bounds.min;
+   if (_screenSize == size) {
+      return;
+   }
+
+   _screenSize = size;
+   
+   _uiSize.x = std::max(size.x, _minUiSize.x);
+   _uiSize.y = std::max(size.y, _minUiSize.y);
 
    _browserFB.resize(_uiSize.x * _uiSize.y);
 

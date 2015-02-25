@@ -29,7 +29,7 @@ public:
    virtual bool OnInput(Input const& evt) = 0;
    virtual void SetCursorChangeCb(CursorChangeCb cb) = 0;
    virtual void SetRequestHandler(HandleRequestCb cb) = 0;
-   virtual void OnScreenResize(csg::Rect2 const& size) = 0;
+   virtual void OnScreenResize(csg::Rect2 const& bounds) = 0;
 };
 
 IBrowser* CreateBrowser(HWND parentWindow, std::string const& docroot, csg::Point2 const& screenSize, csg::Point2 const& minUiSize, int debug_port);

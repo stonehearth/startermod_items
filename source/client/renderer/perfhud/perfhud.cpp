@@ -14,8 +14,8 @@ PerfHud::PerfHud(Renderer& r)
       perfmon::TimelineCounterGuard tcg("update perfhud");
       Render();
    });
-   guard_ += r.OnScreenResize([this](csg::Rect2 const& size) {
-      screen_size_ = size.max;
+   guard_ += r.OnScreenResize([this](csg::Rect2 const& bounds) {
+      screen_size_ = bounds.max - bounds.min;
       float aspect = (float)screen_size_.x / screen_size_.y;
       float pad_y = 10.0f / screen_size_.y;
       float pad_x = pad_y * aspect;

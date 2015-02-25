@@ -281,7 +281,7 @@ class Renderer
       json::Node        terrainConfig_;
       lua::ScriptHost*  scriptHost_;
 
-      core::BufferedSlot<csg::Rect2>     screen_resize_slot_;
+      core::BufferedSlot<csg::Rect2>      screen_resize_slot_;
       core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;

@@ -1731,15 +1731,14 @@ void Renderer::OnWindowResized(csg::Point2 const& size) {
 
 void Renderer::CallWindowResizeListeners() {
    if (camera_) {
-      screen_resize_slot_.Signal(
-         csg::Rect2(
-			 csg::Point2(
-				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportXI),
-				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportYI)),
-			 csg::Point2(
-				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportWidthI), 
-				h3dGetNodeParamI(camera_->GetNode(), H3DCamera::ViewportHeightI))
-			));
+      H3DNode cameraNode = camera_->GetNode();
+      csg::Point2 min(h3dGetNodeParamI(cameraNode, H3DCamera::ViewportXI),
+                      h3dGetNodeParamI(cameraNode, H3DCamera::ViewportYI));
+      csg::Point2 max(h3dGetNodeParamI(cameraNode, H3DCamera::ViewportWidthI), 
+				          h3dGetNodeParamI(cameraNode, H3DCamera::ViewportHeightI));
+      max += min;
+
+      screen_resize_slot_.Signal(csg::Rect2(min, max));
    }
 }
 
