@@ -110,7 +110,7 @@ class Renderer
       void SetScriptHost(lua::ScriptHost* host);
       lua::ScriptHost* GetScriptHost() const;
       void DecodeDebugShapes(const ::radiant::protocol::shapelist& msg);
-      void RenderOneFrame(int now, float alpha);
+      void RenderOneFrame(int now, float alpha, bool screenshot=false);
       void ConstructAllRenderEntities();
       void LoadResources();
       void ShowPerfHud(bool value);
@@ -170,6 +170,7 @@ class Renderer
       Camera* GetCamera() { return camera_; }
 
       H3DRes GetPipeline(std::string const& name);
+      H3DRes GetScreenshotTexture() const;
 
       void FlushMaterials();
 
@@ -186,6 +187,9 @@ class Renderer
       std::string GetHordeResourcePath() const { return resourcePath_; }
 
       void UpdateLoadingProgress(float amountLoaded);
+
+      int GetLastRenderTime() const;
+      float GetLastRenderAlpha() const;
 
    private:
       NO_COPY_CONSTRUCTOR(Renderer);
@@ -255,6 +259,7 @@ class Renderer
 
       H3DRes            fontMatRes_;
       H3DRes            panelMatRes_;
+      H3DRes            screenshotTexRes_;
 
       UiBuffer          uiBuffer_;
 
@@ -289,6 +294,7 @@ class Renderer
       std::unique_ptr<PerfHud>            perf_hud_;
 
       int               last_render_time_;
+      float             last_render_alpha_;
       int               last_render_time_wallclock_;
       bool              resize_pending_;
       bool              inFullscreen_;

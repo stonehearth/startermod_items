@@ -533,7 +533,7 @@ static std::string Client_SnapScreenShot(const char* tag)
       if (!fs::is_directory(parent)) {
          fs::create_directories(parent);
       }
-      h3dutScreenshot(pathstr.c_str());
+      h3dutScreenshot(pathstr.c_str(), 0);
    } catch (std::exception const& e) {
       LUA_LOG(1) << "failed to create " << path << ": " << e.what();
       return "";

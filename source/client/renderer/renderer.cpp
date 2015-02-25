@@ -71,7 +71,8 @@ Renderer::Renderer() :
    drawWorld_(true),
    last_render_time_wallclock_(0),
    _loading(false),
-   _loadingAmount(0)
+   _loadingAmount(0),
+   screenshotTexRes_(0)
 {
    OneTimeIninitializtion();
 }
@@ -1166,7 +1167,17 @@ void Renderer::ConstructAllRenderEntities()
    }
 }
 
-void Renderer::RenderOneFrame(int now, float alpha)
+int Renderer::GetLastRenderTime() const
+{
+   return last_render_time_;
+}
+
+float Renderer::GetLastRenderAlpha() const
+{
+   return last_render_alpha_;
+}
+
+void Renderer::RenderOneFrame(int now, float alpha, bool screenshot)
 {
    ASSERT(now >= last_render_time_);
 
@@ -1266,6 +1277,15 @@ void Renderer::RenderOneFrame(int now, float alpha)
       if (_loading) {
          RenderLoadingMeter();
       }
+
+      SetStageEnable(GetPipeline(currentPipeline_), "Overlays", !screenshot);
+
+      if (screenshot) {
+         h3dSetNodeParamI(camera_->GetNode(), H3DCamera::OutTexResI, screenshotTexRes_);
+      } else {
+         h3dSetNodeParamI(camera_->GetNode(), H3DCamera::OutTexResI, 0);
+      }
+
       h3dRender(camera_->GetNode(), GetPipeline(currentPipeline_));
 
       // Finish rendering of frame
@@ -1291,13 +1311,16 @@ void Renderer::RenderOneFrame(int now, float alpha)
 
    perfmon::SwitchToCounter("render swap");
 
-   glfwSwapBuffers(glfwGetCurrentContext());
+   if (!screenshot) {
+      glfwSwapBuffers(glfwGetCurrentContext());
+   }
 
    h3dReleaseUnusedResources();
 
    render_frame_finished_slot_.Signal(frameInfo);
 
    last_render_time_ = now;
+   last_render_alpha_ = alpha;
    last_render_time_wallclock_ = curWallTime;
 }
 
@@ -1462,6 +1485,13 @@ void Renderer::ResizeViewport()
    }
 
    R_LOG(3) << "Window resized to " << screenSize_ << ", viewport is (" << left << ", " << top << ", " << width << ", " << height << ")";
+
+
+   if (screenshotTexRes_) {
+      h3dRemoveResource(screenshotTexRes_);
+      h3dReleaseUnusedResources();
+   }
+   screenshotTexRes_ = h3dCreateTexture("screenshotTexture", screenSize_.x, screenSize_.y, H3DFormats::TEX_BGRA8, H3DResFlags::NoTexMipmaps | H3DResFlags::NoQuery | H3DResFlags::NoFlush | H3DResFlags::TexRenderable);
 
    // Resize viewport
    if (camera_) {
@@ -1755,6 +1785,11 @@ core::Guard Renderer::SetSelectionForNode(H3DNode node, om::EntityRef entity)
    return core::Guard([=]() {
       selectionLookup_.erase(node);
    });
+}
+
+H3DRes Renderer::GetScreenshotTexture() const
+{
+   return screenshotTexRes_;
 }
 
 H3DRes Renderer::GetPipeline(std::string const& name)

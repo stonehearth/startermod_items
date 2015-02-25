@@ -8,6 +8,10 @@
    }
 }
 
+.screenshot_container {
+   display: inline-block;
+}
+
 #loadView {
    .gui;
    position: absolute;
@@ -19,16 +23,18 @@
 }
 
 #savelist_screenshot {
-   float: left;
    width: 600px;
    height: 360px;
 
    background: black;
    border: 2px solid #000;
+   display: table-cell;
+   vertical-align: middle;
 
    img {
       width: 600px;
       height: auto;
+      max-height: 360px;
    }
 }
 
@@ -46,6 +52,7 @@
    width: 400px;
    height: 360px;
    max-height: 360px;
+   display: inline-block;
 
    table {
       border-collapse: collapse;

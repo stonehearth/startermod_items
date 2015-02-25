@@ -26,8 +26,10 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="saveList">
-   <div id="savelist_screenshot">
-      <img {{bind-attr src=view.currentScreenshot}} />
+   <div class="screenshot_container">
+      <div id="savelist_screenshot">
+         <img {{bind-attr src=view.currentScreenshot}} />
+      </div>
    </div>
    <div class="saveList list">
       {{#each view.saves}}
