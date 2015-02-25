@@ -1498,6 +1498,7 @@ DLL void h3dResizePipelineBuffers( H3DRes pipeRes, int width, int height );
 DLL bool h3dGetRenderTargetData( H3DRes pipelineRes, const char *targetName, int bufIndex,
                                  int *width, int *height, int *compCount, void *dataBuffer, int bufferSize );
 
+DLL bool h3dGetRenderTextureData( H3DRes texRes, int *width, int *height, int *compCount, void *dataBuffer, int bufferSize );
 
 /* Group: General scene graph functions */
 /* Function: h3dGetNodeType

@@ -207,6 +207,7 @@ void TextureResource::release()
 		gRDI->destroyTexture( _texObject );
 	}
 
+   _rbObj = 0;
 	_texObject = 0;
 }
 

@@ -916,17 +916,27 @@ DLLEXP H3DNode h3dutPickNode( H3DNode cameraNode, float nwx, float nwy )
 }
 
 
-DLLEXP bool h3dutScreenshot(const char *fname)
+DLLEXP bool h3dutScreenshot(const char *fname, H3DRes renderTexRes)
 {
    if (fname == 0x0) {
       return false;
    }
 
    int width, height;
-   h3dGetRenderTargetData( 0, "", 0, &width, &height, 0x0, 0x0, 0 );
+
+   if (renderTexRes) {
+      h3dGetRenderTextureData(renderTexRes, &width, &height, 0x0, 0x0, 0);
+   } else {
+      h3dGetRenderTargetData( 0, "", 0, &width, &height, 0x0, 0x0, 0 );
+   }
 
    float *pixelsF = new float[width * height * 4];
-   h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
+
+   if (renderTexRes) {
+      h3dGetRenderTextureData(renderTexRes, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
+   } else {
+      h3dGetRenderTargetData( 0, "", 0, 0x0, 0x0, 0x0, pixelsF, width * height * 16 );
+   }
 
    // Convert to BGR8
    unsigned char *pixels = new unsigned char[width * height * 3];
