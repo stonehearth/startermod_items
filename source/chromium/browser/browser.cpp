@@ -770,21 +770,25 @@ void Browser::SetRequestHandler(HandleRequestCb cb)
 
 void Browser::WindowToBrowser(int &x, int& y)
 {
-   x = (int)((x / (float)_screenSize.x) * _uiSize.x);
-   y = (int)((y / (float)_screenSize.y) * _uiSize.y);
+   x = (int)(((x - _browserOffset.x) / (float)_screenSize.x) * _uiSize.x);
+   y = (int)(((y - _browserOffset.y) / (float)_screenSize.y) * _uiSize.y);
 }
 
-void Browser::OnScreenResize(csg::Point2 const& size)
+void Browser::OnScreenResize(csg::Rect2 const& size)
 {
-   if (_screenSize == size) {
+   csg::Point2 offset = size.min;
+   csg::Point2 sizes = size.max;
+   
+   if (_screenSize == sizes) {
       return;
    }
    std::lock_guard<std::mutex> guard(_lock);
 
-   _screenSize = size;
+   _screenSize = sizes;
+   _browserOffset = offset;
    
-   _uiSize.x = std::max(size.x, _minUiSize.x);
-   _uiSize.y = std::max(size.y, _minUiSize.y);
+   _uiSize.x = std::max(sizes.x, _minUiSize.x);
+   _uiSize.y = std::max(sizes.y, _minUiSize.y);
 
    _browserFB.resize(_uiSize.x * _uiSize.y);
 

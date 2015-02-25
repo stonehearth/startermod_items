@@ -1,5 +1,8 @@
 {
    "campaigns" : {
+      "trader" : {
+         "random shops" : "file(campaigns/trader/trader_campaign.json)"
+      },
       "combat" : {
          "goblin_war" : "file(campaigns/goblin_war/goblin_war_campaign.json)"
       }

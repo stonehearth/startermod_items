@@ -22,6 +22,19 @@
                   <div class="differentVersionText">{{i18n stonehearth:game_different_version}}</div>
                {{/if}}               
                <img class="banner" />
+               {{#if lastSave.gameinfo.jobs}}
+                  <div id="jobs">
+                     <div id="soldiers" class="counter">
+                        <div>{{lastSave.gameinfo.jobs.soldiers}}</div>
+                     </div>                     
+                     <div id="crafters" class="counter">
+                        <div>{{lastSave.gameinfo.jobs.crafters}}</div>
+                     </div>
+                     <div id="workers" class="counter">
+                        <div>{{lastSave.gameinfo.jobs.workers}}</div>
+                     </div>
+                  </div>
+               {{/if}}               
             </div>
          </div>
 

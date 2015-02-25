@@ -31,7 +31,7 @@ public:  // IBrowser Interface
    bool OnInput(Input const& evt) override;
    void SetCursorChangeCb(CursorChangeCb cb) override;
    void SetRequestHandler(HandleRequestCb cb) override;
-   void OnScreenResize(csg::Point2 const& size) override;
+   void OnScreenResize(csg::Rect2 const& size) override;
 
 public:
    typedef int CommandId;
@@ -142,6 +142,7 @@ private:
    std::mutex                    _lock;
    CursorChangeCb                _cursorChangeCb;
 
+   csg::Point2                   _browserOffset;
    csg::Point2                   _screenSize;
    csg::Point2                   _uiSize;
    csg::Point2                   _minUiSize;

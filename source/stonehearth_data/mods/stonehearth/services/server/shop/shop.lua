@@ -6,15 +6,11 @@ local Shop = class()
 function Shop:__init()
 end
 
-function Shop:initialize(session)   
-   self._sv = self.__saved_variables:get_data()
-   self._session = session
-   
-   if not self._sv.initialized then
-      self._sv.options = {}
-      self._sv.level_range = { min = -1, max = -1}
-      self.__saved_variables:mark_changed()
-   end
+function Shop:initialize(player_id)
+   self._sv.player_id = player_id
+   self._sv.options = {}
+   self._sv.level_range = { min = -1, max = -1}
+   self.__saved_variables:mark_changed()
 end
 
 function Shop:get_name()
@@ -185,7 +181,7 @@ function Shop:stock_shop()
       -- Repeat until the total combined cost of all the items exceeds the Shops max inventory net worth
    end
 
-   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
 
    self.__saved_variables:mark_changed()
 end
@@ -195,7 +191,7 @@ function Shop:buy_item(uri, quantity)
    local all_sellable_items = stonehearth.shop:get_sellable_items()
    
    -- do we have enough gold?
-   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
    local gold = inventory:get_gold_count()
    local item_cost = self._sv.shop_inventory[uri].cost
 
@@ -238,7 +234,7 @@ end
 function Shop:sell_item(uri, quantity)
    local sell_quantity = quantity or 1
 
-   local inventory = stonehearth.inventory:get_inventory(self._session.player_id)
+   local inventory = stonehearth.inventory:get_inventory(self._sv.player_id)
    local sellable_items = inventory:get_items_of_type(uri)
 
    local item_cost
@@ -276,7 +272,7 @@ end
 
 function Shop:_spawn_items(uri, quantity)
    --Add the new items to the space near the banner
-   local town = stonehearth.town:get_town(self._session.player_id)
+   local town = stonehearth.town:get_town(self._sv.player_id)
    local banner = town:get_banner()
    local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
    if not drop_origin then
@@ -285,14 +281,14 @@ function Shop:_spawn_items(uri, quantity)
 
    local items = {}
    items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._session.player_id)
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
 
    return true
 end
 
 function Shop:_spawn_items(uri, quantity)
    --Add the new items to the space near the banner
-   local town = stonehearth.town:get_town(self._session.player_id)
+   local town = stonehearth.town:get_town(self._sv.player_id)
    local banner = town:get_banner()
    local drop_origin = banner and radiant.entities.get_world_grid_location(banner)
    if not drop_origin then
@@ -301,7 +297,7 @@ function Shop:_spawn_items(uri, quantity)
 
    local items = {}
    items[uri] = quantity
-   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._session.player_id)
+   radiant.entities.spawn_items(items, drop_origin, 1, 3, self._sv.player_id)
 
    return true
 end

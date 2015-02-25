@@ -61,7 +61,9 @@ var D3Node = SimpleClass.extend({
          $.each(self._children, function(i, child_node) {
             found = found || (child_node._uri == uri);
          });
-         self._children.push(new D3Node(self._tree, uri));
+         if (!found) {
+            self._children.push(new D3Node(self._tree, uri));
+         }
          if (self._visible) {
             self._tree._update(self);
          }
@@ -122,19 +124,17 @@ var D3CollapsableTree = SimpleClass.extend({
       nodes.forEach(function(d) { d.y = d.depth * 100; });
 
       // Update the text of the current node
-      if (source.id) {
-         vis.selectAll('g.node[nid="' + source.id + '"] text')
-               .html(source.name);
-      }
+      vis.selectAll('g.node[uri="' + source._uri + '"] text')
+            .html(source.name);
 
       // Update the nodes…
       var node = vis.selectAll("g.node")
-         .data(nodes, function(d) { return d.id || (d.id = ++self._nextId); });
+         .data(nodes, function(d) { return d._uri; });
 
       // Enter any new nodes at the parent's previous position.
       var nodeEnter = node.enter().append("svg:g")
          .attr("class", "node")
-         .attr("nid", function(d) { return d.id; })
+         .attr("uri", function(d) { return d._uri; })
          .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
 
       nodeEnter.append("svg:circle")
@@ -174,7 +174,7 @@ var D3CollapsableTree = SimpleClass.extend({
 
       // Update the links…
       var link = vis.selectAll("path.link")
-         .data(tree.links(nodes), function(d) { return d.target.id; });
+         .data(tree.links(nodes), function(d) { return d.target._uri; });
 
       // Enter any new links at the parent's previous position.
       link.enter().insert("svg:path", "g")

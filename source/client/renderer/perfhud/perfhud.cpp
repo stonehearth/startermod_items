@@ -14,15 +14,15 @@ PerfHud::PerfHud(Renderer& r)
       perfmon::TimelineCounterGuard tcg("update perfhud");
       Render();
    });
-   guard_ += r.OnScreenResize([this](csg::Point2 const& pt) {
-      screen_size_ = pt;
-      float aspect = (float)pt.x / pt.y;
-      float pad_y = 10.0f / pt.y;
+   guard_ += r.OnScreenResize([this](csg::Rect2 const& size) {
+      screen_size_ = size.max;
+      float aspect = (float)screen_size_.x / screen_size_.y;
+      float pad_y = 10.0f / screen_size_.y;
       float pad_x = pad_y * aspect;
 
       SetBounds(csg::Rect2f(csg::Point2f(pad_x, pad_y),
                             csg::Point2f(aspect - pad_x, 1.0f - pad_y)));
-      rc_.SetScreenSize(pt);
+      rc_.SetScreenSize(screen_size_);
    });
    rc_.SetTimelineHeight(perfmon::MillisecondsToCounter(100));
    timeline_

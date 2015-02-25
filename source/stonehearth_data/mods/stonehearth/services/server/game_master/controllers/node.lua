@@ -47,5 +47,12 @@ function Node:get_vote_count()
    return RARITY_VOTES[rarity] or 1
 end
 
+-- return whether or not the encounter is unique (i.e. cannot have more than 1 running instance)
+--
+function Node:get_is_unique()
+   assert(self._sv._info)
+   return self._sv._info.unique
+end
+
 return Node
 

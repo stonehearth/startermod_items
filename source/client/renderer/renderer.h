@@ -156,7 +156,7 @@ class Renderer
       typedef std::function<void (const Input&)> InputEventCb;
       void SetInputHandler(InputEventCb fn) { input_cb_ = fn; }
 
-      core::Guard OnScreenResize(std::function<void(csg::Point2)> const& fn);
+      core::Guard OnScreenResize(std::function<void(csg::Rect2)> const& fn);
       core::Guard OnServerTick(std::function<void(int)> const& fn);
       core::Guard OnRenderFrameStart(std::function<void(FrameStartInfo const&)> const& fn);
       core::Guard OnRenderFrameFinished(std::function<void(FrameStartInfo const&)> const& fn);
@@ -281,7 +281,7 @@ class Renderer
       json::Node        terrainConfig_;
       lua::ScriptHost*  scriptHost_;
 
-      core::BufferedSlot<csg::Point2>     screen_resize_slot_;
+      core::BufferedSlot<csg::Rect2>     screen_resize_slot_;
       core::BufferedSlot<bool>            show_debug_shapes_changed_slot_;
       core::Slot<int>                     server_tick_slot_;
       core::Slot<FrameStartInfo const&>   render_frame_start_slot_;
