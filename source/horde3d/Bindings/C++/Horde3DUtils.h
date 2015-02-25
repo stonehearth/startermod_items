@@ -261,7 +261,7 @@ DLL bool h3dutCreateTGAImage( const unsigned char *pixels, int width, int height
 	Returns:
 		true if the file could be written, otherwise false
 */
-DLL bool h3dutScreenshot( const char *filename );
+DLL bool h3dutScreenshot( const char *filename, H3DRes renderTexRes );
 
 
 /*	Group: Scene graph */
