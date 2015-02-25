@@ -3,7 +3,7 @@ var RadiantTrace;
 (function () {
    RadiantTrace = SimpleClass.extend({
 
-      _debug : false,
+      _debug : true,
 
       init: function(uri, properties) {
          this._traces = {};
@@ -33,6 +33,7 @@ var RadiantTrace;
       },
 
       destroy: function() {
+         this._destroyed = true;
          this._destroyAllTraces();
       },
 
@@ -182,12 +183,27 @@ var RadiantTrace;
          var pending = {};
          var eobj = Ember.Object.create();
          var ok_to_update = false;
+         var first_update = true;
+
+         var notify_updated_again = function() {           
+            if (!self._destroyed) {
+               deferred.notify(eobj);
+            }
+         };
 
          var notify_update = function() {
             if (ok_to_update && Object.keys(pending).length == 0) {
                self._log(level, 'notifying parent of progress!');
-               deferred.notify(eobj);
-               ok_to_update = false;
+               if (first_update) {
+                  // this is the first update.  push the change out immediately
+                  deferred.notify(eobj);
+                  first_update = false;
+               } else {
+                  // it's changed again!  schedule a notification near the top of
+                  // the runloop.  this will ensure we don't notify many many times
+                  // if lots of stuff deep in the hiearchary is changing.
+                  Ember.run.scheduleOnce('actions', this, notify_updated_again);
+               }
             } else {
                self._log(level, 'not yet notifying parent of progress!', 'ok_to_update:', ok_to_update, 'pending_object_keys', Object.keys(pending));
             }
