@@ -23,7 +23,7 @@
    "parent_job" : "stonehearth:jobs:worker", 
 
    "xp_rewards" : {
-      "base_exp_per_hit" : 20
+      "base_exp_per_hit" : 2
    },
 
    "max_level" : 6, 

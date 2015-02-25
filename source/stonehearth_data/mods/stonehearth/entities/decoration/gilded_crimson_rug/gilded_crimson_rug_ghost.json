@@ -1,0 +1,20 @@
+{
+   "components": {
+      "model_variants": {
+         "default": {
+            "models": [
+               "file(gilded_crimson_rug.qb)"
+            ]
+         }
+      },
+      "unit_info": {
+         "name": "Gilded Crimson Rug",
+         "description": "So regal",
+         "icon" : "file(gilded_crimson_rug.png)"
+      },
+      "mob" : {
+         "model_origin" : { "x": -0.05, "y": 0, "z": 0 },
+         "region_origin" : { "x": 0.5, "y": 0, "z": 0.5 }
+      }
+   }
+}
