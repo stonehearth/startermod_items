@@ -16,7 +16,7 @@
 
       "source_entity" : "npc_boss_entity",
 
-      "duration" : "1d",
+      "duration" : "1h",
 
       "nodes" : {
          "shakedown" : {
