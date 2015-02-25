@@ -174,7 +174,7 @@ void Client::OneTimeIninitializtion()
       BrowserRequestHandler(uri, query, postdata, response);
    });
 
-   browserResizeGuard_ = renderer.OnScreenResize([this](csg::Point2 const& r) {
+   browserResizeGuard_ = renderer.OnScreenResize([this](csg::Rect2 const& r) {
       browser_->OnScreenResize(r);
    });
 

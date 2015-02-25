@@ -47,6 +47,7 @@ void DebugShapesNode::renderFunc(std::string const& shaderContext, std::string c
    bool first = true;
    float old_line_width = 1.0f;
 
+   Modules::config().setGlobalShaderFlag("DRAW_WITH_INSTANCING", false);
    // Loop through debug shape queue
    for (const auto &entry : Modules::sceneMan().getRenderableQueue(SNT_DebugShapesNode)) {
       DebugShapesNode *debugShapes = (DebugShapesNode *)entry.node;

@@ -2,6 +2,14 @@
 // Common functionality between the save and load views
 App.StonehearthSaveLoadView = App.View.extend({
 
+   didInsertElement: function() {
+      this._super();
+
+      this.$('.saveList').on( 'click', '.row', function() {        
+         console.log($(this).attr('key'));
+      });
+   },
+
    getListView: function() {
       // a bit of a hack. grab the Ember View for the list from its element
       var viewEl = this.$('#saves').children()[0]
@@ -33,10 +41,6 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
             at: 'center center-150',
             of: '#modalOverlay'
          });
-
-      this.$('.saveList').on( 'click', '.row', function() {
-         console.log($(this).attr('key'));
-      });
    },
 
    actions: {
@@ -53,7 +57,13 @@ App.StonehearthSaveView = App.StonehearthSaveLoadView.extend({
                town_name: App.stonehearthClient.settlementName(),
                game_date: gameDate,
                game_time: gameTime,
-               time: d.toLocaleString()
+               timestamp: d.getTime(),
+               time: d.toLocaleString(),
+               jobs: {
+                  crafters: App.population.getNumCrafters(),
+                  workers: App.population.getNumWorkers(),
+                  soldiers: App.population.getNumSoldiers(),
+               }
             })
             .always(function() {
                self.refreshList();
@@ -170,10 +180,19 @@ App.StonehearthSaveListView = App.View.extend({
    templateName: 'saveList',
    classNames: [],
 
-   init: function() {
+   _updateSelectedScreenshot: function() {
       var self = this;
-      this._super();
-      this.refresh();
+      var currentScreenshot = undefined;
+
+      var selected = this.$('.selected');
+      if (selected) {
+         var key = selected.attr('key');
+         var saved_games = self.get('saved_games');
+         if (saved_games && key) {
+            currentScreenshot = saved_games[key].screenshot;
+         }
+      }
+      self.set('currentScreenshot', currentScreenshot);
    },
 
    didInsertElement: function() {
@@ -183,14 +202,16 @@ App.StonehearthSaveListView = App.View.extend({
       this.$().on( 'click', '.row', function() {
          self.$().find('.row').removeClass('selected');
          $(this).addClass('selected');
+         self._updateSelectedScreenshot();
       });
+      this.refresh();
    },
  
    refresh: function() {
       var self = this;
       radiant.call("radiant:client:get_save_games")
                .done(function(json) {
-                  self.set('saved_games', json)
+                  self.set('saved_games', json);
                });
    },
 
@@ -209,8 +230,8 @@ App.StonehearthSaveListView = App.View.extend({
 
       // sort by creation time
       vals.sort(function(a, b){
-         var keyA = a.key;
-         var keyB = b.key;
+         var keyA = a.timestamp ? a.timestamp : a.key;
+         var keyB = b.timestamp ? b.timestamp : b.key;
          // Compare the 2 keys
          if(keyA < keyB) return 1;
          if(keyA > keyB) return -1;
@@ -222,15 +243,6 @@ App.StonehearthSaveListView = App.View.extend({
 
    getSelectedKey: function() {
       return this.$().find('.selected').attr('key');
-   },
-
-   selectFirstItem: function() {
-      var firstItem = this.$('.saveList').find('.row')[0];
-      
-      if (firstItem) {
-         $(firstItem).addClass('selected');
-      }
-      
    },
 
 });

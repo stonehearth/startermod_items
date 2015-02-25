@@ -21,8 +21,9 @@ function WaitForNetWorthEncounter:start(ctx, info)
    self._timer = stonehearth.calendar:set_interval('1h', function()
          local score_data = stonehearth.score:get_scores_for_player(ctx.player_id)
                                     :get_score_data()
-         if not score_data then
-            self._log:info('no score data yet.')
+         if not score_data or not score_data.net_worth then
+            self._log:info('no net worth score data yet.')
+            return
          end
          local threshold = self._sv.threshold
          local total = score_data.net_worth.total_score

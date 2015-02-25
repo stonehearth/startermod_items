@@ -132,6 +132,41 @@
                bottom: 0px;
                content: url(./images/continue_banner.png);
             }
+
+            #jobs {
+               position: absolute;
+               top: 0px;
+               right: 6px;
+               width: 360px;
+
+               .counter {
+                  float: right;
+                  width: 70px;
+                  height: 70px;
+                  display: flex;
+
+                  div {
+                     font-family: @controlFontFamily;
+                     font-size: 32px;
+                     margin: auto;
+                  }
+               }
+
+               #workers {
+                  background: url(../../game/town/images/worker_count_bg.png);
+                  background-size: cover;
+               }
+
+               #crafters {
+                  background: url(../../game/town/images/crafter_count_bg.png);
+                  background-size: cover;
+               }
+
+               #soldiers {
+                  background: url(../../game/town/images/soldier_count_bg.png);
+                  background-size: cover;
+               }
+            }
          }
       }
 
