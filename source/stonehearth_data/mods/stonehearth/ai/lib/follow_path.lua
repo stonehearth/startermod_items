@@ -81,8 +81,13 @@ function FollowPath:_initialize_path(path)
    self._pursuing_index = self:_calculate_start_index()
    self._stop_index = self:_calculate_stop_index()
 
-   log:debug('%s following path: start_index: %d, stop_index: %d, num_points: %d',
-             self._entity, self._pursuing_index, self._stop_index, self._num_points)
+   local current_location = radiant.entities.get_world_grid_location(self._entity)
+   local first_point = self._points[self._pursuing_index]
+   local finish_point = self._points[self._stop_index]
+   log:debug('%s following path - current location: %s, first point: %s, finish point %s',
+             self._entity, current_location, first_point, finish_point)
+   log:detail('%s following path - start_index: %d, stop_index: %d, num_points: %d',
+              self._entity, self._pursuing_index, self._stop_index, self._num_points)
 end
 
 function FollowPath:_do_arrived()
