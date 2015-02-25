@@ -319,7 +319,11 @@ end
 function Shop:_get_item_cost(entity)
    assert(radiant.util.is_a(entity, Entity))
    local entity_uri, _, _ = entity_forms.get_uris(entity)
-   return radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth').value_in_gold
+   local net_worth = radiant.entities.get_entity_data(entity_uri, 'stonehearth:net_worth')
+   if not net_worth then
+      return 0
+   end
+   return net_worth.value_in_gold
 end
 
 function Shop:_get_category(entity)
